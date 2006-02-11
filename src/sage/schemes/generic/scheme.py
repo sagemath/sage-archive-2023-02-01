@@ -27,6 +27,8 @@ import homset
 
 import morphism
 
+import spec
+
 def is_Scheme(x):
     """
     Return True if $x$ is a scheme.
@@ -48,6 +50,12 @@ class Scheme(SageObject):
     """
     A scheme.
     """
+    def __init__(self,X):
+        if spec.is_Spec(X):
+            self._base_ring = X.coordinate_ring()
+        else:
+            self._base_scheme = X
+
     def __cmp__(self, X):
         if not isinstance(X, self.__class__):
             return -1
@@ -73,25 +81,25 @@ class Scheme(SageObject):
         return a point in $X(T)$, where $T$ is the base scheme of self.
 
         EXAMPLES:
-            sage: A = AffineSpace(2, Q)
+            sage: A = AffineSpace(2, QQ)
 
         We create some point sets:
-            sage: A(Q)
+            sage: A(QQ)
             Set of Rational Points of Affine Space of dimension 2 over Rational Field
             sage: A(RR)
-            Set of Rational Points of Affine Space of dimension 2 over Real Field
-            with 53 bits of precision
+            Set of Rational Points over Real Field with 53 bits of precision of Affine
+            Space of dimension 2 over Rational Field
             sage: A(NumberField(x^2+1))
-            Set of Rational Points of Affine Space of dimension 2 over Number Field
-            in a with defining polynomial x^2 + 1
+            Set of Rational Points over Number Field in a with defining polynomial x^2 + 1
+            of Affine Space of dimension 2 over Rational Field
             sage: A(GF(7))
             Traceback (most recent call last):
             ...
-            ValueError: No natural map from the base ring (=Rational Field)
-            to S (=Finite Field of size 7)
+            ValueError: There must be a natural map S --> R, but S = Rational Field and
+            R = Finite Field of size 7
 
         We create some points:
-            sage: A(Q)([1,0])
+            sage: A(QQ)([1,0])
             (1, 0)
 
         We create the same point by giving the coordinates of the point directly.
@@ -122,7 +130,7 @@ class Scheme(SageObject):
             self.__point_homset = {}
         except KeyError:
             pass
-        H = self._homset_class(self.base_extend(R))
+        H = self._homset_class(self,R)
         self.__point_homset[R] = H
         return H
 
@@ -239,16 +247,11 @@ class Scheme(SageObject):
         """
         return homset.SchemeHomset(self, Y, cat=cat, check=check)
 
-    def topological_point_set(self):
-        return point_set.SchemeTopologicalPointSet(self)
-
     def point_set(self, S):
         """
         Return the set of S-valued points of this scheme.
         """
-        return point_set.SchemePointSet(self, S)
-
-
+        return self.point_homset(S)
 
 def is_AffineScheme(x):
     """

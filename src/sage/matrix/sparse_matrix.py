@@ -1,17 +1,33 @@
 """
 Sparse matrices
 
-To create an m x n sparse matrix over a ring R, use the command
+EXAMPLES:
+    sage: M = MatrixSpace(QQ, 2, 3, sparse=True)
+    sage: A = M([1,2,3, 1,1,1])
+    sage: A
+    [1 2 3]
+    [1 1 1]
+    sage: A.echelon_form()
+    [ 1  0 -1]
+    [ 0  1  2]
 
-    SparseMatrix(base_ring, nrows, ncols, entries=[])
+    sage: M = MatrixSpace(QQ, 1000,1000, sparse=True)
+    sage: A = M(0)
+    sage: A[1,1] = 5
 
-where entries is a list of 3-tuples (i,j,x).  The matrix then has i,j
-entry equal to x.
 
-WARNING: The i,j pairs *must* be distinct.  The algorithms assume they
-are and if they are not, then you will get nonsense.
+    sage: from sage.matrix.sparse_matrix import SparseMatrix
+    sage: x = SparseMatrix(QQ, 5,10)
+    sage: x.randomize(5)
+    sage: x.echelon_form()       # random output
+    [
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 10/29,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, -4/29,
+    0, 0, 1, 0, 0, 0, 0, 0, 0, -12/29,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 24/29,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 4/29
+    ]
 """
-
 import random, weakref
 
 import sage.rings.arith as arith
@@ -684,8 +700,8 @@ class Sparse_matrix_generic(SparseMatrix):
 # in under 10 minutes.  And this computation uses only
 # about 50MB RAM!
 #
-# sage: Q = rational_field.RationalField()
-# sage: x = sparse_matrix.SparseMatrix(Q, 50000,100000)
+# sage: from sage.matrix.sparse_matrix import SparseMatrix
+# sage: x = SparseMatrix(Q, 50000,100000)
 # sage: x.randomize(3)
 # sage: set_verbose(2)
 # sage: time v=x.echelon_form(height_guess=1)

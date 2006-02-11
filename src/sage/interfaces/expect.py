@@ -109,6 +109,9 @@ class Expect(SageObject):
     def path(self):
         return self.__path
 
+    def _continuation_prompt(self):
+        return False
+
     def expect(self):
         if self._expect is None:
             self._start()
@@ -134,6 +137,12 @@ class Expect(SageObject):
         self._expect.interact()
         self._eval_line('')
         self._eval_line('')
+
+    def _pre_interact(self):
+        pass
+
+    def _post_interact(self):
+        pass
 
     def pid(self):
         if self._expect is None:
@@ -237,23 +246,32 @@ class Expect(SageObject):
                 self._start()
             E = self._expect
             try:
+                if len(line) >= 4096:
+                    raise RuntimeError, "Sending more than 4096 characters with %s on a line may cause a hang and you're sending %s characters"%(self, len(line))
                 E.sendline(line)
-                if not wait_for_prompt:
+                if wait_for_prompt == False:
                     return ''
+
             except OSError:
                 return RuntimeError, "Error evaluating %s in %s"%(line, self)
+
             if len(line)>0:
                 try:
-                    E.expect(self._prompt)
+                    if isinstance(wait_for_prompt, str):
+                        E.expect(wait_for_prompt)
+                    else:
+                        E.expect(self._prompt)
                 except pexpect.EOF, msg:
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    print "** %s crashed or quit executing '%s' **"%(self, line)
-                    print "Restarting %s and trying again"%self
+                    #print "** %s crashed or quit executing '%s' **"%(self, line)
+                    #print "Restarting %s and trying again"%self
                     self._start()
                     if line != '':
-                        return self._eval_line(line, allow_use_file=allow_use_file)
+                        return self._eval_line(line,
+                                               allow_use_file  = allow_use_file,
+                                               wait_for_prompt = wait_for_prompt)
                     else:
                         return ''
                     #raise RuntimeError, "%s crashed executing %s"%(self, line)
@@ -391,8 +409,12 @@ class Expect(SageObject):
 
     def _create(self, value):
         name = self._next_var_name()
+        #self._last_name = name
         self.set(name, value)
         return name
+
+    #def _last_created_varname(self):
+    #    return self._last_name
 
     def _object_class(self):
         return ExpectElement
@@ -464,7 +486,7 @@ class ExpectElement(Element_cmp_, RingElement):
         self._create = value
         if parent is None: return     # means "invalid element"
         if isinstance(value, str) and parent._eval_using_file_cutoff and \
-           parent._eval_using_file_cutoff > len(value):
+           parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 
         if is_name:

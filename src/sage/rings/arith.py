@@ -1552,15 +1552,39 @@ def partitions(n):
         if p and (len(p) < 2 or p[1] > p[0]):
             yield (p[0] + 1,) + p[1:]
 
-def continued_fraction(x):
-    """
-    Returns the continued fraction of x computed using PARI.
+def continued_fraction(x, partial_convergents=False):
+    r"""
+    Returns the continued fraction of x.
 
-    (This is currently nearly useless when x is a \sage real number
-    because of precision loss in conversion to PARI.  It works fine
-    for rational numbers.)
+    \begin{note}
+    This may be slow since it's implemented in pure
+    Python for real input.  For rational number input the PARI C
+    library is used.
+    \end{note}
     """
-    return pari(x).contfrac().python()
+    if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
+                      int, long)):
+        return pari(x).contfrac().python()
+    v = []
+    w = [(0,1), (1,0)] # keep track of convergents
+    start = x
+    i = 0
+    while True:
+        i += 1
+        a = sage.rings.integer.Integer(int(x.floor()))
+        v.append(a)
+        n = len(v)-1
+        pn = v[n]*w[n+1][0] + w[n][0]
+        qn = v[n]*w[n+1][1] + w[n][1]
+        w.append((pn, qn))
+        x -= a
+        if abs(start - pn/qn) == 0:
+            del w[0]; del w[0]
+            if partial_convergents:
+                return v, w
+            else:
+                return v
+        x = 1/x
 
 def convergent(v, n):
     """

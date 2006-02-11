@@ -46,11 +46,11 @@ from quotient_ring import QuotientRing
 from infinity import infinity, is_Infinity
 
 # Rational integers.
-from integer_ring import IntegerRing, Z, crt_basis
+from integer_ring import IntegerRing, ZZ, Z, crt_basis
 from integer import Integer
 
 # Rational numbers
-from rational_field import RationalField, Q, is_RationalField
+from rational_field import RationalField, QQ, Q, is_RationalField
 from rational import Rational
 Rationals = RationalField
 
@@ -86,7 +86,7 @@ Complexes = ComplexField
 
 # Univariate Polynomial Rings
 from polynomial_ring import PolynomialRing, polygen, is_PolynomialRing
-from polynomial_element import Polynomial
+from polynomial_element import Polynomial, is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder

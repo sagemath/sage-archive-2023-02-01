@@ -86,7 +86,7 @@ class Magma(Expect):
     def __init__(self, maxread=10000, script_subdirectory="user", logfile=None, server=None):
         Expect.__init__(self,
                         name = "magma",
-                        prompt = ">",
+                        prompt = ">>SAGE>>",
                         command = "magma -b -n",
                         maxread = maxread,
                         server = server,
@@ -104,6 +104,9 @@ class Magma(Expect):
 
     def _read_in_file_command(self, filename):
         return 'load "%s";'%filename
+
+    def _continuation_prompt(self):
+        return self._prompt
 
     def eval(self, x):
         x = str(x).rstrip()

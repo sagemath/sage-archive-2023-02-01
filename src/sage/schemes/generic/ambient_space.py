@@ -93,17 +93,14 @@ class AmbientSpace(scheme.Scheme, Generators):
     # Associated MPolynomial ring generators
     ######################################################################
 
-    def ngens(self):
-        return self.__n
-
     def gen(self, n=0):
         return self.coordinate_ring().gen(n)
 
     def gens(self):
         return self.coordinate_ring().gens()
 
-    def degree(self):
-        return self.__n
+    def ngens(self):
+        return self.coordinate_ring().ngens()
 
     def assign_names(self, names=None):
         """

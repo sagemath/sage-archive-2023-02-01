@@ -17,8 +17,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import copy
-
 from sage.interfaces.all import singular
 from sage.misc.all import add, sage_eval
 from sage.rings.all import (MPolynomial, MPolynomialRing,
@@ -138,8 +136,6 @@ class ProjectiveCurve_generic(Curve_generic_projective):
                   [2 + t, 3 + 3*t^2 + t^3 + 3*t^4 + 3*t^6 + 3*t^7 + t^8 + 2*t^9 + 3*t^11 + 3*t^12]
         """
 
-        # TODO: This is broken.
-
         f = self.defining_polynomial()
         R = f.parent()
         F = self.base_ring()
@@ -190,7 +186,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
 
 
 class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
-    def rational_points(self, algorithm="enum"):
+    def rational_points(self, algorithm="enum", sort=True):
         r"""
         Return the rational points on this curve computed via
         enumeration.
@@ -215,12 +211,13 @@ class ProjectiveCurve_finite_field(ProjectiveCurve_generic):
         # Point with z = 0 and x = 0:
         if g(0, 1, 0) == 0:
             points.append(self(0,1,0))
-        points.sort()
+        if sort:
+            points.sort()
         return points
 
 
 class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
-    def _points_via_singular(self, sorted=True):
+    def _points_via_singular(self, sort=True):
         r"""
         Return all rational points on this curve, computed using
         Singular's Brill-Noether implementation.
@@ -238,7 +235,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             Projective Curve over Finite Field of size 5 defined by y^2*z^7 + 4*x*z^8 + 4*x^9
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
-            sage: v = C._points_via_singular(sorted)
+            sage: v = C._points_via_singular(sort=True)
             sage: v                                       # output is in random order
             [(0 : 1 : 0), (3 : 4 : 1), (2 : 2 : 1), (3 : 1 : 1), (0 : 0 : 1), (2 : 3 : 1)]
 
@@ -286,12 +283,15 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
                     order computed by Singular.
 
         EXAMPLE:
-            sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
+            sage: x, y, z = MPolynomialRing(GF(2), 3, 'xyz').gens()
             sage: f = x^3*y + y^3*z + x*z^3
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (4, pts[0]), (0,pts[1]), (4, pts[2]) ])
             sage: C.riemann_roch_basis(D)
             [x/y, 1, z/y, z^2/y^2, z/x, z^2/x*y]
+
+        The following example illustrates that the Riemann-Roch space
+        function in Singular doesn't \emph{not} work correctly.
 
             sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = x^7 + y^7 + z^7
@@ -300,8 +300,8 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: C.riemann_roch_basis(D)    # output is random (!!!!)
             [x/(y + x), (z + y)/(y + x)]
 
-        \note{The Brill-Noether package does not always work (i.e.,
-        the 'bn' algorithm.  Do *not* trust this.}
+        The answer has dimension 2 (confirmed via Magma).  But it
+        varies between 1 and quite large with Singular.
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()
@@ -338,7 +338,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         V = [(sage_eval(a, vars)/sage_eval(b, vars)) for a, b in LG]
         return V
 
-    def rational_points(self, algorithm="enum", sorted=True):
+    def rational_points(self, algorithm="enum", sort=True):
         r"""
         INPUT:
             algorithm -- string:
@@ -361,11 +361,11 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
         """
         if algorithm == "enum":
 
-            return ProjectiveCurve_finite_field.rational_points(self, algorithm="enum")
+            return ProjectiveCurve_finite_field.rational_points(self, algorithm="enum", sort=sort)
 
         elif algorithm == "bn":
 
-            return self._points_via_singular(sorted)
+            return self._points_via_singular(sort=sort)
 
         elif algorithm == "all":
 

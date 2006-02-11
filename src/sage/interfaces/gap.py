@@ -7,6 +7,7 @@ extensive group theory, combinatorics, etc.
 The GAP interface will only work if GAP is installed on your
 computer; this should be the case, since GAP is included with
 \sage.  The interface offers three pieces of functionality:
+
 \begin{enumerate}
 \item \code{gap_console()} -- A function that dumps you
 into an interactive command-line GAP session.
@@ -15,7 +16,7 @@ into an interactive command-line GAP session.
 expressions, with the result returned as a string.
 
 \item \code{gap.new(expr)} -- Creation of a \sage object that wraps a
-GAP object.  This provides a Pythonic interface to GAP.  For example,
+AP object.  This provides a Pythonic interface to GAP.  For example,
 if \code{f=gap.new(10)}, then \code{f.Factors()} returns the prime
 factorization of $10$ computed using GAP.
 
@@ -109,6 +110,15 @@ is much less robust, and is not recommended.}
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = gap(t)
 
+
+\subsection{Changing which GAP is used}
+Use this code to change which GAP interpreter is
+run.   E.g.,
+\begin{verbatim}
+   import sage.interfaces.gap
+   sage.interfaces.gap.gap_cmd = "/usr/local/bin/gap"
+\end{verbatim}
+
 AUTHORS:
     -- David Joyner and William Stein; initial version(s)
     -- William Stein (2006-02-01): modified gap_console command
@@ -131,17 +141,22 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from expect import Expect, ExpectElement
+from expect import Expect, ExpectElement, tmp
 from sage.misc.misc import SAGE_ROOT, is_64_bit
+from IPython.genutils import page
+import re
 import os
+import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/tmp/gap-workspace"%SAGE_ROOT
 
+gap_cmd = "gap"
+
 def gap_command(use_workspace_cache=True):
     if use_workspace_cache and os.path.exists(WORKSPACE):
-        return "gap -L %s"%WORKSPACE, False
+        return "%s -L %s"%(gap_cmd, WORKSPACE), False
     else:
-        return "gap ", True
+        return gap_cmd, True
 
 
 class Gap(Expect):
@@ -158,7 +173,7 @@ class Gap(Expect):
 
         self.__use_workspace_cache = use_workspace_cache
         cmd, self.__make_workspace = gap_command(use_workspace_cache)
-        cmd += ' -T -n -b '
+        cmd += " -b -p -T"
         if max_workspace_size != None:
             cmd += " -o %s"%int(max_workspace_size)
         else: # unlimited
@@ -166,7 +181,7 @@ class Gap(Expect):
                 cmd += " -o 9999G"
             else:
                 cmd += " -o 3900m"
-
+        cmd += " %s/extcode/gap/sage.g"%DB_HOME
         Expect.__init__(self,
                         name = 'gap',
                         prompt = 'gap> ',
@@ -178,7 +193,6 @@ class Gap(Expect):
                         verbose_start = False,
                         logfile = logfile,
                         eval_using_file_cutoff=100)
-
         self.__seq = 0
 
     def __reduce__(self):
@@ -192,32 +206,23 @@ class Gap(Expect):
             v = self._available_vars[0]
             del self._available_vars[0]
             return v
-        if self.__seq == 0:
-            self.eval('sage := [ ];')
+        #if self.__seq == 0:
+        #    self.eval('sage := [ ];')
         self.__seq += 1
-        return 'sage[%s]'%self.__seq
+        return '$sage%s'%self.__seq
 
-    #def _read_in_file_command(self, filename):
-    #    return 'EvalString(ReadAll(InputTextFile("%s")));'%filename
-        #return 'Read(InputTextFile("%s"));'%filename
+    def _read_in_file_command(self, filename):
+        return 'Read("%s");'%filename
 
-    def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
-        F.write(line)
-        F.close()
-        return self._eval_line('Read(InputTextFile("%s"));'%tmp,
-                               allow_use_file=False)
 
-    # Change the default for Gap, since eval using a file doesn't
-    # work except for setting variables.
-    def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True):
-        return Expect._eval_line(self, line, allow_use_file=allow_use_file,
-                                 wait_for_prompt=wait_for_prompt)
 
     def _start(self):
         Expect._start(self, "Failed to start GAP.  One possible reason for this is that your gap workspace may be corrupted.  Perhaps remove %s/tmp/gap-workspace"%SAGE_ROOT)
         if self.__use_workspace_cache and self.__make_workspace:
             self.eval('SaveWorkspace("%s");'%WORKSPACE)
+
+    def _continuation_prompt(self):
+        return '> '
 
     def load_package(self, pkg, verbose=False):
         """
@@ -241,7 +246,7 @@ class Gap(Expect):
                       backslash-newlines inserted by the GAP output formatter.
         """
         # newlines cause hang (i.e., error but no gap> prompt!)
-        x = str(x).rstrip().replace('\n',' ')
+        x = str(x).rstrip().replace('\n','')
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
         s = Expect.eval(self, x)
@@ -252,11 +257,19 @@ class Gap(Expect):
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?
-    #def help(self, s):
-    #    """
-    #    Print help on a given topic.#
-    #    """
-    #    print Expect.eval(self, "? %s"%s)
+    def help(self, s):
+        """
+        Print help on a given topic.
+        """
+        self.eval('$SAGE.tempfile := "%s";'%tmp)
+        line = Expect.eval(self, "? %s"%s)
+        match = re.search("Page from (\d+)", line)
+        if match == None:
+            print line
+        else:
+            (sline,) = match.groups()
+            F = open(tmp,"r")
+            page(F.read(),start = int(sline)-1)
 
     def set(self, var, value):
         """
@@ -265,16 +278,142 @@ class Gap(Expect):
         cmd = ('%s:=%s;;'%(var,value)).replace('\n','')
         #out = self.eval(cmd)
         out = self._eval_line(cmd, allow_use_file=True)
-        if out.lower().find('error') != -1:
-            raise TypeError, "Error executing code in GAP\nCODE:\n\t%s\nGAP ERROR:\n\t%s"%(cmd, out)
+        #if out.lower().find('error') != -1:
+        #    raise TypeError, "Error executing code in GAP\nCODE:\n\t%s\nGAP ERROR:\n\t%s"%(cmd, out)
 
 
     def get(self, var):
         """
         Get the value of the variable var.
         """
-        # TODO: Steve Linton says -- use "Print()".
         return self.eval('%s;'%var, newlines=False)
+
+    def _pre_interact(self):
+        self._eval_line("$SAGE.StartInteract();")
+
+    def _post_interact(self):
+        self._eval_line("$SAGE.StopInteract();")
+
+    def _execute_line(self, line, wait_for_prompt=True, expect_eof=False):
+        E = self._expect
+        try:
+            if len(line) > 4095:
+                raise RuntimeError,"Passing commands this long to gap would hang"
+            E.sendline(line)
+        except OSError:
+            return RuntimeError, "Error evaluating %s in %s"%(line, self)
+        if wait_for_prompt == False:
+            return ('','')
+        if len(line)==0:
+            return ('','')
+        try:
+            E.expect("\r\n") # seems to be necessary to skip TWO echoes
+            E.expect("\r\n") # one from the pty and one from GAP, I guess
+            normal_outputs = []
+            error_outputs = []
+            current_outputs = normal_outputs
+            while True:
+                x = E.expect(['@p\d+\.','@@','@[A-Z]','@[123456!"#$%&].*\+',
+                              '@e','@c','@f','@h','@i','@m','@n','@r','@s\d','@w.*\+',
+                              '@x','@z'])
+                current_outputs.append(E.before)
+                if x == 0:   # @p
+                    if E.after != '@p1.':
+                        print "Warning: possibly wrong version of GAP package interface\n"
+                        print "Crossing fingers and continuing\n"
+                elif x == 1: #@@
+                    current_outputs.append('@')
+                elif x == 2: #special char
+                    current_outputs.append(chr(ord(E.after[1:2])-ord('A')+1))
+                elif x == 3: # garbage collection info, ignore
+                    pass
+                elif x == 4: # @e -- break loop
+                    E.sendline(" ")
+                    #E.expect("\r\n")
+                    #E.expect("\r\n")
+                elif x == 5: # @c completion, doesn't seem to happen when -p is in use
+                    print "I didn't think GAP could do this\n"
+                elif x == 6: # @f GAP error message
+                    current_outputs = error_outputs;
+                elif x == 7: # @h help text, but this stopped happening with new help
+                    print "I didn't think GAP could do this"
+                elif x == 8: # @i awaiting normal input
+                    break;
+                elif x == 9: # @m finished running a child
+                             # not generated in GAP 4
+                    print "Warning: this should never happen"
+                elif x==10: #@n normal output line
+                    current_outputs = normal_outputs;
+                elif x==11: #@r echoing input
+                    E.expect('@J')
+                elif x==12: #@sN shouldn't happen
+                    print "Warning: this should never happen"
+                elif x==13: #@w GAP is trying to send a Window command
+                    print "Warning: this should never happen"
+                elif x ==14: #@x seems to be safely ignorable
+                    pass
+                elif x == 15:#@z GAP starting a subprocess
+                             # actually not used
+                        print "Warning: this should never happen"
+        except pexpect.EOF:
+            if not expect_eof:
+                raise RuntimeError, "Unexpected EOF from %s executing %s"%(self,line)
+        except IOError:
+            raise RuntimeError, "IO Error from %s executing %s"%(self,line)
+        return ("".join(normal_outputs),"".join(error_outputs))
+
+    def _keyboard_interrupt(self):
+        print "Interrupting %s..."%self
+        os.killpg(self._expect.pid, 2)
+        raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+
+    def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True):
+        #if line.find('\n') != -1:
+        #    raise ValueError, "line must not contain any newlines"
+        try:
+            if self._expect is None:
+                self._start()
+            E = self._expect
+            #import pdb; pdb.set_trace()
+            if allow_use_file and len(line) > self._eval_using_file_cutoff:
+                return self._eval_line_using_file(line, tmp)
+
+            try:
+                (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
+                                                 expect_eof= (self._quit_string() in line))
+
+                if len(error)> 0:
+                    raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
+                if len(normal) == 0:
+                    return ''
+
+                if isinstance(wait_for_prompt, str):
+                    n = len(wait_for_prompt)
+                else:
+                    n = len(self._prompt)
+                out = normal[:-n]
+                if len(out) > 0 and out[-1] == "\n":
+                    out = out[:-1]
+                return out
+
+            except (RuntimeError,),message:
+                if 'EOF' in message:
+                    print "** %s crashed or quit executing '%s' **"%(self, line)
+                    print "Restarting %s and trying again"%self
+                    self._start()
+                    if line != '':
+                        return self._eval_line(line, allow_use_file=allow_use_file)
+                    else:
+                        return ''
+                else:
+                    raise RuntimeError, message
+
+        except KeyboardInterrupt:
+            self._keyboard_interrupt()
+            raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
+#        i = out.find("\n")
+#        j = out.rfind("\r")
+#        return out[i+1:j].replace('\r\n','\n')
 
     #def clear(self, var):
         #"""
@@ -306,6 +445,8 @@ class Gap(Expect):
 
     def _object_class(self):
         return GapElement
+
+
 
 
 ############
@@ -344,7 +485,7 @@ class GapElement(ExpectElement):
     def __repr__(self):
         s = ExpectElement.__repr__(self)
         if s.find('must have a value') != -1:
-            raise RuntimeError, "An error occured creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._create, s)
+            raise RuntimeError, "An error occured creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._createu, s)
         return s
 
     def __len__(self):
@@ -408,6 +549,8 @@ class GapElement(ExpectElement):
             M.append(rows)
         MS = MatrixSpace(F,m,n)
         return MS(M)
+
+
 
 
 

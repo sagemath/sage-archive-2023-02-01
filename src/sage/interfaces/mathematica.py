@@ -168,6 +168,28 @@ in a robust manner.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = mathematica(t)
     sage: a = mathematica.eval(t)
+
+\subsection{Loading and saving}
+Mathematica has an excellent \code{InputForm} function, which makes
+saving and loading Mathematica objects possible.  The first
+examples test saving and loading to strings.
+
+    sage: x = mathematica(pi/2)
+    sage: x
+    Pi/2
+    sage: loads(dumps(x)) == x
+    True
+    sage: n = x.N(50)
+    sage: n
+    1.5707963267948966192313216916397514420985846996875529104874722962622
+    sage: loads(dumps(n)) == n
+    True
+
+This example illustrates saving to a file in the local directory
+and to one in the \sage database directory.
+
+    sage.: n.save('n')
+    sage.: n.db('n')
 """
 
 #*****************************************************************************
@@ -196,18 +218,9 @@ def clean_output(s):
         return ''
     i = s.find('Out[')
     j = i + s[i:].find('=')
-    s = s[:i] + '\n       ' + s[j+1:]
-    p = s.split()
-    if len(p) == 1:
-        return p[0]
-    s = s.strip('\n')
-    if len(s.split('\n')) == 1:
-        s = s.strip()
-    else:
-        s = s.replace('\n\n','\n')
-    s = s.replace('\\\n \n>    ','')
-    return s.rstrip()
-
+    s = s[:i] + s[j+1:]
+    s = s.replace('\\\n','')
+    return s.strip()
 
 class Mathematica(Expect):
     """
@@ -271,7 +284,7 @@ class Mathematica(Expect):
            -- William Stein
            -- Kiran Kedlaya (2006-02-04): suggested using InputForm
         """
-        return self.eval('InputForm[%s]'%var, strip=True)
+        return self.eval('InputForm[%s, NumberMarks->False]'%var, strip=True)
 
     #def clear(self, var):
     #    """
@@ -298,6 +311,12 @@ class Mathematica(Expect):
     def _right_list_delim(self):
         return "}"
 
+    def _true_symbol(self):
+        return 'True'
+
+    def _false_symbol(self):
+        return 'False'
+
     def _object_class(self):
         return MathematicaElement
 
@@ -314,9 +333,22 @@ class MathematicaElement(ExpectElement):
         # TODO: Is 16 enough?
         return float(P.eval('N[%s,16]'%self.name()))
 
+    def _reduce(self):
+        return self.parent().eval('InputForm[%s]'%self.name())
+
+    def __reduce__(self):
+        return reduce_load, (self._reduce(), )
+
+    def _latex_(self):
+        z = self.parent().eval('TeXForm[%s]'%self.name())
+        i = z.find('=')
+        return z[i+1:]
 
 # An instance
 mathematica = Mathematica(script_subdirectory='user')
+
+def reduce_load(X):
+    return mathematica(X)
 
 # Cleverly run Mathematica with the benefit of readline, which
 # is something the usual commerical mathematica doesn't provide!

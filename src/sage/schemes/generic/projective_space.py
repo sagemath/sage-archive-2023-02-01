@@ -49,10 +49,13 @@ For example, we use $x,y,z$ to define the intersection of two lines.
 
 from sage.rings.all import (MPolynomialRing,
                             is_Field,
+                            is_FiniteField,
+                            is_RationalField,
                             is_Ring,
                             is_CommutativeRing,
                             is_MPolynomialRing,
                             Z)
+from sage.modules.all import VectorSpace
 
 from sage.misc.all import latex
 
@@ -74,9 +77,9 @@ def ProjectiveSpace(n, R=None, names=None):
     The dimension and ring can be given in either order.
         sage: ProjectiveSpace(3, QQ)
         Projective Space of dimension 3 over Rational Field
-        sage: ProjectiveSpace(QQ, 5)
+        sage: ProjectiveSpace(5, QQ)
         Projective Space of dimension 5 over Rational Field
-        sage: P = ProjectiveSpace(QQ, 2, names='XYZ'); P
+        sage: P = ProjectiveSpace(2, QQ, names='XYZ'); P
         Projective Space of dimension 2 over Rational Field
         sage: P.coordinate_ring()
         Polynomial Ring in X, Y, Z over Rational Field
@@ -103,18 +106,19 @@ def ProjectiveSpace(n, R=None, names=None):
     Projective spaces are not cached, i.e., there can be several with the
     same base ring and dimension (to facilitate glueing constructions).
     """
-
-    if is_Ring(n):
-        if R is None and is_MPolynomialRing(n):
-            A = ProjectiveSpace(n.ngens()-1, n.base_ring())
-            A._coordinate_ring = n
-            return A
-        (n, R) = (R, n)   # swap
-
+    if is_MPolynomialRing(n) and R is None:
+        A = ProjectiveSpace(n.ngens()-1, n.base_ring())
+        A._coordinate_ring = n
+        return A
     if R is None:
         R = Z  # default is the integers
     if is_Field(R):
-        return ProjectiveSpace_field(n, R, names)
+        if is_FiniteField(R):
+            return ProjectiveSpace_finite_field(n, R, names)
+        if is_RationalField(R):
+            return ProjectiveSpace_rational_field(n, R, names)
+        else:
+            return ProjectiveSpace_field(n, R, names)
     elif is_CommutativeRing(R):
         return ProjectiveSpace_ring(n, R, names)
     else:
@@ -248,6 +252,9 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         """
         return algebraic_scheme.AlgebraicScheme_subscheme_projective(self, X)
 
+    def subscheme_complement(self, X, Y):
+        return algebraic_scheme.AlgebraicScheme_quasi(self, X, Y)
+
     def affine_patch(self, i):
         r"""
         Return the $i$-th affine patch of this projective space.  This
@@ -262,17 +269,17 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             an ambient affine space with fixed projective_embedding map.
 
         EXAMPLES:
-            sage: P = ProjectiveSpace(5) / QQ
-            sage: A = P.affine_patch(2)
-            sage: A
+            sage: PP = ProjectiveSpace(5) / QQ
+            sage: AA = PP.affine_patch(2)
+            sage: AA
             Affine Space of dimension 5 over Rational Field
-            sage: A.projective_embedding()
+            sage: AA.projective_embedding()
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
               Defn: Defined on coordinates by sending (x_0, x_1, x_2, x_3, x_4) to
-                    (x_0 : x_1 : x_2 : x_3 : x_4 : 1)
-            sage: A.projective_embedding(0)
+                    (x_0 : x_1 : 1 : x_2 : x_3 : x_4)
+            sage: AA.projective_embedding(0)
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
@@ -289,7 +296,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             self.__affine_patches = {}
         except KeyError:
             pass
-        AA = affine_space.AffineSpace(self.base_ring(), n)
+        AA = affine_space.AffineSpace(n, self.base_ring())
+        AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA
         return AA
@@ -303,3 +311,124 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         return morphism.SchemeMorphism_projective_coordinates_field(*args, **kwds)
 
 
+class ProjectiveSpace_finite_field(ProjectiveSpace_field):
+    def __iter__(self):
+        r"""
+        Return iterator over the elements of this projective space.
+
+        Note that iteration is over the decomposition $\PP^n = \AA^n \cup \PP^n-1$,
+        where $\AA^n$ is the $n$-th affine patch and $\PP^n-1$ is the hyperplane at
+        infinity $x_n = 0$.
+
+        EXAMPLES:
+            sage: FF = FiniteField(3)
+            sage: PP = ProjectiveSpace(0,FF)
+            sage: [ x for x in PP ]
+            [(1)]
+            sage: PP = ProjectiveSpace(1,FF)
+            sage: [ x for x in PP ]
+            [(0 : 1), (1 : 1), (2 : 1), (1 : 0)]
+            sage: PP = ProjectiveSpace(2,FF)
+            sage: [ x for x in PP ]
+            [(0 : 0 : 1),
+             (1 : 0 : 1),
+             (2 : 0 : 1),
+             (0 : 1 : 1),
+             (1 : 1 : 1),
+             (2 : 1 : 1),
+             (0 : 2 : 1),
+             (1 : 2 : 1),
+             (2 : 2 : 1),
+             (0 : 1 : 0),
+             (1 : 1 : 0),
+             (2 : 1 : 0),
+             (1 : 0 : 0)]
+
+        AUTHOR: David Kohel <kohel@maths.usyd.edu.au>
+
+        TODO: Iteration for point sets over finite fields, and return
+        of iter of point set over base field.  Note that the point set
+        does not know whether this is a projective space or subscheme.
+        """
+        n = self.dimension()
+        R = self.base_ring()
+        zero = R(0)
+        i = n
+        while not i < 0:
+            P = [ zero for _ in range(i) ] + [ R(1) ] + [ zero for _ in range(n-i) ]
+            yield self(P)
+            iters = [ iter(R) for _ in range(i) ]
+            for x in iters: x.next() # put at zero
+            j = 0
+            while j < i:
+                try:
+                    P[j] = iters[j].next()
+                    yield self(P)
+                    j = 0
+                except StopIteration:
+                    iters[j] = iter(R)  # reset
+                    iters[j].next() # put at zero
+                    P[j] = zero
+                    j += 1
+            i -= 1
+
+    def rational_points(self, F=None):
+        if F == None:
+            if not is_FiniteField(self.base_ring()):
+                raise TypeError, "Base ring (= %s) must be a finite field."%self.base_ring()
+            return [ P for P in self ]
+        elif not is_FiniteField(F):
+            raise TypeError, "Second argument (= %s) must be a finite field."%F
+        raise NotImplementedError, \
+              "Note implemented for extensions of the finite field."
+        return [ P for P in self(F) ]
+
+class ProjectiveSpace_rational_field(ProjectiveSpace_field):
+    def rational_points(self, bound=0):
+        r"""
+        Returns the projective points $(x_0:\cdots:x_n)$ over $\Q$
+        with $|x_i| \leq$ bound.
+
+        INPUT:
+            bound -- integer
+
+        EXAMPLES:
+            sage: PP = ProjectiveSpace(0,QQ)
+            sage: PP.rational_points(1)
+            [(1)]
+            sage: PP = ProjectiveSpace(1,QQ)
+            sage: PP.rational_points(2)
+            [(0 : 1), (-2 : 1), (-1 : 1), (-1/2 : 1), (0 : 1), (1 : 1), (1/2 : 1), (2 : 1), (1 : 0)]
+        """
+        if not bound > 0:
+            raise ValueError, \
+                  "Argument bound (= %s) must be a positive integer."
+        n = self.dimension()
+        R = [ k-bound for k in range(2*bound+1) ]
+        Q = [ k+1 for k in range(bound) ]
+        pts = []
+        i = int(n)
+        while not i < 0:
+            P = [ 0 for _ in range(n+1) ]; P[i] = 1
+            m = Z(0)
+            pts.append(self(P))
+            iters = [ iter(R) for _ in range(i) ]
+            j = 0
+            while j < i:
+                try:
+                    aj = Z(iters[j].next())
+                    m = m.gcd(aj)
+                    P[j] = aj
+                    for ai in Q:
+                        P[i] = ai
+                        if m.gcd(ai) == 1:
+                            pts.append(self(P))
+                    j = 0
+                    m = Z(0)
+                except StopIteration:
+                    iters[j] = iter(R)  # reset
+                    iters[j].next() # put at zero
+                    P[j] = 0
+                    j += 1
+            i -= 1
+        return pts

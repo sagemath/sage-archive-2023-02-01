@@ -174,8 +174,8 @@ cdef class Generators(sage_object.SageObject):
            return self.__gens
 
     def gens_dict(self):
-        """
-        Return a dictionary whose entries are var_name:variable.
+        r"""
+        Return a dictionary whose entries are \code{var_name:variable}.
         """
         try:
             return self.__gens_dict

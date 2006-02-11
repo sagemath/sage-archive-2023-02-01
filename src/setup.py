@@ -24,8 +24,10 @@ else:
     SAGE_VERSION = os.environ['SAGE_VERSION']
 
 SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
+
 if not os.path.exists(SITE_PACKAGES):
-    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
+    SITE_PACKAGES=None
+    #raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
 ec =    Extension('sage.libs.ec.ec',
               sources = ["sage/libs/ec/ec.pyx"] +  \
@@ -192,7 +194,7 @@ if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
 if DEVEL:
     extra_compile_args.append('-ggdb')
     ext_modules.append(hanke)
-    ext_modules.append(mpc)
+    #ext_modules.append(mpc)
 
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
@@ -249,10 +251,11 @@ def process_pyrexembed_file(f):
 
 def process_pyrex_file(f):
     # This is a pyrex file, so process accordingly.
-    pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-    if need_to_create(f, pyx_inst_file):
-        print "%s --> %s"%(f, pyx_inst_file)
-        os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+    if SITE_PACKAGES:
+        pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
+        if need_to_create(f, pyx_inst_file):
+            print "%s --> %s"%(f, pyx_inst_file)
+            os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
     c_file = f[:-4] + ".c"
     if need_to_create(f, c_file):
         cmd = "pyrexc %s"%f
@@ -368,6 +371,7 @@ setup(name        = 'sage',
                      'sage.schemes.generic',
                      'sage.schemes.jacobians',
                      'sage.schemes.plane_curves',
+                     'sage.schemes.plane_quartics',
                      'sage.schemes.elliptic_curves',
                      'sage.schemes.hyperelliptic_curves',
 

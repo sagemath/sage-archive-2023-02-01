@@ -1,14 +1,13 @@
 """
 Scheme morphism
+
+AUTHORS: David Kohel, William Stein
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
-#
+#  Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
+#  Copyright (C) 2006 William Stein <wstein@ucsd.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
@@ -19,6 +18,8 @@ from sage.categories.morphism import Morphism
 from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing
 
 from point                    import is_SchemeTopologicalPoint
+
+import scheme
 
 import spec
 
@@ -230,8 +231,8 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
             if not isinstance(polys, (list, tuple)):
                 raise TypeError, "polys (=%s) must be a list or tuple"%polys
             polys = Sequence(polys)
-            if len(polys) != parent.codomain().dimension() + 1:
-                raise ValueError, "there must be %s polynomials"%parent.codomain().dimension()
+            if len(polys) != parent.codomain().ngens():
+                raise ValueError, "there must be %s polynomials"%parent.codomain().ngens()
             polys.set_immutable()
         self.__polys = polys
         SchemeMorphism_on_points.__init__(self, parent)
@@ -283,15 +284,24 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
         (1, 2)
     """
     def __init__(self, X, v, check=True):
-        SchemeMorphism.__init__(self, X.point_homset())
+        if scheme.is_Scheme(X):
+            X = X(X.base_ring())
+        SchemeMorphism.__init__(self, X)
         if check:
             # Verify that there are the right number of coords
-            if len(v) != X.degree():
-                raise TypeError, "v (=%s) must have %s components"%(v, X.degree())
+            d = X.codomain().ambient_space().ngens()
+            if len(v) != d:
+                raise TypeError, \
+                      "Argument v (=%s) must have %s coordinates."%(v, d)
+            if is_SchemeMorphism(v):
+                v = list(v)
+            if not isinstance(v,(list,tuple)):
+                raise TypeError, \
+                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
             # Make sure the coordinates all lie in the appropriate ring
-            v = Sequence(v, X.base_ring())
+            v = Sequence(v, X.value_ring())
             # Verify that the point satisfies the equations of X.
-            X._check_satisfies_equations(v)
+            X.codomain()._check_satisfies_equations(v)
         self._coords = v
 
 
@@ -318,13 +328,21 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
         (0.40000000000000002 : 0.59999999999999998 : 0.80000000000000004 : 1.0000000000000000)
     """
     def __init__(self, X, v, check=True):
-        SchemeMorphism.__init__(self, X.point_homset())
+        if scheme.is_Scheme(X):
+            X = X(X.base_ring())
+        SchemeMorphism.__init__(self, X)
         if check:
-            d = X.degree()
-            if len(v) != d+1 and len(v) != d:
-                raise TypeError, "v (=%s) must have %s components"%(v, X.degree())
-            v = Sequence(v, X.base_ring())
-            if len(v) == d:     # very common special case
+            d = X.codomain().ambient_space().ngens()
+            if is_SchemeMorphism(v):
+                v = list(v)
+            if not isinstance(v,(list,tuple)):
+                raise TypeError, \
+                      "Argument v (= %s) must be a scheme point, list, or tuple."%str(v)
+            if len(v) != d and len(v) != d-1:
+                raise TypeError, "v (=%s) must have %s components"%(v, d)
+            #v = Sequence(v, X.base_ring())
+            v = Sequence(v, X.value_ring())
+            if len(v) == d-1:     # very common special case
                 v.append(1)
 
             n = len(v)
@@ -337,14 +355,14 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
                         v[j] /= c
                     break
 
-            X._check_satisfies_equations(v)
+            X.codomain()._check_satisfies_equations(v)
 
         self._coords = v
 
 
-class SchemeMorphism_abelian_variety_coordinates_field(SchemeMorphism_projective_coordinates_field, AdditiveGroupElement):
+class SchemeMorphism_abelian_variety_coordinates_field(AdditiveGroupElement, SchemeMorphism_projective_coordinates_field):
     def __mul__(self, n):
-        if isinstance(n, RingElement):
+        if isinstance(n, (RingElement, int, long)):
             # [n]*P - multiplication by n.
             return AdditiveGroupElement._mul_(self, n)
         else:

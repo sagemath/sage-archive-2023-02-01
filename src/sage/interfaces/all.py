@@ -6,6 +6,7 @@ from gp import gp, gp_console, gp_version, is_GpElement, Gp
 from gnuplot import gnuplot, gnuplot_console
 from kash import  kash, kash_console, kash_version, is_KashElement, Kash
 from magma import magma, magma_console, magma_version, Magma
+from macaulay2 import macaulay2, macaulay2_console, Macaulay2
 from maple import maple, maple_console, Maple
 from maxima import maxima, maxima_console, is_MaximaElement, Maxima
 from mathematica import mathematica, mathematica_console, Mathematica
@@ -19,7 +20,7 @@ from psage import PSage
 from get_sigs import *
 
 interfaces = ['gap', 'gp', 'mathematica', 'gnuplot', \
-              'kash', 'magma', 'maple', 'maxima', \
+              'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', \
               'singular', 'sage0', 'sage']
 

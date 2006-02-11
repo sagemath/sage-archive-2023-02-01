@@ -363,10 +363,10 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __mul__(x, y):
-        if isinstance(x, list):
-            return x * int(y)
         if isinstance(x, Integer) and isinstance(y, Integer):
             return x.__mul_(y)
+        if isinstance(x, list):
+            return x * int(y)
         return sage.rings.coerce.bin_op(x, y, operator.mul)
 
     def __div_(Integer self, Integer other):

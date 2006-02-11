@@ -16,11 +16,19 @@ or projective spaces, perhaps by means of gluing relations.
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.rings.all import is_Ideal, is_MPolynomialRing
+from sage.rings.all import (
+    is_Ideal,
+    is_MPolynomialRing,
+    is_FiniteField,
+    is_RationalField, Z)
 
 from sage.structure.all import Sequence
 
 import ambient_space
+
+import affine_space
+
+import projective_space
 
 import morphism
 
@@ -67,15 +75,16 @@ class AlgebraicScheme(scheme.Scheme):
         if not ambient_space.is_AmbientSpace(A):
             raise TypeError, "A (=%s) must be an ambient space"
         self.__A = A
+        self.__divisor_groups = {}
 
     def ambient_space(self):
         return self.__A
 
-    def degree(self):
-        return self.__A.degree()
+    def ngens(self):
+        return self.__A.ngens()
 
     def _repr_(self):
-        return "An subscheme of %s"%self.__A
+        return "Subscheme of %s"%self.__A
 
     def _homset_class(self, *args, **kwds):
         return self.__A._homset_class(*args, **kwds)
@@ -99,10 +108,12 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             raise TypeError, "Y must be a closed subscheme of an ambient space."
         if X.ambient_space() != Y.ambient_space():
             raise ValueError, "X and Y must be embedded in the same ambient space."
-        AlgebraicScheme.__init__(self, X.ambient_space())
+        A = X.ambient_space()
+        self._base_ring = A.base_ring()
+        AlgebraicScheme.__init__(self, A)
 
     def _repr_(self):
-        if affine_space.is_AffineSpace(A):
+        if affine_space.is_AffineSpace(self.ambient_space()):
             t = "affine"
         else:
             t = "projective"
@@ -116,6 +127,50 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
 
     def Y(self):
         return self.__Y
+
+    def _error_bad_coords(self, v):
+        raise TypeError, "coordinates %s do not define a point on %s"%(v,self)
+
+    def _check_satisfies_equations(self, v):
+        """
+        Verify that the coordinates of v define a point on this scheme,
+        or raise a TypeError.
+        """
+        for f in self.__X.defining_polynomials():
+            if f(v) != 0:
+                self._error_bad_coords(v)
+        for f in self.__Y.defining_polynomials():
+            if f(v) == 0:
+                self._error_bad_coords(v)
+
+    def rational_points(self, F=None, B=0):
+        """
+        Return the set of rational points over its base ring.
+        """
+        if F is None:
+            F = self.base_ring()
+
+        if B == 0:
+            if is_RationalField(F):
+                raise TypeError, \
+                      "A positive bound B (= %s) must be specified."%B
+            if not is_FiniteField(F):
+                raise TypeError, \
+                      "Argument F (= %s) must be a finite field."%F
+        pts = []
+        polys = self.__X.defining_polynomials()
+        qolys = self.__Y.defining_polynomials()
+        for P in self.ambient_space().rational_points(F):
+            bool = True
+            for f in polys:
+                if f(list(P)) != 0:
+                    bool = False
+            for g in qolys:
+                if g(list(P)) == 0:
+                    bool = False
+            if bool:
+                pts.append(P)
+        return pts
 
 
 class AlgebraicScheme_subscheme(AlgebraicScheme):
@@ -184,10 +239,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         try:
             return self._coordinate_ring
         except AttributeError:
-            try:
-                R = self.__A.coordinate_ring()
-            except AttributeError:
-                raise NotImplementedError, "computation of coordinate ring of %s not implmented"%self
+            R = self.__A.coordinate_ring()
             if len(self.__X) == 0:
                 Q = R
             else:
@@ -226,13 +278,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V = P.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
             [Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-                      -1*x_4^3 + x_0^2*x_2,
-            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-                      -1*x_2^2 - x_1^2 + x_0^2,
-            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-                      x_3,
-            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-                      -1*x_3^5 + 2*x_2^3*x_4^2]
+            x_3,
+             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+             -1*x_4^3 + x_0^2*x_2,
+             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+             -1*x_3^5 + 2*x_2^3*x_4^2,
+             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+             -1*x_2^2 - x_1^2 + x_0^2]
         """
         try:
             return self.__irreducible_components
@@ -242,6 +294,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         P = I.associated_primes()
         A = self.ambient_space()
         C = Sequence([A.subscheme(X) for X in P], check=False, immutable=True)
+        C.sort()
         self.__irreducible_components = C
         return C
 
@@ -343,6 +396,37 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError, "other (=%s) must be in the same ambient space as self"%other
         return A.subscheme(self.defining_ideal() + other.defining_ideal())
 
+    def exclude(self, other):
+        """
+        Return the scheme-theoretic complement self - other.
+
+        EXAMPLES:
+        HERE
+        """
+        if not isinstance(other, AlgebraicScheme_subscheme):
+            raise TypeError, \
+                  "Argument other (=%s) must be a closed algebraic subscheme of an ambient space"%other
+        A = self.ambient_space()
+        if other.ambient_space() != A:
+            raise ValueError, "other (=%s) must be in the same ambient space as self"%other
+        return A.subscheme_complement(
+            self.defining_ideal(), self.defining_ideal() + other.defining_ideal())
+
+    def rational_points(self, F=None, B=0):
+        if F == None:
+            F = self.base_ring()
+        X = self(F)
+        if is_RationalField(F) or F == Z:
+            if not B > 0:
+                raise TypeError, "A positive bound B (= %s) must be specified."%B
+            try:
+                return X.points(B)
+            except TypeError:
+                raise TypeError, "Unable to enumerate points over %s."%F
+        try:
+            return X.points()
+        except TypeError:
+            raise TypeError, "Unable to enumerate points over %s."%F
 
 class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
     def _point_morphism_class(self, *args, **kwds):
@@ -380,6 +464,53 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
         except AttributeError:
             self.__dimension = self.defining_ideal().dimension()
             return self.__dimension
+
+    def projective_embedding(self, i=None, X=None):
+        """
+        Returns a morphism from this affine scheme into an ambient
+        projective space of the same dimension.
+
+        INPUT:
+            i -- integer (default: dimension of self = last coordinate) determines
+                 which projective embedding to compute.  The embedding is that
+                 which has a 1 in the i-th coordinate, numbered from 0.
+
+            X -- (default: None) projective scheme, i.e., codomain of morphism;
+                 this is constructed if it is not given.
+
+        EXAMPLES:
+        """
+        AA = self.ambient_space()
+        n = AA.dimension()
+        if i is None:
+            try:
+                i = self._default_embedding_index
+            except AttributeError:
+                i = int(n)
+        else:
+            i = int(i)
+        if i < 0 or i > n:
+            raise ValueError, \
+                  "Argument n (=%s) must be between 0 and %s, inclusive"%(i, n)
+        try:
+            return self.__projective_embedding[i]
+        except AttributeError:
+            self.__projective_embedding = {}
+        except KeyError:
+            pass
+        if X is None:
+            PP = projective_space.ProjectiveSpace(n, AA.base_ring())
+            v = list(PP.gens())
+            z = v.pop(i)
+            v.append(z)
+            polys = self.defining_polynomials()
+            X = PP.subscheme([ f.homogenize()(v) for f in polys ])
+        R = AA.coordinate_ring()
+        v = list(R.gens())
+        v.insert(i, R(1))
+        phi = self.hom(v, X)
+        self.__projective_embedding[i] = phi
+        return phi
 
 
 class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
@@ -426,4 +557,55 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
         except AttributeError:
             self.__dimension = self.defining_ideal().dimension() - 1
             return self.__dimension
+
+    def affine_patch(self, i):
+        r"""
+        Return the $i$-th affine patch of this projective scheme.
+        This is the intersection with this $i$-th affine patch of
+        its ambient space.
+
+        INPUT:
+            i -- integer between 0 and dimension of self, inclusive.
+
+        OUTPUT:
+            an affine scheme with fixed projective_embedding map.
+
+        EXAMPLES:
+            sage: PP = ProjectiveSpace(2) / QQ
+            sage: X,Y,Z = PP.gens()
+            sage: C = PP.subscheme(X^3*Y + Y^3*Z + Z^3*X)
+            sage: U = C.affine_patch(0)
+            sage: U
+            Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+            y^3 + x + x^3*y
+            sage: U.projective_embedding()
+            Scheme morphism:
+              From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
+              y^3 + x + x^3*y
+              To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x_1^3*x_2 + x_0*x_2^3 + x_0^3*x_1
+              Defn: Defined on coordinates by sending (x, y) to
+                    (1 : x : y)
+            """
+        i = int(i)   # implicit type checking
+        PP = self.ambient_space()
+        n = PP.dimension()
+        if i < 0 or i > n:
+            raise ValueError, "Argument i (= %s) must be between 0 and %s."%(i, n)
+        try:
+            return self.__affine_patches[i]
+        except AttributeError:
+            self.__affine_patches = {}
+        except KeyError:
+            pass
+        AA = PP.affine_patch(i)
+        phi = AA.projective_embedding()
+        polys = self.defining_polynomials()
+        xi = phi.defining_polynomials()
+        U = AA.subscheme([ f(xi) for f in polys ])
+        U._default_embedding_index = i
+        phi = U.projective_embedding(i, self)
+        self.__affine_patches[i] = U
+        return U
+
 

@@ -62,6 +62,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Elliptic Curve defined by y^2 + x*y + 3/4*y = x^3 + 2*x^2 + 7*x + 19 over Rational Field
         sage: loads(E.dumps()) == E
         True
+        sage: E = EllipticCurve([1,3])
+        sage: P = E([-1,1,1])
+        sage: -5*P
+        (179051/80089 : -91814227/22665187 : 1)
     """
     def __init__(self, ainvs, extra=None):
         if extra != None:   # possibility of two arguments
@@ -179,6 +183,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
     def _pari_init_(self):
         return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
+
+    def _gp_init_(self):
+        return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
+
+    def _magma_init_(self):
+        return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))
 
     def __cmp__(self, other):
         if not isinstance(other, EllipticCurve_generic):

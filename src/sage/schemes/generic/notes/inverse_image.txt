@@ -20,3 +20,10 @@ to be an abuse of notation, then one could define phi.preimage_scheme(P);
 Magma just uses existing notation @@ and it had to be decided what the
 meaning would be in the context of scheme maps.
 
+(David Kohel, 27/01/2006)
+
+Alternatively, note that the preimage_scheme of Z under pi is the base
+extension of pi: X -> Y by i: Z -> Y, and is constructed as a fiber
+product of X \times_Y Z.
+
+(David Kohel, 30/01/2006)

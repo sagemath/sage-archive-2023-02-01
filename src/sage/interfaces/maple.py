@@ -322,6 +322,8 @@ class Maple(Expect):
         INPUT:
             str -- a string to search for in the maple help system
         """
+        # TODO: change to use from IPython.genutils import page
+        # and use the page command on a string.
         os.system('echo "?%s" | maple -q |less'%str)
 
     def with(self, package):
@@ -377,6 +379,21 @@ class MapleElement(ExpectElement):
     def __repr__(self):
         self._check_valid()
         return self.parent().get(self._name)
+
+    def _latex_(self):
+        r"""
+        You can output Maple expressions in latex.
+
+        EXAMPLES:
+            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))
+            {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
+            sage: print latex(maple(pi - e^3))
+            \pi - \left( {e^{1}} \right) ^{3}
+
+        \note{Some expressions might require the Maple style file
+        \code{maple2e.sty} in order to latex correctly.}
+        """
+        return self.parent().eval('latex(%s)'%self.name())
 
 # An instance
 maple = Maple(script_subdirectory='user')

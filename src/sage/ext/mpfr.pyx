@@ -286,10 +286,18 @@ cdef class RealField(ring.Field):
             sage: R = RealField(10)
             sage: R('1.234')
             1.2324
+            sage: R('2', base=2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to convert x (='2') to real number.
+            sage: a = R('1.1001', base=2); a
+            1.5625
+            sage: a.str(2)
+            '1.100100000'
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
-        return RealNumber(self, x)
+        return RealNumber(self, x, base)
 
     def _coerce_(self, x):
         cdef RealField K
@@ -861,11 +869,11 @@ cdef class RealNumber(element.RingElement):
     def __float__(self):
         return mpfr_get_d(self.value, self._parent.rnd)
 
-    #def __int__(self):
-    #    return int(float(self))
+    def __int__(self):
+        return int(float(self))
 
-    #def __long__(self):
-    #    return long(float(self))
+    def __long__(self):
+        return long(float(self))
 
     def __complex__(self):
         return complex(float(self))

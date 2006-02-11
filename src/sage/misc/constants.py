@@ -62,9 +62,7 @@ can be coerced into other systems or evaluated.
     5.316218116357029426750873360            # 32-bit
     5.3162181163570294267508733603616328824  # 64-bit
     sage: mathematica(a)                     # optional
-             4 E
-            --- + Pi
-              5
+    (4*E)/5 + Pi
 
 EXAMPLES: Decimal expansions of constants
 
@@ -166,6 +164,7 @@ import sage.interfaces.all
 import sage.rings.all
 import operator
 from sage.libs.pari.all import pari
+from sage.misc.latex import latex
 
 # Default real field used for coercion.
 
@@ -623,7 +622,7 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
-        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181
+        2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289
     """
     def __init__(self):
         Constant.__init__(self,
@@ -691,6 +690,16 @@ class Constant_arith(Constant):
 
     def _repr_(self):
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
+
+    def _latex_(self):
+        if self.__op == operator.div:
+            return '\\frac{%s}{%s}'%(latex(self.__x), latex(self.__y))
+        elif self.__op == operator.mul:
+            return '%s \\cdot %s'%(latex(self.__x), latex(self.__y))
+        elif self.__op == operator.sub:
+            return '%s - %s'%(latex(self.__x), latex(self.__y))
+        elif self.__op == operator.add:
+            return '%s + %s'%(latex(self.__x), latex(self.__y))
 
     def _gap_(self, gap):
         return self.__op(self.__x._gap_(gap), self.__y._gap_(gap))

@@ -1,17 +1,146 @@
 """
 Set of homomorphisms between two schemes
 """
+# Some naive point enumeration routines for default.
+# AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>
+
+def enum_projective_rational_field(X,B):
+    n = X.codomain().ngens()
+    R = [ k-B for k in range(2*B+1) ]
+    Q = [ k+1 for k in range(B) ]
+    pts = []
+    i = int(n-1)
+    while not i < 0:
+        P = [ 0 for _ in range(n) ]; P[i] = 1
+        m = Z(0)
+        try:
+            pts.append(X(P))
+        except:
+            pass
+        iters = [ iter(R) for _ in range(i) ]
+        j = 0
+        while j < i:
+            try:
+                aj = Z(iters[j].next())
+                m = m.gcd(aj)
+                P[j] = aj
+                for ai in Q:
+                    P[i] = ai
+                    if m.gcd(ai) == 1:
+                        try:
+                            pts.append(X(P))
+                        except:
+                            pass
+                j = 0
+                m = Z(0)
+            except StopIteration:
+                iters[j] = iter(R)  # reset
+                iters[j].next() # put at zero
+                P[j] = 0
+                j += 1
+        i -= 1
+    return pts
+
+def enum_affine_rational_field(X,B):
+    n = X.codomain().ngens()
+    R = [ k-B for k in range(2*B+1) ]
+    if X.value_ring() is Z:
+        Q = [ 1 ]
+    else: # rational field
+        Q = [ k+1 for k in range(B) ]
+    pts = []
+    P = [ 0 for _ in range(n) ]
+    m = Z(0)
+    try:
+        pts.append(X(P))
+    except:
+        pass
+    iters = [ iter(R) for _ in range(n) ]
+    i = 0
+    while i < n:
+        try:
+            a = Z(iters[i].next())
+            m = m.gcd(a)
+            P[i] = a
+            for b in Q:
+                if m.gcd(b) == 1:
+                    try:
+                        pts.append(X([ num/b for num in P ]))
+                    except:
+                        pass
+            i = 0
+            m = Z(0)
+        except StopIteration:
+            iters[i] = iter(R)  # reset
+            iters[i].next() # put at zero
+            P[i] = 0
+            i += 1
+    return pts
+
+def enum_projective_finite_field(X):
+    n = X.codomain().ngens()
+    R = X.value_ring()
+    pts = []
+    i = int(n-1)
+    while not i < 0:
+        P = [ 0 for _ in range(n) ]; P[i] = 1
+        try:
+            pts.append(X(P))
+        except:
+            pass
+        iters = [ iter(R) for _ in range(i) ]
+        j = 0
+        while j < i:
+            try:
+                P[j] = iters[j].next()
+                try:
+                    pts.append(X(P))
+                except:
+                    pass
+                j = 0
+                m = Z(0)
+            except StopIteration:
+                iters[j] = iter(R)  # reset
+                iters[j].next() # put at zero
+                P[j] = 0
+                j += 1
+        i -= 1
+    return pts
+
+def enum_affine_finite_field(X):
+    n = X.codomain().ngens()
+    R = X.value_ring()
+    pts = []
+    zero = R(0)
+    P = [ zero for _ in range(n) ]
+    pts.append(X(P))
+    iters = [ iter(R) for _ in range(n) ]
+    for x in iters: x.next() # put at zero
+    i = 0
+    while i < n:
+        try:
+            P[i] = iters[i].next()
+            try:
+                pts.append(X(P))
+            except:
+                pass
+            i = 0
+        except StopIteration:
+            iters[i] = iter(R)  # reset
+            iters[i].next() # put at zero
+            P[i] = zero
+            i += 1
+    return pts
 
 #*****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
-#
+#  Copyright (C) 2006 William Stein <wstein@ucsd.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.categories.all import Homset, Schemes
-from sage.rings.all      import is_RingHomomorphism
+from sage.rings.all      import (
+    is_FiniteField, is_RationalField, is_RingHomomorphism, Z)
 
 import spec
 
@@ -53,7 +182,7 @@ class SchemeHomset_generic(Homset):
               From: Integer Ring
               To:   Rational Field
 
-            sage: H = Hom(Spec(QQ, ZZ), Spec(ZZ)); H
+            sage: H = Hom(Spec(QQ,ZZ), Spec(ZZ)); H
             Set of points of Spectrum of Integer Ring defined over Rational Field
 
             sage: phi = H(f); phi
@@ -78,12 +207,27 @@ class SchemeHomset_coordinates(SchemeHomset_generic):
     Set of points on X defined over the base ring of X, and given
     by explicit tuples.
     """
-    def __init__(self, X):
+    def __init__(self, X, S):
         R = X.base_ring()
-        SchemeHomset_generic.__init__(self, spec.Spec(R, R), X)
+        SchemeHomset_generic.__init__(self, spec.Spec(S, R), X)
 
     def _repr_(self):
-        return "Set of Rational Points of %s"%self.codomain()
+        S = self.domain()
+        if S == self.codomain().base_scheme():
+            return "Set of Rational Points of %s"%self.codomain()
+        if spec.is_Spec(S):
+            S = S.coordinate_ring()
+        return "Set of Rational Points over %s of %s"%(S, self.codomain())
+
+    def value_ring(self):
+        """
+        Returns S for a homset X(T) where T = Spec(S).
+        """
+        T = self.domain()
+        if spec.is_Spec(T):
+            return T.coordinate_ring()
+        else:
+            raise TypeError, "Domain of argument must be of the form Spec(S)."
 
 class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
     """
@@ -93,7 +237,21 @@ class SchemeHomset_affine_coordinates(SchemeHomset_coordinates):
     def __call__(self, *v):
         if len(v) == 1:
             v = v[0]
-        return morphism.SchemeMorphism_affine_coordinates(self.codomain(), v)
+        return morphism.SchemeMorphism_affine_coordinates(self, v)
+
+    def points(self, B=0):
+        try:
+            R = self.value_ring()
+        except TypeError:
+            raise TypeError, "Domain of argument must be of the form Spec(S)."
+        if is_RationalField(R) or R == Z:
+            if not B > 0:
+                raise TypeError, "A positive bound B (= %s) must be specified."%B
+            return enum_affine_rational_field(self,B)
+        elif is_FiniteField(R):
+            return enum_affine_finite_field(self)
+        else:
+            raise TypeError, "Unable to enumerate points over %s."%R
 
 class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     """
@@ -103,7 +261,21 @@ class SchemeHomset_projective_coordinates_field(SchemeHomset_coordinates):
     def __call__(self, *v):
         if len(v) == 1:
             v = v[0]
-        return morphism.SchemeMorphism_projective_coordinates_field(self.codomain(), v)
+        return morphism.SchemeMorphism_projective_coordinates_field(self, v)
+
+    def points(self, B=0):
+        try:
+            R = self.value_ring()
+        except TypeError:
+            raise TypeError, "Domain of argument must be of the form Spec(S)."
+        if is_RationalField(R):
+            if not B > 0:
+                raise TypeError, "A positive bound B (= %s) must be specified."%B
+            return enum_projective_rational_field(self,B)
+        elif is_FiniteField(R):
+            return enum_projective_finite_field(self)
+        else:
+            raise TypeError, "Unable to enumerate points over %s."%R
 
 class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
     """
@@ -112,3 +284,17 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
     """
     def __call__(self, *v):
         raise NotImplementedError
+
+    def points(self, B=0):
+        raise NotImplementedError # fixed when __call__ is defined.
+        try:
+            R = self.value_ring()
+        except TypeError:
+            raise TypeError, "Domain of argument must be of the form Spec(S)."
+        if R == Z:
+            if not B > 0:
+                raise TypeError, "A positive bound B (= %s) must be specified."%B
+            return enum_projective_rational_field(self,B)
+        else:
+            raise TypeError, "Unable to enumerate points over %s."%R
+

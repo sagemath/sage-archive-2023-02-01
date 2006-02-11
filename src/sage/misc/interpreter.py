@@ -98,7 +98,7 @@ import os
 
 from IPython.iplib import InteractiveShell
 
-from preparser_ipython import preparse_ipython
+import preparser_ipython
 from preparser import preparse_file
 
 import pyrex
@@ -142,22 +142,18 @@ def do_prefilter_paste(line, continuation):
             if os.path.exists(F) and os.path.getmtime(F) > tm:
                 # Reload F.
                 try:
-                    s = "Reloading attached files"
-                    if line != '':
-                        s += " --- NOT executing input line '%s'"%line
-                    print s
-
                     if F[-5:] == '.sage':
-                        line = '%%run -i "%s"'%process_file(F)
+                        ipmagic('run -i "%s"'%process_file(F))
+                        #line = '%%run -i "%s"'%process_file(F)
                     else:
                         line = load_pyrex(F)
 
                     t = os.path.getmtime(F)
                     attached[F] = t
-                    if F != 'attach.sage':
-                        print "***************************************************"
-                        print "                Reloading %s"%F
-                        print "***************************************************"
+                    #if F != 'attach.sage':
+                    #    print "***************************************************"
+                    #    print "                Reloading %s"%F
+                    #    print "***************************************************"
                 except IOError:
                     del attached[F]
 
@@ -249,8 +245,8 @@ def do_prefilter_paste(line, continuation):
         else:
             if isinstance(name, str):
                 if not os.path.exists(name):
-                    print "No file '%s'"%name
-                    line = ""
+                    print "File '%s' not found."%name
+                    line = ''
                 elif name[-5:] == '.sage':
                     try:
                         line = '%run -i "' + process_file(name) + '"'
@@ -267,9 +263,9 @@ def do_prefilter_paste(line, continuation):
                         line = ''
                 else:
                     print "load: file (=%s) must have extension .sage or .spyx"%name
-                    line = ""
+                    line = ''
     if len(line) > 0:
-        line = preparse_ipython(line)
+        line = preparser_ipython.preparse_ipython(line)
     return line
 
 def load_pyrex(name):
@@ -334,11 +330,12 @@ IPython.OInspect.getdoc = my_getdoc
 
 
 import __builtin__
-_prompt = 'sage: '
+_prompt = 'sage'
 def set_sage_prompt(s):
     global _prompt
     _prompt = str(s)
+
 def sage_prompt():
-    return _prompt
+    return '%s'%_prompt
 
 __builtin__.sage_prompt = sage_prompt

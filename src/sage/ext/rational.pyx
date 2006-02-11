@@ -450,6 +450,9 @@ cdef class Rational(element.FieldElement):
     def factor(self):
         return sage.rings.rational_field.factor(self)
 
+    def floor(self):
+        return self.numer().__floordiv__(self.denom())
+
     def height(self):
         """
         The max absolute value of the numerator and denominator of self,

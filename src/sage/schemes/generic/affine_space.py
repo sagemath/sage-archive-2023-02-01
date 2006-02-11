@@ -10,7 +10,13 @@ Affine $n$ space over a ring.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import MPolynomialRing, is_MPolynomialRing, Z, is_Ring
+from sage.rings.all import (
+    is_FiniteField,
+    is_RationalField,
+    is_Ring,
+    MPolynomialRing,
+    is_MPolynomialRing,
+    Z)
 from sage.misc.all import latex
 
 import algebraic_scheme
@@ -48,9 +54,9 @@ def AffineSpace(n, R=None, names=None):
     The dimension and ring can be given in either order.
         sage: AffineSpace(3, QQ)
         Affine Space of dimension 3 over Rational Field
-        sage: AffineSpace(QQ, 5)
+        sage: AffineSpace(5, QQ)
         Affine Space of dimension 5 over Rational Field
-        sage: A = AffineSpace(QQ, 2, names='XY'); A
+        sage: A = AffineSpace(2, QQ, names='XY'); A
         Affine Space of dimension 2 over Rational Field
         sage: A.coordinate_ring()
         Polynomial Ring in X, Y over Rational Field
@@ -72,13 +78,10 @@ def AffineSpace(n, R=None, names=None):
         sage: A.coordinate_ring() is R
         True
     """
-
-    if is_Ring(n):
-        if R is None and is_MPolynomialRing(n):
-            A = AffineSpace(n.ngens(), n.base_ring())
-            A._coordinate_ring = n
-            return A
-        (n, R) = (R, n)   # swap
+    if is_MPolynomialRing(n) and R is None:
+        A = AffineSpace(n.ngens(), n.base_ring())
+        A._coordinate_ring = n
+        return A
     if R is None:
         R = Z  # default is the integers
     return AffineSpace_generic(n, R, names)
@@ -120,6 +123,53 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     def __init__(self, n, R, names=None):
         ambient_space.AmbientSpace.__init__(self, n, R)
         self.__names = names
+
+    def __iter__(self):
+        """
+        Return iterator over the elements of this affine space when defined
+        over a finite field.
+
+        EXAMPLES:
+            sage: FF = FiniteField(3)
+            sage: AA = AffineSpace(0, FF)
+            sage: [ x for x in AA ]
+            [()]
+            sage: AA = AffineSpace(1, FF)
+            sage: [ x for x in AA ]
+            [(0), (1), (2)]
+            sage: AA = AffineSpace(2, FF)
+            sage: [ x for x in AA ]
+            [(0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (0, 2), (1, 2), (2, 2)]
+
+        AUTHOR: David Kohel <kohel@maths.usyd.edu.au>
+        """
+        n = self.dimension()
+        R = self.base_ring()
+        zero = R(0)
+        P = [ zero for _ in range(n) ]
+        yield self(P)
+        iters = [ iter(R) for _ in range(n) ]
+        for x in iters: x.next() # put at zero
+        i = 0
+        while i < n:
+            try:
+                P[i] = iters[i].next()
+                yield self(P)
+                i = 0
+            except StopIteration:
+                iters[i] = iter(R)  # reset
+                iters[i].next() # put at zero
+                P[i] = zero
+                i += 1
+
+    def rational_points(self, F=None):
+        if F == None:
+            if not is_FiniteField(self.base_ring()):
+                raise TypeError, "Base ring (= %s) must be a finite field."%self.base_ring()
+            return [ P for P in self ]
+        elif not is_FiniteField(F):
+            raise TypeError, "Second argument (= %s) must be a finite field."%F
+        return [ P for P in self(F) ]
 
     def _point_morphism_class(self, *args, **kwds):
         return morphism.SchemeMorphism_on_points_affine_space(*args, **kwds)
@@ -195,33 +245,33 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             self._coordinate_ring = MPolynomialRing(self.base_ring(), self.dimension(), names=self.__names)
             return self._coordinate_ring
 
-    def projective_embedding(self, n=None, PP=None):
+    def projective_embedding(self, i=None, PP=None):
         """
         Returns a morphism from this space into an ambient projective space of
         the same dimension.
 
         INPUT:
-            n -- integer (default: dimension of self = last coordinate) determines
+            i -- integer (default: dimension of self = last coordinate) determines
                  which projective embedding to compute.  The embedding is that
-                 which has a 1 in the n-th coordinate, numbered from 0.
+                 which has a 1 in the i-th coordinate, numbered from 0.
 
-            P -- (default: None) ambient projective space, i.e., codomain of morphism;
+            PP -- (default: None) ambient projective space, i.e., codomain of morphism;
                  this is constructed if it is not given.
 
         EXAMPLES:
-            sage: A = AffineSpace(2, Q)
-            sage: pi = A.projective_embedding(0); pi
+            sage: AA = AffineSpace(2, Q)
+            sage: pi = AA.projective_embedding(0); pi
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x_0, x_1) to
                     (1 : x_0 : x_1)
-            sage: z = A(3,4)
+            sage: z = AA(3,4)
             sage: pi(z)
             (1/4 : 3/4 : 1)
-            sage: pi(A(0,2))
+            sage: pi(AA(0,2))
             (1/2 : 0 : 1)
-            sage: pi = A.projective_embedding(1); pi
+            sage: pi = AA.projective_embedding(1); pi
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Projective Space of dimension 2 over Rational Field
@@ -229,30 +279,34 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                     (x_0 : 1 : x_1)
             sage: pi(z)
             (3/4 : 1/4 : 1)
-            sage: pi = A.projective_embedding(2)
+            sage: pi = AA.projective_embedding(2)
             sage: pi(z)
             (3 : 4 : 1)
         """
-        if n is None:
-            n = int(self.dimension())
+        n = self.dimension()
+        if i is None:
+            try:
+                i = self._default_embedding_index
+            except AttributeError:
+                i = int(n)
         else:
-            n = int(n)
+            i = int(i)
         try:
-            return self.__projective_embedding[n]
+            return self.__projective_embedding[i]
         except AttributeError:
             self.__projective_embedding = {}
         except KeyError:
             pass
         if PP is None:
-            PP = projective_space.ProjectiveSpace( self.dimension(), self.base_ring())
+            PP = projective_space.ProjectiveSpace(n, self.base_ring())
         R = self.coordinate_ring()
         v = list(R.gens())
         if n < 0 or n >self.dimension():
-            raise ValueError, "n (=%s) must be between 0 and %s, inclusive"%(
-                               n, self.dimension())
-        v.insert(n, R(1))
+            raise ValueError, \
+                  "Argument i (=%s) must be between 0 and %s, inclusive"%(i,n)
+        v.insert(i, R(1))
         phi = self.hom(v, PP)
-        self.__projective_embedding[n] = phi
+        self.__projective_embedding[i] = phi
         return phi
 
     def subscheme(self, X):
@@ -295,4 +349,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         """
         return algebraic_scheme.AlgebraicScheme_subscheme_affine(self, X)
 
-
+    def subscheme_complement(self, X, Y):
+        X = self.subscheme(X)
+        Y = self.subscheme(Y)
+        return algebraic_scheme.AlgebraicScheme_quasi(X, Y)

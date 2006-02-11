@@ -38,6 +38,7 @@ from sage.interfaces.all import gp
 from sage.rings.all import (
     PowerSeriesRing, O,
     infinity as oo,
+    Integer,
     IntegerRing, RealField,
     ComplexField, RationalField)
 
@@ -641,7 +642,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
 
-    def rank(self, use_database=False, verbose=False, only_use_mwrank=False):
+    def rank(self, use_database=False, verbose=False,
+                   only_use_mwrank=True,
+                   algorithm='mwrank_shell'):
         """
         Return the rank of this elliptic curve, assuming no conjectures.
 
@@ -651,10 +654,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         INPUT:
             use_database (bool) -- (default: False), if True, try to
                   look up the regulator in the Cremona database.
-            proof (bool) -- (default: True), if True then rank is
-                  proven correct; otherwise, computation of rank is not certain.
             verbose -- (default: None), if specified changes the
                        verbosity of mwrank computations.
+            algorithm -- 'mwrank_shell' -- call mwrank shell command
+                      -- 'mwrank_lib' -- call mwrank c library
+            only_use_mwrank -- (default: True) if False try using
+                       analytic rank methods first.
 
         OUTPUT:
             rank (int) -- the rank of the elliptic curve.
@@ -668,7 +673,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 try:
                     self.__rank = self.database_curve().rank()
                     return self.__rank
-                except AttributeError, RuntimeError:
+                except (AttributeError, RuntimeError):
                     pass
             if not only_use_mwrank:
                 N = self.conductor()
@@ -686,17 +691,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                         self.__rank = 1
                         return self.__rank
 
-            misc.verbose("using mwrank")
-            C = self.mwrank_curve()
-            C.set_verbose(verbose)
-            r = C.rank()
-            if not C.certain():
-                del self.__mwrank_curve
-                raise Exception, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
-            self.__rank = r
+            if algorithm == 'mwrank_lib':
+                misc.verbose("using mwrank lib")
+                C = self.mwrank_curve()
+                C.set_verbose(verbose)
+                r = C.rank()
+                if not C.certain():
+                    del self.__mwrank_curve
+                    raise RuntimeError, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again.  You could also try rank with only_use_mwrank=False."
+                self.__rank = r
+            elif algorithm == 'mwrank_shell':
+                misc.verbose("using mwrank shell")
+                X = self.mwrank()
+                if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
+                    raise RuntimeError, '%s\nRank not provably correct (maybe try rank with only_use_mwrank=False).'%X
+                i = X.find('Rank = ')
+                assert i != -1
+                j = i + X[i:].find('\n')
+                self.__rank = Integer(X[i+7:j])
         return self.__rank
 
-    def gens(self, verbose=False, rank1_search=10, only_use_mwrank=False):
+    def gens(self, verbose=False, rank1_search=10,
+             algorithm='mwrank_shell',
+             only_use_mwrank=True):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
@@ -722,6 +739,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                        rank 1, try to find a generator by a direct
                        search up to this logarithmic height.  If this
                        fails the usual mwrank procedure is called.
+            algorithm -- 'mwrank_shell' (default) -- call mwrank shell command
+                      -- 'mwrank_lib' -- call mwrank c library
         OUTPUT:
             generators -- List of generators for the Mordell-Weil group.
 
@@ -731,8 +750,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return list(self.__gens)  # return copy so not changed
         except AttributeError:
             pass
-        if not self.is_minimal():
-            raise NotImplementedError, "gens only implemented for curves in minimal Weierstrass form."
         if self.conductor() > 10**7:
             only_use_mwrank = True
 
@@ -767,19 +784,39 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             except RuntimeError:
                 pass
         # end if (not_use_mwrank)
-        misc.verbose("Calling mwrank.")
-        C = self.mwrank_curve(verbose)
-        if not (verbose is None):
-            C.set_verbose(verbose)
-        G = C.gens()
-        self.__gens_certain = C.certain()
-        if not self.__gens_certain:
-            del self.__mwrank_curve
-            raise Exception, "Unable to compute the rank, hence generators, with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + \
-                  "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
-
+        if not self.is_integral():
+            raise NotImplementedError, "gens via mwrank only implemented for curves with integer coefficients."
+        if algorithm == "mwrank_lib":
+            misc.verbose("Calling mwrank C++ library.")
+            C = self.mwrank_curve(verbose)
+            if not (verbose is None):
+                C.set_verbose(verbose)
+            G = C.gens()
+            self.__gens_certain = C.certain()
+            if not self.__gens_certain:
+                del self.__mwrank_curve
+                raise RuntimeError, "Unable to compute the rank, hence generators, with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + \
+                      "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
+        else:
+            X = self.mwrank()
+            misc.verbose("Calling mwrank shell.")
+            if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
+                raise RuntimeError, '%s\nGenerators not provably computed.'%X
+            G = []
+            i = X.find('Generator ')
+            while i != -1:
+                j = i + X[i:].find(';')
+                k = i + X[i:].find('[')
+                G.append(eval(X[k:j].replace(':',',')))
+                X = X[j:]
+                i = X.find('Generator ')
+            i = X.find('Regulator = ')
+            j = i + X[i:].find('\n')
+            self.__regulator = R(X[i+len('Regulator = '):j])
+        ####
         self.__gens = [self.point(x, check=False) for x in G]
         self.__gens.sort()
+        self.__rank = len(self.__gens)
         return self.__gens
 
     def gens_certain(self):
@@ -809,7 +846,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
             sage: E.regulator()                           # long time (1 second)
-            0.051111407578000000
+            0.051111408239968799
         """
         try:
             return self.__regulator
@@ -990,7 +1027,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([0, -1, 1, -929, -10595])
             sage: E.selmer_rank_bound()
             2
-            sage: E.rank()
+            sage: E.rank(only_use_mwrank=False)   # uses L-function
             0
         """
         try:
@@ -1035,6 +1072,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def is_minimal(self):
         return self.ainvs() == self.minimal_model().ainvs()
+
+    def is_integral(self):
+        for n in self.ainvs():
+            if n.denominator() != 1:
+                return False
+        return True
 
     def is_isomorphic(self, E):
         if not isinstance(E, EllipticCurve_rational_field):

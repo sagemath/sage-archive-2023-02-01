@@ -94,9 +94,9 @@ class Morphism(Element, Element_cmp_):
             The morphism $x \mapsto self(right(x))$.
         """
         if not isinstance(right, Morphism):
-            raise TypeError, "right must be a morphism"
+            raise TypeError, "right (=%s) must be a morphism to multiply it by %s"%(right, self)
         if right.codomain() != self.domain():
-            raise TypeError, "self domain must equal right codomain"
+            raise TypeError, "self (=%s) domain must equal right (=%s) codomain"%(self, right)
         H = homset.Hom(right.domain(), self.codomain(), self.parent().category())
         return self._composition_(right, H)
 

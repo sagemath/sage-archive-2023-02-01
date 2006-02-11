@@ -52,6 +52,9 @@ QQ = rational_field.RationalField()
 
 ZZ = integer_ring.IntegerRing()
 
+def is_Polynomial(f):
+    return isinstance(f, Polynomial)
+
 
 class Polynomial(ring_element.RingElement):
     """

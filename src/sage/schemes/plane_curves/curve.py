@@ -1,14 +1,18 @@
 from sage.misc.all import latex
 
-from sage.rings.all import Z
+from sage.rings.all import is_Field, Z
 
-from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_projective
+from sage.schemes.generic.algebraic_scheme import (
+    AlgebraicScheme_subscheme, AlgebraicScheme_subscheme_projective)
 
-from sage.schemes.generic.divisor import Divisor_curve_points
+from sage.schemes.generic.divisor_group import DivisorGroup_curve
+
+from sage.schemes.generic.divisor import Divisor_curve
 
 class Curve_generic(AlgebraicScheme_subscheme):
     def _repr_(self):
-        return "%s Curve over %s defined by %s"%(self._repr_type(), self.base_ring(), self.defining_polynomial())
+        return "%s Curve over %s defined by %s"%(
+            self._repr_type(), self.base_ring(), self.defining_polynomial())
 
     def _repr_type(self):
         return "Generic"
@@ -16,7 +20,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
     def _latex_(self):
         """
         EXAMPLES:
-            sage: x,y,z = PolynomialRing(QQ, 3, names=['x','y','z']).gens()
+            sage: x,y,z = PolynomialRing(QQ, 3, names='x,y,z').gens()
             sage: C = Curve(y^2*z - x^3 - 17*x*z^2 + y*z^2)
             sage: latex(C)
             'yz^{2} + y^{2}z - 17 xz^{2} - x^{3}'
@@ -32,8 +36,18 @@ class Curve_generic(AlgebraicScheme_subscheme):
     def defining_polynomial(self):
         return self.defining_polynomials()[0]
 
+    def divisor_group(self, K=None):
+        if not is_Field(K):
+            raise TypeError, "Argument K (= %s) must be a field"
+        # TODO: check that there exists a canonical map self.base_ring -> K
+        # TODO: allow a morphism of rings
+        divisor_groups = self._AlgebraicScheme__divisor_groups
+        if not divisor_groups.has_key(K):
+            divisor_groups[K] = DivisorGroup_curve(self, K)
+        return divisor_groups[K]
+
     def divisor(self, v, check=True, reduce=True):
-        return Divisor_curve_points(v, check=check, reduce=reduce)
+        return Divisor_curve(v, check=check, reduce=reduce)
 
     def genus(self):
         """

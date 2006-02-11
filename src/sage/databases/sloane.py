@@ -1,15 +1,17 @@
-"""nodoctest  -- it takes too long!
+"""
 Interface to Sloane On-Line Encyclopedia of Integer Sequences
-
-AUTHOR: Steven Sivek (ssivek@mit.edu), 2005-12-22
 
 To look up sequence A060843, type one of the following:
 
     sage: sloane_sequence(60843)
+    Looking up in Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
-    sage: sloane_sequence("60843")
+
+    sage.: sloane_sequence("60843")
+    Looking up in Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
-    sage: sloane_sequence("060843")
+    sage.: sloane_sequence("060843")
+    Looking up in Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
 Do not prefix an integer with a 0 or it will be interpreted in octal.
@@ -17,14 +19,19 @@ Results are of the form [number, description, list], and invalid
 numbers will cause \code{sloane_sequence} to raise an ValueError exception:
 
     sage: sloane_sequence('sage')
-    []
+    Traceback (most recent call last):
+    ...
+    ValueError: sequence 'sage' not found
 
 To look up the sequence
-    sage: sloane_find([2,3,5,7])
-    [[53874, 'Triangle T(n,k) = number of Boolean functions mapping {0,1}^n to {0,1}^n with image of size k (k = 0...2^n) under action of GL(n,2).', [1, 2, 1, 1, 2, 2, 2, 1, 1, 2, 2, 3, 4, 3, 2, 2, 1, 1, 2, 2, 3, 5, 7, 9, 11, 12, 11, 9, 7, 5, 3, 2, 2, 1, 1, 2, 2, 3, 5, 8, 14, 23, 35, 55, 84, 117, 158, 204, 242, 274, 290, 274, 242, 204, 158, 117, 84, 55, 35, 23, 14, 8, 5, 3, 2, 2, 1, 1, 2, 2, 3, 5, 8, 15, 29, 54, 107, 227, 495, 1131]], [58398, 'Partition triangle A008284 read from right to left.', ...
+    sage: sloane_find([2,3,5,7], 2)
+    Searching Sloane's online database...
+    [[40, 'The prime numbers.', [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271]], [41, 'a(n) = number of partitions of n (the partition numbers).', [1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134]]]
 
 To return no more than 2 results (default is 30), type
     sage: sloane_find([1,2,3,4,5], 2)
+    Searching Sloane's online database...
+    [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers.', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
 
 Note that the OEIS (???: todo) claims to limit the number of results
 to 100.  Results are lists of the form [ [number, description, list]
@@ -45,27 +52,31 @@ To look up a sequence, type
     [1, 6, 21, 107]
 
 To search locally for a particular subsequence, type
-    sage: SloaneEncyclopedia.find([1,2,3,4,5])
+    sage: SloaneEncyclopedia.find([1,2,3,4,5], 1)
+    [(15, [1, 2, 3, 4, 5, 7, 7, 8, 9, 11, 11, 13, 13, 16, 16, 16, 17, 19, 19, 23, 23, 23, 23, 25, 25, 27, 27, 29, 29, 31, 31, 32, 37, 37, 37, 37, 37, 41, 41, 41, 41, 43, 43, 47, 47, 47, 47, 49, 49, 53, 53, 53, 53, 59, 59, 59, 59, 59, 59, 61, 61, 64, 64, 64, 67, 67, 67, 71, 71, 71, 71, 73])]
 
 The default maximum number of results is 30, but to return up to 200, type
-    sage: SloaneEncyclopedia.find([1,2,3,4,5], 200)
+    sage.: SloaneEncyclopedia.find([1,2,3,4,5], 200)
+     [(15, [1, 2, 3, 4, 5, 7, 7, 8, 9, 11, 11, [... lots more ...]
 
 Results in either case are of the form [ (number, list) ].
+
+AUTHOR:
+    -- Steven Sivek (ssivek@mit.edu, 2005-12-22): first version
+    -- Steven Sivek (2006-02-07): updated to correctly handle the new
+       search form on the Sloane website, and it's now also smarter
+       about loading the local database in that it doesn't convert a
+       sequence from string form to a list of integers until
+       absolutely necessary.  This seems to cut the loading time
+       roughly in half.
 """
 
 #*****************************************************************************
 #
-#      SAGE: Copyright (C) 2005 William Stein <wstein@ucsd.edu>
-#                          and  Steven Sivek  <ssivek@mit.edu>
+#      SAGE: Copyright (C) 2005-2006 William Stein <wstein@ucsd.edu>
+#                               and  Steven Sivek  <ssivek@mit.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
@@ -115,8 +126,11 @@ class SloaneEncyclopediaClass:
             list
         """
         self.load()
-        if self.__data__[N] == None:
+        if self.__data__[N] == None: # sequence N does not exist
             return []
+        if self.__data__[N][1] is None: # list N has not been created yet
+            list = self.__data__[N][2].strip(',').split(',')
+            self.__data__[N][1] = [int(n) for n in list]
         return self.__data__[N][1]
 
     def __len__(self):
@@ -131,7 +145,7 @@ class SloaneEncyclopediaClass:
         """
         Return a list of all sequences which have seq as a subsequence,
         up to maxresults results.  Sequences are returned in the form
-        [number, list].
+        (number, list).
 
         INPUT:
             seq -- list
@@ -175,8 +189,7 @@ class SloaneEncyclopediaClass:
             if m:
                 seqnum = int(m.group('num'));
                 msg = m.group('body').strip();
-                list = [int(n) for n in msg.split(',')]
-                self.__data__[seqnum] = [seqnum, list, ','+msg+',']
+                self.__data__[seqnum] = [seqnum, None, ','+msg+',']
         verbose("Finished loading", tm)
         self.__loaded__ = True
 
@@ -221,7 +234,7 @@ def parse_sequence(text):
 
 def sloane_sequence(number):
     try:
-        print "Looking up in Sloane's online database (this requires a net connection and is slow)..."
+        print "Looking up in Sloane's online database..."
         url = "http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eisA2.cgi?Anum=A%s"%number
         f = urllib.urlopen(url)
         s = f.read()
@@ -233,23 +246,26 @@ def sloane_sequence(number):
     i = t.find("<pre>")
     j = t.find("</pre>")
     if i == -1 or j == -1:
-        raise IOError, "Error parsing data (missing pre tags)."
+        #return []
+        raise ValueError, "sequence '%s' not found"%number
     text = s[i+5:j].strip()
 
     return parse_sequence(text)
 
-def sloane_find(list, nresults = 30):
+def sloane_find(list, nresults = 30, verbose=True):
     liststr = re.sub(r'[\[\] ]', '', str(list))
-    print liststr
-    urlparams = urllib.urlencode({'sequence': liststr,
-                                  'choice': 1,
-                                  'maxhit': nresults,
-                                  'noold': 2});
+    urlparams = urllib.urlencode({'q': liststr,
+                                  'p': 1,
+                                  'n': nresults,
+                                  'fmt': 2,
+                                  'sort': 0});
+
 
     try:
-        print "Searching Sloane's online database (this requires a net connection and is slow)..."
-        url = "http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eismum2.cgi"
-        f = urllib.urlopen(url, urlparams);
+        if verbose:
+            print "Searching Sloane's online database..."
+        url = "http://www.research.att.com/~njas/sequences/"
+        f = urllib.urlopen(url+'?'+urlparams);
         s = f.read()
         f.close()
     except IOError, msg:

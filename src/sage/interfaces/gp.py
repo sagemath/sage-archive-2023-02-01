@@ -196,11 +196,6 @@ class Gp(Expect):
                 verbose("doubling PARI/sage object vector: %s"%self.__var_store_len)
         return 'sage[%s]'%self.__seq
 
-    def _create(self, value):
-        name = self._next_var_name()
-        self.set(name, value)
-        return name
-
     def console(self):
         gp_console()
 

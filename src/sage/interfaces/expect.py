@@ -132,7 +132,13 @@ class Expect(SageObject):
         self._eval_line('')
         self._eval_line('')
 
+    def pid(self):
+        if self._expect is None:
+            self._start()
+        return self._expect.pid
+
     def _start(self, alt_message=None):
+        self.quit()  # in case one is already running
         global failed_to_start
         if self.__name in failed_to_start:
             if alt_message:
@@ -195,12 +201,14 @@ class Expect(SageObject):
     def quit(self):
         if self._expect is None:
             return
+        # Send a kill -9 to the process *group*.
+        # this is *very useful* when external binaries are started up
+        # by shell scripts, and killing the shell script doesn't
+        # kill the binary.
         try:
-            self._expect.timeout = 1  # give it at most 1 second to quit
-            #self._expect.sendline(self._quit_string()+';;')
-            self._eval_line(self._quit_string(), allow_use_file=False)
-            self._expect.timeout = 9999999
-        except (OSError, pexpect.TIMEOUT, pexpect.EOF, RuntimeError): # intentional EOF or RuntimeError if already quit
+            os.killpg(self._expect.pid, 9)
+        except OSError:
+            # this is OK, it just means the process was already dead.
             pass
 
     def _quit_string(self):
@@ -217,8 +225,8 @@ class Expect(SageObject):
         return s
 
     def _eval_line(self, line, allow_use_file=True):
-        if line.find('\n') != -1:
-            raise ValueError, "line must not contain any newlines"
+        #if line.find('\n') != -1:
+        #    raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
             return self._eval_line_using_file(line, tmp)
         try:
@@ -238,7 +246,6 @@ class Expect(SageObject):
                         return ''
                     print "** %s crashed or quit executing '%s' **"%(self, line)
                     print "Restarting %s and trying again"%self
-                    self._expect.close(force=1)
                     self._start()
                     if line != '':
                         return self._eval_line(line, allow_use_file=allow_use_file)
@@ -251,7 +258,6 @@ class Expect(SageObject):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
-
         i = out.find("\n")
         j = out.rfind("\r")
         return out[i+1:j].replace('\r\n','\n')

@@ -297,11 +297,11 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: f = x^7 + y^7 + z^7
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
-            sage: C.riemann_roch_basis(D)    # output is somewhat random
+            sage: C.riemann_roch_basis(D)    # output is random (!!!!)
             [x/(y + x), (z + y)/(y + x)]
 
-        \note{The Brill-Noether package does not always work (i.e., the 'bn'
-        algorithm.  When it fails a RuntimeError exception is raised.}
+        \note{The Brill-Noether package does not always work (i.e.,
+        the 'bn' algorithm.  Do *not* trust this.}
         """
         f = self.defining_polynomial()._singular_()
         singular = f.parent()

@@ -329,6 +329,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                        is used and the computation is interrupted as soon
                        as a small divisor of the order is detected.
 
+        \note{As of 2006-02-02 this function does not work on
+        Microsoft Windows.}
+
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.sea(next_prime(10^30))
@@ -626,7 +629,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (8, 8)
         """
         if self.torsion_order() % 2 == 0:
-            raise ArithmeticError, "curve must not have rational 2-torsion"
+            raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@ucsd.edu)."
         F = self.weierstrass_model()
         a1,a2,a3,a4,a6 = F.a_invariants()
         t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
@@ -669,7 +672,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     pass
             if not only_use_mwrank:
                 N = self.conductor()
-                prec = int(4*sqrt(N)) + 10
+                prec = int(4*float(sqrt(N))) + 10
                 if self.root_number() == 1:
                     L, err = self.Lseries_at1(prec)
                     if abs(L) > err + R(0.0001):  # definitely doesn't vanish
@@ -1172,7 +1175,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if self.root_number() == -1:
             return 0
-        sqrtN = self.conductor().sqrt()
+        sqrtN = float(self.conductor().sqrt())
         k = int(k)
         if k == 0: k = int(math.ceil(sqrtN))
         an = self.anlist(k)           # list of C ints
@@ -1229,7 +1232,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if self.root_number() == 1: return 0
         k = int(k)
-        sqrtN = self.conductor().sqrt()
+        sqrtN = float(self.conductor().sqrt())
         if k == 0: k = int(math.ceil(sqrtN))
         an = self.anlist(k)           # list of C ints
         # Compute z = e^(-2pi/sqrt(N))
@@ -1282,7 +1285,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
-        sqrtN = arith.sqrt(N)
+        sqrtN = float(arith.sqrt(N))
         def F(n, t):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
@@ -1310,7 +1313,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
-        sqrtN = arith.sqrt(N)
+        sqrtN = float(arith.sqrt(N))
         def F(n, t):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\
@@ -2386,7 +2389,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             h = IR(reg-eps,reg+eps)
             ind2 = ht/(h/2)
             misc.verbose("index squared = %s"%ind2)
-            ind = ind2.sqrt()
+            ind = float(ind2.sqrt())
             misc.verbose("index = %s"%ind)
             # Compute upper bound on square root of index.
             if ind.length() < 1:

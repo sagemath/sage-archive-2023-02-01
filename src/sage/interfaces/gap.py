@@ -109,6 +109,11 @@ is much less robust, and is not recommended.}
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = gap(t)
 
+AUTHORS:
+    -- David Joyner and William Stein; initial version(s)
+    -- William Stein (2006-02-01): modified gap_console command
+       so it uses exactly the same startup command as Gap.__init__.
+
 """
 
 #*****************************************************************************
@@ -132,6 +137,13 @@ import os
 DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/tmp/gap-workspace"%SAGE_ROOT
 
+def gap_command(use_workspace_cache=True):
+    if use_workspace_cache and os.path.exists(WORKSPACE):
+        return "gap -L %s"%WORKSPACE, False
+    else:
+        return "gap ", True
+
+
 class Gap(Expect):
     r"""
     Interface to the GAP interpreter.
@@ -145,12 +157,8 @@ class Gap(Expect):
                  logfile = None):
 
         self.__use_workspace_cache = use_workspace_cache
-        if use_workspace_cache and os.path.exists(WORKSPACE):
-            cmd = "gap -T -n -b -L %s"%WORKSPACE
-            self.__make_workspace = False
-        else:
-            cmd = "gap -T -n -b"
-            self.__make_workspace = True
+        cmd, self.__make_workspace = gap_command(use_workspace_cache)
+        cmd += ' -T -n -b '
         if max_workspace_size != None:
             cmd += " -o %s"%int(max_workspace_size)
         else: # unlimited
@@ -418,10 +426,7 @@ def reduce_load():
 
 import os
 def gap_console(use_workspace_cache=True):
-    if use_workspace_cache and os.path.exists(WORKSPACE):
-        cmd = "gap -L %s"%WORKSPACE
-    else:
-        cmd = "gap"
+    cmd, _ = gap_command(use_workspace_cache=use_workspace_cache)
     os.system(cmd)
 
 def gap_version():

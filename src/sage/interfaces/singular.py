@@ -267,7 +267,8 @@ class Singular(Expect):
 
     AUTHORS: David Joyner and William Stein
     """
-    def __init__(self, maxread=100000, script_subdirectory="user", logfile=None, server=None):
+    def __init__(self, maxread=1000, script_subdirectory="user",
+                 logfile=None, server=None):
         Expect.__init__(self,
                         name = 'singular',
                         prompt = '> ',
@@ -278,7 +279,7 @@ class Singular(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=1000)
         self.__libs  = []
 
     def _start(self, alt_message=None):
@@ -301,7 +302,7 @@ class Singular(Expect):
         #return 'execute(read("%s"))'%filename
         return '< "%s";'%filename
 
-    def __to_delete_xxx_eval_line(self, line, allow_use_file=True):
+    def xxx_eval_line(self, line, allow_use_file=True):
         if line.find('\n') != -1:
             raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
@@ -312,7 +313,7 @@ class Singular(Expect):
         E.sendline('"__SAGE_START__";')
         E.expect('__SAGE_START__')
         E.expect(self._prompt)
-        E.sendline(line)
+        E.sendline(line+';')
         E.sendline('"__SAGE_END__";')
         E.expect('__SAGE_END__')
         v = E.before
@@ -338,7 +339,6 @@ class Singular(Expect):
             x += ';'
 
         s = Expect.eval(self, x)
-
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s
         #print "output: %s"%s

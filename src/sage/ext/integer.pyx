@@ -31,6 +31,7 @@ cdef class Integer(element.EuclideanDomainElement)
 import sage.rings.integer_ring
 import sage.rings.coerce
 import sage.rings.infinity
+import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
 import mpfr
@@ -791,31 +792,55 @@ cdef class Integer(element.EuclideanDomainElement):
         return R(str(self))  # TODO: use base 16 or something (!)
 
 
-    def sqrt(self, int bits=53):
+    def sqrt(self, bits=None):
         r"""
-        Returns the positive square root of self \emph{as a real
-        number} to the given number of bits of precision if self is
-        nonnegative, and raises a \exception{ValueError} exception
-        otherwise.
+        Returns the positive square root of self, possibly as a
+        \emph{a real number} if self is not a perfect integer
+        square.
 
-        For the integer square root of a perfect square (with error
-        checking), use \code{self.square_root()}.
+        INPUT:
+            bits -- number of bits of precision.
+                    If bits is not specified, the number of
+                    bits of precision is at least twice the
+                    number of bits of self (the precision
+                    is always at least 53 bits if not specified).
+        OUTPUT:
+            integer, real number, or complex number.
+
+        For the guaranteed integer square root of a perfect square
+        (with error checking), use \code{self.square_root()}.
 
         EXAMPLE:
             sage: Z = IntegerRing()
-            sage: Z(2).sqrt()
+            sage: Z(2).sqrt(53)
             1.4142135623730951
             sage: Z(2).sqrt(100)
             1.4142135623730950488016887242092
             sage: 39188072418583779289.square_root()
             6260037733
-            sage: 39188072418583779289.sqrt()
-            6260037732.9999990
+            sage: (100^100).sqrt()
+            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: (-1).sqrt()
+            1.0000000000000000*I
+            sage: sqrt(-2)
+            1.4142135623730949*I
+            sage: sqrt(97)
+            9.8488578017961039
+            sage: 97.sqrt(200)
+            9.8488578017961047217462114149176244816961362874427641717231516
         """
+        if bits is None:
+            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
         if self < 0:
-            raise ValueError, "square root of negative number not (yet) defined."
-        R = mpfr.RealField(bits)
-        return self._mpfr_(R).sqrt()
+            x = sage.rings.complex_field.ComplexField(bits)(self)
+            return x.sqrt()
+        else:
+            try:
+                return self.square_root()
+            except ValueError:
+                pass
+            R = mpfr.RealField(bits)
+            return self._mpfr_(R).sqrt()
 
     def square_root(self):
         """

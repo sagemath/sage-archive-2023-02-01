@@ -222,14 +222,16 @@ def parse_sequence(text):
 def sloane_sequence(number):
     try:
         print "Looking up in Sloane's online database (this requires a net connection and is slow)..."
-        f = urllib.urlopen("http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eisA2.cgi?Anum=A%s"%number)
+        url = "http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eisA2.cgi?Anum=A%s"%number
+        f = urllib.urlopen(url)
         s = f.read()
         f.close()
-    except IOError:
-        s = ''
+    except IOError, msg:
+        raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, url)
 
-    i = s.find("<PRE>")
-    j = s.find("</PRE>")
+    t = s.lower()
+    i = t.find("<pre>")
+    j = t.find("</pre>")
     if i == -1 or j == -1:
         raise IOError, "Error parsing data (missing pre tags)."
     text = s[i+5:j].strip()
@@ -246,14 +248,16 @@ def sloane_find(list, nresults = 30):
 
     try:
         print "Searching Sloane's online database (this requires a net connection and is slow)..."
-        f = urllib.urlopen("http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eismum2.cgi", urlparams);
+        url = "http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eismum2.cgi"
+        f = urllib.urlopen(url, urlparams);
         s = f.read()
         f.close()
-    except IOError:
-        s = ''
+    except IOError, msg:
+        raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, url)
 
-    i = s.find("<PRE>")
-    j = s.find("</PRE>")
+    t = s.lower()
+    i = t.find("<pre>")
+    j = t.find("</pre>")
     if i == -1 or j == -1:
         raise IOError, "Error parsing data (missing pre tags)."
     text = s[i+5:j].strip()

@@ -8,8 +8,6 @@ EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: B = I.groebner_basis()
-    sage: B[0]
-    5*z^2 - 3*z^3 - 10*z^4 + 13*z^6 - 5*z^8 - z^9 + z^10 + 5*y^3 - 20*y^3*z^2 + 30*y^3*z^4 - 20*y^3*z^6 + 5*y^3*z^8 - 3*y^4 + 6*y^4*z^3 - 3*y^4*z^6 - 10*y^6 + 30*y^6*z^2 - 30*y^6*z^4 + 10*y^6*z^6 + 3*y^8 - 3*y^8*z^3 + 10*y^9 - 20*y^9*z^2 + 10*y^9*z^4 - 6*y^12 + 5*y^12*z^2 + y^15
     sage: len(B)
     8
     sage: [f in I for f in I.gens()]
@@ -26,6 +24,14 @@ EXAMPLES:
     sage: I.reduce(g+x^2)
     x^2
 
+We compute a Groebner basis for cyclic 6, which is a standard
+benchmark and test ideal.
+
+    sage: x,y,z,t,u,v = QQ['x,y,z,t,u,v'].gens()
+    sage: I = ideal(x + y + z + t + u + v, x*y + y*z + z*t + t*u + u*v + v*x, x*y*z + y*z*t + z*t*u + t*u*v + u*v*x + v*x*y, x*y*z*t + y*z*t*u + z*t*u*v + t*u*v*x + u*v*x*y + v*x*y*z, x*y*z*t*u + y*z*t*u*v + z*t*u*v*x + t*u*v*x*y + u*v*x*y*z + v*x*y*z*t, x*y*z*t*u*v - 1)
+    sage: B = I.groebner_basis()
+    sage: len(B)
+    17
 """
 
 #*****************************************************************************
@@ -231,12 +237,12 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: I
             Ideal (d + c + b + a, -1 + a*b*c*d, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I.groebner_basis()
-            [1 - d^4 - c^2*d^2 + c^2*d^6,
-             -1*d - c + c^2*d^3 + c^3*d^2,
-             -1*d + d^5 - b + b*d^4,
-             -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c,
-             d^2 + 2*b*d + b^2,
-             d + c + b + a]
+            [d^2 + 2*b*d + b^2,
+             1 - d^4 - c^2*d^2 + c^2*d^6,
+            -1*d + d^5 - b + b*d^4,
+            -1*d - c + c^2*d^3 + c^3*d^2,
+             d + c + b + a,
+            -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c]
         """
         try:
             return self.__groebner_basis

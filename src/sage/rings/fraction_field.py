@@ -83,7 +83,7 @@ class FractionField_generic(field.Field):
         return True
 
     def base_ring(self):
-        return self.__R.base_ring()
+        return self.__R.base_ring().fraction_field()
 
     def characteristic(self):
         return self.ring().characteristic()

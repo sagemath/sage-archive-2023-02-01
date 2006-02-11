@@ -902,6 +902,12 @@ class MaximaElement(ExpectElement):
     def numer(self):
         return self.comma('numer')
 
+    def real(self):
+        return self.realpart()
+
+    def imag(self):
+        return self.imagpart()
+
     def str(self):
         self._check_valid()
         P = self.parent()

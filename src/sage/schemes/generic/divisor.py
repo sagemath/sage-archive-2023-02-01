@@ -93,7 +93,7 @@ class Divisor_curve_points(Divisor_generic):
         sage: E.divisor([(3,P), (-4,5*P)])
         3*(0 : 0 : 1) - 4*(1/4 : -5/8 : 1)
     """
-    def __init__(self, v, check=True, reduce=True):
+    def __init__(self, v, check=True, reduce=True, parent=None):
         """
         INPUT:
             v -- a list of pairs (c, P), where c is an integer
@@ -113,6 +113,7 @@ class Divisor_curve_points(Divisor_generic):
             C = v[0].scheme()
         else:
             C = v[0][1].scheme()
+
         if check:
             w = []
             for t in v:
@@ -122,8 +123,11 @@ class Divisor_curve_points(Divisor_generic):
                     w.append((Z(1), C(t)))
             v = w
 
+        if parent is None:
+            parent = DivisorGroup(C)
+
         Divisor_generic.__init__(self, v, check=False, reduce=True,
-                                 parent = DivisorGroup(C))
+                                 parent = parent)
 
 
     def support(self):

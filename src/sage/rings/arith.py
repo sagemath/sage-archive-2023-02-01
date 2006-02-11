@@ -833,7 +833,8 @@ def rational_reconstruction(a, m):
     return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(0))
 
 def mqrr_rational_reconstruction(u, m, T):
-    """Maximal Quotient Rational Reconstruction.
+    """
+    Maximal Quotient Rational Reconstruction.
 
     Input:
         u, m, and T are integers and

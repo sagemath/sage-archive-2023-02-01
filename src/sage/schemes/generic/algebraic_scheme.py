@@ -184,7 +184,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         try:
             return self._coordinate_ring
         except AttributeError:
-            R = self.__A.coordinate_ring()
+            try:
+                R = self.__A.coordinate_ring()
+            except AttributeError:
+                raise NotImplementedError, "computation of coordinate ring of %s not implmented"%self
             if len(self.__X) == 0:
                 Q = R
             else:

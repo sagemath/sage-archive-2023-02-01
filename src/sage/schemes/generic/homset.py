@@ -48,12 +48,12 @@ class SchemeHomset_generic(Homset):
     def __call__(self, x, check=True):
         """
         EXAMPLES:
-            sage: f = Z.hom(Q); f
+            sage: f = ZZ.hom(QQ); f
             Coercion morphism:
               From: Integer Ring
               To:   Rational Field
 
-            sage: H = Hom(Spec(Q), Spec(Z)); H
+            sage: H = Hom(Spec(QQ, ZZ), Spec(ZZ)); H
             Set of points of Spectrum of Integer Ring defined over Rational Field
 
             sage: phi = H(f); phi

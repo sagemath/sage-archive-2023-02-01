@@ -36,8 +36,6 @@ CC = ComplexField()
 
 from sage.libs.all import pari
 
-import math
-
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
 # usually write f(x), e.g., it is weird to write x.log() and natural
@@ -150,7 +148,7 @@ def cos(x):
         -0.99999999999978639
     """
     try: return x.cos()
-    except AttributeError: return math.cos(float(x))
+    except AttributeError: return R(x).cos()
 
 ## def cuspidal_submodule(x):
 ##     return x.cuspidal_submodule()
@@ -264,7 +262,7 @@ def exp(x):
     Return the value of the exponentation function at x.
     """
     try: return x.exp()
-    except AttributeError: return math.exp(x)
+    except AttributeError: return R(x).exp()
 
 def factor(x, *args, **kwds):
     """
@@ -515,7 +513,7 @@ def log(x,b=None):
         sage: log(10,2)
         3.3219280948873626
         sage: log(8,2)
-        3.0
+        3.0000000000000000
         sage: log(10)
         2.3025850929940459
         sage: log(2.718)
@@ -524,8 +522,7 @@ def log(x,b=None):
     if b is None:
         try: return x.log()
         except AttributeError:
-            #return math.log(x)
-            return float(pari(x).log())
+            return R(x).log()
     else:
         try: return x.log(b)
         except AttributeError:
@@ -571,9 +568,9 @@ def norm(x):
     Return the norm of x.
 
     EXAMPLES:
-    sage: z = CC(1+2*i)
-    sage: norm(z)
-    5.0000000000000000
+        sage: z = CC(1+2*i)
+        sage: norm(z)
+        5.0000000000000000
     """
     return x.norm()
 
@@ -582,13 +579,13 @@ def numerator(x):
     Return the numerator of x.
 
     EXAMPLES:
-    sage: R = PolynomialRing(RationalField(), 'x')
-    sage: F = FractionField(R)
-    sage: r = (x+1)/(x-1)
-    sage: numerator(r)
-    x + 1
-    sage: numerator(17/11111)
-    17
+        sage: R = PolynomialRing(RationalField(), 'x')
+        sage: F = FractionField(R)
+        sage: r = (x+1)/(x-1)
+        sage: numerator(r)
+        x + 1
+        sage: numerator(17/11111)
+        17
     """
     if isinstance(x, (int, long)):
         return x
@@ -636,13 +633,12 @@ def order(x):
     the additive order of x.
 
     EXAMPLES:
-    sage: C = CyclicPermutationGroup(10)
-    sage: order(C)
-    10
-    sage: F = GF(7)
-    sage: order(F)
-    7
-
+        sage: C = CyclicPermutationGroup(10)
+        sage: order(C)
+        10
+        sage: F = GF(7)
+        sage: order(F)
+        7
     """
     return x.order()
 
@@ -651,11 +647,10 @@ def rank(x):
     Return the rank of x.
 
     EXAMPLES:
-    sage: M = MatrixSpace(QQ,3,3)
-    sage: A = M([1,2,3,4,5,6,7,8,9])
-    sage: rank(A)
-    2
-
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: rank(A)
+        2
     """
     return x.rank()
 
@@ -664,10 +659,9 @@ def real(x):
     Return the real part of x.
 
     EXAMPLES:
-    sage: z = CC(1+2*i)
-    sage: real(z)
-    1.0000000000000000
-
+        sage: z = CC(1+2*i)
+        sage: real(z)
+        1.0000000000000000
     """
     try: return x.real()
     except AttributeError: return C(x).real()
@@ -695,11 +689,10 @@ def sqrt(x):
     Return a square root of x.
 
     EXAMPLES:
-    sage: sqrt(10.1)
-    3.1780497164141406
-    sage: sqrt(9)
-    3.0000000000000000
-
+        sage: sqrt(10.1)
+        3.1780497164141406
+        sage: sqrt(9)
+        3
     """
     try: return x.sqrt()
     except (AttributeError, ValueError): return ComplexField()(x).sqrt()
@@ -710,9 +703,8 @@ def isqrt(x):
     square root.
 
     EXAMPLES:
-    sage: isqrt(10)
-    3
-
+        sage: isqrt(10)
+        3
     """
     try: return x.isqrt()
     except AttributeError:
@@ -723,7 +715,7 @@ def sin(x):
     Return the sin of x.
     """
     try: return x.sin()
-    except AttributeError: return math.sin(float(x))
+    except AttributeError: return R(x).sin()
 
 def square_free_part(x):
     """
@@ -768,11 +760,10 @@ def square_root(x):
     otherwise raise a ValueError.
 
     EXAMPLES:
-    sage: square_root(9)
-    3
-    sage: square_root(100)
-    10
-
+        sage: square_root(9)
+        3
+        sage: square_root(100)
+        10
     """
     try:
         return x.square_root()
@@ -784,25 +775,23 @@ def tan(x):
     Return the tangent of x.
 
     EXAMPLES:
-    sage: tan(3.1415)
-    -0.000092653590058635411
-    sage: tan(3.1415/4)
-    0.99995367427815607
-
+        sage: tan(3.1415)
+        -0.000092653590058635411
+        sage: tan(3.1415/4)
+        0.99995367427815607
     """
     try: return x.tan()
-    except AttributeError: return math.tan(float(x))
+    except AttributeError: return R(x).tan()
 
 def transpose(x):
     """
     EXAMPLES:
-    sage: M = MatrixSpace(QQ,3,3)
-    sage: A = M([1,2,3,4,5,6,7,8,9])
-    sage: transpose(A)
-    [1 4 7]
-    [2 5 8]
-    [3 6 9]
-
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: transpose(A)
+        [1 4 7]
+        [2 5 8]
+        [3 6 9]
     """
     return x.transpose()
 
@@ -822,11 +811,11 @@ def zero(R):
     Return the zero element of the ring R.
 
     EXAMPLES:
-    sage: R = PolynomialRing(RationalField(), 'x')
-    sage: zero(R) in R
-    True
-    sage: zero(R)*x == zero(R)
-    True
+        sage: R = PolynomialRing(RationalField(), 'x')
+        sage: zero(R) in R
+        True
+        sage: zero(R)*x == zero(R)
+        True
     """
     return R(0)
 

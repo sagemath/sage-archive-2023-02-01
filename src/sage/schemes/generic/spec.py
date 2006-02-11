@@ -75,14 +75,18 @@ class Spec(scheme.AffineScheme):
         if not is_CommutativeRing(R):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         self.__R = R
-        if not S is None:
-            if not is_CommutativeRing(S):
-                raise TypeError, "S (=%s) must be a commutative ring"%S
-            try:
-                S.hom(R)
-            except TypeError:
-                raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
-            self._base_ring = S
+        if S is None:
+            if R == Z:
+                return
+            else:
+                S = R.base_ring()
+        if not is_CommutativeRing(S):
+            raise TypeError, "S (=%s) must be a commutative ring"%S
+        try:
+            S.hom(R)
+        except TypeError:
+            raise ValueError, "There must be a natural map S --> R, but S = %s and R = %s"%(S,R)
+        self._base_ring = S
 
     def _cmp_(self, X):
         """

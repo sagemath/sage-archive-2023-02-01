@@ -22,9 +22,16 @@ import element
 import sage.misc.latex
 
 from sage.ext.element import AdditiveGroupElement
+from sage.ext.group import AbelianGroup
+
+class FormalSums(AbelianGroup):
+    def _repr_(self):
+        return "Abelian Group of all Formal Finite Sums"
+
+formal_sums = FormalSums()
 
 class FormalSum(AdditiveGroupElement, list):
-    def __init__(self, x, check=True, reduce=True, parent=None):
+    def __init__(self, x, parent=None, check=True, reduce=True):
         if x == 0:
             x = []
         if check:
@@ -32,8 +39,9 @@ class FormalSum(AdditiveGroupElement, list):
                 if not (isinstance(t, tuple) and len(t) == 2):
                     raise TypeError, "Invalid formal sum"
         list.__init__(self, x)
-        if not parent is None:
-            AdditiveGroupElement.__init__(self, parent)
+        if parent is None:
+            parent = formal_sums
+        AdditiveGroupElement.__init__(self, parent)
         self.reduce()
 
     def _repr_(self):
@@ -47,13 +55,13 @@ class FormalSum(AdditiveGroupElement, list):
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
 
     def _add_(self, other):
-        return self.__class__(list.__add__(self,other))
+        return self.__class__(list.__add__(self,other), parent=self.parent())
 
     def __mul__(self, s):
-        return self.__class__([(c*s, x) for c,x in self], check=False)
+        return self.__class__([(c*s, x) for c,x in self], check=False, parent=self.parent())
 
     def __rmul__(self, s):
-        return self.__class__([(s*c, x) for c,x in self])
+        return self.__class__([(s*c, x) for c,x in self], parent=self.parent())
 
     def reduce(self):
         if len(self) == 0:

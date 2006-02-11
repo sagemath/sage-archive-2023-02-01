@@ -147,9 +147,10 @@ class AffineCurve_generic(Curve_generic):
         N = int(S.eval('size(c)'))
         b = ["c["+str(i)+",1]," for i in range(2,N/2-4)]
         b = ''.join(b)
-        b = b[:len(b)-1] #to cut off the trailing comma
+        b = b[:len(b)-1] # to cut off the trailing comma
         cmd = 'ideal I = '+b
         S.eval(cmd)
+        S.eval('short=0')    # print using *'s and ^'s.
         c = S.eval('slimgb(I)')
         d = c.split("=")
         d = d[1:]

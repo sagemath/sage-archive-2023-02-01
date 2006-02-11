@@ -192,6 +192,16 @@ cdef class SageObject:
         from sage.categories.all import Objects
         return Objects()
 
+##     def category(self):
+##         try:
+##             return self.__category
+##         except AttributeError:
+##             from sage.categories.all import Objects
+##             return Objects()
+
+##     def _set_category(self, C):
+##         self.__category = C
+
     #############################################################################
     # Containment testing
     #############################################################################

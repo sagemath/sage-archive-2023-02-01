@@ -1,24 +1,177 @@
-"""
+r"""
 Interface to Maple
 
-You must have the maple interpreter installed and available as
-the command "maple" in your PATH in order to use this interface.
+You must have the optional commercial Maple interpreter installed and
+available as the command \code{maple} in your PATH in order to use
+this interface.  You do not have to install any special \sage packages.
+
 
 EXAMPLES:
-    sage: maple('3 * 5')                       # needs optional maple
+    sage: maple('3 * 5')
     15
-    sage: maple.eval('ifactor(2005)')          # needs optional maple
+    sage: maple.eval('ifactor(2005)')
     '``(5)*``(401)'
-    sage: maple.ifactor(2005)                  # needs optional maple
+    sage: maple.ifactor(2005)
     ``(5)*``(401)
-    sage: maple.fsolve('x^2=cos(x)+4', 'x=0..5')   # needs optional maple
+    sage: maple.fsolve('x^2=cos(x)+4', 'x=0..5')
     1.914020619
-    sage: maple.factor('x^5 - y^5')            # needs optional maple
+    sage: maple.factor('x^5 - y^5')
     (x-y)*(x^4+x^3*y+x^2*y^2+x*y^3+y^4)
 
 If the string "error" (case insensitive) occurs in the
 output of anything from Maple, a RuntimeError exception is raised.
 
+\subsection{Tutorial}
+
+AUTHOR:
+    -- Gregg Musiker (2006-02-02): initial version.
+
+
+This tutorial is based on the Maple Tutorial for number theory
+from  \url{http://www.math.mun.ca/~drideout/m3370/numtheory.html}.
+
+There are several ways to use the Maple Interface in \SAGE.  We will
+discuss two of those ways in this tutorial.
+
+\begin{enumerate}
+\item If you have a maple expression such as
+\begin{verbatim}
+factor( (x^5-1));
+\end{verbatim}
+We can write that in sage as
+
+    sage: maple('factor(x^5-1)')
+    (x-1)*(x^4+x^3+x^2+x+1)
+
+Notice, there is no need to use a semicolon.
+
+\item Since \SAGE is written in Python, we can also import maple
+commands and write our scripts in a pythonic way.
+For example, \code{factor()} is a maple command, so we can also factor
+in \sage using
+
+    sage: maple('(x^5-1)').factor()
+    (x-1)*(x^4+x^3+x^2+x+1)
+
+where \code{expression.command()} means the same thing as
+\code{command(expression)} in Maple.  We will use this second type of
+syntax whenever possible, resorting to the first when needed.
+
+    sage: maple('(x^12-1)/(x-1)').simplify()
+    x^11+x^10+x^9+x^8+x^7+x^6+x^5+x^4+x^3+x^2+x+1
+
+\end{enumerate}
+
+The normal command will always reduce a rational function to the
+lowest terms. The factor command will factor a polynomial with
+rational coefficients into irreducible factors over the ring of
+integers. So for example,
+
+    sage: maple('(x^12-1)').factor( )
+    (x-1)*(x+1)*(x^2+x+1)*(x^2-x+1)*(x^2+1)*(x^4-x^2+1)
+
+    sage: maple('(x^28-1)').factor( )
+    (x-1)*(x^6+x^5+x^4+x^3+x^2+x+1)*(x+1)*(1-x+x^2-x^3+x^4-x^5+x^6)*(x^2+1)*(x^12-
+    x^10+x^8-x^6+x^4-x^2+1)
+
+
+Another important feature of maple is its online help.  We can access
+this through sage as well.  After reading the description of the
+command, you can press q to immediately get back to your original
+prompt.
+
+% NOTE: DOESN'T BRING UP NEW SCREEN IN SSH
+
+Incidentally you can always get into a maple console by the command
+
+    sage.: maple.console()
+    sage.: !maple
+
+Note that the above two commands are slightly different, and the first
+is preferred.
+
+For example, for help on the maple command fibonacci, we type
+
+    sage.: maple.help('fibonacci')
+
+We see there are two choices.  Type
+
+    sage.: maple.help('combinat, fibonacci')
+
+We now see how the Maple command fibonacci works under the
+combinatorics package.  Try typing in
+
+    sage: maple.fibonacci(10)
+    fibonacci(10)
+
+You will get fibonacci(10) as output since Maple has not loaded the combinatorics package yet.  To rectify this type
+
+    sage: maple('combinat[fibonacci]')(10)
+    55
+
+instead.
+
+If you want to load the combinatorics package for future calculations,
+in \sage this can be done as
+
+    sage: maple.with('combinat')
+
+or
+
+    sage: maple.load('combinat')
+
+Now if we type \code{maple.fibonacci(10)}, we get the correct output:
+
+    sage: maple.fibonacci(10)
+    55
+
+Some common maple packages include \code{combinat}, \code{linalg}, and
+\code{numtheory}.  To produce the first 19 Fibonacci
+numbers, use the sequence command.
+
+    sage: maple('seq(fibonacci(i),i=1..19)')
+    1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584,
+    4181
+
+Two other useful Maple commands are ifactor and isprime. For example
+
+    sage: maple.isprime(maple.fibonacci(27))
+    false
+    sage: maple.ifactor(maple.fibonacci(27))
+    ``(2)*``(17)*``(53)*``(109)
+
+Note that the isprime function that is included with \sage (which uses
+PARI) is better than the Maple one (it is faster and gives a provably
+correct answer, whereas Maple is sometimes wrong).
+
+    sage: alpha = maple('(1+sqrt(5))/2')
+    sage: beta = maple('(1-sqrt(5))/2')
+    sage: f19  = alpha^19 - beta^19/maple('sqrt(5)')
+    sage: f19
+    (1/2+1/2*5^(1/2))^19-1/5*(1/2-1/2*5^(1/2))^19*5^(1/2)
+    sage: f19.simplify()
+    5778/5*5^(1/2)+6765
+
+Let's say we want to write a maple program now that squares a number
+if it is positive and cubes it if it is negative.  In maple, that
+would look like
+
+\begin{verbatim}
+mysqcu := proc(x)
+if x > 0 then x^2;
+else x^3; fi;
+end;
+\end{verbatim}
+In SAGE, we write
+
+   sage: mysqcu = maple('proc(x) if x > 0 then x^2 else x^3 fi end')
+   sage: mysqcu(5)
+   25
+   sage: mysqcu(-5)
+   -125
+
+More complicated programs should be put in a separate file and
+loaded.
 """
 
 #*****************************************************************************
@@ -183,21 +336,21 @@ class Maple(Expect):
         Some functions are unknown to Maple until you use with to include
         the appropriate package.
 
-            sage: maple('partition(10)')               # optional
+            sage.: maple('partition(10)')              # optional
             partition(10)
-            sage: maple('bell(10)')                    # optional
+            sage.: maple('bell(10)')                   # optional
             bell(10)
             sage: maple.with('combinat')               # optional
             sage: maple('partition(10)')               # optional
-            [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1,
-            1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1
-            , 1, 1, 1, 1, 3], [1, 1, 1, 1, 1, 2, 3], [1, 1, 1, 2, 2, 3], [1, 2, 2, 2, 3],
-            [1, 1, 1, 1, 3, 3], [1, 1, 2, 3, 3], [2, 2, 3, 3], [1, 3, 3, 3], [1, 1, 1, 1,
-            1, 1, 4], [1, 1, 1, 1, 2, 4], [1, 1, 2, 2, 4], [2, 2, 2, 4], [1, 1, 1, 3, 4],
-            [1, 2, 3, 4], [3, 3, 4], [1, 1, 4, 4], [2, 4, 4], [1, 1, 1, 1, 1, 5], [1, 1, 1
-            , 2, 5], [1, 2, 2, 5], [1, 1, 3, 5], [2, 3, 5], [1, 4, 5], [5, 5], [1, 1, 1, 1
-            , 6], [1, 1, 2, 6], [2, 2, 6], [1, 3, 6], [4, 6], [1, 1, 1, 7], [1, 2, 7], [3,
-            7], [1, 1, 8], [2, 8], [1, 9], [10]]
+             [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1,
+             1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1
+             , 1, 1, 1, 1, 3], [1, 1, 1, 1, 1, 2, 3], [1, 1, 1, 2, 2, 3], [1, 2, 2, 2, 3],
+             [1, 1, 1, 1, 3, 3], [1, 1, 2, 3, 3], [2, 2, 3, 3], [1, 3, 3, 3], [1, 1, 1, 1,
+             1, 1, 4], [1, 1, 1, 1, 2, 4], [1, 1, 2, 2, 4], [2, 2, 2, 4], [1, 1, 1, 3, 4],
+             [1, 2, 3, 4], [3, 3, 4], [1, 1, 4, 4], [2, 4, 4], [1, 1, 1, 1, 1, 5], [1, 1, 1
+             , 2, 5], [1, 2, 2, 5], [1, 1, 3, 5], [2, 3, 5], [1, 4, 5], [5, 5], [1, 1, 1, 1
+             , 6], [1, 1, 2, 6], [2, 2, 6], [1, 3, 6], [4, 6], [1, 1, 1, 7], [1, 2, 7], [3,
+             7], [1, 1, 8], [2, 8], [1, 9], [10]]
             sage: maple('bell(10)')                   # optional
             115975
             sage: maple('fibonacci(10)')              # optional

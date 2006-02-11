@@ -154,7 +154,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
                                          self.base_ring(), self.variable_name())
             return self.__power_series_ring
 
-class LaurentSeriesRing_domain(integral_domain.IntegralDomain, LaurentSeriesRing_generic):
+class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name=None):
         LaurentSeriesRing_generic.__init__(self, base_ring, name)
 
@@ -165,7 +165,7 @@ class LaurentSeriesRing_domain(integral_domain.IntegralDomain, LaurentSeriesRing
             self.__fraction_field = LaurentSeriesRing(self.base_ring().fraction_field(), name)
             return self.__fraction_field
 
-class LaurentSeriesRing_field(field.Field, LaurentSeriesRing_generic):
+class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
     def __init__(self, base_ring, name=None):
         LaurentSeriesRing_generic.__init__(self, base_ring, name)
 

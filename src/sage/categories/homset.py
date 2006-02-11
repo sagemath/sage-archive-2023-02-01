@@ -65,11 +65,11 @@ def Hom(X, Y, cat=None):
     cat_Y = Y.category()
     if cat is None:
         if cat_X.is_subcategory(cat_Y):
-            cat = cat_X
-        if cat_Y.is_subcategory(cat_X):
+            cat = cat_Y
+        elif cat_Y.is_subcategory(cat_X):
             if not (cat is None) and not (cat_X is cat_Y):
                 raise ValueError, "No unambiguous category found for Hom from %s to %s."%(X,Y)
-            cat = cat_Y
+            cat = cat_X
         else:
             raise TypeError, "No suitable category found for Hom from %s to %s."%(X,Y)
 
@@ -201,10 +201,10 @@ class Homset(Set_generic):
         if check:
             if not isinstance(cat, category.Category):
                 raise TypeError, "cat (=%s) must be a category"%cat
-            if not X in cat:
-                raise TypeError, "X (=%s) must be in cat (=%s)"%(X, cat)
-            if not Y in cat:
-                raise TypeError, "Y (=%s) must be in cat (=%s)"%(Y, cat)
+            #if not X in cat:
+            #    raise TypeError, "X (=%s) must be in cat (=%s)"%(X, cat)
+            #if not Y in cat:
+            #    raise TypeError, "Y (=%s) must be in cat (=%s)"%(Y, cat)
 
     def _repr_(self):
         return "Set of Morphisms from %s to %s in %s"%(

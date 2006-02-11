@@ -5,7 +5,7 @@ from misc import (alarm, srange, xsrange,
                   random_sublist, mul, prod, walltime, generic_cmp,
                   repr_lincomb, tmp_dir,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit)
+                  is_32_bit, is_64_bit, upgrade)
 
 from defaults import set_default_variable_name
 

@@ -498,8 +498,12 @@ cdef class ntl_ZZX:
         return (self*other).quo_rem(g)[0]
 
     def xgcd(self, ntl_ZZX other, proof=True):
-        """
-        Returns r,s,t such that r = s*self + t*other.
+        r"""
+        If self and other are coprime over the rationals, return r,s,t
+        such that r = s*self + t*other.  Otherwise return 0.  This
+        is \emph{not} the same as the \sage function on polynomials
+        over the integers, since here the return value r is always
+        an integer.
 
         Here r is the resultant of a and b; if r != 0, then this
         function computes s and t such that: a*s + b*t = r; otherwise

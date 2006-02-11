@@ -1561,6 +1561,13 @@ def partitions(n):
             yield (p[0] + 1,) + p[1:]
 
 def continued_fraction(x):
+    """
+    Returns the continued fraction of x computed using PARI.
+
+    (This is currently nearly useless when x is a \sage real number
+    because of precision loss in conversion to PARI.  It works fine
+    for rational numbers.)
+    """
     return pari(x).contfrac().python()
 
 def convergent(v, n):

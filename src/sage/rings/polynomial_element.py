@@ -463,6 +463,14 @@ class Polynomial(ring_element.RingElement):
         """
         return self.parent().base_ring()
 
+    def base_extend(self, R):
+        """
+        Return a copy of this polynomial but with coefficients in R.
+        """
+        S = sage.rings.polynomial_ring.PolynomialRing(R,
+                                      name = self.parent().variable_name())
+        return S(self)
+
     def copy(self):
         """
         Return a copy of self.
@@ -935,9 +943,29 @@ class Polynomial(ring_element.RingElement):
         return self.parent().variable_name()
 
     def _xgcd(self, other):
-        """
+        r"""
         Extended gcd of self and polynomial other.
+
+        Returns g, u, and v such that
+              \code{g = u*self + v*other.}
+
+        EXAMPLES:
+            sage: P, x = PolynomialRing(QQ).objgen()
+            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+            sage: g, u, v = F.xgcd(G)
+            sage: g, u, v
+            (27*x^2 + 54, 1, -x^2 - 3*x - 9)
+            sage: u*F + v*G
+            27*x^2 + 54
+            sage: x.xgcd(P(0))
+            (1, 0, x)
+            sage: f = P(0)
+            sage: f.xgcd(x)
+            (x, 0, 1)
         """
+        if other.is_zero():
+            R = self.parent()
+            return R(1), R(0), self
         # Algorithm 3.2.2 of Cohen, GTM 138
         R = self.parent()
         A = self
@@ -1744,11 +1772,46 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
     def xgcd(self, right):
         """
-        Returns r,s,t such that r = s*self + t*other.
+        Return $g, u, v$ such that \code{g = u*self + v*right}.
+
+        If self and right are coprime as polynomials over the
+        rationals, then $g$ is guaranteed to be the resultant of self
+        and right, as a constant polynomial.
+
+        EXAMPLES:
+            sage: P, x = PolynomialRing(ZZ).objgen()
+            sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
+            sage: g, u, v = F.xgcd(G)
+            sage: g, u, v
+            (27*x^2 + 54, 1, -x^2 - 3*x - 9)
+            sage: u*F + v*G
+            27*x^2 + 54
+            sage: x.xgcd(P(0))
+            (1, 0, x)
+            sage: f = P(0)
+            sage: f.xgcd(x)
+            (x, 0, 1)
+            sage: F = (x-3)^3; G = (x-15)^2
+            sage: g, u, v = F.xgcd(G)
+            sage: g, u, v
+            (2985984, -432*x + 8208, 432*x^2 + 864*x + 14256)
+            sage: u*F + v*G
+            2985984
         """
-        r, s, t = self.__poly.xgcd(right.__poly)
-        return self.parent()(r, construct=True), self.parent()(s, construct=True), \
-               self.parent()(t, construct=True)
+        r, s, t = self.ntl_ZZX().xgcd(right.ntl_ZZX())
+        K = self.base_ring()
+        rr = K(str(r))   # optimize in future
+        if rr == 0:
+            QQ = sage.rings.rational_field.QQ
+            f = self.base_extend(QQ)
+            g, u, v = f.xgcd(right.base_extend(QQ))
+            d = arith.lcm([g.denominator(), u.denominator(), v.denominator()])
+            R = self.parent()
+            return R(d*g), R(d*u), R(d*v)
+        else:
+            S = self.parent()
+            return S(rr), S(s, construct=True), \
+                   S(t, construct=True)
 
 
     def _mul_(self, right):
@@ -2163,7 +2226,7 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n, principal_ideal_domain_elem
 
     def _xgcd(self, right):
         """
-        Return r,s,t such that r = s*self + t*right.
+        Return $g, u, v$ such that \code{g = u*self + v*right}.
         """
         r, s, t = self.ntl_ZZ_pX().xgcd(right.ntl_ZZ_pX())
         return self.parent()(r, construct=True), self.parent()(s, construct=True), \

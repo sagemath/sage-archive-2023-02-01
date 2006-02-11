@@ -364,13 +364,13 @@ class Maxima(Expect):
         """
         # TODO: Input and output prompts in maxima can be changed by
         # setting inchar and outchar..
-        eval_using_file_cutoff = 100
+        eval_using_file_cutoff = 200
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
                         command = "maxima",
-                        maxread = 1,        # CRUCIAL to use less buffering for maxima (or get all kinds of hangs on OS X and 64-bit machines, etc!
+                        maxread = 1,    # CRUCIAL to use less buffering for maxima (or get all kinds of hangs on OS X and 64-bit machines, etc!
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -378,8 +378,14 @@ class Maxima(Expect):
                                      'load("mactex-utilities")'   # latex instead of plain tex from tex command
                                      ],
                         logfile = logfile,
-                        eval_using_file_cutoff=200)
+                        eval_using_file_cutoff=eval_using_file_cutoff )
         self._display2d = False
+
+    def _start(self):
+        # For some reason sending a single input line at startup avoids
+        # lots of weird timing issues when doing doctests.
+        Expect._start(self)
+        self(1)
 
     # this doesn't work.
     #def x_start(self):
@@ -405,7 +411,10 @@ class Maxima(Expect):
         return 'quit();'
 
     def _eval_line(self, line, reformat=True, allow_use_file=False):
-        line = '%s; %s; %s;'%(SAGE_START, line.rstrip().rstrip(';'), SAGE_END)
+        line = line.rstrip().rstrip(';')
+        if line == '':
+            return ''
+        line = '%s; %s; %s;'%(SAGE_START, line, SAGE_END)
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -821,10 +830,9 @@ class Maxima(Expect):
         n = Integer(n).square_free_part()
         if n < 1:
             raise ValueError, "n (=%s) must be >= 1"%n
-        s = self.eval('qunit(%s)'%n).lower()
+        s = str(self('qunit(%s)'%n)).lower()
         r = re.compile('sqrt\(.*\)')
         s = r.sub('a', s)
-
         a = QuadraticField(n, 'a').gen()
         return eval(s)
 

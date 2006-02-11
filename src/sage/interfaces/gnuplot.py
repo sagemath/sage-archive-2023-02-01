@@ -128,6 +128,9 @@ class Gnuplot(SageObject):
                         '[v=-0.2:0.2]'
              samples -- (int) number of sample points to use
              title   -- (string) title of the graph.
+
+        EXAMPLES:
+            sage.: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')
         """
         if title is None:
             title = str(f)

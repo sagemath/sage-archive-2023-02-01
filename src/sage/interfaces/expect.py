@@ -24,6 +24,7 @@ interface that is described in this section.
 import os
 import pexpect
 import weakref
+import time
 from sage.ext.sage_object import SageObject
 from sage.structure.element import Element_cmp_
 from sage.misc.sage_eval import sage_eval

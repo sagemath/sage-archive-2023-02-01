@@ -252,7 +252,8 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
 
 
-Z = IntegerRing()
+ZZ = IntegerRing()
+Z = ZZ
 
 def factor(n, algorithm='pari'):
     """

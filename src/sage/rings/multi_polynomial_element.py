@@ -762,7 +762,8 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
             sage: F
             x * (2*y^2 + x^2) * (1 + x + x^2)
 
-        Next we factor the same polynomial, but over the finite field of order $3$.
+        Next we factor the same polynomial, but over the finite field
+        of order $3$.
 
             sage: x, y = PolynomialRing(GF(3), 2, ['x','y']).gens()
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
@@ -771,8 +772,12 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
             sage: F
             2 * x * (2 + x)^2 * (y + x) * (y + 2*x)
 
-        Next we factor a larger product involving many variables.
-            sage:
+        \note{Singular multi-variate polynomial factorization is very
+        slow in \SAGE.  This \emph{not} a fault of Singular but of how
+        the \SAGE NTL is built.  If you download and install a
+        Singular binary from the Singular website it will not have
+        this problem (you can use it with \SAGE by putting it in
+        local/bin/).}
         """
         R = self.parent()
         S = self._singular_().factorize()

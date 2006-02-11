@@ -237,12 +237,13 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: I
             Ideal (d + c + b + a, -1 + a*b*c*d, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I.groebner_basis()
-            [d^2 + 2*b*d + b^2,
-             1 - d^4 - c^2*d^2 + c^2*d^6,
-            -1*d + d^5 - b + b*d^4,
-            -1*d - c + c^2*d^3 + c^3*d^2,
-             d + c + b + a,
-            -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c]
+             [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
+
+        \note{Some Groebner basis calculations crash on 64-bit
+        opterons with \SAGE's singular build, but work fine with an
+        official binary.  If you download and install a Singular
+        binary from the Singular website it will not have this problem
+        (you can use it with \SAGE by putting it in local/bin/).}
         """
         try:
             return self.__groebner_basis

@@ -864,3 +864,18 @@ def tmp_dir(name):
 is_64_bit = sys.maxint >= 9223372036854775807
 is_32_bit = not is_64_bit
 
+
+#################################################################
+# Upgrade to latest version of SAGE.
+#################################################################
+
+
+def upgrade():
+    """
+    Download and build the latest version of SAGE.  You must have an
+    internet connection.  Also, you will have to restart SAGE for the
+    changes to take affect.
+
+    This will not work on systems that don't have a C compiler.
+    """
+    os.system('sage -upgrade')

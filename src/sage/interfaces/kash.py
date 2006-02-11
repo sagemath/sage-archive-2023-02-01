@@ -428,8 +428,9 @@ class Kash(Expect):
 
     # Change the default for KASH, since eval using a file doesn't
     # work except for setting variables.
-    def _eval_line(self, line, allow_use_file=False):
-        return Expect._eval_line(self, line, allow_use_file=allow_use_file)
+    def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True):
+        return Expect._eval_line(self, line, allow_use_file=allow_use_file,
+                                 wait_for_prompt=wait_for_prompt)
 
     def __reduce__(self):
         return reduce_load_Kash, tuple([])
@@ -471,11 +472,30 @@ class Kash(Expect):
         else:
             return s.replace("\\\n","")
 
+##     def help(self, name=None):
+##         """
+##         Return help on KASH commands.
+
+##         EXAMPLES:
+##             sage: X = kash.help('IntegerRing')   # needs optional kash package
+
+##         """
+##         if name is None:
+##           print '\nTo use KASH help enter kash.help(s). '
+##           print 'The syntax of the string s is given below.\n'
+##           print self.eval('?')
+##         elif name[0] == '?':
+##           print self.eval(name)
+##         else:
+##           print self.eval('?%s'%name)
+
     def help(self, name=None):
         """
-        Return help on all commands with a given name.
-        If name is None, return the location of the installed
-        Kash html documentation.
+        Return help on KASH commands.
+
+        Returns help on all commands with a given name.  If name is
+        None, return the location of the installed Kash html
+        documentation.
 
         EXAMPLES:
             sage: X = kash.help('IntegerRing')   # needs optional kash package
@@ -484,11 +504,23 @@ class Kash(Expect):
         documentation for this function: If you type \code{print X[0]}
         you will get help on about the first one, printed nicely to
         the screen.
+
+        AUTHOR:
+            -- Sebastion Pauli (2006-02-04) -- during SAGE coding sprint
         """
         if name is None:
-            return "The Kash manual is installed in %s/local/lib/kash/html"%os.environ['SAGE_ROOT']
-        V = self.eval('?%s'%name)
-        return self._doc(V)
+            print '\nTo use KASH help enter kash.help(s). '
+            print 'The syntax of the string s is given below.\n'
+            print self.eval('?')
+        elif name[0] == '?':
+            print self.eval(name)
+        else:
+            print self.eval('?%s'%name)
+
+        #if name is None:
+        #    return "The Kash manual is installed in %s/local/lib/kash/html"%os.environ['SAGE_ROOT']
+        #V = self.eval('?%s'%name)
+        #return self._doc(V)
 
     def _doc(self, V):
         if V.lstrip()[:11] == 'No matches.':

@@ -61,13 +61,12 @@ We solve an equation and a system of two equations:
 
     sage: eqn = mathematica('3x + 5 == 14')
     sage: eqn
-    5 + 3 x == 14
+    5 + 3*x == 14
     sage: eqn.Solve('x')
     {{x -> 3}}
     sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')
     sage: print sys
-              2
-            {x  - 3 y == 3, 2 x - y == 1}
+    {x^2 - 3*y == 3, 2*x - y == 1}
     sage: sys.Solve('{x, y}')
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
@@ -79,9 +78,9 @@ this does not affect the $c$ in Mathematica.
 
     sage: c = m(5)
     sage: m('b + c x')
-    b + c x
+    b + c*x
     sage: m('b') + c*m('x')
-    b + 5 x
+    b + 5*x
 
 The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: m = mathematica
@@ -89,8 +88,7 @@ The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: eq2 = m('2x - y == 1')
     sage: v = m([eq1, eq2])
     sage: print v
-              2
-            {x  - 3 y == 3, 2 x - y == 1}
+    {x^2 - 3*y == 3, 2*x - y == 1}
     sage: v.Solve(['x', 'y'])
     {{y -> -1, x -> 0}, {y -> 11, x -> 6}}
 
@@ -109,7 +107,7 @@ interpreter.
 We find the $x$ such that $e^x - 3x = 0$.
     sage: e = mathematica('Exp[x] - 3x == 0')
     sage: e.FindRoot(['x', 2])
-    {x -> 1.51213}
+    {x -> 1.512134551657842}
 
 Note that this agrees with what the PARI interpreter gp produces:
     sage: gp('solve(x=1,2,exp(x)-3*x)')
@@ -122,7 +120,7 @@ different ways of accessing Mathematica:
     '{0.6151, {x -> 2.57735}}'
     sage: f = mathematica('x^3 - 6x^2 + 11x - 5')
     sage: f.FindMinimum(['x', 3])
-    {0.6151, {x -> 2.57735}}
+    {0.6150998205402516, {x -> 2.5773502699629733}}
 
 
 \subsubsection{Polynomial and Integer Factorization}
@@ -135,17 +133,14 @@ We factor a polynomial of degree 200 over the integers.
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100
     sage: g = mathematica(str(f))
     sage: g
-                              2       100       101    200
-            100 + 315 x - 85 x  + 25 x    + 12 x    + x
+    100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200
     sage: g.Factor()
-                         100               100
-            (20 - 5 x + x   ) (5 + 17 x + x   )
+    (20 - 5*x + x^100)*(5 + 17*x + x^100)
 
 We can also factor a multivariate polynomial:
     sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')
     sage: f.Factor()
-             3                  2    3
-            x  (x - y) (-2 x + x  + y )
+    x^3*(x - y)*(-2*x + x^2 + y^3)
 
 We factor an integer:
     sage: n = mathematica(2434500)
@@ -197,6 +192,8 @@ from expect import Expect, ExpectElement
 from sage.misc.misc import verbose
 
 def clean_output(s):
+    if s is None:
+        return ''
     i = s.find('Out[')
     j = i + s[i:].find('=')
     s = s[:i] + '\n       ' + s[j+1:]
@@ -219,7 +216,7 @@ class Mathematica(Expect):
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None):
         Expect.__init__(self,
                         name = 'mathematica',
-                        prompt = ':=',
+                        prompt = 'In[[0-9]+]:=',
                         command = "math",
                         maxread = maxread,
                         server = server,
@@ -269,8 +266,12 @@ class Mathematica(Expect):
     def get(self, var):
         """
         Get the value of the variable var.
+
+        AUTHOR:
+           -- William Stein
+           -- Kiran Kedlaya (2006-02-04): suggested using InputForm
         """
-        return self.eval(var, strip=True)
+        return self.eval('InputForm[%s]'%var, strip=True)
 
     #def clear(self, var):
     #    """
@@ -278,8 +279,9 @@ class Mathematica(Expect):
     #    """
     #    self.eval('Clear[%s]'%var)
 
-    def _eval_line(self, line,  allow_use_file=True):
-        s = Expect._eval_line(self, line,  allow_use_file=allow_use_file)
+    def _eval_line(self, line,  allow_use_file=True, wait_for_prompt=True):
+        s = Expect._eval_line(self, line,
+             allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')
 
     def function_call(self, function, args=[]):
@@ -332,7 +334,7 @@ def mathematica_console(readline=True):
         while True:
             sys.stdout.write('')
             try:
-                line = raw_input('In[ ]:= ')
+                line = raw_input('        ')
                 f1.writelines(line+'\n')
                 f1.flush()
             except KeyboardInterrupt:

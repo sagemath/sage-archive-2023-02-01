@@ -137,8 +137,10 @@ class Gp(Expect):
         self.eval('\\p %s'%int(prec))
         return old
 
-    def _eval_line(self, line, allow_use_file=True):
-        a = Expect._eval_line(self, line, allow_use_file=allow_use_file)
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+        a = Expect._eval_line(self, line,
+                              allow_use_file=allow_use_file,
+                              wait_for_prompt=wait_for_prompt)
         if a.find("the PARI stack overflows") != -1:
             verbose("automatically doubling the PARI stack and re-executing current input line")
             self.eval("allocatemem()")

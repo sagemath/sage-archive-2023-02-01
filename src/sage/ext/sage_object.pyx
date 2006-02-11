@@ -348,6 +348,29 @@ cdef class SageObject:
         return str(self)
         # raise TypeError, "conversion of %s to Maxima not yet implemented"%self
 
+    # Magma
+    def _magma_(self, G=None):
+        if G is None:
+            G = sage.interfaces.magma.magma  # default interpreter
+        try:
+            g = self.__magma
+            if g.parent() is G:
+                g._check_valid()
+                return g
+        except (AttributeError, ValueError):
+            pass
+        g = G(self._magma_init_())
+        try:
+            self.__magma = g
+        except AttributeError:
+            # do this because C-extension class won't have a __magma attribute.
+            pass
+        return g
+
+    def _magma_init_(self):
+        return str(self)
+        # raise TypeError, "conversion of %s to Magma not yet implemented"%self
+
 
 
 

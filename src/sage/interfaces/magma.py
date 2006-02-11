@@ -117,7 +117,7 @@ class Magma(Expect):
     def _start(self):
         self._change_prompt('>')
         Expect._start(self)
-        self.eval('SetPrompt("%s"); SetLineEditor(false);'%PROMPT)
+        self.eval('SetPrompt("%s"); SetLineEditor(false); SetColumns(0);'%PROMPT)
         self._change_prompt(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
@@ -148,11 +148,11 @@ class Magma(Expect):
 
     def _next_var_name(self):
         if self.__seq == 0:
-            self.eval('_sage_ := [* *];')
+            self.eval('sage := [* *];')
         else:
-            self.eval('Append(~_sage_, 0);')
+            self.eval('Append(~sage, 0);')
         self.__seq += 1
-        return '_sage_[%s]'%self.__seq
+        return 'sage[%s]'%self.__seq
 
     def function_call(self, function, args=[], params={}, nvals=1):
         if not isinstance(args, list):

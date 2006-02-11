@@ -38,7 +38,11 @@ class Gnuplot(SageObject):
             return self.__gnuplot
 
     def __call__(self, line):
-        self.gnuplot()(line)
+        return self.gnuplot()(line)
+
+    def _eval_line(self, line, *args, **kwds):
+        self(line)
+        return ''
 
     def __repr__(self):
         return "Interface to Gnuplot"

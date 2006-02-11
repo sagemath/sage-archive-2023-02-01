@@ -259,10 +259,10 @@ class Maple(Expect):
 ##             else:
 ##                 break
 
-    def _eval_line(self, line, allow_use_file=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         line += ';'
-        z = Expect._eval_line(self, line, allow_use_file=allow_use_file).\
-                                  replace('\\\n','').strip()
+        z = Expect._eval_line(self, line, allow_use_file=allow_use_file,
+                wait_for_prompt=wait_for_prompt).replace('\\\n','').strip()
         if z.lower().find("error") != -1:
             # The following was very tricky to figure out.
             # When an error occurs using Maple, unfortunately,

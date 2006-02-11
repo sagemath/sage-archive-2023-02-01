@@ -1202,33 +1202,34 @@ class Polynomial_generic_field(Polynomial, euclidean_domain_element.EuclideanDom
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
-##     def quo_rem(self, other):
-##         """
-##         Returns a tuple (quotient, remainder) where
-##             self = quotient*other + remainder.
-##         """
-##         #       idea: do with ints modulo several primes, and use CRT.
-##         #             what is the bound on coefficients of quotient and remainder?
-##         #             note -- can also just multiply out to see that results is correct.
-##         if not isinstance(other,Polynomial):
-##             return bin_op(self, other, operator.div)
-##         if self.parent() != other.parent():
-##             raise TypeError
+    def quo_rem(self, other):
+        """
+        Returns a tuple (quotient, remainder) where
+            self = quotient*other + remainder.
 
-##         if other.is_zero():
-##             raise ZeroDivisionError
+        EXAMPLES:
+            sage: K = NumberField(x**ZZ(2)-ZZ(2),'t')
+            sage: P, x = PolynomialRing(K).objgen()
+            sage: x.quo_rem(K(1))
+            (x, 0)
+            sage: x.xgcd(K(1))
+            (1, 0, 1)
+        """
+        other = self.parent()(other)
+        if other.is_zero():
+            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
 
-##         # This is algorithm 3.1.1 in Cohen GTM 138
-##         A = self
-##         B = other
-##         R = A
-##         Q = self.polynomial(0)
-##         X = self.parent().gen()
-##         while R.degree() >= B.degree():
-##             S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
-##             Q += S
-##             R -= S*B
-##         return (Q, R)
+        # This is algorithm 3.1.1 in Cohen GTM 138
+        A = self
+        B = other
+        R = A
+        Q = self.polynomial(0)
+        X = self.parent().gen()
+        while R.degree() >= B.degree():
+            S =  (R.leading_coefficient()/B.leading_coefficient()) * X**(R.degree()-B.degree())
+            Q += S
+            R -= S*B
+        return (Q, R)
 
     def _gcd(self, other):
         """

@@ -1,6 +1,15 @@
 """
 SAGE pre-parser.
 """
+
+
+###########################################################################
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+###########################################################################
+
 import os
 
 def isalphadigit_(s):
@@ -32,7 +41,7 @@ def preparse(line, reset=True):
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.split("\n")[0]   # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!']:
+    if len(L) > 0 and L[0] in ['#', '!', '%']:
         return line
 
     # Wrap integers with ZZ() and reals with RR().

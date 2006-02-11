@@ -138,6 +138,12 @@ class PermutationGroup_generic(group.FiniteGroup):
     def _gap_init_(self):
         return self.__gap
 
+    def _magma_init_(self):
+        g = str(self.gens())[1:-1]
+        return 'PermutationGroup<%s | %s>'%(self.degree(), g)
+
+
+
     def __cmp__(self, right):
         """
         Compare self and right.

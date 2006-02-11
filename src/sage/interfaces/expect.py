@@ -25,9 +25,11 @@ import os
 import pexpect
 import weakref
 import time
+
 from sage.ext.sage_object import SageObject
 from sage.structure.element import Element_cmp_
-from sage.misc.sage_eval import sage_eval
+
+import sage.misc.sage_eval
 
 import quit
 
@@ -225,7 +227,7 @@ class Expect(SageObject):
         s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
         return s
 
-    def _eval_line(self, line, allow_use_file=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
         if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
@@ -236,6 +238,8 @@ class Expect(SageObject):
             E = self._expect
             try:
                 E.sendline(line)
+                if not wait_for_prompt:
+                    return ''
             except OSError:
                 return RuntimeError, "Error evaluating %s in %s"%(line, self)
             if len(line)>0:
@@ -556,7 +560,7 @@ class ExpectElement(Element_cmp_, RingElement):
         """
         Attempt to return a SAGE version of this object.
         """
-        return sage_eval(str(self))
+        return sage.misc.sage_eval.sage_eval(str(self))
 
     def __repr__(self):
         self._check_valid()

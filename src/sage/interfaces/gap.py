@@ -210,8 +210,9 @@ class Gap(Expect):
 
     # Change the default for Gap, since eval using a file doesn't
     # work except for setting variables.
-    def _eval_line(self, line, allow_use_file=False):
-        return Expect._eval_line(self, line, allow_use_file=allow_use_file)
+    def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True):
+        return Expect._eval_line(self, line, allow_use_file=allow_use_file,
+                                 wait_for_prompt=wait_for_prompt)
 
     def _start(self):
         Expect._start(self, "Failed to start GAP.  One possible reason for this is that your gap workspace may be corrupted.  Perhaps remove %s/tmp/gap-workspace"%SAGE_ROOT)
@@ -240,7 +241,7 @@ class Gap(Expect):
                       backslash-newlines inserted by the GAP output formatter.
         """
         # newlines cause hang (i.e., error but no gap> prompt!)
-        x = str(x).rstrip().replace('\n','')
+        x = str(x).rstrip().replace('\n',' ')
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
         s = Expect.eval(self, x)
@@ -272,6 +273,7 @@ class Gap(Expect):
         """
         Get the value of the variable var.
         """
+        # TODO: Steve Linton says -- use "Print()".
         return self.eval('%s;'%var, newlines=False)
 
     #def clear(self, var):

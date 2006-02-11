@@ -215,6 +215,12 @@ def quit_sage(verbose=True):
     delete_tmpfiles()
 
 def _quit_sage_(self):
+    import sage.misc.preparser_ipython
+    if sage.misc.preparser_ipython.interface != None:
+        sage.misc.preparser_ipython.switch_interface('sage')
+        self.exit_now = False
+        return
+
     from IPython.genutils import ask_yes_no
     if self.rc.confirm_exit:
         if ask_yes_no('Do you really want to exit ([y]/n)?','y'):

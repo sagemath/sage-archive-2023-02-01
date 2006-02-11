@@ -410,7 +410,10 @@ class Maxima(Expect):
     def _quit_string(self):
         return 'quit();'
 
-    def _eval_line(self, line, reformat=True, allow_use_file=False):
+    def _eval_line(self, line, reformat=True, allow_use_file=False,
+                   wait_for_prompt=True):
+        if not wait_for_prompt:
+            return Expect._eval_line(self, line)
         line = line.rstrip().rstrip(';')
         if line == '':
             return ''

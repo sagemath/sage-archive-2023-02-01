@@ -98,7 +98,8 @@ import os
 
 from IPython.iplib import InteractiveShell
 
-from preparser import preparse, preparse_file
+from preparser_ipython import preparse_ipython
+from preparser import preparse_file
 
 import pyrex
 
@@ -267,9 +268,8 @@ def do_prefilter_paste(line, continuation):
                 else:
                     print "load: file (=%s) must have extension .sage or .spyx"%name
                     line = ""
-    if len(line) > 0 and line[0] != '%':
-        # only preparse non-magic lines
-        line = preparse(line)
+    if len(line) > 0:
+        line = preparse_ipython(line)
     return line
 
 def load_pyrex(name):
@@ -332,3 +332,13 @@ def my_getdoc(obj):
 import IPython.OInspect
 IPython.OInspect.getdoc = my_getdoc
 
+
+import __builtin__
+_prompt = 'sage: '
+def set_sage_prompt(s):
+    global _prompt
+    _prompt = str(s)
+def sage_prompt():
+    return _prompt
+
+__builtin__.sage_prompt = sage_prompt

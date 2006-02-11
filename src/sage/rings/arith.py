@@ -1,0 +1,1738 @@
+"""
+Miscellaneous arithmetic functions
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import math
+
+import sage.misc.misc as misc
+import sage.misc.search
+from sage.libs.pari.all import pari
+import sage.rings.rational_field
+import sage.rings.integer_ring
+import sage.rings.integer
+import sage.rings.rational
+import sage.rings.real_field
+import sage.rings.complex_field
+import sage.rings.complex_number
+import sage.ext.mpfr
+import sage.structure.factorization as factorization
+from sage.rings.coerce import canonical_coercion, bin_op
+from sage.structure.element import RingElement
+from sage.interfaces.all import gp, gap, kash
+
+##################################################################
+# Elementary Arithmetic
+##################################################################
+
+def algdep(z, n):
+    """
+    Return algebraic dependency of degree $n$ satisfied by the
+    number $z$.
+
+    ALGORITHM: Uses the PARI C-library algdep command.
+
+    INPUT:
+        z -- real or $p$-adic number
+        n -- an integer
+
+    EXAMPLES:
+        sage: algdep(1.888888888888888, 1)
+        9*x - 17
+        sage: algdep(0.12121212121212,1)
+        33*x - 4
+        sage: algdep(sqrt(2),2)
+        x^2 - 2
+
+    This example involves a $p$-adic number.
+        sage: K = pAdicField(3)
+        sage: a = K(7/19); a
+        1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
+        sage: algdep(a, 1)
+        19*x - 7
+    """
+    # TODO -- change to use PARI C library???
+    import sage.rings.polynomial_ring
+    x = sage.rings.polynomial_ring.PolynomialRing(
+        sage.rings.integer_ring.IntegerRing(), 'x').gen()
+
+    if isinstance(z, (int, long, sage.rings.integer.Integer)):
+        return x - sage.rings.integer.Integer(z)
+
+    n = sage.rings.integer.Integer(n)
+
+    if isinstance(z, (sage.rings.rational.Rational)):
+        return z.denominator()*x   -   z.numerator()
+
+    if isinstance(z, float):
+        z = sage.rings.real_field.RealField()(z)
+    elif isinstance(z, complex):
+        z = sage.rings.complex_field.ComplexField()(z)
+
+    if misc.is_64_bit and isinstance(z, (sage.ext.mpfr.RealNumber, sage.rings.complex_number.ComplexNumber)):
+        bits = int(float(z.prec()/3))
+        if bits == 0:
+            bits = 1
+        f = pari(z).algdep(n, bits)
+    else:
+        y = pari(z)
+        f = y.algdep(n)
+    return eval(str(f).replace('^','**'))
+
+algebraic_dependency = algdep
+
+def bernoulli(n, algorithm='pari'):
+    """
+    Return the n-th Bernoulli number, as a rational number.
+
+    INPUT:
+        n -- an integer
+        algorithm:
+            'pari' -- (default) use the PARI C library, which is
+                      by *far* the fastest.
+            'gap'  -- use GAP
+            'gp'   -- use PARI/GP interpreter
+
+    EXAMPLES:
+        sage: bernoulli(12)
+        -691/2730
+        sage: bernoulli(50)
+        495057205241079648212477525/66
+
+    We illustrate use of some of the alternative algorithms.
+
+        sage: bernoulli(12, algorithm='gap')
+        -691/2730
+        sage: bernoulli(12, algorithm='gp')
+        -691/2730
+
+    AUTHOR: David Joyner and William Stein
+    """
+    if algorithm == 'pari':
+        x = pari(n).bernfrac()
+        return sage.rings.rational.Rational(x)
+    elif algorithm == 'gap':
+        x = gap('Bernoulli(%s)'%n)
+        return sage.rings.rational.Rational(x)
+    elif algorithm == 'gp':
+        x = gp('bernfrac(%s)'%n)
+        return sage.rings.rational.Rational(x)
+    else:
+        raise ValueError, "invalid choice of algorithm"
+
+def prime_pi(x):
+    """
+    Return the number of primes $\leq x$.
+
+    EXAMPLES:
+        sage: prime_pi(7)
+        4
+        sage: prime_pi(100)
+        25
+        sage: prime_pi(1000)
+        168
+        sage: prime_pi(100000)
+        9592
+    """
+    return pari(x).primepi()
+
+number_of_primes = prime_pi
+
+
+def factorial(n):
+    r"""
+    Compute the factorial of $n$, which is the product
+    $1\cdot 2\cdot 3 \cdots (n-1) n$.
+
+    INPUT:
+        n -- an integer
+
+    OUTPUT:
+        an integer
+
+    EXAMPLES:
+        sage: factorial(0)
+        1
+        sage: factorial(4)
+        24
+        sage: factorial(10)
+        3628800
+    """
+    Z = sage.rings.integer.Integer
+    return misc.mul([Z(m) for m in range(1,n+1)])
+
+def is_prime(n, flag=0):
+    r"""
+    Returns True if $x$ is prime, and False otherwise.  The result
+    is proven correct -- {\em this is NOT a pseudo-primality test!}.
+
+    INPUT:
+        flag -- int
+                0 (default): use a combination of algorithms.
+                1: certify primality using the Pocklington-Lehmer Test.
+                2: certify primality using the APRCL test.
+    OUTPUT:
+        bool -- True or False
+
+    EXAMPLES::
+        sage: is_prime(389)
+        True
+        sage: is_prime(2000)
+        False
+        sage: is_prime(2)
+        True
+        sage: is_prime(-1)
+        False
+        sage: factor(-6)
+        -1 * 2 * 3
+        sage: is_prime(1)
+        False
+        sage: is_prime(-2)
+        False
+
+    IMPLEMENTATION: Calls the PARI isprime function.
+    """
+    return pari(n).isprime()
+
+    ## if n in [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]:
+    ##         return True
+    ##     if n <= 50:
+    ##         return False
+    ##     return (power_mod(2,n-1,n) == 1) and \
+    ##            (power_mod(3,n-1,n) == 1) and \
+    ##            (power_mod(5,n-1,n) == 1) and \
+    ##            (power_mod(7,n-1,n) == 1)
+
+def valuation(m, p):
+    """
+    The exact power of p>0 that divides the integer m.
+    We do not require that p be prime, and if m is 0,
+    then this function returns rings.infinity.
+
+    EXAMPLES::
+
+        sage: valuation(512,2)
+        9
+        sage: valuation(1,2)
+        0
+
+    Valuation of 0 is defined, but valuation with respect to 0 is not::
+
+        sage: valuation(0,7)
+        Infinity
+        sage: valuation(3,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: valuation at 0 not defined
+
+    Here are some other example::
+
+        sage: valuation(100,10)
+        2
+        sage: valuation(200,10)
+        2
+        sage: valuation(243,3)
+        5
+        sage: valuation(243*10007,3)
+        5
+        sage: valuation(243*10007,10007)
+        1
+    """
+    if p <= 0:
+        raise ValueError, "valuation at 0 not defined"
+    if m == 0:
+        import sage.rings.all
+        return sage.rings.all.infinity
+    r=0
+    power=p
+    while m%power==0:
+        r += 1
+        power *= p
+    return r
+
+
+
+
+def prime_range(start, stop=None):
+    """
+    List of all primes between start and stop-1, inclusive.  If the
+    second argument is omitted, returns the primes up to the first
+    argument.
+
+    Use this function when both start and stop are not too large,
+    since in all cases this function makes a table of primes up to
+    stop.  If both are large, use the primes iterator function
+    instead.
+
+    EXAMPLES:
+        sage: prime_range(0,10)
+        [2, 3, 5, 7]
+        sage: prime_range(2000,2020)
+        [2003, 2011, 2017]
+        sage: prime_range(2,2)
+        []
+        sage: prime_range(2,3)
+        [2]
+        sage: prime_range(10)
+        [2, 3, 5, 7]
+    """
+    if stop == None:
+        start, stop = sage.rings.integer.Integer(2), start
+    w = eratosthenes(stop-1)
+    if start <= 2:
+        return w
+    _, i = sage.misc.search.search(w, start)
+    return w[i:]
+
+#
+# This is from
+#    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/366178
+# It's impressively fast given that it's in Pure Python.
+#
+def eratosthenes(n):
+    """
+    Return a list of the primes <= n.
+    """
+    n = int(n)
+    if n == 2:
+        return [2]
+    elif n<2:
+        return []
+    s = range(3,n+3,2)
+    mroot = n ** 0.5
+    half = (n+1)/2
+    i = 0
+    m = 3
+    while m <= mroot:
+        if s[i]:
+            j = (m*m-3)/2
+            s[j] = 0
+            while j < half:
+                s[j] = 0
+                j += m
+        i = i+1
+        m = 2*i+3
+    return [sage.rings.integer.Integer(2)] + [sage.rings.integer.Integer(x) for x in s if x and x <= n]
+
+# My old versions; not as fast as the above.
+## def eratosthenes(n):
+##     """
+##     Returns a list of the primes up to n, computed
+##     using the Sieve of Eratosthenes.
+##     Input:
+##         n -- a positive integer
+##     Output:
+##         list -- a list of the primes up to n
+##     Examples:
+##     sage: eratosthenes(7)
+##     [2, 3, 5, 7]
+##     sage: eratosthenes(45)
+##     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43]
+##     """
+##     if n <= 1: return []
+##     X = [i for i in range(3,n+1) if i%2 != 0]
+##     P = [2]
+##     sqrt_n = sqrt(n)
+##     while len(X) > 0 and X[0] <= sqrt_n:
+##         p = X[0]
+##         P.append(p)
+##         X = [a for a in X if a%p != 0]
+##     return P + X
+
+prange = prime_range
+
+def primes(start, stop=None):
+    r"""
+    Returns an iterator over all primes between start and stop-1,
+    inclusive.  This is much slower than \code{prime_range}, but
+    potentially uses less memory.
+
+    This command is like the xrange command, except it only iterates
+    over primes.  In some cases it is better to use primes than
+    prime_range, because primes does not build a list of all primes in
+    the range in memory all at once.  However it is potentially much
+    slower since it simply calls the \code{next_prime} function
+    repeatedly, and \code{next_prime} is slow, partly because it
+    proves correctness.
+
+    EXAMPLES:
+        sage.: for p in primes(5,10):
+        ...     print p
+        ...
+        5
+        7
+        sage: list(primes(10000000000, 10000000100))
+        [10000000019, 10000000033, 10000000061, 10000000069, 10000000097]
+    """
+
+    start = sage.rings.integer.Integer(start)
+    if stop == None:
+        stop = start
+        start = sage.rings.integer.Integer(2)
+    else:
+        stop = sage.rings.integer.Integer(stop)
+    n = start - 1
+    while True:
+        n = next_prime(n)
+        if n <= stop:
+            yield n
+        else:
+            return
+
+
+def next_prime(n, proof=True):
+    """
+    The next prime greater than the integer n.  If n is prime, then
+    this function does not return n, but the next prime after n.  If
+    the optional argument proof is false (the default), this function
+    only returns a pseudo-prime, as defined by the PARI nextprime
+    function.
+
+    INPUT:
+        n -- integer
+        proof -- bool (default: True)
+
+    EXAMPLES:
+        sage: next_prime(-100)
+        2
+
+    Notice that the next_prime(5) is not 5 but 7.
+        sage: next_prime(5)
+        7
+        sage: next_prime(2004)
+        2011
+    """
+    if n < 2:   # negatives are not prime.
+        return sage.rings.integer.Integer(2)
+    if n == 2:
+        return sage.rings.integer.Integer(3)
+    if not proof:  # pari nextprime is probabilistic (according to their docs)
+        return eval(str(pari(n+1).nextprime()))
+
+    if n % 2 == 0:
+        n += 1
+    else:
+        n += 2
+    while not is_prime(n):  # pari isprime is provably correct
+        n += 2
+    return n
+
+def previous_prime(n):
+    """
+    The largest prime < n.  The result is provably
+    correct.   If n <= 2, this function returns -p,
+    where p is prime and -p < n and no larger negative
+    of a prime has this property.
+
+    EXAMPLES:
+        sage: previous_prime(10)
+        7
+        sage: previous_prime(7)
+        5
+        sage: previous_prime(8)
+        7
+        sage: previous_prime(7)
+        5
+        sage: previous_prime(5)
+        3
+        sage: previous_prime(3)
+        2
+        sage: previous_prime(2)
+        -2
+        sage: previous_prime(1)
+        -2
+        sage: previous_prime(-20)
+        -23
+    """
+    n = sage.rings.integer.Integer(n)-1
+    if n in [2,3,-2]:
+        return sage.rings.integer.Integer(n)
+    if n in [0,1,-1]:
+        return sage.rings.integer.Integer(-2)
+    if n%2 == 0:
+        n -= 1
+    while not is_prime(abs(n)):
+        n -= 2
+    return n
+
+
+def divisors(n):
+    """
+    Returns a list of all positive integer divisors
+    of the nonzero integer n.
+
+    EXAMPLES:
+        sage: divisors(-3)
+        [1, 3]
+        sage: divisors(6)
+        [1, 2, 3, 6]
+        sage: divisors(28)
+        [1, 2, 4, 7, 14, 28]
+        sage: divisors(2^5)
+        [1, 2, 4, 8, 16, 32]
+        sage: divisors(100)
+        [1, 2, 4, 5, 10, 20, 25, 50, 100]
+        sage: divisors(1)
+        [1]
+        sage: divisors(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be nonzero
+        sage: divisors(2^3 * 3^2 * 17)
+        [1, 2, 3, 4, 6, 8, 9, 12, 17, 18, 24, 34, 36, 51, 68, 72, 102, 136, 153, 204, 306, 408, 612, 1224]
+    """
+    if n == 0:
+        raise ValueError, "n must be nonzero"
+    if n < 0:  # make positive, or, since (-1,1) is a factor, will get wrong answer.
+        n*=-1
+    F = factor(n)
+    r = [0 for i in range(len(F))]
+    e = [m for _, m in F]     # max exponents
+    ans = []
+    x = 1
+    while r != e:
+        ans.append(sage.rings.integer.Integer(x))
+        r[0] += 1
+        if r[0] <= e[0]:
+            x *= F[0][0]
+        else:  # carry
+            i = 0
+            while i < len(F) and r[i] > e[i]:
+                x /= F[i][0]**F[i][1]
+                r[i] = 0
+                i += 1
+                if i < len(F):
+                    r[i] += 1
+                    if r[i] <= e[i]:
+                        x *= F[i][0]
+        #endif
+    #endwhile
+    ans.append(sage.rings.integer.Integer(n))
+    ans.sort()
+    return ans
+
+def sigma(n, k=1):
+    """
+    Return the sum of the k-th powers of the divisors of n.
+
+    INPUT:
+        n -- integer
+        k -- integer (default: 1)
+
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: sigma(5)
+        6
+        sage: sigma(5,2)
+        26
+    """
+    n = sage.rings.integer.Integer(n)
+    k = sage.rings.integer.Integer(k)
+    return sum([d**k for d in divisors(n)])
+
+def gcd(a, b=0):
+    """
+    The greatest commond divisor of a and b.
+
+    EXAMPLES:
+        sage: GCD(97,100)
+        1
+        sage: GCD(97*10^15, 19^20*97^2)
+        97
+    """
+    if isinstance(a,list):
+        return __GCD_list(a)
+    if not isinstance(a, RingElement):
+        a = sage.rings.integer.Integer(a)
+    return a.gcd(b)
+
+GCD = gcd
+
+def lcm(a, b=None):
+    """
+    The least common multiple of a and b.
+
+    EXAMPLES:
+        sage: LCM(97,100)
+        9700
+        sage: LCM(0,2)
+        0
+        sage: LCM(-3,-5)
+        15
+    """
+    if isinstance(a,list):
+        return __LCM_list(a)
+    if not isinstance(a, RingElement):
+        a = sage.rings.integer.Integer(a)
+    return a.lcm(b)
+
+LCM = lcm
+
+def __LCM_list(v):
+    if len(v) == 0:
+        return 1
+    x = v[0]
+    for i in range(1,len(v)):
+        x = LCM(x, v[i])
+    return x
+
+## def GCD_python(a, b=0):
+##     """This function should behave exactly the same as GCD,
+##     but is implemented in pure python."""
+##     if isinstance(a,list):
+##         return __GCD_list(a)
+##     if a == 0:
+##         return abs(b)
+##     if b == 0:
+##         return abs(a)
+##     if a < 0:
+##         a = -a
+##     if b < 0:
+##         b = -b
+##     while b != 0:
+##         c = a % b
+##         a = b; b = c
+##     return a
+
+def __GCD_list(v):
+    if len(v) == 0:
+        return 1
+    if len(v) == 1:
+        return v[0]
+    g = v[0]
+    for i in range(1,len(v)):
+        g = GCD(g, v[i])
+    return g
+
+def xgcd(a, b):
+    """
+    Returns triple of integers (g,s,t) such that g = s*a+t*b =
+    gcd(a,b).
+
+        sage: xgcd(56, 44)
+        (4, 4, -5)
+        sage: 4*56 + (-5)*44
+        4
+    """
+    if not isinstance(a, RingElement):
+        a = sage.rings.integer.Integer(a)
+    return a.xgcd(b)
+
+XGCD = xgcd
+
+## def XGCD_python(a, b):
+##     """
+##     Returns triple (g,p,q) such that g = p*a+b*q = GCD(a,b).
+##     This function should behave exactly the same as XGCD,
+##     but is implemented in pure python.
+##     """
+##     if a == 0 and b == 0:
+##         return (0,0,1)
+##     if a == 0:
+##         return (abs(b), 0, b/abs(b))
+##     if b == 0:
+##         return (abs(a), a/abs(a), 0)
+##     psign = 1
+##     qsign = 1
+##     if a < 0:
+##         a = -a
+##         psign = -1
+##     if b < 0:
+##         b = -b
+##         qsign = -1
+##     p = 1; q = 0; r = 0; s = 1
+##     while b != 0:
+##         c = a % b
+##         quot = a/b
+##         a = b; b = c
+##         new_r = p - quot*r
+##         new_s = q - quot*s
+##         p = r; q = s
+##         r = new_r; s = new_s
+##     return (a, p*psign, q*qsign)
+
+def inverse_mod(a, m):
+    """
+    The inverse of the integer a modulo the integer m.
+    sage: inverse_mod(7,1)
+    0
+    sage: inverse_mod(5,14)
+    3
+    sage: inverse_mod(3,-5)
+    2
+    """
+    if m<0:
+        m *= -1
+    if m==1:
+        return 0
+    return sage.rings.integer.Integer((~(pari(a).Mod(m))).lift())
+
+# def sqrt_mod(a, m):
+#     """A square root of a modulo m."""
+
+# def xxx_inverse_mod(a, m):
+#     """The inverse of a modulo m."""
+#     g,s,t = XGCD(a,m)
+#     if g != 1:
+#         raise "inverse_mod(a=%s,m=%s), error since GCD=%s"%(a,m,g)
+#     return s
+
+def power_mod(a,m,n):
+    """The m-th power of a modulo the integer n.
+    sage: power_mod(0,0,5)
+    1
+    sage: power_mod(2,390,391)
+    285
+    sage: power_mod(2,-1,7)
+    4
+    """
+    if n==0:
+        raise ZeroDivisionError, "Modulus must be nonzero."
+    if n==1:
+        return 0
+    if m < 0:
+        ainv = inverse_mod(a,n)
+        return power_mod(ainv, -m, n)
+    if m==0:
+        return 1
+    power = 1
+    i = 0
+    apow2 = a
+    while ((m>>i) > 0):
+        if((m>>i) & 1):
+            power = (power * apow2) % n
+        apow2 = (apow2 * apow2) % n
+        i += 1
+    return power
+
+def generic_power(a, m, one=1):
+    """
+    The m-th power of a, where m is a non-negative
+    integer and a is a Python object on which
+    multiplication is defined.  The exponentiation
+    is done using the standard binary powering algorithm.
+
+    EXAMPLES:
+        sage: generic_power(2,5)
+        32
+        sage: generic_power(RealField()('2.5'),4)
+        39.062500000000000
+        sage: generic_power(0,0)
+        1
+        sage: generic_power(2,-3)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: 2 cannot be raised to the negative power -3
+    """
+    if a == one:
+        return a
+    if m < 0:
+        raise ArithmeticError, "%s cannot be raised to the negative power %s"%(a,m)
+    if m == 0:
+        return one
+    power = one
+    i = 0
+    apow2 = a
+    while (m>>i) > 0:
+        if (m>>i) & 1:
+            power *= apow2
+        apow2 *= apow2
+        i += 1
+    return power
+
+
+
+"""
+ RATIONAL RECONSTRUCTION:
+     Input:  Integer x and a modulus N.
+     Output: Numerator and denominator n, d of the unique rational
+             number r=n/d, if it exists, with
+             |n| and |d| <= sqrt(N/2).
+             Return (0,0) if no such number exists.
+
+ The algorithm for rational reconstruction is described
+ (with a complete nontrivial proof)
+ on pages 656-657 of Knuth, Vol 2, 3rd ed. as the solution to
+ exercise 51 on page 379.  See in particular the conclusion
+ paragraph right in the middle of page 657, which describes
+ the algorithm thus:
+
+    This discussion proves that the problem can be solved efficiently by
+    applying Algorithm 4.5.2X with u=m and v=a, but with the following
+    replacement for step X2: If v3<=sqrt(m/2), the algorithm terminates.
+    The pair (x,y)=(|v2|,v3*sign(v2)) is then the unique solution,
+ provided that x and y are coprime and x<=sqrt(m/2); otherwise there is
+    no solution.   (Alg 4.5.2X is the extended Euclidean algorithm.)
+
+ Knuth says this algorithm is
+ due to Wang, Kornerup, and Gregory from around 1983.
+"""
+def rational_reconstruction(a, m):
+    """
+    This function tries to compute a pair (x,y), where x/y is a
+    rational number is lowest terms such that reduction of x/y modulo
+    m is equal to a and the absolute values of x and y are both <=
+    sqrt(m/2).  If such a pair exists, that pair is unique and this
+    function returns it.  If no such pair exists, this function return
+    the pair (0,0).
+
+    The efficient algorithm for computing rational reconstruction is very
+    similar to the extended Euclidean algorithm.  For more details, see Knuth,
+    Vol 2, 3rd ed, pages 656-657.
+
+    EXAMPLES::
+
+     sage: m = 100000
+     sage: (119*inverse_mod(53,m))%m
+     11323
+     sage: rational_reconstruction(11323,m)
+     (119, 53)
+    """
+    a = int(a); m = int(m)
+    a %= m
+    if a == 0 or m==0:
+        return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(1))
+    if m < 0:
+        m = -m
+    if a < 0:
+        a = m-a
+    if a == 1:
+        return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(1))
+    u = m
+    v = a
+    bnd = math.sqrt(m/2)
+    U = (1,0,u)
+    V = (0,1,v)
+    while abs(V[2]) > bnd:
+        q = U[2]/V[2]  # floor is implicit
+        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
+        U = V
+        V = T
+    x = abs(V[1])
+    y = V[2]
+    if V[1] < 0:
+        y *= -1
+    if x <= bnd and GCD(x,y) == 1:
+        return (sage.rings.integer.Integer(y),sage.rings.integer.Integer(x))
+    return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(0))
+
+def mqrr_rational_reconstruction(u, m, T):
+    """Maximal Quotient Rational Reconstruction.
+
+    Input:
+        u, m, and T are integers and
+        m > u>=0, T>0.
+    Output:
+        Either integer n,d such that d>0, gcd(n,d)=1, n/d=u (mod m),
+        and T*abs(n)*d < m, or None.
+
+    Reference: Monagan, Maximal Quotient Rational Reconstruction: An
+               Almost Optimal Algorithm for Rational Reconstruction (page 11)
+    This algorithm is probabilistic.
+    """
+    if u == 0:
+        if m > T:
+            return (0,1)
+        else:
+            return None
+    n, d = 0, 0
+    t0, r0 = 0, m
+    t1, r1 = 1, u
+    while r1 != 0 and r0 > T:
+        q = r0/r1   # C division implicit floor
+        if q > T:
+            n, d, T = r1, t1, q
+        r0, r1 = r1, r0 - q*r1
+        t0, t1 = t1, t0 - q*t1
+    if d != 0 and GCD(n,d) == 1:
+        return (n,d)
+    return None
+
+
+######################
+
+
+def trial_division(n, bound=None):
+    """
+    Return the smallest prime divisor <= bound of the positive integer
+    n, or n if there is no such prime.  If the optional argument bound
+    is omitted, then bound=n.
+
+    INPUT:
+        n -- a positive integer
+        bound - (optional) a positive integer
+
+    OUTPUT:
+        int -- a prime p<=bound that divides n, or n if
+               there is no such prime.
+
+    EXAMPLES:
+        sage: trial_division(15)
+        3
+        sage: trial_division(91)
+        7
+        sage: trial_division(11)
+        11
+        sage: trial_division(387833, 300)
+        387833
+        sage: # 300 is not big enough to split off a
+        sage: # factor, but 400 is.
+        sage: trial_division(387833, 400)
+        389
+    """
+    if n == 1: return 1
+    for p in [2, 3, 5]:
+        if n%p == 0: return p
+    if bound == None: bound = n
+    dif = [6, 4, 2, 4, 2, 4, 6, 2]
+    m = 7; i = 1
+    while m <= bound and m*m <= n:
+        if n%m == 0:
+            return m
+        m += dif[i%8]
+        i += 1
+    return n
+
+def __factor_using_trial_division(n):
+    """
+    Returns the factorization of the integer n as
+    a sorted list of tuples (p,e).
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        list -- factorization of n
+    """
+    if n in [-1, 0, 1]: return []
+    if n < 0: n = -n
+    F = []
+    while n != 1:
+        p = trial_division(n)
+        e = 1
+        n /= p
+        while n%p == 0:
+            e += 1; n /= p
+        F.append((p,e))
+    F.sort()
+    return F
+
+def __factor_using_pari(n, int_=False):
+    if int_:
+        Z = int
+    else:
+        import sage.rings.integer_ring
+        Z = sage.rings.integer_ring.IntegerRing()
+    F = pari(n).factor()
+    B = F[0]
+    e = F[1]
+    return [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+
+#todo: add a limit option to factor, so it will only split off
+# primes at most a given limit.
+
+def factor(n, proof=True, int_=False, algorithm='pari'):
+    """
+    Returns the factorization of the integer n as a sorted list of
+    tuples (p,e).
+
+    INPUT:
+        n -- an nonzero integer
+        proof -- bool (default: True)
+        int_ -- bool (default: False) whether to return answers as Python ints
+        algorithm -- string
+                 * 'pari' -- (default)  use the PARI c library
+                 * 'kash' -- use KASH computer algebra system (requires
+                             the optional kash package be installed)
+    OUTPUT:
+        factorization of n
+
+    EXAMPLES:
+        sage: factor(500)
+        2^2 * 5^3
+        sage: factor(-20)
+        -1 * 2^2 * 5
+
+        sage: factor(500, algorithm='kash')     # requires optional kash package
+        2^2 * 5^3
+
+        sage: factor(0)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError: Prime factorization of 0 not defined.
+        sage: factor(1)
+        1
+        sage: factor(-1)
+        -1
+        sage: factor(2004)
+        2^2 * 3 * 167
+
+        sage: factor(2^197 + 1)       # takes a long time
+        3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
+    """
+    Z = sage.rings.integer.Integer
+    if not isinstance(n, (int,long, Z)):
+        try:
+            return n.factor()
+        except AttributeError:
+            raise TypeError, "unable to factor %s"%n
+    #n = abs(n)
+    n = Z(n)
+    if n < 0:
+        unit = Z(-1)
+        n = -n
+    else:
+        unit = Z(1)
+
+    if n == 0:
+        raise ArithmeticError, "Prime factorization of 0 not defined."
+    if n == 1:
+        return factorization.Factorization([], unit)
+    #if n < 10000000000: return __factor_using_trial_division(n)
+    if algorithm == 'pari':
+        return factorization.Factorization(__factor_using_pari(n, int_=int_), unit)
+    elif algorithm == 'kash':
+        F = kash.eval('Factorization(%s)'%n)
+        i = F.rfind(']') + 1
+        F = F[:i]
+        F = F.replace("<","(").replace(">",")")
+        F = eval(F)
+        if not int_:
+            F = [(Z(a), Z(b)) for a,b in F]
+        return factorization.Factorization(F, unit)
+    else:
+        raise ValueError, "No algorithm '%s' known"%algorithm
+
+
+def prime_divisors(n):
+    """
+    The prime divisors of the integer n, sorted in increasing order.  If n
+    is negative, we do *not* include -1 among the prime divisors, since -1 is
+    not a prime number.
+
+    sage: prime_divisors(1)
+    []
+    sage: prime_divisors(100)
+    [2, 5]
+    sage: prime_divisors(-100)
+    [2, 5]
+    sage: prime_divisors(2004)
+    [2, 3, 167]
+    """
+    return [p for p,_ in factor(n) if p != -1]
+
+prime_factors = prime_divisors
+
+def odd_part(n):
+    """
+    The odd part of the integer $n$.  This is $n / 2^v$,
+    where $v =$ \code{valuation(n,2)}.
+    """
+    n = sage.rings.integer.Integer(n)
+    v = valuation(n,2)
+    return n / (2**v)
+
+
+def prime_to_m_part(n,m):
+    """
+    Returns the prime-to-m part of n, i.e., the largest divisor
+    of n that is coprime to m.
+
+    INPUT:
+        n -- Integer (nonzero)
+        m -- Integer
+    OUTPUT:
+        Integer
+    """
+    if n == 0:
+        raise ValueError, "n (=%s) must be nonzero."%n
+    if m == 0:
+        return sage.rings.integer.Integer(1)
+    n = sage.rings.integer.Integer(n); m = sage.rings.integer.Integer(m)
+    while True:
+        g = gcd(n,m)
+        if g == 1:
+            return n
+        n = n // g
+
+
+def is_square(n, root=False):
+    """
+    Returns whether or not n is square, and if n is a square
+    also returns the square root.  If n is not square, also
+    returns None.
+    INPUT:
+        n -- an integer
+        root -- whether or not to also return a square root (default: False)
+    OUTPUT:
+        bool -- whether or not a square
+        object --
+    """
+    t, x = pari(n).issquare(find_root=True)
+    if root:
+        if t:
+            if hasattr(n, 'parent'):
+                x = n.parent()(str(x))
+            else:
+                x = x.python()
+        return t, x
+    return t
+
+
+def is_squarefree(n):
+    """
+    Returns True if and only if n is not divisible by the square of an integer > 1.
+    """
+    if n==0:
+        return False
+    for p, r in factor(n):
+        if r>1:
+            return False
+    return True
+
+
+#################################################################
+# Euler phi function
+#################################################################
+def euler_phi(n):
+    """
+    Return the value of the Euler phi function on the integer n.  We
+    defined this to be the number of positive integers <= n that are
+    relatively prime to n.  Thus if n<=0 then \code{euler_phi(n)} is
+    defined and equals 0.
+
+    EXAMPLES:
+
+        sage: euler_phi(1)
+        1
+        sage: euler_phi(2)
+        1
+        sage: euler_phi(3)
+        2
+        sage: euler_phi(12)
+        4
+        sage: euler_phi(37)
+        36
+
+    Notice that euler_phi is defined to be 0 on negative numbers and 0.
+
+        sage: euler_phi(-1)
+        0
+        sage: euler_phi(0)
+        0
+
+    We verify directly that the phi function is correct for 21.
+
+       sage: euler_phi(21)
+       12
+       sage: [i for i in range(21) if gcd(21,i) == 1]
+       [1, 2, 4, 5, 8, 10, 11, 13, 16, 17, 19, 20]
+
+    The length of the list of integers 'i' in range(n) such that
+    the gcd(i,n) == 1 equals euler_phi(n).
+
+       sage: len([i for i in range(21) if gcd(21,i) == 1]) == euler_phi(21)
+       True
+
+    AUTHORS:
+        - William Stein
+        - Alex Clemesha (2006-01-10): some examples
+    """
+    if n<=0:
+        return 0
+    if n<=2:
+        return 1
+    return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+
+def crt(a,b=0,m=1,n=1):
+    """
+    Use the Chinese Remainder Theorem to find some integer x such
+    that x=a (mod m) and x=b (mod n).   Note that x is only well-defined
+    modulo m*n.
+
+    sage: crt(2, 1, 3, 5)
+    -4
+    sage: crt(13,20,100,301)
+    -2087
+    """
+    if isinstance(a,list):
+        return CRT_list(a,b)
+    g, alpha, beta = XGCD(m,n)
+    if g != 1:
+        raise ValueError, \
+        "arguments a(=%s) and b(=%s) must be coprime"%(m,n) \
+        + " but they have gcd=%s"%g
+    return a+(b-a)*alpha*m
+
+CRT = crt
+
+def CRT_list(v, moduli):
+    if len(v) == 0:
+        return 0
+    x = v[0]
+    m = moduli[0]
+    for i in range(1,len(v)):
+        x = CRT(x,v[i],m,moduli[i])
+        m *= moduli[i]
+    return x%m
+
+def CRT_basis(moduli):
+    """
+    Return a list of integers a[i] such that CRT to the given moduli
+    of numbers x[0],...,x[n-1] is a[0]*x0 + ... + a[n-1]*x[n-1].
+
+    INPUT:
+        list -- list of integers
+    """
+    n = len(moduli)
+    if n == 0:
+        return []
+    v = [0 for _ in range(n)]
+    a = list(v)  # copy
+    for i in range(n):
+        v[i] = 1
+        a[i] = CRT_list(v, moduli)
+        v[i] = 0
+    return a
+
+def CRT_vectors(X, moduli):
+    """
+    INPUT:
+        X -- list of lists of the same length
+        moduli -- list of len(X) moduli
+    OUTPUT:
+        list -- application of CRT componentwise.
+    """
+    # First find the CRT basis:
+    if len(X) == 0 or len(X[0]) == 0:
+        return []
+    n = len(X)
+    if n != len(moduli):
+        raise ValueError, "number of moduli (=%s) must equal length of X (=%s)"%(len(moduli),n)
+    a = CRT_basis(moduli)
+    modulus = misc.prod(moduli)
+    return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
+
+def binomial(x,m):
+    r"""
+    Return the binomial coefficient
+    $$
+       x (x-1) \cdots (x-m+1) / m!
+    $$
+    which is defined for $m \in \Z$ and any $x$.
+    If $m<0$ return $0$.
+
+    INPUT::
+        x -- number
+        m -- integer
+
+    OUTPUT::
+        number
+
+    EXAMPLES::
+        sage: binomial(5,2)
+        10
+        sage: binomial(2,0)
+        1
+        sage: binomial(3,-1)
+        0
+        sage: binomial(20,10)
+        184756
+        sage: binomial(RealField()('2.5'), 2)
+        1.8750000000000000
+    """
+    if not isinstance(m, (int, long, sage.rings.integer.Integer)):
+        raise TypeError, 'm (=%s) must be an integer'%m
+    if isinstance(x, (int, long, sage.rings.integer.Integer)):
+        return sage.rings.integer.Integer(pari(x).binomial(m))
+    if m < 0:
+        return sage.rings.integer.Integer(0)
+    return misc.prod([x-i for i in xrange(m)]) / factorial(m)
+
+def gaussian_binomial(n,k,q):
+    r"""
+    Return the gaussian binomial
+    $$
+       \binom{n}{k}_q = \frac{(1-q^m)(1-q^{m-1})\cdots (1-q^{m-r+1})}
+                             {(1-q)(1-q^2)\cdots (1-q^r)}.
+    $$
+
+    EXAMPLES:
+        sage: gaussian_binomial(5,1,2)
+        31
+
+    AUTHOR: David Joyner and William Stein
+    """
+    n = sage.rings.integer.Integer(misc.prod([1 - q**i for i in range((n-k+1),n+1)]))
+    d = sage.rings.integer.Integer(misc.prod([1 - q**i for i in range(1,k+1)]))
+    return n / d
+
+def kronecker_symbol(x,y):
+    """
+    The Kronecker symbol (x|y).
+
+    INPUT:
+        x -- integer
+        y -- integer
+
+    EXAMPLES:
+        sage: kronecker(3,5)
+        -1
+        sage: kronecker(3,15)
+        0
+        sage: kronecker(2,15)
+        1
+        sage: kronecker(-2,15)
+        -1
+
+    IMPLEMENTATION: Using Pari.
+    """
+    return sage.rings.integer.Integer(pari(x).kronecker(y).python())
+
+def kronecker(x,y):
+    """
+    Synonym for \code{kronecker_symbol}.
+    """
+    return kronecker_symbol(x,y)
+
+def primitive_root(n):
+    """
+    Return a generator for the multiplicative group of integers
+    modulo $n$, if one exists.
+
+    EXAMPLES:
+        sage: primitive_root(23)
+        5
+        sage: print [primitive_root(p) for p in primes(100)]
+        [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
+    """
+    Z = sage.rings.integer.Integer
+    try:
+        return Z(pari(Z(n)).znprimroot())
+    except RuntimeError:
+        raise ArithmeticError, "There is no primitive root modulo %s"%n
+
+def discrete_log_generic(b, a, ord=None):
+    """
+    Return an integer $n$ such that $b^n = a$, assuming that ord is a
+    multiple of the multiplicative order of $a$.  If ord is not
+    specified an attempt is made to compute it.
+
+    The elements a and b must support exponentiation to a negative
+    power.
+
+    If no such $x$ exits, this function raises a ValueError exception.
+
+    ALGORITHM: Baby step giant step.
+
+    EXAMPLES:
+        sage: b = Mod(2,37);  a = b^20
+        sage: discrete_log_generic(b, a)
+        20
+        sage: b = Mod(2,997);  a = b^20
+        sage: discrete_log_generic(b, a)
+        20
+
+        sage: K = GF(3^6)
+        sage: b = K.gen()
+        sage: a = b^210
+        sage: discrete_log_generic(b, a, K.order()-1)
+        210
+
+        sage: b = Mod(1,37);  a = Mod(2,37)
+        sage: discrete_log_generic(b, a)
+        Traceback (most recent call last):
+        ...
+        ValueError: Log of 2 to the base 1 does not exist.
+        sage: b = Mod(1,997);  a = Mod(2,997)
+        sage: discrete_log_generic(b, a)
+        Traceback (most recent call last):
+        ...
+        ValueError: Log of 2 to the base 1 does not exist.
+
+    AUTHOR: William Stein and David Joyner (2005-01-05)
+    """
+    Z = sage.rings.integer.Integer
+
+    if b == 0:
+        if a == 0:
+            return Integer(1)
+        else:
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+    elif a == 0:
+        if b == 0:
+            return Integer(1)
+        else:
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+
+    if ord is None:
+        ord = b.multiplicative_order()
+    ord = Z(ord)
+    if ord < 100:
+        c = 1
+        for i in range(ord):
+            if c == a:        # is b^i
+                return Z(i)
+            c *= b
+        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+
+    m = ord.isqrt()
+    g = [a]
+    c = b**(-m)
+    S2 = [1]
+    for i in range(m):
+        g.append(g[i]*c)
+        if i < m-1:
+            S2.append(S2[i]*b)
+    for y in g:
+        if y in S2:
+            x = S2.index(y)
+            return Z(m*(g.index(y)) + x)
+    raise ValueError, "Log of %s to the base %s does not exist."%(b, a)
+
+
+
+def quadratic_residues(n):
+    r"""
+    Return a sorted list of all nonzero squares modulo the integer $n$
+    in the range $1\leq x < |n|$.
+
+    EXAMPLES:
+        sage: quadratic_residues(11)
+        [1, 3, 4, 5, 9]
+        sage: quadratic_residues(1)
+        []
+        sage: quadratic_residues(8)
+        [0, 1, 4]
+        sage: quadratic_residues(-10)
+        [1, 4, 5, 6, 9]
+        sage: v = quadratic_residues(1000); len(v)
+        159
+    """
+    n = abs(sage.rings.integer.Integer(n))
+    X = list(set([(a*a)%n for a in xrange(1,int(n)/2+1)]))
+    X.sort()
+    return X
+
+## This much slower than above, for obvious reasons.
+## def quadratic_residues2(p):
+##     return [x for x in range(p-1) if kronecker_symbol(x,p)==1]
+
+def Max(x):
+    """
+    The maximum of a list of objects, on which a binary max operation
+    is defined.
+    """
+    assert isinstance(x,list), "Argument must be a list."
+    if len(x)==0:
+        return 0
+    m=x[0]
+    for i in range(1,len(x)):
+        m=max(m,x[i])
+    return m
+
+def Min(x):
+    """
+    The minimum of a list of objects, on which a binary min operation
+    is defined.
+    """
+    assert isinstance(x,list), "Argument must be a list."
+    if len(x)==0:
+        return 0
+    m=x[0]
+    for i in range(1,len(x)):
+        m=min(m,x[i])
+    return m
+
+def moebius(n):
+    r"""
+    Returns the value of the Moebius function of abs(n), where n is an integer.
+
+    DEFINITION:
+        $\mu(n)$ is 0 if $n$ is not square free, and otherwise equals $(-1)^r$,
+        where $n$ has $r$ distinct prime factors.
+
+    INPUT:
+        n -- an integer
+    OUTPUT:
+        0, 1, or -1
+    EXAMPLES:
+        sage: moebius(-5)
+        -1
+        sage: moebius(9)
+        0
+        sage: moebius(12)
+        0
+        sage: moebius(-35)
+        1
+        sage: moebius(-1)
+        1
+        sage: moebius(7)
+        -1
+    """
+    if n < 0:
+        n = -n
+    F = factor(n)
+    for _, e in F:
+        if e >= 2:
+            return 0
+    return (-1)**len(F)
+
+def kronecker(a, b):
+    return pari(a).kronecker(b)
+
+
+def farey(v, lim):
+    """
+    Return the Farey sequence associated to the floating point
+    number v.
+
+    INPUT:
+       v -- float (automatically converted to a float)
+       lim --  maximum denominator.
+    OUTPUT:
+       Results are (numerator, denominator); (1, 0) is"infinity".
+
+    AUTHOR: Scott David Daniels, Python Cookbook, 2nd Ed., Recipe 18.13
+    """
+    v = float(v)
+    if v < 0:
+        n, d = farey(-v, lim)
+        return -n, d
+    z = lim - lim    # Get a "0 of the right type" for denominator
+    lower, upper = (z, z+1), (z+1, z)
+    while True:
+        mediant = (lower[0] + upper[0]), (lower[1] + upper[1])
+        if v * mediant[1] > mediant[0]:
+            if lim < mediant[1]:
+                return upper
+            lower = mediant
+        elif v * mediant[1] == mediant[0]:
+            if lim >= mediant[1]:
+                return mediant
+            if lower[1] < upper[1]:
+                return lower
+            return upper
+        else:
+            if lim < mediant[1]:
+                return lower
+            upper = mediant
+
+def partitions(n):
+    """
+    Generate the partitions of an integer.
+
+    INPUT:
+        n -- int
+
+    EXAMPLES:
+        >> partitions(3)
+        <generator object at 0xab3b3eac>
+        sage: list(partitions(3))
+        [(1, 1, 1), (1, 2), (3,)]
+
+    AUTHOR: David Eppstein, Jan Van lent, George Yoshida; Python Cookbook 2, Recipe 19.16.
+    """
+    n == sage.rings.integer.Integer(n)
+    # base case of the recursion: zero is the sum of the empty tuple
+    if n == 0:
+        yield ( )
+        return
+    # modify the partitions of n-1 to form the partitions of n
+    for p in partitions(n-1):
+        yield (1,) + p
+        if p and (len(p) < 2 or p[1] > p[0]):
+            yield (p[0] + 1,) + p[1:]
+
+def continued_fraction(x):
+    return pari(x).contfrac().python()
+
+def convergent(v, n):
+    """
+    Return the n-th continued fraction convergent of the continued
+    fraction defined by the sequence of integers v.  We assume $n \geq 0$.
+
+    INPUT:
+        v -- list of integers
+        n -- integer
+    OUTPUT:
+        a rational number
+
+    If the continued fraction integers are
+    $$
+            v = [a_0 a_1 a_2, \ldots, a_k]
+    $$
+    then \code{convergent(v,2)} is the rational number
+    $$
+              a_0 + 1/a_1
+    $$
+    and \code{convergent(v,k)} is the rational number
+    $$
+            a1 + 1/(a2+1/(...) ... )
+    $$
+    represented by the continued fraction.
+    """
+    Q = sage.rings.rational_field.RationalField()
+    i = sage.rings.integer.Integer(n)
+    x = Q(v[i])
+    i -= 1
+    while i >= 0:
+        x = Q(v[i]) + 1/x
+        i -= 1
+    return x
+
+
+
+## def convergents_pnqn(x):
+##     """
+##     Return the pairs (pn,qn) that are the numerators and denominators
+##     of the partial convergents of the continued fraction of x.  We
+##     include (0,1) and (1,0) at the beginning of the list (these are
+##     the -2 and -1 th convergents).
+##     """
+##     v = pari(x).contfrac()
+##     w = [(0,1), (1,0)]
+##     for n in range(len(v)):
+##         pn = w[n+1][0]*v[n] + w[n][0]
+##         qn = w[n+1][1]*v[n] + w[n][1]
+##         w.append(int(pn), int(qn))
+##     return w
+
+
+def convergents(v):
+    """
+    Return all the partial convergents of a continued fraction
+    defined by the sequence of integers v.
+
+    If v is not a list, compute the continued fraction of v and return
+    its convergents (this is potentially much faster than calling
+    continued_fraction first, since continued fractions are
+    implemented using PARI and there is overhead moving the answer
+    back from PARI).
+
+    INPUT:
+        v -- list of integers or a rational number
+    OUTPUT:
+        list -- of partial convergents, as rational numbers
+    """
+    Q = sage.rings.rational_field.RationalField()
+    if not isinstance(v, list):
+        v = pari(v).contfrac()
+    w = [(0,1), (1,0)]
+    for n in range(len(v)):
+        pn = w[n+1][0]*v[n] + w[n][0]
+        qn = w[n+1][1]*v[n] + w[n][1]
+        w.append((pn, qn))
+    return [Q(x) for x in w[2:]]
+
+
+def number_of_divisors(n):
+    """
+    Return the number of divisors of the integer n.
+    """
+    return sage.rings.integer.Integer(pari(sage.rings.integer.Integer(n)).numdiv())
+
+
+
+def hilbert_symbol(a, b, p, algorithm="pari"):
+    """
+    Returns 1 if $ax^2 + by^2$ $p$-adically represents a nonzero
+    square, otherwise returns $-1$.  If either a or b is 0, returns 0.
+
+    INPUT:
+        a, b -- integers
+        p -- integer; either prime or -1 (which represents the archimedean place)
+        algorithm -- string
+                   'pari' -- (default) use the PARI C library
+                   'direct' -- use a Python implementation
+                   'all' -- use both PARI and direct and check that
+                            the results agree, then return the common answer
+    OUTPUT:
+        integer (0, -1, or 1)
+
+    EXAMPLES:
+        sage: hilbert_symbol (-1, -1, -1, algorithm='all')
+        -1
+        sage: hilbert_symbol (2,3, 5, algorithm='all')
+        1
+        sage: hilbert_symbol (4, 3, 5, algorithm='all')
+        1
+        sage: hilbert_symbol (0, 3, 5, algorithm='all')
+        0
+        sage: hilbert_symbol (-1, -1, 2, algorithm='all')
+        -1
+        sage: hilbert_symbol (1, -1, 2, algorithm='all')
+        1
+        sage: hilbert_symbol (3, -1, 2, algorithm='all')
+        -1
+
+    AUTHORS:
+       -- William Stein and David Kohel (2006-01-05)
+    """
+    Integer = sage.rings.integer.Integer
+
+    p = Integer(p)
+    if p != -1 and not p.is_prime():
+        raise ValueError, "p (=%s) must be prime or -1"%p
+    a = Integer(a)
+    b = Integer(b)
+
+    if algorithm == "pari":
+
+        from sage.libs.all import pari
+        return Integer(pari(a).hilbert(b,p))
+
+    elif algorithm == 'direct':
+        if a == 0 or b == 0:
+            return Integer(0)
+
+        p = Integer(p)
+        one = Integer(1)
+
+        if p != -1:
+            p_sqr = p**2
+            while a%p_sqr == 0: a //= p_sqr
+            while b%p_sqr == 0: b //= p_sqr
+
+        if p != 2 and True in ( kronecker(x,p) == 1 for x in (a,b,a+b) ):
+            return one
+        if a%p == 0:
+            if b%p == 0:
+                return hilbert_symbol(p,-(b//p),p)*hilbert_symbol(a//p,b,p)
+            elif p == 2 and (b%4) == 3:
+                if kronecker(a+b,p) == -1:
+                    return -one
+            elif kronecker(b,p) == -1:
+                return -one
+        elif b%p == 0:
+            if p == 2 and (a%4) == 3:
+                if kronecker(a+b,p) == -1:
+                    return -one
+            elif kronecker(a,p) == -1:
+                return -one
+        elif p == 2 and (a%4) == 3 and (b%4) == 3:
+            return -one
+        return one
+    elif algorithm == 'all':
+        ans_pari = hilbert_symbol(a,b,p,algorithm='pari')
+        ans_direct = hilbert_symbol(a,b,p,algorithm='direct')
+        if ans_pari != ans_direct:
+            raise RuntimeError, "There is a bug in hilbert_symbol; two ways of computing the Hilbert symbol (%s,%s)_%s disagree"%(a,b,p)
+        return ans_pari
+    else:
+        raise ValueError, "Algorithm %s not defined"%algorithm

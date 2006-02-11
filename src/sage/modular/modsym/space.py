@@ -1,0 +1,863 @@
+"""
+Space of modular symbols (base class)
+
+All the spaces of modular symbols derive from this class.  This class
+is an abstract base class.
+"""
+
+#*****************************************************************************
+#       SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+import math
+import random
+import weakref
+
+import sage.modules.free_module as free_module
+import sage.matrix.matrix_space as matrix_space
+import sage.modules.free_module_morphism as free_module_morphism
+import sage.misc.misc as misc
+import sage.modular.dims as dims
+import sage.modular.hecke.all as hecke
+import sage.modular.modsym.element
+import sage.structure.gens as gens
+import sage.rings.arith as arith
+from sage.rings.all import PowerSeriesRing, Integer, O
+
+
+class ModularSymbolsSpace(hecke.HeckeModule_free_module):
+    def __init__(self, group, weight, character, sign, base_ring):
+        self.__group = group
+        self.__character = character
+        self.__sign = sign
+        hecke.HeckeModule_free_module.__init__(self, base_ring, group.level(), weight)
+
+    def __cmp__(self, other):
+        """
+        Compare self and other.
+        """
+        if not isinstance(other, ModularSymbolsSpace):
+            return -1
+        if self.__group > other.__group:
+            return -1
+        elif self.__group < other.__group:
+            return 1
+        elif self.weight() < other.weight():
+            return -1
+        elif self.weight() > other.weight():
+            return 1
+        elif self.__character < other.__character:
+            return -1
+        elif self.__character > other.__character:
+            return 1
+        elif self.__sign < other.__sign:
+            return -1
+        elif self.__sign > other.__sign:
+            return 1
+        elif self.base_ring() < other.base_ring():
+            return -1
+        elif self.base_ring() > other.base_ring():
+            return 1
+        if self.is_ambient() == other.is_ambient():
+            return 0
+        if self.ambient_hecke_module() < other.ambient_hecke_module():
+            return -1
+        elif self.ambient_hecke_module() > other.ambient_hecke_module():
+            return 1
+
+        # ambients same and at most one of the two spaces is ambient
+        if self.rank() < other.rank():
+            return -1
+        elif self.rank() > other.rank():
+            return 1
+
+        # neither is ambient; but they're in the same ambient space
+        if self.free_module() == other.free_module():
+            return 0
+        return -1
+
+    def character(self):
+        return self.__character
+
+    def cuspidal_submodule(self):
+        raise NotImplementedError
+
+    def cuspidal_subspace(self):
+        """
+        Synonym for cuspidal_submodule.
+        """
+        return self.cuspidal_submodule()
+
+    def new_subspace(self, p=None):
+        """
+        Synonym for new_submodule.
+        """
+        return self.new_submodule(p)
+
+    def eisenstein_subspace(self):
+        """
+        Synonym for eisenstein_submodule.
+        """
+        return self.eisenstein_submodule()
+
+    def dimension_of_associated_cuspform_space(self):
+        if not self.is_cuspidal():
+            raise ArithmeticError, "space must be cuspidal"
+        if self.sign() == 0:
+            return self.dimension() // 2
+        return self.dimension()
+
+    def dual_star_involution_matrix(self):
+        """
+        Return the matrix of the dual star involution, which is
+        induced by complex conjugation on the linear dual of modular
+        symbols.
+        """
+        raise NotImplementedError
+
+    def group(self):
+        """
+        Returns the group of this modular symbols space.
+
+        INPUT:
+           ModularSymbols self -- an arbitrary space of modular symbols
+
+        OUTPUT:
+           CongruenceSubgroup -- the congruence subgroup that this is a space
+                              of modular symbols for.
+
+        ALGORITHM:
+           The group is recorded when this space is created.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(20)
+            sage: m.group()
+            Congruence Subgroup Gamma0(20)
+        """
+        return self.__group
+
+    def is_cuspidal(self):
+        raise NotImplementedError
+
+    def is_simple(self):
+        try:
+            return self._is_simple
+        except AttributeError:
+            D = self.factorization()
+            if len(D) <= 0 or len(D) == 1 and D[0][1] == 1:
+                self._is_simple = True
+            else:
+                self._is_simple = False
+            return self._is_simple
+
+    def multiplicity(self, S):
+        """
+        Return the multiplicity of the simple modular symbols space S
+        in self.  S must be a simple anemic Hecke module.
+
+        ASSUMPTION: self is an anemic Hecke module with the same weight and
+        group as S, and S is simple.
+        """
+        if self.level() % S.level() != 0 or S.weight() != self.weight():
+            return 0
+        if not S.is_simple():
+            raise ArithmeticError, "S must be simple"
+        #if not self.is_anemic_hecke_module():
+        #    raise ArithmeticError, "S must be an anemic Hecke module"
+        A = self.ambient_hecke_module()
+        B = A.subspace_generated_by_images(S)
+        C = self.intersection(B)
+        d = C.rank()
+        n = S.rank()
+        assert d % n == 0, "the dimension of intersection must be a multiple of dimension of simple space.  bug!"
+        return d//n
+
+    def ngens(self):
+        """
+        The number of generators of self.
+        INPUT:
+           ModularSymbols self -- arbitrary space of modular symbols.
+        OUTPUT:
+           int -- the number of generators, which is the same as the
+                  dimension of self.
+        ALGORITHM:
+           Call the dimension function.
+        EXAMPLES:
+        sage: m = ModularSymbols(33)
+        sage: m.ngens()
+        9
+        sage: m.rank()
+        9
+        sage: ModularSymbols(100, weight=2, sign=1).ngens()
+        18
+        """
+        return self.rank()
+
+
+    #########################################################################
+    #
+    #  Computation of q-expansions
+    #
+    #########################################################################
+
+    def default_prec(self):
+        r"""
+        Get the default precision for computation of $q$-expansion
+        associated to the ambient space of this space of modular
+        symbols (and all subspaces).  Use \code{set_default_prec} to
+        change the default precision.
+
+            sage: M = ModularSymbols(15)
+            sage: M.cuspidal_subspace().q_expansion_basis()
+            [q - q^2 - q^3 - q^4 + q^5 + q^6 + O(q^8)]
+            sage: M.set_default_prec(20)
+
+    Notice that setting the default precision of the ambient space
+    affects the subspaces.
+
+            sage: M.cuspidal_subspace().q_expansion_basis()
+            [q - q^2 - q^3 - q^4 + q^5 + q^6 + 3*q^8 + q^9 - q^10 - 4*q^11 + q^12 - 2*q^13 - q^15 - q^16 + 2*q^17 - q^18 + 4*q^19 + O(q^20)]
+            sage: M.cuspidal_subspace().default_prec()
+            20
+        """
+        if not self.is_ambient():
+            return self.ambient_hecke_module().default_prec()
+        try:
+            return self.__default_prec
+        except AttributeError:
+            self.__default_prec = Integer(8)
+            return self.__default_prec
+
+    def set_default_prec(self, prec):
+        """
+        Set the default precision for computation of $q$-expansion
+        associated to the ambient space of this space of modular
+        symbols (and all subspaces).
+
+        EXAMPLES:
+            sage: M = ModularSymbols(Gamma1(13),2)
+            sage: M.set_default_prec(5)
+            sage: M.cuspidal_subspace().q_expansion_basis()
+            [q - 4*q^3 - q^4 + O(q^5), q^2 - 2*q^3 - q^4 + O(q^5)]
+        """
+        if not self.is_ambient():
+            return self.ambient_hecke_module().set_default_prec(prec)
+        else:
+            self.__default_prec = Integer(prec)
+
+    def q_expansion_basis(self, prec=None, algorithm='default'):
+        r"""
+        Returns a basis of q-expansions (as power series) to precision
+        prec of the space of modular forms associated to self.  The
+        q-expansions are defined over the same base ring as prec, and
+        a put in echelon form.
+
+        INPUT:
+            self -- a space of CUSPIDAL modular symbols
+            prec -- an integer
+            algorithm -- string:
+                    'default' (default) -- decide which algorithm to use based on heuristics
+                    'hecke' -- compute basis by computing homomorphisms
+                               T --> K, where T is the Hecke algebra
+                    'eigen' -- compute basis using eigenvectors for the Hecke action
+                               and Atkin-Lehner-Li theory to patch them together
+                    'all'   -- compute using hecke_dual and eigen algorithms and verify
+                               that the results are the same.
+
+        The computed basis is \emph{not} cached, though of course Hecke
+        operators used in computing the basis are cached.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(1, 12).cuspidal_subspace()
+            sage: M.q_expansion_basis(8)
+            [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
+            sage: M.q_expansion_basis(8, algorithm='eigen')
+            [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
+
+            sage: M = ModularSymbols(1, 24).cuspidal_subspace()
+            sage: M.q_expansion_basis(8, algorithm='eigen')
+            [q + 195660*q^3 + 12080128*q^4 + 44656110*q^5 - 982499328*q^6 - 147247240*q^7 + O(q^8),
+             q^2 - 48*q^3 + 1080*q^4 - 15040*q^5 + 143820*q^6 - 985824*q^7 + O(q^8)]
+
+            sage: M = ModularSymbols(11, 2, sign=-1).cuspidal_subspace()
+            sage: M.q_expansion_basis(8, algorithm='eigen')
+            [q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)]
+
+            sage: M = ModularSymbols(Gamma1(13), 2, sign=1).cuspidal_subspace()
+            sage: M.q_expansion_basis(8, algorithm='eigen')
+            [q - 4*q^3 - q^4 + 3*q^5 + 6*q^6 + O(q^8),
+             q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)]
+
+            sage: M = ModularSymbols(Gamma1(5), 3, sign=-1).cuspidal_subspace()
+            sage: M.q_expansion_basis(8, algorithm='eigen')   # dimension is 0
+            []
+
+            sage: M = ModularSymbols(Gamma1(7), 3, sign=-1).cuspidal_subspace()
+            sage: M.q_expansion_basis(8)
+            [q - 3*q^2 + 5*q^4 - 7*q^7 + O(q^8)]
+
+            sage: M = ModularSymbols(43, 2, sign=0).cuspidal_subspace()
+            sage: M[0]
+            Dimension 2 subspace of a modular symbols space of level 43
+            sage: M[0].q_expansion_basis()
+            [q - 2*q^2 - 2*q^3 + 2*q^4 - 4*q^5 + 4*q^6 + O(q^8)]
+            sage: M[1]
+            Dimension 4 subspace of a modular symbols space of level 43
+            sage: M[1].q_expansion_basis()
+            [q + 2*q^5 - 2*q^6 - 2*q^7 + O(q^8), q^2 - q^3 - q^5 + q^7 + O(q^8)]
+        """
+        if prec is None:
+            prec = self.default_prec()
+        else:
+            prec = Integer(prec)
+
+        if not self.is_cuspidal():
+            raise ArithmeticError, "space must be cuspidal"
+
+        if self.sign() == 0:
+            P = self.plus_submodule(compute_dual=True)
+            return P.q_expansion_basis(prec=prec, algorithm=algorithm)
+
+        if self.dimension() == 0:
+            return []
+
+        if algorithm == 'default':
+            algorithm = 'hecke'
+            #return self._q_expansion_basis_eigen(prec)
+
+        if algorithm == 'hecke':
+            return self._q_expansion_basis_hecke_dual(prec)
+        elif algorithm == 'eigen':
+            return self._q_expansion_basis_eigen(prec)
+        elif algorithm == 'all':
+            B1 = self._q_expansion_basis_hecke_dual(prec)
+            B2 = self._q_expansion_basis_eigen(prec)
+            if B1 != B2:
+                raise RuntimeError, "There is a bug in q_expansion_basis -- basis computed differently with two algorithms:\n%s\n%s\n"%(B1, B2,)
+            return B1
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+
+    #########################################################################
+    #
+    #  Computation of a basis using eigenforms
+    #
+    #########################################################################
+
+    def q_eigenform(self, prec=None):
+        """
+        Returns the q-expansion to precision prec of a new eigenform
+        associated to self, where self must be new, cuspidal, and
+        simple.
+        """
+        if prec is None:
+            prec = self.default_prec()
+        try:
+            f = self.__q_expansion
+        except AttributeError:
+
+            if not self.is_cuspidal():
+                raise ArithmeticError, "self must be cuspidal."
+
+            if not self.is_simple():
+                if self.sign() == 0:
+                    return self.plus_submodule(compute_dual=True).q_eigenform(prec)
+                raise ArithmeticError, "self must be simple."
+            a2 = self.eigenvalue(2)
+            R = PowerSeriesRing(a2.parent(), "q")
+            q = R.gen(0)
+            f = q + a2*q**2 + O(q**3)
+
+        if f.prec() < prec:
+            R = f.parent()
+            ext = [self.eigenvalue(n) for n in range(f.prec(),prec)]
+            f = R(list(f) + ext)
+            self.__qeigenform = f.add_bigoh(prec)
+            return self.__qeigenform
+        else:
+            return f.O(prec)
+
+    def _q_expansion_basis_eigen(self, prec):
+        if self.is_simple():
+            f = self.q_eigenform(prec)
+            R = PowerSeriesRing(self.base_ring(), 'q')
+            B = [R([f[i][j] for i in xrange(prec)],prec) for j in range(self.rank())]
+            return B
+        else:
+            raise NotImplementedError
+
+
+    #########################################################################
+    #
+    #  Computation of a basis using linear functionals on the Hecke algebra.
+    #
+    #########################################################################
+
+    def q_expansion_cuspforms(self, prec=None):
+        """
+        Returns a function f(i,j) such that each value f(i,j) is the
+        q-expansion, to the given precision, of an element of the
+        corresponding space~$S$ of cusp forms.  Together these
+        functions span~$S$.  Here $i,j$ are integers with
+        $0\leq i,j < d$, where $d$ is the dimension of self.
+
+        For a reduced echelon basis, use the function
+        \code{q_expansion_basis} instead.
+
+        More precisely, this function returns the $q$-expansions
+        obtained by taking the $ij$ entry of the matrices of the Hecke
+        operators $T_n$ acting on the subspace of the linear dual of
+        modular symbols corresponding to self.
+
+        EXAMPLES:
+            sage: S = ModularSymbols(11,2, sign=1).cuspidal_subspace()
+            sage: f = S.q_expansion_cuspforms(8)
+            sage: f(0,0)
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)
+
+            sage: S = ModularSymbols(37,2).cuspidal_subspace()
+            sage: f = S.q_expansion_cuspforms(8)
+            sage: f(0,0)
+            q + q^3 - 2*q^4 - q^7 + O(q^8)
+            sage: f(3,3)
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + 6*q^6 - q^7 + O(q^8)
+            sage: f(1,2)
+            q^2 + 2*q^3 - 2*q^4 + q^5 - 3*q^6 + O(q^8)
+
+            sage: S = ModularSymbols(Gamma1(13),2,sign=-1).cuspidal_subspace()
+            sage: f = S.q_expansion_cuspforms(8)
+            sage: f(0,0)
+            q - 2*q^2 + q^4 - q^5 + 2*q^6 + O(q^8)
+            sage: f(0,1)
+            q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)
+
+            sage: S = ModularSymbols(1,12,sign=-1).cuspidal_subspace()
+            sage: f = S.q_expansion_cuspforms(8)
+            sage: f(0,0)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
+        """
+        if prec is None:
+            prec = self.default_prec()
+        if not self.is_cuspidal():
+            raise ArithmeticError, "self must be cuspidal"
+        K = self.base_ring()
+        M = matrix_space.MatrixSpace(K, prec-1, self.dimension())
+        T = [self.dual_hecke_matrix(n) for n in range(1,prec)]
+        R = PowerSeriesRing(self.base_ring(), 'q')
+        def form(i, j):
+            return R([0] + [t[i,j] for t in T], prec)
+        return form
+
+    def _q_expansion_basis_hecke_dual(self, prec):
+        d = self.dimension_of_associated_cuspform_space()
+        if d >= prec-1:
+            d = prec-1
+        K = self.base_ring()
+
+        A = free_module.VectorSpace(K, prec-1)
+        M = matrix_space.MatrixSpace(K, prec-1, self.dimension())
+
+        V = A.zero_submodule()
+        i = self.dimension()-1
+        j = 0
+
+        t = misc.verbose('computing basis to precision %s'%prec)
+        while V.dimension() < d and i >= 0:
+            v = [self.dual_hecke_matrix(n).column(i) for n in range(1,prec)]
+            t = misc.verbose('iteration: %s'%j,t)
+            X = M(v).transpose()
+            V += X.row_space()
+            t = misc.verbose('addition of row space: %s'%j,t)
+            i -= 1
+            j += 1
+
+        R = PowerSeriesRing(K, 'q')
+        B = V.basis()
+        if len(B) < d:
+            B += [V(0)] * (d-len(B))
+        return [R([0] + b.list(), prec) for b in B]
+
+
+    #########################################################################
+    #
+    #  Decomposition of spaces
+    #
+    ##########################################################################
+
+    def factorization(self):
+        """
+        Returns a list of pairs $(S,e)$ where $S$ is simple spaces of
+        modular symbols and self is isomorphic to the direct sum of
+        the $S^e$ as a module over the \emph{anemic} Hecke algebra
+        adjoin the star involution.
+
+        ASSUMPTION: self is a module over the anemic Hecke algebra.
+        """
+        try:
+            return self._factorization
+        except AttributeError:
+            raise NotImplementedError
+
+    def hecke_module_of_level(self, level):
+        """
+        See the documentation for self.modular_symbols_of_level(level)
+        """
+        return self.modular_symbols_of_level(level)
+
+    def sign(self):
+        """
+        Returns the sign of self.
+
+        For efficiency reasons, it is often useful to compute in the
+        (largest) quotient of modular symbols where the * involution
+        acts as +1, or where it acts as -1.
+
+
+        INPUT:
+           ModularSymbols self -- arbitrary space of modular symbols.
+
+        OUTPUT:
+           int -- the sign of self, either -1, 0, or 1.
+                  -1 -- if this is factor of quotient where * acts as -1,
+                  +1 -- if this is factor of quotient where * acts as +1,
+                   0 -- if this is full space of modular symbols (no quotient).
+
+        EXAMPLES:
+            sage: m = ModularSymbols(33)
+            sage: m.rank()
+            9
+            sage: m.sign()
+            0
+            sage: m = ModularSymbols(33, sign=0)
+            sage: m.sign()
+            0
+            sage: m.rank()
+            9
+            sage: m = ModularSymbols(33, sign=-1)
+            sage: m.sign()
+            -1
+            sage: m.rank()
+            3
+        """
+        return self.__sign
+
+    def simple_factors(self):
+        """
+        Returns a list modular symbols spaces $S$ where $S$ is simple
+        spaces of modular symbols (for the anemic Hecke algebra) and
+        self is isomorphic to the direct sum of the $S$ with some
+        multiplicities, as a module over the \emph{anemic} Hecke
+        algebra.  For the multiplicities use factorization() instead.
+
+        ASSUMPTION: self is a module over the anemic Hecke algebra.
+        """
+        return [S for S,_ in self.factorization()]
+
+    def star_eigenvalues(self):
+        """
+        Returns the eigenvalues of the star involution acting on self.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11)
+            sage: D = M.decomposition()
+            sage: M.star_eigenvalues()
+            [1, -1]
+            sage: D[0].star_eigenvalues()
+            [1]
+            sage: D[1].star_eigenvalues()
+            [1, -1]
+            sage: D[1].plus_submodule().star_eigenvalues()
+            [1]
+            sage: D[1].minus_submodule().star_eigenvalues()
+            [-1]
+        """
+        try:
+            return self.__star_eigenvalues
+        except AttributeError:
+            pass
+        if self.sign() != 0:
+            return [self.sign()]
+        M = self.star_involution().matrix()
+        R = self.base_ring()
+        if M == 1:
+            self.__star_eigenvalues = [R(1)]
+        elif M == -1:
+            self.__star_eigenvalues = [R(-1)]
+        else:
+            self.__star_eigenvalues = [R(1), R(-1)]
+        return self.__star_eigenvalues
+
+    def star_decomposition(self):
+        """
+        """
+        S = self.star_involution()
+        return S.decomposition()
+
+    def integral_structure(self):
+        r"""
+        Return the $\Z$-structure of this modular symbols spaces
+        generated by all integral modular symbols.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11,4)
+            sage: M.integral_structure()
+            Free module of degree 6 and rank 6 over Integer Ring
+            Echelon basis matrix:
+            [    1     0     0     0     0     0]
+            [    0  1/14   1/7  5/14   1/2 13/14]
+            [    0     0   1/2     0     0   1/2]
+            [    0     0     0     1     0     0]
+            [    0     0     0     0     1     0]
+            [    0     0     0     0     0     1]
+            sage: M.cuspidal_submodule().integral_structure()
+            Free module of degree 6 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [     0   1/14    1/7   5/14    1/2 -15/14]
+            [     0      0    1/2      0      0   -1/2]
+            [     0      0      0      1      0     -1]
+            [     0      0      0      0      1     -1]
+        """
+        try:
+            return self.__integral_structure
+        except AttributeError:
+            pass
+        A = self.ambient_hecke_module()
+        I = A.integral_structure()
+        J = self.free_module().intersection(I)
+        self.__integral_structure = J
+        return J
+
+    def integral_hecke_matrix(self, n):
+        """
+        Return the matrix of the $n$th Hecke operator acting on the integral
+        structure on self (as returned by \code{self.integral_structure()}.
+
+        EXAMPLES:
+
+        """
+        n = int(n)
+        try:
+            return self.__integral_hecke_matrix[n]
+        except AttributeError:
+            self.__integral_hecke_matrix = {}
+        except KeyError:
+            pass
+        #raise NotImplementedError, "code past this point is broken / not done"  # todo
+        A = self.ambient_hecke_module()
+        T = A.hecke_matrix(n)
+        S = T.restrict(self.integral_structure())
+        self.__integral_hecke_matrix[n] = S
+        return S
+
+    def sturm_bound(self):
+        r"""
+        Returns the Sturm bound for this space of modular symbols.
+
+        Returns a positive integer~$n$ such that the Hecke operators
+        $T_1,\ldots, T_n$ acting on \emph{cusp forms} generate the
+        Hecke algebra as a $\Z$-module when the character is trivial
+        or quadratic.  Otherwise, $T_1,\ldots,T_n$ generate the Hecke
+        algebra at least as a $\Z[\eps]$-module, where $\Z[\eps]$ is
+        the ring generated by the values of the Dirichlet character
+        $\eps$.  Alternatively, this is a bound such that if two cusp
+        forms associated to this space of modular symbols are
+        congruent modulo $(\lambda, q^n)$, then they are congruent
+        modulo $\lambda$.
+
+        EXAMPLES:
+            sage: ModularSymbols(11,2).sturm_bound()
+            2
+            sage: ModularSymbols(389,2).sturm_bound()
+            65
+            sage: ModularSymbols(1,12).sturm_bound()
+            1
+            sage: ModularSymbols(1,36).sturm_bound()
+            3
+
+        REFERENCES:
+        See the Agashe-Stein appendix to Lario and Schoof, \emph{Some
+        computations with Hecke rings and deformation rings},
+        Experimental Math., 11 (2002), no. 2, 303-311.  This result
+        originated in the paper Sturm, \emph{On the congruence of
+        modular forms}, Springer LNM 1240, 275--280, 1987.
+
+        REMARK:
+        Kevin Buzzard pointed out to me (William Stein) in Fall 2002
+        that the above bound is fine for $\Gamma_1(N)$ with character,
+        as one sees by taking a power of $f$.  More precisely, if $f
+        \con 0 \pmod{p}$ for first $s$ coefficients, then $f^r \con 0
+        \pmod{p}$ for first $sr$ coefficents.  Since the weight of
+        $f^r$ is $r\cdot k(f)$, it follows that if $s \geq b$, where
+        $b$ is the Sturm bound for $\Gamma_0(N)$ at weight $k(f)$, then
+        $f^r$ has valuation large enough to be forced to be $0$ at
+        $r*k(f)$ by Sturm bound (which is valid if we choose $r$
+        correctly).  Thus $f \con 0 \pmod{p}$.  Conclusion: For
+        $\Gamma_1(N)$ with fixed character, the Sturm bound is
+        \emph{exactly} the same as for $\Gamma_0(N)$.
+
+        A key point is that we are finding $\Z[\eps]$ generators for
+        the Hecke algebra here, not $\Z$-generators.  So if one wants
+        generators for the Hecke algebra over $\Z$, this bound must
+        be suitably modified.
+        """
+        # For Gamma_0(N), n = \frac{k}{12}[\SL_2(\Z):\Gamma_0(N)]
+        try:
+            return self.__sturm_bound
+        except:
+            self.__sturm_bound = \
+                  int(math.ceil((self.weight()*dims.idxG0(self.level()))/Integer(12)))
+        return self.__sturm_bound
+
+    def plus_submodule(self, compute_dual=True):
+        """
+        Return the subspace of self on which the star involution acts as +1.
+
+        INPUT:
+            compute_dual -- bool (default: True) also compute dual subspace.
+                            This are useful for many algorithms.
+
+        OUTPUT:
+            subspace of modular symbols
+        """
+        return self.sign_submodule(+1, compute_dual)
+
+    def minus_submodule(self, compute_dual=True):
+        """
+        Return the subspace of self on which the star involution acts as -1.
+
+        INPUT:
+            compute_dual -- bool (default: True) also compute dual subspace.
+                            This are useful for many algorithms.
+        OUTPUT:
+            subspace of modular symbols
+
+        """
+        return self.sign_submodule(-1, compute_dual)
+
+    def _compute_sign_submodule(self, sign, compute_dual=True):
+        A = self.ambient()
+        S = A.sign_submodule(sign, compute_dual=compute_dual)
+        V = S.free_module().intersection(self.free_module())
+        if compute_dual:
+            W = S.dual_free_module()
+            Y = self.dual_free_module()
+            D = W.intersection(Y)
+            M = A.submodule(V, D)
+        else:
+            M = A.submodule(V)
+        M._set_sign(sign)
+        return M
+
+    def _set_sign(self, sign):
+        sign = int(sign)
+        if not (sign in [-1,0,1]):
+            raise ValueError, "sign (=%s) must be -1, 0, or 1"%sign
+        self.__sign = sign
+
+    def sign_submodule(self, sign, compute_dual=True):
+        """
+        Return the subspace of self that is fixed under the star involution.
+
+        INPUT:
+            sign -- int (either -1, 0 or +1)
+            compute_dual -- bool (default: True) also compute dual subspace.
+                            This are useful for many algorithms.
+        OUTPUT:
+            subspace of modular symbols
+        """
+        sign = int(sign)
+        if not sign in [-1, 0, 1]:
+            raise ValueError, "sign must be -1, 0 or 1"
+        if self.sign() == sign:  # an easy case
+            return self
+        if self.sign() == -sign:  # another easy case
+            return self.zero_submodule()
+        if sign == 0:
+            # if sign is zero then self.sign() isn't 0 because
+            # of the above checks.
+            raise ArithmeticError, "There is no sign 0 subspace of a space of modular symbols with nonzero sign."
+        try:
+            return self.__plus_submodule[(sign, compute_dual)]
+        except AttributeError:
+            self.__plus_submodule = {}
+        except KeyError:
+            pass
+        P = self._compute_sign_submodule(sign, compute_dual)
+        P.__star_eigenvalue = sign
+        self.__plus_submodule[(sign,compute_dual)] = P
+        return P
+
+    def star_involution(self):
+        """
+        Return the star involution on self, which is induced by complex
+        conjugation on modular symbols.
+        """
+        raise NotImplementedError
+
+    def hecke_bound(self):
+        r"""
+        Returns the Sturm bound for this space of modular symbols.
+
+        Returns a positive integer~$n$ such that the Hecke operators
+        $T_1,\ldots, T_n$ acting on \emph{cusp forms} generate the
+        Hecke algebra as a $\Z$-module when the character is trivial
+        or quadratic.  Otherwise, $T_1,\ldots,T_n$ generate the Hecke
+        algebra at least as a $\Z[\eps]$-module, where $\Z[\eps]$ is
+        the ring generated by the values of the Dirichlet character
+        $\eps$.  Alternatively, this is a bound such that if two cusp
+        forms associated to this space of modular symbols are
+        congruent modulo $(\lambda, q^n)$, then they are congruent
+        modulo $\lambda$.
+
+        REFERENCES:
+        See the Agashe-Stein appendix to Lario and Schoof's \emph{Some
+        computations with Hecke rings and deformation rings},
+        Experimental Math., 11 (2002), no. 2, 303-311.  This result
+        originated in the paper Sturm, \emph{On the congruence of
+        modular forms}, Springer LNM 1240, 275--280, 1987.
+
+        REMARK:
+
+        Kevin Buzzard pointed out to me (William Stein) in Fall 2002
+        that the above bound is fine for $\Gamma_1(N)$ with character,
+        as one sees by taking a power of $f$.  More precisely, if $f
+        \con 0 \pmod{p}$ for first $s$ coefficients, then $f^r \con 0
+        \pmod{p}$ for first $sr$ coefficents.  Since the weight of
+        $f^r$ is $r\cdot k(f)$, it follows that if $s \geq b$, where
+        $b$ is the Sturm bound for $\Gamma_0(N)$ at weight $k(f)$, then
+        $f^r$ has valuation large enough to be forced to be $0$ at
+        $r*k(f)$ by Sturm bound (which is valid if we choose $r$
+        correctly).  Thus $f \con 0 \pmod{p}$.  Conclusion: For
+        $\Gamma_1(N)$ with fixed character, the Sturm bound is
+        \emph{exactly} the same as for $\Gamma_0(N)$.
+
+        A key point is that we are finding $\Z[\eps]$ generators for
+        the Hecke algebra here, not $\Z$-generators.  So if one wants
+        generators for the Hecke algebra over $\Z$, this bound must
+        be suitably modified.
+        """
+        # For Gamma_0(N), n = \frac{k}{12}[\SL_2(\Z):\Gamma_0(N)]
+        try:
+            return self.__sturm_bound
+        except AttributeError:
+            self.__sturm_bound = \
+                  int(math.ceil((self.weight() + dims.idxG0(self.level()))/12.0))
+        return self.__sturm_bound
+
+
+

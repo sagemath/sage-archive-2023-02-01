@@ -1,0 +1,38 @@
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
+    echo "Build SAGE source code package."
+    exit 0
+fi
+
+SAGE_VERSION=$1
+SAGE_ROOT=$2
+PATH=$SAGE_ROOT/local/bin/:$PATH
+
+export PATH SAGE_VERSION SAGE_ROOT
+
+if [ -e tmp ]; then
+   rm -rf tmp
+fi
+mkdir tmp
+
+if [ ! -d dist ]; then
+   mkdir dist
+fi
+
+CUR=`pwd`
+cp -prv MANIFEST.in README* install sage setup.py spkg-* tmp/
+
+cd tmp/sage
+#rm -f */__test* */*/*__test* */*/*/*__test* */*/*/*/*__test* */*/*/*/*/*__test*
+echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py
+cp version.py $CUR/sage/
+cd ..
+python setup.py sdist
+
+cd dist
+gunzip sage-$SAGE_VERSION.tar.gz
+bzip2 -f sage-$SAGE_VERSION.tar
+mv sage-$SAGE_VERSION.tar.bz2 ../../dist/sage-$SAGE_VERSION.spkg
+
+cd ../..
+rm -rf tmp

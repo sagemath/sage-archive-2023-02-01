@@ -1,0 +1,1 @@
+tailor --verbose --source-kind darcs --target-kind hg  --repository file:///Users/was/s/devel/sage-darcs --module CMF/CMFCore --revision INITIAL --target-repository file:///Users/was/s/devel/sage-h --target-module / cmfcore > cmfcore.tailor

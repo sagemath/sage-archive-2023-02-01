@@ -1,0 +1,194 @@
+r"""
+John Jones's tables of number fields
+
+In order to use the Jones database, the optional database package must
+be installed using the SAGE command
+    !sage -i database_jones_numfield
+
+This is a table of number fields with bounded ramification and degree $\leq 6$.
+You can query the database for all number fields in Jones's tables
+with bounded ramification and degree.
+
+EXAMPLES:
+First load the database:
+    sage: J = JonesDatabase()
+    sage: J
+    John Jones's table of number fields with bounded ramification and degree <= 6
+
+List the degree and discriminant of all fields in the database that
+have ramification at most at 2:
+    sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]
+    [(1, 1), (2, 8), (2, -4), (2, -8), (4, -2048), (4, -1024), (4, 256), (4, 2048), (4, 512), (4, 2048), (4, 2048)]
+
+List the discriminants of the fields of degree exactly 2 unramified outside 2:
+    sage: [k.disc() for k in J.unramified_outside([2],2)]
+    [8, -4, -8]
+
+List the discriminants of cubic field in the database ramified exactly at 3 and 5:
+    sage: [k.disc() for k in J.ramified_at([3,5],3)]
+    [-6075, -6075, -675, -135]
+    sage: factor(6075)
+    3^5 * 5^2
+    sage: factor(675)
+    3^3 * 5^2
+    sage: factor(135)
+    3^3 * 5
+
+List all fields in the database ramified at 101
+    sage: J.ramified_at(101)
+    [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+"""
+
+#*****************************************************************************
+#       SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import os
+
+from sage.rings.all import NumberField, IntegerRing, RationalField, PolynomialRing
+from sage.misc.misc import powerset
+import sage.databases.db
+import sage.misc.misc
+
+
+_JONESDATA = "%s/data/src/jones_data/"%sage.misc.misc.SAGE_ROOT
+
+class JonesDatabase(sage.databases.db.Database):
+    def __init__(self, read_only=True):
+        sage.databases.db.Database.__init__(self,
+                  name="jones", read_only=read_only)
+
+    def __repr__(self):
+        return "John Jones's table of number fields with bounded ramification and degree <= 6"
+
+    def _load(self, path, filename):
+        print filename
+        i = 0
+        while filename[i].isalpha():
+            i += 1
+        j = len(filename)-1
+        while filename[j].isalpha() or filename[j] in [".", "_"]:
+            j -= 1
+        S = [eval(z) for z in filename[i:j+1].split("-")]
+        S.sort()
+        data = open(path + "/" + filename).read()
+        data = data.replace("^","**")
+        x = PolynomialRing(RationalField()).gen()
+        v = eval(data)
+        s = tuple(S)
+        if self.root.has_key(s):
+            self.root[s] += v
+            self.root[s].sort()
+        else:
+            self.root[s] = v
+
+
+    def _init(self, path=_JONESDATA):
+        """
+        Create the database from scratch from the PARI files on John
+        Jone's web page, downloaded (e.g., via wget) to a local directory,
+        which is specified as path above.
+
+        INPUT:
+            -- (default works on William Stein install.)
+                path must be the path to Jone's Number_Fields directory
+                  http://hobbes.la.asu.edu/Number_Fields
+               These files should have been downloaded using wget.
+
+        EXAMPLE:
+            This is how to create the database from scratch, assuming
+            that the number fields are in the default directory above:
+            From a cold start of SAGE:
+
+                sage.: J = JonesDatabase(read_only=False)
+                sage.: J._init()
+                ...
+            This takes about 5 seconds.
+        """
+        n = 0
+        x = PolynomialRing(RationalField(),'x').gen()
+        self.root[tuple([])] = [x-1]
+        if not os.path.exists(path):
+            raise IOError, "Path %s does not exist."%path
+        for X in os.listdir(path):
+            if X[-4:] == "solo":
+                Z = path + "/" + X
+                print X
+                for Y in os.listdir(Z):
+                    if Y[-3:] == ".gp":
+                        self._load(Z, Y)
+        self.commit()
+
+    def unramified_outside(self, S, d=None):
+        """
+        Return iterator over fields in the database of degree d
+        unramified outside S.  If d is omitted, return fields of any
+        degree up to 6.
+        INPUT:
+            S -- list or set of primes
+            d -- None (default) or an integer
+        EXAMPLES:
+            sage: J = JonesDatabase()             # requires optional package
+            sage: J.unramified_outside([101,119]) # requires optional package
+            [Number Field in a with defining polynomial x - 1, Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+        """
+        try:
+            S = list(S)
+        except TypeError:
+            S = [S]
+        Z = []
+        for X in powerset(S):
+            Z += [k for k in self.ramified_at(X, d)]
+        Z.sort()
+        return Z
+
+    def __getitem__(self, S):
+        try:
+            S = list(S)
+        except TypeError:
+            S = [S]
+        S.sort()
+        s = tuple(S)
+        if not self.root.has_key(s):
+            return []
+        return [NumberField(f, check=False) for f in self.root[s]]
+
+    def ramified_at(self, S, d=None):
+        """
+        Return all fields in the database of degree d ramified
+        exactly at the primes in S.
+        INPUT:
+            S -- list or set of primes
+            d -- None (default) or an integer
+        EXAMPLES:
+            sage: J = JonesDatabase()              # requires optional package
+            sage: J.ramified_at([101,119])         # requires optional package
+            []
+            sage: J.ramified_at([119])             # requires optional package
+            []
+            sage: J.ramified_at(101)               # requires optional package
+            [Number Field in a with defining polynomial x^2 - 101,
+             Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
+             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
+             Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
+             Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+        """
+        Z = self[S]
+        if d == None:
+            return Z
+        return [k for k in self[S] if k.degree() == d]
+
+

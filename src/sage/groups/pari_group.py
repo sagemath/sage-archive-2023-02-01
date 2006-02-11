@@ -1,0 +1,31 @@
+r"""
+PARI Groups
+"""
+
+import group
+from sage.libs.all import pari, gen
+
+import permgroup
+
+class PariGroup(group.FiniteGroup):
+    def __init__(self, x, degree=None):
+        if not isinstance(x, gen):
+            raise TypeError, "x (=%s) must be a PARI gen"%x
+        self.__x = x
+        self.__degree = degree
+
+    def __repr__(self):
+        return "PARI group %s of degree %s"%(self.__x, self.__degree)
+
+    def _pari_(self):
+        return self.__x
+
+    def degree(self):
+        return self.__degree
+
+    def permutation_group(self):
+        if self.__degree is None:
+            raise NotImplementedError
+        return permgroup.TransitiveGroup(self.__degree, self.__x[2])
+
+    _permgroup_ = permutation_group

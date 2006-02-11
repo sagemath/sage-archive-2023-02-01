@@ -1,0 +1,2735 @@
+"""
+Elliptic curves over the rational numbers
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import ell_point
+from ell_field import EllipticCurve_field
+
+import sage.groups.abelian as abelian
+import sage.rings.arith as arith
+import sage.rings.all as rings
+import sage.rings.number_field.number_field as number_field
+import sage.misc.misc as misc
+import sage.modular.modform as modform
+import sage.matrix.all as matrix
+import sage.databases.cremona
+from   sage.libs.pari.all import pari
+import sage.functions.transcendental as transcendental
+import math
+import sage.libs.mwrank.all as mwrank
+import constructor
+from sage.interfaces.all import gp
+
+from sage.rings.all import (
+    PowerSeriesRing, O,
+    infinity as oo,
+    IntegerRing, RealField,
+    ComplexField, RationalField)
+
+import gp_cremona
+import padic_height
+import sea
+
+from gp_simon import simon_two_descent
+
+factor = arith.factor
+sqrt = math.sqrt
+exp = math.exp
+mul = misc.mul
+next_prime = arith.next_prime
+
+Q = RationalField()
+Z = IntegerRing()
+C = ComplexField()
+R = RealField()
+
+
+_MAX_HEIGHT=21
+
+class EllipticCurve_rational_field(EllipticCurve_field):
+    """
+    Elliptic curve over the Rational Field.
+    """
+    def __init__(self, ainvs, extra=None):
+        if extra != None:   # possibility of two arguments (the first would be the field)
+            ainvs = extra
+        if isinstance(ainvs, str):
+            label = ainvs
+            X = sage.databases.cremona.CremonaDatabase()[label]
+            EllipticCurve_field.__init__(self, [Q(a) for a in X.a_invariants()])
+            for attr in ['rank', 'torsion_order', 'cremona_label', 'conductor',
+                         'modular_degree', 'gens', 'regulator']:
+                s = "_EllipticCurve_rational_field__"+attr
+                if hasattr(X,s):
+                    setattr(self, s, getattr(X, s))
+            return
+        EllipticCurve_field.__init__(self, [Q(x) for x in ainvs])
+        self.__np = {}
+        if self.base_ring() != Q:
+            raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
+
+    def _set_rank(self, r):
+        self.__rank = r
+    def _set_torsion_order(self, t):
+        self.__torsion_order = t
+    def _set_cremona_label(self, L):
+        self.__cremona_label = L
+    def _set_conductor(self, N):
+        self.__conductor_pari = Z(N)
+    def _set_modular_degree(self, deg):
+        self.__modular_degree = deg
+
+    def _set_gens(self, gens):
+        self.__gens = [self.point(x, check=True) for x in gens]
+        self.__gens_certain = True
+        self.__gens.sort()
+
+    def is_integral(self):
+        try:
+            return self.__is_integral
+        except AttributeError:
+            one = Z(1)
+            self.__is_integral = bool(misc.mul([x.denominator() == 1 for x in self.ainvs()]))
+            return self.__is_integral
+
+
+    def mwrank(self, options=''):
+        """
+        Run Cremona's mwrank program on this elliptic curve and
+        return the result as a string.
+
+        INPUT:
+            options -- string; passed when starting mwrank.  The format is
+        q p<precision> v<verbosity> b<hlim_q> x<naux>  c<hlim_c> l t o s d>]
+
+        OUTPUT:
+            string -- output of mwrank on this curve
+        """
+        if options == "":
+            from sage.interfaces.all import mwrank
+        else:
+            from sage.interfaces.all import Mwrank
+            mwrank = Mwrank(options=options)
+        return mwrank(self.a_invariants())
+
+    def conductor(self, algorithm="pari"):
+        """
+        Returns the conductor of the elliptic curve.
+
+        INPUT:
+            algorithm -- str, (default: "pari")
+                   "pari"   -- use the PARI C-library ellglobalred
+                               implementation of Tate's algorithm
+                   "mwrank" -- use Cremona's mwrank implementation of
+                               Tate's algorithm; can be faster if the
+                               curve has integer coefficients (TODO:
+                               limited to small conductor until mwrank
+                               gets integer factorization)
+                   "gp" -- use the GP interpreter.
+                   "all" -- use both implementations, verify that the
+                            results are the same (or raise an error),
+                            and output the common value.
+
+        EXAMPLE:
+            sage: E = EllipticCurve([1, -1, 1, -29372, -1932937])
+            sage: E.conductor(algorithm="pari")
+            3006
+            sage: E.conductor(algorithm="mwrank")
+            3006
+            sage: E.conductor(algorithm="gp")
+            3006
+            sage: E.conductor(algorithm="all")
+            3006
+
+        NOTE: The conductor computed using each algorithm is cached separately.
+        Thus calling E.conductor("pari"), then E.conductor("mwrank") and
+        getting the same result checks that both systems compute the same answer.
+        """
+
+        if algorithm == "pari":
+            try:
+                return self.__conductor_pari
+            except AttributeError:
+                self.__conductor_pari = Z(self.pari_mincurve().ellglobalred()[0])
+            return self.__conductor_pari
+
+        elif algorithm == "gp":
+            try:
+                return self.__conductor_gp
+            except AttributeError:
+                self.__conductor_gp = Z(gp.eval('ellglobalred(ellinit(%s,0))[1]'%self.a_invariants()))
+                return self.__conductor_gp
+
+        elif algorithm == "mwrank":
+            try:
+                return self.__conductor_mwrank
+            except AttributeError:
+                if self.is_integral():
+                    self.__conductor_mwrank = Z(self.mwrank_curve().conductor())
+                else:
+                    self.__conductor_mwrank = Z(self.minimal_model().mwrank_curve().conductor())
+            return self.__conductor_mwrank
+
+        elif algorithm == "all":
+            N1 = self.conductor("pari")
+            N2 = self.conductor("mwrank")
+            N3 = self.conductor("gp")
+            if N1 != N2 or N2 != N3:
+                raise ArithmeticError, "Pari, mwrank and gp compute different conductors (%s,%s,%s) for %s"%(
+                    N1, N2, N3, self)
+            return N1
+        else:
+            raise RuntimeError, "algorithm '%s' is not known."%algorithm
+
+    ####################################################################
+    #  Access to PARI curves related to this curve.
+    ####################################################################
+
+    def __pari_double_prec(self):
+        """
+        Double the precision of computations with this curve.
+        """
+        self.pari_curve()
+        prec = 2 * self.__pari_curve[1]
+        self.__pari_curve = (pari(self.ainvs()).ellinit(precision=prec), prec)
+        try:
+            del self.__pari_mincurve
+        except AttributeError:
+            pass
+
+    def pari_curve(self):
+        """
+        Return the PARI curve corresponding to this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, 0,1,-1,0])
+            sage: e = E.pari_curve()
+            sage: type(e)
+            <type 'gen.gen'>
+            sage: e.type()
+            't_VEC'
+            sage: e.ellan(10)
+            [1, -2, -3, 2, -2, 6, -1, 0, 6, 4]
+
+            sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
+            sage: e = E.pari_curve()
+            sage: e.type()
+            't_VEC'
+            sage: e[:5]
+            [0, 0, 0, 1/3, 2/3]
+        """
+        try:
+            return self.__pari_curve[0]
+        except AttributeError:
+            self.__pari_curve = (pari(self.a_invariants()).ellinit(precision=10), 10)
+        return self.__pari_curve[0]
+
+    def pari_mincurve(self):
+        """
+        Return the PARI curve corresponding to a minimal model
+        for this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve(RationalField(), ['1/3', '2/3'])
+            sage: e = E.pari_mincurve()
+            sage: e[:5]
+            [0, 0, 0, 27, 486]
+            sage: E.conductor()
+            47232
+            sage: e.ellglobalred()
+            [47232, [1, 0, 0, 0], 2]
+        """
+        try:
+            return self.__pari_mincurve
+        except AttributeError:
+            e = self.pari_curve()
+            mc, change = e.ellminimalmodel()
+            self.__pari_mincurve = mc
+            # self.__min_transform = change
+        return self.__pari_mincurve
+
+    def database_curve(self):
+        """
+        Return the curve in the elliptic curve database isomorphic to
+        this curve, if possible.  Otherwise raise a RuntimeError
+        exception.
+
+        EXAMPLES:
+        The following examples assumes that the elliptic curve database is installed.
+            sage: E = EllipticCurve([0,1,2,3,4])
+            sage: E.database_curve()
+            Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
+
+        NOTES: The model of the curve in the database can be different
+               than the Weierstrass model for this curve, since
+               database models are always minimal.
+        """
+        try:
+            return self.__database_curve
+        except AttributeError:
+            misc.verbose("Looking up %s in the database."%self)
+            D = sage.databases.cremona.CremonaDatabase()
+            ainvs = self.minimal_model().ainvs()
+            try:
+                self.__database_curve = D.elliptic_curve_from_ainvs(self.conductor(), ainvs)
+            except RuntimeError:
+                raise RuntimeError, "Elliptic curve %s not in the database."%self
+            return self.__database_curve
+
+
+    def Np(self, p):
+        """
+        The number of points on E modulo p, where p is a prime, not
+        necessarily of good reduction.  (When p is a bad prime, also
+        counts the singular point.)
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])
+            sage: E.Np(2)
+            5
+            sage: E.Np(3)
+            5
+            sage: E.conductor()
+            11
+            sage: E.Np(11)
+            11
+        """
+        if self.conductor() % p == 0:
+            return p + 1 - self.ap(p)
+        #raise ArithmeticError, "p (=%s) must be a prime of good reduction"%p
+        if p < 1125899906842624:   # TODO: choose more wisely?
+            return p+1 - self.ap(p)
+        else:
+            return self.sea(p)
+
+    def sea(self, p, early_abort=False):
+        r"""
+        Return the number of points on $E$ over $\F_p$ computed using
+        the SEA algorithm, as implemented in PARI by Christophe Doche
+        and Sylvain Duquesne.
+
+        INPUT:
+            p -- a prime number
+            early_abort -- bool (default: Falst); if True an early abort technique
+                       is used and the computation is interrupted as soon
+                       as a small divisor of the order is detected.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.sea(next_prime(10^30))
+            1000000000000001426441464441649
+        """
+        p = rings.Integer(p)
+        return sea.ellsea(self.minimal_model().a_invariants(), p, early_abort=early_abort)
+
+    def __pari_double_prec(self):
+        EllipticCurve_field._EllipticCurve__pari_double_prec(self)
+        try:
+            del self.__pari_mincurve
+        except AttributeError:
+            pass
+
+    ####################################################################
+    #  Access to mwrank
+    ####################################################################
+    def mwrank_curve(self, verbose=False):
+        try:
+            return self.__mwrank_curve
+        except AttributeError:
+            pass
+        self.__mwrank_curve = mwrank.mwrank_EllipticCurve(
+            self.ainvs(), verbose=verbose)
+        return self.__mwrank_curve
+
+    def two_descent(self, verbose=True,
+                    selmer_only = False,
+                    first_limit = 20,
+                    second_limit = 8,
+                    n_aux = -1,
+                    second_descent = 1):
+        """
+        Compute 2-descent data for this curve.
+
+        INPUT:
+            verbose     -- (default: True) print what mwrank is doing
+            selmer_only -- (default: False) selmer_only switch
+            first_limit -- (default: 20) firstlim is bound on |x|+|z|
+            second_limit-- (default: 8)  secondlim is bound on log max {|x|,|z| },
+                                         i.e. logarithmic
+            n_aux       -- (default: -1) n_aux only relevant for general
+                           2-descent when 2-torsion trivial; n_aux=-1 causes default
+                           to be used (depends on method)
+            second_descent -- (default: True) second_descent only relevant for
+                           descent via 2-isogeny
+        OUTPUT:
+            Nothing -- nothing is returned (though much is printed)
+        """
+        self.mwrank_curve().two_descent(verbose, selmer_only,
+                                        first_limit, second_limit,
+                                        n_aux, second_descent)
+
+
+    ####################################################################
+    #  Etc.
+    ####################################################################
+
+    def aplist(self, pmax):
+        """
+        Return list of pairs (p, a_p(E)) for p up to pmax.
+        """
+        v = arith.prime_range(pmax)
+        return [(p,self.ap(p)) for p in v]
+
+    def anlist(self, n):
+        """
+        The Fourier coefficients up to and including a_n of the
+        modular form attached to this elliptic curve.  The ith element
+        of the return list is a[i].
+
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])
+            sage: E.anlist(3)
+            [0, 1, -2, -1]
+
+            sage: E = EllipticCurve([0,1])
+            sage: E.anlist(20)
+            [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
+        """
+        n = int(n)
+        try:
+            if len(self.__anlist) > n:
+                return self.__anlist[:n+1]
+        except AttributeError:
+            pass
+        E = self.pari_mincurve()
+        if n >= 2147483648:
+            raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
+
+        self.__anlist = [0] + [int(x) for x in E.ellan(n)]
+        return self.__anlist
+
+        # There is some overheard associated with coercing the PARI
+        # list back to Python, but it's not bad.  It's better to do it
+        # this way instead of trying to eval the whole list, since the
+        # int conversion is done very sensibly.  NOTE: This would fail
+        # if a_n won't fit in a C int, i.e., is bigger than
+        # 2147483648; however, we wouldn't realistically compute
+        # anlist for n that large anyways.
+        #
+        # Some relevant timings:
+        #
+        # E <--> [0, 1, 1, -2, 0]   389A
+        #  E = EllipticCurve([0, 1, 1, -2, 0]);   // SAGE or MAGMA
+        #  e = E.pari_mincurve()
+        #  f = ellinit([0,1,1,-2,0]);
+        #
+        #  Computation                                              Time (1.6Ghz Pentium-4m laptop)
+        #  time v:=TracesOfFrobenius(E,10000);  // MAGMA            0.120
+        #  gettime;v=ellan(f,10000);gettime/1000                    0.046
+        #  time v=e.ellan (10000)                                   0.04
+        #  time v=E.anlist(10000)                                   0.07
+
+        #  time v:=TracesOfFrobenius(E,100000);  // MAGMA           1.620
+        #  gettime;v=ellan(f,100000);gettime/1000                   0.676
+        #  time v=e.ellan (100000)                                  0.7
+        #  time v=E.anlist(100000)                                  0.83
+
+        #  time v:=TracesOfFrobenius(E,1000000);  // MAGMA          20.850
+        #  gettime;v=ellan(f,1000000);gettime/1000                  9.238
+        #  time v=e.ellan (1000000)                                 9.61
+        #  time v=E.anlist(1000000)                                 10.95  (13.171 in cygwin vmware)
+
+        #  time v:=TracesOfFrobenius(E,10000000);  //MAGMA          257.850
+        #  gettime;v=ellan(f,10000000);gettime/1000      FAILS no matter how many allocatemem()'s!!
+        #  time v=e.ellan (10000000)                                139.37
+        #  time v=E.anlist(10000000)                                136.32
+        #
+        #  The last SAGE comp retries with stack size 40MB,
+        #  80MB, 160MB, and succeeds last time.  It's very interesting that this
+        #  last computation is *not* possible in GP, but works in py_pari!
+        #
+
+    def q_expansion(self, prec):
+        """
+        Return the q-expansion to precision prec of the newform attached to this
+        elliptic curve.
+
+        INPUT:
+            prec -- an integer
+        """
+        return PowerSeriesRing(Q, 'q')(self.anlist(prec), prec, check=False)
+
+    def q_eigenform(self, prec):
+        """
+        Synonym for self.q_expansion(prec).
+        """
+        return self.q_expansion(prec)
+
+    def analytic_rank(self, algorithm="cremona"):
+        r"""
+        Return an integer that is \emph{probably} the analytic rank of
+        this elliptic curve.
+
+        INPUT:
+            algorithm:
+                -- 'cremona' (default) --  Use the Buhler-Gross algorithm
+                    as implemented in GP by Tom Womack and John Cremona,
+                    who note that their implementation is practical for
+                    any rank and conductor $\leq 10^{10}$ in 10 minutes.
+
+                -- 'watkins' -- use his program ec (this has bugs if more
+                    than a million terms of the L-series are required, i.e.,
+                    only use this for conductor up to about $10^11$).
+
+        \note{Magma's analytic rank command, due to Mark Watkins, is
+        significantly faster.}
+
+        \note{It is an open problem to \emph{prove} that \emph{any}
+        particular elliptic curve has analytic rank $\geq 4$.}
+        """
+        if algorithm == 'cremona':
+            return rings.Integer(gp_cremona.ellanalyticrank(self.minimal_model().a_invariants()))
+        elif algorithm == 'watkins':
+            return rings.Integer(self.watkins_data()['analytic rank'])
+
+        else:
+            raise ValueError, "algorithm %s not defined"%algorithm
+
+    def p_isogenous_curves(self, p=None):
+        r"""
+        Return a list of pairs $(p, L)$ where $p$ is a prime and $L$
+        is a list of the elliptic curves over $\Q$ that are
+        $p$-isogenous to this elliptic curve.
+
+        INPUT:
+            p -- prime or None (default: None); if a prime, returns
+                 a list of the p-isogenous curves.  Otherwise, returns
+                 a list of all prime-degree isogenous curves sorted
+                 by isogeny degree.
+
+        This is implemented using Cremona's GP script \code{allisog.gp}.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0,-1,0,-24649,1355209])
+            sage: E.p_isogenous_curves()
+            [(2, [Elliptic Curve defined by y^2  = x^3 - x^2 - 91809*x - 9215775 over Rational Field, Elliptic Curve defined by y^2  = x^3 - x^2 - 383809*x + 91648033 over Rational Field, Elliptic Curve defined by y^2  = x^3 - x^2 + 1996*x + 102894 over Rational Field])]
+
+        The isogeny class of the curve 11a2 has three curves in it.
+        But \code{p_isogenous_curves} only returns one curves, since
+        there is only one curve $5$-isogenous to 11a2.
+            sage: E = EllipticCurve('11a2')
+            sage: E.p_isogenous_curves()
+            [(5, [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field])]
+            sage: E.p_isogenous_curves(5)
+            [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field]
+            sage: E.p_isogenous_curves(3)
+            []
+
+        In contrast, the curve 11a1 admits two $5$-isogenies:
+            sage: E = EllipticCurve('11a1')
+            sage: E.p_isogenous_curves(5)
+            [Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 - x^2 over Rational Field]
+        """
+        if p is None:
+            X = eval(gp_cremona.allisog(self.minimal_model().a_invariants()))
+            Y = [(p, [constructor.EllipticCurve(ainvs) for ainvs in L]) for p, L in X]
+            Y.sort()
+            return Y
+        else:
+            X = eval(gp_cremona.p_isog(self.minimal_model().a_invariants(), p))
+            Y = [constructor.EllipticCurve(ainvs) for ainvs in X]
+            Y.sort()
+            return Y
+
+    def simon_two_descent(self, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+        r"""
+        Given a curve with no 2-torsion, computes (probably) the rank
+        of the Mordell-Weil group, with certainty the rank of the
+        2-Selmer group, and a list of independent points on the
+        Weierstrass model of self.
+
+        \note{The points are not translated back to self only because
+        I haven't written code to do this yet.}
+
+        INPUT:
+            verbose -- integer, 0,1,2,3; (default: 0), the verbosity level
+            lim1    -- (default: 5) limite des points triviaux sur les quartiques
+            lim3    -- (default: 50) limite des points sur les quartiques ELS
+            limtriv -- (default: 10) limite des points triviaux sur la
+                                     courbe elliptique
+            maxprob -- (default: 20)
+            limbigprime -- (default: 30)  pour distinguer un petit 1nombre premier
+                                     d'un grand utilise un test probabiliste pour
+                                     les grands si LIMBIGPRIME = 0, n'utilise
+                                     aucun test probabiliste
+
+        OUTPUT:
+            integer -- "probably" the rank of self
+            integer -- the 2-rank of the Selmer group
+            list    -- list of independent points on the Weierstrass model
+
+        IMPLEMENTATION: Uses {\bf Denis Simon's} GP/PARI scripts from
+                         \url{http://www.math.unicaen.fr/~simon/}
+
+        EXAMPLES:
+        We compute the ranks of the curves of lowest known conductor up to rank $8$.
+        Amazingly, each of these computations finishes almost instantly!
+
+            sage: E = EllipticCurve('11a1')
+            sage: E.simon_two_descent()
+            (0, 0, [])
+            sage: E = EllipticCurve('37a1')
+            sage: E.simon_two_descent()
+            (1, 1, [(0 : 108 : 1)])
+            sage: E = EllipticCurve('389a1')
+            sage: E.simon_two_descent()
+            (2, 2, [(57/4 : 621/8 : 1), (57 : 243 : 1)])
+            sage: E = EllipticCurve('5077a1')
+            sage: E.simon_two_descent()
+            (3, 3, [(9 : 459 : 1), (153/4 : 189/8 : 1), (100 : 620 : 1)])
+
+        The rest of these entries were taken from Tom Womack's page
+        \url{http://tom.womack.net/maths/conductors.htm}
+
+            sage: E = EllipticCurve([1, -1, 0, -79, 289])
+            sage: E.simon_two_descent()
+            (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
+            sage: E = EllipticCurve([0, 0, 1, -79, 342])
+            sage: E.simon_two_descent()
+            (5, 5, [(-380 : 44 : 1), (297 : 3429 : 1), (0 : 3996 : 1), (4689/16 : 213543/64 : 1), (52 : 3284 : 1)])      # 32-bit
+            (5, 5, [(144 : 2052 : 1), (297 : 3429 : 1), (360 : 5076 : 1), (4689/16 : 213543/64 : 1), (52 : 3284 : 1)])   # 64-bit
+            sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
+            sage: r, s, G = E.simon_two_descent(); r,s
+            (6, 6)
+            sage: E = EllipticCurve([0, 0, 0, -10012, 346900])
+            sage: r, s, G = E.simon_two_descent(); r,s
+            (7, 7)
+            sage: E = EllipticCurve([0, 0, 1, -23737, 960366])
+            sage: r, s, G = E.simon_two_descent(); r,s            # long time (1 second)
+            (8, 8)
+        """
+        if self.torsion_order() % 2 == 0:
+            raise ArithmeticError, "curve must not have rational 2-torsion"
+        F = self.weierstrass_model()
+        a1,a2,a3,a4,a6 = F.a_invariants()
+        t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
+                              maxprob=maxprob, limbigprime=limbigprime)
+        prob_rank = rings.Integer(t[0])
+        two_selmer_rank = rings.Integer(t[1])
+        prob_gens = [F(P) for P in t[2]]
+        return prob_rank, two_selmer_rank, prob_gens
+
+
+
+    def rank(self, use_database=False, verbose=False, only_use_mwrank=False):
+        """
+        Return the rank of this elliptic curve, assuming no conjectures.
+
+        If we fail to provably compute the rank, raises a RuntimeError
+        exception.
+
+        INPUT:
+            use_database (bool) -- (default: False), if True, try to
+                  look up the regulator in the Cremona database.
+            proof (bool) -- (default: True), if True then rank is
+                  proven correct; otherwise, computation of rank is not certain.
+            verbose -- (default: None), if specified changes the
+                       verbosity of mwrank computations.
+
+        OUTPUT:
+            rank (int) -- the rank of the elliptic curve.
+
+        IMPLEMENTATION: Uses L-functions and mwrank.
+        """
+        try:
+            return self.__rank
+        except AttributeError:
+            if use_database:
+                try:
+                    self.__rank = self.database_curve().rank()
+                    return self.__rank
+                except AttributeError, RuntimeError:
+                    pass
+            if not only_use_mwrank:
+                N = self.conductor()
+                prec = int(4*sqrt(N)) + 10
+                if self.root_number() == 1:
+                    L, err = self.Lseries_at1(prec)
+                    if abs(L) > err + R(0.0001):  # definitely doesn't vanish
+                        misc.verbose("rank 0 because L(E,1)=%s"%L)
+                        self.__rank = 0
+                        return self.__rank
+                else:
+                    Lprime, err = self.Lseries_deriv_at1(prec)
+                    if abs(Lprime) > err + R(0.0001):  # definitely doesn't vanish
+                        misc.verbose("rank 1 because L'(E,1)=%s"%Lprime)
+                        self.__rank = 1
+                        return self.__rank
+
+            misc.verbose("using mwrank")
+            C = self.mwrank_curve()
+            C.set_verbose(verbose)
+            r = C.rank()
+            if not C.certain():
+                del self.__mwrank_curve
+                raise Exception, "Unable to compute the rank with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
+            self.__rank = r
+        return self.__rank
+
+    def gens(self, verbose=False, rank1_search=10, only_use_mwrank=False):
+        """
+        Compute and return generators for the Mordell-Weil group E(Q)
+        *modulo* torsion.
+
+        HINT: If you would like to control the height bounds used
+        in the 2-descent, first call the two_descent function with
+        those height bounds.
+
+        TODO: Right now this function assumes that the input curve is
+        in minimal Weierstrass form.  This restriction will be removed
+        in the near future.  This function raises a
+        NotImplementedError if a non-minimal curve is given as input.
+
+        WARNING: If the program fails to give a provably correct
+        result, it prints a warning message, but does not raise an
+        exception.  Use the gens_certain command to find out if
+        this warning message was printed.
+
+        INPUT:
+            verbose -- (default: None), if specified changes the
+                       verbosity of mwrank computations.
+            rank1_search -- (default: 16), if the curve has analytic
+                       rank 1, try to find a generator by a direct
+                       search up to this logarithmic height.  If this
+                       fails the usual mwrank procedure is called.
+        OUTPUT:
+            generators -- List of generators for the Mordell-Weil group.
+
+        IMPLEMENTATION: Uses Cremona's mwrank C library.
+        """
+        try:
+            return list(self.__gens)  # return copy so not changed
+        except AttributeError:
+            pass
+        if not self.is_minimal():
+            raise NotImplementedError, "gens only implemented for curves in minimal Weierstrass form."
+        if self.conductor() > 10**7:
+            only_use_mwrank = True
+
+        if not only_use_mwrank:
+            try:
+                misc.verbose("Trying to compute rank.")
+                r = self.rank()
+                misc.verbose("Got r = %s."%r)
+                if r == 0:
+                    misc.verbose("Rank = 0, so done.")
+                    self.__gens = []
+                    self.__regulator = R(1)
+                    self.__gens_certain = True
+                    return self.__gens
+                if r == 1 and rank1_search:
+                    misc.verbose("Rank = 1, so using direct search.")
+                    h = 6
+                    while h <= rank1_search:
+                        misc.verbose("Trying direct search up to height %s"%h)
+                        G = self.point_search(h, verbose)
+                        G = [P for P in G if P.order() == oo]
+                        if len(G) > 0:
+                            misc.verbose("Direct search succeeded.")
+                            G, _, reg = self.saturation(G, verbose=verbose)
+                            misc.verbose("Computed saturation.")
+                            self.__gens = G
+                            self.__gens_certain = True
+                            self.__regulator = reg
+                            return self.__gens
+                        h += 2
+                    misc.verbose("Direct search FAILED.")
+            except RuntimeError:
+                pass
+        # end if (not_use_mwrank)
+        misc.verbose("Calling mwrank.")
+        C = self.mwrank_curve(verbose)
+        if not (verbose is None):
+            C.set_verbose(verbose)
+        G = C.gens()
+        self.__gens_certain = C.certain()
+        if not self.__gens_certain:
+            del self.__mwrank_curve
+            raise Exception, "Unable to compute the rank, hence generators, with certainty (lower bound=%s).  This could be because Sha(E/Q)[2] is nontrivial."%C.rank() + \
+                  "\nTrying calling something like two_descent(second_limit=13) on the curve then trying this command again."
+
+        self.__gens = [self.point(x, check=False) for x in G]
+        self.__gens.sort()
+        return self.__gens
+
+    def gens_certain(self):
+        """
+        Return True if the generators have been proven correct.
+        """
+        try:
+            return self.__gens_certain
+        except AttributeError:
+            self.gens()
+            return self.__gens_certain
+
+    def ngens(self):
+        return len(self.gens())
+
+    def regulator(self, use_database=False, verbose=None):
+        """
+        Returns the regulator of this curve, which must be defined
+        over Q.
+
+        INPUT:
+            use_database -- bool (default: False), if True, try to
+                  look up the regulator in the Cremona database.
+            verbose -- (default: None), if specified changes the
+                  verbosity of mwrank computations.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])
+            sage: E.regulator()                           # long time (1 second)
+            0.051111407578000000
+        """
+        try:
+            return self.__regulator
+        except AttributeError:
+            if use_database:
+                try:
+                    return R(self.database_curve().db_extra[3])
+                except AttributeError, RuntimeError:
+                    pass
+            G = self.gens()
+            try:  # in some cases self.gens() efficiently computes regulator.
+                return self.__regulator
+            except AttributeError:
+                pass
+            C = self.mwrank_curve()
+            reg = R(C.regulator())
+            if not C.certain():
+                raise RuntimeError, "Unable to compute the rank, hence regulator, with certainty (lower bound=%s)."%C.rank()
+            self.__regulator = reg
+        return self.__regulator
+
+    def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
+        """
+        Given a list of rational points on E, compute the saturation
+        in E(Q) of the subgroup they generate.
+
+        INPUT:
+            points (list) -- list of points on E
+            verbose  (bool) -- (default: False), if True, give verbose output
+            max_prime (int) -- (default: 0), saturation is performed
+                               for all primes up to max_prime.  If max_prime==0,
+                               perform saturation at *all* primes, i.e., compute
+                               the true saturation.
+            odd_primes_only (bool) -- only do saturation at odd primes
+
+        OUTPUT:
+            saturation (list) -- points that form a basis for the saturation
+            index (int) -- the index of the group generated by points in their saturation
+            regulator (float) -- regulator of saturated points.
+
+        IMPLEMENTATION: Uses Cremona's mwrank package.  With max_prime=0, we call
+            mwrank with successively larger prime bounds until the full saturation is
+            provably found.  The results of saturation at the previous primes is stored
+            in each case, so this should be reasonably fast.
+        """
+        if not isinstance(points, list):
+            raise TypeError, "points (=%s) must be a list."%points
+
+        v = []
+        for P in points:
+            if not isinstance(P, ell_point.EllipticCurvePoint_field):
+                P = self(P)
+            elif P.curve() != self:
+                raise ArithmeticError, "point (=%s) must be %s."%(P,self)
+            x, y = P.xy()
+            d = x.denominator().lcm(y.denominator())
+            v.append((x*d, y*d, d))
+        c = self.mwrank_curve()
+        mw = mwrank.mwrank_MordellWeil(c, verbose)
+        mw.process(v)
+        if max_prime == 0:
+            repeat_until_saturated = True
+            max_prime = 97
+        while True:
+            ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
+            reg = mw.regulator()
+            if not ok and repeat_until_saturated:
+                max_prime = arith.next_prime(max_prime + 100)
+                ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
+                reg = mw.regulator()
+            else:
+                break
+        sat = mw.points()
+        sat = [self(P) for P in sat]
+        return sat, index, R(reg)
+
+    def CPS_height_bound(self):
+        """
+        Return the Cremona-Prickett-Siksek height bound.  This is a
+        floating point number B such that if P is a point on the curve,
+        then the naive logarithmetic height of P is off from the
+        canonical height by at most B.
+
+        EXAMPLES:
+            sage: E = EllipticCurve("11a")
+            sage: E.CPS_height_bound()
+            2.8774743273580445
+            sage: E = EllipticCurve("5077a")
+            sage: E.CPS_height_bound()
+            0.0
+            sage: E = EllipticCurve([1,2,3,4,1])
+            sage: E.CPS_height_bound()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: curve must be minimal.
+            sage: F = E.quadratic_twist(-19)
+            sage: F
+            Elliptic Curve defined by y^2 + x*y + y = x^3 - x^2 + 1376*x - 130 over Rational Field
+            sage: F.CPS_height_bound()
+            0.65551583769728516
+
+        IMPLEMENTATION:
+            Call the corresponding mwrank C++ library function.
+        """
+        if not self.is_minimal():
+            raise RuntimeError, "curve must be minimal."
+        return self.mwrank_curve().CPS_height_bound()
+
+
+    def silverman_height_bound(self):
+        """
+        Return the Silverman height bound.  This is a floating point
+        number B such that if P is a point on the curve, then the
+        naive logarithmetic height of P is off from the canonical
+        height by at most B.
+
+        Note that the CPS_height_bound is typically much better than
+        the Silverman bound.
+        """
+        return self.mwrank_curve().silverman_bound()
+
+
+    def point_search(self, height_limit, verbose=True):
+        """
+        Search for points on a curve up to an input bound on the naive logarithmic height.
+
+        INPUT:
+            height_limit (float) -- bound on naive height (at most 21, or mwrank overflows)
+            verbose  (bool) -- (default: True)
+
+        OUTPUT:
+            points (list) -- list of points found
+
+        IMPLEMENTATION: Uses Cremona's mwrank package.
+        """
+        height_limit = float(height_limit)
+        if height_limit > _MAX_HEIGHT:
+            raise OverflowError, "height_limit (=%s) must be at most %s."%(height_limit,_MAX_HEIGHT)
+        c = self.mwrank_curve()
+        mw = mwrank.mwrank_MordellWeil(c, verbose)
+        mw.search(height_limit, verbose=verbose)
+        v = mw.points()
+        return [self(P) for P in v]
+
+    def two_torsion_rank(self):
+        r"""
+        Return the dimension of the 2-torsion subgroup of $E(\Q)$.
+
+        EXAMPLES:
+        """
+        A = self.torsion_subgroup().invariants()
+        if len(A) == 2:
+            return rings.Integer(2)
+        elif len(A) == 1 and A[0] % 2 == 0:
+            return rings.Integer(1)
+        else:
+            return rings.Integer(0)
+
+    def selmer_rank_bound(self):
+        """
+        Bound on the rank of the curve, computed using the
+        2-selmer group.  This is the rank of the curve
+        minus the rank of the 2-torsion, minus a number
+        determined by whatever mwrank was able to determine
+        related to Sha[2].  Thus in many cases, this is
+        the actual rank of the curve.
+
+        EXAMPLE:
+        The following is the curve 960D1, which has rank 0,
+        but Sha of order 4.
+            sage: E = EllipticCurve([0, -1, 0, -900, -10098])
+            sage: E.selmer_rank_bound()
+            0
+
+        It gives 0 instead of 2, because it knows Sha is nontrivial.
+        In contrast, for the curve 571A, also with rank 0 and Sha
+        of order 4, we get a worse bound:
+            sage: E = EllipticCurve([0, -1, 1, -929, -10595])
+            sage: E.selmer_rank_bound()
+            2
+            sage: E.rank()
+            0
+        """
+        try:
+            return self.__selmer_rank_bound
+        except AttributeError:
+            C = self.mwrank_curve()
+            self.__selmer_rank_bound = C.selmer_rank_bound()
+            return self.__selmer_rank_bound
+
+
+    def an(self, n):
+        """
+        The n-th Fourier coefficient of the modular form corresponding
+        to this elliptic curve, where n is a positive integer.
+        """
+        return int(self.pari_mincurve().ellak(n))
+
+    def ap(self, p):
+        """
+        The p-th Fourier coefficient of the modular form corresponding
+        to this elliptic curve, where p is prime.
+        """
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be prime"
+        return int(self.pari_mincurve().ellap(p))
+
+    def quadratic_twist(self, D):
+        return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
+
+    def minimal_model(self):
+        r"""
+        Return the unique minimal Weierstrass equation for this
+        elliptic curve.  This is the model with minimal discriminant
+        and $a_1,a_2,a_3 \in \{0,\pm 1\}$.
+        """
+        try:
+            return self.__minimal_model
+        except AttributeError:
+            F = self.pari_mincurve()
+            self.__minimal_model = EllipticCurve_rational_field([Q(F[i]) for i in range(5)])
+            return self.__minimal_model
+
+    def is_minimal(self):
+        return self.ainvs() == self.minimal_model().ainvs()
+
+    def is_isomorphic(self, E):
+        if not isinstance(E, EllipticCurve_rational_field):
+            raise TypeError, "E (=%s) must be an elliptic curve over the rational numbers"%E
+        return E.minimal_model() == self.minimal_model()
+
+    def kodaira_type(self, p):
+        """
+        Local Kodaira type of the elliptic curve at p.
+
+        1 means good reduction (type $I_0$), 2, 3 and 4 mean types II,
+        III and IV, respectively, $4 + \\nu$ with $\\nu > 0$ means
+        type $I_{\\nu}$; finally the opposite values -1, -2,
+        etc. refer to the starred types $I_0^*$, $II^*$, etc.
+        """
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be prime"
+        try:
+            self.__kodaira_type
+        except AttributeError:
+            self.__kodaira_type = {}
+            self.__tamagawa_number = {}
+        if not self.__kodaira_type.has_key(p):
+            v = self.pari_mincurve().elllocalred(p)
+            self.__kodaira_type[p] = str(v[1])
+            self.__tamagawa_number[p] = int(v[3])
+        return self.__kodaira_type[p]
+
+    def tamagawa_number(self, p):
+        """
+        The Tamagawa number of the elliptic curve at $p$.
+        """
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be prime"
+        try:
+            return self.__tamagawa_number[p]
+        except (AttributeError, KeyError):
+            self.kodaira_type(p)
+            return self.__tamagawa_number[p]
+
+    def tamagawa_product(self):
+        """
+        Returns the product of the Tamagawa numbers.
+        """
+        try:
+            return self.__tamagawa_product
+        except AttributeError:
+            self.__tamagawa_product = self.pari_mincurve().ellglobalred()[2].python()
+            return self.__tamagawa_product
+
+    def real_components(self):
+        """
+        Returns 1 if there is 1 real component and 2 if there are 2.
+        """
+        invs = self.weierstrass_model().ainvs()
+        x = rings.polygen(self.base_ring())
+        f = x**3 + invs[3]*x + invs[4]
+        if f.discriminant() > 0:
+            return 2
+        else:
+            return 1
+
+    def period_lattice(self):
+        """
+        Return a basis for the period lattice of the elliptic curve
+        over Q as a 2-tuple.
+
+        The basis has the form [omega_1, omega_2], where
+        Im(omega_1/omega_2) > 0 and omega_1 is real.
+
+        INPUT:
+            -- an elliptic curve
+        OUTPUT:
+            omega_1 -- complex number
+            omega_2 -- complex number
+        """
+        return tuple(self.pari_curve().omega().python())
+
+    def omega(self):
+        """
+        Returns the real period.  This is the correct period in the BSD
+        conjecture, i.e., it is the least real period * 2 when the period
+        lattice is rectangular.
+        """
+        return self.period_lattice()[0] * self.real_components()
+
+    def complex_area(self):
+        """
+        Return the area of a fundamental domain for the period lattice
+        of the elliptic curve.
+        """
+        w1,w2 = self.period_lattice()
+        return (w1*w2.imag()).real()
+
+    def Lseries_at1(self, k=0):
+        r"""
+        Compute $L(E,1)$ using $k$ terms of the series for $L(E,1)$ as
+        explained on page 406 of Henri Cohen's book"A Course in Computational
+        Algebraic Number Theory".  If the argument $k$ is not specified,
+        then it defaults to $\sqrt(N)$, where $N$ is the conductor.
+
+        The real precision used in each step of the computation is the
+        precision of machine floats.
+
+        INPUT:
+            k -- (optional) an integer, defaults to sqrt(N).
+
+        OUTPUT:
+            float -- L(E,1)
+            float -- a bound on the error in the approximation; this
+                     is a proveably correct upper bound on the sum
+                     of the tail end of the series used to compute L(E,1).
+
+        This function is disjoint from the PARI \code{elllseries}
+        command, which is for a similar purpose.  To use that command
+        (via the PARI C library), simply type
+                \code{E.pari_mincurve().elllseries(1)}
+
+        ALGORITHM:
+        \begin{enumerate}
+            \item Compute the root number eps.  If it is -1, return 0.
+
+            \item Compute the Fourier coefficients a_n, for n up to and
+               including k.
+
+            \item Compute the sum
+            $$
+                 2 * sum_{n=1}^{k} (a_n / n) * exp(-2*pi*n/Sqrt(N)),
+            $$
+               where N is the conductor of E.
+
+            \item Compute a bound on the tail end of the series, which is
+            $$
+                 2 * e^(-2 * pi * (k+1) / sqrt(N)) / (1 - e^(-2*pi/sqrt(N))).
+            $$
+               For a proof see [Grigov-Jorza-Patrascu-Patrikis-Stein].
+        \end{enumerate}
+        """
+        if self.root_number() == -1:
+            return 0
+        sqrtN = self.conductor().sqrt()
+        k = int(k)
+        if k == 0: k = int(math.ceil(sqrtN))
+        an = self.anlist(k)           # list of C ints
+        # Compute z = e^(-2pi/sqrt(N))
+        pi = 3.14159265358979323846
+        z = exp(-2*pi/sqrtN)
+        zpow = z
+        s = 0.0
+        for n in xrange(1,k+1):
+            s += (zpow * an[n])/n
+            zpow *= z
+
+        error = 2*zpow / (1 - z)
+
+        return R(2*s), R(error)
+
+    def Lseries_deriv_at1(self, k=0):
+        """
+        Compute $L'(E,1)$ using$ k$ terms of the series for $L'(E,1)$.
+
+        The algorithm used is from page 406 of Henri Cohen's book ``A
+        Course in Computational Algebraic Number Theory.''
+
+        The real precision of the computation is the precision of
+        Python floats.
+
+        INPUT:
+            k -- int; number of terms of the series
+
+        OUTPUT:
+            real number -- an approximation for L'(E,1)
+            real number -- a bound on the error in the approximation
+
+        ALGORITHM:
+            1. Compute the root number eps.  If it is 1, return 0.
+
+            2. Compute the Fourier coefficients a_n, for n up to and
+               including k.
+
+            3. Compute the sum
+               $$
+                 2 * sum_{n=1}^{k} (a_n / n) * E_1(2*pi*n/Sqrt(N)),
+               $$
+               where N is the conductor of E, and E_1 is the
+               exponential integral function.
+
+            4. Compute a bound on the tail end of the series, which is
+               $$
+                 2 * e^(-2 * pi * (k+1) / sqrt(N)) / (1 - e^(-2*pi/sqrt(N))).
+               $$
+               For a proof see [Grigov-Jorza-Patrascu-Patrikis-Stein].  This
+               is exactly the same as the bound for the approximation to
+               $L(E,1)$ produced by Lseries_at1.
+        """
+        if self.root_number() == 1: return 0
+        k = int(k)
+        sqrtN = self.conductor().sqrt()
+        if k == 0: k = int(math.ceil(sqrtN))
+        an = self.anlist(k)           # list of C ints
+        # Compute z = e^(-2pi/sqrt(N))
+        pi = 3.14159265358979323846
+        v = transcendental.exponential_integral_1(2*pi/sqrtN, k)
+        L = 2*float(sum([ (v[n-1] * an[n])/n for n in xrange(1,k+1)]))
+        error = 2*exp(-2*pi*(k+1)/sqrtN)/(1-exp(-2*pi/sqrtN))
+        return R(L), R(error)
+
+    def Lseries(self, s):
+        """
+        Returns the value of the L-series of the elliptic curve E at s, where s
+        must be a real number.
+
+        NOTES:
+        (1) If the conductor of the curve is large, say > $10^12$, then this function
+        will take a long time, since it uses an O(sqrt(N)) algorithm.
+
+        (2) There is an algorithm to compute L(E,s) for any complex s, but it involves
+        computing the incomplete Gamma function, which is not implemented in SAGE.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.Lseries(1)
+            0.00000000000000000
+            sage: E.Lseries(1.1)
+            0.28549100767814789
+        """
+        s = R(s)
+        if s <= 0 and s.frac() == 0:
+            # The L-series vanishes at negative integers, but PARI
+            # is broken for this.
+            return R(0)
+        return R(self.pari_mincurve().elllseries(s).python())
+
+    def Lambda(self, s, prec):
+        r"""
+        Returns the value of the Lambda-series of the elliptic curve E
+        at s can be any complex number.  Use Lambda(s) if s is real,
+        since it will be much faster.
+
+        \warning{This function uses
+        \module{sage.functions.transcendental.gamma_inc}, which
+        currently calls mathematica.}
+        """
+        s = C(s)
+        N = self.conductor()
+        pi = transcendental.pi()
+        Gamma = transcendental.gamma
+        Gamma_inc = transcendental.gamma_inc
+        a = self.anlist(prec)
+        eps = self.root_number()
+        sqrtN = arith.sqrt(N)
+        def F(n, t):
+            return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
+        return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
+
+    def Lseries_extended(self, s, prec):
+        r"""
+        Returns the value of the L-series of the elliptic curve E
+        at s can be any complex number using prec terms of the
+        power series expansion.
+
+        \warning{This function uses
+        \module{sage.functions.transcendental.gamma_inc}, which currently calls
+        mathematica.}
+        """
+        try:
+            s = C(s)
+        except TypeError:
+            raise TypeError, "Input argument %s must be coercible to a complex number"%s
+        prec = int(prec)
+        if abs(s.imag()) < R(0.0000000000001):
+            return self.Lseries(s.real())
+        N = self.conductor()
+        pi = transcendental.pi()
+        Gamma = transcendental.gamma
+        Gamma_inc = transcendental.gamma_inc
+        a = self.anlist(prec)
+        eps = self.root_number()
+        sqrtN = arith.sqrt(N)
+        def F(n, t):
+            return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
+        return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\
+               * sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
+
+    def sigma(self, z, flag=0):
+        """
+        Returns the value of the Weierstrass sigma function of the lattice
+        associated to this elliptic curve E.
+
+        INPUT:
+            z -- a complex number
+            flag -- 0 - default ???
+                    1 - computes an arbitrary determination of log(sigma(z))
+                    2, 3 - same using the product expansion instead of theta series.
+                           ???
+        OUTPUT:
+            a complex number
+
+        NOTE: The reason for the ???'s above, is that the PARI documentation for
+              ellsigma is very vague.
+        """
+        return self.pari_curve().ellsigma(z, flag)
+
+    def weierstrass_model(self):
+        F = self.minimal_model()
+        return EllipticCurve_field.weierstrass_model(F)
+
+    def watkins_data(self):
+        """
+        Return a dict of the data computed by Mark Watkins's ec
+        program applied to this elliptic curve.
+        """
+        try:
+            return self.__watins_data
+        except AttributeError:
+            try:
+                import sage.libs.ec.all
+            except ImportErrror:
+                raise NotImplementedError
+            self.__watkins_data = sage.libs.ec.all.ec(self.ainvs())
+            return self.__watkins_data
+
+    def modular_degree(self):
+        r"""
+        Return the modular degree of this elliptic curve, computing
+        using Mark Watkins's C implementation of his analytic
+        symmetric square L-function algorithm.
+
+        The correctness of this function is subject to the following
+        three hypothesis:
+        \begin{itemize}
+
+            \item Manin's conjecture: the Manin constant is 1
+
+            \item Steven's conjecture: the $X_1(N)$-optimal quotient
+            is the curve with minimal Faltings height.
+
+            \item The modular degree fits in a machine double, so it
+            better be less than about 50-some bits.
+
+        \end{itemize}
+
+        \note{Mark has a more robust implementation available in
+        MAGMA.}
+
+        \note{If the curve is loaded from the large Cremona database,
+        then the modular degree is taken from the database.}
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])
+            sage: E
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: E.modular_degree()
+            1                                       # 32-bit
+            Traceback (most recent call last):                   # 64-bit
+            ...                                                  # 64-bit
+            RuntimeError: ec does not work on 64-bit platforms   # 64-bit
+
+            sage: E = EllipticCurve('5077a')
+            sage: E.modular_degree()
+            1984                                    # 32-bit
+            Traceback (most recent call last):                   # 64-bit
+            ...                                                  # 64-bit
+            RuntimeError: ec does not work on 64-bit platforms   # 64-bit
+            sage: factor(1984)
+            2^6 * 31
+        """
+        try:
+            return self.__modular_degree
+        except AttributeError:
+            v = self.watkins_data()
+            self.__modular_degree = int(v["Modular degree"])
+            return self.__modular_degree
+
+    def modular_parametrization(self):
+        """
+        Computes and returns ...
+        """
+        return self.pari_mincurve().elltaniyama()
+
+    def cremona_label(self, space=False):
+        """
+        Return the Cremona label associated to (the minimal model) of this curve,
+        if it is known.  If not, raise a RuntimeError exception.
+        """
+        try:
+            if not space:
+                return self.__cremona_label.replace(' ','')
+            return self.__cremona_label
+        except AttributeError:
+            try:
+                X = self.database_curve()
+            except RuntimeError:
+                raise RuntimeError, "Cremona label not known for %s."%self
+            self.__cremona_label = X.__cremona_label
+            return self.cremona_label(space)
+
+    def label(self):
+        return self.cremona_label()
+
+    def torsion_order(self):
+        """
+        Return the order of the torsion subgroup.
+        """
+        try:
+            return self.__torsion_order
+        except AttributeError:
+            self.__torsion_order = self.torsion_subgroup().order()
+            return self.__torsion_order
+
+    def torsion_subgroup(self, flag=0):
+        """
+        Returns the torsion subgroup of this elliptic curve.
+
+        The flag is passed onto PARI and has the same algorithm meaning as there.
+        So: If flag = 0, use Doud's algorithm; if flag = 1, use Lutz-Nagell.
+        """
+        try:
+            return self.__torsion
+        except AttributeError:
+            try:
+                G = self.pari_curve().elltors(flag)
+            except RuntimeError:
+                self.__pari_double_prec()
+                return self.torsion_subgroup(flag)
+            self.__torsion = abelian.AbelianGroup(G[1].python())
+        return self.__torsion
+
+    def newform(self):
+        """
+        Returns the newform attached to this elliptic curve.
+        """
+        def comp(n):  # compute series expansion of newform attached E as power series
+            v = self.anlist(n)
+            return rings.PowerSeries(rings.PowerSeriesRing(rings.Q), v, n)
+        M = modform.ModularForms(self.conductor(), 2)
+        return modform.Newform(M, comp)
+
+    ## def newform_eval(self, z, prec):
+##         """
+##         The value of the newform attached to this elliptic curve at
+##         the point z in the complex upper half plane, computed using
+##         prec terms of the power series expansion.  Note that the power
+##         series need not converge well near the real axis.
+##         """
+##         raise NotImplementedError
+
+    def root_number(self):
+        """
+        Returns the root number of this elliptic curve.
+
+        This is 1 if the order of vanishing of the L-function L(E,s)
+        at 1 is even, and -1 if it is odd.
+        """
+
+        try:
+            return self.__root_number
+        except AttributeError:
+            self.__root_number = int(self.pari_mincurve().ellrootno())
+        return self.__root_number
+
+
+    def has_cm(self):
+        return self.j_invariant() in [0, 54000, -12288000, 1728, \
+                                      287496, -3375, 16581375, 8000, \
+                                      -32768,  -884736, -884736000,\
+                                      -147197952000, -262537412640768000]
+
+    def quadratic_twist(self, D):
+        """
+        Return the global minimal model of the quadratic twist of this curve by D.
+        """
+        return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
+
+
+    ##########################################################
+    # Isogeny class (currently just uses Cremona database.)
+    ##########################################################
+    def isogeny_class(self, algorithm="mwrank", verbose=False):
+        r"""
+        Return all curves over $\Q$ in the isogeny class of this
+        elliptic curve.
+
+        INPUT:
+            algorithm -- string:
+                 "mwrank"   -- (default) use the mwrank C++ library
+                 "database" -- use the Cremona database (only works if
+                               curve is isomorphic to a curve in the database)
+
+        OUTPUT:
+            Returns the sorted list of the curves isogenous to self.
+            If algorithm is "mwrank", also returns the isogeny matrix (otherwise
+            returns None as second return value).
+
+        \note{The result is \emph{not} provably correct, in the sense
+            that when the numbers are huge isogenies could be missed
+            because of precision issues.  The answer is more likely to
+            be correct when using algorithm="gp".}
+
+        \note{The ordering depends on which algorithm is used.}
+
+        EXAMPLES:
+            sage: I, A = EllipticCurve('37b').isogeny_class('mwrank')
+            sage: I
+            [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
+            sage: A
+            [0 3 3]
+            [3 0 0]
+            [3 0 0]
+
+            sage: I, _ = EllipticCurve('37b').isogeny_class('database'); I
+            [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
+        """
+        #if algorithm == "gp":
+
+       #     return sum([L for _, L in self.isogenous_curves(algorithm="gp")], [self])
+
+        if algorithm == "mwrank":
+            try:
+                E = self.mwrank_curve()
+            except ValueError:
+                E = self.minimal_model().mwrank_curve()
+            I, A = E.isogeny_class(verbose=verbose)
+            mat = matrix.MatrixSpace(rings.IntegerRing(), len(A))(A)
+            I = [constructor.EllipticCurve(ainvs) for ainvs in I]
+            I.sort()
+            return I, mat
+
+        elif algorithm == "database":
+
+            try:
+                label = self.cremona_label(space=False)
+            except RuntimeError:
+                raise RuntimeError, "unable to to find %s in the database"%self
+            db = sage.databases.cremona.CremonaDatabase()
+            I = db.isogeny_class(label)
+            I.sort()
+            return I, None
+
+        else:
+
+            raise ValueError, "unknown algorithm '%s'%"%algorithm
+
+
+    ##########################################################
+    # Galois Representations
+    ##########################################################
+    def is_surjective(self, p, A=1000):
+        """
+        Return True if the mod-p representation attached to E
+        is surjective, False if it is not, or None if we were
+        unable to determine whether it is or not.
+
+        INPUT:
+            p -- int (a prime number)
+            A -- int (a bound on the number of a_p to use)
+
+        OUTPUT:
+            a 2-tuple:
+            -- surjective or (probably) not
+            -- information about what it is if not surjective
+
+        EXAMPLES:
+
+        REMARKS:
+
+            1.  If p >= 5 then the mod-p representation is surjective
+                if and only if the p-adic representation is
+                surjective.  When p = 2, 3 there are counterexamples.
+                See a very recent paper of Elkies for more details
+                when p=3.
+
+            2.  When p <= 3 this function always gives the correct
+                result irregardless of A, since it explicitly
+                determines the p-division polynomial.
+
+        """
+        if not arith.is_prime(p):
+            raise TypeError, "p (=%s) must be prime."%p
+
+        T = self.torsion_subgroup().order()
+        if T % p == 0:
+            return False, "%s-torsion"%p
+
+        if p == 2:
+            invs = self.weierstrass_model().ainvs()
+            R = rings.PolynomialRing(self.base_ring())
+            x = R.gen()
+            f = x**3 + invs[3]*x + invs[4]
+            if not f.is_irreducible():
+                return False, '2-torsion'
+            if arith.is_square(f.discriminant()):
+                return False, "A3"
+            return True, None
+
+        if p == 3:
+            # Algorithm: Let f be the 3-division polynomial, which is
+            # a polynomial of degree 4.  Then I claim that this
+            # polynomial has Galois group S_4 if and only if the
+            # representation rhobar_{E,3} is surjective.  If the group
+            # is S_4, then S_4 is a quotient of the image of
+            # rhobar_{E,3}.  Since S_4 has order 24 and GL_2(F_3)
+            # has order 48, the only possibility we have to consider
+            # is that the image of rhobar is isomorphic to S_4.
+            # But this is not the case because S_4 is not a subgroup
+            # of GL_2(F_3).    If it were, it would be normal, since
+            # it would have index 2.  But there is a *unique* normal
+            # subgroup of GL_2(F_3) of index 2, namely SL_2(F_3),
+            # and SL_2(F_3) is not isomorphic to S_4 (S_4 has a normal
+            # subgroup of index 2 and SL_2(F_3) does not.)
+            # (What's a simple way to see that SL_2(F_3) is the
+            # unique index-2 normal subgroup?  I didn't see an obvious
+            # reason, so just used the NormalSubgroups command in MAGMA
+            # and it output exactly one of index 2.)
+
+            # Here's Noam Elkies proof for the other direction:
+
+            #> Let E be an elliptic curve over Q.  Is the mod-3
+            #> representation E[3]  surjective if and only if the
+            #> (degree 4) division polynomial has Galois group S_4?  I
+            #> can see why the group being S_4 implies the
+            #> representation is surjective, but the converse is not
+            #> clear to me.
+            # I would have thought that this is the easier part: to
+            # say that E[3] is surjective is to say the 3-torsion
+            # field Q(E[3]) has Galois group GL_2(Z/3) over Q.  Let
+            # E[3]+ be the subfield fixed by the element -1 of
+            # GL_2(Z/3).  Then E[3] has Galois group PGL_2(Z/3), which
+            # is identified with S_4 by its action on the four
+            # 3-element subgroups of E[3].  Each such subgroup is in
+            # turn determined by the x-coordinate shared by its two
+            # nonzero points.  So, if E[3] is surjective then any
+            # permutation of those x-coordinates is realized by some
+            # element of Gal(E[3]+/Q).  Thus the Galois group of the
+            # division polynomial (whose roots are those
+            # x-coordinates) maps surjectively to S_4, which means it
+            # equals S_4.
+
+
+            f = self.division_polynomial(3)
+            if not f.is_irreducible():
+                return False, "reducible_3-divpoly"
+            n = pari(f).polgalois()[0]
+            if n == 24:
+                return True, None
+            else:
+                return False, "3-divpoly_galgroup_order_%s"%n
+
+        if self.has_cm():
+            return False, "CM"
+        an = self.anlist(A)
+        ell = 0
+        Np = self.conductor() * p
+        signs = []
+        while True:
+            ell = arith.next_prime(ell)
+            if ell >= A: break
+            if Np % ell != 0:
+                a_ell = an[int(ell)]
+                if a_ell % p != 0:
+                    s = arith.kronecker(a_ell**2 - 4*ell, p)
+                    #print ell, s
+                    if s == 0: continue
+                    if not (s in signs):
+                        signs.append(s)
+                        if len(signs) == 2:
+                            return True, None
+
+        # could do something further here...
+        return False, signs
+
+    def is_semistable(self):
+        if self.base_ring() != Q:
+            raise NotImplementedError, "is_semistable only implemented for curves over the rational numbers."
+        return self.conductor().is_square_free()
+
+    def reducible_primes(self):
+        """
+        Returns a list of the primes $p$ such that the mod $p$
+        representation $\rho_{E,p}$ is reducible.  For all other
+        primes the representation is irreducible.
+        """
+        try:
+            return self.__reducible_primes
+        except AttributeError:
+            pass
+        R = [p for p, _ in self.isogenous_curves()]
+        self.__reducible_primes = R
+        return R
+
+    def non_surjective(self, A=1000):
+        r"""
+        Returns a list of primes p such that the mod-p representation
+        $\rho_{E,p}$ *might* not be surjective (this list usually
+        contains 2, because of shortcomings of the algorithm).  If p
+        is not in the returned list, then rho_{E,p} is provably
+        surjective (see A. Cojocaru's paper).  If the curve has CM
+        then infinitely many representations are not surjective, so we
+        simply return the sequence [(0,"cm")] and do no further computation.
+
+        INPUT:
+            A -- an integer
+        OUTPUT:
+            list -- if curve has CM, returns [(0,"cm")].  Otherwise, returns a
+                    list of primes where mod-p representation very likely
+                    not surjective.   At any prime not in this list,
+                    the representation is definitely surjective.
+        EXAMPLES:
+            sage: E = EllipticCurve([0, 0, 1, -38, 90])  # 361A
+            sage: E.non_surjective()   # CM curve
+            [(0, 'cm')]
+
+            sage: E = EllipticCurve([0, -1, 1, 0, 0]) # X_1(11)
+            sage: E.non_surjective()
+            [(5, '5-torsion')]
+
+            sage: E = EllipticCurve([0, 0, 1, -1, 0]) # 37A
+            sage: E.non_surjective()
+            []
+
+            sage: E = EllipticCurve([0,-1,1,-2,-1])   # 141C
+            sage: E.non_surjective()
+            [(13, [1])]
+
+        ALGORITHM:
+            When p<=3 use division polynomials.  For 5 <= p <= B,
+            where B is Cojocaru's bound, use the results in Section 2
+            of Serre's inventiones paper"Sur Les Representations Modulaires Deg
+            Degre 2 de Galqbar Over Q."
+        """
+        if self.has_cm():
+            misc.verbose("cm curve")
+            return [(0,"cm")]
+        N = self.conductor()
+        if self.is_semistable():
+            C = 11
+            misc.verbose("semistable -- so bound is 11")
+        else:
+            C = 1 + 4*sqrt(6)*int(N)/3 * sqrt(mul([1+1.0/int(p) for p,_ in factor(N)]))
+            misc.verbose("conductor = %s, and bound is %s"%(N,C))
+        C = 1 + 4*sqrt(6)*int(N)/3 * sqrt(mul([1+1.0/int(p) for p,_ in factor(N)]))
+        misc.verbose("conductor = %s, and bound is %s"%(N,C))
+        B = []
+        p = 2
+        while p <= C:
+            t, v = self.is_surjective(p, A=A)
+            misc.verbose("(%s,%s,%s)"%(p,t,v))
+            if not t:
+                B.append((p,v))
+            p = next_prime(p)
+        return B
+
+    def is_ordinary(self, p, ell=None):
+        """
+        Return True precisely when the mod-p representation attached
+        to this elliptic curve is ordinary at ell.
+
+        INPUT:
+            p -- a prime
+            ell - a prime (default: p)
+
+        OUTPUT:
+            bool
+        """
+        if ell is None:
+            ell = p
+        return self.ap(ell) % p != 0
+
+    def is_good(self, p):
+        """
+        Return True if $p$ is a prime of good reduction for $E$.
+
+        INPUT:
+            p -- a prime
+
+        OUTPUT:
+            bool
+        """
+        return self.conductor() % p != 0
+
+
+    def is_supersingular(self, p, ell=None):
+        """
+        Return True precisely when the mod-p representation attached
+        to this elliptic curve is supersingular at ell.
+
+        INPUT:
+            p -- a prime
+            ell - a prime (default: p)
+
+        OUTPUT:
+            bool
+        """
+        if ell is None:
+            ell = p
+        return not self.is_ordinary(p, ell)
+
+    def eval_modular_form(self, points, prec):
+        if not isinstance(points, (list,xrange)):
+            try:
+                points = list(points)
+            except TypeError:
+                return self.eval_modular_form([points],prec)
+        an = self.pari_mincurve().ellan(prec)
+        s = 0
+        I = pari("I")
+        pi = pari("Pi")
+        c = pari(2)*pi*I
+        ans = []
+        for z in points:
+            s = pari(0)
+            r0 = (c*z).exp()
+            r = r0
+            for n in xrange(1,prec):
+                s += an[n-1]*r
+                r *= r0
+            ans.append(s.python())
+        return ans
+
+    ########################################################################
+    # Functions related to the BSD conjecture.
+    ########################################################################
+    def sha_an(self, use_database=False):
+        """
+        Returns the Birch and Swinnerton-Dyer conjectural order of
+        Sha, unless the analytic rank is > 1, in which case this
+        function returns 0.
+
+        This result is proved correct if the order of vanishing is 0
+        and the Manin constant is <= 2.
+
+        If the optional parameter use_database is True (default:
+        False), this function returns the analytic order of Sha as
+        listed in Cremona's tables, if this curve appears in Cremona's
+        tables.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
+            sage: E.sha_an()
+            1
+            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
+            sage: E.sha_an()
+            1
+
+        The smallest conductor curve with nontrivial Sha:
+            sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66B3
+            sage: E.sha_an()
+            4
+
+        The four optimal quotients with nontrivial Sha and conductor <= 1000:
+            sage: E = EllipticCurve([0, -1, 1, -929, -10595])       # 571A
+            sage: E.sha_an()
+            4
+            sage: E = EllipticCurve([1, 1, 0, -1154, -15345])       # 681B
+            sage: E.sha_an()
+            9
+            sage: E = EllipticCurve([0, -1, 0, -900, -10098])       # 960D
+            sage: E.sha_an()
+            4
+            sage: E = EllipticCurve([0, 1, 0, -20, -42])            # 960N
+            sage: E.sha_an()
+            4
+
+        The smallest conductor curve of rank > 1:
+            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
+            sage: E.sha_an()
+            0
+
+        The following are examples that require computation of the Mordell-Weil
+        group and regulator:
+
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])                     # 37A  (rank 1)
+            sage: E.sha_an()
+            1
+
+            sage: E = EllipticCurve("1610f3")
+            sage: E.sha_an()
+            4
+
+        """
+#            sage: e = EllipticCurve([1, 0, 0, -19491080, -33122512122])   # 15834T2
+#            sage: e.sha_an()                          # takes a long time (way too long!!)
+#            25
+        if hasattr(self, '__sha_an'):
+            return self.__sha_an
+        if use_database:
+            try:
+                self.__sha_an = int(round(float(self.database_curve().db_extra[4])))
+                return self.__sha_an
+            except RuntimeError, AttributeError:
+                pass
+        eps = self.root_number()
+        if eps == 1:
+            L1_over_omega = self.L_ratio()
+            if L1_over_omega == 0:
+                return 0
+            T = self.torsion_subgroup().order()
+            Sha = (L1_over_omega * T * T) / Q(self.tamagawa_product())
+            try:
+                Sha = Z(Sha)
+            except ValueError:
+                raise RuntimeError, \
+                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
+            if not arith.is_square(Sha):
+                raise RuntimeError, \
+                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            self.__sha_an = Sha
+            return Sha
+
+        else:  # rank > 0  (Not provably correct)
+            L1, error_bound = self.Lseries_deriv_at1(10*sqrt(self.conductor()) + 10)
+            if abs(L1) < error_bound:
+                self.__sha_an = 0
+                return 0   # vanishes to order > 1, to computed precision
+            regulator = self.regulator()   # this could take a *long* time; and could fail...?
+            T = self.torsion_subgroup().order()
+            omega = self.omega()
+            Sha = int(round ( (L1 * T * T) / (self.tamagawa_product() * regulator * omega) ))
+            try:
+                Sha = Z(Sha)
+            except ValueError:
+                raise RuntimeError, \
+                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
+            if not arith.is_square(Sha):
+                raise RuntimeError, \
+                      "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            self.__sha_an = Sha
+            return Sha
+
+
+    def L_ratio(self):
+        r"""
+        Returns the ratio $L(E,1)/\Omega$ as an exact rational
+        number. The result is \emph{provably} correct if the Manin
+        constant of the associated optimal quotient is $\leq 2$.  This
+        hypothesis on the Manin constant is true for all semistable
+        curves (i.e., squarefree conductor), by a theorem of Mazur
+        from his \emph{Rational Isogenies of Prime Degree} paper.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
+            sage: E.L_ratio()
+            1/5
+            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
+            sage: E.L_ratio()
+            1/25
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
+            sage: E.L_ratio()
+            0
+            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
+            sage: E.L_ratio()
+            0
+            sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
+            sage: E.L_ratio()
+            0
+            sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
+            sage: E.L_ratio()
+            1
+            sage: E = EllipticCurve(RationalField(), [1, 0, 0, 1/24624, 1/886464])
+            sage: E.L_ratio()
+            2
+
+        WARNING: It's conceivable that machine floats are not large
+        enough precision for the computation; if this could be the
+        case a RuntimeError is raised.  The curve's real period would
+        have to be very small for this to occur.
+
+        ALGORITHM: Compute the root number.  If it is -1 then L(E,s)
+        vanishes to odd order at 1, hence vanishes.  If it is +1, use
+        a result about modular symbols and Mazur's "Rational Isogenies"
+        paper to determine a provably correct bound (assuming Manin
+        constant is <= 2) so that we can determine whether L(E,1) = 0.
+
+        AUTHOR: William Stein, 2005-04-20.
+        """
+        try:
+            return self.__lratio
+        except AttributeError:
+            pass
+
+        if not self.is_minimal():
+            self.__lratio = self.minimal_model().L_ratio()
+            return self.__lratio
+
+        if self.root_number() == -1:
+            self.__lratio = Q(0)
+            return self.__lratio
+
+        # Even root number.  Decide if L(E,1) = 0.  If E is a modular
+        # *optimal* quotient of J_0(N) elliptic curve, we know that T *
+        # L(E,1)/omega is an integer n, where T is the order of the
+        # image of the rational torsion point (0)-(oo) in E(Q), and
+        # omega is the least real Neron period.  (This is proved in my
+        # Ph.D. thesis, but is probably well known.)  We can easily
+        # compute omega to very high precision using AGM.  So to prove
+        # that L(E,1) = 0 we compute T/omega * L(E,1) to sufficient
+        # precision to determine it as an integer.  If eps is the
+        # error in computation of L(E,1), then the error in computing
+        # the product is (2T/Omega_E) * eps, and we need this to be
+        # less than 0.5, i.e.,
+        #          (2T/Omega_E) * eps < 0.5,
+        # so
+        #          eps < 0.5 * Omega_E / (2T) = Omega_E / (4*T).
+        #
+        # Since in general E need not be optimal, we have to choose
+        # eps = Omega_E/(8*t*B), where t is the exponent of E(Q)_tor,
+        # and B is a bound on the degree of any isogeny.   A liberal
+        # bound on the degrees of cyclic N-isogenies is 200, by Mazur's
+        # "Rational Isogenies of Prime Degree" paper, so we take B=200.
+        #
+        # NOTES: We *do* have to worry about the Manin constant, since
+        # we are using the Neron model to compute omega, not the
+        # newform.  My theorem replaces the omega above by omega/c,
+        # where c is the Manin constant, and the bound must be
+        # correspondingly smaller.  If the level is square free, then
+        # the Manin constant is 1 or 2, so there's no problem (since
+        # we took 8 instead of 4 in the denominator).  If the level
+        # is divisible by a square, then the Manin constant could
+        # be a divisible by an arbitrary power of that prime, except
+        # that Edixhoven claims the primes that appear are <= 7.
+
+        t = self.torsion_subgroup().exponent()
+        omega = self.period_lattice()[0]
+        C = 8*200*t
+        eps = omega / C
+        #   coercion of 10**(-15) to our real field is needed to make unambiguous comparison
+        if eps < R(10**(-15)):  # liberal bound on precision of float
+            raise RuntimeError, "Insufficient machine precision (=%s) for computation."%eps
+        sqrtN = 2*int(sqrt(self.conductor()))
+        k = sqrtN + 10
+        while True:
+            L1, error_bound = self.Lseries_at1(k)
+            if error_bound < eps:
+                n = int(round(L1*C/omega))
+                quo = Q(n) / Q(C)
+                self.__lratio = quo / self.real_components()
+                return self.__lratio
+            k += sqrtN
+            misc.verbose("Increasing precision to %s terms."%k)
+
+
+    def L1_vanishes(self):
+        """
+        Returns whether or not L(E,1) = 0. The result is provably
+        correct if the Manin constant of the associated optimal
+        quotient is <= 2.  This hypothesis on the Manin constant
+        is true for all curves of conductor <= 40000 (by Cremona) and
+        all semistable curves (i.e., squarefree conductor).
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
+            sage: E.L1_vanishes()
+            False
+            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
+            sage: E.L1_vanishes()
+            False
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
+            sage: E.L1_vanishes()
+            True
+            sage: E = EllipticCurve([0, 1, 1, -2, 0])       # 389A (rank 2)
+            sage: E.L1_vanishes()
+            True
+            sage: E = EllipticCurve([0, 0, 1, -38, 90])     # 361A (CM curve))
+            sage: E.L1_vanishes()
+            True
+            sage: E = EllipticCurve([0,-1,1,-2,-1])         # 141C (13-isogeny)
+            sage: E.L1_vanishes()
+            False
+
+        WARNING: It's conceivable that machine floats are not large
+        enough precision for the computation; if this could be the
+        case a RuntimeError is raised.  The curve's real period would
+        have to be very small for this to occur.
+
+        ALGORITHM: Compute the root number.  If it is -1 then L(E,s)
+        vanishes to odd order at 1, hence vanishes.  If it is +1, use
+        a result about modular symbols and Mazur's "Rational Isogenies"
+        paper to determine a provably correct bound (assuming Manin
+        constant is <= 2) so that we can determine whether L(E,1) = 0.
+
+        AUTHOR: William Stein, 2005-04-20.
+        """
+        return self.L_ratio() == 0
+
+    ########################################################################
+    # Functions related to bounding the order of Sha (provably correctly!)
+    # Heegner points and Kolyvagin's theorem
+    ########################################################################
+    def two_selmer_shabound(self):
+        """
+        Returns a bound on the dimension of Sha(E)[2], computed using
+        a 2-descent.
+        """
+        S = self.two_selmer_rank()
+        r = self.rank()
+        t = self.two_torsion_rank()
+        b = S - r - t
+        if b % 2 != 0:
+            raise ArithmeticError, "There is a bug in two_selmer_shabound since it's %s, but it must be even."%b
+        return b
+
+    def satisfies_heegner_hypothesis(self, D):
+        """
+        Returns True precisely when D is a fundamental discriminant
+        that satisfies the Heegner hypothesis for this elliptic curve.
+        """
+        if not number_field.is_fundamental_discriminant(D):
+            return False
+        if arith.GCD(D, self.conductor()) != 1:
+            return False
+        K = number_field.QuadraticField(D)
+        for p, _ in factor(self.conductor()):
+            if len(K.factor_integer(p)) != 2:
+                return False
+        return True
+
+    def heegner_discriminants(self, bound):
+        return [-D for D in xrange(1,bound) if self.satisfies_heegner_hypothesis(-D)]
+
+    def heegner_discriminants_list(self, n):
+        """
+        List of the first n Heegner discriminants for self.
+        """
+        v = []
+        D = -5
+        while len(v) < n:
+            while not self.satisfies_heegner_hypothesis(D):
+                D -= 1
+            v.append(D)
+            D -= 1
+        return v
+
+    def heegner_point_height(self, D, prec=2):
+        """
+        Use the Gross-Zagier formula to compute the Neron-Tate
+        canonical height over K of the Heegner point corresponding to
+        D, as an Interval (since it's computed to some precision using
+        L-functions).
+
+        INPUT:
+            D (int) -- fundamental discriminant (=/= -3, -4)
+            prec (int) -- (default: 2), use prec*sqrt(N) + 20 terms
+                          of L-series in computations, where N is the
+                          conductor.
+
+        OUTPUT:
+            Interval that contains the height of the Heegner point.
+
+        EXAMPLE:
+            sage: E = EllipticCurve('11a')
+            sage: E.heegner_point_height(-7)
+            [0.222270926217, 0.222273662409]
+        """
+        # Use interval arithmetic to guaranty correctness.  We assume
+        # that alpha is computed to the precision of a float.
+        IR = rings.IntervalRing()
+
+        if not self.satisfies_heegner_hypothesis(D):
+            raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+        if D == -3 or D == -4:
+            raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
+        eps = self.root_number()
+        L1_vanishes = self.L1_vanishes()
+        if eps == 1 and L1_vanishes:
+            return IR(0) # rank even hence >= 2, so Heegner point is torsion.
+        alpha = R(sqrt(abs(D)))/(2*self.complex_area())
+        F = self.quadratic_twist(D)
+        E = self
+        k_E = prec*sqrt(E.conductor()) + 20
+        k_F = prec*sqrt(F.conductor()) + 20
+
+        MIN_ERR = R('1e-6')   # we assume that regulator and
+                            # discriminant, etc., computed to this accuracy.
+                            # this should be made more intelligent / rigorous relative
+                             # to the rest of the system.
+        if eps == 1:   # E has even rank
+            LF1, err_F = F.Lseries_deriv_at1(k_F)
+            LE1, err_E = E.Lseries_at1(k_E)
+            err_F = max(err_F, MIN_ERR)
+            err_E = max(err_E, MIN_ERR)
+            return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
+
+        else:          # E has odd rank
+            LE1, err_E = E.Lseries_deriv_at1(k_E)
+            LF1, err_F = F.Lseries_at1(k_F)
+            err_F = max(err_F, MIN_ERR)
+            err_E = max(err_E, MIN_ERR)
+            return IR(alpha-MIN_ERR,alpha+MIN_ERR) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F)
+
+
+    def heegner_index(self, D,  min_p=3, prec=5, verbose=False):
+        """
+        Returns the index of the Heegner point on the quadratic twist
+        by D.
+
+        Return (an interval that contains) the square of the odd part
+        of the index of the Heegner point in the group of K-rational
+        points *modulo torsion* on the twist of the elliptic curve by D.
+
+        If 0 is in the interval of the height of the Heegner point
+        computed to the given prec, then this function returns 0.
+
+        INPUT:
+            D (int) -- Heegner discriminant
+            min_p (int) -- (default: 3) only rule out primes >= min_p
+                           dividing the index.
+            verbose (bool) -- (default: False); print lots of mwrank search status
+                                                information when computing regulator
+            prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
+                          of L-series in computations, where N is the
+                          conductor.
+        OUTPUT:
+            an interval that contains the index
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: E.heegner_discriminants(50)
+            [-7, -8, -19, -24, -35, -39, -40, -43]
+            sage: E.heegner_index(-7)
+            [0.999993856229, 1.00000616632]
+
+            sage: E = EllipticCurve('37b')
+            sage: E.heegner_discriminants(100)
+            [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
+            sage: E.heegner_index(-95)          # long time (1 second)
+            [3.99999236227, 4.00000791569]
+
+        Current discriminants -3 and -4 are not supported:
+            sage: E.heegner_index(-3)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: Discriminant (=-3) must not be -3 or -4.
+        """
+        #if self.root_number() != 1:
+        #    raise RuntimeError, "The rank must be 0."
+
+        # First compute upper bound on Height of Heegner point.
+        # We divide by 2 to get the height over Q on the twist.
+        ht = self.heegner_point_height(D, prec=prec)/2
+        if 0 in ht:
+            return 0
+        if self.root_number() == 1:
+            F = self.quadratic_twist(D)
+        else:
+            F = self
+        h  = ht.upper()
+        misc.verbose("Heegner height bound = %s"%h)
+        B = F.CPS_height_bound()
+        misc.verbose("CPS bound = %s"%B)
+        c = h/(min_p**2) + B
+        misc.verbose("Search would have to be up to height = %s"%c)
+        IR = rings.IntervalRing()
+
+        if c > _MAX_HEIGHT:
+            misc.verbose("Doing direct computation of MW group.")
+            reg = F.regulator(verbose=verbose)
+            return ht/IR(reg)
+
+        # Do naive search to eliminate possibility that Heegner point
+        # is divisible by p<min_p, without finding Heegner point.
+        P = F.point_search(c, verbose=verbose)
+        P = [x for x in P if x.order() == oo]
+        if len(P) == 0:
+            return IR(1)
+        S, I, reg = F.saturation(P, verbose=verbose)
+        return ht/IR(reg)
+
+
+    def heegner_index_bound(self, D=0,  prec=5, verbose=True, max_height=_MAX_HEIGHT):
+        """
+        Assume self has rank 0.
+
+        Return a list v of primes such that if an odd prime p divides
+        the index of the the Heegner point in the group of rational
+        points *modulo torsion*, then p is in v.
+
+        If 0 is in the interval of the height of the Heegner point
+        computed to the given prec, then this function returns v = 0.
+        This does not mean that the Heegner point is torsion, just
+        that it is very likely torsion.
+
+        If we obtain no information from a search up to max_height, e.g.,
+        if the Siksek et al. bound is bigger than max_height, then
+        we return v = -1.
+
+        INPUT:
+            D (int) -- (deault: 0) Heegner discriminant; if 0, use the
+                       first discriminant < -4 that satisfies the Heegner hypothesis
+            verbose (bool) -- (default: True)
+            prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
+                          of L-series in computations, where N is the
+                          conductor.
+            max_height (float) -- should be <= 21; bound on logarithmic naive height
+                                  used in point searches.  Make smaller to make this
+                                  function faster, at the expense of possibly obtaining
+                                  a worse answer.  A good range is between 13 and 21.
+
+        OUTPUT:
+            v -- list or int (bad primes or 0 or -1)
+            D -- the discriminant that was used (this is useful if D was
+                 automatically selected).
+        """
+        max_height = min(float(max_height), _MAX_HEIGHT)
+        if self.root_number() != 1:
+            raise RuntimeError, "The rank must be 0."
+
+        if D == 0:
+            D = -5
+            while not self.satisfies_heegner_hypothesis(D):
+                D -= 1
+
+        # First compute upper bound on Height of Heegner point.
+        ht = self.heegner_point_height(D, prec=prec)
+        if 0 in ht:
+            return 0, D
+        F = self.quadratic_twist(D)
+        h  = ht.upper()
+        misc.verbose("Heegner height bound = %s"%h)
+        B = F.CPS_height_bound()
+        misc.verbose("CPS bound = %s"%B)
+        H = h
+        p = 3
+        while True:
+            c = h/(2*p**2) + B
+            if c < max_height:
+                break
+            if p > 100:
+                break
+            p = next_prime(p)
+        misc.verbose("Using p = %s"%p)
+
+        if c > max_height:
+            misc.verbose("No information by searching only up to max_height (=%s)."%c)
+            return -1, D
+
+        misc.verbose("Searching up to height = %s"%c)
+        IR = rings.IntervalRing()
+        eps = 10e-5
+
+        def _bound(P):
+            """
+            We will use this function below in two places.  It
+            bounds the index using a nontrivial point.
+            """
+            assert len(P) == 1
+
+            S, I, reg = F.saturation(P, verbose=verbose)
+            h = IR(reg-eps,reg+eps)
+            ind2 = ht/(h/2)
+            misc.verbose("index squared = %s"%ind2)
+            ind = ind2.sqrt()
+            misc.verbose("index = %s"%ind)
+            # Compute upper bound on square root of index.
+            if ind.length() < 1:
+                t, i = ind.is_int()
+                if t:   # unique integer in interval, so we've found exact index squared.
+                    return arith.prime_divisors(i), D
+            raise RuntimeError, "Unable to compute bound for e=%s, D=%s (try increasing precision)"%(self,D)
+
+        # First try a quick search, in case we get lucky and find
+        # a generator.
+        P = F.point_search(13, verbose=verbose)
+        P = [x for x in P if x.order() == oo]
+        if len(P) > 0:
+            return _bound(P)
+
+        # Do search to eliminate possibility that Heegner point is
+        # divisible by primes up to p, without finding Heegner point.
+        P = F.point_search(c, verbose=verbose)
+        P = [x for x in P if x.order() == oo]
+        if len(P) == 0:
+            # We've eliminated the possibility of a divisor up to p.
+            return arith.prime_range(3,p), D
+        else:
+            return _bound(P)
+
+
+    def shabound_kolyvagin(self, D=0, regulator=None,
+                           ignore_nonsurj_hypothesis=False):
+        """
+        Given a fundamental discriminant D (=-3,-4) that satisfies the
+        Heegner hypothesis, return a list of primes so that
+        Kolyvagin's theorem (as in Gross's paper) implies that any
+        prime divisor of $\#Sha$ is in this list.
+
+        INPUT:
+            D -- (optional) a fundamental discriminant < -4 that satisfies the
+                 Heegner hypothesis for E; if not given, use the first such D
+
+            regulator -- (optional) regulator of E(K); if not given, will
+                         be computed (which could take a long time)
+
+
+            ignore_nonsurj_hypothesis (optional: default False) --
+                      If True, then gives the bound coming from Heegner point
+                      index, but without any hypothesis on surjectivity
+                      of the mod-p representation.
+
+
+        OUTPUT:
+            bound and index
+
+        More precisely:
+
+                0 -- if E/K has complex multiplication or analytic rank >= 2
+            or
+                B -- list of primes such that if p divides Sha(E/K), then p
+                     is in B.
+
+            and
+
+                I -- the odd part of the index of the Heegner point in the full
+                     group of K-rational points on E.  (If E has CM, returns 0.)
+
+        REMARKS:
+            (1) We do not have to assume that the Manin constant is 1
+                (or a power of 2).  If the Manin constant were
+                divisible by a prime, that prime would get included in
+                the list of bad primes.
+
+            (2) We assume the Gross-Zagier theorem is True under the
+                hypothesis that gcd(N,D) = 1, instead of the stronger
+                hypothesis gcd(2*N,D)=1 that is in the original
+                Gross-Zagier paper.  That Gross-Zagier is true when
+                gcd(N,D)=1 is"well-known" to the experts, but doesn't
+                seem to written up well in the literature.
+
+            (3) Correctness of the computation is guaranteed using
+                interval arithmetic, under the assumption that the
+                regulator, square root, and period lattice are
+                computed to precision at least $10^{-10}$, i.e., they are
+                correct up to addition or a real number with absolute
+                value less than $10^{-10}$.
+        """
+        if self.has_cm():
+            return 0, 0
+
+        if D == 0:
+            D = -5
+            while not self.satisfies_heegner_hypothesis(D):
+                D -= 1
+
+        if not self.satisfies_heegner_hypothesis(D):
+            raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
+        if D == -3 or D == -4:
+            raise ArithmeticError, "Discriminant (=%s) must not be -3 or -4."%D
+        eps = self.root_number()
+        L1_vanishes = self.L1_vanishes()
+        if eps == 1 and L1_vanishes:
+            return 0, 0        # rank even hence >= 2, so Kolyvagin gives nothing.
+        alpha = sqrt(abs(D))/(2*self.complex_area())
+        F = self.quadratic_twist(D)
+        E = self
+        k_E = 2*sqrt(E.conductor()) + 10
+        k_F = 2*sqrt(F.conductor()) + 10
+        #k_E = 2
+        #k_F = 2
+
+        # Use interval arithmetic to guaranty correctness.  We assume
+        # that alpha is computed to the precision of a float.
+        IR = rings.IntervalRing()
+
+        MIN_ERR = 1e-10   # we assume that regulator and
+                          # discriminant, etc., computed to this accuracy.
+        tries = 0
+        while True:
+            tries += 1
+            if tries >= 6:
+                raise RuntimeError, "Too many precision increases in shabound_kolyvagin"
+            if eps == 1:   # E has even rank
+                misc.verbose("Conductor of twist = %s"%F.conductor())
+                LF1, err_F = F.Lseries_deriv_at1(k_F)
+                LE1, err_E = E.Lseries_at1(k_E)
+                err_F = max(err_F, MIN_ERR)
+                err_E = max(err_E, MIN_ERR)
+                if regulator != None:
+                    hZ = regulator/2
+                else:
+                    hZ = F.regulator(use_database=True)/2
+                #print  alpha * LE1 * LF1 / hZ
+                I = IR(alpha) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F) / hZ
+                #print I
+
+            else:          # E has odd rank
+
+                if regulator != None:
+                    hZ = regulator/2
+                else:
+                    hZ = self.regulator(use_database=True)/2
+                LE1, err_E = E.Lseries_deriv_at1(k_E)
+                LF1, err_F = F.Lseries_at1(k_F)
+                err_F = max(err_F, MIN_ERR)
+                err_E = max(err_E, MIN_ERR)
+                #I = alpha * LE1 * LF1 / hZ
+
+                I = IR(alpha) * IR(LE1-err_E,LE1+err_E) * IR(LF1-err_F,LF1+err_F) / hZ
+
+            misc.verbose('interval = %s'%I)
+            t, n = I.is_int()
+            if t:
+                break
+            elif I.length() < 1:
+                raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not an integer -- D=%s, I=%s."%(D,I)
+            misc.verbose("Doubling bounds")
+            k_E *= 2
+            k_F *= 2
+        # end while
+
+        # We include 2 since Kolyvagin (in Gross) says nothing there
+        if n == 0:  return 0, 0  # no bound
+        F = factor(n)
+        B = [2]
+        for p, e in factor(n):
+            if p > 2:
+                if e%2 != 0:
+                    raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not a perfect square!  D=%s, I=%s, n=%s, e=%s."%(D,I,n,e)
+                B.append(p)
+            else:
+                n /= 2**e  # replace n by its odd part
+        if not ignore_nonsurj_hypothesis:
+            for p, _ in self.non_surjective():
+                B.append(p)
+        B = list(set([int(x) for x in B]))
+        B.sort()
+        return B, n
+
+
+    def shabound_kato(self):
+        """
+        Returns a list p of primes such tha theorems of Kato's and
+        others (e.g., as explained in a paper/thesis of Grigor Grigorov)
+        imply that if p divides $\\#Sha(E)$ then $p$ is in the list.
+
+        If L(E,1) = 0, then Kato's theorem gives no information, so
+        this function returns False.
+
+        THEOREM (Kato): Suppose p >= 5 is a prime so the p-adic
+        representation rho_{E,p} is surjective.  Then $ord_p(\\#Sha(E))$
+        divides $ord_p(L(E,1)/Omega_E)$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0, -1, 1, -10, -20])   # 11A  = X_0(11)
+            sage: E.shabound_kato()
+            [2, 3, 5]
+            sage: E = EllipticCurve([0, -1, 1, 0, 0])       # X_1(11)
+            sage: E.shabound_kato()
+            [2, 3, 5]
+            sage: E = EllipticCurve([1,1,1,-352,-2689])     # 66B3
+            sage: E.shabound_kato()
+            [2, 3]
+
+        For the following curve one really has 25 | $\\#Sha$ (by Grigorov-Stein paper):
+            sage: E = EllipticCurve([1, -1, 0, -332311, -73733731])   # 1058D1
+            sage: E.shabound_kato()                 # long time (about 1 second)
+            [2, 3, 5]
+            sage: E.non_surjective()                # long time (about 1 second)
+            []
+
+        For this one, Sha is divisible by 7.
+            sage: E = EllipticCurve([0, 0, 0, -4062871, -3152083138])   # 3364C1
+            sage: E.shabound_kato()                 # long time (< 10 seconds)
+            [2, 3, 7]
+
+        No information about curves of rank > 0:
+            sage: E = EllipticCurve([0, 0, 1, -1, 0])       # 37A  (rank 1)
+            sage: E.shabound_kato()
+            False
+        """
+        if self.has_cm():
+            return False
+        if self.L1_vanishes():
+            return False
+        B = [2,3]
+        for p, _ in self.non_surjective():   # for p >= 5, mod-p surj => p-adic surj
+            if p > 3:
+                B.append(p)
+
+        # The only other p that might divide B are those that divide
+        # the integer 2*#E(Q)_tor^2 * L(E,1)/omega.  So we compute
+        # that to sufficient precision to determine it.  Note that
+        # we have to assume the Manin constant is <=2 in order to provably
+        # compute L(E,1)/omega.
+        for p, n in factor(self.sha_an()):
+            if n >= 2:    # use parity of Sha
+                B.append(int(p))
+        B = list(set(B))
+        B.sort()
+        return B
+
+    def shabound(self):
+        """
+        Compute a provably correct bound on the order of the Shafarevich-Tate
+        group of this curve. The bound is a either False (no bound) or a list
+        B of primes such that any divisor of Sha is in this list.
+        """
+        if self.L1_vanishes():
+            B = self.shabound_kolyvagin()
+        else:
+            B = self.shabound_kato()
+        return B
+
+    def __check_padic_hypotheses(self, p):
+        p = rings.Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p = (%s) must be prime"%p
+        if p == 2:
+            raise ValueError, "p must be odd"
+        if self.conductor() % p == 0 or self.ap(p) % p == 0:
+            raise ArithmeticError, "p must be a good ordinary prime"
+        return p
+
+    def padic_height(self, p, P, prec=20):
+        """
+        Return the cyclotomic $p$-adic height of $P$, in the sense
+        of Mazur and Tate.
+
+        \note{This function requires that Magma to be installed on your
+        computer.}
+
+        INPUT:
+            p -- prime
+            P -- point
+            prec -- integer (default: 20) affects the precision; the
+                    precision is *not* guaranteed to be this high!
+        OUTPUT:
+            p-adic number
+        """
+        p = self.__check_padic_hypotheses(p)
+        if not P in self:
+            raise ArithmeticError, "P = (%s) must be a point on this curve"%P
+        return padic_height.padic_height(self.a_invariants(), p, P, prec)
+
+    def padic_regulator(self, p, prec=20):
+        """
+        Return the cyclotomic $p$-adic regulator of $P$, in the sense
+        of Mazur and Tate.
+
+        \note{This function requires that Magma to be installed on your
+        computer.}
+
+        INPUT:
+            p -- prime
+            prec -- integer (default: 20) affects the precision; the
+                    precision is *not* guaranteed to be this high!
+        OUTPUT:
+            p-adic number
+        """
+        p = self.__check_padic_hypotheses(p)
+        return padic_height.padic_regulator(self.a_invariants(),
+                                            p,
+                                            self.gens(),
+                                            prec)
+
+    def padic_E2(self, p, prec=20):
+        """
+        Return the value of the $p$-adic
+        """
+        p = self.__check_padic_hypotheses(p)
+        c4, c6 = self.c_invariants()
+        return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
+
+    # 	def	weierstrass_p(self):
+    #         # TODO: add allowing negative valuations for power series
+    #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
+    #                - (a4+a1*a3)*t**2  + O(t**3)
+
+
+    #def padic_sigma(self, p, prec=20):
+    #    """
+    #    Returns the p-adic sigma function of the elliptic curve
+    #    as a power series in t to precision prec.
+    #    """
+    #    R = rings.PowerSeriesRing(variable="t")
+    #    t = R.gen(0)
+    #    a1, a2, a3, a4, a6 = self.ainvs()
+    #   misc.todo("Implement genuine computation of sigma.")
+    #    return t + a1/2 * t**2 + (a1**2+a2)/3 * t**3 + (a1**3+2*a1*a2+2*a3)/4 * t**4 + O(t**5)
+
+
+def cremona_curves(conductors):
+    """
+    Return iterator over all known curves (in database) with conductor
+    in the list of conductors.
+    """
+    if isinstance(conductors, (int,long, rings.RingElement)):
+        conductors = [conductors]
+    return sage.databases.cremona.CremonaDatabase().iter(conductors)
+
+def cremona_optimal_curves(conductors):
+    """
+    Return iterator over all known optimal curves (in database) with
+    conductor in the list of conductors.
+    """
+    if isinstance(conductors, (int,long,rings.RingElement)):
+        conductors = [conductors]
+    return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
+

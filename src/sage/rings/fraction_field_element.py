@@ -1,0 +1,235 @@
+"""
+Fraction Field Elements
+
+AUTHOR: William Stein (input from David Joyner, David Kohel, and Joe Wetherell)
+"""
+
+#*****************************************************************************
+#
+#   SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import operator
+
+import sage.rings.field_element as field_element
+import fraction_field
+import integer_ring
+
+from sage.rings.coerce import bin_op
+import sage.misc.latex as latex
+
+def is_FractionFieldElement(x):
+    return isinstance(x, FractionFieldElement)
+
+class FractionFieldElement(field_element.FieldElement):
+    """
+    EXAMPLES:
+        sage: K, x = FractionField(PolynomialRing(Q)).objgen()
+        sage: K
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+        sage: loads(K.dumps()) == K
+        True
+        sage: f = (x^3 + x)/(17 - x^19); f
+        (x^3 + x)/(-x^19 + 17)
+        sage: loads(f.dumps()) == f
+        True
+    """
+
+    def __init__(self, parent, numerator, denominator=1,
+                 coerce=True, reduce=True):
+        field_element.FieldElement.__init__(self, parent)
+        if coerce:
+            self.__numerator = parent.ring()(numerator)
+            self.__denominator = parent.ring()(denominator)
+        else:
+            self.__numerator = numerator
+            self.__denominator = denominator
+        if reduce:
+            try:
+                self.reduce()
+            except ArithmeticError:
+                pass
+        if self.__denominator.is_zero():
+            raise ZeroDivisionError, "fraction field element division by zero"
+
+    def reduce(self):
+        try:
+            g = self.__numerator.gcd(self.__denominator)
+            if g != 1:
+                self.__numerator, _ = self.__numerator.quo_rem(g)
+                self.__denominator, _ = self.__denominator.quo_rem(g)
+            if self.__denominator != 1 and self.__denominator.is_unit():
+                try:
+                    self.__numerator *= self.__denominator.inverse_of_unit()
+                    self.__denominator = self.__denominator.parent()(1)
+                except:
+                    pass
+        except AttributeError, s:
+            raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
+        except TypeError, s:
+            raise ArithmeticError, "unable to reduce because gcd algorithm doesn't work on input"
+
+        except NotImplementedError, s:
+            raise ArithmeticError, "unable to reduce because gcd algorithm not implemented on input"
+
+    def copy(self):
+        return FractionFieldElement(self.parent(), self.__numerator,
+                                    self.__denominator, coerce=False, reduce=False)
+
+    def numerator(self):
+        return self.__numerator
+
+    def denominator(self):
+        return self.__denominator
+
+    def __call__(self, *x):
+        """
+        Evaluate the fraction at the given arguments.  This assumes
+        that a call function is defined for the numerator and denominator.
+
+        EXAMPLES:
+            sage: x = MPolynomialRing(RationalField(),3).gens()
+            sage: f = x[0] + x[1] - 2*x[1]*x[2]
+            sage: f
+            x_1 - 2*x_1*x_2 + x_0
+            sage: f(1,2,5)
+            -17
+            sage: h = f /(x[1] + x[2])
+            sage: h
+            (x_1 - 2*x_1*x_2 + x_0)/(x_2 + x_1)
+            sage: h(1,2,5)
+            -17/7
+        """
+        return self.__numerator(x) / self.__denominator(x)
+
+    def _is_atomic(self):
+        return self.__numerator._is_atomic() and self.__denominator._is_atomic()
+
+    def __repr__(self):
+        if self.is_zero():
+            return "0"
+        s = "%s"%self.__numerator
+        if self.__denominator != 1:
+            s = "%s/%s"%(self.__numerator._coeff_repr(no_space=False),
+                         self.__denominator._coeff_repr(no_space=False))
+        return s
+
+    def _latex_(self):
+        """
+        Return a latex representation of this rational function.
+        """
+        if self.__denominator == 1:
+            return latex.latex(self.__numerator)
+        return "\\frac{%s}{%s}"%(latex.latex(self.__numerator),
+                                 latex.latex(self.__denominator))
+
+    def _add_(self, right):
+        return FractionFieldElement(self.parent(),
+           self.__numerator*right.__denominator + self.__denominator*right.__numerator,
+           self.__denominator*right.__denominator, coerce=False)
+
+    def _sub_(self, right):
+        return FractionFieldElement(self.parent(),
+           self.__numerator*right.__denominator - self.__denominator*right.__numerator,
+           self.__denominator*right.__denominator,  coerce=False)
+
+    def _mul_(self, right):
+        if not isinstance(right, FractionFieldElement):
+            return bin_op(self, right, operator.mul)
+        return FractionFieldElement(self.parent(),
+           self.__numerator*right.__numerator,
+           self.__denominator*right.__denominator, coerce=False, reduce=True)
+
+    def _div_(self, right):
+        return FractionFieldElement(self.parent(),
+           self.__numerator*right.__denominator,
+           self.__denominator*right.__numerator, coerce=False, reduce=True)
+
+    def __int__(self):
+        if self.__denominator == 1:
+            return int(self.__numerator)
+        else:
+            raise TypeError, "denominator must equal 1"
+
+    def _integer_(self):
+        if self.__denominator == 1:
+            try:
+                return self.__numerator._integer_()
+            except AttributeError:
+                pass
+        raise TypeError, "no way to coerce %s to an integer."%self
+
+    def _rational_(self):
+        Z = integer_ring.IntegerRing()
+        try:
+            return Z(self.__numerator) / Z(self.__denominator)
+        except AttributeError:
+            pass
+        raise TypeError, "coercion to rational not defined."
+
+    def __long__(self):
+        if self.__denominator == 1:
+            return long(self.__numerator)
+        else:
+            raise TypeError, "denominator must equal 1"
+
+    def __pow__(self, right):
+        right = int(right)
+        return FractionFieldElement(self.parent(),
+                                    self.__numerator**right,
+                                    self.__denominator**right, coerce=False, reduce=False)
+
+    def __neg__(self):
+        return FractionFieldElement(self.parent(), -self.__numerator, self.__denominator,
+                                    coerce=False, reduce=False)
+
+    def __pos__(self):
+        return self
+
+    def __abs__(self):
+        return abs(self.__numerator)/abs(self.__denominator)
+
+    def __invert__(self):
+        if self.is_zero():
+            raise ZeroDivisionError, "Cannot invert 0"
+        return FractionFieldElement(self.parent(),
+           self.__denominator, self.__numerator)
+
+    def __float__(self):
+        return float(self.__numerator) / float(self.__denominator)
+
+    def __cmp__(self, other):
+        if not isinstance(other, FractionFieldElement):
+            other = self.parent()(other)
+        if self.__numerator * other.__denominator == self.__denominator*other.__numerator:
+            return 0
+        return -1
+
+    def valuation(self):
+        """
+        Return the valuation of self, assuming that the numerator and
+        denominator have valuation functions defined on them.
+
+        EXAMPLES:
+            sage: x = PolynomialRing(RationalField()).gen()
+            sage: f = (x**3 + x)/(x**2 - 2*x**3)
+            sage: f
+            (x^2 + 1)/(-2*x^2 + x)
+            sage: f.valuation()
+            -1
+        """
+        return self.__numerator.valuation() - self.__denominator.valuation()
+

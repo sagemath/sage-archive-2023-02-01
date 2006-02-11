@@ -1,0 +1,689 @@
+"""
+Relation matrices for ambient modular symbols spaces.
+"""
+
+#*****************************************************************************
+#       SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+__doc_exclude = ['RationalField', 'search', 'Rational']
+
+import sage.matrix.matrix_space as matrix_space
+import sage.matrix.matrix as matrix
+import sage.rings.all as rings
+from sage.rings.rational_field import RationalField
+from   sage.misc.search import search
+
+from sage.rings.rational import Rational
+
+import sage.misc.misc as misc
+
+import manin_symbols
+
+
+# S = [0,-1; 1,0]
+# T = [0,-1; 1,-1],
+# T^2 = [-1, 1, -1, 0]
+# I = [-1,0; 0,1]
+
+
+######################################################################
+# The following four functions are used to compute the quotient
+# modulo the S, I, and T relations more efficiently that the generic
+# code in the relation_matrix file:
+#    modS_relations -- compute the S relations.
+#    modI_quotient --  compute the I relations.
+#    T_relation_matrix -- matrix whose echelon form gives
+#                                 the quotient by 3-term T relations.
+#    gens_to_basis_matrix -- compute echelon form of 3-term
+#                                    relation matrix, and read off each
+#                                    generator in terms of basis.
+# These four functions are orchestrated in the function
+#    compute_presentation
+# which is defined below.  See the comment at the beginning
+# of that function for an overall description of the algorithm.
+######################################################################
+def modS_relations(syms):
+    """
+    Compute quotient of Manin symbols by the S relations.
+
+    Here  S is the 2x2 matrix [0, -1; 1, 0].
+
+    INPUT:
+        syms -- manin_symbols.ManinSymbols
+
+    OUTPUT:
+        rels -- set of pairs of pairs (j, s), where if mod[i] = (j,s),
+               then x_i = s*x_j (mod S relations)
+
+    EXAMPLES:
+        sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma0
+        sage: from sage.modular.modsym.relation_matrix import modS_relations
+
+        sage: syms = ManinSymbolList_gamma0(2, 4); syms
+        Manin Symbol List of weight 4 for Gamma0(2)
+        sage: modS_relations(syms)
+        set([((3, -1), (4, 1)), ((5, -1), (5, 1)), ((1, 1), (6, 1)), ((0, 1), (7, 1)), ((3, 1), (4, -1)), ((2, 1), (8, 1))])
+
+        sage: syms = ManinSymbolList_gamma0(7, 2); syms
+        Manin Symbol List of weight 2 for Gamma0(7)
+        sage: modS_relations(syms)
+        set([((3, 1), (4, 1)), ((2, 1), (7, 1)), ((5, 1), (6, 1)), ((0, 1), (1, 1))])
+
+    Next we do an example with Gamma1:
+        sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma1
+        sage: syms = ManinSymbolList_gamma1(3,2); syms
+        Manin Symbol List of weight 2 for Gamma1(3)
+        sage: modS_relations(syms)
+        set([((3, 1), (6, 1)), ((0, 1), (5, 1)), ((0, 1), (2, 1)), ((3, 1), (4, 1)), ((6, 1), (7, 1)), ((1, 1), (2, 1)), ((1, 1), (5, 1)), ((4, 1), (7, 1))])
+    """
+    if not isinstance(syms, manin_symbols.ManinSymbolList):
+        raise TypeError, "syms must be a ManinSymbolList"
+    tm = misc.verbose()
+    # We will fill in this set with the relations x_i + s*x_j = 0,
+    # where the notation is as in _sparse_2term_quotient.
+    rels = set()
+    for i in xrange(len(syms)):
+        j, s = syms.apply_S(i)
+        assert j != -1
+        if i < j:
+            rels.add( ((i,1),(j,s)) )
+        else:
+            rels.add( ((j,s),(i,1)) )
+    misc.verbose("finished creating S relations",tm)
+    return rels
+
+def modI_relations(syms, sign):
+    """
+    Compute quotient of Manin symbols by the I relations.
+
+    INPUT:
+        syms -- ManinSymbols
+        sign -- int (either -1, 0, or 1)
+    OUTPUT:
+        rels -- set of pairs of pairs (j, s), where if mod[i] = (j,s),
+               then x_i = s*x_j (mod S relations)
+
+    WARNING: We quotient by the involution eta((u,v)) = (-u,v),
+    which has the opposite sign as the involution in Merel's
+    Springer LNM 1585 paper!  Thus our +1 eigenspace is his -1
+    eigenspace, etc.  We do this for consistency with MAGMA.
+    """
+    tm = misc.verbose()
+    # We will fill in this set with the relations x_i - sign*s*x_j = 0,
+    # where the notation is as in _sparse_2term_quotient.
+    rels = set()
+    for i in xrange(len(syms)):
+        j, s = syms.apply_I(i)
+        assert j != -1
+        rels.add( ((i,1),(j,-sign*s)) )
+    misc.verbose("finished creating I relations",tm)
+    return rels
+
+def T_relation_matrix_wtk_g0(syms, mod, field, weight):
+    """
+    Compute a matrix whose echelon form gives the quotient by
+    3-term T relations.
+
+    INPUT:
+        syms -- ManinSymbols
+        mod -- list that gives quotient modulo some two-term relations,
+               i.e., the S relations, and if sign is nonzero,
+               the I relations.
+        field -- base_ring
+        weight -- int
+
+    OUTPUT:
+        A sparse matrix whose rows correspond to the reduction of
+        the T relations modulo the S and I relations.
+    """
+    tm = misc.verbose()
+    row = 0
+    entries = {}
+    already_seen = set()
+    for i in xrange(len(syms)):
+        if i in already_seen:
+            continue
+        iT_plus_iTT = syms.apply_T(i) + syms.apply_TT(i)
+        j0, s0 = mod[i]
+        v = {j0:s0}
+        for j, s in iT_plus_iTT:
+            if weight==2: already_seen.add(j)
+            j0, s0 = mod[j]
+            s0 = field(s)*s0
+            if v.has_key(j0):
+                v[j0] += s0
+            else:
+                v[j0] = s0
+        for j0 in v.keys():
+            entries[(row, j0)] = v[j0]
+        row += 1
+
+    MAT = matrix_space.MatrixSpace(field, row,
+                                len(syms), sparse=True)
+    R = MAT(entries)
+    misc.verbose("finished (number of rows=%s)"%row, tm)
+    return R
+
+def gens_to_basis_matrix(syms, relation_matrix, mod, field):
+    """
+    Compute echelon form of 3-term relation matrix, and read off each
+    generator in terms of basis.
+
+    INPUT:
+        syms  -- a ManinSymbols object
+        relation_matrix -- as output by __compute_T_relation_matrix(self, mod)
+        mod   -- quotient of modular symbols modulo the 2-term S (and possibly I) relations
+        field -- base field
+
+    OUTPUT:
+        matrix -- a matrix whose ith row expresses the Manin symbol generators
+                  in terms of a basis of Manin symbols (modulo the S, (possibly I,) and T rels)
+                  Note that the entries of the matrix need not be integers.
+
+        list --  integers i, such that the Manin symbols x_i are a basis.
+    """
+    if not isinstance(relation_matrix, matrix.Matrix):
+        raise TypeError, "relation_matrix must be a matrix"
+    if not isinstance(mod, list):
+        raise TypeError, "mod must be a list"
+
+    tm = misc.verbose()
+    A = relation_matrix.echelon_form(1)
+
+    tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)
+
+    basis_set = set(A.nonpivots())
+    pivots = A.pivots()
+
+    basis_mod2 = set([j for j,c in mod if c != 0])
+
+    basis_set = basis_set.intersection(basis_mod2)
+    basis = list(basis_set)
+    basis.sort()
+
+    nonzero = A.nonzero_positions()
+
+    ONE = field(1)
+
+    tm = misc.verbose("done doing setup",tm)
+    rows = A.sparse_rows()
+    M = matrix_space.MatrixSpace(field, len(syms), len(basis))
+    B = M(0)
+    for i in basis_mod2:
+        t, l = search(basis, i)
+        if t:
+            B[i,l] = ONE
+            continue
+        _, r = search(pivots, i)    # pivots[r] = i
+        # Set row i to -sign times (row r of A), but where we only take
+        # the non-pivot columns of A :
+        l = 0
+        v = rows[r]
+        for k in basis:
+            if k in v.keys():
+                B[i,l] = -v[k]
+            l += 1
+
+    tm = misc.verbose("done making quotient matrix",tm)
+    for i in range(len(mod)):
+        j, s = mod[i]
+        if j != i and s != 0:   # ignored in the above matrix
+            B.set_row_to_multiple_of_row(i, j, s)
+
+    tm = misc.verbose("time to fill in rest of matrix", tm)
+
+    return B, basis
+
+def ___xxx_gens_to_basis_matrix(syms, relation_matrix, mod, field):
+    """
+    Compute echelon form of 3-term relation matrix, and read off each
+    generator in terms of basis.
+
+    INPUT:
+        syms  -- a ManinSymbols object
+        relation_matrix -- as output by __compute_T_relation_matrix(self, mod)
+        mod   -- quotient of modular symbols modulo the 2-term S (and possibly I) relations
+        field -- base field
+
+    OUTPUT:
+        matrix -- a matrix whose ith row expresses the Manin symbol generators
+                  in terms of a basis of Manin symbols (modulo the S, (possibly I,) and T rels)
+                  Note that the entries of the matrix need not be integers.
+
+        list --  integers i, such that the Manin symbols x_i are a basis.
+    """
+    if not isinstance(relation_matrix, matrix.Matrix):
+        raise TypeError, "relation_matrix must be a matrix"
+    if not isinstance(mod, list):
+        raise TypeError, "mod must be a list"
+
+    tm = misc.verbose()
+    A = relation_matrix.echelon_form(1)
+
+    tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)
+
+    basis_set = set(A.nonpivots())
+    pivots = A.pivots()
+
+    basis_mod2 = set([j for j,c in mod if c != 0])
+
+    basis_set = basis_set.intersection(basis_mod2)
+    basis = list(basis_set)
+    basis.sort()
+
+    nonzero = A.nonzero_positions()
+
+    ONE = field(1)
+
+    tm = misc.verbose("done doing setup",tm)
+    rows = A.sparse_rows()
+    entries = {}
+    for i in basis_mod2:
+        t, l = search(basis, i)
+        if t:
+            entries[(i,l)] = ONE
+            continue
+        _, r = search(pivots, i)    # pivots[r] = i
+        # Set row i to -sign times (row r of A), but where we only take
+        # the non-pivot columns of A :
+        l = 0
+        v = rows[r]
+        for k in basis:
+            if k in v.keys():
+                entries[(i,l)] = -v[k]
+            l += 1
+
+    tm=misc.verbose("done making quotient matrix",tm)
+    M = matrix_space.MatrixSpace(field, len(syms), len(basis))
+    B = M(entries=entries, coerce_entries=False, copy=False)
+    #B = A.new_matrix(nrows = len(syms), ncols = len(basis), entries=entries,
+    #             coerce_entries=False, copy=False)
+
+    for i in range(len(mod)):
+        j, s = mod[i]
+        if j != i and s != 0:   # ignored in the above matrix
+            B[i] = B[j]*s
+    tm=misc.verbose("time to change basis",tm)
+    misc.verbose("time to create matrix",tm)
+    print B
+    return B, basis
+
+def compute_presentation(syms, sign, field, weight):
+    r"""
+    Compute the presentation for self, as a quotient of Manin symbols
+    modulo relations.
+
+    INPUT:
+        syms -- manin_symbols.ManinSymbols
+        sign -- integer (-1, 0, 1)
+        field -- a field
+        weight -- integer weight
+
+    OUTPUT:
+        -- sparse matrix whose rows give each generator in terms
+           of a basis for the quotient
+        -- list of integers that give the basis for the quotient
+        -- mod: list where mod[i]=(j,s) means that x_i = s*x_j modulo
+                the 2-term S (and possibly I) relations.
+
+    ALGORITHM:
+        1. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], and I = [-1,0; 0,1].
+
+        2. Let x_0, ..., x_{n-1} by a list of all non-equivalent Manin symbols.
+
+        3. Form quotient by 2-term S and (possibly) I relations.
+
+        4. Create a sparse matrix A with m columns, whose rows
+           encode the relations
+           $$
+                 [x_i] + [x_i T] + [x_i T^2] = 0.
+           $$
+           There are about n such rows.
+           The number of nonzero entries per row is at most 3*(k-1).
+           Note that we must include rows for *all* i, since
+           even if $[x_i] = [x_j]$, it need not be the case that
+           $[x_i T] = [x_j T]$, since $S$ and $T$ do not commute.
+           However, in many cases we have an a priori formula for the
+           dimension of the quotient by all these relations, so we can
+           omit many relations and just check that there are enough at
+           the end---if there aren't, we add in more.
+
+        5. Compute the reduced row echelon form of A using sparse
+           Gaussian elimination.
+
+        6. Use what we've done above to read off a sparse matrix R
+           that uniquely expresses each of the n Manin symbols in
+           terms of a subset of Manin symbols, modulo the relations.
+           This subset of Manin symbols is a basis for the quotient by
+           the relations.
+
+    """
+    rels = modS_relations(syms)
+    if sign != 0:
+        # Let rels = rels union I relations.
+        rels.update(modI_relations(syms,sign))
+    mod = sparse_2term_quotient(rels, len(syms), field)
+    R = T_relation_matrix_wtk_g0(syms, mod, field, weight)
+    B, basis = gens_to_basis_matrix(syms, R, mod, field)
+    return B, basis, mod
+
+def sparse_2term_quotient(rels, n, F):
+    r"""
+    Performs Sparse Gauss elimination on a matrix all of whose columns
+    have at most 2 nonzero entries.  We use an obvious algorithm,
+    whichs runs fast enough.  (Typically making the list of relations
+    takes more time than computing this quotient.)  This algorithm is
+    more subtle than just ``identify symbols in pairs'', since
+    complicated relations can cause generators to surprisingly equal 0.
+
+    INPUT:
+        rels -- set of pairs ((i,s), (j,t)).  The pair represents
+                the relation
+                      s*x_i + t*x_j = 0,
+                where the i, j must be Python int's.
+
+        n -- int, the x_i are x_0, ..., x_{n-1}.
+        F -- base field
+
+    OUTPUT:
+        mod -- list such that mod[i] = (j,s), which means that
+                     x_i is equivalent to s*x_j,
+               where the x_j are a basis for the quotient.
+
+    EXAMPLE:
+    We quotient out by the relations
+    $$
+           3*x0 - x1 = 0,\qquad  x1 + x3 = 0,\qquad   x2 + x3 = 0,\qquad  x4 - x5 = 0
+    $$
+    to get
+        sage: v = [((int(0),3), (int(1),-1)), ((int(1),1), (int(3),1)), ((int(2),1),(int(3),1)), ((int(4),1),(int(5),-1))]
+        sage: rels = set(v)
+        sage: n = 6
+        sage: from sage.modular.modsym.relation_matrix import sparse_2term_quotient
+        sage: sparse_2term_quotient(rels, n, QQ)
+        [(3, -1/3), (3, -1), (3, -1), (3, 1), (5, 1), (5, 1)]
+    """
+
+    if not isinstance(rels, set):
+        raise TypeError, "rels must be a set"
+    n = int(n)
+    #if not isinstance(n, int):
+    #    raise TypeError, "n must be an int"
+    if not isinstance(F, rings.Ring):
+        raise TypeError, "F must be a ring."
+
+    tm = misc.verbose()
+    free = range(n)
+    ONE = F(1)
+    ZERO = F(0)
+    coef = [ONE for i in xrange(n)]
+    related_to_me = [[] for i in xrange(n)]
+    for v0, v1 in rels:
+        c0 = coef[v0[0]] * F(v0[1])
+        c1 = coef[v1[0]] * F(v1[1])
+        # Mod out by the relation
+        #    c1*x_free[t[0]] + c2*x_free[t[1]] = 0.
+        die = None
+        if c0 == ZERO and c1 == ZERO:
+            pass
+        elif c0 == ZERO and c1 != ZERO:  # free[t[1]] --> 0
+            die = free[v1[0]]
+        elif c1 == ZERO and c0 != ZERO:
+            die = free[v0[0]]
+        elif free[v0[0]] == free[v1[0]]:
+            if c0+c1 != 0:
+                # all xi equal to free[t[0]] must now equal to zero.
+                die = free[v0[0]]
+        else:  # x1 = -c1/c0 * x2.
+            x = free[v0[0]]
+            free[x] = free[v1[0]]
+            coef[x] = -c1/c0
+            for i in related_to_me[x]:
+                free[i] = free[x]
+                coef[i] *= coef[x]
+                related_to_me[free[v1[0]]].append(i)
+            related_to_me[free[v1[0]]].append(x)
+        if die != None:
+            for i in related_to_me[die]:
+                free[i] = 0
+                coef[i] = ZERO
+            free[die] = 0
+            coef[die] = ZERO
+
+    mod = [(free[i], coef[i]) for i in xrange(len(free))]
+    misc.verbose("finished",tm)
+    return mod
+
+
+
+#############################################################
+## The following two sparse_relation_matrix are not
+## used by any modular symbols code.  They're here for
+## historical reasons, and can probably be safely deleted.
+#############################################################
+
+def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
+    r"""
+    Create the sparse relation matrix over $\Q$ for Manin symbols of
+    weight 2 on $\Gamma_0(N)$, with given sign.
+
+    INPUT:
+        list -- sage.modular.modsym.p1list.List
+    OUTPUT:
+        A -- a sparse matrix that gives the 2-term and 3-term
+             relations between Manin symbols.
+
+    MORE DETAILS:
+        1. Create an empty sparse matrix.
+
+        2. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], I = [-1,0; 0,1]
+
+        3. Enter the T relations:
+           $$
+                   x + x T = 0.
+           $$
+           Remove x and x*T from reps to consider.
+
+        4. If sign =/= 0, enter the I relations:
+           $$
+                   x - sign\cdot x\cdot I = 0.
+           $$
+
+        5. Enter the S relations in the matrix:
+           $$
+                   x + x S + x S^2 = 0
+           $$
+           by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
+           Remove $x$, $x S$, and $x S^2$ from list of reps to consider.
+    """
+    ZERO = field(0)
+    ONE =  field(1)
+    TWO =  field(2)
+
+    # This will be a dict of the entries of the sparse matrix, where
+    # the notation is entries[(i,j)]=x.
+    entries = {}
+
+    # The current row
+    row = 0
+
+    ##  The S relations
+    already_seen= set([])
+    for i in range(len(list)):
+        if i in already_seen:
+            continue
+        u,v = list[i]
+        j = list.index(v,-u)
+        already_seen.add(j)
+        if i != j:
+            entries[(row,i)] = ONE
+            entries[(row,j)] = ONE
+        else:
+            entries[(row,i)] = TWO
+        row += 1
+    number_of_S_relations = row
+    misc.verbose("There were %s S relations"%(number_of_S_relations))
+
+    ##  The eta relations:
+    ##    eta((u,v)) = -(-u,v)
+    if sign != 0:
+        SIGN = field(sign)
+        already_seen= set([])
+        for i in range(len(list)):
+            if i in already_seen:
+                continue
+            u, v = list[i]
+            j = list.index(-u,v)
+            already_seen.add(j)
+            if i != j:
+                entries[(row,i)] = ONE
+                entries[(row,j)] = SIGN*ONE
+            else:
+                entries[(row,i)] = ONE + SIGN
+            row += 1
+    number_of_I_relations = row - number_of_S_relations
+    misc.verbose("There were %s I relations"%(number_of_I_relations))
+
+    ## The three-term T relations
+    already_seen = set([])
+    for i in range(len(list)):
+        if i in already_seen:
+            continue
+        u,v = list[i]
+        j1 = list.index(v,-u-v)
+        already_seen.add(j1)
+        j2 = list.index(-u-v,u)
+        already_seen.add(j2)
+        v = {i:ZERO, j1:ZERO, j2:ZERO}
+        v[i] = ONE
+        v[j1] += ONE
+        v[j2] += ONE
+        for x in v.keys():
+            entries[(row,x)] = v[x]
+        row += 1
+
+    number_of_T_relations = row - number_of_I_relations - number_of_S_relations
+    misc.verbose("There were %s T relations"%(number_of_T_relations))
+
+    M = matrix_space.MatrixSpace(RationalField(), row,
+                    len(list), sparse=True)
+    #return M(entries, coerce_entries=False, copy=False)
+    return M(entries)
+
+def sparse_relation_matrix_wtk_g0n(M, field, sign=0):
+    r"""
+    Create the sparse relation matrix over $\Q$ for Manin symbols of
+    given weight on $\Gamma_0(N)$, with given sign.
+
+    INPUT:
+        M -- manin_symbols.ManinSymbolList
+        field -- base field
+        weight -- the weight, an integer > 2
+        sign -- element of [-1,0,1]
+
+    OUTPUT:
+        A -- a SparseMatrix that gives the 2-term and 3-term relations
+             between Manin symbols.
+
+    MORE DETAILS:
+        1. Create an empty sparse matrix.
+
+        2. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], I = [-1,0; 0,1]
+
+        3. Enter the T relations:
+                   x + x*T = 0
+           Remove x and x*T from reps to consider.
+
+        4. If sign =/= 0, enter the I relations:
+                   x + sign*x*I = 0.
+
+        5. Enter the S relations in the matrix:
+           $$
+                   x + x S + x S^2 = 0
+           $$
+           by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
+           Remove x from list of reps to consider.
+    """
+    weight = M.weight()
+    if not (isinstance(weight, int) and weight > 2):
+        raise TypeError, "weight must be an int > 2"
+
+    ZERO = field(0)
+    ONE =  field(1)
+    TWO =  field(2)
+
+    # This will be a dict of the entries of the sparse matrix, where
+    # the notation is entries[(i,j)]=x.
+    entries = {}
+
+    # The current row
+    row = 0
+
+    # The list of Manin symbol triples (i,u,v)
+    n = len(M)
+
+    ##  The S relations
+    already_seen= set([])
+    for i in xrange(n):
+        if i in already_seen:
+            continue
+        j, s = M.apply_S(i)
+        already_seen.add(j)
+        if i != j:
+            entries[(row,i)] = ONE
+            entries[(row,j)] = field(s)
+        else:
+            entries[(row,i)] = ONE+field(s)
+        row += 1
+    number_of_S_relations = row
+    misc.verbose("There were %s S relations"%(number_of_S_relations))
+    cnt = row
+    ##  The I relations
+    if sign != 0:
+        SIGN = field(sign)
+        already_seen= set([])
+        for i in xrange(n):
+            if i in already_seen:
+                continue
+            j, s = M.apply_I(i)
+            already_seen.add(j)
+            if i != j:
+                entries[(row,i)] = ONE
+                entries[(row,j)] = -SIGN*field(s)
+            else:
+                entries[(row,i)] = ONE-SIGN*field(s)
+            row += 1
+    number_of_I_relations = row - number_of_S_relations
+    misc.verbose("There were %s I relations"%(number_of_I_relations))
+    cnt = row
+
+    ## The T relations
+    already_seen = set([])
+    for i in xrange(n):
+        if i in already_seen:
+            continue
+        iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
+        v = {i:ONE}
+        for j, s in iT_plus_iTT:
+            if v.has_key(j):
+                v[j] += field(s)
+            else:
+                v[j] = field(s)
+        for j in v.keys():
+            entries[(row, j)] = v[j]
+        row += 1
+

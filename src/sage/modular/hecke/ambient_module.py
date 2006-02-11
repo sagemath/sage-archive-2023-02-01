@@ -1,0 +1,621 @@
+"""
+Ambient Hecke modules
+"""
+
+#*****************************************************************************
+#       SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import degenmap
+
+import module
+
+import sage.modules.all
+
+import sage.rings.all
+
+import sage.rings.arith as arith
+
+import sage.matrix.matrix_space as matrix_space
+
+def is_AmbientHeckeModule(x):
+    return isinstance(x, AmbientHeckeModule)
+
+class AmbientHeckeModule(module.HeckeModule_free_module):
+    """
+    Ambient Hecke module.
+    """
+    def __init__(self, base_ring, rank, level, weight):
+        rank = int(rank)
+        if rank < 0:
+            raise ValueError, "rank (=%s) must be nonnegative"%rank
+        self.__rank = rank
+        module.HeckeModule_free_module.__init__(self, base_ring, level, weight)
+
+    def __add__(self, other):
+        if not isinstance(other, module.HeckeModule_free_module):
+            raise TypeError, "other (=%s) must be a Hecke module."%other
+        if other.ambient_hecke_module() == self:
+            return self
+        raise ArithmeticError, "Sum only defined for subspaces of a common ambient Hecke module."
+
+    def __call__(self, x):
+        raise NotImplementedError
+
+    def _repr_(self):
+        return "Ambient Hecke module of rank %s over %s"%(self.base_ring(), self.rank())
+
+    def _compute_hecke_matrix_prime_power(self, n, p, r):
+        # convert input arguments to int's.
+        (n,p,r) = (int(n), int(p), int(r))
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be a prime"
+        # T_{p^r} := T_p * T_{p^{r-1}} - eps(p)p^{k-1} T_{p^{r-2}}.
+        pow = p**(r-1)
+        if not self._hecke_matrices.has_key(pow):
+            # The following will force computation of T_{p^s}
+            # for all s<=r-1, except possibly s=0.
+            self._compute_hecke_matrix(pow)
+        if not self._hecke_matrices.has_key(1):
+            self._compute_hecke_matrix(1)
+        Tp = self._hecke_matrices[p]
+        Tpr1 = self._hecke_matrices[pow]
+        eps = self.character()
+        if eps is None:
+            raise NotImplementedError, "_compute_hecke_matrix_prime_power must be overloaded in a derived class"
+        k = self.weight()
+        Tpr2 = self._hecke_matrices[pow/p]
+        self._hecke_matrices[n] = Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
+
+    def _compute_hecke_matrix_general_product(self, n, F):
+        n = int(n)
+        prod = None
+        for p, r in F:
+            pow = int(p**r)
+            if not self._hecke_matrices.has_key(pow):
+                self._compute_hecke_matrix(pow)
+            if prod == None:
+                prod = self._hecke_matrices[pow]
+            else:
+                prod *= self._hecke_matrices[pow]
+        self._hecke_matrices[n] = prod
+
+    def _compute_dual_hecke_matrix(self, n):
+        self._dual_hecke_matrices[n] = self.hecke_matrix(n).transpose()
+
+    def _compute_hecke_matrix(self, n):
+        n = int(n)
+        if n<1:
+            raise ValueError, "Hecke operator T_%s is not defined."%n
+        if n==1:
+            Mat = matrix_space.MatrixSpace(self.base_ring(),self.rank())
+            self._hecke_matrices[1] = Mat(1)
+            return
+
+        if arith.is_prime(n):
+            self._compute_hecke_matrix_prime(n)
+            return
+
+        F = arith.factor(n)
+        if len(F) == 1:  # nontrivial prime power case
+            self._compute_hecke_matrix_prime_power(n, F[0][0],F[0][1])
+            return
+        else:
+            self._compute_hecke_matrix_general_product(n, F)
+            return
+
+    def _compute_hecke_matrix_prime(self, p):
+        """
+        Compute and return the matrix of the p-th Hecke operator.
+        """
+        raise NotImplementedError
+
+
+    def _degeneracy_raising_matrix(self, N):
+        """
+        Matrix of the degeneracy map (with t = 1) to level N, where N is a multiple
+        of the level.
+        """
+        raise NotImplementedError
+
+    def _degeneracy_lowering_matrix(self, N, t):
+        """
+        Matrix of the degeneracy map of index t to level N, where N is
+        a divisor of the level.
+        """
+        raise NotImplementedError
+
+    def _hecke_image_of_ith_basis_element(self, n, i):
+        """
+        Return the image under the Hecke operator T_n of the i-th basis element.
+        """
+        return self.hecke_operator(n)(self.gen(i))
+
+
+    def _set_dual_free_module(self, V):
+        pass  # setting dual free module of ambient space is not necessary
+
+
+    def ambient_hecke_module(self):
+        return self
+
+    def complement(self):
+        """
+        Return the largest Hecke-stable complement of this space.
+        """
+        return self.zero_subspace()
+
+    def decomposition_matrix(self):
+        r"""
+        Returns the matrix whose columns form a basis for the
+        canonical sorted decomposition of self coming from the Hecke
+        operators.
+
+        If the simple factors are $D_0, \ldots, D_n$, then the first
+        few columns are an echelonized basis for $D_0$, the next an
+        echelonized basis for $D_1$, the next for $D_2$, etc.
+        """
+        try:
+            return self.__decomposition_matrix_cache
+        except AttributeError:
+            rows = []
+            for A in self.decomposition():
+                for x in A.basis():
+                    rows.append(x.list())
+            A = matrix_space.MatrixSpace(self.base_ring(),self.rank())(rows)
+            self.__decomposition_matrix_cache = A
+            return self.__decomposition_matrix_cache
+
+    def decomposition_matrix_inverse(self):
+        """
+        Returns the inverse of the matrix returned by decomposition_matrix().
+        """
+        try:
+            return self.__decomposition_matrix_inverse_cache
+        except AttributeError:
+            self.__decomposition_matrix_inverse_cache = ~self.decomposition_matrix()
+            return self.__decomposition_matrix_inverse_cache
+
+    def degeneracy_map(self, level, t=1):
+        """
+        The t-th degeneracy map from self to the corresponding Hecke
+        module of the given level.  The level of self must be a
+        divisor or multiple of level, and t must be a divisor of the
+        quotient.
+
+        INPUT:
+            level -- int, the level of the codomain of the map (positive int).
+
+            t  -- int, the parameter of the degeneracy map, i.e., the map is
+                  related to f(q) |--> f(q^t).
+
+        OUTPUT:
+            A morphism from self to corresponding the Hecke module of
+            given level.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11,sign=1)
+            sage: d1 = M.degeneracy_map(33); d1
+            Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
+            (not printing 2 x 6 matrix)
+            Domain: Full Modular Symbols space for Gamma_0(11) of weight 2 with sign ...
+            Codomain: Full Modular Symbols space for Gamma_0(33) of weight 2 with sign ...
+            sage: M.degeneracy_map(33,3).matrix()
+            [ 3  2  2  0 -2  1]
+            [ 0  2  0 -2  0  0]
+            sage: M = ModularSymbols(33,sign=1)
+            sage: d2 = M.degeneracy_map(11); d2.matrix()
+            [  1   0]
+            [  0 1/2]
+            [  0  -1]
+            [  0   1]
+            [ -1   0]
+            [ -1   0]
+            sage: (d2*d1).matrix()
+            [4 0]
+            [0 4]
+        """
+        level = int(level); t = int(t)
+
+        err = False
+        if self.level() % level == 0:
+            quo = self.level() // level
+            if quo % t != 0:
+                err = True
+        elif level % self.level() == 0:
+            quo = level // self.level()
+            if quo % t != 0:
+                err = True
+        else:
+            err = True
+        if err:
+            raise ValueError, ("The level of self (=%s) must be a divisor or multiple of " + \
+                               "level (=%s), and t (=%s) must be a divisor of the quotient.")%\
+                               (self.level(), level, t)
+
+        key = (level,t)
+        try:
+            self._degeneracy_maps
+        except AttributeError:
+            self._degeneracy_maps = {}
+
+        if self._degeneracy_maps.has_key(key):
+            return self._degeneracy_maps[key]
+
+        eps = self.character()
+        if not (eps is None) and level % eps.conductor() != 0:
+            raise ArithmeticError, "The conductor of the character of this space " + \
+                  "(=%s) must be divisible by the level (=%s)."%\
+                  (eps.conductor(), level)
+
+        M = self.hecke_module_of_level(level)
+
+        if M.rank() == 0:
+
+            A = matrix_space.MatrixSpace(self.base_ring(), self.rank(),0)(0)
+
+        elif self.level() % level == 0:  # lower the level
+
+            A = self._degeneracy_lowering_matrix(level, t)
+
+        elif level % self.level() == 0:  # raise the level
+            if t != 1:
+
+                # use Hecke operator and t=1 case.
+                d1 = self.degeneracy_map(level, 1).matrix()
+                T = M.hecke_matrix(t)
+                A = (~self.base_ring()(t)) * d1 * T
+
+            else:
+
+                A = self._degeneracy_raising_matrix(level)
+
+        d = degenmap.DegeneracyMap(A, self, M, t)
+        self._degeneracy_maps[key] = d
+        return d
+
+    def dual_free_module(self):
+        return self.free_module()
+
+    def fcp(self, n):
+        """
+        Returns the factorization of the characteristic polynomial of
+        the Hecke operator $T_n$ of index $n$.
+
+        INPUT:
+           ModularSymbols self -- space of modular symbols invariant
+                                   under the Hecke operator of index n.
+           int n -- a positive integer.
+
+        OUTPUT:
+           list -- list of the pairs (g,e), where g is an irreducible
+                   factor of the characteristic polynomial of T_n, and
+                   e is its multiplicity.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(23, 2, sign=1)
+            sage: m.fcp(2)
+            (x - 3) * (x^2 + x - 1)
+            sage: m.hecke_operator(2).charpoly().factor()
+            (x - 3) * (x^2 + x - 1)
+        """
+        n = int(n)
+        if n <= 0:
+            raise ArithmeticError, "n (=%s) must be positive"%n
+        return self.hecke_operator(n).fcp()
+
+    def free_module(self):
+        """
+        Return the free module underlying this ambient Hecke module.
+        """
+        try:
+            return self.__free_module
+        except AttributeError:
+            M = sage.modules.all.FreeModule(self.base_ring(), self.rank())
+            self.__free_module = M
+            return M
+
+    def hecke_bound(self):
+        """
+        Return an integer B such that the Hecke operators $T_n$, for $n\leq B$,
+        generate the full Hecke algebra as a module over the base ring.  Note
+        that we include the $n$ with $n$ not coprime to the level.
+        """
+        raise NotImplementedError
+
+    def hecke_module_of_level(self, level):
+        raise NotImplementedError
+
+    def intersection(self, other):
+        """
+        Returns the intersection of self and other, which must both
+        lie in a common ambient space of modular symbols.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(43, sign=1)
+            sage: A = M[0] + M[1]
+            sage: B = M[1] + M[2]
+            sage: A.rank(), B.rank()
+            (2, 3)
+            sage: C = A.intersection(B); C.rank()  # TODO
+            1
+        """
+        if not isinstance(other, module.HeckeModule_free_module):
+            raise TypeError, "other (=%s) must be a Hecke module."%other
+        if self.ambient_hecke_module() != other.ambient_hecke_module():
+            raise ArithmeticError, "Intersection only defined for subspaces of a common ambient Hecke module."
+        return other  # since self is ambient, so the intersection must equal other.
+
+    def is_ambient(self):
+        """
+        Returns True if and only if self is an ambient Hecke module.
+
+        WARNING: self can be ambient by virtue of being equal to an
+        ambient space, even if it is not of type AmbientHeckeModule.
+        For example, decomposing a simple ambient space yields a
+        single factor, and that factor \emph{is} also considered an
+        ambient space.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(10)
+            sage: m.is_ambient()
+            True
+
+            sage: a = m[0]  # the unique simple factor
+            sage: a == m
+            True
+            sage: a.is_ambient()
+            True
+        """
+        return True
+
+    def is_full_hecke_module(self, compute=True):
+        """
+        Returns True if this space is invariant under the action of
+        all Hecke operators, even those that divide the level.
+        """
+        return True
+
+    def is_new(self, p=None):
+        try:
+            if self.__is_new.has_key(p):
+                return self.__is_new[p]
+        except AttributeError:
+            pass
+        self.new_submodule(p)
+        return self.__is_new[p]
+
+    def is_old(self, p=None):
+        try:
+            if self.__is_old.has_key(p):
+                return self.__is_old[p]
+        except AttributeError:
+            pass
+        self.old_submodule(p)
+        return self.__is_old[p]
+
+    def is_submodule(self, V):
+        """
+        Returns True if and only if self is a submodule of V.
+        """
+        if not V.is_ambient():
+            return False
+        return V.ambient_space() == self
+
+    def linear_combination_of_basis(self, v):
+        return self(v)
+
+    def new_submodule(self, p=None):
+        """
+        Returns the new or p-new submodule of self.
+
+        INPUT:
+            p -- (default: None); if not None, return only the p-new submodule.
+
+        OUTPUT:
+            the new or p-new submodule of self
+
+        EXAMPLES:
+            sage: m = ModularSymbols(33); m.rank()
+            9
+            sage: m.new_submodule().rank()
+            3
+            sage: m.new_submodule(3).rank()
+            4
+            sage: m.new_submodule(11).rank()
+            8
+        """
+        try:
+            if self.__is_new[p]:
+                return self
+        except AttributeError:
+            self.__is_new = {}
+        except KeyError:
+            pass
+
+        if self.rank() == 0:
+            self.__is_new[p] = True
+            return self
+        try:
+            return self.__new_submodule[p]
+        except AttributeError:
+            self.__new_submodule = {}
+        except KeyError:
+            pass
+
+        # Construct the degeneracy map d.
+        N = self.level()
+        d = None
+        eps = self.character()
+        if eps == None:
+            f = 1
+        else:
+            f = eps.conductor()
+        if p == None:
+            D = arith.prime_divisors(N)
+        else:
+            if N % p != 0:
+                raise ValueError, "p must divide the level."
+            D = [p]
+        for q in D:
+            if ((N//q) % f) == 0:
+                NN = N//q
+                d1 = self.degeneracy_map(NN,1).matrix()
+                if d is None:
+                    d = d1
+                else:
+                    d = d.augment(d1)
+                d = d.augment(self.degeneracy_map(NN,q).matrix())
+            #end if
+        #end for
+        if d is None or d == 0:
+            self.__is_new[p] = True
+            return self
+        else:
+            self.__is_new[p] = False
+        ns = self.submodule(d.kernel())
+        ns.__is_new = {p:True}
+        ns._is_full_hecke_module = True
+        self.__new_submodule[p] = ns
+        return ns
+
+    def nonembedded_free_module(self):
+        return self.free_module()
+
+    def old_submodule(self, p=None):
+        """
+        Returns the old or p-old submodule of self.
+
+        INPUT:
+            p -- (default: None); if not None, return only the p-old submodule.
+
+        OUTPUT:
+            the old or p-old submodule of self
+
+        EXAMPLES:
+            sage: m = ModularSymbols(33); m.rank()
+            9
+            sage: m.old_submodule().rank()
+            7
+            sage: m.old_submodule(3).rank()
+            6
+            sage: m.new_submodule(11).rank()
+            8
+        """
+        try:
+            if self.__is_old[p]:
+                return self
+        except AttributeError:
+            self.__is_old = {}
+        except KeyError:
+            pass
+
+        if self.rank() == 0:
+            self.__is_old[p] = True
+            return self
+        try:
+            return self.__old_submodule[p]
+        except AttributeError:
+            self.__old_submodule = {}
+        except KeyError:
+            pass
+
+        # Construct the degeneracy map d.
+        N = self.level()
+        d = None
+        eps = self.character()
+        if eps == None:
+            f = 1
+        else:
+            f = eps.conductor()
+        if p == None:
+            D = arith.prime_divisors(N)
+        else:
+            if N % p != 0:
+                raise ValueError, "p must divide the level."
+            D = [p]
+        for q in D:
+            if ((N//q) % f) == 0:
+                NN = N//q
+                M = self.hecke_module_of_level(NN)
+                d1 = M.degeneracy_map(self.level(),1).matrix()
+                if d is None:
+                    d = d1
+                else:
+                    d = d.stack(d1)
+                d = d.stack(M.degeneracy_map(self.level(),q).matrix())
+            #end if
+        #end for
+        os = self.submodule(d.image())
+        self.__is_old[p] = (os == self)
+
+        os.__is_old = {p:True}
+        os._is_full_hecke_module = True
+        self.__old_submodule[p] = os
+        return os
+
+
+    def submodule(self, M, Mdual=None, check=True):
+        """
+        Return the Hecke submodule of self defined by the free module M.
+        """
+        if check:
+            if not sage.modules.all.is_FreeModule(M):
+                raise TypeError, "M must be a free module"
+            if not M.is_submodule(self.free_module()):
+                raise TypeError, "M must be a submodule of the free module associated to this module."
+            if M == self.free_module():
+                return self
+        return HeckeSubmodule(self, M, Mdual, check=False)
+
+    def submodule_from_nonembedded_module(self, V, Vdual=None, check=True):
+        """
+        INPUT:
+            V -- submodule of ambient free module of the same rank as the
+                 rank of self.
+        OUTPUT:
+            Hecke submodule of self
+        """
+        return self.submodule(V, Vdual, check=check)
+
+    def submodule_generated_by_images(self, M):
+        """
+        Return the submodule of this ambient modular symbols space
+        generated by the images under all degeneracy maps of M.  The
+        space M must have the same weight, sign, and group or
+        character as this ambient space.
+        """
+        S = self.zero_submodule()
+        if self.level() % M.level() == 0:
+            D = arith.divisors(self.level() // M.level())
+        elif M.level() % self.level() == 0:
+            D = arith.divisors(M.level() // self.level())
+        else:
+            D = []
+        for t in D:
+            d = M.degeneracy_map(self.level(), t)
+            if d.codomain() != self:
+                raise ArithmeticError, "incompatible spaces of modular symbols"
+            S += d.image()
+
+        if self.is_full_hecke_module(compute=False):
+            S._is_full_hecke_module = True
+        elif self.is_anemic_hecke_module():
+            S._is_anemic_hecke_module = True
+
+        return S
+
+

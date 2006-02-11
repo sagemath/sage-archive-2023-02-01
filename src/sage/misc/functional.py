@@ -1,0 +1,853 @@
+"""
+Functional notation
+
+These are function so that you can write foo(x) instead of x.foo() in
+certain common cases.
+
+AUTHORS: Initial version -- William Stein
+         More Examples -- David Joyner, 2005-12-20
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.rings.all import (RealField, ComplexField,
+                            PolynomialRing, RationalField, Ideal,
+                            IntegerRing)
+
+import sage.rings.integer_ring
+import sage.categories.all
+QQ = RationalField()
+R = RealField()
+C = ComplexField()
+CC = ComplexField()
+
+from sage.libs.all import pari
+
+import math
+
+##############################################################################
+# There are many functions on elements of a ring, which mathematicians
+# usually write f(x), e.g., it is weird to write x.log() and natural
+# to write log(x).  The functions below allow for the more familiar syntax.
+##############################################################################
+def additive_order(x):
+    """
+    Return the additive order of $x$.
+    """
+    return x.additive_order()
+
+def arg(x):
+    """
+    Return the argument of a complex number $x$.
+
+    EXAMPLES:
+        sage: z = CC(1+2*i)
+        sage: theta = arg(z)
+        sage: cos(theta)*abs(z)
+        1.0000000000000002
+        sage: sin(theta)*abs(z)
+        1.9999999999999998
+    """
+    try: return x.arg()
+    except AttributeError: return CC(x).arg()
+
+def base_ring(x):
+    """
+    Return the base ring over which x is defined.
+
+    EXAMPLES:
+        sage: R = PolynomialRing(GF(7))
+        sage: base_ring(R)
+        Finite Field of size 7
+    """
+    return x.base_ring()
+
+def base_field(x):
+    """
+    Return the base field over which x is defined.
+    """
+    return x.base_field()
+
+def basis(x):
+    """
+    Return the fixed basis of x.
+
+    EXAMPLES:
+        sage: V = VectorSpace(QQ,3)
+        sage: S = V.subspace([[1,2,0],[2,2,-1]])
+        sage: basis(S)
+        [(1, 0, -1), (0, 1, 1/2)]
+    """
+    return x.basis()
+
+def category(x):
+    """
+    Return the category of x.
+
+    EXAMPLES:
+        sage: V = VectorSpace(QQ,3)
+        sage: category(V)
+        Category of vector spaces over Rational Field
+    """
+    try:
+        return x.category()
+    except AttributeError:
+        return sage.categories.all.Objects()
+
+def charpoly(x):
+    """
+    Return the characteristic polynomial of x.
+
+    EXAMPLES:
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: charpoly(A)
+        x^3 - 15*x^2 - 18*x
+    """
+    try:
+        return x.characteristic_polynomial()
+    except AttributeError:
+        return x.charpoly()
+    except AttributeError:
+        raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
+
+## def conductor(x):
+##     """
+##     Return the conductor of x.
+
+##     EXAMPLES:
+##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
+##         sage: E
+##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+##         sage: conductor(E)
+##         11
+##     """
+##     return x.conductor()
+
+def cos(x):
+    """
+    Return the cosine of x.
+
+    EXAMPLES:
+        sage: z = CC(1+2*i)
+        sage: theta = arg(z)
+        sage: cos(theta)*abs(z)
+        1.0000000000000002
+        sage: cos(3.141592)
+        -0.99999999999978639
+    """
+    try: return x.cos()
+    except AttributeError: return math.cos(float(x))
+
+## def cuspidal_submodule(x):
+##     return x.cuspidal_submodule()
+
+## def cuspidal_subspace(x):
+##     return x.cuspidal_subspace()
+
+def cyclotomic_polynomial(n):
+    """
+    EXAMPLES:
+        sage: cyclotomic_polynomial(3)
+        x^2 + x + 1
+        sage: cyclotomic_polynomial(4)
+        x^2 + 1
+        sage: cyclotomic_polynomial(9)
+        x^6 + x^3 + 1
+        sage: cyclotomic_polynomial(10)
+        x^4 - x^3 + x^2 - x + 1
+        sage: cyclotomic_polynomial(11)
+        x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
+    """
+    return PolynomialRing(RationalField()).cyclotomic_polynomial(n)
+
+def decomposition(x):
+    """
+    Return the decomposition of x.
+    """
+    return x.decomposition()
+
+def denominator(x):
+    """
+    Return the numerator of x.
+
+    EXAMPLES:
+        sage: denominator(17/11111)
+        11111
+        sage: R = PolynomialRing(RationalField(), 'x')
+        sage: F = FractionField(R)
+        sage: r = (x+1)/(x-1)
+        sage: denominator(r)
+        x - 1
+    """
+    if isinstance(x, (int, long)):
+        return 1
+    return x.denominator()
+
+def derivative(x):
+    """
+    Return the derivative of a polynomial x.
+
+    EXAMPLES:
+        sage: f = cyclotomic_polynomial(10)
+        sage: derivative(f)
+        4*x^3 - 3*x^2 + 2*x - 1
+        sage: R = PolynomialRing(GF(7))
+        sage: gen = R.gen(); x = gen; f = x^7 + x
+        sage: derivative(f)
+        1
+    """
+    return x.derivative()
+
+def det(x):
+    """
+    Return the determinant of x.
+
+    EXAMPLES:
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: det(A)
+        0
+    """
+    return x.det()
+
+def dimension(x):
+    """
+    Return the dimension of x.
+
+    EXAMPLES:
+        sage: V = VectorSpace(QQ,3)
+        sage: S = V.subspace([[1,2,0],[2,2,-1]])
+        sage: dimension(S)
+        2
+    """
+    return x.dimension()
+
+dim = dimension
+
+def discriminant(x):
+    """
+    EXAMPLES:
+        sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+        sage: S = R.quotient(x**29-17*x-1, 'alpha')
+        sage: K = S.number_field()
+        sage: discriminant(K)
+        -15975100446626038280218213241591829458737190477345113376757479850566957249523
+    """
+    return x.discriminant()
+
+disc = discriminant
+
+# This is dangerous since it gets the scoping all wrong ??
+#import __builtin__
+#def eval(x):
+#    try:
+#        return x._eval_()
+#    except AttributeError:
+#        return __builtin__.eval(x)
+
+def exp(x):
+    """
+    Return the value of the exponentation function at x.
+    """
+    try: return x.exp()
+    except AttributeError: return math.exp(x)
+
+def factor(x, *args, **kwds):
+    """
+    Return the prime factorization of x.
+
+    EXAMPLES:
+        sage: factor(factorial(10))
+        2^8 * 3^4 * 5^2 * 7
+        sage: n = next_prime(10^6); n
+        1000003
+        sage: factor(n)
+        1000003
+    """
+    try: return x.factor(*args, **kwds)
+    except AttributeError: return sage.rings.integer_ring.factor(x, *args, **kwds)
+
+factorization = factor
+factorisation = factor
+
+def fcp(x):
+    """
+    Return the factorization of the characteristic polynomial
+    of x.
+
+    EXAMPLES:
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: fcp(A)
+        x * (x^2 - 15*x - 18)
+    """
+    try: return x.fcp()
+    except AttributeError: return factor(charpoly(x))
+
+gcd = sage.rings.arith.gcd
+
+def gen(x):
+    """
+    Return the generator of x.
+    """
+    return x.gen()
+
+def gens(x):
+    """
+    Return the generators of x.
+    """
+    return x.gens()
+
+def hecke_operator(x,n):
+    """
+    Return the n-th Hecke operator T_n acting on x.
+
+    EXAMPLES:
+        sage: M = ModularSymbols(1,12)
+        sage: hecke_operator(M,5)
+        Hecke operator T_5 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+    """
+    return x.hecke_operator(n)
+
+def ideal(*x):
+    """
+    Return the ideal generated by x where x is an element or list.
+
+    EXAMPLES:
+        sage: ideal(x^2-2*x+1, x^2-1)
+        Principal ideal (x - 1) of Univariate Polynomial Ring in x over Rational Field
+        sage: ideal([x^2-2*x+1, x^2-1])
+        Principal ideal (x - 1) of Univariate Polynomial Ring in x over Rational Field
+    """
+    if isinstance(x[0], (list, tuple)):
+        return Ideal(x[0])
+    return Ideal(x)
+
+def image(x):
+    """
+    Return the image of x.
+
+    EXAMPLES:
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: image(A)
+        Vector space of degree 3 and dimension 2 over Rational Field
+        Basis matrix:
+        [ 1  0 -1]
+        [ 0  1  2]
+    """
+    return x.image()
+
+def imag(x):
+    """
+    Return the imaginary part of x.
+    """
+    try: return x.imag()
+    except AttributeError: return CC(x).imag()
+
+def imaginary(x):
+    """
+    Return the imaginary part of a complex number.
+
+    EXAMPLES:
+        sage: z = CC(1+2*i)
+        sage: imaginary(z)
+        2.0000000000000000
+        sage: imag(z)
+        2.0000000000000000
+    """
+    return imag(x)
+
+def integral(x):
+    """
+    Return an indefinite integral of an object x.
+
+    EXAMPLES:
+        sage: f = cyclotomic_polynomial(10)
+        sage: integral(f)
+        1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+    """
+    return x.integral()
+
+def integral_closure(x):
+    return x.integral_closure()
+
+def interval(a, b):
+    r"""
+    Integers between a and b \emph{inclusive} (a and b integers).
+
+    EXAMPLES:
+        sage: I = interval(1,3)
+        sage: 2 in I
+        True
+        sage: 1 in I
+        True
+        sage: 4 in I
+        False
+    """
+    return range(a,b+1)
+
+def xinterval(a, b):
+    r"""
+    Iterator over the integers between a and b, \emph{inclusive}.
+    """
+    return xrange(a, b+1)
+
+def is_commutative(x):
+    """
+    EXAMPLES:
+        sage: R = PolynomialRing(RationalField(), 'x')
+        sage: is_commutative(R)
+        True
+    """
+    return x.is_commutative()
+
+def is_even(x):
+    """
+    Return whether or not an integer x is even, e.g., divisible by 2.
+
+    EXAMPLES:
+        sage: is_even(-1)
+        False
+        sage: is_even(4)
+        True
+        sage: is_even(-2)
+        True
+    """
+    try: return x.is_even()
+    except AttributeError: return x%2==0
+
+def is_integrally_closed(x):
+    return x.is_integrally_closed()
+
+def is_field(x):
+    """
+    EXAMPLES:
+        sage: R = PolynomialRing(RationalField(), 'x')
+        sage: F = FractionField(R)
+        sage: is_field(F)
+        True
+    """
+    return x.is_field()
+
+def is_noetherian(x):
+    return x.is_noetherian()
+
+def is_odd(x):
+    """
+    Return whether or not x is odd.  This is by definition the
+    complement of is_even.
+
+    EXAMPLES:
+        sage: is_odd(-2)
+        False
+        sage: is_odd(-3)
+        True
+        sage: is_odd(0)
+        False
+        sage: is_odd(1)
+        True
+    """
+    return not is_even(x)
+
+## def j_invariant(x):
+##     """
+##     Return the j_invariant of x.
+
+##     EXAMPLES:
+##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
+##         sage: E
+##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+##         sage: j_invariant(E)
+##         -122023936/161051
+##     """
+##     return x.j_invariant()
+
+def kernel(x):
+    """
+    Return the kernel of x.
+
+    EXAMPLES:
+        sage: M = MatrixSpace(QQ,3,3)
+        sage: A = M([1,2,3,4,5,6,7,8,9])
+        sage: kernel(A)
+        Vector space of degree 3 and dimension 1 over Rational Field
+        Basis matrix:
+        [ 1 -2  1]
+    """
+    return x.kernel()
+
+def krull_dimension(x):
+    return x.krull_dimension()
+
+lcm = sage.rings.arith.lcm
+
+def log(x,b=None):
+    r"""
+    Return the log of x to the base b.  The default base is e.
+
+    INPUT:
+        x -- number
+        b -- base (default: None, which means natural log)
+    OUTPUT:
+        number
+
+    \note{In Magma, the order of arguments is reversed from in
+    \sage, i.e., the base is given first.  We use the opposite
+    ordering, so the base can be viewed as an optional second
+    argument.}
+
+    EXAMPLES:
+        sage: log(10,2)
+        3.3219280948873626
+        sage: log(8,2)
+        3.0
+        sage: log(10)
+        2.3025850929940459
+        sage: log(2.718)
+        0.99989631572895199
+    """
+    if b is None:
+        try: return x.log()
+        except AttributeError:
+            #return math.log(x)
+            return float(pari(x).log())
+    else:
+        try: return x.log(b)
+        except AttributeError:
+            return log(x) / log(b)
+
+def matrix(x, R):
+    """
+    Return the \sage matrix over $R$ obtained from x, if possible.
+    """
+    try:
+        return x._matrix_(R)
+    except AttributeError:
+        raise TypeError, "No known way to create a matrix from %s"%x
+
+def minimal_polynomial(x):
+    """
+    Return the minimal polynomial of x.
+    """
+    return x.minimal_polynomial()
+
+
+def multiplicative_order(x):
+    r"""
+    Return the multiplicative order of self, if self is a unit, or raise
+    \code{ArithmeticError} otherwise.
+    """
+    return x.multiplicative_order()
+
+## def new_submodule(x):
+##     return x.new_submodule()
+
+## def new_subspace(x):
+##     return x.new_subspace()
+
+def ngens(x):
+    """
+    Return the number of generators of x.
+    """
+    return x.ngens()
+
+def norm(x):
+    """
+    Return the norm of x.
+
+    EXAMPLES:
+    sage: z = CC(1+2*i)
+    sage: norm(z)
+    5.0000000000000000
+    """
+    return x.norm()
+
+def numerator(x):
+    """
+    Return the numerator of x.
+
+    EXAMPLES:
+    sage: R = PolynomialRing(RationalField(), 'x')
+    sage: F = FractionField(R)
+    sage: r = (x+1)/(x-1)
+    sage: numerator(r)
+    x + 1
+    sage: numerator(17/11111)
+    17
+    """
+    if isinstance(x, (int, long)):
+        return x
+    return x.numerator()
+
+def objgens(x, names=None):
+    """
+    EXAMPLES:
+        sage: R, x = objgens(MPolynomialRing(Q,3))
+        sage: R
+        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        sage: x
+        (x_0, x_1, x_2)
+    """
+    return x.objgens(names)
+
+def objgen(x, names=None):
+    """
+    EXAMPLES:
+        sage: R, x = objgen(FractionField(Q['x']))
+        sage: R
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+        sage: x
+        x
+    """
+    return x.objgen(names)
+
+def one(R):
+    """
+    Return the one element of the ring R.
+
+    EXAMPLES:
+    sage: R = PolynomialRing(RationalField(), 'x')
+    sage: one(R)*x == x
+    True
+    sage: one(R) in R
+    True
+
+    """
+    return R(1)
+
+def order(x):
+    """
+    Return the order of x.  If x is a ring or module element, this is
+    the additive order of x.
+
+    EXAMPLES:
+    sage: C = CyclicPermutationGroup(10)
+    sage: order(C)
+    10
+    sage: F = GF(7)
+    sage: order(F)
+    7
+
+    """
+    return x.order()
+
+def rank(x):
+    """
+    Return the rank of x.
+
+    EXAMPLES:
+    sage: M = MatrixSpace(QQ,3,3)
+    sage: A = M([1,2,3,4,5,6,7,8,9])
+    sage: rank(A)
+    2
+
+    """
+    return x.rank()
+
+def real(x):
+    """
+    Return the real part of x.
+
+    EXAMPLES:
+    sage: z = CC(1+2*i)
+    sage: real(z)
+    1.0000000000000000
+
+    """
+    try: return x.real()
+    except AttributeError: return C(x).real()
+
+def regulator(x):
+    """
+    Return the regulator of x.
+    """
+    return x.regulator()
+
+def quo(x, y, var=None):
+    """
+    Return the quotient object x/y, e.g., a quotient of numbers or of
+    a polynomial ring x by the ideal generated by y, etc.
+    """
+    try:
+        return x.quotient(y, var)
+    except AttributeError:
+        return x/y
+
+quotient = quo
+
+def sqrt(x):
+    """
+    Return a square root of x.
+
+    EXAMPLES:
+    sage: sqrt(10.1)
+    3.1780497164141406
+    sage: sqrt(9)
+    3.0000000000000000
+
+    """
+    try: return x.sqrt()
+    except (AttributeError, ValueError): return ComplexField()(x).sqrt()
+
+def isqrt(x):
+    """
+    Return an integer square root, i.e., the floor of a
+    square root.
+
+    EXAMPLES:
+    sage: isqrt(10)
+    3
+
+    """
+    try: return x.isqrt()
+    except AttributeError:
+        raise NotImplementedError
+
+def sin(x):
+    """
+    Return the sin of x.
+    """
+    try: return x.sin()
+    except AttributeError: return math.sin(float(x))
+
+def square_free_part(x):
+    """
+    Return the square free part of $x$, i.e., a divisor $z$ such that $x = z y^2$,
+    for a perfect square $y^2$.
+
+    EXAMPLES:
+        sage: square_free_part(100)
+        1
+        sage: square_free_part(12)
+        3
+        sage: square_free_part(10)
+        10
+
+        sage: x = Q['x'].0
+        sage: S = square_free_part(-9*x*(x-6)^7*(x-3)^2); S
+        -9*x^2 + 54*x
+        sage: S.factor()
+        (-9) * (x - 6) * x
+
+        sage: f = (x^3 + x + 1)^3*(x-1); f
+        x^10 - x^9 + 3*x^8 + 3*x^5 - 2*x^4 - x^3 - 2*x - 1
+        sage: g = square_free_part(f); g
+        x^4 - x^3 + x^2 - 1
+        sage: g.factor()
+        (x - 1) * (x^3 + x + 1)
+    """
+    try:
+        return x.square_free_part()
+    except AttributeError:
+        pass
+    F = factor(x)
+    n = x.parent()(1)
+    for p, e in F:
+        if e%2 != 0:
+            n *= p
+    return n * F.unit()
+
+def square_root(x):
+    """
+    Return a square root of x with the same parent as x, if possible,
+    otherwise raise a ValueError.
+
+    EXAMPLES:
+    sage: square_root(9)
+    3
+    sage: square_root(100)
+    10
+
+    """
+    try:
+        return x.square_root()
+    except AttributeError:
+        raise NotImplementedError
+
+def tan(x):
+    """
+    Return the tangent of x.
+
+    EXAMPLES:
+    sage: tan(3.1415)
+    -0.000092653590058635411
+    sage: tan(3.1415/4)
+    0.99995367427815607
+
+    """
+    try: return x.tan()
+    except AttributeError: return math.tan(float(x))
+
+def transpose(x):
+    """
+    EXAMPLES:
+    sage: M = MatrixSpace(QQ,3,3)
+    sage: A = M([1,2,3,4,5,6,7,8,9])
+    sage: transpose(A)
+    [1 4 7]
+    [2 5 8]
+    [3 6 9]
+
+    """
+    return x.transpose()
+
+xgcd = sage.rings.arith.xgcd
+
+def vector(x, R):
+    """
+    Return the \sage vector over $R$ obtained from x, if possible.
+    """
+    try:
+        return x._vector_(R)
+    except AttributeError:
+        raise TypeError, "No known way to create a vector from %s"%x
+
+def zero(R):
+    """
+    Return the zero element of the ring R.
+
+    EXAMPLES:
+    sage: R = PolynomialRing(RationalField(), 'x')
+    sage: zero(R) in R
+    True
+    sage: zero(R)*x == zero(R)
+    True
+    """
+    return R(0)
+
+
+
+#################################################################
+# Generic parent
+#################################################################
+def parent(x):
+    """
+    Return x.parent() if defined, or type(x) if not.
+
+    EXAMPLE:
+        sage: Z = parent(int(5))
+        sage: Z(17)
+        17
+        sage: Z
+        <type 'int'>
+    """
+    try:
+        return x.parent()
+    except AttributeError:
+        return type(x)
+

@@ -1,0 +1,192 @@
+r"""
+Free abelian monoids
+
+AUTHOR:
+    -- David Kohel (2005-09)
+
+SAGE supports free abelian monoids on any prescribed finite number
+$n\geq 0$ of generators.  Use the \code{FreeAbelianMonoid} function to
+create a free abelian monoid, and the \code{gen} and \code{gens}
+functions to obtain the corresponding generators.  You can print the
+generators as arbitrary strings using the optional \code{names} argument to
+the \code{FreeAbelianMonoid} function.
+
+EXAMPLE 1:
+It is possible to create an abelian monoid in
+zero or more variables; the syntax T(1) creates the
+monoid indentity element even in the rank zero case.
+
+    sage: T = FreeAbelianMonoid(0)
+    sage: T
+    Free abelian monoid on 0 generators ()
+    sage: T.gens()
+    ()
+    sage: T(1)
+    1
+
+EXAMPLE 2:
+A free abelian monoid uses a multiplicative representation of
+elements, but the underlying representation is lists of integer
+exponents.
+
+    sage: F = FreeAbelianMonoid(5,names = list("abcde"))
+    sage: (a,b,c,d,e) = F.gens()
+    sage: a*b^2*e*d
+    a*b^2*d*e
+    sage: x = b^2*e*d*a^7
+    sage: x
+    a^7*b^2*d*e
+    sage: x.list()
+    [7, 2, 0, 1, 1]
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL):
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+import weakref
+
+from sage.structure.gens import Generators
+from free_abelian_monoid_element import FreeAbelianMonoidElement
+from sage.ext.integer import Integer
+
+_cache = {}
+def FreeAbelianMonoid(n, names=None):
+    """
+    Create the free abelian monoid in $n$ generators.
+
+    INPUT:
+        n -- integer
+        names -- (optional) names of generators
+
+    OUTPUT:
+        free abelian monoid
+
+    EXAMPLES:
+        sage: FreeAbelianMonoid(0)
+        Free abelian monoid on 0 generators ()
+        sage: F = FreeAbelianMonoid(5,names = list("abcde"))
+        sage: F
+        Free abelian monoid on 5 generators (a, b, c, d, e)
+        sage: F(1)
+        1
+        sage: (a, b, c, d, e) = F.gens()
+        sage: mul([ a, b, a, c, b, d, c, d ])
+        a^2*b^2*c^2*d^2
+        sage: a**2 * b**3 * a**2 * b**4
+        a^4*b^7
+    """
+    global _cache
+    if isinstance(names, list):
+        key = (n, tuple(names))
+    else:
+        key = (n, names)
+    if _cache.has_key(key):
+        M = _cache[key]()
+        if not M is None:
+            return M
+    M = FreeAbelianMonoid_class(n, names)
+    _cache[key] = weakref.ref(M)
+    return M
+
+def is_FreeAbelianMonoid(x):
+    """
+    Return True if $x$ is a free abelian monoid.
+
+    EXAMPLES:
+        sage: is_FreeAbelianMonoid(5)
+        False
+        sage: is_FreeAbelianMonoid(FreeAbelianMonoid(7))
+        True
+        sage: is_FreeAbelianMonoid(FreeMonoid(7))
+        False
+        sage: is_FreeAbelianMonoid(FreeMonoid(0))
+        False
+    """
+    return isinstance(x, FreeAbelianMonoid_class)
+
+class FreeAbelianMonoid_class(Generators):
+    """
+    Free abelian monoid on $n$ generators.
+    """
+    def __init__(self, n, names=None):
+        if not isinstance(n, (int, long, Integer)):
+            raise TypeError, "n (=%s) must be an integer."%n
+        if n < 0:
+            raise ValueError, "n (=%s) must be nonnegative."%n
+        self.__ngens = int(n)
+        self.assign_names(names)
+
+    def __repr__(self):
+        n = self.__ngens
+        return "Free abelian monoid on %s generators %s"%(n,self.gens())
+
+    def __call__(self, x):
+        """
+        Create an element of this abelian monoid from $x$.
+
+        EXAMPLES:
+            sage: F = FreeAbelianMonoid(10)
+            sage: F(F.gen(2))
+            x_2
+            sage: F(1)
+            1
+        """
+        if isinstance(x, FreeAbelianMonoidElement) and x.parent() == self:
+            return x
+        return FreeAbelianMonoidElement(self, x)
+
+    def __contains__(self, x):
+        """
+        Return True if $x$ is an element of this abelian monoid.
+
+        EXAMPLES:
+            sage: F = FreeAbelianMonoid(10)
+            sage: F.gen(2)*F.gen(3) in F
+            True
+
+        Note that a monoid on $9$ generators is not considered a submonoid
+        of one on $10$ generators.
+            sage: FreeAbelianMonoid(9).gen(2) in F
+            False
+
+        However, multiple calls to the monoid constructor do not return multiple
+        distinct monoids.
+            sage: FreeAbelianMonoid(10).gen(2) in F
+            True
+        """
+        return isinstance(x, FreeAbelianMonoidElement) and x.parent() == self
+
+    def gen(self, i=0):
+        """
+        The $i$-th generator of the abelian monoid.
+
+        EXAMPLES:
+            sage: F = FreeAbelianMonoid(5,'a')
+            sage: F.gen(0)
+            a_0
+            sage: F.gen(2)
+            a_2
+        """
+        n = self.__ngens
+        if i < 0 or not i < n:
+            raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
+        x = [ 0 for j in range(n) ]
+        x[int(i)] = 1
+        return FreeAbelianMonoidElement(self,x)
+
+    def ngens(self):
+        """
+        The number of free generators of the abelian monoid.
+
+        EXAMPLES:
+            sage: F = FreeAbelianMonoid(3000)
+            sage: F.ngens()
+            3000
+        """
+        return self.__ngens
+

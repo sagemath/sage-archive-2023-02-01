@@ -1,0 +1,2 @@
+recursive-include * *.c *.h *.pyx *.pxd *.pxi *.cc *.txt
+include install spkg-dist spkg-install MANIFEST.in README

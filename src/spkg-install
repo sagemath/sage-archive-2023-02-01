@@ -1,0 +1,47 @@
+#!/bin/sh
+
+#######################################
+# Install SAGE
+#######################################
+
+if [ $? -ne 0 ]; then
+   exit 1
+fi
+
+DEVEL=$SAGE_ROOT/devel
+
+if [ ! -d $DEVEL ]; then
+    mkdir $DEVEL
+fi
+
+if [ $? -ne 0 ]; then
+   exit 1
+fi
+
+D=`pwd`
+E=`basename "$D"`
+
+if [ ! -d $DEVEL/old ]; then
+    mkdir $DEVEL/old
+fi
+
+mv $DEVEL/sage-* $DEVEL/old/
+
+if [ ! -d $DEVEL/$E ]; then
+    mkdir $DEVEL/$E
+    cp -pr * $DEVEL/$E
+    if [ $? -ne 0 ]; then
+       exit 1
+    fi
+else   # this should never happen since old version gets moved into old
+    echo "NOT overwriting $SAGE_ROOT/devel/$E with new version."
+    echo "If you want to put the new version there, copy it from `pwd`"
+fi
+
+cd $SAGE_ROOT/devel
+rm -f sage
+ln -sf $E sage
+
+cd $E
+python setup.py install
+

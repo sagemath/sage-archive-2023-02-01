@@ -1,0 +1,420 @@
+r"""
+Multivariate Polynomial Rings
+
+AUTHORS:
+    -- David Joyner and William Stein
+
+EXAMPLES:
+We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
+    sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
+    sage: frob = R.hom([x^5, y^5, z^5])
+    sage: frob(x^2 + 2*y - z^4)
+    4*z^20 + 2*y^5 + x^10
+    sage: frob((x + 2*y)^3)
+    3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
+    sage: (x^5 + 2*y^5)^3
+    3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
+"""
+
+#*****************************************************************************
+#
+#   SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+import weakref
+
+import commutative_ring
+import integral_domain
+
+import fraction_field
+import fraction_field_element
+
+import multi_polynomial_element
+import multi_polynomial_ideal
+import polydict
+
+import sage.misc.latex as latex
+
+from sage.interfaces.all import singular as singular_default, is_SingularElement
+
+from sage.ext.sage_object import SageObject
+
+import multi_polynomial_ideal
+
+_cache = {}
+
+def MPolynomialRing(base_ring, n=1, names=None, order='lex'):
+    r"""
+    Create a Multivariate polynomial ring over a commutative base ring.
+
+    INPUT:
+        base_ring -- CommutativeRing
+        n -- int, number of variables  (default: 1)
+        names -- tuple or string:
+                   - tuple of n variable names
+                   - if string, names the variables the characters in the string.
+                 default: names variables x_0, x_1, etc.
+
+        order -- string; the term order, or an object of type TermOrder:
+                 'lex' (default) -- lexicographic
+                 'revlex' -- reverse lexicographic
+                 'degrevlex' -- degree reverse lexicographic
+                 'deglex' -- degree lexicographic
+                 'wp(w1,...,wn)' -- weight reverse lexicographic
+                 'Wp(w1,...,wn)' -- weight lexicographic
+
+    EXAMPLES:
+        sage: R = MPolynomialRing(RationalField(), 3)
+        sage: R
+        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        sage: x_0,x_1,x2 = R.gens()
+        sage: x_0.element()
+        PolyDict with representation {(1, 0, 0): 1}
+        sage: x_0 + x_1 + x2
+        x_2 + x_1 + x_0
+        sage: (x_0 + x_1 + x2)**2
+        x_2^2 + 2*x_1*x_2 + x_1^2 + 2*x_0*x_2 + 2*x_0*x_1 + x_0^2
+
+    This example illustrates the quick shorthand for naming several
+    variables one-letter names.
+        sage: MPolynomialRing(ZZ, 4, 'xyzw')
+        Polynomial Ring in x, y, z, w over Integer Ring
+
+    To obtain both the ring and its generators, use the \code{objgens} function.
+        sage: R, (x,y,z,w) = MPolynomialRing(ZZ, 4, 'xyzw').objgens()
+        sage: (x+y+z+w)^2
+        w^2 + 2*z*w + z^2 + 2*y*w + 2*y*z + y^2 + 2*x*w + 2*x*z + 2*x*y + x^2
+
+    We can construct multi-variate polynomials rings over completely
+    arbitrary SAGE rings.  In this example, we construct a polynomial
+    ring S in 3 variables over a polynomial ring in 2 variables over
+    GF(9).  Then we construct a polynomial ring in 20 variables over S!
+
+        sage: R, (n1,n2) = MPolynomialRing(GF(9),2, names=['n1','n2']).objgens()
+        sage: n1^2 + 2*n2
+        2*n2 + n1^2
+        sage: S = MPolynomialRing(R,3, names='a'); a0,a1,a2=S.gens()
+        sage: S
+        Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
+        sage: x = (n1+n2)*a0 + 2*a1**2
+        sage: x
+        2*a_1^2 + (n2 + n1)*a_0
+        sage: x**3
+        2*a_1^6 + (n2^3 + n1^3)*a_0^3
+        sage: T = MPolynomialRing(S, 20)
+        sage: T
+        Polynomial Ring in x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10, x_11, x_12, x_13, x_14, x_15, x_16, x_17, x_18, x_19 over Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
+    """
+    global _cache
+    T = TermOrder(order)
+    if isinstance(names, list):
+        names = tuple(names)
+    #elif isinstance(names, str):
+    #    if len(names) > 1:
+    #        names = tuple(names)
+    key = (base_ring, n, names, T)
+    if _cache.has_key(key):
+        R = _cache[key]()
+        if not (R is None):
+            return R
+    if not isinstance(base_ring, commutative_ring.CommutativeRing):
+        raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+    if base_ring.is_prime_field():
+        R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
+    else:
+        if integral_domain.is_IntegralDomain(base_ring):
+            R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
+        else:
+            R = MPolynomialRing_polydict(base_ring, n, names, T)
+    _cache[key] = weakref.ref(R)
+    return R
+
+def is_MPolynomialRing(x):
+    return isinstance(x, MPolynomialRing_generic)
+
+class MPolynomialRing_generic(commutative_ring.CommutativeRing):
+    def __init__(self, base_ring, n, names, order):
+        if not isinstance(base_ring, commutative_ring.CommutativeRing):
+            raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+        self.__base_ring = base_ring
+        n = int(n)
+        if n < 0:
+            raise ValueError, "Multivariate Polynomial Rings must " + \
+                  "have more than 0 variables."
+        self.__ngens = n
+        self.assign_names(names)
+        self.__term_order = order
+
+    def __cmp__(self, right):
+        if not is_MPolynomialRing(right):
+            return -1
+        return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
+                   (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
+
+    def __contains__(self, x):
+        """
+        This definition of containment does not involve a natural
+        inclusion from rings with less variables into rings with more.
+        """
+        try:
+            return x.parent() == self
+        except AttributeError:
+            return False
+
+    def _repr_(self):
+        return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
+
+    def _latex_(self):
+        vars = latex.latex(self.variable_names()).replace('\n','')
+        return "%s[%s]"%(latex.latex(self.base_ring()), vars[1:-1])
+
+
+    def _ideal_class_(self):
+        return multi_polynomial_ideal.MPolynomialIdeal
+
+    def _is_valid_homomorphism_(self, codomain, im_gens):
+        try:
+            # all that is needed is that elements of the base ring
+            # of the polynomial ring canonically coerce into codomain.
+            # Since poly rings are free, any image of the gen
+            # determines a homomorphism
+            codomain._coerce_(self.base_ring()(1))
+        except TypeError:
+            return False
+        return True
+
+    def is_finite(self):
+        if self.ngens() == 0:
+            return self.base_ring().is_finite()
+        return False
+
+    def is_field(self):
+        """
+        Return True if this multivariate polynomial ring is a field, i.e.,
+        it is a ring in 0 generators over a field.
+        """
+        if self.ngens() == 0:
+            return self.base_ring().is_field()
+        return False
+
+    def term_order(self):
+        return self.__term_order
+
+    def base_ring(self):
+        return self.__base_ring
+
+    def characteristic(self):
+        """
+        Return the characteristic of this polynomial ring.
+
+        EXAMPLES:
+            sage: R = MPolynomialRing(RationalField(), 3)
+            sage: R.characteristic()
+            0
+            sage: R = MPolynomialRing(GF(7),20)
+            sage: R.characteristic()
+            7
+        """
+        return self.__base_ring.characteristic()
+
+    def gen(self, n=0):
+        if n < 0 or n >= self.__ngens:
+            raise ValueError, "Generator %s not defined."%n
+        return self._gens[int(n)]
+
+    def gens(self):
+        return self._gens
+
+    def krull_dimension(self):
+        return self.base_ring().krull_dimension() + self.ngens()
+
+    def ngens(self):
+        return self.__ngens
+
+    def _monomial_order_function(self):
+        raise NotImplementedError
+
+class MPolynomialRing_polydict(MPolynomialRing_generic):
+    """
+    Multivariable polynomial ring.
+
+    EXAMPLES:
+        sage: R = MPolynomialRing(Integers(12),5); R
+        Polynomial Ring in x_0, x_1, x_2, x_3, x_4 over Ring of integers modulo 12
+        sage: loads(R.dumps()) == R
+        True
+    """
+    def __init__(self, base_ring, n, names, order):
+        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
+        # Construct the generators
+        v = [0 for _ in xrange(n)]
+        one = base_ring(1);
+        self._gens = []
+        C = self._poly_class()
+        for i in xrange(n):
+            v[i] = 1  # int's!
+            self._gens.append(C(self, {tuple(v):one}))
+            v[i] = 0
+        self._gens = tuple(self._gens)
+        self._zero_tuple = tuple(v)
+
+    def _monomial_order_function(self):
+        return self.__monomial_order_function
+
+    def _poly_class(self):
+        return multi_polynomial_element.MPolynomial_polydict
+
+    def __call__(self, x, check=True):
+        """
+        Coerce x into this multivariate polynomial ring.
+        """
+        if isinstance(x, multi_polynomial_element.MPolynomial_polydict) and x.parent() == self:
+            return x
+        elif isinstance(x, polydict.PolyDict):
+            return multi_polynomial_element.MPolynomial_polydict(self, x)
+        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
+            if x.denominator() == 1:
+                return x.numerator()
+            else:
+                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+        c = self.base_ring()(x)
+        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
+
+class MPolynomialRing_polydict_domain(MPolynomialRing_polydict, integral_domain.IntegralDomain):
+    pass
+
+
+class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
+    def _singular_(self, singular=None):
+        if singular is None:
+            singular = singular_default
+        try:
+            R = self.__singular
+            if not (R.parent() is singular):
+                raise ValueError
+            R._check_valid()
+            return R
+        except (AttributeError, ValueError):
+            if not self.base_ring().is_prime_field():
+                raise TypeError, "no conversion of %s to a Singular ring defined"%self
+            self.__singular = singular.ring(self.characteristic(), str(self.gens()), self.term_order().singular_str())
+        return self.__singular
+
+    def __call__(self, x, check=True):
+        """
+        Coerce x into this multivariate polynomial ring.
+
+        EXAMPLES:
+        We create a Singular multivariate polynomial via ideal arithmetic,
+        then coerce it into R.
+            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()
+            sage: I = R.ideal([x^3 + y, y])
+            sage: S = singular(I)
+            sage: f = (S*S*S)[2]
+            sage: f
+            x^3*y^2+y^3
+            sage: R(f)
+            y^3 + x^3*y^2
+        """
+        if isinstance(x, multi_polynomial_element.MPolynomial_singular_repr) and x.parent() == self:
+            return x
+        elif isinstance(x, polydict.PolyDict):
+            return multi_polynomial_element.MPolynomial_singular_repr(self, x)
+        elif is_SingularElement(x):
+            try:
+                self._singular_().set_ring()
+                s = x.sage_polystring()
+                if len(s) == 0:
+                    raise TypeError
+                # NOTE: It's CRUCIAL to use the eval command as follows,
+                # i.e., with the gen dict as the third arg and the second
+                # empty.  Otherwise pickling won't work after calls to this eval!!!
+                # This took a while to figure out!
+                return self(eval(s, {}, self.gens_dict()))
+            except (AttributeError, TypeError, NameError):
+                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, s)
+            return multi_polynomial_element.MPolynomial_singular_repr(self, x)
+        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
+            if x.denominator() == 1:
+                return x.numerator()
+            else:
+                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+        c = self.base_ring()(x)
+        return multi_polynomial_element.MPolynomial_singular_repr(self, {self._zero_tuple:c})
+
+    def _poly_class(self):
+        return multi_polynomial_element.MPolynomial_singular_repr
+
+    def ideal(self, gens, coerce=True):
+        if is_SingularElement(gens):
+            gens = list(gens)
+            coerce = True
+        elif not isinstance(gens, (list, tuple)):
+            gens = [gens]
+        if coerce:
+            gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
+        return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
+
+class MPolynomialRing_singular_repr_domain(MPolynomialRing_singular_repr, integral_domain.IntegralDomain):
+    pass
+
+
+#######################
+
+name_mapping = {'lex':'lp', \
+                'revlex':'rp', \
+                'degrevlex':'dp', \
+                'deglex':'Dp'}
+
+class TermOrder(SageObject):
+    """
+    EXAMPLES:
+        sage: t = TermOrder('lex')
+        sage: t
+        Lexicographic term order
+        sage: loads(dumps(t)) == t
+        True
+    """
+    def __init__(self, name='lex'):
+        if isinstance(name, TermOrder):
+            name = name.__name
+        name = name.lower()
+        self.__name = name
+        if name_mapping.has_key(name):
+            name = name_mapping[name]
+        self.__singular_str = name
+
+    def _repr_(self):
+        if self.__name == 'lex':
+            s = 'Lexicographic'
+        elif self.__name == 'degrevlex':
+            s = 'Degree reverse lexicographic'
+        else:
+            s = self.__name
+        return '%s term order'%s
+
+    def singular_str(self):
+        return self.__singular_str
+
+    def __cmp__(self, other):
+        if not isinstance(other, TermOrder):
+            if isinstance(other, str):
+                other = TermOrder(other)
+            else:
+                return -1
+        return cmp(self.__name, other.__name)
+

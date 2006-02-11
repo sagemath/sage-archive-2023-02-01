@@ -1,0 +1,354 @@
+"""
+Scheme morphism
+"""
+
+#*****************************************************************************
+#  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.structure.all       import Sequence, AdditiveGroupElement, RingElement
+
+from sage.categories.morphism import Morphism
+
+from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing
+
+from point                    import is_SchemeTopologicalPoint
+
+import spec
+
+def is_SchemeMorphism(f):
+    return isinstance(f, SchemeMorphism);
+
+class SchemeMorphism(Morphism):
+    """
+    A scheme morphism
+    """
+    def __init__(self, parent):
+	Morphism.__init__(self, parent)
+
+    def _repr_type(self):
+        return "Scheme"
+
+    def glue_along_domains(self, other):
+        r"""
+        Assuming that self and other are open immersions with the same
+        domain, return scheme obtained by gluing along the images.
+
+        EXAMPLES:
+        We construct a scheme isomorphic to the projective line over
+        $\Spec(\Q)$ by gluing two copies of $\A^1$ minus a point.
+            sage: R, (x,y) = MPolynomialRing(QQ, 2, 'xy').objgens()
+            sage: S, (xbar,ybar) = (R/(x*y - 1)).objgens(['xbar', 'ybar'])
+            sage: Rx = PolynomialRing(QQ, 'x')
+            sage: i1 = Rx.hom([xbar])
+            sage: Ry = PolynomialRing(QQ, 'y')
+            sage: i2 = Ry.hom([ybar])
+            sage: Sch = Schemes()
+            sage: f1 = Sch(i1)
+            sage: f2 = Sch(i2)
+
+        Now f1 and f2 have the same domain, which is a $\A^1$ minus a point.
+        We glue along the domain:
+            sage: P1 = f1.glue_along_domains(f2)
+            sage: P1
+            Scheme obtained by gluing X and Y along U, where
+              X: Spectrum of Univariate Polynomial Ring in x over Rational Field
+              Y: Spectrum of Univariate Polynomial Ring in y over Rational Field
+              U: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (-1 + x*y)
+
+            sage: a, b = P1.gluing_maps()
+            sage: a
+            Affine Scheme morphism:
+             From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (-1 + x*y)
+              To:   Spectrum of Univariate Polynomial Ring in x over Rational Field
+              Defn: Ring morphism:
+                      From: Univariate Polynomial Ring in x over Rational Field
+                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (-1 + x*y)
+                      Defn: x |--> xbar
+            sage: b
+            Affine Scheme morphism:
+              From: Spectrum of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (-1 + x*y)
+              To:   Spectrum of Univariate Polynomial Ring in y over Rational Field
+              Defn: Ring morphism:
+                      From: Univariate Polynomial Ring in y over Rational Field
+                      To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (-1 + x*y)
+                      Defn: y |--> ybar
+        """
+        import glue
+        return glue.GluedScheme(self, other)
+
+class SchemeMorphism_id(SchemeMorphism):
+    """
+    Return the identity morphism from X to itself.
+
+    EXAMPLES:
+        sage: X = Spec(Z)
+        sage: X.identity_morphism()
+        Scheme endomorphism of Spectrum of Integer Ring
+          Defn: Identity map
+    """
+    def __init__(self, X):
+        SchemeMorphism.__init__(self, X.Hom(X))
+
+    def _repr_defn(self):
+        return "Identity map"
+
+
+class SchemeMorphism_structure_map(SchemeMorphism):
+    def __init__(self, parent):
+        """
+        INPUT:
+            parent -- homset with codomain equal to the base scheme of the domain.
+        """
+        SchemeMorphism.__init__(self, parent)
+        if self.domain().base_scheme() != self.codomain():
+            raise ValueError, "parent must have codomain equal the base scheme of domain."
+
+    def _repr_defn(self):
+        return "Structure map"
+
+
+class SchemeMorphism_spec(SchemeMorphism):
+    """
+    A morphism of spectrums of rings
+
+    EXAMPLES:
+        sage: R, x = PolynomialRing(Q).objgens()
+        sage: phi = R.hom([Q(7)]); phi
+        Ring morphism:
+          From: Univariate Polynomial Ring in x over Rational Field
+          To:   Rational Field
+          Defn: x |--> 7
+
+        sage: X = Spec(Q); Y = Spec(R)
+        sage: f = X.hom(phi); f
+        Affine Scheme morphism:
+          From: Spectrum of Rational Field
+          To:   Spectrum of Univariate Polynomial Ring in x over Rational Field
+          Defn: Ring morphism:
+                  From: Univariate Polynomial Ring in x over Rational Field
+                  To:   Rational Field
+                  Defn: x |--> 7
+
+        sage: f.ring_homomorphism()
+        Ring morphism:
+          From: Univariate Polynomial Ring in x over Rational Field
+          To:   Rational Field
+          Defn: x |--> 7
+    """
+    def __init__(self, parent, phi, check=True):
+	Morphism.__init__(self, parent)
+        if check:
+            if not is_RingHomomorphism(phi):
+                raise TypeError, "phi (=%s) must be a ring homomorphism"%phi
+            if phi.domain() != parent.codomain().coordinate_ring():
+                raise TypeError, "phi (=%s) must have domain %s"%(phi,
+                                                   parent.codomain().coordinate_ring())
+            if phi.codomain() != parent.domain().coordinate_ring():
+                raise TypeError, "phi (=%s) must have codomain %s"%(phi,
+                                                 parent.domain().coordinate_ring())
+	self.__ring_homomorphism = phi
+
+    def __call__(self, P):
+        if not is_SchemeTopologicalPoint(P) and P in self.domain():
+            raise TypeError, "P (=%s) must be a topological scheme point of %s"%(P, self)
+        S = self.ring_homomorphism().inverse_image(P.prime_ideal())
+        return self.codomain()(S)
+
+    def _repr_type(self):
+        return "Affine Scheme"
+
+    def _repr_defn(self):
+        return str(self.ring_homomorphism())
+
+
+    def ring_homomorphism(self):
+        return self.__ring_homomorphism
+
+
+############################################################################
+# Morphisms between schemes given on points
+# The _affine and _projective below refer to the CODOMAIN.
+# The domain can be either affine or projective irregardless
+# of the class
+############################################################################
+
+class SchemeMorphism_on_points(SchemeMorphism):
+    """
+    A morphism of schemes determined by rational functions that define
+    what the morphism does on points in the ambient space.
+    """
+    def __call__(self, x):
+        if not isinstance(x, SchemeMorphism_coordinates):
+            raise TypeError, "x (=%s) must be a projective point given by coordinates"%x
+        P = [f(x._coords) for f in self.defining_polynomials()]
+        return self.codomain()(P)
+
+
+    def _repr_defn(self):
+        i = self.domain().ambient_space()._repr_generic_point()
+        o = self.codomain().ambient_space()._repr_generic_point(self.defining_polynomials())
+        return "Defined on coordinates by sending %s to\n%s"%(i,o)
+
+
+class SchemeMorphism_on_points_affine_space(SchemeMorphism_on_points):
+    """
+    A morphism of schemes determined by rational functions that define
+    what the morphism does on points in the ambient affine space.
+    """
+    def __init__(self, parent, polys, check=True):
+        if check:
+            if not isinstance(polys, (list, tuple)):
+                raise TypeError, "polys (=%s) must be a list or tuple"%polys
+            polys = Sequence(polys)
+            if len(polys) != parent.codomain().dimension():
+                raise ValueError, "there must be %s polynomials but instead received %s"%(
+                    parent.codomain().dimension(), polys)
+            polys.set_immutable()
+            # Todo: check that map is well defined (how?)
+        self.__polys = polys
+        SchemeMorphism_on_points.__init__(self, parent)
+
+    def defining_polynomials(self):
+        return self.__polys
+
+
+class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
+    """
+    A morphism of schemes determined by rational functions that define
+    what the morphism does on points in the ambient projective space.
+    """
+
+    def __init__(self, parent, polys, check=True):
+        if check:
+            if not isinstance(polys, (list, tuple)):
+                raise TypeError, "polys (=%s) must be a list or tuple"%polys
+            polys = Sequence(polys)
+            if len(polys) != parent.codomain().dimension() + 1:
+                raise ValueError, "there must be %s polynomials"%parent.codomain().dimension()
+            polys.set_immutable()
+        self.__polys = polys
+        SchemeMorphism_on_points.__init__(self, parent)
+
+    def defining_polynomials(self):
+        return self.__polys
+
+
+############################################################################
+# Rational points on schemes, which we view as morphisms determined
+# by coordinates.
+############################################################################
+
+class SchemeMorphism_coordinates(SchemeMorphism):
+    def _repr_(self):
+        return self.codomain().ambient_space()._repr_generic_point(self._coords)
+
+    def _latex_(self):
+        return self.codomain().ambient_space()._latex_generic_point(self._coords)
+
+    def __getitem__(self, n):
+        return self._coords[n]
+
+    def __list__(self):
+        return list(self._coords)
+
+    def __tuple__(self):
+        return self._coords
+
+    def __cmp__(self, other):
+        if not isinstance(other, SchemeMorphism_coordinates):
+            return -1
+        return cmp(self._coords, other._coords)
+
+    def scheme(self):
+        return self.codomain()
+
+class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
+    """
+    A morphism determined by giving coordinates in a ring.
+
+    INPUT:
+        X -- a subscheme of an ambient affine space over a ring R.
+        v -- a list or tuple of coordinates in R
+
+    EXAMPLES:
+        sage: A = AffineSpace(2, Q)
+        sage: A(1,2)
+        (1, 2)
+    """
+    def __init__(self, X, v, check=True):
+        SchemeMorphism.__init__(self, X.point_homset())
+        if check:
+            # Verify that there are the right number of coords
+            if len(v) != X.degree():
+                raise TypeError, "v (=%s) must have %s components"%(v, X.degree())
+            # Make sure the coordinates all lie in the appropriate ring
+            v = Sequence(v, X.base_ring())
+            # Verify that the point satisfies the equations of X.
+            X._check_satisfies_equations(v)
+        self._coords = v
+
+
+class SchemeMorphism_projective_coordinates_ring(SchemeMorphism_coordinates):
+    """
+    A morphism determined by giving coordinates in a ring (how?).
+
+    """
+    def __init__(self, X, v, check=True):
+        raise NotImplementedError
+
+
+class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coordinates_ring):
+    """
+    A morphism determined by giving coordinates in a field.
+
+    INPUT:
+        X -- a subscheme of an ambient projective space over a field K
+        v -- a list or tuple of coordinates in K
+
+    EXAMPLES:
+        sage: P = ProjectiveSpace(3, RR)
+        sage: P(2,3,4,5)
+        (0.40000000000000002 : 0.59999999999999998 : 0.80000000000000004 : 1.0000000000000000)
+    """
+    def __init__(self, X, v, check=True):
+        SchemeMorphism.__init__(self, X.point_homset())
+        if check:
+            d = X.degree()
+            if len(v) != d+1 and len(v) != d:
+                raise TypeError, "v (=%s) must have %s components"%(v, X.degree())
+            v = Sequence(v, X.base_ring())
+            if len(v) == d:     # very common special case
+                v.append(1)
+
+            n = len(v)
+            for i in range(n):
+                if v[n-1-i] != 0:
+                    c = v[n-1-i]
+                    if c == 1:
+                        break
+                    for j in range(n-i):
+                        v[j] /= c
+                    break
+
+            X._check_satisfies_equations(v)
+
+        self._coords = v
+
+
+class SchemeMorphism_abelian_variety_coordinates_field(SchemeMorphism_projective_coordinates_field, AdditiveGroupElement):
+    def __mul__(self, n):
+        if isinstance(n, RingElement):
+            # [n]*P - multiplication by n.
+            return AdditiveGroupElement._mul_(self, n)
+        else:
+            # Function composition
+            return SchemeMorphism_projective_coordinates_field.__mul__(self, n)
+
+

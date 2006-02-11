@@ -1,0 +1,539 @@
+"""
+Dimensions of spaces of modular forms
+
+The dimension formulas and implementations in this module grew out of
+a program that Bruce Caskel wrote (around 1996) in PARI, which Kevin
+Buzzard subsequently extended.  I (William Stein) then implemented it
+in C++ for HECKE.  I also implemented it in MAGMA.  Also, the
+functions for dimensions of spaces with nontrivial character are based
+on a paper of Cohen and Oesterle (Springer Lecture notes in math,
+volume 627, pages 69--78).  I asked Cohen about proofs of the formulas
+for nontrivial character, and learned that they have never been
+published.
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+
+from sage.rings.arith import (factor, euler_phi as phi, divisors, is_prime,
+                              valuation, kronecker_symbol, gcd)
+import sage.modular.congroup as congroup
+from sage.misc.misc import mul
+from sage.rings.all import Mod, Integer as Z, IntegerModRing
+from sage.rings.rational_field import frac
+import dirichlet
+
+def mu0(n):
+    return mul([(p+1)*(p**(r-1)) for p, r in factor(n)])
+
+def mu20(n):
+    if n%4 == 0:
+        return 0
+    return mul([1 + kronecker_symbol(-4,p) for p, _ in factor(n)])
+
+def mu30(n):
+    if n%2==0 or n%9==0:
+        return 0
+    return mul([1 + kronecker_symbol(-3,p) for p, _ in factor(n)])
+
+def c0(n):
+    return sum([phi(gcd(d,n//d)) for d in divisors(n)])
+
+def g0(n):
+    return int(1 + frac(mu0(n),12) - frac(mu20(n),4) - \
+               frac(mu30(n),3) - frac(c0(n),2))
+
+def mu1(n):
+    if n <= 2:
+        return mu0(n)
+    return (phi(n)*mu0(n))/2
+
+def mu21(n):
+    if n<4:
+        return mu20(n)
+    return 0
+
+def mu31(n):
+    if n<4:
+        return mu30(n)
+    return 0
+
+def c1(n):
+    if n<3:
+        return c0(n)
+    if n==4:
+        return 3
+    return int(sum([frac(phi(d)*phi(n/d),2) \
+                    for d in divisors(n)]))
+
+def g1(n):
+    return int(1+frac(mu1(n),12)-frac(mu21(n),4)-frac(mu31(n),3) - frac(c1(n),2))
+
+def ss0(n,p):
+    assert is_prime(p)
+    assert n%p==0
+    return g0(n*p) - 2*g0(n) + 1
+
+def muXNp(n,p):
+    return mu1(n)*mu0(p)
+
+def mu2XNp(n,p):
+    return 0
+
+def mu3XNp(n,p):
+    return 0
+
+def cXNp(n):
+    return 2*c1(n)
+
+def gXNp(n,p):
+    if n<4:
+        return g0(n*p)
+    return int(1+frac(muXNp(n,p),12)-frac(mu2XNp(n,p),4) \
+               - frac(mu3XNp(n,p),3) - frac(cXNp(n),2))
+
+def ss1(n,p):
+    assert is_prime(p) and (n%p != 0)
+    return gXNp(n,p) - 2*g1(n) + 1
+
+def eisen(p):
+   assert is_prime(p)
+   return frac(p-1,12).numerator()
+
+def S0(n,k):
+    n = int(n); k = int(k)
+    assert n>0
+    if k<=0 or k%2!=0:
+        return 0
+    if k==2:
+        return g0(n)
+    return int((k-1)*(g0(n)-1) + \
+               (frac(k,2)-1)*c0(n)+mu20(n)*(k//4)+mu30(n)*(k//3))  # // is floor div
+
+def S1(n,k):
+    n = int(n); k = int(k)
+    assert n>0
+    if k<=0 or (n<=2 and k%2!=0):
+        return 0
+    assert k!=1, "weight 1 dimension not programmed"
+    if k==2:
+        return g1(n)
+    if n<=2:
+        return S0(n,k)
+    a = (k-1)*(g1(n)-1)+(frac(k,2)-1)*c1(n)
+    if n == 4 and k%2!=0:
+        a += frac(1,2)
+    elif n == 3:
+        a += k//3  # // is floor div
+    return int(a)
+
+def idxG0(N):
+    r"""
+    The index $[\Gamma_0(N):\SL_2(\Z)]$.
+    """
+    return mul([(p+1)*p**(e-1) for p, e in factor(N)])
+
+def idxG1(N):
+    r"""
+    The index $[\Gamma_1(N):\SL_2(\Z)]$.
+    """
+    return phi(N)*idxG0(N)
+
+#    Formula of Cohen-Oesterle for dim S_k(Gamma_1(N),eps).
+#    REF: Springer Lecture notes in math, volume 627, pages 69--78.
+#    The functions CO_delta and CO_nu, which were first written by Kevin Buzzard,
+#    are used only by the function CohenOesterle.
+
+def CO_delta(r,p,N,eps):
+    assert is_prime(p)
+    K = eps.base_ring()
+    if p%4 == 3:
+        return K(0)
+    if p==2:
+        if r==1:
+            return K(1)
+        return K(0)
+    # interesting case: p=1(mod 4).
+    # omega is a primitive 4th root of unity mod p.
+    omega = (IntegerModRing(p).unit_gens()[0])**((p-1)//4)
+    # this n is within a p-power root of a "local" 4th root of 1 modulo p.
+    n = Mod(int(omega.crt(Mod(1,N//(p**r)))),N)
+    n = n**(p**(r-1))   # this is correct now
+    t = eps(n)
+    if t==K(1):
+        return K(2)
+    if t==K(-1):
+        return K(-2)
+    return K(0)
+
+def CO_nu(r, p, N, eps):
+    K = eps.base_ring()
+    if p%3==2:
+        return K(0)
+    if p==3:
+        if r==1:
+            return K(1)
+        return K(0)
+    # interesting case: p=1(mod 3)
+    # omega is a cube root of 1 mod p.
+    omega = (IntegerModRing(p).unit_gens()[0])**((p-1)//3)
+    n = Mod(omega.crt(Mod(1,N//(p**r))), N)  # within a p-power root of a "local" cube root of 1 mod p.
+    n = n**(p**(r-1))  # this is right now
+    t = eps(n)
+    if t==K(1):
+        return K(2)
+    return K(-1)
+
+#todo: I had the following comment in my magma code.  check it.
+# Kevin's clever function has a bug, so I'm not using it now:
+#  K := CyclotomicField(3);
+#  eps := DirichletGroup(7*43,K).1^2;
+#  CuspidalSubspace(ModularForms([eps],2));
+#  boom!
+
+def CohenOesterle(eps, k):
+    N    = eps.modulus()
+    facN = factor(N)
+    f    = eps.conductor()
+    gamma_k = 0
+    if k%4==2:
+        gamma_k = frac(-1,4)
+    elif k%4==0:
+        gamma_k = frac(1,4)
+    mu_k = 0
+    if k%3==2:
+        mu_k = frac(-1,3)
+    elif k%3==0:
+        mu_k = frac(1,3)
+    def _lambda(r,s,p):
+        if 2*s<=r:
+            if r%2==0:
+                return p**(r//2) + p**((r//2)-1)
+            return 2*p**((r-1)//2)
+        return 2*(p**(r-s))
+    #end def of lambda
+    K = eps.base_ring()
+    return K(frac(-1,2) * mul([_lambda(r,valuation(f,p),p) for p, r in facN]) + \
+               gamma_k * mul([CO_delta(r,p,N,eps)         for p, r in facN]) + \
+                mu_k    * mul([CO_nu(r,p,N,eps)            for p, r in facN]))
+
+def dimension_cusp_forms_eps(eps, k=2):
+    """
+    The dimension of the space of cusp forms of weight k and character
+    eps.
+
+    INPUT:
+        eps -- a Dirichlet character
+        k -- integer, a weight >= 2.
+
+    OUTPUT:
+        integer -- the dimension
+
+    EXAMPLES:
+        sage: G = DirichletGroup(13)
+        sage: e = G.gen()
+        sage: e.order()
+        12
+        sage: dimension_cusp_forms_eps(e,2)
+        0
+        sage: dimension_cusp_forms_eps(e**2,2)
+        1
+    """
+    if isinstance(eps, (int,long) ):
+        return dimension_cusp_forms_gamma0(eps,k)
+
+
+    if k < 0:
+        return Z(0)
+    if eps.is_even():
+        if k % 2 == 1:
+            return Z(0)
+    else:  # odd
+        if k % 2 == 0:
+            return Z(0)
+    if k == 0:
+        if eps.is_trivial():
+            return Z(1)
+        else:
+            return Z(0)
+    elif k == 1:
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
+
+    N = eps.modulus()
+    if eps.is_trivial():
+        return Z(S0(N,k))
+    if (eps.is_odd() and k%2==0) or (eps.is_even() and k%2==1):
+        return Z(0)
+    K = eps.base_ring()
+    return Z ( K(idxG0(N)*frac(k-1,12)) + CohenOesterle(eps,k) )
+
+def dimension_cusp_forms_gamma0(N,k=2):
+    r"""
+    The dimension of the space $S_k(\Gamma_0(N))$ of cusp forms.
+
+    INPUT:
+        N -- integer
+        k -- integer, weight >= 2
+
+    OUTPUT:
+        integer -- the dimension
+
+    EXAMPLES:
+        sage: dimension_cusp_forms_gamma0(11,2)
+        1
+        sage: dimension_cusp_forms_gamma0(1,12)
+        1
+        sage: dimension_cusp_forms_gamma0(1,2)
+        0
+        sage: dimension_cusp_forms_gamma0(1,4)
+        0
+        sage: dimension_cusp_forms_gamma0(389,2)
+        32
+        sage: dimension_cusp_forms_gamma0(389,4)
+        97
+        sage: dimension_cusp_forms_gamma0(2005,2)
+        199
+    """
+    if N <= 0:
+        raise ArithmeticError, "the level N (=%s) must be positive"%N
+    if k < 0:
+        return Z(0)
+    elif k == 0:
+        return Z(1)
+    elif k%2 == 1:
+        return Z(0)
+    return Z(S0(N,k))
+
+def dimension_cusp_forms_gamma1(N,k=2):
+    r"""
+    The dimension of the space $S_k(\Gamma_1(N))$ of cusp forms.
+
+    INPUT:
+        N -- integer
+        k -- integer, weight >= 2
+
+    OUTPUT:
+        integer -- the dimension
+
+    EXAMPLES:
+        sage: dimension_cusp_forms_gamma1(11,2)
+        1
+        sage: dimension_cusp_forms_gamma1(1,12)
+        1
+        sage: dimension_cusp_forms_gamma1(1,2)
+        0
+        sage: dimension_cusp_forms_gamma1(1,4)
+        0
+        sage: dimension_cusp_forms_gamma1(389,2)
+        6112
+        sage: dimension_cusp_forms_gamma1(389,4)
+        18721
+        sage: dimension_cusp_forms_gamma1(2005,2)
+        159201
+    """
+    if N <= 0:
+        raise ArithmeticError, "the level N (=%s) must be positive"%N
+    if k < 0:
+        return Z(0)
+    elif k == 0:
+        return Z(1)
+    if k == 1:
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
+    #if k == 1:
+    #    print "WARNING: Returning *FAKE* dimension 0 for weight 1 cusp forms for testing!!!"
+    #    print "(This message is on line 264 of dims.py.)"
+    #    return 0
+    return Z(S1(N,k))
+
+def dimension_cusp_forms(group, k=2):
+    r"""
+    The dimension of the space of cusp forms for the given congruence
+    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$).
+
+    EXAMPLES:
+        sage: dimension_cusp_forms(Gamma0(11),2)
+        1
+        sage: dimension_cusp_forms(Gamma1(13),2)
+        2
+    """
+    if not isinstance(group, congroup.CongruenceSubgroup):
+        raise TypeError, "Argument 1 must be a congruence subgroup."
+    if isinstance(group, congroup.Gamma0):
+        return dimension_cusp_forms_gamma0(group.level(),k)
+    elif isinstance(group, congroup.Gamma1):
+        return dimension_cusp_forms_gamma1(group.level(),k)
+    else:
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
+        Gamma0 and Gamma1 is not yet implemented."
+
+def dimension_eis(group, k=2):
+    """
+    The dimension of the space of eisenstein series for the given
+    congruence subgroup.
+
+    EXAMPLES:
+        sage: dimension_eis(Gamma0(11),2)
+        1
+        sage: dimension_eis(Gamma1(13),2)
+        11
+    """
+    if k <= 1:
+        raise NotImplementedError, "Dimension of weight 1 Eisenstein series not yet implemented."
+    if isinstance(group, congroup.Gamma0):
+        if k%2 == 1: return 0
+        d = c0(group.level())
+        if k==2: d -= 1
+        return Z(d)
+    elif isinstance(group, congroup.Gamma1):
+        d = c1(group.level())
+        if k==2: d -= 1
+        return Z(d)
+    else:
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
+        Gamma0 and Gamma1 is not yet implemented."
+
+def mumu(N):
+    assert N>=1
+    p = 1
+    for _,r in factor(N):
+        if r > 2:
+            return Z(0)
+        elif r == 1:
+            p *= -2
+    return Z(p)
+
+def dimension_modular_forms(group, k=2):
+    r"""
+    The dimension of the space of cusp forms for the given congruence
+    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$).
+
+    EXAMPLES:
+        sage: dimension_cusp_forms(Gamma0(11),2)
+        1
+        sage: dimension_cusp_forms(Gamma1(13),2)
+        2
+    """
+    if not isinstance(group, congroup.CongruenceSubgroup):
+        raise TypeError, "Argument 1 must be a congruence subgroup."
+    return dimension_cusp_forms(group, k) + dimension_eis(group, k)
+
+def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
+    r"""
+    Dimension of the p-new subspace of $S_k(\Gamma_0(N))$.
+    If $p=0$, dimension of the new subspace.
+
+    EXAMPLES:
+        sage: dimension_new_cusp_forms_gamma0(100,2)
+        1
+    """
+    if N <= 0:
+        raise ArithmeticError, "the level N (=%s) must be positive"%N
+    if k < 0:
+        return Z(0)
+    elif k == 0:
+        if N == 1:
+            return Z(1)
+        else:
+            return Z(0)
+    elif k%2 == 1:
+        return Z(0)
+    if p==0 or N%p!=0:
+        return sum([dimension_cusp_forms_gamma0(M,k)*mumu(N//M) \
+                    for M in divisors(N)])
+    return dimension_new_cusp_forms_gamma0(N,k) - \
+           2*dimension_new_cusp_forms_gamma0(N//p,k)
+
+def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
+    r"""
+    Return the dimension of the $p$-new subspace of
+    $S_k(\Gamma_1(N))$.  If $p=0$, return the dimension of the new
+    subspace.
+
+    EXAMPLES:
+        sage: dimension_new_cusp_forms_gamma1(100,2)
+        141
+    """
+    if N <= 0:
+        raise ArithmeticError, "the level N (=%s) must be positive"%N
+    if k < 0:
+        return Z(0)
+    elif k == 0:
+        if N == 1:
+            return Z(1)
+        else:
+            return Z(0)
+    elif k == 1:
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
+
+    if p==0 or N%p!=0:
+        return sum([dimension_cusp_forms_gamma1(M,k)*mumu(N//M) \
+                    for M in divisors(N)])
+    return dimension_new_cusp_forms_gamma1(N,k) - \
+           2*dimension_new_cusp_forms_gamma1(N//p,k)
+
+def dimension_new_cusp_forms_group(group, k=2):
+    """
+    Return the dimension of the new space of cusp forms for the
+    congruence subgroup group.
+    """
+    assert isinstance(group, congroup.CongruenceSubgroup), \
+           "Argument 1 must be a congruence subgroup."
+    if isinstance(group, congroup.Gamma0):
+        return dimension_new_cusp_forms_gamma0(group.level(),k)
+    elif isinstance(group, congroup.Gamma1):
+        return dimension_new_cusp_forms_gamma1(group.level(),k)
+    else:
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
+        Gamma0 and Gamma1 is not yet implemented."
+
+def dimension_new_cusp_forms(eps, k=2, p=None):
+    """
+    Dimension of the new subspace (or p-new subspace) of cusp forms of
+    weight k and character eps.
+    """
+    if not isinstance(eps, dirichlet.DirichletCharacter):
+        raise TypeError, "eps = (%s) must be a DirichletCharacter"%eps
+    if k < 0:
+        return Z(0)
+    if eps.is_even():
+        if k % 2 == 1:
+            return Z(0)
+    else:  # odd
+        if k % 2 == 0:
+            return Z(0)
+    if k == 0:
+        if N == 1 and eps.is_trivial():
+            return Z(1)
+        else:
+            return Z(0)
+
+    elif k == 1:
+        raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
+
+
+    N = eps.modulus()
+    if p is None or N%p != 0 or valuation(eps.conductor(),p) == valuation(N,p):
+        D = [eps.conductor()*d for d in divisors(N//eps.conductor())]
+        return sum([dimension_cusp_forms_eps(eps.restrict(M), k)*mumu(N//M) for M in D])
+    eps_p = eps.restrict(N//p)
+    old = dimension_cusp_forms(eps_p, k)
+    return dimension_new_cusp_forms(eps, k) - 2*old
+
+
+
+

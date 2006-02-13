@@ -217,7 +217,7 @@ def quit_sage(verbose=True):
 def _quit_sage_(self):
     import sage.misc.preparser_ipython
     if sage.misc.preparser_ipython.interface != None:
-        sage.misc.preparser_ipython.switch_interface('sage')
+        sage.misc.preparser_ipython.switch_interface('sage', control_d=True)
         self.exit_now = False
         return
 
@@ -231,6 +231,7 @@ def _quit_sage_(self):
         quit_sage()
         self.exit_now = True
     return self.exit_now
+
 
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_

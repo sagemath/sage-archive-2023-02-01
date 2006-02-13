@@ -143,7 +143,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         s = " "
         v = self.list()
         m = len(v)
-        X = latex.latex(self.parent().variable_name())
+        X = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
@@ -151,7 +151,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             if x != 0:
                 if not first:
                     s += " + "
-                x = str(latex.latex(x))
+                x = latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:

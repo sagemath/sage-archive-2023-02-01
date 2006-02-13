@@ -571,7 +571,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             an affine scheme with fixed projective_embedding map.
 
         EXAMPLES:
-            sage: PP = ProjectiveSpace(2) / QQ
+            sage: PP = ProjectiveSpace(2, QQ, names='X,Y,Z')
             sage: X,Y,Z = PP.gens()
             sage: C = PP.subscheme(X^3*Y + Y^3*Z + Z^3*X)
             sage: U = C.affine_patch(0)
@@ -583,10 +583,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               y^3 + x + x^3*y
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-              x_1^3*x_2 + x_0*x_2^3 + x_0^3*x_1
+              Y^3*Z + X*Z^3 + X^3*Y
               Defn: Defined on coordinates by sending (x, y) to
                     (1 : x : y)
-            """
+        """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()
         n = PP.dimension()

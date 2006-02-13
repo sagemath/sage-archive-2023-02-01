@@ -1,9 +1,9 @@
-"""
+r"""
 Ideals
 
-SAGE provides extremely limited functionality for computing with
-ideals.  One can create an ideal in any commutative ring $R$ by giving
-a list of generators, using the notation \code{R.ideal([a,b,...])}.
+SAGE provides functionality for computing with ideals.  One can create
+an ideal in any commutative ring $R$ by giving a list of generators,
+using the notation \code{R.ideal([a,b,...])}.
 """
 
 #*****************************************************************************
@@ -195,6 +195,8 @@ class Ideal_generic(MonoidElement):
         raise NotImplementedError
 
     def is_principal(self):
+        if len(self.gens()) <= 1:
+            return True
         raise NotImplementedError
 
     def category(self):

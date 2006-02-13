@@ -1,16 +1,21 @@
 ###############################################################
 # Interactive debugger
+
 import pdb
-def trace(code):
+
+import preparser
+
+
+def trace(code, preparse=True):
     """
-    Evaluate code using the interactive tracer and return the
-    result.  The string code must be valid python code enclosed in
-    quotes; in particular it is not preparsed by SAGE, so use **
-    instead of ^ for exponentiation, and explicitly create elements of
-    ZZ, QQ, etc.
+    Evaluate SAGE code using the interactive tracer and return the
+    result.  The string code must be a valid expression enclosed in
+    quotes (no assignments -- the result of the expression is returned).
 
     INPUT:
         code -- str
+        preparse -- bool (default: True); if True, run expression
+                    through the SAGE preparser.
 
     REMARKS: This function is extremely powerful!  For example, if you
     want to step through each line of execution of, e.g.,"factor(100)",
@@ -30,7 +35,9 @@ def trace(code):
     For an article on how to use the Python debuger, see
        http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html
     """
+    code = preparser.preparse(code)
     return pdb.runeval(code)
+
     # this could also be useful; it drops
     # us into a debugger in an except block:
     #     import pdb; pdb.post_mortem(sys.exc_info()[2])

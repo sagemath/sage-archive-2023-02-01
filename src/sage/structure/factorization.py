@@ -178,8 +178,8 @@ class Factorization(SageObject, list):
             if atomic:
                 u = latex.latex(self.__unit)
             else:
-                u = '(%s)'%latex.latex(self.__unit)
-            s =  u + ' * ' + s
+                u = '\\left(%s\\right)'%latex.latex(self.__unit)
+            s =  u + ' \\cdot ' + s
         return s
 
     def __add__(self, other):

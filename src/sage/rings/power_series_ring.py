@@ -49,7 +49,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         return "Power Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
 
     def _latex_(self):
-        return "%s[[%s]]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
+        return "%s[[%s]]"%(latex.latex(self.base_ring()), self.variable_name())
 
     def __call__(self, f, prec=infinity, check=True):
         if isinstance(f, power_series_ring_element.PowerSeries) and f.parent() == self:

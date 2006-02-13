@@ -90,11 +90,12 @@ so the w = [5] above would work right.
 #*****************************************************************************
 
 __author__ = 'William Stein <wstein@ucsd.edu>'
-__version__= '0.2.0'
+__version__= '1.0.0'
 __license__ = 'GPL'
-__date__   = 'March 2005'
+__date__   = 'February 2006'
 
 import os
+import log
 
 from IPython.iplib import InteractiveShell
 
@@ -129,8 +130,11 @@ def do_prefilter_paste(line, continuation):
     """
     global attached
 
+
+
     # This is so it's OK to have lots of blank space at the
     # beginning of any non-continuation line.
+
     if not continuation:
         line = line.lstrip()
     line = line.rstrip()
@@ -144,16 +148,12 @@ def do_prefilter_paste(line, continuation):
                 try:
                     if F[-5:] == '.sage':
                         ipmagic('run -i "%s"'%process_file(F))
-                        #line = '%%run -i "%s"'%process_file(F)
                     else:
-                        line = load_pyrex(F)
+                        X = load_pyrex(F)
+                        __IPYTHON__.push(X)
 
                     t = os.path.getmtime(F)
                     attached[F] = t
-                    #if F != 'attach.sage':
-                    #    print "***************************************************"
-                    #    print "                Reloading %s"%F
-                    #    print "***************************************************"
                 except IOError:
                     del attached[F]
 
@@ -178,6 +178,42 @@ def do_prefilter_paste(line, continuation):
     # 'quit' alone on a line to quit.
     if line.lower() in ['quit', 'exit', 'quit;', 'exit;']:
         line = '%quit'
+
+    #################################################################
+    # An interactive load command, like iload in MAGMA.
+    #################################################################
+    if line[:6] == 'iload ':
+        try:
+            name = str(eval(line[6:]))
+        except:
+            pass
+        else:
+            try:
+                F = open(name)
+            except IOError:
+                print 'Could not open file "%s"'%name
+                return ''
+            print 'Interactively loading "%s"'%name
+            n = len(__IPYTHON__.input_hist)
+            for L in F.readlines():
+                L = L.rstrip()
+                Llstrip = L.lstrip()
+                raw_input('sage: %s'%L.rstrip())
+                __IPYTHON__.input_hist_raw.append(L)
+                if Llstrip[:5] == 'load ' or Llstrip[:7] == 'attach ' \
+                       or Llstrip[:6] == 'iload ':
+                    log.offset -= 1
+                    L = do_prefilter_paste(L, False)
+                    if len(L.strip()) > 0:
+                        ipmagic(L)
+                    L = ''
+                else:
+                    L = preparser_ipython.preparse_ipython(L)
+                __IPYTHON__.input_hist.append(L)
+                __IPYTHON__.push(L)
+            log.offset += 1
+            return ''
+
 
     #################################################################
     # A "load" command, like \r file in PARI or load "file" in MAGMA
@@ -292,7 +328,9 @@ def sage_prefilter(self, line, continuation):
     """
     try:
         line2 = do_prefilter_paste(line, continuation)
+
     except None:
+
         print "WARNING: An error occured in the SAGE parser while"
         print "parsing the following line:"
         print line
@@ -329,6 +367,9 @@ import IPython.OInspect
 IPython.OInspect.getdoc = my_getdoc
 
 
+
+import log
+
 import __builtin__
 _prompt = 'sage'
 def set_sage_prompt(s):
@@ -336,6 +377,9 @@ def set_sage_prompt(s):
     _prompt = str(s)
 
 def sage_prompt():
+    log.update()
     return '%s'%_prompt
 
 __builtin__.sage_prompt = sage_prompt
+
+

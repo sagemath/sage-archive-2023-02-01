@@ -41,20 +41,31 @@ include 'interrupt.pxi'
     s = t + s
     return s, standard_libs, include_dirs
 
-sequence_number = 0
+################################################################
+# If the user attaches a .spyx file and changes it, we have
+# to reload an .so.
+#
+# PROBLEM: Python does not allow one to reload an .so extension module.
+# Solution, we create a different .so file and load that one,
+# overwriting the definitions of everythin in the original .so file.
+#
+# HOW: By using a sequence_number for each .spyx file; we keep
+# these sequence numbers in a dict.
+#
+################################################################
+
+sequence_number = {}
 
 def pyrex(filename, verbose=False, compile_message=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
 
-    global sequence_number
-    name = '%s_%s'%(filename[:-5],sequence_number)
-    sequence_number += 1
+    base = os.path.split(os.path.splitext(filename)[0])[1]
 
-    build_dir = '%s/%s'%(SPYX_TMP, filename[:-5])
+    build_dir = '%s/%s'%(SPYX_TMP, base)
     if os.path.exists(build_dir):
         # There is already a module here.  Maybe we do not have to rebuild?
-        # Find the name
+        # Find the name.
         prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
         if len(prev_so) > 0:
             prev_so = prev_so[0]     # should have length 1 because of deletes below
@@ -72,15 +83,22 @@ def pyrex(filename, verbose=False, compile_message=False):
                                                           build_dir))
 
     if compile_message:
-        print "***************************************************"
-        print "                Recompiling %s"%filename
-        print "***************************************************"
+        print "Compiling %s..."%filename
 
     F = open(filename).read()
 
     if F.find('__no_preparse__') == -1:
         F = preparse_file(F)
     F, libs, includes = pyx_preparse(F)
+
+    global sequence_number
+    if not sequence_number.has_key(base):
+        sequence_number[base] = 0
+    name = '%s_%s'%(base, sequence_number[base])
+
+    # increment the sequence number so will use a different one next time.
+    sequence_number[base] += 1
+
     pyx = '%s/%s.pyx'%(build_dir, name)
     open(pyx,'w').write(F)
     setup="""

@@ -214,6 +214,9 @@ cdef class Integer(element.EuclideanDomainElement):
     def __repr__(self):
         return self.str()
 
+    def _latex_(self):
+        return self.str()
+
     def __str_malloc(self, int base=10):
         """
         Return the string representation of \\code{self} in the given

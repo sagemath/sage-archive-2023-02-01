@@ -149,6 +149,14 @@ class Expect(SageObject):
             self._start()
         return self._expect.pid
 
+    def _install_hints(self):
+        """
+        Hints for installing needed slave program on your computer.
+
+        There are no hints by default.
+        """
+        return ''
+
     def _start(self, alt_message=None):
         self.quit()  # in case one is already running
         global failed_to_start
@@ -156,7 +164,7 @@ class Expect(SageObject):
             if alt_message:
                 raise RuntimeError, alt_message
             else:
-                raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)'%(self.__name, self.__name)
+                raise RuntimeError, 'Unable to start %s (%s failed to start during this SAGE session; not attempting to start again)\n%s'%(self.__name, self.__name, self._install_hints())
 
         self._session_number += 1
         current_path = os.path.abspath('.')
@@ -172,7 +180,9 @@ class Expect(SageObject):
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
-            raise RuntimeError, "Unable to start %s because the command '%s' failed."%(self.__name, self.__command)
+            raise RuntimeError, "Unable to start %s because the command '%s' failed.\n%s"%(
+                self.__name, self.__command, self._install_hints())
+
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
         #self._expect.setmaxread(self.__maxread)
@@ -498,6 +508,10 @@ class ExpectElement(Element_cmp_, RingElement):
                 self._session_number = -1
                 raise TypeError, x
         self._session_number = parent._session_number
+
+    def _latex_(self):
+        return "\\begin{verbatim}%s\\end{verbatim}"%self
+
 
     def __iter__(self):
         for i in range(1, len(self)+1):

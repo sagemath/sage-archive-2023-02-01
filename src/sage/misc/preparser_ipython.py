@@ -6,6 +6,8 @@
 ###########################################################################
 
 import sage.misc.interpreter
+
+import log
 import preparser
 
 interface_name  = 'sage'
@@ -17,7 +19,7 @@ magma_colon_equals = False
 
 q_lines = []
 
-def switch_interface(name, verbose=True):
+def switch_interface(name, verbose=True, control_d=False):
     I = __import__('sage.interfaces.all',{},{},name)
     if not name in I.interfaces:
         raise RuntimeError, "Invalid interface %s"%name
@@ -27,6 +29,8 @@ def switch_interface(name, verbose=True):
     interface_name = name
     if name == 'sage':
         interface = None
+        if control_d:
+            log.offset -= 1
         if verbose:
             print "\n  --> Exiting back to SAGE <-- \n"
     else:
@@ -52,7 +56,7 @@ def preparse_ipython(line, reset=True):
         import sage.interfaces.all
         if L.lower() in sage.interfaces.all.interfaces:
             switch_interface(L.lower())
-            return ''
+            return "''"
         else:
             # only preparse non-magic lines
             return line
@@ -79,29 +83,21 @@ def preparse_ipython(line, reset=True):
             line = ''.join(q_lines) + line
         q_lines = []
         # TODO: do sage substitutions here
-        t = interface._eval_line(line)
+        #t = interface._eval_line(line)
+        t = interface.eval(line)
 
     import sage.misc.interpreter
     if ends_in_backslash:
 
         sage.misc.interpreter.set_sage_prompt('.'*len(interface_name))
-        return ''
 
     else:
 
         sage.misc.interpreter.set_sage_prompt('%s'%interface_name)
-        #if interface._continuation_prompt() == False:
-        #    t = '\n'.join(t.split('\n')[num_lines:])
-        #    num_lines = 0
-        print t
+        #print t
 
-        return ''
+    return 'r"""%s"""'%t
 
-        # find where the real output begins
-        #if interface_name == 'mathematica':
-        #    i = t.find('Out[')
-        #    t = t[i:]
-        #return 'print """%s"""'%t
 
 _v_ = None
 

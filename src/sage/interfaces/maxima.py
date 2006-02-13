@@ -378,7 +378,7 @@ class Maxima(Expect):
                                      'load("mactex-utilities")'   # latex instead of plain tex from tex command
                                      ],
                         logfile = logfile,
-                        eval_using_file_cutoff=eval_using_file_cutoff )
+                        eval_using_file_cutoff=eval_using_file_cutoff)
         self._display2d = False
 
     def _start(self):
@@ -454,6 +454,7 @@ class Maxima(Expect):
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
         out = out.replace('-',' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=')
+        out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
         if out[:3] == ' - ':
             out = '-' + out[3:]
         i = out.rfind('(%o')
@@ -1096,6 +1097,7 @@ class MaximaElement(ExpectElement):
         # quickly reveals serious bugs in it.  The
         # following are some attempts to program around
         # these.
+        s = s.replace('\\%','')
         s = s.replace('\\sin', '\\sin{}')
         s = s.replace('\\cos', '\\cos{}')
         s = s.replace('\\tan', '\\tan{}')

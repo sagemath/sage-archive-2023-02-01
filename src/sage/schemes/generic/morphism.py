@@ -1,7 +1,9 @@
 """
 Scheme morphism
 
-AUTHORS: David Kohel, William Stein
+AUTHORS:
+    -- David Kohel, William Stein
+    -- William Stein (2006-02-11): fixed bug where P(0,0,0) was allowed as a projective point.
 """
 
 #*****************************************************************************
@@ -326,6 +328,12 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
         sage: P = ProjectiveSpace(3, RR)
         sage: P(2,3,4,5)
         (0.40000000000000002 : 0.59999999999999998 : 0.80000000000000004 : 1.0000000000000000)
+
+        sage: P = ProjectiveSpace(3, QQ)
+        sage: P(0,0,0,0)
+        Traceback (most recent call last):
+        ...
+        ValueError: [0, 0, 0, 0] does not define a valid point since all entries are 0
     """
     def __init__(self, X, v, check=True):
         if scheme.is_Scheme(X):
@@ -346,14 +354,18 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
                 v.append(1)
 
             n = len(v)
+            all_zero = True
             for i in range(n):
                 if v[n-1-i] != 0:
+                    all_zero = False
                     c = v[n-1-i]
                     if c == 1:
                         break
                     for j in range(n-i):
                         v[j] /= c
                     break
+            if all_zero:
+                raise ValueError, "%s does not define a valid point since all entries are 0"%v
 
             X.codomain()._check_satisfies_equations(v)
 

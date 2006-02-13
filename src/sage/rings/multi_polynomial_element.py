@@ -29,7 +29,7 @@ import operator
 
 import arith
 
-from sage.structure.element import CommutativeRingElement, Element_cmp_
+from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
 from coerce import bin_op, cmp as coerce_cmp
 
 from sage.interfaces.all import singular
@@ -126,6 +126,42 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
     def _mul_(self, right):
         return self.parent()(self.__element * right.__element)
+
+    def __div__(self, right):
+        r"""
+        EXAMPLES:
+            sage: x,y = QQ['x,y'].gens()
+            sage: f = (x + y)/3
+            sage: f.parent()
+            Polynomial Ring in x, y over Rational Field
+
+        If we do the same over $\ZZ$ the result has to lie
+        in the fraction field.
+
+            sage: x,y = ZZ['x,y'].gens()
+            sage: f = (x + y)/3
+            sage: f.parent()
+            Fraction Field of Polynomial Ring in x, y over Integer Ring
+
+        Note that / is still a constructor for elements of the
+        fraction field in all cases as long as both arguments have the
+        same parent.
+            sage: R, (x,y) = QQ['x,y'].objgens()
+            sage: f = x^3 + y
+            sage: g = R(3)
+            sage: h = f/g; h
+            1/3*y + 1/3*x^3
+            sage: h.parent()
+            Fraction Field of Polynomial Ring in x, y over Rational Field
+        """
+        try:
+            if not isinstance(right, Element) or right.parent() != self.parent():
+                R = self.base_ring()
+                x = R(right)
+                return ~x * self
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
+        return CommutativeRingElement.__div__(self, right)
 
     def _div_(self, right):
         return self.parent().fraction_field()(self.__element, right.__element)

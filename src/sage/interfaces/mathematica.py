@@ -250,6 +250,41 @@ class Mathematica(Expect):
         e.expect(self._prompt)
         return e.before
 
+    def _install_hints(self):
+        """
+        Hints for installing mathematica on your computer.
+
+        AUTHOR:
+            -- William Stein and Justin Walker (2006-02-12).
+        """
+        return """
+In order to use the Mathematica interface you need to have Mathematica
+installed and have a script in your PATH called "math" that runs the
+command-line version of Mathematica.
+
+  (1) You might have to buy Mathematica (for $1880) at
+      http://www.wolfram.com/.
+
+  (2) * If you're using Linux then the math script comes standard
+        with your Mathematica install.
+
+      * If you're running Windows, I have no idea how to make a mathematica
+        script to run a command line version of Mathematica, or even if there
+        is a way.  If anybody figures this out email William Stein.
+
+      * If you're using OS X, use the following directions, which are based on
+        those at http://support.wolfram.com/applicationpacks/parallel/remoteosxpct2.html
+          (a) create a file called math (in your PATH)
+          (b) on the first line type the text "#!/bin/sh" (without quotes)
+          (c) On the second line, type the path to the Mathematica kernel on Mac OS X,
+              followed by $@. For example, if you installed Mathematica 5.0 into your
+              Applications directory on Mac OS X, the second line would read as follows.
+                /Applications/Mathematica\ 5.0.app/Contents/MacOS/MathKernel $@
+          (d) Save the file.
+          (e) Make the file executable.
+                chmod +x math
+"""
+
     def eval(self, code, strip=True):
         s = Expect.eval(self, code)
         if strip:

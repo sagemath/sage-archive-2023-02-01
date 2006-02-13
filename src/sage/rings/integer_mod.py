@@ -190,8 +190,11 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
     def copy(self):
         return self.parent()(self.__value, construct=True)
 
-    def __repr__(self):
+    def _repr_(self):
         return str(self.__value.lift())
+
+    def _latex_(self):
+        return str(self)
 
     def _add_(self, right):
         return self.parent()(self.__value + right.__value, construct=True)

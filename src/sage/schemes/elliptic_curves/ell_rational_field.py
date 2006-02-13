@@ -477,7 +477,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         INPUT:
             prec -- an integer
         """
-        return PowerSeriesRing(Q, 'q')(self.anlist(prec), prec, check=False)
+        return PowerSeriesRing(Q, 'q')(self.anlist(prec), prec, check=True)
 
     def q_eigenform(self, prec):
         """

@@ -19,6 +19,7 @@ Univariate Polynomials
 
 import operator
 
+from sage.structure.element import Element
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -227,6 +228,45 @@ class Polynomial(ring_element.RingElement):
         if right == 0 or self == 0:
             return self.polynomial(0)
         return self._mul_karatsuba(right)
+
+    def __div__(self, right):
+        """
+        EXAMPLES:
+            sage: x = QQ['x'].gen()
+            sage: f = (x^3 + 5)/3; f
+            1/3*x^3 + 5/3
+            sage: f.parent()
+            Univariate Polynomial Ring in x over Rational Field
+
+        If we do the same over $\ZZ$ the result has to lie
+        in the fraction field.
+
+            sage: x  = ZZ['x'].gen()
+            sage: f = (x^3 + 5)/3; f
+            (x^3 + 5)/3
+            sage: f.parent()
+            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+
+        Note that / is still a constructor for elements of the
+        fraction field in all cases as long as both arguments have the
+        same parent.
+            sage: R, x = QQ['x'].objgen()
+            sage: f = x^3 + 5
+            sage: g = R(3)
+            sage: h = f/g; h
+            1/3*x^3 + 5/3
+            sage: h.parent()
+            Fraction Field of Univariate Polynomial Ring in x over Rational Field
+        """
+        try:
+            if not isinstance(right, Element) or right.parent() != self.parent():
+                R = self.parent().base_ring()
+                x = R(right)
+                return ~x * self
+        except (TypeError, ValueError, ZeroDivisionError):
+            pass
+        return ring_element.RingElement.__div__(self, right)
+
 
     def _pow(self, right):
         if self.degree() <= 0:

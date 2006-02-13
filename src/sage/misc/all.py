@@ -7,6 +7,8 @@ from misc import (alarm, srange, xsrange,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, upgrade)
 
+from log import log_html, log_dvi
+
 from defaults import set_default_variable_name
 
 from preparser import preparse

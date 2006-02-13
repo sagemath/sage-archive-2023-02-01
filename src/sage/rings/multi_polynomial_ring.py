@@ -179,7 +179,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
     def _latex_(self):
-        vars = latex.latex(self.variable_names()).replace('\n','')
+        vars = str(self.variable_names()).replace("'","")
         return "%s[%s]"%(latex.latex(self.base_ring()), vars[1:-1])
 
 

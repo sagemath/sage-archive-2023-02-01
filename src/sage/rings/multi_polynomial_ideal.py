@@ -93,6 +93,47 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         #    return c
         return cmp(self.groebner_basis(), other.groebner_basis())
 
+    def plot(self):
+        """
+        If you somehow manage to install surf, perhaps you can use
+        this function to implicitly plot the real zero locus of this
+        ideal (if principal).
+
+        INPUT:
+            self -- must be a principal ideal in 2 or 3 vars over QQ.
+
+        EXAMPLES:
+        Implicit plotting in 2-d:
+            sage: R, (x,y) = MPolynomialRing(QQ,2).objgens()
+            sage: I = R.ideal([y^3 - x^2])
+            sage.: I.plot()        # cusp         (optional surf)
+            sage: I = R.ideal([y^2 - x^2 - 1])
+            sage.: I.plot()        # hyperbola    (optional surf)
+            sage: I = R.ideal([y^2 + x^2*(1/4) - 1])
+            sage.: I.plot()        # ellipse      (optional surf)
+            sage: I = R.ideal([y^2-(x^2-1)*(x-2)])
+            sage.: I.plot()        # elliptic curve  (optional surf)
+
+        Implicit plotting in 3-d:
+            sage: R, (x,y,z) = MPolynomialRing(QQ,3).objgens()
+            sage: I = R.ideal([y^2 + x^2*(1/4) - z])
+            sage.: I.plot()          # a cone         (optional surf)
+            sage: I = R.ideal([y^2 + z^2*(1/4) - x])
+            sage.: I.plot()          # same code, from a different angle  (optional surf)
+            sage: I = R.ideal([x^2*y^2+x^2*z^2+y^2*z^2-16*x*y*z])
+            sage.: I.plot()          # Steiner surface   (optional surf)
+
+        AUTHOR:
+            -- David Joyner (2006-02-12)
+        """
+        if self.ring().characteristic() != 0:
+            raise TypeError, "base ring must have characteristic 0"
+        if not self.is_principal():
+            raise TypeError, "self must be principal"
+        singular.lib('surf')
+        I = singular(self)
+        I.plot()
+
     def _singular_(self, singular=None):
         """
         Return Singular ideal corresponding to this ideal.

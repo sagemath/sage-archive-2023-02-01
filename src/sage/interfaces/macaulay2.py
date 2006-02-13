@@ -44,11 +44,24 @@ EXAMPLES:
     sage: parent((x+y)^5)
     Macaulay2
 
+    sage: R = macaulay2('QQ[x,y,z,w]')
+    sage: f = macaulay2('x^4 + 2*x*y^3 + x*y^2*w + x*y*z*w + x*y*w^2 + 2*x*z*w^2 + y^4 + y^3*w + 2*y^2*z*w + z^4 + w^4')
+    sage: f
+    x^4+2*x*y^3+y^4+z^4+x*y^2*w+y^3*w+x*y*z*w+2*y^2*z*w+x*y*w^2+2*x*z*w^2+w^4
+
+    sage: g = f * macaulay2('x+y^5')
+    sage: g.factor()
+      new Product from {new Power from
+      {x^4+2*x*y^3+y^4+z^4+x*y^2*w+y^3*w+x*y*z*w+2*y^2*z*w+x*y*w^2+2*x*z*w^2+w^4, 1},
+      new Power from {y^5+x, 1}}
+
 
 AUTHORS:
    -- Kiran Kedlaya and David Roe (2006-02-05, during SAGE coding sprint)
    -- William Stein (2006-02-09): inclusion in SAGE; prompt uses regexp,
              calling of Macaulay2 functions via __call__.
+   -- William Stein (2006-02-09): fixed bug in reading from file and
+             improved output cleaning.
 
 """
 
@@ -84,15 +97,20 @@ from sage.misc.misc import verbose
 from re import search
 
 def clean_output(s):
-    rex1 = 'o[0-9]+ = (.*)\\n\\no[0-9]+ : .*\\n'
-    rex2 = 'o[0-9]+ = (.*)\\n'
-    m = search(rex1, s)
-    if not m is None:
-        return m.group(1)
-    m = search(rex2, s)
-    if not m is None:
-        return m.group(1)
-    return ""
+    i = s.find('=')
+    if i == -1:
+        return ''
+    return s[i+1:]
+
+    #rex1 = 'o[0-9]+ = (.*)\\n\\no[0-9]+ : .*\\n'
+    #rex2 = 'o[0-9]+ = (.*)\\n'
+    #m = search(rex1, s)
+    #if not m is None:
+    #    return m.group(1)
+    #m = search(rex2, s)
+    #if not m is None:
+    #    return m.group(1)
+    #return ""
 
 class Macaulay2(Expect):
     """
@@ -108,12 +126,12 @@ class Macaulay2(Expect):
                         script_subdirectory = script_subdirectory,
                         verbose_start = False,
                         logfile=None,
-                        eval_using_file_cutoff=50)
+                        eval_using_file_cutoff=500)
 
     # no appropriate clear command in Macaulay2
 
     def _read_in_file_command(self, filename):
-        return 'read "%s"'%filename
+        return 'value get "%s"'%filename
 
     def eval(self, code):
         """
@@ -156,6 +174,7 @@ class Macaulay2Element(ExpectElement):
         P = self.parent()
         r = P(x)
         return P('%s %s'%(self.name(), r.name()))
+
 
 
 # An instance

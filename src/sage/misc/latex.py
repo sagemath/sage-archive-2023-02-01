@@ -64,7 +64,7 @@ def str_function(x):
     #return "\\begin{verbatim}%s\\end{verbatim}"%x
 
 # One can add to the latex_table in order to install latexing
-# functionality for other types.  (Suggested by Robert Kerns of UCSD.)
+# functionality for other types.  (Suggested by Robert Kerns of Enthought.)
 
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
                str: str_function}
@@ -260,7 +260,7 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(Q, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\verb#a# + (t - 2)\\verb#s# + (t^{12} + 2)\\verb##'
+        '-t\\text{a} + (t - 2)\\text{s} + (t^{12} + 2)\\text{}'
     """
     s = ""
     first = True

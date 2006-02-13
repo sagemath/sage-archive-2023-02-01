@@ -3,6 +3,7 @@ Univariate Polynomial Rings
 
 AUTHOR:
    -- William Stein
+   -- Kiran Kedlaya (2006-02-13): added macaulay2 option
 """
 
 
@@ -38,7 +39,35 @@ from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
 _objsPolynomialRing = {}
 
-def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
+def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, macaulay2=False):
+    """
+    Return a univariate or multivariate polynomial ring.
+
+    INPUT:
+        base_ring -- the base ring
+        name -- (str) the name of the generator
+        sparse -- (bool; default: False) whether or not elements are represented using
+                  sparse methods; note that multivariate polynomials are always sparse
+        names -- names of the generators (for multivariate poly)
+        order -- term order of ring
+        macaulay2 (bool; default: False) -- whether or not to use Macaulay2 (multivariate only)
+
+    EXAMPLES:
+        sage: PolynomialRing(ZZ)
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: PolynomialRing(ZZ, 'y')
+        Univariate Polynomial Ring in y over Integer Ring
+        sage: PolynomialRing(PolynomialRing(QQ,'z'), 'y')
+        Univariate Polynomial Ring in y over Univariate Polynomial Ring in z over Rational Field
+        sage: PolynomialRing(QQ, name='abc')
+        Univariate Polynomial Ring in abc over Rational Field
+        sage: PolynomialRing(QQ, name='abc', sparse=True)
+        Sparse Univariate Polynomial Ring in abc over Rational Field
+        sage: PolynomialRing(QQ, 3, sparse=True)
+        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        sage: PolynomialRing(QQ, 3, macaulay2=True)
+        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+    """
     if isinstance(name, (int,long,integer.Integer)):
         if isinstance(sparse, (list, str)):
             if order is None:
@@ -46,7 +75,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
             names = sparse
         if order is None:
             order = 'lex'
-        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order)
+        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order, macaulay2=macaulay2)
 
     global _objsPolynomialRing
 

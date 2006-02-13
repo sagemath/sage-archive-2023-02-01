@@ -39,11 +39,11 @@ import sage.rings.all as rings
 import element
 
 def canonical_parameters(group, weight, sign, base_ring):
-    sign = int(sign)
+    sign = rings.Integer(sign)
     if not (sign in [-1,0,1]):
         raise ValueError, "sign must be -1, 0, or 1"
 
-    weight = int(weight)
+    weight = rings.Integer(weight)
     if weight <= 1:
         raise ValueError, "the weight must be at least 2"
 
@@ -67,7 +67,8 @@ def ModularSymbols_clear_cache():
 def ModularSymbols(group  = 1,
                    weight = 2,
                    sign   = 0,
-                   base_ring = rational_field.RationalField()):
+                   base_ring = rational_field.RationalField(),
+                   use_cache = True):
     r"""
     Create an ambient space of modular symbols.
 
@@ -136,7 +137,8 @@ def ModularSymbols(group  = 1,
         x^6 - 873*x^4 - 82632*x^2 - 1860496
     """
     key = canonical_parameters(group, weight, sign, base_ring)
-    if _cache.has_key(key):
+
+    if use_cache and _cache.has_key(key):
          M = _cache[key]()
          if not (M is None): return M
 

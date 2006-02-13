@@ -1,6 +1,9 @@
 r"""
 Logging of SAGE sessions.
 
+TODO: Pressing "control-D" can mess up the I/O sequence because of
+a known bug.
+
 You can create a log of your SAGE session as a web page and/or as a
 latex document.  Just type \code{log_html()} to create an HTML log, or
 \code{log_dvi()} to create a dvi (latex) log.  Your complete session
@@ -41,7 +44,7 @@ import latex
 import misc
 
 
-offset = 0
+#offset = 0
 loggers = []
 
 def update():
@@ -62,7 +65,7 @@ except KeyError:
 try:
     WEB_BROWSER = os.environ['WEB_BROWSER']
 except KeyError:
-    if os.system('which konqueror >/dev/null') == 0:
+    if os.system('which konqueror 1>/dev/null 2>/dev/null') == 0:
         WEB_BROWSER = 'konqueror'
     else:
         WEB_BROWSER = 'firefox'
@@ -133,7 +136,8 @@ class Log:
             if len(Lstrip) > 0 and Lstrip[0] != '%':
                 self._write(self._get_input(n, followed_by_output))
                 self._input_text += I[n]
-            m = n - offset
+            #m = n - offset
+            m = n
             if m in K:
                 self._write(self._get_output(m))
                 s = '# ' + '\n# '.join(str(O[m]).split('\n')) + '\n\n'
@@ -162,6 +166,9 @@ class log_html(Log):
     Create a running log of your SAGE session as a web page.
 
     Easy usage: \code{log_html()}
+
+    TODO: Pressing "control-D" can mess up the I/O sequence because of
+    a known bug.
 
     Use \code{L=log_html([optional directory])} to create an HTML log.
     Your complete session so far up until when you type the above
@@ -237,6 +244,9 @@ class log_dvi(Log):
 
     Easy usage: \code{log_dvi()}
 
+    TODO: Pressing "control-D" can mess up the I/O sequence because of
+    a known bug.
+
     Use \code{L=log\_dvi([optional directory])} to create a dvi log.
     Your complete session so far up until when you type the above
     command will be logged, along with any future input.  Thus you can
@@ -264,7 +274,11 @@ class log_dvi(Log):
     def _build(self):
         cmd = 'cd %s; latex \\\\nonstopmode \\\\input %s '%(
             self._dir, self._filename)
-        os.system(cmd + " 2>/dev/null 1>/dev/null &")
+        cmd += " 2>/dev/null 1>/dev/null"
+        dvifile = '%s.dvi'%os.path.splitext(self._filename)[0]
+        if os.path.exists(dvifile):
+            cmd += ' & '
+        os.system(cmd)
 
     def view(self):
         self._build()

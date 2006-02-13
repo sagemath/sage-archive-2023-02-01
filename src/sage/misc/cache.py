@@ -16,7 +16,7 @@ class Cache:
     """
     A weakref cache for arbitrary objects via an arbitrary function.
     """
-    def __init__(self, factory_function):
+    def __init__(self, factory_function): #, canonical_params_function=None):
         """
         INPUT:
             factory_function -- a function that returns objects (which this
@@ -24,6 +24,7 @@ class Cache:
         """
         self.cache = {}
         self.factory = factory_function
+        #self.canonical_params_function = canonical_params_function
 
     def key(self, *args, **kwds):
         """
@@ -37,6 +38,10 @@ class Cache:
         Return the object from the cache defined by the arguments,
         or make it using the factoring function if it doesn't exist.
         """
+        #if self.canonical_params_function != None:
+        #    args = self.canonical_params_function(*args, **kwds)
+        #    kwds = {}
+
         key = self.key(*args, **kwds)
         try:
             x = self.cache[key]()

@@ -221,7 +221,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field):
 
     tm = misc.verbose("done doing setup",tm)
     rows = A.sparse_rows()
-    M = matrix_space.MatrixSpace(field, len(syms), len(basis))
+    M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=True)
     B = M(0)
     for i in basis_mod2:
         t, l = search(basis, i)
@@ -238,89 +238,19 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field):
                 B[i,l] = -v[k]
             l += 1
 
-    tm = misc.verbose("done making quotient matrix",tm)
+    misc.verbose("done making quotient matrix",tm)
+    tm = misc.verbose('now filling in the rest of the matrix')
+    k = 0
     for i in range(len(mod)):
         j, s = mod[i]
         if j != i and s != 0:   # ignored in the above matrix
+            k += 1
             B.set_row_to_multiple_of_row(i, j, s)
-
+    misc.verbose("set %s rows"%k)
     tm = misc.verbose("time to fill in rest of matrix", tm)
 
     return B, basis
 
-def ___xxx_gens_to_basis_matrix(syms, relation_matrix, mod, field):
-    """
-    Compute echelon form of 3-term relation matrix, and read off each
-    generator in terms of basis.
-
-    INPUT:
-        syms  -- a ManinSymbols object
-        relation_matrix -- as output by __compute_T_relation_matrix(self, mod)
-        mod   -- quotient of modular symbols modulo the 2-term S (and possibly I) relations
-        field -- base field
-
-    OUTPUT:
-        matrix -- a matrix whose ith row expresses the Manin symbol generators
-                  in terms of a basis of Manin symbols (modulo the S, (possibly I,) and T rels)
-                  Note that the entries of the matrix need not be integers.
-
-        list --  integers i, such that the Manin symbols x_i are a basis.
-    """
-    if not isinstance(relation_matrix, matrix.Matrix):
-        raise TypeError, "relation_matrix must be a matrix"
-    if not isinstance(mod, list):
-        raise TypeError, "mod must be a list"
-
-    tm = misc.verbose()
-    A = relation_matrix.echelon_form(1)
-
-    tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)
-
-    basis_set = set(A.nonpivots())
-    pivots = A.pivots()
-
-    basis_mod2 = set([j for j,c in mod if c != 0])
-
-    basis_set = basis_set.intersection(basis_mod2)
-    basis = list(basis_set)
-    basis.sort()
-
-    nonzero = A.nonzero_positions()
-
-    ONE = field(1)
-
-    tm = misc.verbose("done doing setup",tm)
-    rows = A.sparse_rows()
-    entries = {}
-    for i in basis_mod2:
-        t, l = search(basis, i)
-        if t:
-            entries[(i,l)] = ONE
-            continue
-        _, r = search(pivots, i)    # pivots[r] = i
-        # Set row i to -sign times (row r of A), but where we only take
-        # the non-pivot columns of A :
-        l = 0
-        v = rows[r]
-        for k in basis:
-            if k in v.keys():
-                entries[(i,l)] = -v[k]
-            l += 1
-
-    tm=misc.verbose("done making quotient matrix",tm)
-    M = matrix_space.MatrixSpace(field, len(syms), len(basis))
-    B = M(entries=entries, coerce_entries=False, copy=False)
-    #B = A.new_matrix(nrows = len(syms), ncols = len(basis), entries=entries,
-    #             coerce_entries=False, copy=False)
-
-    for i in range(len(mod)):
-        j, s = mod[i]
-        if j != i and s != 0:   # ignored in the above matrix
-            B[i] = B[j]*s
-    tm=misc.verbose("time to change basis",tm)
-    misc.verbose("time to create matrix",tm)
-    print B
-    return B, basis
 
 def compute_presentation(syms, sign, field, weight):
     r"""

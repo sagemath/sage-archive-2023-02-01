@@ -3,6 +3,8 @@ Multivariate Polynomial Rings
 
 AUTHORS:
     -- David Joyner and William Stein
+    -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
+              Singular features
 
 EXAMPLES:
 We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
@@ -34,6 +36,8 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# Changed:
+# Kiran Kedlaya (2006-02-12): added Macaulay2 names to TermOrder
 
 import weakref
 
@@ -50,14 +54,19 @@ import polydict
 import sage.misc.latex as latex
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.all import macaulay2 as macaulay2_default
+from sage.interfaces.macaulay2 import is_Macaulay2Element
 
 from sage.ext.sage_object import SageObject
+
+from sage.rings.integer_ring import IntegerRing
 
 import multi_polynomial_ideal
 
 _cache = {}
 
-def MPolynomialRing(base_ring, n=1, names=None, order='lex'):
+def MPolynomialRing(base_ring, n=1, names=None,
+                    order='lex', macaulay2=False):
     r"""
     Create a Multivariate polynomial ring over a commutative base ring.
 
@@ -76,6 +85,11 @@ def MPolynomialRing(base_ring, n=1, names=None, order='lex'):
                  'deglex' -- degree lexicographic
                  'wp(w1,...,wn)' -- weight reverse lexicographic
                  'Wp(w1,...,wn)' -- weight lexicographic
+
+        macaulay2 -- boolean (default: False); Use Macaulay2 for
+                     internal representations; provides some additional
+                     functionality. (Currently only supported when the
+                     base ring is ZZ or a prime field.)
 
     EXAMPLES:
         sage: R = MPolynomialRing(RationalField(), 3)
@@ -118,6 +132,11 @@ def MPolynomialRing(base_ring, n=1, names=None, order='lex'):
         sage: T = MPolynomialRing(S, 20)
         sage: T
         Polynomial Ring in x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10, x_11, x_12, x_13, x_14, x_15, x_16, x_17, x_18, x_19 over Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
+
+    We create a polynomial ring that uses the Macaualy2 interface.
+        sage: R, (x,y,z) = MPolynomialRing(ZZ, 3, 'xyz', macaulay2=True).objgens()
+        sage: type(R)
+        <class 'sage.rings.multi_polynomial_ring.MPolynomialRing_macaulay2_repr_domain'>
     """
     global _cache
     T = TermOrder(order)
@@ -126,14 +145,19 @@ def MPolynomialRing(base_ring, n=1, names=None, order='lex'):
     #elif isinstance(names, str):
     #    if len(names) > 1:
     #        names = tuple(names)
-    key = (base_ring, n, names, T)
+    key = (base_ring, n, names, T, macaulay2)
     if _cache.has_key(key):
         R = _cache[key]()
         if not (R is None):
             return R
     if not isinstance(base_ring, commutative_ring.CommutativeRing):
         raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
-    if base_ring.is_prime_field():
+    if macaulay2:
+        if integral_domain.is_IntegralDomain(base_ring):
+            R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
+        else:
+            R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
+    elif base_ring.is_prime_field():
         R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
     else:
         if integral_domain.is_IntegralDomain(base_ring):
@@ -179,7 +203,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
     def _latex_(self):
-        vars = str(self.variable_names()).replace("'","")
+        vars = str(self.variable_names()).replace('\n','').replace("'",'')
         return "%s[%s]"%(latex.latex(self.base_ring()), vars[1:-1])
 
 
@@ -196,6 +220,14 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         except TypeError:
             return False
         return True
+
+    def var_dict(self):
+        """
+        Return dictionary of paris varname:var of the variables
+        of this multivariate polynomial ring.
+        """
+        return dict([(str(g),g) for g in self.gens()])
+
 
     def is_finite(self):
         if self.ngens() == 0:
@@ -372,6 +404,89 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
 class MPolynomialRing_singular_repr_domain(MPolynomialRing_singular_repr, integral_domain.IntegralDomain):
     pass
 
+class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
+    def _macaulay2_(self, macaulay2=None):
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
+        try:
+            R = self.__macaulay2
+            if not (R.parent() is macaulay2):
+                raise ValueError
+            R._check_valid()
+            return R
+        except (AttributeError, ValueError):
+            if self.base_ring().is_prime_field():
+                if self.characteristic() == 0:
+                    base_str = "QQ"
+                else:
+                    base_str = "ZZ/" + str(self.characteristic())
+            elif isinstance(self.base_ring(), IntegerRing):
+                base_str = "ZZ"
+            else:
+                raise TypeError, "no conversion of %s to a Macaulay2 ring defined"%self
+            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
+                                              self.term_order().macaulay2_str())
+        return self.__macaulay2
+
+    def __call__(self, x, check=True):
+        """
+        Coerce x into this multivariate polynomial ring.
+
+        EXAMPLES:
+        We create a Macaulay2 multivariate polynomial via ideal arithmetic,
+        then coerce it into R.
+            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y'], macaulay2=True).objgens()
+            sage: I = R.ideal([x^3 + y, y])
+            sage: S = I._macaulay2_()
+            sage: T = S*S*S
+            sage: U = T.gens().entries().flatten()
+            sage: f = U[2]; f
+            x^3*y^2+y^3
+            sage: R(f)
+            y^3 + x^3*y^2
+        """
+        if isinstance(x, multi_polynomial_element.MPolynomial_macaulay2_repr) and x.parent() == self:
+            return x
+        elif isinstance(x, polydict.PolyDict):
+            return multi_polynomial_element.MPolynomial_macaulay2_repr(self, x)
+        elif is_Macaulay2Element(x):
+            try:
+                s = x.sage_polystring()
+                if len(s) == 0:
+                    raise TypeError
+                # NOTE: It's CRUCIAL to use the eval command as follows,
+                # i.e., with the gen dict as the third arg and the second
+                # empty.  Otherwise pickling won't work after calls to this eval!!!
+                # This took a while to figure out!
+                return self(eval(s, {}, self.gens_dict()))
+            except (AttributeError, TypeError, NameError):
+                raise TypeError, "Unable to coerce macaulay2 object %s to %s (string='%s')"%(x, self, s)
+            return multi_polynomial_element.MPolynomial_macaulay2_repr(self, x)
+        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
+            if x.denominator() == 1:
+                return x.numerator()
+            else:
+                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+        c = self.base_ring()(x)
+        return multi_polynomial_element.MPolynomial_macaulay2_repr(self, {self._zero_tuple:c})
+
+    def _poly_class(self):
+        return multi_polynomial_element.MPolynomial_macaulay2_repr
+
+    def ideal(self, gens, coerce=True):
+        if is_Macaulay2Element(gens):
+            gens = list(gens)
+            coerce = True
+        elif not isinstance(gens, (list, tuple)):
+            gens = [gens]
+        if coerce:
+            gens = [self(x) for x in gens]  # will this coerce from macaulay2 ideals correctly?
+        return multi_polynomial_ideal.MPolynomialIdeal_macaulay2_repr(self, gens, coerce=False)
+
+
+class MPolynomialRing_macaulay2_repr_domain(MPolynomialRing_macaulay2_repr, integral_domain.IntegralDomain):
+    pass
+
 
 #######################
 
@@ -379,6 +494,11 @@ name_mapping = {'lex':'lp', \
                 'revlex':'rp', \
                 'degrevlex':'dp', \
                 'deglex':'Dp'}
+
+m2_name_mapping = {'lex':'Lex', \
+                   'revlex':'RevLex', \
+                   'degrevlex':'GRevLex', \
+                   'deglex':'GLex'}
 
 class TermOrder(SageObject):
     """
@@ -395,8 +515,15 @@ class TermOrder(SageObject):
         name = name.lower()
         self.__name = name
         if name_mapping.has_key(name):
-            name = name_mapping[name]
-        self.__singular_str = name
+            singular_name = name_mapping[name]
+            self.__singular_str = singular_name
+        else:
+            self.__singular_str = name
+        if m2_name_mapping.has_key(name):
+            macaulay2_name = m2_name_mapping[name]
+            self.__macaulay2_str = macaulay2_name
+        else:
+            self.__macaulay2_str = name
 
     def _repr_(self):
         if self.__name == 'lex':
@@ -409,6 +536,9 @@ class TermOrder(SageObject):
 
     def singular_str(self):
         return self.__singular_str
+
+    def macaulay2_str(self):
+        return self.__macaulay2_str
 
     def __cmp__(self, other):
         if not isinstance(other, TermOrder):

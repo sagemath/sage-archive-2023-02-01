@@ -212,7 +212,7 @@ class Gp(Expect):
         return '0'
 
     def help(self, command):
-        return self.eval('?%s'%command)
+        print self.eval('?%s'%command)
 
 
 class GpElement(ExpectElement):

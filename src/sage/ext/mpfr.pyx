@@ -620,6 +620,9 @@ cdef class RealNumber(element.RingElement):
     def __repr__(self):
         return self.str(10)
 
+    def _latex_(self):
+        return str(self)
+
     def __hash__(self):
         return hash(self.str(16))
 

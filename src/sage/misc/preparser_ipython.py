@@ -7,7 +7,6 @@
 
 import sage.misc.interpreter
 
-import log
 import preparser
 
 interface_name  = 'sage'
@@ -19,7 +18,20 @@ magma_colon_equals = False
 
 q_lines = []
 
-def switch_interface(name, verbose=True, control_d=False):
+
+def switch_interface_general(new_interface, verbose=True):
+    global interface
+    global interface_name
+    if not (interface is None):
+        interface._post_interact()
+    interface = new_interface
+    interface_name = new_interface.name().lower()
+    sage.misc.interpreter.set_sage_prompt('%s'%interface_name)
+    if verbose:
+        print "\n  --> Switching to %s <-- \n"%interface
+    interface._pre_interact()
+
+def switch_interface(name, verbose=True):
     I = __import__('sage.interfaces.all',{},{},name)
     if not name in I.interfaces:
         raise RuntimeError, "Invalid interface %s"%name
@@ -29,8 +41,6 @@ def switch_interface(name, verbose=True, control_d=False):
     interface_name = name
     if name == 'sage':
         interface = None
-        if control_d:
-            log.offset -= 1
         if verbose:
             print "\n  --> Exiting back to SAGE <-- \n"
     else:
@@ -61,8 +71,14 @@ def preparse_ipython(line, reset=True):
             # only preparse non-magic lines
             return line
 
+
     if interface is None:
         return preparser.preparse(line, reset=reset)
+
+    if L.startswith('?') or L.endswith('?'):
+        L = L.strip('?')
+        interface.help(L)
+        return ''
 
     line = preparse_imports_from_sage(interface, line)
     line = line.rstrip()
@@ -95,8 +111,9 @@ def preparse_ipython(line, reset=True):
 
         sage.misc.interpreter.set_sage_prompt('%s'%interface_name)
         #print t
+        #__IPYTHON__.output_hist[len(__IPYTHON__.input_hist_raw)] = t
 
-    return 'r"""%s"""'%t
+    return 'logstr(r"""%s""")'%t
 
 
 _v_ = None
@@ -111,13 +128,17 @@ def preparse_imports_from_sage(interface, line, locals={}):
     """
     import sage_eval
     i = line.find('%s('%interface_name)
+    n = len(interface_name)
     if i == -1:
-        return line
+        i = line.find('sage(')
+        n = 4
+        if i == -1:
+            return line
     j = i + line[i:].find(')')
-    expr = line[i+len(interface_name)+1:j]
+    expr = line[i+n+1:j]
     expr = preparser.preparse(expr)
     s = 'import sage.misc.preparser_ipython; \
-         sage.misc.preparser_ipython._v_ = %s(%s)'%(interface_name, expr)
+         sage.misc.preparser_ipython._v_ = sage.misc.preparser_ipython.interface(%s)'%expr
     #print s
     __IPYTHON__.runsource(s)
     #print _v_

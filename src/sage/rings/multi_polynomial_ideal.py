@@ -3,6 +3,8 @@ Ideals in multivariate polynomial rings.
 
 AUTHOR:
     -- William Stein
+    -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
+              some Singular features
 
 EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
@@ -54,9 +56,12 @@ benchmark and test ideal.
 
 from ideal import Ideal_generic
 from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.all import macaulay2 as macaulay2_default
+from sage.interfaces.all import is_SingularElement
 singular = singular_default
 from integer import Integer
 from sage.structure.sequence import Sequence
+from sage.misc.sage_eval import sage_eval
 
 class MPolynomialIdeal(Ideal_generic):
     """
@@ -92,6 +97,52 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         #if c == 0:
         #    return c
         return cmp(self.groebner_basis(), other.groebner_basis())
+
+    def _singular_(self, singular=None):
+        """
+        Return Singular ideal corresponding to this ideal.
+
+        EXAMPLES:
+            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: I = R.ideal([x^3 + y, y])
+            sage: S = I._singular_()
+            sage: S
+            y,
+            x^3+y
+        """
+        if singular is None: singular = singular_default
+        try:
+            self.ring()._singular_(singular).set_ring()
+            I = self.__singular
+            if not (I.parent() is singular):
+                raise ValueError
+            I._check_valid()
+            return I
+        except (AttributeError, ValueError):
+            self.ring()._singular_(singular).set_ring()
+            gens = [str(x) for x in self.gens()]
+            if len(gens) == 0:
+                gens = ['0']
+            self.__singular = singular.ideal(gens)
+        return self.__singular
+
+    def _contains_(self, f):
+        """
+        EXAMPLES:
+            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: I = (x^3 + y, y)*R
+            sage: x in I
+            False
+            sage: y in I
+            True
+            sage: x^3 + 2*y in I
+            True
+        """
+        S = singular_default
+        f = S(f)
+        I = self._singular_(S).std()
+        g = f.reduce(I, 1)  # 1 avoids tail reduction (page 67 of singular book)
+        return g.is_zero()
 
     def plot(self):
         """
@@ -133,52 +184,6 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         singular.lib('surf')
         I = singular(self)
         I.plot()
-
-    def _singular_(self, singular=None):
-        """
-        Return Singular ideal corresponding to this ideal.
-
-        EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
-            sage: I = R.ideal([x^3 + y, y])
-            sage: S = I._singular_()
-            sage: S
-            y,
-            x^3+y
-        """
-        if singular is None: singular = singular_default
-        try:
-            self.ring()._singular_().set_ring()
-            I = self.__singular
-            if not (I.parent() is singular):
-                raise ValueError
-            I._check_valid()
-            return I
-        except (AttributeError, ValueError):
-            self.ring()._singular_().set_ring()
-            gens = [str(x) for x in self.gens()]
-            if len(gens) == 0:
-                gens = ['0']
-            self.__singular = singular.ideal(gens)
-        return self.__singular
-
-    def _contains_(self, f):
-        """
-        EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
-            sage: I = (x^3 + y, y)*R
-            sage: x in I
-            False
-            sage: y in I
-            True
-            sage: x^3 + 2*y in I
-            True
-        """
-        S = singular_default
-        f = S(f)
-        I = self._singular_(S).std()
-        g = f.reduce(I, 1)  # 1 avoids tail reduction (page 67 of singular book)
-        return g.is_zero()
 
     def complete_primary_decomposition(self, algorithm="sy"):
         r"""
@@ -431,3 +436,66 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         except TypeError:
 
             return f
+
+class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
+    """
+    An ideal in a multivariate polynomial ring, which has an underlying
+    Macaulay2 ring associated to it.
+
+    EXAMPLES:
+        sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()
+        sage: I = ideal(x*y-z^2, y^2-w^2)
+        sage: I
+        Ideal (-1*w^2 + y^2, -1*z^2 + x*y) of Polynomial Ring in x, y, z, w over Integer Ring
+    """
+    def __init__(self, ring, gens, coerce=True):
+        MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
+
+    def _macaulay2_(self, macaulay2=None):
+        """
+        Return Macaulay2 ideal corresponding to this ideal.
+        """
+        if macaulay2 is None: macaulay2 = macaulay2_default
+        try:
+            self.ring()._macaulay2_(macaulay2)
+            I = self.__macaulay2
+            if not (I.parent() is macaulay2):
+                raise ValueError
+            I._check_valid()
+            return I
+        except (AttributeError, ValueError):
+            self.ring()._macaulay2_(macaulay2)
+            gens = [str(x) for x in self.gens()]
+            if len(gens) == 0:
+                gens = ['0']
+            self.__macaulay2 = macaulay2.ideal(gens)
+        return self.__macaulay2
+
+    def groebner_basis(self):
+        """
+        Return the Groebner basis for this ideal.
+
+        ALGORITHM: Computed using Macaulay2.
+
+        EXAMPLE:
+            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()
+            sage: I = ideal(x*y-z^2, y^2-w^2)
+            sage: I.groebner_basis()
+            [-1*w^2 + y^2, -1*z^2 + x*y, -1*y*z^2 + x*w^2]
+        """
+        try:
+            return self.__groebner_basis
+        except AttributeError:
+            I = self._macaulay2_()
+            G = str(I.gb().generators()).replace('\n','')
+            i = G.rfind('{{')
+            j = G.rfind('}}')
+            G = G[i+2:j].split(',')
+            L = self.ring().var_dict()
+            B = [sage_eval(f, L) for f in G]
+            B.sort()
+            self.__groebner_basis = B
+            return B
+
+
+

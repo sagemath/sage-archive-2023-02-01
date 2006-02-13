@@ -498,12 +498,12 @@ cdef class ntl_ZZX:
         return (self*other).quo_rem(g)[0]
 
     def xgcd(self, ntl_ZZX other, proof=True):
-        r"""
-        If self and other are coprime over the rationals, return r,s,t
-        such that r = s*self + t*other.  Otherwise return 0.  This
+        """
+        If self and other are coprime over the rationals, return r, s,
+        t such that r = s*self + t*other.  Otherwise return 0.  This
         is \emph{not} the same as the \sage function on polynomials
-        over the integers, since here the return value r is always
-        an integer.
+        over the integers, since here the return value r is always an
+        integer.
 
         Here r is the resultant of a and b; if r != 0, then this
         function computes s and t such that: a*s + b*t = r; otherwise
@@ -2025,6 +2025,7 @@ __have_GF2X_hex_repr = False # hex representation of GF2X
 
 cdef class ntl_GF2X:
     """
+    Polynomials over GF(2) via NTL
     """
     # See ntl.pxd for definition of data members
 
@@ -2067,6 +2068,16 @@ cdef class ntl_GF2X:
     def __pow__(ntl_GF2X self, long e, ignored):
         _sig_on
         return make_GF2X(GF2X_pow(self.gf2x_x, e))
+
+
+    def __cmp__(ntl_GF2X self, ntl_GF2X other):
+        cdef int t
+        _sig_on
+        t = GF2X_eq(self.gf2x_x, other.gf2x_x)
+        _sig_off
+        if t:
+            return 0
+        return 1
 
     def degree(ntl_GF2X self):
         """
@@ -2138,7 +2149,7 @@ cdef class ntl_GF2X:
         _sig_on
         return string(GF2X_to_hex(self.gf2x_x))
 
-    def sage(ntl_GF2X self,R=None):
+    def sage(ntl_GF2X self,R=None,cache=None):
         """
         Returns a SAGE polynomial over GF(2) equivalent to
         this element. If a ring R is provided it is used
@@ -2146,8 +2157,9 @@ cdef class ntl_GF2X:
         an appropriate ring is generated.
 
         INPUT:
-            self -- GF2X element
-            R    -- PolynomialRing over GF(2)
+            self  -- GF2X element
+            R     -- PolynomialRing over GF(2)
+            cache -- optional NTL to SAGE cache (dict)
 
         OUTPUT:
             polynomial in R
@@ -2156,6 +2168,14 @@ cdef class ntl_GF2X:
             from sage.rings.polynomial_ring import PolynomialRing
             from sage.rings.finite_field import FiniteField
             R = PolynomialRing(FiniteField(2), 'x')
+
+        if cache != None:
+            try:
+                return cache[self.hex()]
+            except KeyError:
+                cache[self.hex()] = R(self.list())
+                return cache[self.hex()]
+
         return R(self.list())
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.gf2x_x not set yet!
@@ -2221,8 +2241,8 @@ def make_new_GF2X(x=[]):
             x=x.modulus()._Polynomial_dense_mod_n__poly
     elif isinstance(x, FiniteFieldElement):
         if x.parent().characteristic() == 2:
-            #any faster way?
-            x=x.polynomial().ntl_ZZ_pX()
+            x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
+            x="0x"+hex(x)[2:][::-1]
     s = str(x).replace(","," ")
     cdef ntl_GF2X n
     n = ntl_GF2X()
@@ -2397,6 +2417,15 @@ cdef class ntl_GF2E(ntl_GF2X):
         _sig_on
         return make_GF2E(GF2E_pow(self.gf2e_x, e))
 
+    def __cmp__(ntl_GF2E self, ntl_GF2E other):
+        cdef int t
+        _sig_on
+        t = GF2E_eq(self.gf2e_x, other.gf2e_x)
+        _sig_off
+        if t:
+            return 0
+        return 1
+
     def is_zero(ntl_GF2E self):
         """
         Returns True if this element equals zero, False otherwise.
@@ -2428,7 +2457,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         return make_GF2X(self.gf2x_x)
 
 
-    def sage(ntl_GF2E self, k=None):
+    def sage(ntl_GF2E self, k=None, cache=None):
         """
         Returns a \class{FiniteFieldElement} representation
         of this element. If a \class{FiniteField} k is provided
@@ -2436,8 +2465,9 @@ cdef class ntl_GF2E(ntl_GF2X):
         will be constructed if none is provided.
 
         INPUT:
-            self -- \class{GF2E} element
-            k    -- GF(2**deg)
+            self  -- \class{GF2E} element
+            k     -- optional GF(2**deg)
+            cache -- optional NTL to SAGE conversion dictionary
 
         OUTPUT:
             FiniteFieldElement over k
@@ -2451,6 +2481,14 @@ cdef class ntl_GF2E(ntl_GF2X):
             f = ntl_GF2E_modulus().sage()
             k = FiniteField_ext_pari(2**deg,modulus=f)
 
+        if cache != None:
+            try:
+                return cache[self.hex()]
+            except KeyError:
+                pass
+
+
+
         a=k.gen()
         l = self.list()
 
@@ -2460,6 +2498,10 @@ cdef class ntl_GF2E(ntl_GF2X):
         for i from 0 <= i < length:
             if l[i]==1:
                 ret = ret + a**i
+
+        if cache != None:
+            cache[self.hex()] = ret
+
         return ret
 
 
@@ -2785,33 +2827,28 @@ cdef class ntl_mat_GF2E:
         else:
             return True
 
-    def sage(ntl_mat_GF2E self, k):
+    def sage(ntl_mat_GF2E self, k=None, cache=None):
         """
         Returns a \class{Matrix} over a FiniteField representation
         of this element.
 
         INPUT:
-            self -- \class{mat_GF2E} element
-            k    -- GF(2**deg)
+            self  -- \class{mat_GF2E} element
+            k     -- optional GF(2**deg)
+            cache -- optional NTL to SAGE conversion dictionary
 
         OUTPUT:
             Matrix over k
         """
-        ##  for some reason this only works once!
-        ##  Error e.g.:
-        ##  Unable to coerce elements of entries (=[a + 1, a + 1, a + 1, a + 1]) to Finite field in a of size 2^8
-        ##         if k==None:
-        ##             k = ntl_GF2E_sage()
-        ntl2sage = dict();
+        if k==None:
+            k = ntl_GF2E_sage()
         l = []
         for elem in self.list():
-            if not ntl2sage.has_key(elem.hex()):
-                ntl2sage[elem.hex()] = elem.sage(k)
-            l.append(ntl2sage[elem.hex()])
-            #l.append(elem.sage(k))
+            l.append(elem.sage(k, cache))
 
-        from sage.matrix.constructor import Matrix
-        return Matrix(k,self.nrows(),self.ncols(),l)
+        from sage.matrix.matrix import Matrix_generic_dense
+        from sage.matrix.matrix_space import MatrixSpace
+        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce_entries=False,copy=False,entries=l)
 
     def transpose(ntl_mat_GF2E self):
         """

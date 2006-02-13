@@ -696,7 +696,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         """
         Set row i equal to s times row j.
         """
-        self[i] = self[j]*s
+        self[i] = s*self[j]
 
     def sparse_columns(self):
         try:

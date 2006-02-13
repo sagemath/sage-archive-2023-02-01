@@ -1079,6 +1079,11 @@ struct GF2X* GF2X_pow(const struct GF2X* x, long e)
   return z;
 }
 
+int GF2X_eq( const struct GF2X* x, const struct GF2X* y)
+{
+  return (*x) == (*y);
+}
+
 int GF2X_is_one(struct GF2X* x)
 {
   return IsOne(*x);
@@ -1209,6 +1214,12 @@ struct GF2E* GF2E_pow(const struct GF2E* x, long e)
   power(*z, *x, e);
   return z;
 }
+
+int GF2E_eq( const struct GF2E* x, const struct GF2E* y)
+{
+  return (*x) == (*y);
+}
+
 
 int GF2E_is_one(struct GF2E* x)
 {

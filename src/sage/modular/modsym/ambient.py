@@ -1079,7 +1079,7 @@ class ModularSymbolsAmbient_wt2_g0_Q(ModularSymbolsAmbient_wtk_g0_Q):
         R = self.manin_gens_to_basis()
         W = R.new_matrix(nrows=len(B), ncols = R.nrows())  # the 0 with given number of rows and cols.
         j = 0
-        tm = misc.verbose("Matrix non-reduced matrix W", tm)
+        tm = misc.verbose("Matrix non-reduced", tm)
         for i in B:
             # The following step is where most of the time is spent.
             c,d = P1[i]
@@ -1102,8 +1102,8 @@ class ModularSymbolsAmbient_wt2_g0_Q(ModularSymbolsAmbient_wtk_g0_Q):
                         W.set((j,f), W.get((j,f)) + s*m)
             j += 1
         tm = misc.verbose("done making non-reduced matrix",tm)
-        misc.verbose("start sparse matrix-matrix multiply")
-        Tp = W*R
+        misc.verbose("start matrix-matrix multiply to get Tp")
+        Tp = W * R
         misc.verbose("done multiplying",tm)
         self._hecke_matrices[p] = Tp
         misc.verbose("done making matrix",tm)

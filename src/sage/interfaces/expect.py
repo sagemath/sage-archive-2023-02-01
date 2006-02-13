@@ -61,7 +61,7 @@ class Expect(SageObject):
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__script_subdirectory = script_subdirectory
         self.__name = name
-        self.__coerce_name = '_' + name + '_'
+        self.__coerce_name = '_' + name.lower() + '_'
         self.__command = command
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
@@ -120,23 +120,25 @@ class Expect(SageObject):
     def interact(self):
         r"""
         This allows you to interactively interact with the child
-        interpreter.  Press Ctrl-] to exit and return to SAGE.
-
-        {\em This function does not work very well. }
+        interpreter.  Press Ctrl-D or type 'quit' or 'exit'
+        to exit and return to SAGE.
 
         \note{This is completely different than the console() member
         function.  The console function opens a new copy of the child
         interepreter, whereas the interact function gives you
         interactive access to the interpreter that is being used by
-        SAGE.}
+        SAGE.   Use sage(xxx) or interpretername(xxx) to pull objects
+        in from sage to the interpreter.}
         """
         if not hasattr(self, '__expect'):
             self._start()
-        self._eval_line('')
-        self._eval_line('')
-        self._expect.interact()
-        self._eval_line('')
-        self._eval_line('')
+        import sage.misc.preparser_ipython
+        sage.misc.preparser_ipython.switch_interface_general(self)
+        #self._eval_line('')
+        #self._eval_line('')
+        #self._expect.interact()
+        #self._eval_line('')
+        #self._eval_line('')
 
     def _pre_interact(self):
         pass
@@ -372,13 +374,20 @@ class Expect(SageObject):
     def _equality_symbol(self):
         return "=="
 
-    # These below could easily be wrong and it not be obvious, so we require
-    # they be overloaded.  The above would obviously bomb if not correct.
+    # For efficiency purposes, you should definitely override these
+    # in your derived class.
     def _true_symbol(self):
-        raise NotImplementedError
+        try:
+            return self.__true_symbol
+        except AttributeError:
+            self.__true_symbol = self.eval('1 %s 1'%self._equality_symbol())
 
     def _false_symbol(self):
-        raise NotImplementedError
+        try:
+            return self.__false_symbol
+        except AttributeError:
+            self.__false_symbol = self.eval('1 %s 2'%self._equality_symbol())
+
 
     ############################################################
     #         Functions for working with variables.
@@ -462,6 +471,9 @@ class Expect(SageObject):
 
     def console(self):
         raise NotImplementedError
+
+    def help(self, s):
+        print 'No help on %s available'%s
 
 
 class ExpectFunction(SageObject):

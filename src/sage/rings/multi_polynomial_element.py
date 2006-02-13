@@ -5,6 +5,9 @@ AUTHORS:
     -- David Joyner: first version
     -- William Stein: use dict's instead of lists
     -- Martin Albrecht <malb@informatik.uni-bremen.de>: some functions added
+    -- William Stein (2006-02-11); added better __div__ behavior.
+    -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
+              some Singular features
 """
 
 #*****************************************************************************
@@ -32,7 +35,7 @@ import arith
 from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
 from coerce import bin_op, cmp as coerce_cmp
 
-from sage.interfaces.all import singular
+from sage.interfaces.all import singular, macaulay2
 
 import sage.misc.misc as misc
 import integer
@@ -853,3 +856,34 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
         R = self.parent()
         X = self._singular_().division(right._singular_())
         return R(X[1]), R(X[2])
+
+
+class MPolynomial_macaulay2_repr(MPolynomial_polydict):
+    """
+    Multivariate polynomials that are representable in Macaulay2.
+    """
+    def _macaulay2_(self, macaulay2=macaulay2):
+        """
+        Return corresponding Macaulay2 polynomial.
+
+        EXAMPLES:
+            sage: R = PolynomialRing(GF(7), 2, ['x','y'], macaulay2=True)
+            sage: x, y = R.gens()
+            sage: f = (x^3 + 2*y^2*x)^7; f
+            2*x^7*y^14 + x^21
+            sage: h = f._macaulay2_(); h
+            x^21+2*x^7*y^14
+            sage: R(h)
+            2*x^7*y^14 + x^21
+            sage: R(h^20) == f^20
+            True
+        """
+        try:
+            if self.__macaulay2.parent() is macaulay2:
+                return self.__macaulay2
+        except AttributeError:
+            pass
+        self.parent()._macaulay2_(macaulay2)
+        self.__macaulay2 = macaulay2(str(self))
+        return self.__macaulay2
+

@@ -1,5 +1,9 @@
 """
 Sparse matrices
+
+AUTHOR:
+   -- William Stein (2004): first version
+   -- William Stein (2006-02-12): added set_row_to_multiple_of_row
 """
 
 #****-*-python-***************************************************************
@@ -1285,6 +1289,63 @@ cdef class Matrix_mpq:
         clear_mpq_vector(&ans.v)
         ans.v = sum
         return ans
+
+    def set_row_to_multiple_of_row(self, int row_to, int row_from, rational.Rational multiple):
+        """
+        Set row row_to equal to multiple times row row_from.
+
+        EXAMPLES:
+            sage: from sage.ext.sparse_matrix_pyx import *
+            sage: m = Matrix_mpq(3,3,entries=[(1,1,10/3)])
+            sage: m
+            [
+            0, 0, 0,
+            0, 10/3, 0,
+            0, 0, 0
+            ]
+            sage: m.set_row_to_multiple_of_row(0, 1, 6/1)   # third argument must be a rational!
+            sage: m
+            [
+            0, 20, 0,
+            0, 10/3, 0,
+            0, 0, 0
+            ]
+            sage: m.set_row_to_multiple_of_row(2,1,-10/1)
+            sage: m
+            [
+            0, 20, 0,
+            0, 10/3, 0,
+            0, -100/3, 0
+            ]
+            sage: m.set_row_to_multiple_of_row(-1, 1, 6/1)
+            Traceback (most recent call last):
+            ...
+            IndexError: row_to is -1 but must be >= 0 and < 3
+            sage: m.set_row_to_multiple_of_row(0, 3, 6/1)
+            Traceback (most recent call last):
+            ...
+            IndexError: row_from is 3 but must be >= 0 and < 3
+        """
+        # A sparse matrix is an array of pointers to mpq_vector's.
+        # 1. Delete the vector in position row_to
+        # 2. Initialize a new one in its place.
+        # 3. Fill in the entries with appropriate multiples of the entries in row_from.
+        cdef int i, r
+        cdef mpq_t prod
+
+        if row_from < 0 or row_from >= self.nr:
+            raise IndexError, "row_from is %s but must be >= 0 and < %s"%(row_from, self.nr)
+        if row_to < 0 or row_to >= self.nr:
+            raise IndexError, "row_to is %s but must be >= 0 and < %s"%(row_to, self.nr)
+
+        clear_mpq_vector(&self.rows[row_to])
+        init_mpq_vector(&self.rows[row_to], self.nc, 0)
+        mpq_init(prod)
+        for i from 0 <= i < self.rows[row_from].num_nonzero:
+            r = self.rows[row_from].positions[i]
+            mpq_mul(prod, multiple.value, self.rows[row_from].entries[i])
+            mpq_vector_set_entry(&self.rows[row_to], r, prod)
+        mpq_clear(prod)
 
     def parent(self):
         import sage.matrix.matrix_space

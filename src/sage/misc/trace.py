@@ -31,7 +31,10 @@ def trace(code, preparse=True):
 
     SETTING A BREAK POINT: If you have some code in a file and would
     like to drop into the debugger at a given point, put the following
-    code at that point in the file: \code{import pdb; pdb.set_trace()}
+    code at that point in the file:
+
+             \code{import pdb; pdb.set_trace()}
+
     For an article on how to use the Python debuger, see
        http://www.onlamp.com/pub/a/python/2005/09/01/debugger.html
     """

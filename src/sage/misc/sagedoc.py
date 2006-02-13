@@ -17,6 +17,8 @@ Format SAGE documentation for viewing with IPython
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import os
+
 substitutes = [('\\_','_'),\
                ('\\to', '-->'), \
                ('<BLANKLINE>',''), \
@@ -84,3 +86,16 @@ def format(s):
     for a,b in substitutes:
         s = s.replace(a,b)
     return s
+
+
+###############################
+
+def search_sage(s):
+    """
+    Search sage source code for lines containing s.  The search is not
+    case sensitive.
+
+    For this to work the "sage" command must be in your PATH,
+    and you must have grep installed.
+    """
+    os.system('sage -grep "%s"'%s)

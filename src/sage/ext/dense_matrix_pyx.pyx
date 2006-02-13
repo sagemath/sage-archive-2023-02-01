@@ -1241,9 +1241,9 @@ cdef class Matrix_rational:
         cdef mpq_t *v_from, *v_to
 
         if row_from < 0 or row_from >= self.nrows:
-            raise IndexError
+            raise IndexError, "row_from is %s but must be >= 0 and < %s"%(row_from, self.nrows)
         if row_to < 0 or row_to >= self.nrows:
-            raise IndexError
+            raise IndexError, "row_to is %s but must be >= 0 and < %s"%(row_to, self.nrows)
 
         v_from = self.matrix[row_from]
         v_to = self.matrix[row_to]

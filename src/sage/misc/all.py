@@ -7,6 +7,8 @@ from misc import (alarm, srange, xsrange,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, upgrade)
 
+from sagedoc import search_sage
+
 from log import log_html, log_dvi
 
 from defaults import set_default_variable_name
@@ -43,4 +45,18 @@ def benchmark(n=-1):
     import sage.misc.benchmark
     return sage.misc.benchmark.benchmark(n)
 
+
+class logstr(str):
+    def __repr__(self):
+        return self
+
+    def _latex_(self):
+        #return "\\begin{verbatim}%s\\end{verbatim}"%self
+        if not '#' in self:
+         delim = '#'
+        elif not '@' in self:
+         delim = '@'
+        elif not '~' in self:
+         delim = '~'
+        return r"""\verb%s%s%s"""%(delim, self.replace('\n\n','\n').replace('\n','; '), delim)
 

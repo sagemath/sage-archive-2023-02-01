@@ -3831,6 +3831,46 @@ cdef class gen:
     def transpose(self):
         return self.mattranspose()
 
+    def matadjoint(self):
+        """
+        matadjoint(x): adjoint matrix of x.
+        """
+        _sig_on
+        return self.new_gen(adj(self.g)).Mat()
+
+    def adjoint(self):
+        return self.matadjoint()
+
+    def qflllgram(self, long flag=0):
+        """
+        qflllgram(x,{flag=0}): LLL reduction of the lattice whose gram
+        matrix is x (gives the unimodular transformation matrix). flag
+        is optional and can be 0: default,1: lllgramint algorithm for
+        integer matrices, 4: lllgramkerim giving the kernel and the
+        LLL reduced image, 5: lllgramkerimgen same when the matrix has
+        polynomial coefficients, 8: lllgramgen, same as qflllgram when
+        the coefficients are polynomials.
+        """
+        _sig_on
+        return self.new_gen(qflllgram0(self.g,flag,prec)).Mat()
+
+    def lllgram(self):
+        return self.qflllgram(0)
+
+    def lllgramint(self):
+        return self.qflllgram(1)
+
+    def qfrep(self, B, long flag=0):
+        """
+        qfrep(x,B,{flag=0}): vector of (half) the number of vectors of
+        norms from 1 to B for the integral and definite quadratic form
+        x. Binary digits of flag mean 1: count vectors of even norm
+        from 1 to 2B, 2: return a t_VECSMALL instead of a t_VEC.
+        """
+        t0GEN(B)
+        _sig_on
+        return self.new_gen(qfrep0(self.g,t0,flag))
+
     def matker(self, long flag=0):
         """
         """
@@ -3842,7 +3882,6 @@ cdef class gen:
         """
         _sig_on
         return self.new_gen(matkerint0(self.g, flag))
-
 
     def trace(self):
         _sig_on
@@ -4386,6 +4425,10 @@ cdef class PariInstance:
         raise TypeError, "x must be a PARI object"
 
     def new_with_prec(self, s, long precision=0):
+        r"""
+        pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
+        with at lest precision decimal \emph{digits} of precision.
+        """
         if not precision:
             precision = prec
         self.set_real_precision(precision)
@@ -4394,6 +4437,10 @@ cdef class PariInstance:
         return x
 
     def new_with_bits_prec(self, s, long precision=0):
+        r"""
+        pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
+        with precision \emph{bits} of precision.
+        """
         precision = long(precision / 3.4) - 1     # be safe, since log_2(10) = 3.3219280948873626
         if not precision:
             precision = prec

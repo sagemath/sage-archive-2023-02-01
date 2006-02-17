@@ -11,6 +11,7 @@ import field
 import ring
 import sage.rings.rational
 import sage.structure.factorization
+import complex_field
 
 
 _obj = {}
@@ -120,6 +121,10 @@ class RationalField(_uniq, field.Field):
             for d in abs(n).coprime_integers(m):
                 yield n/d
                 yield d/n
+
+    def complex_embedding(self, prec=53):
+        CC = complex_field.ComplexField(prec)
+        return self.hom([CC(1)])
 
     def gens(self):
         return (self(1), )

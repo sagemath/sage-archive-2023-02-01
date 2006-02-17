@@ -18,7 +18,7 @@ Abstract base class for rings
 #*****************************************************************************
 
 import random
-import sage.rings.coerce
+import sage.ext.coerce
 
 import sage.rings.finite_field
 import sage.rings.integer_ring

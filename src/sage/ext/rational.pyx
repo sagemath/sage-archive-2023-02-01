@@ -206,6 +206,50 @@ cdef class Rational(element.FieldElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
 
+    def lcm(self, Rational other):
+        """
+        Return the least common multiple of self and other.
+
+        Our hopefully interesting notion of LCM for rational numbers
+        is illustrated in the examples below.
+
+        EXAMPLES:
+            sage: lcm(2/3,1/5)
+            2
+            sage: lcm(2/3,7/5)
+            14
+            sage: lcm(1/3,1/5)
+            1
+            sage: lcm(1/3,1/6)
+            1/3
+        """
+        d = self.denom()*other.denom()
+        self_d = self.numer()*other.denom()
+        other_d = other.numer()*self.denom()
+        return self_d.lcm(other_d) / d
+
+    def gcd(self, Rational other):
+        """
+        Return the least common multiple of self and other.
+
+        Our hopefully interesting notion of GCD for rational numbers
+        is illustrated in the examples below.
+
+        EXAMPLES:
+            sage: gcd(2/3,1/5)
+            1/15
+            sage: gcd(2/3,7/5)
+            1/15
+            sage: gcd(1/3,1/6)
+            1/6
+            sage: gcd(6/7,9/7)
+            3/7
+        """
+        d = self.denom()*other.denom()
+        self_d = self.numer()*other.denom()
+        other_d = other.numer()*self.denom()
+        return self_d.gcd(other_d) / d
+
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 

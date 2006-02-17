@@ -18,11 +18,25 @@ import field
 import real_field
 import integer_ring
 import integer
+import weakref
 
 def is_ComplexField(x):
-    return isinstance(x, ComplexField)
+    return isinstance(x, ComplexField_class)
 
-class ComplexField(field.Field):
+cache = {}
+def ComplexField(prec=53):
+    global cache
+    if cache.has_key(prec):
+        X = cache[prec]
+        C = X()
+        if not C is None:
+            return C
+    C = ComplexField_class(prec)
+    cache[prec] = weakref.ref(C)
+    return C
+
+
+class ComplexField_class(field.Field):
     """
     The field of complex numbers.
 
@@ -104,7 +118,7 @@ class ComplexField(field.Field):
             return self.__real_field
 
     def __cmp__(self, other):
-        if not isinstance(other, ComplexField):
+        if not isinstance(other, ComplexField_class):
             return -1
         return cmp(self.__prec, other.__prec)
 
@@ -131,7 +145,7 @@ class ComplexField(field.Field):
         return True
 
     def pi(self):
-        return self(real_field.RealField(self.__prec).pi())
+        return self(self._real_field().pi())
 
     def ngens(self):
         return 1
@@ -153,9 +167,17 @@ class ComplexField(field.Field):
         elif n == 2:
             x = self(-1)
         elif n >= 3:
-            x = (2*self.pi()*self.gen()/n).exp()
+            # Use De Moivre
+            # e^(2*pi*i/n) = cos(2pi/n) + i *sin(2pi/n)
+            RR = self._real_field()
+            pi = RR.pi()
+            z = 2*pi/n
+            x = complex_number.ComplexNumber(self, z.cos(), z.sin())
         x._multiplicative_order = n
         return x
+
+    def scientific_notation(self, status=None):
+        return self._real_field().scientific_notation(status)
 
 CC = ComplexField()
 

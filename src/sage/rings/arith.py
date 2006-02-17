@@ -27,6 +27,8 @@ from sage.rings.coerce import canonical_coercion, bin_op
 from sage.structure.element import RingElement
 from sage.interfaces.all import gp, gap, kash
 
+import sage.rings.bernoulli
+
 ##################################################################
 # Elementary Arithmetic
 ##################################################################
@@ -88,7 +90,7 @@ def algdep(z, n):
 algebraic_dependency = algdep
 
 def bernoulli(n, algorithm='pari'):
-    """
+    r"""
     Return the n-th Bernoulli number, as a rational number.
 
     INPUT:
@@ -98,6 +100,7 @@ def bernoulli(n, algorithm='pari'):
                       by *far* the fastest.
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
+            'python' -- use pure Python implementation
 
     EXAMPLES:
         sage: bernoulli(12)
@@ -112,8 +115,14 @@ def bernoulli(n, algorithm='pari'):
         sage: bernoulli(12, algorithm='gp')
         -691/2730
 
+    \note{If $n>50000$ then algorithm = 'gp' is used instead of
+    algorithm = 'pari', since the C-library interface to PARI
+    is limited in memory for individual operations.}
+
     AUTHOR: David Joyner and William Stein
     """
+    if n > 50000 and algorithm == 'pari':
+        algorithm = 'gp'
     if algorithm == 'pari':
         x = pari(n).bernfrac()
         return sage.rings.rational.Rational(x)
@@ -123,6 +132,8 @@ def bernoulli(n, algorithm='pari'):
     elif algorithm == 'gp':
         x = gp('bernfrac(%s)'%n)
         return sage.rings.rational.Rational(x)
+    elif algorithm == 'sage':
+        return sage.rings.bernoulli.bernoulli_python(n)
     else:
         raise ValueError, "invalid choice of algorithm"
 

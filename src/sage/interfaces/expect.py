@@ -246,6 +246,9 @@ class Expect(SageObject):
         F.write(line)
         F.close()
         s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+        return self._post_process_from_file(s)
+
+    def _post_process_from_file(self, s):
         return s
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
@@ -280,13 +283,13 @@ class Expect(SageObject):
                     #print "** %s crashed or quit executing '%s' **"%(self, line)
                     #print "Restarting %s and trying again"%self
                     self._start()
-                    if line != '':
-                        return self._eval_line(line,
-                                               allow_use_file  = allow_use_file,
-                                               wait_for_prompt = wait_for_prompt)
-                    else:
-                        return ''
-                    #raise RuntimeError, "%s crashed executing %s"%(self, line)
+                    #if line != '':
+                    #    return self._eval_line(line,
+                    #                           allow_use_file  = allow_use_file,
+                    #                           wait_for_prompt = wait_for_prompt)
+                    #else:
+                    #    return ''
+                    raise RuntimeError, "%s crashed executing %s"%(self, line)
                 out = E.before
             else:
                 out = '\n\r'

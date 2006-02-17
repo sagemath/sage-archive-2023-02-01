@@ -183,11 +183,39 @@ class Factorization(SageObject, list):
         return s
 
     def __add__(self, other):
-        raise NotImplementedError
+        """
+        Return the sum of self and other.
+
+        EXAMPLES:
+            sage: factor(-10) + 16
+            6
+            sage: factor(10) - 16
+            -6
+        """
+        return self.mul() + other
+
+
+    def __sub__(self, other):
+        """
+        Return the sum of self and other.
+
+        EXAMPLES:
+            sage: factor(-10) + 16
+            6
+            sage: factor(10) - 16
+            -6
+        """
+        return self.mul() - other
 
     def __mul__(self, other):
         """
         Return the product of two factorizations.
+
+        EXAMPLES:
+            sage: factor(-10) *factor(-16)
+            2^5 * 5
+            sage: factor(-10) *factor(16)
+            -1 * 2^5 * 5
         """
         if not isinstance(other, Factorization):
             return self.mul() * other
@@ -200,22 +228,25 @@ class Factorization(SageObject, list):
                 s[a] += d1[a]
             if d2.has_key(a):
                 s[a] += d2[a]
-        return Factorization(list(s.iteritems()))
+        return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
 
-    def mul(self):
+    def value(self):
         """
         Return the product of the factors in the factorization, multiplied out.
 
         EXAMPLES:
             sage: F = factor(2006); F
             2 * 17 * 59
-            sage: F.mul()
+            sage: F.value()
             2006
         """
         x = self.__unit
         for f, e in self:
             x *= (f**e)
         return x
+
+    def mul(self):
+        return self.value()
 
     def prod(self):
         r"""

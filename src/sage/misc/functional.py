@@ -370,16 +370,33 @@ def imaginary(x):
     """
     return imag(x)
 
-def integral(x):
+def integral(x, var=None, algorithm='maxima'):
     """
     Return an indefinite integral of an object x.
+
+    First call x.integrate() and if that fails make an
+    object and integrate it using maxima, maple, etc, as
+    specified by algorithm.
 
     EXAMPLES:
         sage: f = cyclotomic_polynomial(10)
         sage: integral(f)
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
     """
-    return x.integral()
+    if var is None:
+        try:
+            return x.integral()
+        except AttributeError:
+            pass
+    import sage.interfaces.all as I
+    if var is None:
+        var = 'x'
+    if algorithm == 'maxima':
+        return I.maxima(x).integrate(var)
+    elif algorithm == 'mathematica':
+        return I.mathematica(x).Integrate(var)
+    else:
+        raise ValueError, 'no algorithm %s'%algorithm
 
 def integral_closure(x):
     return x.integral_closure()

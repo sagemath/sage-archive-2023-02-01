@@ -1,7 +1,5 @@
 include "interrupt.pxi"
 
-import sage.misc.all
-
 ctypedef unsigned long ulong
 
 cdef extern from "stdlib.h":
@@ -77,6 +75,7 @@ def ec(ainvs):
     if not isinstance(ainvs, list) or len(ainvs) != 5:
         raise TypeError, "ainvs must be a list of length 5"
 
+    import sage.misc.all
     if sage.misc.all.is_64_bit:
         raise RuntimeError, "ec does not work on 64-bit platforms"
 

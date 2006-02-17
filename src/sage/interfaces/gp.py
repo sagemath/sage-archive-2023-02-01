@@ -78,7 +78,7 @@ AUTHORS:
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
-from sage.libs.all import pari
+from sage.libs.pari.all import pari
 
 
 class Gp(Expect):

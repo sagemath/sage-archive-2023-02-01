@@ -64,9 +64,12 @@ class ComplexNumber(ring_element.RingElement):
         self.__repr = None
 
     def _repr_(self):
+        return self.str(10)
+
+    def str(self, base=10):
         s = ""
         if self.__re != 0:
-            s = str(self.__re)
+            s = self.__re.str(base)
         if self.__im != 0:
             y  =  self.__im
             if s!="":
@@ -75,10 +78,11 @@ class ComplexNumber(ring_element.RingElement):
                     y = -y
                 else:
                     s = s+" + "
-            s = s+"%s*I"%y
+            s = s+"%s*I"%y.str(base)
         if len(s) == 0:
             s = "0"
         return s
+
 
     def _pari_(self):
         try:

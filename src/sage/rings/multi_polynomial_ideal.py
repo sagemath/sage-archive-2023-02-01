@@ -443,9 +443,9 @@ class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
     Macaulay2 ring associated to it.
 
     EXAMPLES:
-        sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()
-        sage: I = ideal(x*y-z^2, y^2-w^2)
-        sage: I
+        sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()  # optional
+        sage: I = ideal(x*y-z^2, y^2-w^2)       # optional
+        sage: I                                 # optional
         Ideal (-1*w^2 + y^2, -1*z^2 + x*y) of Polynomial Ring in x, y, z, w over Integer Ring
     """
     def __init__(self, ring, gens, coerce=True):
@@ -478,9 +478,9 @@ class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
         ALGORITHM: Computed using Macaulay2.
 
         EXAMPLE:
-            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()
-            sage: I = ideal(x*y-z^2, y^2-w^2)
-            sage: I.groebner_basis()
+            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()      # optional
+            sage: I = ideal(x*y-z^2, y^2-w^2)                                         # optional
+            sage: I.groebner_basis()                                                  # optional
             [-1*w^2 + y^2, -1*z^2 + x*y, -1*y*z^2 + x*w^2]
         """
         try:

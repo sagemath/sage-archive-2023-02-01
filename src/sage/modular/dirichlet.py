@@ -311,6 +311,119 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
+    def gauss_sum(self, a=1):
+        r"""
+        Return a Gauss sum associated to this Dirichlet character.
+
+        The Gauss sum associated to $\chi$ is
+         $$
+              g_a(\chi) = \sum_{r \in \Z/m\Z} \chi(r)\,\zeta^{ar},
+         $$
+        where $m$ is the modulus of $\chi$ and $\zeta$ is a primitive
+        $m$th root of unity, i.e., $\zeta$ is
+        \code{self.parent().zeta()}.
+
+        FACTS: If the modulus is a prime $p$ and the character is
+        nontrivial, then the Gauss sum has absolute value $\sqrt{p}$.
+
+        CACHING: Computed Gauss sums are \emph{not} cached with this
+        character.
+
+        EXAMPLES:
+            sage: G = DirichletGroup(3)
+            sage: e = G([-1])
+            sage: e.gauss_sum(1)
+            2*zeta_6 - 1
+            sage: e.gauss_sum(2)
+            -2*zeta_6 + 1
+            sage: norm(e.gauss_sum())
+            3
+
+            sage: G = DirichletGroup(13)
+            sage: e = G.0
+            sage: e.gauss_sum()
+            -zeta_156^46 + zeta_156^45 + zeta_156^42 + zeta_156^41 + 2*zeta_156^40 + zeta_156^37 - zeta_156^36 - zeta_156^34 - zeta_156^33 - zeta_156^31 + 2*zeta_156^30 + zeta_156^28 - zeta_156^24 - zeta_156^22 + zeta_156^21 + zeta_156^20 - zeta_156^19 + zeta_156^18 - zeta_156^16 - zeta_156^15 - 2*zeta_156^14 - zeta_156^10 + zeta_156^8 + zeta_156^7 + zeta_156^6 + zeta_156^5 - zeta_156^4 - zeta_156^2 - 1
+            sage: factor(norm(e.gauss_sum()))
+            13^24
+        """
+        G = self.parent()
+        K = G.base_ring()
+        if not rings.is_CyclotomicField(K) or rings.is_RationalField(K):
+            raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
+        g = 0
+        m = G.modulus()
+        L = rings.CyclotomicField(arith.lcm(m,G.zeta_order()))
+        zeta = L.gen(0)
+        n = zeta.multiplicative_order()
+        zeta = zeta ** (n // m)
+        if a != 1:
+            zeta = zeta**a
+        z = 1
+        for c in self.values()[1:]:
+            z *= zeta
+            g += L(c)*z
+        return g
+
+    def gauss_sum_numerical(self, prec=53, a=1):
+        r"""
+        Return a Gauss sum associated to this Dirichlet character as
+        an approximate complex number with prec bits of precision.
+
+        INPUT:
+            prec -- integer (deafault: 53), *bits* of precision
+            a -- integer, as for gauss_sum.
+
+        The Gauss sum associated to $\chi$ is
+         $$
+              g_a(\chi) = \sum_{r \in \Z/m\Z} \chi(r)\,\zeta^{ar},
+         $$
+        where $m$ is the modulus of $\chi$ and $\zeta$ is a primitive
+        $m$th root of unity, i.e., $\zeta$ is
+        \code{self.parent().zeta()}.
+
+        EXAMPLES:
+            sage: G = DirichletGroup(3)
+            sage: e = G.0
+            sage: e.gauss_sum_numerical()
+            0.00000000000000055511151231257827 + 1.7320508075688772*I
+            sage: abs(e.gauss_sum_numerical())
+            1.7320508075688772
+            sage: sqrt(3)
+            1.7320508075688772
+            sage: e.gauss_sum_numerical(a=2)
+            -0.0000000000000011102230246251565 - 1.7320508075688772*I
+            sage: e.gauss_sum_numerical(a=2, prec=100)
+            0.0000000000000000000000000000047331654313260708324703713916967 - 1.7320508075688772935274463415062*I
+            sage: G = DirichletGroup(13)
+            sage: e = G.0
+            sage: e.gauss_sum_numerical()
+            -3.0749720589952387 + 1.8826966926190174*I
+            sage: abs(e.gauss_sum_numerical())
+            3.6055512754639896
+            sage: sqrt(13)
+            3.6055512754639891
+        """
+        G = self.parent()
+        K = G.base_ring()
+        if not rings.is_CyclotomicField(K) or rings.is_RationalField(K):
+            raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
+        phi = K.complex_embedding(prec)
+        CC = phi.codomain()
+
+        g = 0
+        m = G.modulus()
+        zeta = CC.zeta(m)
+        if a != 1:
+            zeta = zeta**a
+        z = 1
+        for c in self.values()[1:]:
+            z *= zeta
+            g += phi(c)*z
+        return g
+
+
+
+
     def is_even(self):
         r"""
         Return \code{True} if and only if $\eps(-1) = 1$.
@@ -327,6 +440,14 @@ class DirichletCharacter(MultiplicativeGroupElement):
             pass
         self.__is_odd = (self(-1) != self.base_ring()(1))
         return self.__is_odd
+
+    def is_primitive(self):
+        try:
+            return self.__is_primitive
+        except AttributeError:
+            pass
+        self.__is_primitive = (self.conductor() == self.modulus())
+        return self.__is_primitive
 
     def is_trivial(self):
         r"""

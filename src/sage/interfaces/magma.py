@@ -105,6 +105,10 @@ class Magma(Expect):
     def _read_in_file_command(self, filename):
         return 'load "%s";'%filename
 
+    def _post_process_from_file(self, s):
+        i = s.find('\n')
+        return s[i+1:]
+
     def _continuation_prompt(self):
         return self._prompt
 

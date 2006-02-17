@@ -134,8 +134,8 @@ def MPolynomialRing(base_ring, n=1, names=None,
         Polynomial Ring in x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10, x_11, x_12, x_13, x_14, x_15, x_16, x_17, x_18, x_19 over Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
 
     We create a polynomial ring that uses the Macaualy2 interface.
-        sage: R, (x,y,z) = MPolynomialRing(ZZ, 3, 'xyz', macaulay2=True).objgens()
-        sage: type(R)
+        sage: R, (x,y,z) = MPolynomialRing(ZZ, 3, 'xyz', macaulay2=True).objgens()     # optional
+        sage: type(R)                                                                  # optional
         <class 'sage.rings.multi_polynomial_ring.MPolynomialRing_macaulay2_repr_domain'>
     """
     global _cache
@@ -435,14 +435,14 @@ class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
         EXAMPLES:
         We create a Macaulay2 multivariate polynomial via ideal arithmetic,
         then coerce it into R.
-            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y'], macaulay2=True).objgens()
-            sage: I = R.ideal([x^3 + y, y])
-            sage: S = I._macaulay2_()
-            sage: T = S*S*S
-            sage: U = T.gens().entries().flatten()
-            sage: f = U[2]; f
+            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y'], macaulay2=True).objgens()       # optional
+            sage: I = R.ideal([x^3 + y, y])                                                   # optional
+            sage: S = I._macaulay2_()                                                         # optional
+            sage: T = S*S*S                                                                   # optional
+            sage: U = T.gens().entries().flatten()                                            # optional
+            sage: f = U[2]; f                                                                 # optional
             x^3*y^2+y^3
-            sage: R(f)
+            sage: R(f)                                                                        # optional
             y^3 + x^3*y^2
         """
         if isinstance(x, multi_polynomial_element.MPolynomial_macaulay2_repr) and x.parent() == self:

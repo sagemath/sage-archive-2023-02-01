@@ -16,8 +16,6 @@ cdef add_ext(s):
     else:
         return s
 
-import sage.interfaces.gap
-
 cdef class SageObject:
 
     #############################################################################
@@ -240,6 +238,7 @@ cdef class SageObject:
     # GAP
     def _gap_(self, G=None):
         if G is None:
+            import sage.interfaces.gap
             G = sage.interfaces.gap.gap  # default interpreter
         try:
             g = self.__gap
@@ -264,6 +263,7 @@ cdef class SageObject:
     # GP/PARI
     def _gp_(self, G=None):
         if G is None:
+            import sage.interfaces.gp
             G = sage.interfaces.gp.gp  # default interpreter
         try:
             g = self.__gp
@@ -305,6 +305,7 @@ cdef class SageObject:
     # Singular
     def _singular_(self, G=None):
         if G is None:
+            import sage.interfaces.singular
             G = sage.interfaces.singular.singular  # default interpreter
         try:
             g = self.__singular
@@ -328,6 +329,7 @@ cdef class SageObject:
     # Maxima
     def _maxima_(self, G=None):
         if G is None:
+            import sage.interfaces.maxima
             G = sage.interfaces.maxima.maxima  # default interpreter
         try:
             g = self.__maxima
@@ -351,6 +353,7 @@ cdef class SageObject:
     # Magma
     def _magma_(self, G=None):
         if G is None:
+            import sage.interfaces.magma
             G = sage.interfaces.magma.magma  # default interpreter
         try:
             g = self.__magma

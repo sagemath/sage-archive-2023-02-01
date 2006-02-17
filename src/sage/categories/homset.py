@@ -4,7 +4,7 @@ Homsets
 AUTHORS:
     -- David Kohel and William Stein
     -- David Joyner (2005-12-17): added examples
-    -- William Stein (2005-01-14): Changed from Homspace to Homset.
+    -- William Stein (2006-01-14): Changed from Homspace to Homset.
 """
 
 #*****************************************************************************

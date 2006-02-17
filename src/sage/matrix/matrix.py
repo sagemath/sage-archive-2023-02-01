@@ -1031,6 +1031,37 @@ class Matrix(module_element.ModuleElement, Mutability):
         return A
 
 
+    def adjoint(self):
+        """
+        Returns the adjoint matrix of self (matrix of cofactors).
+
+        ALGORITHM: Use PARI
+        """
+        return self.parent()(self._pari_().matadjoint().python())
+
+
+    def lllgram(self):
+        """
+        LLL reduction of the lattice whose gram matrix is self.
+
+        Returns the unimodular transformation matrix!
+
+        ALGORITHM: Use PARI
+        """
+        if not self.is_square():
+            raise ArithmeticError, "matrix must be square"
+        Z = integer_ring.IntegerRing()
+        n = self.nrows()
+        MS = matrix_space.MatrixSpace(Z,n,n)
+        if self.base_ring() == Z:
+            U = MS(self._pari_().lllgramint().python())
+        else:
+            U = MS(self._pari_().lllgram().python())
+        if U.det() == -1:
+            for i in range(n):
+                U[i,n-1] = - U[i,n-1]
+        return U
+
 
 #############################################
 ## Generic matrices over an integral domain

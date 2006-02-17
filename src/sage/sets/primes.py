@@ -17,7 +17,7 @@ The set of prime numbers
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer
+from sage.rings.all import Integer, ZZ, infinity
 
 from set import Set_generic
 
@@ -43,8 +43,11 @@ class Primes(uniq, Set_generic):
     def __init__(self):
         pass
 
+    def order(self):
+        return infinity
+
     def __cmp__(self, right):
-        if self is right:
+        if isinstance(right, Primes):
             return 0
         return -1
 
@@ -58,6 +61,8 @@ class Primes(uniq, Set_generic):
             p = p.next_prime()
 
     def __contains__(self, x):
-        return Integer(x).is_prime()
-
-
+        try:
+            y = ZZ._coerce_(x)
+            return y.is_prime()
+        except TypeError:
+            return False

@@ -32,7 +32,7 @@ from sage.ext.sage_object import save, load, \
 
 from sage.ext.element import Element
 
-from sage.misc.all import SAGE_DB
+from misc import SAGE_DB
 
 def load_sage_object(cls, dic):   # not used
     X = cls.__new__(cls)

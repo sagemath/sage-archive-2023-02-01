@@ -49,6 +49,7 @@ import sage.rings.integer as integer
 import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
+import sage.rings.complex_field
 
 import sage.groups.abelian
 
@@ -82,11 +83,17 @@ def QuadraticField(D, name='a', check=False):
     x = polynomial_ring.PolynomialRing(Q, 'x').gen()
     return NumberField(x**2 - D, name, check)
 
-def CyclotomicField(n):
-    return NumberField_cyclotomic(n)
+def is_QuadraticField(x):
+    return isinstance(x, NumberField_quadratic)
 
 def is_NumberField(x):
     return isinstance(x, NumberField_generic)
+
+def CyclotomicField(n):
+    return NumberField_cyclotomic(n)
+
+def is_CyclotomicField(x):
+    return isinstance(x, NumberField_cyclotomic)
 
 
 class NumberField_generic(field.Field):
@@ -519,6 +526,39 @@ class NumberField_cyclotomic(NumberField_generic):
 
         else:
             return NumberField_generic.__call__(self, x)
+
+    def complex_embedding(self, prec=53):
+        r"""
+        Return the embedding of this cyclotomic field into the
+        approximate complex field with precision prec obtained by
+        sending the generator $\zeta$ of self to exp(2*pi*i/n), where
+        $n$ is the multiplicative order of $\zeta$.
+
+        EXAMPLES:
+            sage: C = CyclotomicField(4)
+            sage: C.complex_embedding()
+            Ring morphism:
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta_4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I
+
+        Note in the example above that the way zeta is computed (using
+        sin and cosine in MPFR) means that only the prec bits of the
+        number after the decimal point are valid.
+
+            sage: K = CyclotomicField(3)
+            sage: phi = K.complex_embedding (10)
+            sage: phi(K.0)
+            -0.49951 + 0.86621*I
+            sage: phi(K.0^3)
+            1.0000
+            sage: phi(K.0^3 - 1)
+            0
+            sage: phi(K.0^3 + 7)
+            8.0000
+        """
+        CC = sage.rings.complex_field.ComplexField(prec)
+        return self.hom([CC.zeta(self.zeta_order())], check=False)
 
     def integral_basis(self):
         """

@@ -96,6 +96,21 @@ class Sparse_vector_space_generic(SparseVectorSpace):
         return self.__degree
 
     def dimension(self):
+        """
+        Return the dimension of this vector space.
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ,30,sparse=True)
+            sage: V.dimension()
+            30
+            sage: v = V(0)
+            sage: v[12]=2; v[9]=1; v[29]=8
+            sage: v
+            (0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8)
+            sage: W = V.subspace([v, 2*v])
+            sage: W.dimension()
+            1
+        """
         return self.__degree
 
 
@@ -290,18 +305,36 @@ def SparseMatrix_from_rows(X):
     """
     INPUT:
         X -- nonempty list of SparseVector rows
+
     OUTPUT:
         Sparse_matrix with those rows.
+
+    EXAMPLES:
+        sage: V = VectorSpace(QQ,20,sparse=True)
+        sage: v = V(0)
+        sage: v[9] = 4
+        sage: from sage.matrix.sparse_matrix import *
+        sage: SparseMatrix_from_rows([v])
+        [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ]
+        sage: SparseMatrix_from_rows([v, v, v, V(0)])
+        [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        ]
     """
-    if not isinstance(X, list):
-        raise TypeError
+    if not isinstance(X, (list, tuple)):
+        raise TypeError, "X (=%s) must be a list or tuple"%X
     if len(X) == 0:
         raise ArithmeticError, "X must be nonempty"
     entries = []
     R = X[0].base_ring()
     ncols = X[0].degree()
     for i in range(len(X)):
-        for j, x in X[i].list():
+        for j, x in X[i].entries().iteritems():
             entries.append((i,j,x))
     return SparseMatrix(R, len(X), ncols, entries, coerce=False, sort=False)
 

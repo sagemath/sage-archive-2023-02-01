@@ -131,7 +131,6 @@ def do_prefilter_paste(line, continuation):
     global attached
 
 
-
     # This is so it's OK to have lots of blank space at the
     # beginning of any non-continuation line.
 
@@ -139,14 +138,15 @@ def do_prefilter_paste(line, continuation):
         line = line.lstrip()
     line = line.rstrip()
 
-    if not continuation and line.find('attach') == -1 and line.find('load') == -1:
-        K = list(attached.keys())
-        for F in K:
+    if not line[:7] == 'attach ' and line[:5] != 'load ':
+        for F in attached.keys():
             tm = attached[F]
             if os.path.exists(F) and os.path.getmtime(F) > tm:
                 # Reload F.
                 try:
-                    if F[-5:] == '.sage':
+                    if F[-3:] == '.py':
+                        ipmagic('run -i "%s"'%F)
+                    elif F[-5:] == '.sage':
                         ipmagic('run -i "%s"'%process_file(F))
                     else:
                         X = load_pyrex(F)
@@ -227,12 +227,19 @@ def do_prefilter_paste(line, continuation):
             pass
         else:
             if isinstance(name, str):
-                if name[-5:] == '.sage':
+                if name[-3:] == '.py':
+                    try:
+                        line = '%run -i "' + name + '"'
+                    except IOError, s:
+                        print s
+                        print "Error loading '%s'"%name
+                        line = ""
+                elif name[-5:] == '.sage':
                     try:
                         line = '%run -i "' + process_file(name) + '"'
                     except IOError, s:
                         print s
-                        print "Maybe file '%s' does not exist"%name
+                        print "Error loading '%s'"%name
                         line = ""
                 elif name[-5:] == '.spyx':
                     line = load_pyrex(name)
@@ -283,6 +290,13 @@ def do_prefilter_paste(line, continuation):
                 if not os.path.exists(name):
                     print "File '%s' not found."%name
                     line = ''
+                elif name[-3:] == '.py':
+                    try:
+                        line = '%run -i "' + name + '"'
+                        attached[name] = os.path.getmtime(name)
+                    except IOError, OSError:
+                        print "File '%s' does not exist."%name
+                        line = ''
                 elif name[-5:] == '.sage':
                     try:
                         line = '%run -i "' + process_file(name) + '"'

@@ -65,17 +65,17 @@ except KeyError:
 try:
     WEB_BROWSER = os.environ['WEB_BROWSER']
 except KeyError:
-    if os.system('which konqueror 1>/dev/null 2>/dev/null') == 0:
-        WEB_BROWSER = 'konqueror'
-    else:
+    if os.system('which firefox 1>/dev/null 2>/dev/null') == 0:
         WEB_BROWSER = 'firefox'
+    else:
+        WEB_BROWSER = 'konqueror'
 
 class Log:
     """
     This is the base logger class.  The two classes that you
     actually instantiate are derived from this one.
     """
-    def __init__(self, dir=None, debug=False):
+    def __init__(self, dir=None, debug=False, viewer=None):
         if dir is None:
             dir = misc.DOT_SAGE + 'log/log'
         self._time = time.strftime('%Y-%m-%d-%H%M%S')
@@ -93,6 +93,7 @@ class Log:
         self._init()
         self._input_text  = ''
         self._stopped = False
+        self._viewer = viewer
         loggers.append(self)
         self._update()
         self.view()
@@ -128,14 +129,17 @@ class Log:
         #print "O:", O
         #print "I:", I
         K = O.keys()
-        while self._n < len(I):
+        while self._n < max(len(I), max(K + [-1])):
             n = self._n
             followed_by_output = (n in K)
-            L = I[n]
+            if n < len(I):
+                L = I[n]
+            else:
+                L = "Sorry; raw input log out of sync"
             Lstrip = L.strip()
             if len(Lstrip) > 0 and Lstrip[0] != '%':
                 self._write(self._get_input(n, followed_by_output))
-                self._input_text += I[n]
+                self._input_text += L
             #m = n - offset
             m = n
             if m in K:
@@ -195,7 +199,11 @@ class log_html(Log):
 
 
     def view(self):
-        os.system('%s %s&'%(WEB_BROWSER, self._filename))
+        if not self._viewer is None:
+            viewer = self._viewer
+        else:
+            viewer = WEB_BROWSER
+        os.system('%s %s&'%(viewer, self._filename))
 
     def _build(self):
         return
@@ -204,6 +212,8 @@ class log_html(Log):
         return "HTML Logger"
 
     def _get_input(self, n, followed_by_output):
+        if n >= len(self._input):
+            return
         return """<font color=darkblue>     %s %s:</font> %s"""%(
             n, interpreter._prompt, self._input[n])
 
@@ -217,9 +227,13 @@ class log_html(Log):
         latex.png(x, single_png, debug=self._debug)
         oi = '%s/images/o%s.html'%(self._dir, n)
         open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre>'%(x, L))
-        return """<center> <table border=0 cellpadding=20 cellspacing=2 bgcolor=lightgrey>
-               <tr><td bgcolor=white><a href="%s"><img src="%s" alt="%s"></a>
-               </td></tr></table></center>\n<hr>\n"""%(oi, single_png, L)
+        return """<center> <table border=0 cellpadding=20 cellspacing=2
+                bgcolor=lightgrey>
+               <tr><td bgcolor=white>
+               <a href="%s">
+               <img src="%s" alt="%s">
+                </a>
+             </td></tr></table> </center>\n<hr>\n"""%(oi, single_png, L)
 
     def _filename(self):
         return 'index.html'
@@ -281,13 +295,19 @@ class log_dvi(Log):
         os.system(cmd)
 
     def view(self):
+        if not self._viewer is None:
+            viewer = self._viewer
+        else:
+            viewer = DVI_VIEWER
         self._build()
         F = os.path.splitext(self._filename)[0] + '.dvi'
         cmd = 'cd %s; %s %s '%(
-            self._dir, DVI_VIEWER, F)
+            self._dir, viewer, F)
         os.system(cmd + " 2>/dev/null 1>/dev/null &")
 
     def _get_input(self, n, followed_by_output):
+        if n >= len(self._input):
+            return
         s = ''
         if not self._in_verbatim:
             s += '\\begin{verbatim}'

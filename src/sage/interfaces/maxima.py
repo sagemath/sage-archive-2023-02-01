@@ -453,14 +453,51 @@ class Maxima(Expect):
         out1 = out[i+1:].strip()
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
-        out = out.replace('-',' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=')
-        out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
+        out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=')
+        #out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
         if out[:3] == ' - ':
             out = '-' + out[3:]
+        out = out.replace('E - ', 'E-')
+        out = out.replace('%e - ', '%e-')
         i = out.rfind('(%o')
         if i != -1:
             out = out[:i]
         return out
+
+
+    ###########################################
+    # Interactive help
+    ###########################################
+
+    # This doesn't work because of how weird interaction is.
+    # System call method below is much more robust.
+##     def help(self, s):
+##         if self._expect is None:
+##             self._start()
+##         E = self._expect
+##         if E is None:
+##             raise RuntimError, "unable to start maxima"
+##         E.sendline('describe("%s");'%s)
+##         #old_timeout = E.timeout
+##         #E.timeout = 0.2
+##         E.expect("`all' or `none': ")
+##         E.sendline('all\n\n')
+##         E.sendline('all\n\n')
+##         #E.expect(self._prompt)
+##         E.expect('%o')
+##         print E.before
+##     # override the builtin describe command
+
+    def help(self, s):
+        os.system('maxima -r "describe(%s);"'%s)
+
+    def example(self, s):
+        os.system('maxima -r "example(%s);"'%s)
+
+    describe = help
+
+    def demo(self, s):
+        os.system('maxima -r "demo(%s);"'%s)
 
     def _object_class(self):
         return MaximaElement
@@ -996,6 +1033,52 @@ class MaximaElement(ExpectElement):
         return ExpectElement.__getattr__(self, 'diff')(var, n)
 
     derivative = diff
+
+    def nintegral(self, var='x', a=0, b=1,
+                  desired_relative_error='1e-8',
+                  maximum_num_subintervals=200):
+        r"""
+        Return a numerical approximation to the integral
+        of self from a to b.
+
+        INPUT:
+            var -- variable to integrate with respect to
+            a -- lower endpoint of integration
+            b -- upper endpoint of integration
+            desired_relative_error -- (default: '1e-8') the desired
+                 relative error
+            maximum_num_subintervals -- (default: 200) maxima number
+                 of subintervals
+
+        OUTPUT:
+            -- approximation to the integral
+            -- estimated absolute error of the approximation
+            -- the number of integrand evaluations
+            -- an error code:
+                  0 -- no problems were encountered
+                  1 -- too many subintervals were done
+                  2 -- excessive roundoff error
+                  3 -- extremely bad integrand behavior
+                  4 -- failed to converge
+                  5 -- integral is probably divergent or slowly convergent
+                  6 -- the input is invalid
+
+        EXAMPLES:
+            sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
+            (.5284822353142306, 4.16331413788384E-11, 231, 0)
+
+        Note that GP also does numerical integration, and can do
+        so to very high precision very quickly:
+            sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
+            0.5284822353142307136179049194
+            sage: _ = gp.set_precision(80)
+            sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
+            0.52848223531423071361790491935415653021675547587292866196865279321015401702040079
+        """
+        from sage.rings.all import Integer
+        v = self.quad_qags(var, a, b, desired_relative_error,
+                           maximum_num_subintervals)
+        return v[0], v[1], Integer(v[2]), Integer(v[3])
 
     def integral(self, var='x', min=None, max=None):
         r"""

@@ -175,10 +175,6 @@ cdef class Rational(element.FieldElement):
             n = self.cmp(right)
         return self._rich_to_bool(op, n)
 
-    def _pari_(self):
-        return self.numerator()._pari_()/self.denominator()._pari_()
-
-
     def copy(self):
         cdef Rational z
         z = Rational()
@@ -578,6 +574,25 @@ cdef class Rational(element.FieldElement):
 
     def is_zero(self):
         return mpz_cmp_si(mpq_numref(self.value), 0) == 0
+
+
+    ##################################################
+    # Support for interfaces
+    ##################################################
+
+    def _pari_(self):
+        return self.numerator()._pari_()/self.denominator()._pari_()
+
+    def _interface_init_(self):
+        """
+        EXAMPLES:
+            sage: kash(3/1).Type()              # optional
+            elt-fld^rat
+            sage: magma(3/1).Type()             # optional
+            FldRatElt
+        """
+        return '%s/%s'%(self.numerator(), self.denominator())
+
 
 
 def rational_reconstruction(integer.Integer a, integer.Integer m):

@@ -1574,17 +1574,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         \note{The result is \emph{not} provably correct, in the sense
             that when the numbers are huge isogenies could be missed
-            because of precision issues.  The answer is more likely to
-            be correct when using algorithm="gp".}
+            because of precision issues.}
 
         \note{The ordering depends on which algorithm is used.}
 
         EXAMPLES:
             sage: I, A = EllipticCurve('37b').isogeny_class('mwrank')
             sage: I
-            [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
+            [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field]
             sage: A
             [0 3 3]
             [3 0 0]
@@ -1594,6 +1593,33 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
              Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
              Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
+
+        This is an example of a curve with a $37$-isogeny:
+            sage: E = EllipticCurve([1,1,1,-8,6])
+            sage: E.isogeny_class ()
+            ([Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 8*x + 6 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 208083*x - 36621194 over Rational Field],
+             [ 0 37]
+             [37  0])
+
+        This curve had numerous $2$-isogenies:
+        sage: e=EC([1,0,0,-39,90])
+            sage: e.isogeny_class ()
+            ([Elliptic Curve defined by y^2 + x*y  = x^3 - 39*x + 90 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y  = x^3 - 4*x -1 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y  = x^3 + x over Rational Field,
+              Elliptic Curve defined by y^2 + x*y  = x^3 - 49*x - 136 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y  = x^3 - 34*x - 217 over Rational Field,
+              Elliptic Curve defined by y^2 + x*y  = x^3 - 784*x - 8515 over Rational Field],
+             [0 2 0 0 0 0]
+             [2 0 2 2 0 0]
+             [0 2 0 0 0 0]
+             [0 2 0 0 2 2]
+             [0 0 0 2 0 0]
+             [0 0 0 2 0 0])
+
+        See \url{http://modular.ucsd.edu/Tables/nature/} for more interesting
+        examples of isogeny structures.
         """
         #if algorithm == "gp":
 
@@ -1607,7 +1633,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             I, A = E.isogeny_class(verbose=verbose)
             mat = matrix.MatrixSpace(rings.IntegerRing(), len(A))(A)
             I = [constructor.EllipticCurve(ainvs) for ainvs in I]
-            I.sort()
             return I, mat
 
         elif algorithm == "database":
@@ -1759,16 +1784,26 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return self.conductor().is_square_free()
 
     def reducible_primes(self):
-        """
+        r"""
         Returns a list of the primes $p$ such that the mod $p$
         representation $\rho_{E,p}$ is reducible.  For all other
         primes the representation is irreducible.
+
+        NOTE -- this is \emph{not} provably correct in general.
+        See the documentation for \code{self.isogeny_class}.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('225a')
+            sage: E.reducible_primes()
+            [3]
         """
         try:
             return self.__reducible_primes
         except AttributeError:
             pass
-        R = [p for p, _ in self.isogenous_curves()]
+        C, I = self.isogeny_class(algorithm='mwrank')
+        X = set(I.list())
+        R = [p for p in X if arith.is_prime(p)]
         self.__reducible_primes = R
         return R
 
@@ -2320,7 +2355,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # First compute upper bound on Height of Heegner point.
         # We divide by 2 to get the height over Q on the twist.
+        tm = misc.verbose("computing heegner point height...")
         ht = self.heegner_point_height(D, prec=prec)/2
+        misc.verbose('Height of heegner point = %s'%ht, tm)
         if 0 in ht:
             return 0
         if self.root_number() == 1:
@@ -2335,18 +2372,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         misc.verbose("Search would have to be up to height = %s"%c)
         IR = rings.IntervalRing()
 
-        if c > _MAX_HEIGHT:
+        if c > _MAX_HEIGHT or F is self:
             misc.verbose("Doing direct computation of MW group.")
             reg = F.regulator(verbose=verbose)
             return ht/IR(reg)
 
         # Do naive search to eliminate possibility that Heegner point
         # is divisible by p<min_p, without finding Heegner point.
+        misc.verbose("doing point search")
         P = F.point_search(c, verbose=verbose)
+        misc.verbose("done with point search")
         P = [x for x in P if x.order() == oo]
         if len(P) == 0:
             return IR(1)
+        misc.verbose("saturating")
         S, I, reg = F.saturation(P, verbose=verbose)
+        misc.verbose("done saturating")
         return ht/IR(reg)
 
 

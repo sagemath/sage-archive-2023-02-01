@@ -62,12 +62,19 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
             return coerce.cmp(self, right)
         return self._cmp(right)
 
-    def _gap_(self, gap):
+    #################################################################
+    # Interfaces
+    #################################################################
+    def _pari_init_(self):
+        return str(self.__value)
+
+    def _gap_init_(self):
         r"""
-        Return corresponding GAP object.  This can be slow since
-        non-prime GAP finite field elements are represented as powers of a
-        generator for the multiplicative group, so the discrete log problem
-        must be solved.
+        Return string representation of corresponding GAP object.
+
+        This can be slow since non-prime GAP finite field elements are
+        represented as powers of a generator for the multiplicative
+        group, so the discrete log problem must be solved.
 
         \note{This function will create a meaningless GAP object if the
         modulus is not a power of a prime.  Also, the modulus must
@@ -88,23 +95,37 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         R = self.parent()
 
         if R.order() > 65536:
-            raise TypeError, "order (=%s) must be at most 65536."%R.order()
+            raise ValueError, "order (=%s) must be at most 65536."%R.order()
 
         if self == 0:
-            return gap('0*Z(%s)'%R.order())
+            return '0*Z(%s)'%R.order()
 
         # I couldn't find a guarentee in the GAP docs that the
         # root of unity they use must be the smallest.   This
         # was *not* the case in MAGMA once, so who knows, especially
         # when the order of the ring is not prime.  So we make
-        # no dangerous assumptions.
+        # no such dangerous assumptions (for now).
 
         # Find the root of unity used by Gap.
         m = R.order()
+        from sage.interfaces.all import gap        # here to reduce dependencies
         g = int(gap.eval('Int(Z(%s))'%m))
         n = R(g).log(self)
-        return gap('Z(%s)^%s'%(m, n))
+        return 'Z(%s)^%s'%(m, n)
 
+    def _magma_init_(self):
+        """
+        Coercion to Magma.
+
+        EXAMPLES:
+            sage: a = Integers(15)(4)
+            sage: b = magma(a)                # optional
+            sage: b.Type()                    # optional
+            RngIntResElt
+            sage: b^2                         # optional
+            1
+        """
+        return '%s!%s'%(self.parent()._magma_init_(), self)
 
     def log(self, a):
         """

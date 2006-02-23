@@ -58,10 +58,18 @@ def canonical_coercion(x, y):
     if xp is yp:
         return x, y
 
-    if isinstance(x, (int, long, float, complex)):
-        x = yp(x)
-    elif isinstance(y, (int, long, float, complex)):
-        y = xp(y)
+    if x.__class__ in [int, long, float, complex]:
+        try:
+            x = yp(x)
+        except TypeError:
+            y = x.__class__(y)
+            return x, y
+    elif y.__class__ in [int, long, float, complex]:
+        try:
+            y = xp(y)
+        except TypeError:
+            x = y.__class__(x)
+            return x, y
     else:
         i = 0
         try:

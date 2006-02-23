@@ -57,6 +57,7 @@ import sage.rings.rational
 import sage.rings.integer_mod
 import sage.rings.rational_field
 import sage.structure.factorization as factorization
+import sage.libs.pari.all
 import ring
 
 _obj = None
@@ -163,13 +164,28 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             n += 1
 
     def _coerce_(self, x):
+        """
+        EXAMPLES:
+            sage: k = GF(7)
+            sage: k._coerce_(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce 2/3 into Finite Field of size 7
+            sage: k._coerce_(5)   # works since there's a natural hom ZZ --> GF(7).
+            5
+            sage: ZZ._coerce_(GF(7)(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of 2 to an integer
+        """
+
         if isinstance(x, sage.rings.integer.Integer):
             return x
         elif isinstance(x, (int, long)):
             return self(x)
-        elif isinstance(x, sage.libs.pari.gen) and x.type() == 't_INT':
+        elif isinstance(x, sage.libs.pari.all.gen) and x.type() == 't_INT':
             return self(x)
-        raise TypeError
+        raise TypeError, 'no canonical coercion of %s to an integer'%x
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -250,6 +266,24 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             raise ValueError, "No %sth root of unity in integer ring"%n
 
 
+    #################################
+    ## Coercions to interfaces
+    #################################
+    def _gap_init_(self):
+        """
+        EXAMPLES:
+            sage: gap(ZZ)
+            Integers
+        """
+        return 'Integers'
+
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: magma(ZZ)
+            Integer Ring
+        """
+        return 'IntegerRing()'
 
 
 ZZ = IntegerRing()

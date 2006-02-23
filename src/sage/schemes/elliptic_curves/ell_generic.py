@@ -184,9 +184,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def _pari_init_(self):
         return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
 
-    def _gp_init_(self):
-        return 'ellinit([%s])'%(','.join([x._pari_init_() for x in self.ainvs()]))
-
     def _magma_init_(self):
         return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))
 

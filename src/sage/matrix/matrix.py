@@ -107,6 +107,13 @@ class Matrix(module_element.ModuleElement, Mutability):
     \class{MatrixSpace} for more details.
     """
     def __init__(self, parent):
+        """
+        EXAMPLES:
+            sage: import sage.matrix.matrix
+            sage: A = sage.matrix.matrix.Matrix(MatrixSpace(QQ,2))
+            sage: type(A)
+            <class 'sage.matrix.matrix.Matrix'>
+        """
         module_element.ModuleElement.__init__(self, parent)
         self.__nrows = parent.nrows()
         self.__ncols = parent.ncols()
@@ -235,11 +242,45 @@ class Matrix(module_element.ModuleElement, Mutability):
             [ [ 1, 2, 3 ], [ 4/3, 5/3, 3/2 ], [ 7, 8, 9 ] ]
             sage: g.IsMatrix()
             true
-
         """
         v = ['[%s]'%(','.join([self.get((i,j))._gap_init_() for j in xrange(self.ncols())])) for
              i in xrange(self.nrows())]
         return '[%s]'%(','.join(v))
+
+    ###################################################
+    ## Coercion to MAGMA
+    ###################################################
+    def _magma_init_(self):
+        r"""
+        EXAMPLES:
+        We first coerce a square matrix.
+            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
+            sage: B = magma(A); B                       # optional
+            [  1   2   3]
+            [4/3 5/3 3/2]
+            [  7   8   9]
+            sage: B.Type()                              # optional
+            AlgMatElt
+            sage: B.Parent()                            # optional
+            Full Matrix Algebra of degree 3 over Rational Field
+
+        We coerce a non-square matrix over $\Z/8\Z$.
+            sage: A = MatrixSpace(Integers(8),2,3)([-1,2,3,4,4,-2])
+            sage: B = magma(A); B                       # optional
+            [7 2 3]
+            [4 4 6]
+            sage: B.Type()                              # optional
+            ModMatRngElt
+            sage: B.Parent()                            # optional
+            Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
+        """
+        K = self.base_ring()._magma_init_()
+        if self.is_square():
+            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
+        else:
+            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
+        v = [x._magma_init_() for x in self.list()]
+        return s + '![%s]'%(','.join(v))
 
     ###################################################
     ## Access:
@@ -247,31 +288,94 @@ class Matrix(module_element.ModuleElement, Mutability):
     ###################################################
     def __getitem__(self, ij):
         """
+        Return element or row of self.
+
         INPUT:
+            ij -- tuple (i,j) with i, j ints
+        or
+            ij -- int
+
+        USAGE:
             A[i, j] -- the i,j of A, and
             A[i]    -- the i-th row of A.
+
+        EXAMPLES:
+            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
+            sage: A[0,0]
+            2005
+            sage: A[0]
+            (2005, 2)
         """
         raise NotImplementedError
 
     def get(self, ij):
         """
-        Entry access, but possibly without bounds checking (for
-        efficiency).
+        Entry access, but potentially faster since it might be without
+        bounds checking.
+
         INPUT:
-            A[i, j] -- the i,j of A, and
-            A[i]    -- the i-th row of A.
+            ij -- tuple (i,j) with i, j ints
+
+        EXAMPLES:
+            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
+            sage: A.get(0,1)
+            Traceback (most recent call last):
+            ...
+            TypeError: get() takes exactly 2 arguments (3 given)
+            sage: A.get((0,1))
+            2
         """
         return self[ij]
 
     def __setitem__(self, ij, x):
         """
         INPUT:
-            A[i, j] = value -- set the (i,j) entry of A
-            A[i] = value    -- set the ith row of A
+            ij -- tuple
+            x -- object
+
+        USAGE:
+            A[i, j] = x -- set the (i,j) entry of A
+            A[i]    = x -- set the ith row of A
+
+        EXAMPLES:
+            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4]); A
+            [2005    2]
+            [   3    4]
+            sage: A[0,0] = 5; A
+            [5 2]
+            [3 4]
+            sage: A[0] = [2,3]
+            sage: A
+            [2 3]
+            [3 4]
+            sage: A.set_immutable()
+            sage: A[0,0] = 7
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
         """
         raise NotImplementedError
 
     def set(self, ij, x):
+        """
+        Set entry, but potentially faster because it might be without
+        bounds checking.
+
+        INPUT:
+            ij -- tuple (i,j) with i, j ints
+            x -- object
+
+        EXAMPLES:
+            sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
+            sage: A.set(0, 1, 5)
+            Traceback (most recent call last):
+            ...
+            TypeError: set() takes exactly 3 arguments (4 given)
+            sage: A.set((0,1), 5)
+            sage: A
+            [2005    5]
+            [   3    4]
+        """
         self[ij] = x
 
     ###################################################
@@ -662,6 +766,165 @@ class Matrix(module_element.ModuleElement, Mutability):
         z = self.base_ring()(0)
         return set([j for j in xrange(self.ncols()) if self[i,j] != z])
 
+    def permanent(self):
+        r"""
+        Calculate and return the permanent of this $m \times n$ matrix using
+        Ryser's algorithm.
+
+        The \emph{permanent} of a matrix is defined by the same
+        formula as the determinant, except all the signs in the
+        expansion by minors are positive.
+
+        Modification of theorem 7.1.1. from Brualdi and Ryser:
+        Combinatorial Matrix Theory.
+        Instead of deleting columns from $A$, we choose columns from $A$ and
+        calculate the product of the row sums of the selected submatrix.
+
+        INPUT:
+            A -- matrix of size m x n with m <= n
+
+        OUTPUT:
+            permanent of matrix A
+
+        EXAMPLES:
+            sage: M = MatrixSpace(ZZ,4,4)
+            sage: A = M([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
+            sage: A.permanent()
+            24
+
+            sage: M = MatrixSpace(QQ,3,6)
+            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A.permanent()
+            36
+
+            sage: M = MatrixSpace(RR,3,6)
+            sage: A = M([1.0,1.0,1.0,1.0,0,0,0,1.0,1.0,1.0,1.0,0,0,0,1.0,1.0,1.0,1.0])
+            sage: A.permanent()
+            36.000000000000000
+
+            See the Sloane's OEIS A079908(3) = 36, "The Dancing School Problems"
+
+            sage: M = MatrixSpace(ZZ,4,5)
+            sage: A = M([1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
+            sage: A.permanent()
+            32
+
+            See Minc: Permanents, Example 2.1, p. 5.
+
+            sage: M = MatrixSpace(QQ,2,2)
+            sage: A = M([1/5,2/7,3/2,4/5])
+            sage: A.permanent()
+            103/175
+
+            sage: R = PolynomialRing(IntegerRing(),'a'); a = R.gen()
+            sage: A = MatrixSpace(R,2)([[a,1], [a,a+1]])
+            sage: A.permanent()
+            a^2 + 2*a
+
+            sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
+            sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
+            sage: A.permanent()
+            x_0*x_1^2 + x_0^2*x_1
+
+
+        AUTHOR:
+            -- Jaap Spies (2006-02-16)
+                Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
+                Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+        """
+        perm = 0
+        m, n = self.nrows(), self.ncols()
+        if not m <= n:
+            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+        for r in range(1, m+1):
+            lst = _combinations(range(n), r)
+            s = sum([_prod_of_row_sums(self, cols) for cols in lst])
+            perm += (-1)**(m-r) * sage.rings.arith.binomial(n-r, m-r) * s
+        return perm
+
+    def determinant(self):
+        r"""
+        Return the determinant of self.
+
+        ALGORITHM: This is computed using a \emph{naive generic
+        algorithm}.  For matrices over more most rings more
+        sophisticated algorithms can be used.  (Type
+        \code{A.determinant?} to see what is done for a specific
+        matrix A.)  If you're actually using the algorithm below, you
+        should probably clamor for something better to be implemented
+        for your base ring.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
+            sage: A.determinant()
+            6
+        """
+        try:
+            return self.__determinant
+        except AttributeError:
+            pass
+        if not self.is_square():
+            raise ValueError, "self must be square but is %s x %s"%(
+                               self.nrows(), self.ncols())
+        n = self.nrows()
+        R = self.parent().base_ring()
+        if n == 0:
+            return R(1)
+
+        d = R(0)
+        s = R(1)
+        A = self.matrix_from_rows(range(1, n))
+        for i in range(n):
+            v = range(n)
+            del v[i]
+            B = A.matrix_from_columns(v)
+            d += s*self.get((0,i))*B.determinant()
+        self.__determinant = d
+        return d
+
+    # shortcuts
+    def det(self, *args, **kwds):
+        """
+        Synonym for self.determinant(...).
+
+        EXAMPLES:
+            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
+            sage: A.det()
+            6
+        """
+        return self.determinant(*args, **kwds)
+
+    def per(self, *args, **kwds):
+        """
+        Synonym for self.permanent(...).
+
+        EXAMPLES:
+            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
+            sage: A.per()
+            6
+        """
+        return self.permanent(*args, **kwds)
+
+    def characteristic_polynomial(self, *args, **kwds):
+        """
+        Synonym for self.charpoly(...).
+        """
+        try:
+            return self.charpoly(*args, **kwds)
+        except AttributeError:
+            raise NotImplementedError
+
+    def minimal_polynomial(self, *args, **kwds):
+        """
+        Synonym for self.charpoly(...).
+        """
+        try:
+            return self.minpoly(*args, **kwds)
+        except AttributeError:
+            raise NotImplementedError
+
+    ###########################
+
     def rescale_row(self, i, s):
         """
         Replace i-th row of self by s times i-th row of self.
@@ -752,44 +1015,115 @@ class Matrix(module_element.ModuleElement, Mutability):
                 Z[r+nr,c] = other[r,c]
         return Z
 
-    def submatrix_from_columns(self, columns):
+    def matrix_from_columns(self, columns):
         """
-        Return the submatrix of self of columns col[i] for i in
-        the list of columns.
+        Return the matrix constructed from self using columns with
+        indices in the columns list.
+
+
+        EXAMPLES:
+            sage: M = MatrixSpace(Integers(8),3,3)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 0]
+            sage: A.matrix_from_columns([2,1])
+            [2 1]
+            [5 4]
+            [0 7]
         """
-        if not isinstance(columns, list):
+        if not isinstance(columns, (list, tuple)):
             raise TypeError, "columns (=%s) must be a list of integers"%columns
         A = self.new_matrix(ncols = len(columns))
         k = 0
         for i in columns:
             i = int(i)
-            #if not isinstance(i, int):
-            #    raise TypeError, "each element of columns must be an int"
             if i < 0 or i >= self.ncols():
                 raise IndexError, "column %s out of range"%i
             for r in xrange(self.nrows()):
-                A[r,k] = self[r,i]
+                A.set((r,k), self.get((r,i)))
             k += 1
         return A
 
-    def submatrix_from_rows(self, rows):
+    def matrix_from_rows(self, rows):
         """
-        Return the submatrix of self of rows row[i] for i in
-        the list of rows.
+        Return the matrix constructed from self using rows with indices
+        in the rows list.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(Integers(8),3,3)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 0]
+            sage: A.matrix_from_rows([2,1])
+            [6 7 0]
+            [3 4 5]
         """
-        if not isinstance(rows, list):
+        if not isinstance(rows, (list, tuple)):
             raise TypeError, "rows must be a list of integers"
         A = self.new_matrix(nrows = len(rows))
         k = 0
         for i in rows:
-            #if not isinstance(i, int):
-            #    raise TypeError, "each element of rows must be an int"
             i = int(i)
             if i < 0 or i >= self.nrows():
                 raise IndexError, "row %s out of range"%i
             for c in xrange(self.ncols()):
-                A[k,c] = self[i,c]
+                A.set((k,c), self.get((i,c)))
             k += 1
+        return A
+
+    def matrix_from_rows_and_columns(self, rows, columns):
+        """
+        Return the matrix constructed from self from the given
+        rows and columns.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(Integers(8),3,3)
+            sage: A = M(range(9)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 0]
+            sage: A.matrix_from_rows_and_columns([1], [0,2])
+            [3 5]
+            sage: A.matrix_from_rows_and_columns([1,2], [1,2])
+            [4 5]
+            [7 0]
+
+        Note that row and column indices can be reordered or repeated:
+            sage: A.matrix_from_rows_and_columns([2,1], [2,1])
+            [0 7]
+            [5 4]
+
+        For example here we take from row 1 columns 2 then 0 twice,
+        and do this 3 times.
+            sage: A.matrix_from_rows_and_columns([1,1,1],[2,0,0])
+            [5 3 3]
+            [5 3 3]
+            [5 3 3]
+
+        AUTHOR:
+            -- Jaap Spies (2006-02-18)
+        """
+        if not isinstance(rows, list):
+            raise TypeError, "rows must be a list of integers"
+        if not isinstance(columns, list):
+            raise TypeError, "columns must be a list of integers"
+        A = self.new_matrix(nrows = len(rows), ncols = len(columns))
+        r = 0
+        c = len(columns)
+        columns = [int(j) for j in columns if j >= 0 and j < self.ncols()]
+        if c != len(columns):
+            raise IndexError, "column index out of range"
+        for i in rows:
+            i = int(i)
+            if i < 0 or i >= self.nrows():
+                raise IndexError, "row %s out of range"%i
+            k = 0
+            for j in columns:
+                A.set((r,k), self.get((i,j)))
+                k += 1
+            r += 1
         return A
 
     def swap_columns(self, c1, c2):
@@ -1071,10 +1405,14 @@ class Matrix_domain(Matrix):
     def __init__(self, parent):
         Matrix.__init__(self, parent)
 
-    def charpoly(self):
+    def charpoly(self, *args, **kwds):
         r"""
         Return the characteristic polynomial of self, as a polynomial
         over the fraction field of the base ring.
+
+        ALGORITHM: Use \code{self.matrix_over_field()} to obtain the
+        corresponding matrix over a field, then call the
+        \code{charpoly} function on it.
 
         EXAMPLES:
         First a matrix over $\Z$:
@@ -1115,15 +1453,28 @@ class Matrix_domain(Matrix):
             sage: f.parent().assign_names("Z")
             sage: f
             Z^2 + (-1*x_1^2 - x_0)*Z + x_0*x_1^2 - x_0^2*x_1
+
+        We can pass parameters in, which are passed on to the charpoly
+        function for matrices over a field.
+            sage: A = 1000*MatrixSpace(ZZ,10)(range(100))
+            sage: A.charpoly(bound=2)
+            x^10 + 14707*x^9 - 21509*x^8
+            sage: A = 1000*MatrixSpace(ZZ,10)(range(100))
+            sage: A.charpoly()
+            x^10 - 495000*x^9 - 8250000000*x^8
         """
-        f = self.matrix_over_field().charpoly()
+        f = self.matrix_over_field().charpoly(*args, **kwds)
         return f
 
     def determinant(self):
         """
         Return the determinant of this matrix.
 
-        This matrix must be square.
+        INPUT:
+            -- a square matrix
+
+        ALGORITHM: Find the characteristic polynomial and take its
+        constant term (up to sign).
 
         EXAMPLES:
         We create a matrix over $\Z[x,y]$ and compute its determinant.
@@ -1138,9 +1489,6 @@ class Matrix_domain(Matrix):
         # Use stupid slow but completely general method.
         d = (-1)**self.nrows() * self.charpoly()[0]
         return self.base_ring()(d)
-
-    # shortcut
-    det = determinant
 
     def is_invertible(self):
         r"""
@@ -1615,11 +1963,15 @@ class Matrix_field(Matrix_pid):
         B = A.echelon_form()
         if B[self.nrows()-1,self.ncols()-1] != 1:
             raise ZeroDivisionError, "self is not invertible"
-        return B.submatrix_from_columns(range(self.ncols(), 2*self.ncols()))
+        return B.matrix_from_columns(range(self.ncols(), 2*self.ncols()))
 
     def charpoly(self):
         """
         Return the characteristic polynomial of this matrix.
+
+        ALGORITHM: Compute the Hessenberg form of the matrix and read
+        off the characteristic polynomial from that.  The result is
+        cached.
 
         EXAMPLES:
             sage: A = MatrixSpace(RationalField(),3)(range(9))
@@ -1823,7 +2175,7 @@ class Matrix_field(Matrix_pid):
         #end if
 
         if not include_zero_rows:
-            A = A.submatrix_from_rows(range(len(pivot_positions)))
+            A = A.matrix_from_rows(range(len(pivot_positions)))
         A.__pivots = pivot_positions
         A.__rank = len(pivot_positions)
         A.set_immutable()
@@ -2173,7 +2525,7 @@ class Matrix_field(Matrix_pid):
         if not check and V.base_ring().is_field() and not V.has_user_basis():
             B = V.echelonized_basis_matrix()
             P = B.pivots()
-            return B*self.submatrix_from_columns(P)
+            return B*self.matrix_from_columns(P)
         else:
             n = V.rank()
             try:
@@ -2390,7 +2742,7 @@ class Matrix_generic_dense(Matrix):
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i
         if j < 0 or j >= self.__ncols:
-            raise IndexError, "colums index (j=%s) is out of range"%j
+            raise IndexError, "columns index (j=%s) is out of range"%j
         return self.__entries[int(i*self.ncols() + j)]
 
     def __setitem__(self, ij, value):
@@ -2413,7 +2765,7 @@ class Matrix_generic_dense(Matrix):
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i
         if j < 0 or j >= self.__ncols:
-            raise IndexError, "colums index (j=%s) is out of range"
+            raise IndexError, "columns index (j=%s) is out of range"
         self.__entries[int(i*self.ncols() + j)] = self.base_ring()(value)
 
     def _entries(self):
@@ -2551,7 +2903,7 @@ class Matrix_generic_sparse(Matrix):
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i
         if j < 0 or j >= self.__ncols:
-            raise IndexError, "colums index (j=%s) is out of range"%j
+            raise IndexError, "columns index (j=%s) is out of range"%j
         if self.__entries.has_key(ij):
             return self.__entries[ij]
         return self.__zero
@@ -2609,7 +2961,7 @@ class Matrix_generic_sparse(Matrix):
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i
         if j < 0 or j >= self.__ncols:
-            raise IndexError, "colums index (j=%s) is out of range"
+            raise IndexError, "columns index (j=%s) is out of range"
         x = self.base_ring()(value)
         if x == 0:
             if self.__entries.has_key(ij):
@@ -2699,7 +3051,7 @@ class Matrix_generic_sparse(Matrix):
         """
         return set(self.__entries.keys())
 
-    def submatrix_from_columns(self, columns):
+    def matrix_from_columns(self, columns):
         """
         Return the submatrix of self of columns col[i] for i in
         the list of columns.
@@ -2733,7 +3085,7 @@ class Matrix_generic_sparse(Matrix):
         return self.new_matrix(ncols = len(columns), entries = entries,
                     copy=False, coerce_entries=False)
 
-    def submatrix_from_rows(self, rows):
+    def matrix_from_rows(self, rows):
         """
         Return the submatrix of self of rows row[i] for i in
         the list of rows.
@@ -2959,6 +3311,17 @@ class Matrix_dense_rational(Matrix_generic_dense_field):
     def hessenberg_form(self):
         """
         Return the Hessenberg form of this matrix.
+
+        EXAMPLES:
+            sage: A = Matrix(QQ, 3, 3, range(9))
+            sage: A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.hessenberg_form()
+            [ 0  5  2]
+            [ 3 14  5]
+            [ 0 -5 -2]
         """
         time = misc.verbose(t=0)
         A = self.copy()
@@ -2968,30 +3331,54 @@ class Matrix_dense_rational(Matrix_generic_dense_field):
 
     def charpoly(self, bound=None):
         """
-        Return the characteristic polynomial of this matrix, computed
-        using the standard multimodular Hessenberg algorithm.
+        Return the characteristic polynomial of this matrix.
 
-        The multimodular algorithm works by first computing a bound B,
-        then computing the characteristic polynomial (using Hessenberg
-        form) modulo enough primes so that their product is bigger
-        than B.  One then uses the Chinese Remainder Theorem to
-        recover the characteristic polynomial.  If the optional bound
-        is specified, that bound is used for B instead of a potentially
-        much worse general bound.
+        INPUT:
+            bound -- integer
+
+        ALGORITHM: Use a multi-modular Hessenberg form algorithm.
+        This multimodular algorithm works by first computing a bound
+        B, then computing the characteristic polynomial (using
+        Hessenberg form mod p) modulo enough primes so that their
+        product is bigger than B.  We then uses the Chinese Remainder
+        Theorem to recover the characteristic polynomial.  If the
+        optional bound is specified, that bound is used for B instead
+        of a potentially much worse general bound.
+
+        EXAMPLES:
+            sage: A = Matrix(QQ, 4, 4, [0, 1, -1, 0, 0, 1, -1, 1, -1, 2, -2, 1, -1, 1, 0, -1])
+            sage: f = A.charpoly(); f
+            x^4 + 2*x^3 - x^2 - 2*x + 1
+            sage: f.factor()
+            (x^2 + x - 1)^2
+
+        Next we compute a charpoly using too low of a bound, and get an
+        incorrect answer.
+            sage: A = 100*Matrix(QQ, 3, 3, range(9))
+            sage: A.charpoly(10)
+            x^3 - 1200*x^2 + 5348*x
+
+        Note that the incorrect answer is cached, but only with that bound:
+            sage: A.charpoly()         # gives correct answer
+            x^3 - 1200*x^2 - 180000*x
+            sage: A.charpoly(10)       # cached incorrect answer
+            x^3 - 1200*x^2 + 5348*x
         """
         if self.nrows() != self.ncols():
             raise ArithmeticError, "the matrix must be square."
 
         try:
-            return self.__charpoly
+            return self.__charpoly[bound]
         except AttributeError:
+            self.__charpoly = {}
+        except KeyError:
             pass
 
         if self.nrows() == 0:
             R = polynomial_ring.PolynomialRing(self.base_ring())
             f = R(0)
             if self.is_immutable():
-                self.__charpoly = f
+                self.__charpoly[bound] = f
             return f
 
         d = self.denominator()
@@ -3048,27 +3435,61 @@ class Matrix_dense_rational(Matrix_generic_dense_field):
         g = polynomial_ring.PolynomialRing(rational_field.RationalField())(w)
         f = ((1/d)**self.nrows()) * g.rescale(d)
         if self.is_immutable():
-            self.__charpoly = f
+            self.__charpoly[bound] = f
         return f
 
     def list(self):
+        """
+        Return a list of all the elements of this matrix.
+
+        The elements of the list are the rows concatenated together.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3)(range(9))
+            sage: v = A.list(); v
+            [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+        The returned list is a copy, and can be safely modified
+        without changing self.
+            sage: v[0] = 9999
+            sage: A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+        """
         return list(self.__matrix.list())
 
     def _entries(self):
         return self.__matrix
 
-    def minpoly(self):
-        return self._pari_().minpoly()
+    def transpose(self):
+        """
+        Return the transpose of this matrix.
 
-    def transpose2(self):
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3)(range(9))
+            sage: A.transpose()
+            [0 3 6]
+            [1 4 7]
+            [2 5 8]
+        """
         T = self.__matrix.transpose()
         return Matrix_dense_rational(self.matrix_space(self.ncols(), self.nrows()), T, copy=False)
 
     def set_row_to_multiple_of_row(self, i, j, s):
         """
         Set row i equal to s times row j.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3)(range(9))
+            sage: A.set_row_to_multiple_of_row(0,1, 10)
+            sage: A
+            [30 40 50]
+            [ 3  4  5]
+            [ 6  7  8]
         """
-        self.__matrix.set_row_to_multiple_of_row(i, j, s)
+        R = self.parent().base_ring()
+        self.__matrix.set_row_to_multiple_of_row(i, j, R(s))
 
     def echelon_form(self, height_guess=None, include_zero_rows=True):
         """
@@ -3207,21 +3628,34 @@ class Matrix_sparse_rational(Matrix_generic_sparse_field):
         return E
 
     def hessenberg_form(self):
-        """
+        r"""
         Return the Hessenberg form of this sparse matrix.
+
+        ALGORITHM: Compute the Hessenberg form of the corresponding
+        dense matrix, obtained using \code{self.dense_matrix()}
 
         EXAMPLES:
             sage: A = MatrixSpace(QQ, 3, sparse=True)(range(9))
-            sage: A.hessenberg_form()
+            sage: H = A.hessenberg_form(); H
             [ 0  5  2]
             [ 3 14  5]
             [ 0 -5 -2]
+            sage: H.is_sparse()
+            True
         """
-        return self.dense_matrix().hessenberg_form()
+        return self.dense_matrix().hessenberg_form().sparse_matrix()
 
     def charpoly(self):
         """
         Return the characteristic polynomial of this matrix.
+
+        ALGORITHM: Compute the charpoly of the corresponding
+        dense matrix, obtained using \code{self.dense_matrix()}.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,4, sparse=True)(range(16))
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
         """
         try:
             return self.__charpoly
@@ -3233,40 +3667,39 @@ class Matrix_sparse_rational(Matrix_generic_sparse_field):
 
 
 
-
-#############################################
-import sage.rings.polynomial_ring
-def berlekamp(v):
+def _prod_of_row_sums(A, cols):
     """
-    Find minimal polynomial of a linear recurrence sequence.
+    Calculate the product of all row sums of a submatrix of $A$
+    for a list of selected columns \code{cols}.
+
+    AUTHOR:
+        -- Jaap Spies (2006-02-18)
     """
-    if len(v) % 2 != 0 or len(v) == 0:
-        raise TypeError, "len of v must be even and positive"
-    n = len(v)/2
-    S = sage.rings.polynomial_ring.PolynomialRing(v[0].parent())
-    x = S._0
-    R0 = x**(2*n)
-    R1 = S(v)
-    V0 = S(0)
-    V1 = S(1)
-    while R1.degree() >= n:
-        Q, R = R0/R1
-        print "\nQ = ", Q
-        print "R = ", R
-        assert R0 == Q*R1 + R
-        V0, V1, R0, R1 = V1, V0-Q*V1, R1, R
-        print "V0 = ", V0
-        print "V1 = ", V1
-        print "R0 = ", R0
-        print "R1 = ", R1
-    d = max(V1.degree(), 1+R1.degree())
-    print "d = ", d
-    P = V1.reverse()
-    print "p rev = ", P
-    P = x**(d-P.degree())*P
-    c = P.leading_coefficient()
-    print "c = ", c
-    return (1/c)*P
+    pr = 1
+    for row in range(A.nrows()):
+        pr *= sum([A[row, c] for c in cols])
+    return pr
 
+def _combinations(sequence, number):
+    """
+    Generate all combinations of \code{number} elements from list
+    \code{sequence}.
 
+    Based on code from \code{test/test_generators.py}.
 
+    AUTHOR:
+        -- Jaap Spies (2006-02-18)
+    """
+    if number > len(sequence):
+	return
+    if number == 0:
+	yield []
+    else:
+	first, rest = sequence[0], sequence[1:]
+        # first in combination
+	for result in _combinations(rest, number-1):
+	    result.insert(0, first)
+	    yield result
+        # first not in combination
+	for result in _combinations(rest, number):
+	    yield result

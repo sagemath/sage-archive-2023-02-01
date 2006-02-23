@@ -244,8 +244,6 @@ def do_prefilter_paste(line, continuation):
                 elif name[-5:] == '.spyx':
                     line = load_pyrex(name)
                 else:
-                    #print "load: File (=%s) must have extension .sage"%name
-                    #line = ""
                     try:
                         line = '%run -i "' + name + '"'
                     except IOError, s:
@@ -312,7 +310,7 @@ def do_prefilter_paste(line, continuation):
                         print "File '%s' does not exist."%name
                         line = ''
                 else:
-                    print "load: file (=%s) must have extension .sage or .spyx"%name
+                    print "load: file (=%s) must have extension .py, .sage or .spyx"%name
                     line = ''
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line)

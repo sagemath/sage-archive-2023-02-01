@@ -190,7 +190,7 @@ We illustrate Laplace transforms:
     2*s/(s^2 + 1)^2
 
     sage: maxima("laplace(delta(t-3),t,s)") #Dirac delta function
-    %e^ - (3*s)
+    %e^-(3*s)
 
     sage: _ = maxima.eval("f(t) := exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
@@ -453,7 +453,7 @@ class Maxima(Expect):
         out1 = out[i+1:].strip()
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
-        out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=')
+        out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=').replace('^ - ','^-')
         #out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
         if out[:3] == ' - ':
             out = '-' + out[3:]

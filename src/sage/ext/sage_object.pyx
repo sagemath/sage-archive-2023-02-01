@@ -235,56 +235,145 @@ cdef class SageObject:
     def _sage_(self):
         return self
 
-    # GAP
+    def _interface_(self, I):
+        """
+        Return coercion of self to an object of the interface I.
+
+        The result of coercion is cached, unless self is not a C
+        extension class or \code{self._interface_is_cached_()} returns
+        False.
+        """
+        c = self._interface_is_cached_()
+        if c:
+            try:
+                X = self.__interface[I]
+                X._check_valid()
+                return X
+            except AttributeError:
+                try:
+                    self.__interface = {}
+                except AttributeError:
+                    # do this because C-extension classes won't have
+                    # an __interface attribute.
+                    pass
+            except (KeyError, ValueError):
+                pass
+        try:
+            s = self.__getattribute__('_%s_init_'%I.name())()
+        except AttributeError, msg0:
+            try:
+                s = self._interface_init_()
+            except AttributeError, msg1:
+                raise NotImplementedError, "coercion of %s (of type %s) to %s not implemented:\n%s\n%s"%\
+                      (self, type(self), I, msg0, msg1)
+        X = I(s)
+        if c:
+            try:
+                self.__interface[I] = X
+            except AttributeError:
+                pass
+        return X
+
+    def _interface_is_cached_(self):
+        """
+        Return True if the interface objects are cached.
+
+        If you have an object x and do gp(x), the result is cached if
+        this function returns True.
+        """
+        return True
+
     def _gap_(self, G=None):
         if G is None:
             import sage.interfaces.gap
-            G = sage.interfaces.gap.gap  # default interpreter
-        try:
-            g = self.__gap
-            if g.parent() is G:
-                g._check_valid()
-                return g
-        except (AttributeError, ValueError):
-            pass
-        g = G(self._gap_init_())
-        try:
-            self.__gap = g
-        except AttributeError:
-            # do this because C-extension class won't have a __gap attribute.
-            pass
-        return g
+            G = sage.interfaces.gap.gap
+        return self._interface_(G)
 
     def _gap_init_(self):
-        return str(self)
-        #raise TypeError, "conversion of %s to GAP not yet implemented"%self
+        return self._interface_init_()
 
-
-    # GP/PARI
     def _gp_(self, G=None):
         if G is None:
             import sage.interfaces.gp
-            G = sage.interfaces.gp.gp  # default interpreter
-        try:
-            g = self.__gp
-            if g.parent() is G:
-                g._check_valid()
-                return g
-        except (AttributeError, ValueError):
-            pass
-        g = G(self._gp_init_())
-        try:
-            self.__gp = g
-        except AttributeError:
-            # do this because C-extension class won't have a __gp attribute.
-            pass
-        return g
+            G = sage.interfaces.gp.gp
+        return self._interface_(G)
 
     def _gp_init_(self):
-        return str(self)
-        #raise TypeError, "conversion of %s to GP/PARI not yet implemented"%self
+        return self._pari_init_()
 
-    # GP/PARI
+    def _kash_(self, G=None):
+        if G is None:
+            import sage.interfaces.kash
+            G = sage.interfaces.kash.kash
+        return self._interface_(G)
+
+    def _kash_init_(self):
+        return self._interface_init_()
+
+    def _maxima_(self, G=None):
+        if G is None:
+            import sage.interfaces.maxima
+            G = sage.interfaces.maxima.maxima
+        return self._interface_(G)
+
+    def _maxima_init_(self):
+        return self._interface_init_()
+
+    def _magma_(self, G=None):
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        return self._interface_(G)
+
+    def _magma_init_(self):
+        return self._interface_init_()
+
+    def _macaulay2_(self, G=None):
+        if G is None:
+            import sage.interfaces.macaulay2
+            G = sage.interfaces.macaulay2.macaulay2
+        return self._interface_(G)
+
+    def _macaulay2_init_(self):
+        return self._interface_init_()
+
+    def _maple_(self, G=None):
+        if G is None:
+            import sage.interfaces.maple
+            G = sage.interfaces.maple.maple
+        return self._interface_(G)
+
+    def _maple_init_(self):
+        return self._interface_init_()
+
+    def _mathematica_(self, G=None):
+        if G is None:
+            import sage.interfaces.mathematica
+            G = sage.interfaces.mathematica.mathematica
+        return self._interface_(G)
+
+    def _mathematica_init_(self):
+        return self._interface_init_()
+
+    def _octave_(self, G=None):
+        if G is None:
+            import sage.interfaces.octave
+            G = sage.interfaces.octave.octave
+        return self._interface_(G)
+
+    def _octave_init_(self):
+        return self._interface_init_()
+
+    def _singular_(self, G=None):
+        if G is None:
+            import sage.interfaces.singular
+            G = sage.interfaces.singular.singular
+        return self._interface_(G)
+
+    def _singular_init_(self):
+        return self._interface_init_()
+
+    # PARI (slightly different, since is via C library, hence instance is unique)
     def _pari_(self):
         try:
             return self.__pari
@@ -300,81 +389,7 @@ cdef class SageObject:
         return x
 
     def _pari_init_(self):
-        return self._gp_init_()
-
-    # Singular
-    def _singular_(self, G=None):
-        if G is None:
-            import sage.interfaces.singular
-            G = sage.interfaces.singular.singular  # default interpreter
-        try:
-            g = self.__singular
-            if g.parent() is G:
-                g._check_valid()
-                return g
-        except (AttributeError, ValueError):
-            pass
-        g = G(self._singular_init_())
-        try:
-            self.__singular = g
-        except AttributeError:
-            # do this because C-extension class won't have a __singular attribute.
-            pass
-        return g
-
-    def _singular_init_(self):
-        return str(self)
-        #raise TypeError, "conversion of %s to Singular not yet implemented"%self
-
-    # Maxima
-    def _maxima_(self, G=None):
-        if G is None:
-            import sage.interfaces.maxima
-            G = sage.interfaces.maxima.maxima  # default interpreter
-        try:
-            g = self.__maxima
-            if g.parent() is G:
-                g._check_valid()
-                return g
-        except (AttributeError, ValueError):
-            pass
-        g = G(self._maxima_init_())
-        try:
-            self.__maxima = g
-        except AttributeError:
-            # do this because C-extension class won't have a __maxima attribute.
-            pass
-        return g
-
-    def _maxima_init_(self):
-        return str(self)
-        # raise TypeError, "conversion of %s to Maxima not yet implemented"%self
-
-    # Magma
-    def _magma_(self, G=None):
-        if G is None:
-            import sage.interfaces.magma
-            G = sage.interfaces.magma.magma  # default interpreter
-        try:
-            g = self.__magma
-            if g.parent() is G:
-                g._check_valid()
-                return g
-        except (AttributeError, ValueError):
-            pass
-        g = G(self._magma_init_())
-        try:
-            self.__magma = g
-        except AttributeError:
-            # do this because C-extension class won't have a __magma attribute.
-            pass
-        return g
-
-    def _magma_init_(self):
-        return str(self)
-        # raise TypeError, "conversion of %s to Magma not yet implemented"%self
-
-
+        return self._interface_init_()
 
 
 ##################################################################

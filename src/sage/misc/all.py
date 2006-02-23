@@ -21,12 +21,14 @@ from pyrex import pyrex
 
 from persist import save, load, dumps, loads, db, db_save
 
+from func_persist import func_persist
+
 from functional import *
 
 from latex import latex, view
 
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
-                       khinchin, ConstantRing)
+                       khinchin, ConstantRing, twinprime, merten, brun)
 
 from trace import *
 

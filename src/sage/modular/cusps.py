@@ -180,6 +180,14 @@ class Cusp(SageObject):
         """
         return self.__b
 
+    def _rational_(self):
+        return self.__a / self.__b
+
+    def _integer_(self):
+        if self.__b != 1:
+            raise TypeError, "cusp %s is not an integer"%self
+        return self.__a
+
     def parent(self):
         """
         Return the set of all cusps.

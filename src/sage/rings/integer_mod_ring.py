@@ -450,6 +450,31 @@ class IntegerModRing_generic(commutative_ring.CommutativeRing):
         a = random.randrange(0,self.order()-1)
         return self(a)
 
+    #######################################################
+    # Suppose for interfaces
+    #######################################################
+    def _gap_init_(self):
+        """
+        EXAMPLES:
+           sage: R = Integers(12345678900)
+           sage: R
+           Ring of integers modulo 12345678900
+           sage: gap(R)
+           (Integers mod 12345678900)
+        """
+        return 'ZmodnZ(%s)'%self.order()
+
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: R = Integers(12345678900)
+            sage: R
+            Ring of integers modulo 12345678900
+            sage: magma(R)                                          # optional
+            Residue class ring of integers modulo 12345678900
+        """
+        return 'Integers(%s)'%self.order()
+
 class IntegerModRing_field(field.Field, IntegerModRing_generic):
     def __init__(self, order):
         IntegerModRing_generic.__init__(self, order)

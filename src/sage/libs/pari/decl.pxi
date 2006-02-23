@@ -31,7 +31,6 @@ ctypedef unsigned long ulong
 cdef extern from 'pari/paricfg.h':
     char* PARIVERSION
 
-
 cdef extern from 'pari/pari.h':
     ctypedef long* GEN
     ctypedef void entree   # fake -- not used
@@ -1893,6 +1892,8 @@ cdef extern from 'pari/pari.h':
     extern GEN geuler
     extern GEN gpi
 
+#cdef extern from 'pari/paridecl.h':
+#    GEN     mkintn(long n, ...);
 
 cdef extern from 'pari/paripriv.h':
 #cdef extern from 'pari/pari.h':

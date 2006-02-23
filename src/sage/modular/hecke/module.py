@@ -756,7 +756,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             A = self.ambient_hecke_module()
             B = A.decomposition_matrix_inverse()
             n = sum([A[j].rank() for j in range(i)])
-            C = B.submatrix_from_columns(range(n,n+self.rank()))
+            C = B.matrix_from_columns(range(n,n+self.rank()))
             H = homspace.HeckeModuleHomspace(A, self)
             pi = H(C, "Projection"%self)
             self.__projection = pi

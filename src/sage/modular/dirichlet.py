@@ -102,18 +102,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
         self.__modulus = parent.modulus()
 
     def __eval_at_minus_one(self):
-        """
+        r"""
         Efficiently evalute the character at -1 using knowledge of its
         order.   This is potentially much more efficient than computing
         the value of -1 directly using dlog and a large power of the
         image root of unity.
 
         We use the following.
-        Proposition: Suppose eps is a character mod p^n, where p is a prime.
-        Then eps(-1) = -1 if and only if
-               p = 2 and the factor of eps at 4 is nontrivial
+        Proposition: Suppose eps is a character mod $p^n$, where $p$ is a prime.
+        Then $\varepsilon(-1) = -1$ if and only if
+               $p = 2$ and the factor of eps at 4 is nontrivial
            or
-               p > 2 and 2 does not divide euler_phi(p^n)/order(eps).
+               $p > 2$ and 2 does not divide $\phi(p^n)/\mbox{\rm ord}(\varepsilon)$.
         """
         try:
             return self.__value_at_minus_one

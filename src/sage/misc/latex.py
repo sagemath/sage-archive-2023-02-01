@@ -174,7 +174,7 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
 
 
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
-         sep='$$ $$', tiny=True, center=False):
+         sep='$$ $$', tiny=False,  center=False):
     """
     Compute a latex representation of each object in objects, compile, and display
     using xdvi.  (Requires latex and xdvi be installed.)

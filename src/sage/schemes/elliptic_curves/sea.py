@@ -41,7 +41,7 @@ def ellsea(E, p, early_abort=False):
         gp = Gp(script_subdirectory='SEA')
         gp.read("sea.gp")
 
-    gp.eval('E = ellinit(%s);'%E)
+    gp.eval('E = ellinit(%s*Mod(1,%s));'%(E,p))
     N = gp.eval("ellsea(E,%s,0,%s)"%(p,int(early_abort)))
     if N.find("*") != -1:
         raise RuntimeError, "Error: '%s'"%N

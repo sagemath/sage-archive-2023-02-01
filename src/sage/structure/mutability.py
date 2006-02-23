@@ -18,7 +18,7 @@ class Mutability:
 
     def _require_mutable(self):
         if self._is_immutable:
-            raise TypeError, "%s is immutable; please change a copy instead."%self
+            raise ValueError, "object is immutable; please change a copy instead."%self
 
     def set_immutable(self):
         """
@@ -33,7 +33,7 @@ class Mutability:
             sage: v[3] = 7
             Traceback (most recent call last):
             ...
-            TypeError: frozen sequences cannot be changed
+            ValueError: object is immutable; please change a copy instead.
         """
         self._is_immutable = True
 

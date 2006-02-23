@@ -764,6 +764,9 @@ cdef class Integer(element.EuclideanDomainElement):
             self._pari = sage.libs.pari.all.pari(str(self))
         return self._pari
 
+    def _interface_init_(self):
+        return str(self)
+
     def parent(self):
         """
         Return the ring $\\Z$ of integers.

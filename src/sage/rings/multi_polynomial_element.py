@@ -867,15 +867,15 @@ class MPolynomial_macaulay2_repr(MPolynomial_polydict):
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'], macaulay2=True)
-            sage: x, y = R.gens()
-            sage: f = (x^3 + 2*y^2*x)^7; f
+            sage: R = PolynomialRing(GF(7), 2, ['x','y'], macaulay2=True)   # optional
+            sage: x, y = R.gens()                   # optional
+            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
-            sage: h = f._macaulay2_(); h
+            sage: h = f._macaulay2_(); h            # optional
             x^21+2*x^7*y^14
-            sage: R(h)
+            sage: R(h)                              # optional
             2*x^7*y^14 + x^21
-            sage: R(h^20) == f^20
+            sage: R(h^20) == f^20                   # optional
             True
         """
         try:

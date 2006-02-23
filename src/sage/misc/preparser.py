@@ -1,5 +1,8 @@
 """
 SAGE pre-parser.
+
+AUTHOR:
+    -- William Stein (2006-02-19): fixed bug when loading .py files.
 """
 
 
@@ -204,7 +207,10 @@ def preparse_file(contents, attached={}):
                 pass
             else:
                 if isinstance(name_load, str):
-                    if name_load[-5:] == '.sage':
+                    if name_load[-3:] == '.py':
+                        ipmagic('run -i "%s"'%name_load)
+                        L = ''
+                    elif name_load[-5:] == '.sage':
                         try:
                             G = open(name_load)
                         except IOError:

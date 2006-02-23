@@ -91,7 +91,7 @@ class Gp(Expect):
                  server=None,
                  init_list_length=1024):
         Expect.__init__(self,
-                        name = 'gp',
+                        name = 'pari',
                         prompt = '\\? ',
                         command = "gp --emacs --fast --quiet --stacksize %s"%stacksize,
                         maxread = maxread,
@@ -104,6 +104,9 @@ class Gp(Expect):
         self.__seq = 0
         self.__var_store_len = 0
         self.__init_list_length = init_list_length
+
+    def _repr_(self):
+        return 'GP/PARI interpreter'
 
     def __reduce__(self):
         return reduce_load_GP, tuple([])
@@ -149,7 +152,9 @@ class Gp(Expect):
             return a
 
     def read(self, filename):
-        self.eval('read("%s")'%filename)
+        s = self.eval('read("%s")'%filename)
+        if 'error' in s:
+            raise IOError, s
 
 
     def set(self, var, value):

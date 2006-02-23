@@ -1462,6 +1462,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
         """
         from sage.groups.all import PariGroup, PermutationGroup, TransitiveGroup
+        if not self.is_irreducible():
+            raise ValueError, "polynomial (=%s) must be irreducible"%self
         if self.degree() > 11 or use_kash:
             # TODO -- maybe use KASH if available or print message that user should install KASH?
             try:

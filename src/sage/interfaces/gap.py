@@ -44,7 +44,6 @@ as an intermediate step.  First we create and factor a Singular polynomial.
     sage: singular(389)
     389
     sage: R1 = singular.ring(0, '(x,y)', 'dp')
-    sage: R1 = singular.ring(0, '(x,y)', 'dp')
     sage: f = singular('9*x^16-18*x^13*y^2-9*x^12*y^3+9*x^10*y^4-18*x^11*y^2+36*x^8*y^4+18*x^7*y^5-18*x^5*y^6+9*x^6*y^4-18*x^3*y^6-9*x^2*y^7+9*y^8')
     sage: F = f.factorize()
     sage: print F
@@ -81,7 +80,7 @@ one tricky part.  In the GAP interpreter the object \code{I} has its
     Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
     corresponding to $g$:
 
-        sage: f = gap(g); f
+        sage: f = gap(str(g)); f
         -x_1^5+x_2^2
 
     We can call GAP functions on $f$.  For example, we evaluate
@@ -149,6 +148,9 @@ import os
 import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
 WORKSPACE = "%s/tmp/gap-workspace"%SAGE_ROOT
+
+if not os.path.exists('%s/tmp'%SAGE_ROOT):
+    os.makedirs('%s/tmp'%SAGE_ROOT)
 
 gap_cmd = "gap"
 

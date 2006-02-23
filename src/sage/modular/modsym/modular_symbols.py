@@ -109,7 +109,7 @@ class ModularSymbol:
         k = space.weight()
         v = [(0,1), (1,0)]
         if not alpha.is_infinity():
-            v += [(x.numerator(),x.denominator()) for x in arith.convergents(alpha)]
+            v += [(x.numerator(), x.denominator()) for x in arith.convergents(alpha._rational_())]
         sign = 1
         apply = sage.modular.modsym.manin_symbols.apply_to_monomial
         mansym = sage.modular.modsym.manin_symbols.ManinSymbol

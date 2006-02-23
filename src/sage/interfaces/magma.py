@@ -106,6 +106,8 @@ class Magma(Expect):
         return 'load "%s";'%filename
 
     def _post_process_from_file(self, s):
+        if not isinstance(s, str):
+            raise RuntimeError, "Error evaluating object in %s:\n%s"%(self,s)
         i = s.find('\n')
         return s[i+1:]
 

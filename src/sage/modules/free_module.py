@@ -2197,16 +2197,16 @@ class FreeModule_ambient(FreeModule_generic):
         If v is not in self, raises an ArithmeticError exception.
 
         EXAMPLES:
-            sage: V = ZZ^3
+            sage: V = Integers(16)^3
             sage: v = V.coordinate_vector([1,5,9]); v
             (1, 5, 9)
             sage: v.parent()
-            Vector space of dimension 3 over Rational Field
+            Ambient free module of rank 3 over Ring of integers modulo 16
         """
-        return self.ambient_vector_space()(v)
+        return self(v)
 
     def echelon_coordinate_vector(self, v):
-        """
+        r"""
         Same as \code{self.coordinate_vector(v)}, since self is an ambient free module.
         """
         return self.coordinate_vector(v)
@@ -2267,6 +2267,25 @@ class FreeModule_ambient_domain(FreeModule_ambient):
                                              sparse = self.is_sparse(),
                                              inner_product_matrix = mat)
             return self.__ambient_vector_space
+
+    def coordinate_vector(self, v):
+        """
+        Write $v$ in terms of the standard basis for self and return the
+        resulting coeffcients in a vector over the fraction field of the
+        base ring.
+
+        Returns a vector c such that if B is the basis for self, then
+                sum c[i] B[i] = v
+        If v is not in self, raises an ArithmeticError exception.
+
+        EXAMPLES:
+            sage: V = ZZ^3
+            sage: v = V.coordinate_vector([1,5,9]); v
+            (1, 5, 9)
+            sage: v.parent()
+            Vector space of dimension 3 over Rational Field
+        """
+        return self.ambient_vector_space()(v)
 
     def vector_space(self):
         """

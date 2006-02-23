@@ -3585,7 +3585,6 @@ cdef class gen:
     def __call__(self, x):
         return self.eval(x)
 
-
     def factorpadic(self, p, long r=20, long flag=0):
         """
         self.factorpadic(p,{r=20},{flag=0}): p-adic factorization of the

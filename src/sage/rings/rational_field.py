@@ -189,6 +189,26 @@ class RationalField(_uniq, field.Field):
         else:
             raise ValueError, "No %sth root of unity in rational field"%n
 
+    #################################
+    ## Coercions to interfaces
+    #################################
+    def _gap_init_(self):
+        """
+        EXAMPLES:
+            sage: gap(QQ)
+            Rationals
+        """
+        return 'Rationals'
+
+    def _magma_init_(self):
+        """
+        EXAMPLES:
+            sage: magma(QQ)                       # optional
+            Rational Field
+        """
+        return 'RationalField()'
+
+
 QQ = RationalField()
 Q = QQ
 

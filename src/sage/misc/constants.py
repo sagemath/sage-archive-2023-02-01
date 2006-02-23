@@ -32,7 +32,7 @@ type the following:
     sage: maxima(pi)
     %pi
     sage: singular(pi)
-    3.14159265358979323
+    3.1415926535897931
     sage: gap(pi)
     "3.1415926535897931"
     sage: gp(pi)
@@ -128,6 +128,7 @@ EXAMPLES: Arithmetic with constants
 AUTHORS:
     -- Alex Clemesha  <aclemesh@ucsd.edu>, 2006-01-15
     -- William Stein
+    -- Alex Clemesha \& William Stein (2006-02-20): added new constants; removed todos
 """
 
 #*****************************************************************************
@@ -138,23 +139,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-# TODO: in all.py only import what is really needed from this file, not *.
-# (this is for me, William, to do.)
-
-# TODO: See
-#
-#   http://numbers.computation.free.fr/Constants/Miscellaneous/Records.html
-#
-# for a bunch of constants, many related to number theory.  Often they
-# aren't given on that site, but maybe you can track them down and
-# hardcode them up to 1000 digits, say, and for more precision give an
-# error message? I've hardcode khinchin's below, as an example.  For
-# *many* purposes knowing up to 1000 digits is more than enough.  In
-# some cases computing much more is *very* difficult.  I did some
-# timing experiments and I think Khinchin is hardcoded in mathematica
-# to 5000 digits, since anything above that takes forever, but it is
-# instant.  So I'm not against hardcoding either.
 
 import math
 
@@ -177,17 +161,20 @@ class ConstantRing_class(CommutativeRing):
     def _repr_(self):
         return "Ring of Mathematical Constants"
 
+    def _latex_(self):
+        return '\\text{RingOfConstants}'
+
     def set_precision(self, prec):
         """
         Change the precision of the default real field used for coercing constants.
 
         EXAMPLES:
-            sage: ConstantRing.set_precision(200)
+            sage: old_prec = ConstantRing.set_precision(200)
             sage: pi.str()
             '3.1415926535897932384626433832795028841971693993751058209749445'
             sage: gap(pi)
             "3.1415926535897932384626433832795028841971693993751058209749445"
-            sage: ConstantRing.set_precision(53)
+            sage: _ = ConstantRing.set_precision(old_prec)
             sage: pi.str()
             '3.1415926535897931'
 
@@ -214,14 +201,16 @@ class ConstantRing_class(CommutativeRing):
             '   realprecision = 115 significant digits (100 digits displayed)'      # 64-bit
             sage: gp(pi)
             3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-            sage: ConstantRing.set_precision(5)   # has no affect on gp(pi)
+            sage: _ = ConstantRing.set_precision(5)   # has no affect on gp(pi)
             sage: gp(pi)
             3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
         """
+        old_prec = self._default_precision
         prec = int(prec)
         self._default_precision = prec
         global RR
         RR = sage.rings.all.RealField(prec)
+        return old_prec
 
     def default_precision(self):
         """
@@ -244,6 +233,26 @@ class Constant(Element_cmp_, RingElement):
         self.__conversions = conversions
         RingElement.__init__(self, ConstantRing)
 
+    def _interface_is_cached_(self):
+        """
+        Return False, since coercion of constants to interfaces
+        is not cached.
+
+        We do not cache coercions of constants to interfaces, since
+        the precision of the interface may change.
+
+        EXAMPLES:
+            sage: gp(pi)
+            3.141592653589793238462643383
+            sage: old_prec = gp.set_precision(100)
+            sage: gp(pi)
+            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+            sage: _ = gp.set_precision(old_prec)
+            sage: gp(pi)
+            3.141592653589793238462643383
+        """
+        return False
+
     def str(self, bits=None):
         """
         Return a string representation of self as a decimal number
@@ -255,60 +264,69 @@ class Constant(Element_cmp_, RingElement):
             R = RR
         return str(self._mpfr_(R))
 
-    def _gap_(self, gap):
-        try:
-            return gap(self.__conversions['gap'])
-        except KeyError:
-            return gap('"%s"'%self.str())  # no reals in GAP!
+    def _interface_init_(self):
+        """
+        Default init string for interfaces.
+        """
+        return self.str()
 
-    def _gp_(self, gp):
+    def _gap_init_(self):
         try:
-            return gp(self.__conversions['gp'])
+            return self.__conversions['gap']
         except KeyError:
-            return gp(self.str())
+            return '"%s"'%self.str()  # no float numbers in GAP!?!
 
-    def _kash_(self, kash):
+    def _kash_init_(self):
         try:
-            return kash(self.__conversions['kash'])
+            return self.__conversions['kash']
         except KeyError:
-            return kash(self.str())
+            return self.str()
 
-    def _maxima_(self, maxima):
+    def _maxima_init_(self):
         try:
-            return maxima(self.__conversions['maxima'])
+            return self.__conversions['maxima']
         except KeyError:
-            return maxima(self.str())
+            return self.str()
 
-    def _mathematica_(self, mathematica):
+    def _mathematica_init_(self):
         try:
-            return mathematica(self.__conversions['mathematica'])
+            return self.__conversions['mathematica']
         except KeyError:
-            return mathematica(self.str())
+            return self.str()
 
-    def _maple_(self, maple):
+    def _maple_init_(self):
         try:
-            return maple(self.__conversions['maple'])
+            return self.__conversions['maple']
         except KeyError:
-            return maple(self.str())
+            return self.str()
 
-    def _octave_(self, octave):
+    def _octave_init_(self):
         try:
-            return octave(self.__conversions['octave'])
+            return self.__conversions['octave']
         except KeyError:
-            return octave(self.str())
+            return self.str()
 
-    def _pari_(self):
+    def _pari_init_(self):
         try:
-            return pari(self.__conversions['pari'])
+            return self.__conversions['pari']
         except KeyError:
-            return pari(self.str())
+            return self.str()
 
-    def _singular_(self, singular):
+    def _singular_init_(self):
+        """
+        EXAMPLES:
+            sage: singular(e)
+            2.7182818284590451
+            sage: P = e.parent()
+            sage: old_prec = P.set_precision(200)
+            sage: singular(e)
+            2.7182818284590452353602874713526624977572470936999595749669679
+            sage: _ = P.set_precision(old_prec)
+        """
         try:
-	    singular.lib('general')   # Needed for number_e, number_pi
-            return singular(self.__conversions['singular'])
+            return self.__conversions['singular']
         except KeyError:
-            return singular(self.str())
+            return '"%s"'%self.str()
 
     def _mpfr_(self, R):
         raise NotImplementedError, "computation of this constant not implemented yet."
@@ -399,9 +417,11 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
-    def _singular_(self, singular):
-        singular.lib('general')
-        return singular('number_pi(%s)'%int((ConstantRing._default_precision/3)+1))
+    # This just gives a string in singular anyways, and it's
+    # *REALLY* slow!
+    #def _singular_(self, singular):
+    #    singular.lib('general')
+    #    return singular('number_pi(%s)'%int((ConstantRing._default_precision/3)+1))
 
 pi = Pi()
 
@@ -432,10 +452,12 @@ class E(Constant):
     def __init__(self):
         Constant.__init__(self,
             {'maxima':'%e','gp':'exp(1)','kash':'E','pari':'exp(1)',
-             'mathematica':'E','maple':'exp(1)','octave':'e',
-	     'singular':'number_e(20)'}) #singular precision?
+             'mathematica':'E','maple':'exp(1)','octave':'e'})
 
     def _repr_(self):
+        return 'e'
+
+    def _latex_(self):
         return 'e'
 
     def __float__(self):
@@ -443,6 +465,12 @@ class E(Constant):
 
     def _mpfr_(self, R):
         return R(1).exp()
+
+    # This just gives a string in singular anyways, and it's
+    # *REALLY* slow!
+    #def _singular_(self, singular):
+    #    singular.lib('general')
+    #    return singular('number_e(%s)'%int((ConstantRing._default_precision/3)+1))
 
 e = E()
 ee = e
@@ -484,11 +512,6 @@ class GoldenRatio(Constant):
         3.2360679774997898
     """
     def __init__(self):
-        # TODO: Here you should put a string that *symbolically* evaluates
-        # to the golden ratio in each system, if possible.  E.g., in
-        # mathematica I think Sqrt[5] means sqrt(5) algebraically.
-	#
-	#no sqrt function in singular?
         Constant.__init__(self,{'mathematica':'N[(1+Sqrt[5])/2]','gp':'(1+sqrt(5))/2',
 				'maple':'(1+sqrt(5))/2','maxima':'(1+sqrt(5))/2',
 				'pari':'(1+sqrt(5))/2','octave':'(1+sqrt(5))/2',
@@ -496,7 +519,7 @@ class GoldenRatio(Constant):
     def _repr_(self):
         return 'golden_ratio'
 
-    def _latex_(self): #Should we do this
+    def _latex_(self):
         return '\\phi'
 
     def __float__(self):
@@ -538,17 +561,18 @@ class Log2(Constant):
         # TODO: Here you should put a string that *symbolically* evaluates
         # to sqrt(2) in each system, if possible.  E.g., in
         # mathematica I think Sqrt[2] means sqrt(2) algebraically.
-	#
-	#no log function in singular?
-         Constant.__init__(self,{'mathematica':'N[Log[2]]','kash':'Log(2)',
+        Constant.__init__(self,{'mathematica':'N[Log[2]]','kash':'Log(2)',
 				'maple':'log(2)','maxima':'log(2)','gp':'log(2)',
 				'pari':'log(2)','octave':'log(2)'})
 
     def _repr_(self):
         return 'log2'
 
+    def _latex_(self):
+        return '\\log(2)'
+
     def __float__(self):
-        return math.log(2) #is this OK?
+        return math.log(2)
 
     def _mpfr_(self,R):
         return R.log2()
@@ -603,6 +627,9 @@ class Catalan(Constant):
     def _repr_(self):
         return 'K'
 
+    def _latex_(self):
+        return 'K'
+
     def _mpfr_(self, R):
         return R.catalan_constant()
 
@@ -636,7 +663,7 @@ class Khinchin(Constant):
         return 'khinchin'
 
     def _mpfr_(self, R):
-        if R.precision() < self.__bits:
+        if R.precision() <= self.__bits:
             return R(self.__value)
         raise NotImplementedError, "Khinchin's constant only available up to %s bits"%self.__bits
 
@@ -644,6 +671,149 @@ class Khinchin(Constant):
         return 2.685452001065306445309714835481795693820
 
 khinchin  = Khinchin()
+
+
+class TwinPrime(Constant):
+    r"""
+    The Twin Primes constant is defined as $\prod 1 - 1/(p-1)^2$
+    for primes $p > 2$.
+
+    EXAMPLES:
+	sage: float(twinprime)
+        0.66016181584686962
+        sage: R=RealField(200);R
+        Real Field with 200 bits of precision
+        sage: R(twinprime)
+        0.66016181584686957392781211001455577843262336028473341331944814
+    """
+    def __init__(self):
+        Constant.__init__(self,{}) #Twin prime is not implemented in any other algebra systems.
+
+        #digits come from http://www.gn-50uma.de/alula/essays/Moree/Moree-details.en.shtml
+
+        self.__value = "0.660161815846869573927812110014555778432623360284733413319448423335405642304495277143760031413839867911779005226693304002965847755123366227747165713213986968741097620630214153735434853131596097803669932135255299767199302474590593101082978291553834469297505205916657133653611991532464281301172462306379341060056466676584434063501649322723528968010934966475600478812357962789459842433655749375581854814173628678098705969498703841243363386589311969079150040573717814371081810615401233104810577794415613125444598860988997585328984038108718035525261719887112136382808782349722374224097142697441764455225265548994829771790977784043757891956590649994567062907828608828395990394287082529070521554595671723599449769037800675978761690802426600295711092099633708272559284672129858001148697941855401824639887493941711828528382365997050328725708087980662201068630474305201992394282014311102297265141514194258422242375342296879836738796224286600285358098482833679152235700192585875285961205994728621007171131607980572"
+
+        self.__bits = len(self.__value)*3-1   # underestimate
+
+    def _repr_(self):
+        return 'twinprime'
+
+    def _mpfr_(self, R):
+        if R.precision() <= self.__bits:
+            return R(self.__value)
+        raise NotImplementedError, "Twin Prime constant only available up to %s bits"%self.__bits
+
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: float(twinprime)
+            0.66016181584686962
+        """
+	return 0.660161815846869573927812110014555778432
+
+twinprime = TwinPrime()
+
+
+class Merten(Constant):
+    """
+    The Merten constant is related to the Twin Primes constant
+    and appears in Merten's second theorem.
+
+    EXAMPLES:
+        sage: float(merten)
+        0.26149721284764277
+        sage: R=RealField(200);R
+        Real Field with 200 bits of precision
+        sage: R(merten)
+        0.26149721284764278375542683860869585905156664826119920619206395
+    """
+    def __init__(self):
+        Constant.__init__(self,{}) #Merten's constant is not implemented in any other algebra systems.
+
+        # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=77761&fmt=0
+
+        self.__value = "0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434246651051617"
+
+        self.__bits = len(self.__value)*3-1   # underestimate
+
+    def _repr_(self):
+        return 'merten'
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES:
+            sage: RealField(1000)(merten)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Merten's constant only available up to 320 bits
+            sage: RealField(320)(merten)
+            0.26149721284764278375542683860869585905156664826119920619206421392492451089736820971414263143424650
+        """
+        if R.precision() <= self.__bits:
+            return R(self.__value)
+        raise NotImplementedError, "Merten's constant only available up to %s bits"%self.__bits
+
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: float(merten)
+            0.26149721284764277
+        """
+	return 0.261497212847642783755426838608695859051
+
+merten = Merten()
+
+class Brun(Constant):
+    """
+    Brun's constant is the sum of reciprocals of odd twin primes.
+
+    It is not known to very high precision; calculating the number
+    using twin primes up to $10^16$ (Sebah 2002) gives the number
+    $1.9021605831040$.
+
+    EXAMPLES:
+	sage: float(brun)
+        1.902160583104
+        sage: R = RealField(41); R
+        Real Field with 41 bits of precision
+        sage: R(brun)
+        1.9021605831040
+    """
+    def __init__(self):
+        Constant.__init__(self,{}) #Brun's constant is not implemented in any other algebra systems.
+
+        # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=65421&fmt=0
+
+        self.__value = "1.902160583104"
+
+        self.__bits = len(self.__value)*3-1 # bits  -- todo: make more intelligent in a general function!!!
+
+    def _repr_(self):
+        return 'brun'
+
+    def _mpfr_(self, R):
+        """
+        EXAMPLES:
+            sage: RealField(53)(brun)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Brun's constant only available up to 41 bits
+            sage: RealField(41)(brun)
+            1.9021605831040
+        """
+        if R.precision() <= self.__bits:
+            return R(self.__value)
+        raise NotImplementedError, "Brun's constant only available up to %s bits"%self.__bits
+
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: float(brun)
+            1.902160583104
+        """
+	return 1.9021605831040
+
+brun=Brun()
 
 
 #################################################################
@@ -689,9 +859,23 @@ class Constant_arith(Constant):
         self.__op = op  # a binary operator, e.g., operator.sub
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: log2 * e + pi^2/2
+            ((log2*e) + ((Pi^2)/2))
+        """
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: latex(log2 * e + pi^2/2)
+            '\\log(2) \\cdot e + \\frac{\\pi^{2}}{2}'
+            sage: latex(NaN^3 + 1/golden_ratio)
+            '\\text{NaN}^{3} + \\frac{1}{\\phi}'
+            sage: latex(log2 + euler_gamma + catalan + khinchin + twinprime + merten + brun)
+            '\\log(2) + \\gamma + K + \\text{khinchin} + \\text{twinprime} + \\text{merten} + \\text{brun}'
+        """
         if self.__op == operator.div:
             return '\\frac{%s}{%s}'%(latex(self.__x), latex(self.__y))
         elif self.__op == operator.mul:
@@ -700,35 +884,89 @@ class Constant_arith(Constant):
             return '%s - %s'%(latex(self.__x), latex(self.__y))
         elif self.__op == operator.add:
             return '%s + %s'%(latex(self.__x), latex(self.__y))
+        elif self.__op == operator.pow:
+            return '%s^{%s}'%(latex(self.__x), latex(self.__y))
+        else:
+            raise NotImplementedError, 'operator %s unknown'%self.__op
 
-    def _gap_(self, gap):
-        return self.__op(self.__x._gap_(gap), self.__y._gap_(gap))
+    def _gap_init_(self):
+        """
+        EXAMPLES:
+            sage: gap(e + pi)
+            "5.8598744820488378"
+        """
+        return '"%s"'%self.str()
 
     def _gp_(self, gp):
+        """
+        EXAMPLES:
+            sage: gp(e + pi)
+            5.859874482048838473822930855
+        """
         return self.__op(self.__x._gp_(gp), self.__y._gp_(gp))
 
     def _kash_(self, kash):
+        """
+        EXAMPLES:
+            sage: kash(e + pi)
+            5.85987448204883847382293085463
+        """
         return self.__op(self.__x._kash_(kash), self.__y._kash_(kash))
 
     def _maple_(self, maple):
+        """
+        EXAMPLES:
+            sage: maple(e + pi)
+            exp(1)+Pi
+        """
         return self.__op(self.__x._maple_(maple), self.__y._maple_(maple))
 
     def _mathematica_(self, mathematica):
+        """
+        EXAMPLES:
+            sage: mathematica(e + pi)
+            E + Pi
+        """
         return self.__op(self.__x._mathematica_(mathematica), self.__y._mathematica_(mathematica))
 
     def _maxima_(self, maxima):
+        """
+        EXAMPLES:
+            sage: maxima(e + pi)
+            %pi + %e
+        """
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
     def _octave_(self, octave):
+        """
+        EXAMPLES:
+            sage: octave(e + pi)
+            5.85987
+        """
         return self.__op(self.__x._octave_(octave), self.__y._octave_(octave))
 
     def _pari_(self):
+        """
+        EXAMPLES:
+            sage: pari(e + pi)
+            5.859874482048838473822930855
+        """
         return self.__op(self.__x._pari_(), self.__y._pari_())
 
-    def _singular_(self, singular):
-        return self.__op(self.__x._singular_(singular), self.__y._singular_(singular))
+    def _singular_init_(self):
+        """
+        EXAMPLES:
+            sage: singular(e + pi)
+            5.8598744820488378
+        """
+        return '"%s"'%self.str()
 
     def _mpfr_(self, R):
+        """
+        EXAMPLES:
+            sage: RealField(100)(e + pi)
+            5.8598744820488384738229308546306
+        """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
 
@@ -760,6 +998,9 @@ class Constant_gen(Constant):
 
     def _repr_(self):
         return str(self.__x)
+
+    def _latex_(self):
+        return latex(self.__x)
 
     def _mpfr_(self, R):
         return R(self.__x)

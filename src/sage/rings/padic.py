@@ -134,6 +134,12 @@ class pAdic(field_element.FieldElement):
                 self.__prec = big_oh
         self.__order = None
 
+    def _pari_init_(self):
+        """
+        PARI representation of a p-adic is the same as in SAGE.
+        """
+        return str(self)
+
     def denominator(self):
         """
         Return the denominator of this p-adic number, which is an integer

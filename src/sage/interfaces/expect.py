@@ -91,7 +91,7 @@ class Expect(SageObject):
     def user_dir(self):
         return self.__path
 
-    def __repr__(self):
+    def _repr_(self):
         return self.__name.capitalize()
 
     def _change_prompt(self, prompt):
@@ -130,15 +130,10 @@ class Expect(SageObject):
         SAGE.   Use sage(xxx) or interpretername(xxx) to pull objects
         in from sage to the interpreter.}
         """
-        if not hasattr(self, '__expect'):
+        if self._expect is None:
             self._start()
         import sage.misc.preparser_ipython
         sage.misc.preparser_ipython.switch_interface_general(self)
-        #self._eval_line('')
-        #self._eval_line('')
-        #self._expect.interact()
-        #self._eval_line('')
-        #self._eval_line('')
 
     def _pre_interact(self):
         pass
@@ -342,19 +337,30 @@ class Expect(SageObject):
         if isinstance(x, cls) and x.parent() is self:
             return x
 
-        elif (not isinstance(x, ExpectElement) and hasattr(x, self.__coerce_name)) or  \
-                (isinstance(x, ExpectElement) and x.hasattr(self.__coerce_name)):
-            return getattr(x, self.__coerce_name)(self)
+        if not isinstance(x, ExpectElement):
+            s = '_%s_'%self.name()
+            if s == '_pari_':
+                s = '_gp_'
+            if hasattr(x, s):
+                return x.__getattribute__(s)(self)
+            elif hasattr(x, '_interface_'):
+                return x._interface_(self)
 
-        elif isinstance(x, (list, tuple)):
+        if isinstance(x, (list, tuple)):
             A = []
+            z = []
             for v in x:
                 if isinstance(v, cls):
                     A.append(v.name())
+                    z.append(v)
                 else:
-                    A.append(str(v))
+                    w = self(v)
+                    A.append(w.name())
+                    z.append(w)
             X = ','.join(A)
-            return self.new('%s%s%s'%(self._left_list_delim(), X, self._right_list_delim()))
+            r = self.new('%s%s%s'%(self._left_list_delim(), X, self._right_list_delim()))
+            r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
+            return r
 
         return cls(self, x)
 
@@ -485,7 +491,7 @@ class ExpectFunction(SageObject):
         self._name = name
 
     def __repr__(self):
-        return "Function %s"%self._name
+        return "%s"%self._name
 
     def __call__(self, *args):
         return self._parent.function_call(self._name, list(args))
@@ -497,7 +503,7 @@ class FunctionElement(SageObject):
         self._name = name
 
     def __repr__(self):
-        return "member function %s"%self._name
+        return "%s"%self._name
 
     def __call__(self, *args):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args))
@@ -611,6 +617,9 @@ class ExpectElement(Element_cmp_, RingElement):
         """
         Attempt to return a SAGE version of this object.
         """
+        return self.sage()
+
+    def sage(self):
         return sage.misc.sage_eval.sage_eval(str(self))
 
     def __repr__(self):

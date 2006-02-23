@@ -180,7 +180,6 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         Category of sequences in Finite Field of size 5
         sage: v.parent()([7,8,9])
         [2, 3, 4]
-
     """
     def __init__(self, x, universe=None, check=True, immutable=False):
         if not isinstance(x, (list, tuple)):
@@ -216,8 +215,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         Mutability.__init__(self, immutable)
 
     def __setitem__(self, n, x):
-        if self._is_immutable:
-            raise TypeError, "frozen sequences cannot be changed"
+        self._require_mutable()
         y = self.__universe(x)
         list.__setitem__(self, n, y)
         self.__hash=None

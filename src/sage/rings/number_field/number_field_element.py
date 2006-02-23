@@ -106,7 +106,7 @@ class NumberFieldElement(field_element.FieldElement):
 
     def _pari_(self, var=None):
         """
-        Return PARI representation of self.
+        Return PARI C-library object representation of self.
         """
         try:
             return self.__pari
@@ -117,6 +117,15 @@ class NumberFieldElement(field_element.FieldElement):
             g = self.parent().polynomial()._pari_().subst("x",var)
             return f.Mod(g)
 
+    def _pari_init_(self, var=None):
+        """
+        Return GP/PARI string representation of self.
+        """
+        if var == None:
+            var = self.parent().variable_name()
+        f = self.__element._pari_().subst("x",var)
+        g = self.parent().polynomial()._pari_().subst("x",var)
+        return 'Mod(%s, %s)'%(f,g)
 
     def __cmp__(self, other):
         if not isinstance(other, NumberFieldElement):

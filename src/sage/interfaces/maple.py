@@ -3,7 +3,7 @@ Interface to Maple
 
 You must have the optional commercial Maple interpreter installed and
 available as the command \code{maple} in your PATH in order to use
-this interface.  You do not have to install any special \sage packages.
+this interface.  You do not have to install any optional \sage packages.
 
 
 EXAMPLES:
@@ -385,9 +385,9 @@ class MapleElement(ExpectElement):
         You can output Maple expressions in latex.
 
         EXAMPLES:
-            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))
+            sage: print latex(maple('(x^4 - y)/(y^2-3*x)'))      # optional
             {\frac {{x}^{4}-y}{{y}^{2}-3\,x}}
-            sage: print latex(maple(pi - e^3))
+            sage: print latex(maple(pi - e^3))                   # optional
             \pi - \left( {e^{1}} \right) ^{3}
 
         \note{Some expressions might require the Maple style file

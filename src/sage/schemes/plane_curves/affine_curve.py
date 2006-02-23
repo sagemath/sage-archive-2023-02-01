@@ -122,7 +122,7 @@ class AffineCurve_generic(Curve_generic):
             sage: x,y = R.gens()
             sage: f = y^2-x^9-x
             sage: C = Curve(f)
-            sage: C.local_coordinates(pt,9)
+            sage: C.local_coordinates(pt, 9)
             [2 + t, 3 + 3*t^2 + t^3 + 3*t^4 + 3*t^6 + 3*t^7 + t^8 + 2*t^9 + 3*t^11 + 3*t^12]
         """
         f = self.defining_polynomial()
@@ -141,11 +141,10 @@ class AffineCurve_generic(Curve_generic):
         ft = f(xt,yt)
         S = singular
         S.eval('ring s = '+str(p)+','+str(R0.gens())+',lp;')
-        S.eval('poly f = '+str(ft))
-        cmd = 'matrix c = coeffs ('+str(ft)+',t)'
-        S.eval(cmd)
-        N = int(S.eval('size(c)'))
-        b = ["c["+str(i)+",1]," for i in range(2,N/2-4)]
+        S.eval('poly f = '+str(ft) + ';')
+        c = S('coeffs(%s, t)'%ft)
+        N = int(c.size())
+        b = ["%s[%s,1],"%(c.name(), i) for i in range(2,N/2-4)]
         b = ''.join(b)
         b = b[:len(b)-1] # to cut off the trailing comma
         cmd = 'ideal I = '+b

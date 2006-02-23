@@ -624,6 +624,22 @@ cdef class RealNumber(element.RingElement):
     def _latex_(self):
         return str(self)
 
+    def _interface_init_(self):
+        """
+        Return string representation of self in base 10 with
+        no scientific notation.
+
+        This is most likely to make sense in other computer algebra
+        systems (this function is the default for exporting to other
+        computer algebra systems).
+
+        EXAMPLES:
+            sage: n = 1.3939494594
+            sage: n._interface_init_()
+            '1.3939494593999999'
+        """
+        return self.str(10, no_sci=True)
+
     def __hash__(self):
         return hash(self.str(16))
 

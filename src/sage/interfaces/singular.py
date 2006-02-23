@@ -279,12 +279,14 @@ class Singular(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=500)
+                        eval_using_file_cutoff=1000)
         self.__libs  = []
 
     def _start(self, alt_message=None):
         self.__libs = []
         Expect._start(self, alt_message)
+        # Load some standard libraries.
+        self.lib('general')   # assumed loaded by misc/constants.py
 
     def __reduce__(self):
         return reduce_load_Singular, ()
@@ -343,6 +345,16 @@ class Singular(Expect):
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s
 
+##         while True:
+##             i = s.find('// ** redefining')
+##             if i == -1:
+##                 break
+##             j = s[i:].find('\n')
+##             if j == -1:
+##                 j = len(s)
+##             s = s[:i] + s[i+j+1:]
+##             open('/home/was/log','a').write(s)
+
         #print "output: %s"%s
         return s
 
@@ -365,6 +377,9 @@ class Singular(Expect):
     def clear(self, var):
         """
         Clear the variable named var.
+
+        (Not actually done right now since it causes too many
+        problems.)
         """
         # problem with kill is that if variable
         # isn't defined still in this session, get

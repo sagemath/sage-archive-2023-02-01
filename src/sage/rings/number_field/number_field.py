@@ -692,7 +692,7 @@ class NumberField_quadratic(NumberField_generic):
             x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
         """
         f = pari('quadhilbert(%s))'%self.discriminant())
-        g = R(list(reversed(f.list())))
+        g = R(f)
         return g
 
     def hilbert_class_field(self):

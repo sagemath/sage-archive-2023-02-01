@@ -730,8 +730,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         elif is_NumberField(R):
 
-            v = [x._pari_("a") for x in reversed(self.list())]
-            f = pari(v).Pol()
+            v = [x._pari_("a") for x in self.list()]
+            f = pari(v).Polrev()
             G = list(f.factor())
 
 
@@ -929,18 +929,23 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         the variable will be "x" unless you explicitly specify
         otherwise, no matter what the polynomial indeterminate
         is.
+
+        EXAMPLES:
+            sage: f = PolynomialRing(QQ)([0,1,2/3,3])
+            sage: pari(f)
+            3*x^3 + 2/3*x^2 + x
         """
         try:
             return self.__pari
         except AttributeError:
-            v = list(reversed(self.list()))
+            v = self.list()
             try:
                 v = [x._pari_() for x in v]
             except AttributeError:
                 pass
             if variable is None:
                 variable = self.parent().variable_name()
-            self.__pari = pari(v).Pol(variable)
+            self.__pari = pari(v).Polrev(variable)
             return self.__pari
 
     def _pari_init_(self):
@@ -1345,7 +1350,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             self.__poly = x
             return
 
-        self.__poly = pari([]).Pol()
+        self.__poly = pari([]).Polrev()
 
         if x is None:
             return         # leave initialized to 0 polynomial.
@@ -1374,7 +1379,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             x = v
 
         elif isinstance(x, pari_gen):
-            f = x.Pol()
+            f = x.Polrev()
             self.__poly = f
             assert self.__poly.type() == "t_POL"
             return
@@ -1389,11 +1394,9 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         while len(self.__list) > 0 and self.__list[-1] == 0:
             del self.__list[-1]
 
-        x.reverse()
-
         # NOTE: It is much faster to convert to string and let pari's parser at it,
         # which is why we pass str(x) in.
-        self.__poly = pari(str(x)).Pol()
+        self.__poly = pari(str(x)).Polrev()
         assert self.__poly.type() == "t_POL"
 
     def _repr(self, name=None):
@@ -1622,7 +1625,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         G = self._pari_().factormod(p)
         K = finite_field.FiniteField(p)
         R = sage.rings.polynomial_ring.PolynomialRing(K, name=self.parent().variable_name())
-        return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
+        return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
     def factor_padic(self, p, prec=10):
         """
@@ -1966,7 +1969,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         return ZZ(str(self.__poly.discriminant()))
 
     def _pari_(self, variable='x'):
-        return pari(str(self.__poly).replace(' ',',')).Pol(variable).polrecip()
+        return pari(self.list()).Polrev(variable)
 
     def factor_mod(self, p):
         """
@@ -1982,7 +1985,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             sage: x = Z['x'].0
             sage: f = -3*x*(x-2)*(x-9) + x
             sage: f.factor_mod(3)
-            0
+            x
             sage: f = -3*x*(x-2)*(x-9)
             sage: f.factor_mod(3)
             Traceback (most recent call last):
@@ -1991,7 +1994,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
             sage: f = 2*x*(x-2)*(x-9)
             sage: f.factor_mod(7)
-            (2) * (x + 5)^2
+            (2) * x * (x + 5)^2
         """
         p = integer.Integer(p)
         if not p.is_prime():
@@ -2002,7 +2005,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         G = f.factormod(p)
         k = finite_field.FiniteField(p)
         R = sage.rings.polynomial_ring.PolynomialRing(k, name=self.parent().variable_name())
-        return R(1)._factor_pari_helper(G, unit=k(self.leading_coefficient()))
+        return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
 
     def factor_padic(self, p, prec=10):
@@ -2167,8 +2170,8 @@ class Polynomial_dense_mod_n(Polynomial):
         return eval(str(self.__poly).replace(' ',','))
 
     def _pari_(self, variable='x'):
-        return pari(str(list(reversed(self.int_list())))).Pol(variable) * \
-               pari('Mod(1,%s)'%self.parent().base_ring().order())
+        return pari(self.int_list()).Polrev(variable) * \
+               pari(1).Mod(self.parent().base_ring().order())
 
     def ntl_ZZ_pX(self):
         """

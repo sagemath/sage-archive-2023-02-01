@@ -106,8 +106,7 @@ class FiniteFieldElement(field_element.FieldElement):
             sage: (a**2 + 1).polynomial().parent()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        return self.parent().polynomial_ring()(\
-            list(reversed(self.__value.lift().list())))
+        return self.parent().polynomial_ring()(self.__value.lift())
 
     def is_square(self):
         """
@@ -296,7 +295,7 @@ class FiniteFieldElement(field_element.FieldElement):
             x^3 + x^2 + 2*x + 1
         """
         R = polynomial_ring.PolynomialRing(self.parent().prime_subfield())
-        return R(list(reversed(self.__value.charpoly().lift().list())))
+        return R(self.__value.charpoly().lift())
 
     def trace(self):
         """

@@ -464,10 +464,50 @@ cdef class gen:
 
     def __int__(gen self):
         """
-        Return Python int.  Very fast unless the number is too large too
-        fit into a C int, in which case a string is used.
+        Return Python int.  Very fast, and if the number is too large to
+        fit into a C int, a Python long is returned instead.
+
+        EXAMPLES:
+
+            sage: int(pari(0))
+            0
+            sage: int(pari(10))
+            10
+            sage: int(pari(-10))
+            -10
+            sage: int(pari(123456789012345678901234567890))
+            123456789012345678901234567890L
+            sage: int(pari(-123456789012345678901234567890))
+            -123456789012345678901234567890L
+            sage: int(pari(2^31-1))
+            2147483647
+            sage: int(pari(-2^31))
+            -2147483648
         """
-        return int(str(self))
+        cdef GEN x
+        cdef long lx, *xp
+        x = self.g
+        if typ(x) != t_INT:
+            raise TypeError, "gen must be of PARI type t_INT"
+        if not signe(x):
+            return 0
+        lx = lgefint(x)-3   # take 1 to account for the MSW
+        xp = int_MSW(x)
+        # special case 1 word so we return int if it fits
+        if not lx:
+            if   signe(x) |  xp[0] > 0:     # both positive
+                return xp[0]
+            elif signe(x) & -xp[0] < 0:     # both negative
+                return -xp[0]
+        i = <ulong>xp[0]
+        while lx:
+            xp = int_precW(xp)
+            i = i << BITS_IN_LONG | <ulong>xp[0]
+            lx = lx-1
+        if signe(x) > 0:
+            return i
+        else:
+            return -i
         # NOTE: Could use int_unsafe below, which would be much faster, but
         # the default PARI prints annoying stuff to the screen when
         # the number is large.
@@ -568,7 +608,7 @@ cdef class gen:
         """
         Return Python long.
         """
-        return long(str(self))
+        return long(int(self))
 
     def __float__(gen self):
         """

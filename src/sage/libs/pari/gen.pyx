@@ -409,6 +409,59 @@ cdef class gen:
         else:
             return eval(s)
 
+    def __hex__(gen self):
+        """
+        Return the hexadecimal digits of self in lower case.
+
+        EXAMPLES:
+            sage: print hex(pari(0))
+            0
+            sage: print hex(pari(15))
+            f
+            sage: print hex(pari(16))
+            10
+            sage: print hex(pari(16938402384092843092843098243))
+            36bb1e3929d1a8fe2802f083
+            sage: print hex(long(16938402384092843092843098243))
+            0x36BB1E3929D1A8FE2802F083L
+            sage: print hex(pari(-16938402384092843092843098243))
+            -36bb1e3929d1a8fe2802f083
+        """
+        cdef GEN x
+        cdef long lx, *xp
+        cdef char *s, *sp
+        cdef char *hexdigits
+        hexdigits = "0123456789abcdef"
+        cdef int i, j
+        cdef int size
+        x = self.g
+        if typ(x) != t_INT:
+            raise TypeError, "gen must be of PARI type t_INT"
+        if not signe(x):
+            return "0"
+        lx = lgefint(x)-2  # number of words
+        size = lx*2*BYTES_IN_LONG
+        s = <char *>PyMem_Malloc(size+2) # 1 char for sign, 1 char for '\0'
+        sp = s + size+1
+        sp[0] = 0
+        xp = int_LSW(x)
+        for i from 0 <= i < lx:
+            w = xp[0]
+            for j from 0 <= j < 2*BYTES_IN_LONG:
+                sp = sp-1
+                sp[0] = hexdigits[w&15]
+                w = w>>4
+            xp = int_nextW(xp)
+        # remove leading zeros!
+        while sp[0] == c'0':
+            sp = sp+1
+        if signe(x) < 0:
+            sp = sp-1
+            sp[0] = c'-'
+        k = sp
+        PyMem_Free(s)
+        return k
+
     def __int__(gen self):
         """
         Return Python int.  Very fast unless the number is too large too

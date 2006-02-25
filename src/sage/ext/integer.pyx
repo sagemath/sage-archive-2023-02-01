@@ -185,8 +185,8 @@ cdef class Integer(element.EuclideanDomainElement):
                 if x.type() == 't_INTMOD':
                     x = x.lift()
                 # TODO: figure out how to convert to pari integer in base 16 ?
-                s = str(x)
-                if mpz_set_str(self.value, s, 0) != 0:
+                s = hex(x)
+                if mpz_set_str(self.value, s, 16) != 0:
                     raise TypeError, "Unable to coerce PARI %s to an Integer."%x
 
             else:

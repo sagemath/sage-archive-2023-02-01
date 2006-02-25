@@ -9,7 +9,7 @@ AUTHORS:
     -- William Stein (2006-03-06): added newtonpoly
 """
 
-include 'pari_err.pxi'
+include 'interrupt.pxi'
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
@@ -1340,6 +1340,24 @@ cdef class gen:
         """
         _sig_on
         return P.new_gen(gtovec(x.g))
+
+    def Vecrev(gen x):
+        """
+        Vecrev(x): Transforms the object x into a vector. This is the
+        reverse of Vec if x is a polynomial, otherwise it is identical
+        to Vec.
+        """
+        cdef long lx, i
+        cdef GEN y
+        if typ(x.g) == t_POL:
+            lx = lg(x.g)
+            y = cgetg(lx-1, t_VEC)
+            for i from 1 <= i <= lx-2:
+                # no need to copy, since new_gen will deep copy
+                __set_lvalue__(gel(y,i) , gcopy(gel(x.g,i+1)) )
+            return P.new_gen(y)
+        else:
+            return x.Vec()
 
     def Vecsmall(gen x):
         """

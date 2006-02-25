@@ -1115,7 +1115,7 @@ class Polynomial_generic_dense(Polynomial):
                 v[i] = z
             x = v
         elif isinstance(x, pari_gen):
-            x = [R(w) for w in reversed(x.Vec())]
+            x = [R(w) for w in x.Vecrev()]
             check = True
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
@@ -1208,7 +1208,7 @@ class Polynomial_generic_sparse(Polynomial):
         elif not isinstance(x, dict):
             x = {0:x}   # constant polynomials
         elif isinstance(x, pari_gen):
-            x = [R(w) for w in reversed(x.Vec())]
+            x = [R(w) for w in x.Vecrev()]
             check = True
         if check:
             self.__coeffs = {}
@@ -1660,7 +1660,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         try:
             return self.__list
         except AttributeError:
-            self.__list = [QQ(x) for x in reversed(self.__poly.Vec())]
+            self.__list = [QQ(x) for x in self.__poly.Vecrev()]
             return self.__list
 
 ##     def partial_fraction(self, g):
@@ -1771,7 +1771,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             return
 
         elif isinstance(x, pari_gen):
-            x = list(reversed(x.list()))
+            x = [ZZ(w) for w in x.Vecrev()]
             check = False
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \
@@ -2143,7 +2143,7 @@ class Polynomial_dense_mod_n(Polynomial):
             self.__poly = x.copy()
             return
 
-        elif isinstance(x, pari_gen) and x.type() == 't_POL':
+        elif isinstance(x, gen) and x.type() == 't_POL':
             x = list(reversed(eval(str(x.lift().list()))))
             check = False
 

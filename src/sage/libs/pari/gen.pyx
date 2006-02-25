@@ -93,6 +93,9 @@ cdef class gen:
         return self.g
 
     def list(self):
+        if typ(self.g) == t_POL:
+          raise NotImplementedError, "please report, t_POL.list() is broken!"
+          #return list(reversed(self.Vec()))
         return list(self.Vec())
 
     def __reduce__(self):

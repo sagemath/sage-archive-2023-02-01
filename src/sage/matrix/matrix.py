@@ -1542,9 +1542,50 @@ class Matrix(module_element.ModuleElement, Mutability):
         """
         Returns the adjoint matrix of self (matrix of cofactors).
 
-        ALGORITHM: Use PARI
+        INPUT:
+            M -- a square matrix
+
+        OUTPUT:
+            N -- the adjoint matrix, such that
+
+                N * M = M * N = M.parent(M.det())
+
+        ALGORITHM:
+            Use PARI
+
+        EXAMPLES:
+            sage: M = Matrix(ZZ,2,2,[5,2,3,4]) ; M
+            [5 2]
+            [3 4]
+            sage: N = M.adjoint() ; N
+            [ 4 -2]
+            [-3  5]
+            sage: M * N
+            [14  0]
+            [ 0 14]
+            sage: N * M
+            [14  0]
+            [ 0 14]
+            sage: M = Matrix(QQ,2,2,[5/3,2/56,33/13,41/10]) ; M
+            [  5/3  1/28]
+            [33/13 41/10]
+            sage: N = M.adjoint() ; N
+            [ 41/10  -1/28]
+            [-33/13    5/3]
+            sage: M * N
+            [7363/1092         0]
+            [        0 7363/1092]
+
+        BUGS:
+            only implemented for matrices over ZZ or QQ
+            PARI can deal with more general base rings
         """
-        return self.parent()(self._pari_().matadjoint().python())
+        if not self.is_square():
+            raise ArithmeticError, "matrix must be square"
+        try:
+            return self._adjoint()
+        except AttributeError:
+            raise NotImplementedError
 
 
     def lllgram(self):
@@ -2148,6 +2189,10 @@ class Matrix_integer(Matrix_pid):
             return M.span_of_basis(B)
         else:
             return M.span(B)
+
+    def _adjoint(self):
+        """assumes self is a square matrix (checked in adjoint)"""
+        return self.parent()(self._pari_().matadjoint().python())
 
     def _lllgram(self):
         """assumes self is a square matrix (checked in lllgram)"""
@@ -3467,6 +3512,10 @@ class Matrix_sparse_integer(Matrix_integer, Matrix_generic_sparse):
 class Matrix_rational(Matrix_field):
     def __init__(self, parent):
         Matrix_field.__init__(self, parent)
+
+    def _adjoint(self):
+        """assumes self is a square matrix (checked in adjoint)"""
+        return self.parent()(self._pari_().matadjoint().python())
 
     def _lllgram(self):
         """assumes self is a square matrix (checked in lllgram)"""

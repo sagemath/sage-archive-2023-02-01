@@ -178,23 +178,87 @@ cdef class gen:
         than what one usually does in Python.  However, we do it
         this way for consistency with the PARI/GP interpreter, which
         does make copies.
+
+        EXAMPLES:
+            sage: p = pari('1 + 2*x + 3*x^2')
+            sage: p[0]
+            1
+            sage: p[2]
+            3
+            sage: p[100]
+            0
+            sage: p[-1]
+            0
+            sage: q = pari('x^2 + 3*x^3 + O(x^6)')
+            sage: q[3]
+            3
+            sage: q[5]
+            0
+            sage: q[6]
+            Traceback (most recent call last):
+            ...
+            IndexError: index (6) must be less than 6
+            sage: m = pari('[1,2;3,4]')
+            sage: m[0]
+            [1, 3]~
+            sage: m[1,0]
+            3
+            sage: l = pari('List([1,2,3])')
+            sage: l[1]
+            2
+            sage: s = pari('"hello, world!"')
+            sage: s[0]
+            'h'
+            sage: s[4]
+            'o'
+            sage: s[12]
+            '!'
+            sage: s[13]
+            Traceback (most recent call last):
+            ...
+            IndexError: index (13) must be between 0 and 12
+            sage: v = pari('[1,2,3]')
+            sage: v[0]
+            1
+            sage: c = pari('Col([1,2,3])')
+            sage: c[1]
+            2
+            sage: sv = pari('Vecsmall([1,2,3])')
+            sage: sv[2]
+            3
+            sage: type(sv[2])
+            <type 'int'>
         """
         if typ(self.g) == t_POL:
             return self.polcoeff(n)
 
+        if typ(self.g) == t_SER:
+            bound = valp(self.g) + lg(self.g) - 2
+            if n >= bound:
+                raise IndexError, "index (%s) must be less than %s"%(n,bound)
+            return self.polcoeff(n)
+
         if isinstance(n, tuple):
+            if typ(self.g) != t_MAT:
+                raise TypeError, "an integer is required"
+            if len(n) != 2:
+                raise TypeError, "index must be an integer or a 2-tuple (i,j)"
             i, j = n[0], n[1]
             if i < 0 or i >= self.nrows():
                 raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows())
             if j < 0 or j >= self.ncols():
                 raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols())
-            return P.new_ref( <GEN> (<GEN>(self.g)[j+1])[i+1], self )
+            return P.new_ref(gmael(self.g,j+1,i+1), self)
 
         if n < 0 or n >= glength(self.g):
             raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
+        if typ(self.g) == t_LIST:
+            return P.new_ref(gel(self.g,n+2), self)
+        if typ(self.g) == t_STR:
+            return chr( (<char *>(self.g+1))[n] )
         if typ(self.g) == t_VECSMALL:
             return self.g[n+1]
-        return P.new_ref(<GEN> (self.g[n+1]), self)
+        return P.new_ref(gel(self.g,n+1), self)
 
 
     def __getslice__(self, long i, long j):

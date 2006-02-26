@@ -1658,7 +1658,7 @@ class Matrix_domain(Matrix):
     def charpoly(self, *args, **kwds):
         r"""
         Return the characteristic polynomial of self, as a polynomial
-        over the fraction field of the base ring.
+        over the base ring.
 
         ALGORITHM: Use \code{self.matrix_over_field()} to obtain the
         corresponding matrix over a field, then call the
@@ -1671,7 +1671,7 @@ class Matrix_domain(Matrix):
             sage: f
             x^2 - 5*x - 2
             sage: f.parent()
-            Univariate Polynomial Ring in x over Rational Field
+            Univariate Polynomial Ring in x over Integer Ring
 
         We compute the characteristic polynomial of a matrix over
         the polynomial ring $\Z[a]$:
@@ -1684,7 +1684,7 @@ class Matrix_domain(Matrix):
             sage: f
             x^2 + (-2*a - 1)*x + a^2
             sage: f.parent()
-            Univariate Polynomial Ring in x over Fraction Field of Univariate Polynomial Ring in a over Integer Ring
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring in a over Integer Ring
             sage: M.trace()
             2*a + 1
             sage: M.determinant()
@@ -1714,7 +1714,7 @@ class Matrix_domain(Matrix):
             x^10 - 495000*x^9 - 8250000000*x^8
         """
         f = self.matrix_over_field().charpoly(*args, **kwds)
-        return f
+        return f.base_extend(self.base_ring())
 
     def determinant(self):
         """

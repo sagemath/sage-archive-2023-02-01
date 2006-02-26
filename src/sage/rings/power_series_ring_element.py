@@ -546,7 +546,7 @@ class PowerSeries_generic_dense(PowerSeries):
             raise RuntimeError, "series must have finite precision for reversion."
         f = self._pari_()
         g = f.serreverse()
-        return PowerSeries_generic_dense(self.parent(),[0]+ g.list(),self.prec())
+        return PowerSeries_generic_dense(self.parent(),g.Vecrev(),self.prec())
 
     def _pari_(self):
         if not isinstance(self.parent().base_ring(),

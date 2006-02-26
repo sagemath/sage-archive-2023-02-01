@@ -94,8 +94,12 @@ cdef class gen:
 
     def list(self):
         if typ(self.g) == t_POL:
-          raise NotImplementedError, "please report, t_POL.list() is broken!"
-          #return list(reversed(self.Vec()))
+            raise NotImplementedError, \
+                "please report, t_POL.list() is broken, should not be used!"
+        if typ(self.g) == t_SER:
+            raise NotImplementedError, \
+                "please report, t_SER.list() is broken, should not be used!"
+        #return list(self.Vecrev())
         return list(self.Vec())
 
     def __reduce__(self):
@@ -1346,18 +1350,58 @@ cdef class gen:
 
     def Vecrev(gen x):
         """
-        Vecrev(x): Transforms the object x into a vector. This is the
-        reverse of Vec if x is a polynomial, otherwise it is identical
-        to Vec.
+        Vecrev(x): Transforms the object x into a vector.
+        Identical to Vec(x) except when x is
+        -- a polynomial, this is the reverse of Vec.
+        -- a power series, this includes low-order zero coefficients.
+        -- a laurant series, raises an exception
+
+        INPUT:
+            x -- gen
+        OUTPUT:
+            gen -- of PARI type t_VEC
+        EXAMPLES:
+            sage: pari(1).Vecrev()
+            [1]
+            sage: pari('x^3').Vecrev()
+            [0, 0, 0, 1]
+            sage: pari('x^3 + 3*x - 2').Vecrev()
+            [-2, 3, 0, 1]
+            sage: pari([1, 2, 3]).Vecrev()
+            [1, 2, 3]
+            sage: pari('Col([1, 2, 3])').Vecrev()
+            [1, 2, 3]
+            sage: pari('[1, 2; 3, 4]').Vecrev()
+            [[1, 3]~, [2, 4]~]
+            sage: pari('ab').Vecrev()
+            [0, 1]
+            sage: pari('x^2 + 3*x^3 + O(x^5)').Vecrev()
+            [0, 0, 1, 3, 0]
+            sage: pari('x^-2 + 3*x^3 + O(x^5)').Vecrev()
+            Traceback (most recent call last):
+            ...
+            ValueError: Vecrev() is not defined for Laurent series
         """
-        cdef long lx, i
+        cdef long lx, vx, i
         cdef GEN y
         if typ(x.g) == t_POL:
             lx = lg(x.g)
             y = cgetg(lx-1, t_VEC)
             for i from 1 <= i <= lx-2:
                 # no need to copy, since new_gen will deep copy
-                __set_lvalue__(gel(y,i) , gcopy(gel(x.g,i+1)) )
+                __set_lvalue__(gel(y,i), gel(x.g,i+1))
+            return P.new_gen(y)
+        elif typ(x.g) == t_SER:
+            lx = lg(x.g)
+            vx = valp(x.g)
+            if vx < 0:
+                raise ValueError, "Vecrev() is not defined for Laurent series"
+            y = cgetg(vx+lx-1, t_VEC)
+            for i from 1 <= i <= vx:
+                __set_lvalue__(gel(y,i), gen_0)
+            for i from 1 <= i <= lx-2:
+                # no need to copy, since new_gen will deep copy
+                __set_lvalue__(gel(y,vx+i), gel(x.g,i+1))
             return P.new_gen(y)
         else:
             return x.Vec()

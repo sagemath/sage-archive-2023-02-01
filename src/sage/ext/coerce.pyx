@@ -89,6 +89,20 @@ def canonical_coercion(x, y):
             raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
     return x, y
 
+def canonical_base_coercion(x, y):
+    try:
+        xb = x.base_ring()
+    except AttributeError:
+        raise TypeError, "unable to find base ring for %s (parent: %s)"%(x,x.parent())
+    try:
+        yb = y.base_ring()
+    except AttributeError:
+        raise TypeError, "unable to find base ring for %s (parent: %s)"%(y,y.parent())
+    try:
+        b = canonical_coercion(xb(0),yb(0))[0].parent()
+    except TypeError:
+        raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
+    return x.change_ring(b), y.change_ring(b)
 
 def bin_op(x, y, op):
     if isinstance(y, element.InfinityElement):

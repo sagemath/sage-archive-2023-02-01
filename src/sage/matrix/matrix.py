@@ -1468,7 +1468,10 @@ class Matrix(module_element.ModuleElement, Mutability):
         if not isinstance(right, Matrix):
             return self._right_scalar_multiply(right)
         if self.base_ring() != right.base_ring():
-            raise ArithmeticError, "base rings must be equal"
+            try:
+                self, right = coerce.canonical_base_coercion(self, right)
+            except TypeError:
+                raise ArithmeticError, "base rings must be compatible"
         if self.ncols() != right.nrows():
             raise ArithmeticError, "number of columns of self (=%s) must equal number of rows of right (=%s)."%(
                 self.ncols(), right.nrows())
@@ -3152,7 +3155,10 @@ class Matrix_generic_sparse(Matrix):
         if not isinstance(right, Matrix_generic_sparse):
             right = self.matrix_space(right.nrows(), right.ncols())(right)
         if self.base_ring() != right.base_ring():
-            raise ArithmeticError, "base rings must be equal"
+            try:
+                self, right = coerce.canonical_base_coercion(self, right)
+            except TypeError:
+                raise ArithmeticError, "base rings must be compatible"
         if self.ncols() != right.nrows():
             raise ArithmeticError, "number of columns of self (=%s) must equal number of rows of right (=%s)."%(
                 self.ncols(), right.nrows())
@@ -3464,6 +3470,15 @@ class Matrix_dense_rational(Matrix_field):
 
     def __mul__(self, right):
         if not isinstance(right, Matrix_dense_rational):
+            # FIXME: this coerces too much, e.g
+            #   sage: Matrix(QQ,1,1,[3]) * Matrix(GF(3),1,1,[1])
+            #   [3]
+            # as opposed to
+            #   sage: Matrix(ZZ,1,1,[3]) * Matrix(GF(3),1,1,[1])
+            #   [0]
+            # IMHO, QQ should coerce down to GF(3), with a ValueError
+            # if the denominator is divisible by 3, but that is not
+            # how GF(3)._coerce_ is implemented...
             if isinstance(right, Matrix):
                 right = self.matrix_space(right.nrows(), right.ncols())(right)
             else:

@@ -327,7 +327,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: X.defining_polynomials ()
             (x, y^2, x*y^2)
             sage: I = X.defining_ideal(); I
-            Ideal (x, x*y^2, y^2) of Polynomial Ring in x, y over Rational Field
+            Ideal (y^2, x, x*y^2) of Polynomial Ring in x, y over Rational Field
             sage: I.groebner_basis()
             [y^2, x]
             sage: X.dimension()

@@ -1572,35 +1572,70 @@ def continued_fraction(x, partial_convergents=False):
     Python for real input.  For rational number input the PARI C
     library is used.
     \end{note}
+
+    EXAMPLES:
+        sage: continued_fraction(45/17)
+        [2, 1, 1, 1, 5]
+        sage: continued_fraction(sqrt(2))
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
+        sage: continued_fraction(RR(pi), partial_convergents=True)
+        ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
+         [(3, 1),
+          (22, 7),
+          (333, 106),
+          (355, 113),
+          (103993, 33102),
+          (104348, 33215),
+          (208341, 66317),
+          (312689, 99532),
+          (833719, 265381),
+          (1146408, 364913),
+          (4272943, 1360120),
+          (5419351, 1725033),
+          (80143857, 25510582),
+          (245850922, 78256779)])
+        sage: continued_fraction(e)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: computation of continued fraction of e not implemented; try computing continued fraction of RR(e) instead
+        sage: continued_fraction(RR(e))
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+        sage: print continued_fraction(RealField(200)(e))
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
     if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()
+    x_in = x
     v = []
     w = [(0,1), (1,0)] # keep track of convergents
     start = x
     i = 0
-    while True:
-        i += 1
-        a = sage.rings.integer.Integer(int(x.floor()))
-        v.append(a)
-        n = len(v)-1
-        pn = v[n]*w[n+1][0] + w[n][0]
-        qn = v[n]*w[n+1][1] + w[n][1]
-        w.append((pn, qn))
-        x -= a
-        if abs(start - pn/qn) == 0:
-            del w[0]; del w[0]
-            if partial_convergents:
-                return v, w
-            else:
-                return v
-        x = 1/x
+    try:
+        while True:
+            i += 1
+            a = sage.rings.integer.Integer(int(x.floor()))
+            v.append(a)
+            n = len(v)-1
+            pn = v[n]*w[n+1][0] + w[n][0]
+            qn = v[n]*w[n+1][1] + w[n][1]
+            w.append((pn, qn))
+            x -= a
+            if abs(start - pn/qn) == 0:
+                del w[0]; del w[0]
+                if partial_convergents:
+                    return v, w
+                else:
+                    return v
+            x = 1/x
+    except (AttributeError, NotImplementedError, TypeError):
+        raise NotImplementedError, "computation of continued fraction of %s not implemented; try computing continued fraction of RR(%s) instead"%(x_in, x_in)
 
 def convergent(v, n):
     """
     Return the n-th continued fraction convergent of the continued
-    fraction defined by the sequence of integers v.  We assume $n \geq 0$.
+    fraction defined by the sequence of integers v.  We assume
+    $n \geq 0$.
 
     INPUT:
         v -- list of integers
@@ -1610,7 +1645,7 @@ def convergent(v, n):
 
     If the continued fraction integers are
     $$
-            v = [a_0 a_1 a_2, \ldots, a_k]
+            v = [a_0, a_1, a_2, \ldots, a_k]
     $$
     then \code{convergent(v,2)} is the rational number
     $$
@@ -1621,9 +1656,13 @@ def convergent(v, n):
             a1 + 1/(a2+1/(...) ... )
     $$
     represented by the continued fraction.
+
+    EXAMPLES:
+        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1], 7)
+        193/71
     """
     Q = sage.rings.rational_field.RationalField()
-    i = sage.rings.integer.Integer(n)
+    i = int(n)
     x = Q(v[i])
     i -= 1
     while i >= 0:
@@ -1664,6 +1703,10 @@ def convergents(v):
         v -- list of integers or a rational number
     OUTPUT:
         list -- of partial convergents, as rational numbers
+
+    EXAMPLES:
+        sage: convergents([2, 1, 2, 1, 1, 4, 1, 1])
+        [2, 3, 8/3, 11/4, 19/7, 87/32, 106/39, 193/71]
     """
     Q = sage.rings.rational_field.RationalField()
     if not isinstance(v, list):

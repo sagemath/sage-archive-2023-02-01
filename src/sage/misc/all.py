@@ -1,7 +1,7 @@
 from misc import (alarm, srange, xsrange,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
-                  version, add, union, uniq, powerset, exists, forall,
+                  version, banner, add, union, uniq, powerset, exists, forall,
                   random_sublist, mul, prod, walltime, generic_cmp,
                   repr_lincomb, tmp_dir,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
@@ -28,7 +28,9 @@ from functional import *
 from latex import latex, view
 
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
-                       khinchin, ConstantRing, twinprime, merten, brun)
+                       khinchin, twinprime, merten, brun)
+
+from functions import FunctionRing, sin as sin0, cos as cos0
 
 from trace import *
 

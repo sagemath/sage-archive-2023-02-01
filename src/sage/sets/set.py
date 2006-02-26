@@ -68,7 +68,7 @@ def EnumeratedSet(X):
 
     EXAMPLES:
         sage: EnumeratedSet([1,1,2,3])
-        {1, 3, 2}
+        {1, 2, 3}
         sage: EnumeratedSet(ZZ)
         Traceback (most recent call last):
         ...
@@ -164,7 +164,7 @@ class Set_object(Set_generic):
         representation can be more interesting.
 
             sage: print latex(Primes())
-            \text{Set of all prime numbers: 2, 3, 5, 7, ...}
+            \mbox{\rm Set of all prime numbers: 2, 3, 5, 7, ...}
             sage: print latex(Set([1,1,1,5,6]))
             \left\{1, 5, 6\right\}
         """
@@ -499,9 +499,9 @@ class Set_object_enumerated(Set_object):
             sage: X
             {a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1}
             sage: Y
-            {a, 1, 3, 2}
+            {a, 1, 2, 3}
             sage: X.union(Y)
-            {a, a^2 + 1, a + 1, a^2, 1, 0, 3, 2, a^2 + a, a^2 + a + 1}
+            {a, a^2 + 1, 2, 3, a + 1, a^2, 1, 1, 0, a^2 + a, a^2 + a + 1}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -515,7 +515,7 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8))
             sage: Y = Set([GF(8).0, 1, 2, 3])
             sage: X.intersection(Y)
-            {a, 1}
+            {a}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.intersection(self, other)

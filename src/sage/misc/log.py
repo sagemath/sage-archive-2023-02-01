@@ -44,7 +44,7 @@ import latex
 import misc
 
 
-#offset = 0
+offset = 0
 loggers = []
 
 def update():

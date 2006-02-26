@@ -59,16 +59,16 @@ def linear_code_bound(q, n, k, verbose=False):
 
     EXAMPLES:
     To find lower and upper bounds for values q=7, n=32, k=8, type
-        sage: lower, upper, text = linear_code_bound(7, 32, 8)
-        sage: lower
+        sage: lower, upper, text = linear_code_bound(7, 32, 8)     # optional -- needs internet
+        sage: lower                   # optional
         19
-        sage: upper
+        sage: upper                   # optional
         21
-        sage: text
+        sage: text                    # optional
         'Lb(32,8) = 19 DG4\n\nUb(32,8) = 21 follows by a one-step Griesmer bound from:\nUb(10,7) = 3 is found by considering shortening to:\nUb(9,6) = 3 is found by construction B:\n[consider deleting the (at most) 6 coordinates of a word in the dual]'
 
     When bounds are not known the upper and lower returned bounds are -1:
-        sage: linear_code_bound(9, 32, 200)
+        sage: linear_code_bound(9, 32, 200)          # optional -- needs internet
         (-1, -1, '(error executing -why-)')
 
     This function raises an IOError if an error occurs downloading

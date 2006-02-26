@@ -384,6 +384,7 @@ import log
 
 import __builtin__
 _prompt = 'sage'
+
 def set_sage_prompt(s):
     global _prompt
     _prompt = str(s)

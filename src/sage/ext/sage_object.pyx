@@ -375,17 +375,19 @@ cdef class SageObject:
 
     # PARI (slightly different, since is via C library, hence instance is unique)
     def _pari_(self):
-        try:
-            return self.__pari
-        except AttributeError:
-            pass
+        if self._interface_is_cached_():
+            try:
+                return self.__pari
+            except AttributeError:
+                pass
         from sage.libs.pari.all import pari
         x = pari(self._pari_init_())
-        try:
-            self.__pari = x
-        except AttributeError:
-            # do this because C-extension class won't have a __pari attribute.
-            pass
+        if self._interface_is_cached_():
+            try:
+                self.__pari = x
+            except AttributeError:
+                # do this because C-extension class won't have a __pari attribute.
+                pass
         return x
 
     def _pari_init_(self):

@@ -1,22 +1,18 @@
 """
 Rational Numbers
+
+AUTHORS:
+    -- William Stein (2005): first version
+    -- William Stein (2006-02-22): floor and ceil (pure fast GMP versions).
 """
 
 
-#*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+###########################################################################
+#       Copyright (C) 2004, 2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+###########################################################################
 
 include "interrupt.pxi"  # ctrl-c interrupt block support
 
@@ -291,7 +287,12 @@ cdef class Rational(element.FieldElement):
         return mpq_get_d(self.value)
 
     def __hash__(self):
-        return hash(mpq_get_d(self.value))
+        cdef int n
+        n = mpz_get_si(mpq_numref(self.value)) * \
+            mpz_get_si(mpq_denref(self.value))
+        if n == -1:
+            return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
+
 
     def __getitem__(self, int n):
         if n == 0:
@@ -468,6 +469,17 @@ cdef class Rational(element.FieldElement):
         return int(self)
 
     def denom(self):
+        """
+        self.denom(): Return the denominator of this rational number.
+
+        EXAMPLES:
+            sage: x = 5/13
+            sage: x.denom()
+            13
+            sage: x = -9/3
+            sage: x.denom()
+            1
+        """
         cdef integer.Integer n
         n = integer.Integer()
         n.set_from_mpz(mpq_denref(self.value))
@@ -475,10 +487,10 @@ cdef class Rational(element.FieldElement):
 
     def denominator(self):
         """
-        Return the denominator of this rational number.
+        self.denominator(): Return the denominator of this rational number.
 
         EXAMPLES:
-            sage: x = 5/11
+            sage: x = -5/11
             sage: x.denominator()
             11
             sage: x = 9/3
@@ -491,7 +503,49 @@ cdef class Rational(element.FieldElement):
         return sage.rings.rational_field.factor(self)
 
     def floor(self):
-        return self.numer().__floordiv__(self.denom())
+        """
+        self.floor(): Return the floor of this rational number.
+
+        EXAMPLES:
+            sage: n = 5/3; n.floor()
+            1
+            sage: n = -17/19; n.floor()
+            -1
+            sage: n = -7/2; n.floor()
+            -4
+            sage: n = 7/2; n.floor()
+            3
+            sage: n = 10/2; n.floor()
+            5
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_fdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
+
+    def ceil(self):
+        """
+        self.ceil(): Return the ceiling of this rational number.
+
+        If this rational number is an integer, this returns this
+        number, otherwise it returns the floor of this number +1.
+
+        EXAMPLES:
+            sage: n = 5/3; n.ceil()
+            2
+            sage: n = -17/19; n.ceil()
+            0
+            sage: n = -7/2; n.ceil()
+            -3
+            sage: n = 7/2; n.ceil()
+            4
+            sage: n = 10/2; n.ceil()
+            5
+        """
+        cdef integer.Integer n
+        n = integer.Integer()
+        mpz_cdiv_q(n.value, mpq_numref(self.value), mpq_denref(self.value))
+        return n
 
     def height(self):
         """

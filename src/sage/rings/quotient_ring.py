@@ -70,7 +70,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         sage: S, (a,b) = (R/(1 + y^2)).objgens('ab')
         sage: T, (c,d) = (S/(a, )).objgens('cd')
         sage: T
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (1 + y^2, x)
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, 1 + y^2)
         sage: T.gens()
         (0, d)
     """

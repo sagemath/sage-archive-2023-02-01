@@ -12,13 +12,13 @@ EXAMPLES:
     sage: pts = C.rational_points(); pts
     [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
     sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]) + C.divisor(pts[5])*10; D
-    -(x, z) + 3*(y, x) + 10*(2*z + x, z + y)
+    -(z, x) + 3*(y, x) + 10*(z + y, 2*z + x)
     sage: D[1][0]
     3
     sage: D[1][1]
     Ideal (y, x) of Polynomial Ring in x, y, z over Finite Field of size 5
     sage: C.divisor([(3, pts[0]), (-1, pts[1]), (10,pts[5])])
-    -(x, z) + 3*(y, x) + 10*(2*z + x, z + y)
+    -(z, x) + 3*(y, x) + 10*(z + y, 2*z + x)
 """
 #*******************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>

@@ -296,7 +296,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             self.__affine_patches = {}
         except KeyError:
             pass
-        AA = affine_space.AffineSpace(n, self.base_ring())
+        AA = affine_space.AffineSpace(n, self.base_ring(), names='x')
         AA._default_embedding_index = i
         phi = AA.projective_embedding(i, self)
         self.__affine_patches[i] = AA

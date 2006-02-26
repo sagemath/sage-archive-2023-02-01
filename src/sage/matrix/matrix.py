@@ -771,9 +771,18 @@ class Matrix(module_element.ModuleElement, Mutability):
         Calculate and return the permanent of this $m \times n$ matrix using
         Ryser's algorithm.
 
-        The \emph{permanent} of a matrix is defined by the same
-        formula as the determinant, except all the signs in the
-        expansion by minors are positive.
+        Let $A = (a_{ij})$ be a $m \times n$ matrix over any commutative ring,
+        $m \le n$.
+        The permanent of $A$ is defined by
+        \[
+        \text{per}(A) = \sum_\pi a_{1\pi(1)}a_{2\pi(2)} \cdots a_{m\pi(m)}
+        \]
+        where the summation extends over all one-to-one functions $\pi$ from
+        $\{1, \ldots, m\}$ to $\{1, \ldots, n\}$.
+
+        The product $ a_{1\pi(1)}a_{2\pi(2)} \cdots a_{m\pi(m)}$ is called
+        diagonal product. So the permanent of an $m \times n$ matrix $A$ is the
+        sum of all the diagonal products of $A$.
 
         Modification of theorem 7.1.1. from Brualdi and Ryser:
         Combinatorial Matrix Theory.
@@ -831,6 +840,7 @@ class Matrix(module_element.ModuleElement, Mutability):
             -- Jaap Spies (2006-02-16)
                 Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
                 Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+            -- Jaap Spies (2006-02-21): added defn of permanent
         """
         perm = 0
         m, n = self.nrows(), self.ncols()

@@ -134,11 +134,11 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
     (which has a small performance penalty for assignment).
 
         sage: hash(v)
-        -499386680            # 32-bit
+        2083920238            # 32-bit
         -7321947929030428984  # 64-bit
         sage: v[0] = 10
         sage: hash(v)
-        676100085             # 32-bit
+        -377547984            # 32-bit
         -2686195820393629707  # 64-bit
 
     If you really know what you are doing, you can circumvent the type

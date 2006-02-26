@@ -18,7 +18,7 @@ First load the database:
 List the degree and discriminant of all fields in the database that
 have ramification at most at 2:
     sage: [(k.degree(), k.disc()) for k in J.unramified_outside([2])]
-    [(1, 1), (2, 8), (2, -4), (2, -8), (4, -2048), (4, -1024), (4, 256), (4, 2048), (4, 512), (4, 2048), (4, 2048)]
+    [(1, 1), (2, 8), (2, -4), (2, -8), (4, 2048), (4, -1024), (4, 512), (4, -2048), (4, 256), (4, 2048), (4, 2048)]
 
 List the discriminants of the fields of degree exactly 2 unramified outside 2:
     sage: [k.disc() for k in J.unramified_outside([2],2)]
@@ -143,7 +143,7 @@ class JonesDatabase(sage.databases.db.Database):
         EXAMPLES:
             sage: J = JonesDatabase()             # requires optional package
             sage: J.unramified_outside([101,119]) # requires optional package
-            [Number Field in a with defining polynomial x - 1, Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+            [Number Field in a with defining polynomial x - 1, Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
         """
         try:
             S = list(S)

@@ -69,6 +69,9 @@ cdef class gen:
     def __repr__(self):
         return P.GEN_to_str(self.g)
 
+    def __hash__(self):
+        return hash(P.GEN_to_str(self.g))
+
     def _testclass(self):
         import test
         T = test.testclass()

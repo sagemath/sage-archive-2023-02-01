@@ -117,16 +117,6 @@ get_sigs()
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
 exit = quit
 
-def banner():
-    import sage.misc.misc
-    bars = "-"*56
-    print bars
-    print "| %-52s |"%version()
-    print "| %-52s |"%'Distributed under the GNU General Public License V2'
-    print "| %-52s |"%'For help type <object>?, <object>??, %magic, or help'
-    print bars
-    print ""
-
 _copyright = str(copyright)
 class __Copyright2:
     def __repr__(self):
@@ -234,5 +224,4 @@ def _quit_sage_(self):
 
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
-
 

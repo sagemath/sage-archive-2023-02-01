@@ -381,7 +381,7 @@ class Expect(SageObject):
         return "="
 
     def _equality_symbol(self):
-        return "=="
+        raise NotImplementedError
 
     # For efficiency purposes, you should definitely override these
     # in your derived class.

@@ -15,7 +15,7 @@
 \.BAK$
 \.orig$
 (^|/)vssver\.scc$
-\.sw?$
+\.sw.$
 (^|/)MT($|/)
 (^|/)\{arch\}($|/)
 (^|/).arch-ids($|/)

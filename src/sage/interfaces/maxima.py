@@ -14,7 +14,10 @@ For many links to Maxima documentation see
 AUTHORS OF THIS MODULE:
     - William Stein (2005-12): Initial version
     - David Joyner: Improved documentation
-    - William Stein (2005-01-08): Fixed bug in parsing
+    - William Stein (2006-01-08): Fixed bug in parsing
+    - William Stein (2006-02-22): comparisons (following suggestion of David Joyner)
+    - William Stein (2006-02-24): *greatly* improved robustness by adding
+                                  sequence numbers to IO bracketing in _eval_line
 
 If the string "error" (case insensitive) occurs in the output of
 anything from maxima, a RuntimeError exception is raised.
@@ -307,6 +310,12 @@ It would be nice if somebody would fix this problem.  One way would
 be to improve Maxima by making the fix to Maxima and giving this back
 to the Maxima people.
 
+Here's another example:
+
+    sage: g = maxima('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
+    sage: latex(g)
+    ' - \\frac{ie^{3ix}}{6} - \\frac{ie^{ix}}{2} + c'
+
 \subsection{Long Input}
 The MAXIMA interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.
@@ -339,8 +348,9 @@ from expect import Expect, ExpectElement, tmp
 from sage.misc.misc import verbose
 
 SAGE_START = '_s_start_'
-SAGE_END = '__s_stop_'
+SAGE_END = '_s_stop_'
 cnt = 0
+seq = 0
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -417,7 +427,12 @@ class Maxima(Expect):
         line = line.rstrip().rstrip(';')
         if line == '':
             return ''
-        line = '%s; %s; %s;'%(SAGE_START, line, SAGE_END)
+        global seq
+        seq += 1
+        start = SAGE_START + str(seq)
+        end = SAGE_END + str(seq)
+        line = '%s; %s; %s;'%(start, line, end)
+        #print line
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -427,8 +442,8 @@ class Maxima(Expect):
             E = self._expect
             #print "in = '%s'"%line
             E.sendline(line)
-            self._expect.expect(SAGE_END)
-            self._expect.expect(SAGE_END)
+            self._expect.expect(end)
+            self._expect.expect(end)
             out = self._expect.before
             #print "out = '%s'"%out
             self._expect.expect(self._prompt)
@@ -437,12 +452,12 @@ class Maxima(Expect):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 
-        i = out.rfind(SAGE_START)
-        j = out.rfind(SAGE_END)
-        out = out[i+len(SAGE_START):j]
+        i = out.rfind(start)
+        j = out.rfind(end)
+        out = out[i+len(start):j]
         if not reformat:
             return out
-        if out.find('error') != -1:
+        if 'error' in out:
             return out
         out = out.lstrip()
         #i = out.rfind('(')
@@ -501,6 +516,12 @@ class Maxima(Expect):
 
     def _object_class(self):
         return MaximaElement
+
+    def _true_symbol(self):
+        return 'true'
+
+    def _false_symbol(self):
+        return 'false'
 
     def set(self, var, value):
         """
@@ -953,6 +974,38 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         return P('%s[%s]'%(self.name(), x))
 
+    def _cmp_(self, other):
+        """
+        EXAMPLES:
+            sage: a = maxima(1); b = maxima(2)
+            sage: a == b
+            False
+            sage: a < b
+            True
+            sage: a > b
+            False
+            sage: b < a
+            False
+            sage: b > a
+            True
+
+        We can also compare more complicated object such as functions:
+            sage: f = maxima('sin(x)'); g = maxima('cos(x)')
+            sage: -f == g.diff('x')
+            True
+        """
+
+        # thanks to David Joyner for telling me about using "is".
+        P = self.parent()
+        if P.eval("is (%s < %s)"%(self.name(), other.name())) == P._true_symbol():
+            return -1
+        elif P.eval("is (%s > %s)"%(self.name(), other.name())) == P._true_symbol():
+            return 1
+        elif P.eval("is (%s = %s)"%(self.name(), other.name())) == P._true_symbol():
+            return 0
+        else:
+            return -1  # everything is supposed to be comparable in Python, so we define
+                       # the comparison thus when no comparable in interfaced system.
     def numer(self):
         return self.comma('numer')
 
@@ -1182,6 +1235,7 @@ class MaximaElement(ExpectElement):
         # these.
         s = s.replace('\\%','')
         s = s.replace('\\sin', '\\sin{}')
+        s = s.replace('\\log', '\\log{}')
         s = s.replace('\\cos', '\\cos{}')
         s = s.replace('\\tan', '\\tan{}')
         s = s.replace('\\arcsin', '\\sin^{-1}{}')

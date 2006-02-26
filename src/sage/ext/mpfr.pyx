@@ -217,46 +217,46 @@ def mpfr_prec_max():
 _rounding_modes = ['RNDN', 'RNDZ', 'RNDU', 'RNDD']
 
 cdef class RealField(ring.Field):
+    """
+    RealField(prec, sci_not, rnd):
+
+    INPUT:
+        prec -- (integer) precision; default = 53
+                prec is the number of bits used to represent the
+                mantissa of a floating-point number.  The
+                precision can be any integer between mpfr_prec_min()
+                and mpfr_prec_max(). In the current implementation,
+                mpfr_prec_min() is equal to 2.
+
+        sci_not -- (default: True) whether or not to display
+                using scientific notation
+
+        rnd -- (string) the rounding mode
+                RNDN -- round to nearest
+                RNDZ -- round towards zero
+                RNDU -- round towards plus infinity
+                RNDD -- round towards minus infinity
+
+    EXAMPLES:
+        sage: RealField(10)
+        Real Field with 10 bits of precision
+        sage: RealField()
+        Real Field with 53 bits of precision
+        sage: RealField(100000)
+        Real Field with 100000 bits of precision
+
+    NOTE: The default precision is 53, since according to the GMP
+       manual: "mpfr should be able to exactly reproduce all
+       computations with double-precision machine floating-point
+       numbers (double type in C), except the default exponent
+       range is much wider and subnormal numbers are not
+       implemented."
+    """
     cdef int prec, sci_not
     cdef mp_rnd_t rnd
     cdef object rnd_str
 
     def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
-        """
-        RealField(prec, rnd):
-
-        INPUT:
-            prec -- (integer) precision; default = 53
-                    prec is the number of bits used to represent the
-                    mantissa of a floating-point number.  The
-                    precision can be any integer between mpfr_prec_min()
-                    and mpfr_prec_max(). In the current implementation,
-                    mpfr_prec_min() is equal to 2.
-
-            sci_not -- (default: True) whether or not to display
-                    using scientific notation
-
-            rnd -- (string) the rounding mode
-                    RNDN -- round to nearest
-                    RNDZ -- round towards zero
-                    RNDU -- round towards plus infinity
-                    RNDD -- round towards minus infinity
-
-        EXAMPLES:
-            sage: RealField(10)
-            Real Field with 10 bits of precision
-            sage: RealField()
-            Real Field with 53 bits of precision
-            sage: RealField(100000)
-            Real Field with 100000 bits of precision
-
-        NOTE: The default precision is 53, since according to the GMP
-           manual: "mpfr should be able to exactly reproduce all
-           computations with double-precision machine floating-point
-           numbers (double type in C), except the default exponent
-           range is much wider and subnormal numbers are not
-           implemented."
-        """
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
             raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)

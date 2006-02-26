@@ -42,6 +42,8 @@ cdef extern from "gmp.h":
     void mpz_fac_ui (mpz_t rop, unsigned long int op)
     void mpz_fdiv_q(mpz_t q, mpz_t n, mpz_t d)
     void mpz_fdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
+    void mpz_cdiv_q(mpz_t q, mpz_t n, mpz_t d)
+    void mpz_cdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
     void mpz_tdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
     double mpz_get_d (mpz_t op)
     unsigned long int mpz_fdiv_ui (mpz_t n, unsigned long int d)

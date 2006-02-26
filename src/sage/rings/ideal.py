@@ -131,8 +131,9 @@ class Ideal_generic(MonoidElement):
             gens = [gens]
         if coerce:
             gens = [ring(x) for x in gens]
-        gens = tuple(set(gens))
-        self.__gens = gens
+        gens = list(set(gens))
+        gens.sort()    # important!
+        self.__gens = tuple(gens)
         MonoidElement.__init__(self, ring.ideal_monoid())
 
     def _repr_short(self):

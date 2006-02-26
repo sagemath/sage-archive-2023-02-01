@@ -1,5 +1,10 @@
 """
 Elliptic curves over the rational numbers
+
+AUTHORS:
+   -- William Stein (2005): first version
+   -- William Stein (2006-02-26): fixed Lseries_extended which didn't work
+            because of changes elsewhere in SAGE.
 """
 
 #*****************************************************************************
@@ -25,6 +30,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
+import sage.misc.constants as constants
 import sage.modular.modform as modform
 import sage.matrix.all as matrix
 import sage.databases.cremona
@@ -399,12 +405,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         v = arith.prime_range(pmax)
         return [(p,self.ap(p)) for p in v]
 
-    def anlist(self, n):
+    def anlist(self, n, pari_ints=False):
         """
-        The Fourier coefficients up to and including a_n of the
+        The Fourier coefficients up to and including $a_n$ of the
         modular form attached to this elliptic curve.  The ith element
         of the return list is a[i].
 
+        INPUT:
+            n -- integer
+            pari_ints -- bool (default: False); if True return a list of
+                      PARI ints instead of SAGE integers; this can
+                      be much faster for large n.
+
+        OUTPUT:
+            -- list of integers
+
+        If pari_ints is False, the result is cached.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
@@ -416,17 +432,25 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
         """
         n = int(n)
-        try:
-            if len(self.__anlist) > n:
-                return self.__anlist[:n+1]
-        except AttributeError:
-            pass
+        if not pari_ints:
+            try:
+                if len(self.__anlist) > n:
+                    return self.__anlist[:n+1]
+            except AttributeError:
+                pass
         E = self.pari_mincurve()
         if n >= 2147483648:
             raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
 
-        self.__anlist = [0] + [int(x) for x in E.ellan(n)]
-        return self.__anlist
+        if not pari_ints:
+            ZZ = rings.Integer
+            v = [0] + [ZZ(x) for x in E.ellan(n)]
+        else:
+            v = E.ellan(n)
+        if not pari_ints:
+            self.__anlist = v
+        return v
+
 
         # There is some overheard associated with coercing the PARI
         # list back to Python, but it's not bad.  It's better to do it
@@ -640,6 +664,37 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         prob_gens = [F(P) for P in t[2]]
         return prob_rank, two_selmer_rank, prob_gens
 
+    two_descent_simon = simon_two_descent
+
+    def three_selmer_rank(self, bound=0, method=2):
+        r"""
+        Return the 3-selmer rank of this elliptic curve, computed
+        using Magma.
+
+        This is not implemented for all curves; a NotImplementedError
+        exception is raised when this function is called on curves
+        for which 3-descent isn't implemented.
+
+        \note{Use a slightly modified version of Michael Stoll's MAGMA
+        file \code{3descent.m}.  You must have Magma to use this
+        function.}
+
+        EXAMPLES:
+            sage: EllipticCurve('37a').three_selmer_rank()  # optional & long -- Magma
+            1
+
+            sage: EllipticCurve('14a1').three_selmer_rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError:  Currently, only the case with irreducible phi3 is implemented.
+        """
+        import magma_3descent
+        try:
+            return magma_3descent.three_selmer_rank(self, bound, method)
+        except RuntimeError, msg:
+            msg = str(msg)
+            i = msg.rfind(':')
+            raise NotImplementedError, msg[i+1:]
 
 
     def rank(self, use_database=False, verbose=False,
@@ -1314,34 +1369,40 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def Lambda(self, s, prec):
         r"""
         Returns the value of the Lambda-series of the elliptic curve E
-        at s can be any complex number.  Use Lambda(s) if s is real,
-        since it will be much faster.
+        at s can be any complex number.
 
-        \warning{This function uses
-        \module{sage.functions.transcendental.gamma_inc}, which
-        currently calls mathematica.}
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.Lambda(1.4+0.5*I,50)
+            -0.35417268051554840 + 0.87451868171893510*I
         """
         s = C(s)
         N = self.conductor()
-        pi = transcendental.pi()
+        pi = R(constants.pi)
         Gamma = transcendental.gamma
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
-        sqrtN = float(arith.sqrt(N))
+        sqrtN = float(N.sqrt())
         def F(n, t):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return sum([a[n]*(F(n,s-1) + eps*F(n,1-s)) for n in xrange(1,prec+1)])
 
     def Lseries_extended(self, s, prec):
         r"""
-        Returns the value of the L-series of the elliptic curve E
-        at s can be any complex number using prec terms of the
-        power series expansion.
+        Returns the value of the L-series of the elliptic curve E at s
+        can be any complex number using prec terms of the power series
+        expansion.
 
-        \warning{This function uses
-        \module{sage.functions.transcendental.gamma_inc}, which currently calls
-        mathematica.}
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.Lseries_extended(1 + I, 50)
+            -0.33297168182616760 + 0.37317660446124179*I
+            sage: E.Lseries_extended(1 + 0.1*I, 50)
+            -0.0075500176111810684 + 0.00043133518015875204*I
+
+        TODO: Planned improvement -- use Micheal Rubinstein's
+        L-functions package.
         """
         try:
             s = C(s)
@@ -1351,12 +1412,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if abs(s.imag()) < R(0.0000000000001):
             return self.Lseries(s.real())
         N = self.conductor()
-        pi = transcendental.pi()
+        pi = R(constants.pi)
         Gamma = transcendental.gamma
         Gamma_inc = transcendental.gamma_inc
         a = self.anlist(prec)
         eps = self.root_number()
-        sqrtN = float(arith.sqrt(N))
+        sqrtN = float(N.sqrt())
         def F(n, t):
             return Gamma_inc(t+1, 2*pi*n/sqrtN) * C(sqrtN/(2*pi*n))**(t+1)
         return C(N)**(-s/2) * C(2*pi)**s * Gamma(s)**(-1)\

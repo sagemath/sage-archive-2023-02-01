@@ -354,16 +354,16 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: L = A.subscheme([y-1])
             sage: S = L.union(P); S
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*x*y^2 + x*y^3
               -1*y^3 + y^4
+              -1*x*y^2 + x*y^3
               -1*x^2*y + x^2*y^2
               -1*x^3 + x^3*y
             sage: S.dimension()
             1
             sage: S.reduce()
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*x + x*y
               -1*y + y^2
+              -1*x + x*y
 
         We can also use the notation "+" for the union:
             sage: A.subscheme([x]) + A.subscheme([y^2 - (x^3+1)])
@@ -577,15 +577,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            y^3 + x + x^3*y
+            x_1^3 + x_0 + x_0^3*x_1
             sage: U.projective_embedding()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              y^3 + x + x^3*y
+              x_1^3 + x_0 + x_0^3*x_1
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               Y^3*Z + X*Z^3 + X^3*Y
-              Defn: Defined on coordinates by sending (x, y) to
-                    (1 : x : y)
+              Defn: Defined on coordinates by sending (x_0, x_1) to
+                    (1 : x_0 : x_1)
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()

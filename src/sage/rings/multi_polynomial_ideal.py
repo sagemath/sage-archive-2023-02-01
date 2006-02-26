@@ -203,15 +203,10 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: pd = I.complete_primary_decomposition(); pd
-            [(Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field,
-              Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field),
-             (Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field,
-              Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field), (Ideal (-1*z^2 + y, 4 + 4*z^3 + z^6) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
+
             sage: I.complete_primary_decomposition(algorithm = 'gtz')
-            [(Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field,
-              Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field),
-             (Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field,
-              Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field), (Ideal (-1*z^2 + y, 4 + 4*z^3 + z^6) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
         """
         try:
             return self.__complete_primary_decomposition[algorithm]
@@ -239,8 +234,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.primary_decomposition()
-            [Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field,
-            Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (-1*z^2 + y, 4 + 4*z^3 + z^6) of Polynomial Ring in x, y, z over Rational Field]
         """
         return [I for I, _ in self.complete_primary_decomposition(algorithm)]
 
@@ -251,8 +245,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.associated_primes()
-            [Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field,
-             Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
@@ -281,7 +274,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: a,b,c,d = R.gens()
             sage: I = R.ideal([a+b+c+d, a*b+a*d+b*c+c*d, a*b*c + a*b*d + a*c*d + b*c*d, a*b*c*d-1])
             sage: I
-            Ideal (d + c + b + a, -1 + a*b*c*d, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c) of Polynomial Ring in a, b, c, d over Rational Field
+            Ideal (-1 + a*b*c*d, d + c + b + a, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I.groebner_basis()
              [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
 
@@ -328,9 +321,9 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: I = (x^2, y)*R
             sage: J = (y^2, x)*R
             sage: K = I.intersection(J); K
-            Ideal (x^2, x*y, y^2) of Polynomial Ring in x, y over Rational Field
+            Ideal (y^2, x*y, x^2) of Polynomial Ring in x, y over Rational Field
             sage: IJ = I*J; IJ
-            Ideal (x^2*y^2, x^3, x*y, y^3) of Polynomial Ring in x, y over Rational Field
+            Ideal (y^3, x*y, x^2*y^2, x^3) of Polynomial Ring in x, y over Rational Field
             sage: IJ == K
             False
         """
@@ -354,8 +347,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field,
-             Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """

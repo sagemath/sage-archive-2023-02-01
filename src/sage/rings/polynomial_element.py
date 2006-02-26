@@ -19,7 +19,7 @@ Univariate Polynomials
 
 import operator
 
-from sage.structure.element import Element
+from sage.structure.element import Element, Element_cmp_
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -57,7 +57,7 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(ring_element.RingElement):
+class Polynomial(Element_cmp_, ring_element.RingElement):
     """
     Polynomial base class.
     """
@@ -144,25 +144,33 @@ class Polynomial(ring_element.RingElement):
             i -= 1
         return result
 
-    def __cmp__(self, other):
-        if not isinstance(other, Polynomial) or other.parent() != self.parent():
-            return coerce_cmp(self, other)
-        if self.degree() < other.degree():
-            return -1
-        elif self.degree() > other.degree():
-            return 1
-        if self.list() < other.list():
-            return -1
-        elif self.list() > other.list():
-            return 1
-        else:
-            return 0
+    def _cmp_(self, other):
+        """
+        EXAMPLES:
+            sage: x = QQ['x'].0
+            sage: 3*x^3  + 5 > 10*x^2 + 19
+            True
+            sage: f = x^2 - 2*x + 1; g= x^2 - 1
+            sage: f < g
+            True
+            sage: f > g
+            False
+            sage: g < f
+            False
+            sage: g > f
+            True
+        """
+        #if not isinstance(other, Polynomial) or other.parent() != self.parent():
+        #    return coerce_cmp(self, other)
+        c = cmp(self.degree(), other.degree())
+        if c: return c
+        return cmp(list(reversed(self.list())), list(reversed(other.list())))
 
     def __getitem__(self, n):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash((self.degree(), self[0]))
+        return hash(tuple(self.list()))
 
     def __float__(self):
          if self.degree() > 0:
@@ -1629,6 +1637,16 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         except AttributeError:
             self.__list = [QQ(x) for x in reversed(self.__poly.Vec())]
             return self.__list
+
+##     def partial_fraction(self, g):
+##         """
+##         Return partial fraction decomposition of self/g, where g
+##         has the same parent as self.
+##         """
+##         g = self.parent()(g)
+##         from sage.interfaces.maxima import maxima
+##         h = maxima(self)/maxima(g)
+##         k = h.partfrac(self.parent().variable())
 
     def rescale(self, a):
         """

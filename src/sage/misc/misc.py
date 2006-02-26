@@ -17,6 +17,8 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 
 import operator, os, sys, signal, time, weakref, random
 
+from banner import version, banner
+
 try:
     SAGE_ROOT = os.environ["SAGE_ROOT"]
 except KeyError:
@@ -42,10 +44,11 @@ if not os.path.exists(SAGE_TMP):
     os.makedirs(SAGE_TMP)
 
 def delete_tmpfiles():
+    #print "deleting temp files from %s"%SAGE_TMP
     import shutil
     try:
         shutil.rmtree(SAGE_TMP)
-    except OSError:
+    except OSError, msg:
         pass
 
 SAGE_TMP_INTERFACE='%s/interface/'%SAGE_TMP
@@ -256,21 +259,7 @@ def get_verbose():
     global LEVEL
     return LEVEL
 
-def version():
-    """
-    Return the version of SAGE.
 
-    INPUT:
-       nothing
-    OUTPUT:
-       str
-
-    EXAMPLES:
-       sage.: print version()
-       SAGE Version x.y.z, Build Date: xxxx-xx-xx-xxxx
-    """
-    import sage.version
-    return 'SAGE Version %s, Build Date: %s'%(sage.version.version, sage.version.date)
 
 def generic_cmp(x,y):
     """

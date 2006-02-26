@@ -36,6 +36,9 @@ import rational as rational
 import sage.libs.pari.all
 import mpfr
 
+cdef mpz_t mpz_tmp
+mpz_init(mpz_tmp)
+
 cdef public int set_mpz(Integer self, mpz_t value):
     mpz_set(self.value, value)
 
@@ -506,8 +509,8 @@ cdef class Integer(element.EuclideanDomainElement):
 
     def __int__(self):
         cdef char *s
-        s = mpz_get_str(NULL, 16, self.value)
-        n = int(s,16)
+        s = mpz_get_str(NULL, 32, self.value)
+        n = int(s,32)
         free(s)
         return n
 
@@ -525,7 +528,11 @@ cdef class Integer(element.EuclideanDomainElement):
         return mpz_get_d(self.value)
 
     def __hash__(self):
-        return hash(self.str(16))
+        cdef int n
+        n = mpz_get_si(self.value)
+        if n == -1:
+            return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
+        return n
 
     def factor(self, algorithm='pari'):
         """

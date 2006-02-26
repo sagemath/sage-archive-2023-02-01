@@ -22,10 +22,14 @@ import os
 substitutes = [('\\_','_'),\
                ('\\to', '-->'), \
                ('<BLANKLINE>',''), \
-               ('\\leq', '<='), ('\\geq', '>='), \
+               ('\\leq', '<='), \
+               ('\\geq', '>='), \
+               ('\\le', '<='), \
+               ('\\ge', '>='), \
                ('\\sage', 'SAGE'), \
                ('\\SAGE', 'SAGE'), \
                ('\\rm', ''), \
+               ('cdots', '...'), \
                ('\\cdot', ' *'), \
                ('$',''), ('\\',''), ('sage.:', 'sage:'), ('backslash','\\'), \
                ('begin{enumerate}',''), ('end{enumerate}',''), \
@@ -81,6 +85,7 @@ def format(s):
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
     s = _rmcmd(s, 'mbox')
+    s = _rmcmd(s, 'text')
     s = _rmcmd(s, 'note', 'NOTE: ', '')
     s = _rmcmd(s, 'emph', '*', '*')
     for a,b in substitutes:

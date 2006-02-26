@@ -121,7 +121,7 @@ def ModularSymbols(group  = 1,
         sage: f = M.T(2).charpoly(); f
         x^4 + (-zeta_6 - 1)*x^3 + (-8*zeta_6)*x^2 + (10*zeta_6 - 5)*x + 21*zeta_6 - 21
         sage: f.factor()
-        (x + -zeta_6 - 2) * (x + -2*zeta_6 - 1) * (x + zeta_6 + 1)^2
+        (x + -2*zeta_6 - 1) * (x + -zeta_6 - 2) * (x + zeta_6 + 1)^2
 
     More examples of spaces with character:
         sage: e = DirichletGroup(5, RationalField()).gen(); e

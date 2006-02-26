@@ -172,6 +172,9 @@ class Macaulay2(Expect):
     def _false_symbol(self):
         return 'false'
 
+    def _equality_symbol(self):
+        return '=='
+
 
 ### Constructors
 

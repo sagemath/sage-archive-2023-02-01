@@ -45,12 +45,12 @@ def tuple_function(x):
 
 def bool_function(x):
     if x:
-        return "\\text{True}"
+        return "\\mbox{\\rm True}"
     else:
-        return "\\text{False}"
+        return "\\mbox{\\rm False}"
 
 def str_function(x):
-    return "\\text{%s}"%x
+    return "\\mbox{\\rm %s}"%x
 
     # this messes up too many things.
 
@@ -67,7 +67,7 @@ def str_function(x):
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
 
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
-               str: str_function}
+               str: str_function, int:str, long:str}
 
 
 def latex(x):
@@ -260,7 +260,7 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(Q, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\text{a} + (t - 2)\\text{s} + (t^{12} + 2)\\text{}'
+        '-t\\mbox{\\rm a} + (t - 2)\\mbox{\\rm s} + (t^{12} + 2)\\mbox{\\rm }'
     """
     s = ""
     first = True

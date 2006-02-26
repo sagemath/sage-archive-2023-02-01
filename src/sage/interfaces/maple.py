@@ -314,6 +314,12 @@ class Maple(Expect):
     def _object_class(self):
         return MapleElement
 
+    def _equality_symbol(self):
+        return '=='
+
+    def _assign_symbol(self):
+        return ":="
+
     def help(self, str):
         """
         Display Maple help about str.  This is the same as typing "?str" in

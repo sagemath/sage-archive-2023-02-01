@@ -232,7 +232,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         nr = self.nrows(); nc = self.ncols()
         v = [','.join([w[i*nc + j]._pari_init_() for j in range(nc)])
                       for i in range(nr)]
-        return '[%s]'%(';'.join(v))
+        return 'Mat([%s])'%(';'.join(v))
 
     ###################################################
     ## Coercion to GAP

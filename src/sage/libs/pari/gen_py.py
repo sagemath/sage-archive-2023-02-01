@@ -23,7 +23,7 @@ def python(z):
     elif t == "t_VEC":
         return [python(x) for x in z.python_list()]
     elif t == "t_VECSMALL":
-        return z.python_list_small()
+        return [ZZ(x) for x in z.python_list_small()]
     elif t == "t_MAT":
         return [python(z[i,j]) for i in range(z.nrows()) for j in range(z.ncols())]
     else:

@@ -192,6 +192,8 @@ cdef class gen:
 
         if n < 0 or n >= glength(self.g):
             raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
+        if typ(self.g) == t_VECSMALL:
+            return self.g[n+1]
         return P.new_ref(<GEN> (self.g[n+1]), self)
 
 
@@ -540,6 +542,28 @@ cdef class gen:
         for n from 0 <= n < L:
             v.append(gtolong(<GEN> (g[n+1])))
         return v
+
+    def python_list_small(gen self):
+        """
+        Return a Python list of the PARI gens.  This object must be of
+        type t_VECSMALL, and the resulting list contains python 'int's
+
+        EXAMPLES:
+            sage: v=pari([1,2,3,10,102,10]).Vecsmall()
+            sage: w = v.python_list_small()
+            sage: w
+            [1, 2, 3, 10, 102, 10]
+            sage: type(w[0])
+            <type 'int'>
+        """
+        cdef long n
+        if typ(self.g) != t_VECSMALL:
+            raise TypeError, "Object (=%s) must be of type t_VECSMALL."%self
+        V = []
+        m = glength(self.g)
+        for n from 0 <= n < m:
+            V.append(self.g[n+1])
+        return V
 
     def python_list(gen self):
         """

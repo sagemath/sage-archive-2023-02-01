@@ -4962,3 +4962,37 @@ cdef int _read_script(char* s) except -1:
 #######################
 # Base gen class
 #######################
+
+
+cdef extern from "pari/pari.h":
+    char *errmessage[]
+    int noer
+
+def __errmessage(d):
+    if d <= 0 or d > noer:
+        return "unknown"
+    return errmessage[d]
+
+# FIXME: we derive PariError from RuntimeError, for backward
+# compatibility with code that catches the latter. Once this is
+# in production, we should change the base class to StandardError.
+from exceptions import RuntimeError
+
+# can we have "cdef class" ?
+# because of the inheritance, need to somehow "import" the builtin
+# exception class...
+class PariError (RuntimeError):
+
+    errmessage = staticmethod(__errmessage)
+
+    def __repr__(self):
+        return "PariError(%d)"%self.args[0]
+
+    def __str__(self):
+        return "%s (%d)"%(self.errmessage(self.args[0]),self.args[0])
+
+# we expose the class to C, is there another way to do it?
+cdef PyExc_PariError "PyExc_PariError"
+PyExc_PariError = PariError
+
+

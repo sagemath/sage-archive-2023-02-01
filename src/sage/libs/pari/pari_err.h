@@ -7,7 +7,7 @@
 static void *__catcherr = NULL;
 
 #define _pari_raise(errno) { \
-        PyErr_SetObject(PyExc_RuntimeError, PyInt_FromLong(errno)); \
+        PyErr_SetObject(PyExc_PariError, PyInt_FromLong(errno)); \
     }
 
 #define _pari_endcatch { err_leave(&__catcherr); }

@@ -10,4 +10,5 @@ pari_gen = _gen.gen
 
 allocatemem = pari.allocatemem
 
+PariError = _gen.PariError
 

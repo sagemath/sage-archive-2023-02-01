@@ -4966,6 +4966,8 @@ cdef int _read_script(char* s) except -1:
 
 cdef extern from "pari/pari.h":
     char *errmessage[]
+    int user
+    int errpile
     int noer
 
 def __errmessage(d):
@@ -4991,8 +4993,25 @@ class PariError (RuntimeError):
     def __str__(self):
         return "%s (%d)"%(self.errmessage(self.args[0]),self.args[0])
 
-# we expose the class to C, is there another way to do it?
-cdef PyExc_PariError "PyExc_PariError"
-PyExc_PariError = PariError
+# we expose a trap function to C
+# if this function returns without raising an exception,
+# the code is retried. Beware of infinite recursion!
+# This is a proof-of-concept example.
+# The stack should be indeed enlarged!
+# THE TRY CODE IS NOT REENTRANT -- NO CALLS TO PARI FROM HERE !!!
+cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
+    if retries > 100:
+        raise RuntimeError, "_pari_trap recursion too deep"
+    if errno == errpile:
+        if retries < 5:
+            print "stack overflow! (%d retries so far)"%retries
+            # enlarge the stack!
+            P.allocatemem()
+        else:
+            raise MemoryError, "the PARI stack overflowed %d times!"%retries
+    elif errno == user:
+        raise Exception, "PARI user exception"
+    else:
+        raise PariError, errno
 
 

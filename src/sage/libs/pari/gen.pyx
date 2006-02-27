@@ -9,7 +9,7 @@ AUTHORS:
     -- William Stein (2006-03-06): added newtonpoly
 """
 
-include 'interrupt.pxi'
+include 'pari_err.pxi'
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P

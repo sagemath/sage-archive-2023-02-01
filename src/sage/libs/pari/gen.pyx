@@ -228,7 +228,42 @@ cdef class gen:
             3
             sage: type(sv[2])
             <type 'int'>
+            sage: tuple(pari(3/5))
+            (3, 5)
+            sage: tuple(pari('1 + 5*I'))
+            (1, 5)
+            sage: tuple(pari('Qfb(1, 2, 3)'))
+            (1, 2, 3)
+            sage: pari(57)[0]
+            Traceback (most recent call last):
+            ...
+            TypeError: unindexable object
+
         """
+        if typ(self.g) in (t_INT, t_REAL, t_PADIC, t_QUAD):
+            # these are definitely scalar!
+            raise TypeError, "unindexable object"
+
+        if typ(self.g) in (t_INTMOD, t_POLMOD):
+            # if we keep going we would get:
+            #   [0] = modulus
+            #   [1] = lift to t_INT or t_POL
+            # do we want this? maybe the other way around?
+            raise TypeError, "unindexable object"
+
+        #if typ(self.g) in (t_FRAC, t_RFRAC):
+            # generic code gives us:
+            #   [0] = numerator
+            #   [1] = denominator
+
+        #if typ(self.g) == t_COMPLEX:
+            # generic code gives us
+            #   [0] = real part
+            #   [1] = imag part
+
+        #if type(self.g) in (t_QFR, t_QFI):
+            # generic code works ok
+
         if typ(self.g) == t_POL:
             return self.polcoeff(n)
 

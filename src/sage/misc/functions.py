@@ -285,20 +285,20 @@ class Function_arith(Function):
     EXAMPLES:
         sage: s = (pi + pi) * e + e
         sage: s
-        (((Pi + Pi)*e) + e)
+        (((pi + pi)*e) + e)
         sage: R(s)
         19.797750273806177
         sage: maxima(s)
         2*%e*%pi + %e
 
         sage: t = e^2 + pi + 2/3; t
-        (((e^2) + Pi) + 2/3)
+        (((e^2) + pi) + 2/3)
         sage: R(t)
         11.197315419187108
         sage: maxima(t)
         %pi + %e^2 + 2/3
         sage: t^e
-        ((((e^2) + Pi) + 2/3)^e)
+        ((((e^2) + pi) + 2/3)^e)
         sage: R(t^e)
         710.86524768885772
     """
@@ -314,7 +314,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: log2 * e + pi^2/2
-            ((log2*e) + ((Pi^2)/2))
+            ((log2*e) + ((pi^2)/2))
         """
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
 
@@ -366,7 +366,7 @@ class Function_arith(Function):
     def _kash_(self, kash):
         """
         EXAMPLES:
-            sage: kash(e + pi)
+            sage: kash(e + pi)                        # optional
             5.85987448204883847382293085463
         """
         return self.__op(self.__x._kash_(kash), self.__y._kash_(kash))
@@ -437,7 +437,7 @@ class Function_gen(Function):
     EXAMPLES:
         sage: a = pi/2 + e
         sage: a
-        ((Pi/2) + e)
+        ((pi/2) + e)
         sage: maxima(a)
         %pi/2 + %e
         sage: RR(a)

@@ -130,7 +130,8 @@ ext_modules = [ \
               libraries = ['mpfr', 'gmp']), \
 
     Extension('sage.ext.integer',
-              sources = ['sage/ext/arith.pyx', 'sage/ext/integer.pyx'],
+              sources = ['sage/ext/arith.pyx', 'sage/ext/integer.pyx', \
+                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
     Extension('sage.ext.intmod_pyx',
@@ -144,7 +145,8 @@ ext_modules = [ \
     Extension('sage.ext.rational',
               sources = ['sage/ext/rational.pyx',
                          'sage/ext/arith.pyx', \
-                         'sage/ext/integer.pyx'],
+                         'sage/ext/integer.pyx', \
+                         'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
     Extension('sage.ext.sparse_poly',
@@ -155,14 +157,16 @@ ext_modules = [ \
               ['sage/ext/sparse_matrix_pyx.pyx',
                'sage/ext/integer.pyx',
                'sage/ext/rational.pyx',
-               'sage/ext/arith.pyx'],
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
     Extension('sage.ext.dense_matrix_pyx',
               ['sage/ext/dense_matrix_pyx.pyx',
                'sage/ext/integer.pyx',
                'sage/ext/rational.pyx',
-               'sage/ext/arith.pyx'],
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
     Extension('sage.ext.search',

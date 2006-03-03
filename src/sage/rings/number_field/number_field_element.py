@@ -31,7 +31,7 @@ import sage.misc.misc as misc
 
 import number_field
 
-from sage.libs.all import gen
+from sage.libs.all import pari_gen
 
 QQ = rational_field.RationalField()
 
@@ -83,7 +83,7 @@ class NumberFieldElement(field_element.FieldElement):
         if isinstance(parent, str):
             print 'parent = ', parent
             print 'f = ', f
-        if isinstance(f, gen):
+        if isinstance(f, pari_gen):
             f = f.lift()
             f = parent.polynomial_ring()(f)
         if not isinstance(f, polynomial.Polynomial):
@@ -220,26 +220,33 @@ class NumberFieldElement(field_element.FieldElement):
                 return self.__multiplicative_order
 
         ####################################################################
-        # Algorithm to compute the multiplicative_order of an element x of a number field K.
+        # VERY DUMB Algorithm to compute the multiplicative_order of
+        # an element x of a number field K.
         #
         # 1. Find an integer B such that if n>=B then phi(n) > deg(K).
         #    For this use that for n>6 we have phi(n) >= log_2(n)
-        #    (to see this thing about the worst prime factorization
+        #    (to see this think about the worst prime factorization
         #    in the multiplicative formula for phi.)
         # 2. Compute x, x^2, ..., x^B in order to determine the multiplicative_order.
         #
         # todo-- Alternative: Only do the above if we don't require an optional
         # argument which gives a multiple of the order, which is usually
-        # something available in any actual appication.
+        # something available in any actual application.
+        #
+        # BETTER TODO: Factor cyclotomic polynomials over K to determine
+        # possible orders of elements?  Is there something even better?
+        #
         ####################################################################
         d = self.parent().degree()
         B = max(7, 2**d+1)
         x = self
-        for i in range(1,B):
+        i = 1
+        while i < B:
             if x == 1:
                 self.__multiplicative_order = i
                 return self.__multiplicative_order
             x *= self
+            i += 1
 
         # it must have infinite order
         self.__multiplicative_order = infinity.infinity

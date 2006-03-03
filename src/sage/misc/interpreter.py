@@ -368,9 +368,12 @@ import inspect
 
 def my_getdoc(obj):
     try:
-        ds = inspect.getdoc(obj)
-    except:
-        return None
+        ds = obj._sage_doc_()
+    except (AttributeError, TypeError):  # TypeError for interfaces
+        try:
+            ds = inspect.getdoc(obj)
+        except:
+            return None
     if ds is None:
         return None
     return sagedoc.format(ds)

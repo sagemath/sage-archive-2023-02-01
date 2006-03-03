@@ -3,13 +3,13 @@ PARI Groups
 """
 
 import group
-from sage.libs.all import pari, gen
+from sage.libs.all import pari, pari_gen
 
 import permgroup
 
 class PariGroup(group.FiniteGroup):
     def __init__(self, x, degree=None):
-        if not isinstance(x, gen):
+        if not isinstance(x, pari_gen):
             raise TypeError, "x (=%s) must be a PARI gen"%x
         self.__x = x
         self.__degree = degree

@@ -1,5 +1,11 @@
 """
 PARI C-library interface
+
+AUTHORS:
+    -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta (this involved changing
+                                   almost every doc strings, among other things; the precision
+                                   behavior of PARI changes drastically from any version to
+                                   the next!).
 """
 
 include 'interrupt.pxi'
@@ -14,6 +20,10 @@ P = pari_instance   # shorthand notation
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
+
+# real precision
+cdef unsigned long prec
+prec = GP_DATA.fmt.sigd
 
 # Also a copy accessible from external pure python code.
 pari = pari_instance
@@ -826,10 +836,10 @@ cdef class gen:
         WARNING: This is *not* a substitution function. It will not
         transform an object containing variables of higher priority
         than v:
-            sage.: pari('x+y').Pol('y')
+            sage: pari('x+y').Pol('y')
             Traceback (most recent call last):
             ...
-            RuntimeError: PARI error 8: error in Pol
+            RuntimeError
 
         INPUT:
             x -- gen
@@ -907,8 +917,8 @@ cdef class gen:
             gen -- binary quadratic form
         EXAMPLES:
             sage: pari(3).Qfb(7, 2)
-            Qfb(3, 7, 2, 0.E-28)               # 32-bit
-            Qfb(3, 7, 2, 0.E-38)               # 64-bit
+            Qfb(3, 7, 2, 0.E-250)               # 32-bit
+            Qfb(3, 7, 2, 0.E-693)               # 64-bit
         """
         t0GEN(b); t1GEN(c); t2GEN(D)
         _sig_on
@@ -1152,7 +1162,7 @@ cdef class gen:
             sage: pari(2005).binary()
             [1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1]
 
-            sage.: pari('"2"').binary()
+            sage: pari('"2"').binary()
             Traceback (most recent call last):
             ...
             TypeError: x (=2) must be of type t_INT, but is of type t_STR.
@@ -1439,7 +1449,7 @@ cdef class gen:
             sage: pari('x^3 + 2').component(4)
             1
 
-            sage.: pari('x').component(0)
+            sage: pari('x').component(0)
             Traceback (most recent call last):
             ...
             RuntimeError
@@ -1466,11 +1476,10 @@ cdef class gen:
             [1, 2, 2 + I, Mod(-x, x^2 + 1), Mod(-x, x^2 - 2)]
             sage: pari('Mod(x,x^2-2)').conj()
             Mod(-x, x^2 - 2)
-
-            sage.: pari('Mod(x,x^3-3)').conj()
+            sage: pari('Mod(x,x^3-3)').conj()
             Traceback (most recent call last):
             ...
-            TypeError: x (=Mod(x, x^3 - 3)) has no conjugate.
+            RuntimeError
         """
         _sig_on
         return P.new_gen(gconj(x.g))
@@ -1548,10 +1557,10 @@ cdef class gen:
             sage: pari('[[1.1,2.2],[3.3,4.4]]').floor()
             [[1, 2], [3, 4]]
 
-            sage.: pari('"hello world"').floor()
+            sage: pari('"hello world"').floor()
             Traceback (most recent call last):
             ...
-            TypeError: x (=hello world) has no floor.
+            RuntimeError
         """
         _sig_on
         return P.new_gen(gfloor(x.g))
@@ -1571,10 +1580,10 @@ cdef class gen:
             sage: pari('sqrt(2)').frac()
             0.4142135623730950488016887242            # 32-bit
             0.41421356237309504880168872420969807857  # 64-bit
-            sage.: pari('sqrt(-2)').frac()
+            sage: pari('sqrt(-2)').frac()
             Traceback (most recent call last):
             ...
-            TypeError: Fractional part of 1.4142135623730950488016887242*I not defined.
+            RuntimeError
         """
         _sig_on
         return P.new_gen(gfrac(x.g))
@@ -2020,8 +2029,9 @@ cdef class gen:
             sage: pari('2*x^2 + O(x^5)').valuation('x')
             2
 
-            sage.: pari(0).valuation(3)   # on 32-bit machine
-            2147483647
+            sage: pari(0).valuation(3)
+            2147483647            # 32-bit
+            9223372036854775807   # 64-bit
         """
         t0GEN(p)
         _sig_on
@@ -2144,7 +2154,7 @@ cdef class gen:
             1.456791031046906869186432383             # 32-bit
             1.4567910310469068691864323832650819750   # 64-bit
             sage: pari('1+I').agm(-3)
-            -0.9647317222908759112270275373 + 1.157002829526317260939086020*I                        # 32-bit
+            -0.9647317222908759112270275374 + 1.157002829526317260939086020*I                        # 32-bit
             -0.96473172229087591122702753739366831917 + 1.1570028295263172609390860195427517825*I    # 64-bit
         """
         t0GEN(y)
@@ -2220,8 +2230,8 @@ cdef class gen:
 
         EXAMPLES:
             sage: pari(0).atanh()
-            0.E-28    # 32-bit
-            0.E-38    # 64-bit
+            0.E-250   # 32-bit
+            0.E-693   # 64-bit
             sage: pari(2).atanh()
             0.5493061443340548456976226185 + 1.570796326794896619231321692*I           # 32-bit
             0.54930614433405484569762261846126285232 + 1.5707963267948966192313216916397514421*I     # 64-bit
@@ -2253,7 +2263,7 @@ cdef class gen:
         EXAMPLES:
             sage: pari(18).bernreal()
             54.97117794486215538847117794                  # 32-bit
-            54.971177944862155388471177944862155389        # 64-bit
+            54.971177944862155388471177944862155388        # 64-bit
         """
         _sig_on
         return P.new_gen(bernreal(x, prec))
@@ -2331,7 +2341,8 @@ cdef class gen:
 
         EXAMPLES:
             sage: pari(2).besseljh(3)
-            0.4127100322097159934
+            0.4127100322097159934374967959      # 32-bit
+            0.41271003220971599343749679594186271499    # 64-bit
         """
         t0GEN(x)
         _sig_on
@@ -2357,40 +2368,45 @@ cdef class gen:
         _sig_on
         return P.new_gen(ibessel(nu.g, t0, prec))
 
-    def besselk(gen nu, x):
+    def besselk(gen nu, x, long flag=0):
         """
-        K-Bessel function (modified Bessel function of the second kind) of
-        index nu, which can be complex, and argument x.  Only positive real
-        positive arguments x are allowed in the current implementation
-        (Pari version 2.2.11).
+        nu.besselk(x, flag=0): K-Bessel function (modified Bessel
+        function of the second kind) of index nu, which can be
+        complex, and argument x.
+
+        INPUT:
+            nu -- a complex number
+            x -- real number (positive or negative)
+            flag -- default: 0 or 1: use hyperu  (hyperu is much slower for
+                    small x, and doesn't work for negative x).
+
+        WARNING/TODO -- with flag = 1 this function is incredibly slow
+        (on 64-bit Linux) as it is implemented using it from the C
+        library, but it shouldn't be (e.g., it's not slow via the GP
+        interface.)  Why?
 
         EXAMPLES:
             sage: pari('2+I').besselk(3)
             0.04559077184075505871203211094 + 0.02891929465820812820828883526*I     # 32-bit
-            0.045590771840755058712032110938791854704 + 0.028919294658208128208288835257608789841*I     # 64-bit
+            0.045590771840755058712032110938791854704 + 0.028919294658208128208288835257608789842*I     # 64-bit
+
+            sage: pari('2+I').besselk(-3)
+            -4.348708749867516799575863067 - 5.387448826971091267230878827*I        # 32-bit
+            -4.3487087498675167995758630674661864255 - 5.3874488269710912672308788273655523057*I  # 64-bit
+
+            sage.: pari('2+I').besselk(300, flag=1)
+            3.742246033197275082909500148 E-132 + 2.490710626415252262644383350 E-134*I      # 32-bit
+            3.7422460331972750829095001475885825717 E-132 + 2.4907106264152522626443833495225745762 E-134*I   # 64-bit
+
         """
         t0GEN(x)
         _sig_on
-        return P.new_gen(kbessel(nu.g, t0, prec))
-
-    def besselk2(gen nu, x):
-        """
-        A different implementation of this besselk() which is faster
-        when x >> 1.  Values of x are limited as for besselk().
-
-        EXAMPLES:
-            sage: pari('2+I').besselk2(3)
-            0.04559077184075505871203211094 + 0.02891929465820812820828883526*I     # 32-bit
-	    0.045590771840755058712032110938791854704 + 0.028919294658208128208288835257608789841*I    # 64-bit
-        """
-        t0GEN(x)
-        _sig_on
-        return P.new_gen(kbessel2(nu.g, t0, prec))
+        return P.new_gen(kbessel0(nu.g, t0, flag, prec))
 
     def besseln(gen nu, x):
         """
-        Bessel N function (Spherical Bessel function of the second kind)
-        of index nu and argument x.
+        nu.besseln(x): Bessel N function (Spherical Bessel function of
+        the second kind) of index nu and argument x.
 
         EXAMPLES:
             sage: pari('2+I').besseln(3)
@@ -2412,7 +2428,7 @@ cdef class gen:
 	    0.070737201667702910088189851434268709084    # 64-bit
             sage: pari('1+I').cos()
             0.8337300251311490488838853943 - 0.9888977057628650963821295409*I   # 32-bit
-            0.83373002513114904888388539433509447980 - 0.98889770576286509638212954089268618865*I   # 64-bit
+            0.83373002513114904888388539433509447980 - 0.98889770576286509638212954089268618864*I   # 64-bit
             sage: pari('x+O(x^8)').cos()
             1 - 1/2*x^2 + 1/24*x^4 - 1/720*x^6 + 1/40320*x^8 + O(x^9)
         """
@@ -2430,7 +2446,7 @@ cdef class gen:
             2.3524096152432473257676679654416441702     # 64-bit
             sage: pari('1+I').cosh()
             0.8337300251311490488838853943 + 0.9888977057628650963821295409*I                       # 32-bit
-            0.83373002513114904888388539433509447980 + 0.98889770576286509638212954089268618865*I   # 64-bit
+            0.83373002513114904888388539433509447980 + 0.98889770576286509638212954089268618864*I   # 64-bit
             sage: pari('x+O(x^8)').cosh()
             1 + 1/2*x^2 + 1/24*x^4 + 1/720*x^6 + O(x^8)
         """
@@ -2469,8 +2485,8 @@ cdef class gen:
             1.644934066848226436472415167              # 32-bit
             1.6449340668482264364724151666460251892    # 64-bit
             sage: pari('1+I').dilog()
-            0.6168502750680849136771556877 + 1.460362116753119547679775740*I                       # 32-bit
-            0.61685027506808491367715568749225944596 + 1.4603621167531195476797757394917875976*I   # 64-bit
+            0.6168502750680849136771556875 + 1.460362116753119547679775739*I    # 32-bit
+            0.61685027506808491367715568749225944595 + 1.4603621167531195476797757394917875976*I   # 64-bit
         """
         _sig_on
         return P.new_gen(dilog(x.g, prec))
@@ -2506,7 +2522,7 @@ cdef class gen:
         EXAMPLES:
             sage: pari(1).erfc()
             0.1572992070502851306587793649                # 32-bit
-            0.15729920705028513065877936491739074071      # 64-bit
+            0.15729920705028513065877936491739074070      # 64-bit
         """
         _sig_on
         return P.new_gen(gerfc(x.g, prec))
@@ -2592,17 +2608,23 @@ cdef class gen:
             52.342777784553520181149008492418193679     # 64-bit
             sage: pari('1+I').gammah()
             0.5753151880634517207185443722 + 0.08821067754409390991246464371*I     # 32-bit
-            0.57531518806345172071854437217501119058 + 0.088210677544093909912464643706507454994*I     # 64-bit
+            0.57531518806345172071854437217501119058 + 0.088210677544093909912464643706507454993*I     # 64-bit
         """
         _sig_on
         return P.new_gen(ggamd(s.g, prec))
 
     def hyperu(gen a, b, x):
-        """
+        r"""
         a.hyperu(b,x): U-confluent hypergeometric function.
 
+	WARNING/TODO: This function is \emph{extremely slow} as
+        implemented when used from the C library.  If you use the GP
+        interpreter inteface it is vastly faster, so clearly this
+        issue could be fixed with a better understanding of GP/PARI.
+        Volunteers?
+
         EXAMPLES:
-            sage: pari(1).hyperu(2,3)
+            sage.: pari(1).hyperu(2,3)
             0.3333333333333333333333333333              # 32-bit
             0.33333333333333333333333333333333333333    # 64-bit
         """
@@ -2613,12 +2635,18 @@ cdef class gen:
 
 
     def incgam(gen s, x, y=None, precision=0):
-        """
+        r"""
         s.incgam(x, {y}, {precision}): incomplete gamma function. y
         is optional and is the precomputed value of gamma(s).
 
         NOTE: This function works for any complex input (unlike in
         older version of PARI).
+
+	WARNING/TODO: This function is \emph{extremely slow} as
+        implemented when used from the C library.  If you use the GP
+        interpreter inteface it is vastly faster, so clearly this
+        issue could be fixed with a better understanding of GP/PARI.
+        Volunteers?
 
         INPUT:
             s, x, y -- gens
@@ -2628,8 +2656,8 @@ cdef class gen:
             gen -- value of the incomplete Gamma function at s.
 
         EXAMPLES:
-            sage: pari('1+I').incgam('3-I')
-            -0.04582978599199457259586742327 + 0.04336968187266766812050474477*I        # 32-bit
+            sage.: pari('1+I').incgam('3-I')
+            -0.04582978599199457259586742326 + 0.04336968187266766812050474478*I        # 32-bit
             -0.045829785991994572595867423261490338705 + 0.043369681872667668120504744775954724733*I    # 64-bit
         """
         if not precision:
@@ -2655,8 +2683,8 @@ cdef class gen:
 
         EXAMPLES:
             sage: pari(1).incgamc(2)
-            0.8646647167633873081060005048               # 32-bit
-            0.86466471676338730810600050502751559652     # 64-bit
+            0.8646647167633873081060005050               # 32-bit
+            0.86466471676338730810600050502751559659     # 64-bit
         """
         t0GEN(x)
         _sig_on
@@ -2690,8 +2718,8 @@ cdef class gen:
             1.609437912434100374600759333                 # 32-bit
             1.6094379124341003746007593332261876395       # 64-bit
             sage: pari('I').log()
-            0.E-29 + 1.570796326794896619231321692*I             # 32-bit
-            0.E-38 + 1.5707963267948966192313216916397514421*I   # 64-bit
+            0.E-250 + 1.570796326794896619231321692*I             # 32-bit
+            0.E-693 + 1.5707963267948966192313216916397514421*I   # 64-bit
         """
         _sig_on
         return P.new_gen(glog(self.g, prec))
@@ -2734,11 +2762,11 @@ cdef class gen:
             5.641811414751341250600725771 - 8.328202076980270580884185850*I                          # 32-bit
             5.6418114147513412506007257705287671110 - 8.3282020769802705808841858505904310076*I      # 64-bit
             sage: pari(10).polylog(3,1)
-            0.5237784535024110488342571115              # 32-bit
-            0.52377845350241104883425711161605950840    # 64-bit
+            0.5237784535024110488342571116              # 32-bit
+            0.52377845350241104883425711161605950842    # 64-bit
             sage: pari(10).polylog(3,2)
-            -0.4004590561634505605364328953             # 32-bit
-            -0.40045905616345056053643289522452400366   # 64-bit
+            -0.4004590561634505605364328952             # 32-bit
+            -0.40045905616345056053643289522452400363   # 64-bit
         """
         _sig_on
         return P.new_gen(polylog0(m, x.g, flag, prec))
@@ -2769,7 +2797,7 @@ cdef class gen:
             0.84147098480789650665250232163029899962   # 64-bit
             sage: pari('1+I').sin()
             1.298457581415977294826042366 + 0.6349639147847361082550822030*I                       # 32-bit
-            1.2984575814159772948260423658078156203 + 0.63496391478473610825508220299150978152*I   # 64-bit
+            1.2984575814159772948260423658078156203 + 0.63496391478473610825508220299150978151*I   # 64-bit
         """
         _sig_on
         return P.new_gen(gsin(x.g, prec))
@@ -2780,8 +2808,8 @@ cdef class gen:
 
         EXAMPLES:
             sage: pari(0).sinh()
-            0.E-28    # 32-bit
-            0.E-38    # 64-bit
+            0.E-250   # 32-bit
+            0.E-693   # 64-bit
             sage: pari('1+I').sinh()
             0.6349639147847361082550822030 + 1.298457581415977294826042366*I                         # 32-bit
             0.63496391478473610825508220299150978151 + 1.2984575814159772948260423658078156203*I     # 64-bit
@@ -2850,8 +2878,8 @@ cdef class gen:
             2.000000000000000000000000000               # 32-bit
             2.0000000000000000000000000000000000000     # 64-bit
             sage: (s*z)^5
-            2.000000000000000000000000000 + 4.038967835 E-28*I                       # 32-bit
-            2.0000000000000000000000000000000000000 + 1.7632415262334312620 E-38*I   # 64-bit
+            2.000000000000000000000000000 - 1.396701498 E-250*I                      # 32-bit
+            2.0000000000000000000000000000000000000 - 1.0689317613194482765 E-693*I  # 64-bit
         """
 	# TODO: ???  lots of good examples in the PARI docs ???
         cdef GEN zetan
@@ -2869,8 +2897,8 @@ cdef class gen:
             -2.185039863261518991643306102                   # 32-bit
             -2.1850398632615189916433061023136825434         # 64-bit
             sage: pari('I').tan()
-            0.E-29 + 0.7615941559557648881194582826*I             # 32-bit
-            0.E-38 + 0.76159415595576488811945828260479359041*I   # 64-bit
+            0.E-250 + 0.7615941559557648881194582826*I            # 32-bit
+            0.E-693 + 0.76159415595576488811945828260479359041*I  # 64-bit
         """
         _sig_on
         return P.new_gen(gtan(x.g, prec))
@@ -2884,8 +2912,8 @@ cdef class gen:
             0.7615941559557648881194582826             # 32-bit
             0.76159415595576488811945828260479359041   # 64-bit
             sage: pari('I').tanh()
-            -2.524354897 E-29 + 1.557407724654902230506974808*I    # 32-bit
-            0.E-38 + 1.5574077246549022305069748074583601731*I     # 64-bit
+            0.E-250 + 1.557407724654902230506974807*I              # 32-bit
+            -5.344658806597241382 E-694 + 1.5574077246549022305069748074583601731*I  # 64-bit
         """
         _sig_on
         return P.new_gen(gth(x.g, prec))
@@ -2943,8 +2971,8 @@ cdef class gen:
 
         EXAMPLES:
             sage: pari('I').weber()
-            1.189207115002721066717499971 + 0.E-28*I           # 32-bit
-            1.1892071150027210667174999705604759153 - 1.1754943508222875080 E-38*I     # 64-bit
+            1.189207115002721066717499971 - 6.98350749 E-251*I     # 32-bit
+            1.1892071150027210667174999705604759153 + 0.E-693*I    # 64-bit
             sage: pari('I').weber(1)
             1.090507732665257659207010656             # 32-bit
             1.0905077326652576592070106557607079790   # 64-bit
@@ -3282,8 +3310,8 @@ cdef class gen:
         EXAMPLES:
             sage: e = pari([0,1,1,-2,0]).ellinit()
             sage: e.ellbil([1, 0, 1], [-1, 1, 1])
-            0.4181889844988605856298894585              # 32-bit
-            0.41818898449886058562988945821587638244    # 64-bit
+            0.4181889844988605856298894582              # 32-bit
+             0.41818898449886058562988945821587638238   # 64-bit
         """
 ##         Increasing the precision does not increase the precision
 ##         result, since quantities related to the elliptic curve were
@@ -3443,8 +3471,8 @@ cdef class gen:
         EXAMPLES:
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.omega()
-            [1.269209304279553421688794617, 0.6346046521397767108443973084 + 1.458816616938495229330889612*I]    # 32-bit
-            [1.2692093042795534216887946167545473052, 0.63460465213977671084439730837727365261 + 1.4588166169384952293308896129036752571*I]   # 64-bit
+            [1.269209304279553421688794617, 0.6346046521397767108443973084 + 1.458816616938495229330889613*I]   # 32-bit
+            [1.2692093042795534216887946167545473052, 0.63460465213977671084439730837727365260 + 1.4588166169384952293308896129036752572*I]   # 64-bit
         """
         return self[14:16]
 
@@ -4111,14 +4139,14 @@ cdef class gen:
             [2.490212560855055075321357792, 1.971737701551648204422407698*I]                       # 32-bit
             [2.4902125608550550753213577919423024602, 1.9717377015516482044224076981513423349*I]   # 64-bit
             sage: om.elleisnum(2)
-            -5.288649339654257621791534696              # 32-bit
-            -5.2886493396542576217915346952045657615    # 64-bit
+            -5.288649339654257621791534695              # 32-bit
+            -5.2886493396542576217915346952045657616    # 64-bit
             sage: om.elleisnum(4)
             112.0000000000000000000000000               # 32-bit
-            111.99999999999999999999999999999999999     # 64-bit
+            112.00000000000000000000000000000000000     # 64-bit
             sage: om.elleisnum(100)
-            2.153142485760776361127070332 E50              # 32-bit
-            2.1531424857607763611270703492586704387 E50    # 64-bit
+            2.153142485760776361127070349 E50              # 32-bit
+            2.1531424857607763611270703492586704424 E50    # 64-bit
         """
         _sig_on
         return self.new_gen(elleisnum(self.g, k, flag, prec))
@@ -4156,16 +4184,16 @@ cdef class gen:
 
         Compute P(1).
             sage: E.ellwp(1)
-            13.96586952574849779469497769 + 2.660659330 E-28*I                        # 32-bit
-            13.965869525748497794694977695009324221 + 1.2333477115390015219 E-37*I    # 64-bit
+            13.96586952574849779469497770 + 1.465441833 E-249*I                       # 32-bit
+            13.965869525748497794694977695009324221 + 5.607702583566084181 E-693*I    # 64-bit
 
         Compute P(1+I), where I = sqrt(-1).
             sage: E.ellwp(pari("1+I"))
-            -1.115106825655550879209066487 + 2.334190523074698836184798800*I                       # 32-bit
-            -1.1151068256555508792090664916218413983 + 2.3341905230746988361847987936140321969*I   # 64-bit
+            -1.115106825655550879209066492 + 2.334190523074698836184798794*I                       # 32-bit
+            -1.1151068256555508792090664916218413986 + 2.3341905230746988361847987936140321964*I   # 64-bit
             sage: E.ellwp("1+I")
-            -1.115106825655550879209066487 + 2.334190523074698836184798800*I                       # 32-bit
-            -1.1151068256555508792090664916218413983 + 2.3341905230746988361847987936140321969*I   # 64-bit
+            -1.115106825655550879209066492 + 2.334190523074698836184798794*I                       # 32-bit
+            -1.1151068256555508792090664916218413986 + 2.3341905230746988361847987936140321964*I   # 64-bit
 
         The series expansion, to the default 20 precision:
             sage: E.ellwp()
@@ -4177,18 +4205,18 @@ cdef class gen:
 
         Next we use the version where the input is generators for a lattice:
             sage: pari(['1.2692', '0.63 + 1.45*I']).ellwp(1)
-            13.96561469366894364802003736 + 0.0006448292728105361474541635955*I                        # 32-bit
-            13.965614693668943648020037358850990555 + 0.00064482927281053614745416280316868206833*I    # 64-bit
+            13.96561469366894364802003736 + 0.0006448292728105361474541633318*I                        # 32-bit
+            13.965614693668943648020037358850990554 + 0.00064482927281053614745416280316868200698*I    # 64-bit
 
         With flag 1 compute the pair P(z) and P'(z):
             sage: E.ellwp(1, flag=1)
-            [13.96586952574849779469497769 + 2.660659330 E-28*I, 50.56193008800727525558465689 + 1.615587134 E-27*I]    # 32-bit
-            [13.965869525748497794694977695009324221 + 1.2333477115390015219 E-37*I, 50.561930088007275255584656898892400695 + 1.880790961315660012 E-37*I]    # 64-bit
+            [13.96586952574849779469497770 + 1.465441833 E-249*I, 50.56193008800727525558465690 + 4.46944479 E-249*I]    # 32-bit
+            [13.965869525748497794694977695009324221 + 5.607702583566084181 E-693*I, 50.561930088007275255584656898892400699 + 1.7102908181111172423 E-692*I]   # 64-bit
 
         With flag=2, the computed pair is (x,y) on the curve instead of [P(z),P'(z)]:
             sage: E.ellwp(1, flag=2)
-            [14.29920285908183112802831103 + 2.660659330 E-28*I, 50.06193008800727525558465689 + 1.615587134 E-27*I]    # 32-bit
-            [14.299202859081831128028311028342657554 + 1.2333477115390015219 E-37*I, 50.061930088007275255584656898892400695 + 1.880790961315660012 E-37*I]     # 64-bit
+            [14.29920285908183112802831103 + 1.465441833 E-249*I, 50.06193008800727525558465690 + 4.46944479 E-249*I]    # 32-bit
+            [14.299202859081831128028311028342657555 + 5.607702583566084181 E-693*I, 50.061930088007275255584656898892400699 + 1.7102908181111172423 E-692*I]   # 64-bit
         """
         t0GEN(z)
         if n < 0:
@@ -4330,14 +4358,18 @@ cdef class PariInstance:
         """
         Sets the PARI default real precision, both for creation of
         new objects and for printing.
+
+        EXAMPLES:
+
         """
-        s = str(4*n)
+        s = str(n)
         _sig_on
         sd_realprecision(s, 2)
+        prec = GP_DATA.fmt.sigd
         _sig_off
 
     def get_real_precision(self):
-        return prec
+        return GP_DATA.fmt.sigd
 
     def set_series_precision(self, long n):
         precdl = n
@@ -4431,11 +4463,13 @@ cdef class PariInstance:
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
         with at lest precision decimal \emph{digits} of precision.
         """
+        cdef unsigned long old_prec
+        old_prec = prec
         if not precision:
             precision = prec
         self.set_real_precision(precision)
         x = self(s)
-        self.set_real_precision(prec)
+        self.set_real_precision(old_prec)
         return x
 
     def new_with_bits_prec(self, s, long precision=0):
@@ -4443,12 +4477,14 @@ cdef class PariInstance:
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
         with precision \emph{bits} of precision.
         """
+        cdef unsigned long old_prec
+        old_prec = prec
         precision = long(precision / 3.4) - 1     # be safe, since log_2(10) = 3.3219280948873626
         if not precision:
             precision = prec
         self.set_real_precision(precision)
         x = self(s)
-        self.set_real_precision(prec)
+        self.set_real_precision(old_prec)
         return x
 
 
@@ -4485,8 +4521,10 @@ cdef class PariInstance:
     ############################################################
 
     def allocatemem(self, silent=False):
-        """
-        Double the PARI stack.
+        r"""
+        Double the \emph{PARI} stack.
+
+        This doubles the stack for the PARI C library.
         """
         if not silent:
             print "Doubling the PARI stack."
@@ -4598,28 +4636,28 @@ cdef class PariInstance:
             self.init_primes(max(2*num_primes,20*n))
             return self.nth_prime(n)
 
-    def euler(self, precision=0):
+    def euler(self):
         """
-        Return Euler's constant to the given precision.
+        Return Euler's constant to the current real precision.
 
         EXAMPLES:
-            sage.: euler()
-            0.57721566490153286060651209008
-            sage.: get_real_precision()
-            5
-            sage.: euler(6)
-            0.57721566490153286060651209008240243104
-            sage.: set_real_precision(10)
-            sage.: euler()
-            0.57721566490153286060651209008240243104215933593992359880576723488486772677767
+            sage: pari.euler()
+            0.5772156649015328606065120901             # 32-bit
+            0.57721566490153286060651209008240243104   # 64-bit
+            sage: orig = pari.get_real_precision(); orig
+            28         # 32-bit
+            38         # 64-bit
+            sage: pari.set_real_precision(50)
+            sage: pari.euler()
+            0.57721566490153286060651209008240243104215933593992
 
         We restore precision to the default.
-            sage.: set_real_precision(5)
+            sage: pari.set_real_precision(orig)
 
-        Note that euler is still saved to the largest precision to which it has been
-        computed so far:
-            sage.: euler()
-            0.57721566490153286060651209008240243104215933593992359880576723488486772677767
+        Euler is returned to the original precision:
+            sage: pari.euler()
+            0.5772156649015328606065120901              # 32-bit
+            0.57721566490153286060651209008240243104    # 64-bit
         """
         if not precision:
             precision = prec
@@ -4627,29 +4665,35 @@ cdef class PariInstance:
         consteuler(precision)
         return self.new_gen(geuler)
 
-    def pi(self, precision=0):
+    def pi(self):
         """
-        Return the value of the constant pi = 3.1415....
+        Return the value of the constant pi = 3.1415 to the current
+        real precision.
 
         EXAMPLES:
-            sage.: set_real_precision(5)
-            sage.: pi()
-            3.1415926535897932384626433833
-            sage.: pi(6)
-            3.14159265358979323846264338327950288419
-            sage.: get_real_precision()
+            sage: pari.pi()
+            3.141592653589793238462643383             # 32-bit
+            3.1415926535897932384626433832795028842   # 64-bit
+            sage: orig_prec = pari.get_real_precision()
+            sage: pari.set_real_precision(5)
+            sage: pari.pi()
+            3.1416
+
+            sage: pari.get_real_precision()
             5
-            sage.: set_real_precision(10)
-            sage.: pi()
-            3.1415926535897932384626433832795028841971693993751058209749445923078164062862
+            sage: pari.set_real_precision(40)
+            sage: pari.pi()
+            3.141592653589793238462643383279502884197
+
 
         We restore precision to the default.
-            sage.: set_real_precision(5)
+            sage: pari.set_real_precision(orig_prec)
 
-        Note that pi is still saved to the largest precision to which it has been
-        computed so far:
-            sage.: pi()
-            3.1415926535897932384626433832795028841971693993751058209749445923078164062862
+        Note that pi is now computed to the original precision:
+
+            sage: pari.pi()
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
         """
         if not precision:
             precision = prec
@@ -4741,14 +4785,14 @@ cdef class PariInstance:
         OUTPUT:
             pari polynomial mod p -- defines field
         EXAMPLES:
-            sage.: finitefield_init(97,1)
+            sage: pari.finitefield_init(97,1)
             Mod(1, 97)*x + Mod(92, 97)
 
         The last entry in each of the following two lines is
         determined by a random algorithm.
-            sage.: finitefield_init(7,2)
+            sage: pari.finitefield_init(7,2)       # random
             Mod(1, 7)*x^2 + Mod(6, 7)*x + Mod(3, 7)
-            sage.: finitefield_init(2,3)
+            sage: pari.finitefield_init(2,3)       # random
             Mod(1, 2)*x^3 + Mod(1, 2)*x^2 + Mod(1, 2)
         """
         cdef gen _p, _f2, s
@@ -4769,7 +4813,7 @@ cdef class PariInstance:
         _f2 = f.lift()
         _sig_on
         g = FpXQ_gener(_f2.g, _p.g)
-        s = self.new_gen(g)*ONE.Mod(p)
+        s = self.new_gen(g)*self.ONE.Mod(p)
         return s.Mod(f).charpoly(var)
 
 

@@ -67,7 +67,7 @@ def str_function(x):
 # functionality for other types.  (Suggested by Robert Kerns of Enthought.)
 
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
-               str: str_function, int:str, long:str}
+               str: str_function, int:str, long:str, float:str}
 
 
 def latex(x):

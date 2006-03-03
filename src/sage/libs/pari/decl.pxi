@@ -28,10 +28,11 @@ cdef extern from 'setjmp.h':
 
 ctypedef unsigned long ulong
 
-cdef extern from 'pari/paricfg.h':
-    char* PARIVERSION
+#cdef extern from 'pari/paricfg.h':
+#    char* PARIVERSION
 
 cdef extern from 'pari/pari.h':
+    char* PARIVERSION
     ctypedef long* GEN
     ctypedef void entree   # fake -- not used
     #ctypedef void FILE   # fake -- not used
@@ -57,7 +58,6 @@ cdef extern from 'pari/pari.h':
            t_POLMOD, t_POL, t_SER, t_RFRAC, t_QFR, t_QFI, t_VEC, t_COL,  \
            t_MAT, t_LIST, t_STR, t_VECSMALL
 
-    extern unsigned long precdl, prec
     extern char * diffptr
 
     extern int BYTES_IN_LONG
@@ -1888,9 +1888,9 @@ cdef extern from 'pari/pari.h':
 
     GEN     padicfieldslist(GEN p, GEN m, GEN d, long flag)
 
-cdef extern from 'pari/pari.h':
     extern GEN geuler
     extern GEN gpi
+    extern unsigned long precdl
 
 #cdef extern from 'pari/paridecl.h':
 #    GEN     mkintn(long n, ...);

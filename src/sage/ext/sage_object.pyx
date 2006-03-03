@@ -77,6 +77,11 @@ cdef class SageObject:
         except AttributeError:
             return self._repr_()
 
+
+    def plot(self, *args, **kwds):
+        import sage.plot.plot
+        return sage.plot.plot.Plot(str(self))
+
     def __hash__(self):
         return hash(self.__repr__())
 

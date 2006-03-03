@@ -27,7 +27,7 @@ AUTHORS:
 
 import operator
 
-from sage.libs.all import pari, gen
+from sage.libs.all import pari, pari_gen
 from sage.structure.element import Element
 from infinity import infinity
 
@@ -83,7 +83,7 @@ class pAdic(field_element.FieldElement):
         self.__p = int(parent.residue_characteristic())
         self.__parent = parent
 
-        if isinstance(x, gen) and x.type() == "t_PADIC":
+        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
             try:
                 big_oh = x.padicprec(self.__p)
                 x = int(x.lift())

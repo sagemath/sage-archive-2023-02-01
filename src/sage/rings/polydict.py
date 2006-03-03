@@ -65,7 +65,7 @@ class PolyDict:
             PolyDict with representation {(1, 2): 3, (2, 3): 2, (2, 1): 4}
 
             sage: PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1):4}, force_int_exponents=False)
-            PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 2, (2, 1): 4}
+            PolyDict with representation {(2/3, 3, 5): 2, (1, 2, 1): 3, (2, 1): 4}
 
             sage: PolyDict({(2,3):0, (1,2):3, (2,1):4}, remove_zero=True)
             PolyDict with representation {(1, 2): 3, (2, 1): 4}
@@ -401,7 +401,7 @@ class PolyDict:
             sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: g = PolyDict({(Q('2/3'),3,5):3}, force_int_exponents=False)
             sage: f+g
-            PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 5, (2, 1, 1): 4}
+            PolyDict with representation {(2/3, 3, 5): 5, (1, 2, 1): 3, (2, 1, 1): 4}
         """
         if not isinstance(other, PolyDict):
             raise TypeError, "other (=%s) must be a PolyDict."%other
@@ -432,7 +432,7 @@ class PolyDict:
             sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: g = PolyDict({(Q('2/3'),3,5):3}, force_int_exponents=False)
             sage: f*g
-            PolyDict with representation {(5/3, 5, 6): 9, (4/3, 6, 10): 6, (8/3, 4, 6): 12}
+            PolyDict with representation {(8/3, 4, 6): 12, (4/3, 6, 10): 6, (5/3, 5, 6): 9}
 
         Finally we print the result in a nice format.
             sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)

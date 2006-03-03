@@ -19,7 +19,7 @@ import integer_ring
 from integer import Integer
 import rational
 import polynomial_ring
-from sage.libs.all import pari, gen
+from sage.libs.all import pari, pari_gen
 from sage.rings.coerce import bin_op
 import field_element
 
@@ -61,7 +61,7 @@ class FiniteFieldElement(field_element.FieldElement):
         if isinstance(value, str):
             raise TypeError, "value (=%s) must not be a string"%value
         try:
-            if isinstance(value, gen):
+            if isinstance(value, pari_gen):
                 if value.type()[-3:] == "MOD" :
                     self.__value = value
                 else:

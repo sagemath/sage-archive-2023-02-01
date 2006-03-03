@@ -26,6 +26,11 @@ comes with the free ImageMagick tools.
 \note{The HTML output is done via Latex and png images right now,
 sort of like how latex2html works.  Obviously it would be interesting
 to do something using MathML in the long run.}
+
+AUTHOR:
+    -- William Stein (2006-02): initial version
+    -- William Stein (2006-02-27): changed html generation so log directory
+                                   is relocatable (no hardcoded paths).
 """
 
 #*****************************************************************************
@@ -224,7 +229,10 @@ class log_html(Log):
         except:
             L = "\\mbox{error texing object}"
         single_png = '%s/%s.png'%(self._images, n)
-        latex.png(x, single_png, debug=self._debug)
+        try:
+            x.png(single_png)
+        except AttributeError:
+            latex.png(x, single_png, debug=self._debug)
         oi = '%s/images/o%s.html'%(self._dir, n)
         open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre>'%(x, L))
         return """<center> <table border=0 cellpadding=20 cellspacing=2
@@ -233,7 +241,8 @@ class log_html(Log):
                <a href="%s">
                <img src="%s" alt="%s">
                 </a>
-             </td></tr></table> </center>\n<hr>\n"""%(oi, single_png, L)
+             </td></tr></table> </center>\n<hr>\n"""%('images/o%s.html'%n,
+                                                      'images/%s.png'%n, L)
 
     def _filename(self):
         return 'index.html'
@@ -241,7 +250,7 @@ class log_html(Log):
     def _header(self):
         T = self._title()
         inlog = os.path.split(self._input_log_name())[1]
-        return '<html><title>%s</title>\n<body><h1 align=center>%s</h1>\n<h2 align=center><a href="%s">%s</a></h2><pre>'%(
+        return '<html><meta http-equiv="REFRESH" content="4;"><title>%s</title>\n<body><h1 align=center>%s</h1>\n<h2 align=center><a href="%s">%s</a></h2><pre>'%(
             T,T, inlog, inlog)
 
     def _footer(self):

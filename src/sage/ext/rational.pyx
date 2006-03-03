@@ -4,6 +4,8 @@ Rational Numbers
 AUTHORS:
     -- William Stein (2005): first version
     -- William Stein (2006-02-22): floor and ceil (pure fast GMP versions).
+    -- Gonzalo Tornaria and William Stein (2006-03-02): greatly improved
+                    python/GMP conversion; hashing
 """
 
 
@@ -34,6 +36,11 @@ cdef arith.arith_int ai
 ai = arith.arith_int()
 
 include "gmp.pxi"
+
+cdef extern from "mpz_pylong.h":
+    cdef mpz_get_pylong(mpz_t src)
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+    cdef long mpz_pythonhash(mpz_t src)
 
 cdef class Rational(element.FieldElement)
 
@@ -103,16 +110,42 @@ cdef class Rational(element.FieldElement):
         mpq_set_str(self.value, s, 32)
 
     def __set_value(self, x):
+        """
+        EXAMPLES:
+            sage: a = long(901824309821093821093812093810928309183091832091)
+            sage: b = QQ(a); b
+            901824309821093821093812093810928309183091832091
+            sage: QQ(b)
+            901824309821093821093812093810928309183091832091
+            sage: QQ(int(93820984323))
+            93820984323
+            sage: QQ(ZZ(901824309821093821093812093810928309183091832091))
+            901824309821093821093812093810928309183091832091
+            sage: QQ('-930482/9320842317')
+            -930482/9320842317
+            sage: QQ((-930482, 9320842317))
+            -930482/9320842317
+            sage: QQ([9320842317])
+            9320842317
+            sage: QQ(pari(39029384023840928309482842098430284398243982394))
+            39029384023840928309482842098430284398243982394
+            sage: QQ('sage')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert sage to a rational
+        """
         cdef int n
         if isinstance(x, Rational):
             set_from_Rational(self, x)
+
         elif isinstance(x, int):
             i = x
             mpq_set_si(self.value, i, 1)
 
         elif isinstance(x, long):
-            s = "%x"%x
-            mpq_set_str(self.value, s, 16)
+            mpz_set_pylong(mpq_numref(self.value), x)
+            #s = "%x"%x
+            #mpq_set_str(self.value, s, 16)
 
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
@@ -135,13 +168,14 @@ cdef class Rational(element.FieldElement):
 
             self.__set_value(x[0])
 
-        elif isinstance(x, sage.libs.pari.all.gen):
+        elif isinstance(x, sage.libs.pari.all.pari_gen):
             # TODO: figure out how to convert to pari integer in base 16
             s = str(x)
             if mpq_set_str(self.value, s, 0):
                 raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
 
         else:
+
             raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
 
     cdef void set_from_mpq(Rational self, mpq_t value):
@@ -287,11 +321,37 @@ cdef class Rational(element.FieldElement):
         return mpq_get_d(self.value)
 
     def __hash__(self):
-        cdef int n
-        n = mpz_get_si(mpq_numref(self.value)) * \
-            mpz_get_si(mpq_denref(self.value))
+        cdef long n, d
+        n = mpz_pythonhash(mpq_numref(self.value))
+        d = mpz_pythonhash(mpq_denref(self.value))
+        if d == 1:
+            return n
+        n = n ^ d
         if n == -1:
-            return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
+            return -2
+        return n
+
+##         cdef char *s
+##         cdef int h
+
+##         s = mpz_get_str(NULL, 16, mpq_numref(self.value))
+##         h = hash(long(s,16))
+##         free(s)
+##         if mpz_cmp_si(mpq_denref(self.value), 1) == 0:
+##             return h
+##         else:
+##             s = mpz_get_str(NULL, 16, mpq_denref(self.value))
+##             h = h ^ hash(long(s,16))     # xor
+##             if h == -1:    # -1 is not a valid return value
+##                 h = -2
+##             free(s)
+##         return h
+
+        #cdef int n
+        #n = mpz_get_si(mpq_numref(self.value)) * \
+        #    mpz_get_si(mpq_denref(self.value))
+        #if n == -1:
+        #    return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
 
 
     def __getitem__(self, int n):
@@ -461,12 +521,42 @@ cdef class Rational(element.FieldElement):
         return self.numer()
 
     def __int__(self):
-        if mpz_cmp_si(mpq_denref(self.value),1) != 0:
-            raise ValueError, "cannot convert %s to an int"%self
-        return int(self.numerator())
+        """
+        Return coercion of self to Python int.
+
+        This takes the floor of self if self has a denominator (which
+        is consistent with Python's long(floats)).
+
+        EXAMPLES:
+            sage: int(7/3)
+            2
+            sage: int(-7/3)
+            -3
+        """
+        return int(self.__long__())
 
     def __long__(self):
-        return int(self)
+        """
+        Return coercion of self to Python long.
+
+        This takes the floor of self if self has a denominator (which
+        is consistent with Python's long(floats)).
+
+        EXAMPLES:
+            sage: long(7/3)
+            2L
+            sage: long(-7/3)
+            -3L
+        """
+        cdef mpz_t x
+        if mpz_cmp_si(mpq_denref(self.value),1) != 0:
+            mpz_init(x)
+            mpz_fdiv_q(x, mpq_numref(self.value), mpq_denref(self.value))
+            n = mpz_get_pylong(x)
+            mpz_clear(x)
+            return n
+        else:
+            return mpz_get_pylong(mpq_numref(self.value))
 
     def denom(self):
         """

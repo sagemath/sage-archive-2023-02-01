@@ -1,5 +1,8 @@
 r"""
 Elements of the ring $\Z$ of integers
+
+AUTHORS:
+    -- Gonzalo Tornario (2006-03-02): vastly improved python/GMP conversion; hashing
 """
 
 #*****************************************************************************
@@ -25,6 +28,11 @@ import operator
 
 include "gmp.pxi"
 include "interrupt.pxi"  # ctrl-c interrupt block support
+
+cdef extern from "mpz_pylong.h":
+    cdef mpz_get_pylong(mpz_t src)
+    cdef int mpz_set_pylong(mpz_t dst, src) except -1
+    cdef long mpz_pythonhash(mpz_t src)
 
 cdef class Integer(element.EuclideanDomainElement)
 
@@ -122,6 +130,28 @@ cdef class Integer(element.EuclideanDomainElement):
             8
         """
     def __init__(self, x=None):
+        """
+        EXAMPLES:
+            sage: a = long(-901824309821093821093812093810928309183091832091)
+            sage: b = ZZ(a); b
+            -901824309821093821093812093810928309183091832091
+            sage: ZZ(b)
+            -901824309821093821093812093810928309183091832091
+            sage: ZZ('-901824309821093821093812093810928309183091832091')
+            -901824309821093821093812093810928309183091832091
+            sage: ZZ(int(-93820984323))
+            -93820984323
+            sage: ZZ(ZZ(-901824309821093821093812093810928309183091832091))
+            -901824309821093821093812093810928309183091832091
+            sage: ZZ(QQ(-901824309821093821093812093810928309183091832091))
+            -901824309821093821093812093810928309183091832091
+            sage: ZZ(pari('Mod(-3,7)'))
+            4
+            sage: ZZ('sage')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=sage) to an integer
+        """
         if not (x is None):
             if isinstance(x, Integer):
                 set_from_Integer(self, x)
@@ -133,8 +163,11 @@ cdef class Integer(element.EuclideanDomainElement):
                 mpz_set_si(self.value, x)
 
             elif isinstance(x, long):
-                s = "%x"%x
-                mpz_set_str(self.value, s, 16)
+                #_sig_on
+                mpz_set_pylong(self.value, x)
+                #_sig_off
+                #s = "%x"%x
+                #mpz_set_str(self.value, s, 16)
 
             elif isinstance(x, str):
                 if mpz_set_str(self.value, x, 0) != 0:
@@ -146,7 +179,7 @@ cdef class Integer(element.EuclideanDomainElement):
                 set_from_Integer(self, x.numer())
 
 
-            elif isinstance(x, sage.libs.pari.all.gen):
+            elif isinstance(x, sage.libs.pari.all.pari_gen):
                 if x.type() == 't_INTMOD':
                     x = x.lift()
                 # TODO: figure out how to convert to pari integer in base 16 ?
@@ -508,31 +541,36 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __int__(self):
-        cdef char *s
-        s = mpz_get_str(NULL, 32, self.value)
-        n = int(s,32)
-        free(s)
-        return n
+        return int(mpz_get_pylong(self.value))
+
+        #cdef char *s
+        #s = mpz_get_str(NULL, 32, self.value)
+        #n = int(s,32)
+        #free(s)
+        #return n
+
+    def __long__(self):
+        return mpz_get_pylong(self.value)
+        #cdef char *s
+        #s = mpz_get_str(NULL, 32, self.value)
+        #n = long(s,32)
+        #free(s)
+        #return n
 
     def __nonzero__(self):
         return not self.is_zero()
-
-    def __long__(self):
-        cdef char *s
-        s = mpz_get_str(NULL, 16, self.value)
-        n = long(s,16)
-        free(s)
-        return n
 
     def __float__(self):
         return mpz_get_d(self.value)
 
     def __hash__(self):
-        cdef int n
-        n = mpz_get_si(self.value)
-        if n == -1:
-            return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
-        return n
+        return mpz_pythonhash(self.value)
+
+        #cdef int n
+        #n = mpz_get_si(self.value)
+        #if n == -1:
+        #    return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
+        #return n
 
     def factor(self, algorithm='pari'):
         """

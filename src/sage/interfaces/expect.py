@@ -4,6 +4,11 @@ Common Interface Functionality
 See the examples in the other sections for how to use specific
 interfaces.  The interface classes all derive from the generic
 interface that is described in this section.
+
+AUTHORS:
+    -- William Stein (2005): initial version
+    -- William Stein (2006-03-01): got rid of infinite loop on startup
+                                   if client system missing
 """
 
 #*****************************************************************************
@@ -43,6 +48,9 @@ failed_to_start = []
 tmp='%s/tmp'%SAGE_TMP_INTERFACE
 
 class Expect(SageObject):
+    """
+    Expect interface object.
+    """
     def __init__(self, name, prompt, command=None, server=None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
@@ -173,7 +181,7 @@ class Expect(SageObject):
             print "Starting %s"%self.__command.split()[0]
         try:
             self._expect = pexpect.spawn(self.__command, logfile=self.__logfile)
-        except pexpect.ExceptionPexpect:
+        except (pexpect.ExceptionPexpect, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
@@ -187,7 +195,7 @@ class Expect(SageObject):
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
-        except pexpect.TIMEOUT:
+        except (pexpect.TIMEOUT, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
@@ -486,6 +494,9 @@ class Expect(SageObject):
 
 
 class ExpectFunction(SageObject):
+    """
+    Expect function.
+    """
     def __init__(self, parent, name):
         self._parent = parent
         self._name = name
@@ -498,6 +509,9 @@ class ExpectFunction(SageObject):
 
 
 class FunctionElement(SageObject):
+    """
+    Expect function element.
+    """
     def __init__(self, obj, name):
         self._obj = obj
         self._name = name
@@ -507,11 +521,20 @@ class FunctionElement(SageObject):
 
     def __call__(self, *args):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args))
+    def help(self):
+        print self._sage_doc_()
+
+    def _sage_doc_(self):
+        return ''
+
 
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
 class ExpectElement(Element_cmp_, RingElement):
+    """
+    Expect element.
+    """
     def __init__(self, parent, value, is_name=False):
         RingElement.__init__(self, parent)
         self._create = value
@@ -554,6 +577,9 @@ class ExpectElement(Element_cmp_, RingElement):
         self._check_valid()
         P = self.parent()
         return getattr(P, self.name())(*args)
+
+    def _sage_doc_(self):
+        return str(self)
 
     def _cmp_(self, other):
         #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):

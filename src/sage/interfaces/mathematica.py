@@ -191,6 +191,10 @@ and to one in the \sage database directory.
 
     sage.: n.save('n')
     sage.: n.db('n')
+
+AUTHOR:
+    -- William Stein (2005): first version
+    -- Doug Cutrell (2006-03-01): Instructions for use under Cygwin/Windows.
 """
 
 #*****************************************************************************
@@ -263,23 +267,37 @@ In order to use the Mathematica interface you need to have Mathematica
 installed and have a script in your PATH called "math" that runs the
 command-line version of Mathematica.
 
-  (1) You might have to buy Mathematica (for $1880) at
+  (1) You might have to buy Mathematica (for at most $1880) at
       http://www.wolfram.com/.
 
-  (2) * If you're using Linux then the math script comes standard
-        with your Mathematica install.
+  (2) * LINUX: The math script comes standard with your Mathematica install.
 
-      * If you're running Windows, I have no idea how to make a mathematica
-        script to run a command line version of Mathematica, or even if there
-        is a way.  If anybody figures this out email William Stein.
+      * WINDOWS:
+        Create a file named "math", which you place in the SAGE root
+        directory.  The file contained a single line, which was the
+        path to the mathematica math.exe file.  In my case, this was:
 
-      * If you're using OS X, use the following directions, which are based on
-        those at http://support.wolfram.com/applicationpacks/parallel/remoteosxpct2.html
+        "C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe"
+
+        The key points are
+        1) there is a file named "math.exe", and it will generally be
+           located in a place analagous to the above (depending on where
+           Mathematica has been installed).  This file is used only for
+           launching the kernel with a text-based interface.
+        2) a cygwin batch file must be created which executes this file,
+           which means using forward slashes rather than back slashes,
+           and probably surrounding everything in quotes
+        3) this cygwin batch file must be on the path for SAGE (placing
+           it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
+
+      * APPLE OS X: Use following directions, based on those at
+      http://support.wolfram.com/applicationpacks/parallel/remoteosxpct2.html
           (a) create a file called math (in your PATH)
           (b) on the first line type the text "#!/bin/sh" (without quotes)
-          (c) On the second line, type the path to the Mathematica kernel on Mac OS X,
-              followed by $@. For example, if you installed Mathematica 5.0 into your
-              Applications directory on Mac OS X, the second line would read as follows.
+          (c) On the second line, type the path to the Mathematica kernel
+              on Mac OS X, followed by $@. For example, if you installed
+              Mathematica 5.0 into your Applications directory on Mac OS X,
+              the second line would read as follows.
                 /Applications/Mathematica\ 5.0.app/Contents/MacOS/MathKernel $@
           (d) Save the file.
           (e) Make the file executable.

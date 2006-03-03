@@ -183,7 +183,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             return x
         elif isinstance(x, (int, long)):
             return self(x)
-        elif isinstance(x, sage.libs.pari.all.gen) and x.type() == 't_INT':
+        elif isinstance(x, sage.libs.pari.all.pari_gen) and x.type() == 't_INT':
             return self(x)
         raise TypeError, 'no canonical coercion of %s to an integer'%x
 

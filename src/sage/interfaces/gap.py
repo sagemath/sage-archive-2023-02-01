@@ -122,7 +122,9 @@ AUTHORS:
     -- David Joyner and William Stein; initial version(s)
     -- William Stein (2006-02-01): modified gap_console command
        so it uses exactly the same startup command as Gap.__init__.
-
+    -- William Stein (2006-03-02): added tab completions:
+             gap.[tab], x = gap(...), x.[tab], and docs, e.g.,
+                  gap.function?  and x.function?
 """
 
 #*****************************************************************************
@@ -140,7 +142,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from expect import Expect, ExpectElement, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from sage.misc.misc import SAGE_ROOT, is_64_bit
 from IPython.genutils import page
 import re
@@ -226,6 +228,11 @@ class Gap(Expect):
     def _continuation_prompt(self):
         return '> '
 
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return GapFunction(self, attrname)
+
     def load_package(self, pkg, verbose=False):
         """
         Load the Gap package with the given name.
@@ -259,7 +266,7 @@ class Gap(Expect):
 
     # Todo -- this -- but there is a tricky "when does it end" issue!
     # Maybe do via a file somehow?
-    def help(self, s):
+    def help(self, s, pager=True):
         """
         Print help on a given topic.
         """
@@ -271,7 +278,10 @@ class Gap(Expect):
         else:
             (sline,) = match.groups()
             F = open(tmp,"r")
-            page(F.read(),start = int(sline)-1)
+            if pager:
+                page(F.read(), start = int(sline)-1)
+            else:
+                return F.read()
 
     def set(self, var, value):
         """
@@ -289,6 +299,11 @@ class Gap(Expect):
         Get the value of the variable var.
         """
         return self.eval('%s;'%var, newlines=False)
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return GapFunction(self, attrname)
 
     def _pre_interact(self):
         self._eval_line("$SAGE.StartInteract();")
@@ -448,6 +463,13 @@ class Gap(Expect):
     def _object_class(self):
         return GapElement
 
+    def trait_names(self):
+        try:
+            return self.__trait_names
+        except AttributeError:
+            self.__trait_names = eval(self.eval('NamesSystemGVars()')) + \
+                                 eval(self.eval('NamesUserGVars()'))
+        return self.__trait_names
 
 
 
@@ -474,6 +496,9 @@ def gap_reset_workspace(max_workspace_size=None):
 
 
 class GapElement(ExpectElement):
+    def __getattr__(self, attrname):
+        return GapFunctionElement(self, attrname)
+
     def __getitem__(self, n):
         self._check_valid()
         if not isinstance(n, tuple):
@@ -552,8 +577,29 @@ class GapElement(ExpectElement):
         MS = MatrixSpace(F,m,n)
         return MS(M)
 
+    def trait_names(self):
+        if '__trait_names' in self.__dict__:
+            return self.__trait_names
+        P = self.parent()
+        v = P.eval('$SAGE.OperationsAdmittingFirstArgument(%s)'%self.name())
+        v = v.replace('Tester(','').replace('Setter(','').replace('<Operation ','').replace('>','').replace(')','')
+        v = eval(v)
+        v = list(set(v))
+        v.sort()
+        self.__trait_names = v
+        return v
 
 
+class GapFunctionElement(FunctionElement):
+    def _sage_doc_(self):
+        M = self._obj.parent()
+        return M.help(self._name, pager=False)
+
+
+class GapFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M.help(self._name, pager=False)
 
 
 def is_GapElement(x):

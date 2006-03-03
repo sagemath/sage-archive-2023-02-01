@@ -20,6 +20,12 @@ sigjmp_buf env;
 
    IMPORTANT:
        Do *not* put these in the __init__ method, or you'll get crashes.
+
+       Do not put these around any non-pure C code!!!!
+
+       If you need to do a check of control-c inside a loop, e.g., when
+       constructing a matrix, put _sig_check instead of using _sig_on
+       then _sig_off.
 */
 
 
@@ -97,6 +103,7 @@ static int __sig__n, __sig_str__n;
 
 #define _sig_off signal(SIGINT, last_handler); signal(SIGALRM, last_handler); signal(SIGFPE, last_handler); signal(SIGABRT, last_handler);
 
+#define _sig_check _sig_on _sig_off
 
 #endif /* FOO_H */
 

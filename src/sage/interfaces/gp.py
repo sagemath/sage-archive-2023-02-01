@@ -46,7 +46,7 @@ of integrals.
 Note that gp ASCII plots \emph{do} work in SAGE, as follows:
 
     sage.: print gp.eval("plot(x=0,6,sin(x))")
-    ... (beautiful graph of sin) ...
+    [ plot of sin(x) ]
 
 The GP interface reads in even very long input (using files) in a
 robust manner, as long as you are creating a new object.
@@ -55,26 +55,29 @@ robust manner, as long as you are creating a new object.
     sage: a = gp.eval(t)
     sage: a = gp(t)
 
+In \sage, the PARI large galois groups datafiles should be installed
+by default:
+    sage: f = gp('x^9 - x - 2')
+    sage: f.polgalois()
+    [362880, -1, 34, "S9"]
 
 AUTHORS:
     -- William Stein
     -- David Joyner (some examples)
+    -- William Stein (2006-03-01): added tab completion for methods:
+              gp.[tab] and x = gp(blah); x.[tab]
+    -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
 """
 
-#*****************************************************************************
+##########################################################################
+#
 #       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#
+##########################################################################
 
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
@@ -122,6 +125,14 @@ class Gp(Expect):
     def _read_in_file_command(self, filename):
         return 'read("%s")'%filename
 
+    def trait_names(self):
+        try:
+            b = self.__builtin
+        except AttributeError:
+            b = self.eval('?*').split()
+            self.__builtin = b
+        return b + self.eval('?0').split()
+
     def get_precision(self):
         """
         Return the current PARI precision for real number computations.
@@ -131,6 +142,8 @@ class Gp(Expect):
         j = a.find('significant')
         return int(a[i+1:j])
 
+    get_real_precision = get_precision
+
     def set_precision(self, prec=None):
         """
         Sets the current PARI precision (in decimal digits) for real number computations,
@@ -139,6 +152,8 @@ class Gp(Expect):
         old = self.get_precision()
         self.eval('\\p %s'%int(prec))
         return old
+
+    set_real_precision = set_precision
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         a = Expect._eval_line(self, line,
@@ -220,7 +235,18 @@ class Gp(Expect):
         return '=='
 
     def help(self, command):
-        print self.eval('?%s'%command)
+        return self.eval('?%s'%command).strip()
+
+    def new_with_bits_prec(self, s, precision = 0):
+        old_prec = self.get_real_precision()
+        prec = int(precision/3.4) - 1
+        if not precision:
+            self.set_real_precision(prec)
+            x = self(s)
+            self.set_real_precision(old_prec)
+        else:
+            x = self(s)
+        return x
 
 
 class GpElement(ExpectElement):
@@ -239,11 +265,11 @@ class GpElement(ExpectElement):
         sage: loads(E.dumps()) == E
         False
         sage: loads(E.dumps())
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598813 + 1.068749776356193066159263547*I, -1.554824121162190164275074561, 0.7774120605810950821375372807 - 1.727349756386839866714149879*I, 2.971915267817909670771647950]    # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584993, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915040 + 1.1929240198764671003000000000000000000 E-38*I, 0.77741206058109508213753728054914575198 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896059]   # 64-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598814 + 1.068749776356193066159263547*I, -1.554824121162190164275074561 + 3.415713103000000000000000000 E-29*I, 0.7774120605810950821375372806 - 1.727349756386839866714149879*I, 2.971915267817909670771647951] # 32-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169750, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915039 + 7.9528267991764473360000000000000000000 E-39*I, 0.77741206058109508213753728054914575197 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896060]  # 64-bit
         sage: E
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598813 + 1.068749776356193066159263547*I, -1.554824121162190164275074561, 0.7774120605810950821375372807 - 1.727349756386839866714149879*I, 2.971915267817909670771647950]   # 32-bit
-        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169751, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584993, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915040 + 1.1929240198764671003 E-38*I, 0.77741206058109508213753728054914575198 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896059] # 64-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.618909932267371342378000940, -0.3155450338663143288109995302 - 2.092547096911958607981689447*I, -0.3155450338663143288109995302 + 2.092547096911958607981689447*I]~, 2.780740013766729771063197627, -1.390370006883364885531598814 + 1.068749776356193066159263547*I, -1.554824121162190164275074561 + 3.415713103 E-29*I, 0.7774120605810950821375372806 - 1.727349756386839866714149879*I, 2.971915267817909670771647951]   # 32-bit
+        [1, 2, 3, 4, 5, 9, 11, 29, 35, -183, -3429, -10351, 6128487/10351, [-1.6189099322673713423780009396072169750, -0.31554503386631432881099953019639151248 - 2.0925470969119586079816894466366945829*I, -0.31554503386631432881099953019639151248 + 2.0925470969119586079816894466366945829*I]~, 2.7807400137667297710631976271813584994, -1.3903700068833648855315988135906792497 + 1.0687497763561930661592635474375038788*I, -1.5548241211621901642750745610982915039 + 7.952826799176447336 E-39*I, 0.77741206058109508213753728054914575197 - 1.7273497563868398667141498789110695181*I, 2.9719152678179096707716479509361896060]  # 64-bit
 
     The two elliptic curves look the same, but internally the
     floating point numbers are slightly different.
@@ -273,19 +299,21 @@ class GpElement(ExpectElement):
         return  # clearing object is pointless, since it wastes time, and PARI/GP
                 # doesn't really free used memory anyways!
 
+    def trait_names(self):
+        return self.parent().trait_names()
 
-class GpFunction(ExpectFunction):
-    def __repr__(self):
-        return "GP/PARI Function: %s\n%s"%(self._name,
-                                  self._parent.help(self._name))
 
 class GpFunctionElement(FunctionElement):
-    def __repr__(self):
-        try:
-            return str(self._obj.parent()('%s.%s'%(self._obj.name(),
-                                                   self._name)))
-        except TypeError:
-            return self._obj.parent().help(self._name)
+    def _sage_doc_(self):
+        M = self._obj.parent()
+        return M.help(self._name)
+
+
+class GpFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M.help(self._name)
+
 
 
 
@@ -307,7 +335,7 @@ def gp_version():
     """
     EXAMPLES:
         sage: gp.version()
-        ((2, 2, 11), 'GP/PARI CALCULATOR Version 2.2.11 (alpha)')
+        ((2, 2, 12), 'GP/PARI CALCULATOR Version 2.2.12 (beta)')
     """
     v = gp.eval(r'\v')
     i = v.find("Version ")

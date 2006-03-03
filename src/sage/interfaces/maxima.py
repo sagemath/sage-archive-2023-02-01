@@ -1123,7 +1123,8 @@ class MaximaElement(ExpectElement):
         Note that GP also does numerical integration, and can do
         so to very high precision very quickly:
             sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
-            0.5284822353142307136179049194
+            0.5284822353142307136179049194             # 32-bit
+            0.52848223531423071361790491935415653021   # 64-bit
             sage: _ = gp.set_precision(80)
             sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
             0.52848223531423071361790491935415653021675547587292866196865279321015401702040079

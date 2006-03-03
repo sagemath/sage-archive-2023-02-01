@@ -263,11 +263,12 @@ class MatrixSpace_generic(gens.Generators):
         R = self.base_ring()
         if coerce:
             X = [R(a) for a in X]
+        zero = R(0)
         def f():
             if random.random() < prob:
                 return random.choice(X)
             else:
-                return 0
+                return zero
         v = [f() for _ in xrange(self.nrows()*self.ncols())]
         return self(v, coerce_entries=False, copy=False)
 

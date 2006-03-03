@@ -22,6 +22,8 @@ import sage.rings.ring_element as ring_element
 import real_field
 import sage.misc.misc
 import sage.libs.pari.all as pari
+import sage.interfaces.gp as gp
+import sage.interfaces.all
 import integer
 import infinity
 #from sage.databases.odlyzko import zeta_zeroes
@@ -49,10 +51,21 @@ class ComplexNumber(ring_element.RingElement):
                 real, imag = real
             elif isinstance(real, complex):
                 real, imag = real.real, real.imag
-            elif isinstance(real, pari.gen):
+            elif isinstance(real, pari.pari_gen):
                 x = real
+                orig = pari.pari.get_real_precision()
+                pari.pari.set_real_precision(int(parent.prec()*3.33)+1)
                 real = str(x.real()).replace(' E','e')
                 imag = str(x.imag()).replace(' E','e')
+                pari.pari.set_real_precision(orig)
+            elif isinstance(real, gp.GpElement):
+                x = real
+                GP = x.parent()
+                orig = GP.get_real_precision()
+                GP.set_real_precision(int(parent.prec()*3.33)+1)
+                real = str(x.real()).replace(' E','e')
+                imag = str(x.imag()).replace(' E','e')
+                GP.set_real_precision(orig)
             else:
                 imag = 0
         try:
@@ -90,6 +103,19 @@ class ComplexNumber(ring_element.RingElement):
         except AttributeError:
             self.__pari = pari.pari.new_with_bits_prec(str(self), self.prec())
             return self.__pari
+
+    def _pari_init_(self):
+        """
+        This is only for the gp interpreter; can lose precision.
+        """
+        return str(self)
+        #if G is None:
+        #    G = sage.interfaces.all.gp
+        #try:
+        #    return self.__gp[G]
+        #except AttributeError:
+        #    self.__gp = gp.new_with_bits_prec(str(self), self.prec())
+        #    return self.__gp
 
     def _add_(self, right):
         return ComplexNumber(self.parent(), self.__re + right.__re, self.__im + right.__im)
@@ -324,7 +350,7 @@ class ComplexNumber(ring_element.RingElement):
             sage: i = ComplexField(200).0
             sage: (1+i).cotan()
             0.21762156185440268136513424360523807352075436916785404091068113 - 0.86801414289592494863584920891627388827343874994609327121115055*I   # 32-bit
-            0.21762156185440268136513424360523807352075436916785404090999986 - 0.86801414289592494863584920891627388827343874994609327120999992*I   # 64-bit
+            0.21762156185440268136513424360523807352075436916785404091068113 - 0.86801414289592494863584920891627388827343874994609327121115055*I   # 64-bit
             sage: i = ComplexField(220).0
             sage: (1+i).cotan()
              0.21762156185440268136513424360523807352075436916785404091068124239236 - 0.86801414289592494863584920891627388827343874994609327121115071646176*I     # 32-bit
@@ -445,13 +471,13 @@ class ComplexNumber(ring_element.RingElement):
             sage: z = 1 + i
             sage: z.exp()
             1.4686939399158851571389675973266042613269567366290087227976756763109369658595121387227244973 + 2.2873552871788423912081719067005018089555862566683556809386581141036471601893454092673448502*I   # 32-bit
-            1.4686939399158851571389675973266042613269567366290087227976756763109369658595121387199999995 + 2.2873552871788423912081719067005018089555862566683556809386581141036471601893454092699999982*I   # 64-bit
+            1.4686939399158851571389675973266042613269567366290087227976756763109369658595121387227244973 + 2.2873552871788423912081719067005018089555862566683556809386581141036471601893454092673448502*I   # 64-bit
         """
         return self.parent()(self._pari_().exp())
 
     def gamma(self):
         """
-        Return the Riemann zeta function evaluated at this complex number.
+        Return the Gamma function evaluated at this complex number.
 
         EXAMPLES:
             sage: i = ComplexField(30).gen()
@@ -462,22 +488,27 @@ class ComplexNumber(ring_element.RingElement):
 
     def gamma_inc(self, t):
         """
-        Return the Riemann zeta function evaluated at this complex number.
+        Return the incomplete Gamma function evaluated at this complex
+        number.
 
         EXAMPLES:
             sage: C, i = ComplexField(30).objgen()
-            sage: (1+i).gamma_inc(2+3*i)
+            sage: (1+i).gamma_inc(2 + 3*i)
             0.0020969148609 - 0.059981913655*I
             sage: (1+i).gamma_inc(5)
             -0.0013781309353 + 0.0065198200173*I
-            sage: C(2).gamma_inc(1+i)
+            sage: C(2).gamma_inc(1 + i)
             0.70709209610 - 0.42035364080*I
-            sage: gamma_inc(2, 1+i)
+            sage: gamma_inc(2, 1 + i)
             0.70709209610 - 0.42035364080*I
             sage: gamma_inc(2, 5)
             0.040427681994512799
         """
-        t = self.parent()(t)._pari_()
+        # unfortunately we have to use GP for computation of
+        # incomplete gamma because of problem in implemenentation of
+        # it via the PARI C library.
+        #t = self.parent()(t)._gp_()
+        #return self.parent()(self._gp_().incgam(t))
         return self.parent()(self._pari_().incgam(t))
 
     def log(self):
@@ -513,7 +544,7 @@ class ComplexNumber(ring_element.RingElement):
             sage: i = ComplexField(200).0
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658833981 + 0.70710678118654752440084436210484903928483593768847403658833981*I   # 32-bit
-            0.70710678118654752440084436210484903928483593768847403658999949 + 0.70710678118654752440084436210484903928483593768847403658999949*I   # 64-bit
+            0.70710678118654752440084436210484903928483593768847403658833981 + 0.70710678118654752440084436210484903928483593768847403658833981*I   # 64-bit
 
         """
         return self.parent()(self._pari_().sqrt())

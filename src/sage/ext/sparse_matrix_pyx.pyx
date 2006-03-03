@@ -6,23 +6,17 @@ AUTHOR:
    -- William Stein (2006-02-12): added set_row_to_multiple_of_row
 """
 
-#****-*-python-***************************************************************
+#############################################################################
 #       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#############################################################################
 
 import random
-
 
 import sage.misc.misc as misc
 
@@ -39,7 +33,7 @@ include "cdefs.pxi"
 include "gmp.pxi"
 include 'interrupt.pxi'
 
-START_PRIME = 20011  # used for modular algorithms
+START_PRIME = 20011  # used for multi-modular algorithms
 
 #################################################################
 # A *sparse* c_vector_modint is stored using the following
@@ -502,7 +496,7 @@ cdef class Matrix_modint:
 
     def __init__(self, int p, int nrows, int ncols, object entries=[]):
         """
-        p should be a prime <46340 and entries should be a list of triples
+        p should be a prime < 46340 and entries should be a list of triples
         (i,j,x), where 0 <= i < nrows, 0 <= j < ncols, and x is an integer
         which need not be reduced modulo p.  Then the i,j entry of the matrix
         is set to x.  It is OK for some x to be zero.
@@ -513,6 +507,9 @@ cdef class Matrix_modint:
         self.nr = nrows
         self.nc = ncols
         self.__pivots = []
+
+        if len(entries) == 0:
+            return
 
         _sig_on
         for i, j, x in entries:
@@ -646,10 +643,10 @@ cdef class Matrix_modint:
     def echelon(self):
         """
         Replace self by its reduction to reduced row echelon form.
-        ALGORITHM:
-        We use Gauss elimination, which is slightly intelligent, in these
-        sense that we clear each column using a row with the minimum number
-        of nonzero entries.
+
+        ALGORITHM: We use Gauss elimination, which is slightly
+        intelligent, in these sense that we clear each column using a
+        row with the minimum number of nonzero entries.
         """
         cdef int i, r, c, a0, a_inverse, b, min, min_row, start_row
         cdef c_vector_modint tmp
@@ -671,6 +668,7 @@ cdef class Matrix_modint:
                     #endif
                 #endif
             #endfor
+
             if min_row != -1:
                 r = min_row
                 #print "min number of entries in a pivoting row = ", min
@@ -726,10 +724,10 @@ cdef class Matrix_modint:
 #
 #############################################################
 cdef struct mpq_vector:
-    mpq_t *entries   # array of nonzero entries
-    int *positions   # positions of those nonzero entries, starting at 0
-    int degree       # the degree of this sparse vector
-    int num_nonzero  # the number of nonzero entries of this vector.
+    mpq_t *entries      # array of nonzero entries
+    int   *positions    # positions of those nonzero entries, starting at 0
+    int    degree       # the degree of this sparse vector
+    int    num_nonzero  # the number of nonzero entries of this vector.
 
 cdef int allocate_mpq_vector(mpq_vector* v, int num_nonzero) except -1:
     """
@@ -1243,27 +1241,45 @@ cdef class Matrix_mpq:
 
     def __init__(self, int nrows, int ncols, object entries=[]):
         """
-        entries should be a list of triples (i,j,x), where 0 <= i <
-        nrows, 0 <= j < ncols, and x is a rational number.  Then the
-        i,j entry of the matrix is set to x.  It is OK for some x to
-        be zero.
+
+        INPUT:
+            nrows -- number of rows
+            ncols -- number of columns
+            entries -- list of triples (i,j,x), where 0 <= i < nrows,
+                       0 <= j < ncols, and x is a rational number.
+                       Then the i,j entry of the matrix is set to x.
+                       It is OK for some x to be zero.
+                or, list of all entries of the matrix (dense representation).
         """
-        cdef mpq_t z
         cdef object s
-        mpq_init(z)
+        cdef int ii, jj, k
+        cdef rational.Rational z
+
         self.nr = nrows
         self.nc = ncols
         self.__pivots = []
-        _sig_on
-        for i, j, x in entries:
-            #if PyErr_CheckSignals(): raise KeyboardInterrupt
+        if len(entries) > 0 and not isinstance(entries[0], tuple):
+            # dense input representation
+            k = 0
+            for ii from 0 <= ii < nrows:
+                _sig_check
+                for jj from 0 <= jj < ncols:
+                    z = entries[k]
+                    if mpq_sgn(z.value):         # if z is nonzero
+                        # TODO -- this takes a lot of time.  NOTE -- optimizing
+                        # this is probably not worth it since this code
+                        # should only be used by truly sparse matrices.
+                        mpq_vector_set_entry(&self.rows[ii], jj, z.value)
+                    k = k + 1
+        else:
+            for i, j, x in entries:
+                z = x
+                _sig_check
+                if mpq_sgn(z.value):         # if z is nonzero
+                    mpq_vector_set_entry(&self.rows[i], j, z.value)
 
-            s = str(x)
-            mpq_set_str(z, s, 0)   # implicit conversion of s to a char*
-            if mpq_sgn(z):      # if z is nonzero
-                mpq_vector_set_entry(&self.rows[i], j, z)
-        _sig_off
-        mpq_clear(z)
+    def copy(self):
+        raise NotImplementedError, "TODO"
 
     def linear_combination_of_rows(self, Vector_mpq v):
         if self.nr != v.degree():
@@ -1466,6 +1482,29 @@ cdef class Matrix_mpq:
     def ncols(self):
         return self.nc
 
+    def matrix_modint(self, int n):
+        """
+        Return reduction of this matrix modulo the integer $n$.
+        """
+        cdef int i, j
+        cdef Matrix_modint A
+        cdef unsigned int num, den
+        cdef mpq_vector* v
+
+        A = Matrix_modint(n, self.nr, self.nc)
+        for i from 0 <= i < self.nr:
+            v = &self.rows[i]
+            for j from 0 <= j < v.num_nonzero:
+                if mpz_cmp_si(mpq_denref(v.entries[j]), 1) == 0:
+                    set_entry(&A.rows[i], v.positions[j],
+                              mpz_fdiv_ui(mpq_numref(v.entries[j]), n))
+                else:
+                    num = mpz_fdiv_ui(mpq_numref(v.entries[j]), n)
+                    den = mpz_fdiv_ui(mpq_denref(v.entries[j]), n)
+                    set_entry(&A.rows[i], v.positions[j],
+                              int((num * ai.inverse_mod_int(den, n)) % n))
+        return A
+
     def swap_rows(self, int n1, int n2):
         """
         Swap the rows in positions n1 and n2
@@ -1484,9 +1523,9 @@ cdef class Matrix_mpq:
         Replace self by its reduction to reduced row echelon form.
 
         ALGORITHM:
-        We use Gauss elimination, which is slightly intelligent, in these
-        sense that we clear each column using a row with the minimum number
-        of nonzero entries.
+        We use Gauss elimination, which is slightly intelligent, in
+        these sense that we clear each column using a row with the
+        minimum number of nonzero entries.
 
         WARNING: There is no reason to use the code below, except
                  for testing this class.  It is *vastly* faster to use

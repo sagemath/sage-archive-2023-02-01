@@ -1,5 +1,9 @@
 """
 Polynomial rings.
+
+AUTHOR:
+    -- William Stein (2004): first version
+    -- Didier Deshom <dfdeshom@gmail.com> (2006-03-01): optimization to _pow.
 """
 
 #*****************************************************************************
@@ -1149,7 +1153,18 @@ cdef class Polynomial_rational(element.RingElement):
             self[i] = v[i]
 
     def _pow(self, n):
-        # We may assume the input n is an integer, since the
+        """
+        EXAMPLES:
+            sage: x = QQ['x'].0
+            sage: f = x^3 + 2*x^2 + 323
+            sage: f^3
+            x^9 + 6*x^8 + 12*x^7 + 977*x^6 + 3876*x^5 + 3876*x^4 + 312987*x^3 + 625974*x^2 + 33698267
+
+        AUTHORS:
+            -- William Stein and Didier Deshom
+        """
+        # We may assume the input n is an integer (not a rational or something),
+        # since the
         # function _pow_ is called by __pow__ after doing the conversion.
         ans = Polynomial_rational()
         ans[0] = 1
@@ -1157,11 +1172,10 @@ cdef class Polynomial_rational(element.RingElement):
         if n < 0:
             raise ValueError, "power n must be nonnegative"
         while True:
-            if n%2 != 0:
-                ans = ans * apow
-            n = n/2
+            if n&1 > 0: ans = ans*apow
+            n = n >> 1
             if n != 0:
-                apow = apow * apow
+                apow = apow*apow
             else:
                 break
         return ans

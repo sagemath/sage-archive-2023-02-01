@@ -20,7 +20,7 @@ void isogenies()
  {if (gequal(TWCOND,stoi(11))) isogN11(); if (gequal(TWCOND,stoi(17))) isogN17();
   if (gequal(TWCOND,stoi(19))) isogN19(); if (gequal(TWCOND,stoi(37))) isogN37();
   if (ISOG!=1) return;
-  if (carreparfait(gsub(TWCOND,gmul2n(gun,6)))) isogNsz(); return;
+  if (Z_issquarerem(gsub(TWCOND,gmul2n(gun,6)),NULL)) isogNsz(); return;
  }
 
  CURV=gcopy(CURVE); CURV2=gcopy(CURVE); CURV3=gcopy(CURVE);

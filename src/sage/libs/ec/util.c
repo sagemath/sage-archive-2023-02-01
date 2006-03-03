@@ -274,7 +274,7 @@ int KnownDiffOptimal(GEN C)
 
  E=gsub(D,gmul2n(gun,6));
  if (gsigne(D)==1)
- {if (carreparfait(E))
+ {if (Z_issquarerem(E, NULL))
   {if (isprime(D)) {if (gequal(c4,gsub(D,gmul2n(gun,4)))) return(2);}
    if (mod16(D)==0)
    {if (isprime(gmul2n(D,-4)))
@@ -283,7 +283,7 @@ int KnownDiffOptimal(GEN C)
   }
  }
  E=gadd(D,gmul2n(gun,6));
- if (carrecomplet(E,&S))
+ if (Z_issquarerem(E,&S))
  {p=gsub(S,gmul2n(gun,3));
   P=isprimepower(gabs(p,-1)); Q=isprimepower(gadd(p,gmul2n(gun,4)));
   if (!gequal(P,gzero) && !gequal(Q,gzero))

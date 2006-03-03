@@ -713,7 +713,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 raise TypeError, "error coercing %s into %s"%(x, self)
 
         if isinstance(x, (int, long, integer.Integer, rational.Rational,
-                          pari.gen)):
+                          pari.pari_gen)):
 
             return finite_field_element.FiniteFieldElement(self, x)
 

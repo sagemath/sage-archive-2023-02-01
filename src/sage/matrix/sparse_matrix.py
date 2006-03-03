@@ -820,6 +820,7 @@ class Sparse_matrix_rational(Sparse_matrix_generic):
         """
         Returns echelon form of self, possibly modifying self by rescaling.
         Uses a sparse multi-modular method.
+
         ALGORITHM:
         The following is a modular algorithm for computing the echelon
         form.  Define the height of a matrix to be the max of the

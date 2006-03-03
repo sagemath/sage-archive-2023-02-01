@@ -47,7 +47,7 @@ void dodisk()
     if (ISOG!=1)
     {if (ISPRIME)
      {which=1;
-      if (carreparfait(gsub(COND,gmul2n(gun,6)))) which=2;
+      if (Z_issquarerem(gsub(COND,gmul2n(gun,6)),NULL)) which=2;
       if (gequal(COND,stoi(11))) which=2; if (gequal(COND,stoi(17))) which=3;
       if (gequal(COND,stoi(19))) which=2; if (gequal(COND,stoi(37))) which=2;
       X0CURVE=ellinit0((GEN) CURVES[which],1,ELLACC);

@@ -238,14 +238,17 @@ cdef class MonoidElement(Element):
             a = ~self
         elif n == 0:
             return power
-        i = 0
-        apow2 = a
-        while (n>>i) > 0:
-            if (n>>i) & 1:
-                power = power * apow2
-            if n == 0: break   # to not waste time doing an extra multiplication/increment
-            apow2 = apow2 * apow2
-            i = i+1
+
+        power = self.parent()(1)
+        apow = a
+        while True:
+            if n&1 > 0: power = power*apow
+            n = n >> 1
+            if n != 0:
+                apow = apow*apow
+            else:
+                break
+
         return power
 
 

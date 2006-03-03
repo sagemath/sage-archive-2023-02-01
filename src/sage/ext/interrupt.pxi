@@ -5,5 +5,5 @@
 ################################################################
 
 cdef extern from 'interrupt.h':
-    int _sig_on, _sig_off
+    int _sig_on, _sig_off, _sig_check
     void _sig_str(char*)

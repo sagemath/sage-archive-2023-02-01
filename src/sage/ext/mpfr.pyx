@@ -1260,7 +1260,7 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def zeta(self):
-        """
+        r"""
         Return the Riemann zeta function evaluated at this real number.
 
         \note{PARI is vastly more efficient at computing the Riemann zeta
@@ -1279,9 +1279,16 @@ cdef class RealNumber(element.RingElement):
 
         Computing zeta using PARI is much more efficient in difficult cases.
         Here's how to compute zeta with at least a given precision:
+
              sage: z = pari.new_with_bits_prec(2, 53).zeta(); z
-             1.6449340668482264364724151666460      # 32-bit
-             1.6449340668482264365                  # 64-bit
+             1.644934066848226436472415167              # 32-bit
+             1.6449340668482264364724151666460251892    # 64-bit
+
+        Note that the number of bits of precision in the constructor only
+        effects the internel precision of the pari number, not the number
+        of digits that gets displayed.  To increase that you must
+        use \code{pari.set_real_precision}.
+
              sage: type(z)
              <type 'gen.gen'>
              sage: R(z)

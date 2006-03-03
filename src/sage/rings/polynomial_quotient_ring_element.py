@@ -179,7 +179,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: R, x = PolynomialRing(QQ).objgen()
             sage: S = R.quotient(x^3-2, 'a'); a = S.gen()
             sage: long(S(10))
-            10
+            10L
             sage: long(a)
             Traceback (most recent call last):
             ...

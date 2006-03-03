@@ -57,7 +57,7 @@ import sage.groups.abelian
 import number_field_element
 
 
-from sage.libs.all import pari, gen
+from sage.libs.all import pari, pari_gen
 
 Q = rational_field.RationalField()
 Z = integer_ring.IntegerRing()
@@ -137,7 +137,8 @@ class NumberField_generic(field.Field):
                 return x
             # todo: more general coercision if embedding have been asserted
 
-        if not isinstance(x, (int, long, rational.Rational, integer.Integer, gen, list)):
+        if not isinstance(x, (int, long, rational.Rational,
+                              integer.Integer, pari_gen, list)):
             raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
         return number_field_element.NumberFieldElement(self, x)

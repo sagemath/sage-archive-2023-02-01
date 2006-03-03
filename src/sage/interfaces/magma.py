@@ -35,7 +35,7 @@ Some Magma functions have optional ``parameters'', which
 are arguments that in Magma go after a colon.  In SAGE,
 you pass these using named function arguments.  For example,
 
-    sage: E = magma.new('EllipticCurve([0,1,1,-1,0])')
+    sage: E = magma('EllipticCurve([0,1,1,-1,0])')
     sage: E.Rank(Bound = 5)
     0
 
@@ -45,11 +45,16 @@ Some Magma functions return more than one value.
 You can control how many you get using the \code{nvals}
 named parameter to a function call:
 
-    sage: n = magma.new(100)
+    sage: n = magma(100)
     sage: n.IsSquare(nvals = 1)
     true
     sage: n.IsSquare(nvals = 2)
     (true, 10)
+    sage: n = magma(-2006)
+    sage: n.Factorization()
+    [ <2, 1>, <17, 1>, <59, 1> ]
+    sage: n.Factorization(nvals=2)
+    ([ <2, 1>, <17, 1>, <59, 1> ], -1)
 
 \subsection{Long Input}
 The Magma interface reads in even very long input (using files) in a
@@ -58,6 +63,11 @@ robust manner.
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = magma.eval(t)
     sage: a = magma(t)
+
+AUTHOR:
+    -- William Stein (2005): initial version
+    -- William Stein (2006-02-28): added extensive tab completion and interactive
+                                   IPython documentation support.
 """
 
 #*****************************************************************************
@@ -76,8 +86,12 @@ robust manner.
 #*****************************************************************************
 
 from sage.structure.element import RingElement
-from expect import console, Expect, ExpectElement, FunctionElement
+from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
+
+import sage.misc.misc
+
+INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
 
 class Magma(Expect):
     """
@@ -113,6 +127,11 @@ class Magma(Expect):
 
     def _continuation_prompt(self):
         return self._prompt
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return MagmaFunction(self, attrname)
 
     def eval(self, x):
         x = str(x).rstrip()
@@ -154,6 +173,11 @@ class Magma(Expect):
 
     def attach(self, filename):
         self.eval('Attach("%s")'%filename)
+    Attach = attach
+
+    def attach_spec(self, filename):
+        self.eval('AttachSpec("%s")'%filename)
+    AttachSpec = attach_spec
 
     def _next_var_name(self):
         if self.__seq == 0:
@@ -192,6 +216,8 @@ class Magma(Expect):
             raise TypeError, "Error executing Magma code:\n%s"%out
         return ans
 
+
+
     #def new(self, x):
     #    if isinstance(x, MagmaElement) and x.parent() == self:
     #        return x
@@ -206,6 +232,21 @@ class Magma(Expect):
     def _right_list_delim(self):
         return "*]"
 
+    def _assign_symbol(self):
+        return ":="
+
+    def _equality_symbol(self):
+        return 'eq'
+
+    # For efficiency purposes, you should definitely override these
+    # in your derived class.
+    def _true_symbol(self):
+        return 'true'
+
+    def _false_symbol(self):
+        return 'false'
+
+
     def console(self):
         magma_console()
 
@@ -214,6 +255,40 @@ class Magma(Expect):
 
     def help(self, s):
         print magma.eval('? %s'%s)
+
+    def trait_names(self, verbose=True, use_disk_cache=True):
+        try:
+            return self.__trait_names
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__trait_names = sage.misc.persist.load(INTRINSIC_CACHE)
+                    return self.__trait_names
+                except IOError:
+                    pass
+            if verbose:
+                print "Creating list of all MAGMA intrinsics for use in tab completion."
+                print "This takes a long time the first time, but is saved to the"
+                print "file '%s' for future use."%INTRINSIC_CACHE
+            T = self.eval('ListTypes()').split()
+            N = []
+            for t in T:
+                if verbose:
+                    print t
+                try:
+                    s = self.eval('ListSignatures(%s)'%t)
+                    for x in s.split('\n'):
+                        i = x.find('(')
+                        N.append(x[:i])
+                except RuntimeError:  # weird internal problems in MAGMA type system
+                    pass
+            N = list(set(N))
+            N.sort()
+            sage.misc.persist.save(N, INTRINSIC_CACHE)
+            self.__trait_names = N
+            return N
+
 
 class MagmaFunctionElement(FunctionElement):
     def __call__(self, *args, **kwds):
@@ -228,20 +303,55 @@ class MagmaFunctionElement(FunctionElement):
                                params = kwds,
                                nvals = nvals)
 
-    def help(self):
+    def _sage_doc_(self):
         M = self._obj.parent()
-        t = str(self.Type())
-        print M(self._name)
+        t = str(self._obj.Type())
+        s = M.eval(self._name)
+        Z = s.split('(<')[1:]
+        W = []
+        tt = '(<%s'%t
+        for X in Z:
+            X = '(<' + X
+            if '(<All>' in X or tt in X:
+                W.append(X)
+        return '\n'.join(W)
+
+
+class MagmaFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M.eval(self._name)
 
 
 class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
         return MagmaFunctionElement(self, attrname)
 
-    def methods(self):
-        return self.parent()('ListSignatures(%s)'%self.Type())
+    def trait_names(self):
+        M = self.methods()
+        N = []
+        for x in M:
+            i = x.find('(')
+            N.append(x[:i])
+        return N
 
+    def methods(self, any=False):
+        """
+        Return all MAGMA intrinsics that can take self as the first
+        argument.
 
+        INPUT:
+            any -- (bool: default is False) if True, also include
+                   signatures with <Any> as first argument.
+        """
+        t = str(self.Type())
+        X = self.parent().eval('ListSignatures(%s)'%self.Type()).split('\n')
+        tt = "(<"+t
+        if any:
+            Y = [x for x in X if tt in x or "(<Any>" in x]
+        else:
+            Y = [x for x in X if tt in x]
+        return Y
 
 
 magma = Magma()

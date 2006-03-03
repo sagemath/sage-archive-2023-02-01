@@ -6,7 +6,7 @@ along with support for coercing them into GAP, GP/PARI, KASH, Maxima,
 Mathematica, Maple, Octave, and Singular:
 
     sage: pi
-    Pi
+    pi
     sage: e             # base of the natural logarithm
     e
     sage: NaN           # Not a number
@@ -53,7 +53,7 @@ type the following:
 Arithmetic operations with constants also yield constants, which
 can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
-    (Pi + ((e*4)/5))
+    (pi + ((e*4)/5))
     sage: maxima(a)
     %pi + 4*%e/5
     sage: a.str(15)      # 15 *bits* of precision
@@ -101,12 +101,12 @@ by coercing into the real field with given precision.  For example, to
 EXAMPLES: Arithmetic with constants
 
     sage: pp = pi+pi; pp
-    (Pi + Pi)
+    (pi + pi)
     sage: R(pp)
     6.2831853071795864769252867665590057683943387987502116419498890
 
     sage: s = (1 + e^pi);s
-    (1 + (e^Pi))
+    (1 + (e^pi))
     sage: R(s)
     24.140692632779269005729086367948547380266106242600211993445043
     sage: R(s-1)
@@ -189,7 +189,7 @@ class Pi(Constant):
 
     EXAMPLES:
         sage: pi
-        Pi
+        pi
         sage: float(pi)
         3.1415926535897931
         sage: gp(pi)
@@ -202,7 +202,7 @@ class Pi(Constant):
         sage: R(pi)
         3.1415926535897932384626433832795028841971693993751058209749445
         sage: pp = pi+pi; pp
-        (Pi + Pi)
+        (pi + pi)
         sage: R(pp)
         6.2831853071795864769252867665590057683943387987502116419498890
         sage: maxima(pi)
@@ -216,7 +216,7 @@ class Pi(Constant):
              'matlab':'pi','maple':'Pi','octave':'pi','pari':'Pi'})
 
     def _repr_(self):
-        return "Pi"
+        return "pi"
 
     def _latex_(self):
         return "\\pi"

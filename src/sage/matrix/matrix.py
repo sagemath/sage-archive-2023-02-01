@@ -73,6 +73,8 @@ import sage.rings.arith
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 import sage.matrix.dense_matrix_pyx as dense_matrix_pyx
+import sage.matrix.sparse_matrix_pyx as sparse_matrix_pyx
+
 import sage.matrix.sparse_matrix
 import sage.modules.free_module_element
 import sage.modules.free_module
@@ -3232,11 +3234,11 @@ class Matrix_sparse_integer(Matrix_integer, Matrix_generic_sparse):
 #############################################
 ## Dense matrices over the rational numbers
 #############################################
-class Matrix_dense_rational(Matrix_generic_dense_field):
+class Matrix_dense_rational(Matrix_field):
     """
-    The \\class{Matrix_dense_rational} class derives from
-    \\class{Matrix}, and defines functionality for dense matrices over
-    the field $\\Q$ of rational numbers.
+    The \class{Matrix_dense_rational} class derives from
+    \class{Matrix_field}, and defines functionality for dense
+    matrices over the field $\Q$ of rational numbers.
     """
     def __init__(self,
                     parent,
@@ -3267,9 +3269,9 @@ class Matrix_dense_rational(Matrix_generic_dense_field):
         self.__entries = self.__matrix
 
     def __getitem__(self, ij):
-        """
-        Use \\code{A[i,j]} to obtain the the $(i,j)$th entry of $A$, and
-        \\code{A[i]} to obtain the $i$-th row of $A$.
+        r"""
+        Use \code{A[i,j]} to obtain the the $(i,j)$th entry of $A$, and
+        \code{A[i]} to obtain the $i$-th row of $A$.
         """
         if isinstance(ij, int):
             return self.row(ij)
@@ -3534,6 +3536,7 @@ class Matrix_dense_rational(Matrix_generic_dense_field):
         return E
 
 
+
 #############################################
 ## Sparse matrices over the rational numbers
 #############################################
@@ -3551,6 +3554,176 @@ class Matrix_sparse_rational(Matrix_generic_sparse_field):
         Matrix_generic_sparse.__init__(self, parent, entries,
                         coerce_entries, copy)
 
+
+    def _sparse_list(self):
+        try:
+            return self.__sparse_list
+        except AttributeError:
+            L = [(ij[0], ij[1], x) for
+                ij, x in self._entries().iteritems()]
+            L.sort()
+            if self.is_immutable():
+                self.__sparse_list = L
+            return L
+
+    def _sparse_matrix_rational(self):
+        try:
+            return self.__sparse_matrix_rational
+        except AttributeError:
+            S = sage.matrix.sparse_matrix.SparseMatrix(
+                self.base_ring(), self.nrows(), self.ncols(), self._sparse_list(),
+                coerce=False, sort=False, copy=False)
+            if self.is_immutable():
+                self.__sparse_matrix_rational = S
+            return S
+
+    def echelon_form(self, height_guess=None, include_zero_rows=True):
+        """
+        Return the echelon form of this sparse matrix over the
+        rational numbers, computed using a sparse multi-modular
+        algorithm.
+
+        The height guess is a guess for a bound on the height of the
+        entries of the echelon form.  If you know for some reason that
+        the entries of the echelon form are bounded, giving a good
+        height bound can speed up this function.  At the end of the
+        computation the result is checked for correctness and the
+        height bound increased if necessary, so giving too small of a
+        guess will not lead to incorrect results (though it may slow
+        down the algorithm).
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ, 3, sparse=True)(range(9))
+            sage: A.echelon_form()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+            sage: A = 9999999*MatrixSpace(QQ, 3, sparse=True)(range(9))
+            sage: A
+            [       0  9999999 19999998]
+            [29999997 39999996 49999995]
+            [59999994 69999993 79999992]
+            sage: A.echelon_form(height_guess=1)
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+        """
+        try:
+            return self.__echelon_form
+        except AttributeError:
+            pass
+        if self.nrows() == 0:
+            E = self.copy()
+            E._set_pivots ([])
+            E._set_rank(0)
+        else:
+            t0 = misc.verbose()
+            A = self._sparse_matrix_rational()
+            t = misc.verbose("start")
+            B = A.echelon_form(height_guess=height_guess)
+            t1 = misc.verbose("done", t)
+            pivots = B.pivots()
+            X = B.entries()
+            Y = {}
+            for i,j,x in X:
+                Y[(i,j)] = x
+            if include_zero_rows:
+                nr = self.nrows()
+            else:
+                nr = len(pivots)
+            E = self.new_matrix(nrows=nr, coerce_entries=False, entries = Y, copy=False)
+            E._set_pivots(pivots)
+            E._set_rank(len(pivots))
+            misc.verbose("overhead", t0+(t1-t))
+        if self.is_immutable():
+            self.__echelon_form = E
+        E.set_immutable()
+        return E
+
+    def hessenberg_form(self):
+        r"""
+        Return the Hessenberg form of this sparse matrix.
+
+        ALGORITHM: Compute the Hessenberg form of the corresponding
+        dense matrix, obtained using \code{self.dense_matrix()}
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ, 3, sparse=True)(range(9))
+            sage: H = A.hessenberg_form(); H
+            [ 0  5  2]
+            [ 3 14  5]
+            [ 0 -5 -2]
+            sage: H.is_sparse()
+            True
+        """
+        return self.dense_matrix().hessenberg_form().sparse_matrix()
+
+    def charpoly(self):
+        """
+        Return the characteristic polynomial of this matrix.
+
+        ALGORITHM: Compute the charpoly of the corresponding
+        dense matrix, obtained using \code{self.dense_matrix()}.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,4, sparse=True)(range(16))
+            sage: A.charpoly()
+            x^4 - 30*x^3 - 80*x^2
+        """
+        try:
+            return self.__charpoly
+        except AttributeError:
+            f = self.dense_matrix().charpoly()
+            if self.is_immutable():
+                self.__charpoly = f
+        return f
+
+
+#############################################
+## DEVEL version of Sparse matrices over the rational numbers
+#############################################
+class devel_Matrix_sparse_rational(Matrix_field):
+    r"""
+    The \class{Matrix_sparse_rational} class derives from
+    \class{Matrix}, and defines functionality for sparse matrices
+    over the field $\Q$ of rational numbers.
+    """
+    def __init__(self,
+                    parent,
+                    entries=0,
+                    coerce_entries=True,
+                    copy = True):
+        Matrix.__init__(self, parent)
+
+        if isinstance(entries, sparse_matrix_pyx.Matrix_mpq):
+            if copy:
+                entries = entries.copy()
+            self.__matrix = entries
+            return
+
+        if coerce_entries:
+            copy = False
+            QQ = rational.Rational
+            if len(entries) > 0:
+                if isinstance(entries[0], tuple):
+                    entries = [(i,j,QQ(x)) for i,j,x in entries]
+                else:
+                    if len(entries) != parent.nrows() * parent.ncols():
+                        raise TypeError, "If entries is a list of numbers, it must be a list of %s numbers"%(parent.nrows() * parent.ncols())
+                    entries = [QQ(x) for x in entries]
+        if copy:
+            entries = list(entries)
+
+        self.__matrix = sparse_matrix_pyx.Matrix_mpq(
+                            parent.nrows(),
+                            parent.ncols(),
+                            entries)
+
+    def _sparse_matrix_mpq_(self):
+        return self.__matrix
+
+    def __getitem__(self, ij):
+        return self.__matrix[ij]
 
     def _sparse_list(self):
         try:

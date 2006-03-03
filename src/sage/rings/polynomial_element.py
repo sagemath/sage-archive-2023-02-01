@@ -42,7 +42,7 @@ import fraction_field_element
 import fraction_field
 from infinity import infinity
 import sage.misc.misc as misc
-from sage.libs.all import pari, gen
+from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 import sage.misc.latex as latex
 import sage.structure.factorization as factorization
@@ -1087,7 +1087,7 @@ class Polynomial_generic_dense(Polynomial):
             for i, z in x.iteritems():
                 v[i] = z
             x = v
-        elif isinstance(x, gen):
+        elif isinstance(x, pari_gen):
             x = [R(w) for w in reversed(x.Vec())]
             check = True
         elif not isinstance(x, list):
@@ -1180,7 +1180,7 @@ class Polynomial_generic_sparse(Polynomial):
             x = y
         elif not isinstance(x, dict):
             x = {0:x}   # constant polynomials
-        elif isinstance(x, gen):
+        elif isinstance(x, pari_gen):
             x = [R(w) for w in reversed(x.Vec())]
             check = True
         if check:
@@ -1351,7 +1351,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                 v[i] = z
             x = v
 
-        elif isinstance(x, gen):
+        elif isinstance(x, pari_gen):
             f = x.Pol()
             self.__poly = f
             assert self.__poly.type() == "t_POL"
@@ -1745,7 +1745,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             self.__poly = x.copy()
             return
 
-        elif isinstance(x, gen):
+        elif isinstance(x, pari_gen):
             x = list(reversed(x.list()))
             check = False
 
@@ -2118,7 +2118,7 @@ class Polynomial_dense_mod_n(Polynomial):
             self.__poly = x.copy()
             return
 
-        elif isinstance(x, gen) and x.type() == 't_POL':
+        elif isinstance(x, pari_gen) and x.type() == 't_POL':
             x = list(reversed(eval(str(x.lift().list()))))
             check = False
 

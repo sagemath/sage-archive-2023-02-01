@@ -2143,8 +2143,8 @@ class Polynomial_dense_mod_n(Polynomial):
             self.__poly = x.copy()
             return
 
-        elif isinstance(x, gen) and x.type() == 't_POL':
-            x = list(reversed(eval(str(x.lift().list()))))
+        elif isinstance(x, pari_gen):
+            x = [ZZ(w) for w in x.Vecrev()]
             check = False
 
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \

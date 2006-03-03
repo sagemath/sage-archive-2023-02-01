@@ -43,66 +43,10 @@ cdef extern from 'pari/pari.h':
     int new_galois_format
 
 
-    # parigen.h
-    long    typ(GEN x)
-    long    settyp(GEN x, long s)
-    long    isclone(GEN x)
-    long    setisclone(GEN x)
-    long    unsetisclone(GEN x)
-    long    lg(GEN x)
-    long    setlg(GEN x, long s)
-    long    signe(GEN x)
-    long    setsigne(GEN x, long s)
-    long    lgeflist(GEN x)
-    long    setlgeflist(GEN x, long s)
-    long    lgefint(GEN x)
-    long    setlgefint(GEN x, long s)
-    long    expo(GEN x)
-    long    setexpo(GEN x, long s)
-    long    valp(GEN x)
-    long    setvalp(GEN x, long s)
-    long    precp(GEN x)
-    long    setprecp(GEN x, long s)
-    long    varn(GEN x)
-    long    setvarn(GEN x, long s)
-
-    # paricast.h
-    long    mael2(GEN,long,long)
-    long    mael3(GEN,long,long,long)
-    long    mael4(GEN,long,long,long,long)
-    long    mael5(GEN,long,long,long,long,long)
-    long    mael(GEN,long,long)
-    GEN     gmael1(GEN,long)
-    GEN     gmael2(GEN,long,long)
-    GEN     gmael3(GEN,long,long,long)
-    GEN     gmael4(GEN,long,long,long,long)
-    GEN     gmael5(GEN,long,long,long,long,long)
-    GEN     gmael(GEN,long,long)
-    GEN     gel(GEN,long)
-    GEN     gcoeff(GEN,long,long)
-    long    coeff(GEN,long,long)
-
-    # paricom.h
-    GEN     gpi
-    GEN     geuler
-    GEN     gen_m1
-    GEN     gen_1
-    GEN     gen_2
-    GEN     ghalf
-    GEN     gi
-    GEN     gen_0
-    GEN     gnil
-
-    # level1.h (incomplete!)
-    GEN     cgetc(long x)
-    GEN     cgetg_copy(long lx, GEN x)
-    GEN     cgetg(long x, long y)
-    GEN     cgeti(long x)
-    GEN     cgetr(long x)
-
     # misc ...
     GEN     gp_read_str(char *t)
     GEN     gp_read_file(FILE *f)
+    long    typ(GEN x)
     long    itos(GEN x)
     double  gtodouble(GEN x)
     GEN     stoi(long s)
@@ -117,7 +61,6 @@ cdef extern from 'pari/pari.h':
     extern char * diffptr
 
     extern int BYTES_IN_LONG
-    extern int BITS_IN_LONG
 
     ctypedef unsigned long pari_sp
     pari_sp avma, bot, top, zonetop
@@ -1945,6 +1888,10 @@ cdef extern from 'pari/pari.h':
 
     GEN     padicfieldslist(GEN p, GEN m, GEN d, long flag)
 
+    extern GEN geuler
+    extern GEN gpi
+    extern unsigned long precdl
+
 #cdef extern from 'pari/paridecl.h':
 #    GEN     mkintn(long n, ...);
 
@@ -1964,9 +1911,4 @@ cdef extern from 'pari/paripriv.h':
         pariout_t *fmt
     ctypedef __z gp_data
     extern gp_data* GP_DATA
-
-    long *   int_MSW(GEN x)
-    long *   int_LSW(GEN x)
-    long *   int_precW(long * xp)
-    long *   int_nextW(long * xp)
 

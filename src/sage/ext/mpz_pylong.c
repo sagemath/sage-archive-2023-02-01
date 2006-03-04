@@ -1,3 +1,13 @@
+/* mpz <-> pylong conversion and "pythonhash" for mpz
+ *
+ * Author:  Gonzalo Tornaría <tornaria@math.utexas.edu>
+ * Date:    March 2006
+ * License: GPL v2
+ *
+ * this is free software: if it breaks, you get to keep all the pieces
+ */
+
+#include "mpn_pylong.h"
 #include "mpz_pylong.h"
 
 /* mpz python hash */

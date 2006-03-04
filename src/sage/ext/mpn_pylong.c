@@ -1,8 +1,16 @@
-#include "mpn_pylong.h"
-
-/* This is what python uses for ob_size right now
- * is this a limitation when sizeof(int) < sizeof(void *) ?
+/* mpn <-> pylong conversion and "pythonhash" for mpn
+ *
+ * Author:  Gonzalo Tornaría <tornaria@math.utexas.edu>
+ * Date:    March 2006
+ * License: GPL v2
+ *
+ * the code to change the base to 2^SHIFT is based on the function
+ * mpn_get_str from GNU MP, but the new bugs are mine
+ *
+ * this is free software: if it breaks, you get to keep all the pieces
  */
+
+#include "mpn_pylong.h"
 
 /* This code assumes that SHIFT < GMP_NUMB_BITS */
 #if SHIFT >= GMP_NUMB_BITS

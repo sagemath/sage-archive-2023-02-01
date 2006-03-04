@@ -3540,7 +3540,7 @@ class Matrix_rational(Matrix_field):
 #############################################
 ## Dense matrices over the rational numbers
 #############################################
-class Matrix_dense_rational(Matrix_generic_dense_field):
+class Matrix_dense_rational(Matrix_rational):
     """
     The \class{Matrix_dense_rational} class derives from
     \class{Matrix_field}, and defines functionality for dense

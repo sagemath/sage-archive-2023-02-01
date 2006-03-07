@@ -2753,7 +2753,7 @@ cdef class gen:
             1.980704062 E28                      # 32-bit
 	    Traceback (most recent call last):   # 64-bit
             ...	                                 # 64-bit
-            RuntimeError                         # 64-bit
+            PariError: division by zero (46)     # 64-bit
         """
         _sig_on
         return P.new_gen(gcotan(x.g, prec))

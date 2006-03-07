@@ -233,7 +233,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: R, (x,y,z) = PolynomialRing(Q, 3, 'xyz').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
-            sage: I.primary_decomposition()
+            sage: I.primary_decomposition()   # this fails on some 64-bit machines sometimes during automated testing; I don't know why!
             [Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (-1*z^2 + y, 4 + 4*z^3 + z^6) of Polynomial Ring in x, y, z over Rational Field]
         """
         return [I for I, _ in self.complete_primary_decomposition(algorithm)]

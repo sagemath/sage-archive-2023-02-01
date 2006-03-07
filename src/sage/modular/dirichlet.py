@@ -184,6 +184,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return self.parent().base_ring()
 
+    def bar(self):
+        """
+        Return the complex conjugate of this Dirichlet character.
+
+        EXAMPLES:
+            sage: e = DirichletGroup(5).0
+            sage: e
+            [zeta_4]
+            sage: e.bar()
+            [-zeta_4]
+        """
+        return ~self
+
     def bernoulli(self, k):
         r"""
         Returns the generalized Bernoulli number $B_{k,eps}$.
@@ -310,6 +323,39 @@ class DirichletCharacter(MultiplicativeGroupElement):
             raise ArithmeticError, "M(=%s) must be a multiple of the modulus(=%s)"%(M,self.modulus())
         H = DirichletGroup(M, self.base_ring())
         return H(self)
+
+    def galois_orbit(self):
+        r"""
+        Return the orbit of this character under the action
+        of the absolute Galois group of the prime subfield
+        of the base ring.
+
+        EXAMPLES:
+            sage: G = DirichletGroup(13)
+            sage: G.galois_orbits()
+            [[[1]],
+            [[zeta_12], [zeta_12^3 - zeta_12], [-zeta_12], [-zeta_12^3 + zeta_12]],
+            [[zeta_12^2], [-zeta_12^2 + 1]],
+            [[zeta_12^3], [-zeta_12^3]],
+            [[zeta_12^2 - 1], [-zeta_12^2]],
+            [[-1]]]
+            sage: e = G.0
+            sage: e
+            [zeta_12]
+            sage: e.galois_orbit()
+            [[zeta_12], [zeta_12^3 - zeta_12], [-zeta_12], [-zeta_12^3 + zeta_12]]
+            sage: e = G.0^2; e
+            [zeta_12^2]
+            sage: e.galois_orbit()
+            [[zeta_12^2], [-zeta_12^2 + 1]]
+        """
+        K = self.parent().base_ring()
+        if K.characteristic() != 0:
+            raise NotImplementedError, "galois_orobit not implemented in characteristic p"
+        n = self.order()
+        if n <= 2:
+            return [self]
+        return [self**m for m in range(1,n) if arith.gcd(m,n) == 1]
 
     def gauss_sum(self, a=1):
         r"""

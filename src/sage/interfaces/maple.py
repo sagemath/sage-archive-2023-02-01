@@ -1,10 +1,22 @@
 r"""
 Interface to Maple
 
+AUTHOR:
+    -- William Stein (2005): maple interface
+    -- Gregg Musiker (2006-02-02): tutorial
+    -- William Stein (2006-03-05): added tab completion, e.g., maple.[tab],
+       and help, e.g, maple.sin?.
+
 You must have the optional commercial Maple interpreter installed and
 available as the command \code{maple} in your PATH in order to use
 this interface.  You do not have to install any optional \sage packages.
 
+
+    Type \code{maple.[tab]} for a list of all the functions available
+    from your Maple install.  Type \code{maple.[tab]?} for Maple's
+    help about a given function.  Type \code{maple(...)} to create
+    a new Maple object, and \code{maple.eval(...)} to run a string
+    using Maple (and get the result back as a string).
 
 EXAMPLES:
     sage: maple('3 * 5')
@@ -101,10 +113,11 @@ We see there are two choices.  Type
 We now see how the Maple command fibonacci works under the
 combinatorics package.  Try typing in
 
-    sage: maple.fibonacci(10)
+    sage.: maple.fibonacci(10)
     fibonacci(10)
 
-You will get fibonacci(10) as output since Maple has not loaded the combinatorics package yet.  To rectify this type
+You will get fibonacci(10) as output since Maple has not loaded the
+combinatorics package yet.  To rectify this type
 
     sage: maple('combinat[fibonacci]')(10)
     55
@@ -174,30 +187,35 @@ More complicated programs should be put in a separate file and
 loaded.
 """
 
-#*****************************************************************************
+#############################################################################
 #       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#############################################################################
 
 import os
 
-from expect import Expect, ExpectElement, tmp
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, tmp
 
-from sage.misc.misc import verbose
+import pexpect
+
+from sage.misc.all import pager, verbose, DOT_SAGE
+
+COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
+
+import sage.misc.pager
 
 class Maple(Expect):
     """
     Interface to the Maple interpreter.
+
+    Type \code{maple.[tab]} for a list of all the functions available
+    from your Maple install.  Type \code{maple.[tab]?} for Maple's
+    help about a given function.  Type \code{maple(...)} to create
+    a new Maple object, and \code{maple.eval(...)} to run a string
+    using Maple (and get the result back as a string).
     """
     def __init__(self, maxread=100, script_subdirectory="", logfile=None):
         """
@@ -217,6 +235,11 @@ class Maple(Expect):
         # since maple stupid command line interface always
         # dumps you into the editor when an error occurs,
         # and I can find no way to turn it off!!
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return MapleFunction(self, attrname)
 
     def _keyboard_interrupt(self):
         print "Interrupting %s..."%self
@@ -258,6 +281,58 @@ class Maple(Expect):
 ##                 os.system('kill -9 %s'%pid)
 ##             else:
 ##                 break
+
+    def completions(self, s):
+        """
+        Return all commands that complete the command starting with the
+        string s.   This is like typing s[Ctrl-T] in the maple interpreter.
+        """
+        bs = chr(8)*len(s)
+        if self._expect is None:
+            self._start()
+        E = self._expect
+        E.sendline('%s%s%s'%(s,chr(20),bs))
+        t = E.timeout
+        E.timeout=0.3  # since some things have no completion
+        try:
+            E.expect('----')
+        except pexpect.TIMEOUT:
+            E.timeout = t
+            return []
+        E.timeout = t
+        v = E.before
+        E.expect(self._prompt)
+        E.expect(self._prompt)
+        return v.split()[2:]
+
+    def _commands(self):
+        """
+        Return list of all commands defined in maple.
+        """
+        v = sum([self.completions(chr(65+n)) for n in range(26)], []) + \
+            sum([self.completions(chr(97+n)) for n in range(26)], [])
+        v.sort()
+        return v
+
+    def trait_names(self, verbose=True, use_disk_cache=True):
+        try:
+            return self.__trait_names
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__trait_names
+                except IOError:
+                    pass
+            if verbose:
+                print "\nBuilding Maple command completion list (this takes"
+                print "a few seconds only the first time you do it)."
+                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+            v = self._commands()
+            self.__trait_names = v
+            sage.misc.persist.save(v, COMMANDS_CACHE)
+            return v
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         line += ';'
@@ -320,6 +395,9 @@ class Maple(Expect):
     def _assign_symbol(self):
         return ":="
 
+    def _help(self, str):
+        return os.popen('echo "?%s" | maple -q'%str).read()
+
     def help(self, str):
         """
         Display Maple help about str.  This is the same as typing "?str" in
@@ -328,9 +406,7 @@ class Maple(Expect):
         INPUT:
             str -- a string to search for in the maple help system
         """
-        # TODO: change to use from IPython.genutils import page
-        # and use the page command on a string.
-        os.system('echo "?%s" | maple -q |less'%str)
+        pager(self._help(str))
 
     def with(self, package):
         """
@@ -377,10 +453,26 @@ class Maple(Expect):
         # 0, so that memory will be freed.
     #    self.eval("%s=0;"%var)
 
+class MapleFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M._help(self._name)
+
+class MapleFunctionElement(FunctionElement):
+    def _sage_doc_(self):
+        return self._obj.parent()._help(self._name)
+
+
 class MapleElement(ExpectElement):
+    def __getattr__(self, attrname):
+        return MapleFunctionElement(self, attrname)
+
     def __float__(self):
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
+
+    def trait_names(self):
+        return self.parent().trait_names()
 
     def __repr__(self):
         self._check_valid()
@@ -416,3 +508,28 @@ def maple_console():
 def __doctest_cleanup():
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
+
+
+
+"""
+The following only works in Maple >= 9, I guess, but could
+be useful.
+
+From Jaap Spies:  In addition Maple has a nice feature the function
+
+ > FunctionAdvisor();
+
+ > FunctionAdvisor(topics, quiet);
+      [DE, analytic_extension, asymptotic_expansion, branch_cuts,
+      branch_points, calling_sequence, class_members,
+      classify_function, definition, describe, differentiation_rule,
+      function_classes, identities, integral_form,
+      known_functions, relate, series, singularities, special_values,
+      specialize, sum_form, synonyms]
+
+ > FunctionAdvisor(syntax, hypergeom);
+                                            hypergeom([a, b], [c], z)
+
+Eventually this could be used to do an intelligent command
+completion.
+"""

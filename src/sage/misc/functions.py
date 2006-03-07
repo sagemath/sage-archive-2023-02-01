@@ -398,7 +398,7 @@ class Function_arith(Function):
     def _octave_(self, octave):
         """
         EXAMPLES:
-            sage: octave(e + pi)
+            sage: octave(e + pi)                     # optional
             5.85987
         """
         return self.__op(self.__x._octave_(octave), self.__y._octave_(octave))

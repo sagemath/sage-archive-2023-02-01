@@ -176,7 +176,10 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
         if caller_name == "?: ":
             caller_name = ""
     short_file_name = os.path.split(frame.co_filename)[1]
-    s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
+    if '<' in short_file_name and '>' in short_file_name:
+        s = "verbose %s (%s) %s"%(level, caller_name, mesg)
+    else:
+        s = "verbose %s (%s: %s, %s) %s"%(level, lineno, short_file_name, caller_name, mesg)
     if t!=0:
         s = s + " (time = %s)"%cputime(t)
     print s

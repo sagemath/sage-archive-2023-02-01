@@ -6,6 +6,8 @@ AUTHORS:
     -- William Stein (2006-02-22): floor and ceil (pure fast GMP versions).
     -- Gonzalo Tornaria and William Stein (2006-03-02): greatly improved
                     python/GMP conversion; hashing
+    -- William Stein and Naqi Jaffery (2006-03-06): height, sqrt examples,
+          and improve behavior of sqrt.
 """
 
 
@@ -279,21 +281,85 @@ cdef class Rational(element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
-    def sqrt(self, bits=53):
-        """
+    def sqrt(self, bits=None):
+        r"""
         Returns the positive square root of self as a real number to
         the given number of bits of precision if self is nonnegative,
-        and raises a \\exception{ValueError} exception otherwise.
+        and raises a \exception{ValueError} exception otherwise.
+
+        INPUT:
+            bits -- number of bits of precision.
+                    If bits is not specified, the number of
+                    bits of precision is at least twice the
+                    number of bits of self (the precision
+                    is always at least 53 bits if not specified).
+        OUTPUT:
+            integer, real number, or complex number.
+
+        EXAMPLES:
+            sage: x = 23/2
+            sage: x.sqrt()
+            3.3911649915626341
+            sage: x = 32/5
+            sage: x.sqrt()
+            2.5298221281347035
+            sage: x = 16/9
+            sage: x.sqrt()
+            4/3
+            sage: x.sqrt(53)
+            1.3333333333333333
+            sage: x = 9837/2
+            sage: x.sqrt()
+            70.132018365365752
+            sage: x = 645373/45
+            sage: x.sqrt()
+            119.75651223303984
+            sage: x = -12/5
+            sage: x.sqrt()
+            1.5491933384829666*I
+
+        AUTHOR:
+            -- Naqi Jaffery (2006-03-05): examples
         """
-        R = mpfr.RealField(bits)
-        return self._mpfr_(R).sqrt()
+        if bits is None:
+            try:
+                return self.square_root()
+            except ValueError:
+                pass
+            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
+
+        if self < 0:
+            x = sage.rings.complex_field.ComplexField(bits)(self)
+            return x.sqrt()
+        else:
+            R = mpfr.RealField(bits)
+            return self._mpfr_(R).sqrt()
 
     def square_root(self):
-        """
+        r"""
         Return the positive rational square root of self, or raises a
-        ValueError if self is not a perfect square.
+        \exception{ValueError} if self is not a perfect square.
+
+        EXAMPLES:
+            sage: x = 125/5
+            sage: x.square_root()
+            5
+            sage: x = 64/4
+            sage: x.square_root()
+            4
+            sage: x = 1000/10
+            sage: x.square_root()
+            10
+            sage: x = 81/3
+            sage: x.square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: self (=27) is not a perfect square
+
+        AUTHOR:
+            -- Naqi Jaffery (2006-03-05): examples
         """
-        # TODO -- this could be quicker maybe, by using GMP directly.
+        # TODO -- this could be quicker, by using GMP directly.
         return self.numerator().square_root() / self.denominator().square_root()
 
     def str(self, int base=10):
@@ -500,6 +566,14 @@ cdef class Rational(element.FieldElement):
         return (n*d)%other
 
     def numer(self):
+        """
+        Return the numerator of this rational number.
+
+        EXAMPLE:
+            sage: x = -5/11
+            sage: x.numer()
+            -5
+        """
         cdef integer.Integer n
         n = integer.Integer()
         n.set_from_mpz(mpq_numref(self.value))
@@ -641,6 +715,20 @@ cdef class Rational(element.FieldElement):
         """
         The max absolute value of the numerator and denominator of self,
         as an Integer.
+
+        EXAMPLES:
+            sage: a = 2/3
+            sage: a.height()
+            3
+            sage: a = 34/3
+            sage: a.height()
+            34
+            sage: a = -97/4
+            sage: a.height()
+            97
+
+        AUTHOR:
+            -- Naqi Jaffery (2006-03-05): examples
         """
         x = abs(self.numer())
         if x > self.denom():

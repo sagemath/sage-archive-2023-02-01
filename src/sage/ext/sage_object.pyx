@@ -107,7 +107,7 @@ cdef class SageObject:
             self.__version = sage.version.version
             return self.__version
 
-    def save(self, filename):
+    def save(self, filename=None):
         """
         Save self to the given filename.
 
@@ -117,7 +117,17 @@ cdef class SageObject:
             sage.: load('file')
             x^3 + 5
         """
-        open(add_ext(filename), 'w').write(self.dumps())
+        if filename is None:
+            try:
+                filename = self._default_filename
+            except AttributeError:
+                raise RuntimeError, "no default filename, so it must be specified"
+        filename = add_ext(filename)
+        try:
+            self._default_filename = filename
+        except AttributeError:
+            pass
+        open(filename, 'w').write(self.dumps())
 
     def dump(self, filename):
         """
@@ -134,32 +144,29 @@ cdef class SageObject:
         # saving extensions classes (with no attributes).
         return comp.compress(cPickle.dumps(self, protocol=2))
 
-    def db(self, name=None):
+    def db(self, name):
         r"""
         Dumps self into the SAGE database.  Use db(name) by itself to
-        reload.  The default name if none is specified is
-        self._db_name(), which incorporates the class name (as
-        directory) and self._defining_params() if defined, or
-        str(self) if not.
+        reload.
 
         The database directory is \code{\$HOME/.sage/db}
         """
-        if name is None:
-            name = self._db_name()
+        #if name is None:
+        #    name = self._db_name()
         from sage.misc.all import SAGE_DB
         return self.dump('%s/%s'%(SAGE_DB,name))
 
-    def _db_name(self):
-        t = str(type(self)).split()[-1][1:-2]
-        try:
-            d = str(self._defining_params_())
-        except AttributeError:
-            d = str(self)
-        d = '_'.join(d.split())
-        from sage.misc.all import SAGE_DB
-        if not os.path.exists('%s/%s'%(SAGE_DB, t)):
-            os.makedirs(t)
-        return '%s/%s'%(t, d)
+##     def _db_name(self):
+##         t = str(type(self)).split()[-1][1:-2]
+##         try:
+##             d = str(self._defining_params_())
+##         except AttributeError:
+##             d = str(self)
+##         d = '_'.join(d.split())
+##         from sage.misc.all import SAGE_DB
+##         if not os.path.exists('%s/%s'%(SAGE_DB, t)):
+##             os.makedirs(t)
+##         return '%s/%s'%(t, d)
 
 
     #############################################################################
@@ -409,18 +416,24 @@ def load(filename):
     Load \sage object from the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
     """
-    return loads(open(add_ext(filename)).read())
+    filename = add_ext(filename)
+    X = loads(open(filename).read())
+    try:
+        X._default_filename = os.path.abspath(filename)
+    except AttributeError:
+        pass
+    return X
 
-def save(obj, filename):
+def save(obj, filename=None):
     """
-    save(obj, filename):
+    save(obj, filename=None):
 
     Save obj to the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
     This will \emph{replace} the contents of filename.
     """
     try:
-        obj.save(add_ext(filename))
+        obj.save(filename)
     except AttributeError, RuntimeError:
         s = comp.compress(cPickle.dumps(obj, protocol=2))
         open(add_ext(filename), 'w').write(s)

@@ -42,6 +42,7 @@ import fraction_field_element
 import fraction_field
 from infinity import infinity
 import sage.misc.misc as misc
+import sage.misc.sage_eval as sage_eval
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 import sage.misc.latex as latex
@@ -900,6 +901,27 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
     def polynomial(self, *args, **kwds):
         return self.parent()(*args, **kwds)
+
+    def newton_slopes(self, p):
+        """
+        Return the $p$-adic slopes of the Newton polygon of self,
+        when this makes sense.
+
+        OUTPUT:
+            -- list of rational numbers
+
+        EXAMPLES:
+            sage: x = QQ['x'].0
+            sage: f = x^3 + 2
+            sage: f.newton_slopes(2)
+            [1/3, 1/3, 1/3]
+
+        ALGORITHM: Uses PARI.
+        """
+        f = self._pari_()
+        v = list(f.newtonpoly(p))
+        return [sage.rings.rational.Rational(x) for x in v]
+
 
     def _pari_(self, variable=None):
         """

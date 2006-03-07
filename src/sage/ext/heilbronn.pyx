@@ -181,7 +181,7 @@ cdef class Heilbronn:
         cdef int i, a, b, c, d, s
         cdef object X
         M = {}
-        t = sage.misc.misc.verbose("start making list M.",level=3)
+        t = sage.misc.misc.verbose("start making list M.",level=5)
         _sig_on
         if N < 32768:   # use ints with no reduction modulo N
             for i from 0 <= i < self.length:
@@ -213,11 +213,11 @@ cdef class Heilbronn:
                     M[X] = M[X] + 1
                 else:
                     M[X] = 1
-        t = sage.misc.misc.verbose("finished making list M.",t, level=3)
+        t = sage.misc.misc.verbose("finished making list M.",t, level=5)
         mul = []
         for x,y in M.items():
             mul.append((x,y))
-        t = sage.misc.misc.verbose("finished making mul list.",t, level=3)
+        t = sage.misc.misc.verbose("finished making mul list.",t, level=5)
         _sig_off
         return mul
 

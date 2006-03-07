@@ -277,13 +277,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         exception.
 
         EXAMPLES:
-        The following examples assumes that the elliptic curve database is installed.
             sage: E = EllipticCurve([0,1,2,3,4])
             sage: E.database_curve()
             Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
 
         NOTES: The model of the curve in the database can be different
-               than the Weierstrass model for this curve, since
+               than the Weierstrass model for this curve, e.g.,
                database models are always minimal.
         """
         try:
@@ -521,21 +520,64 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     who note that their implementation is practical for
                     any rank and conductor $\leq 10^{10}$ in 10 minutes.
 
-                -- 'watkins' -- use his program ec (this has bugs if more
+                -- 'ec' -- use Watkins's program ec (this has bugs if more
                     than a million terms of the L-series are required, i.e.,
                     only use this for conductor up to about $10^11$).
 
-        \note{Magma's analytic rank command, due to Mark Watkins, is
-        significantly faster.}
+                -- 'sympow' --use Watkins's program sympow
+
+                -- 'rubinstein' -- use Rubinstein's L-function C++ program lcalc.
+
+                -- 'magma' -- use MAGMA
+
+                -- 'all' -- compute with all other free algorithms, check that the
+                            answers agree, and return the common answer.
+
+        \note{If the curve is loaded from the large Cremona database,
+        then the modular degree is taken from the database.}
+
+        Of the three above, probably Rubinstein's is the most
+        efficient (in some limited testing I've done).
 
         \note{It is an open problem to \emph{prove} that \emph{any}
         particular elliptic curve has analytic rank $\geq 4$.}
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.analytic_rank(algorithm='cremona')
+            2
+            sage: E.analytic_rank(algorithm='ec')
+            2
+            sage: E.analytic_rank(algorithm='rubinstein')
+            2
+            sage: E.analytic_rank(algorithm='sympow')
+            2
+            sage: E.analytic_rank(algorithm='magma')    # optional
+            2
+            sage: E.analytic_rank(algorithm='all')
+            2
         """
+        if algorithm == 'ec' and misc.is_64_bit:
+            algorithm = 'sympow'
+
         if algorithm == 'cremona':
             return rings.Integer(gp_cremona.ellanalyticrank(self.minimal_model().a_invariants()))
-        elif algorithm == 'watkins':
+        elif algorithm == 'ec':
             return rings.Integer(self.watkins_data()['analytic rank'])
-
+        elif algorithm == 'rubinstein':
+            from sage.interfaces.lcalc import lcalc
+            return lcalc.analytic_rank(L=self)
+        elif algorithm == 'sympow':
+            from sage.interfaces.sympow import sympow
+            return sympow.analytic_rank(self)[0]
+        elif algorithm == 'magma':
+            return rings.Integer(self._magma_().AnalyticRank())
+        elif algorithm == 'all':
+            S = list(set([self.analytic_rank('cremona'), self.analytic_rank('ec'),
+                     self.analytic_rank('rubinstein'), self.analytic_rank('sympow')]))
+            if len(S) != 1:
+                raise RuntimeError, "Bug in analytic rank; algorithms don't agree! (E=%s)"%E
+            return S[0]
         else:
             raise ValueError, "algorithm %s not defined"%algorithm
 
@@ -683,7 +725,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve('37a').three_selmer_rank()  # optional & long -- Magma
             1
 
-            sage: EllipticCurve('14a1').three_selmer_rank()
+            sage: EllipticCurve('14a1').three_selmer_rank()      # optional
             Traceback (most recent call last):
             ...
             NotImplementedError:  Currently, only the case with irreducible phi3 is implemented.
@@ -1141,12 +1183,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def kodaira_type(self, p):
         """
-        Local Kodaira type of the elliptic curve at p.
+        Local Kodaira type of the elliptic curve at $p$.
 
         1 means good reduction (type $I_0$), 2, 3 and 4 mean types II,
         III and IV, respectively, $4 + \\nu$ with $\\nu > 0$ means
         type $I_{\\nu}$; finally the opposite values -1, -2,
         etc. refer to the starred types $I_0^*$, $II^*$, etc.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('124a')
+            sage: E.kodaira_type(2)
+            '4'
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
@@ -1164,6 +1211,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def tamagawa_number(self, p):
         """
         The Tamagawa number of the elliptic curve at $p$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: E.tamagawa_number(11)
+            5
+            sage: E = EllipticCurve('37b')
+            sage: E.tamagawa_number(37)
+            3
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
@@ -1176,6 +1231,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def tamagawa_product(self):
         """
         Returns the product of the Tamagawa numbers.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('54a')
+            sage: E.tamagawa_product ()
+            3
         """
         try:
             return self.__tamagawa_product
@@ -1186,6 +1246,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def real_components(self):
         """
         Returns 1 if there is 1 real component and 2 if there are 2.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.real_components ()
+            2
+            sage: E = EllipticCurve('37b')
+            sage: E.real_components ()
+            2
+            sage: E = EllipticCurve('11a')
+            sage: E.real_components ()
+            1
         """
         invs = self.weierstrass_model().ainvs()
         x = rings.polygen(self.base_ring())
@@ -1196,18 +1267,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return 1
 
     def period_lattice(self):
-        """
+        r"""
         Return a basis for the period lattice of the elliptic curve
-        over Q as a 2-tuple.
+        over $\Q$ as a 2-tuple.
 
-        The basis has the form [omega_1, omega_2], where
-        Im(omega_1/omega_2) > 0 and omega_1 is real.
+        The basis has the form $[\omega_1, \omega_2]$, where
+        $\Im(\omega_1/\omega_2) > 0$ and $\omega_1$ is real.
+
+        TODO: The precision is determined by the state of the PARI C
+        library, which is not good.
 
         INPUT:
             -- an elliptic curve
         OUTPUT:
             omega_1 -- complex number
             omega_2 -- complex number
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.period_lattice ()
+            (2.993458646231959629832009961, 2.4513893819899999*I)     # 32-bit
+            (2.993458646231959629832009979452508154, 2.4513893819899999*I)  # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
 
@@ -1216,6 +1296,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns the real period.  This is the correct period in the BSD
         conjecture, i.e., it is the least real period * 2 when the period
         lattice is rectangular.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.omega()
+            5.986917292463919259664019923            # 32-bit
+            5.986917292463919259664019958905016308   # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
 
@@ -1223,9 +1309,196 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Return the area of a fundamental domain for the period lattice
         of the elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.complex_area()
+            7.3381327407991845
         """
         w1,w2 = self.period_lattice()
         return (w1*w2.imag()).real()
+
+    def Lseries_sympow(self, n, prec):
+        r"""
+        Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
+        of precision.
+
+        INPUT:
+            n -- integer
+            prec -- integer
+
+        OUTPUT:
+            string -- real number to prec digits of precision as a string.
+
+        \note{Before using this function for the first time for
+        a given $n$, you may have to type \code{sympow('-new_data <n>')},
+        where \code{<n>} is replaced by your value of $n$.}
+
+        EXAMPLES:
+            sage.: E = EllipticCurve('37a')
+            sage.: a = E.Lseries_sympow(2,16); a
+            '2.492262044273650E+00'
+            sage.: RR(a)
+            2.4922620442736498
+        """
+        from sage.interfaces.sympow import sympow
+        return sympow.L(self, n, prec)
+
+    def Lseries_sympow_derivs(self, n, prec, d):
+        r"""
+        Return $0$th to $d$th derivatives of $L(\Sym^{(n)}(E,
+        \text{edge}))$ to prec digits of precision.
+
+        INPUT:
+            n -- integer
+            prec -- integer
+            d -- integer
+
+        OUTPUT:
+            a string, exactly as output by sympow
+
+        \note{To use this function you may have to run a few commands
+        like \code{sympow('-new_data 1d2')}, each which takes a few
+        minutes.  If this function fails it will indicate what
+        commands have to be run.}
+
+        EXAMPLES:
+            sage.: E = EllipticCurve('37a')
+            sage.: E.Lseries_sympow_derivs(1,16,2)
+            ...
+            1n0: 3.837774351482055E-01
+            1w0: 3.777214305638848E-01
+            1n1: 3.059997738340522E-01
+            1w1: 3.059997738340524E-01
+            1n2: 1.519054910249753E-01
+            1w2: 1.545605024269432E-01
+        """
+        from sage.interfaces.sympow import sympow
+        return sympow.Lderivs(self, n, prec, d)
+
+    def Lseries_zeros(self, n):
+        """
+        Return the imaginary parts of the first $n$ nontrivial zeros
+        of the L-function in the upper half plane, as 32-bit reals.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_zeros(2)
+            [0.00000000000, 5.0031700134]
+
+        AUTHOR:
+            -- Uses Rubinstein's L-functions calculator.
+        """
+        from sage.interfaces.lcalc import lcalc
+        return lcalc.zeros(n, L=self)
+
+    def Lseries_zeros_in_interval(self, x, y, stepsize):
+        r"""
+        Return the imaginary parts of (most of) the nontrivial zeros
+        of the Riemann zeta function on the line $\Re(s)=1/2$ with
+        positive imaginary part between $x$ and $y$, along with a
+        technical quantity for each.
+
+        INPUT:
+            x, y, stepsize -- positive floating point numbers
+
+        OUTPUT:
+            list of pairs (zero, S(T)).
+
+        Rubinstein writes: The first column outputs the imaginary part
+        of the zero, the second column a quantity related to S(T) (it
+        increases roughly by 2 whenever a sign change, i.e. pair of
+        zeros, is missed). Higher up the critical strip you should use
+        a smaller stepsize so as not to miss zeros.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
+            [(6.8703912161, 0.24892278004),
+             (8.0143308043, -0.14016853314),
+             (9.9330983534, -0.12994302920)]
+        """
+        from sage.interfaces.lcalc import lcalc
+        return lcalc.zeros_in_interval(x, y, stepsize, L=self)
+
+    def Lseries_values_along_line(self, s0, s1, number_samples):
+        """
+        Return values of $L(E, s)$ at \code{number_samples}
+        equally-spaced sample points along the line from $s_0$ to
+        $s_1$ in the complex plane.
+
+        INPUT:
+            s0, s1 -- complex numbers
+            number_samples -- integer
+
+        OUTPUT:
+            list -- list of pairs (s, zeta(s)), where the s are
+                    equally spaced sampled points on the line from
+                    s0 to s1.
+
+        EXAMPLES:
+            sage: I = CC.0
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_values_along_line(0.5, 0.5+20*I, 5)     # long
+            [(0.50000000000, 0),
+             (0.50000000000 + 4.0000000000*I, 2.9958571577 - 2.0904260986*I),
+             (0.50000000000 + 8.0000000000*I, 0.012182626189 - 0.043408089507*I),
+             (0.50000000000 + 12.000000000*I, -0.56550449156 + 0.75756647578*I),
+             (0.50000000000 + 16.000000000*I, -0.13060595654 - 0.35937442642*I)]
+        """
+        from sage.interfaces.lcalc import lcalc
+        return lcalc.values_along_line(s0, s1, number_samples, L=self)
+
+    def Lseries_twist_values(self, s, dmin, dmax):
+        r"""
+        Return values of $L(E, s, \chi_d)$ for each quadratic
+        character $\chi_d$ for $d_{\min} \leq d \leq d_{\max}$.
+
+        INPUT:
+            s -- complex numbers
+            dmin -- integer
+            dmax -- integer
+
+        OUTPUT:
+            list -- list of pairs (d, L(E, s,chi_d))
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_twist_values(0.5, -12, -4)
+            [(-11, 1.4782434171), (-8, 0), (-7, 1.8530761916), (-4, 2.4513893817)]
+            sage: F = E.quadratic_twist(-8)
+            sage: F.rank()
+            1
+            sage: F = E.quadratic_twist(-7)
+            sage: F.rank()
+            0
+        """
+        from sage.interfaces.lcalc import lcalc
+        return lcalc.twist_values(s, dmin, dmax, L=self)
+
+    def Lseries_twist_zeros(self, n, dmin, dmax):
+        r"""
+        Return first $n$ real parts of nontrivial zeros of
+        $L(E,s,\chi_d)$ for each quadratic character $\chi_d$ with
+        $d_{\min} \leq d \leq d_{\max}$.
+
+        INPUT:
+            n -- integer
+            dmin -- integer
+            dmax -- integer
+
+        OUTPUT:
+            dict -- keys are the discriminants $d$, and
+                    values are list of corresponding zeros.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_twist_zeros(3, -4, -3)         # long
+            {-4: [1.6081378292, 2.9614484021, 3.8975174734],
+             -3: [2.0617089970, 3.4821688067, 4.4585321881]}
+        """
+        from sage.interfaces.lcalc import lcalc
+        return lcalc.twist_zeros(n, dmin, dmax, L=self)
 
     def Lseries_at1(self, k=0):
         r"""
@@ -1270,6 +1543,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             $$
                For a proof see [Grigov-Jorza-Patrascu-Patrikis-Stein].
         \end{enumerate}
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37b')
+            sage: E.Lseries_at1(100)
+            (0.72568106193599990, 0.0000000000000000000000000000000000000000000015243750228899999)
         """
         if self.root_number() == -1:
             return 0
@@ -1291,7 +1569,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return R(2*s), R(error)
 
     def Lseries_deriv_at1(self, k=0):
-        """
+        r"""
         Compute $L'(E,1)$ using$ k$ terms of the series for $L'(E,1)$.
 
         The algorithm used is from page 406 of Henri Cohen's book ``A
@@ -1308,25 +1586,33 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             real number -- a bound on the error in the approximation
 
         ALGORITHM:
-            1. Compute the root number eps.  If it is 1, return 0.
+        \begin{enumerate}
+            \item Compute the root number eps.  If it is 1, return 0.
 
-            2. Compute the Fourier coefficients a_n, for n up to and
-               including k.
+            \item Compute the Fourier coefficients $a_n$, for $n$ up to and
+                  including $k$.
 
-            3. Compute the sum
+            \item Compute the sum
                $$
-                 2 * sum_{n=1}^{k} (a_n / n) * E_1(2*pi*n/Sqrt(N)),
+                 2 * \sum_{n=1}^{k} (a_n / n) * E_1(2 \pi n/\sqrt{N}),
                $$
-               where N is the conductor of E, and E_1 is the
+               where $N$ is the conductor of $E$, and $E_1$ is the
                exponential integral function.
 
-            4. Compute a bound on the tail end of the series, which is
+            \item Compute a bound on the tail end of the series, which is
                $$
-                 2 * e^(-2 * pi * (k+1) / sqrt(N)) / (1 - e^(-2*pi/sqrt(N))).
+                 2 * e^{-2 \pi (k+1) / \sqrt{N}} / (1 - e^{-2 \ pi/\sqrt{N}}).
                $$
                For a proof see [Grigov-Jorza-Patrascu-Patrikis-Stein].  This
                is exactly the same as the bound for the approximation to
-               $L(E,1)$ produced by Lseries_at1.
+               $L(E,1)$ produced by \code{Lseries_at1}.
+        \end{enumerate}
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.Lseries_deriv_at1(100)
+            (0.30599977383499999,
+             0.0000000000000000000000000000000000000000000015243750228899999)
         """
         if self.root_number() == 1: return 0
         k = int(k)
@@ -1345,6 +1631,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns the value of the L-series of the elliptic curve E at s, where s
         must be a real number.
 
+        Use self.Lseries_extended for s complex.
+
         NOTES:
         (1) If the conductor of the curve is large, say > $10^12$, then this function
         will take a long time, since it uses an O(sqrt(N)) algorithm.
@@ -1359,12 +1647,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries(1.1)
             0.28549100767814789
         """
-        s = R(s)
+        try:
+            s = R(s)
+        except TypeError:
+            raise TypeError, "for non-real input, use self.Lseries_extended instead."
         if s <= 0 and s.frac() == 0:
             # The L-series vanishes at negative integers, but PARI
             # is broken for this.
             return R(0)
-        return R(self.pari_mincurve().elllseries(s).python())
+        return R(self.pari_mincurve().elllseries(s))
 
     def Lambda(self, s, prec):
         r"""
@@ -1393,6 +1684,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns the value of the L-series of the elliptic curve E at s
         can be any complex number using prec terms of the power series
         expansion.
+
+        INPUT:
+            s -- complex number
+            prec -- integer
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
@@ -1461,28 +1756,38 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__watkins_data = sage.libs.ec.all.ec(self.ainvs())
             return self.__watkins_data
 
-    def modular_degree(self):
+    def modular_degree(self, algorithm='ec'):
         r"""
-        Return the modular degree of this elliptic curve, computing
-        using Mark Watkins's C implementation of his analytic
-        symmetric square L-function algorithm.
+        Return the modular degree of this elliptic curve.
 
-        The correctness of this function is subject to the following
-        three hypothesis:
+        The result is cached.  Subsequence calls, even with a
+        different algorithm, just returned the cached result.
+
+        INPUT:
+           algorithm -- string:
+              'ec' -- (default) use Mark Watkins's C program ec
+              'sympow' -- use Mark Watkin's (newer) C program sympow
+              'magma' -- requires that MAGMA be installed (also implemented
+                         by Mark Watkins)
+
+        \note{On 64-bit computers ec does not work, so \sage uses
+        sympow if ec is selected on a 64-bit computer.}
+
+        The correctness of this function when called with algorithm "ec"
+        is subject to the following three hypothesis:
+
         \begin{itemize}
 
             \item Manin's conjecture: the Manin constant is 1
 
             \item Steven's conjecture: the $X_1(N)$-optimal quotient
-            is the curve with minimal Faltings height.
+            is the curve with minimal Faltings height.  (This is proved
+            in most cases.)
 
             \item The modular degree fits in a machine double, so it
             better be less than about 50-some bits.
 
         \end{itemize}
-
-        \note{Mark has a more robust implementation available in
-        MAGMA.}
 
         \note{If the curve is loaded from the large Cremona database,
         then the modular degree is taken from the database.}
@@ -1492,26 +1797,41 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: E.modular_degree()
-            1                                       # 32-bit
-            Traceback (most recent call last):                   # 64-bit
-            ...                                                  # 64-bit
-            RuntimeError: ec does not work on 64-bit platforms   # 64-bit
-
+            1
             sage: E = EllipticCurve('5077a')
             sage: E.modular_degree()
-            1984                                    # 32-bit
-            Traceback (most recent call last):                   # 64-bit
-            ...                                                  # 64-bit
-            RuntimeError: ec does not work on 64-bit platforms   # 64-bit
+            1984
             sage: factor(1984)
             2^6 * 31
+
+            sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree()
+            1984
+            sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='sympow')
+            1984
+            sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='magma')  # optional
+            1984
         """
         try:
             return self.__modular_degree
+
         except AttributeError:
-            v = self.watkins_data()
-            self.__modular_degree = int(v["Modular degree"])
-            return self.__modular_degree
+
+            if misc.is_64_bit and algorithm == 'ec':
+                misc.verbose('64-bit computer -- switching to algorithm sympow')
+                algorithm = 'sympow'
+
+            if algorithm == 'ec':
+                v = self.watkins_data()
+                m = rings.Integer(v["Modular degree"])
+            elif algorithm == 'sympow':
+                from sage.interfaces.all import sympow
+                m = sympow.modular_degree(self)
+            elif algorithm == 'magma':
+                m = rings.Integer(self._magma_().ModularDegree())
+            else:
+                raise ValueError, "unknown algorithm %s"%algorithm
+            self.__modular_degree = m
+            return m
 
     def modular_parametrization(self):
         """
@@ -1641,10 +1961,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: I, A = EllipticCurve('37b').isogeny_class('mwrank')
-            sage: I
+            sage: I   # randomly ordered
             [Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field,
-             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field]
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field,
+             Elliptic Curve defined by y^2 + y = x^3 + x^2 - 3*x +1 over Rational Field]
             sage: A
             [0 3 3]
             [3 0 0]

@@ -13,3 +13,5 @@ from dims import (dimension_cusp_forms_eps, dimension_cusp_forms_gamma0,
                   dimension_eis, dimension_new_cusp_forms_gamma0,
                   dimension_new_cusp_forms_gamma1, dimension_new_cusp_forms_group,
                   dimension_new_cusp_forms, dimension_modular_forms)
+
+from buzzard import buzzard_tpslopes

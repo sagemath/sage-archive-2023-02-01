@@ -18,8 +18,8 @@ def banner():
     bars = "-"*56
     print bars
     print "| %-52s |"%version()
-    print "| %-52s |"%'Distributed under the GNU General Public License V2'
-    print "| %-52s |"%'For help type <object>?, <object>??, %magic, or help'
+    print "| %-52s |"%'Distributed under the GNU General Public License V2.'
+    print "| %-52s |"%'For help type <anything>? or <anything>??.'
     print bars
     print ""
 

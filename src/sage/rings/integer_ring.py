@@ -280,7 +280,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def _magma_init_(self):
         """
         EXAMPLES:
-            sage: magma(ZZ)
+            sage: magma(ZZ)           # optional
             Integer Ring
         """
         return 'IntegerRing()'

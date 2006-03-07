@@ -7,7 +7,11 @@ from misc import (alarm, srange, xsrange,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, upgrade)
 
+from pager import pager
+
 from sagedoc import search_sage
+
+from getusage import top, get_memory_usage
 
 from log import log_html, log_dvi
 

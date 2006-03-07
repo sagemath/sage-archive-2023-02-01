@@ -398,9 +398,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         Construct a submodule of self from the embedded free module M.
         """
         if not sage.modules.all.is_FreeModule(M):
-            raise TypeError, "M must be a free module"
+            raise TypeError, "M (=%s) must be a free module"%M
+
         if not M.is_submodule(self.free_module()):
-            raise TypeError, "M must be a submodule of the free module associated to this module."
+            raise TypeError, "M (=%s) must be a submodule of the free module (=%s) associated to this module."%(M, self.free_module())
+
         return self.ambient().submodule(M, Mdual, check=check)
 
     def submodule_from_nonembedded_module(self, V, Vdual=None, check=True):

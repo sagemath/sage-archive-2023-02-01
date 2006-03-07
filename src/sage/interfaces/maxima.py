@@ -160,6 +160,9 @@ To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
     sage: g.taylor('x', 0, 3)
     f/(k^4*x^4) - 2*f/(3*k^2*x^2) + 11*f/45 - 62*k^2*f*x^2/945
 
+    sage: maxima.taylor('asin(x)','x',0, 10)
+    x + x^3/6 + 3*x^5/40 + 5*x^7/112 + 35*x^9/1152
+
 \subsection{Examples involving matrices}
 We illustrate computing with the matrix whose $i,j$ entry
 is $i/j$, for $i,j=1,\ldots,4$.

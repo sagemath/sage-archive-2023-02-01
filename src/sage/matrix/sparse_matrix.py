@@ -787,7 +787,8 @@ class Sparse_matrix_rational(Sparse_matrix_generic):
                                        coerce, sort, copy)
 
     def dense_matrix(self):
-        A = sage.matrix.dense_matrix_pyx.Matrix_rational(self.nrows(), self.ncols())
+        A = sage.matrix.dense_matrix_pyx.Matrix_rational(
+                                    self.nrows(), self.ncols())
         for i, j, x in self.list():
             A[i,j] = x
         return A

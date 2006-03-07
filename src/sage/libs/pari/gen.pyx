@@ -2,10 +2,11 @@
 PARI C-library interface
 
 AUTHORS:
-    -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta (this involved changing
-                                   almost every doc strings, among other things; the precision
-                                   behavior of PARI changes drastically from any version to
-                                   the next!).
+    -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
+             (this involved changing almost every doc strings, among other
+             things; the precision behavior of PARI changes
+             from any version to the next!).
+    -- William Stein (2006-03-06): added newtonpoly
 """
 
 include 'interrupt.pxi'
@@ -3653,6 +3654,15 @@ cdef class gen:
         _sig_on
         return self.new_gen(padicappr(self.g, t0))
 
+    def newtonpoly(self, p):
+        """
+        self.newtonpoly(p): Newton polygon of polynomial x with respect
+        to the prime p.
+        """
+        t0GEN(p)
+        _sig_on
+        return self.new_gen(newtonpoly(self.g, t0))
+
     def polcoeff(self, long n, var=-1):
         """
         EXAMPLES:
@@ -4084,14 +4094,31 @@ cdef class gen:
         dif = self.new_gen_noclear(dy)
         return self.new_gen(g), dif
 
-    def algdep(self, long n, bit=None):
-        if bit is None:
-            _sig_on
-            return self.new_gen(algdep(self.g, n, prec))
+    def algdep(self, long n, bit=0):
+        """
+        EXAMPLES:
+            sage: n = pari.get_real_precision()
+            sage: pari.set_real_precision (200)
+            sage: w1 = pari('z1=2-sqrt(26); (z1+I)/(z1-I)')
+            sage: f = w1.algdep(12); f
+            56353545*x^12 - 61469352*x^11 - 52043418*x^10 + 90409719*x^9 + 501729*x^8 - 20631014*x^7 - 45434470*x^6 + 144942235*x^5 - 203525140*x^4 + 79566028*x^3 + 119795342*x^2 - 137115392*x + 46867820              # 32-bit
+            3270*x^12 - 1782*x^11 - 1686*x^10 + 1378*x^9 - 2147*x^8 + 4965*x^7 - 2315*x^6 - 609*x^5 + 1362*x^4 - 531*x^3 - 1469*x^2 + 1883*x + 545   # 64-bit
+            sage: f(w1)
+            -1.324792323 E-194 + 1.201052069 E-194*I                     # 32-bit
+            1.8709440771032287632 E-208 + 1.4223313715139293357 E-209*I  # 64-bit
+            sage: f.factor()
+            [545*x^4 - 1932*x^3 + 2790*x^2 - 1932*x + 545, 1; 103401*x^8 + 253764*x^7 + 274752*x^6 + 207339*x^5 + 125580*x^4 + 66116*x^3 - 31610*x^2 + 53264*x + 85996, 1]       # 32-bit
+            [545*x^4 - 1932*x^3 + 2790*x^2 - 1932*x + 545, 1; 6*x^8 + 18*x^7 + 30*x^6 + 38*x^5 + 35*x^4 + 27*x^3 + 17*x^2 + 7*x + 1, 1]      # 64-bit
+
+            sage: f.factor()[0][0](w1)
+            5.52329731 E-200 - 1.527216681 E-199*I        # 32-bit
+            -8.270311337621679344 E-210 + 4.978159800298752674 E-209*I    # 64-bit
+            sage: pari.set_real_precision(n)
+        """
         cdef long b
         b = bit
         _sig_on
-        return self.new_gen(algdep2(self.g, n, b))
+        return self.new_gen(algdep0(self.g, n, b, prec))
 
     def concat(self, y):
         t0GEN(y)

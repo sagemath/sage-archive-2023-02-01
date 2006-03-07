@@ -149,8 +149,7 @@ class Macaulay2(Expect):
         Set the variable var to the given value.
         """
         cmd = '%s=%s;'%(var,value)
-        ans = self.eval(cmd)
-        #ans = self._eval_line(cmd, allow_use_file=True)
+        ans = Expect.eval(self, cmd)
         if ans.find("stdio:") != -1:
             raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(cmd, ans)
 

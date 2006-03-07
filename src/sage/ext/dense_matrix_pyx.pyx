@@ -1,5 +1,5 @@
-"""
-Dense matrices over F_p and Q.
+r"""
+Dense matrices over $\FF_p$ and $\QQ$.
 """
 
 #*****************************************************************************
@@ -17,7 +17,6 @@ Dense matrices over F_p and Q.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "cdefs.pxi"
 include "gmp.pxi"
 include "interrupt.pxi"
 
@@ -545,7 +544,7 @@ def cmp_pivots(x,y):
 
 
 
-cdef class Matrix_rational
+#cdef class Matrix_rational
 
 cdef Matrix_rational_cmp(Matrix_rational self, Matrix_rational other):
     if self.matrix == <mpq_t **> 0 or other.matrix == <mpq_t **> 0:
@@ -570,12 +569,6 @@ cdef class Matrix_rational:
     """
     Matrix over the rational numbers.
     """
-
-    cdef mpq_t **matrix
-    cdef mpq_t tmp
-    cdef int nrows, ncols
-    cdef object __pivots
-    cdef int initialized
 
     def __new__(self, int nrows, int ncols, object entries=None, construct=False):
         cdef int i
@@ -664,7 +657,7 @@ cdef class Matrix_rational:
             entries = ''
         else:
             n = self.nrows*self.ncols*10
-            s = <char*> malloc(n * sizeof(char))
+            s = <char*> PyMem_Malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -676,9 +669,9 @@ cdef class Matrix_rational:
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> malloc(n)
+                        tmp = <char*> PyMem_Malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        free(s)
+                        PyMem_Free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -1337,6 +1330,60 @@ cdef class Matrix_rational:
         a = mpz_to_long(h)
         mpz_clear(h)
         return a
+
+##     def prod_of_row_sums(self, cols):
+##         r"""
+##         Calculate the product of all row sums of a submatrix of $A$ for a
+##         list of selected columns \code{cols}.
+
+##         This is used for the computation of matrix permanents.
+##         """
+##         pr = 1
+##         for row in xrange(self.nrows):
+##             z = 0
+##             for c in cols:
+##                 z = z + self[row, c]
+##             pr = pr * z
+##         return pr
+
+    def prod_of_row_sums(self, cols):
+        r"""
+        Calculate the product of all row sums of a submatrix of $A$ for a
+        list of selected columns \code{cols}.
+
+        This is used for the computation of matrix permanents.
+        """
+        cdef int row, c, n, t
+
+        n = len(cols)
+        cdef int* v
+        v = <int*> PyMem_Malloc(n * sizeof(int))
+        for c from 0 <= c < n:
+            t = cols[c]
+            if t < 0 or t >= self.ncols:
+                PyMem_Free(v)
+                raise IndexError, "invalid column index (= %s)"%t
+            v[c] = t
+
+        cdef mpq_t pr, z
+        mpq_init(pr)
+        mpq_init(z)
+
+
+        mpq_set_si(pr, 1, 1)
+        for row from 0 <= row < self.nrows:
+            mpq_set_si(z, 0, 1)
+            for c from 0 <= c < n:
+                mpq_add(z, z, self.matrix[row][v[c]])
+            mpq_mul(pr, pr, z)
+
+        cdef rational.Rational x
+        x = rational.Rational()
+        x.set_from_mpq(pr)
+        mpq_clear(pr)
+        mpq_clear(z)
+        PyMem_Free(v)
+        return x
 
     def clear_denom_copy(self):
         """

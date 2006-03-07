@@ -57,7 +57,6 @@ class FiniteFieldElement(field_element.FieldElement):
         """
         field_element.FieldElement.__init__(self, parent)
         self.__parent = parent
-        global TypeError
         if isinstance(value, str):
             raise TypeError, "value (=%s) must not be a string"%value
         try:
@@ -80,7 +79,8 @@ class FiniteFieldElement(field_element.FieldElement):
                 self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
             except RuntimeError:
                 raise TypeError, "no coercion of %s to %s defined."%(value, parent)
-        except AttributeError, TypeError:
+
+        except (AttributeError, TypeError):
             raise TypeError, 'Unable to coerce %s into %s.'%(value, parent)
 
     def polynomial(self):

@@ -60,8 +60,11 @@ class Mwrank_class(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False)
 
+    def __getattr__(self, attrname):
+        raise AttributeError
+
     def __reduce__(self):
-        return reduce_load_Mwrank, tuple([])
+        return _reduce_load_Mwrank, tuple([])
 
     def __call__(self, cmd):
         return self.eval(cmd)
@@ -73,7 +76,7 @@ class Mwrank_class(Expect):
 # An instance
 mwrank = Mwrank()
 
-def reduce_load_mwrank():
+def _reduce_load_mwrank():
     return mwrank
 
 import os

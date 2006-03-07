@@ -152,8 +152,12 @@ class MatrixMorphism(sage.categories.all.Morphism):
         if not self.is_endomorphism():
             raise ArithmeticError, "Matrix morphism must be an endomorphism."
         D = self.domain()
-        return [D.submodule(V) for V, _ in
-                self.__matrix.decomposition(is_diagonalizable=is_diagonalizable)]
+        E = self.__matrix.decomposition(is_diagonalizable=is_diagonalizable)
+        if D.is_ambient():
+            return [D.submodule(V) for V, _ in E]
+        else:
+            B = D.basis_matrix()
+            return [D.submodule((V.basis_matrix() * B).row_space()) for V, _ in E]
 
     def det(self):
         """

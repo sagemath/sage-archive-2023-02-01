@@ -477,23 +477,35 @@ class PowerSeries_generic_dense(PowerSeries):
                                          self._prec, check=False)
 
     def __add__(self, right):
+        """
+        EXAMPLES:
+            sage: x = PowerSeriesRing(ZZ).gen()
+            sage: f = x^4 + O(x^5); f
+            x^4 + O(x^5)
+            sage: g = x^2 + O(x^3); g
+            x^2 + O(x^3)
+            sage: f+g
+            x^2 + O(x^3)
+        """
         if not isinstance(right,PowerSeries_generic_dense) or self.parent() != right.parent():
             return bin_op(self, right, operator.add)
         return PowerSeries_generic_dense(self.parent(), self.__f + right.__f, \
-                                         self.common_prec(right), check=False)
+                                         self.common_prec(right), check=True)
 
     def __sub__(self, right):
         if not isinstance(right,PowerSeries_generic_dense) or self.parent() != right.parent():
             return bin_op(self, right, operator.sub)
         return PowerSeries_generic_dense(self.parent(), self.__f - right.__f, \
-                                         self.common_prec(right), check=False)
+                                         self.common_prec(right), check=True)
 
     def _mul_(self, right, prec):
-        return PowerSeries_generic_dense(self.parent(), self.__f * right.__f, prec)
+        return PowerSeries_generic_dense(self.parent(),
+                                         self.__f * right.__f, prec)
 
 
     def copy(self):
-        return PowerSeries_generic_dense(self.parent(), self.__f, self.prec(), check=False)
+        return PowerSeries_generic_dense(self.parent(), self.__f, self.prec(),
+                                         check=False)
 
     def list(self):
         return self.__f.list()

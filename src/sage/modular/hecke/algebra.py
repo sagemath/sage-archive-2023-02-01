@@ -173,8 +173,16 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
             sage: T.hecke_operator(2)
             Hecke operator T_2 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
         """
+        try:
+            return self.__hecke_operator[n]
+        except AttributeError:
+            self.__hecke_operator = {}
+        except KeyError:
+            pass
         n = int(n)
-        return hecke_operator.HeckeOperator(self, n)
+        T = hecke_operator.HeckeOperator(self, n)
+        self.__hecke_operator[n] = T
+        return T
 
     def hecke_matrix(self, n):
         """

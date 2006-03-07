@@ -166,7 +166,7 @@ def ModularSymbols(group  = 1,
         M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign)
 
     if M is None:
-        raise NotImplementedError, "computation of requested space of modular symbols not yet implemented"
+        raise NotImplementedError, "computation of requested space of modular symbols not defined or implemented"
 
     _cache[key] = weakref.ref(M)
     return M

@@ -15,7 +15,7 @@ nicely typeset incremental updates as you work.
 If \code{L=log_dvi()} or \code{L=log_html()} is a logger, you can type
 \code{L.stop()} and \code{L.start()} to stop and start logging.
 
-The environment variables \code{WEB\_BROWSER} and \code{DVI\_VIEWER}
+The environment variables \code{BROWSER} and \code{DVI\_VIEWER}
 determine which web browser or dvi viewer is used to display your
 running log.
 
@@ -31,7 +31,11 @@ AUTHOR:
     -- William Stein (2006-02): initial version
     -- William Stein (2006-02-27): changed html generation so log directory
                                    is relocatable (no hardcoded paths).
+    -- William Stein (2006-03-04): changed environment variable to BROWSER.
 """
+
+# Note: there is a webbrowser module standard with Python.
+# But it seems so dated as to be useless.
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
@@ -68,12 +72,96 @@ except KeyError:
 
 
 try:
-    WEB_BROWSER = os.environ['WEB_BROWSER']
+    BROWSER = os.environ['BROWSER']
 except KeyError:
     if os.system('which firefox 1>/dev/null 2>/dev/null') == 0:
-        WEB_BROWSER = 'firefox'
+        BROWSER = 'firefox'
     else:
-        WEB_BROWSER = 'konqueror'
+        BROWSER = 'konqueror'
+
+
+REFRESH = ''
+
+#REFRESH = '<meta http-equiv="REFRESH" content="4;">'
+
+# The following javascript is from
+#   http://grizzlyweb.com/webmaster/javascripts/refresh.asp#version2
+# It isn't any good because it jumps the position of the browser
+# view to the top of the page.
+
+## REFRESH = """
+## <noscript>
+## <!--
+##     We have the "refresh" meta-tag in case the user's browser does
+##     not correctly support JavaScript or has JavaScript disabled.
+##     Notice that this is nested within a "noscript" block.
+## -->
+## <meta http-equiv="refresh" content="2">
+
+## </noscript>
+
+## <script language="JavaScript">
+## <!--
+
+## var sURL = unescape(window.location.pathname);
+
+## function doLoad()
+## {
+##     // the timeout value should be the same as in the "refresh" meta-tag
+##     setTimeout( "refresh()", 2*1000 );
+## }
+
+## function refresh()
+## {
+##     //  This version of the refresh function will cause a new
+##     //  entry in the visitor's history.  It is provided for
+##     //  those browsers that only support JavaScript 1.0.
+##     //
+##     window.location.href = sURL;
+## }
+## //-->
+## </script>
+
+## <script language="JavaScript1.1">
+## <!--
+## function refresh()
+## {
+##     //  This version does NOT cause an entry in the browser's
+##     //  page view history.  Most browsers will always retrieve
+##     //  the document from the web-server whether it is already
+##     //  in the browsers page-cache or not.
+##     //
+##     window.location.replace( sURL );
+## }
+## //-->
+## </script>
+
+## <script language="JavaScript1.2">
+## <!--
+## function refresh()
+## {
+##     //  This version of the refresh function will be invoked
+##     //  for browsers that support JavaScript version 1.2
+##     //
+##     //  The argument to the location.reload function determines
+##     //  if the browser should retrieve the document from the
+##     //  web-server.  In our example all we need to do is cause
+##     //  the JavaScript block in the document body to be
+##     //  re-evaluated.  If we needed to pull the document from
+##     //  the web-server again (such as where the document contents
+##     //  change dynamically) we would pass the argument as 'true'.
+
+##     window.location.reload( true );
+## }
+## //-->
+## </script>
+## </head>
+
+## <!--
+##     Use the "onload" event to start the refresh process.
+## -->
+## <body onload="doLoad()">
+## """
 
 class Log:
     """
@@ -207,7 +295,7 @@ class log_html(Log):
         if not self._viewer is None:
             viewer = self._viewer
         else:
-            viewer = WEB_BROWSER
+            viewer = BROWSER
         os.system('%s %s&'%(viewer, self._filename))
 
     def _build(self):
@@ -250,7 +338,7 @@ class log_html(Log):
     def _header(self):
         T = self._title()
         inlog = os.path.split(self._input_log_name())[1]
-        return '<html><meta http-equiv="REFRESH" content="4;"><title>%s</title>\n<body><h1 align=center>%s</h1>\n<h2 align=center><a href="%s">%s</a></h2><pre>'%(
+        return '<html>\n%s\n<title>%s</title>\n<body><h1 align=center>%s</h1>\n<h2 align=center><a href="%s">%s</a></h2><pre>'%(REFRESH,
             T,T, inlog, inlog)
 
     def _footer(self):

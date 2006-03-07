@@ -2,7 +2,9 @@ r"""
 Elements of the ring $\Z$ of integers
 
 AUTHORS:
+    -- William Stein (2005): initial version
     -- Gonzalo Tornario (2006-03-02): vastly improved python/GMP conversion; hashing
+    -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
 """
 
 #*****************************************************************************
@@ -283,6 +285,29 @@ cdef class Integer(element.EuclideanDomainElement):
         2. This is because of a bug in GMP.  To obtain the base-$b$
         expansion of an integer $n$ use \code{n.str(b)}.
         \end{notice}
+
+        EXAMPLES:
+            sage: Integer(2^10).str(2)
+            '10000000000'
+            sage: Integer(2^10).str(17)
+            '394'
+
+            sage: two=Integer(2)
+            sage: two.str(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: base (=1) must be between 2 and 36
+
+            sage: two.str(37)
+            Traceback (most recent call last):
+            ...
+            ValueError: base (=37) must be between 2 and 36
+
+            sage: big = 2^424243423
+            sage: big.str()
+            Traceback (most recent call last):
+            ...
+            RuntimeError: String representation of integers with more than 4200000 digits is not available in bases other than a power of 2. This is because of a bug in GMP.  To obtain the base-b expansion of an integer n use n.str(b).
         """
         if base < 2 or base > 36:
             raise ValueError, "base (=%s) must be between 2 and 36"%base
@@ -345,17 +370,64 @@ cdef class Integer(element.EuclideanDomainElement):
         Coerces $n$ to a C signed integer if possible, and sets self
         equal to $n$.
 
+        EXAMPLES:
+            sage: n= ZZ(54)
+            sage: n.set_si(-43344);n
+            -43344
+            sage: n.set_si(43344);n
+            43344
+
+        Note that an error occurs when we are not dealing with
+        integers anymore
+            sage: n.set_si(2^32);n
+            Traceback (most recent call last):      # 32-bit
+            ...                                     # 32-bit
+            OverflowError: long int too large to convert to int   # 32-bit
+            4294967296       # 64-bit
+            sage: n.set_si(-2^32);n
+            Traceback (most recent call last):      # 32-bit
+            ...                                     # 32-bit
+            OverflowError: long int too large to convert to int     # 32-bit
+            -4294967296      # 64-bit
         """
         mpz_set_si(self.value, n)
 
     def set_str(self, s, base=10):
         """
-        Set self equal to the number defined by the string s in the
+        Set self equal to the number defined by the string $s$ in the
         given base.
+
+        EXAMPLES:
+            sage: n=100
+            sage: n.set_str('100000',2)
+            sage: n
+            32
+
+        If the number begins with '0X' or '0x', it is converted
+        to an hex number:
+            sage: n.set_str('0x13',0)
+            sage: n
+            19
+            sage: n.set_str('0X13',0)
+            sage: n
+            19
+
+        If the number begins with a '0', it is converted to an octal
+        number:
+            sage: n.set_str('013',0)
+            sage: n
+            11
+
+        '13' is not a valid binary number so the following raises
+        an exception:
+            sage: n.set_str('13',2)
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert x (=13) to an integer in base 2
         """
         valid = mpz_set_str(self.value, s, base)
         if valid != 0:
-            raise TypeError, "unable to convert x (=%s) to an integer"%s
+            raise TypeError, "unable to convert x (=%s) to an integer in base %s"%(s, base)
 
     cdef void set_from_mpz(Integer self, mpz_t value):
         mpz_set(self.value, value)
@@ -370,6 +442,26 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __add__(x, y):
+        """
+        EXAMPLES:
+        Add 2 integers:
+            sage: a = Integer(3) ; b = Integer(4)
+            sage: a + b == 7
+            True
+
+        Add an integer and a real number:
+            sage: a + 4.0
+            7.0000000000000000
+
+        Add an integer and a rational number:
+            sage: a + Rational(2)/5
+            17/5
+
+        Add an integer and a complex number:
+            sage: b = ComplexField().0 + 1.5
+            sage: loads((a+b).dumps()) == a+b
+            True
+        """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return x.__add_(y)
         return sage.rings.coerce.bin_op(x, y, operator.add)
@@ -402,9 +494,28 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __mul__(x, y):
+        """
+        EXAMPLES:
+            sage: a = Integer(3) ; b = Integer(4)
+            sage: a * b == 12
+            True
+            sage: loads((a * 4.0).dumps()) == a*b
+            True
+            sage: a * Rational(2)/5
+            6/5
+            sage: b = ComplexField().0 + 1.5
+            sage: loads((a*b).dumps()) == a*b
+            True
+
+            sage: list([2,3]) * 4
+            [2, 3, 2, 3, 2, 3, 2, 3]
+
+            sage: 'sage'*Integer(3)
+            'sagesagesage'
+        """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return x.__mul_(y)
-        if isinstance(x, list):
+        if isinstance(x, (str, list)):
             return x * int(y)
         return sage.rings.coerce.bin_op(x, y, operator.mul)
 
@@ -419,6 +530,19 @@ cdef class Integer(element.EuclideanDomainElement):
         #raise ArithmeticError, "Exact division impossible."
 
     def __div__(x, y):
+        """
+        Computes a \over{b}
+
+        EXAMPLES:
+            sage: a = Integer(3) ; b = Integer(4)
+            sage: a / b == Rational(3) / 4
+            True
+            sage: Integer(32) / Integer(32)
+            1
+            sage: b = ComplexField().0 + 1.5
+            sage: loads((a/b).dumps()) == a/b
+            True
+        """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return x.__div_(y)
         return sage.rings.coerce.bin_op(x, y, operator.div)
@@ -432,17 +556,37 @@ cdef class Integer(element.EuclideanDomainElement):
         mpz_fdiv_q(x.value, self.value, other.value)
         _sig_off
 
-
         return x
 
 
     def __floordiv__(x, y):
+        r"""
+        Computes the whole part of self \over{other}
+
+        EXAMPLES:
+            sage: a = Integer(321) ; b = Integer(10)
+            sage: a // b
+            32
+        """
         if isinstance(x, Integer) and isinstance(y, Integer):
             return x.__floordiv(y)
         return sage.rings.coerce.bin_op(x, y, operator.floordiv)
 
 
     def __pow__(self, n, dummy):
+        r"""
+        Computes $\text{self}^n$
+
+        EXAMPLES:
+            sage: 2^-6
+            1/64
+            sage: 2^6
+            64
+            sage: 2^0
+            1
+            sage: 2^-0
+            1
+        """
         cdef Integer _self, _n
         cdef unsigned int _nval
         if not isinstance(self, Integer):
@@ -462,9 +606,29 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __pos__(self):
+        """
+        EXAMPLES:
+            sage: z=43434
+            sage: z.__pos__()
+            43434
+        """
         return self
 
     def __neg__(self):
+        """
+        Computes $-self$
+
+        EXAMPLES:
+            sage: z = 32
+            sage: -z
+            -32
+            sage: z = 0; -z
+            0
+            sage: z = -0; -z
+            0
+            sage: z = -1; -z
+            1
+        """
         cdef Integer x
         x = Integer()
         mpz_neg(x.value, self.value)
@@ -472,6 +636,14 @@ cdef class Integer(element.EuclideanDomainElement):
 
     def __abs__(self):
         """
+        Computes $|self|$
+
+        EXAMPLES:
+            sage: z = -1
+            sage: abs(z)
+            1
+            sage: abs(z) == abs(1)
+            True
         """
         cdef Integer x
         x = Integer()
@@ -479,6 +651,18 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __mod__(self, modulus):
+        r"""
+        Returns \code{self % modulus}.
+
+        EXAMPLES:
+            sage: z = 43
+            sage: z % 2
+            1
+            sage: z % 0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Integer modulo by zero
+        """
         cdef Integer _modulus, _self
         _modulus = integer(modulus)
         if not _modulus:
@@ -496,6 +680,28 @@ cdef class Integer(element.EuclideanDomainElement):
 
 
     def quo_rem(self, other):
+        """
+        Returns the quotient and the remainder of
+        self divided by other.
+
+        INPUT:
+            other -- the integer the divisor
+
+        OUTPUT:
+            q   -- the quotient of self/other
+            r   -- the remainder of self/other
+
+        EXAMPLES:
+            sage: z = Integer(231)
+            sage: z.quo_rem(2)
+            (115, 1)
+            sage: z.quo_rem(-2)
+            (-115, 1)
+            sage: z.quo_rem(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other (=0) must be nonzero
+        """
         cdef Integer _other, _self
         _other = integer(other)
         if not _other:
@@ -516,8 +722,22 @@ cdef class Integer(element.EuclideanDomainElement):
 
     def powermod(self, exp, mod):
         """
-        powermod(self, Integer exp, Integer mod):
         Compute self**exp modulo mod.
+
+        EXAMPLES:
+            sage: z = Integer(2)
+            sage: z.powermod(31,31)
+            2
+            sage: z.powermod(0,31)
+            1
+            sage: z.powermod(-31,31) == 2^-31 % 31
+            True
+
+            As expected, the following is invalid:
+            sage: z.powermod(31,0)
+            Traceback (most recent call last):
+            ...
+            RuntimeError
         """
         cdef Integer x, _exp, _mod
         _exp = Integer(exp); _mod = Integer(mod)
@@ -530,6 +750,22 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def powermodm_ui(self, unsigned long int exp, mod):
+        r"""
+        Computes self**exp modulo mod, where exp is of the type
+        \code{unsigned long int}
+
+        EXAMPLES:
+            sage: z = 32
+            sage: z.powermodm_ui(-2,4)
+            0
+            sage: z.powermodm_ui(-2,14)
+            2
+            sage: z.powermodm_ui(-2^32, 14)
+            Traceback (most recent call last):       # 32-bit
+            ...                                      # 32-bit
+            OverflowError: long int too large to convert to int   # 32-bit
+            8         # 64-bit
+        """
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()
@@ -696,14 +932,26 @@ cdef class Integer(element.EuclideanDomainElement):
     def is_one(self):
         """
         Returns \\code{True} if the integers is $1$, otherwise \\code{False}.
+
+        EXAMPLES:
+            sage: Integer(1).is_one()
+            True
+            sage: Integer(0).is_one()
+            False
         """
-        return mpz_cmp_si(self.value, 1) == 0
+        return bool(mpz_cmp_si(self.value, 1) == 0)
 
     def is_zero(self):
         """
         Returns \\code{True} if the integers is $0$, otherwise \\code{False}.
+
+        EXAMPLES:
+            sage: Integer(1).is_zero()
+            False
+            sage: Integer(0).is_zero()
+            True
         """
-        return mpz_cmp_si(self.value, 0) == 0
+        return bool(mpz_cmp_si(self.value, 0) == 0)
 
     def is_unit(self):
         """
@@ -712,9 +960,29 @@ cdef class Integer(element.EuclideanDomainElement):
         return bool(mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0)
 
     def is_square(self):
+        r"""
+        Returns \code{True} if self is a perfect square
+
+        EXAMPLES:
+            sage: Integer(4).is_square()
+            True
+            sage: Integer(41).is_square()
+            False
+        """
         return bool(self._pari_().issquare())
 
     def is_prime(self):
+        r"""
+        Retuns \code{True} if self is prime
+
+        EXAMPLES:
+            sage: z = 2^31 - 1
+            sage: z.is_prime()
+            True
+            sage: z = 2^31
+            sage: z.is_prime()
+            False
+        """
         return bool(self._pari_().isprime())
 
     def square_free_part(self):
@@ -750,6 +1018,17 @@ cdef class Integer(element.EuclideanDomainElement):
         return n * F.unit()
 
     def next_prime(self):
+        r"""
+        Returns the next prime after self
+
+        EXAMPLES:
+            sage: Integer(100).next_prime()
+            101
+            sage: Integer(0).next_prime()
+            2
+            sage: Integer(1001).next_prime()
+            1009
+        """
         return Integer( (self._pari_()+1).nextprime())
 
     def additive_order(self):
@@ -798,6 +1077,12 @@ cdef class Integer(element.EuclideanDomainElement):
         """
         Returns True if this integer is not divisible by the square of
         any prime and False otherwise.
+
+        EXAMPLES:
+            sage: Integer(100).is_square_free()
+            False
+            sage: Integer(102).is_square_free()
+            True
         """
         return self._pari_().issquarefree()
 
@@ -827,6 +1112,11 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: a = Integer(5)
             sage: a.isqrt()
             2
+
+            sage: Integer(-102).isqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: square root of negative number not defined.
         """
         if self < 0:
             raise ValueError, "square root of negative number not defined."
@@ -846,8 +1136,8 @@ cdef class Integer(element.EuclideanDomainElement):
     def sqrt(self, bits=None):
         r"""
         Returns the positive square root of self, possibly as a
-        \emph{a real number} if self is not a perfect integer
-        square.
+        \emph{a real or complex number} if self is not a perfect
+        integer square.
 
         INPUT:
             bits -- number of bits of precision.
@@ -863,6 +1153,10 @@ cdef class Integer(element.EuclideanDomainElement):
 
         EXAMPLE:
             sage: Z = IntegerRing()
+            sage: Z(4).sqrt()
+            2
+            sage: Z(4).sqrt(53)
+            2.0000000000000000
             sage: Z(2).sqrt(53)
             1.4142135623730951
             sage: Z(2).sqrt(100)
@@ -881,15 +1175,16 @@ cdef class Integer(element.EuclideanDomainElement):
             9.8488578017961047217462114149176244816961362874427641717231516
         """
         if bits is None:
-            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
-        if self < 0:
-            x = sage.rings.complex_field.ComplexField(bits)(self)
-            return x.sqrt()
-        else:
             try:
                 return self.square_root()
             except ValueError:
                 pass
+            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
+
+        if self < 0:
+            x = sage.rings.complex_field.ComplexField(bits)(self)
+            return x.sqrt()
+        else:
             R = mpfr.RealField(bits)
             return self._mpfr_(R).sqrt()
 
@@ -897,6 +1192,14 @@ cdef class Integer(element.EuclideanDomainElement):
         """
         Return the positive integer square root of self, or raises a ValueError
         if self is not a perfect square.
+
+        EXAMPLES:
+            sage: Integer(144).square_root()
+            12
+            sage: Integer(102).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: self (=102) is not a perfect square
         """
         n = self.isqrt()
         if n * n == self:
@@ -1000,7 +1303,7 @@ cdef class Integer(element.EuclideanDomainElement):
             ZeroDivisionError: Inverse does not exist.
             sage: a = Integer(19)**100000
             sage: b = a*a
-            sage: c=a.inverse_mod(b)
+            sage: c = a.inverse_mod(b)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
@@ -1030,6 +1333,18 @@ cdef class Integer(element.EuclideanDomainElement):
     def _gcd(self, Integer n):
         """
         Return the greatest common divisor of self and $n$.
+
+        EXAMPLE:
+            sage: gcd(-1,1)
+            1
+            sage: gcd(0,1)
+            1
+            sage: gcd(0,0)
+            0
+            sage: gcd(2,2^6)
+            2
+            sage: gcd(21,2^6)
+            1
         """
         cdef mpz_t g
         cdef object g0
@@ -1074,6 +1389,22 @@ def factorial(unsigned long int n):
     """
     Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
     The input integer $n$ must fit in an \\code{unsigned long int}.
+
+    EXAMPLES:
+        sage: factorial(Integer(1)) == factorial(Integer(0))
+        True
+        sage: factorial(Integer(6)) == 6*5*4*3*2
+        True
+        sage: factorial(Integer(1)) == factorial(Integer(0))
+        True
+        sage: factorial(Integer(71)) == Integer(71)* factorial(Integer(70))
+        True
+        sage: factorial(Integer(81)) == Integer(81)* factorial(Integer(81))
+        False
+        sage: factorial(Integer(-32))
+        1
+        sage: factorial(Integer(-32)) == factorial(-42432)
+        True
     """
     cdef mpz_t x
     cdef Integer z

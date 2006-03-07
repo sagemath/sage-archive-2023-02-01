@@ -8,6 +8,12 @@ not included with \sage, but you can obtain it from
 have to install any optional \sage packages.
 
 
+    Type \code{magma.[tab]} for a list of all the functions available
+    from your Magma install.  Type \code{magma.[tab]?} for Magma's
+    help about a given function.  Type \code{magma(...)} to create
+    a new Magma object, and \code{magma.eval(...)} to run a string
+    using Magma (and get the result back as a string).
+
 SAGE provides an interface to the Magma computational algebra
 system.  This system provides extensive functionality for
 number theory, group theory, combinatorics and algebra.
@@ -85,6 +91,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sys
+
 from sage.structure.element import RingElement
 from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
 PROMPT = ">>>"
@@ -96,6 +104,12 @@ INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
 class Magma(Expect):
     """
     Interface to the Magma interpreter.
+
+    Type \code{magma.[tab]} for a list of all the functions available
+    from your Magma install.  Type \code{magma.[tab]?} for Magma's
+    help about a given function.  Type \code{magma(...)} to create
+    a new Magma object, and \code{magma.eval(...)} to run a string
+    using Magma (and get the result back as a string).
     """
     def __init__(self, maxread=10000, script_subdirectory="user", logfile=None, server=None):
         Expect.__init__(self,
@@ -268,14 +282,18 @@ class Magma(Expect):
                 except IOError:
                     pass
             if verbose:
-                print "Creating list of all MAGMA intrinsics for use in tab completion."
-                print "This takes a long time the first time, but is saved to the"
-                print "file '%s' for future use."%INTRINSIC_CACHE
+                print "\nCreating list of all MAGMA intrinsics for use in tab completion."
+                print "This takes a few minutes the first time, but is saved to the"
+                print "file '%s' for future instant use."%INTRINSIC_CACHE
+                print "Delete that file to force recreation of this cache."
+                print "Scanning MAGMA types ..."
+                tm = sage.misc.misc.cputime()
             T = self.eval('ListTypes()').split()
             N = []
             for t in T:
                 if verbose:
-                    print t
+                    print t, " ",
+                    sys.stdout.flush()
                 try:
                     s = self.eval('ListSignatures(%s)'%t)
                     for x in s.split('\n'):
@@ -283,6 +301,8 @@ class Magma(Expect):
                         N.append(x[:i])
                 except RuntimeError:  # weird internal problems in MAGMA type system
                     pass
+            if verbose:
+                print "Done! (%s seconds)"%sage.misc.misc.cputime(tm)
             N = list(set(N))
             N.sort()
             sage.misc.persist.save(N, INTRINSIC_CACHE)
@@ -316,6 +336,10 @@ class MagmaFunctionElement(FunctionElement):
                 W.append(X)
         return '\n'.join(W)
 
+    def __repr__(self):
+        M = self._obj.parent()
+        return M.eval('%s`%s'%(self._obj.name(), self._name))
+
 
 class MagmaFunction(ExpectFunction):
     def _sage_doc_(self):
@@ -327,13 +351,27 @@ class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
         return MagmaFunctionElement(self, attrname)
 
+    def set_magma_attribute(self, attrname, value):
+        P = self.parent()   # instance of MAGMA that contains this element.
+        if not (isinstance(value, MagmaElement) and value.parent() is P):
+            value = P(value)
+        P.eval('%s`%s := %s'%(self.name(), attrname, value.name()))
+
+    def get_magma_attribute(self, attrname):
+        P = self.parent()
+        return P('%s`%s'%(self.name(), attrname))
+
+    def list_attributes(self):
+        return magma.eval('ListAttributes(Type(%s))'%\
+                          self.name()).split()
+
     def trait_names(self):
         M = self.methods()
         N = []
         for x in M:
             i = x.find('(')
             N.append(x[:i])
-        return N
+        return N + self.list_attributes()
 
     def methods(self, any=False):
         """

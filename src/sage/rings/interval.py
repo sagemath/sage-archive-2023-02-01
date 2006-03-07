@@ -182,8 +182,30 @@ class Interval(ring_element.RingElement):
         x = math.ceil(self.__min)
         y = math.floor(self.__max)
         if x != y:
-            raise ValueError, "Cannot coerce to int because there is not a unique integer in the interval %s."%self
+            raise ValueError, "Cannot coerce to int because there is not a unique integer in the interval %s"%self
         return int(x)
+
+    def _integer_(self):
+        """
+        Used for coercion to the integers.
+
+        EXAMPLES:
+            sage: I = IntervalRing()
+            sage: a = I(1.6, 2.7)
+            sage: ZZ(a)
+            2
+            sage: a = I(2.1, 2.7)
+            sage: ZZ(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce to int because there is not a unique integer in the interval [2.1, 2.7]
+            sage: a = I(2.1, 5.7)
+            sage: ZZ(a)
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot coerce to int because there is not a unique integer in the interval [2.1, 5.7]
+        """
+        return integer.Integer(int(self))
 
     def is_int(self):
         try:

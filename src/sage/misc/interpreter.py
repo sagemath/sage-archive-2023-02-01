@@ -130,7 +130,6 @@ def do_prefilter_paste(line, continuation):
     """
     global attached
 
-
     # This is so it's OK to have lots of blank space at the
     # beginning of any non-continuation line.
 
@@ -138,7 +137,7 @@ def do_prefilter_paste(line, continuation):
         line = line.lstrip()
     line = line.rstrip()
 
-    if not line[:7] == 'attach ' and line[:5] != 'load ':
+    if not line[:7] == 'attach ' and not line[:5] == 'load ':
         for F in attached.keys():
             tm = attached[F]
             if os.path.exists(F) and os.path.getmtime(F) > tm:

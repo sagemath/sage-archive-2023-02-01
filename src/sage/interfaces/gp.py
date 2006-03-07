@@ -1,6 +1,13 @@
 r"""
 Interface to GP/Pari
 
+    Type \code{gp.[tab]} for a list of all the functions available
+    from your Gp install.  Type \code{gp.[tab]?} for Gp's
+    help about a given function.  Type \code{gp(...)} to create
+    a new Gp object, and \code{gp.eval(...)} to run a string
+    using Gp (and get the result back as a string).
+
+
 EXAMPLES:
 We illustrate objects that wrap GP objects (gp is the PARI interpreter):
 
@@ -87,6 +94,12 @@ from sage.libs.pari.all import pari
 class Gp(Expect):
     """
     Interface to the PARI gp interpreter.
+
+    Type \code{gp.[tab]} for a list of all the functions available
+    from your Gp install.  Type \code{gp.[tab]?} for Gp's
+    help about a given function.  Type \code{gp(...)} to create
+    a new Gp object, and \code{gp.eval(...)} to run a string
+    using Gp (and get the result back as a string).
     """
     def __init__(self, stacksize=10000000,   # 10MB
                  maxread=100000, script_subdirectory="",

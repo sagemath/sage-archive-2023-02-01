@@ -52,6 +52,7 @@ mpq_init(tmp)
 cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     """
     Set answer to the unique mpq is a modulo m such that ...
+
     We assume that answer has been mpq_init'd.
     If the rational reconstruction doesn't exist,
     raises a ValueError

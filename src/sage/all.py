@@ -124,7 +124,7 @@ class __Copyright2:
 
 copyright = __Copyright2()
 
-def save_session(state, name, verbose=True):
+def save_session(state, name='default_session', verbose=True):
     """
     Save all variables defined during this session (that can be saved)
     to the given filename.  The variables will be saved to a dictionary,
@@ -148,7 +148,7 @@ def save_session(state, name, verbose=True):
             pass
     save(D, name)
 
-def load_session(state, name, verbose=True):
+def load_session(state, name='default_session', verbose=True):
     """
     Load a saved session.
 

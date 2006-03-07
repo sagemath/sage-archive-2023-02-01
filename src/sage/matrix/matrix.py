@@ -67,6 +67,7 @@ rank.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import copy
 import operator
 
 import sage.rings.arith
@@ -391,7 +392,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         return self.parent().matrix_space(nrows, ncols, sparse=sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
-                coerce_entries=True, copy=True):
+                coerce_entries=True, copy=True, sparse=None):
         """
         Create a matrix in the parent of this space with the given
         number of rows, columns, etc.
@@ -399,7 +400,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         WARNING: This function called with no arguments returns the 0
         matrix by default, not the matrix self.
         """
-        return self.matrix_space(nrows, ncols).matrix(
+        return self.matrix_space(nrows, ncols, sparse=sparse).matrix(
                 entries, coerce_entries, copy)
 
     ###################################################
@@ -768,21 +769,33 @@ class Matrix(module_element.ModuleElement, Mutability):
         z = self.base_ring()(0)
         return set([j for j in xrange(self.ncols()) if self[i,j] != z])
 
+    def prod_of_row_sums(self, cols):
+        r"""
+        Calculate the product of all row sums of a submatrix of $A$ for a
+        list of selected columns \code{cols}.
+
+        AUTHOR:
+            -- Jaap Spies (2006-02-18)
+        """
+        pr = 1
+        for row in xrange(self.nrows()):
+            pr *= sum([self[row, c] for c in cols])
+        return pr
+
     def permanent(self):
         r"""
         Calculate and return the permanent of this $m \times n$ matrix using
         Ryser's algorithm.
 
-        Let $A = (a_{ij})$ be a $m \times n$ matrix over any commutative ring,
-        $m \le n$.
-        The permanent of $A$ is defined by
+        Let $A = (a_{i,j})$ be an $m \times n$ matrix over any
+        commutative ring, with $m \le n$.   The permanent of $A$ is
         \[
-        \text{per}(A) = \sum_\pi a_{1\pi(1)}a_{2\pi(2)} \cdots a_{m\pi(m)}
+        \text{per}(A) = \sum_\pi a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m\,pi(m)}
         \]
         where the summation extends over all one-to-one functions $\pi$ from
         $\{1, \ldots, m\}$ to $\{1, \ldots, n\}$.
 
-        The product $ a_{1\pi(1)}a_{2\pi(2)} \cdots a_{m\pi(m)}$ is called
+        The product $ a_{1,\pi(1)}a_{2,\pi(2)} \cdots a_{m,\pi(m)}$ is called
         diagonal product. So the permanent of an $m \times n$ matrix $A$ is the
         sum of all the diagonal products of $A$.
 
@@ -813,7 +826,11 @@ class Matrix(module_element.ModuleElement, Mutability):
             sage: A.permanent()
             36.000000000000000
 
-            See the Sloane's OEIS A079908(3) = 36, "The Dancing School Problems"
+        See Sloane's sequence OEIS A079908(3) = 36, "The Dancing School Problems"
+
+            sage: print sloane_sequence(79908)                # optional (internet connection)
+            Looking up in Sloane's online database...
+            [79908, 'Solution to the Dancing School Problem with 3 girls: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
 
             sage: M = MatrixSpace(ZZ,4,5)
             sage: A = M([1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
@@ -842,7 +859,10 @@ class Matrix(module_element.ModuleElement, Mutability):
             -- Jaap Spies (2006-02-16)
                 Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
                 Copyright (C) 2006 William Stein <wstein@ucsd.edu>
-            -- Jaap Spies (2006-02-21): added defn of permanent
+            -- Jaap Spies (2006-02-21): added definition of permanent
+
+        NOTES:
+            -- Currently optimized for dense matrices over QQ.
         """
         perm = 0
         m, n = self.nrows(), self.ncols()
@@ -850,9 +870,136 @@ class Matrix(module_element.ModuleElement, Mutability):
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
         for r in range(1, m+1):
             lst = _combinations(range(n), r)
-            s = sum([_prod_of_row_sums(self, cols) for cols in lst])
+            s = sum([self.prod_of_row_sums(cols) for cols in lst])
             perm += (-1)**(m-r) * sage.rings.arith.binomial(n-r, m-r) * s
         return perm
+
+    def permanental_minor(self, k):
+        r"""
+        Calculates the permanental $k$-minor of a $m \times n$ matrix.
+
+        This is the sum of the permanents of all possible $k$ by $k$
+        submatices of $A$.
+
+        See Brualdi and Ryser: Combinatorial Matrix Theory, p. 203.
+        Note the typo $p_0(A) = 0$ in that reference!  For
+        applications see Theorem 7.2.1 and Theorem 7.2.4.
+
+        Note that the permanental $m$-minor equals $per(A)$.
+
+        For a (0,1)-matrix $A$ the permanental $k$-minor counts the
+        number of different selections of $k$ 1's of $A$ with no two
+        of the 1's on the same line.
+
+        INPUT:
+            self -- matrix of size m x n with m <= n
+
+        OUTPUT:
+            permanental k-minor of matrix A
+
+        EXAMPLES:
+            sage: M = MatrixSpace(ZZ,4,4)
+            sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
+            sage: A.permanental_minor(2)
+            114
+
+            sage: M = MatrixSpace(ZZ,3,6)
+            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A.permanental_minor(0)
+            1
+            sage: A.permanental_minor(1)
+            12
+            sage: A.permanental_minor(2)
+            40
+            sage: A.permanental_minor(3)
+            36
+
+        Note that if k == m the permanental k-minor equals per(A)
+
+            sage: A.permanent()
+            36
+
+            sage: A.permanental_minor(5)
+            0
+
+        For C the "complement" of A:
+
+            sage: M = MatrixSpace(ZZ,3,6)
+            sage: C = M([0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0])
+            sage: m, n = 3, 6
+            sage: sum([(-1)^k * C.permanental_minor(k)*factorial(n-k)/factorial(n-m) for k in range(m+1)])
+            36
+
+            See Theorem 7.2.1 of Brualdi: and Ryser: Combinatorial Matrix Theory: per(A)
+
+        AUTHOR:
+            - Jaap Spies (2006-02-19)
+        """
+        m, n = self.nrows(), self.ncols()
+        if not m <= n:
+            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+
+        if k == 0:
+            return 1
+        if k > m:
+            return 0
+        k = int(k)
+        pm = 0
+        for cols in _combinations(range(n),k):
+            for rows in _combinations(range(m),k):
+                pm += self.matrix_from_rows_and_columns(rows, cols).permanent()
+        return pm
+
+    def rook_vector(self, check = False):
+        r"""
+        Returns rook vector of this matrix.
+
+        Let $A$ be a general $m$ by $n$ (0,1)-matrix with $m \le n$.
+        We identify $A$ with a chessboard where rooks can be placed on
+        the fields corresponding with $a_{ij} = 1$. The number $r_k =
+        p_k(A)$ (the permanental $k$-minor) counts the number of ways
+        to place $k$ rooks on this board so that no two rooks can
+        attack another.
+
+        The rook vector is the list consisting of $r_0, r_1, \ldots, r_m$.
+
+        The rook polynomial is defined by $r(x) = \sum_{k=0}^m r_k x^k$.
+
+        INPUT:
+            self -- m by n matrix with m <= n
+            check -- True or False (default), optional
+
+        OUTPUT:
+            rook vector
+
+        EXAMPLES:
+            sage: M = MatrixSpace(ZZ,3,6)
+            sage: A = M([1,1,1,1,0,0,0,1,1,1,1,0,0,0,1,1,1,1])
+            sage: A.rook_vector()
+            [1, 12, 40, 36]
+
+            sage: x = PolynomialRing(IntegerRing(),'x').gen()
+            sage: rv = A.rook_vector()
+            sage: rook_polynomial = sum([rv[k] * x^k for k in range(len(rv))])
+            sage: rook_polynomial
+            36*x^3 + 40*x^2 + 12*x + 1
+
+        AUTHOR:
+            - Jaap Spies (2006-02-24)
+        """
+        m, n = self.nrows(), self.ncols()
+        if not m <= n:
+            raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
+
+        if check == True:
+            # verify that self[i, j] in {0, 1}
+            for i in range(m):
+                for j in range(n):
+                    if not (self[i,j] == 0 or self[i,j] == 1):
+                        raise ValueError, "must have zero or one, but we have (=%s)"%(self[i,j])
+
+        return [self.permanental_minor(k) for k in range(m+1)]
+
 
     def determinant(self):
         r"""
@@ -973,14 +1120,26 @@ class Matrix(module_element.ModuleElement, Mutability):
         """
         self[i] = s*self[j]
 
+    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, i, A, r, cols):
+        # this will be insanely slow for a generic matrix, and should be
+        # overloaded for specific matrix classes!
+        # the ints cols are assumed sorted.
+        # this function exists just because it is useful for modular symbols presentations.
+        l = 0
+        rows = A.sparse_rows()
+        v = rows[r]
+        for k in cols:
+            if k in v.keys():
+                self[i,l] = -v[k]
+            l += 1
+
     def sparse_columns(self):
         try:
             return self.__sparse_columns
         except AttributeError:
-            C = [[] for _ in xrange(len(self.ncols()))]
+            C = [{} for _ in xrange(len(self.ncols()))]
             for i, j in self.nonzero_positions():
-                x = self.get(i,j)
-                C[j].append((i,x))
+                C[i][j] = self.get(i,j)
             if self.is_immutable():
                 self.__sparse_columns = C
             return C
@@ -989,10 +1148,9 @@ class Matrix(module_element.ModuleElement, Mutability):
         try:
             return self.__sparse_rows
         except AttributeError:
-            R = [[] for _ in xrange(len(self.ncols()))]
+            R = [{} for _ in xrange(self.ncols())]
             for i, j in self.nonzero_positions():
-                x = self.get(i,j)
-                R[i].append((j,x))
+                R[i][j] = self.get((i,j))
             if self.is_immutable():
                 self.__sparse_rows = R
             return R
@@ -1644,6 +1802,9 @@ class Matrix_pid(Matrix_domain):
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
 
+        if self.nrows() == 0:
+            return []
+
         f = self.charpoly()
         E = []
 
@@ -2263,9 +2424,13 @@ class Matrix_field(Matrix_pid):
         misc.verbose("Finished Hessenberg Normal Form of %sx%s matrix"%(n,n),tm)
         return h
 
-    def kernel(self):
+    def kernel(self, *args, **kwds):
         r"""
         Return the kernel of this matrix, as a vector space.
+
+        INPUT:
+            -- all additional arguments to the kernel function
+               are passed directly onto the echelon call.
 
         \algorithm{Elementary row operations don't change the kernel,
         since they are just right multiplication by an invertible
@@ -2355,7 +2520,7 @@ class Matrix_field(Matrix_pid):
             basis = [V([R(x) for x in b]) for b in B]
             return V.subspace(basis)
 
-        E = self.transpose().echelon_form()
+        E = self.transpose().echelon_form(*args, **kwds)
         pivots = E.pivots()
         pivots_set = set(pivots)
         basis = []
@@ -2545,7 +2710,7 @@ class Matrix_field(Matrix_pid):
                 C = [V.coordinate_vector(b*self) for b in V.basis()]
             except ArithmeticError:
                 raise ArithmeticError, "subspace is not invariant under matrix"
-            return self.new_matrix(n, n, C)
+            return self.new_matrix(n, n, C, sparse=False)
 
     def restrict_domain(self, V):
         """
@@ -3211,10 +3376,14 @@ class Matrix_generic_sparse_field(Matrix_field, Matrix_generic_sparse):
 
 #############################################
 ## Dense matrices over the integers
-##
-##       Stored using PARI.
 #############################################
 class Matrix_dense_integer(Matrix_integer, Matrix_generic_dense):
+    """
+    Dense matrix over the integers.
+
+    This type is implemented mostly in Python using generic machinery,
+    hence not very optimized.
+    """
     def __init__(self, parent, entries=0,
                        coerce_entries=True,
                        copy=True):
@@ -3401,8 +3570,8 @@ class Matrix_dense_rational(Matrix_field):
         if bound is None:
             # The following code (inspired by NTL's mat_poly_ZZ.c) computes
             # a bound that is vastly better than the Hadamard bound.  Victor
-            # Shoup's comment, 'This bound is computed via interpolation
-            # through complex roots of unity' means.  Reference: Mathieu and
+            # Shoup's comments 'This bound is computed via interpolation
+            # through complex roots of unity'.  Reference: Mathieu and
             # Ford (1990, Section 6), 'On p-adic computation of the rational
             # form of a matrix.'.
             time = misc.verbose("computing bound")
@@ -3474,6 +3643,13 @@ class Matrix_dense_rational(Matrix_field):
     def _entries(self):
         return self.__matrix
 
+    def _dense_matrix_mpq_(self):
+        """
+        Return underlying GMP-based matrix used to implement some functionality
+        for this object. (Mainly for internal use.)
+        """
+        return self.__matrix
+
     def transpose(self):
         """
         Return the transpose of this matrix.
@@ -3503,6 +3679,18 @@ class Matrix_dense_rational(Matrix_field):
         R = self.parent().base_ring()
         self.__matrix.set_row_to_multiple_of_row(i, j, R(s))
 
+    def prod_of_row_sums(self, cols):
+        r"""
+        Calculate the product of all row sums of a submatrix of $A$ for a
+        list of selected columns \code{cols}.
+
+        This is done in C so very fast.
+
+        AUTHOR:
+            -- William Stein 2006-03-05
+        """
+        return self.__matrix.prod_of_row_sums(cols)
+
     def echelon_form(self, height_guess=None, include_zero_rows=True):
         """
         Return the echelon form of this matrix over the rational
@@ -3516,8 +3704,10 @@ class Matrix_dense_rational(Matrix_field):
             [ 0  0  0]
         """
         try:
-            return self.__echelon_form
+            return self.__echelon_form[include_zero_rows]
         except AttributeError:
+            self.__echelon_form = {}
+        except KeyError:
             pass
         A = self.__matrix.echelon_modular(height_guess=height_guess)
         pivots = A.pivots()
@@ -3527,12 +3717,12 @@ class Matrix_dense_rational(Matrix_field):
             nr = r
         else:
             nr = self.nrows()
-        E = Matrix_dense_rational(self.matrix_space(nrows=nr), A)
+        E = Matrix_dense_rational(self.matrix_space(nrows=nr), A, copy=False)
         E._set_pivots(pivots)
         E._set_rank(len(pivots))
         E.set_immutable()
         if self.is_immutable():
-            self.__echelon_form = E
+            self.__echelon_form[include_zero_rows] = E
         return E
 
 
@@ -3540,159 +3730,18 @@ class Matrix_dense_rational(Matrix_field):
 #############################################
 ## Sparse matrices over the rational numbers
 #############################################
-class Matrix_sparse_rational(Matrix_generic_sparse_field):
-    """
-    The \\class{Matrix_sparse_rational} class derives from
-    \\class{Matrix}, and defines functionality for sparse matrices
-    over the field $\\Q$ of rational numbers.
-    """
-    def __init__(self,
-                    parent,
-                    entries=0,
-                    coerce_entries=True,
-                    copy = True):
-        Matrix_generic_sparse.__init__(self, parent, entries,
-                        coerce_entries, copy)
-
-
-    def _sparse_list(self):
-        try:
-            return self.__sparse_list
-        except AttributeError:
-            L = [(ij[0], ij[1], x) for
-                ij, x in self._entries().iteritems()]
-            L.sort()
-            if self.is_immutable():
-                self.__sparse_list = L
-            return L
-
-    def _sparse_matrix_rational(self):
-        try:
-            return self.__sparse_matrix_rational
-        except AttributeError:
-            S = sage.matrix.sparse_matrix.SparseMatrix(
-                self.base_ring(), self.nrows(), self.ncols(), self._sparse_list(),
-                coerce=False, sort=False, copy=False)
-            if self.is_immutable():
-                self.__sparse_matrix_rational = S
-            return S
-
-    def echelon_form(self, height_guess=None, include_zero_rows=True):
-        """
-        Return the echelon form of this sparse matrix over the
-        rational numbers, computed using a sparse multi-modular
-        algorithm.
-
-        The height guess is a guess for a bound on the height of the
-        entries of the echelon form.  If you know for some reason that
-        the entries of the echelon form are bounded, giving a good
-        height bound can speed up this function.  At the end of the
-        computation the result is checked for correctness and the
-        height bound increased if necessary, so giving too small of a
-        guess will not lead to incorrect results (though it may slow
-        down the algorithm).
-
-        EXAMPLES:
-            sage: A = MatrixSpace(QQ, 3, sparse=True)(range(9))
-            sage: A.echelon_form()
-            [ 1  0 -1]
-            [ 0  1  2]
-            [ 0  0  0]
-            sage: A = 9999999*MatrixSpace(QQ, 3, sparse=True)(range(9))
-            sage: A
-            [       0  9999999 19999998]
-            [29999997 39999996 49999995]
-            [59999994 69999993 79999992]
-            sage: A.echelon_form(height_guess=1)
-            [ 1  0 -1]
-            [ 0  1  2]
-            [ 0  0  0]
-        """
-        try:
-            return self.__echelon_form
-        except AttributeError:
-            pass
-        if self.nrows() == 0:
-            E = self.copy()
-            E._set_pivots ([])
-            E._set_rank(0)
-        else:
-            t0 = misc.verbose()
-            A = self._sparse_matrix_rational()
-            t = misc.verbose("start")
-            B = A.echelon_form(height_guess=height_guess)
-            t1 = misc.verbose("done", t)
-            pivots = B.pivots()
-            X = B.entries()
-            Y = {}
-            for i,j,x in X:
-                Y[(i,j)] = x
-            if include_zero_rows:
-                nr = self.nrows()
-            else:
-                nr = len(pivots)
-            E = self.new_matrix(nrows=nr, coerce_entries=False, entries = Y, copy=False)
-            E._set_pivots(pivots)
-            E._set_rank(len(pivots))
-            misc.verbose("overhead", t0+(t1-t))
-        if self.is_immutable():
-            self.__echelon_form = E
-        E.set_immutable()
-        return E
-
-    def hessenberg_form(self):
-        r"""
-        Return the Hessenberg form of this sparse matrix.
-
-        ALGORITHM: Compute the Hessenberg form of the corresponding
-        dense matrix, obtained using \code{self.dense_matrix()}
-
-        EXAMPLES:
-            sage: A = MatrixSpace(QQ, 3, sparse=True)(range(9))
-            sage: H = A.hessenberg_form(); H
-            [ 0  5  2]
-            [ 3 14  5]
-            [ 0 -5 -2]
-            sage: H.is_sparse()
-            True
-        """
-        return self.dense_matrix().hessenberg_form().sparse_matrix()
-
-    def charpoly(self):
-        """
-        Return the characteristic polynomial of this matrix.
-
-        ALGORITHM: Compute the charpoly of the corresponding
-        dense matrix, obtained using \code{self.dense_matrix()}.
-
-        EXAMPLES:
-            sage: A = MatrixSpace(QQ,4, sparse=True)(range(16))
-            sage: A.charpoly()
-            x^4 - 30*x^3 - 80*x^2
-        """
-        try:
-            return self.__charpoly
-        except AttributeError:
-            f = self.dense_matrix().charpoly()
-            if self.is_immutable():
-                self.__charpoly = f
-        return f
-
-
-#############################################
-## DEVEL version of Sparse matrices over the rational numbers
-#############################################
-class devel_Matrix_sparse_rational(Matrix_field):
+class Matrix_sparse_rational(Matrix_field):
     r"""
     The \class{Matrix_sparse_rational} class derives from
     \class{Matrix}, and defines functionality for sparse matrices
     over the field $\Q$ of rational numbers.
     """
     def __init__(self,
-                    parent,
-                    entries=0,
-                    coerce_entries=True,
-                    copy = True):
+                 parent,
+                 entries = 0,
+                 coerce_entries=True,
+                 copy = True):
+
         Matrix.__init__(self, parent)
 
         if isinstance(entries, sparse_matrix_pyx.Matrix_mpq):
@@ -3701,57 +3750,77 @@ class devel_Matrix_sparse_rational(Matrix_field):
             self.__matrix = entries
             return
 
-        if coerce_entries:
-            copy = False
-            QQ = rational.Rational
-            if len(entries) > 0:
-                if isinstance(entries[0], tuple):
-                    entries = [(i,j,QQ(x)) for i,j,x in entries]
-                else:
-                    if len(entries) != parent.nrows() * parent.ncols():
-                        raise TypeError, "If entries is a list of numbers, it must be a list of %s numbers"%(parent.nrows() * parent.ncols())
-                    entries = [QQ(x) for x in entries]
-        if copy:
-            entries = list(entries)
+        if isinstance(entries, list) and len(entries) > 0 and \
+               hasattr(entries[0],"is_vector"):
+            entries = _convert_dense_entries_to_list(entries)
+
+        elif entries == 0:
+            entries = []
 
         self.__matrix = sparse_matrix_pyx.Matrix_mpq(
                             parent.nrows(),
                             parent.ncols(),
-                            entries)
+                            entries,
+                            coerce=coerce_entries)
 
     def _sparse_matrix_mpq_(self):
         return self.__matrix
 
+    def __cmp__(self, right):
+        if not isinstance(right, Matrix_sparse_rational):
+            return Matrix.__cmp__(self, right)
+        return self.__matrix.__cmp__(right.__matrix)
+
     def __getitem__(self, ij):
-        return self.__matrix[ij]
+        if not isinstance(ij, tuple):
+            return self.row(ij)
+        else:
+            return self.__matrix[ij]
 
-    def _sparse_list(self):
+    def __setitem__(self, ij, x):
+        self._require_mutable()
+        if not isinstance(ij, tuple):
+            i = int(ij)
+            for j in xrange(self.ncols()):
+                self[i,j] = x[j]
+            return
+        self.__matrix[ij] = x
+
+    def __mul__(self, B):
+        if isinstance(B, Matrix_sparse_rational):
+            P = self.matrix_space(self.nrows(), B.ncols())
+            return Matrix_sparse_rational(P, self.__matrix.matrix_multiply(B.__matrix),
+                                          coerce_entries = False, copy=False)
+        else:
+            return Matrix.__mul__(self, B)
+
+    def dense_matrix(self):
+        """
+        Return the dense matrix with the same entries as this sparse
+        matrix.
+        """
         try:
-            return self.__sparse_list
+            return self.__dense_matrix
         except AttributeError:
-            L = [(ij[0], ij[1], x) for
-                ij, x in self._entries().iteritems()]
-            L.sort()
-            if self.is_immutable():
-                self.__sparse_list = L
-            return L
+            pass
+        P = self.matrix_space(sparse=False)
+        A = Matrix_dense_rational(P,
+                                  entries=self.__matrix.dense_matrix(),
+                                  copy = False)
+        if self.is_immutable():
+            self.__dense_matrix = A
+            A.set_immutable()
+        return A
 
-    def _sparse_matrix_rational(self):
-        try:
-            return self.__sparse_matrix_rational
-        except AttributeError:
-            S = sage.matrix.sparse_matrix.SparseMatrix(
-                self.base_ring(), self.nrows(), self.ncols(), self._sparse_list(),
-                coerce=False, sort=False, copy=False)
-            if self.is_immutable():
-                self.__sparse_matrix_rational = S
-            return S
-
-    def echelon_form(self, height_guess=None, include_zero_rows=True):
+    def echelon_form(self, height_guess=None, include_zero_rows=True, proof=True):
         """
         Return the echelon form of this sparse matrix over the
         rational numbers, computed using a sparse multi-modular
         algorithm.
+
+        INPUT:
+            height_guess --
+            proof -- bool (default: True)
 
         The height guess is a guess for a bound on the height of the
         entries of the echelon form.  If you know for some reason that
@@ -3779,34 +3848,32 @@ class devel_Matrix_sparse_rational(Matrix_field):
             [ 0  0  0]
         """
         try:
-            return self.__echelon_form
+            return self.__echelon_form[include_zero_rows]
         except AttributeError:
+            self.__echelon_form = {}
+        except KeyError:
             pass
         if self.nrows() == 0:
             E = self.copy()
             E._set_pivots ([])
             E._set_rank(0)
         else:
-            t0 = misc.verbose()
-            A = self._sparse_matrix_rational()
-            t = misc.verbose("start")
-            B = A.echelon_form(height_guess=height_guess)
-            t1 = misc.verbose("done", t)
-            pivots = B.pivots()
-            X = B.entries()
-            Y = {}
-            for i,j,x in X:
-                Y[(i,j)] = x
-            if include_zero_rows:
-                nr = self.nrows()
+            X = self.__matrix.echelon_multimodular(
+                          height_guess = height_guess, proof = proof)
+            pivots = X.pivots()
+            r  = len(pivots)
+            if not include_zero_rows:
+                X  = X.submatrix_from_rows(range(r))
+                nr = r
             else:
-                nr = len(pivots)
-            E = self.new_matrix(nrows=nr, coerce_entries=False, entries = Y, copy=False)
+                nr = self.nrows()
+            E = Matrix_sparse_rational(self.matrix_space(nrows=nr), X,
+                                       coerce_entries=False, copy=False)
             E._set_pivots(pivots)
-            E._set_rank(len(pivots))
-            misc.verbose("overhead", t0+(t1-t))
+            E._set_rank(r)
+
         if self.is_immutable():
-            self.__echelon_form = E
+            self.__echelon_form[include_zero_rows] = E
         E.set_immutable()
         return E
 
@@ -3828,9 +3895,12 @@ class devel_Matrix_sparse_rational(Matrix_field):
         """
         return self.dense_matrix().hessenberg_form().sparse_matrix()
 
-    def charpoly(self):
+    def charpoly(self, bound=None):
         """
         Return the characteristic polynomial of this matrix.
+
+        See the documentation for self.dense_matrix().charpoly
+        for more details.
 
         ALGORITHM: Compute the charpoly of the corresponding
         dense matrix, obtained using \code{self.dense_matrix()}.
@@ -3840,28 +3910,22 @@ class devel_Matrix_sparse_rational(Matrix_field):
             sage: A.charpoly()
             x^4 - 30*x^3 - 80*x^2
         """
-        try:
-            return self.__charpoly
-        except AttributeError:
-            f = self.dense_matrix().charpoly()
-            if self.is_immutable():
-                self.__charpoly = f
-        return f
+        return self.dense_matrix().charpoly(bound = bound)
+
+    def transpose(self):
+        return self.dense_matrix().transpose().sparse_matrix()
+        #P = self.matrix_space(self.ncols(), self.nrows())
+        #return Matrix_sparse_rational(P, self.__matrix.transpose(),
+        #                              coerce_entries = False, copy=False)
+
+    def set_row_to_multiple_of_row(self, i, j, s):
+        self._require_mutable()
+        self.__matrix.set_row_to_multiple_of_row(i, j, rational.Rational(s))
+
+    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, i, A, r, cols):
+        self.__matrix.set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A.__matrix, r, cols)
 
 
-
-def _prod_of_row_sums(A, cols):
-    """
-    Calculate the product of all row sums of a submatrix of $A$
-    for a list of selected columns \code{cols}.
-
-    AUTHOR:
-        -- Jaap Spies (2006-02-18)
-    """
-    pr = 1
-    for row in range(A.nrows()):
-        pr *= sum([A[row, c] for c in cols])
-    return pr
 
 def _combinations(sequence, number):
     """

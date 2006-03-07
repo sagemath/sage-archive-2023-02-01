@@ -367,7 +367,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         tm = misc.verbose("start matrix multiply",tm)
         Tp = W*R
         misc.verbose("done matrix multiply",tm)
-        self._hecke_matrices[p] = Tp
+        self._hecke_matrices[p] = Tp.dense_matrix()
         misc.verbose("done making matrix",tm)
         return Tp
 

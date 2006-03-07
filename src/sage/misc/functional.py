@@ -105,6 +105,14 @@ def category(x):
     except AttributeError:
         return sage.categories.all.Objects()
 
+def ceil(x):
+    """
+    Return the ceiling of x.
+    """
+    try: return x.ceil()
+    except AttributeError: return R(x).ceil()
+
+
 def charpoly(x):
     """
     Return the characteristic polynomial of x.

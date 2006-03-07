@@ -661,7 +661,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of 1/5 to Finite Field in a of size 5^2 defined.
+            TypeError: Unable to coerce 1/5 into Finite Field in a of size 5^2.
 
 
         \note{Finite Fields are currently implemented using
@@ -682,8 +682,6 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: a^3
             a + 1
 
-            sage:
-
             sage: a = GF(13)(gap('0*Z(13)')); a
             0
             sage: a.parent()
@@ -695,9 +693,20 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: F(gap('Z(16)^2'))
             a^2
 
+        You can also call a finite extension field with a string
+        to produce an element of that field, like this:
+
+            sage: k = GF(2^8, 'a')
+            sage: k('a^200')
+            a^4 + a^3 + a^2
+
+        This is especially useful for fast conversions from Singular etc. to
+        FiniteFieldElements.
+
         AUTHOR:
             -- David Joyner (2005-11)
             -- Martin Albrecht (2006-01-23)
+            -- Martin Albrecth (2006-03-06): added coercion from string
         """
         if isinstance(x, finite_field_element.FiniteFieldElement):
             if x.parent() == self:
@@ -722,6 +731,9 @@ class FiniteField_ext_pari(FiniteField_generic):
                 return self(x.constant_coefficient())
             else:
                 raise TypeError, "no coercion of non-constant polynomial %s into %s defined."%(x,self)
+
+        elif isinstance(x, str):
+            return self(pari.pari(x))
 
         try:
             if x.parent() == self.vector_space():

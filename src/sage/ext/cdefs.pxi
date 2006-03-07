@@ -6,6 +6,13 @@ cdef extern from "stdlib.h":
     size_t strlen(char *s)
     char *strcpy(char *dest, char *src)
 
+cdef extern from "stdio.h":
+    ctypedef void* FILE
+    int printf(char *format, ...)
+    int fprintf(FILE *stream, char *format, ...)
+    int sprintf(char *str, char *format, ...)
+
+
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)

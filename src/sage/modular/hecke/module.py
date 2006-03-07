@@ -52,6 +52,9 @@ class HeckeModule_generic(sage.modules.module.Module):
             raise ValueError, "level (=%s) must be positive"%level
         self.__level = level
 
+    def __hash__(self):
+        return hash((self.__base_ring, self.__level))
+
     def __cmp__(self, other):
         if not isinstance(other, HeckeModule_generic):
             return -1
@@ -80,6 +83,9 @@ class HeckeModule_generic(sage.modules.module.Module):
     def base_ring(self):
         return self.__base_ring
 
+    def basis_matrix(self):
+        return self.free_module().basis_matrix()
+
     def category(self):
         return sage.categories.all.HeckeModules(self.base_ring())
 
@@ -98,6 +104,11 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: T
             Full Hecke algebra acting on Full Modular Symbols space for Gamma_1(5) of weight 3 with sign 0 and dimension 4 over Rational Field
             sage: T.is_anemic()
+            False
+
+            sage: M = ModularSymbols(37,sign=1)
+            sage: E, A, B = M.decomposition()
+            sage: A.hecke_algebra() == B.hecke_algebra()
             False
         """
         try:
@@ -188,6 +199,9 @@ class HeckeModule_free_module(HeckeModule_generic):
         if n < 0 or n >= len(D):
             raise IndexError, "index (=%s) must be between 0 and %s"%(n, len(D)-1)
         return D[n]
+
+    def __hash__(self):
+        return hash((self.__weight, self.level(), self.base_ring(), str(self)))
 
     def __len__(self):
         return len(self.decomposition())

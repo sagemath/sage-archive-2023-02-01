@@ -539,6 +539,9 @@ class ExpectElement(Element_cmp_, RingElement):
         RingElement.__init__(self, parent)
         self._create = value
         if parent is None: return     # means "invalid element"
+        # idea: Joe Wetherell -- try to find out if the output
+        # is too long aqnd if so get it using file, otherwise
+        # don't.
         if isinstance(value, str) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True

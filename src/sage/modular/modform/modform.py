@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Modular Forms
 
 DESIGN NOTES:

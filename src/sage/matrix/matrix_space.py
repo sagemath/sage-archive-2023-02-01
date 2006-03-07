@@ -339,6 +339,7 @@ class MatrixSpace_field(MatrixSpace_pid):
                 return matrix.Matrix_generic_dense_field
         else:
             if isinstance(self.base_ring(), rational_field.RationalField):
+                #return matrix.Matrix_sparse_rational
                 return matrix.Matrix_sparse_rational
             return matrix.Matrix_generic_sparse_field
 

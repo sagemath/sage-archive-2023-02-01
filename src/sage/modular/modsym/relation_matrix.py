@@ -178,7 +178,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight):
     misc.verbose("finished (number of rows=%s)"%row, tm)
     return R
 
-def gens_to_basis_matrix(syms, relation_matrix, mod, field):
+def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     """
     Compute echelon form of 3-term relation matrix, and read off each
     generator in terms of basis.
@@ -188,11 +188,13 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field):
         relation_matrix -- as output by __compute_T_relation_matrix(self, mod)
         mod   -- quotient of modular symbols modulo the 2-term S (and possibly I) relations
         field -- base field
+        sparse -- (bool): whether or not matrix should be sparse
 
     OUTPUT:
-        matrix -- a matrix whose ith row expresses the Manin symbol generators
-                  in terms of a basis of Manin symbols (modulo the S, (possibly I,) and T rels)
-                  Note that the entries of the matrix need not be integers.
+        matrix -- a matrix whose ith row expresses the Manin symbol
+                  generators in terms of a basis of Manin symbols
+                  (modulo the S, (possibly I,) and T rels) Note that
+                  the entries of the matrix need not be integers.
 
         list --  integers i, such that the Manin symbols x_i are a basis.
     """
@@ -203,6 +205,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field):
 
     tm = misc.verbose()
     A = relation_matrix.echelon_form(1)
+    A.set_immutable()
 
     tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)
 
@@ -215,30 +218,27 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field):
     basis = list(basis_set)
     basis.sort()
 
-    nonzero = A.nonzero_positions()
-
     ONE = field(1)
 
     tm = misc.verbose("done doing setup",tm)
-    rows = A.sparse_rows()
-    M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=True)
+
+
+    M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
+
     B = M(0)
     for i in basis_mod2:
         t, l = search(basis, i)
         if t:
             B[i,l] = ONE
-            continue
-        _, r = search(pivots, i)    # pivots[r] = i
-        # Set row i to -sign times (row r of A), but where we only take
-        # the non-pivot columns of A :
-        l = 0
-        v = rows[r]
-        for k in basis:
-            if k in v.keys():
-                B[i,l] = -v[k]
-            l += 1
+        else:
+            _, r = search(pivots, i)    # so pivots[r] = i
+            # Set row i to -(row r of A), but where we only take
+            # the non-pivot columns of A:
+            B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis)
 
     misc.verbose("done making quotient matrix",tm)
+
+    # The following is very fast (over Q at least).
     tm = misc.verbose('now filling in the rest of the matrix')
     k = 0
     for i in range(len(mod)):
@@ -308,7 +308,12 @@ def compute_presentation(syms, sign, field, weight):
         rels.update(modI_relations(syms,sign))
     mod = sparse_2term_quotient(rels, len(syms), field)
     R = T_relation_matrix_wtk_g0(syms, mod, field, weight)
-    B, basis = gens_to_basis_matrix(syms, R, mod, field)
+    if weight==2:
+        # heuristically the hecke operators are quite dense for weight > 2
+        sparse = True
+    else:
+        sparse = False
+    B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 
 def sparse_2term_quotient(rels, n, F):

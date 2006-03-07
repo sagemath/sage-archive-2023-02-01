@@ -51,7 +51,15 @@ O = rings.O         # big oh
 import sage.schemes.plane_curves.projective_curve as plane_curve
 
 def is_EllipticCurve(x):
-    return isinstance(x, EllipticCurve)
+    """
+    EXAMPLES:
+        sage: E = EllipticCurve([1,2,3/4,7,19])
+        sage: is_EllipticCurve(E)
+        True
+        sage: is_EllipticCurve(0)
+        False
+    """
+    return isinstance(x, EllipticCurve_generic)
 
 class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     """

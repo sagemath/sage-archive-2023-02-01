@@ -193,13 +193,26 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2)
             sage: t2.decomposition()
-            [Dimension 1 subspace of a modular symbols space of level 11, Dimension 2 subspace of a modular symbols space of level 11]
+            [Dimension 1 subspace of a modular symbols space of level 11,
+             Dimension 2 subspace of a modular symbols space of level 11]
+
+            sage: M = ModularSymbols(33, sign=1).new_subspace()
+            sage: T = M.hecke_operator(2)
+            sage: T.decomposition()
+            [Dimension 1 subspace of a modular symbols space of level 33,
+             Dimension 1 subspace of a modular symbols space of level 33]
         """
-        if isinstance(self, HeckeOperator) and arith.gcd(self.index(), self.domain().level()) == 1:
+        try:
+            return self.__decomposition
+        except AttributeError:
+            pass
+        if isinstance(self, HeckeOperator) and \
+               arith.gcd(self.index(), self.domain().level()) == 1:
             D = self.hecke_module_morphism().decomposition(is_diagonalizable=True)
         else:
             # TODO: There are other weaker hypotheses that imply diagonalizability.
             D = self.hecke_module_morphism().decomposition()
+        self.__decomposition = D
         return D
 
     def det(self):

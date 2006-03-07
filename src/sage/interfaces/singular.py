@@ -1,7 +1,13 @@
 r"""
 Interface to Singular
 
-AUTHORS: David Joyner and William Stein
+AUTHORS:
+   -- David Joyner and William Stein (2005): first version
+   -- Martin Albrecht (2006-03-05): code so singular.[tab]
+      and x = singular(...), x.[tab] includes all singular commands.
+   -- Martin Albrecht (2006-03-06): This patch adds the equality
+        symbol to singular. Also fix problem in which "> " as prompt
+        means comparison will break all further communication with Singular.
 
 This interface is extremely flexible, since it's exactly like typing
 into the Singular interpreter, and anything that works there should
@@ -244,7 +250,7 @@ robust manner, as long as you are creating a new object.
 
 import re
 
-from expect import Expect, ExpectElement, FunctionElement, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 
 from sage.structure.element import RingElement
 
@@ -291,6 +297,9 @@ class Singular(Expect):
     def __reduce__(self):
         return reduce_load_Singular, ()
 
+    def _equality_symbol(self):
+        return '=='
+
     def _true_symbol(self):
         return '1'
 
@@ -304,39 +313,26 @@ class Singular(Expect):
         #return 'execute(read("%s"))'%filename
         return '< "%s";'%filename
 
-    def xxx_eval_line(self, line, allow_use_file=True):
-        if line.find('\n') != -1:
-            raise ValueError, "line must not contain any newlines"
-        if allow_use_file and self._eval_using_file_cutoff and len(line) > self._eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
-        if self._expect is None:
-            self._start()
-        E = self._expect
-        E.sendline('"__SAGE_START__";')
-        E.expect('__SAGE_START__')
-        E.expect(self._prompt)
-        E.sendline(line+';')
-        E.sendline('"__SAGE_END__";')
-        E.expect('__SAGE_END__')
-        v = E.before
-        i = v.find('\r\n')
-        E.expect(self._prompt)
-        return v[i+2:-5]
-
     def eval(self, x, allow_semicolon=False):
         """
         Send the code x to the Singular interpreter and return the output
         as a string.
+
+        EXAMPLES:
+            sage: singular.eval('2 > 1')
+            '1'
+            sage: singular.eval('2 + 2')
+            '4'
         """
         # Uncomment the print statements below for low-level debuging of
         # code that involves the singular interfaces.  Everything goes
         # through here.
         #print "input: %s"%x
-        x = str(x).rstrip().rstrip(';')
 
+        x = str(x).rstrip().rstrip(';')
+        x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
             raise TypeError, "singular input must not contain any semicolons:\n%s"%x
-
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
@@ -345,17 +341,6 @@ class Singular(Expect):
         if s.find("error") != -1 or s.find("Segment fault") != -1:
             raise RuntimeError, 'Singular error:\n%s'%s
 
-##         while True:
-##             i = s.find('// ** redefining')
-##             if i == -1:
-##                 break
-##             j = s[i:].find('\n')
-##             if j == -1:
-##                 j = len(s)
-##             s = s[:i] + s[i+j+1:]
-##             open('/home/was/log','a').write(s)
-
-        #print "output: %s"%s
         return s
 
     def set(self, type, name, value):
@@ -599,14 +584,29 @@ class Singular(Expect):
         if not isinstance(R, SingularElement):
             raise TypeError, "R must be a singular ring"
         self.eval("setring %s; short=0"%R.name(), allow_semicolon=True)
-
     setring = set_ring
+
+    def trait_names(self):
+        """
+        Return a list of all Singular commands.
+        """
+        p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
+        proclist = singular.eval("listvar(proc)").splitlines()
+        return [p.match(line).group(int(1)) for line in proclist]
 
     def console(self):
         singular_console()
 
     def version(self):
         return singular_version()
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return SingularFunction(self, attrname)
+
+
+
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):
@@ -621,6 +621,9 @@ class SingularElement(ExpectElement):
         else:
             self._name = value
         self._session_number = parent._session_number
+
+    def __getattr__(self, attrname):
+        return SingularFunctionElement(self, attrname)
 
     def __len__(self):
         return int(self.size())
@@ -724,6 +727,17 @@ class SingularElement(ExpectElement):
             ans.append(z)
         return ans
 
+    def trait_names(self):
+        return self.parent().trait_names()
+
+
+class SingularFunction(ExpectFunction):
+     def _sage_doc_(self):
+         return "The SAGE interface to the Singular help system is not implemented."
+
+class SingularFunctionElement(FunctionElement):
+    def _sage_doc_(self):
+         return "The SAGE interface to the Singular help system is not implemented."
 
 def is_SingularElement(x):
     return isinstance(x, SingularElement)

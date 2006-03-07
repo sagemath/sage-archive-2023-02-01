@@ -1427,10 +1427,10 @@ def quadratic_residues(n):
         [0, 1, 4]
         sage: quadratic_residues(-10)
         [1, 4, 5, 6, 9]
-        sage: v = quadratic_residues(1000); len(v)
+        sage: v = quadratic_residues(1000); len(v);
         159
     """
-    n = abs(sage.rings.integer.Integer(n))
+    n = sage.rings.integer.Integer(abs(n))
     X = list(set([(a*a)%n for a in xrange(1, int(n)/2+1)]))
     X.sort()
     return X
@@ -1816,3 +1816,136 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
         return ans_pari
     else:
         raise ValueError, "Algorithm %s not defined"%algorithm
+
+
+
+##############################################################################
+##  falling and rising factorials
+##  By Jaap Spies
+##
+##       Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
+##      Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+##
+## Distributed under the terms of the GNU General Public License (GPL)
+##                  http://www.gnu.org/licenses/
+##############################################################################
+
+
+def falling_factorial(x, a):
+    r"""
+    Returns the falling factorial $(x)_a$.
+
+    The notation in the literature is a mess: often $(x)_a$, but there
+    are many other notations: GKP: Concrete Mathematics uses
+    $x^{\underline{a}}$.
+
+    Definition: for integer $a \ge 0$ we have $x(x-1) \cdots (x-a+1)$.
+    In all other cases we use the GAMMA-function:
+    $/frac {\Gamma(x+1)} {\Gamma(x-a+1)}$.
+
+    INPUT:
+        x -- element of a ring
+        a -- a non-negative integer
+      or
+        x and a -- any numbers
+
+    OUTPUT:
+        the falling factorial
+
+    EXAMPLES:
+        sage: falling_factorial(10,3)
+        720
+
+        sage: falling_factorial(10,3.0)
+        720.00000000000000
+
+        sage: falling_factorial(10,3.3)
+        1310.1163339660077
+
+        sage: falling_factorial(10,10)
+        3628800
+        sage: factorial(10)
+        3628800
+
+        sage: falling_factorial(1+i, i)
+        0.65296549642016666 + 0.34306583981654531*I
+
+        sage: falling_factorial(1+i, 4)
+        2.0000000000000000 + 4.0000000000000000*I
+
+        sage: falling_factorial(i,4)
+        -10.000000000000000
+
+        sage: M = MatrixSpace(ZZ,4,4)
+        sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
+        sage: falling_factorial(A, 2) # A(A - I)
+        [  1   0  10  10]
+        [  1   0  10  10]
+        [ 20   0 101 100]
+        [  2   0  11  10]
+
+        sage: x = PolynomialRing(IntegerRing(),'x').gen()
+        sage: falling_factorial(x, 4)
+        x^4 - 6*x^3 + 11*x^2 - 6*x
+
+    AUTHOR:
+        -- Jaap Spies (2006-03-05)
+    """
+    if isinstance(a, (sage.rings.integer.Integer, int, long)) and a >= 0:
+        return misc.prod([(x - i) for i in range(a)])
+    from sage.functions.transcendental import gamma
+    return gamma(x+1) / gamma(x-a+1)
+
+def rising_factorial(x, a):
+    r"""
+    Returns the rising factorial $(x)^a$.
+
+    The notation in the literature is a mess: often $(x)^a$, but there
+    are many other notations: GKP: Concrete Mathematics uses
+    $x^{\overline{a}}$.
+
+    The rising factorial is also known as the Pochhammer symbol, see
+    Maple and Mathematica.
+
+    Definition: for integer $a \ge 0$ we have $x(x+1) \cdots (x+a-1)$.
+    In all other cases we use the GAMMA-function:
+    $\frac {\Gamma(x+a)} {\Gamma(x)}$.
+
+    INPUT:
+        x -- element of a ring
+        a -- a non-negative integer
+      or
+        x and a -- any numbers
+
+    OUTPUT:
+        the rising factorial
+
+    EXAMPLES:
+        sage: rising_factorial(10,3)
+        1320
+
+        sage: rising_factorial(10,3.0)
+        1320.0000000000000
+
+        sage: rising_factorial(10,3.3)
+        2826.3889582496449
+
+        sage: rising_factorial(1+i, i)
+        0.26681639063783236 + 0.12278335400637194*I
+
+        sage: rising_factorial(i, 4)
+        -10.000000000000000
+
+    See falling_factorial(i, 4)!
+
+        sage: x = PolynomialRing(IntegerRing(),'x').gen()
+        sage: rising_factorial(x, 4)
+        x^4 + 6*x^3 + 11*x^2 + 6*x
+
+    AUTHOR:
+        -- Jaap Spies (2006-03-05)
+    """
+    if isinstance(a, (sage.rings.integer.Integer, int, long)) and a >= 0:
+        return misc.prod([(x + i) for i in range(a)])
+    from sage.functions.transcendental import gamma
+    return gamma(x+a) / gamma(x)

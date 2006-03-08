@@ -540,6 +540,7 @@ cdef class gen:
         cdef long lx, *xp
         cdef char *s, *sp
         cdef char *hexdigits
+        cdef char w
         hexdigits = "0123456789abcdef"
         cdef int i, j
         cdef int size
@@ -558,7 +559,7 @@ cdef class gen:
             w = xp[0]
             for j from 0 <= j < 2*BYTES_IN_LONG:
                 sp = sp-1
-                sp[0] = hexdigits[w&15]
+                sp[0] = hexdigits[w & 15]
                 w = w>>4
             xp = int_nextW(xp)
         # remove leading zeros!

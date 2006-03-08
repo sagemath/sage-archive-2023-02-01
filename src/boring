@@ -31,7 +31,11 @@
 \.cvsignore$
 (^|/)Thumbs\.db$
 # sage files to ignore:
+^dist($|/)
+^notes($|/)
+(^|/).old($|/)
 (^|/).doctest($|/)
+(^|/)deleted($|/)
 ^build($|/)
 ^sage/ext/arith.c$
 ^sage/ext/arith_gmp.c$

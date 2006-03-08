@@ -178,6 +178,33 @@ class Magma(Expect):
         """
         return self.eval("%s"%var)
 
+    def objgens(self, value, gens):
+        var = self._next_var_name()
+        value = self(value)
+        out = self.eval("_z<%s> := %s; %s := _z"%(gens, value.name(), var))
+        if out.lower().find("error") != -1:
+            raise TypeError, "Error executing Magma code:\n%s"%out
+        return self(var)
+
+    def __call__(self, x, gens=None):
+        """
+        EXAMPLES:
+            sage: magma(EllipticCurve('37a'))                   # optional
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: magma('EllipticCurve([GF(5)|1,2,3,4,1])')     # optional
+            Elliptic Curve defined by y^2 + x*y + 3*y = x^3 + 2*x^2 + 4*x + 1 over GF(5)
+            sage: magma('PowerSeriesRing(Rationals())', 't')    # optional
+            Power series ring in t over Rational Field
+            sage: magma('PolynomialRing(RationalField(), 3)', 'x,y,z')  # optional
+            Polynomial ring of rank 3 over Rational Field
+            Lexicographical Order
+            Variables: x, y, z
+        """
+        if gens is None:
+            return Expect.__call__(self, x)
+        return self.objgens(x, gens)
+
+
     #def clear(self, var):
     #    """
     #    Clear the variable named var.
@@ -240,11 +267,16 @@ class Magma(Expect):
     def _object_class(self):
         return MagmaElement
 
+
+    # Usually "Sequences" are what you want in MAGMA, not "lists".
+    # It's very painful using the interface without this.
     def _left_list_delim(self):
-        return "[*"
+        #return "[*"
+        return "["
 
     def _right_list_delim(self):
-        return "*]"
+        #return "*]"
+        return "]"
 
     def _assign_symbol(self):
         return ":="
@@ -350,6 +382,31 @@ class MagmaFunction(ExpectFunction):
 class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
         return MagmaFunctionElement(self, attrname)
+
+    def evaluate(self, *args):
+        return ExpectElement.__call__(self, *args)
+
+    def __call__(self, *args):
+        """
+        EXAMPLES:
+            sage: M = magma.RMatrixSpace(magma.IntegerRing(), 2, 2)  # optional
+            sage: A = M([1,2,3,4]); A        # optional
+            [1 2]
+            [3 4]
+            sage: type(A)                    # optional
+            <class 'sage.interfaces.magma.MagmaElement'>
+            sage: A.Type()                   # optional
+            ModMatRngElt
+        """
+        if len(args) > 1:
+            return self.evaluate(*args)
+        self._check_valid()
+        P = self.parent()
+        x = P(args[0])
+        try:
+            return P('%s!%s'%(self.name(), x.name()))
+        except RuntimeError:
+            return self.evaluate(*args)
 
     def set_magma_attribute(self, attrname, value):
         P = self.parent()   # instance of MAGMA that contains this element.

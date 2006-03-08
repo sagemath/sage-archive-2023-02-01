@@ -138,13 +138,15 @@ def save_session(state, name='default_session', verbose=True):
     for k, x in state.items():
         try:
             if k in S:
+                if type(x) == type(save_session):
+                    raise TypeError, '%s is a function'%k
                 _ = dumps(x)
                 if verbose:
                     print "Saving %s"%k
                 D[k] = x
-        except:
+        except (IOError, TypeError), msg:
             if verbose:
-                print "Not saving %s"%k
+                print "Not saving %s: %s"%(k, msg)
             pass
     save(D, name)
 

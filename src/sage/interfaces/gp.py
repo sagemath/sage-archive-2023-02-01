@@ -169,6 +169,9 @@ class Gp(Expect):
     set_real_precision = set_precision
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
+        line = line.strip()
+        if len(line) == 0:
+            return ''
         a = Expect._eval_line(self, line,
                               allow_use_file=allow_use_file,
                               wait_for_prompt=wait_for_prompt)

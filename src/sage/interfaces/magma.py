@@ -74,6 +74,7 @@ AUTHOR:
     -- William Stein (2005): initial version
     -- William Stein (2006-02-28): added extensive tab completion and interactive
                                    IPython documentation support.
+    -- William Stein (2006-03-09): added nvals argument for magma.functions...
 """
 
 #*****************************************************************************
@@ -110,6 +111,15 @@ class Magma(Expect):
     help about a given function.  Type \code{magma(...)} to create
     a new Magma object, and \code{magma.eval(...)} to run a string
     using Magma (and get the result back as a string).
+
+    EXAMPLES:
+
+    You must use nvals = 0 to call a function that doesn't return
+    anything, otherwise you'll get an error.  (nvals is the number
+    of return values.)
+
+        sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)
+
     """
     def __init__(self, maxread=10000, script_subdirectory="user", logfile=None, server=None):
         Expect.__init__(self,
@@ -374,6 +384,17 @@ class MagmaFunctionElement(FunctionElement):
 
 
 class MagmaFunction(ExpectFunction):
+    def __call__(self, *args, **kwds):
+        nvals = 1
+        if len(kwds) > 0:
+            if kwds.has_key('nvals'):
+                nvals = kwds['nvals']
+                del kwds['nvals']
+        M = self._parent
+        return M.function_call(self._name,
+                               list(args),
+                               params = kwds,
+                               nvals = nvals)
     def _sage_doc_(self):
         M = self._parent
         return M.eval(self._name)

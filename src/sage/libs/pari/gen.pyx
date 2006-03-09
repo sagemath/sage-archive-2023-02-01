@@ -538,9 +538,9 @@ cdef class gen:
         """
         cdef GEN x
         cdef long lx, *xp
+        cdef long w
         cdef char *s, *sp
         cdef char *hexdigits
-        cdef char w
         hexdigits = "0123456789abcdef"
         cdef int i, j
         cdef int size

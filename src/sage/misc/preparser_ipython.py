@@ -91,6 +91,8 @@ def preparse_ipython(line, reset=True):
             line += ';'
             if magma_colon_equals and interface_name == 'magma':
                 line = line.replace(':=','=').replace('=',':=')
+        elif interface_name == 'mathematica':
+            line = 'InputForm[%s]'%line
 
     if ends_in_backslash:
         q_lines.append(line)

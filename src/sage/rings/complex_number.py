@@ -219,7 +219,15 @@ class ComplexNumber(ring_element.RingElement):
         return x.sqrt()
 
     def __invert__(self):
-        a = abs(self)
+        """
+        Return the multiplicative inverse.
+
+        EXAMPLES:
+            sage: a = ~(5+I)
+            sage: a * (5+I)
+            1.0000000000000002 + 0.000000000000000027755575615628914*I
+        """
+        a = abs(self)*abs(self)
         return ComplexNumber(self.parent(), self.__re/a, -self.__im/a)
 
     def __int__(self):

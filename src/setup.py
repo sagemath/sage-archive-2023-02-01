@@ -340,6 +340,8 @@ setup(name        = 'sage',
 
                      'sage.interfaces',
 
+                     'sage.lfunctions',
+
                      'sage.libs',
                      'sage.libs.hanke',
                      'sage.libs.mwrank',

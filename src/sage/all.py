@@ -57,6 +57,8 @@ import sage.edu.all   as edu
 from sage.plot.all       import *
 from sage.coding.all     import *
 
+from sage.lfunctions.all import *
+
 
 try:
     from sage_user.all import *

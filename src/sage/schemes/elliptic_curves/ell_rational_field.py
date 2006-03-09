@@ -1318,6 +1318,31 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         w1,w2 = self.period_lattice()
         return (w1*w2.imag()).real()
 
+    def Lseries_dokchitser(self, prec=53,
+                           max_imaginary_part=0,
+                           max_asymp_coeffs=40):
+        """
+        Return interface to Tim Dokchitser's program for computing
+        with the L-serie of this elliptic curve; this provides a way
+        to compute Taylor expansions and higher derivatives of
+        $L$-series.
+        """
+        from sage.lfunctions.all import Dokchitser
+        L = Dokchitser(conductor = self.conductor(),
+                       gammaV = [0,1],
+                       weight = 2,
+                       eps = self.root_number(),
+                       poles = [],
+                       prec = prec)
+        gp = L.gp()
+        s = 'e = ellinit(%s);'%self.minimal_model().a_invariants()
+        s += 'a(k) = ellak(e, k);'
+        L.init_coeffs('a(k)', 1, pari_precode = s,
+                      max_imaginary_part=max_imaginary_part,
+                      max_asymp_coeffs=max_asymp_coeffs)
+        L.rename('Dokchitser L-function associated to %s'%self)
+        return L
+
     def Lseries_sympow(self, n, prec):
         r"""
         Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
@@ -1627,18 +1652,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return R(L), R(error)
 
     def Lseries(self, s):
-        """
+        r"""
         Returns the value of the L-series of the elliptic curve E at s, where s
         must be a real number.
 
         Use self.Lseries_extended for s complex.
 
-        NOTES:
-        (1) If the conductor of the curve is large, say > $10^12$, then this function
-        will take a long time, since it uses an O(sqrt(N)) algorithm.
-
-        (2) There is an algorithm to compute L(E,s) for any complex s, but it involves
-        computing the incomplete Gamma function, which is not implemented in SAGE.
+        \note{If the conductor of the curve is large, say $>10^{12}$,
+        then this function will take a very long time, since it uses
+        an $O(\sqrt{N})$ algorithm.}
 
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])

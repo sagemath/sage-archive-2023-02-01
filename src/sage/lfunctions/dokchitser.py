@@ -1,0 +1,432 @@
+"""
+Dokchitser's L-functions Calculator
+
+AUTHORS:
+     -- Tim Dokchitser (2002-): original PARI code and algorithm (and the documentation below
+                                is based on Dokchitser's docs).
+     -- William Stein (2006-03-08): SAGE interface
+
+TODO:
+    -- add examples from data/extcode/pari/dokchitser that illustrate
+       use with Eisenstein series, number fields, etc.
+    -- plug this code into number fields and modular forms code (elliptic curves
+       are done).
+"""
+
+############################################################################
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+############################################################################
+
+import copy
+
+from sage.ext.sage_object import SageObject
+
+from sage.rings.all import ComplexField, RealField, Integer
+
+from sage.misc.all import verbose, sage_eval
+
+from sage.schemes.all import is_EllipticCurve
+
+import sage.interfaces.gp
+
+class Dokchitser(SageObject):
+    """
+    Dokchitser's L-functions Calculator
+
+    Create a Dokchitser L-series with
+
+         Dokchitser(conductor, gammaV, weight, eps,
+                    poles, residues, init, prec)
+
+    where
+
+        conductor -- integer, the conductor
+        gammaV -- list of Gamma-factor parameters,
+                  e.g. [0] for Riemann zeta, [0,1] for ell.curves,
+                  (see examples).
+        weight -- positive real number, usually an integer
+                  e.g. 1 for Riemann zeta, 2 for H^1 of curves/Q
+        eps   --  complex number; sign in functional equation
+        poles --  (default: []) list of points where L^*(s) has (simple) poles;
+                  only poles with Re(s)>weight/2 should be included
+        residues -- vector of residues of L^*(s) in those poles
+                    or set residues='automatic' (default value)
+        prec -- integer (default: 53) number of *bits* of precision
+
+
+    RIEMANN ZETA FUNCTION:
+
+    We compute with the Riemann Zeta function.
+        sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
+        sage: L
+        Dokchitser L-series of conductor 1 and weight 1
+        sage: L(1)
+        Traceback (most recent call last):
+        ...
+        ArithmeticError:   ###   user error: L*(s) has a pole at s=1.000000000000000000
+        sage: L(2)
+        1.6449340668482264
+        sage: L(2, 1.1)
+        1.6449340668482264
+        sage: L.derivative(2)
+        -0.93754825431584365
+        sage: (zeta(2.0001) - zeta(2))/(0.0001)
+        -0.92506456
+        sage: L.taylor_series(2, k=5)
+        1.6449340668482264 + -0.93754825431584365*z + 0.99464011714945044*z^2 + -1.0000243004738407*z^3 + 1.0000619330723524*z^4 + O(z^5)
+
+    RANK 1 ELLIPTIC CURVE:
+
+    We compute with the $L$-series of a rank $1$ curve.
+        sage: E = EllipticCurve('37a')
+        sage: L = E.Lseries_dokchitser(); L
+        Dokchitser L-function associated to Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        sage: L(1)
+        0
+        sage: L.derivative(1)
+        0.30599977383405225
+        sage: L.derivative(1,2)
+        0.37309559453632390
+        sage: L.num_coeffs()
+        48
+        sage: L.taylor_series(1,4)
+        0.30599977383405225*z + 0.18654779726816195*z^2 + -0.13679146309718765*z^3 + O(z^4)
+        sage: L.check_functional_equation()
+        0.0000000000000000061121897479999993
+
+    RANK 2 ELLIPTIC CURVE:
+
+    We compute the leading coefficient and Taylor expansion of the $L$-series
+    of a rank $2$ curve.
+
+        sage: E = EllipticCurve('389a')
+        sage: L = E.Lseries_dokchitser()
+        sage: L.num_coeffs ()
+        156
+        sage: L.derivative(1,E.rank())
+        1.5186330005768534
+        sage: L.taylor_series(1,4)
+        -0.000000000000000000000012815814569199999 + 0.0000000000000000000000072626829063599992*z
+                    + 0.75931650028842668*z^2 + -0.43030233758336195*z^3 + O(z^4)
+
+    RAMANUJAN DELTA L-FUNCTION:
+
+    The coefficients are given by Ramanujan's tau function:
+
+        sage: L = Dokchitser(conductor=1, gammaV=[0,1], weight=12, eps=1)
+        sage: pari_precode = 'tau(n)=(5*sigma(n,3)+7*sigma(n,5))*n/12 - 35*sum(k=1,n-1,(6*k-4*(n-k))*sigma(k,3)*sigma(n-k,5))'
+        sage: L.init_coeffs('tau(k)', pari_precode=pari_precode)
+
+    We redefine the default bound on the coefficients: Deligne's
+    estimate on tau(n) is better than the default
+    coefgrow(n)=$(4n)^{11/2}$ (by a factor 1024), so re-defining
+    coefgrow() improves efficiency (slightly faster).
+
+        sage: L.num_coeffs()
+        12
+        sage: L.set_coeff_growth('2*n^(11/2)')
+        sage: L.num_coeffs()
+        11
+
+    Now we're ready to evaluate, etc.
+        sage: L(1)
+        0.037441281268515536
+        sage: L(1, 1.1)
+        0.037441281268515536
+        sage: L.taylor_series(1,3)
+        0.037441281268515536 + 0.070922112361932216*z + 0.038074476127051962*z^2 + O(z^3)
+    """
+    def __init__(self, conductor, gammaV, weight, eps, \
+                       poles=[], residues='automatic', prec=53,
+                       init=None):
+        self.conductor = conductor
+        self.gammaV = gammaV
+        self.weight = weight
+        self.eps    = eps
+        self.poles  = poles
+        self.residues = residues
+        self.prec   = prec
+        self.__CC   = ComplexField(self.prec)
+        self.__RR   = self.__CC._real_field()
+        if not init is None:
+            self.init_coeffs(init)
+            self.__init = init
+        else:
+            self.__init = False
+
+    def __reduce__(self):
+        D = copy.copy(self.__dict__)
+        if D.has_key('_Dokchitser__gp'):
+            del D['_Dokchitser__gp']
+        return reduce_load_dokchitser, (D, )
+
+    def _repr_(self):
+        z = "Dokchitser L-series of conductor %s and weight %s"%(
+                   self.conductor, self.weight)
+        return z
+
+    def gp(self):
+        """
+        Return the gp interpreter that is used to implement this Dokchitser L-function.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: L = E.Lseries_dokchitser()
+            sage: L(2)
+            0.54604803621501341
+            sage: L.gp()
+            GP/PARI interpreter
+        """
+        try:
+            return self.__gp
+        except AttributeError:
+            g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
+                                      logfile='/home/was/log0')  # todo -- make none
+            g.read('computel.gp')
+            g.eval('default(realprecision, %s)'%(self.prec//3 + 2))
+            g.eval('conductor = %s'%self.conductor)
+            g.eval('gammaV = %s'%self.gammaV)
+            g.eval('weight = %s'%self.weight)
+            g.eval('sgn = %s'%self.eps)
+            g.eval('Lpoles = %s'%self.poles)
+            g.eval('Lresidues = %s'%self.residues)
+            g._dokchitser = True
+            self.__gp = g
+            return g
+
+    def __check_init(self):
+        if not self.__init:
+            raise ValueError, "you must call init_coeffs on the L-function first"
+
+    def num_coeffs(self, T=1):
+        """
+        Return number of coefficients $a_n$ that are needed in order
+        to perform most relevant $L$-function computations to the
+        desired precision.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: L = E.Lseries_dokchitser()
+            sage: L.num_coeffs()
+            26
+            sage: E = EllipticCurve('5077a')
+            sage: L = E.Lseries_dokchitser()
+            sage: L.num_coeffs()
+            568
+            sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
+            sage: L.num_coeffs()
+            4
+        """
+        return Integer(self.gp().eval('cflength(%s)'%T))
+
+    def init_coeffs(self, v, cutoff=1,
+                             w=None,
+                             pari_precode='',
+                             max_imaginary_part=0,
+                             max_asymp_coeffs=40):
+        """
+        Set the coefficients $a_n$ of the $L$-series.  If $L(s)$ is
+        not equal to its dual, pass the coefficients of the dual as
+        the second optional argument.
+
+        INPUT:
+            v -- list of complex numbers or string (pari function of k)
+            cutoff -- real number >= 1 (default: 1)
+            w -- list of complex numbers or string (pari function of k)
+            pari_precode -- some code to execute in pari before calling initLdata
+            max_imaginary_part -- (default: 0): redefine if you want to compute
+                                  L(s) for s having large imaginary part,
+            max_asymp_coeffs --   (default: 40): at most this many terms are
+                                  generated in asymptotic series for phi(t)
+                                  and G(s,t).
+        """
+        if isinstance(v, tuple) and w is None:
+            v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs = v
+
+        self.__init = (v, cutoff, w, pari_precode, max_imaginary_part, max_asymp_coeffs)
+        gp = self.gp()
+        if pari_precode != '':
+            gp.eval(pari_precode)
+        RR = self.__CC._real_field()
+        cutoff = RR(cutoff)
+        if isinstance(v, str):
+            if w is None:
+                gp.eval('initLdata("%s", %s)'%(v, cutoff))
+                return
+            gp.eval('initLdata("%s",%s,"%s")'%(v,cutoff,w))
+            return
+        if not isinstance(v, (list, tuple)):
+            raise TypeError, "v (=%s) must be a list, tuple, or string"%v
+        CC = self.__CC
+        v = [CC(a)._pari_init_() for a in v]
+        gp.eval('Avec = %s'%v)
+        if w is None:
+            gp.eval('initLdata("Avec[k]", %s)'%cutoff)
+            return
+        w = [CC(a)._pari_init_() for a in w]
+        gp.eval('Bvec = %s'%w)
+        gp.eval('initLdata("Avec[k]"),%s,"Bvec[k]"'%cutoff)
+
+    def __to_CC(self, s):
+        return self.__CC(sage_eval(s, {'I':self.__CC.gen(0)}))
+
+
+    def __call__(self, s, c=None):
+        """
+        INPUT:
+            s -- complex number
+            c -- (optional); cutoff which should be a real number > 1
+                 that is chosen close to 1.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('5077a')
+            sage: L = E.Lseries_dokchitser(100)
+            sage: L(1)
+            0
+            sage: L(1+I)
+            -1.3085436607849493358323930438319 + 0.81298000036784359634835412129292*I
+        """
+        self.__check_init()
+        s = self.__CC(s)
+        z = self.gp().eval('L(%s)'%s)
+        if 'pole' in z:
+            raise ArithmeticError, z
+        elif '***' in z:
+            raise RuntimeError, z
+        elif 'Warning' in z:
+            i = z.rfind('\n')
+            msg = z[:i].replace('digits','decimal digits')
+            verbose(msg, level=-1)
+            return self.__to_CC(z[i:])
+        return self.__to_CC(z)
+
+    def derivative(self, s, k=1):
+        """
+        Return the k-th derivative of the L-series at s.
+        """
+        self.__check_init()
+        s = self.__CC(s)
+        k = Integer(k)
+        z = self.gp().eval('L(%s,,%s)'%(s,k))
+        if 'pole' in z:
+            raise ArithmeticError, z
+        elif 'Warning' in z:
+            i = z.rfind('\n')
+            msg = z[:i].replace('digits','decimal digits')
+            verbose(msg, level=-1)
+            return self.__CC(z[i:])
+        return self.__CC(z)
+
+
+    def taylor_series(self, a=0, k=6, var='z'):
+        """
+        Return the first k terms of the Taylor series expansion of the
+        $L$-series about $a$.
+
+        This is returned as a series in var, where you should view var
+        as equal to $s-a$.  Thus this function returns the formal
+        power series whose coefficients are $L^{(n)}(a)/n!$.
+
+        INPUT:
+            a -- complex number (default: 0); point about which to expand
+            k -- integer (default: 6), series is O(var^k)
+            var -- string (default: 'z'), variable of power series
+
+        EXAMPLES:
+            sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
+            sage: L.taylor_series(2, 3)
+            1.6449340668482264 + -0.93754825431584365*z + 0.99464011714945044*z^2 + O(z^3)
+            sage: E = EllipticCurve('37a')
+            sage: L = E.Lseries_dokchitser()
+            sage: L.taylor_series(1)
+            0.30599977383405225*z + 0.18654779726816195*z^2 + -0.13679146309718765*z^3 + 0.016106646849640052*z^4 + 0.018595517539880219*z^5 + O(z^6)
+        """
+        self.__check_init()
+        a = self.__CC(a)
+        k = Integer(k)
+        z = self.gp().eval('Lseries(%s,,%s)'%(a,k-1))
+        if 'pole' in z:
+            raise ArithmeticError, z
+        elif 'Warning' in z:
+            i = z.rfind('\n')
+            msg = z[:i].replace('digits','decimal digits')
+            verbose(msg, level=-1)
+            z = z[i+1:]
+        t = self.__CC[[var]].gen(0)
+        z = z.replace('S',var).replace('.E','.0E').replace(' E','E')
+        f = sage_eval(z, {var:t})
+        return f
+
+    def check_functional_equation(self, T=1.2):
+        r"""
+        Verifies how well numerically the functional equation is
+        satisfied, and also determines the residues if
+        \code{self.poles != []} and residues='automatic'.
+
+        More specifically: for $T>1$ (default 1.2),
+        \code{self.check_functional_equation(T)} should ideally
+        return 0 (to the current precision).
+        \begin{itemize}
+
+             \item if what this function returns does not look like 0
+               at all, probably the functional equation is wrong
+               (i.e. some of the parameters gammaV, conductor etc., or
+               the coefficients are wrong),
+
+             \item if checkfeq(T) is to be used, more coefficients have to be
+               generated (approximately T times more), e.g. call
+                  cflength(1.3), initLdata("a(k)",1.3), checkfeq(1.3)
+
+             \item T=1 always (!) returns 0, so T has to be away from 1
+
+             \item default value $T=1.2$ seems to give a reasonable balance
+
+             \item if you don't have to verify the functional equation
+                 or the L-values, call num_coeffs(1) and initLdata("a(k)",1),
+                 you need slightly less coefficients.
+
+        \end{itemize}
+
+        EXAMPLES:
+            sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
+            sage: L.check_functional_equation ()
+            -0.000000000000000000027105054319999997
+
+        If we choose the sign in functional equation for the $\zeta$
+        function incorrectly, the functional equation doesn't check out.
+            sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=-11, poles=[1], residues=[-1], init='1')
+            sage: L.check_functional_equation ()
+            -9.7396786148812371
+        """
+        self.__check_init()
+        z = self.gp().eval('checkfeq(%s)'%T).replace(' ','')
+        return self.__CC(z)
+
+    def set_coeff_growth(self, coefgrow):
+        """
+        You might have to redefine the coefficient growth function if
+        the $a_n$ of the $L$-series are not given by the following
+        PARI function:
+            coefgrow(n) = if(length(Lpoles),
+                              1.5*n^(vecmax(real(Lpoles))-1),
+                              sqrt(4*n)^(weight-1));
+
+        INPUT:
+            coefgrow -- string that evaluates to a PARI function of n
+                        that defines a coefgrow function.
+        """
+        if not isinstance(coefgrow, str):
+            raise TypeError, "coefgrow must be a string"
+        g = self.gp()
+        g.eval('coefgrow(n) = %s'%(coefgrow.replace('\n',' ')))
+
+
+def reduce_load_dokchitser(D):
+    X = Dokchitser(1,1,1,1)
+    X.__dict__ = D
+    X.init_coeffs(X._Dokchitser__init)
+    return X

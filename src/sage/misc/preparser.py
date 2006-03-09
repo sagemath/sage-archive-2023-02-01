@@ -3,7 +3,14 @@ SAGE pre-parser.
 
 AUTHOR:
     -- William Stein (2006-02-19): fixed bug when loading .py files.
+    -- William Stein (2006-03-09): * fixed crash in parsing exponentials
+                                   * precision of real literals now determined
+                                     by digits of input (like mathematica).
 """
+#EXAMPLES:
+#These examples all illustrate input lines whose pre-parsing is subtle.
+# (todo)
+
 
 
 ###########################################################################
@@ -50,7 +57,7 @@ def preparse(line, reset=True):
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
         if is_real:
-            O = "RR('"; C = "')"
+            O = "RealField(%s)('"%int(3.4*(i-num_start)+1); C = "')"
         else:
             O = "ZZ("; C = ")"
         line = line[:num_start] + O + line[num_start:i]  \
@@ -72,15 +79,17 @@ def preparse(line, reset=True):
         if bracket_depth > 0 and line[i] == ",":
             seen_comma = True
 
-        # Decide if we should wrap a particular integer literal with ZZ
+        # Decide if we should wrap a particular integer or real literal
         if in_number:
             if line[i] == "." and not (i+1 < len(line) and line[i+1].isalpha()):
                 is_real = True
             elif not line[i].isdigit():
                 # end of a number
                 # Do we wrap?
-                if i < len(line) and line[i]=="e" or line[i]=="E":
+                if i < len(line) and line[i] in 'eE':
                     i += 1   # skip wrapping and parsing
+                    if i < len(line) and line[i] == '-':
+                        i += 2
                 elif bracket_depth == 0 or (bracket_depth > 0 and \
                                           not last_bracket_is_after_identifier(line, i)):
                     line, n = wrap_num(i, line, is_real, num_start)

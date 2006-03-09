@@ -51,7 +51,8 @@ def switch_interface(name, verbose=True):
             print "\n  --> Switching to %s <-- \n"%interface
         interface._pre_interact()
         if name in ['kash']:
-            interface('0')
+            interface('0')     # hack that works.
+
     sage.misc.interpreter.set_sage_prompt('%s'%interface_name)
 
 def preparse_ipython(line, reset=True):

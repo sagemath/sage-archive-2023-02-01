@@ -1,1 +1,2 @@
-darcs changes | less
+darcs changes > changelog_darcs.txt
+less changelog_darcs.txt

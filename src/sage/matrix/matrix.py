@@ -1017,6 +1017,11 @@ class Matrix(module_element.ModuleElement, Mutability):
             sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
             sage: A.determinant()
             6
+            sage: A.determinant() is A.determinant()
+            False
+            sage: A.set_immutable()
+            sage: A.determinant() is A.determinant()
+            True
         """
         try:
             return self.__determinant
@@ -1038,7 +1043,8 @@ class Matrix(module_element.ModuleElement, Mutability):
             del v[i]
             B = A.matrix_from_columns(v)
             d += s*self.get((0,i))*B.determinant()
-        self.__determinant = d
+        if self.is_immutable():
+            self.__determinant = d
         return d
 
     # shortcuts

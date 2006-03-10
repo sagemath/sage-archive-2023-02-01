@@ -190,16 +190,17 @@ class Interval(ring_element.RingElement):
         Used for coercion to the integers.
 
         EXAMPLES:
+            sage: R = RealField(53)
             sage: I = IntervalRing()
-            sage: a = I(1.6, 2.7)
+            sage: a = I(R('1.6'), R('2.7'))
             sage: ZZ(a)
             2
-            sage: a = I(2.1, 2.7)
+            sage: a = I(R('2.1'), R('2.7'))
             sage: ZZ(a)
             Traceback (most recent call last):
             ...
             ValueError: Cannot coerce to int because there is not a unique integer in the interval [2.1, 2.7]
-            sage: a = I(2.1, 5.7)
+            sage: a = I(R('2.1'), R('5.7'))
             sage: ZZ(a)
             Traceback (most recent call last):
             ...

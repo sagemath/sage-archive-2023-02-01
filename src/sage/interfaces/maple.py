@@ -162,8 +162,9 @@ correct answer, whereas Maple is sometimes wrong).
     sage: f19  = alpha^19 - beta^19/maple('sqrt(5)')
     sage: f19
     (1/2+1/2*5^(1/2))^19-1/5*(1/2-1/2*5^(1/2))^19*5^(1/2)
-    sage: f19.simplify()
-    5778/5*5^(1/2)+6765
+    sage: f19.simplify()                # somewhat randomly ordered output...
+    6765+5778/5*5^(1/2)
+
 
 Let's say we want to write a maple program now that squares a number
 if it is positive and cubes it if it is negative.  In maple, that

@@ -55,7 +55,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         sage: E(0.000, 0)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce 0.00000000000000000 (<type 'mpfr.RealNumber'>) to Rational
+        TypeError: Unable to coerce 0.00000 (<type 'mpfr.RealNumber'>) to Rational
 
         sage: E(1,0,0)
         Traceback (most recent call last):

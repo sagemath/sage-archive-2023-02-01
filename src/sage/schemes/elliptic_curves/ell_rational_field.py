@@ -1666,8 +1666,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.Lseries(1)
             0.00000000000000000
-            sage: E.Lseries(1.1)
+            sage: E.Lseries('1.1')       # long (!)
             0.28549100767814789
+
+        TODO: Planned massive improvement -- use Micheal Rubinstein's
+        L-functions package and/or Tim Dokchitser's.  Both are already
+        available via other function calls.  Note that Dokchitser's
+        program is vastly faster than PARI, e.g., at computing
+        E.Lseries(1.1) above, even with all the startup overhead, etc,
+        e.g., 10 seconds versus 0.25 seconds.
         """
         try:
             s = R(s)
@@ -1684,10 +1691,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns the value of the Lambda-series of the elliptic curve E
         at s can be any complex number.
 
+        Uses prec terms of the power series.
+
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.Lambda(1.4+0.5*I,50)
-            -0.35417268051554840 + 0.87451868171893510*I
+            sage: E.Lambda(1.4+0.5*I, 50)
+            -0.37754620381836362 + 0.80779131282214478*I
         """
         s = C(s)
         N = self.conductor()
@@ -1714,12 +1723,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.33297168182616760 + 0.37317660446124179*I
+            -0.63840995909825693 + 0.71549526219140769*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.0075500176111810684 + 0.00043133518015875204*I
+            -0.0075526675662480319 + 0.00042977409532104512*I
 
         TODO: Planned improvement -- use Micheal Rubinstein's
-        L-functions package.
+        L-functions package and/or Tim Dokchitser's.  Both
+        are already available via other function calls.
         """
         try:
             s = C(s)

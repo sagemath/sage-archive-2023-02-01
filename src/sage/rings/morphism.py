@@ -43,7 +43,7 @@ EXAMPLE: Map from single variable polynomial ring.
     4
 
 EXAMPLE: Identity map on the real numbers.
-    sage: f = RR.hom([1.0]); f
+    sage: f = RR.hom([RR(1)]); f
     Ring endomorphism of Real Field with 53 bits of precision
       Defn: 1.0000000000000000 |--> 1.0000000000000000
     sage: f(2.5)
@@ -51,7 +51,7 @@ EXAMPLE: Identity map on the real numbers.
     sage: f = RR.hom( [2.0] )
     Traceback (most recent call last):
     ...
-    TypeError: images (=[2.0000000000000000]) do not define a valid homomorphism
+    TypeError: images (=[2.00]) do not define a valid homomorphism
 
 EXAMPLE: Homomorphism from one precision of field to another.
 
@@ -75,7 +75,7 @@ EXAMPLE: Inclusion map from the reals to the complexes:
       From: Real Field with 53 bits of precision
       To:   Complex Field with 53 bits of precision
       Defn: 1.0000000000000000 |--> 1.0000000000000000
-    sage: i(3.1)
+    sage: i(RR('3.1'))
     3.0999999999999996
 
 EXAMPLE: A map from a multivariate polynomial ring to itself:

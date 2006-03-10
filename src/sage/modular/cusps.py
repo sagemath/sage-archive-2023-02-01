@@ -92,7 +92,7 @@ class Cusp(SageObject):
             sage: Cusp(1.5)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.5000000000000000,1 to a Cusp
+            TypeError: Unable to coerce 1.50,1 to a Cusp
 
 
             sage: a = Cusp(2,3)

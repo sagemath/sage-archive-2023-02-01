@@ -636,7 +636,7 @@ cdef class RealNumber(element.RingElement):
         EXAMPLES:
             sage: n = 1.3939494594
             sage: n._interface_init_()
-            '1.3939494593999999'
+            '1.39394945939'
         """
         return self.str(10, no_sci=True)
 
@@ -775,12 +775,12 @@ cdef class RealNumber(element.RingElement):
 
             sage: R10 = RealField(10)
             sage: R100 = RealField(100)
-            sage: a = R10(393.3902834028345)
-            sage: b = R100(393.3902834028345)
+            sage: a = R10('393.3902834028345')
+            sage: b = R100('393.3902834028345')
             sage: a
             393.00
             sage: b
-            393.39028340283448414993472397327
+            393.39028340283449999999999999970
             sage: a*b
             154370
             sage: b*a
@@ -996,13 +996,13 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: R = RealField(30)
-            sage: a = R(1.23456)
-            sage: a**20
+            sage: a = R('1.23456')
+            sage: a^20
             67.646297455
-            sage: a**a
+            sage: a^a
             1.2971114814
             sage: b = R(-1)
-            sage: b**(0.5)
+            sage: b^0.5
             NaN
         """
         cdef RealNumber x

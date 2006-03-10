@@ -57,7 +57,9 @@ def preparse(line, reset=True):
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
         if is_real:
-            O = "RealField(%s)('"%int(3.4*(i-num_start)+1); C = "')"
+            # make real field with slightly less precision than
+            # number of digits of our number
+            O = "RealField(%s)('"%(int(3.32192*(i-num_start-1))); C = "')"
         else:
             O = "ZZ("; C = ")"
         line = line[:num_start] + O + line[num_start:i]  \

@@ -23,10 +23,11 @@ CUR=`pwd`
 rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest
 cp -prv MANIFEST.in README* install sage setup.py spkg-* tmp/
 
-cd tmp/sage
-echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py
-cp version.py $CUR/sage/
-cd ..
+#cd tmp/sage
+#echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py
+#cp version.py $CUR/sage/
+
+cd tmp
 python setup.py sdist
 
 cd dist

@@ -7,10 +7,10 @@ AUTHORS:
      -- William Stein (2006-03-08): SAGE interface
 
 TODO:
-    -- add examples from data/extcode/pari/dokchitser that illustrate
+    -- add more examples from data/extcode/pari/dokchitser that illustrate
        use with Eisenstein series, number fields, etc.
-    -- plug this code into number fields and modular forms code (elliptic curves
-       are done).
+    -- plug this code into number fields and modular forms code (elliptic
+       curves are done).
 """
 
 ############################################################################
@@ -74,8 +74,9 @@ class Dokchitser(SageObject):
         1.6449340668482264
         sage: L.derivative(2)
         -0.93754825431584365
-        sage: (zeta(2.0001) - zeta(2))/(0.0001)
-        -0.92506456
+        sage: h = RR('0.0000000000001')
+        sage: (zeta(2+h) - zeta(2))/h
+        -0.93702823278363223
         sage: L.taylor_series(2, k=5)
         1.6449340668482264 + -0.93754825431584365*z + 0.99464011714945044*z^2 + -1.0000243004738407*z^3 + 1.0000619330723524*z^4 + O(z^5)
 
@@ -185,7 +186,7 @@ class Dokchitser(SageObject):
             return self.__gp
         except AttributeError:
             g = sage.interfaces.gp.Gp(script_subdirectory='dokchitser',
-                                      logfile='/home/was/log0')  # todo -- make none
+                                      logfile=None)
             g.read('computel.gp')
             g.eval('default(realprecision, %s)'%(self.prec//3 + 2))
             g.eval('conductor = %s'%self.conductor)

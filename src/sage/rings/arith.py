@@ -1841,7 +1841,7 @@ def falling_factorial(x, a):
 
     Definition: for integer $a \ge 0$ we have $x(x-1) \cdots (x-a+1)$.
     In all other cases we use the GAMMA-function:
-    $/frac {\Gamma(x+1)} {\Gamma(x-a+1)}$.
+    $\frac {\Gamma(x+1)} {\Gamma(x-a+1)}$.
 
     INPUT:
         x -- element of a ring
@@ -1853,16 +1853,16 @@ def falling_factorial(x, a):
         the falling factorial
 
     EXAMPLES:
-        sage: falling_factorial(10,3)
+        sage: falling_factorial(10, 3)
         720
 
-        sage: falling_factorial(10,3.0)
+        sage: falling_factorial(10, RR('3.0'))
         720.00000000000000
 
-        sage: falling_factorial(10,3.3)
+        sage: falling_factorial(10, RR('3.3'))
         1310.1163339660077
 
-        sage: falling_factorial(10,10)
+        sage: falling_factorial(10, 10)
         3628800
         sage: factorial(10)
         3628800
@@ -1873,10 +1873,10 @@ def falling_factorial(x, a):
         sage: falling_factorial(1+i, 4)
         2.0000000000000000 + 4.0000000000000000*I
 
-        sage: falling_factorial(i,4)
+        sage: falling_factorial(i, 4)
         -10.000000000000000
 
-        sage: M = MatrixSpace(ZZ,4,4)
+        sage: M = MatrixSpace(ZZ, 4, 4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
         sage: falling_factorial(A, 2) # A(A - I)
         [  1   0  10  10]
@@ -1884,7 +1884,7 @@ def falling_factorial(x, a):
         [ 20   0 101 100]
         [  2   0  11  10]
 
-        sage: x = PolynomialRing(IntegerRing(),'x').gen()
+        sage: x = ZZ['x'].0
         sage: falling_factorial(x, 4)
         x^4 - 6*x^3 + 11*x^2 - 6*x
 
@@ -1924,10 +1924,10 @@ def rising_factorial(x, a):
         sage: rising_factorial(10,3)
         1320
 
-        sage: rising_factorial(10,3.0)
+        sage: rising_factorial(10,RR('3.0'))
         1320.0000000000000
 
-        sage: rising_factorial(10,3.3)
+        sage: rising_factorial(10,RR('3.3'))
         2826.3889582496449
 
         sage: rising_factorial(1+i, i)

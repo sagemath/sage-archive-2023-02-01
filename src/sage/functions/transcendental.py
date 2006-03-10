@@ -160,18 +160,18 @@ def zeta_symmetric(s):
 
     EXAMPLES:
         sage: zeta_symmetric(0.7)
-        0.49758041465112701
+        0.492
         sage: zeta_symmetric(1-0.7)
-        0.49758041465112696
+        0.500
         sage: RR = RealField(200)
-        sage: zeta_symmetric(RR(0.7))
+        sage: zeta_symmetric(RR('0.7'))
         0.49758041465112690357779107525638385212657443284080589766061548
         sage: I = CC.0
-        sage: zeta_symmetric(0.5 + I*14.0)
+        sage: zeta_symmetric(RR('0.5') + I*RR('14.0'))
         0.00020129444423525744 + 0.000000000000000000067762635780344027*I
-        sage: zeta_symmetric(0.5 + I*14.1)
+        sage: zeta_symmetric(RR('0.5') + I*RR('14.1'))
         0.000048989348325568226 + 0.0000000000000000000067762635780344027*I
-        sage: zeta_symmetric(0.5 + I*14.2)
+        sage: zeta_symmetric(RR('0.5') + I*RR('14.2'))
         -0.000086893128262009666 - 0.000000000000000000033881317890172014*I
 
     REFERENCE:

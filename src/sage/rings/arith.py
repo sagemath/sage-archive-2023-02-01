@@ -176,7 +176,8 @@ def factorial(n):
         3628800
     """
     Z = sage.rings.integer.Integer
-    return misc.mul([Z(m) for m in range(1,n+1)])
+    return Z(pari('%s!'%Z(n)))
+    # return misc.mul([Z(m) for m in range(1,n+1)])
 
 def is_prime(n, flag=0):
     r"""

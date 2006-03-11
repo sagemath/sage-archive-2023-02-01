@@ -1320,13 +1320,37 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def Lseries_dokchitser(self, prec=53,
                            max_imaginary_part=0,
-                           max_asymp_coeffs=40):
-        """
+                           max_asymp_coeffs=40,
+                           algorithm='gp'):
+        r"""
         Return interface to Tim Dokchitser's program for computing
         with the L-serie of this elliptic curve; this provides a way
         to compute Taylor expansions and higher derivatives of
         $L$-series.
+
+        INPUT:
+            prec -- integer (bits precision)
+            max_imaginary_part -- real number
+            max_asymp_coeffs -- integer
+            algorithm -- string: 'gp' or 'magma'
+
+        \note{If algorithm='magma', then the precision is in digits rather
+        than bigs and the object returned is a Magma L-series, which has
+        different functionality from the SAGE L-series.}
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: L = E.Lseries_dokchitser()
+            sage: L(2)
+            0.38157540826071118
+            sage: L = E.Lseries_dokchitser(algorithm='magma')         # optional
+            sage: L.Evaluate(2)                                       # optional
+            0.38157540826071121129371040958008663667709753398892116
         """
+        if algorithm == 'magma':
+            from sage.interfaces.all import magma
+            return magma(self).LSeries(Precision = prec)
+
         from sage.lfunctions.all import Dokchitser
         L = Dokchitser(conductor = self.conductor(),
                        gammaV = [0,1],

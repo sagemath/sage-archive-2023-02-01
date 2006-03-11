@@ -42,6 +42,7 @@ cdef extern from 'pari/pari.h':
 
     int new_galois_format
 
+
     # parigen.h
     long    typ(GEN x)
     long    settyp(GEN x, long s)
@@ -98,7 +99,6 @@ cdef extern from 'pari/pari.h':
     GEN     cgetg(long x, long y)
     GEN     cgeti(long x)
     GEN     cgetr(long x)
-
 
     # misc ...
     GEN     gp_read_str(char *t)

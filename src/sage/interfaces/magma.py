@@ -426,7 +426,7 @@ class MagmaElement(ExpectElement):
         x = P(args[0])
         try:
             return P('%s!%s'%(self.name(), x.name()))
-        except RuntimeError:
+        except (RuntimeError, TypeError):
             return self.evaluate(*args)
 
     def set_magma_attribute(self, attrname, value):

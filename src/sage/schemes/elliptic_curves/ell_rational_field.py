@@ -2910,7 +2910,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             h = IR(reg-eps,reg+eps)
             ind2 = ht/(h/2)
             misc.verbose("index squared = %s"%ind2)
-            ind = float(ind2.sqrt())
+            ind = ind2.sqrt()
             misc.verbose("index = %s"%ind)
             # Compute upper bound on square root of index.
             if ind.length() < 1:

@@ -130,8 +130,8 @@ cdef make_bigint(bigint* x):
 cdef class _Curvedata:
     cdef Curvedata* x
 
-    def __init__(self, long a1, long a2, long a3,
-                 long a4, long a6, min_on_init=0):
+    def __init__(self, a1, a2, a3,
+                 a4, a6, min_on_init=0):
         cdef _bigint _a1, _a2, _a3, _a4, _a6
         _a1 = _bigint(a1)
         _a2 = _bigint(a2)

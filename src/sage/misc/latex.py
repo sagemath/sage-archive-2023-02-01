@@ -181,7 +181,13 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
 
     INPUT:
         objects -- list (or object)
-        size -- latex size of document ('small', 'tiny')
+        title -- string
+        zoom -- zoom factor, passed on to xdvi
+        expert -- bool (True or False): mode passed onto xdvi
+        debug -- bool (True of False): print verbose output
+        sep -- string -- controls separators for math objects
+        tiny -- bool (default: False) use tiny font.
+        center -- bool (default: False) center
 
     OUTPUT:
         Pops up xdvi with the objects displayed.

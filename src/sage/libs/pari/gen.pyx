@@ -4666,6 +4666,23 @@ cdef class PariInstance:
     def __repr__(self):
         return "Interface to the PARI C library"
 
+    def default(self, variable, value=None):
+        if not value is None:
+            return self('default(%s, %s)'%(variable, value))
+        return self('default(%s)'%variable)
+
+    def set_debug_level(self, level):
+        """
+        Set the debug PARI C library variable.
+        """
+        self.default('debug', int(level))
+
+    def get_debug_level(self):
+        """
+        Set the debug PARI C library variable.
+        """
+        return int(self.default('debug'))
+
     cdef GEN toGEN(self, x) except NULL:
         cdef gen _x
         if isinstance(x, gen):

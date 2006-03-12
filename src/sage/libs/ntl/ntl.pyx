@@ -110,10 +110,12 @@ def randomBnd(long n):
     Slightly faster that Python's \code{random.randint}
 
     EXAMPLES:
-        sage: w=[ntl.ZZ_random(99999) for i in range(5)]
-        sage: 0 in w
+        sage: w = [ntl.ZZ_random(99999) for i in range(5)]
+        sage: 1 in w
         False
 
+    AUTHOR:
+        -- Didier Deshommes <dfdeshom@gmail.com>
     """
     _sig_on
     return ZZ_randomBnd(n)
@@ -121,6 +123,14 @@ def randomBnd(long n):
 def randomBits(long n):
     r"""
     Return a pseudo-random number between 0 and $2^n-1$
+
+    AUTHOR:
+        -- Didier Deshommes <dfdeshom@gmail.com>
+
+    EXAMPLES:
+        sage: w = [ntl.ZZ_random_bits(20) for i in range(5)]
+        sage: 1 in w
+        False
     """
     _sig_on
     return ZZ_randomBits(n)

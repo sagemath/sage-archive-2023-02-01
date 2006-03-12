@@ -25,7 +25,8 @@ __doc_exclude = []  # to include everything
 
 from sage.libs.ntl.ntl import (make_new_ZZ as ZZ,
                  ntl_ZZ as ZZ_class,
-
+                               randomBnd as ZZ_random,
+                               randomBits as ZZ_random_bits,
                  make_new_ZZ_p as ZZ_p,
                  ntl_ZZ_p as ZZ_p_class, \
                  set_ZZ_p_modulus as set_modulus, \

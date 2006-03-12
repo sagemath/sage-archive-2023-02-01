@@ -88,10 +88,16 @@ struct ZZ* ZZ_copy(struct ZZ* x)
   return z;
 }
 
-struct ZZ* ZZ_random_bound(const struct ZZ* n)
+/*Random-number generation */
+long ZZ_randomBnd(long n)
 {
-  ZZ *z = new ZZ();
-  RandomBnd(*z, *n);
+  long z = RandomBnd(n);
+  return z;
+}
+
+unsigned long ZZ_randomBits(long n)
+{
+  long z = RandomBits_ulong(n);
   return z;
 }
 

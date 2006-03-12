@@ -84,8 +84,6 @@ cdef class ntl_ZZ:
         _sig_on
         return make_ZZ(ZZ_pow(self.x, e))
 
-
-
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
         self.x = <ZZ*> y
 
@@ -105,11 +103,27 @@ def make_new_ZZ(x='0'):
     _sig_off
     return n
 
+# Random-number generation
+def randomBnd(long n):
+    r"""
+    Returns cryptographically-secure random number in the range [0,n)
+    Slightly faster that Python's \code{random.randint}
 
-def ZZ_random(n):
-    cdef ntl_ZZ _n
-    _n = n
-    return make_ZZ(ZZ_random_bound(_n.x))
+    EXAMPLES:
+        sage: w=[ntl.ZZ_random(99999) for i in range(5)]
+        sage: 0 in w
+        False
+
+    """
+    _sig_on
+    return ZZ_randomBnd(n)
+
+def randomBits(long n):
+    r"""
+    Return a pseudo-random number between 0 and $2^n-1$
+    """
+    _sig_on
+    return ZZ_randomBits(n)
 
 ##############################################################################
 #

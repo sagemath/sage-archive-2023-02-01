@@ -20,7 +20,9 @@ cdef extern from "wrap.h":
     int ZZ_is_zero(ZZ* x)
     ZZ* ZZ_neg(ZZ* x)
     ZZ* ZZ_copy(ZZ* x)
-    ZZ* ZZ_random_bound(ZZ* n)
+    # Random-number generation
+    long ZZ_randomBnd(long x)
+    long ZZ_randomBits(long n)
 
     #### ZZ_p
     struct ZZ_p

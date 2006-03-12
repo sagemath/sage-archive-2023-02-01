@@ -36,7 +36,9 @@ EXTERN int ZZ_is_zero(struct ZZ*x );
 EXTERN int ZZ_is_one(struct ZZ*x );
 EXTERN struct ZZ* ZZ_neg(struct ZZ* x);
 EXTERN struct ZZ* ZZ_copy(struct ZZ* x);
-EXTERN struct ZZ* ZZ_random_bound(const struct ZZ* n);
+/*Random-number generation */
+EXTERN long ZZ_randomBnd(long x);
+EXTERN unsigned long ZZ_randomBits(long n);
 
 
 ////////  ZZ_p //////////

@@ -88,6 +88,13 @@ struct ZZ* ZZ_copy(struct ZZ* x)
   return z;
 }
 
+struct ZZ* ZZ_random_bound(const struct ZZ* n)
+{
+  ZZ *z = new ZZ();
+  RandomBnd(*z, *n);
+  return z;
+}
+
 //////// ZZ_p //////////
 
 ZZ_p* new_ZZ_p() {

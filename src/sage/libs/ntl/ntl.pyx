@@ -84,6 +84,8 @@ cdef class ntl_ZZ:
         _sig_on
         return make_ZZ(ZZ_pow(self.x, e))
 
+
+
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
         self.x = <ZZ*> y
 
@@ -104,6 +106,10 @@ def make_new_ZZ(x='0'):
     return n
 
 
+def ZZ_random(n):
+    cdef ntl_ZZ _n
+    _n = n
+    return make_ZZ(ZZ_random_bound(_n.x))
 
 ##############################################################################
 #

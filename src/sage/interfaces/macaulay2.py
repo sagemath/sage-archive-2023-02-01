@@ -107,11 +107,12 @@ class Macaulay2(Expect):
     """
     Interface to the Macaulay2 interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory="", logfile=None, server=None):
+    def __init__(self, maxread=10000, script_subdirectory="",
+                 logfile=None, server=None):
         Expect.__init__(self,
                         name = 'macaulay2',
                         prompt = 'i[0-9]* : ',
-                        command = "M2",
+                        command = "M2 --no-debug --no-readline --silent ",
                         maxread = maxread,
                         server = server,
                         script_subdirectory = script_subdirectory,

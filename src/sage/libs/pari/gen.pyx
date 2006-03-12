@@ -4183,6 +4183,21 @@ cdef class gen:
     def lllgramint(self):
         return self.qflllgram(1)
 
+    def qfminim(self, B, max, long flag=0):
+        """
+        qfminim(x,{bound},{maxnum},{flag=0}): number of vectors of
+        square norm <= bound, maximum norm and list of vectors for the
+        integral and definite quadratic form x; minimal non-zero
+        vectors if bound=0. flag is optional, and can be 0: default;
+        1: returns the first minimal vector found (ignore maxnum); 2:
+        as 0 but uses a more robust, slower implementation, valid for
+        non integral quadratic forms.
+        """
+        _sig_on
+        t0GEN(B)
+        t1GEN(max)
+        return self.new_gen(qfminim0(self.g,t0,t1,flag,precdl))
+
     def qfrep(self, B, long flag=0):
         """
         qfrep(x,B,{flag=0}): vector of (half) the number of vectors of
@@ -4190,8 +4205,8 @@ cdef class gen:
         x. Binary digits of flag mean 1: count vectors of even norm
         from 1 to 2B, 2: return a t_VECSMALL instead of a t_VEC.
         """
-        t0GEN(B)
         _sig_on
+        t0GEN(B)
         return self.new_gen(qfrep0(self.g,t0,flag))
 
     def matker(self, long flag=0):

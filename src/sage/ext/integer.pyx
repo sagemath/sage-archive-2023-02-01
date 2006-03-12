@@ -1377,7 +1377,6 @@ cdef class Integer(element.EuclideanDomainElement):
         return (self + (_y-self)*s*_m) % (_m*_n)
 
 
-
 ONE = Integer(1)
 
 def integer(x):
@@ -1385,38 +1384,24 @@ def integer(x):
         return x
     return Integer(x)
 
-def factorial(unsigned long int n):
-    """
-    Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
-    The input integer $n$ must fit in an \\code{unsigned long int}.
+## def factorial(unsigned long int n):
+##     """
+##     Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
+##     The input integer $n$ must fit in an \\code{unsigned long int}.
 
-    EXAMPLES:
-        sage: factorial(Integer(1)) == factorial(Integer(0))
-        True
-        sage: factorial(Integer(6)) == 6*5*4*3*2
-        True
-        sage: factorial(Integer(1)) == factorial(Integer(0))
-        True
-        sage: factorial(Integer(71)) == Integer(71)* factorial(Integer(70))
-        True
-        sage: factorial(Integer(81)) == Integer(81)* factorial(Integer(81))
-        False
-        sage: factorial(Integer(-32))
-        1
-        sage: factorial(Integer(-32)) == factorial(-42432)
-        True
-    """
-    cdef mpz_t x
-    cdef Integer z
+##     EXAMPLES:
+##     """
+##     cdef mpz_t x
+##     cdef Integer z
 
-    mpz_init(x)
+##     mpz_init(x)
 
-    _sig_on
-    mpz_fac_ui(x, n)
-    _sig_off
+##     _sig_on
+##     mpz_fac_ui(x, n)
+##     _sig_off
 
-    z = Integer()
-    set_mpz(z, x)
-    mpz_clear(x)
-    return z
+##     z = Integer()
+##     set_mpz(z, x)
+##     mpz_clear(x)
+##     return z
 

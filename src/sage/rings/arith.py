@@ -174,7 +174,21 @@ def factorial(n):
         24
         sage: factorial(10)
         3628800
+        sage: factorial(1) == factorial(0)
+        True
+        sage: factorial(6) == 6*5*4*3*2
+        True
+        sage: factorial(1) == factorial(0)
+        True
+        sage: factorial(71) == 71* factorial(70)
+        True
+        sage: factorial(-32)
+        Traceback (most recent call last):
+        ...
+        ValueError: n = (-32) must be nonnegative
     """
+    if n < 0:
+        raise ValueError, "n = (%s) must be nonnegative"%n
     Z = sage.rings.integer.Integer
     return Z(pari('%s!'%Z(n)))
     # return misc.mul([Z(m) for m in range(1,n+1)])

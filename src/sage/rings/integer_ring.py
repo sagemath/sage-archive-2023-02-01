@@ -213,6 +213,9 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
+    def quotient(self, p):
+        return sage.rings.integer_mod_ring.IntegerModRing(p)
+
     def gens(self):
         return (self(1), )
 

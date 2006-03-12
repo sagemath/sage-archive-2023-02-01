@@ -3,7 +3,7 @@ Elements of the ring $\Z$ of integers
 
 AUTHORS:
     -- William Stein (2005): initial version
-    -- Gonzalo Tornario (2006-03-02): vastly improved python/GMP conversion; hashing
+    -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP conversion; hashing
     -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
 """
 

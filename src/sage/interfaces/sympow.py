@@ -105,6 +105,10 @@ class Sympow(SageObject):
             sage.: RR(a)
             1.0575992445909579
         """
+        if prec > 64:
+            raise ValueError, "prec (=%s) must be at most 64"%prec
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be at least 1"%prec
         v = self('-sp %sp%s %s'%(n, prec, self._curve_str(E)))
         i = v.rfind(': ')
         if i == -1:
@@ -115,8 +119,9 @@ class Sympow(SageObject):
 
     def Lderivs(self, E, n, prec, d):
         r"""
-        Return $0$th to $d$th derivatives of $L(\Sym^{(n)}(E,
-        \text{edge}))$ to prec digits of precision.
+        Return $0$th to $d$th derivatives of
+        $L(\Sym^{(n)}(E,\text{edge}))$ to prec digits
+        of precision.
 
         INPUT:
             E -- elliptic curve
@@ -142,6 +147,10 @@ class Sympow(SageObject):
              1n2: 3.238743180659171E-02
              1w2: 3.414818600982502E-02
         """
+        if prec > 64:
+            raise ValueError, "prec (=%s) must be at most 64"%prec
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be at least 1"%prec
         v = self('-sp %sp%sd%s %s'%(n, prec, d, self._curve_str(E)))
         return self._fix_err(v)
 

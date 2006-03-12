@@ -951,21 +951,28 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False):
+def __factor_using_pari(n, int_=False, debug_level=0):
     if int_:
         Z = int
     else:
         import sage.rings.integer_ring
         Z = sage.rings.integer_ring.IntegerRing()
+    if debug_level > 0:
+        prev = pari.get_debug_level()
+        pari.set_debug_level(debug_level)
     F = pari(n).factor()
     B = F[0]
     e = F[1]
-    return [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+    v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+    if debug_level > 0:
+        pari.set_debug_level(prev)
+    return v
+
 
 #todo: add a limit option to factor, so it will only split off
 # primes at most a given limit.
 
-def factor(n, proof=True, int_=False, algorithm='pari'):
+def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
     """
     Returns the factorization of the integer n as a sorted list of
     tuples (p,e).
@@ -978,6 +985,8 @@ def factor(n, proof=True, int_=False, algorithm='pari'):
                  * 'pari' -- (default)  use the PARI c library
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
+        verbose -- integer (default 0); pari's debug variable is set to this;
+                   e.g., set to 4 or 8 to see lots of output during factorization.
     OUTPUT:
         factorization of n
 
@@ -1024,7 +1033,8 @@ def factor(n, proof=True, int_=False, algorithm='pari'):
         return factorization.Factorization([], unit)
     #if n < 10000000000: return __factor_using_trial_division(n)
     if algorithm == 'pari':
-        return factorization.Factorization(__factor_using_pari(n, int_=int_), unit)
+        return factorization.Factorization(__factor_using_pari(n,
+                                   int_=int_, debug_level=verbose), unit)
     elif algorithm == 'kash':
         F = kash.eval('Factorization(%s)'%n)
         i = F.rfind(']') + 1

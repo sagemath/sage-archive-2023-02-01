@@ -3882,7 +3882,7 @@ class Matrix_dense_rational(Matrix_rational):
 #############################################
 ## Sparse matrices over the rational numbers
 #############################################
-class Matrix_sparse_rational(Matrix_field):
+class Matrix_sparse_rational(Matrix_rational):
     r"""
     The \class{Matrix_sparse_rational} class derives from
     \class{Matrix}, and defines functionality for sparse matrices

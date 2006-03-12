@@ -7,7 +7,7 @@ precision.  This interface provides complete access to sympow, which
 is a standard part of \sage (and includes the extra data files).
 
 \note{Each call to \code{sympow} runs a complete \code{sympow}
-process.}
+process. This incurs about 0.2 seconds overhead.}
 
 AUTHOR:
     -- Mark Watkins  (2005-2006): wrote and released sympow
@@ -82,11 +82,12 @@ class Sympow(SageObject):
     def L(self, E, n, prec):
         r"""
         Return $L(\Sym^{(n)}(E, \text{edge}))$ to prec digits
-        of precision.
+        of precision, where edge is the {\em right} edge.
+        Here $n$ must be even.
 
         INPUT:
             E -- elliptic curve
-            n -- integer
+            n -- even integer
             prec -- integer
 
         OUTPUT:
@@ -105,6 +106,8 @@ class Sympow(SageObject):
             sage.: RR(a)
             1.0575992445909579
         """
+        if n % 2 == 1:
+            raise ValueError, "n (=%s) must be even"%n
         if prec > 64:
             raise ValueError, "prec (=%s) must be at most 64"%prec
         if prec < 1:
@@ -117,15 +120,16 @@ class Sympow(SageObject):
         x = v[i+2:]
         return x
 
+
     def Lderivs(self, E, n, prec, d):
         r"""
-        Return $0$th to $d$th derivatives of
-        $L(\Sym^{(n)}(E,\text{edge}))$ to prec digits
-        of precision.
+        Return $0$th to $d$th derivatives of $L(\Sym^{(n)}(E,s)$ to
+        prec digits of precision, where $s$ is the right edge if $n$
+        is even and the center if $n$ is odd.
 
         INPUT:
             E -- elliptic curve
-            n -- integer
+            n -- integer (even or odd)
             prec -- integer
             d -- integer
 
@@ -203,6 +207,10 @@ class Sympow(SageObject):
         \note{The analytic rank is \emph{not} computed provably
         correctly in general.}
 
+        \note{In computing the analytic rank we consider $L^{(r)}(E,1)$
+        to be $0$ if $L^{(r)}(E,1)/\Omega_E > 0.0001$.
+        }
+
         EXAMPLES:
         We compute the analytic ranks of the lowest known conductor
         curves of the first few ranks:
@@ -261,7 +269,7 @@ Special cases: When a curve has CM, Hecke power can be used instead
 
      sympow('-sp 7p12d1 -hecke -curve "[0,0,1,-16758,835805]"')
 
-will compute the 0th-1st derivatives of L(Sym^7 psi,special) to 12 digits
+will compute the 0th-1st derivatives of L(Sym^7 psi,special) to 12 digits.
 
 Bloch-Kato numbers can be obtained for powers not congruent to 0 mod 4:
 
@@ -323,6 +331,48 @@ worry when moving from one platform to another.
 
 To enable modular degree computations, the 2nd symmetric power must
 be extant, and analytic rank requires derivatives of the 1st power.
+
+===================================================================
+
+Output of "!sympow -help":
+
+ -bound #      an upper BOUND for how many ap to compute
+ -help         print the help message and exit
+ -info [] []   only report local information for primes/sympows
+               1st argument is prime range, 2nd is sympow range
+ -local        only report local information (bad primes)
+ -curve []     input a curve in [a1,a2,a3,a4,a6] form
+ -label []     label the given curve
+ -quiet        turn off some messages
+ -verbose      turn on some messages
+ -rootno #     compute the root number of the #th symmetric power
+ -moddeg       compute the modular degree
+ -analrank     compute the analytic rank
+ -sloppy []    for use with -analrank; have X sloppy digits
+ -nocm         abort if curve has complex multiplication
+ -noqt         ignore even powers of non-minimal quad twists
+ -hecke        compute Hecke symmetric powers for a CM curve
+ -maxtable     set the max size of factor tables: 2^27 default
+ -sp  []       argument to specify which powers
+               this is a comma separated list
+               in each entry, the 1st datum is the sympow
+               then could come b which turns Bloch-Kato on
+               then could come w# which specifies how many tests
+               then could come s# which says # sloppy digits
+               then must come p# which specifices the precision
+                    or P# which says ignore BOUND for this power
+               then must come d# which says the derivative bound
+                    or D# which says do only this derivative
+                    (neither need be indicated for even powers)
+               default is 2w3s1p32,3bp16d1,4p8
+ -new_data []  will compute inverse Mellin transform mesh for
+               the given data: the format is [sp]d[dv]{h,c}
+               sp is the symmetric power, dv is the derivative,
+               h indicates Hecke powers, and c indicates CM case
+               d[dv] is given only for odd or Hecke powers
+               Examples: 1d3 2 2d1h 3d2 4 4c 5d0 6 7d0h 11d1 12c
+               NOTE: new_data runs a shell script that uses GP
+Other options are used internally/recursively by -new_data
 """
         pager(h)
 

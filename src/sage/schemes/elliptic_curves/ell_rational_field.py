@@ -1841,7 +1841,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             in most cases.)
 
             \item The modular degree fits in a machine double, so it
-            better be less than about 50-some bits.
+            better be less than about 50-some bits.  (If you use sympow
+            this contraint does not apply.)
 
         \end{itemize}
 

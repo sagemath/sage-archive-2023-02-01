@@ -100,6 +100,32 @@ EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
     -1*b
     sage: phi(a^2 + b^2)
     -1 + a^4
+v v v v v v v
+*************
+
+EXAMPLE: The reduction map from the integrs to the integes modulo 8, viewed
+as a quotient ring:
+    sage: R = Z/(8*Z)
+    sage: pi = R.cover()
+    sage: pi
+    Ring morphism:
+      From: Integer Ring
+      To:   Ring of integers modulo 8
+      Defn: Natural quotient map
+    sage: pi.domain()
+    Integer Ring
+    sage: pi.codomain()
+    Ring of integers modulo 8
+    sage: pi(10)
+    2
+    sage: pi.lift()
+    Set-theoretic ring morphism:
+      From: Ring of integers modulo 8
+      To:   Integer Ring
+      Defn: Choice of lifting map
+    sage: pi.lift(13)
+    5
+^ ^ ^ ^ ^ ^ ^
 
 EXAMPLE: Inclusion of GF(2) into GF(4).
     sage: k = GF(2)

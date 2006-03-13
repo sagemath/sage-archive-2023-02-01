@@ -40,6 +40,8 @@ import integer_mod
 import integer
 import integer_ring
 import rational
+import quotient_ring
+import ideal
 
 import sage.interfaces.all
 
@@ -77,7 +79,7 @@ def is_IntegerModRing(x):
     """
     return isinstance(x, IntegerModRing_generic)
 
-class IntegerModRing_generic(commutative_ring.CommutativeRing):
+class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
     The ring of integers modulo N, e.g., when N is prime
     this is a prime finite field.
@@ -156,12 +158,14 @@ class IntegerModRing_generic(commutative_ring.CommutativeRing):
             sage: loads(R.dumps()) == R
             True
         """
-        order = integer.Integer(order)
+        ZZ = integer_ring.IntegerRing()
+        order = ZZ(order)
         if order <= 0:
             raise ZeroDivisionError, "order must be positive"
         self.__order = order
         self.__unit_group_exponent = None
         self.__factored_order = None
+        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order))
 
     def is_finite(self):
         """

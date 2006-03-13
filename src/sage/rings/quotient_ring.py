@@ -86,7 +86,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         self.__I = I
         self.assign_names(names)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Quotient of %s by the ideal %s"%(self.cover_ring(), self.defining_ideal()._repr_short())
 
     def _latex_(self):
@@ -96,19 +96,23 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         r"""
         The covering ring homomorphism $R \to R/I$, equipped with a section.
 
-        EXAMPLES:
-            sage: R, (x,y)  = QQ['x,y'].objgens()
-            sage: Q = R/(x^2,y^2)
-            sage: pi = Q.cover()
-            sage: pi(x^3+y)
-            y
-            sage: l = pi.lift(x+y^3)
+            sage: R = Z/(3*Z)
+            sage: pi = R.cover()
+            sage: pi
+            Ring morphism:
+              From: Integer Ring
+              To:   Quotient of Integer Ring by the ideal (3)
+              Defn: Natural quotient map
+            sage: pi(5)
+            2
+            sage:
+            sage: l = pi.lift()
             sage: l
             x
             sage: l = pi.lift(); l
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2, x^2)
-              To:   Polynomial Ring in x, y over Rational Field
+              From: Quotient of Integer Ring by the ideal (3)
+              To:   Integer Ring
               Defn: Choice of lifting map
             sage: l(x+y^3)
             x

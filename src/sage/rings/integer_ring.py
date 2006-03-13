@@ -56,6 +56,7 @@ import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.integer_mod
 import sage.rings.rational_field
+import sage.rings.ideal
 import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
@@ -214,6 +215,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
+v v v v v v v
     def quotient(self, I):
         r"""
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
@@ -241,6 +243,12 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         if n == 0:
             return self
         return sage.rings.integer_mod_ring.IntegerModRing(n)
+*************
+    def quotient(self, p):
+        if isinstance(p, sage.rings.ideal.Ideal_generic):
+            p = p.gen()
+        return sage.rings.integer_mod_ring.IntegerModRing(p)
+^ ^ ^ ^ ^ ^ ^
 
     def gens(self):
         return (self(1), )

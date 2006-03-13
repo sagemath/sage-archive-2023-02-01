@@ -1438,26 +1438,26 @@ def discrete_log_generic(b, a, ord=None):
 
 def quadratic_residues(n):
     r"""
-    Return a sorted list of all nonzero squares modulo the integer $n$
-    in the range $1\leq x < |n|$.
+    Return a sorted list of all squares modulo the integer $n$ in the
+    range $1\leq x < |n|$.
 
     EXAMPLES:
         sage: quadratic_residues(11)
-        [1, 3, 4, 5, 9]
+        [0, 1, 3, 4, 5, 9]
         sage: quadratic_residues(1)
-        []
+        [0]
         sage: quadratic_residues(2)
-        [1]
+        [0, 1]
         sage: quadratic_residues(8)
         [0, 1, 4]
         sage: quadratic_residues(-10)
-        [1, 4, 5, 6, 9]
+        [0, 1, 4, 5, 6, 9]
         sage: v = quadratic_residues(1000); len(v);
         159
     """
     n = abs(int(n))
     Z = sage.rings.integer.Integer
-    X = list(set([Z((a*a)%n) for a in range(1, int(n)/2+1)]))
+    X = list(set([Z((a*a)%n) for a in range(int(n)/2+1)]))
     X.sort()
     return X
 

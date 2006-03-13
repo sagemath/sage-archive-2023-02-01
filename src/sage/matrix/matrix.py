@@ -1448,7 +1448,47 @@ class Matrix(module_element.ModuleElement, Mutability):
         return self*(~right)
 
     def __mod__(self, p):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: M = Matrix(ZZ, 2, 2, [5, 9, 13, 15])
+            sage: M % 7
+            [5 2]
+            [6 1]
+            sage: parent(M % 7)
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        """
+        M = self.new_matrix()
+        nc = self.ncols()
+        for i in xrange(self.nrows()):
+            for j in xrange(nc):
+                M[i,j] = self[i,j] % p
+        return M
+
+    def Mod(self, p):
+        """
+        EXAMPLES:
+            sage: M = Matrix(ZZ, 2, 2, [5, 9, 13, 15])
+            sage: M.Mod(7)
+            [5 2]
+            [6 1]
+            sage: parent(M.Mod(7))
+            Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 7
+        """
+        return self.change_ring(self.base_ring().quotient_ring(p))
+
+    def lift(self):
+        """
+        EXAMPLES:
+            sage: M = Matrix(ZZ/7, 2, 2, [5, 9, 13, 15]) ; M
+            [5 2]
+            [6 1]
+            sage: M.lift()
+            [5 2]
+            [6 1]
+            sage: parent(M.lift())
+            Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
+        """
+        return self.change_ring(self.base_ring().cover_ring())
 
     def _scalar_multiply(self, x):
         if not x in self.base_ring():

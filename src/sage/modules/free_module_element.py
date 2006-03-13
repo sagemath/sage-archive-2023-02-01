@@ -90,7 +90,40 @@ class FreeModuleElement(module_element.ModuleElement):
         return self.parent().degree()
 
     def __mod__(self, p):
-        raise NotImplementedError
+        """
+        EXAMPLES:
+            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V % 7
+            (5, 2, 6, 1)
+            sage: parent(V % 7)
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        return self.change_ring(self.base_ring().quotient_ring(p))
+        return self.parent()([x % p for x in self.list()], \
+                    copy=False, coerce_entries=False, check_element=False)
+
+    def Mod(self, p):
+        """
+        EXAMPLES:
+            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V.Mod(7)
+            (5, 2, 6, 1)
+            sage: parent(V.Mod(7))
+            Vector space of dimension 4 over Ring of integers modulo 7
+        """
+        return self.change_ring(self.base_ring().quotient_ring(p))
+
+    def lift(self):
+        """
+        EXAMPLES:
+            sage: V = Vector(ZZ/7, [5, 9, 13, 15]) ; V
+            (5, 2, 6, 1)
+            sage: V.lift()
+            (5, 2, 6, 1)
+            sage: parent(V.lift())
+            Ambient free module of rank 4 over the principal ideal domain Integer Ring
+        """
+        return self.change_ring(self.base_ring().cover_ring())
 
     def __mul__(self, right):
         if isinstance(right, FreeModuleElement):

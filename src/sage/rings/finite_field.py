@@ -760,6 +760,15 @@ class FiniteField_ext_pari(FiniteField_generic):
                 elif self.degree() % K.degree() == 0:
                     # This is where we *would* do coercion from one nontrivial finite field to another...
                     raise NotImplementedError, "nontrivial finite field coercions not implemented"
+        if isinstance(x, str):
+            x = pari.pari(x)
+            if x.type() == 't_POL':
+                if (x.variable() == self.variable_name() \
+                    and x.polcoeff(0).type()[2] == 'I'): #t_INT and t_INTMOD
+                    return self(x)
+            if x.type()[2] == 'I': #t_INT and t_INTMOD
+                return self(x)
+            raise TypeError, "string element does not match this finite field"
         raise TypeError
 
     def __len__(self):

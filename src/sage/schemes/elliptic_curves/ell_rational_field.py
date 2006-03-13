@@ -690,8 +690,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
             sage: E.simon_two_descent()
-            (5, 5, [(2224 : 103868 : 1), (13572/121 : 3231684/1331 : 1), (153 : 1971 : 1), (15912/49 : 1412748/343 : 1), (2211417/8464 : 2068043427/778688 : 1)])      # 32-bit
-            (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])   # 64-bit
+            (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
             (6, 6)
@@ -1483,6 +1482,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         equally-spaced sample points along the line from $s_0$ to
         $s_1$ in the complex plane.
 
+        \note{The L-series is normalized so that the center of the
+        critical strip is 1.}
+
         INPUT:
             s0, s1 -- complex numbers
             number_samples -- integer
@@ -1495,7 +1497,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries_values_along_line(0.5, 0.5+20*I, 5)     # long
+            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long
             [(0.50000000000, 0),
              (0.50000000000 + 4.0000000000*I, 2.9958571577 - 2.0904260986*I),
              (0.50000000000 + 8.0000000000*I, 0.012182626189 - 0.043408089507*I),
@@ -1512,6 +1514,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return values of $L(E, s, \chi_d)$ for each quadratic
         character $\chi_d$ for $d_{\min} \leq d \leq d_{\max}$.
 
+        \note{The L-series is normalized so that the center of the
+        critical strip is 1.}
+
         INPUT:
             s -- complex numbers
             dmin -- integer
@@ -1522,7 +1527,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries_twist_values(0.5, -12, -4)
+            sage: E.Lseries_twist_values(1, -12, -4)
             [(-11, 1.4782434171), (-8, 0), (-7, 1.8530761916), (-4, 2.4513893817)]
             sage: F = E.quadratic_twist(-8)
             sage: F.rank()
@@ -1539,6 +1544,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return first $n$ real parts of nontrivial zeros of
         $L(E,s,\chi_d)$ for each quadratic character $\chi_d$ with
         $d_{\min} \leq d \leq d_{\max}$.
+
+        \note{The L-series is normalized so that the center of the
+        critical strip is 1.}
 
         INPUT:
             n -- integer

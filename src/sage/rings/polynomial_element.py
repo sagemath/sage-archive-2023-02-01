@@ -167,6 +167,18 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         if c: return c
         return cmp(list(reversed(self.list())), list(reversed(other.list())))
 
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: P = PolynomialRing(ZZ)(0)
+            sage: bool(P)
+            False
+            sage: P = PolynomialRing(ZZ)([1,2,3])
+            sage: bool(P)
+            True
+        """
+        return self.degree() >= 0
+
     def __getitem__(self, n):
         raise NotImplementedError
 

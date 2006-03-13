@@ -80,6 +80,18 @@ class FreeModuleElement(module_element.ModuleElement):
             if c: return c
         return 0
 
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: V = Vector(ZZ, [0, 0, 0, 0])
+            sage: bool(V)
+            False
+            sage: V = Vector(ZZ, [1, 2, 3, 5])
+            sage: bool(V)
+            True
+        """
+        return coerce_cmp(self, 0)
+
     def __getitem__(self, i):
         raise NotImplementedError
 

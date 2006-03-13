@@ -1444,6 +1444,18 @@ class Matrix(module_element.ModuleElement, Mutability):
             return coerce.cmp(self, right)
         return cmp(self._entries(), right._entries())
 
+    def __nonzero__(self):
+        """
+        EXAMPLES:
+            sage: M = Matrix(ZZ, 2, 2, [0, 0, 0, 0])
+            sage: bool(M)
+            False
+            sage: M = Matrix(ZZ, 2, 2, [1, 2, 3, 5])
+            sage: bool(M)
+            True
+        """
+        return coerce.cmp(self, 0)
+
     def _div_(self, right):
         return self*(~right)
 

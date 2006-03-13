@@ -110,7 +110,6 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: parent(V % 7)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
-        return self.change_ring(self.base_ring().quotient_ring(p))
         return self.parent()([x % p for x in self.list()], \
                     copy=False, coerce_entries=False, check_element=False)
 

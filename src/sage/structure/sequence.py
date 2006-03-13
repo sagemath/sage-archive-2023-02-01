@@ -134,7 +134,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
     (which has a small performance penalty for assignment).
 
         sage: hash(v)
-        172593046             # 32-bit
+        2083920238            # 32-bit
         -1663705395917193534  # 64-bit
         sage: v[0] = 10
         sage: hash(v)

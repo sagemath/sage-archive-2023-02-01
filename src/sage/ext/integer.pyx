@@ -800,7 +800,8 @@ cdef class Integer(element.EuclideanDomainElement):
         return mpz_get_d(self.value)
 
     def __hash__(self):
-        return mpz_pythonhash(self.value)
+        return hash(int(self))
+        #return mpz_pythonhash(self.value)
 
         #cdef int n
         #n = mpz_get_si(self.value)

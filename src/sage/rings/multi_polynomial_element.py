@@ -778,12 +778,21 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
             sage: R(h^20) == f^20
             True
         """
-        self.parent()._singular_(singular).set_ring()
+        self.parent()._singular_(singular).set_ring() #this is expensive
         try:
             if self.__singular.parent() is singular:
                 return self.__singular
         except AttributeError:
             pass
+        return self._singular_init_(singular)
+
+    def _singular_init_(self,singular=singular):
+        """
+        Return corresponding Singular polynomial but
+        enforce that a new instance is created in
+        the Singular interpreter.
+        """
+        self.parent()._singular_(singular).set_ring() #this is expensive
         self.__singular = singular(str(self))
         return self.__singular
 

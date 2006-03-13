@@ -1455,8 +1455,9 @@ def quadratic_residues(n):
         sage: v = quadratic_residues(1000); len(v);
         159
     """
-    n = sage.rings.integer.Integer(abs(n))
-    X = list(set([(a*a)%n for a in range(1, int(n)/2+1)]))
+    n = abs(int(n))
+    Z = sage.rings.integer.Integer
+    X = list(set([Z((a*a)%n) for a in range(1, int(n)/2+1)]))
     X.sort()
     return X
 

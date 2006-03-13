@@ -2144,11 +2144,33 @@ class Matrix_integer(Matrix_pid):
             [0 3 0]
             [0 0 1]
 
+        It also makes sense for nonsquare matrices:
+
+            sage: A = Matrix(ZZ,3,2,range(6))
+            sage: D, U, V = A.smith_form()
+            sage: D
+            [0 0]
+            [2 0]
+            [0 1]
+            sage: U
+            [-1  2 -1]
+            [ 0 -1  1]
+            [ 0  1  0]
+            sage: V
+            [ 3 -1]
+            [-2  1]
+            sage: U * A * V
+            [0 0]
+            [2 0]
+            [0 1]
+
         SEE ALSO: elementary_divisors
         """
         v = self._pari_().matsnf(1).python()
-        M = self.parent()
-        return M(v[2]), M(v[0]), M(v[1]),
+        D = self.matrix_space()(v[2])
+        U = self.matrix_space(ncols = self.nrows())(v[0])
+        V = self.matrix_space(nrows = self.ncols())(v[1])
+        return D, U, V
 
     def kernel(self, LLL=False):
         r"""

@@ -59,7 +59,11 @@ def preparse(line, reset=True):
         if is_real:
             # make real field with slightly less precision than
             # number of digits of our number
-            O = "RealField(max(%s,RR.precision()))('"%(int(3.32192*(i-num_start-1))); C = "')"
+            n = int(3.32192*(i-num_start-1))
+            # we may want to change to something like this:
+            #  add a few digits (how many)
+            #n = int(3.32192*(i-num_start-1)) + 5
+            O = "RealField(max(%s,RR.precision()))('"%n; C = "')"
         else:
             O = "ZZ("; C = ")"
         line = line[:num_start] + O + line[num_start:i]  \

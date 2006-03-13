@@ -553,6 +553,17 @@ cdef class RealNumber(element.RingElement):
             sage: R('1.2456')
             1.0
 
+        EXAMPLE: Rounding Modes
+            sage: w = RealField(3)(5/2)
+            sage: RealField(2, rnd="RNDZ")(w).str(2)
+            '10'
+            sage: RealField(2, rnd="RNDD")(w).str(2)
+            '10'
+            sage: RealField(2, rnd="RNDU")(w).str(2)
+            '11'
+            sage: RealField(2, rnd="RNDN")(w).str(2)
+            '10'
+
         NOTES: A real number is an arbitrary precision mantissa with a
         limited precision exponent.  A real number can have three
         special values: Not-a-Number (NaN) or plus or minus
@@ -574,14 +585,14 @@ cdef class RealNumber(element.RingElement):
         cdef RealNumber _x, n, d
         if isinstance(x, RealNumber):
             _x = x  # so we can get at x.value
-            mpfr_set(self.value, _x.value, GMP_RNDZ)
+            mpfr_set(self.value, _x.value, parent.rnd)
         elif isinstance(x, rational.Rational):
             n = parent(x.numerator())
             d = parent(x.denominator())
             mpfr_div(self.value, n.value, d.value, parent.rnd)
         else:
             s = str(x)
-            if mpfr_set_str(self.value, s, base, GMP_RNDZ):
+            if mpfr_set_str(self.value, s, base, parent.rnd):
                 if s == 'NaN' or s == '@NaN@':
                     mpfr_set_nan(self.value)
                 elif s == '+infinity':

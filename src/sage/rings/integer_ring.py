@@ -58,6 +58,7 @@ import sage.rings.integer_mod
 import sage.rings.rational_field
 import sage.structure.factorization as factorization
 import sage.libs.pari.all
+import sage.rings.ideal
 import ring
 
 _obj = None
@@ -213,8 +214,33 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
-    def quotient(self, p):
-        return sage.rings.integer_mod_ring.IntegerModRing(p)
+    def quotient(self, I):
+        r"""
+        Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
+
+        EXAMPLES:
+            sage: Z/(3*Z)
+            Ring of integers modulo 3
+            sage: Z/(0*Z)
+            Integer Ring
+            sage: Z/3
+            Ring of integers modulo 3
+            sage: Z/(3*Q)
+            Traceback (most recent call last):
+            ...
+            TypeError: I (=Principal ideal (1) of Rational Field) must be an ideal of ZZ
+        """
+        if isinstance(I, sage.rings.integer.Integer):
+            n = I
+        elif sage.rings.ideal.is_Ideal(I):
+            if not (I.ring() is self):
+                raise TypeError, "I (=%s) must be an ideal of ZZ"%I
+            n = I.gens()[0]
+        else:
+            raise TypeError, "I (=%s) must be an ideal of ZZ or an integer"%I
+        if n == 0:
+            return self
+        return sage.rings.integer_mod_ring.IntegerModRing(n)
 
     def gens(self):
         return (self(1), )

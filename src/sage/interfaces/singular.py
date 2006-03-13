@@ -8,6 +8,8 @@ AUTHORS:
    -- Martin Albrecht (2006-03-06): This patch adds the equality
         symbol to singular. Also fix problem in which "> " as prompt
         means comparison will break all further communication with Singular.
+   -- Martin Albrecht (2006-03-13): added current_ring()
+        and current_ring_name()
 
 This interface is extremely flexible, since it's exactly like typing
 into the Singular interpreter, and anything that works there should
@@ -585,6 +587,55 @@ class Singular(Expect):
             raise TypeError, "R must be a singular ring"
         self.eval("setring %s; short=0"%R.name(), allow_semicolon=True)
     setring = set_ring
+
+    def current_ring_name(self):
+        """
+        Returns the Singular name of the currently active
+        ring in Singular.
+
+        OUTPUT:
+            currently active ring's name
+
+        EXAMPLES:
+            sage: r = MPolynomialRing(GF(127),3,'xyz')
+            sage: r._singular_().name() == singular.current_ring_name()
+            True
+
+        """
+        ringlist = self.eval("listvar(ring)").splitlines()
+        p = re.compile("// ([a-zA-Z0-9_]*).*\[.*\].*\*.*") #do this in constructor?
+        for line in ringlist:
+            m = p.match(line)
+            if m:
+                return m.group(int(1))
+        return None
+
+    def current_ring(self):
+        """
+        Returns the current ring of the runnging Singular
+        session.
+
+        EXAMPLES:
+            sage: r = MPolynomialRing(GF(127),3,'xyz')
+            sage: r._singular_()
+            //   characteristic : 127
+            //   number of vars : 3
+            //        block   1 : ordering lp
+            //                  : names    x y z
+            //        block   2 : ordering C
+            sage: singular.current_ring()
+            //   characteristic : 127
+            //   number of vars : 3
+            //        block   1 : ordering lp
+            //                  : names    x y z
+            //        block   2 : ordering C
+
+        """
+        name = self.current_ring_name()
+        if name:
+            return self(name)
+        else:
+            return None
 
     def trait_names(self):
         """

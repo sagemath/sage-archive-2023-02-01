@@ -689,7 +689,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.simon_two_descent()
             (4, 4, [(8415/49 : 10800/343 : 1), (-9 : 3672 : 1), (207 : 432 : 1), (-369 : 432 : 1)])
             sage: E = EllipticCurve([0, 0, 1, -79, 342])
-            sage: E.simon_two_descent()
+            sage: E.simon_two_descent()        # random output
             (5, 5, [(0 : 3996 : 1), (-380 : 44 : 1), (52 : 3284 : 1), (110628/289 : 28166508/4913 : 1), (23364/25 : 3392388/125 : 1)])
             sage: E = EllipticCurve([1, 1, 0, -2582, 48720])
             sage: r, s, G = E.simon_two_descent(); r,s
@@ -1498,11 +1498,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long
-            [(0.50000000000, 0),
-             (0.50000000000 + 4.0000000000*I, 2.9958571577 - 2.0904260986*I),
-             (0.50000000000 + 8.0000000000*I, 0.012182626189 - 0.043408089507*I),
-             (0.50000000000 + 12.000000000*I, -0.56550449156 + 0.75756647578*I),
-             (0.50000000000 + 16.000000000*I, -0.13060595654 - 0.35937442642*I)]
+             [(0.50000000000, 0), (0.39999999991 + 4.0000000000*I, 3.3192024464 - 2.6002805382*I), (0.29999999993 + 8.0000000000*I, -0.88634118508 - 0.42264033738*I), (0.19999999995 + 12.000000000*I, -3.5055893594 - 0.10853169035*I), (0.099999999977 + 16.000000000*I, -3.8704328816 - 1.8804941056*I)]
         """
         from sage.interfaces.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),

@@ -675,6 +675,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.simon_two_descent()
             (3, 3, [(9 : 459 : 1), (153/4 : 189/8 : 1), (100 : 620 : 1)])
 
+
+        In this example Simon's program does not find any points, though
+        it does correctly compute the rank of the 2-Selmer group.
+            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long (0.6 seconds)
+            sage: E.simon_two_descent ()
+            (1, 1, [])
+
         The rest of these entries were taken from Tom Womack's page
         \url{http://tom.womack.net/maths/conductors.htm}
 
@@ -1428,7 +1435,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def Lseries_zeros(self, n):
         """
         Return the imaginary parts of the first $n$ nontrivial zeros
-        of the L-function in the upper half plane, as 32-bit reals.
+        on the critical line of the L-function in the upper half
+        plane, as 32-bit reals.
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
@@ -1444,9 +1452,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def Lseries_zeros_in_interval(self, x, y, stepsize):
         r"""
         Return the imaginary parts of (most of) the nontrivial zeros
-        of the Riemann zeta function on the line $\Re(s)=1/2$ with
-        positive imaginary part between $x$ and $y$, along with a
-        technical quantity for each.
+        on the critical line $\Re(s)=1$ with positive imaginary part
+        between $x$ and $y$, along with a technical quantity for each.
 
         INPUT:
             x, y, stepsize -- positive floating point numbers
@@ -1496,7 +1503,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
              (0.50000000000 + 16.000000000*I, -0.13060595654 - 0.35937442642*I)]
         """
         from sage.interfaces.lcalc import lcalc
-        return lcalc.values_along_line(s0, s1, number_samples, L=self)
+        return lcalc.values_along_line(s0-RationalField()('1/2'),
+                                       s1-RationalField()('1/2'),
+                                       number_samples, L=self)
 
     def Lseries_twist_values(self, s, dmin, dmax):
         r"""
@@ -1523,7 +1532,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             0
         """
         from sage.interfaces.lcalc import lcalc
-        return lcalc.twist_values(s, dmin, dmax, L=self)
+        return lcalc.twist_values(s - RationalField()('1/2'), dmin, dmax, L=self)
 
     def Lseries_twist_zeros(self, n, dmin, dmax):
         r"""

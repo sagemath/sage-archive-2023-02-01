@@ -191,6 +191,9 @@ mpn_pythonhash (mp_ptr up, mp_size_t un)
   int bit_pos;
   long x = 0;
 
+  /* input length 0 is special ! */
+  if (un == 0) return 0;
+
   i = un - 1;
   n1 = up[i];
   {

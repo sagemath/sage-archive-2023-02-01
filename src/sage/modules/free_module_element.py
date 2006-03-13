@@ -93,6 +93,9 @@ class FreeModuleElement(module_element.ModuleElement):
         raise NotImplementedError
 
     def __mul__(self, right):
+        if isinstance(right, FreeModuleElement):
+            # vector x vector -> dot product
+            return self.dot_product(right)
         if isinstance(right, sage.matrix.matrix.Matrix):
             # vector x matrix multiply
             return self._matrix_multiply(right)

@@ -1448,7 +1448,13 @@ class Matrix(module_element.ModuleElement, Mutability):
         return self*(~right)
 
     def __mod__(self, p):
-        """
+        r"""
+        Return matrix mod $p$, returning again a matrix over the same
+        base ring.
+
+        \note{Use \code{A.Mod(p)} to obtain a matrix over the residue
+        class ring modulo $p$.}
+
         EXAMPLES:
             sage: M = Matrix(ZZ, 2, 2, [5, 9, 13, 15])
             sage: M % 7
@@ -1461,7 +1467,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         nc = self.ncols()
         for i in xrange(self.nrows()):
             for j in xrange(nc):
-                M[i,j] = self[i,j] % p
+                M.set((i,j), self[i,j] % p)
         return M
 
     def Mod(self, p):

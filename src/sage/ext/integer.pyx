@@ -1383,6 +1383,26 @@ cdef class Integer(element.EuclideanDomainElement):
         # Now s*m + t*n = 1, so the answer is x + (y-x)*s*m, where x=self.
         return (self + (_y-self)*s*_m) % (_m*_n)
 
+    def test_bit(self, unsigned long int index):
+        r"""
+        Return the bit at \code{index}
+
+        EXAMPLES:
+            sage: w = 6
+            sage: w.str(2)
+            sage: w.str(2)
+            '110'
+            sage: sage: w.test_bit(2)
+            1
+        """
+        cdef Integer x
+        x = Integer(self)
+
+        _sig_on
+        i = mpz_tstbit(x.value,index)
+        _sig_off
+
+        return i
 
 ONE = Integer(1)
 

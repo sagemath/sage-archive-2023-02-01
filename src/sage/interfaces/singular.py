@@ -295,6 +295,7 @@ class Singular(Expect):
         Expect._start(self, alt_message)
         # Load some standard libraries.
         self.lib('general')   # assumed loaded by misc/constants.py
+        self.lib(os.environ['SAGE_ROOT']+'/data/extcode/singular/sage')
 
     def __reduce__(self):
         return reduce_load_Singular, ()
@@ -747,6 +748,52 @@ class SingularElement(ExpectElement):
             'x**3+3*y**11+5'
 	"""
         return str(self).replace('^','**')
+
+    def sage_poly(self, r, kcache=None):
+        """
+        Returns a SAGE polynomial in the ring r matching
+        the provided poly which is a singular polynomial.
+
+        INPUT:
+        r      -- MPolynomialRing
+        kcache -- optional dictionary for faster finite
+                  field lookups
+
+        OUTPUT:
+           MPolynomial
+
+        EXAMPLES:
+
+        """
+        # BUG import fails at toplevel:
+        # from sage.rings.polydict import PolyDict
+        # import sage.rings.arith as arith
+        # AttributeError: 'module' object has no attribute 'arith'
+
+        from sage.rings.polydict import PolyDict
+
+        polylist = singular.eval("sage_poly(%s)"%(self.name()))
+        polylist = polylist.splitlines()
+
+        poly_dict =  {}
+
+        if len(polylist)==1: #'empty list'
+            return r(PolyDict(poly_dict))
+
+        k = r.base_ring()
+        if kcache==None:
+            for i in range(0,len(polylist),5):
+                exponents = eval(polylist[i+2])
+                poly_dict[ exponents ]= k( polylist[i+4] )
+        else:
+            for i in range(0,len(polylist),5):
+                exponents = eval(polylist[i+2])
+                elem = polylist[i+4].replace(" ","")
+                if not kcache.has_key(elem):
+                    kcache[elem] = k( elem )
+                poly_dict[ exponents ]= kcache[elem]
+        poly = r(PolyDict(poly_dict))
+        return poly
 
     def set_ring(self):
         self.parent().set_ring(self)

@@ -157,7 +157,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
             R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
         else:
             R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
-    elif base_ring.is_prime_field():
+    elif base_ring.is_finite() or isinstance(base_ring,IntegerRing):
         R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
     else:
         if integral_domain.is_IntegralDomain(base_ring):
@@ -331,20 +331,91 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain, MPolynomia
 
 
 class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
-    def _singular_(self, singular=None):
-        if singular is None:
-            singular = singular_default
+    def _singular_(self, singular=singular_default):
+        """
+        Returns a singular ring for a given MPolynomialRing
+        over a finite field.
+
+        INPUT:
+           singular -- Singular instance
+
+        OUTPUT:
+           singular ring matching this ring
+
+        EXAMPLES:
+           sage: r=MPolynomialRing(GF(2**8),10,'x')
+           sage: r._singular_()
+           //   characteristic : 2
+           //   1 parameter    : a
+           //   minpoly        : (a^8+a^4+a^3+a^2+1)
+           //   number of vars : 10
+           //        block   1 : ordering lp
+           //                  : names    x_0 x_1 x_2 x_3 x_4 x_5 x_6 x_7 x_8 x_9
+           //        block   2 : ordering C
+           sage: r=MPolynomialRing(GF(127),2,'x')
+           sage: r._singular_()
+           //   characteristic : 127
+           //   number of vars : 2
+           //        block   1 : ordering lp
+           //                  : names    x_0 x_1
+           //        block   2 : ordering C
+           sage: r=MPolynomialRing(ZZ,2,'x')
+           sage: r._singular_()
+           //   characteristic : 0
+           //   number of vars : 2
+           //        block   1 : ordering lp
+           //                  : names    x_0 x_1
+           //        block   2 : ordering C
+
+        WARNING:
+           If the base ring is a finite extension field the ring will not only be
+           returned but also be set as the current ring in Singular.
+        """
         try:
             R = self.__singular
             if not (R.parent() is singular):
                 raise ValueError
             R._check_valid()
+            if self.base_ring().is_finite():
+                if self.base_ring().is_prime_field():
+                    return R
+                else:
+                    R.set_ring() #sorry for that, but needed for minpoly
+                    if  singular.eval('minpoly') != self.__minpoly:
+                        singular.eval("minpoly=%s"%(self.__minpoly))
             return R
         except (AttributeError, ValueError):
-            if not self.base_ring().is_prime_field():
+            if not self.base_ring().is_finite() and not isinstance(self.base_ring(),IntegerRing):
                 raise TypeError, "no conversion of %s to a Singular ring defined"%self
-            self.__singular = singular.ring(self.characteristic(), str(self.gens()), self.term_order().singular_str())
-        return self.__singular
+            return self._singular_init_(singular)
+
+    def _singular_init_(self, singular=singular_default):
+        """
+        Return a newly created singular ring matching this ring.
+        """
+        if self.base_ring().is_prime_field():
+            self.__singular = singular.ring(self.characteristic(), \
+                                            str(self.gens()), \
+                                            self.term_order().singular_str())
+            return self.__singular
+        if self.base_ring().is_finite(): #must be extension field
+            gen = str(self.base_ring().gen())
+            if self.ngens()==1:
+              _vars = str(self.gen())
+            else:
+              _vars = str(self.gens())
+            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen),
+                               _vars,
+                               self.term_order().singular_str() )
+            self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
+            singular.eval("minpoly=%s"%(self.__minpoly) )
+            self.__singular = r
+            return self.__singular
+        if isinstance(self.base_ring(),IntegerRing): #char=0
+            self.__singular = singular.ring(0, str(self.gens()), \
+                                                self.term_order().singular_str())
+            return self.__singular
+        raise TypeError, "no conversion of %s to a Singular ring defined"%self
 
     def __call__(self, x, check=True):
         """

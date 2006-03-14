@@ -148,10 +148,10 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def _latex_(self):
         return "\\mbox{\\bf{}Z}"
 
-    def __call__(self, x):
+    def __call__(self, x, base=0):
         if isinstance(x, sage.rings.integer_mod.IntegerMod):
             x = x.lift()
-        return sage.rings.integer.Integer(x)
+        return sage.rings.integer.Integer(x, base)
 
     def __iter__(self):
         """

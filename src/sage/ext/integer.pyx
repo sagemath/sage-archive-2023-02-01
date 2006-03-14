@@ -110,7 +110,7 @@ cdef class Integer(element.EuclideanDomainElement):
     of the GMP \\code{mpz_t} integer type.
     \\end{notice}
     """
-    def __new__(self, x=None):
+    def __new__(self, x=None, unsigned int base=0):
         mpz_init(self.value)
 
     def __pyxdoc__init__(self):
@@ -131,7 +131,7 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: 2^3
             8
         """
-    def __init__(self, x=None):
+    def __init__(self, x=None, unsigned int base=0):
         """
         EXAMPLES:
             sage: a = long(-901824309821093821093812093810928309183091832091)
@@ -153,6 +153,10 @@ cdef class Integer(element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert x (=sage) to an integer
+            sage: Integer('zz',36).str(36)
+            'zz'
+            sage: ZZ('0x3b').str(16)
+            3b
         """
         if not (x is None):
             if isinstance(x, Integer):
@@ -172,7 +176,9 @@ cdef class Integer(element.EuclideanDomainElement):
                 #mpz_set_str(self.value, s, 16)
 
             elif isinstance(x, str):
-                if mpz_set_str(self.value, x, 0) != 0:
+                if base < 0 or base > 36:
+                    raise ValueError, "base (=%s) must be between 2 and 36"%base
+                if mpz_set_str(self.value, x, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
 
             elif isinstance(x, rational.Rational):

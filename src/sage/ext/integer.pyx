@@ -156,7 +156,7 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: Integer('zz',36).str(36)
             'zz'
             sage: ZZ('0x3b').str(16)
-            3b
+            '3b'
         """
         if not (x is None):
             if isinstance(x, Integer):

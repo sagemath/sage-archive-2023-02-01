@@ -828,6 +828,22 @@ class SingularElement(ExpectElement):
     def trait_names(self):
         return self.parent().trait_names()
 
+    def type(self):
+        """
+        Returns the internal type of this element.
+
+        EXAMPLES:
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: r._singular_().type()
+            'ring'
+            sage: fs=singular('x_0^2','poly')
+            sage: fs.type()
+            'poly'
+        """
+        # singular reports //  $varname [index] $type $random
+        p = re.compile("//.*[\w]*.*\[[0-9]*\][ \*]*([a-z]*)")
+        m = p.match(singular.eval("type(%s)"%self.name()))
+        return m.group(int(1))
 
 class SingularFunction(ExpectFunction):
      def _sage_doc_(self):

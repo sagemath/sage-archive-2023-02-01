@@ -433,7 +433,7 @@ def save(obj, filename=None):
     """
     try:
         obj.save(filename)
-    except AttributeError, RuntimeError:
+    except (AttributeError, RuntimeError, TypeError):
         s = comp.compress(cPickle.dumps(obj, protocol=2))
         open(add_ext(filename), 'w').write(s)
 

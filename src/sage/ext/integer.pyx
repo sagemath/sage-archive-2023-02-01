@@ -1390,9 +1390,8 @@ cdef class Integer(element.EuclideanDomainElement):
         EXAMPLES:
             sage: w = 6
             sage: w.str(2)
-            sage: w.str(2)
             '110'
-            sage: sage: w.test_bit(2)
+            sage: w.test_bit(2)
             1
         """
         cdef Integer x

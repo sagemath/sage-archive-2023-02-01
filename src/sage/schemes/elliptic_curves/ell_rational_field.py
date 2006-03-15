@@ -565,10 +565,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         elif algorithm == 'ec':
             return rings.Integer(self.watkins_data()['analytic rank'])
         elif algorithm == 'rubinstein':
-            from sage.interfaces.lcalc import lcalc
+            from sage.lfunctions.lcalc import lcalc
             return lcalc.analytic_rank(L=self)
         elif algorithm == 'sympow':
-            from sage.interfaces.sympow import sympow
+            from sage.lfunctions.sympow import sympow
             return sympow.analytic_rank(self)[0]
         elif algorithm == 'magma':
             return rings.Integer(self._magma_().AnalyticRank())
@@ -1396,7 +1396,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage.: RR(a)
             2.4922620442736498
         """
-        from sage.interfaces.sympow import sympow
+        from sage.lfunctions.sympow import sympow
         return sympow.L(self, n, prec)
 
     def Lseries_sympow_derivs(self, n, prec, d):
@@ -1428,7 +1428,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1n2: 1.519054910249753E-01
             1w2: 1.545605024269432E-01
         """
-        from sage.interfaces.sympow import sympow
+        from sage.lfunctions.sympow import sympow
         return sympow.Lderivs(self, n, prec, d)
 
     def Lseries_zeros(self, n):
@@ -1445,7 +1445,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         AUTHOR:
             -- Uses Rubinstein's L-functions calculator.
         """
-        from sage.interfaces.lcalc import lcalc
+        from sage.lfunctions.lcalc import lcalc
         return lcalc.zeros(n, L=self)
 
     def Lseries_zeros_in_interval(self, x, y, stepsize):
@@ -1471,7 +1471,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
             [(6.8703912161, 0.24892278010), (8.0143308081, -0.14016853319), (9.9330983534, -0.12994302920)]
         """
-        from sage.interfaces.lcalc import lcalc
+        from sage.lfunctions.lcalc import lcalc
         return lcalc.zeros_in_interval(x, y, stepsize, L=self)
 
     def Lseries_values_along_line(self, s0, s1, number_samples):
@@ -1498,7 +1498,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long
             [(0.50000000000, 0), (0.40000000002 + 4.0000000000*I, 3.3192024464 - 2.6002805391*I), (0.30000000005 + 8.0000000000*I, -0.88634118531 - 0.42264033738*I), (0.20000000001 + 12.000000000*I, -3.5055893594 - 0.10853169035*I), (0.10000000001 + 16.000000000*I, -3.8704328826 - 1.8804941061*I)]
         """
-        from sage.interfaces.lcalc import lcalc
+        from sage.lfunctions.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
                                        s1-RationalField()('1/2'),
                                        number_samples, L=self)
@@ -1530,7 +1530,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: F.rank()
             0
         """
-        from sage.interfaces.lcalc import lcalc
+        from sage.lfunctions.lcalc import lcalc
         return lcalc.twist_values(s - RationalField()('1/2'), dmin, dmax, L=self)
 
     def Lseries_twist_zeros(self, n, dmin, dmax):
@@ -1556,7 +1556,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries_twist_zeros(3, -4, -3)         # long
             {-4: [1.6081378292, 2.9614484031, 3.8975174744], -3: [2.0617089970, 3.4821688067, 4.4585321881]}
         """
-        from sage.interfaces.lcalc import lcalc
+        from sage.lfunctions.lcalc import lcalc
         return lcalc.twist_zeros(n, dmin, dmax, L=self)
 
     def Lseries_at1(self, k=0):
@@ -1891,7 +1891,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 v = self.watkins_data()
                 m = rings.Integer(v["Modular degree"])
             elif algorithm == 'sympow':
-                from sage.interfaces.all import sympow
+                from sage.lfunctions.all import sympow
                 m = sympow.modular_degree(self)
             elif algorithm == 'magma':
                 m = rings.Integer(self._magma_().ModularDegree())

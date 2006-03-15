@@ -135,7 +135,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
 
         sage: hash(v)
         2083920238            # 32-bit
-        -1663705395917193534  # 64-bit
+        -8049699692026128018  # 64-bit
         sage: v[0] = 10
         sage: hash(v)
         -377547984            # 32-bit

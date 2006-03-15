@@ -716,7 +716,7 @@ understand how to fix the conflicts.
 
   3. darcs unrecord
 
-    this is the inverse of unrecord. Like unpull, it takes a patch out
+    this is the inverse of record. Like unpull, it takes a patch out
     of your "pristine" tree, but you KEEP the changes in your
     "working" tree. Presumably you will change things a bit and record
     another patch.
@@ -816,6 +816,6 @@ A developer can have several trees to avoid problems with this, e.g.:
 
   IF we had some way to "build and run, and run the tests" from an
   alternate directory, and without installing anything to $SAGE_ROOT,
-  this would be possible (and very cool)
+  this would be possible (and very cool).
 
 ]

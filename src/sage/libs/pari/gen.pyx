@@ -9,6 +9,8 @@ AUTHORS:
     -- William Stein (2006-03-06): added newtonpoly
 """
 
+import math
+
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
 
@@ -4877,15 +4879,18 @@ cdef class PariInstance:
 
     def init_primes(self, unsigned long M, silent=False):
         """
-        Recompute the primes table including at least all primes up to M.
+        Recompute the primes table including at least all primes up to
+        M (but possibly more).
 
         EXAMPLES:
             sage: pari.init_primes(200000)
             Extending PARI prime table up to 200000
         """
+        global diffptr, num_primes
+        if M <= num_primes:
+            return
         if not silent:
             print "Extending PARI prime table up to %s"%M
-        global diffptr, num_primes
         free(<void*> diffptr)
         num_primes = M
         diffptr = initprimes(M)
@@ -4936,6 +4941,8 @@ cdef class PariInstance:
         """
         prime_list(n): returns list of the first n primes
 
+        To extend the table of primes use pari.init_primes(M).
+
         INPUT:
             n -- C long
         OUTPUT:
@@ -4954,8 +4961,30 @@ cdef class PariInstance:
             sage: len(pari.prime_list(1000))
             1000
         """
+        self.nth_prime(n)
         _sig_on
         return self.new_gen(primes(n))
+
+    def primes_up_to_n(self, long n):
+        """
+        Return the primes <= n as a pari list.
+        """
+        if n <= 1:
+            return pari([])
+        self.init_primes(n+1)
+        return self.prime_list(pari(n).primepi())
+
+        cdef long k
+        k = (n+10)/math.log(n)
+        p = 2
+        print 1
+        while p <= n:
+            p = self.nth_prime(k)
+            k = 2
+        print 2
+        v = self.prime_list(k)
+        print 3
+        return v[:pari(n).primepi()]
 
     def __nth_prime(self, long n):
         """
@@ -4974,7 +5003,7 @@ cdef class PariInstance:
     def nth_prime(self, long n):
         try:
             return self.__nth_prime(n)
-        except Exception:
+        except PariError:
             self.init_primes(max(2*num_primes,20*n))
             return self.nth_prime(n)
 

@@ -316,7 +316,7 @@ cdef class Rational(element.FieldElement):
             119.75651223303984
             sage: x = -12/5
             sage: x.sqrt()
-            1.5491933384829666*I
+            1.5491933384829668*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples

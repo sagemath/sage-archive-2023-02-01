@@ -53,8 +53,7 @@ cdef class SageObject:
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
-            NotImplementedError: object does not support renaming: 3.133
-
+            NotImplementedError: object does not support renaming: 3.1400000000000001
 
         \note{The reason C-extension types are not supported is if
         they were then every single one would have to carry around an

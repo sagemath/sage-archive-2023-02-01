@@ -57,7 +57,7 @@ def arg(x):
         sage: cos(theta)*abs(z)
         1.0000000000000002
         sage: sin(theta)*abs(z)
-        1.9999999999999998
+        2.0000000000000000
     """
     try: return x.arg()
     except AttributeError: return CC(x).arg()
@@ -153,7 +153,7 @@ def cos(x):
         sage: cos(theta)*abs(z)
         1.0000000000000002
         sage: cos(3.141592)
-        -1.0000000
+        -0.99999999999978639
     """
     try: return x.cos()
     except AttributeError: return R(x).cos()
@@ -542,7 +542,7 @@ def log(x,b=None):
         sage: log(10)
         2.3025850929940459
         sage: log(2.718)
-        0.99976
+        0.99989631572895199
     """
     if b is None:
         try: return x.log()
@@ -715,7 +715,7 @@ def sqrt(x):
 
     EXAMPLES:
         sage: sqrt(10.1)
-        3.180
+        3.1780497164141406
         sage: sqrt(9)
         3
     """
@@ -801,9 +801,9 @@ def tan(x):
 
     EXAMPLES:
         sage: tan(3.1415)
-        -0.000113161
+        -0.000092653590058191322
         sage: tan(3.1415/4)
-        0.999939
+        0.99995367427815629
     """
     try: return x.tan()
     except AttributeError: return R(x).tan()

@@ -457,7 +457,7 @@ cdef class Integer(element.EuclideanDomainElement):
 
         Add an integer and a real number:
             sage: a + 4.0
-            7.00
+            7.0000000000000000
 
         Add an integer and a rational number:
             sage: a + Rational(2)/5
@@ -1175,7 +1175,7 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.0000000000000000*I
             sage: sqrt(-2)
-            1.4142135623730949*I
+            1.4142135623730951*I
             sage: sqrt(97)
             9.8488578017961039
             sage: 97.sqrt(200)

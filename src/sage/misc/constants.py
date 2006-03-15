@@ -455,7 +455,7 @@ class Khinchin(Constant):
         sage: float(khinchin)
         2.6854520010653062
         sage: khinchin.str(100)
-        '2.6854520010653064453097148354799'
+        '2.6854520010653064453097148354831'
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
@@ -536,7 +536,7 @@ class Merten(Constant):
         sage: R=RealField(200);R
         Real Field with 200 bits of precision
         sage: R(merten)
-        0.26149721284764278375542683860869585905156664826119920619206395
+        0.26149721284764278375542683860869585905156664826119920619206426
     """
     def __init__(self):
         Constant.__init__(self,{}) #Merten's constant is not implemented in any other algebra systems.
@@ -558,7 +558,7 @@ class Merten(Constant):
             ...
             NotImplementedError: Merten's constant only available up to 320 bits
             sage: RealField(320)(merten)
-            0.26149721284764278375542683860869585905156664826119920619206421392492451089736820971414263143424650
+            0.26149721284764278375542683860869585905156664826119920619206421392492451089736820971414263143424673
         """
         if R.precision() <= self.__bits:
             return R(self.__value)

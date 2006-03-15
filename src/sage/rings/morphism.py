@@ -51,7 +51,7 @@ EXAMPLE: Identity map on the real numbers.
     sage: f = RR.hom( [2.0] )
     Traceback (most recent call last):
     ...
-    TypeError: images (=[2.00]) do not define a valid homomorphism
+    TypeError: images (=[2.0000000000000000]) do not define a valid homomorphism
 
 EXAMPLE: Homomorphism from one precision of field to another.
 
@@ -76,7 +76,7 @@ EXAMPLE: Inclusion map from the reals to the complexes:
       To:   Complex Field with 53 bits of precision
       Defn: 1.0000000000000000 |--> 1.0000000000000000
     sage: i(RR('3.1'))
-    3.0999999999999996
+    3.1000000000000001
 
 EXAMPLE: A map from a multivariate polynomial ring to itself:
     sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()

@@ -1292,7 +1292,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice ()
-            (2.993458646231959629832009961, 2.4513893819899999*I)     # 32-bit
+            (2.993458646231959629832009987, 2.4513893819899999*I)     # 32-bit
             (2.993458646231959629832009979452508154, 2.4513893819899999*I)  # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
@@ -1306,7 +1306,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
-            5.986917292463919259664019923            # 32-bit
+            5.986917292463919259664019974            # 32-bit
             5.986917292463919259664019958905016308   # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
@@ -1348,7 +1348,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve('37a')
             sage: L = E.Lseries_dokchitser()
             sage: L(2)
-            0.38157540826071118
+            0.38157540826071124
             sage: L = E.Lseries_dokchitser(algorithm='magma')         # optional
             sage: L.Evaluate(2)                                       # optional
             0.38157540826071121129371040958008663667709753398892116
@@ -1469,9 +1469,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
-            [(6.8703912161, 0.24892278004),
-             (8.0143308043, -0.14016853314),
-             (9.9330983534, -0.12994302920)]
+            [(6.8703912161, 0.24892278010), (8.0143308081, -0.14016853319), (9.9330983534, -0.12994302920)]
         """
         from sage.interfaces.lcalc import lcalc
         return lcalc.zeros_in_interval(x, y, stepsize, L=self)
@@ -1498,7 +1496,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long
-             [(0.50000000000, 0), (0.39999999991 + 4.0000000000*I, 3.3192024464 - 2.6002805382*I), (0.29999999993 + 8.0000000000*I, -0.88634118508 - 0.42264033738*I), (0.19999999995 + 12.000000000*I, -3.5055893594 - 0.10853169035*I), (0.099999999977 + 16.000000000*I, -3.8704328816 - 1.8804941056*I)]
+            [(0.50000000000, 0), (0.40000000002 + 4.0000000000*I, 3.3192024464 - 2.6002805391*I), (0.30000000005 + 8.0000000000*I, -0.88634118531 - 0.42264033738*I), (0.20000000001 + 12.000000000*I, -3.5055893594 - 0.10853169035*I), (0.10000000001 + 16.000000000*I, -3.8704328826 - 1.8804941061*I)]
         """
         from sage.interfaces.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
@@ -1556,8 +1554,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_twist_zeros(3, -4, -3)         # long
-            {-4: [1.6081378292, 2.9614484021, 3.8975174734],
-             -3: [2.0617089970, 3.4821688067, 4.4585321881]}
+            {-4: [1.6081378292, 2.9614484031, 3.8975174744], -3: [2.0617089970, 3.4821688067, 4.4585321881]}
         """
         from sage.interfaces.lcalc import lcalc
         return lcalc.twist_zeros(n, dmin, dmax, L=self)
@@ -1609,7 +1606,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37b')
             sage: E.Lseries_at1(100)
-            (0.72568106193599990, 0.0000000000000000000000000000000000000000000015243750228899999)
+            (0.72568106193600002, 0.0000000000000000000000000000000000000000000015243750228899999)
         """
         if self.root_number() == -1:
             return 0
@@ -1704,7 +1701,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries(1)
             0.00000000000000000
             sage: E.Lseries('1.1')       # long (!)
-            0.28549100767814789
+            0.28549100767814833
 
         TODO: Planned massive improvement -- use Micheal Rubinstein's
         L-functions package and/or Tim Dokchitser's.  Both are already
@@ -1733,7 +1730,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.37754620381836362 + 0.80779131282214478*I
+            -0.35417268051555018 + 0.87451868171893621*I
         """
         s = C(s)
         N = self.conductor()
@@ -1760,9 +1757,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.63840995909825693 + 0.71549526219140769*I
+            -0.63840995909825760 + 0.71549526219140858*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.0075526675662480319 + 0.00042977409532104512*I
+            -0.0076121653876937805 + 0.00043488570464214908*I
 
         TODO: Planned improvement -- use Micheal Rubinstein's
         L-functions package and/or Tim Dokchitser's.  Both

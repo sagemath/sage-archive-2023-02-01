@@ -286,7 +286,7 @@ cdef class RealField(ring.Field):
         EXAMPLES:
             sage: R = RealField(10)
             sage: R('1.234')
-            1.2324
+            1.2344
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
@@ -548,10 +548,10 @@ cdef class RealNumber(element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R('1.2456')
-            1.2455999999999998
+            1.2456000000000000
             sage: R = RealField(3)
             sage: R('1.2456')
-            1.0
+            1.2
 
         EXAMPLE: Rounding Modes
             sage: w = RealField(3)(5/2)
@@ -647,7 +647,7 @@ cdef class RealNumber(element.RingElement):
         EXAMPLES:
             sage: n = 1.3939494594
             sage: n._interface_init_()
-            '1.39394945939'
+            '1.3939494593999999'
         """
         return self.str(10, no_sci=True)
 
@@ -789,13 +789,13 @@ cdef class RealNumber(element.RingElement):
             sage: a = R10('393.3902834028345')
             sage: b = R100('393.3902834028345')
             sage: a
-            393.00
+            393.50
             sage: b
-            393.39028340283449999999999999970
+            393.39028340283450000000000000011
             sage: a*b
-            154370
+            154880
             sage: b*a
-            154370
+            154880
             sage: parent(b*a)
             Real Field with 10 bits of precision
         """

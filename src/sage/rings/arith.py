@@ -285,7 +285,7 @@ def valuation(m, p):
 
 
 
-def prime_range(start, stop=None):
+def prime_range(start, stop=None, leave_pari=False):
     """
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
@@ -296,9 +296,24 @@ def prime_range(start, stop=None):
     stop.  If both are large, use the primes iterator function
     instead.
 
+    INPUT:
+        start -- lower bound
+        stop -- upper bound
+        leave_pari -- bool (default: False) if True the returned list
+                    is a PARI list; this is *vastly* faster since the
+                    time of prime_range is dominated by conversion
+                    from PARI to SAGE integers.   However, PARI integers
+                    are much different than SAGE integers.
+                    If you use this option the lower bound must be 2.
+
+    You can also call this function with prime_range(bound) to get
+    all primes up to bound.
+
     EXAMPLES:
-        sage: prime_range(0,10)
+        sage: prime_range(10)
         [2, 3, 5, 7]
+        sage: prime_range(7)
+        [2, 3, 5]
         sage: prime_range(2000,2020)
         [2003, 2011, 2017]
         sage: prime_range(2,2)
@@ -308,13 +323,26 @@ def prime_range(start, stop=None):
         sage: prime_range(10)
         [2, 3, 5, 7]
     """
-    if stop == None:
-        start, stop = sage.rings.integer.Integer(2), start
-    w = eratosthenes(stop-1)
+    if stop is None:
+        start, stop = 2, start
+    v = pari.primes_up_to_n(stop-1)
+    Z = sage.rings.integer.Integer
+    if leave_pari:
+        if start != 2:
+            raise ValueError, "lower bound must be 2 if leave_pari is True"
+        return v
     if start <= 2:
-        return w
-    _, i = sage.misc.search.search(w, start)
-    return w[i:]
+        return [Z(p) for p in v]     # this dominates runtime!
+    start = pari(start)
+    return [Z(p) for p in v if p >= start]     # this dominates runtime!
+
+##     if stop == None:
+##         start, stop = sage.rings.integer.Integer(2), start
+##     w = eratosthenes(stop-1)
+##     if start <= 2:
+##         return w
+##     _, i = sage.misc.search.search(w, start)
+##     return w[i:]
 
 #
 # This is from
@@ -322,8 +350,12 @@ def prime_range(start, stop=None):
 # It's impressively fast given that it's in Pure Python.
 #
 def eratosthenes(n):
-    """
-    Return a list of the primes <= n.
+    r"""
+    Return a list of the primes $\leq n$.
+
+    This is extremely slow and is for educational purposes only.  Use
+    \code{prime_list(..., leave_pari=True)} for an extremely efficient
+    implementation.
     """
     n = int(n)
     if n == 2:

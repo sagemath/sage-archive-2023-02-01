@@ -37,6 +37,11 @@
 (^|/).doctest($|/)
 (^|/)deleted($|/)
 ^build($|/)
+^changelog_darcs.txt($|/)
+^mirror($|/)
+^new($|/)
+^commit($|/)
+^export($|/)
 ^sage/ext/arith.c$
 ^sage/ext/arith_gmp.c$
 ^sage/ext/coerce.c$

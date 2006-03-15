@@ -118,7 +118,7 @@ class Magma(Expect):
     anything, otherwise you'll get an error.  (nvals is the number
     of return values.)
 
-        sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional
+        sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
 
     """
     def __init__(self, maxread=10000, script_subdirectory="user", logfile=None, server=None):

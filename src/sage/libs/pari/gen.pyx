@@ -4877,20 +4877,19 @@ cdef class PariInstance:
     def pari_version(self):
         return str(PARIVERSION)
 
-    def init_primes(self, unsigned long M, silent=False):
+    def init_primes(self, unsigned long M):
         """
         Recompute the primes table including at least all primes up to
         M (but possibly more).
 
         EXAMPLES:
             sage: pari.init_primes(200000)
-            Extending PARI prime table up to 200000
         """
         global diffptr, num_primes
         if M <= num_primes:
             return
-        if not silent:
-            print "Extending PARI prime table up to %s"%M
+        #if not silent:
+        #    print "Extending PARI prime table up to %s"%M
         free(<void*> diffptr)
         num_primes = M
         diffptr = initprimes(M)
@@ -4947,6 +4946,7 @@ cdef class PariInstance:
             n -- C long
         OUTPUT:
             gen -- PARI list of first n primes
+
         EXAMPLES:
             sage: pari.prime_list(0)
             []
@@ -4961,7 +4961,8 @@ cdef class PariInstance:
             sage: len(pari.prime_list(1000))
             1000
         """
-        self.nth_prime(n)
+        if n >= 2:
+            self.nth_prime(n)
         _sig_on
         return self.new_gen(primes(n))
 

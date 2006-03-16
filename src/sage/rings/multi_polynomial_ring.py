@@ -157,7 +157,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
             R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
         else:
             R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
-    elif base_ring.is_finite() or isinstance(base_ring,IntegerRing):
+    elif base_ring.is_finite() or base_ring.is_prime_field():
         R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
     else:
         if integral_domain.is_IntegralDomain(base_ring):
@@ -359,7 +359,7 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
            //        block   1 : ordering lp
            //                  : names    x_0 x_1
            //        block   2 : ordering C
-           sage: r=MPolynomialRing(ZZ,2,'x')
+           sage: r=MPolynomialRing(QQ,2,'x')
            sage: r._singular_()
            //   characteristic : 0
            //   number of vars : 2
@@ -376,16 +376,15 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
             if not (R.parent() is singular):
                 raise ValueError
             R._check_valid()
+            if self.base_ring().is_prime_field():
+                return R
             if self.base_ring().is_finite():
-                if self.base_ring().is_prime_field():
-                    return R
-                else:
-                    R.set_ring() #sorry for that, but needed for minpoly
-                    if  singular.eval('minpoly') != self.__minpoly:
-                        singular.eval("minpoly=%s"%(self.__minpoly))
+                R.set_ring() #sorry for that, but needed for minpoly
+                if  singular.eval('minpoly') != self.__minpoly:
+                    singular.eval("minpoly=%s"%(self.__minpoly))
             return R
         except (AttributeError, ValueError):
-            if not self.base_ring().is_finite() and not isinstance(self.base_ring(),IntegerRing):
+            if not self.base_ring().is_finite() and not self.base_ring().is_prime_field():
                 raise TypeError, "no conversion of %s to a Singular ring defined"%self
             return self._singular_init_(singular)
 
@@ -438,19 +437,11 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_singular_repr(self, x)
         elif is_SingularElement(x):
+            self._singular_().set_ring()
             try:
-                self._singular_().set_ring()
-                s = x.sage_polystring()
-                if len(s) == 0:
-                    raise TypeError
-                # NOTE: It's CRUCIAL to use the eval command as follows,
-                # i.e., with the gen dict as the third arg and the second
-                # empty.  Otherwise pickling won't work after calls to this eval!!!
-                # This took a while to figure out!
-                return self(eval(s, {}, self.gens_dict()))
-            except (AttributeError, TypeError, NameError):
-                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, s)
-            return multi_polynomial_element.MPolynomial_singular_repr(self, x)
+                return x.sage_poly(self)
+            except:
+                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
                 return x.numerator()

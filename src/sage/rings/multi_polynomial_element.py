@@ -864,7 +864,7 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
             right = self.parent()(right)
         R = self.parent()
         X = self._singular_().division(right._singular_())
-        return R(X[1]), R(X[2])
+        return R(X[1][1,1]), R(X[2][1])
 
 
 class MPolynomial_macaulay2_repr(MPolynomial_polydict):

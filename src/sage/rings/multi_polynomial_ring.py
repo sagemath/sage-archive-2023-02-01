@@ -47,6 +47,8 @@ import integral_domain
 import fraction_field
 import fraction_field_element
 
+import finite_field
+
 import multi_polynomial_element
 import multi_polynomial_ideal
 import polydict
@@ -157,7 +159,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
             R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
         else:
             R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
-    elif base_ring.is_finite() or base_ring.is_prime_field():
+    elif finite_field.is_FiniteField(base_ring) or base_ring.is_prime_field():
         R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
     else:
         if integral_domain.is_IntegralDomain(base_ring):

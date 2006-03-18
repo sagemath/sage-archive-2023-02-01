@@ -1330,7 +1330,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                            algorithm='gp'):
         r"""
         Return interface to Tim Dokchitser's program for computing
-        with the L-serie of this elliptic curve; this provides a way
+        with the L-series of this elliptic curve; this provides a way
         to compute Taylor expansions and higher derivatives of
         $L$-series.
 

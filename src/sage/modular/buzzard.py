@@ -86,6 +86,10 @@ def buzzard_tpslopes(p, N, kmax):
         sage: f = T.charpoly()
         sage: f.newton_slopes(2)
         [13, 8, 4]
+
+    AUTHOR:
+        -- Kevin Buzzard: several GP/PARI scripts
+        -- William Stein (2006-03-17): small SAGE wrapper of Buzzard's scripts
     """
     v = gp().eval('tpslopes(%s, %s, %s)'%(p,N,kmax))
     v = sage_eval(v)

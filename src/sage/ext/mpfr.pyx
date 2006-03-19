@@ -2,14 +2,15 @@
 Real Numbers
 
 AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
-         William Stein <wstein@ucsd.edu>
+         William Stein <wstein@ucsd.edu>: bug fixes, examples, maintenance
+         Didier Deshommes <dfdeshom@gmail.com> (2006-03-19): examples
 """
 
 #*****************************************************************************
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005-2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -1051,17 +1052,20 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: r = 4.0
-            sage: loads((r.sqrt()).dumps()) == r.sqrt()
+            sage: r.sqrt()
+            2.0000000000000000
+            sage: r.sqrt()^2 == r
             True
 
             sage: r = 4344
-            sage: loads((r.sqrt()).dumps()) == r.sqrt()
+            sage: r.sqrt()
+            65.909028213136324
+            sage: r.sqrt()^2 == r
             True
 
             sage: r = -2.0
             sage: r.sqrt()
             NaN
-
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1075,9 +1079,11 @@ cdef class RealNumber(element.RingElement):
         Return the cubic root (defined over the real numbers) of self.
 
         EXAMPLES:
-            sage: r = 125.0
-            sage: loads((r.cube_root()).dumps()) == r.cube_root()
-            True
+            sage: r = 125.0; r.cube_root()
+            5.0000000000000000
+            sage: r = -119.0
+            sage: r.cube_root()^3 - r       # illustrates precision loss
+            -0.000000000000014210854715202004
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1138,12 +1144,11 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: r = 16.0
-            sage: loads((r.log2()).dumps()) == r.log2()
-            True
+            sage: r.log2()
+            4.0000000000000000
 
-            sage: r = 31.9
-            sage: loads((r.log2()).dumps()) == r.log2()
-            True
+            sage: r = 31.9; r.log2()
+            4.9954845188775066
 
             sage: r = 0.0
             sage: r.log2()
@@ -1161,13 +1166,13 @@ cdef class RealNumber(element.RingElement):
         Returns log to the base 10 of self
 
         EXAMPLES:
-            sage: r = 16.0
-            sage: loads((r.log10()).dumps()) == r.log10()
-            True
+            sage: r = 16.0; r.log10()
+            1.2041199826559248
+            sage: r.log() / log(10)
+            1.2041199826559246
 
-            sage: r = 39.9
-            sage: loads((r.log10()).dumps()) == r.log10()
-            True
+            sage: r = 39.9; r.log10()
+            1.6009728956867482
 
             sage: r = 0.0
             sage: r.log10()
@@ -1191,14 +1196,18 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: r = 0.0
-            sage: loads((r.exp()).dumps()) == r.exp()
-            True
+            sage: r.exp()
+            1.0000000000000000
+
             sage: r = 32.3
-            sage: loads((r.exp()).dumps()) == r.exp()
-            True
+            sage: a = r.exp(); a
+            106588847274864.47
+            sage: a.log()
+            32.299999999999997
+
             sage: r = -32.3
-            sage: loads((r.exp()).dumps()) == r.exp()
-            True
+            sage: r.exp()
+            0.0000000000000093818445884986851
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1213,14 +1222,17 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: r = 0.0
-            sage: loads((r.exp2()).dumps()) == r.exp2()
-            True
+            sage: r.exp2()
+            1.0000000000000000
+
             sage: r = 32.0
-            sage: loads((r.exp2()).dumps()) == r.exp2()
-            True
+            sage: r.exp2()
+            4294967296.0000000
+
             sage: r = -32.3
-            sage: loads((r.exp2()).dumps()) == r.exp2()
-            True
+            sage: r.exp2()
+            0.00000000018911724825302072
+
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1235,14 +1247,16 @@ cdef class RealNumber(element.RingElement):
 
         EXAMPLES:
             sage: r = 0.0
-            sage: loads((r.exp10()).dumps()) == r.exp10()
-            True
+            sage: r.exp10()
+            1.0000000000000000
+
             sage: r = 32.0
-            sage: loads((r.exp10()).dumps()) == r.exp10()
-            True
+            sage: r.exp10()
+            100000000000000010000000000000000
+
             sage: r = -32.3
-            sage: loads((r.exp10()).dumps()) == r.exp10()
-            True
+            sage: r.exp10()
+            0.0000000000000000000000000000000050118723362727556
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)

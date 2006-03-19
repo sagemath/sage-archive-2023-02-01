@@ -46,14 +46,44 @@ import ideal
 import sage.interfaces.all
 
 _objsIntegerModRing = {}
-def IntegerModRing(order=0):
+def IntegerModRing(order=0, check_prime=True):
+    r"""
+    INPUT:
+        order -- integer (default: 0)
+        check_prime -- bool (default: True); if False do not test for
+                       primality of the order in constructing the
+                       residue class ring (thus always constructing
+                       the generic integer_mod_ring that doesn't
+                       have special field functionality and implementation).
+                       Do this if the modulus is huge (thousands of digits).
+
+    EXAMPLES:
+        sage: IntegerModRing(15)
+        Ring of integers modulo 15
+
+    The following example illustrates the \code{check_prime} option.
+    Without it, just defining R would take a very long time.
+
+        sage: n = 5*2^23473+1
+        sage: len(str(n))
+        7067
+        sage: R = IntegerModRing(n, check_prime=False)
+        sage: type(R)
+        <class 'sage.rings.integer_mod_ring.IntegerModRing_generic'>
+
+    Note that you can also user \code{Integers}, which is a synonym
+    for \code{IntegerModRing}.
+        sage: Integers(18)
+        Ring of integers modulo 18
+
+    """
     if order == 0:
         return integer_ring.IntegerRing()
     global _objsIntegerModRing
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
         if x != None: return x
-    if arith.is_prime(order):
+    if check_prime and arith.is_prime(order):
         R = IntegerModRing_field(order)
     else:
         R = IntegerModRing_generic(order)

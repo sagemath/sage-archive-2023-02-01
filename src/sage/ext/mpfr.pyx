@@ -859,24 +859,91 @@ cdef class RealNumber(element.RingElement):
     ###################
 
     def round(self):
+        """
+        Rounds self to the nearest real number. There are 4
+        rounding modes. They are
+
+        EXAMPLES:
+            RNDN -- round to nearest:
+
+            sage: R = RealField(10,False,'RNDN')
+            sage: R(22.454)
+            22.469
+            sage: R(22.491)
+            22.500
+
+            RNDZ -- round towards zero:
+            sage: R = RealField(10,False,'RNDZ')
+            sage: R(22.454)
+            22.437
+            sage: R(22.491)
+            22.468
+
+            RNDU -- round towards plus infinity:
+            sage: R10 = RealField(10,False,'RNDU')
+            sage: R10(22.454)
+            22.469
+            sage: R10(22.491)
+            22.500
+
+            RNDU -- round towards minus infinity:
+            sage: R10 = RealField(10,False,'RNDD')
+            sage: R10(22.454)
+            22.437
+            sage: R10(22.491)
+            22.468
+
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_round(x.value, self.value)
         return x
 
     def floor(self):
+        """
+        Returns the floor of this number
+
+        EXAMPLES:
+            sage: R = RealField()
+            sage: (2.99).floor()
+            2.0000000000000000
+            sage: (2.00).floor()
+            2.0000000000000000
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_floor(x.value, self.value)
         return x
 
     def ceil(self):
+        """
+        Returns the ceilling of this number
+
+        EXAMPLES:
+            sage: (2.99).ceil()
+            3.0000000000000000
+            sage: (2.00).ceil()
+            2.0000000000000000
+            sage: (2.01).ceil()
+            3.0000000000000000
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_ceil(x.value, self.value)
         return x
 
     def trunc(self):
+        """
+        Truncates this number
+
+        EXAMPLES:
+            sage: (2.99).trunc()
+            2.0000000000000000
+            sage: (-0.00).trunc()
+            -0.00000000000000000
+            sage: (0.00).trunc()
+            0.00000000000000000
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_trunc(x.value, self.value)
@@ -887,6 +954,14 @@ cdef class RealNumber(element.RingElement):
         frac returns a real number > -1 and < 1. it satisfies the
         relation:
             x = x.trunc() + x.frac()
+
+        EXAMPLES:
+            sage: (2.99).frac()
+            0.99000000000000021
+            sage: (2.50).frac()
+            0.50000000000000000
+            sage: (-2.79).frac()
+            -0.79000000000000004
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -973,6 +1048,20 @@ cdef class RealNumber(element.RingElement):
     def sqrt(self):
         """
         Return the square root of self.
+
+        EXAMPLES:
+            sage: r = 4.0
+            sage: loads((r.sqrt()).dumps()) == r.sqrt()
+            True
+
+            sage: r = 4344
+            sage: loads((r.sqrt()).dumps()) == r.sqrt()
+            True
+
+            sage: r = -2.0
+            sage: r.sqrt()
+            NaN
+
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -984,6 +1073,11 @@ cdef class RealNumber(element.RingElement):
     def cube_root(self):
         """
         Return the cubic root (defined over the real numbers) of self.
+
+        EXAMPLES:
+            sage: r = 125.0
+            sage: loads((r.cube_root()).dumps()) == r.cube_root()
+            True
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1039,6 +1133,22 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def log2(self):
+        """
+        Returns log to the base 2 of self
+
+        EXAMPLES:
+            sage: r = 16.0
+            sage: loads((r.log2()).dumps()) == r.log2()
+            True
+
+            sage: r = 31.9
+            sage: loads((r.log2()).dumps()) == r.log2()
+            True
+
+            sage: r = 0.0
+            sage: r.log2()
+            -infinity
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1047,6 +1157,27 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def log10(self):
+        """
+        Returns log to the base 10 of self
+
+        EXAMPLES:
+            sage: r = 16.0
+            sage: loads((r.log10()).dumps()) == r.log10()
+            True
+
+            sage: r = 39.9
+            sage: loads((r.log10()).dumps()) == r.log10()
+            True
+
+            sage: r = 0.0
+            sage: r.log10()
+            -infinity
+
+            sage: r = -1.0
+            sage: r.log10()
+            NaN
+
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1055,6 +1186,20 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def exp(self):
+        r"""
+        Returns $e^\code{self}$
+
+        EXAMPLES:
+            sage: r = 0.0
+            sage: loads((r.exp()).dumps()) == r.exp()
+            True
+            sage: r = 32.3
+            sage: loads((r.exp()).dumps()) == r.exp()
+            True
+            sage: r = -32.3
+            sage: loads((r.exp()).dumps()) == r.exp()
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1063,6 +1208,20 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def exp2(self):
+        """
+        Returns $2^\code{self}$
+
+        EXAMPLES:
+            sage: r = 0.0
+            sage: loads((r.exp2()).dumps()) == r.exp2()
+            True
+            sage: r = 32.0
+            sage: loads((r.exp2()).dumps()) == r.exp2()
+            True
+            sage: r = -32.3
+            sage: loads((r.exp2()).dumps()) == r.exp2()
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1071,6 +1230,20 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def exp10(self):
+        r"""
+        Returns $10^\code{self}$
+
+        EXAMPLES:
+            sage: r = 0.0
+            sage: loads((r.exp10()).dumps()) == r.exp10()
+            True
+            sage: r = 32.0
+            sage: loads((r.exp10()).dumps()) == r.exp10()
+            True
+            sage: r = -32.3
+            sage: loads((r.exp10()).dumps()) == r.exp10()
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1079,6 +1252,14 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def cos(self):
+        """
+        Returns the cosine of this number
+
+        EXAMPLES:
+            sage: t=R.pi()/2
+            sage: t.cos()
+            0.000000000000000061232339957367660
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1097,6 +1278,8 @@ cdef class RealNumber(element.RingElement):
     # _58 = -0.10000000000000000000e1
     def sin(self):
         """
+        Returns the sine of this number
+
         EXAMPLES:
             sage: R = RealField(100)
             sage: R(2).sin()
@@ -1110,6 +1293,17 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def tan(self):
+        """
+        Returns the tangent of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/3
+            sage: q.tan()
+            1.7320508075688767
+            sage: q = R.pi()/6
+            sage: q.tan()
+            0.57735026918962573
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1139,6 +1333,15 @@ cdef class RealNumber(element.RingElement):
     # int mpfr_sin_cos (mpfr_t rop, mpfr_t op, mpfr_t, mp_rnd_t rnd)
 
     def acos(self):
+        """
+        Returns the inverse cosine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/3
+            sage: i = q.cos()
+            sage: i.acos() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1147,6 +1350,15 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def asin(self):
+        """
+        Returns the inverse sine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/5
+            sage: i = q.sin()
+            sage: i.asin() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1155,6 +1367,15 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def atan(self):
+        """
+        Returns the inverse tangent of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/5
+            sage: i = q.tan()
+            sage: i.atan() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1167,6 +1388,14 @@ cdef class RealNumber(element.RingElement):
     #int mpfr_atan _PROTO ((mpfr_ptr, mpfr_srcptr, mp_rnd_t));
 
     def cosh(self):
+        """
+        Returns the hyperbolic cosine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/12
+            sage: q.cosh()
+            1.0344656400955106
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1175,6 +1404,15 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def sinh(self):
+        """
+        Returns the hyperbolic sine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/12
+            sage: q.sinh()
+            0.26480022760227073
+
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1183,6 +1421,14 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def tanh(self):
+        """
+        Returns the hyperbolic tangent of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/11
+            sage: q.tanh()
+            0.27807942929585028
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1191,6 +1437,16 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def acosh(self):
+        """
+        Returns the hyperbolic inverse cosine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/2
+            sage: i = q.cosh() ; i
+            2.5091784786580567
+            sage: i.acosh() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1199,6 +1455,16 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def asinh(self):
+        """
+        Returns the hyperbolic inverse sine of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/7
+            sage: i = q.sinh() ; i
+            0.46401763049299094
+            sage: i.asinh() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on
@@ -1207,6 +1473,16 @@ cdef class RealNumber(element.RingElement):
         return x
 
     def atanh(self):
+        """
+        Returns the hyperbolic inverse tangent of this number
+
+        EXAMPLES:
+            sage: q = R.pi()/7
+            sage: i = q.tanh() ; i
+            0.42091124104853489
+            sage: i.atanh() == q
+            True
+        """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         _sig_on

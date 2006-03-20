@@ -21,6 +21,7 @@ cdef extern from "wrap.h":
     ZZ* ZZ_neg(ZZ* x)
     ZZ* ZZ_copy(ZZ* x)
     # Random-number generation
+    void setSeed(ZZ* x)
     ZZ* ZZ_randomBnd(ZZ* x)
     ZZ* ZZ_randomBits(long n)
 

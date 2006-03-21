@@ -104,25 +104,34 @@ def make_new_ZZ(x='0'):
     return n
 
 # Random-number generation
-def _seed():
+def ntl_setSeed(x=None):
     """
-    Seed the generator with a random number.
+    Seed the NTL random number generator.
 
+    EXAMPLE:
+        sage: ntl.ntl_setSeed(10)
+        sage: ntl.ZZ_random(1000)
+        776
     """
-    from random import randint
     cdef ntl_ZZ seed
-    seed = make_new_ZZ(str(randint(0,2**64)))
+    if x is None:
+        from random import randint
+        seed = make_new_ZZ(str(randint(0,2**64)))
+    else:
+        seed = make_new_ZZ(str(x))
     _sig_on
     setSeed(seed.x)
+    _sig_off
+
+ntl_setSeed()
 
 def randomBnd(q):
     r"""
     Returns cryptographically-secure random number in the range [0,n)
 
     EXAMPLES:
-        sage: w = [ntl.ZZ_random(99999) for i in range(5)]
-        sage: 1 in w
-        False
+        sage: [ntl.ZZ_random(99999) for i in range(5)]
+        [53357, 19674, 69528, 87029, 28752]
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
@@ -132,7 +141,6 @@ def randomBnd(q):
     if not isinstance(q, ntl_ZZ):
         q = make_new_ZZ(str(q))
     w = q
-    _seed()
     _sig_on
     return  make_ZZ(ZZ_randomBnd(w.x))
 
@@ -142,12 +150,11 @@ def randomBits(long n):
 
     AUTHOR:
         -- Didier Deshommes <dfdeshom@gmail.com>
+
     EXAMPLES:
-        sage: w = [ntl.ZZ_random_bits(20) for i in range(5)]
-        sage: 1 in w
-        False
+        sage: [ntl.ZZ_random_bits(20) for i in range(3)]
+        [1025619, 177635, 766262]
     """
-    _seed()
     _sig_on
     return make_ZZ(ZZ_randomBits(n))
 

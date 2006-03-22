@@ -3,7 +3,7 @@ Number Fields
 """
 
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004, 2005, 2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -138,7 +138,9 @@ class NumberField_generic(field.Field):
             # todo: more general coercision if embedding have been asserted
 
         if not isinstance(x, (int, long, rational.Rational,
-                              integer.Integer, pari_gen, list)):
+                              integer.Integer, pari_gen,
+                              polynomial_element.Polynomial,
+                              list)):
             raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
         return number_field_element.NumberFieldElement(self, x)
@@ -391,6 +393,18 @@ class NumberField_generic(field.Field):
         return A
 
     def units(self):
+        """
+        Return generators for the unit group modulo torsion.
+
+        ALGORITHM: Uses PARI's bnfunit command.
+
+        EXAMPLES:
+            sage: P = PolynomialRing(Q)
+            sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
+            sage: K = NumberField(A)
+            sage: K.units()
+            [8/275*a^3 - 12/55*a^2 + 15/11*a - 2]
+        """
         try:
             return self.__units
         except AttributeError:

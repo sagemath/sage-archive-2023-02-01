@@ -1,21 +1,25 @@
 r"""
 Congruence subgroups of $\SL_2(\Z)$
+
+AUTHOR:
+    -- William Stein
+
+TODO:
+    -- added "gens" functions for each subgroup (since this is such a
+       frequently requested features).
 """
 
-#*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+################################################################################
+#
+#       Copyright (C) 2004, 2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
 #
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#
+################################################################################
 
 import random
 
@@ -106,8 +110,23 @@ class SL2Z(Gamma0):
     EXAMPLES:
         sage: G = SL2Z(); G
         Modular Group SL(2,Z)
+        sage: G.gens()
+        ([ 0 -1]
+        [ 1  0], [1 1]
+        [0 1])
+        sage: G.0
+        [ 0 -1]
+        [ 1  0]
+        sage: G.1
+        [1 1]
+        [0 1]
+        sage: latex(G)
+        '\\mbox{\\rm SL}_2(\\mbox{\\bf{}Z})'
+        sage: G([1,-1,0,1])
+        [ 1 -1]
+        [ 0  1]
         sage: loads(G.dumps()) == G
-            True
+        True
     """
     def __init__(self):
         Gamma0.__init__(self, 1)
@@ -124,6 +143,9 @@ class SL2Z(Gamma0):
         except AttributeError:
             self.__gens = (self([0, -1, 1, 0]), self([1, 1, 0, 1]))
             return self.__gens
+
+    def gen(self, n):
+        return self.gens()[n]
 
     def ngens(self):
         return 2

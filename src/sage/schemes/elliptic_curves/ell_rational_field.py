@@ -1856,6 +1856,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         \end{itemize}
 
+        Moreover for all algorithms, computing a certain value of an
+        $L$-function ``uses a heuristic method that discerns when the
+        real-number approximation to the modular degree is within epsilon
+        [=0.01 for algorithm="sympow"] of the same integer for 3
+        consecutive trials (which occur maybe every 25000 coefficients
+        or so). Probably it could just round at some point. For
+        rigour, you would need to bound the tail by assuming
+        (essentially) that all the $a_n$ are as large as possible, but
+        in practise they exhibit significant (square root)
+        cancellation. One difficulty is that it doesn't do the sum in
+        1-2-3-4 order; it uses 1-2-4-8---3-6-12-24--9-18-- (Euler
+        product style) instead, and so you have to guess ahead of time
+        at what point to curtail this expansion.''  (Quote from an
+        email of Mark Watkins.)
+
+        \note{ec is typically faster than sympow for computation of
+        modular degrees.  One of the main difference between ec and
+        sympow for computation of modular degrees is that the former
+        guesses that fewer terms will be needed to find the modular
+        degree, and thus the Euler product need not be expanded as far.}
+
         \note{If the curve is loaded from the large Cremona database,
         then the modular degree is taken from the database.}
 

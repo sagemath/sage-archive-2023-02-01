@@ -453,6 +453,12 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
                 return x.numerator()
             else:
                 raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+        elif isinstance(x , str):
+            self._singular_().set_ring()
+            try:
+                return self._singular_().parent(x).sage_poly(self)
+            except:
+                raise TypeError,"Unable to coerce string %s to %s"%(x,self)
         c = self.base_ring()(x)
         return multi_polynomial_element.MPolynomial_singular_repr(self, {self._zero_tuple:c})
 

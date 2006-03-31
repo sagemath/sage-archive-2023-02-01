@@ -872,6 +872,21 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def list(self):
         raise NotImplementedError
 
+    def coeffs(self):
+        r"""
+        Returns \code{self.list()}.
+
+        (It potentially slightly faster better to use
+        \code{self.list()} directly.)
+
+        EXAMPLES:
+            sage: x = Q['x'].0
+            sage: f = 10*x^3 + 5*x + 2/17
+            sage: f.coeffs()
+            [2/17, 5, 0, 10]
+        """
+        return self.list()
+
     def newton_raphson(self, n, x0):
         """
         Return a list of n iterative approximations to a root of this

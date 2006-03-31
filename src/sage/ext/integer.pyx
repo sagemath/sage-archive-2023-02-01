@@ -5,6 +5,7 @@ AUTHORS:
     -- William Stein (2005): initial version
     -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP conversion; hashing
     -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
+    -- William Stein (2006-03-31): changes to reflect GMP bug fixes
 """
 
 #*****************************************************************************
@@ -285,12 +286,6 @@ cdef class Integer(element.EuclideanDomainElement):
         Return the string representation of \code{self} in the given
         base.
 
-        \begin{notice}
-        String representation of integers with more than about {\em four
-        million digits} is not available in bases other than a power of
-        2. This is because of a bug in GMP.  To obtain the base-$b$
-        expansion of an integer $n$ use \code{n.str(b)}.
-        \end{notice}
 
         EXAMPLES:
             sage: Integer(2^10).str(2)
@@ -309,19 +304,18 @@ cdef class Integer(element.EuclideanDomainElement):
             ...
             ValueError: base (=37) must be between 2 and 36
 
-            sage: big = 2^424243423
-            sage: big.str()
-            Traceback (most recent call last):
-            ...
-            RuntimeError: String representation of integers with more than 4200000 digits is not available in bases other than a power of 2. This is because of a bug in GMP.  To obtain the base-b expansion of an integer n use n.str(b).
+            sage: big = 10^5000000
+            sage: s = big.str()                 # long (> 20 seconds)
+            sage: len(s)                        # depends on long
+            5000001
+            sage: s[:10]                        # depends on long
+            '1000000000'
         """
         if base < 2 or base > 36:
             raise ValueError, "base (=%s) must be between 2 and 36"%base
         cdef size_t n
         cdef char *s
         n = mpz_sizeinbase(self.value, base) + 2
-        if n > 4200000 and base != 2 and base != 4 and base != 8 and base != 16 and base != 32:
-            raise RuntimeError, "String representation of integers with more than 4200000 digits is not available in bases other than a power of 2. This is because of a bug in GMP.  To obtain the base-b expansion of an integer n use n.str(b)."
         s = <char *>PyMem_Malloc(n)
         if s == NULL:
             raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."

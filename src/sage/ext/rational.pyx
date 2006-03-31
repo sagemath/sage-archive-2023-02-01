@@ -370,8 +370,6 @@ cdef class Rational(element.FieldElement):
 
         n = mpz_sizeinbase (mpq_numref(self.value), base) \
             + mpz_sizeinbase (mpq_denref(self.value), base) + 3
-        if n > 4200000 and base != 2 and base != 4 and base != 8 and base != 16 and base != 32:
-            raise RuntimeError, "String representation of rationals with more than 4200000 digits is not available in bases other than a power of 2. This is because of a bug in GMP.  To obtain the base-b expansion of x use x.str(b)."
         s = <char *>PyMem_Malloc(n)
         if s == NULL:
             raise MemoryError, "Unable to allocate enough memory for the string representation of an integer."

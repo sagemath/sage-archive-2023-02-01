@@ -4229,7 +4229,7 @@ cdef class gen:
 
     def mathnf(self, flag=0):
         """
-        mathnf(A,{flag=0}): (upper triangular) Hermite normal form of
+        A.mathnf({flag=0}): (upper triangular) Hermite normal form of
         A, basis for the lattice formed by the columns of A.  flag is
         optional whose value range from 0 to 4 (0 if omitted), meaning
         : 0: naive algorithm. 1: Use Batut's algorithm. Output
@@ -4244,7 +4244,7 @@ cdef class gen:
 
     def matsnf(self, flag=0):
         """
-        matsnf(x,{flag=0}): Smith normal form (i.e. elementary
+        x.matsnf({flag=0}): Smith normal form (i.e. elementary
         divisors) of the matrix x, expressed as a vector d. Binary
         digits of flag mean 1: returns [u,v,d] where d=u*x*v,
         otherwise only the diagonal d is returned, 2: allow polynomial
@@ -4257,11 +4257,44 @@ cdef class gen:
 
     def matfrobenius(self, flag=0):
         """
-        matfrobenius(M,{flag}): Return the Frobenius form of the
+        M.matfrobenius({flag=0}): Return the Frobenius form of the
         square matrix M. If flag is 1, return only the elementary
-        divisors. If flag is 2, return a two-components vector [F,B]
-        where F is the Frobenius form and B is the basis change
-        so that M=B^-1*F*B.
+        divisors (a list of polynomials). If flag is 2, return a
+        two-components vector [F,B] where F is the Frobenius form and
+        B is the basis change so that M=B^-1*F*B.
+
+        EXAMPLES:
+            sage: a = pari('[1,2;3,4]')
+            sage: a.matfrobenius()
+            [0, 2; 1, 5]
+            sage: a.matfrobenius(flag=1)
+            [x^2 - 5*x - 2]
+            sage: a.matfrobenius(2)
+            [[0, 2; 1, 5], [1, -1/3; 0, 1/3]]
+            sage: v = a.matfrobenius(2)
+            sage: v[0]
+            [0, 2; 1, 5]
+            sage: v[1]^(-1)*v[0]*v[1]
+            [1, 2; 3, 4]
+
+            sage: T = ModularSymbols(43,sign=1).T(2).matrix()
+            sage: T
+            [ 3 -2  0  0]
+            [ 0 -2  0  1]
+            [ 0 -1 -2  2]
+            [ 0 -2  0  2]
+            sage: t = pari(T)
+            sage: t.matfrobenius()
+            [0, 0, 0, -12; 1, 0, 0, -2; 0, 1, 0, 8; 0, 0, 1, 1]
+            sage: T.charpoly()
+            x^4 - x^3 - 8*x^2 + 2*x + 12
+            sage: T.charpoly().factor()
+            (x - 3) * (x + 2) * (x^2 - 2)
+            sage: t.matfrobenius(1)
+            [x^4 - x^3 - 8*x^2 + 2*x + 12]
+
+        AUTHOR:
+           -- 2006-04-02: Martin Albrecht
         """
         _sig_on
         return self.new_gen(matfrobenius(self.g, flag))

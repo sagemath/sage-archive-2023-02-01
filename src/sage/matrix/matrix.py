@@ -2234,14 +2234,14 @@ class Matrix_integer(Matrix_pid):
 
     def frobenius(self,flag=0):
         """
-        Return the Frobenius form of this matrix.
-        If flag is 1, return only the elementary divisors.
-        If flag is 2, return a two-components vector [F,B]
-        where F is the Frobenius form and B is the basis change
-        so that M=B^-1*F*B.
+        Return the Frobenius form (rational canonical form) of this matrix.
+
+        If flag is 1, return only the elementary divisors.  If flag is
+        2, return a two-components vector [F,B] where F is the
+        Frobenius form and B is the basis change so that M=B^-1*F*B.
 
         INPUT:
-           flag -- 0,1 or 2 as described above
+           flag -- 0 (default), 1 or 2 as described above
 
         ALGORITHM: uses pari's matfrobenius()
 
@@ -2260,6 +2260,14 @@ class Matrix_integer(Matrix_pid):
            [    -1      2     -1]
            [     0  23/15 -14/15]
            [     0  -2/15   1/15])
+
+        AUTHOR:
+           -- 2006-04-02: Martin Albrecht
+
+        TODO:
+           -- move this to work for more general matrices than just over Z.
+              This will require fixing how PARI polynomials are coerced
+              to SAGE polynomials.
         """
         if self.nrows()!=self.ncols():
             raise ArithmeticError, "frobenius matrix of non-square matrix not defined."
@@ -2269,11 +2277,13 @@ class Matrix_integer(Matrix_pid):
             return self.matrix_space()(v.python())
         elif flag==1:
             r = polynomial_ring.PolynomialRing(self.base_ring())
-            #BUG: this should be handled in PolynomialRing not here
-            return [eval(str(x).replace("^","**"),{},r.gens_dict()) for x in v.python_list()]
+            #TODO: this should be handled in PolynomialRing not here
+            return [eval(str(x).replace("^","**"), {}, r.gens_dict()) for x in v]
         elif flag==2:
-            F = matrix_space.MatrixSpace(rational_field.RationalField(),self.nrows())(v[0].python())
-            B = matrix_space.MatrixSpace(rational_field.RationalField(),self.nrows())(v[1].python())
+            F = matrix_space.MatrixSpace(rational_field.RationalField(),
+                                         self.nrows())(v[0].python())
+            B = matrix_space.MatrixSpace(rational_field.RationalField(),
+                                         self.nrows())(v[1].python())
             return F,B
 
     def kernel(self, LLL=False):

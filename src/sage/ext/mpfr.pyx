@@ -105,6 +105,8 @@ cdef extern from "mpfr.h":
     int mpfr_sub (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_div (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
+    int mpfr_mul_2exp (mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
+    int mpfr_div_2exp(mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
 
     # constants
     int mpfr_const_log2 (mpfr_t rop, mp_rnd_t rnd)
@@ -841,6 +843,39 @@ cdef class RealNumber(element.RingElement):
         x = RealNumber(self._parent, None)
         mpfr_abs(x.value, self.value, self._parent.rnd)
         return x
+
+    # Bit shifting
+    def _lshift_(RealNumber self, unsigned long int n):
+        cdef RealNumber x
+        x = RealNumber(self._parent, None)
+        mpfr_mul_2exp(x.value, self.value,n,self._parent.rnd)
+        return x
+
+    def __lshift__(x, y):
+        """
+        EXAMPLES:
+            sage: 1.0 << 32
+            4294967296.0000000
+        """
+        if isinstance(x, RealNumber) and isinstance(y, RealNumber):
+            return x._lshift_(y)
+        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+
+    def _rshift_(RealNumber self, unsigned long int n):
+        cdef RealNumber x
+        x = RealNumber(self._parent, None)
+        mpfr_div_2exp(x.value, self.value,n,self._parent.rnd)
+        return x
+
+    def __rshift__(x, y):
+        """
+        EXAMPLES:
+            sage: 1024.0 >> 7
+            8.0000000000000000
+        """
+        if isinstance(x, RealNumber) and isinstance(y, RealNumber):
+            return x._rshift_(y)
+        return sage.rings.coerce.bin_op(x, y, operator.rshift)
 
     def multiplicative_order(self):
         if self == 1:

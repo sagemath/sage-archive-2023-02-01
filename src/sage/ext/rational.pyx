@@ -805,6 +805,37 @@ cdef class Rational(element.FieldElement):
     def is_zero(self):
         return mpz_cmp_si(mpq_numref(self.value), 0) == 0
 
+    def _lshift(self, unsigned long int exp):
+        r"""
+        Return $self/2^exp$
+        """
+        cdef Rational x
+        x = Rational()
+        _sig_on
+        mpq_mul_2exp(x.value,self.value,exp)
+        _sig_off
+        return x
+
+    def __lshift__(x,y):
+        if isinstance(x, Rational) and isinstance(y, Rational):
+            return x._lshift(y)
+        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+
+    def _rshift(self, unsigned long int exp):
+        r"""
+        Return $self/2^exp$
+        """
+        cdef Rational x
+        x = Rational()
+        _sig_on
+        mpq_div_2exp(x.value,self.value,exp)
+        _sig_off
+        return x
+
+    def __rshift__(x,y):
+        if isinstance(x, Rational) and isinstance(y, Rational):
+            return x._rshift(y)
+        return sage.rings.coerce.bin_op(x, y, operator.rshift)
 
     ##################################################
     # Support for interfaces

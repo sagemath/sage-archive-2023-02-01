@@ -114,6 +114,8 @@ cdef extern from "gmp.h":
     void mpq_set_z(mpq_t rop, mpz_t op)
     int  mpq_sgn(mpq_t op)
     void mpq_sub (mpq_t difference, mpq_t minuend, mpq_t subtrahend)
+    void mpq_div_2exp(mpq_t rop, mpq_t op1, unsigned long int exp)
+    void mpq_mul_2exp(mpq_t rop, mpq_t op1, unsigned long int exp)
 
     # The mpf type
     void mpf_add (mpf_t rop, mpf_t op1, mpf_t op2)

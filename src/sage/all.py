@@ -119,12 +119,18 @@ get_sigs()
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
 exit = quit
 
-_copyright = str(copyright)
-class __Copyright2:
-    def __repr__(self):
-        return _copyright + '\n\nCopyright (c) 2004-2006 William Stein.\nAll Rights Reserved.'
+from sage.misc.copying import license
+copying = license
+copyright = license
 
-copyright = __Copyright2()
+#_copyright = str(copyright)
+#class __Copyright2:
+#    def __repr__(self):
+#        return _copyright + '\n\nCopyright (c) 2004-2006 William Stein.\nAll Rights Reserved.'
+#
+#copyright = __Copyright2()
+
+
 
 def save_session(state, name='default_session', verbose=True):
     """

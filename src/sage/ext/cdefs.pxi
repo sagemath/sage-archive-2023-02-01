@@ -83,6 +83,8 @@ cdef extern from "gmp.h":
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
     void mpz_urandomm(mpz_t rop, gmp_randstate_t state, mpz_t n)
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
+    void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
+    void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
 
 
     # The mpq type

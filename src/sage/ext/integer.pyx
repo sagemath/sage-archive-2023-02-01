@@ -1237,17 +1237,32 @@ cdef class Integer(element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    def __lshift__(Integer self, n):
-        """
-        """
-        n = int(n)
-        return self*(Integer(2)**n)   # todo: optimize
+    def _lshift(self,unsigned long int n):
+        cdef Integer x
+        x = Integer()
 
-    def __rshift__(Integer self, n):
-        """
-        """
-        n = int(n)
-        return self.__floordiv(Integer(2)**n)    # todo: optimize
+        _sig_on
+        mpz_mul_2exp(x.value, self.value, n)
+        _sig_off
+        return x
+
+    def __lshift__(x,y):
+        if isinstance(x, Integer) and isinstance(y, Integer):
+            return x._lshift(y)
+        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+
+    def _rshift(self,unsigned long int n):
+        cdef Integer x
+        x = Integer()
+        _sig_on
+        mpz_fdiv_q_2exp(x.value, self.value, n)
+        _sig_off
+        return x
+
+    def __rshift__(x, y):
+        if isinstance(x, Integer) and isinstance(y, Integer):
+            return x._rshift(y)
+        return sage.rings.coerce.bin_op(x, y, operator.rshift)
 
     def _and(Integer self, Integer other):
         cdef Integer x

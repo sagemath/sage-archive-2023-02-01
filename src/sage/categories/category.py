@@ -772,7 +772,7 @@ class NumberFields(Category_uniq):
 
     Number fields all lie in this category, irregardless of the name
     of the variable.
-        sage: K = NumberField(x**2 - 1, name='a')
+        sage: K = NumberField(x^2 + 1, name='a')
         sage: K in C
         True
     """

@@ -336,7 +336,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                        as a small divisor of the order is detected.
 
         \note{As of 2006-02-02 this function does not work on
-        Microsoft Windows.}
+        Microsoft Windows under Cygwin (though it works under
+        vmware of course).}
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')

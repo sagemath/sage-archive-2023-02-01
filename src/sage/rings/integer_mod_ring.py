@@ -181,9 +181,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             4
 
         Saving and loading:
-            sage: R = Integers(17)
-            sage: loads(R.dumps()) == R
-            True
             sage: R = Integers(100000)
             sage: loads(R.dumps()) == R
             True

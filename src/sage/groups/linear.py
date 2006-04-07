@@ -44,13 +44,13 @@ class LinearGroup_finite_field(LinearGroup_generic):
             sage: len(C)
             8
             sage: C[0]
-            [2 0]
-            [0 2]
+            [1 0]
+            [0 1]
             sage: C
-            [[2 0]
-            [0 2], [0 1]
-            [2 1], [1 0]
+            [[1 0]
             [0 1], [0 1]
+            [2 1], [2 0]
+            [0 2], [0 1]
             [2 2], [0 1]
             [2 0], [0 1]
             [1 2], [0 1]

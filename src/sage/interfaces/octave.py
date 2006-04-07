@@ -376,8 +376,8 @@ def octave_version():
     Return the version of Octave installed.
 
     EXAMPLES:
-        sage: octave_version()    # requires optional octave package
-        '2.1.71'
+        sage: octave_version()    # optional octave package; random-ish output
+        '2.1.72'
     """
     return str(octave('version')).strip()
 

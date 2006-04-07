@@ -406,7 +406,7 @@ class Singular(Expect):
 
         EXAMPLES:
             sage: r = singular.eval("ring R=0,(x0,x1,x2),lp")
-            sage: I = singular('ideal([ x0*x1*x2 -x0^2*x2, x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2, x0*x1-x0*x2-x1*x2])')
+            sage: I = singular.ideal('[ x0*x1*x2 -x0^2*x2, x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2, x0*x1-x0*x2-x1*x2]')
             sage: I
              -x0^2*x2+x0*x1*x2,
             x0^2*x1*x2-x0*x1^2*x2-x0*x1*x2^2,

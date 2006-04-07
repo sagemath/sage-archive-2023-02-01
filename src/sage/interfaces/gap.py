@@ -143,13 +143,13 @@ AUTHORS:
 #*****************************************************************************
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
-from sage.misc.misc import SAGE_ROOT, is_64_bit
+from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit
 from IPython.genutils import page
 import re
 import os
 import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
-WORKSPACE = "%s/tmp/gap-workspace"%SAGE_ROOT
+WORKSPACE = "%s/gap-workspace"%DOT_SAGE
 
 if not os.path.exists('%s/tmp'%SAGE_ROOT):
     os.makedirs('%s/tmp'%SAGE_ROOT)
@@ -236,10 +236,14 @@ class Gap(Expect):
     def load_package(self, pkg, verbose=False):
         """
         Load the Gap package with the given name.
+
+        If loading fails, raise a RuntimeError exception.
         """
         if verbose:
             "Loading GAP package %s"%pkg
-        self.eval('LoadPackage("%s")'%pkg)
+        x = self.eval('LoadPackage("%s")'%pkg)
+        if x == 'fail':
+            raise RuntimeError, 'Error loading Gap package %s'%pkg
 
     def save_workspace(self):
         self.eval('SaveWorkspace("%s");'%WORKSPACE)
@@ -483,15 +487,29 @@ def gap_reset_workspace(max_workspace_size=None):
     The first time you start GAP from SAGE, it saves the
     startup state of GAP in the file
 
-        tmp/gap-workspace
+        $HOME/.sage/gap-workspace
 
     This is useful, since then subsequent startup of GAP
     is at least 10 times as fast.  Unfortunately, if you
     install any new code for GAP, it won't be noticed unless
     you explicitly load it, e.g., with
-           gap.load_package("laguna")
+           gap.load_package("my_package")
+
+    The packages sonata, guava, factint, gapdoc, grape, design, toric,
+    and laguna are loaded in all cases before the workspace is saved,
+    if they are available.
     """
+    if os.path.exists(WORKSPACE):
+        os.unlink(WORKSPACE)
     g = Gap(use_workspace_cache=False, max_workspace_size=None)
+    for pkg in ['sonata', 'guava', 'factint', \
+                'gapdoc', 'grape', 'design', \
+                'toric', 'laguna']:
+        try:
+            g.load_package(pkg, verbose=True)
+        except RuntimeError:
+            pass
+    # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)
 
 

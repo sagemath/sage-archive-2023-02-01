@@ -2238,7 +2238,7 @@ class Matrix_integer(Matrix_pid):
 
         If flag is 1, return only the elementary divisors.  If flag is
         2, return a two-components vector [F,B] where F is the
-        Frobenius form and B is the basis change so that M=B^-1*F*B.
+        Frobenius form and B is the basis change so that $M=B^{-1}FB$.
 
         INPUT:
            flag -- 0 (default), 1 or 2 as described above

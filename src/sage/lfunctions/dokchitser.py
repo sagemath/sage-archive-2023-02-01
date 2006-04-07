@@ -34,10 +34,10 @@ from sage.schemes.all import is_EllipticCurve
 import sage.interfaces.gp
 
 class Dokchitser(SageObject):
-    """
-    Dokchitser's L-functions Calculator
+    r"""
+    Dokchitser's $L$-functions Calculator
 
-    Create a Dokchitser L-series with
+    Create a Dokchitser $L$-series with
 
          Dokchitser(conductor, gammaV, weight, eps,
                     poles, residues, init, prec)
@@ -49,11 +49,11 @@ class Dokchitser(SageObject):
                   e.g. [0] for Riemann zeta, [0,1] for ell.curves,
                   (see examples).
         weight -- positive real number, usually an integer
-                  e.g. 1 for Riemann zeta, 2 for H^1 of curves/Q
+                  e.g. 1 for Riemann zeta, 2 for $H^1$ of curves/$\Q$
         eps   --  complex number; sign in functional equation
-        poles --  (default: []) list of points where L^*(s) has (simple) poles;
+        poles --  (default: []) list of points where $L^*(s)$ has (simple) poles;
                   only poles with Re(s)>weight/2 should be included
-        residues -- vector of residues of L^*(s) in those poles
+        residues -- vector of residues of $L^*(s)$ in those poles
                     or set residues='automatic' (default value)
         prec -- integer (default: 53) number of *bits* of precision
 
@@ -410,13 +410,15 @@ class Dokchitser(SageObject):
         return self.__CC(z)
 
     def set_coeff_growth(self, coefgrow):
-        """
+        r"""
         You might have to redefine the coefficient growth function if
         the $a_n$ of the $L$-series are not given by the following
         PARI function:
+        \begin{verbatim}
             coefgrow(n) = if(length(Lpoles),
                               1.5*n^(vecmax(real(Lpoles))-1),
                               sqrt(4*n)^(weight-1));
+        \end{verbatim}
 
         INPUT:
             coefgrow -- string that evaluates to a PARI function of n

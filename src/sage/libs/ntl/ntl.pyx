@@ -148,12 +148,12 @@ def randomBits(long n):
     r"""
     Return a pseudo-random number between 0 and $2^n-1$
 
-    AUTHOR:
-        -- Didier Deshommes <dfdeshom@gmail.com>
-
     EXAMPLES:
         sage: [ntl.ZZ_random_bits(20) for i in range(3)]
         [1025619, 177635, 766262]
+
+    AUTHOR:
+        -- Didier Deshommes <dfdeshom@gmail.com>
     """
     _sig_on
     return make_ZZ(ZZ_randomBits(n))

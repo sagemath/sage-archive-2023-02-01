@@ -4261,7 +4261,7 @@ cdef class gen:
         square matrix M. If flag is 1, return only the elementary
         divisors (a list of polynomials). If flag is 2, return a
         two-components vector [F,B] where F is the Frobenius form and
-        B is the basis change so that M=B^-1*F*B.
+        B is the basis change so that $M=B^{-1} F B$.
 
         EXAMPLES:
             sage: a = pari('[1,2;3,4]')

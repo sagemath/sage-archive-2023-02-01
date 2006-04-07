@@ -47,7 +47,7 @@ class FreeAlgebraQuotientElement(AlgebraElement, Element_cmp_):
         AlgebraElement.__init__(self, A)
         Q = self.parent()
         if isinstance(x, (int, long, Integer)):
-            self.__vector = x * Q.module().gen(0)
+            self.__vector = Q.module().gen(0) * x
             return
         elif isinstance(x, FreeModuleElement) and x.parent() is Q.module():
             self.__vector = x

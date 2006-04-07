@@ -480,15 +480,15 @@ class Gap(Expect):
 ############
 
 def gap_reset_workspace(max_workspace_size=None):
-    """
+    r"""
     Call this to completely reset the GAP workspace, which
     is used by default when SAGE first starts GAP.
 
     The first time you start GAP from SAGE, it saves the
     startup state of GAP in the file
-
+    \begin{verbatim}
         $HOME/.sage/gap-workspace
-
+    \end{verbatim}
     This is useful, since then subsequent startup of GAP
     is at least 10 times as fast.  Unfortunately, if you
     install any new code for GAP, it won't be noticed unless

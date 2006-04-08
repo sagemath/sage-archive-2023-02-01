@@ -60,24 +60,37 @@ def update():
     for X in loggers:
         X._update()
 
-#try:
-#    PDF_VIEWER = os.environ['PDF_VIEWER']
-#except KeyError:
-#    PDF_VIEWER = 'acroread'
-
 try:
-    DVI_VIEWER = os.environ['DVI_VIEWER']
+    PDF_VIEWER = os.environ['PDF_VIEWER']
 except KeyError:
-    DVI_VIEWER = 'xdvi -s 5'
+    PDF_VIEWER = 'acroread'
 
+# Set the browsers and viewers.
 
-try:
-    BROWSER = os.environ['BROWSER']
-except KeyError:
-    if os.system('which firefox 1>/dev/null 2>/dev/null') == 0:
-        BROWSER = 'firefox'
-    else:
-        BROWSER = 'konqueror'
+if os.uname()[0] == "Darwin":
+
+    # Simple on OS X, since there is an open command that opens anything,
+    # using the user's preferences.
+    DVI_VIEWER = 'open'
+    BROWSER = 'open'
+    PDF_VIEWER = 'open'
+
+else:
+
+    # Try to get something from the environment on other OS's.
+
+    try:
+        DVI_VIEWER = os.environ['DVI_VIEWER']
+    except KeyError:
+        DVI_VIEWER = 'xdvi -s 5'
+    try:
+	BROWSER = os.environ['BROWSER']
+    except KeyError:
+	if os.system('which firefox 1>/dev/null 2>/dev/null') == 0:
+	    BROWSER = 'firefox'
+	else:
+	    BROWSER = 'konqueror'
+
 
 
 REFRESH = ''

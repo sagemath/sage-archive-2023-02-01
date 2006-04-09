@@ -1,0 +1,5 @@
+#!/bin/sh
+
+sage-update
+cd $SAGE_ROOT/spkg/
+./install

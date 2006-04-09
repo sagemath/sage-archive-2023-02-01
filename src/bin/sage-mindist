@@ -1,0 +1,155 @@
+#!/usr/bin/env python
+
+import os, sys
+
+if len(sys.argv) != 2 or sys.argv[1][-4:]  != '.tar':
+    print "Usage: %s sage-x.y.z.tar"%sys.argv[0]
+    sys.exit(1)
+
+tarball = sys.argv[1]
+
+if not os.path.exists(tarball):
+    print "%s: file %s does not exist"%(sys.argv[0], tarball)
+
+r = tarball[:-4]
+if os.path.exists(r):
+    os.system('rm -rf %s'%r)
+
+# extract
+os.system('tar -xvf %s'%tarball)
+
+
+
+# read list of needed packages
+
+mindist_filelist = open('%s/spkg/standard/mindist_filelist'%r
+                             ).read().split('\n')
+
+bin = '%s/local/bin/'%r
+os.makedirs(bin)
+
+# delete existing makefile
+
+os.unlink('%s/makefile'%r)
+
+# deleted not necessary packages and
+# touch appropriate installed files
+
+os.makedirs('%s/spkg/installed'%r)
+
+for F in os.listdir('%s/spkg/standard'%r):
+    name, ext = os.path.splitext(F)
+    i = name.find('-')
+    name_without_version = name[:i]
+    if len(ext) > 1 and not name_without_version in mindist_filelist:
+        open('%s/spkg/installed/%s'%(r, name),'w').close()
+        open('%s/spkg/standard/%s'%(r, F),'w').close()
+
+# create setup.py file
+setup = open('%s/setup.py'%r,'w')
+
+
+# sorry, you're reading a python program that makes a python
+# program that makes a shell script right now...
+
+setup.write("""
+import os, sys
+python_exe = sys.executable
+e = os.system('cd local/bin/; ln -sf %s python'%python_exe)
+if e:
+    raise RuntimeError, e
+e = os.system('cd spkg; ./install all 2>&1 | tee -a ../install.log')
+if e:
+    raise RuntimeError, e
+
+# create sage script
+sage = open('sage','w')
+sage.write(\"""
+#!/bin/sh
+# Change this if you move this directory.
+SAGE_ROOT=%s
+export SAGE_ROOT
+LD_LIBRARY_PATH=$SAGE_ROOT/local/lib
+export LD_LIBRARY_PATH
+
+COMMAND="import sage.misc.interpreter; from sage.all import *; import os;"
+ipython $* -p sage -c "$COMMAND"
+\"""%os.path.abspath('.'))
+sage.close()
+os.system('chmod +x sage')
+
+IP = '%s/.ipython/'%os.environ['HOME']
+if not os.path.exists(IP):
+    os.makedirs(IP)
+os.system('cp ipythonrc-sage %s/'%IP)
+""")
+setup.close()
+
+os.unlink('%s/sage'%r)
+
+
+# mv ipythonrc to ipythonrc-sage
+
+os.system('cp %s/ipythonrc %s/ipythonrc-sage'%(r,r))
+
+ip = open('%s/ipythonrc'%r)
+ipythonrc = ip.read()
+ip.close()
+
+ipythonrc_sage = open('%s/ipythonrc-sage'%r,'a')
+
+ipythonrc_sage.write('\nexecute import sage.misc.interpreter\n')
+ipythonrc_sage.write('\nexecute from sage.all import *; banner()\n')
+ipythonrc_sage.write('\n#execute from pylab import *\n')
+ipythonrc_sage.close()
+
+os.unlink('%s/ipythonrc'%r)
+
+# Ceate a README file.
+
+readme = open('%s/README.txt'%r).read()
+
+readme = """
+This is the readme for sage-mindist, which is the
+distribution of
+   SAGE: Software for Algebra and Geometry Experimentation
+
+INSTRUCTIONS:
+   1. Make sure you have the following installed on your
+      computer in a generic accessible location (these
+      are the Debian package names):
+            * python  (version 2.4)
+            * python-dev
+            * libgmp3-dev
+
+   2. As *root* (or via sudo), type
+            python setup.py install
+
+   3. Wait about 10 minutes.
+
+   4. To run SAGE run the shell script "sage" in the
+      current directory (you can copy this elsewhere).
+
+   5. It is highly recommended that you obtain the following
+      programs for your platform and install them:
+              gap, singular, maxima
+
+The following is the usual SAGE readme file.  It is for
+the monolithic tarball install of SAGE.
+""" + readme
+
+open('%s/README.txt'%r,'w').write(readme)
+
+
+i = r.find('-')
+mindist = 'sage-mindist%s'%r[i:]
+
+if os.path.exists(mindist):
+    os.system('rm -rf %s'%mindist)
+
+os.system('mv %s %s'%(r,mindist))
+
+os.system('tar -cvf %s.tar %s'%(mindist,mindist))
+
+os.system('rm -rf %s'%mindist)
+

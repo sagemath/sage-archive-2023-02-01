@@ -1,0 +1,329 @@
+#!/bin/sh
+
+usage() {
+    echo "-----------------------------------------------------------"
+    echo "| SAGE: Software for Algebra and Geometry Experimentation |"
+    echo "-----------------------------------------------------------"
+    echo " Optional arguments:"
+    echo "  filename.sage -- run the given file using SAGE"
+    echo "  -h, -?        -- print help message"
+    echo "  -i [packages] -- install the given SAGE packages"
+    echo "  -optional     -- list all optional packages that can be downloaded"
+    echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
+    echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
+    echo "  -advanced     -- list more options"
+    exit 1
+}
+
+usage_advanced() {
+    echo "-----------------------------------------------------------"
+    echo "| SAGE: Software for Algebra and Geometry Experimentation |"
+    echo "-----------------------------------------------------------"
+    echo "  no options    -- start interactive session"
+    echo "  filename.sage -- run the given file using SAGE"
+    echo "  -b            -- install any changed SAGE Python/Pyrex source code in devel/*"
+    echo "  -br           -- build and install any changes, then run SAGE"
+    echo "  -bdist VER    -- build a binary distribution of SAGE"
+    echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
+    echo "  -gdb          -- run SAGE under the control of gdb"
+    echo "  -h, -?        -- print help message"
+    echo "  -grep <string>-- grep through all the SAGE library code for string"
+    echo "  -i [packages] -- install the given SAGE packages"
+    echo "                   if no packages given, print a list of all installed"
+    echo "  -optional     -- list all optional packages that can be downloaded"
+    echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
+    echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
+    echo "  -mpl          -- run with matplotlib support (requires optional matplotlib package)"
+    echo "  -np           -- run with no output prompts (useful for making doctests)"
+    echo "  -pkg <dir>    -- create SAGE package dir.spkg from a give directory (bzip2 compression)"
+    echo "  -pkg_nc <dir> -- create SAGE package dir.spkg from a give directory (no compression)"
+    echo "  -python       -- run the python interpreter (use 'from sage.all import *')"
+    echo "  -q            -- quiet; start with no banner"
+    echo "  -sdist VER    -- build a source distribution of SAGE"
+    echo "  -mdist VER    -- build a *minimal* sage source distro"
+    echo "  -t [-optional] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
+    echo "                           -optional -- include examples with 'optional' and 'package'"
+    echo "                           -long     -- include lines with the phrase 'long time'"
+    echo "  -tsage        -- test latex document via sage (pexpect) interface"
+    echo "  -testall      -- test all source, docs, and examples in your SAGE distro."
+    echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
+    echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
+    echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
+    echo ""
+    exit 1
+}
+
+. $SAGE_ROOT/local/bin/sage-env -quick  1>/dev/null
+if [ $? -ne 0 ]; then
+   echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact wstein@ucsd.edu."
+fi
+
+# SAGE startup script passes some funny options, which are
+# best ignored.
+if [ $# -eq 3 ]; then
+   if [ $1 = '-i' -a $2 = '-colors' ]; then
+       shift
+       shift
+       shift
+   fi
+fi
+
+if [ $# -gt 0 ]; then
+  if [ $1 = "-h" -o $1 = "--help" -o $1 = "-?" ]; then
+     usage
+  fi
+  if [ $1 = "-advanced" ]; then
+     usage_advanced
+  fi
+fi
+
+
+LOGFILE="$SAGE_ROOT/sage.log"
+LOGOPT=""
+SAGE_EXE=sage.bin
+
+if [ "$SAGE_SERVER" = "" ]; then
+    SAGE_SERVER="http://modular.math.washington.edu/sage/packages"
+    export SAGE_SERVER
+    # echo "No server specified by SAGE_SERVER environment variable, so using $SAGE_SERVER"
+fi
+
+sage_setup() {
+    cat "$SAGE_LOCAL/bin/sage-banner"
+    cd "$SAGE_ROOT/local/bin"
+}
+
+# Below the command
+# _=sage.misc.interpreter.do_prefilter_paste('',False)
+SAGE_STARTUP_COMMAND="from sage.all import *; import sage.misc.interpreter; import os; os.chdir(\"$CUR\"); _=sage.misc.interpreter.do_prefilter_paste('',False)"
+export SAGE_STARTUP_COMMAND
+
+if [ $# -gt 0 ]; then
+    if [ $1 = "-np" ]; then
+       LOGOPT="-prompt_out=\\r $LOGOPT"
+       shift
+    fi
+fi
+
+sage() {
+    sage_setup
+    sage-ipython $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
+}
+
+if [ $# -eq 0 ]; then
+    sage
+    exit $?
+fi
+
+if [ $1 = '-cleantmp' ]; then
+    sage-cleantmp
+    exit $?
+fi
+
+if [ $1 = "-log" ]; then
+   sage-log
+   exit 0
+fi
+
+if [ $1 = '-python' ]; then
+    sage_setup
+    shift
+    #python $* -c "from sage.all import *"
+    cd "$CUR"
+    python $*
+    exit $?
+fi
+
+if [ $1 = '-grep' ]; then
+   sage_setup
+   shift
+   ./sage-grep $*
+   exit 0
+fi
+
+if [ $1 = '-q' ]; then
+   sage_setup
+   sage-ipython $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
+   exit $?
+fi
+
+if [ $1 = '-b' ]; then
+   time sage-build
+   exit $?
+fi
+
+if [ $1 = '-br' ]; then
+   sage-build && sage
+   exit $?
+fi
+
+if [ $1 = '-t' ]; then
+   cd "$CUR"
+   shift
+   sage-test $*
+   exit $?
+fi
+
+if [ $1 = '-tsage' ]; then
+   cd "$CUR"
+   shift
+   sage-test -sage $*
+   exit $?
+fi
+
+if [ $1 = '-testall' ]; then
+   shift
+   sage-testall $*
+   exit $?
+fi
+
+install() {
+   cd "$SAGE_ROOT/spkg"
+   if [ $# -lt 2 ]; then
+       sage-spkg
+       exit $?
+   fi
+   OPT="$1"
+   shift
+   for PKG in $*
+   do
+       echo "Calling sage-spkg on $PKG"
+       sage-spkg $OPT "$CUR/$PKG" 2>&1 | tee -a ../install.log
+
+       if [ $? -ne 0 ]; then
+          exit 1
+       fi
+       shift
+   done
+   exit $?
+}
+
+if [ $1 = '-optional' ]; then
+   sage-list-optional
+   exit 0
+fi
+
+if [ $1 = '-i' ]; then
+   shift
+   echo "Installing $*"
+   install " " $*
+fi
+
+if [ $1 = '-f' ]; then
+   shift
+   echo "Installing $*"
+   install -f $*
+fi
+
+if [ "$1" = '-pkg' -o "$1" = '-spkg' ]; then
+   cd "$CUR"
+   shift
+   for PKG in $*
+   do
+      echo "Creating SAGE package $PKG"
+      sage-pkg "$PKG"
+      if [ $? -ne 0 ]; then
+         exit 1
+      fi
+   done
+   exit $?
+fi
+
+if [ $1 = '-pkg_nc' ]; then
+   cd "$CUR"
+   shift
+   for PKG in $*
+   do
+      echo "Creating SAGE package $PKG with no compression"
+      sage-pkg-nocompress "$PKG"
+      if [ $? -ne 0 ]; then
+         exit 1
+      fi
+   done
+   exit $?
+fi
+
+if [ $1 = '-mpl' ]; then
+   sage_setup
+   ipython $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
+   exit $?
+fi
+
+
+
+
+if [ $1 = '-sdist' ]; then
+   if [ $# -ne 2 ]; then
+       echo "** MISSING VERSION NUMBER! ** "
+   fi
+   sage-sdist $2 "$SAGE_ROOT"
+   exit $?
+fi
+
+if [ $1 = '-mdist' ]; then
+   if [ $# -ne 2 ]; then
+       echo "** MISSING VERSION NUMBER! ** "
+   fi
+   sage-sdist $2 "$SAGE_ROOT"
+   if [ $? -ne 0 ]; then
+       echo "Error building source distribution"
+       exit 1
+   fi
+   cd $SAGE_ROOT/dist/
+   if [ $? -ne 0 ]; then
+       echo "Error changing to source distribution directory"
+       exit 1
+   fi
+   $SAGE_ROOT/local/bin/sage-mindist sage-$2.tar
+   exit $?
+fi
+
+if [ $1 = '-bdist' ]; then
+   if [ $# -ne 2 ]; then
+       echo "** MISSING VERSION NUMBER! ** "
+   fi
+   sage-bdist $2 "$SAGE_ROOT"
+   exit $?
+fi
+
+if [ $1 = '-update' ]; then
+    sage-update
+    exit $?
+fi
+
+if [ $1 = '-update-build' ]; then
+    sage-update-build
+    sage-update-build
+    exit $?
+fi
+
+if [ $1 = '-upgrade' ]; then
+    # Do it twice since when installing sage-scripts and a running
+    # script changes, it gets confused and exits with an error.
+    # Running again (with the script replaced) then fixes the problem.
+    sage-upgrade
+    sage-upgrade
+    exit $?
+fi
+
+if [ $1 = '-gdb' ]; then
+    sage-gdb
+    exit $?
+fi
+
+if [ $# -eq 1 ]; then
+   # rewrite this to not use IPYTHON at all ?
+   sage_setup
+   T=`echo "$1" | sed -e "s/.*\.//"`
+   if [ "$T " = "spkg " ]; then
+       install "" $*
+       exit $?
+   fi
+   FILE=$1
+   shift
+   echo "load \"$FILE\"" | sage-ipython -noreadline -po . -pi1 ' ' -nobanner -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
+   echo ""
+   exit 0
+fi
+
+usage

@@ -1,0 +1,259 @@
+#!/bin/sh
+
+###########################################################################
+#
+#  Set environment variables for building and/or running SAGE.
+#  You must source this; see below!
+#
+#  AUTHORS:   William Stein                            2005-12
+#             David Kirkby <david.kirkby@onetel.net>   2005-12-17
+#
+###########################################################################
+
+##########################################################################
+#
+#  If you want to set all environment variables for your shell like
+#  they are during the build of SAGE packages, type
+#
+#             source local/bin/sage-env
+#
+#  from the SAGE_ROOT directory.   To do the same from a /bin/sh
+#  script use ". local/bin/sage-env".
+#
+##########################################################################
+
+
+SAVEDIR="`pwd`"
+
+if [ "$SAGE_ROOT" = "" ]; then
+    if [ -f sage -a -d spkg ]; then
+       SAGE_ROOT="`pwd`"
+       export SAGE_ROOT
+    else
+       if [ -f ../../sage -a -d ../../spkg ]; then
+           cd ../../
+           SAGE_ROOT="`pwd`"
+           export SAGE_ROOT
+       else
+           echo "You must set the SAGE_ROOT environment variable or"
+           echo "run this script from the SAGE_ROOT or "
+           echo "SAGE_ROOT/local/bin/ directory."
+       fi
+    fi
+fi
+cd "$SAVEDIR"
+
+if [ "$SAGE_ROOT" = "" ]; then
+    echo "SAGE_ROOT must be set"
+    exit 1
+fi
+
+if [ "$1" != "-short" ]; then
+    echo "The following enviroment variables can be set by the user"
+    echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
+    echo "AS          The assembler (e.g. as, /usr/ccs/bin/as or /usr/bin/as)"
+    echo "CC          The C compiler (e.g cc, /opt/SUNWspro/bin/cc or /usr/bin/gcc)"
+    echo "CFLAGS      Flag(s) for the C compiler (e.g.  -g -Wall -O2)"
+    echo "            (You are advised to a some optimisation flag(s), such as -O2 or -xO2 to CFLAGS)"
+    echo "CXX         The C++ compiler (e.g g++, /opt/SUNWspro/bin/CC or /usr/local/bin/g++)"
+    echo "CXXFLAGS    Flag(s) for the C++ compiler (e.g. -fast -fsimple=1 -x04)"
+    echo "LD          The linker (e.g. ld, /usr/ccs/bin/ld or /usr/bin/ld)"
+    echo "LDFLAGS     Linker flag(s) (e.g. -D token)"
+    echo "LN          Used to make links (e.g. ln, /usr/xpg4/bin/ln or /usr/bin/ln)"
+    echo "MAKE        The make program (e.g. make, /usr/bin/make or /usr/local/bin/gmake)"
+    echo "MAKEFLAGS   Flag(s) to make (e.g. -j4)."
+    echo "RANLIB      Archiver ranlib (e.g. ranlib, /usr/ccs/bin/ranlib etc)"
+    echo "SAGE64      Set to \"yes\" to build a 64-bit binary (Solaris SPARC or Solaris x86 only)"
+    echo "SHAREDFLAGS Flag(s) necessary for building a shared library (e.g. -fPIC or -xcode=pic32)"
+    echo "We attempt to set this to sensible values, but check below to"
+    echo "ensure they are OK. If you wish to override any then please use:"
+    echo "setenv NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
+    echo "(if you use tcsh, csh or a similar shell) or"
+    echo "NAME_OF_ENVIROMENT_VARIABLE value_of_enviroment_variable"
+    echo "export NAME_OF_ENVIROMENT_VARIABLE"
+    echo "if you use sh, bash or a similar shell"
+fi
+
+# Setting SAGE-related location environment variables.
+BUILD=build
+SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
+SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
+SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
+PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
+LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
+
+if [ -d "$SAGE_ROOT/local/lib/python2.4" ]; then
+    PYTHONPATH="$SAGE_PATH:$SAGE_ROOT/local/lib/python2.4"   && export PYTHONPATH
+    PYTHONHOME="$SAGE_ROOT/local" && export PYTHONHOME
+fi
+
+LD_LIBRARY_PATH="$SAGE_ROOT/local/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
+# The following is needed for OS X (especially for the
+# Singular install).
+DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" && export DYLD_LIBRARY_PATH
+
+if [ "$IPYTHONRC" = "" ]; then
+    IPYTHONRC="$SAGE_ROOT"/ipythonrc && export IPYTHONRC
+fi
+
+
+
+if [ "$1" = "-short" ]; then
+    exit 0
+fi
+
+
+############ compilation flags
+
+# Setting SAGE-related compilation flags.
+# This could be used in code to make special changes only when
+# code is being built as part of SAGE.
+__sage__="" && export __sage__
+# Set the default compiler to gcc if the enviroment variable
+# CC is not set.
+if [ "$CC" = "" ]; then
+     CC="gcc"         && export CC
+fi
+ # Set the default C++ compiler to g++ if the environment variable
+# CXX is not set.
+if [ "$CXX" = "" ]; then
+    CXX="g++"         && export CXX
+fi
+
+if [ "$LD" = "" ]; then
+    LD="ld"  && export LD
+fi
+if [ "$AR" = "" ]; then
+    AR="ar"  && export AR
+fi
+if [ "$AS" = "" ]; then
+    AS="as"  && export AS
+fi
+
+UNAME=`uname`
+if [ `uname | sed -e 's/WIN.\+/WIN/'` = "CYGWIN" ]; then
+    UNAME="CYGWIN"
+fi
+ # For the Sun compiler use SHAREDFLAGS="-xcode=pic13 on SPARC or"
+# -KPIC on Solaris x86.
+if [ "$SHAREDFLAGS" = "" ]; then
+    SHAREDFLAGS="-fPIC"
+    # inspired by around line 7500 of GMP's configure script:
+    if [ "$CC" = "gcc" ]; then
+       case $UNAME in
+          CYGWIN)
+             SHAREDFLAGS="-DDLL_EXPORT"
+          ;;
+          Darwin)
+             SHAREDFLAGS="-fno-common"
+          ;;
+       esac
+    else
+       if [ $UNAME = "SunOS" ]; then
+          if [ `uname -p` = "sparc" ]; then
+             SHAREDFLAGS="-xcode=pic32"
+          else
+             SHAREDFLAGS="-Kpic"
+          fi
+       fi
+    fi
+fi
+
+if [ "$LDFLAGS" = "" ]; then
+    LDFLAGS=""          && export LDFLAGS
+fi
+
+if [ "$SAGE64" = "" ]; then
+    SAGE64="no"
+fi
+
+if [ "$SAGE64" != "yes" -a "$SAGE64" != "no" ]; then
+    echo "The environment variable SAGE64 (=$SAGE64) must be either unset, yes or no."
+    exit 1
+fi
+
+# Sets a compiler flag to make a 64-bit executable.
+# Generic gcc option.
+if [ "$SAGE64" = "yes" -a CC = "gcc" ]; then
+   CFLAGS="$CFLAGS -m64"
+fi
+
+# Specific to a Sun running Solaris on SPARC hardware.
+if [ "$SAGE64" = "yes" -a "$CC" = "cc" ]; then
+   if [ `uname` = "SunOS" -a `uname -p` = "sparc" ]; then
+      # we use a nested if, because at least on linux test doesn't allow four things.
+      CFLAGS="$CFLAGS -xarch=v9"
+      # Solaris SPARC with Sun compiler only
+      echo "*Note*, you might wish to use -xarch=v9a or -xarch=v9b instead"
+      echo "instead of -xarch=v9 to build the 64-bit binary on SPARC hardware."
+      echo "In this case unset SAGE64 and add -xarch=v9a or -xarch=v9b  to CFLAGS & CXXFLAGS"
+      echo "-xarch=v9b will only work on UltraSPARC III processors, not UltraSPARC II"
+   fi
+fi
+export SAGE64
+
+if [ "$CXXFLAGS" = "" ]; then
+   CXXFLAGS="$CFLAGS"
+fi
+
+if [ "$CP" = "" ]; then
+    CP="cp"  && export CP
+fi
+
+if [ "$MV" = "" ]; then
+    MV="mv"  && export MV
+fi
+
+if [ "$MAKE" = "" ]; then
+    MAKE="make"         && export MAKE
+fi
+
+if [ "$RM" = "" ]; then
+    RM="rm"  && export RM
+fi
+
+if [ "$RANLIB" = "" ]; then
+    RANLIB="ranlib"  && export RANLIB
+fi
+
+if [ "$LN" = "" ]; then
+    LN="ln"  && export LN
+fi
+
+if [ "$MKDIR" = "" ]; then
+    MKDIR="mkdir"  && export MKDIR
+fi
+
+if [ "$CHMOD" = "" ]; then
+    CHMOD="chmod"  && export CHMOD
+fi
+
+if [ "$TOUCH" = "" ]; then
+    TOUCH="touch"  && export TOUCH
+fi
+
+if [ "$MAKEFLAGS" != "" ]; then
+    MFLAGS="$MAKEFLAGS"  && export MFLAGS
+fi
+
+# Export variable names.
+export SHAREDFLAGS
+export UNAME
+export CC
+export CFLAGS
+echo "AR=$AR"
+echo "AS=$AS"
+echo "CC=$CC"
+echo "CFLAGS=$CFLAGS"
+echo "CXX=$CXX"
+echo "CXXFLAGS=$CXXFLAGS"
+echo "LD=$LD"
+echo "LDFLAGS=$LDFLAGS"
+echo "LN=$LN"
+echo "MAKE=$MAKE"
+echo "MAKEFLAGS=$MAKEFLAGS (MFLAGS will be exported the same too)"
+echo "RANLIB=$RANLIB"
+echo "SAGE64=$SAGE64"
+echo "SHAREDFLAGS=$SHAREDFLAGS"
+echo "If any of the above are wrong, or are not optimal, override"
+echo "them by setting the appropiate enviroment variable."

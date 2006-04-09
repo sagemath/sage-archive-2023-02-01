@@ -1,0 +1,23 @@
+#!/bin/sh
+
+build() {
+   if [ -d $SAGE_ROOT/devel/$1/ ]; then
+      cd $SAGE_ROOT/devel/$1/
+      time ./install $SAGE_ROOT
+      if [ $? -ne 0 ]; then
+         echo "Error building $1"
+         exit 1
+      fi
+   #else
+      #echo "The directory $SAGE_ROOT/devel/$1/ does not exist."
+   fi
+}
+
+$SAGE_ROOT/local/bin/sage-env 1>/dev/null
+
+build sage
+
+build sage_user
+
+
+

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <directory>"
+    echo "Create an uncompressed SAGE package from the contents of the directory."
+    exit 1
+fi
+
+if [ ! -d $1 ]; then
+    echo "$0: No directory $1"
+    exit 1
+fi
+
+DIR=`basename $1`
+tar -cf $DIR.spkg $DIR
+

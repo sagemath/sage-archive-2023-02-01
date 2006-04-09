@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+#####################################################
+#
+# Download to $SAGE_ROOT/spkg/packages each spkg
+# that has changed from the one currently installed.
+# Once this has completed, run $SAGE_ROOT/spkg/install
+#
+# 1. Download new package list.
+# 2. Download each changed package.
+#
+#####################################################
+
+import os, sys, urllib
+
+if not os.environ.has_key("SAGE_ROOT"):
+     raise RuntimeError, "The environment variable SAGE_ROOT must be set"
+SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
+
+if not os.environ.has_key("SAGE_SERVER"):
+     print "The environment variable SAGE_SERVER must be set"
+     sys.exit(1)
+SAGE_SERVER=os.environ['SAGE_SERVER']
+
+print "Using SAGE Server %s"%SAGE_SERVER
+
+cur = 0
+def reporthook(block, size, total):
+     global cur
+     n = block*size*50/total
+     if n > cur:
+          cur = n
+          sys.stdout.write('.')
+          sys.stdout.flush()
+
+def download_file(file):
+     url = "%s/%s"%(SAGE_SERVER, file)
+     i = url.rfind('/')
+     file = url[i+1:]
+     print url, "-->", file
+     global cur
+     cur = 0
+     j = file.find("-")
+     if j != -1:
+          if not os.path.exists("../archive/"):
+               os.makedirs("../archive/")
+          os.system("mv %s-* ../archive/ 1>/dev/null 2>/dev/null"%file[:j])
+     print "[",
+     urllib.urlretrieve(url, file, reporthook)
+     print "]"
+     if os.path.getsize(file) < 1000 and open(file).read().find("404 Not Found") != -1:
+          os.unlink(file)
+          return False
+     return True
+
+os.chdir("%s/standard/"%SPKG_ROOT)
+
+download_file("standard/list")
+download_file("standard/deps")
+download_file("standard/newest_version")
+download_file("standard/README")
+
+packages = open("list").read().split('\n')
+installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
+
+for P in packages:
+     if not (P in installed):
+          file_to_download = "%s.spkg"%P
+          if not os.path.exists(file_to_download):
+               file = "standard/%s.spkg"%P
+               download_file(file)
+               if not os.path.exists(file_to_download):
+                    print "%s: Error downloading %s/%s"%(
+                         sys.argv[0], SAGE_SERVER, file)
+                    sys.exit(1)

@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import os, shutil
+cmd = "ps u"
+
+pids = []
+for L in os.popen(cmd).read().split('\n'):
+    if 'sage.bin' in L:
+        pids.append(int(L.split()[1]))
+
+pids = set(pids)
+
+D = '%s/.sage/tmp'%os.environ['HOME']
+
+for F in os.listdir(D):
+    if not int(F) in pids:
+        try:
+            shutil.rmtree('%s/%s'%(D,F))
+        except OSError, msg:
+            pass
+
+

@@ -1,0 +1,103 @@
+#!/bin/sh
+########################################################
+# Rebuild SAGE packages related to development, e.g.,
+#    sage_scripts, sage, doc, extcode
+# This script should be called by the SAGE script
+########################################################
+
+PKGDIR=spkg
+
+if [ $# -ne 2 -a $# -ne 3 ]; then
+   echo "Usage: $0 <VERSION> <SAGE_ROOT> [DESTINATION_DIR]"
+   echo "If DESTINATION_DIR is omitted, put the results in spkg/standard."
+   exit 1
+fi
+
+SAGE_VERSION=$1
+SAGE_ROOT=$2
+SPKG_INST=$SAGE_ROOT/spkg/installed/
+export SAGE_ROOT SAGE_VERSION
+TARGET="sage-"$1
+
+if [ $# -eq 2 ]; then
+   DESTINATION=$SAGE_ROOT/spkg/standard/
+else
+   DESTINATION=$3
+fi
+
+if [ ! -d $DESTINATION ]; then
+   mkdir $DESTINATION
+fi
+
+cd $DESTINATION
+DESTINATION=`pwd`
+
+# NEW DOCUMENTATION PACKAGE
+if [ -d $SAGE_ROOT/devel/doc ]; then
+   cd $SAGE_ROOT/devel/doc
+   scripts/spkg-dist $SAGE_VERSION
+   mv doc-$SAGE_VERSION.spkg $DESTINATION/
+   touch $SPKG_INST/doc-$SAGE_VERSION
+fi
+
+# NEW SAGE SOURCE PACKAGE
+if [ -d $SAGE_ROOT/devel/sage ]; then
+   cd $SAGE_ROOT/devel/sage
+   ./spkg-dist $SAGE_VERSION $SAGE_ROOT
+   mv dist/sage-$SAGE_VERSION.spkg $DESTINATION/
+   touch $SPKG_INST/sage-$SAGE_VERSION
+fi
+
+# NEW SAGE EXTERNAL CODE PACKAGE
+if [ -d $SAGE_ROOT/data/extcode ]; then
+   cd $SAGE_ROOT/data/extcode
+   ./spkg-dist $SAGE_VERSION $SAGE_ROOT
+   mv extcode-$SAGE_VERSION.spkg $DESTINATION/
+   touch $SPKG_INST/extcode-$SAGE_VERSION
+fi
+
+# NEW SAGE EXAMPLE CODE PACKAGE
+if [ -d $SAGE_ROOT/examples ]; then
+   cd $SAGE_ROOT
+   rm -rf examples-$SAGE_VERSION
+   cp -pr examples examples-$SAGE_VERSION
+   sage -pkg examples-$SAGE_VERSION
+   mv examples-$SAGE_VERSION.spkg $DESTINATION/
+   rm -rf examples-$SAGE_VERSION
+   touch $SPKG_INST/examples-$SAGE_VERSION
+fi
+
+# NEW SAGE SCRIPTS PACKAGE
+SCRIPTS=sage_scripts-$SAGE_VERSION
+cd $SAGE_ROOT/local/bin/
+rm -rf $SCRIPTS
+mkdir $SCRIPTS
+cp -pr sage-* $SCRIPTS/
+#cp -p $SAGE_ROOT/sage $SCRIPTS/
+cp -p $SAGE_ROOT/sage-python $SCRIPTS/
+cp -p $SAGE_ROOT/*.txt $SCRIPTS/
+cp -p $SAGE_ROOT/ipythonrc $SCRIPTS/
+cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
+echo "#!/bin/sh"                         > $SCRIPTS/spkg-install
+echo "cp sage-* \$SAGE_ROOT/local/bin/">> $SCRIPTS/spkg-install
+#echo "cp sage \$SAGE_ROOT/"           >> $SCRIPTS/spkg-install
+echo "cp sage-python \$SAGE_ROOT/"    >> $SCRIPTS/spkg-install
+echo "cp install \$SAGE_ROOT/spkg/"   >> $SCRIPTS/spkg-install
+echo "cp *.txt \$SAGE_ROOT/"          >> $SCRIPTS/spkg-install
+echo "if [ ! -f \$SAGE_ROOT/ipythonrc ]; then" >> $SCRIPTS/spkg-install
+echo "    cp ipythonrc \$SAGE_ROOT/"  >> $SCRIPTS/spkg-install
+echo "fi"                                >> $SCRIPTS/spkg-install
+echo "if [ ! -d \$HOME/.ipython ]; then" >> $SCRIPTS/spkg-install
+echo "    mkdir \$HOME/.ipython"         >> $SCRIPTS/spkg-install
+echo "    cp ipythonrc \$HOME/.ipython/">> $SCRIPTS/spkg-install
+echo "fi"                                >> $SCRIPTS/spkg-install
+echo "cd \$SAGE_ROOT/local/bin/"         >> $SCRIPTS/spkg-install
+echo "ln -sf python sage.bin"            >> $SCRIPTS/spkg-install
+echo "ln -sf Singular sage_singular"     >> $SCRIPTS/spkg-install
+echo "ln -sf gp sage_pari"               >> $SCRIPTS/spkg-install
+chmod +x $SCRIPTS/spkg-install
+tar -jcvf $SCRIPTS.spkg $SCRIPTS
+mv $SCRIPTS.spkg $DESTINATION/
+rm -rf $SCRIPTS
+touch $SPKG_INST/sage_scripts-$SAGE_VERSION
+

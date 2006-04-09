@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+import os
+
+print "Making script relocatable"
+for F in os.listdir('.'):
+    try:
+        X = open(F,'r')
+    except IOError:
+        continue
+    L = X.readline()
+    if L.find("python") != -1 and L.find("#!") != -1:
+        Y = X.read()
+        X.close()
+        #print "Making interpreter for script %s relative"%F
+        O = open(F,'w')
+        O.write("#!/usr/bin/env python\n"+Y)
+        O.close()
+
+
+

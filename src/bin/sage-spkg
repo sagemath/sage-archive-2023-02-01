@@ -1,0 +1,201 @@
+#!/bin/sh
+
+# William Stein, 2005-12-20 -- removed "m" option from tar,
+# which was seriously confusing the build process on some
+# (too fast?) machines, especially for mpfr.
+
+#######################################################
+#  Install a SAGE package.  This script is
+#  typically invoked by giving the command
+#      sage -i <package name>
+#
+#  A package may assume that the following environment
+#  variables are defined:
+#
+#      SAGE_ROOT   -- root directory of sage install
+#      SAGE_LOCAL  -- $SAGE_ROOT/local
+#      SAGE_DATA   -- $SAGE_ROOT/data
+#      LIBRARY_PATH, PYTHONPATH, LD_LIBRARY_PATH, DYLD_LIBRARY_PATH
+#      CC, CXX, CFLAGS, CXXFLAGS, LDFLAGS, MAKE
+#
+#  Your package script should try to build using the giving CC, CXX,
+#  CFLAGS, MAKE, etc, via a file spkg-install in your script.
+#
+#  This script does the following:
+#
+#      1. Set environment variables (by calling sage-env)
+#      2. Decompress package into a build directory
+#      3. Run the script in the package called spkg-install
+#      4. Return error 1 if anything goes wrong.
+#
+#######################################################
+
+mymkdir()
+{
+    if [ ! -d $1 ]; then
+	mkdir $1
+    fi
+}
+
+# The following sets environment variables for building
+# packages.  (Using dot suggested by W. Cheung.)
+
+. "$SAGE_ROOT/local/bin/sage-env"
+
+cd "$SAGE_PACKAGES"
+
+if [ $# -eq 0 ]; then
+    echo "Currently installed packages:"
+    /bin/ls -1 "$SAGE_PACKAGES/installed/"
+    exit 0
+fi
+
+
+cd "$SAGE_PACKAGES"
+mymkdir "$BUILD"
+mymkdir installed
+cd "$BUILD"
+mymkdir old
+
+INFO=0
+if [ $1 = '-info' ]; then
+    INFO=1
+    shift
+fi
+
+FORCE=0
+if [ $1 = '-f' ]; then
+   FORCE=1
+   shift
+fi
+
+INSTALLED="$SAGE_PACKAGES/installed/"
+PKG_NAME=`echo "$1" | sed -e "s/\.spkg//"`
+PKG_NAME=`basename "$PKG_NAME"`
+PKG_SRC="$1"
+PKG_BASE=`echo "$PKG_NAME" | sed -e "s/-.*//"`
+
+if [ ! -f "$PKG_SRC" ]; then
+    if [ -f "$SAGE_PACKAGES/standard/$PKG_NAME.spkg" ]; then
+        PKG_SRC="$SAGE_PACKAGES/standard/$PKG_NAME.spkg"
+    else
+        if [ -f "$SAGE_PACKAGES/optional/$PKG_NAME.spkg" ]; then
+            PKG_SRC="$SAGE_PACKAGES/optional/$PKG_NAME.spkg"
+        fi
+    fi
+fi
+
+if [ $INFO -ne 0 ]; then
+    if [ ! -f "$PKG_SRC" ]; then
+        echo "Package $PKG_NAME not found"
+    fi
+    bunzip2 -c "$PKG_SRC" 2>/dev/null | tar Ofix - $PKG_NAME/SAGE.txt 2>/dev/null
+    if [ $? -ne 0 ]; then
+        tar Ofix  "$PKG_SRC" "$PKG_NAME/SAGE.txt" 2>/dev/null
+    fi
+    echo ""
+    if [ $? -ne 0 ]; then
+        echo "No file SAGE.txt in $PKG_NAME"
+        exit 1
+    fi
+    exit 0
+fi
+
+echo "$PKG_NAME"
+
+if [ -f "$INSTALLED/$PKG_NAME" -a $FORCE -eq 0 ]; then
+    echo "sage: $1 is already installed"
+    touch "$INSTALLED/$PKG_NAME"
+    exit 0
+fi
+
+cd "$SAGE_PACKAGES/build"
+echo "Moving directories from past builds of previous/current versions of $PKG_NAME to build/old"
+mv -f "$PKG_BASE-"* old/  2>/dev/null
+
+#echo "Removing directories from past builds of previous/current versions of $PKG_NAME"
+#rm -rf "$PKG_BASE-"*
+
+if [ ! -f "$PKG_SRC" ]; then
+
+    echo "$0: file $PKG_SRC does not exist"
+    echo "Attempting to download it."
+    CUR=`pwd`
+    cd "$SAGE_PACKAGES"
+    if [ ! -d optional ]; then
+        $MKDIR optional
+    fi
+    cd optional
+    sage-download_package "$PKG_NAME"
+    if [ ! -f "$PKG_NAME.spkg" ]; then
+	echo "sage: Failed to download package $PKG_NAME from $SAGE_SERVER"
+	exit 1
+    fi
+    PKG_SRC="`pwd`/$PKG_NAME.spkg"
+    cd "$CUR"
+fi
+
+# * The -i option below to ignore checksum errors, since
+#   I've had problems with this on Solaris.
+# * The m option avoids clock skew problems.
+
+echo "Extracting package $PKG_SRC ..."
+ls -l "$PKG_SRC"
+
+if [ -d "$PKG_NAME" ]; then
+    echo "Removing previous version."
+    rm -rf "$PKG_NAME"
+fi
+
+bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fixv -  2>/dev/null
+if [ ! -d "$PKG_NAME" ]; then
+    tar fixv "$PKG_SRC"
+fi
+
+echo "Finished extraction"
+
+if [ -d "$PKG_NAME" ]; then
+   cd "$PKG_NAME"
+   if [ ! -f spkg-install ]; then
+      echo "#!/bin/sh" > spkg-install
+      echo "" >> spkg-install
+      if [ -f setup.py ]; then
+          echo "python setup.py install" >> spkg-install
+      else
+          if [ -f configure ]; then
+             echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
+             echo "make" >> spkg-install
+             echo "make install" >> spkg-install
+          else
+             echo "There is no spkg-install script, no setup.py, and no configure script,"
+             echo "so I do not know how to install $PKG_SRC."
+             exit 1
+          fi
+      fi
+   fi
+   chmod +x spkg-install
+   time ./spkg-install
+else
+   echo "sage: After decompressing the directory $PKG_NAME does not exist"
+   exit 1
+fi
+
+if [ $? -eq 0 ]; then
+   cd $INSTALLED
+   # Remove all old packages with the same name up to the first "-":
+   rm -f $PKG_BASE-*
+   # Mark that new package has been installed.
+   touch "$PKG_NAME"
+   echo "Successfully installed $PKG_NAME"
+else
+   echo "sage: An error occured while installing $PKG_NAME"
+   echo "Please email William Stein <wstein@ucsd.edu> explaining the"
+   echo "problem and send him $SAGE_ROOT/install.log"
+   echo "If you want to try to fix the problem, *don't* just cd to"
+   echo "`pwd` and type 'make'."
+   echo "Instead (using bash) type \"source local/bin/sage-env\" from the directory"
+   echo "$SAGE_ROOT"
+   echo "in order to set all environment variables correctly, then cd to"
+   echo "`pwd`"
+   exit 1
+fi

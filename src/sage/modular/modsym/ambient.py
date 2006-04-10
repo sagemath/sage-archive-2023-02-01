@@ -247,7 +247,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 return self(y)
 
         elif isinstance(x, formal_sum.FormalSum):
-            return misc.add([c*self(y) for c, y in x], self(0))
+            return sum([c*self(y) for c, y in x], self(0))
 
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 

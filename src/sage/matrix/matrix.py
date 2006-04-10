@@ -1346,7 +1346,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         if self.nrows() != self.ncols():
             raise ArithmeticError, "matrix must be square"
         R = self.base_ring()
-        return misc.add([self[i,i] for i in xrange(self.nrows())],R(0))
+        return sum([self[i,i] for i in xrange(self.nrows())],R(0))
 
     def vector_matrix_multiply(self, v):
         """
@@ -1549,7 +1549,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         zero = self.base_ring()(0)
         for i in xrange(nr):
             for j in xrange(nc):
-                M[i,j] = misc.add([self[i,k]*right[k,j] for k in range(snc)],zero)
+                M[i,j] = sum([self[i,k]*right[k,j] for k in range(snc)],zero)
         return M
 
     def __neg__(self):

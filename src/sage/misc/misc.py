@@ -313,44 +313,46 @@ def prod(x, z=None):
 # alternative name for prod
 mul = prod
 
-def add(x, z=0):
-    """
-    Return the sum of the elements of x.  If x is empty,
-    return z.
+add = sum
 
-    INPUT:
-        x -- iterable
-        z -- the "0" that will be returned if x is empty.
+## def add(x, z=0):
+##     """
+##     Return the sum of the elements of x.  If x is empty,
+##     return z.
 
-    OUTPUT:
-        object
+##     INPUT:
+##         x -- iterable
+##         z -- the "0" that will be returned if x is empty.
 
-    EXAMPLES:
+##     OUTPUT:
+##         object
 
-    A very straightforward usage:
-        sage: add([1,2,3])
-        6
+##     EXAMPLES:
 
-    In the following example, xrange is an iterator:
-        sage: add(xrange(101))
-        5050
+##     A very straightforward usage:
+##         sage: add([1,2,3])
+##         6
 
-    Append two sequences.
-        sage: add([[1,1], [-1,0]])
-        [1, 1, -1, 0]
+##     In the following example, xrange is an iterator:
+##         sage: add(xrange(101))
+##         5050
 
-    The zero can be anything:
-        sage: add([], "zero")
-        'zero'
-    """
-    if len(x) == 0:
-        return z
-    if not isinstance(x, list):
-        m = x.__iter__()
-        y = m.next()
-        return reduce(operator.add, m, y)
-    else:
-        return reduce(operator.add, x[1:], x[0])
+##     Append two sequences.
+##         sage: add([[1,1], [-1,0]])
+##         [1, 1, -1, 0]
+
+##     The zero can be anything:
+##         sage: add([], "zero")
+##         'zero'
+##     """
+##     if len(x) == 0:
+##         return z
+##     if not isinstance(x, list):
+##         m = x.__iter__()
+##         y = m.next()
+##         return reduce(operator.add, m, y)
+##     else:
+##         return reduce(operator.add, x[1:], x[0])
 
 
 def union(x, y=None):

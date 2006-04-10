@@ -517,6 +517,9 @@ class MPolynomial_polydict(MPolynomial):
             305 - 2*y + 700*y^2
             sage: g.is_univariate()
             True
+            sage: f = x^0
+            sage: f.is_univariate()
+            True
         """
         degrees = self._MPolynomial__element.dict().keys()
         try:
@@ -526,7 +529,7 @@ class MPolynomial_polydict(MPolynomial):
         nmons = len(degrees) # number of monomials
         from sage.matrix.all import MatrixSpace
         from sage.rings.all import Z
-        degrees = MatrixSpace(Z,nmons,ngens)(list(misc.add(degrees))).transpose()
+        degrees = MatrixSpace(Z,nmons,ngens)(list(sum(degrees, ()))).transpose()
         all_one = MatrixSpace(Z,nmons,1)([1]*nmons)
 
         found = 0

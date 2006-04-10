@@ -293,7 +293,7 @@ class FreeModuleElement(module_element.ModuleElement):
         if len(r) != len(l):
             raise ArithmeticError, "degrees must be the same"%(len(l),len(r))
         zero = self.parent().base_ring()(0)
-        return misc.add([l[i]*r[i] for i in xrange(len(l))], zero)
+        return sum([l[i]*r[i] for i in xrange(len(l))], zero)
 
     def element(self):
         return self

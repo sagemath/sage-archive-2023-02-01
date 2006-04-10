@@ -515,7 +515,9 @@ class Kash(Expect):
             print '\nTo use KASH help enter kash.help(s). '
             print 'The syntax of the string s is given below.\n'
             print self.eval('?')
-        elif name[0] == '?':
+            return
+        name = str(name)
+        if name[0] == '?':
             print self.eval(name)
         else:
             print self.eval('?%s'%name)

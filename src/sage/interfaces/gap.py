@@ -404,6 +404,8 @@ class Gap(Expect):
                                                  expect_eof= (self._quit_string() in line))
 
                 if len(error)> 0:
+                    if 'completion files' in error:
+                        error += "\nPossibly try the command gap_reset_workspace() from SAGE."
                     raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
                 if len(normal) == 0:
                     return ''

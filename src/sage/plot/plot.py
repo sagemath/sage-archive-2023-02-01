@@ -4,10 +4,13 @@ Plotting
 
 from sage.ext.sage_object import SageObject
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.transforms import Value
-from matplotlib.figure import Figure
-import matplotlib.patches as patches
+try:
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.transforms import Value
+    from matplotlib.figure import Figure
+    import matplotlib.patches as patches
+except ImportError:
+    pass
 
 class Graphics(SageObject):
     def __init__(self):

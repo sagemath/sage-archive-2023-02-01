@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #######################################
-# Install SAGE
+# Install SAGE libraries
 #######################################
 
 if [ $? -ne 0 ]; then
@@ -41,6 +41,9 @@ fi
 cd $SAGE_ROOT/devel
 rm -f sage
 ln -sf $E sage
+
+echo "Moving old $SAGE_LOCAL/lib/python2.4/site-packages/sage to $DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
+mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" "$DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
 
 cd $E
 python setup.py install

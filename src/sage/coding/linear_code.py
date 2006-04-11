@@ -1,14 +1,12 @@
-r"""nodoctest
+r"""
 Linear Codes
 
- TODO: CURRENT NOT DONE / INTEGRATED INTO SAGE YET
-
-VERSION: 0.1
+VERSION: 0.2
 
 AUTHOR:
     -- David Joyner (2005-11-22, 2006-12-03): written
     -- William Stein (2006-01-23) -- Inclusion in SAGE
-    -- David Joyner (2006-01-30, 2006-12-03): small fixes to use sage_eval
+    -- David Joyner (2006-01-30, 2006-04): small fixes
 
 This file contains
 \begin{enumerate}
@@ -18,7 +16,6 @@ This file contains
 \item interface with A. Brouwer's online tables
 \item wrapped GUAVA's HammingCode, RandomLinearCode,
     Golay codes, binary Reed-Muller code
-\item implemented some GAP-to-SAGE conversion of finite field elements.
 \item gen_mat, check_mat, decode, dual_code method for LinearCode.
 \end{enumerate}
 
@@ -28,7 +25,6 @@ This file contains
         sage: G = MS([[1,1,1,0,0,0,0], [ 1, 0, 0, 1, 1, 0, 0], [ 0, 1, 0, 1, 0, 1, 0], [1, 1, 0, 1, 0, 0, 1]])
         sage: C = LinearCode(G)
         sage: C.basis()
-
         [(1, 1, 1, 0, 0, 0, 0),
          (1, 0, 0, 1, 1, 0, 0),
          (0, 1, 0, 1, 0, 1, 0),
@@ -53,7 +49,6 @@ To be added:
 \item $P^1$ Goppa codes and group actions.
 \end{enumerate}
 
-Many commands require GUAVA to be installed but not Leon's code.
 """
 
 #*****************************************************************************
@@ -111,7 +106,7 @@ def wtdist(Gmat, F):
     z = 'Z(%s)*%s'%(q, [0]*n)     # GAP zero vector as a string
     dist = gap.eval("w:=DistancesDistributionMatFFEVecFFE("+Gmat+", GF("+str(q)+"),"+z+")")
     #d = G.DistancesDistributionMatFFEVecFFE(k, z)
-    v = [sage_eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)]
+    v = [eval(gap.eval("w["+str(i)+"]")) for i in range(1,n+2)]
     return v
 
 def min_wt_vec(Gmat,F):
@@ -150,9 +145,9 @@ def min_wt_vec(Gmat,F):
         dist = gap.eval("d")
         #print v,m,dist
         #print [gap.eval("v["+str(i+1)+"]") for i in range(n)]
-        all.append([[sage_eval(gap.eval("v["+str(i+1)+"]"))
+        all.append([[gap_to_sage(gap.eval("v["+str(i+1)+"]"),F)
                               for i in range(n)],
-                    [sage_eval(gap.eval("m["+str(i+1)+"]"))
+                    [gap_to_sage(gap.eval("m["+str(i+1)+"]"),F)
                               for i in range(k)],eval(dist)])
     ans = all[0]
     for x in all:
@@ -414,7 +409,7 @@ class LinearCode(module.Module):
         v = vstr[1:-1]
         gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
         gap.eval("c:=VectorCodeword(Decodeword( C, Codeword( "+v+" )))")
-        ans = [sage_eval(gap.eval("c["+str(i)+"]")) for i in range(1,n+1)]
+        ans = [gap_to_sage(gap.eval("c["+str(i)+"]"),F) for i in range(1,n+1)]
         return ans
 
     def dual_code(self):
@@ -430,7 +425,7 @@ class LinearCode(module.Module):
             Linear code of length 7, dimension 3 over Finite Field of size 2
             sage: C = HammingCode(3,GF(4))
             sage: C.dual_code()
-            Linear code of length 21, dimension 3 over Finite Field in x of size 2^2
+            Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
 
         """
         F = self.base_ring()
@@ -441,7 +436,7 @@ class LinearCode(module.Module):
         Gstr = str(gap(G))
         gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
         Hmat = gap.eval("H:=CheckMat( C )")
-        H = [[sage_eval(gap.eval("H["+str(i)+"]["+str(j)+"]"))
+        H = [[gap_to_sage(gap.eval("H["+str(i)+"]["+str(j)+"]"),F)
               for j in range(1,n+1)] for i in range(1,n-k+1)]
         MS = MatrixSpace(F,n-k,n)
         return LinearCode(MS(H))
@@ -494,8 +489,6 @@ def HammingCode(r,F):
     OUTPUT:
         Returns the $r^{th}$ Hamming code over $F=GF(q)$ of length $n=(q^r-1)/(q-1)$.
 
-    Requires GUAVA.
-
     EXAMPLES:
         sage: C = HammingCode(3,GF(3))
         sage: C
@@ -515,7 +508,7 @@ def HammingCode(r,F):
         [1 1 0 0 2 0 0 0 0 0 0 0 1]
         sage: C = HammingCode(3,GF(4))
         sage: C
-        Linear code of length 21, dimension 16 over Finite Field in x of size 2^2
+        Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -524,7 +517,7 @@ def HammingCode(r,F):
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -549,8 +542,6 @@ def QuadraticResidueCode(n,F):
         sage: C
         Linear code of length 17, dimension 9 over Finite Field of size 2
 
-    Requires GUAVA.
-
     AUTHOR: David Joyner (11-2005)
     """
     q = F.order()
@@ -558,7 +549,7 @@ def QuadraticResidueCode(n,F):
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -580,11 +571,9 @@ def QuasiQuadraticResidueCode(p):
         as the component DoublyCirculant of the code.)
 
     EXAMPLES:
-        sage: C = QuasiQuadraticResidueCode(31)
+        sage: C = QuasiQuadraticResidueCode(11)
         sage: C
-        Linear code of length 62, dimension 31 over Finite Field of size 2
-
-    Requires GUAVA.
+        Linear code of length 22, dimension 11 over Finite Field of size 2
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -593,7 +582,7 @@ def QuasiQuadraticResidueCode(p):
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -631,8 +620,6 @@ def BinaryReedMullerCode(r,k):
 	[0 0 0 0 0 1 0 1 0 0 0 0 0 1 0 1]
 	[0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1]
 
-    Requires GUAVA.
-
     AUTHOR: David Joyner (11-2005)
     """
     F = GF(2)
@@ -640,7 +627,7 @@ def BinaryReedMullerCode(r,k):
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -657,10 +644,8 @@ def BinaryGolayCode():
         sage: C = BinaryGolayCode()
         sage: C
         Linear code of length 23, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()
+        sage: C.minimum_distance()               # long
         7
-
-    Requires GUAVA.
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -669,7 +654,7 @@ def BinaryGolayCode():
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -683,10 +668,8 @@ def ExtendedBinaryGolayCode():
         sage: C = ExtendedBinaryGolayCode()
         sage: C
         Linear code of length 24, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()
+        sage: C.minimum_distance()               # long
         8
-
-    Requires GUAVA.
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -695,7 +678,7 @@ def ExtendedBinaryGolayCode():
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -713,8 +696,6 @@ def TernaryGolayCode():
         sage: C.minimum_distance()
         5
 
-    Requires GUAVA.
-
     AUTHOR: David Joyner (11-2005)
     """
     F = GF(3)
@@ -722,7 +703,7 @@ def TernaryGolayCode():
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -735,7 +716,7 @@ def ExtendedTernaryGolayCode():
     EXAMPLES:
         sage: C = ExtendedTernaryGolayCode()
         sage: C
-        Linear code of length 11, dimension 6 over Finite Field of size 3
+        Linear code of length 12, dimension 6 over Finite Field of size 3
         sage: C.minimum_distance()
         6
         sage: C.gen_mat()
@@ -746,8 +727,6 @@ def ExtendedTernaryGolayCode():
 	[0 0 0 0 1 0 2 1 2 2 0 1]
 	[0 0 0 0 0 1 0 2 1 2 2 1]
 
-    Requires GUAVA.
-
     AUTHOR: David Joyner (11-2005)
     """
     F = FiniteField(3)
@@ -755,7 +734,7 @@ def ExtendedTernaryGolayCode():
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 
@@ -775,13 +754,11 @@ def RandomLinearCode(n,k,F):
 
     EXAMPLES:
         sage: C = RandomLinearCode(30,15,GF(2))
-        sage: C
+        sage: C                                        # random output
         Linear code of length 30, dimension 15 over Finite Field of size 2
         sage: C = RandomLinearCode(10,5,GF(4))
-        sage: C
+        sage: C                                       # random output
         Linear code of length 10, dimension 5 over Finite Field in x of size 2^2
-
-    Requires GUAVA.
 
     AUTHOR: David Joyner (11-2005)
     """
@@ -790,7 +767,7 @@ def RandomLinearCode(n,k,F):
     gap.eval("G:=GeneratorMat(C)")
     k = eval(gap.eval("Length(G)"))
     n = eval(gap.eval("Length(G[1])"))
-    G = [[sage_eval(gap.eval("G["+str(i)+"]["+str(j)+"]")) for j in range(1,n+1)] for i in range(1,k+1)]
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
 

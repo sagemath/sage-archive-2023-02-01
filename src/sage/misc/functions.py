@@ -4,6 +4,7 @@ from sage.structure.all import RingElement, Element_cmp_
 import operator
 from sage.misc.latex import latex
 import constants
+from sage.interfaces.all import maxima
 
 RR = RealField(53)
 
@@ -241,6 +242,10 @@ class Function(Element_cmp_, RingElement):
         R = RealField()
         c = cmp(R(self), R(right))
         if c: return c
+        try:
+	    return cmp(maxima(self),maxima(right))
+	except TypeError:
+	    pass
         raise NotImplementedError, "equality testing for general mathematical functions not yet implemented (can't prove equality)."
 
     def __abs__(self):

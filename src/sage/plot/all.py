@@ -1,1 +1,4 @@
-from plot import plot
+from plot import (line,
+                  polygon,
+
+                  plot)

@@ -342,6 +342,71 @@ class Polygon(GraphicPrimitiveFactory_from_point_list):
         sage: polygon(v)
         Graphics object consiting of 1 graphics primitives:
             0 -- Polygon defined by 10 points
+
+    Here's a yellow circle:
+
+        sage: L = [[cos(pi*i/100),sin(pi*i/100)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1,1,0))
+
+    A purple hexagon:
+
+        sage: L = [[cos(pi*i/3),sin(pi*i/3)] for i in range(6)]
+        sage: p = polygon(L, rgbcolor=(1,0,1))
+
+    A green limacon of Pascal:
+
+        sage: L = [[1+cos(pi*i/100)-cos(pi*i/50),sin(pi*i/100)-sin(pi*i/50)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/4,1,1/2))
+
+    A green deltoid:
+
+        sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
+
+    A blue figure 8:
+
+        sage: L = [[2*cos(pi*i/100)*sqrt(1-sin(pi*i/100)^2),2*sin(pi*i/100)*sqrt(1-sin(pi*i/100)^2)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
+
+    A blue hypotrochoid:
+
+        sage: L = [[6*cos(pi*i/100)+5*cos((6/2)*pi*i/100),6*sin(pi*i/100)-5*sin((6/2)*pi*i/100)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
+
+    Another one:
+
+        sage: n = 4; h = 5; b = 2
+        sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/8,1/4,3/4))
+
+    A purple epicycloid:
+
+        sage: m = 9; b = 1
+        sage: L = [[m*cos(pi*i/100)+b*cos((m/b)*pi*i/100),m*sin(pi*i/100)-b*sin((m/b)*pi*i/100)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(7/8,1/4,3/4))
+
+    A brown astroid:
+
+        sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)^3] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(3/4,1/4,1/4))
+
+    A blue 8-leaved petal:
+
+        sage: L = [[sin(5*pi*i/100)^2*cos(pi*i/100)^3,sin(5*pi*i/100)^2*sin(pi*i/100)] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/3,1/2,3/5))
+
+    And, my favorite, a greenish blob:
+
+        sage: L = [[cos(pi*i/100)*(1+cos(pi*i/50)), sin(pi*i/100)*(1+sin(pi*i/50))] for i in range(200)]
+        sage: p = polygon(L, rgbcolor=(1/8, 3/4, 1/2))
+
+    This one is for my wife:
+
+        sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,100)]
+        sage: p = polygon(L, rgbcolor=(1,1/4,1/2))
+
+    AUTHORS:
+        -- David Joyner (2060-04-14): the long list of examples above.
     """
     def _reset(self):
         pass

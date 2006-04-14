@@ -1,6 +1,10 @@
 """
 Plotting
 
+AUTHORS:
+    -- Alex Clemesha and William Stein (2006-04-10): initial version
+    -- David Joyner: examples
+
 EXAMPLES:
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))

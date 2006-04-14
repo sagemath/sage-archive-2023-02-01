@@ -972,6 +972,9 @@ cdef class RealNumber(element.RingElement):
         mpfr_ceil(x.value, self.value)
         return x.integer_part()
 
+    def ceiling(self):
+        return self.ceil()
+
     def trunc(self):
         """
         Truncates this number

@@ -112,6 +112,8 @@ def ceil(x):
     try: return x.ceil()
     except AttributeError: return R(x).ceil()
 
+ceiling = ceil
+
 
 def charpoly(x):
     """

@@ -296,19 +296,21 @@ def prod(x, z=None):
         -2006
     """
     try:
-        return x.mul()
+        return x.prod()
     except AttributeError:
-        pass
-    if z == None:
-        if len(x) == 0:
-            return 1
-        elif len(x) == 1:
-            return x[0]
-        return reduce(operator.mul, x[1:], x[0])
-    else:
-        if len(x) == 0:
-            return z
-        return reduce(operator.mul, x, z)
+        try:
+            return x.mul()
+        except AttributeError:
+            pass
+
+    if z is None:
+        import sage.rings.integer
+        z = sage.rings.integer.Integer(1)
+    # Change this to use a balanced tree in some cases, e.g.,
+    # if input is a list?
+    for m in x:
+        z *= m
+    return z
 
 # alternative name for prod
 mul = prod

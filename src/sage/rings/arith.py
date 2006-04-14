@@ -156,13 +156,16 @@ def prime_pi(x):
 number_of_primes = prime_pi
 
 
-def factorial(n):
+def factorial(n, algorithm='gmp'):
     r"""
     Compute the factorial of $n$, which is the product
     $1\cdot 2\cdot 3 \cdots (n-1) n$.
 
     INPUT:
         n -- an integer
+        algorithm -- string (default: 'gmp')
+             'gmp' -- use the GMP C-library factorial function
+             'pari' -- use PARI's factorial function
 
     OUTPUT:
         an integer
@@ -186,12 +189,41 @@ def factorial(n):
         Traceback (most recent call last):
         ...
         ValueError: n = (-32) must be nonnegative
+
+    PERFORMANCE:
+    This discussion is valid as of April 2006.  All timings
+    below are on a Pentium Core Duo 2Ghz MacBook Pro running Linux
+    with a 2.6.16.1 kernel.
+
+    \begin{itemize}
+       \item It takes less than a minute to compute the factorial of
+          $10^7$ using the GMP algorithm, and the factorial of $10^6$
+          takes less than 4 seconds.
+
+       \item The GMP algorithm is faster and more memory efficient
+          than the PARI algorithm.  E.g., PARI computes $10^7$
+          factorial in 100 seconds on the core duo 2Ghz.
+
+       \item For comparison, computation in Magma $\leq$ 2.12-10 of
+             $n!$ is best done using \code{&*[1..n]}.
+             It takes 113 seconds to compute the factorial of $10^7$
+             and 6 seconds to compute the factorial of $10^6$.
+             Mathematica V5.2 compute the factorial of $10^7$ in
+             136 seconds and the factorial of $10^6$ in 7 seconds.
+             (Mathematica is notably very efficient at memory usage
+             when doing factorial calculations.)
+    \end{itemize}
+
     """
     if n < 0:
-        raise ValueError, "n = (%s) must be nonnegative"%n
+        raise ValueError, "factorial -- n = (%s) must be nonnegative"%n
     Z = sage.rings.integer.Integer
-    return Z(pari('%s!'%Z(n)))
-    # return misc.mul([Z(m) for m in range(1,n+1)])
+    if algorithm == 'gmp':
+        return Z(n).factorial()
+    elif algorithm == 'pari':
+        return Z(pari('%s!'%Z(n)))
+    else:
+        raise ValueError, 'no algorithm %s'%algorithm
 
 def is_prime(n, flag=0):
     r"""

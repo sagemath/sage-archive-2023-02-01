@@ -6,6 +6,8 @@ AUTHORS:
     -- Gonzalo Tornaria (2006-03-02): vastly improved python/GMP conversion; hashing
     -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-06): numerous examples and docstrings
     -- William Stein (2006-03-31): changes to reflect GMP bug fixes
+    -- William Stein (2006-04-14): added GMP factorial method (since it's
+                                   now very fast).
 """
 
 #*****************************************************************************
@@ -930,6 +932,30 @@ cdef class Integer(element.EuclideanDomainElement):
         """
         return self
 
+    def factorial(self):
+        """
+        Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
+        Self must fit in an \\code{unsigned long int}.
+
+        EXAMPLES:
+        """
+        if self < 0:
+            raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
+
+        cdef mpz_t x
+        cdef Integer z
+
+        mpz_init(x)
+
+        _sig_on
+        mpz_fac_ui(x, long(self))
+        _sig_off
+
+        z = Integer()
+        set_mpz(z, x)
+        mpz_clear(x)
+        return z
+
     def is_one(self):
         """
         Returns \\code{True} if the integers is $1$, otherwise \\code{False}.
@@ -1419,24 +1445,4 @@ def integer(x):
         return x
     return Integer(x)
 
-## def factorial(unsigned long int n):
-##     """
-##     Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
-##     The input integer $n$ must fit in an \\code{unsigned long int}.
-
-##     EXAMPLES:
-##     """
-##     cdef mpz_t x
-##     cdef Integer z
-
-##     mpz_init(x)
-
-##     _sig_on
-##     mpz_fac_ui(x, n)
-##     _sig_off
-
-##     z = Integer()
-##     set_mpz(z, x)
-##     mpz_clear(x)
-##     return z
 

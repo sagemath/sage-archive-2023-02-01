@@ -19,7 +19,8 @@ Format SAGE documentation for viewing with IPython
 
 import os
 
-substitutes = [('\\_','_'),\
+substitutes = [('\\item', '*'), \
+               ('\\_','_'),\
                ('\\to', '-->'), \
                ('<BLANKLINE>',''), \
                ('\\leq', '<='), \
@@ -33,6 +34,7 @@ substitutes = [('\\_','_'),\
                ('\\cdot', ' *'), \
                ('$',''), ('\\',''), ('sage.:', 'sage:'), ('backslash','\\'), \
                ('begin{enumerate}',''), ('end{enumerate}',''), \
+               ('begin{itemize}',''), ('end{itemize}',''), \
                ('begin{verbatim}',''), ('end{verbatim}',''), \
                ('mapsto', ' |--> '), \
                ('ldots', '...'), ('note{','NOTE: ')]

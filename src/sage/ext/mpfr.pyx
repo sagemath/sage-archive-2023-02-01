@@ -954,20 +954,23 @@ cdef class RealNumber(element.RingElement):
 
     def ceil(self):
         """
-        Returns the ceilling of this number
+        Returns the ceiling of this number
+
+        OUTPUT:
+            integer
 
         EXAMPLES:
             sage: (2.99).ceil()
-            3.0000000000000000
+            3
             sage: (2.00).ceil()
-            2.0000000000000000
+            2
             sage: (2.01).ceil()
-            3.0000000000000000
+            3
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_ceil(x.value, self.value)
-        return x
+        return x.integer_part()
 
     def trunc(self):
         """

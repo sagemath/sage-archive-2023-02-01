@@ -42,8 +42,17 @@ cd $SAGE_ROOT/devel
 rm -f sage
 ln -sf $E sage
 
-echo "Moving old $SAGE_LOCAL/lib/python2.4/site-packages/sage to $DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
-mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" "$DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
+# I'm scared to do this, since it could render a sage install temporarily
+# un-usable...
+
+#echo "Moving old $SAGE_LOCAL/lib/python2.4/site-packages/sage to $DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
+#mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" "$DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
+
+# this file must be removed...
+if  [ -f "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py" ]; then
+    rm "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py"
+    rm "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.pyc"
+fi
 
 cd $E
 python setup.py install

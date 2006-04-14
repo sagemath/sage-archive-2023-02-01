@@ -1305,6 +1305,18 @@ class Matrix(module_element.ModuleElement, Mutability):
     def swap_columns(self, c1, c2):
         """
         Swap columns c1 and c2 of self.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A
+            [  1   9  -7]
+            [4/5   4   3]
+            [  6   4   3]
+            sage: A.swap_columns(1,2); A
+            [  1  -7   9]
+            [4/5   3   4]
+            [  6   3   4]
         """
         self._require_mutable()
         nc = self.ncols()
@@ -1321,6 +1333,18 @@ class Matrix(module_element.ModuleElement, Mutability):
     def swap_rows(self, r1, r2):
         """
         Swap rows r1 and r2 of self.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A
+            [  1   9  -7]
+            [4/5   4   3]
+            [  6   4   3]
+            sage: A.swap_rows(0,2); A
+            [  6   4   3]
+            [4/5   4   3]
+            [  1   9  -7]
         """
         self._require_mutable()
         nr = self.nrows()
@@ -2435,6 +2459,25 @@ class Matrix_field(Matrix_pid):
         """
         Return the vector space over the base ring spanned by the
         columns of this matrix.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A.column_space()
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: W = MatrixSpace(CC,2,2)
+            sage: B = W([1, 2+3*i,4+5*i,9]); B
+            [                       1.0000000000000000 2.0000000000000000 + 3.0000000000000000*I]
+            [4.0000000000000000 + 5.0000000000000000*I                        9.0000000000000000]
+            sage: B.column_space()
+            Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
+            Basis matrix:
+            [                                                       1.0000000000000000 0.00000000000000044408920985006262 + 0.00000000000000088817841970012523*I]
+            [                                                                        0               0.99999999999999978 - 0.000000000000000055511151231257827*I]
         """
         return self.column_module()
 
@@ -2603,8 +2646,18 @@ class Matrix_field(Matrix_pid):
         """
         Return the factorization of the characteristic polynomial of
         self.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A.fcp()
+            (x^3 - 8*x^2 + 209/5*x - 286)
+            sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
+            sage: A.fcp()
+            (x - 3) * x * (x + 2)
         """
         return self.charpoly().factor()
+
 
     def hessenberg_form(self):
         """
@@ -2820,6 +2873,21 @@ class Matrix_field(Matrix_pid):
     def is_invertible(self):
         """
         Return True if this matrix is invertible.
+
+        EXAMPLES:
+
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A.is_invertible()
+            True
+            sage: W = MatrixSpace(CC,2,2)
+            sage: B = W([1, 2+3*i, 4+5*i, 9])
+            sage: B.is_invertible()
+            True
+            sage: N = MatrixSpace(QQ,2,2)
+            sage: C = N([2,1,2,1])
+            sage: C.is_invertible()
+            False
         """
         return self.is_square() and self.rank() == self.nrows()
 

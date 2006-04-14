@@ -8,6 +8,7 @@ EXAMPLES:
 
 This example illustrates that the unit part is not discarded from
 factorizations.
+
     sage: x = QQ['x'].0
     sage: f = -5*(x-2)*(x-3)
     sage: f
@@ -16,12 +17,19 @@ factorizations.
     (-5) * (x - 3) * (x - 2)
     sage: F.unit()
     -5
-    sage: list(F)
-    [(x - 3, 1), (x - 2, 1)]
     sage: mul(F)            # or F.mul() or F.prod()
     -5*x^2 + 25*x - 30
+
+The underlying list is the list of pairs $(p_i, e_i)$, where $p_i$
+is prime and $e_i$ is an integer. The unit part is discarded by
+the list.
+
+    sage: list(F)
+    [(x - 3, 1), (x - 2, 1)]
     sage: len(F)
     2
+    sage: F[1]
+    (x - 2, 1)
 
 In the ring $\Z[x]$, the integer $-5$ is not a unit, so the
 factorization has three factors:

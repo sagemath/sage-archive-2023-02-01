@@ -248,14 +248,6 @@ class Function(Element_cmp_, RingElement):
 	    pass
         raise NotImplementedError, "equality testing for general mathematical functions not yet implemented (can't prove equality)."
 
-    def __abs__(self):
-        if self.str()[0] != '-':
-            return self
-        return -self
-
-    def floor(self):
-        return self._mpfr_(sage.rings.all.RealField()).integer_part()
-
 
 class Function_composition(Function):
     def __init__(self, f, g):

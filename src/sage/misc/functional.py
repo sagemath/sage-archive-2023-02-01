@@ -25,7 +25,7 @@ AUTHORS: Initial version -- William Stein
 
 from sage.rings.all import (RealField, ComplexField,
                             PolynomialRing, RationalField, Ideal,
-                            IntegerRing)
+                            IntegerRing, Integer)
 
 import sage.rings.integer_ring
 import sage.categories.all
@@ -305,6 +305,32 @@ def fcp(x):
     except AttributeError: return factor(charpoly(x))
 
 gcd = sage.rings.arith.gcd
+
+def floor(x):
+    r"""
+    Return the largest integer $\leq x$.
+
+    INPUT:
+        x -- an object that has a floor method or is coercible to int
+
+    OUTPUT:
+        an Integer
+
+    EXAMPLES:
+        sage: floor(5.4)
+        5
+        sage: floor(float(5.4))
+        5
+    """
+    try:
+        return Integer(x.floor())
+    except AttributeError:
+        try:
+            return Integer(int(x))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%x
+
 
 def gen(x):
     """

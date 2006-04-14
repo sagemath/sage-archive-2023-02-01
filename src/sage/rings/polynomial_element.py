@@ -666,20 +666,32 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             a polynomial
 
         OUTPUT:
-            Factorization -- the factorization of self
+            Factorization -- the factorization of self, which is
+            a product of a unit with a product of powers of irreducible
+            factors.
+
+        Over a field the irreducible factors are all monic.
 
         EXAMPLES:
         We factor some polynomials over $\Q$.
-            sage: x = PolynomialRing(RationalField()).gen()
+            sage: x = QQ['x'].0
             sage: f = (x^3 - 1)^2
             sage: f.factor()
             (x - 1)^2 * (x^2 + x + 1)^2
+
+        Notice that over the field $\Q$ the irreducible factors are monic.
             sage: f = 10*x^5 - 1
             sage: f.factor()
-            (10*x^5 - 1)
+            (10) * (x^5 - 1/10)
             sage: f = 10*x^5 - 10
             sage: f.factor()
             (10) * (x - 1) * (x^4 + x^3 + x^2 + x + 1)
+
+        Over $\Z$ the irreducible factors need not be monic:
+            sage: x = ZZ['x'].0
+            sage: f = 10*x^5 - 1
+            sage: f.factor()
+            (10*x^5 - 1)
 
 
         We factor a non-monic polynomial over the finite field $F_{25}$.
@@ -753,6 +765,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         if G is None:
             raise NotImplementedError
+
         return self._factor_pari_helper(G)
 
     def _factor_pari_helper(self, G, unit=None):
@@ -764,13 +777,30 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         for i in xrange(len(pols)):
             f = R(pols[i])
             e = int(exps[i])
-            c *= f.leading_coefficient()
+            if unit is None:
+                c *= f.leading_coefficient()
             F.append((f,e))
+
         if unit is None:
+
             unit = R.base_ring()(self.leading_coefficient()/c)
+
         if not unit.is_unit():
+
             F.append((R(unit), 1))
             unit = R.base_ring()(1)
+
+        elif R.base_ring().is_field():
+            # When the base ring is a field we normalize
+            # the irreducible factors so they have leading
+            # coefficient 1.
+            one = R.base_ring()(1)
+            for i in range(len(F)):
+                c = F[i][0].leading_coefficient()
+                if c != 1:
+                    unit *= c
+                    F[i] = (F[i][0].monic(), F[i][1])
+
         return factorization.Factorization(F, unit)
 
     def _lcm(self, other):

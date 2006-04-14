@@ -142,7 +142,7 @@ AUTHORS:
 
 import math
 
-from sage.rings.all import CommutativeRing, RealField
+from sage.rings.all import CommutativeRing, RealField, Integer
 import sage.interfaces.all
 import sage.rings.all
 from sage.libs.pari.all import pari
@@ -227,6 +227,14 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
+    def __abs__(self):
+        if self.str()[0] != '-':
+            return self
+        return -self
+
+    def floor(self):
+        raise NotImplementedError
+
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
     #def _singular_(self, singular):
@@ -275,6 +283,9 @@ class E(Constant):
 
     def _mpfr_(self, R):
         return R(1).exp()
+
+    def floor(self):
+        return Integer(2)
 
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
@@ -387,6 +398,9 @@ class Log2(Constant):
     def _mpfr_(self,R):
         return R.log2()
 
+    def floor(self):
+        return Integer(0)
+
 log2 = Log2()
 
 class EulerGamma(Constant):
@@ -420,6 +434,9 @@ class EulerGamma(Constant):
     def _mpfr_(self,R):
         return R.euler_constant()
 
+    def floor(self):
+        return Integer(0)
+
 euler_gamma = EulerGamma()
 
 class Catalan(Constant):
@@ -443,6 +460,8 @@ class Catalan(Constant):
     def _mpfr_(self, R):
         return R.catalan_constant()
 
+    def floor(self):
+        return Integer(0)
 
 catalan = Catalan()
 
@@ -481,6 +500,9 @@ class Khinchin(Constant):
     def __float__(self):
         return 2.685452001065306445309714835481795693820
 
+    def floor(self):
+        return Integer(2)
+
 khinchin  = Khinchin()
 
 
@@ -505,6 +527,9 @@ class TwinPrime(Constant):
         self.__value = "0.660161815846869573927812110014555778432623360284733413319448423335405642304495277143760031413839867911779005226693304002965847755123366227747165713213986968741097620630214153735434853131596097803669932135255299767199302474590593101082978291553834469297505205916657133653611991532464281301172462306379341060056466676584434063501649322723528968010934966475600478812357962789459842433655749375581854814173628678098705969498703841243363386589311969079150040573717814371081810615401233104810577794415613125444598860988997585328984038108718035525261719887112136382808782349722374224097142697441764455225265548994829771790977784043757891956590649994567062907828608828395990394287082529070521554595671723599449769037800675978761690802426600295711092099633708272559284672129858001148697941855401824639887493941711828528382365997050328725708087980662201068630474305201992394282014311102297265141514194258422242375342296879836738796224286600285358098482833679152235700192585875285961205994728621007171131607980572"
 
         self.__bits = len(self.__value)*3-1   # underestimate
+
+    def floor(self):
+        return Integer(0)
 
     def _repr_(self):
         return 'twinprime'
@@ -546,6 +571,9 @@ class Merten(Constant):
         self.__value = "0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434246651051617"
 
         self.__bits = len(self.__value)*3-1   # underestimate
+
+    def floor(self):
+        return Integer(0)
 
     def _repr_(self):
         return 'merten'
@@ -598,6 +626,9 @@ class Brun(Constant):
         self.__value = "1.902160583104"
 
         self.__bits = len(self.__value)*3-1 # bits  -- todo: make more intelligent in a general function!!!
+
+    def floor(self):
+        return Integer(1)
 
     def _repr_(self):
         return 'brun'

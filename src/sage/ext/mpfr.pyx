@@ -735,9 +735,9 @@ cdef class RealNumber(element.RingElement):
         """
         If in decimal this number is written n.defg, returns n.
         """
-        s = self.str(base=10, no_sci=True)
+        s = self.str(base=32, no_sci=True)
         i = s.find(".")
-        return integer.Integer(s[:i])
+        return integer.Integer(s[:i], base=32)
 
     ########################
     #   Basic Arithmetic
@@ -942,14 +942,15 @@ cdef class RealNumber(element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: (2.99).floor()
-            2.0000000000000000
+            2
             sage: (2.00).floor()
-            2.0000000000000000
+            2
         """
-        cdef RealNumber x
-        x = RealNumber(self._parent, None)
-        mpfr_floor(x.value, self.value)
-        return x
+        return self.integer_part()
+        #cdef RealNumber x
+        #x = RealNumber(self._parent, None)
+        #mpfr_floor(x.value, self.value)
+        #return x
 
     def ceil(self):
         """

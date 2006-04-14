@@ -1160,7 +1160,7 @@ cdef class RealNumber(element.RingElement):
             exponent = x._parent(exponent)
         return self.__pow(exponent)
 
-    def log(self):
+    def log(self, base='e'):
         """
         EXAMPLES:
             sage: R = RealField()
@@ -1168,11 +1168,18 @@ cdef class RealNumber(element.RingElement):
             0.69314718055994529
         """
         cdef RealNumber x
-        x = RealNumber(self._parent, None)
-        _sig_on
-        mpfr_log(x.value, self.value, self._parent.rnd)
-        _sig_off
-        return x
+        if base == 'e':
+            x = RealNumber(self._parent, None)
+            _sig_on
+            mpfr_log(x.value, self.value, self._parent.rnd)
+            _sig_off
+            return x
+        elif base == 10:
+            return self.log10()
+        elif base == 2:
+            return self.log2()
+        else:
+            return self.log() / (self.parent()(base)).log()
 
     def log2(self):
         """

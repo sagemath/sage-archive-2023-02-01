@@ -104,6 +104,34 @@ def preparse(line, reset=True):
                 is_real = False
                 continue
 
+        # experimental support for generator construction
+        # syntax:  "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+        # is converted into
+        # "obj = objConstructor(...); \
+        #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
+        #  (gen0, gen1, ..., genN,) = obj.gens()"
+        # LIMITATIONS:
+        # - The entire constructor must be on one line.
+        # - The line must contain no other statements.
+        elif line[i] == "." and line[i+1] == "<" and not in_quote():
+            try:
+                gen_end = line.index(">", i+2)
+            except ValueError:
+                # Syntax Error -- let Python notice and raise the error
+                i += 2
+                continue
+            # parse out the object name and the list of generator names
+            gen_obj = line[:i].strip()
+            gen_list = map(lambda s: s.strip(), line[i+2:gen_end].split(","))
+            # format names as a list of strings and a list of variables
+            gen_names = str(gen_list)
+            gen_vars  = ", ".join(gen_list)
+            # rewrite the input line as three commands
+            line = "; ".join([line[:i] + line[gen_end+1:],
+                              "%s.assign_names(%s)" % (gen_obj, gen_names),
+                              "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
+            continue
+
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():
             line = line[:i] + "**" + line[i+1:]

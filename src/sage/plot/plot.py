@@ -304,11 +304,77 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         return self._from_xdata_ydata(xdata, ydata, coerce=False, options=options)
 
 class Line(GraphicPrimitiveFactory_from_point_list):
-    """
-    Type line.options for a dictionary of the default
-    options for lines.  You can change this to change
-    the defaults for all future lines.  Use line.reset()
-    to reset to the default options.
+    r"""
+    Create the line through the given list of points.
+
+    Type line.options for a dictionary of the default options for
+    lines.  You can change this to change the defaults for all future
+    lines.  Use line.reset() to reset to the default options.
+
+    EXAMPLES:
+    A blue conchoid of Nicomedes:
+
+        sage: L = [[1+5*cos(pi/2+pi*i/100), tan(pi/2+pi*i/100)*(1+5*cos(pi/2+pi*i/100))] for i in range(1,100)]
+        sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
+
+    A blue hypotrochoid (3 leaves):
+
+        sage: n = 4; h = 3; b = 2
+        sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
+        sage: p = line(L, rgbcolor=(1/4,1/4,3/4))
+
+    A blue hypotrochoid (4 leaves):
+
+        sage: n = 6; h = 5; b = 2
+        sage: L = [[n*cos(pi*i/100)+h*cos((n/b)*pi*i/100),n*sin(pi*i/100)-h*sin((n/b)*pi*i/100)] for i in range(200)]
+        sage: p = line(L, rgbcolor=(1/4,1/4,3/4))
+
+    A red limacon of Pascal:
+
+        sage: L = [[sin(pi*i/100)+sin(pi*i/50),-(1+cos(pi*i/100)+cos(pi*i/50))] for i in range(-100,101)]
+        sage: p = line(L, rgbcolor=(1,1/4,1/2))
+
+    A light green trisectrix of Maclaurin:
+
+        sage: L = [[2*(1-4*cos(-pi/2+pi*i/100)^2),10*tan(-pi/2+pi*i/100)*(1-4*cos(-pi/2+pi*i/100)^2)] for i in range(1,100)]
+        sage: p = line(L, rgbcolor=(1/4,1,1/8))
+
+    A green lemniscate of Bernoulli:
+
+        sage: v = [(1/cos(-pi/2+pi*i/100), tan(-pi/2+pi*i/100)) for i in range(201)]
+        sage: L = [(a/(a^2+b^2), b/(a^2+b^2)) for a,b in v]
+        sage: p = line(L, rgbcolor=(1/4,3/4,1/8))
+
+    A red plot of the Jacobi elliptic function $\text{sn}(x,2)$, $-3<x<3$:
+
+        sage: L = [(i/100.0, maxima.eval('jacobi_sn (%s/100.0,2.0)'%i)) for i in range(-300,300)]
+        sage: p = line(L, rgbcolor=(3/4,1/4,1/8))
+
+    A red plot of $J$-Bessel function $J_2(x)$, $0<x<10$:
+
+        sage: L = [(i/10.0, maxima.eval('bessel_j (2,%s/10.0)'%i)) for i in range(100)]
+        sage: p = line(L, rgbcolor=(3/4,1/4,5/8))
+
+    A purple plot of the Riemann zeta function $\zeta(1/2 + it)$, $0<t<30$:
+    ({\em much} better that the gnuplot version!):
+
+        sage: L = [[(pari(1/2 + i*I/10).zeta().real()).precision(1),(pari(1/2 + i*I/10).zeta().imag()).precision(1)] for i in range (0,300)]
+        sage: p = line(L, rgbcolor=(3/4,1/2,5/8))
+
+    A purple plot of the Hasse-Weil $L$-function $L(E, 1 + it)$, $-1<t<10$:
+
+        sage: E = EllipticCurve('37a')
+        sage: vals = E.Lseries_values_along_line(1-I, 1+10*I, 100) # critical line
+        sage: L = [(z[1].real(), z[1].imag()) for z in vals]
+        sage: p = line(L, rgbcolor=(3/4,1/2,5/8))
+
+    A red, blue, and green "cool cat":
+
+        sage: ncos = lambda x: -cos(x)
+        sage: G = plot(ncos, -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
+        sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
+        sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
+        sage: H = G + P + Q
     """
     def _reset(self):
         pass

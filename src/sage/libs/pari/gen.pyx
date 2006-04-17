@@ -59,7 +59,7 @@ cdef class gen:
     """
     Python extension class that models the PARI GEN type.
     """
-    cdef __init__(self):
+    def __init__(self):
         self.b = 0
         self.refers_to = {}
 

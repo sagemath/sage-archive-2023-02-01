@@ -4,7 +4,6 @@ cdef class gen:
     cdef GEN g
     cdef object refers_to
     cdef pari_sp b
-    cdef __init__(self)
     cdef void init(self, GEN g, pari_sp b)
     cdef GEN _gen(self)
     cdef gen new_gen(self, GEN x)

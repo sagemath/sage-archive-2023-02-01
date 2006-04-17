@@ -363,6 +363,16 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     def old_submodule(self, p=None):
         """
         Return the old or p-old submodule of this space of modular symbols.
+
+        EXAMPLES:
+        We compute the old and new submodules of $\sS_2(\Gamma_0(33))$.
+
+            sage: M = ModularSymbols(33); S = M.cuspidal_submodule(); S
+            Dimension 6 subspace of a modular symbols space of level 33
+            sage: S.old_submodule()
+            Dimension 4 subspace of a modular symbols space of level 33
+            sage: S.new_submodule()
+            Dimension 2 subspace of a modular symbols space of level 33
         """
         try:
             if self.__is_old[p]:

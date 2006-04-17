@@ -69,7 +69,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         INPUT:
             parent -- DirichletGroup, a group of Dirichlet characters
-            values_on_gens -- list of ring elements, the values of the
+            values_on_gens -- tuple (or list) of ring elements, the values of the
                               Dirichlet character on the chosen generators
                               of $(\Z/N\Z)^*$.
         OUTPUT:
@@ -98,7 +98,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
                   "wrong number of values(=%s) on unit gens (want %s)"%( \
                    values_on_gens,len(parent.unit_gens()))
         R = parent.base_ring()
-        self.__values_on_gens = [R(x) for x in values_on_gens]
+        self.__values_on_gens = tuple([R(x) for x in values_on_gens])
         self.__modulus = parent.modulus()
 
     def __eval_at_minus_one(self):
@@ -147,12 +147,35 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return G(self)
 
     def __cmp__(self, other):
-        if not isinstance(other, DirichletCharacter) or other.parent() != self.parent():
+        """
+        EXAMPLES:
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: f = e.restrict(8)
+            sage: e == e
+            True
+            sage: f == f
+            True
+            sage: e == f
+            False
+        """
+        if not isinstance(other, DirichletCharacter):
             return coerce.cmp(self, other)
+        c = cmp(other.parent(), self.parent())
+        # We do not want to coerce when they are both Dirichlet
+        # characters.  E.g., the trivial character of modulus
+        # 8 is *not* equal to the trivial character of modulus 16,
+        # since they are completely different functions.
+        if c: return c
         return misc.generic_cmp(self.__values_on_gens, other.__values_on_gens)
 
     def __hash__(self):
-        return hash(str(self.__values_on_gens))
+        """
+        EXAMPLES:
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: hash(e)
+            -222315585
+        """
+        return hash(self.__values_on_gens)
 
     def __invert__(self):
         values_on_gens = [1/x for x in self.__values_on_gens]
@@ -670,8 +693,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
     def values_on_gens(self):
         """
-        Returns a list of the values of this character on each of the
+        Returns a tuple of the values of this character on each of the
         minimal generators of $(\Z/N\Z)^*$, where $N$ is the modulus.
+
+        EXAMPLES:
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: e.values_on_gens ()
+            (-1, 1)
         """
         return self.__values_on_gens
 

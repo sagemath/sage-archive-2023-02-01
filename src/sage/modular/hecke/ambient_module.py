@@ -281,7 +281,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
             else:
 
-                A = self._degeneracy_raising_matrix(level)
+                A = self._degeneracy_raising_matrix(M)
 
         d = degenmap.DegeneracyMap(A, self, M, t)
         self._degeneracy_maps[key] = d
@@ -514,6 +514,12 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             6
             sage: m.new_submodule(11).rank()
             8
+
+            sage: e = DirichletGroup(16)([-1, 1])
+            sage: M = ModularSymbols(e, 3, sign=1); M
+            Full Modular Symbols space of level 16, weight 3, character [-1, 1], sign 1, and dimension 4 over Rational Field
+            sage: M.old_submodule()
+            Dimension 3 subspace of a modular symbols space of level 16
         """
         try:
             if self.__is_old[p]:
@@ -536,27 +542,30 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         # Construct the degeneracy map d.
         N = self.level()
         d = None
+
         eps = self.character()
-        if eps == None:
+        if eps is None:
             f = 1
         else:
             f = eps.conductor()
-        if p == None:
+
+        if p is None:
             D = arith.prime_divisors(N)
         else:
             if N % p != 0:
                 raise ValueError, "p must divide the level."
             D = [p]
+
         for q in D:
             if ((N//q) % f) == 0:
                 NN = N//q
                 M = self.hecke_module_of_level(NN)
-                d1 = M.degeneracy_map(self.level(),1).matrix()
+                d1 = M.degeneracy_map(N, 1).matrix()
                 if d is None:
                     d = d1
                 else:
                     d = d.stack(d1)
-                d = d.stack(M.degeneracy_map(self.level(),q).matrix())
+                d = d.stack(M.degeneracy_map(N, q).matrix())
             #end if
         #end for
         os = self.submodule(d.image())

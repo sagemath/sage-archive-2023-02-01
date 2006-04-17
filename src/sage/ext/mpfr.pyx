@@ -36,6 +36,8 @@ AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
 #
 #*****************************************************************************
 
+import sys
+
 include 'interrupt.pxi'
 
 cimport ring
@@ -845,10 +847,12 @@ cdef class RealNumber(element.RingElement):
         return x
 
     # Bit shifting
-    def _lshift_(RealNumber self, unsigned long int n):
+    def _lshift_(RealNumber self, n):
         cdef RealNumber x
+        if n > sys.maxint:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
         x = RealNumber(self._parent, None)
-        mpfr_mul_2exp(x.value, self.value,n,self._parent.rnd)
+        mpfr_mul_2exp(x.value, self.value, n, self._parent.rnd)
         return x
 
     def __lshift__(x, y):
@@ -857,14 +861,16 @@ cdef class RealNumber(element.RingElement):
             sage: 1.0 << 32
             4294967296.0000000
         """
-        if isinstance(x, RealNumber) and isinstance(y, RealNumber):
+        if isinstance(x, RealNumber) and isinstance(y, (int,long,integer.Integer)):
             return x._lshift_(y)
         return sage.rings.coerce.bin_op(x, y, operator.lshift)
 
-    def _rshift_(RealNumber self, unsigned long int n):
+    def _rshift_(RealNumber self, n):
+        if n > sys.maxint:
+            raise OverflowError, "n (=%s) must be <= %s"%(n, sys.maxint)
         cdef RealNumber x
         x = RealNumber(self._parent, None)
-        mpfr_div_2exp(x.value, self.value,n,self._parent.rnd)
+        mpfr_div_2exp(x.value, self.value, n, self._parent.rnd)
         return x
 
     def __rshift__(x, y):
@@ -873,7 +879,7 @@ cdef class RealNumber(element.RingElement):
             sage: 1024.0 >> 7
             8.0000000000000000
         """
-        if isinstance(x, RealNumber) and isinstance(y, RealNumber):
+        if isinstance(x, RealNumber) and isinstance(y, (int,long,integer.Integer)):
             return x._rshift_(y)
         return sage.rings.coerce.bin_op(x, y, operator.rshift)
 

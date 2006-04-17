@@ -188,7 +188,7 @@ def factorial(n, algorithm='gmp'):
         sage: factorial(-32)
         Traceback (most recent call last):
         ...
-        ValueError: n = (-32) must be nonnegative
+        ValueError: factorial -- n = (-32) must be nonnegative
 
     PERFORMANCE:
     This discussion is valid as of April 2006.  All timings

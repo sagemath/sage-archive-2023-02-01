@@ -31,6 +31,8 @@ Integers
 
 import operator
 
+import sys
+
 include "gmp.pxi"
 include "interrupt.pxi"  # ctrl-c interrupt block support
 
@@ -751,23 +753,34 @@ cdef class Integer(element.EuclideanDomainElement):
 
         return x
 
-    def powermodm_ui(self, unsigned long int exp, mod):
+    def powermodm_ui(self, exp, mod):
         r"""
-        Computes self**exp modulo mod, where exp is of the type
-        \code{unsigned long int}
+        Computes self**exp modulo mod, where exp is an unsigned
+        long integer.
 
         EXAMPLES:
             sage: z = 32
-            sage: z.powermodm_ui(-2,4)
+            sage: z.powermodm_ui(2, 4)
             0
-            sage: z.powermodm_ui(-2,14)
+            sage: z.powermodm_ui(2, 14)
             2
-            sage: z.powermodm_ui(-2^32, 14)
-            Traceback (most recent call last):       # 32-bit
-            ...                                      # 32-bit
-            OverflowError: long int too large to convert to int   # 32-bit
-            8         # 64-bit
+            sage: z.powermodm_ui(2^31-1, 14)
+            4
+            sage: z.powermodm_ui(2^31, 14)
+            Traceback (most recent call last):                              # 32-bit
+            ...                                                             # 32-bit
+            OverflowError: exp (=2147483648) must be <= 2147483647   # 32-bit
+            2              # 64-bit
+            sage: z.powermodm_ui(2^63, 14)
+            Traceback (most recent call last):
+            ...
+            OverflowError: exp (=9223372036854775808) must be <= 2147483647           # 32-bit
+            OverflowError: exp (=9223372036854775808) must be <= 9223372036854775807  # 64-bit
         """
+        if exp < 0:
+            raise ValueError, "exp (=%s) must be nonnegative"%exp
+        elif exp > sys.maxint:
+            raise OverflowError, "exp (=%s) must be <= %s"%(exp, sys.maxint)
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()
@@ -1263,7 +1276,7 @@ cdef class Integer(element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    def _lshift(self,unsigned long int n):
+    def _lshift(self, unsigned long int n):
         cdef Integer x
         x = Integer()
 
@@ -1273,11 +1286,20 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __lshift__(x,y):
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x._lshift(y)
+        """
+        EXAMPLES:
+            sage: 32 << 2
+            128
+            sage: 32 << int(2)
+            128
+            sage: int(32) << 2
+            128
+        """
+        if isinstance(x, Integer) and isinstance(y, (Integer, int, long)):
+            return x._lshift(long(y))
         return sage.rings.coerce.bin_op(x, y, operator.lshift)
 
-    def _rshift(self,unsigned long int n):
+    def _rshift(Integer self, unsigned long int n):
         cdef Integer x
         x = Integer()
         _sig_on
@@ -1286,8 +1308,17 @@ cdef class Integer(element.EuclideanDomainElement):
         return x
 
     def __rshift__(x, y):
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x._rshift(y)
+        """
+        EXAMPLES:
+            sage: 32 >> 2
+            8
+            sage: 32 >> int(2)
+            8
+            sage: int(32) >> 2
+            8
+        """
+        if isinstance(x, Integer) and isinstance(y, (Integer, int, long)):
+            return x._rshift(long(y))
         return sage.rings.coerce.bin_op(x, y, operator.rshift)
 
     def _and(Integer self, Integer other):
@@ -1418,7 +1449,7 @@ cdef class Integer(element.EuclideanDomainElement):
         # Now s*m + t*n = 1, so the answer is x + (y-x)*s*m, where x=self.
         return (self + (_y-self)*s*_m) % (_m*_n)
 
-    def test_bit(self, unsigned long int index):
+    def test_bit(self, index):
         r"""
         Return the bit at \code{index}
 
@@ -1428,15 +1459,15 @@ cdef class Integer(element.EuclideanDomainElement):
             '110'
             sage: w.test_bit(2)
             1
+            sage: w.test_bit(-1)
+            0
         """
+        cdef unsigned long int i
+        i = index
         cdef Integer x
         x = Integer(self)
+        return mpz_tstbit(x.value, i)
 
-        _sig_on
-        i = mpz_tstbit(x.value,index)
-        _sig_off
-
-        return i
 
 ONE = Integer(1)
 

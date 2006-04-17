@@ -4921,7 +4921,7 @@ cdef class PariInstance:
     def pari_version(self):
         return str(PARIVERSION)
 
-    def init_primes(self, unsigned long M):
+    def init_primes(self, _M):
         """
         Recompute the primes table including at least all primes up to
         M (but possibly more).
@@ -4929,6 +4929,8 @@ cdef class PariInstance:
         EXAMPLES:
             sage: pari.init_primes(200000)
         """
+        cdef unsigned long M
+        M = _M
         global diffptr, num_primes
         if M <= num_primes:
             return

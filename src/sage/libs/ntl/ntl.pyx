@@ -2701,7 +2701,7 @@ cdef class ntl_mat_GF2E:
     r"""
     The \class{mat_GF2E} class implements arithmetic with matrices over $GF(2**x)$.
     """
-    def __init__(self, nrows=0, unsigned long ncols=0, v=None):
+    def __init__(self, nrows=0, ncols=0, v=None):
         """
         Constructs a matrix over ntl.GF2E.
 
@@ -2717,28 +2717,31 @@ cdef class ntl_mat_GF2E:
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])
 
         """
+        cdef unsigned long _nrows, _ncols
+        _nrows = nrows
+        _ncols = ncols
         if not __have_GF2E_modulus:
             raise "NoModulus"
         cdef unsigned long i, j
         cdef ntl_GF2E tmp
 
-        if nrows is _INIT:
+        if _nrows is _INIT:
             return
 
         from sage.matrix.matrix import Matrix
         if isinstance(v,Matrix):
-            nrows = v.nrows()
-            ncols = v.ncols()
+            _nrows = v.nrows()
+            _ncols = v.ncols()
             v     = v.list()
 
-        self.x = new_mat_GF2E(nrows, ncols)
-        self.__nrows = nrows
-        self.__ncols = ncols
+        self.x = new_mat_GF2E(_nrows, _ncols)
+        self.__nrows = _nrows
+        self.__ncols = _ncols
         if v != None:
             _sig_on
-            for i from 0 <= i < nrows:
-                for j from 0 <= j < ncols:
-                    elem = v[i*ncols+j]
+            for i from 0 <= i < _nrows:
+                for j from 0 <= j < _ncols:
+                    elem = v[i*_ncols+j]
                     if not isinstance(elem, ntl_GF2E):
                         tmp=make_new_GF2E(elem)
                     else:

@@ -60,9 +60,9 @@ class FreeAlgebra_generic(Algebra):
 
         EXAMPLES:
             sage: F = FreeAlgebra(QQ,ZZ(3),names=("x","y","z"))
-            sage: mul([ F.gen(i) for i in range(3) ])
+            sage: mul([ F.gen(i) for i in range(3) ], F(1))
             x*y*z
-            sage: mul([ F.gen(i%3) for i in range(12) ])
+            sage: mul([ F.gen(i%3) for i in range(12) ], F(1))
             x*y*z*x*y*z*x*y*z*x*y*z
             sage: (x,y,z) = F.gens()
             sage: (2 + x*z + x**2)**2 + (x - y)**2

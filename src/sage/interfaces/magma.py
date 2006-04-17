@@ -341,12 +341,15 @@ class Magma(Expect):
                     for x in s.split('\n'):
                         i = x.find('(')
                         N.append(x[:i])
-                except RuntimeError:  # weird internal problems in MAGMA type system
+                except RuntimeError, msg:  # weird internal problems in MAGMA type system
+                    print 'Error -- %s'%msg
                     pass
             if verbose:
                 print "Done! (%s seconds)"%sage.misc.misc.cputime(tm)
             N = list(set(N))
             N.sort()
+            print "Saving cache to '%s' for future instant use."%INTRINSIC_CACHE
+            print "Delete the above file to force re-creation of the cache."
             sage.misc.persist.save(N, INTRINSIC_CACHE)
             self.__trait_names = N
             return N
@@ -424,10 +427,10 @@ class MagmaElement(ExpectElement):
         self._check_valid()
         P = self.parent()
         x = P(args[0])
-        try:
-            return P('%s!%s'%(self.name(), x.name()))
-        except (RuntimeError, TypeError):
-            return self.evaluate(*args)
+        #try:
+        return P('%s!%s'%(self.name(), x.name()))
+        #except (RuntimeError, TypeError):
+        #    return self.evaluate(*args)
 
     def set_magma_attribute(self, attrname, value):
         P = self.parent()   # instance of MAGMA that contains this element.

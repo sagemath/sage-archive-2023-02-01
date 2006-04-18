@@ -240,6 +240,4 @@ cdef extern from "wrap.h":
     long mat_GF2E_gauss(mat_GF2E *x, long w)
     long mat_GF2E_is_zero(mat_GF2E *x)
     mat_GF2E* mat_GF2E_transpose(mat_GF2E *x)
-#    mat_GF2E* mat_GF2E_HNF(mat_GF2E* A, GF2E* D)
-#    GF2EX* mat_GF2E_charpoly(mat_GF2E* A)
 

@@ -2,7 +2,6 @@ cdef extern from "wrap.h":
     struct ZZ
 
 cdef class ntl_ZZ:
-    # See ntl_ZZX.pxd for definition of data members
     cdef ZZ* x
     cdef set(self, void *y)
 
@@ -17,7 +16,6 @@ cdef extern from "wrap.h":
     struct ZZ_p
 
 cdef class ntl_ZZ_p:
-    # See ntl_ZZ_p.pxd for definition of data members
     cdef ZZ_p* x
     cdef set(self, void *y)
 

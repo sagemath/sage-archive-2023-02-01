@@ -313,10 +313,10 @@ class FreeModule_generic(module.Module):
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "base_ring must be a commutative ring"
-        rank = int(rank)
+        rank = integer.Integer(rank)
         if rank < 0:
             raise ValueError, "rank must be nonnegative"
-        degree = int(degree)
+        degree = integer.Integer(degree)
         if degree < 0:
             raise ValueError, "degree must be nonnegative"
 

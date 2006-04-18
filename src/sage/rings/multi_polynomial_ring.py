@@ -65,7 +65,7 @@ from sage.rings.integer_ring import IntegerRing
 
 import multi_polynomial_ideal
 
-_cache = {}
+#_cache = {}
 
 def MPolynomialRing(base_ring, n=1, names=None,
                     order='lex', macaulay2=False):
@@ -147,13 +147,15 @@ def MPolynomialRing(base_ring, n=1, names=None,
     #elif isinstance(names, str):
     #    if len(names) > 1:
     #        names = tuple(names)
-    key = (base_ring, n, names, T, macaulay2)
-    if _cache.has_key(key):
-        R = _cache[key]()
-        if not (R is None):
-            return R
+    #key = (base_ring, n, names, T, macaulay2)
+    #if _cache.has_key(key):
+    #    R = _cache[key]()
+    #    if not (R is None):
+    #        return R
+
     if not isinstance(base_ring, commutative_ring.CommutativeRing):
         raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+
     if macaulay2:
         if integral_domain.is_IntegralDomain(base_ring):
             R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
@@ -166,7 +168,9 @@ def MPolynomialRing(base_ring, n=1, names=None,
             R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
         else:
             R = MPolynomialRing_polydict(base_ring, n, names, T)
-    _cache[key] = weakref.ref(R)
+
+    #_cache[key] = weakref.ref(R)
+
     return R
 
 def is_MPolynomialRing(x):

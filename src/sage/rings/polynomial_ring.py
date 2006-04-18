@@ -37,7 +37,7 @@ import sage.misc.latex as latex
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
-_objsPolynomialRing = {}
+#_objsPolynomialRing = {}
 
 def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, macaulay2=False):
     """
@@ -77,13 +77,12 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
             order = 'lex'
         return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order, macaulay2=macaulay2)
 
-    global _objsPolynomialRing
-
-    key = (base_ring, name, sparse)
-    if _objsPolynomialRing.has_key(key):
-        R = _objsPolynomialRing[key]()
-        if R != None:
-            return R
+    #global _objsPolynomialRing
+    #key = (base_ring, name, sparse)
+    #if _objsPolynomialRing.has_key(key):
+    #    R = _objsPolynomialRing[key]()
+    #    if R != None:
+    #        return R
 
     if integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
         n = base_ring.order()
@@ -98,7 +97,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
     else:
         R = PolynomialRing_generic(base_ring, name, sparse)
 
-    _objsPolynomialRing[key] = weakref.ref(R)
+    #_objsPolynomialRing[key] = weakref.ref(R)
     return R
 
 def is_PolynomialRing(x):

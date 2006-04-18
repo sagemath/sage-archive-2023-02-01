@@ -215,7 +215,7 @@ AUTHOR:
 
 import os
 
-from expect import Expect, ExpectElement
+from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 
 from sage.misc.misc import verbose
 
@@ -384,10 +384,26 @@ command-line version of Mathematica.
     def console(self, readline=True):
         mathematica_console(readline=readline)
 
+    def trait_names(self):
+        a = self.eval('Names["*"]')
+        return a.replace('$','').replace('\n \n>','').replace(',','').replace('}','').replace('{','').split()
+
+
+    def help(self, cmd):
+        return self.eval('? %s'%cmd)
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return MathematicaFunction(self, attrname)
 
 class MathematicaElement(ExpectElement):
     def __getitem__(self, n):
         return self.parent().new('%s[[%s]]'%(self._name, n))
+
+    def __getattr__(self, attrname):
+        self._check_valid()
+        return MathematicaFunctionElement(self, attrname)
 
     def __float__(self):
         P = self.parent()
@@ -404,6 +420,19 @@ class MathematicaElement(ExpectElement):
         z = self.parent().eval('TeXForm[%s]'%self.name())
         i = z.find('=')
         return z[i+1:]
+
+
+class MathematicaFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M.help(self._name)
+
+
+class MathematicaFunctionElement(FunctionElement):
+    def _sage_doc_(self):
+        M = self._obj.parent()
+        return M.help(self._name)
+
 
 # An instance
 mathematica = Mathematica(script_subdirectory='user')

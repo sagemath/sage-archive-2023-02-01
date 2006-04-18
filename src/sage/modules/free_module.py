@@ -1309,7 +1309,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
         K  = S.integer_kernel()
-        n = V1.dimension()
+        n  = int(V1.dimension())
         B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
         return self.span(B, check=False)
 
@@ -1814,7 +1814,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
         K  = S.kernel()
-        n = V1.dimension()
+        n = int(V1.dimension())
         B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
         return self.ambient_vector_space().submodule(B, check=False)
 

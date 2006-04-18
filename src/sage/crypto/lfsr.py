@@ -131,7 +131,7 @@ Created 11-24-2005 by wdj. Last updated 12-02-2005.
 import copy
 
 from sage.structure.all import Sequence
-from sage.rings.all import is_FiniteField
+from sage.rings.all import is_FiniteField, Integer, PolynomialRing
 
 def lfsr_sequence(key, fill, n):
     r"""
@@ -192,4 +192,110 @@ def lfsr_sequence(key, fill, n):
         s = s[1:k]
         s.append(sum([key[i]*s0[i] for i in range(k)]))
     return L
+
+
+
+def lfsr_autocorrelation(L, p, k):
+    """
+    INPUT:
+        L -- is a periodic sequence of elements of ZZ or GF(2).
+             L must have length >= p
+        p -- the period of L
+        k -- k is an integer (0 < k < p)
+
+    OUTPUT:
+        autocorrelation sequence of L
+
+    EXAMPLES:
+        sage: F = GF(2)
+        sage: o = F(0)
+        sage: l = F(1)
+        sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
+        sage: s = lfsr_sequence(key,fill,n)
+        sage: lfsr_autocorrelation(s,15,7)
+        4/15
+        sage: lfsr_autocorrelation(s,int(15),7)
+        4/15
+
+    AUTHOR:
+        -- 2006-04-17: Timothy Brock (m060774@usna.edu)
+    """
+    if not isinstance(L, list):
+        raise TypeError, "L (=%s) must be a list"%L
+    p = Integer(p)
+    _p = int(p)
+    k = int(k)
+    L0 = L[:_p]     # slices makes a copy
+    L0 = L0 + L0[:k]
+    L1 = [int(L0[i])*int(L0[i + k])/p for i in range(_p)]
+    return sum(L1)
+
+def lfsr_connection_polynomial(s):
+    """
+    INPUT:
+        s -- a sequence of elements of a finite field (F) of even length
+    OUTPUT:
+        C(x) -- the connection polynomial of the minimal LFSR.
+
+    This implements the algorithm in section 3 of J. L. Massey's article [M].
+
+    EXAMPLE:
+       	sage: F = GF(2)
+	sage: F
+	Finite Field of size 2
+	sage: o = F(0); l = F(1)
+        sage: key = [l,o,o,l]; fill = [l,l,o,l]; n = 20
+        sage: s = lfsr_sequence(key,fill,n); s
+        [1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0]
+        sage: lfsr_connection_polynomial(s)
+        x^4 + x + 1
+        sage: berlekamp_massey(s)
+        x^4 + x^3 + 1
+
+    Notice that \code{berlekamp_massey} returns the reverse of the
+    connection polynomial (and is potentially must faster than this
+    implementation).
+
+    AUTHOR:
+        -- 2006-04-17: Timothy Brock (m060774@usna.edu)
+
+    REFERENCES:
+        [M] J. L. Massey, "Shift-register synthesis and BCH decoding,"
+            IEEE Trans. Inform. Theory, vol. IT-15, pp. 122--127, Jan. 19    69.
+    """
+    # Initialization:
+    FF = s[0].base_ring()
+    R = PolynomialRing(FF, "x")
+    x = R.gen()
+    C = R(1); B = R(1); m = 1; b = FF(1); L = 0; N = 0
+
+    while N < len(s):
+        if L > 0:
+            r = min(L+1,C.degree()+1)
+            d = s[N] + sum([(C.list())[i]*s[N-i] for i in range(1,r)])
+        if L == 0:
+            d = s[N]
+        if d == 0:
+            m += 1
+            N += 1
+        if d > 0:
+            if 2*L > N:
+                C = C - d*b**(-1)*x**m*B
+                m += 1
+                N += 1
+            else:
+                T = C
+                C = C - d*b**(-1)*x**m*B
+                L = N + 1 - L
+                m = 1
+                b = d
+                B = T
+                N += 1
+    return C
+
+
+
+
+
+
 

@@ -281,7 +281,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
             else:
 
-                A = self._degeneracy_raising_matrix(M)
+                A = self._degeneracy_raising_matrix(level)
 
         d = degenmap.DegeneracyMap(A, self, M, t)
         self._degeneracy_maps[key] = d

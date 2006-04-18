@@ -6,6 +6,7 @@ AUTHOR:
     -- William Stein (2006-03-09): * fixed crash in parsing exponentials
                                    * precision of real literals now determined
                                      by digits of input (like mathematica).
+    -- Joe Wetherelll (2006-04-14): * added MAGMA-style constructor preparsing.
 """
 #EXAMPLES:
 #These examples all illustrate input lines whose pre-parsing is subtle.
@@ -104,33 +105,54 @@ def preparse(line, reset=True):
                 is_real = False
                 continue
 
-        # experimental support for generator construction
+        # Experimental support for generator construction
         # syntax:  "obj.<gen0,gen1,...,genN> = objConstructor(...)"
         # is converted into
         # "obj = objConstructor(...); \
         #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
         #  (gen0, gen1, ..., genN,) = obj.gens()"
+        #
         # LIMITATIONS:
-        # - The entire constructor must be on one line.
-        # - The line must contain no other statements.
-        elif len(line) > i+1 and line[i] == "." and line[i+1] == "<" \
-                 and not in_quote():
+        #    - The entire constructor must be on one line.
+        #
+        # AUTHOR:
+        #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+        #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
+        elif line[i:i+2] == ".<" and not in_quote():
             try:
                 gen_end = line.index(">", i+2)
             except ValueError:
                 # Syntax Error -- let Python notice and raise the error
                 i += 2
                 continue
+
+            gen_begin = i
+            while gen_begin > 0 and line[gen_begin-1] != ';':
+                gen_begin -= 1
+
             # parse out the object name and the list of generator names
-            gen_obj = line[:i].strip()
-            gen_list = map(lambda s: s.strip(), line[i+2:gen_end].split(","))
+            gen_obj = line[gen_begin:i].strip()
+            gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
             # format names as a list of strings and a list of variables
             gen_names = str(gen_list)
             gen_vars  = ", ".join(gen_list)
+            # find end of constructor:
+            #    either end of line, next semicolon, or next #.
+
+            line_after = line[gen_end:]
+            c = line_after.find('#')
+            if c==-1: c = len(line_after)
+            s = line_after.find(';')
+            if s==-1: s = len(line_after)
+            c = min(c,s) + gen_end
             # rewrite the input line as three commands
-            line = "; ".join([line[:i] + line[gen_end+1:],
+            line_new = "; ".join([line[:i] + line[gen_end+1:c],
                               "%s.assign_names(%s)" % (gen_obj, gen_names),
                               "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
+
+            line = line_new + line[c:]
+            i = len(line_new)
+
             continue
 
         # exponents can be either ^ or **

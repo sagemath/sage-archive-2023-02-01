@@ -310,7 +310,7 @@ class Magma(Expect):
         return magma_version()
 
     def help(self, s):
-        print magma.eval('? %s'%s)
+        print self.eval('? %s'%s)
 
     def trait_names(self, verbose=True, use_disk_cache=True):
         try:

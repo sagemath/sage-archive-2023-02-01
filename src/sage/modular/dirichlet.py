@@ -190,8 +190,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         vals = [z**exp for z in self.__values_on_gens]
         return DirichletCharacter(self.parent(), vals)
 
-    def __repr__(self):
-        return str(self.__values_on_gens)
+    def _repr_(self):
+        return str(list(self.__values_on_gens))
 
     def base_ring(self):
         """
@@ -873,7 +873,7 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
     def __len__(self):
         return self.order()
 
-    def __repr__(self):
+    def _repr_(self):
         return "Group of Dirichlet characters of modulus %s over %s"%\
                (self.modulus(),self.base_ring())
 

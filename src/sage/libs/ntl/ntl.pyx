@@ -2203,7 +2203,7 @@ cdef class ntl_GF2X:
         _sig_on
         return string(GF2X_to_hex(self.gf2x_x))
 
-    def sage(ntl_GF2X self,R=None,cache=None):
+    def _sage_(ntl_GF2X self,R=None,cache=None):
         """
         Returns a SAGE polynomial over GF(2) equivalent to
         this element. If a ring R is provided it is used
@@ -2401,7 +2401,7 @@ def ntl_GF2E_sage():
         Finite Field in a of size 2^8
     """
     from sage.rings.finite_field import FiniteField_ext_pari
-    f = ntl_GF2E_modulus().sage()
+    f = ntl_GF2E_modulus()._sage_()
     return FiniteField_ext_pari(int(2)**GF2E_degree(),modulus=f)
 
 
@@ -2511,7 +2511,7 @@ cdef class ntl_GF2E(ntl_GF2X):
         return make_GF2X(self.gf2x_x)
 
 
-    def sage(ntl_GF2E self, k=None, cache=None):
+    def _sage_(ntl_GF2E self, k=None, cache=None):
         """
         Returns a \class{FiniteFieldElement} representation
         of this element. If a \class{FiniteField} k is provided
@@ -2532,7 +2532,7 @@ cdef class ntl_GF2E(ntl_GF2X):
 
         if k==None:
             from sage.rings.finite_field import FiniteField_ext_pari
-            f = ntl_GF2E_modulus().sage()
+            f = ntl_GF2E_modulus()._sage_()
             k = FiniteField_ext_pari(2**deg,modulus=f)
 
         if cache != None:
@@ -2886,7 +2886,7 @@ cdef class ntl_mat_GF2E:
         else:
             return True
 
-    def sage(ntl_mat_GF2E self, k=None, cache=None):
+    def _sage_(ntl_mat_GF2E self, k=None, cache=None):
         """
         Returns a \class{Matrix} over a FiniteField representation
         of this element.
@@ -2903,7 +2903,7 @@ cdef class ntl_mat_GF2E:
             k = ntl_GF2E_sage()
         l = []
         for elem in self.list():
-            l.append(elem.sage(k, cache))
+            l.append(elem._sage_(k, cache))
 
         from sage.matrix.matrix import Matrix_generic_dense
         from sage.matrix.matrix_space import MatrixSpace

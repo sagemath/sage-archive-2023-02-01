@@ -113,7 +113,8 @@ def preparse(line, reset=True):
         # LIMITATIONS:
         # - The entire constructor must be on one line.
         # - The line must contain no other statements.
-        elif line[i] == "." and line[i+1] == "<" and not in_quote():
+        elif len(line) > i+1 and line[i] == "." and line[i+1] == "<" \
+                 and not in_quote():
             try:
                 gen_end = line.index(">", i+2)
             except ValueError:

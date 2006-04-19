@@ -40,6 +40,7 @@ import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
+from sage.modular.cusps import Cusp
 
 import boundary
 import element
@@ -206,14 +207,27 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             0 -- the integer 0; results in the 0 modular symbol.
 
         \item
-            3-tuple -- Given a 3-tuple (i,u,v), returns the modular
-                       symbol in this space defined by the Manin
-                       symbol $[X^{i}\cdot Y^{2-k-i}, (u,v)]$, where k is the
+            3-tuple -- Given a 3-tuple (i,u,v), returns the elementmodular
+                       defined by the Manin symbol
+                       $[X^{i}\cdot Y^{k-2-i}, (u,v)]$, where k is the
                        weight.  Note that we must have $0\leq i \leq 2-k$.
+
         \item
-            2-tuple -- Given a 2-tuple (u,v), returns the modular
-                       symbol defined by the Manin symbol
+            2-tuple -- Given a 2-tuple (u,v), returns the element
+                       defined by the Manin symbol
                        $[X^0 \cdot Y^{2-k}, (u,v)]$.
+
+        \item
+            2-elements list -- Given a list \code{[alpha, beta]}, where
+                       $\alpha$ and $\beta$ are (coercible to) cusps, return
+                       the modular symbol $\{\alpha, \beta\}$.  When the
+                       the weight $k > 2$ return $Y^{k-2-i} \{\alpha, \beta\}$.
+
+        \item
+            3-element list -- Given a list \code{[i, alpha, beta]},
+                       where $i$ is an integer, and $\alpha$, $\beta$
+                       are (coercible to) cusps, return the modular symbol
+                       $X^i Y^{k-2-i} \{\alpha, \beta\}$.
         \end{itemize}
         """
         if isinstance(x, free_module_element.FreeModuleElement):
@@ -235,15 +249,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             return element.ModularSymbolsElement(self, self.free_module()(0))
 
         elif isinstance(x, tuple):
-            if len(x) == 2:
-                x = (0,x[0],x[1])
-            if len(x) == 3:
-                # Manin symbol of the form (i, u, v), which corresponds to [X^i*Y^(k-2-i), (u,v)].
-                if x[0] < 0 or x[0] > self.weight()-2:
-                    raise ValueError, "The first entry of the tuple (=%s) must be between 0 and k-2 (=%s)."%(
-                        x, self.weight-2)
-                y = manin_symbols.ManinSymbol(self.manin_symbols(), x)
-                return self(y)
+            return self.manin_symbol(x)
+
+        elif isinstance(x, list):
+            return self.modular_symbol(x)
 
         elif isinstance(x, formal_sum.FormalSum):
             return sum([c*self(y) for c, y in x], self(0))
@@ -263,6 +272,100 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if not len(g) == 4:
             raise TypeError, "g must be a list of length 4"
         return self._matrix_of_operator_on_modular_symbols(self, [g])
+
+    def manin_symbol(self, x, check=True):
+        if check:
+            if len(x) == 2:
+                x = (0,x[0],x[1])
+            if len(x) == 3:
+                # Manin symbol of the form (i, u, v), which corresponds to [X^i*Y^(k-2-i), (u,v)].
+                if x[0] < 0 or x[0] > self.weight()-2:
+                    raise ValueError, "The first entry of the tuple (=%s) must be an integer between 0 and k-2 (=%s)."%(
+                        x, self.weight()-2)
+            else:
+                raise ValueError, "x (=%s) must be of length 2 or 3"%x
+        # end check
+        y = manin_symbols.ManinSymbol(self.manin_symbols(), x)
+        return self(y)
+
+    def _modular_symbol_0_to_alpha(self, alpha, i=0):
+        if alpha.is_infinity():
+            return self.manin_symbol((i,0,1), check=False)
+        QQ = rings.Rational
+        v = arith.continued_fraction(QQ(alpha))
+        c = [QQ(0), QQ(1)] + arith.convergents(v)
+        a = self(0)
+        if self.weight() > 2:
+            # TODO!!!!!  must apply action to the polynomial part
+            raise NotImplementedError
+        for k in range(1,len(c)):
+            u = c[k].denominator()
+            v = c[k-1].denominator()
+            if k % 2 == 0:
+                v = -v
+            a += self.manin_symbol((i, u, v), check=False)
+        return a
+
+    def modular_symbol(self, x, check=True):
+        """
+        Create a modular symbol in this space.
+
+        INPUT:
+            x -- a list of either 2 or 3 entries
+
+            2 entries:   [alpha, beta] -- creates the modular
+                         symbol {alpha, beta}, or, if the weight
+                         is > 2 the symbol Y^(k-2-i){alpha,beta}.
+            3 entries:   [i, alpha, beta] -- create the modular
+                         symbol X^i*Y^(k-2-i){alpha,beta}.
+
+        EXAMPLES:
+            sage: set_modsym_print_mode('modular')
+            sage: M = ModularSymbols(11)
+            sage: M.modular_symbol([2/11, oo])
+            -{-1/9,0}
+            sage: M.1
+            {-1/8,0}
+            sage: M.modular_symbol([-1/8, 0])
+            {-1/8,0}
+            sage: M.modular_symbol([0, -1/8, 0])
+            {-1/8,0}
+            sage: M.modular_symbol([10, -1/8, 0])
+            Traceback (most recent call last):
+            ...
+            ValueError: The first entry of the tuple (=[10, -1/8, 0]) must be an integer between 0 and k-2 (=0).
+
+        Use check=False for efficiency if the input x is
+        a list of length 3 whose first entry is an Integer,
+        and whose second and third entries are cusps:
+
+            sage: M.modular_symbol([0, Cusp(2/11), Cusp(oo)], check=False)
+            -{-1/9,0}
+
+            sage: set_modsym_print_mode()   # return to default.
+        """
+
+        if check:
+            if len(x) == 2:
+                x = [0,x[0],x[1]]
+            if len(x) == 3:
+                if x[0] < 0 or x[0] > self.weight()-2:
+                    raise ValueError, "The first entry of the tuple (=%s) must be an integer between 0 and k-2 (=%s)."%(
+                        x, self.weight()-2)
+            else:
+                raise ValueError, "x (=%s) must be of length 2 or 3"%x
+            i = rings.Integer(x[0])
+            alpha = Cusp(x[1])
+            beta = Cusp(x[2])
+        else:
+            i = x[0]
+            alpha = x[1]
+            beta = x[2]
+
+        # Compute {0,beta} - {0,alpha}
+        b = self._modular_symbol_0_to_alpha(beta, i)
+        a = self._modular_symbol_0_to_alpha(alpha, i)
+        return b - a
 
     def _compute_dual_hecke_matrix(self, n):
         self._dual_hecke_matrices[n] = self.hecke_matrix(n).transpose()

@@ -40,6 +40,7 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
 # Kiran Kedlaya (2006-02-12): added Macaulay2 names to TermOrder
 
 import weakref
+import re
 
 import commutative_ring
 import integral_domain
@@ -285,6 +286,30 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def _monomial_order_function(self):
         raise NotImplementedError
+
+    def latex_variable_names(self):
+        """
+        Returns the list of variable names suitable for latex output.
+
+        All '_SOMETHING' substrings are replaced by '_{SOMETHING}' recursively
+        so that subscripts of subscripts work.
+
+        EXAMPLES:
+             sage: r=MPolynomialRing(QQ,2,'x')
+             sage: r.assign_names(['x_0,1_0','x_1,1_2'])
+             sage: x,y=r.gens()
+             sage: x._latex_()
+             'x_{0,1_{0}}'
+             sage: y._latex_()
+             'x_{1,1_{2}}'
+
+        """
+        ret = []
+        for gen in self.gens():
+            gen = re.sub("_","_{",str(gen),count=0)
+            gen =  "".join([gen]+["}"]*gen.count("{"))
+            ret.append(gen)
+        return ret
 
 class MPolynomialRing_polydict(MPolynomialRing_generic):
     """

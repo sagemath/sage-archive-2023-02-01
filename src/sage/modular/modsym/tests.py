@@ -134,7 +134,7 @@ class Test:
         Compute the cuspidal subspace (this implicitly checks that
         the dimension is correct using formulas).
         """
-        self._modular_symbols_space().cuspidal_subspace()
+        self._modular_symbols_space().cuspidal_submodule()
 
     def test_csnew_dimension(self):
         """
@@ -142,9 +142,9 @@ class Test:
         a dimension formula.
         """
         M = self._modular_symbols_space()
-        V = M.cuspidal_subspace().new_subspace()
+        V = M.cuspidal_submodule().new_submodule()
         d = V.dimension()
-        d2 = M._cuspidal_new_subspace_dimension_formula()
+        d2 = M._cuspidal_new_submodule_dimension_formula()
         if d != d2:
             assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
                      M, d, d2)
@@ -154,10 +154,10 @@ class Test:
         Compute new cuspidal subspace in two ways and verify that the results are the same.
         """
         M = self._modular_symbols_space()
-        V1 = M.cuspidal_subspace().new_subspace()
-        V2 = M.new_subspace().cuspidal_subspace()
+        V1 = M.cuspidal_submodule().new_submodule()
+        V2 = M.new_submodule().cuspidal_submodule()
         assert V1 == V2, "Test failed for M=\"%s\", where the new cuspidal and cuspidal new spaces are computed differently."%M
-        d = M._cuspidal_new_subspace_dimension_formula()
+        d = M._cuspidal_new_submodule_dimension_formula()
         if d != V1.dimension():
             assert False, "Test failed for M=\"%s\", where computed dimension is %s but formula dimension is %s."%(
                      M, V1.dimension(), d)

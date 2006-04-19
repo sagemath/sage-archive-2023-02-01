@@ -81,7 +81,7 @@ def buzzard_tpslopes(p, N, kmax):
     $[4,8,13]$, which indeed they are, as one can verify by an
     explicit computation using, e.g., modular symbols:
 
-        sage: M = ModularSymbols(1,50, sign=1).cuspidal_subspace()
+        sage: M = ModularSymbols(1,50, sign=1).cuspidal_submodule()
         sage: T = M.hecke_operator(2)
         sage: f = T.charpoly()
         sage: f.newton_slopes(2)

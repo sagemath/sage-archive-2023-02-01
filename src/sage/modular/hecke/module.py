@@ -282,7 +282,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             (x - 1)^7 * (x + 1)^8
 
             sage: M = ModularSymbols(33)
-            sage: S = M.cuspidal_subspace()
+            sage: S = M.cuspidal_submodule()
             sage: S.atkin_lehner_operator()
             Hecke module morphism Atkin-Lehner operator W_33 defined by the matrix
             (not printing 6 x 6 matrix)
@@ -295,7 +295,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             Domain: Dimension 6 subspace of a modular symbols space of level 33
             Codomain: Dimension 6 subspace of a modular symbols space of level 33
 
-            sage: N = M.new_subspace()
+            sage: N = M.new_submodule()
             sage: N.atkin_lehner_operator()
             Hecke module morphism Atkin-Lehner operator W_33 defined by the matrix
             [  1 2/5 4/5]

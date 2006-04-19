@@ -96,23 +96,23 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def cuspidal_submodule(self):
         raise NotImplementedError
 
-    def cuspidal_subspace(self):
-        """
-        Synonym for cuspidal_submodule.
-        """
-        return self.cuspidal_submodule()
+##     def cuspidal_subspace(self):
+##         """
+##         Synonym for cuspidal_submodule.
+##         """
+##         return self.cuspidal_submodule()
 
-    def new_subspace(self, p=None):
-        """
-        Synonym for new_submodule.
-        """
-        return self.new_submodule(p)
+##     def new_subspace(self, p=None):
+##         """
+##         Synonym for new_submodule.
+##         """
+##         return self.new_submodule(p)
 
-    def eisenstein_subspace(self):
-        """
-        Synonym for eisenstein_submodule.
-        """
-        return self.eisenstein_submodule()
+##     def eisenstein_subspace(self):
+##         """
+##         Synonym for eisenstein_submodule.
+##         """
+##         return self.eisenstein_submodule()
 
     def dimension_of_associated_cuspform_space(self):
         if not self.is_cuspidal():
@@ -222,16 +222,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         change the default precision.
 
             sage: M = ModularSymbols(15)
-            sage: M.cuspidal_subspace().q_expansion_basis()
+            sage: M.cuspidal_submodule().q_expansion_basis()
             [q - q^2 - q^3 - q^4 + q^5 + q^6 + O(q^8)]
             sage: M.set_default_prec(20)
 
     Notice that setting the default precision of the ambient space
     affects the subspaces.
 
-            sage: M.cuspidal_subspace().q_expansion_basis()
+            sage: M.cuspidal_submodule().q_expansion_basis()
             [q - q^2 - q^3 - q^4 + q^5 + q^6 + 3*q^8 + q^9 - q^10 - 4*q^11 + q^12 - 2*q^13 - q^15 - q^16 + 2*q^17 - q^18 + 4*q^19 + O(q^20)]
-            sage: M.cuspidal_subspace().default_prec()
+            sage: M.cuspidal_submodule().default_prec()
             20
         """
         if not self.is_ambient():
@@ -251,7 +251,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         EXAMPLES:
             sage: M = ModularSymbols(Gamma1(13),2)
             sage: M.set_default_prec(5)
-            sage: M.cuspidal_subspace().q_expansion_basis()
+            sage: M.cuspidal_submodule().q_expansion_basis()
             [q - 4*q^3 - q^4 + O(q^5), q^2 - 2*q^3 - q^4 + O(q^5)]
         """
         if not self.is_ambient():
@@ -282,35 +282,35 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         operators used in computing the basis are cached.
 
         EXAMPLES:
-            sage: M = ModularSymbols(1, 12).cuspidal_subspace()
+            sage: M = ModularSymbols(1, 12).cuspidal_submodule()
             sage: M.q_expansion_basis(8)
             [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
             sage: M.q_expansion_basis(8, algorithm='eigen')
             [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
 
-            sage: M = ModularSymbols(1, 24).cuspidal_subspace()
+            sage: M = ModularSymbols(1, 24).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
             [q + 195660*q^3 + 12080128*q^4 + 44656110*q^5 - 982499328*q^6 - 147247240*q^7 + O(q^8),
              q^2 - 48*q^3 + 1080*q^4 - 15040*q^5 + 143820*q^6 - 985824*q^7 + O(q^8)]
 
-            sage: M = ModularSymbols(11, 2, sign=-1).cuspidal_subspace()
+            sage: M = ModularSymbols(11, 2, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
             [q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)]
 
-            sage: M = ModularSymbols(Gamma1(13), 2, sign=1).cuspidal_subspace()
+            sage: M = ModularSymbols(Gamma1(13), 2, sign=1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
             [q - 4*q^3 - q^4 + 3*q^5 + 6*q^6 + O(q^8),
              q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)]
 
-            sage: M = ModularSymbols(Gamma1(5), 3, sign=-1).cuspidal_subspace()
+            sage: M = ModularSymbols(Gamma1(5), 3, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')   # dimension is 0
             []
 
-            sage: M = ModularSymbols(Gamma1(7), 3, sign=-1).cuspidal_subspace()
+            sage: M = ModularSymbols(Gamma1(7), 3, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8)
             [q - 3*q^2 + 5*q^4 - 7*q^7 + O(q^8)]
 
-            sage: M = ModularSymbols(43, 2, sign=0).cuspidal_subspace()
+            sage: M = ModularSymbols(43, 2, sign=0).cuspidal_submodule()
             sage: M[0]
             Dimension 2 subspace of a modular symbols space of level 43
             sage: M[0].q_expansion_basis()
@@ -425,12 +425,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         modular symbols corresponding to self.
 
         EXAMPLES:
-            sage: S = ModularSymbols(11,2, sign=1).cuspidal_subspace()
+            sage: S = ModularSymbols(11,2, sign=1).cuspidal_submodule()
             sage: f = S.q_expansion_cuspforms(8)
             sage: f(0,0)
             q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)
 
-            sage: S = ModularSymbols(37,2).cuspidal_subspace()
+            sage: S = ModularSymbols(37,2).cuspidal_submodule()
             sage: f = S.q_expansion_cuspforms(8)
             sage: f(0,0)
             q + q^3 - 2*q^4 - q^7 + O(q^8)
@@ -439,14 +439,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f(1,2)
             q^2 + 2*q^3 - 2*q^4 + q^5 - 3*q^6 + O(q^8)
 
-            sage: S = ModularSymbols(Gamma1(13),2,sign=-1).cuspidal_subspace()
+            sage: S = ModularSymbols(Gamma1(13),2,sign=-1).cuspidal_submodule()
             sage: f = S.q_expansion_cuspforms(8)
             sage: f(0,0)
             q - 2*q^2 + q^4 - q^5 + 2*q^6 + O(q^8)
             sage: f(0,1)
             q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)
 
-            sage: S = ModularSymbols(1,12,sign=-1).cuspidal_subspace()
+            sage: S = ModularSymbols(1,12,sign=-1).cuspidal_submodule()
             sage: f = S.q_expansion_cuspforms(8)
             sage: f(0,0)
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
@@ -641,6 +641,63 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         J = self.free_module().intersection(I)
         self.__integral_structure = J
         return J
+
+    def integral_basis(self):
+        r"""
+        Return a basis for the $\Z$-submodule of this modular symbols
+        space spanned by the generators.
+
+        Modular symbols spaces for congruence subgroups have a
+        $\Z$-structure.  Computing this $\Z$-structure is expensive,
+        so by default modular symbols spaces for congruence subgroups
+        in \sage are defined over $\Q$.  This function returns a tuple
+        of independent elements in this modular symbols space whose
+        $\Z$-span is the corresponding space of modular symbols over
+        $\Z$.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(11)
+            sage: M.basis()
+            ((1,0), (1,8), (1,9))
+            sage: M.integral_basis()
+            ((1,0), (1,8), (1,9))
+            sage: S = M.cuspidal_submodule()
+            sage: S.basis()
+            ((1,8), (1,9))
+            sage: S.integral_basis()
+            ((1,8), (1,9))
+
+            sage: M = ModularSymbols(13,4)
+            sage: M.basis()
+            ([X^2,(0,1)], [X^2,(1,4)], [X^2,(1,5)], [X^2,(1,7)], [X^2,(1,9)], [X^2,(1,10)], [X^2,(1,11)], [X^2,(1,12)])
+            sage: M.integral_basis()
+            ([X^2,(0,1)], 1/28*[X^2,(1,4)] + 2/7*[X^2,(1,5)] + 3/28*[X^2,(1,7)] + 11/14*[X^2,(1,9)] + 2/7*[X^2,(1,10)] + 11/28*[X^2,(1,11)] + 3/28*[X^2,(1,12)], [X^2,(1,5)], 1/2*[X^2,(1,7)] + 1/2*[X^2,(1,9)], [X^2,(1,9)], [X^2,(1,10)], [X^2,(1,11)], [X^2,(1,12)])
+            sage: S = M.cuspidal_submodule()
+            sage: S.basis()
+            ([X^2,(1,4)] - [X^2,(1,12)], [X^2,(1,5)] - [X^2,(1,12)], [X^2,(1,7)] - [X^2,(1,12)], [X^2,(1,9)] - [X^2,(1,12)], [X^2,(1,10)] - [X^2,(1,12)], [X^2,(1,11)] - [X^2,(1,12)])
+            sage: S.integral_basis()
+            (1/28*[X^2,(1,4)] + 2/7*[X^2,(1,5)] + 3/28*[X^2,(1,7)] + 11/14*[X^2,(1,9)] + 2/7*[X^2,(1,10)] + 11/28*[X^2,(1,11)] - 53/28*[X^2,(1,12)], [X^2,(1,5)] - [X^2,(1,12)], 1/2*[X^2,(1,7)] + 1/2*[X^2,(1,9)] - [X^2,(1,12)], [X^2,(1,9)] - [X^2,(1,12)], [X^2,(1,10)] - [X^2,(1,12)], [X^2,(1,11)] - [X^2,(1,12)])
+
+        This function currently raises a NotImplementedError on
+        modular symbols spaces with character of order bigger than $2$:
+
+            sage: M = ModularSymbols(DirichletGroup(13).0^2, 2); M
+            Full Modular Symbols space of level 13, weight 2, character [zeta_6], sign 0, and dimension 4 over Cyclotomic Field of order 6 and degree 2
+            sage: M.basis()
+            ((1,0), (1,5), (1,10), (1,11))
+            sage: M.integral_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
+        """
+        try:
+            return self.__integral_basis
+        except AttributeError:
+            pass
+        B = self.integral_structure().basis()
+        self.__integral_basis = tuple([self(b) for b in B])
+        return self.__integral_basis
+
 
     def integral_hecke_matrix(self, n):
         """

@@ -196,7 +196,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             [Dimension 1 subspace of a modular symbols space of level 11,
              Dimension 2 subspace of a modular symbols space of level 11]
 
-            sage: M = ModularSymbols(33, sign=1).new_subspace()
+            sage: M = ModularSymbols(33, sign=1).new_submodule()
             sage: T = M.hecke_operator(2)
             sage: T.decomposition()
             [Dimension 1 subspace of a modular symbols space of level 33,

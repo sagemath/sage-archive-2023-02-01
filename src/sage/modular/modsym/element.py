@@ -92,7 +92,6 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             other = self.parent()(other)
         if self.parent() != other.parent():
             raise TypeError, "parents must be the same"
-        print "cmp"
         return self.element().__cmp__(other.element())
 
     def _repr_(self):

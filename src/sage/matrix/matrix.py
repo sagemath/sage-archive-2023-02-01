@@ -86,6 +86,7 @@ import sage.modules.module_element  as module_element
 import berlekamp_massey
 import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.integer_ring as integer_ring
+import sage.rings.integer as integer
 import sage.rings.rational_field as rational_field
 import sage.rings.rational as rational
 import sage.rings.number_field.number_field as number_field
@@ -2551,7 +2552,7 @@ class Matrix_field(Matrix_pid):
             x^4 + x^3
         """
         if self.nrows() == 0 or self.ncols() == 0:
-            return 1
+            return integer.Integer(1)
         R = self.base_ring()
         x = self.list()
         try:
@@ -3530,7 +3531,7 @@ class Matrix_generic_sparse(Matrix):
         R = self.base_ring()
         x = self._entries()
         if len(x) == 0:
-            return 1
+            return integer.Integer(1)
         Z = x.iteritems()
         d = Z.next()[1].denominator()
         for _, y in Z:

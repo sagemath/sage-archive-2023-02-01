@@ -5,9 +5,11 @@ AUTHORS:
     -- David Joyner: first version
     -- William Stein: use dict's instead of lists
     -- Martin Albrecht <malb@informatik.uni-bremen.de>: some functions added
-    -- William Stein (2006-02-11); added better __div__ behavior.
+    -- William Stein (2006-02-11): added better __div__ behavior.
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               some Singular features
+    -- William Stein (2006-04-19): added e.g., f[1,3] to get coeff of x*y^3;
+              added examples of the new R.<x,y> = PolynomialRing(QQ,2) notation.
 """
 
 #*****************************************************************************
@@ -66,7 +68,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
         with the ith variable replaced by $a_i$.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(RationalField(),2).gens()
+            sage: R.<x, y> = MPolynomialRing(RationalField(),2)
             sage: f = x^2 + y^2
             sage: f(1,2)
             5
@@ -107,7 +109,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
     def _im_gens_(self, codomain, im_gens):
         """
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: f = R.hom([y,x], R)
             sage: f(x^2 + 3*y^5)
             y^2 + 3*x^5
@@ -133,7 +135,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
     def __div__(self, right):
         r"""
         EXAMPLES:
-            sage: x,y = QQ['x,y'].gens()
+            sage: R.<x,y> = QQ['x,y']
             sage: f = (x + y)/3
             sage: f.parent()
             Polynomial Ring in x, y over Rational Field
@@ -149,7 +151,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
         Note that / is still a constructor for elements of the
         fraction field in all cases as long as both arguments have the
         same parent.
-            sage: R, (x,y) = QQ['x,y'].objgens()
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: f = x^3 + y
             sage: g = R(3)
             sage: h = f/g; h
@@ -190,7 +192,7 @@ class MPolynomial_polydict(MPolynomial):
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ,10).objgens()
+            sage: R, x = MPolynomialRing(QQ, 10).objgens()
             sage: x
             (x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9)
             sage: loads(dumps(x)) == x
@@ -230,7 +232,7 @@ class MPolynomial_polydict(MPolynomial):
             integer
 
         EXAMPLE:
-            sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+            sage: R.<x, y> = MPolynomialRing(QQ, 2)
             sage: f = y^2 - x^9 - x
             sage: f.degree(x)
             9
@@ -253,7 +255,7 @@ class MPolynomial_polydict(MPolynomial):
         maximum degree of any monomial in self.
 
         EXAMPLES:
-            sage: x,y,z = MPolynomialRing(QQ,3,names=['x','y','z']).gens()
+            sage: R.<x,y,z> = MPolynomialRing(QQ, 3)
             sage: f=2*x*y^3*z^2
             sage: f.total_degree()
             6
@@ -302,6 +304,41 @@ class MPolynomial_polydict(MPolynomial):
             raise TypeError, "mon (=%s) must be a monomial in the parent of self."%mon
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
+
+    def __getitem__(self, x):
+        """
+        INPUT:
+            x -- a tuple or, in case of a single-variable MPolynomial
+                 ring x can also be an integer.
+
+        EXAMPLES:
+            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: f = -10*x^3*y + 17*x*y
+            sage: f[3,1]
+            -10
+            sage: f[1,1]
+            17
+            sage: f[0,1]
+            0
+
+            sage: R.<x> = MPolynomialRing(GF(7)); R
+            Polynomial Ring in x over Finite Field of size 7
+            sage: f = 5*x^2 + 3; f
+            3 + 5*x^2
+            sage: f[2]
+            5
+        """
+        if isinstance(x, MPolynomial):
+            return self.monomial_coefficient(x)
+        if not isinstance(x, tuple):
+            try:
+                x = tuple(x)
+            except TypeError:
+                x = (x, )
+        try:
+            return self.element()[x]
+        except KeyError:
+            return self.parent().base_ring()(0)
 
 
     def coefficient(self, mon):
@@ -879,8 +916,7 @@ class MPolynomial_macaulay2_repr(MPolynomial_polydict):
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'], macaulay2=True)   # optional
-            sage: x, y = R.gens()                   # optional
+            sage: R.<x,y> = PolynomialRing(GF(7), 2, macaulay2=True)   # optional
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
             sage: h = f._macaulay2_(); h            # optional

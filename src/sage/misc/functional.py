@@ -160,6 +160,45 @@ def cos(x):
     try: return x.cos()
     except AttributeError: return R(x).cos()
 
+def acos(x):
+    """
+    Return the arc cosine of x.
+
+    EXAMPLES:
+        sage: acos(0.5)
+        1.0471975511965979
+        sage: acos(1 + I*1.0)
+        0.90455689430238140 - 1.0612750619050357*I
+    """
+    try: return x.acos()
+    except AttributeError: return R(x).acos()
+
+def asin(x):
+    """
+    Return the arc sine of x.
+
+    EXAMPLES:
+        sage: asin(0.5)
+        1.0471975511965979
+        sage: asin(1 + I*1.0)
+        0.66623943249251527 + 1.0612750619050357*I
+    """
+    try: return x.asin()
+    except AttributeError: return R(x).asin()
+
+def atan(x):
+    """
+    Return the arc tangent of x.
+
+    EXAMPLES:
+        sage: atan(1/2)
+        0.46364760900080609
+        sage: atan(1 + I)
+        1.0172219678978514 + 0.40235947810852507*I
+    """
+    try: return x.atan()
+    except AttributeError: return R(x).atan()
+
 ## def cuspidal_submodule(x):
 ##     return x.cuspidal_submodule()
 

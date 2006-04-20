@@ -8,8 +8,8 @@ AUTHORS:
     -- William Stein (2006-02-11): added better __div__ behavior.
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               some Singular features
-    -- William Stein (2006-04-19): added e.g., f[1,3] to get coeff of x*y^3;
-              added examples of the new R.<x,y> = PolynomialRing(QQ,2) notation.
+    -- William Stein (2006-04-19): added e.g., \code{f[1,3]} to get coeff of $xy^3$;
+              added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
 """
 
 #*****************************************************************************

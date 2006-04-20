@@ -312,7 +312,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
         INPUT:
             x -- a list of either 2 or 3 entries
-
             2 entries:   [alpha, beta] -- creates the modular
                          symbol {alpha, beta}, or, if the weight
                          is > 2 the symbol Y^(k-2-i){alpha,beta}.

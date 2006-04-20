@@ -251,11 +251,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         elif isinstance(x, tuple):
             return self.manin_symbol(x)
 
-        elif isinstance(x, list):
-            return self.modular_symbol(x)
-
         elif isinstance(x, formal_sum.FormalSum):
             return sum([c*self(y) for c, y in x], self(0))
+
+        elif isinstance(x, list):
+            return self.modular_symbol(x)
 
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
 

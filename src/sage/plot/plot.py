@@ -53,11 +53,23 @@ from axes import find_axes
 
 class Graphics(SageObject):
     def __init__(self):
-        self.__xmin = None
-        self.__xmax = None
-        self.__ymin = None
-        self.__ymax = None
+        self.__xmin = -1
+        self.__xmax = 1
+        self.__ymin = -1
+        self.__ymax = 1
         self.__objects = []
+
+    def xmax(self):
+        return self.__xmax
+
+    def xmin(self):
+        return self.__xmin
+
+    def ymax(self):
+        return self.__ymax
+
+    def ymin(self):
+        return self.__ymin
 
     def _repr_(self):
         pr = ''

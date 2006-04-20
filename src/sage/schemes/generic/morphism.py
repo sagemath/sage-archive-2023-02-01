@@ -266,7 +266,10 @@ class SchemeMorphism_coordinates(SchemeMorphism):
 
     def __cmp__(self, other):
         if not isinstance(other, SchemeMorphism_coordinates):
-            return -1
+            try:
+                other = self.codomain().ambient_space()(other)
+            except TypeError:
+                return -1
         return cmp(self._coords, other._coords)
 
     def scheme(self):

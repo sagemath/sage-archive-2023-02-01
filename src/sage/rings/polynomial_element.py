@@ -1562,6 +1562,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             # TODO -- maybe use KASH if available or print message that user should install KASH?
             try:
                 from sage.interfaces.all import kash
+                kash.eval('X := PolynomialRing(RationalField()).1')
                 s = self._repr(name='X')
                 G = kash('Galois(%s)'%s)
                 d = int(kash.eval('%s.ext1'%G.name()))

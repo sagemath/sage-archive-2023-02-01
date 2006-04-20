@@ -29,6 +29,14 @@ which consists of a single polygon):
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
 """
 
+#*****************************************************************************
+#       Copyright (C) 2006 Alex Clemesha and William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 import os
 
 from sage.ext.sage_object import SageObject
@@ -40,6 +48,8 @@ try:
     import matplotlib.patches as patches
 except ImportError:
     pass
+
+from axes import find_axes
 
 class Graphics(SageObject):
     def __init__(self):
@@ -128,19 +138,64 @@ class Graphics(SageObject):
             self.__ymax = y
 
     def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax):
-        if 0 < xmin:
-            xat = xmin  + 0.05 * (xmax - xmin)
-        else:
-            xat = 0
-        if 0 < ymin:
-            yat = ymin  + 0.05 * (ymax - ymin)
-        else:
-            yat = 0
-        subplot.add_line(patches.Line2D([xmin, xmax], [yat,yat],
-                                        color='k', linewidth=1))
-        subplot.add_line(patches.Line2D([xat,xat], [ymin, ymax],
-                                        color='k', linewidth=1))
-        # todo: add tick marks and text like in mathematica
+        yspan = ymax - ymin
+        xspan = xmax - xmin
+
+	#evalute find_axes for x values and y ticks
+	y_axis_xpos, xstep, xtslminor, xtslmajor = find_axes(xmin, xmax)
+	yltheight = 0.02 * xspan
+	ystheight = 0.4  * yltheight
+	ylabel    = y_axis_xpos -2*ystheight
+
+	#evalute find_axes for y values and x ticks
+	x_axis_ypos, ystep, ytslminor, ytslmajor = find_axes(ymin, ymax)
+	xltheight = 0.02 * yspan
+        xstheight = 0.4  * xltheight
+	xlabel    = x_axis_ypos - xltheight
+
+	#the x axis line
+        subplot.add_line(patches.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
+                                        color='k', linewidth=0.8))
+
+	#the y axis line
+        subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
+                                        color='k', linewidth=0.8))
+
+
+        def format(z):
+            s = str(z)
+            if s[-2:] == '.0':
+                return s[:-2]
+            return s
+
+
+	#the x-axis ticks and labels
+	for x in xtslmajor:
+            if x == y_axis_xpos:
+                continue
+	    subplot.text(x, xlabel, format(x), fontsize=6,
+                         horizontalalignment="center", verticalalignment="top")
+
+	    subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
+					color='k',linewidth=0.8))
+
+        for x in xtslminor:
+	    subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
+					color='k', linewidth=0.8))
+
+	#the y-axis ticks and labels
+        for y in ytslmajor:
+            if y == x_axis_ypos:
+                continue
+	    subplot.text(ylabel, y, format(y), fontsize=6, verticalalignment="center",
+					horizontalalignment="right")
+
+	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
+					color='k', linewidth=0.8))
+
+        for y in ytslminor:
+	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
+					color='k',linewidth=0.8))
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None):
         # Todo -- mainly for testing.
@@ -162,6 +217,24 @@ class Graphics(SageObject):
             ymin = self.__ymin
         if ymax is None:
             ymax = self.__ymax
+
+        if xmax < xmin:
+            xmax, xmin = xmin, xmax
+        elif xmax == xmin:
+            x = xmax
+            if x == 0:
+                x = 1
+            xmax = 2*x
+            xmin = 0
+
+        if ymax < ymin:
+            ymax, ymin = ymin, ymax
+        elif ymax == ymin:
+            y = ymax
+            if y == 0:
+                y = 1
+            ymax = 2*y
+            ymin = 0
 
         xmin -= 0.1*(xmax-xmin)
         xmax += 0.1*(xmax-xmin)

@@ -439,28 +439,25 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
         """
         Return a newly created singular ring matching this ring.
         """
+        T = self.term_order().singular_str()
+
+        if self.ngens()==1:
+            _vars = str(self.gen())
+        else:
+            _vars = str(self.gens())
+
         if self.base_ring().is_prime_field():
-            self.__singular = singular.ring(self.characteristic(), \
-                                            str(self.gens()), \
-                                            self.term_order().singular_str())
+            self.__singular = singular.ring(self.characteristic(), _vars, T)
             return self.__singular
+
         if self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
-            if self.ngens()==1:
-              _vars = str(self.gen())
-            else:
-              _vars = str(self.gens())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen),
-                               _vars,
-                               self.term_order().singular_str() )
+            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, T )
             self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
             singular.eval("minpoly=%s"%(self.__minpoly) )
             self.__singular = r
             return self.__singular
-        if isinstance(self.base_ring(),IntegerRing): #char=0
-            self.__singular = singular.ring(0, str(self.gens()), \
-                                                self.term_order().singular_str())
-            return self.__singular
+
         raise TypeError, "no conversion of %s to a Singular ring defined"%self
 
     def __call__(self, x, check=True):

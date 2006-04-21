@@ -48,6 +48,8 @@ from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_c
 import sage.misc.latex as latex
 import sage.structure.factorization as factorization
 
+from sage.interfaces.all import singular as singular_default, is_SingularElement
+
 from coerce import bin_op
 
 QQ = rational_field.RationalField()
@@ -1138,6 +1140,48 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         """
         return self.parent()(self[:int(n)], check=False)
 
+class Polynomial_singular_repr:
+    """
+    Implements coercion of polynomials to Singular polynomials
+    """
+    def _singular_(self, singular=singular_default):
+        """
+        Return Singular polynomial matching this polynomial.
+
+        INPUT:
+            singular -- Singular instance to use
+
+        EXAMPLES:
+            sage: R = PolynomialRing(GF(7))
+            sage: x = R.gen()
+            sage: f = (x^3 + 2*x^2*x)^7; f
+            3*x^21
+            sage: h = f._singular_(); h
+            3*x^21
+            sage: R(h)
+            3*x^21
+            sage: R(h^20) == f^20
+            True
+
+
+        """
+        self.parent()._singular_(singular).set_ring() #this is expensive
+        try:
+            if self.__singular.parent() is singular:
+                return self.__singular
+        except AttributeError:
+            pass
+        return self._singular_init_(singular)
+
+    def _singular_init_(self,singular=singular_default):
+        """
+        Return corresponding Singular polynomial but
+        enforce that a new instance is created in
+        the Singular interpreter.
+        """
+        self.parent()._singular_(singular).set_ring() #this is expensive
+        self.__singular = singular(str(self))
+        return self.__singular
 
 class Polynomial_generic_dense(Polynomial):
     """
@@ -1337,7 +1381,9 @@ class Polynomial_generic_sparse(Polynomial):
         return max(v)
 
 
-class Polynomial_generic_field(Polynomial, euclidean_domain_element.EuclideanDomainElement):
+class Polynomial_generic_field(Polynomial,
+                               Polynomial_singular_repr,
+                               euclidean_domain_element.EuclideanDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
@@ -2356,7 +2402,9 @@ class Polynomial_dense_mod_n(Polynomial):
         except AttributeError:
             pass
 
-class Polynomial_dense_mod_p(Polynomial_dense_mod_n, principal_ideal_domain_element.PrincipalIdealDomainElement):
+class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
+                             Polynomial_singular_repr,
+                             principal_ideal_domain_element.PrincipalIdealDomainElement):
     """
     A dense polynomial over the integers modulo p, where p is prime.
     """

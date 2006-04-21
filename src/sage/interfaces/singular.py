@@ -776,34 +776,46 @@ class SingularElement(ExpectElement):
         EXAMPLES:
 
         """
-        # BUG import fails at toplevel:
-        # from sage.rings.polydict import PolyDict
-        # import sage.rings.arith as arith
-        # AttributeError: 'module' object has no attribute 'arith'
 
-        from sage.rings.polydict import PolyDict
+        from sage.rings.multi_polynomial_ring import MPolynomialRing_singular_repr
+        from sage.rings.polynomial_ring import is_PolynomialRing
 
-        polylist = singular.eval("sage_poly(%s)"%(self.name()))
-        polylist = polylist.splitlines()
+        singular_poly_list = singular.eval("sage_poly(%s)"%(self.name()))
+        singular_poly_list = singular_poly_list.splitlines()
 
-        poly_dict =  {}
+        str_fix = ""
 
-        if len(polylist)==1: #'empty list'
-            return r(PolyDict(poly_dict))
+        if isinstance(r,MPolynomialRing_singular_repr):
+            from sage.rings.polydict import PolyDict
+            sage_repr =  {}
+            if r.ngens()==1:
+                str_fix = ","
+            if len(singular_poly_list)==1: #'empty list'
+                return r(PolyDict(sage_repr))
+        elif is_PolynomialRing(r) and hasattr(r,"_singular_"):
+            sage_repr = [0]*int(self.deg()+1)
+            if len(singular_poly_list)==1: #'empty list'
+                return r(0)
+        else:
+            raise TypeError, "Cannot coerce %s into %s"%(self,r)
 
         k = r.base_ring()
         if kcache==None:
-            for i in range(0,len(polylist),5):
-                exponents = eval(polylist[i+2])
-                poly_dict[ exponents ]= k( polylist[i+4] )
+            for i in range(0,len(singular_poly_list),5):
+                exponents = eval("".join([singular_poly_list[i+2],str_fix]))
+                sage_repr[ exponents ]= k( singular_poly_list[i+4] )
         else:
-            for i in range(0,len(polylist),5):
-                exponents = eval(polylist[i+2])
-                elem = polylist[i+4].replace(" ","")
+            for i in range(0,len(singular_poly_list),5):
+                exponents = eval("".join([singular_poly_list[i+2],str_fix]))
+                elem = singular_poly_list[i+4].lstrip()
                 if not kcache.has_key(elem):
                     kcache[elem] = k( elem )
-                poly_dict[ exponents ]= kcache[elem]
-        poly = r(PolyDict(poly_dict))
+                sage_repr[ exponents ]= kcache[elem]
+
+        if isinstance(r,MPolynomialRing_singular_repr):
+            poly = r(PolyDict(sage_repr))
+        else:
+            poly = r(sage_repr)
         return poly
 
     def set_ring(self):

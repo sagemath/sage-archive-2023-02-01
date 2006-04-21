@@ -53,7 +53,9 @@ def HeilbronnCremonaList(int p):
     assert sage.rings.arith.is_prime(p), "Input must be a pseudoprime."
 
     ans = [[1,0,0,p]]
-    # NOTE: In C, -p/2 means "round toward 0", but in Python it means "round down."
+    # WARNING: In C (which is what we're writing in below!), -p/2 means
+    # "round toward 0", but in Python it means "round down" (right now),
+    # and in Python 3.0 it'll mean "make a float".
     _sig_on
     for r from -p/2 <= r < p/2+1:
         x1=p; x2=-r; y1=0; y2=1; a=-p; b=r; c=0; x3=0; y3=0; q=0

@@ -64,6 +64,8 @@ from sage.ext.sage_object import SageObject
 
 from sage.rings.integer_ring import IntegerRing
 
+from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
+
 import multi_polynomial_ideal
 
 #_cache = {}
@@ -163,8 +165,6 @@ def MPolynomialRing(base_ring, n=1, names=None,
             R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
         else:
             R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
-    elif finite_field.is_FiniteField(base_ring) or base_ring.is_prime_field():
-        R = MPolynomialRing_singular_repr_domain(base_ring, n, names, T)
     else:
         if integral_domain.is_IntegralDomain(base_ring):
             R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
@@ -190,6 +190,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         self.__ngens = n
         self.assign_names(names)
         self.__term_order = order
+        self._has_singular = False #cannot convert to Singular by default
 
     def __cmp__(self, right):
         if not is_MPolynomialRing(right):
@@ -351,114 +352,13 @@ class MPolynomialRing_polydict(MPolynomialRing_generic):
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)
 
+
+
     def _monomial_order_function(self):
         return self.__monomial_order_function
 
     def _poly_class(self):
         return multi_polynomial_element.MPolynomial_polydict
-
-    def __call__(self, x, check=True):
-        """
-        Coerce x into this multivariate polynomial ring.
-        """
-        if isinstance(x, multi_polynomial_element.MPolynomial_polydict) and x.parent() == self:
-            return x
-        elif isinstance(x, polydict.PolyDict):
-            return multi_polynomial_element.MPolynomial_polydict(self, x)
-        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
-            if x.denominator() == 1:
-                return x.numerator()
-            else:
-                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
-        c = self.base_ring()(x)
-        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
-
-class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain, MPolynomialRing_polydict):
-    pass
-
-
-class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
-    def _singular_(self, singular=singular_default):
-        """
-        Returns a singular ring for a given MPolynomialRing
-        over a finite field.
-
-        INPUT:
-           singular -- Singular instance
-
-        OUTPUT:
-           singular ring matching this ring
-
-        EXAMPLES:
-           sage: r=MPolynomialRing(GF(2**8),10,'x')
-           sage: r._singular_()
-           //   characteristic : 2
-           //   1 parameter    : a
-           //   minpoly        : (a^8+a^4+a^3+a^2+1)
-           //   number of vars : 10
-           //        block   1 : ordering lp
-           //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
-           //        block   2 : ordering C
-           sage: r=MPolynomialRing(GF(127),2,'x')
-           sage: r._singular_()
-           //   characteristic : 127
-           //   number of vars : 2
-           //        block   1 : ordering lp
-           //                  : names    x0 x1
-           //        block   2 : ordering C
-           sage: r=MPolynomialRing(QQ,2,'x')
-           sage: r._singular_()
-           //   characteristic : 0
-           //   number of vars : 2
-           //        block   1 : ordering lp
-           //                  : names    x0 x1
-           //        block   2 : ordering C
-
-        WARNING:
-           If the base ring is a finite extension field the ring will not only be
-           returned but also be set as the current ring in Singular.
-        """
-        try:
-            R = self.__singular
-            if not (R.parent() is singular):
-                raise ValueError
-            R._check_valid()
-            if self.base_ring().is_prime_field():
-                return R
-            if self.base_ring().is_finite():
-                R.set_ring() #sorry for that, but needed for minpoly
-                if  singular.eval('minpoly') != self.__minpoly:
-                    singular.eval("minpoly=%s"%(self.__minpoly))
-            return R
-        except (AttributeError, ValueError):
-            if not self.base_ring().is_finite() and not self.base_ring().is_prime_field():
-                raise TypeError, "no conversion of %s to a Singular ring defined"%self
-            return self._singular_init_(singular)
-
-    def _singular_init_(self, singular=singular_default):
-        """
-        Return a newly created singular ring matching this ring.
-        """
-        T = self.term_order().singular_str()
-
-        if self.ngens()==1:
-            _vars = str(self.gen())
-        else:
-            _vars = str(self.gens())
-
-        if self.base_ring().is_prime_field():
-            self.__singular = singular.ring(self.characteristic(), _vars, T)
-            return self.__singular
-
-        if self.base_ring().is_finite(): #must be extension field
-            gen = str(self.base_ring().gen())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, T )
-            self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
-            singular.eval("minpoly=%s"%(self.__minpoly) )
-            self.__singular = r
-            return self.__singular
-
-        raise TypeError, "no conversion of %s to a Singular ring defined"%self
 
     def __call__(self, x, check=True):
         """
@@ -476,34 +376,45 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
             sage: R(f)
             y^3 + x^3*y^2
         """
-        if isinstance(x, multi_polynomial_element.MPolynomial_singular_repr) and x.parent() == self:
+        if isinstance(x, multi_polynomial_element.MPolynomial_polydict) and x.parent() == self:
             return x
         elif isinstance(x, polydict.PolyDict):
-            return multi_polynomial_element.MPolynomial_singular_repr(self, x)
-        elif is_SingularElement(x):
-            self._singular_().set_ring()
-            try:
-                return x.sage_poly(self)
-            except:
-                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
+            return multi_polynomial_element.MPolynomial_polydict(self, x)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
                 return x.numerator()
             else:
                 raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
-        elif isinstance(x , str):
+        elif is_SingularElement(x) and self._has_singular:
+            self._singular_().set_ring()
+            try:
+                return x.sage_poly(self)
+            except:
+                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
+        elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string %s to %s"%(x,self)
         c = self.base_ring()(x)
-        return multi_polynomial_element.MPolynomial_singular_repr(self, {self._zero_tuple:c})
+        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
 
-    def _poly_class(self):
-        return multi_polynomial_element.MPolynomial_singular_repr
+
+
+class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
+                                      PolynomialRing_singular_repr,
+                                      MPolynomialRing_polydict):
+    def __init__(self, base_ring, n, names, order):
+        MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
+        self._has_singular = self._can_convert_to_singular()
 
     def ideal(self, gens, coerce=True):
+        """
+        """
+        if not self._has_singular:
+            # pass through
+            MPolynomialRing_generic.ideal(self,gens,coerce)
         if is_SingularElement(gens):
             gens = list(gens)
             coerce = True
@@ -512,9 +423,6 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
         return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
-
-class MPolynomialRing_singular_repr_domain(MPolynomialRing_singular_repr, integral_domain.IntegralDomain):
-    pass
 
 class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
     def _macaulay2_(self, macaulay2=None):

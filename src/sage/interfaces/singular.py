@@ -777,15 +777,15 @@ class SingularElement(ExpectElement):
 
         """
 
-        from sage.rings.multi_polynomial_ring import MPolynomialRing_singular_repr
         from sage.rings.polynomial_ring import is_PolynomialRing
+        from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict
 
         singular_poly_list = singular.eval("sage_poly(%s)"%(self.name()))
         singular_poly_list = singular_poly_list.splitlines()
 
         str_fix = ""
 
-        if isinstance(r,MPolynomialRing_singular_repr):
+        if isinstance(r,MPolynomialRing_polydict):
             from sage.rings.polydict import PolyDict
             sage_repr =  {}
             if r.ngens()==1:
@@ -812,7 +812,7 @@ class SingularElement(ExpectElement):
                     kcache[elem] = k( elem )
                 sage_repr[ exponents ]= kcache[elem]
 
-        if isinstance(r,MPolynomialRing_singular_repr):
+        if isinstance(r,MPolynomialRing_polydict):
             poly = r(PolyDict(sage_repr))
         else:
             poly = r(sage_repr)

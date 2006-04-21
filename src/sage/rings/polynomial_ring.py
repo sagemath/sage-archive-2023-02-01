@@ -39,6 +39,8 @@ from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
+from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
+
 #_objsPolynomialRing = {}
 
 def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, macaulay2=False):
@@ -105,93 +107,6 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
 def is_PolynomialRing(x):
     return isinstance(x, PolynomialRing_generic)
 
-
-class PolynomialRing_singular_repr:
-    """
-    Implements methods to convert polynomial rings over fields to
-    Singular.
-    """
-    def _singular_(self, singular=singular_default):
-        """
-        Returns a singular ring for a given PolynomialRing
-        over a field. Currently QQ, GF(p), and GF(p^n) are
-        supported.
-
-        INPUT:
-           singular -- Singular instance
-
-        OUTPUT:
-           singular ring matching this ring
-
-        EXAMPLES:
-            sage: r=PolynomialRing(QQ)
-            sage: r._singular_()
-            //   characteristic : 0
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    x
-            //        block   2 : ordering C
-            sage: r=PolynomialRing(GF(127))
-            sage: r._singular_()
-            //   characteristic : 127
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    x
-            //        block   2 : ordering C
-            sage: r=PolynomialRing(GF(2**8),'y')
-            sage: r._singular_()
-            //   characteristic : 2
-            //   1 parameter    : a
-            //   minpoly        : (a^8+a^4+a^3+a^2+1)
-            //   number of vars : 1
-            //        block   1 : ordering lp
-            //                  : names    y
-            //        block   2 : ordering C
-
-        WARNING:
-           If the base ring is a finite extension field the ring will not only be
-           returned but also be set as the current ring in Singular.
-        """
-        try:
-            R = self.__singular
-            if not (R.parent() is singular):
-                raise ValueError
-            R._check_valid()
-            if self.base_ring().is_prime_field():
-                return R
-            if self.base_ring().is_finite():
-                R.set_ring() #sorry for that, but needed for minpoly
-                if  singular.eval('minpoly') != self.__minpoly:
-                    singular.eval("minpoly=%s"%(self.__minpoly))
-            return R
-        except (AttributeError, ValueError):
-            if not self.base_ring().is_finite() and not self.base_ring().is_prime_field():
-                raise TypeError, "no conversion of %s to a Singular ring defined"%self
-            return self._singular_init_(singular)
-
-    def _singular_init_(self, singular=singular_default):
-        """
-        Return a newly created singular ring matching this ring.
-        """
-        if self.ngens()==1:
-            _vars = str(self.gen())
-        else:
-            _vars = str(self.gens())
-
-        if self.base_ring().is_prime_field():
-            self.__singular = singular.ring(self.characteristic(), _vars )
-            return self.__singular
-
-        if self.base_ring().is_finite(): #must be extension field
-            gen = str(self.base_ring().gen())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars )
-            self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
-            singular.eval("minpoly=%s"%(self.__minpoly) )
-            self.__singular = r
-            return self.__singular
-
-        raise TypeError, "no conversion of %s to a Singular ring defined"%self
-
 class PolynomialRing_generic(commutative_ring.CommutativeRing):
     """
     Univariate polynomial ring over a commutative ring.
@@ -214,18 +129,19 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
+        self._has_singular = False
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
-        elif is_SingularElement(x) and hasattr(self, "_singular_"):
+        elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except:
                 raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
-        elif isinstance(x , str) and hasattr(self, "_singular_"):
+        elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
@@ -395,6 +311,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False):
         PolynomialRing_generic.__init__(self, base_ring, name, sparse)
+        self._has_singular = self._can_convert_to_singular()
 
 class PolynomialRing_dense_mod_n(PolynomialRing_generic):
     def __init__(self, base_ring, name="x"):
@@ -414,16 +331,17 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
     def __init__(self, base_ring, name="x"):
         self.__modulus = ntl_ZZ(base_ring.order())
         PolynomialRing_dense_mod_n.__init__(self, base_ring, name)
+        self._has_singular = self._can_convert_to_singular()
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         set_modulus(self.__modulus)
-        if is_SingularElement(x) and hasattr(self, "_singular_"):
+        if is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except:
                 raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
-        elif isinstance(x , str) and hasattr(self, "_singular_"):
+        elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)

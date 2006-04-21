@@ -50,6 +50,8 @@ import sage.structure.factorization as factorization
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
+from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+
 from coerce import bin_op
 
 QQ = rational_field.RationalField()
@@ -1139,49 +1141,6 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         modulo $x^n$.
         """
         return self.parent()(self[:int(n)], check=False)
-
-class Polynomial_singular_repr:
-    """
-    Implements coercion of polynomials to Singular polynomials
-    """
-    def _singular_(self, singular=singular_default):
-        """
-        Return Singular polynomial matching this polynomial.
-
-        INPUT:
-            singular -- Singular instance to use
-
-        EXAMPLES:
-            sage: R = PolynomialRing(GF(7))
-            sage: x = R.gen()
-            sage: f = (x^3 + 2*x^2*x)^7; f
-            3*x^21
-            sage: h = f._singular_(); h
-            3*x^21
-            sage: R(h)
-            3*x^21
-            sage: R(h^20) == f^20
-            True
-
-
-        """
-        self.parent()._singular_(singular).set_ring() #this is expensive
-        try:
-            if self.__singular.parent() is singular:
-                return self.__singular
-        except AttributeError:
-            pass
-        return self._singular_init_(singular)
-
-    def _singular_init_(self,singular=singular_default):
-        """
-        Return corresponding Singular polynomial but
-        enforce that a new instance is created in
-        the Singular interpreter.
-        """
-        self.parent()._singular_(singular).set_ring() #this is expensive
-        self.__singular = singular(str(self))
-        return self.__singular
 
 class Polynomial_generic_dense(Polynomial):
     """

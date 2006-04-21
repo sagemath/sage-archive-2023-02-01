@@ -46,6 +46,8 @@ import polydict
 
 from sage.structure.factorization import Factorization
 
+from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+
 import multi_polynomial_ring
 import polynomial_ring
 
@@ -188,7 +190,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
 
 
-class MPolynomial_polydict(MPolynomial):
+class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
     def __init__(self, parent, x):
         """
         EXAMPLES:
@@ -742,111 +744,12 @@ class MPolynomial_polydict(MPolynomial):
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>
     ############################################################################
 
-
-###############################################################
-# Useful for some geometry code.
-###############################################################
-
-def degree_lowest_rational_function(r,x):
-    r"""
-    INPUT:
-        r -- a multivariate rational function
-        x -- a multivariate polynomial ring generator x
-
-    OUTPUT:
-        integer -- the degree of r in x and its "leading"
-                   (in the x-adic sense) coefficient.
-
-    EXAMPLES:
-        sage: R1 = MPolynomialRing(FiniteField(5), 3, names = ["a","b","c"])
-        sage: F = FractionField(R1)
-        sage: a,b,c = R1.gens()
-        sage: f = 3*a*b^2*c^3+4*a*b*c
-        sage: g = a^2*b*c^2+2*a^2*b^4*c^7
-
-    Consider the quotient $f/g = \frac{4 + 3 bc^{2}}{ac + 2 ab^{3}c^{6}}$ (note
-    the cancellation).
-        sage: r = f/g; r
-        (4 + 3*b*c^2)/(a*c + 2*a*b^3*c^6)
-        sage: degree_lowest_rational_function(r,a)
-              (-1, 4)
-        sage: degree_lowest_rational_function(r,b)
-              (0, 4)
-        sage: degree_lowest_rational_function(r,c)
-              (-1, 4)
-    """
-    from fraction_field import FractionField
-    R = r.parent()
-    F = FractionField(R)
-    r = F(r)
-    if r == 0:
-        return (0, F(0))
-    L = x.element().dict().keys()[0]
-    for ix in range(len(L)):
-        if L[ix] != 0:
-            break
-    f = r.numerator()
-    g = r.denominator()
-    M = f.element().dict()
-    numtermsf = len(M)
-    degreesf = [M.keys()[j][ix] for j in range(numtermsf)]
-    lowdegf = min(degreesf)
-    cf = M[M.keys()[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
-    M = g.element().dict()
-    numtermsg = len(M)
-    degreesg = [M.keys()[j][ix] for j in range(numtermsg)]
-    lowdegg = min(degreesg)
-    cg = M[M.keys()[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
-    return (lowdegf-lowdegg,cf/cg)
-
-
-
-################################################
-class MPolynomial_singular_repr(MPolynomial_polydict):
-    """
-    Multivariate polynomials that are representable in Singular.
-    """
     def __floordiv__(self,right):
         """
         Quotient of division of self by other.  This is denoted //.
         """
         Q, _ = self.quo_rem(right)
         return Q
-
-
-    def _singular_(self, singular=singular):
-        """
-        Return corresponding Singular polynomial.
-
-        EXAMPLES:
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'])
-            sage: x, y = R.gens()
-            sage: f = (x^3 + 2*y^2*x)^7; f
-            2*x^7*y^14 + x^21
-            sage: h = f._singular_(); h
-            x^21+2*x^7*y^14
-            sage: R(h)
-            2*x^7*y^14 + x^21
-            sage: R(h^20) == f^20
-            True
-        """
-        self.parent()._singular_(singular).set_ring() #this is expensive
-        try:
-            if self.__singular.parent() is singular:
-                return self.__singular
-        except AttributeError:
-            pass
-        return self._singular_init_(singular)
-
-    def _singular_init_(self,singular=singular):
-        """
-        Return corresponding Singular polynomial but
-        enforce that a new instance is created in
-        the Singular interpreter.
-        """
-        self.parent()._singular_(singular).set_ring() #this is expensive
-        self.__singular = singular(str(self))
-        return self.__singular
 
     def factor(self):
         r"""
@@ -912,6 +815,11 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
         return self.parent()(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):
+        """
+        Returns quotient and remainder of self and right.
+
+        ALGORITHM: Use Singular.
+        """
         if not isinstance(right, MPolynomial) or right.parent() != self.parent():
             right = self.parent()(right)
         R = self.parent()
@@ -919,6 +827,65 @@ class MPolynomial_singular_repr(MPolynomial_polydict):
         return R(X[1][1,1]), R(X[2][1])
 
 
+###############################################################
+# Useful for some geometry code.
+###############################################################
+
+def degree_lowest_rational_function(r,x):
+    r"""
+    INPUT:
+        r -- a multivariate rational function
+        x -- a multivariate polynomial ring generator x
+
+    OUTPUT:
+        integer -- the degree of r in x and its "leading"
+                   (in the x-adic sense) coefficient.
+
+    EXAMPLES:
+        sage: R1 = MPolynomialRing(FiniteField(5), 3, names = ["a","b","c"])
+        sage: F = FractionField(R1)
+        sage: a,b,c = R1.gens()
+        sage: f = 3*a*b^2*c^3+4*a*b*c
+        sage: g = a^2*b*c^2+2*a^2*b^4*c^7
+
+    Consider the quotient $f/g = \frac{4 + 3 bc^{2}}{ac + 2 ab^{3}c^{6}}$ (note
+    the cancellation).
+        sage: r = f/g; r
+        (4 + 3*b*c^2)/(a*c + 2*a*b^3*c^6)
+        sage: degree_lowest_rational_function(r,a)
+              (-1, 4)
+        sage: degree_lowest_rational_function(r,b)
+              (0, 4)
+        sage: degree_lowest_rational_function(r,c)
+              (-1, 4)
+    """
+    from fraction_field import FractionField
+    R = r.parent()
+    F = FractionField(R)
+    r = F(r)
+    if r == 0:
+        return (0, F(0))
+    L = x.element().dict().keys()[0]
+    for ix in range(len(L)):
+        if L[ix] != 0:
+            break
+    f = r.numerator()
+    g = r.denominator()
+    M = f.element().dict()
+    numtermsf = len(M)
+    degreesf = [M.keys()[j][ix] for j in range(numtermsf)]
+    lowdegf = min(degreesf)
+    cf = M[M.keys()[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
+    M = g.element().dict()
+    numtermsg = len(M)
+    degreesg = [M.keys()[j][ix] for j in range(numtermsg)]
+    lowdegg = min(degreesg)
+    cg = M[M.keys()[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
+    return (lowdegf-lowdegg,cf/cg)
+
+
+
+################################################
 class MPolynomial_macaulay2_repr(MPolynomial_polydict):
     """
     Multivariate polynomials that are representable in Macaulay2.

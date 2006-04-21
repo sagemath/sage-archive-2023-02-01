@@ -220,7 +220,7 @@ class Graphics(SageObject):
         # Todo -- mainly for testing.
         t = '/tmp/sage.png'
         self.save(t, xmin, xmax, ymin, ymax)
-        os.system('gqview %s >/dev/null&'%t)
+        os.system('gqview %s >/dev/null 2>/dev/null&'%t)
 
     def save(self, filename, xmin=None, xmax=None,
              ymin=None, ymax=None):

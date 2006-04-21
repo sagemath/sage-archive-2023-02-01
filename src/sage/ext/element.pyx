@@ -303,6 +303,9 @@ cdef class MultiplicativeGroupElement(MonoidElement):
     def _add_(self, x):
         raise ArithmeticError, "addition not defined in a multiplicative group"
 
+    def __truediv__(x, y):
+        return x.__div__(y)
+
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
@@ -350,6 +353,9 @@ cdef class RingElement(Element):
 
     def _mul_(self, right):
         raise NotImplementedError
+
+    def __truediv__(x, y):
+        return x.__div__(y)
 
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \

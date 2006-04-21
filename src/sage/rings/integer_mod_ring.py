@@ -345,7 +345,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         if p==2:
             return integer_mod.Mod(1,p)
         P = arith.prime_divisors(p-1)
-        ord = p-1
+        ord = integer.Integer(p-1)
         one = integer_mod.Mod(1,p)
         x = 2
         while x < p:

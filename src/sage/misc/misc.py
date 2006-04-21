@@ -503,17 +503,23 @@ def assert_attribute(x, attr, init=None):
 # Useful but hard to classify
 #################################################################
 
-def srange(a,b,step=1):
+def srange(a,b=None,step=1):
     """
     Return list of numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
 
+    This is the best way to get an iterator over SAGE integers
+    as opposed to Python int's.
+
     INPUT:
         a -- number
-        b -- number
+        b -- number (default: None)
         step -- number (default: 1)
     OUTPUT:
         list
+
+    If b is None, then b is set equal to a and a is
+    set equal to the 0 in the parent of b.
 
     Unlike range, a and b can be any type of numbers, and the
     resulting list involves numbers of that type.
@@ -525,7 +531,12 @@ def srange(a,b,step=1):
     SEE ALSO: xsrange -- iterator version
 
     EXAMPLES:
-        sage: srange(1,10,1)
+        sage: v = srange(5); v
+        [0, 1, 2, 3, 4]
+        sage: type(v[2])
+        <type 'integer.Integer'>
+
+        sage: srange(1, 10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
         sage: Q = RationalField()
@@ -538,6 +549,13 @@ def srange(a,b,step=1):
         sage: srange(0,1,R('0.4'))
         [0, 0.40000000000000002, 0.80000000000000004]
     """
+    if b is None:
+        b = a
+        try:
+            a = b.parent()(0)
+        except AttributeError:
+            a = type(b)(0)
+
     if step <= 0:
         raise ValueError, "step (=%s) must be positive"%step
     num_steps = int(float((b-a)/step)) + 1
@@ -547,7 +565,7 @@ def srange(a,b,step=1):
     else:
         return v
 
-def xsrange(a,b,step=1):
+def xsrange(a,b=None,step=1):
     """
     Return an iterator over numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
@@ -568,7 +586,7 @@ def xsrange(a,b,step=1):
     it from the builtin Python \code{xrange} command.
 
     EXAMPLES:
-        sage: list(xsrange(1, 10, 1))
+        sage: list(xsrange(1,10))
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
         sage: Q = RationalField()
@@ -581,6 +599,12 @@ def xsrange(a,b,step=1):
         sage: list(xsrange(0, 1, R('0.4')))
         [0, 0.40000000000000002, 0.80000000000000004]
     """
+    if b is None:
+        b = a
+        try:
+            a = b.parent()(0)
+        except AttributeError:
+            a = type(b)(0)
     cur = a
     while cur < b:
         yield cur

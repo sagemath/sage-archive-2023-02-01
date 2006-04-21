@@ -894,3 +894,4 @@ def upgrade():
     This will not work on systems that don't have a C compiler.
     """
     os.system('sage -upgrade')
+    print "You should quit and restart SAGE now."

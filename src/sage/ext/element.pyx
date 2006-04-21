@@ -303,8 +303,10 @@ cdef class MultiplicativeGroupElement(MonoidElement):
     def _add_(self, x):
         raise ArithmeticError, "addition not defined in a multiplicative group"
 
-    def __truediv__(x, y):
-        return x.__div__(y)
+    def __truediv__(self, right):
+        if not isinstance(self, Element):
+            return sage.ext.coerce.bin_op(self, right, operator.div)
+        return self.__div__(right) # in sage all divs are true
 
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
@@ -354,8 +356,10 @@ cdef class RingElement(Element):
     def _mul_(self, right):
         raise NotImplementedError
 
-    def __truediv__(x, y):
-        return x.__div__(y)
+    def __truediv__(self, right):
+        if not isinstance(self, Element):
+            return sage.ext.coerce.bin_op(self, right, operator.div)
+        return self.__div__(right) # in sage all divs are true
 
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \

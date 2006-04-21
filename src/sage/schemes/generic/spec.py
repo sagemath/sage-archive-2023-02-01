@@ -39,9 +39,9 @@ class Spec(scheme.AffineScheme):
         sage: Spec(PolynomialRing(Q))
         Spectrum of Univariate Polynomial Ring in x over Rational Field
         sage: Spec(PolynomialRing(Q, 3))
-        Spectrum of Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        Spectrum of Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49), 3)); X
-        Spectrum of Polynomial Ring in x_0, x_1, x_2 over Finite Field in a of size 7^2
+        Spectrum of Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
         sage: loads(X.dumps()) == X
         True
         sage: A = Spec(Z); B = Spec(Z)
@@ -58,7 +58,7 @@ class Spec(scheme.AffineScheme):
         sage: Spec(FreeAlgebra(Q,2))
         Traceback (most recent call last):
         ...
-        TypeError: R (=Free Algebra on 2 generators (x_0, x_1) over Rational Field) must be a commutative ring
+        TypeError: R (=Free Algebra on 2 generators (x0, x1) over Rational Field) must be a commutative ring
 
     EXAMPLES:
         sage: X = Spec(ZZ)
@@ -121,7 +121,7 @@ class Spec(scheme.AffineScheme):
             sage: Spec(Q).coordinate_ring()
             Rational Field
             sage: Spec(PolynomialRing(Q,3)).coordinate_ring()
-            Polynomial Ring in x_0, x_1, x_2 over Rational Field
+            Polynomial Ring in x0, x1, x2 over Rational Field
         """
         return self.__R
 

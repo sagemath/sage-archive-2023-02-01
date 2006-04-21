@@ -853,7 +853,7 @@ class Matrix(module_element.ModuleElement, Mutability):
             sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: A.permanent()
-            x_0*x_1^2 + x_0^2*x_1
+            x0*x1^2 + x0^2*x1
 
 
         AUTHOR:
@@ -1787,13 +1787,13 @@ class Matrix_domain(Matrix):
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly()
             sage: f
-            x^2 + (-1*x_1^2 - x_0)*x + x_0*x_1^2 - x_0^2*x_1
+            x^2 + (-1*x1^2 - x0)*x + x0*x1^2 - x0^2*x1
 
         It's a little difficult to distinguish the variables.  To fix this,
         we rename the indeterminate $Z$:
             sage: f.parent().assign_names("Z")
             sage: f
-            Z^2 + (-1*x_1^2 - x_0)*Z + x_0*x_1^2 - x_0^2*x_1
+            Z^2 + (-1*x1^2 - x0)*Z + x0*x1^2 - x0^2*x1
 
         We can pass parameters in, which are passed on to the charpoly
         function for matrices over a field.
@@ -1822,7 +1822,7 @@ class Matrix_domain(Matrix):
             sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
-            x_0*x_1^2 - x_0^2*x_1
+            x0*x1^2 - x0^2*x1
         """
         if self.nrows() != self.ncols():
             raise ArithmeticError, "Matrix must be square, but is %sx%s"%(
@@ -2782,22 +2782,22 @@ class Matrix_field(Matrix_pid):
             sage: M
             [             1             -1]
             [             0             -2]
-            [             0 -zeta_12^2 - 1]
-            [             0  zeta_12^2 - 1]
+            [             0 -zeta12^2 - 1]
+            [             0  zeta12^2 - 1]
             sage: M.kernel()
             Vector space of degree 4 and dimension 2 over Cyclotomic Field of order 12 and degree 4
             Basis matrix:
-            [               0                1                0     -2*zeta_12^2]
-            [               0                0                1 -2*zeta_12^2 + 1]
+            [               0                1                0     -2*zeta12^2]
+            [               0                0                1 -2*zeta12^2 + 1]
 
         A nontrivial kernel over a complicated base field.
             sage: K = FractionField(MPolynomialRing(QQ, 2))
             sage: M = MatrixSpace(K, 2)([[K.1, K.0], [K.1, K.0]])
             sage: M
-            [x_1 x_0]
-            [x_1 x_0]
+            [x1 x0]
+            [x1 x0]
             sage: M.kernel()
-            Vector space of degree 2 and dimension 1 over Fraction Field of Polynomial Ring in x_0, x_1 over Rational Field
+            Vector space of degree 2 and dimension 1 over Fraction Field of Polynomial Ring in x0, x1 over Rational Field
             Basis matrix:
             [ 1 -1]
         """

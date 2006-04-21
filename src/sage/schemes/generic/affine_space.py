@@ -235,9 +235,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
 
         EXAMPLES:
             sage: R = AffineSpace(2, GF(9)).coordinate_ring(); R
-            Polynomial Ring in x_0, x_1 over Finite Field in a of size 3^2
+            Polynomial Ring in x0, x1 over Finite Field in a of size 3^2
             sage: AffineSpace(3, R).coordinate_ring()
-            Polynomial Ring in x_0, x_1, x_2 over Polynomial Ring in x_0, x_1 over Finite Field in a of size 3^2
+            Polynomial Ring in x0, x1, x2 over Polynomial Ring in x0, x1 over Finite Field in a of size 3^2
         """
         try:
             return self._coordinate_ring
@@ -264,8 +264,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Projective Space of dimension 2 over Rational Field
-              Defn: Defined on coordinates by sending (x_0, x_1) to
-                    (1 : x_0 : x_1)
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (1 : x0 : x1)
             sage: z = AA(3,4)
             sage: pi(z)
             (1/4 : 3/4 : 1)
@@ -275,8 +275,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
               To:   Projective Space of dimension 2 over Rational Field
-              Defn: Defined on coordinates by sending (x_0, x_1) to
-                    (x_0 : 1 : x_1)
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (x0 : 1 : x1)
             sage: pi(z)
             (3/4 : 1/4 : 1)
             sage: pi = AA.projective_embedding(2)

@@ -79,7 +79,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
         names -- tuple or string:
                    - tuple of n variable names
                    - if string, names the variables the characters in the string.
-                 default: names variables x_0, x_1, etc.
+                 default: names variables x0, x1, etc.
 
         order -- string; the term order, or an object of type TermOrder:
                  'lex' (default) -- lexicographic
@@ -97,14 +97,14 @@ def MPolynomialRing(base_ring, n=1, names=None,
     EXAMPLES:
         sage: R = MPolynomialRing(RationalField(), 3)
         sage: R
-        Polynomial Ring in x_0, x_1, x_2 over Rational Field
-        sage: x_0,x_1,x2 = R.gens()
-        sage: x_0.element()
+        Polynomial Ring in x0, x1, x2 over Rational Field
+        sage: x0,x1,x2 = R.gens()
+        sage: x0.element()
         PolyDict with representation {(1, 0, 0): 1}
-        sage: x_0 + x_1 + x2
-        x_2 + x_1 + x_0
-        sage: (x_0 + x_1 + x2)**2
-        x_2^2 + 2*x_1*x_2 + x_1^2 + 2*x_0*x_2 + 2*x_0*x_1 + x_0^2
+        sage: x0 + x1 + x2
+        x2 + x1 + x0
+        sage: (x0 + x1 + x2)**2
+        x2^2 + 2*x1*x2 + x1^2 + 2*x0*x2 + 2*x0*x1 + x0^2
 
     This example illustrates the quick shorthand for naming several
     variables one-letter names.
@@ -126,15 +126,15 @@ def MPolynomialRing(base_ring, n=1, names=None,
         2*n2 + n1^2
         sage: S = MPolynomialRing(R,3, names='a'); a0,a1,a2=S.gens()
         sage: S
-        Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
+        Polynomial Ring in a0, a1, a2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
         sage: x = (n1+n2)*a0 + 2*a1**2
         sage: x
-        2*a_1^2 + (n2 + n1)*a_0
+        2*a1^2 + (n2 + n1)*a0
         sage: x**3
-        2*a_1^6 + (n2^3 + n1^3)*a_0^3
+        2*a1^6 + (n2^3 + n1^3)*a0^3
         sage: T = MPolynomialRing(S, 20)
         sage: T
-        Polynomial Ring in x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9, x_10, x_11, x_12, x_13, x_14, x_15, x_16, x_17, x_18, x_19 over Polynomial Ring in a_0, a_1, a_2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
+        Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19 over Polynomial Ring in a0, a1, a2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
 
     We create a polynomial ring that uses the Macaualy2 interface.
         sage: R, (x,y,z) = MPolynomialRing(ZZ, 3, 'xyz', macaulay2=True).objgens()     # optional
@@ -145,6 +145,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
     T = TermOrder(order)
     if isinstance(names, list):
         names = tuple(names)
+
     #elif isinstance(names, str):
     #    if len(names) > 1:
     #        names = tuple(names)
@@ -210,7 +211,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         return "Polynomial Ring in %s over %s"%(", ".join(self.variable_names()), self.base_ring())
 
     def _latex_(self):
-        vars = str(self.variable_names()).replace('\n','').replace("'",'')
+        vars = str(self.latex_variable_names()).replace('\n','').replace("'",'')
         return "%s[%s]"%(latex.latex(self.base_ring()), vars[1:-1])
 
 
@@ -295,21 +296,36 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         so that subscripts of subscripts work.
 
         EXAMPLES:
-             sage: r=MPolynomialRing(QQ,2,'x')
-             sage: r.assign_names(['x_0,1_0','x_1,1_2'])
-             sage: x,y=r.gens()
-             sage: x._latex_()
-             'x_{0,1_{0}}'
-             sage: y._latex_()
-             'x_{1,1_{2}}'
-
+            sage: R, x = PolynomialRing(QQ,12).objgens();
+            sage: x
+            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
+            sage: print R.latex_variable_names ()
+            ['x_{0}', 'x_{1}', 'x_{2}', 'x_{3}', 'x_{4}', 'x_{5}', 'x_{6}', 'x_{7}', 'x_{8}', 'x_{9}', 'x_{10}', 'x_{11}']
+            sage: f = x[0]^3 + 15/3 * x[1]^10
+            sage: print latex(f)
+            5 x_{1}^{10} + x_{0}^{3}
         """
-        ret = []
-        for gen in self.gens():
-            gen = re.sub("_","_{",str(gen),count=0)
-            gen =  "".join([gen]+["}"]*gen.count("{"))
-            ret.append(gen)
-        return ret
+        try:
+            return self.__latex_variable_names
+        except AttributeError:
+            pass
+        names = []
+        for g in self.variable_names():
+            i = len(g)-1
+            while i >= 0 and g[i].isdigit():
+                i -= 1
+            if i < len(g)-1:
+                g = '%s_{%s}'%(g[:i+1], g[i+1:])
+            names.append(g)
+        self.__latex_variable_names = names
+        return names
+
+    def assign_names(self, names=None):
+        try:
+            del self.__latex_variable_names
+        except AttributeError:
+            pass
+        commutative_ring.CommutativeRing.assign_names(self, names)
 
 class MPolynomialRing_polydict(MPolynomialRing_generic):
     """
@@ -317,7 +333,7 @@ class MPolynomialRing_polydict(MPolynomialRing_generic):
 
     EXAMPLES:
         sage: R = MPolynomialRing(Integers(12),5); R
-        Polynomial Ring in x_0, x_1, x_2, x_3, x_4 over Ring of integers modulo 12
+        Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
         True
     """
@@ -381,21 +397,21 @@ class MPolynomialRing_singular_repr(MPolynomialRing_polydict):
            //   minpoly        : (a^8+a^4+a^3+a^2+1)
            //   number of vars : 10
            //        block   1 : ordering lp
-           //                  : names    x_0 x_1 x_2 x_3 x_4 x_5 x_6 x_7 x_8 x_9
+           //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
            //        block   2 : ordering C
            sage: r=MPolynomialRing(GF(127),2,'x')
            sage: r._singular_()
            //   characteristic : 127
            //   number of vars : 2
            //        block   1 : ordering lp
-           //                  : names    x_0 x_1
+           //                  : names    x0 x1
            //        block   2 : ordering C
            sage: r=MPolynomialRing(QQ,2,'x')
            sage: r._singular_()
            //   characteristic : 0
            //   number of vars : 2
            //        block   1 : ordering lp
-           //                  : names    x_0 x_1
+           //                  : names    x0 x1
            //        block   2 : ordering C
 
         WARNING:

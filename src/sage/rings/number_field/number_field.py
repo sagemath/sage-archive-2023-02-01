@@ -528,11 +528,11 @@ class NumberField_cyclotomic(NumberField_generic):
         sage: CyclotomicField(18)
         Cyclotomic Field of order 18 and degree 6
         sage: z = CyclotomicField(6).gen(); z
-        zeta_6
+        zeta6
         sage: z^3
         -1
         sage: (1+z)^3
-        6*zeta_6 - 3
+        6*zeta6 - 3
 
         sage: K = CyclotomicField(197)
         sage: loads(K.dumps()) == K
@@ -542,7 +542,7 @@ class NumberField_cyclotomic(NumberField_generic):
     """
     def __init__(self, n):
         f = QQ['x'].cyclotomic_polynomial(n)
-        NumberField_generic.__init__(self, f, name="zeta_%s"%n, check=False)
+        NumberField_generic.__init__(self, f, name="zeta%s"%n, check=False)
         n = integer.Integer(n)
         zeta = self.gen()
         zeta._set_multiplicative_order(n)
@@ -569,13 +569,13 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: a = k42.gen(0)
             sage: b = a^7
             sage: b
-            zeta_42^7
+            zeta42^7
             sage: k6(b)
-            zeta_6
+            zeta6
             sage: b^2
-            zeta_42^7 - 1
+            zeta42^7 - 1
             sage: k6(b^2)
-            zeta_6 - 1
+            zeta6 - 1
 
         Coercion of GAP cyclotomic elements is also fully supported.
 
@@ -647,7 +647,7 @@ class NumberField_cyclotomic(NumberField_generic):
             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta_4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I
+              Defn: zeta4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I
 
         Note in the example above that the way zeta is computed (using
         sin and cosine in MPFR) means that only the prec bits of the
@@ -720,7 +720,7 @@ class NumberField_cyclotomic(NumberField_generic):
         EXAMPLES:
             sage: k = CyclotomicField(7)
             sage: k.zeta()
-            zeta_7
+            zeta7
             sage: k.zeta().multiplicative_order()
             7
             sage: k = CyclotomicField(49)
@@ -729,9 +729,9 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: k.zeta(7).multiplicative_order()
             7
             sage: k.zeta()
-            zeta_49
+            zeta49
             sage: k.zeta(7)
-            zeta_49^7
+            zeta49^7
         """
         if n is None:
             return self.gen()

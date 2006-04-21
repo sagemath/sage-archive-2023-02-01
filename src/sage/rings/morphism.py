@@ -256,15 +256,15 @@ EXAMPLE: Complex conjugation on cyclotomic fields.
     sage: K, z = CyclotomicField(7).objgen()
     sage: c = K.hom([1/z]); c
     Ring endomorphism of Cyclotomic Field of order 7 and degree 6
-      Defn: zeta_7 |--> -zeta_7^5 - zeta_7^4 - zeta_7^3 - zeta_7^2 - zeta_7 - 1
+      Defn: zeta7 |--> -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - zeta7 - 1
     sage: a = (1+z)^5; a
-    zeta_7^5 + 5*zeta_7^4 + 10*zeta_7^3 + 10*zeta_7^2 + 5*zeta_7 + 1
+    zeta7^5 + 5*zeta7^4 + 10*zeta7^3 + 10*zeta7^2 + 5*zeta7 + 1
     sage: c(a)
-    5*zeta_7^5 + 5*zeta_7^4 - 4*zeta_7^2 - 5*zeta_7 - 4
+    5*zeta7^5 + 5*zeta7^4 - 4*zeta7^2 - 5*zeta7 - 4
     sage: c(z + 1/z)       # obviously fixed by inversion
-    -zeta_7^5 - zeta_7^4 - zeta_7^3 - zeta_7^2 - 1
+    -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - 1
     sage: z + 1/z
-    -zeta_7^5 - zeta_7^4 - zeta_7^3 - zeta_7^2 - 1
+    -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - 1
 
 EXAMPLE: Embedding a number field into the reals.
     sage: x = PolynomialRing(QQ).gen()
@@ -293,6 +293,7 @@ EXAMPLE: Embedding a number field into the reals.
 #*****************************************************************************
 
 from sage.categories.all import Morphism, is_Homset, Sets
+import ideal
 
 import homset
 
@@ -308,6 +309,13 @@ class RingMap(Morphism):
 
     def _repr_type(self):
         return "Set-theoretic ring"
+
+    def __call__(self, x):
+        if ideal.is_Ideal(x):
+            R = self.codomain()
+            return R.ideal([self(y) for y in x.gens()])
+        return Morphism.__call__(self, x)
+
 
 class RingMap_lift(RingMap):
     r"""

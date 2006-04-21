@@ -78,7 +78,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             sage: x = MPolynomialRing(RationalField(),3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
-            x_1 - 2*x_1*x_2 + x_0
+            x1 - 2*x1*x2 + x0
             sage: f(1,2,0)
             3
             sage: f(1,2,5)
@@ -194,7 +194,7 @@ class MPolynomial_polydict(MPolynomial):
         EXAMPLES:
             sage: R, x = MPolynomialRing(QQ, 10).objgens()
             sage: x
-            (x_0, x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8, x_9)
+            (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
             True
         """
@@ -370,6 +370,18 @@ class MPolynomial_polydict(MPolynomial):
             raise TypeError, "mon (=%s) must be a monomial in the parent of self."%mon
         R = self.parent()
         return R(self.element().coefficient(mon.element().dict()))
+
+    def exponents(self):
+        """
+        Return the exponents of the monomials appearing in self.
+
+        EXAMPLES:
+           sage: R.<a,b,c> = PolynomialRing(QQ, 3)
+           sage: f = a^3 + b + 2*b^2
+           sage: f.exponents()
+           [(0, 2, 0), (3, 0, 0), (0, 1, 0)]
+        """
+        return self.element().exponents()
 
     def is_unit(self):
         """

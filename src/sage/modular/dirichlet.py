@@ -11,7 +11,7 @@ those $x\in\Z/N\Z$ with $\gcd(N,x)>1$ to $0$.
 EXAMPLES:
     sage: G, x = DirichletGroup(35).objgens()
     sage: e = x[0]*x[1]^2; e
-    [zeta_12^3, zeta_12^2 - 1]
+    [zeta12^3, zeta12^2 - 1]
     sage: e.order()
     12
 
@@ -80,13 +80,13 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G
             Group of Dirichlet characters of modulus 13 over Cyclotomic Field of order 12 and degree 4
             sage: e
-            [zeta_12]
+            [zeta12]
             sage: loads(e.dumps()) == e
             True
 
             sage: G, x = DirichletGroup(35).objgens()
             sage: e = x[0]*x[1]; e
-            [zeta_12^3, zeta_12^2]
+            [zeta12^3, zeta12^2]
             sage: e.order()
             12
             sage: loads(e.dumps()) == e
@@ -214,9 +214,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES:
             sage: e = DirichletGroup(5).0
             sage: e
-            [zeta_4]
+            [zeta4]
             sage: e.bar()
-            [-zeta_4]
+            [-zeta4]
         """
         return ~self
 
@@ -238,7 +238,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.bernoulli(5)
-            7430/13*zeta_12^3 - 34750/13*zeta_12^2 - 11380/13*zeta_12 + 9110/13
+            7430/13*zeta12^3 - 34750/13*zeta12^2 - 11380/13*zeta12 + 9110/13
         """
         try:
             self.__bernoulli
@@ -357,20 +357,20 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(13)
             sage: G.galois_orbits()
             [[[1]],
-            [[zeta_12], [zeta_12^3 - zeta_12], [-zeta_12], [-zeta_12^3 + zeta_12]],
-            [[zeta_12^2], [-zeta_12^2 + 1]],
-            [[zeta_12^3], [-zeta_12^3]],
-            [[zeta_12^2 - 1], [-zeta_12^2]],
+            [[zeta12], [zeta12^3 - zeta12], [-zeta12], [-zeta12^3 + zeta12]],
+            [[zeta12^2], [-zeta12^2 + 1]],
+            [[zeta12^3], [-zeta12^3]],
+            [[zeta12^2 - 1], [-zeta12^2]],
             [[-1]]]
             sage: e = G.0
             sage: e
-            [zeta_12]
+            [zeta12]
             sage: e.galois_orbit()
-            [[zeta_12], [zeta_12^3 - zeta_12], [-zeta_12], [-zeta_12^3 + zeta_12]]
+            [[zeta12], [zeta12^3 - zeta12], [-zeta12], [-zeta12^3 + zeta12]]
             sage: e = G.0^2; e
-            [zeta_12^2]
+            [zeta12^2]
             sage: e.galois_orbit()
-            [[zeta_12^2], [-zeta_12^2 + 1]]
+            [[zeta12^2], [-zeta12^2 + 1]]
         """
         K = self.parent().base_ring()
         if K.characteristic() != 0:
@@ -402,16 +402,16 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(3)
             sage: e = G([-1])
             sage: e.gauss_sum(1)
-            2*zeta_6 - 1
+            2*zeta6 - 1
             sage: e.gauss_sum(2)
-            -2*zeta_6 + 1
+            -2*zeta6 + 1
             sage: norm(e.gauss_sum())
             3
 
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.gauss_sum()
-            -zeta_156^46 + zeta_156^45 + zeta_156^42 + zeta_156^41 + 2*zeta_156^40 + zeta_156^37 - zeta_156^36 - zeta_156^34 - zeta_156^33 - zeta_156^31 + 2*zeta_156^30 + zeta_156^28 - zeta_156^24 - zeta_156^22 + zeta_156^21 + zeta_156^20 - zeta_156^19 + zeta_156^18 - zeta_156^16 - zeta_156^15 - 2*zeta_156^14 - zeta_156^10 + zeta_156^8 + zeta_156^7 + zeta_156^6 + zeta_156^5 - zeta_156^4 - zeta_156^2 - 1
+            -zeta156^46 + zeta156^45 + zeta156^42 + zeta156^41 + 2*zeta156^40 + zeta156^37 - zeta156^36 - zeta156^34 - zeta156^33 - zeta156^31 + 2*zeta156^30 + zeta156^28 - zeta156^24 - zeta156^22 + zeta156^21 + zeta156^20 - zeta156^19 + zeta156^18 - zeta156^16 - zeta156^15 - 2*zeta156^14 - zeta156^10 + zeta156^8 + zeta156^7 + zeta156^6 + zeta156^5 - zeta156^4 - zeta156^2 - 1
             sage: factor(norm(e.gauss_sum()))
             13^24
         """
@@ -773,15 +773,15 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
             with values in Q(zeta_n):
                 sage: G = DirichletGroup(20)
                 sage: G.list()
-                [[1, 1], [-1, 1], [1, zeta_4], [-1, zeta_4], [1, -1], [-1, -1], [1, -zeta_4], [-1, -zeta_4]]
+                [[1, 1], [-1, 1], [1, zeta4], [-1, zeta4], [1, -1], [-1, -1], [1, -zeta4], [-1, -zeta4]]
 
             We next compute several invariants of G:
                 sage: G.gens()
-                ([-1, 1], [1, zeta_4])
+                ([-1, 1], [1, zeta4])
                 sage: G.unit_gens()
                 [11, 17]
                 sage: G.zeta()
-                zeta_4
+                zeta4
                 sage: G.zeta_order()
                 4
 
@@ -962,7 +962,7 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
         EXAMPLES:
             sage: G = DirichletGroup(20)
             sage: G.gens()
-            ([-1, 1], [1, zeta_4])
+            ([-1, 1], [1, zeta4])
         """
         try:
             return self._gens

@@ -271,13 +271,15 @@ def compute_presentation(syms, sign, field, weight):
                 the 2-term S (and possibly I) relations.
 
     ALGORITHM:
-        1. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], and I = [-1,0; 0,1].
+    \begin{enumerate}
+        \item Let $S = [0,-1; 1,0], T = [0,-1; 1,-1]$, and $I = [-1,0; 0,1]$.
 
-        2. Let x_0, ..., x_{n-1} by a list of all non-equivalent Manin symbols.
+        \item Let $x_0,\ldots, x_{n-1}$ by a list of all non-equivalent
+               Manin symbols.
 
-        3. Form quotient by 2-term S and (possibly) I relations.
+        \item Form quotient by 2-term S and (possibly) I relations.
 
-        4. Create a sparse matrix A with m columns, whose rows
+        \item Create a sparse matrix $A$ with $m$ columns, whose rows
            encode the relations
            $$
                  [x_i] + [x_i T] + [x_i T^2] = 0.
@@ -292,14 +294,15 @@ def compute_presentation(syms, sign, field, weight):
            omit many relations and just check that there are enough at
            the end---if there aren't, we add in more.
 
-        5. Compute the reduced row echelon form of A using sparse
+        \item Compute the reduced row echelon form of $A$ using sparse
            Gaussian elimination.
 
-        6. Use what we've done above to read off a sparse matrix R
+        \item Use what we've done above to read off a sparse matrix R
            that uniquely expresses each of the n Manin symbols in
            terms of a subset of Manin symbols, modulo the relations.
            This subset of Manin symbols is a basis for the quotient by
            the relations.
+    \end{enumerate}
 
     """
     rels = modS_relations(syms)
@@ -330,7 +333,6 @@ def sparse_2term_quotient(rels, n, F):
                 the relation
                       s*x_i + t*x_j = 0,
                 where the i, j must be Python int's.
-
         n -- int, the x_i are x_0, ..., x_{n-1}.
         F -- base field
 
@@ -423,27 +425,29 @@ def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
              relations between Manin symbols.
 
     MORE DETAILS:
-        1. Create an empty sparse matrix.
+    \begin{enumerate}
+      \item Create an empty sparse matrix.
 
-        2. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], I = [-1,0; 0,1]
+      \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
 
-        3. Enter the T relations:
+      \item Enter the T relations:
            $$
                    x + x T = 0.
            $$
            Remove x and x*T from reps to consider.
 
-        4. If sign =/= 0, enter the I relations:
+      \item If sign $\neq 0$, enter the I relations:
            $$
                    x - sign\cdot x\cdot I = 0.
            $$
 
-        5. Enter the S relations in the matrix:
+      \item Enter the S relations in the matrix:
            $$
                    x + x S + x S^2 = 0
            $$
            by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
            Remove $x$, $x S$, and $x S^2$ from list of reps to consider.
+    \end{enumerate}
     """
     ZERO = field(0)
     ONE =  field(1)
@@ -535,23 +539,27 @@ def sparse_relation_matrix_wtk_g0n(M, field, sign=0):
              between Manin symbols.
 
     MORE DETAILS:
-        1. Create an empty sparse matrix.
+    \begin{enumerate}
+       \item Create an empty sparse matrix.
 
-        2. Let S = [0,-1; 1,0], T = [0,-1; 1,-1], I = [-1,0; 0,1]
+        \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
 
-        3. Enter the T relations:
-                   x + x*T = 0
-           Remove x and x*T from reps to consider.
+        \item Enter the $T$ relations:
+                 $$  x + x*T = 0  $$
+           Remove $x$ and $x T$ from reps to consider.
 
-        4. If sign =/= 0, enter the I relations:
-                   x + sign*x*I = 0.
+        \item If sign $\neq 0$, enter the I relations:
+        $$
+                   x + sign x I = 0.
+        $$
 
-        5. Enter the S relations in the matrix:
+        \item Enter the $S$ relations in the matrix:
            $$
                    x + x S + x S^2 = 0
            $$
-           by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
+           by putting 1's at cols corresponding to $x$, $x S$, and $x S^2$.
            Remove x from list of reps to consider.
+    \end{enumerate}
     """
     weight = M.weight()
     if not (isinstance(weight, int) and weight > 2):

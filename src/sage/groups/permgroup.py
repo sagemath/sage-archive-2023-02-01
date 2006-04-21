@@ -414,8 +414,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             12
             sage: G.character_table()
             [          1           1           1           1]
-            [          1           1 -zeta_3 - 1      zeta_3]
-            [          1           1      zeta_3 -zeta_3 - 1]
+            [          1           1 -zeta3 - 1      zeta3]
+            [          1           1      zeta3 -zeta3 - 1]
             [          3          -1           0           0]
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
@@ -481,8 +481,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             [(1, 1, 1, 1, 1, 1, 1),
              (5, 1, -1, 2, -1, 0, 0),
              (5, 1, 2, -1, -1, 0, 0),
-             (8, 0, -1, -1, 0, zeta_5^3 + zeta_5^2 + 1, -zeta_5^3 - zeta_5^2),
-             (8, 0, -1, -1, 0, -zeta_5^3 - zeta_5^2, zeta_5^3 + zeta_5^2 + 1),
+             (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2),
+             (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1),
              (9, 1, 0, 0, 1, -1, -1),
              (10, -2, 1, 1, 0, 0, 0)]
 

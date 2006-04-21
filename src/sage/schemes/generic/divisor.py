@@ -204,12 +204,12 @@ class Divisor_curve(Divisor_generic):
         that occur in this divisor with nonzero coefficients.
 
         EXAMPLES:
-            sage: x,y = AffineSpace(2, GF(5), names='xyz').gens()
+            sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1, pts[1])]); D
-            3*(xyz_1, xyz_0) - (3 + xyz_1, 3 + xyz_0)
+            3*(y, x) - (3 + y, 3 + x)
             sage: D.support()
             [(0, 0), (2, 2)]
         """
@@ -227,12 +227,12 @@ class Divisor_curve(Divisor_generic):
         Return the coefficient of a given point P in this divisor.
 
         EXAMPLES:
-            sage: x,y = AffineSpace(2, GF(5), names='xyz').gens()
+            sage: x,y = AffineSpace(2, GF(5), names='xy').gens()
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
-            3*(xyz_1, xyz_0) - (3 + xyz_1, 3 + xyz_0)
+            3*(y, x) - (3 + y, 3 + x)
             sage: D.coeff(pts[0])
             3
             sage: D.coeff(pts[1])

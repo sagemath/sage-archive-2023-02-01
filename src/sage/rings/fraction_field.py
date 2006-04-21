@@ -44,7 +44,7 @@ def FractionField(R):
         sage: FractionField(PolynomialRing(IntegerRing()))
         Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         sage: FractionField(MPolynomialRing(RationalField(),2))
-        Fraction Field of Polynomial Ring in x_0, x_1 over Rational Field
+        Fraction Field of Polynomial Ring in x0, x1 over Rational Field
 
     Dividing elements often implicitly creates elements of the fraction field.
         sage: x = PolynomialRing(RationalField()).gen()

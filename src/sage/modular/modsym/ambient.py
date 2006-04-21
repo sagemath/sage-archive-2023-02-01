@@ -1369,7 +1369,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         We next create a space with character of order bigger than 2.
             sage: eps = DirichletGroup(5).gen(0)
             sage: eps     # has order 4
-            [zeta_4]
+            [zeta4]
             sage: ModularSymbols(eps, 2).dimension()
             0
             sage: ModularSymbols(eps, 3).dimension()

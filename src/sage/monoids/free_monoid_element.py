@@ -89,7 +89,7 @@ class FreeMonoidElement(MonoidElement):
             sage: F = FreeMonoid(3, 'a')
             sage: z = F([(0,5),(1,2),(0,10),(0,2),(1,2)])
             sage: z._latex_()
-            'a_0^{5}a_1^{2}a_0^{12}a_1^{2}'
+            'a0^{5}a1^{2}a0^{12}a1^{2}'
         """
         s = ""
         v = self._element_list
@@ -113,7 +113,7 @@ class FreeMonoidElement(MonoidElement):
             sage: x = a[0] * a[1] * a[4]**3
             sage: y = a[4] * a[0] * a[1]
             sage: x*y
-            a_0*a_1*a_4^4*a_0*a_1
+            a0*a1*a4^4*a0*a1
         """
         if not isinstance(y, FreeMonoidElement):
             raise TypeError, "Argument y (= %s) is of wrong type."%y
@@ -142,7 +142,7 @@ class FreeMonoidElement(MonoidElement):
             sage: a = FreeMonoid(5, 'a').gens()
             sage: x = a[0]*a[1]*a[4]**3
             sage: x**3
-            a_0*a_1*a_4^3*a_0*a_1*a_4^3*a_0*a_1*a_4^3
+            a0*a1*a4^3*a0*a1*a4^3*a0*a1*a4^3
             sage: x**0
             1
 

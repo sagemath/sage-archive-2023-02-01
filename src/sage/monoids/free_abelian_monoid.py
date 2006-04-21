@@ -132,7 +132,7 @@ class FreeAbelianMonoid_class(Generators):
         EXAMPLES:
             sage: F = FreeAbelianMonoid(10)
             sage: F(F.gen(2))
-            x_2
+            x2
             sage: F(1)
             1
         """
@@ -168,9 +168,9 @@ class FreeAbelianMonoid_class(Generators):
         EXAMPLES:
             sage: F = FreeAbelianMonoid(5,'a')
             sage: F.gen(0)
-            a_0
+            a0
             sage: F.gen(2)
-            a_2
+            a2
         """
         n = self.__ngens
         if i < 0 or not i < n:

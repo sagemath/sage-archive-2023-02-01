@@ -105,4 +105,5 @@ def search_sage(s):
     For this to work the "sage" command must be in your PATH,
     and you must have grep installed.
     """
-    os.system('sage -grep "%s"'%s)
+    from sage.misc.all import pager
+    pager(os.popen('sage -grep "%s"'%s).read())

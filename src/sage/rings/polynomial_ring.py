@@ -64,9 +64,9 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
         sage: PolynomialRing(QQ, name='abc', sparse=True)
         Sparse Univariate Polynomial Ring in abc over Rational Field
         sage: PolynomialRing(QQ, 3, sparse=True)
-        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        Polynomial Ring in x0, x1, x2 over Rational Field
         sage: PolynomialRing(QQ, 3, macaulay2=True)
-        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        Polynomial Ring in x0, x1, x2 over Rational Field
     """
     if isinstance(name, (int,long,integer.Integer)):
         if isinstance(sparse, (list, str)):

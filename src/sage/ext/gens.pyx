@@ -25,11 +25,11 @@ EXAMPLES:
     sage: R.ngens()
     3
     sage: R.gen(0)
-    x_0
+    x0
     sage: R.gens()
-    (x_0, x_1, x_2)
+    (x0, x1, x2)
     sage: R.variable_names()
-    ('x_0', 'x_1', 'x_2')
+    ('x0', 'x1', 'x2')
     sage: R.assign_names(['a', 'b', 'c'])
     sage: R
     Polynomial Ring in a, b, c over Integer Ring
@@ -50,7 +50,7 @@ The names of the generators of a free module aren't really used anywhere,
 but they are still defined:
 
     sage: M.variable_names()
-    ('x_0', 'x_1', 'x_2', 'x_3')
+    ('x0', 'x1', 'x2', 'x3')
 """
 
 #*****************************************************************************
@@ -120,9 +120,9 @@ cdef class Generators(sage_object.SageObject):
         EXAMPLES:
             sage: R, x = MPolynomialRing(Q,3).objgens()
             sage: R
-            Polynomial Ring in x_0, x_1, x_2 over Rational Field
+            Polynomial Ring in x0, x1, x2 over Rational Field
             sage: x
-            (x_0, x_1, x_2)
+            (x0, x1, x2)
             sage: R, (a,b,c) = R.objgens('abc')
             sage: a^2 + b^2 + c^2
             c^2 + b^2 + a^2
@@ -194,10 +194,8 @@ cdef class Generators(sage_object.SageObject):
             N = N.strip()
             if len(N) == 0:
                 raise ValueError, "variable name must be nonempty"
-            if not N[0].isalpha():
-                raise ValueError, "variable name must be start with a letter but %s does not"%N
-            if N.find(' ') != -1 or N.find('\n') != -1 or N.find('\t') != -1:
-                raise ValueError, "variable name must contain no spaces but '%s' does"%N
+            if not N.isalnum():
+                raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
             v.append(N)
         return tuple(v)
 

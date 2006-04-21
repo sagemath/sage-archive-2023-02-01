@@ -104,12 +104,12 @@ class FractionFieldElement(field_element.FieldElement):
             sage: x = MPolynomialRing(RationalField(),3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
-            x_1 - 2*x_1*x_2 + x_0
+            x1 - 2*x1*x2 + x0
             sage: f(1,2,5)
             -17
             sage: h = f /(x[1] + x[2])
             sage: h
-            (x_1 - 2*x_1*x_2 + x_0)/(x_2 + x_1)
+            (x1 - 2*x1*x2 + x0)/(x2 + x1)
             sage: h(1,2,5)
             -17/7
         """

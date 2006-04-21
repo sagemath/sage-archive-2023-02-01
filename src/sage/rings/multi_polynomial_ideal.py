@@ -63,6 +63,9 @@ from integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
 
+def is_MPolynomialIdeal(x):
+    return isinstance(x, MPolynomialIdeal)
+
 class MPolynomialIdeal(Ideal_generic):
     """
     An ideal of a multivariate polynomial ring.
@@ -77,9 +80,33 @@ class MPolynomialIdeal(Ideal_generic):
             Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
             sage: R = PolynomialRing(GF(3), 2); x = R.gens()
             sage: R.ideal([x[0]**2, x[1]**3])
-            Ideal (x_1^3, x_0^2) of Polynomial Ring in x_0, x_1 over Finite Field of size 3
+            Ideal (x1^3, x0^2) of Polynomial Ring in x0, x1 over Finite Field of size 3
         """
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
+
+    def groebner_fan(self, is_groebner_basis=False, symmetry=None, verbose=False):
+        r"""
+        Return the Groebner fan of this ideal.
+
+        The base ring must be $\Q$ or a finite field $\F_p$ of with
+        $p \leq 32749$.
+
+        INPUT:
+            is_groebner_basis -- bool (default False).  if True, then I.gens() must be
+                                 a Groebner basis with respect to the standard
+                                 degree lexicographic term order.
+            symmetry -- default: None; if not None, describes symmetries of the ideal
+            verbose -- default: False; if True, printout useful info during computations
+        """
+        import groebner_fan
+        return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
+                                        symmetry=symmetry, verbose=verbose)
+
+    #def is_homogeneous(self):
+    #    try:
+    #        return self.__is_homogeneous
+    #    except AttributeError:
+
 
 class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     """

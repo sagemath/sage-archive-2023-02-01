@@ -7,7 +7,19 @@ AUTHOR:
       Fukuda, and Rekha Thomas.
    -- William Stein (2006-03-18): wrote gfan interface (first version)
 
-TODO -- not done; this is just the first few minutes of work on an interface!
+TODO -- not done; this is just the first few minutes of work
+        on an interface!
+
+   * at most 52 variables:
+       use gfan_substitute to make easier (?)
+
+   * --symmetry is really useful
+            - permutations are 0-based *not* cycle notation; a <---> 0
+     output is broken up much more nicely.
+
+   * -- can work in Z/pZ for p <= 32749
+
+   * -- can compute individual GB's for lex and revlex (via buchberger)
 """
 
 #*****************************************************************************
@@ -30,14 +42,17 @@ import os
 class Gfan:
     """
     Interface to Anders Jensen's Groebner Fan program.
-
-      NOT DONE -- work in progress!
     """
-    def __call__(self, I, cmd='', verbose=False):
-        if cmd != '':
+    def __call__(self, I, cmd='', verbose=False, format=True):
+        if cmd != '' and cmd.lstrip()[0] != '-':
             cmd = 'gfan_%s'%cmd
         else:
             cmd = 'gfan'
+
+        if verbose:
+            print "gfan command:\n%s"%cmd
+            print "gfan input:\n%s"%I
+
         if not verbose:
             cmd += ' 2>/dev/null'
         i, o = os.popen2(cmd)
@@ -45,16 +60,12 @@ class Gfan:
         i.write(s)
         i.close()
         t = o.read()
-        t = t.replace('{','[').replace('}',']').replace('\n','').replace(',',' ')
+        if format:
+            t = t.replace('\n','').replace(',',' ')
         return t
 
 
-    def groebner_fan(self, I, verbose=False):
-        if not isinstance(I, list):
-            raise TypeError, "I (=%s) must be a list"%I
-        return self(I, verbose=verbose)
 
-
-# An instance
+# The instance
 gfan = Gfan()
 

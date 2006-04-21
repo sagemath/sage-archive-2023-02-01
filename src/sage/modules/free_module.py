@@ -444,7 +444,7 @@ class FreeModule_generic(module.Module):
             sage: R = MPolynomialRing(RationalField(),2); x,y = R.gens()
             sage: M = FreeModule(R,2)
             sage: M.ambient_module()
-            Ambient free module of rank 2 over the integral domain Polynomial Ring in x_0, x_1 over Rational Field
+            Ambient free module of rank 2 over the integral domain Polynomial Ring in x0, x1 over Rational Field
 
             sage: V = FreeModule(RationalField(), 4).span([[1,2,3,4], [1,0,0,0]]); V
             Vector space of degree 4 and dimension 2 over Rational Field
@@ -464,7 +464,7 @@ class FreeModule_generic(module.Module):
             sage: R = MPolynomialRing(RationalField(),2); x,y = R.gens()
             sage: M = FreeModule(R,2)
             sage: M.base_ring()
-            Polynomial Ring in x_0, x_1 over Rational Field
+            Polynomial Ring in x0, x1 over Rational Field
 
             sage: VectorSpace(RationalField(), 10).base_ring()
             Rational Field
@@ -2083,7 +2083,7 @@ class FreeModule_ambient(FreeModule_generic):
             '(\\mbox{\\rm F}_{5})^{20}'
 
             sage: A = MPolynomialRing(Rationals(),3)**20; A._latex_()
-            '(\\mbox{\\bf{}Q}[x_0, x_1, x_2])^{20}'
+            '(\\mbox{\\bf{}Q}[x_{0}, x_{1}, x_{2}])^{20}'
         """
         t = "%s"%latex.latex(self.base_ring())
         if t.find(" ") != -1:

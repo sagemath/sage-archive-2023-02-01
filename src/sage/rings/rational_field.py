@@ -12,6 +12,7 @@ import ring
 import sage.rings.rational
 import sage.structure.factorization
 import complex_field
+import infinity
 
 
 _obj = {}
@@ -159,15 +160,34 @@ class RationalField(_uniq, field.Field):
     def characteristic(self):
         """
         Return 0, since the rational field has characteristic 0.
+
+        EXAMPLES:
+            sage: c = QQ.characteristic(); c
+            0
+            sage: parent(c)
+            Integer Ring
         """
-        return 0
+        return sage.rings.integer.Integer(0)
 
     def number_field(self):
         from sage.rings.number_field.all import NumberField
         x = sage.rings.polynomial_ring.PolynomialRing(self).gen()
         return NumberField(x-1)
 
+    def order(self):
+        """
+        EXAMPLES:
+            sage: QQ.order()
+            Infinity
+        """
+        return infinity.infinity
+
     def random_element(self, num_bound=1, den_bound=1):
+        """
+        EXAMPLES:
+            sage: QQ.random_element(10,10)
+            -5/3
+        """
         return self("%s/%s"%(random.randrange(-num_bound-1, num_bound+1), \
                              random.randrange(1,den_bound+1)))
 

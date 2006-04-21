@@ -103,13 +103,13 @@ class FreeMonoid_class(Monoid_class):
         EXAMPLES:
             sage: F = FreeMonoid(3)
             sage: F
-            Free monoid on 3 generators (x_0, x_1, x_2)
+            Free monoid on 3 generators (x0, x1, x2)
             sage: x = F.gens()
             sage: x[0]*x[1]**5 * (x[0]*x[2])
-            x_0*x_1^5*x_0*x_2
+            x0*x1^5*x0*x2
             sage: F = FreeMonoid(3, 'a')
             sage: F
-            Free monoid on 3 generators (a_0, a_1, a_2)
+            Free monoid on 3 generators (a0, a1, a2)
 
 
             sage: M = FreeMonoid(3, names=['a','b','c'])
@@ -148,14 +148,14 @@ class FreeMonoid_class(Monoid_class):
             sage: F(1)
             1
             sage: F(F.gen(0))
-            a_0
+            a0
             sage: F(0)
             Traceback (most recent call last):
             ...
             TypeError: Argument x (= 0) is of the wrong type.
 
             sage: F([(0,5),(1,2),(0,10),(0,2),(1,2)])
-            a_0^5*a_1^2*a_0^12*a_1^2
+            a0^5*a1^2*a0^12*a1^2
 
         """
         ## There should really some careful type checking here...
@@ -181,9 +181,9 @@ class FreeMonoid_class(Monoid_class):
         EXAMPLES:
             sage: F = FreeMonoid(3, 'a')
             sage: F.gen(1)
-            a_1
+            a1
             sage: F.gen(2)
-            a_2
+            a2
             sage: F.gen(5)
             Traceback (most recent call last):
             ...

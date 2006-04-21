@@ -94,6 +94,10 @@ class Graphics(SageObject):
             raise TypeError, "x must be a GraphicPrimitive"
         self.__objects[int(i)] = x
 
+    def __radd__(self, other):
+        if not isinstance(other, Graphics) and other == 0:
+            return self
+        raise TypeError
 
     def __add__(self, other):
         """
@@ -107,8 +111,11 @@ class Graphics(SageObject):
                 0 -- Line defined by 161 points
                 1 -- Line defined by 161 points
         """
-        if isinstance(other, int) and other == 0:
-            return self
+        if not isinstance(other, Graphics):
+            if other == 0:
+                return self
+            raise TypeError
+
         if not isinstance(other, Graphics):
             raise TypeError, "other (=%s) must be a Graphics objects"%other
         g = Graphics()

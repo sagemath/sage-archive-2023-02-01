@@ -60,7 +60,7 @@ generators of a polynomial ring, so the eval command works.
 
     sage: x, y = MPolynomialRing(RationalField(), 2).gens()
     sage: g = eval(F[1][3].sage_polystring()); g
-    x_1^2 - x_0^5
+    x1^2 - x0^5
 
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
@@ -70,12 +70,12 @@ Next we create a polynomial ring in GAP and obtain its indeterminates:
     [ x_1, x_2 ]
 
 In order to eval $g$ in GAP, we need to tell GAP to view the variables
-\code{x_0} and \code{x_1} as the two generators of $R$.  This is the
+\code{x0} and \code{x1} as the two generators of $R$.  This is the
 one tricky part.  In the GAP interpreter the object \code{I} has its
     own name (which isn't \code{I}).  We can access its name using
     \code{I.name()}.
 
-        sage: _ = gap.eval("x_0 := %s[1];; x_1 := %s[2];;"%(I.name(), I.name()))
+        sage: _ = gap.eval("x0 := %s[1];; x1 := %s[2];;"%(I.name(), I.name()))
 
     Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
     corresponding to $g$:

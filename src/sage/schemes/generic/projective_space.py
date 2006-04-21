@@ -168,7 +168,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             Polynomial Ring in a, b, c, d over Finite Field in a of size 19^2
 
             sage: ProjectiveSpace(3).coordinate_ring()
-            Polynomial Ring in x_0, x_1, x_2, x_3 over Integer Ring
+            Polynomial Ring in x0, x1, x2, x3 over Integer Ring
 
             sage: ProjectiveSpace(2, Q, ['alpha', 'beta', 'gamma']).coordinate_ring()
             Polynomial Ring in alpha, beta, gamma over Rational Field
@@ -277,14 +277,14 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x_0, x_1, x_2, x_3, x_4) to
-                    (x_0 : x_1 : 1 : x_2 : x_3 : x_4)
+              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
+                    (x0 : x1 : 1 : x2 : x3 : x4)
             sage: AA.projective_embedding(0)
             Scheme morphism:
               From: Affine Space of dimension 5 over Rational Field
               To:   Projective Space of dimension 5 over Rational Field
-              Defn: Defined on coordinates by sending (x_0, x_1, x_2, x_3, x_4) to
-                    (1 : x_0 : x_1 : x_2 : x_3 : x_4)
+              Defn: Defined on coordinates by sending (x0, x1, x2, x3, x4) to
+                    (1 : x0 : x1 : x2 : x3 : x4)
         """
         i = int(i)   # implicit type checking
         n = self.dimension()

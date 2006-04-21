@@ -390,8 +390,10 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
             zero = R(0)
             entries = [zero for _ in xrange(self.degree())]
         else:
-            if not isinstance(entries, list):
-                raise TypeError, "entries (=%s) must be a list"%entries
+            if not isinstance(entries, (list, tuple)):
+
+                raise TypeError, "entries (=%s) must be a list"%(entries, )
+
             if len(entries) != self.degree():
                 raise ArithmeticError, "entries must be a list of length %s"%\
                             self.degree()
@@ -409,6 +411,8 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
     def __getitem__(self, i):
         """
         """
+        if isinstance(i, slice):
+            return list(self)[i]
         i = int(i)
         #if not isinstance(i, int):
         #    raise TypeError, "index must an integer"

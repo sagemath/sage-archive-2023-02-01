@@ -682,7 +682,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         modular symbols spaces with character of order bigger than $2$:
 
             sage: M = ModularSymbols(DirichletGroup(13).0^2, 2); M
-            Full Modular Symbols space of level 13, weight 2, character [zeta_6], sign 0, and dimension 4 over Cyclotomic Field of order 6 and degree 2
+            Full Modular Symbols space of level 13, weight 2, character [zeta6], sign 0, and dimension 4 over Cyclotomic Field of order 6 and degree 2
             sage: M.basis()
             ((1,0), (1,5), (1,10), (1,11))
             sage: M.integral_basis()

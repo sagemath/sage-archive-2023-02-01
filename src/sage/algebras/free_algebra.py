@@ -35,7 +35,7 @@ def FreeAlgebra(R, n, names = None):
 
     EXAMPLES:
         sage: FreeAlgebra(GF(5),3)
-        Free Algebra on 3 generators (x_0, x_1, x_2) over Finite Field of size 5
+        Free Algebra on 3 generators (x0, x1, x2) over Finite Field of size 5
         sage: FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
         Free Algebra on 3 generators (xx, zba, Y) over Finite Field of size 5
         sage: FreeAlgebra(GF(5),3, 'abc')
@@ -45,7 +45,7 @@ def FreeAlgebra(R, n, names = None):
         sage: FreeAlgebra(GF(5),1, ['alpha'])
         Free Algebra on 1 generators (alpha,) over Finite Field of size 5
         sage: FreeAlgebra(FreeAlgebra(ZZ,1), 2)
-        Free Algebra on 2 generators (x_0, x_1) over Free Algebra on 1 generators (x,) over Integer Ring
+        Free Algebra on 2 generators (x0, x1) over Free Algebra on 1 generators (x,) over Integer Ring
     """
     return cache(R,n, cache.format_names(names, n))
 

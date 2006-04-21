@@ -55,7 +55,7 @@ def is_AlgebraicScheme(x):
         sage: A, x = AffineSpace(10, Q).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
-          x_9 + x_8 + x_7 + x_6 + x_5 + x_4 + x_3 + x_2 + x_1 + x_0
+          x9 + x8 + x7 + x6 + x5 + x4 + x3 + x2 + x1 + x0
         sage: is_AlgebraicScheme(X)
         True
 
@@ -278,13 +278,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V = P.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
             [Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            x_3,
+            x3,
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x_4^3 + x_0^2*x_2,
+             -1*x4^3 + x0^2*x2,
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x_3^5 + 2*x_2^3*x_4^2,
+             -1*x3^5 + 2*x2^3*x4^2,
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x_2^2 - x_1^2 + x_0^2]
+             -1*x2^2 - x1^2 + x0^2]
         """
         try:
             return self.__irreducible_components
@@ -577,15 +577,15 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            x_1^3 + x_0 + x_0^3*x_1
+            x1^3 + x0 + x0^3*x1
             sage: U.projective_embedding()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x_1^3 + x_0 + x_0^3*x_1
+              x1^3 + x0 + x0^3*x1
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               Y^3*Z + X*Z^3 + X^3*Y
-              Defn: Defined on coordinates by sending (x_0, x_1) to
-                    (1 : x_0 : x_1)
+              Defn: Defined on coordinates by sending (x0, x1) to
+                    (1 : x0 : x1)
         """
         i = int(i)   # implicit type checking
         PP = self.ambient_space()

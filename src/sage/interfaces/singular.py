@@ -77,9 +77,9 @@ We can convert $f$ and each exponent back to SAGE objects as well.
 
     sage: x, y = MPolynomialRing(RationalField(), 2).gens()
     sage: g = eval(f.sage_polystring()); g
-    9*x_1^8 - 9*x_0^2*x_1^7 - 18*x_0^3*x_1^6 - 18*x_0^5*x_1^6 + 9*x_0^6*x_1^4 + 18*x_0^7*x_1^5 + 36*x_0^8*x_1^4 + 9*x_0^10*x_1^4 - 18*x_0^11*x_1^2 - 9*x_0^12*x_1^3 - 18*x_0^13*x_1^2 + 9*x_0^16
+    9*x1^8 - 9*x0^2*x1^7 - 18*x0^3*x1^6 - 18*x0^5*x1^6 + 9*x0^6*x1^4 + 18*x0^7*x1^5 + 36*x0^8*x1^4 + 9*x0^10*x1^4 - 18*x0^11*x1^2 - 9*x0^12*x1^3 - 18*x0^13*x1^2 + 9*x0^16
     sage: eval(F[1][2].sage_polystring())
-    x_1^4 - x_0^2*x_1^3 - 2*x_0^3*x_1^2 + x_0^6
+    x1^4 - x0^2*x1^3 - 2*x0^3*x1^2 + x0^6
 
 This example illustrates polynomial GCD's:
     sage: R2 = singular.ring(0, '(x,y,z)', 'lp')
@@ -584,7 +584,7 @@ class Singular(Expect):
             3*a
         """
         try:
-            self.eval('kill %s;'%(str(vars)[1:-1]))
+            self.eval('kill %s'%(str(vars)[1:-1]))
         except RuntimeError, TypeError:  # error if variable is not already defined.
             pass
         R = self('%s,%s,%s'%(char, vars, order), 'ring')
@@ -844,10 +844,10 @@ class SingularElement(ExpectElement):
         Returns the internal type of this element.
 
         EXAMPLES:
-            sage: r=MPolynomialRing(GF(2**8),2,'x')
-            sage: r._singular_().type()
+            sage: R = MPolynomialRing(GF(2**8),2,'x')
+            sage: R._singular_().type()
             'ring'
-            sage: fs=singular('x_0^2','poly')
+            sage: fs = singular('x0^2','poly')
             sage: fs.type()
             'poly'
         """

@@ -408,6 +408,11 @@ def ideal(*x):
     """
     if isinstance(x[0], (list, tuple)):
         return Ideal(x[0])
+    if len(x) == 1:
+        try:
+            return x[0].ideal()
+        except AttributeError:
+            pass
     return Ideal(x)
 
 def image(x):
@@ -688,9 +693,9 @@ def objgens(x, names=None):
     EXAMPLES:
         sage: R, x = objgens(MPolynomialRing(Q,3))
         sage: R
-        Polynomial Ring in x_0, x_1, x_2 over Rational Field
+        Polynomial Ring in x0, x1, x2 over Rational Field
         sage: x
-        (x_0, x_1, x_2)
+        (x0, x1, x2)
     """
     return x.objgens(names)
 

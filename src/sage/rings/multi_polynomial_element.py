@@ -10,6 +10,8 @@ AUTHORS:
               some Singular features
     -- William Stein (2006-04-19): added e.g., \code{f[1,3]} to get coeff of $xy^3$;
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
+
+    -- Martin Albrecht: improved singular coercions (restructed class hierarchy)
 """
 
 #*****************************************************************************

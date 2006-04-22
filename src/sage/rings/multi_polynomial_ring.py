@@ -5,9 +5,12 @@ AUTHORS:
     -- David Joyner and William Stein
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               Singular features
+    -- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular rep
 
 EXAMPLES:
+
 We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
+
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])
     sage: frob(x^2 + 2*y - z^4)

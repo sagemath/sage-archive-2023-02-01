@@ -1,5 +1,9 @@
 """
 Univariate Polynomials
+
+AUTHORS:
+    -- William Stein: first version
+    -- Martin Albrecht: Added singular coercion.
 """
 
 #*****************************************************************************

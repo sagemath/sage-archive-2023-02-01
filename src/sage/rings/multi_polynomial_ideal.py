@@ -110,10 +110,8 @@ class MPolynomialIdeal(Ideal_generic):
 
 class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     """
-    An ideal in a multivariate polynomial ring, which has an underlying Singular
-    ring associated to it.
-
-    EXAMPLES:
+    An ideal in a multivariate polynomial ring, which has an
+    underlying Singular ring associated to it.
     """
     def __init__(self, ring, gens, coerce=True):
         MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)

@@ -162,7 +162,7 @@ def minimum_distance_lower_bound(n,k,F):
         via Steven Sivek's linear_code_bound.
 
         EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))
+            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))     # optional (net connection)
             3
 
         Obviously requires an internet connection.
@@ -178,7 +178,7 @@ def minimum_distance_upper_bound(n,k,F):
         via Steven Sivek's linear_code_bound.
 
         EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))
+            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))  # optional (net connection)
             3
 
         Obviously requires an internet connection.
@@ -194,7 +194,7 @@ def minimum_distance_why(n,k,F):
         via Steven Sivek's linear_code_bound.
 
         EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))
+            sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
             Lb(7,4) = 3 is found by truncation of:
             Lb(8,4) = 4 is found by the (u|u+v) construction
             applied to [4,3,2] and [4,1,4]-codes
@@ -227,7 +227,7 @@ class LinearCode(module.Module):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.minimum_distance_upper_bound()
+        sage: C.minimum_distance_upper_bound()   # optional (net connection)
         3
         sage: C.base_ring()
         Finite Field of size 2
@@ -241,7 +241,7 @@ class LinearCode(module.Module):
         [1, 0, 0, 7, 7, 0, 0, 1]
         sage: C.weight_distribution()
         [1, 0, 0, 7, 7, 0, 0, 1]
-        sage: C.minimum_distance_why()
+        sage: C.minimum_distance_why()     # optional (net connection)
         Ub(7,4) = 3 follows by the Griesmer bound.
 
     AUTHOR: David Joyner (11-2005)
@@ -334,9 +334,9 @@ class LinearCode(module.Module):
 	    [    0     0     1     1     0     0     0     0     x x + 1]
             sage: C.minimum_distance()       ## random
             2
-            sage: C.minimum_distance_upper_bound()
+            sage: C.minimum_distance_upper_bound()  # optional (net connection)
             5
-            sage: C.minimum_distance_why()
+            sage: C.minimum_distance_why()          # optional (net connection)
             Ub(10,5) = 5 follows by the Griesmer bound.
 
 

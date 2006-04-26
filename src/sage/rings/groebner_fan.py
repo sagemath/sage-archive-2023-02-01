@@ -214,6 +214,16 @@ class GroebnerFan(SageObject):
         """
         return self.__ring.characteristic()
 
+    def universal_groebner_basis(self):
+        try:
+            return self.__universal_groebner_basis
+        except AttributeError:
+            U0 = self.gfan(cmd='polynomialsetunion',
+                          I=self._gfan_reduced_groebner_bases().replace(' ',','))
+            U = multiple_replace(self._gfan_vardict(), U0).split(' ')[1:-1]
+            self.__universal_groebner_basis = U
+            return U
+
     def reduced_groebner_bases(self):
         """
         EXAMPLES:
@@ -239,10 +249,8 @@ class GroebnerFan(SageObject):
 
             # change the variable names back using one big substitution?
             G = multiple_replace(self._gfan_vardict(), G0)
-
             G = G.replace('{{','').replace('}}','').split('} {')
             G0 = G0.replace('{{','').replace('}}','').split('} {')
-            from sage.misc.all import cputime
             S = self.__ring
             X = [ReducedGroebnerBasis(self, [S(f) for f in G[i].split()], G0[i]) for i in range(len(G))]
             self.__reduced_groebner_bases = X

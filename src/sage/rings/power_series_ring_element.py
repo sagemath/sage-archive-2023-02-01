@@ -446,7 +446,11 @@ class PowerSeries_generic_dense(PowerSeries):
         """
         R = parent._poly_ring()
         if not (isinstance(f, polynomial.Polynomial) and f.parent() == R):
-            f = R(f, check=check)
+            if isinstance(f, PowerSeries_generic_dense):
+                prec = f.prec()
+                f = R(f.__f)
+            else:
+                f = R(f, check=check)
         self.__f = f
         if check and prec != infinity:
             self.__f = self.__f.truncate(prec)

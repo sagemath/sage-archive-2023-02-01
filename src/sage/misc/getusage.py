@@ -61,6 +61,7 @@ def get_memory_usage(t=None):
         raise NotImplementedError, "memory usage not implemented on platform %s"%U
 
 
+
 ########################################################################
 # The following is adapted from
 #   http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/286222

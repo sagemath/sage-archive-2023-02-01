@@ -1,5 +1,10 @@
 """
 Miscellaneous functions
+
+AUTHOR:
+    -- William Stein
+    -- William Stein (2006-04-26): added workaround for Windows where
+            most users's home directory has a space in it.
 """
 
 ########################################################################
@@ -35,7 +40,25 @@ except KeyError:
 LOGFILE = "%s/log/sage_log"%SAGE_ROOT
 
 
-DOT_SAGE = '%s/.sage/'%os.environ['HOME']
+try:
+    DOT_SAGE = '%s/.sage/'%os.environ['HOME']
+except KeyError:
+    DOT_SAGE = '%s/.sage/'%SAGE_ROOT
+
+if ' ' in DOT_SAGE:
+    if os.uname()[0][:6] == 'CYGWIN':
+        # on windows/cygwin it is typical for the home directory
+        # to have a space in it.  Fortunately, users also have
+        # write privilegs to c:\cygwin\home, so we just put
+        # .sage there.
+        DOT_SAGE="/home/.sage"
+    else:
+        print "Your home directory has a space in it.  This"
+        print "will break some functionality of SAGE.  E.g.,"
+        print "the GAP interface will not work.  A workaround"
+        print "is to set the environment variable HOME to a"
+        print "directory with no spaces that you have write"
+        print "permissions to before you start sage."
 
 SPYX_TMP = '%s/spyx'%DOT_SAGE
 

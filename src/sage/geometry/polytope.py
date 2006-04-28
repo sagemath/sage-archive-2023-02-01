@@ -24,7 +24,7 @@ AUTHOR:
 ########################################################################
 
 
-from sage.misc.all import SAGE_TMP
+from sage.misc.all import SAGE_TMP, tmp_filename
 from sage.rings.all import Integer, QQ
 from sage.structure.all import Sequence
 from sage.modules.all import VectorSpace
@@ -46,10 +46,51 @@ class Polytope(SageObject):
         self.__desc = desc
 
     def _repr_(self):
-        return self.__desc
+        s = self.__desc
+        # vertices, facets, points, inequalities
+        try:
+            s += '\nVertices:\n%s'%self.__vertices
+        except AttributeError:
+            pass
+        try:
+            s += '\nFacets:\n%s'%self.__facets
+        except AttributeError:
+            pass
+        return s
+
+
+
+    def __add__(self, other):
+        """
+
+        """
+        if not isinstance(other, Polytope):
+            raise TypeError, "other (=%s) must be a polytope"%other
+        output_file = tmp_filename()
+        infile1 = tmp_filename()
+        open(infile1,'w').write(self.__data)
+        infile2 = tmp_filename()
+        open(infile2,'w').write(other.__data)
+        cmd = "minkowski_sum %s 1 %s 1 %s"%(output_file, infile1,
+                                            infile2)
+        stdin, stdout, stderr = os.popen3(cmd)
+        stdin.close()
+        err = stderr.read()
+        if len(err) > 0:
+            raise RuntimeError, err
+        print stdout.read(), err
+        S = polymake.from_data(open(output_file).read())
+        os.unlink(infile1)
+        os.unlink(infile2)
+        os.unlink(output_file)
+        return S
+
 
     def data(self):
         return self.__data
+
+    def write(self, filename):
+        open(filename,'w').write(self.__data)
 
     def cmd(self, cmd):
         cmd = cmd.upper()
@@ -102,6 +143,28 @@ class Polytope(SageObject):
             V = VectorSpace(QQ, n)
             ans = Sequence((V(x.split()) for x in s), immutable=True)
         self.__facets = ans
+        return ans
+
+    def vertices(self):
+        """
+        EXAMPLES:
+            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P.vertices()
+            [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
+        """
+        try:
+            return self.__vertices
+        except AttributeError:
+            pass
+        s = self.cmd('VERTICES')
+        s = s.rstrip().split('\n')[1:]
+        if len(s) == 0:
+            ans = Sequence([], immutable=True)
+        else:
+            n = len(s[0].split())
+            V = VectorSpace(QQ, n)
+            ans = Sequence((V(x.split()) for x in s), immutable=True)
+        self.__vertices = ans
         return ans
 
     def visual(self):
@@ -183,6 +246,25 @@ class Polymake:
                            'The 24-cell')
 
     def convex_hull(self, points=[]):
+        """
+
+        EXAMPLES:
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: f = x^3 + y^3 + z^3 + x*y*z
+            sage: e = f.exponents()
+            sage: a = [[1] + list(v) for v in e]
+            sage: a
+            [[1, 0, 3, 0], [1, 3, 0, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
+            sage: n = polymake.convex_hull(a)
+            sage: n
+            Convex hull of points [[1, 0, 3, 0], [1, 3, 0, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
+            sage: n.facets()
+            [(0, 1, 0, 0), (3, -1, -1, 0), (0, 0, 1, 0)]
+            sage: n.is_simple()
+            True
+            sage: n.graph()
+            'GRAPH\n{1 2}\n{0 2}\n{0 1}\n\n'
+        """
         f = 'POINTS\n'
         for p in points:
             f += ' '.join(str(x) for x in p) + '\n'
@@ -192,6 +274,9 @@ class Polymake:
     def cube(self, dimension, scale=0):
         return self.__make('cube %s %s %s'%(tmp_file, dimension, scale),
                            'Cube of dimension %s (scale %s)'%(dimension, scale))
+
+    def from_data(self, data):
+        return Polytope(data, 'A Polytope')
 
     def rand01(self, d, n, seed=None):
         cmd = 'rand01 %s %s %s'%(tmp_file, d, n)

@@ -3,7 +3,7 @@ from misc import (alarm, srange, xsrange,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, exists, forall,
                   random_sublist, mul, prod, walltime, generic_cmp,
-                  repr_lincomb, tmp_dir,
+                  repr_lincomb, tmp_dir, tmp_filename,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, upgrade)
 

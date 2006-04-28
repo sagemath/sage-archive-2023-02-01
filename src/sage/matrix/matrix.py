@@ -252,6 +252,20 @@ class Matrix(module_element.ModuleElement, Mutability):
         return '[%s]'%(','.join(v))
 
     ###################################################
+    ## Coercion to Mathematica
+    ###################################################
+    #def _mathematica_init_(self):
+    #    """
+    #    EXAMPLES:
+    #        sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
+    #        sage: g = mathematica(A); g
+    #    """
+    #    v = ['{%s}'%(','.join([self.get((i,j))._mathematica_init_() for j in xrange(self.ncols())])) for
+    #         i in xrange(self.nrows())]
+    #    return '{%s}'%(','.join(v))
+
+
+    ###################################################
     ## Coercion to MAGMA
     ###################################################
     def _magma_init_(self):

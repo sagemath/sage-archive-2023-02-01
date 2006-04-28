@@ -899,14 +899,16 @@ def tmp_dir(name):
 # temporary filename
 #################################################################
 
+__tmp_n = 0
+
 def tmp_filename(name='tmp'):
     name = str(name)
-    n = 0
+    global __tmp_n
     while True:
-        tmp = "%s/%s_%s"%(SAGE_TMP, name, n)
+        tmp = "%s/%s_%s"%(SAGE_TMP, name, __tmp_n)
+        __tmp_n += 1
         if not os.path.exists(tmp):
             break
-        n += 1
     return tmp
 
 

@@ -253,6 +253,33 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             raise TypeError, "x (=%s) must be one of the generators of the parent."%x
         return self.element().degree(x.element())
 
+    def newton_polytope(self):
+        """
+        Return the Newton polytope of this polynomial.
+
+        You should have the optional polymake package installed.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: f = 1 + x*y + x^3 + y^3
+            sage: P = f.newton_polytope()
+            sage: P
+            Convex hull of points [[1, 3, 0], [1, 0, 3], [1, 0, 0], [1, 1, 1]]
+            sage: P.facets()
+            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
+            sage: P.is_simple()
+            True
+        """
+        try:
+            return self.__newton_polytope
+        except AttributeError:
+            from sage.geometry.all import polymake
+            e = self.exponents()
+            a = [[1] + list(v) for v in e]
+            P = polymake.convex_hull(a)
+            self.__newton_polytope = P
+            return P
+
     def total_degree(self):
         """
         Return the total degree of self, which is the

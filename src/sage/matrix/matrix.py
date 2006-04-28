@@ -91,7 +91,7 @@ import sage.rings.rational_field as rational_field
 import sage.rings.rational as rational
 import sage.rings.number_field.number_field as number_field
 import sage.rings.coerce as coerce
-from sage.rings.all import is_FiniteField
+from sage.rings.all import is_FiniteField, is_IntegerModRing
 
 from sage.structure.mutability import Mutability
 
@@ -2594,7 +2594,10 @@ class Matrix_field(Matrix_pid):
             pass
 
         R = self.base_ring()
-        if is_FiniteField(R) and R.is_prime_field() and R.characteristic() < 46340:
+        # Fix to work with finite fields and Z/nZ, which was
+        # suggested by Dan Christensen <jdc@uwo.ca>.
+        if (   (is_FiniteField(R) and R.is_prime_field()) or \
+               is_IntegerModRing(R)  ) and R.characteristic() < 46340:
             p = R.characteristic()
             S = sage.ext.dense_matrix_pyx.Matrix_modint(p, self.nrows(), self.ncols(), self.list())
             S.echelon()

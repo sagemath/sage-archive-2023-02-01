@@ -183,7 +183,8 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
     """
     def __init__(self, x, universe=None, check=True, immutable=False):
         if not isinstance(x, (list, tuple)):
-            raise TypeError, "x must be a list or tuple"
+            x = list(x)
+            #raise TypeError, "x must be a list or tuple"
         self.__hash = None
         if isinstance(x, Sequence):
             if universe is None or universe == x.__universe:

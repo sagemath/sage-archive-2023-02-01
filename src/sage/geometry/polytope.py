@@ -1,0 +1,205 @@
+"""
+Polytopes
+
+This module provides access to polymake, which 'has been developed
+since 1997 in the Discrete Geometry group at the Institute of
+Mathematics of Technische Universität Berlin. Since 2004 the
+development is shared with Fachbereich Mathematik, Technische
+Universität Darmstadt.  The system offers access to a wide variety of
+algorithms and packages within a common framework. polymake is
+flexible and continuously expanding. The software supplies C++ and
+perl interfaces which make it highly adaptable to individual needs.'
+
+AUTHOR:
+    -- Ewgenij Gawrilow, Michael Joswig: main authors of polymake
+    -- William Stein: SAGE interface
+"""
+
+########################################################################
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
+
+from sage.misc.all import SAGE_TMP
+from sage.rings.all import Integer, QQ
+from sage.structure.all import Sequence
+from sage.modules.all import VectorSpace
+from sage.ext.sage_object import SageObject
+
+import os
+
+path = '%s/polymake/'%os.environ['SAGE_LOCAL']
+polymake_command = path + 'polymake'
+
+if os.path.exists(path):
+    os.environ['PATH'] += ':%s'%path
+
+tmp_file = '%s/tmp.poly'%SAGE_TMP
+
+class Polytope(SageObject):
+    def __init__(self, datafile, desc):
+        self.__data = datafile
+        self.__desc = desc
+
+    def _repr_(self):
+        return self.__desc
+
+    def data(self):
+        return self.__data
+
+    def cmd(self, cmd):
+        cmd = cmd.upper()
+        # First check if the value of the command
+        # is already known.
+        D = self.data()
+        cmd2='\n%s\n'%cmd
+        i = D.find(cmd2)
+        if i != -1:
+            j = D[i:].find('\n\n')
+            if j == -1:
+                j = len(D)
+            else:
+                j += i
+            return D[i+len(cmd2)-1:j]
+
+        F = tmp_file
+        open(F,'w').write(self.__data)
+        c = '%s %s %s'%(polymake_command, F, cmd)
+        stdin, stdout, stderr = os.popen3(c)
+        stdin.close()
+        err = stderr.read()
+        if len(err) > 0:
+            raise RuntimeError, err
+        ans = stdout.read()
+        if len(ans) == 0:
+            raise ValueError, "%s\nError executing polymake command %s"%(
+                err,cmd)
+        self.__data = open(F).read()
+        return ans
+
+
+    def facets(self):
+        """
+        EXAMPLES:
+            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P.facets()
+            [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
+        """
+        try:
+            return self.__facets
+        except AttributeError:
+            pass
+        s = self.cmd('FACETS')
+        s = s.rstrip().split('\n')[1:]
+        if len(s) == 0:
+            ans = Sequence([], immutable=True)
+        else:
+            n = len(s[0].split())
+            V = VectorSpace(QQ, n)
+            ans = Sequence((V(x.split()) for x in s), immutable=True)
+        self.__facets = ans
+        return ans
+
+    def visual(self):
+        try:
+            self.cmd('visual')
+        except ValueError:
+            pass
+
+    def graph(self):
+        try:
+            return self.__graph
+        except AttributeError:
+            pass
+        g = self.cmd('GRAPH')
+        return g
+
+    def is_simple(self):
+        """
+        EXAMPLES:
+            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P.is_simple()
+            True
+        """
+        try:
+            return self.__is_simple
+        except AttributeError:
+            pass
+        s = self.cmd('SIMPLE')
+        i = s.find('\n')
+        self.__is_simple = bool(int(s[i:]))
+        return self.__is_simple
+
+
+
+    def n_facets(self):
+        """
+        EXAMPLES:
+            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P.n_facets()
+            6
+        """
+        try:
+            return self.__n_facets
+        except AttributeError:
+            pass
+        s = self.cmd('N_FACETS')
+        i = s.find('\n')
+        self.__n_facets = Integer(s[i:])
+        return self.__n_facets
+
+class Polymake:
+    def __repr__(self):
+        return "Object that makes polytopes."
+
+    def __make(self, cmd, name):
+        os.system(cmd)
+        try:
+            d = open(tmp_file).read()
+        except IOError:
+            raise RuntimeError, "You may need to install the polymake package"
+        return Polytope(d, name)
+
+    def associahedron(self, dimension):
+        return self.__make('associahedron %s %s'%(tmp_file, dimension),
+                           '%s-dimensional associahedron'%dimension)
+
+    def birkhoff(self, n):
+        return self.__make('birkhoff %s %s'%(tmp_file, n),
+                           'Birkhoff %s'%n)
+
+
+    def cell24(self):
+        """
+        EXAMPLES:
+            sage: polymake.cell24()
+            The 24-cell
+        """
+        return self.__make('24-cell %s'%tmp_file,
+                           'The 24-cell')
+
+    def convex_hull(self, points=[]):
+        f = 'POINTS\n'
+        for p in points:
+            f += ' '.join(str(x) for x in p) + '\n'
+        f += '\n'
+        return Polytope(f, 'Convex hull of points %s'%points)
+
+    def cube(self, dimension, scale=0):
+        return self.__make('cube %s %s %s'%(tmp_file, dimension, scale),
+                           'Cube of dimension %s (scale %s)'%(dimension, scale))
+
+    def rand01(self, d, n, seed=None):
+        cmd = 'rand01 %s %s %s'%(tmp_file, d, n)
+        if not seed is None:
+            cmd += ' -seed %s'%seed
+        return self.__make(cmd,
+              '%s-dimensional 0/1-polytope with %s random vertices (uniform distribution)'%(d, n))
+
+
+
+polymake = Polymake()

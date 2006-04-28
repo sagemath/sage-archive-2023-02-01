@@ -59,6 +59,8 @@ from sage.coding.all     import *
 
 from sage.lfunctions.all import *
 
+from sage.geometry.all import *
+
 
 try:
     from sage_user.all import *

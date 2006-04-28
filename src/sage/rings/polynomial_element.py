@@ -2177,7 +2177,8 @@ class Polynomial_dense_mod_n(Polynomial):
         sage: loads(f.dumps()) == f
         True
     """
-    def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
+    def __init__(self, parent, x=None, check=True,
+                 is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
         if construct:
@@ -2199,7 +2200,7 @@ class Polynomial_dense_mod_n(Polynomial):
                 self.__poly = x.__poly.copy()
                 return
             else:
-                x = [ZZ._coerce_(a) for a in x.list()]
+                x = [ZZ(a) for a in x.list()]
                 check = False
 
         if isinstance(x, dict):

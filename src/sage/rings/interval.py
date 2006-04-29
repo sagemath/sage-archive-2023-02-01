@@ -63,7 +63,7 @@ class IntervalRing(ring.Ring, _uniq):
 
     def _coerce_(self, x):
         if isinstance(x, (int, long, float, Interval, integer.Integer,
-                          rational.Rational, real_field_element.RealNumber)):
+                          rational.Rational, real_field.RealNumber)):
             return self(x)
         raise TypeError
 

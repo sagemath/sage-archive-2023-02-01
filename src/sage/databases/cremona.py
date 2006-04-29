@@ -428,7 +428,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         try:
             e = v[_map['allcurves']][id]
         except KeyError:
-            raise RuntimeError, "No such elliptic curve in the database."
+            raise RuntimeError, "No such elliptic curve in the database (note: use lower case letters!)"
         F = elliptic.EllipticCurve(e[0])
         F._set_cremona_label("%s %s %s"%(N, iso, num))
         F._set_rank(e[1])

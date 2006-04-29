@@ -1388,7 +1388,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         \note{Before using this function for the first time for
         a given $n$, you may have to type \code{sympow('-new_data <n>')},
-        where \code{<n>} is replaced by your value of $n$.}
+        where \code{<n>} is replaced by your value of $n$.  This
+        command takes a long time to run.}
 
         EXAMPLES:
             sage.: E = EllipticCurve('37a')
@@ -1762,9 +1763,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries_extended(1 + 0.1*I, 50)
             -0.0076121653876937805 + 0.00043488570464214908*I
 
-        TODO: Planned improvement -- use Micheal Rubinstein's
-        L-functions package and/or Tim Dokchitser's.  Both
-        are already available via other function calls.
+        NOTE: You might also want to use Tim Dokchitser's
+        L-function calculator, which is available by typing
+        L = E.Lseries_dokchitser(), then evaluating L.  It
+        gives the same information but is sometimes much faster.
+
         """
         try:
             s = C(s)
@@ -2780,11 +2783,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def heegner_index(self, D,  min_p=3, prec=5, verbose=False):
         """
         Returns the index of the Heegner point on the quadratic twist
-        by D.
+        by D, as computed using the Gross-Zagier formula and/or
+        a point search.
 
-        Return (an interval that contains) the square of the odd part
-        of the index of the Heegner point in the group of K-rational
-        points *modulo torsion* on the twist of the elliptic curve by D.
+        Return (an interval that contains) the square of the index of
+        the Heegner point in the group of K-rational points *modulo
+        torsion* on the twist of the elliptic curve by D.
+
+        WARNING: This function uses the Gross-Zagier formula.
+        When E is 681b and D=-8 for some reason the returned index
+        is 9/4 which is off by a factor of 4.   Evidently the
+        GZ formula must be modified in this case.
 
         If 0 is in the interval of the height of the Heegner point
         computed to the given prec, then this function returns 0.
@@ -2798,6 +2807,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             prec (int) -- (default: 5), use prec*sqrt(N) + 20 terms
                           of L-series in computations, where N is the
                           conductor.
+
         OUTPUT:
             an interval that contains the index
 
@@ -2820,16 +2830,18 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ...
             ArithmeticError: Discriminant (=-3) must not be -3 or -4.
         """
-        #if self.root_number() != 1:
-        #    raise RuntimeError, "The rank must be 0."
-
-        # First compute upper bound on Height of Heegner point.
-        # We divide by 2 to get the height over Q on the twist.
+        # First compute upper bound on height of Heegner point.
         tm = misc.verbose("computing heegner point height...")
-        ht = self.heegner_point_height(D, prec=prec)/2
+        h0 = self.heegner_point_height(D, prec=prec)
+
+        # We divide by 2 to get the height **over Q** of the
+        # Heegner point on the twist.
+
+        ht = h0/2
         misc.verbose('Height of heegner point = %s'%ht, tm)
-        if 0 in ht:
-            return 0
+
+        IR = rings.IntervalRing()
+
         if self.root_number() == 1:
             F = self.quadratic_twist(D)
         else:
@@ -2840,7 +2852,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         misc.verbose("CPS bound = %s"%B)
         c = h/(min_p**2) + B
         misc.verbose("Search would have to be up to height = %s"%c)
-        IR = rings.IntervalRing()
 
         if c > _MAX_HEIGHT or F is self:
             misc.verbose("Doing direct computation of MW group.")

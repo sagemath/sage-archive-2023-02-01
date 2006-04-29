@@ -23,6 +23,7 @@ import sage.misc.misc as misc
 import sage.modules.module
 import sage.categories.all
 import sage.structure.factorization
+from sage.structure.all import Sequence
 
 import algebra
 import element
@@ -373,22 +374,25 @@ class HeckeModule_free_module(HeckeModule_generic):
             raise ValueError, "compute_dual can only be True for ambient spaces."
         if not isinstance(anemic, bool):
             raise TypeError, "anemic must be of type bool."
+
+        key = (bound, anemic)
+
         try:
-            if self.__decomposition[anemic] != None:
-                return self.__decomposition[anemic]
+            if self.__decomposition[key] != None:
+                return self.__decomposition[key]
         except AttributeError:
             self.__decomposition = {}
         except KeyError:
             pass
         if self.rank() == 0:
-            self.__decomposition[anemic] = []
-            return self.__decomposition[anemic]
+            self.__decomposition[key] = Sequence([], immutable=True)
+            return self.__decomposition[key]
 
         time = misc.verbose("Decomposing %s"%self)
         T = self.ambient_hecke_module().hecke_algebra()
         if bound is None:
             bound = self.hecke_bound()
-        D = []
+        D = Sequence([])
         U = [self.free_module()]
         if compute_dual:
             Udual = [self.free_module()]
@@ -443,10 +447,11 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__is_splittable_anemic = len(D) > 1
 
         D.sort()
-        self.__decomposition[anemic] = D
+        D.set_immutable()
+        self.__decomposition[key] = D
         for i in range(len(D)):
-            self.__decomposition[anemic][i]._set_factor_number(i)
-        return self.__decomposition[anemic]
+            self.__decomposition[key][i]._set_factor_number(i)
+        return self.__decomposition[key]
 
     def degree(self):
         return self.free_module().degree()

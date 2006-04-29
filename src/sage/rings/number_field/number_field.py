@@ -829,7 +829,7 @@ def is_fundamental_discriminant(D):
         return False
     return D != 1 and  D != 0 and \
            (arith.is_squarefree(D) or \
-            (d == 0 and (D/4)%4 in [2,3] and arith.is_squarefree(D/4)))
+            (d == 0 and (D//4)%4 in [2,3] and arith.is_squarefree(D//4)))
 
 
 # TODO: To be removed or related to contents of sage/rings/ideal.

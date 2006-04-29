@@ -1,4 +1,5 @@
 # Boring file regexps:
+\.h$
 \.hi$
 \.o$
 \.o\.cmd$

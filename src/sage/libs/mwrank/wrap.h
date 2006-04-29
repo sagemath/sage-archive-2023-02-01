@@ -29,6 +29,7 @@ EXTERN void del_bigint(struct bigint* x);
 
 EXTERN struct bigint* str_to_bigint(char* s);
 
+
 EXTERN char* bigint_to_str(struct bigint* x);
 
 

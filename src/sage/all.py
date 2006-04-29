@@ -236,3 +236,5 @@ def _quit_sage_(self):
 
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
+
+

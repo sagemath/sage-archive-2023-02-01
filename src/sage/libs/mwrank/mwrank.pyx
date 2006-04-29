@@ -78,7 +78,7 @@ cdef extern from "wrap.h":
 
 
 
-cdef object string(char* s):
+cdef object string_sigoff(char* s):
     _sig_off
     # Makes a python string and deletes what is pointed to by s.
     t = str(s)
@@ -115,7 +115,7 @@ cdef class _bigint:
 
     def __repr__(self):
         _sig_on
-        return string(bigint_to_str(self.x))
+        return string_sigoff(bigint_to_str(self.x))
 
 
 cdef make_bigint(bigint* x):
@@ -146,12 +146,16 @@ cdef class _Curvedata:
         Curvedata_del(self.x)
 
     def __repr__(self):
-        return string(Curvedata_repr(self.x))[:-1]
+        _sig_on
+        return string_sigoff(Curvedata_repr(self.x))[:-1]
 
     def silverman_bound(self):
         return Curvedata_silverman_bound(self.x)
 
     def cps_bound(self):
+        cdef double x
+        # We declare x so there are *no* Python library
+        # calls within the _sig_on/_sig_off.
         _sig_on
         x = Curvedata_cps_bound(self.x)
         _sig_off
@@ -161,15 +165,16 @@ cdef class _Curvedata:
         return Curvedata_height_constant(self.x)
 
     def discriminant(self):
-        return int(string(Curvedata_getdiscr(self.x)))
+        _sig_on
+        return int(string_sigoff(Curvedata_getdiscr(self.x)))
 
     def conductor(self):
         _sig_on
-        return int(string(Curvedata_conductor(self.x)))
+        return int(string_sigoff(Curvedata_conductor(self.x)))
 
     def isogeny_class(self, verbose=False): #Added 05-10-04 : IB
         _sig_on
-        s = string(Curvedata_isogeny_class(self.x, verbose))
+        s = string_sigoff(Curvedata_isogeny_class(self.x, verbose))
         _sig_off
         return eval(s)
 
@@ -188,7 +193,8 @@ cdef class _mw:
         mw_del(self.x)
 
     def __repr__(self):
-        return string(mw_getbasis(self.x))
+        _sig_on
+        return string_sigoff(mw_getbasis(self.x))
 
 
     def process(self, point, sat=True):
@@ -204,14 +210,14 @@ cdef class _mw:
 
     def getbasis(self):
         _sig_on
-        s = string(mw_getbasis(self.x))
+        s = string_sigoff(mw_getbasis(self.x))
         _sig_off
         return s
 
     def regulator(self):
         cdef float f
         _sig_on
-        f = float(string(mw_regulator(self.x)))
+        f = float(string_sigoff(mw_regulator(self.x)))
         _sig_off
         return f
 
@@ -221,19 +227,24 @@ cdef class _mw:
         _sig_off
         return r
 
-    def saturate(self, int sat_bd=-1, odd_primes_only=False):
+    def saturate(self, int sat_bd=-1, int odd_primes_only=0):
         cdef _bigint index
         cdef char* s
+        cdef int ok
         _sig_on
         index = _bigint()
         ok = mw_saturate(self.x, index.x, &s, sat_bd, odd_primes_only)
-        unsat = string(s)   # includes _sig_off
+        unsat = string_sigoff(s)   # includes _sig_off
         return ok, index, unsat
 
-    def search(self, h_lim, moduli_option=0, verb=False):
+    def search(self, h_lim, int moduli_option=0, int verb=0):
+        cdef char* _h_lim
+
         h_lim = str(h_lim)
+        _h_lim = h_lim
+
         _sig_on
-        mw_search(self.x, h_lim, moduli_option, verb)
+        mw_search(self.x, _h_lim, moduli_option, verb)
         _sig_off
 
 
@@ -285,8 +296,8 @@ cdef class _two_descent:
 
     def getbasis(self):
         _sig_on
-        return string(two_descent_getbasis(self.x))
+        return string_sigoff(two_descent_getbasis(self.x))
 
     def regulator(self):
         _sig_on
-        return float(string(two_descent_regulator(self.x)))
+        return float(string_sigoff(two_descent_regulator(self.x)))

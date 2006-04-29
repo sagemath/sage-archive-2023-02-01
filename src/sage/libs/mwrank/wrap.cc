@@ -55,7 +55,6 @@ struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2
 				const struct bigint* a6, int min_on_init)
 {
   return new Curvedata(*a1, *a2, *a3, *a4, *a6, min_on_init);
-  return (Curvedata*)0;
 }
 
 void Curvedata_del(struct Curvedata* curve)

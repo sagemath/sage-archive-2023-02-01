@@ -12,22 +12,28 @@
 
 sigjmp_buf env;
 
-/* In your pyrex code, put
+/* In your Pyrex code, put
+
     _sig_on
     [pure c code block]
     _sig_off
+
    to get signal handling capabilities.
 
-   IMPORTANT:
-       Do *not* put these in the __init__ method, or you'll get crashes.
+   VERY VERY IMPORTANT:
+       1. These *must* always come in pairs. E.g., if you have just
+          a _sig_off without a corresponding _sig_on, then ctrl-c
+          later in the interpretter will sigfault!
 
-       Do not put these around any non-pure C code!!!!
+       2. Do *not* put these in the __init__ method of a Pyrex extension
+          class, or you'll get crashes.
 
-       If you need to do a check of control-c inside a loop, e.g., when
-       constructing a matrix, put _sig_check instead of using _sig_on
-       then _sig_off.
+       3. Do not put these around any non-pure C code!!!!
+
+       4. If you need to do a check of control-c inside a loop, e.g.,
+          when constructing a matrix, put _sig_check instead of using
+          _sig_on then _sig_off.
 */
-
 
 
 /* Unfortunately signal handler function

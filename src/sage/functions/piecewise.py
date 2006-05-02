@@ -1,42 +1,46 @@
-"""
-    Implements a very simple class of piecewise-defined functions.
-    Functions must be piecewise polynomial, though some methods
-    apply more generally. Only compactly supported functions are
-    currently implemented. Moreover, the coefficients should be
-    rational and the support should be "connected". The intervals of
-    polynomial support can be in terms of rationals and $\pi$, or in terms
-    of floats.
+r"""
+Piecewise-defined functions.
 
-    Implemented methods:
-	latex outout
-	__call__
-	plotting
-	fourier series
-	fourier series
-	   value
-	   coefficients (also sine series and cosine series)
-	   partial sum (in string format)
-	   plot of partial sum
-	laplace transform
-	   latex output option
-	domain
-	range
-	list
-	addition (of functions)
-	multiplication (of functions, or fcn*scalar - ie, *right* multiplication by QQ)
-	critical points
+\sage implements a very simple class of piecewise-defined functions.
+Functions must be piecewise polynomial, though some methods apply more
+generally. Only compactly supported functions are currently
+implemented. Moreover, the coefficients should be rational and the
+support should be 'connected'. The intervals of polynomial support can
+be in terms of rationals and $\pi$, or in terms of floats.
 
-    TODO:
-        Implement (a) functions defined on infinite intervals,
-        (b) max/min location and values,
-	(c) left multiplication by a scalar.
-        (d) Extend the implementation of the trick to pass SAGE's pi back
-        and forth with MAXIMA's %pi to other constants (e, for example)
-    (For more general non-polynomial piecewise functions, it appears
-    a new class of functions (for example, "ElementaryFunctionRing") is
-    needed. This a preliminary "todo".)
+Implemented methods:
+    latex outout
+    __call__
+    plotting
+    fourier series
+    fourier series
+       value
+       coefficients (also sine series and cosine series)
+       partial sum (in string format)
+       plot of partial sum
+    laplace transform
+       latex output option
+    domain
+    range
+    list
+    addition (of functions)
+    multiplication (of functions, or fcn*scalar - ie, *right* multiplication by QQ)
+    critical points
 
-    AUTHOR: David Joyner (2006-04)
+TODO:
+    Implement (a) functions defined on infinite intervals,
+    (b) max/min location and values,
+    (c) left multiplication by a scalar.
+    (d) Extend the implementation of the trick to pass \sage's pi back
+    and forth with Maxima's %pi to other constants (e, for example)
+    [[Passing the constants to maxima is already implemented; maybe
+    need passing them back?]]
+
+(For more general non-polynomial piecewise functions, it appears
+a new class of functions (for example, 'ElementaryFunctionRing') is
+needed. This a preliminary 'todo'.)
+
+AUTHOR: David Joyner (2006-04)
 
 """
 
@@ -68,7 +72,6 @@ QQ = RationalField()
 RR = RealField()
 
 class PiecewisePolynomial:
-
     def __init__(self, list_of_pairs):
         r"""
         \code{list_of_pairs} is a list of pairs (fcn,I), where fcn is
@@ -231,7 +234,7 @@ class PiecewisePolynomial:
 
     def which_function(self,x0):
         """
-        Returns the function piece used to evealuate self at x0.
+        Returns the function piece used to evaluate self at x0.
 
         EXAMPLES:
 	    sage: x = PolynomialRing(RationalField()).gen()
@@ -282,9 +285,13 @@ class PiecewisePolynomial:
                  for p in self.list()]
         return sage_eval(str(sum(ints)).replace("%",""))
 
-    def plot(self):
+    def plot(self, **kwds):
         """
         Returns the plot of self.
+
+        Keyword arguments are passed onto the plot command for each
+        piece of the function.  E.g., the plot_points keyword affects
+        each segment of the plot.
 
         EXAMPLES:
             sage: f1 = lambda x:1
@@ -292,19 +299,14 @@ class PiecewisePolynomial:
             sage: f3 = lambda x:exp(x)
             sage: f4 = lambda x:sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-            sage: P = f.plot()
+            sage: P = f.plot(rgbcolor=(0.7,0.1,0), plot_points=40)
 
-	Remember: to view this, type P.save("<path>/myplot.png") and then open it in a graphics
-	viewer such as gimp.
+	Remember: to view this, type P.save("<path>/myplot.png") and
+        then open it in a graphics viewer such as GIMP.
         """
         plot = sage.plot.plot.plot
-        plots = [plot(p[1], p[0][0], p[0][1], rgbcolor=(1,0,0) ) \
-                 for p in self.list()]
-        n = len(plots)
-	P = plots[0]
-	for i in range(1,n):
-	    P = P + plots[i]
-	return P
+        return sum([plot(p[1], p[0][0], p[0][1], **kwds ) \
+                       for p in self.list()])
 
     def fourier_series_cosine_coefficient(self,n,L):
         """
@@ -425,15 +427,14 @@ class PiecewisePolynomial:
             sage: f3 = lambda x:-1
             sage: f4 = lambda x:2
             sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
-            sage: P = f.plot_fourier_series_partial_sum(3,pi,-5,5)
+            sage: P = f.plot_fourier_series_partial_sum(3,pi,-5,5)    # long time
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
-            sage: P = f.plot_fourier_series_partial_sum(15,pi,-5,5)
+            sage: P = f.plot_fourier_series_partial_sum(15,pi,-5,5)   # long time
 
-	Remember, to view this type P.save("<path>/myplot.png") and then open it in a graphics
-	viewer such as gimp.
-
+	Remember, to view this type P.save("<path>/myplot.png") and then
+        open it in a graphics viewer such as GIMP.
         """
         line = sage.plot.plot.line
         pts = []
@@ -491,11 +492,10 @@ class PiecewisePolynomial:
 	    sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_value(-1,pi)
             0
-           sage: f.fourier_series_value(20,pi)
-           -1
-           sage: f.fourier_series_value(pi/2,pi)
-           1/2
-
+            sage: f.fourier_series_value(20,pi)
+            -1
+            sage: f.fourier_series_value(pi/2,pi)
+            1/2
         """
         xnew = x - int(RR(x/(2*L)))*2*L
         endpts = self.end_points()
@@ -719,4 +719,6 @@ class PiecewisePolynomial:
 	    fcn.append([[endpts[j],endpts[j+1]],self.which_function(x0)*other.which_function(x0)])
 	return Piecewise(fcn)
 
-Piecewise = PiecewisePolynomial  ## added so that functions/all.py does not need to be changed
+
+## added so that functions/all.py does not need to be changed
+Piecewise = PiecewisePolynomial

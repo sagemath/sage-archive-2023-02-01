@@ -153,10 +153,10 @@ class PiecewisePolynomial:
 
     def critical_points(self):
         """
-        Function to return the critical points. Uses maxima, which prints the
-        warning to use results with caution. Only works for piecewise functions
-        whose parts are polynomials with real critical not occurring on the
-        interval endpoints.
+        Function to return the critical points. Uses maxima, which
+        prints the warning to use results with caution. Only works for
+        piecewise functions whose parts are polynomials with real
+        critical not occurring on the interval endpoints.
 
         EXAMPLES:
             sage: x = PolynomialRing(RationalField()).gen()
@@ -262,7 +262,7 @@ class PiecewisePolynomial:
         raise ValueError,"Function not defined outside of domain."
 
     def integral(self):
-        """
+        r"""
         Returns the definite integral (as computed by maxima)
         $\sum_I \int_I self|_I$, as I runs over the intervals
         belonging to self.
@@ -309,7 +309,7 @@ class PiecewisePolynomial:
                        for p in self.list()])
 
     def fourier_series_cosine_coefficient(self,n,L):
-        """
+        r"""
         Returns the n-th Fourier series coefficient of $\cos(n\pi x/L)$, $a_n$.
 
         INPUT:
@@ -351,7 +351,7 @@ class PiecewisePolynomial:
         return sage_eval(str(ans).replace("%",""))
 
     def fourier_series_sine_coefficient(self,n,L):
-        """
+        r"""
         Returns the n-th Fourier series coefficient of $\sin(n\pi x/L)$, $b_n$.
 
         INPUT:
@@ -383,7 +383,7 @@ class PiecewisePolynomial:
         return sage_eval(str(ans).replace("%",""))
 
     def fourier_series_partial_sum(self,N,L):
-        """
+        r"""
         Returns the partial sum
         \[
         f(x) \sim \frac{a_0}{2} +
@@ -413,7 +413,7 @@ class PiecewisePolynomial:
         return sumFS[:-3]
 
     def plot_fourier_series_partial_sum(self,N,L,xmin,xmax):
-        """
+        r"""
         Plots the partial sum
         \[
         f(x) \sim \frac{a_0}{2} +
@@ -451,7 +451,7 @@ class PiecewisePolynomial:
         return line(pts)
 
     def fourier_series_value(self,x,L):
-        """
+        r"""
         Returns the value of the Fourier series coefficient of self at $x$,
 
         \[
@@ -505,7 +505,7 @@ class PiecewisePolynomial:
         return self(xnew)
 
     def cosine_series_coefficient(self,n,L):
-        """
+        r"""
         Returns the n-th cosine series coefficient of $\cos(n\pi x/L)$, $a_n$.
 
         INPUT:
@@ -554,7 +554,7 @@ class PiecewisePolynomial:
         return sage_eval(str(ans).replace("%",""))
 
     def sine_series_coefficient(self,n,L):
-        """
+        r"""
         Returns the n-th sine series coefficient of $\sin(n\pi x/L)$, $b_n$.
 
         INPUT:
@@ -593,7 +593,7 @@ class PiecewisePolynomial:
         return sage_eval(str(ans).replace("%",""))
 
     def laplace_transform(self,var = "s",latex_output=0):
-        """
+        r"""
         Returns the laplace transform of self, as a function of var.
         We assume that a piecewise function is 0 outside of its domain
         and that the left-most endpoint of the domain is 0.
@@ -669,7 +669,7 @@ class PiecewisePolynomial:
 	return Piecewise(fcn)
 
     def __mul__(self,other):
-	"""
+	r"""
 	Returns the piecewise defined function which is the product of
 	one piecewise function (self) with another one (other).
 

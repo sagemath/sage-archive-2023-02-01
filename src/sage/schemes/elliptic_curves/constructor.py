@@ -22,7 +22,7 @@ import sage.rings.all as rings
 
 
 def EllipticCurve(x, y=None):
-    """
+    r"""
     There are several ways to construct elliptic curves:
 
         -- EllipticCurve([a1,a2,a3,a4,a6]): Elliptic curve with given
@@ -34,15 +34,15 @@ def EllipticCurve(x, y=None):
 
         -- EllipticCurve(label): Returns the elliptic curve over Q
            from the Cremona database with the given label.  The label
-           is a string, such as"11A" or "37B2".
+           is a string, such as "11a" or "37b2".  The letters in the
+           label \emph{must} be lower case (Cremona's new labeling).
 
-        -- EllipticCurve(R, [a1,a2,a3,a4,a6]): Create the elliptic curve
-           over R with given a-invariants.  Here R can be an arbitrary
-           ring.  Note that addition need not be defined.
+        -- EllipticCurve(R, [a1,a2,a3,a4,a6]): Create the elliptic
+           curve over R with given a-invariants.  Here R can be an
+           arbitrary ring.  Note that addition need not be defined.
 
-        -- EllipticCurve(j): Return an elliptic curve with j-invariant j.
-           (Some mild hypothesis on char of base ring.)
-
+        -- EllipticCurve(j): Return an elliptic curve with j-invariant
+           $j$. (Some mild hypothesis on char of base ring.)
 
     EXAMPLES:
     We illustrate creating elliptic curves.
@@ -50,13 +50,22 @@ def EllipticCurve(x, y=None):
         sage: EllipticCurve([0,0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
+
+    We create a curve from a Cremona label:
+        sage: EllipticCurve('37b2')
+        Elliptic Curve defined by y^2 + y = x^3 + x^2 - 1873*x - 31833 over Rational Field
+        sage: EllipticCurve('5077a')
+        Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+        sage: EllipticCurve('389a')
+        Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+
+    We create curves over a finite field as follows:
         sage: EllipticCurve([GF(5)(0),0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
-
-    Alternatively, one can create the curve over the finite field as follows:
         sage: EllipticCurve(GF(5), [0, 0,1,-1,0])
         Elliptic Curve defined by y^2 + y = x^3 + 4*x over Finite Field of size 5
 
+    The following is a curve over the complex numbers:
         sage: E = EllipticCurve(CC, [0,0,1,-1,0])
         sage: E
         Elliptic Curve defined by y^2 + y = x^3 - 1.0000000000000000*x over Complex Field with 53 bits of precision

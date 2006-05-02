@@ -2254,7 +2254,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def is_semistable(self):
         if self.base_ring() != Q:
             raise NotImplementedError, "is_semistable only implemented for curves over the rational numbers."
-        return self.conductor().is_square_free()
+        return self.conductor().is_squarefree()
 
     def reducible_primes(self):
         r"""

@@ -251,12 +251,10 @@ cdef class Matrix_modint:
     def __repr__(self):
         cdef uint i, j
         s = "[\n"
-        _sig_on
         for i from 0 <= i < self.nrows:
             for j from 0 <= j < self.ncols:
                 s = s + str(self.matrix[i][j]) + ", "
             s = s + "\n"
-        _sig_off
         s = s[:-3] + "\n]"
         return s
 
@@ -777,6 +775,7 @@ cdef class Matrix_rational:
             m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
             if m[i] == <mpq_t*> 0:
                 mpq_clear(s); mpq_clear(z)
+                _sig_off
                 raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_set_si(s,0,1)   # set s = 0
@@ -786,6 +785,7 @@ cdef class Matrix_rational:
                     mpq_add(s, s, z)
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], s)
+        _sig_off
         M.set_matrix(m)
         mpq_clear(s); mpq_clear(z)
         return M

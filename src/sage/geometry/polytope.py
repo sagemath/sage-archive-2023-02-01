@@ -3,9 +3,9 @@ Polytopes
 
 This module provides access to polymake, which 'has been developed
 since 1997 in the Discrete Geometry group at the Institute of
-Mathematics of Technische Universität Berlin. Since 2004 the
+Mathematics of Technische Universitat Berlin. Since 2004 the
 development is shared with Fachbereich Mathematik, Technische
-Universität Darmstadt.  The system offers access to a wide variety of
+Universitat Darmstadt.  The system offers access to a wide variety of
 algorithms and packages within a common framework. polymake is
 flexible and continuously expanding. The software supplies C++ and
 perl interfaces which make it highly adaptable to individual needs.'
@@ -126,7 +126,7 @@ class Polytope(SageObject):
     def facets(self):
         """
         EXAMPLES:
-            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: P.facets()
             [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
         """
@@ -148,9 +148,9 @@ class Polytope(SageObject):
     def vertices(self):
         """
         EXAMPLES:
-            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: P.vertices()
-            [(0, 0, 0, 1), (0, 1, 0, 0), (0, 0, 1, 0), (1, 0, 0, -1), (1, 0, -1, 0), (1, -1, 0, 0)]
+            [(1, 0, 0, 0), (1, 0, 0, 1), (1, 0, 1, 0), (1, 0, 1, 1), (1, 1, 0, 0), (1, 1, 0, 1), (1, 1, 1, 0), (1, 1, 1, 1)]
         """
         try:
             return self.__vertices
@@ -184,7 +184,7 @@ class Polytope(SageObject):
     def is_simple(self):
         """
         EXAMPLES:
-            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: P.is_simple()
             True
         """
@@ -202,7 +202,7 @@ class Polytope(SageObject):
     def n_facets(self):
         """
         EXAMPLES:
-            sage: P = Polytope([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
+            sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: P.n_facets()
             6
         """

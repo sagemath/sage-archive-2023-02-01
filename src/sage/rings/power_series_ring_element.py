@@ -276,12 +276,19 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             sage: R.set_default_prec(5)
             sage: 1/(1+q)
             1 - q + q^2 - q^3 + q^4 + O(q^5)
-            sage: R.set_default_prec(prec)  # set it back
+
+            sage: R.<q> = QQ[['q']]
+            sage: R.set_default_prec(5)
+            sage: f = 1 + q + q^2 + O(q^50)
+            sage: f/10
+            1/10 + 1/10*q + 1/10*q^2 + O(q^50)
+            sage: f/(10+q)
+            1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
         """
         if self == 1:
             return self
         prec = self.prec()
-        if prec is infinity:
+        if prec is infinity and self.degree() > 0:
             prec = self.parent().default_prec()
         if self.valuation() > 0:
             u = ~self.unit_part()    # inverse of unit part
@@ -298,9 +305,10 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         #  the following recursive formula for the coefficients b_n of the
         #  expansion of f^(-1):
         #        b_n = -b_0*(b_{n-1}*a_1 + b_{n-2}*a_2 + ... + b_0 a_n).
-        a = self.list()
-        for n in range(1,prec):
-            b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
+        if self.degree() > 0:
+            a = self.list()
+            for n in range(1,prec):
+                b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
         return self.parent()(b, prec=prec)
 
     def unit_part(self):
@@ -317,7 +325,9 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         return self.parent()(v, self.prec()-n)
 
     def __div__(self, denom):
-        if not isinstance(denom, PowerSeries) or self.parent() != denom.parent():
+        if not isinstance(denom, PowerSeries) or \
+               self.parent() != denom.parent():
+
             return bin_op(self, denom, operator.div)
 
         u = denom.unit_part()

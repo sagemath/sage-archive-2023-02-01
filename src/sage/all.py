@@ -150,7 +150,7 @@ def save_session(state, name='default_session', verbose=True):
             if k in S:
                 if type(x) == type(save_session):
                     raise TypeError, '%s is a function'%k
-                _ = dumps(x)
+                _ = loads(dumps(x))
                 if verbose:
                     print "Saving %s"%k
                 D[k] = x

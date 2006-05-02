@@ -546,7 +546,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
 
     def monomials(self):
         """
-        Returns a list of all monomials which occure in this
+        Returns list of all monomials which occure in this
         multivariate polynomial.
 
         OUTPUT:
@@ -558,11 +558,8 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: f.monomials()
             [y, x^2, 1, x^2*y^2]
         """
-        x = self.parent().gens()
-        monomials = []
-        for m in self.element().dict().keys():
-            monomials.append(misc.mul([ x[i]**m[i] for i in range(self.parent().ngens()) ]))
-        return monomials
+        ring = self.parent()
+        return [ring(polydict.PolyDict({m:int(1)})) for m in self.exponents()]
 
     def constant_coefficient(self):
         """

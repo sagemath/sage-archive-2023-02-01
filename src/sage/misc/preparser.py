@@ -6,7 +6,7 @@ AUTHOR:
     -- William Stein (2006-03-09): * fixed crash in parsing exponentials
                                    * precision of real literals now determined
                                      by digits of input (like mathematica).
-    -- Joe Wetherelll (2006-04-14): * added MAGMA-style constructor preparsing.
+    -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
 """
 #EXAMPLES:
 #These examples all illustrate input lines whose pre-parsing is subtle.
@@ -105,8 +105,8 @@ def preparse(line, reset=True):
                 is_real = False
                 continue
 
-        # Experimental support for generator construction
-        # syntax:  "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+        # Support for generator construction syntax:
+        # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
         # is converted into
         # "obj = objConstructor(...); \
         #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
@@ -115,9 +115,10 @@ def preparse(line, reset=True):
         # LIMITATIONS:
         #    - The entire constructor must be on one line.
         #
-        # AUTHOR:
+        # AUTHORS:
         #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
         #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
+        #     -- 2006-05-01: William -- fix bug that Joe found
         elif line[i:i+2] == ".<" and not in_quote():
             try:
                 gen_end = line.index(">", i+2)
@@ -133,6 +134,9 @@ def preparse(line, reset=True):
             # parse out the object name and the list of generator names
             gen_obj = line[gen_begin:i].strip()
             gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
+            for g in gen_list:
+                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
+                    raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
             # format names as a list of strings and a list of variables
             gen_names = str(gen_list)
             gen_vars  = ", ".join(gen_list)
@@ -151,7 +155,8 @@ def preparse(line, reset=True):
                               "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
 
             line = line_new + line[c:]
-            i = len(line_new)
+            #i = len(line_new)
+            i += 1
 
             continue
 

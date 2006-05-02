@@ -1113,15 +1113,15 @@ cdef class Integer(element.EuclideanDomainElement):
         else:
             raise ArithmeticError, "no power of %s is a unit"%self
 
-    def is_square_free(self):
+    def is_squarefree(self):
         """
         Returns True if this integer is not divisible by the square of
         any prime and False otherwise.
 
         EXAMPLES:
-            sage: Integer(100).is_square_free()
+            sage: Integer(100).is_squarefree()
             False
-            sage: Integer(102).is_square_free()
+            sage: Integer(102).is_squarefree()
             True
         """
         return self._pari_().issquarefree()

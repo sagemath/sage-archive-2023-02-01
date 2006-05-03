@@ -133,6 +133,7 @@ class Macaulay2(Expect):
         Send the code x to the Macaulay2 interpreter and return the output
         as a string suitable for input back into Macaulay2, if possible.
         """
+        # TODO: in some cases change toExternalString to toString??
         ans = Expect.eval(self, 'toExternalString(%s)'%code)
         if ans.find("stdio:") != -1:
             if 'cannot be converted to external string' in ans:

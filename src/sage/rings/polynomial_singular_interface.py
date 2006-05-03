@@ -27,6 +27,8 @@ AUTHORS:
 import finite_field
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
+from complex_field import is_ComplexField
+from real_field import is_RealField
 
 class PolynomialRing_singular_repr:
     """
@@ -128,30 +130,46 @@ class PolynomialRing_singular_repr:
         else:
             _vars = str(self.gens())
 
-        if self.base_ring().is_prime_field():
+        if is_RealField(self.base_ring()):
+            # TODO: here we would convert the SAGE bit precision to a format
+            # Singular understands, and would call
+            # self.__singular = singular.ring("(real,<PREC>", _vars )
+            self.__singular = singular.ring("real", _vars )
+
+        elif is_ComplexField(self.base_ring()):
+            # TODO: here we would convert the SAGE precision to a format
+            # Singular understands, and would call
+            # self.__singular = singular.ring("(complex,<PREC>,I", _vars )
+            self.__singular = singular.ring("(complex,I)", _vars)
+
+        elif self.base_ring().is_prime_field():
             self.__singular = singular.ring(self.characteristic(), _vars )
             return self.__singular
 
-        if self.base_ring().is_finite(): #must be extension field
+        elif self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars )
             self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
             singular.eval("minpoly=%s"%(self.__minpoly) )
-            self.__singular = r
-            return self.__singular
 
-        raise TypeError, "no conversion of %s to a Singular ring defined"%self
+            self.__singular = r
+        else:
+            raise TypeError, "no conversion of %s to a Singular ring defined"%self
+        return self.__singular
+
     def _can_convert_to_singular(self):
         """
         Returns True if this rings base field/ring can be represented in
         Singular. If this is true then this polynomial ring can be
         represented in Singular.
 
-        At the moment GF(p), GF(p^n) and QQ are supported. Singular furthermore also
-        supports RR and C.
+        GF(p), GF(p^n), Rationals, Reals, and Complexes are supported.
         """
         base_ring = self.base_ring()
-        return (finite_field.is_FiniteField(base_ring) or base_ring.is_prime_field())
+        return ( finite_field.is_FiniteField(base_ring)
+                 or base_ring.is_prime_field()
+                 or is_RealField(base_ring)
+                 or is_ComplexField(base_ring) )
 
 
 class Polynomial_singular_repr:

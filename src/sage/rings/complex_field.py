@@ -19,6 +19,7 @@ import real_field
 import integer_ring
 import integer
 import weakref
+from sage.misc.sage_eval import sage_eval
 
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
@@ -123,11 +124,24 @@ class ComplexField_class(field.Field):
         return cmp(self.__prec, other.__prec)
 
     def __call__(self, x, im=None):
+        """
+        EXAMPLES:
+            sage: CC(2)
+            2.0000000000000000
+            sage: CC(CC.0)
+            1.0000000000000000*I
+            sage: CC('1+I')
+            1.0000000000000000 + 1.0000000000000000*I
+            sage: CC(2,3)
+            2.0000000000000000 + 3.0000000000000000*I
+        """
         if isinstance(x, complex_number.ComplexNumber) and x.parent() == self:
             return x
         if isinstance(x, str) and im==None:
-            # TODO: this is probably not the best and most efficient way to do this.
-            return complex_number.ComplexNumber(self,eval(x,{},{"I":self.gen(),"i":self.gen()}))
+            # TODO: this is probably not the best and most
+            # efficient way to do this.  -- Martin Albrecht
+            return complex_number.ComplexNumber(self,
+                        sage_eval(x,{"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
     def _repr_(self):
@@ -145,9 +159,23 @@ class ComplexField_class(field.Field):
         return complex_number.ComplexNumber(self, 0, 1)
 
     def is_field(self):
+        """
+        Return True, since the complex numbers are a field.
+
+        EXAMPLES:
+            sage: CC.is_field()
+            True
+        """
         return True
 
     def is_finite(self):
+        """
+        Return False, since the complex numbers are infinite.
+
+        EXAMPLES:
+            sage: CC.is_finite()
+            False
+        """
         return False
 
     def pi(self):

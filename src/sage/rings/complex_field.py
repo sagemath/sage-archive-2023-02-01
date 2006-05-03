@@ -147,6 +147,9 @@ class ComplexField_class(field.Field):
     def is_field(self):
         return True
 
+    def is_finite(self):
+        return False
+
     def pi(self):
         return self(self._real_field().pi())
 

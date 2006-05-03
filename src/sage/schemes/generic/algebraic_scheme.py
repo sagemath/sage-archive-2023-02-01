@@ -282,7 +282,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
              -1*x4^3 + x0^2*x2,
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x3^5 + 2*x2^3*x4^2,
+             x3^5 - 2*x2^3*x4^2,
              Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
              -1*x2^2 - x1^2 + x0^2]
         """

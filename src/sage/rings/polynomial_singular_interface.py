@@ -52,7 +52,7 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r=MPolynomialRing(GF(2**8),10,'x')
+            sage: r=MPolynomialRing(GF(2**8),10,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -61,14 +61,14 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
             //        block   2 : ordering C
-            sage: r=MPolynomialRing(GF(127),2,'x')
+            sage: r=MPolynomialRing(GF(127),2,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r=MPolynomialRing(QQ,2,'x')
+            sage: r=MPolynomialRing(QQ,2,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 2

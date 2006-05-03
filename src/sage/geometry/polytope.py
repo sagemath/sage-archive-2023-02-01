@@ -182,11 +182,19 @@ class Polytope(SageObject):
         return g
 
     def is_simple(self):
-        """
+        r"""
+        Return True if this polytope is simple.
+
+        A polytope is \emph{simple} if the degree of each
+        vertex equals the dimension of the polytope.
+
         EXAMPLES:
             sage: P = polymake.convex_hull([[1,0,0,0], [1,0,0,1], [1,0,1,0], [1,0,1,1],  [1,1,0,0], [1,1,0,1], [1,1,1,0], [1,1,1,1]])
             sage: P.is_simple()
             True
+
+        AUTHORS:
+            -- Edwin O'Shea (2006-05-02): Definition of simple.
         """
         try:
             return self.__is_simple

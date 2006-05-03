@@ -32,7 +32,7 @@ from sage.ext.sage_object import SageObject
 
 import os
 
-path = '%s/polymake/'%os.environ['SAGE_LOCAL']
+path = '%s/polymake/bin/'%os.environ['SAGE_LOCAL']
 polymake_command = path + 'polymake'
 
 if os.path.exists(path):
@@ -234,6 +234,16 @@ class Polymake:
         except IOError:
             raise RuntimeError, "You may need to install the polymake package"
         return Polytope(d, name)
+
+    def reconfigure(self):
+        """
+        Reconfigure polymake.
+
+        Remember to run polymake.reconfigure() as soon as you have
+        changed the customization file and/or installed missing
+        software!
+        """
+        os.system("polymake --reconfigure")
 
     def associahedron(self, dimension):
         return self.__make('associahedron %s %s'%(tmp_file, dimension),

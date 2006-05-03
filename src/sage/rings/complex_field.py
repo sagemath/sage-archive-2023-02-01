@@ -125,6 +125,9 @@ class ComplexField_class(field.Field):
     def __call__(self, x, im=None):
         if isinstance(x, complex_number.ComplexNumber) and x.parent() == self:
             return x
+        if isinstance(x, str) and im==None:
+            # TODO: this is probably not the best and most efficient way to do this.
+            return complex_number.ComplexNumber(self,eval(x,{},{"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
     def _repr_(self):

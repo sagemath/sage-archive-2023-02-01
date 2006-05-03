@@ -74,7 +74,7 @@ import multi_polynomial_ideal
 #_cache = {}
 
 def MPolynomialRing(base_ring, n=1, names=None,
-                    order='lex', macaulay2=False):
+                    order='revlex', macaulay2=False):
     r"""
     Create a Multivariate polynomial ring over a commutative base ring.
 
@@ -87,8 +87,8 @@ def MPolynomialRing(base_ring, n=1, names=None,
                  default: names variables x0, x1, etc.
 
         order -- string; the term order, or an object of type TermOrder:
-                 'lex' (default) -- lexicographic
-                 'revlex' -- reverse lexicographic
+                 'revlex' (default) -- reverse lexicographic
+                 'lex' -- lexicographic
                  'degrevlex' -- degree reverse lexicographic
                  'deglex' -- degree lexicographic
                  'wp(w1,...,wn)' -- weight reverse lexicographic

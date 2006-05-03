@@ -29,6 +29,8 @@ import finite_field
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_field import is_RealField
+import sage.misc.functional
+
 
 class PolynomialRing_singular_repr:
     """
@@ -40,10 +42,8 @@ class PolynomialRing_singular_repr:
     """
     def _singular_(self, singular=singular_default):
         """
-        Returns a singular ring for this polynomial ring
-        over a field. Currently QQ, GF(p), and GF(p^n) are
-        supported. Singular also supports C and RR but these
-        are unsupported right now.
+        Returns a singular ring for this polynomial ring over a field.
+        Currently QQ, GF(p), and GF(p^n), CC, and RR are supported.
 
         INPUT:
             singular -- Singular instance
@@ -98,11 +98,31 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering lp
             //                  : names    y
             //        block   2 : ordering C
+            sage: R.<x,y> = PolynomialRing(CC,2)
+            sage: R._singular_()
+            //   characteristic : 0 (complex:15 digits, additional 0 digits)
+            //   1 parameter    : I
+            //   minpoly        : (I^2+1)
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    x y
+            //        block   2 : ordering C
+            sage: R.<x,y> = PolynomialRing(RealField(100),2)
+            sage: R._singular_()
+            //   characteristic : 0 (real:29 digits, additional 0 digits)
+            //   number of vars : 2
+            //        block   1 : ordering lp
+            //                  : names    x y
+            //        block   2 : ordering C
 
         WARNING:
            If the base ring is a finite extension field the ring will
            not only be returned but also be set as the current ring in
            Singular.
+
+        NOTE:
+            Singular represents precision of floating point numbers base 10
+            while SAGE represents floating point precision base 2.
         """
         try:
             R = self.__singular
@@ -134,16 +154,18 @@ class PolynomialRing_singular_repr:
             order = self.term_order().singular_str()
 
         if is_RealField(self.base_ring()):
-            # TODO: here we would convert the SAGE bit precision to a format
-            # Singular understands, and would call
-            # self.__singular = singular.ring("(real,<PREC>", _vars )
-            self.__singular = singular.ring("real", _vars, order=order)
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            precision = self.base_ring().precision()
+            digits = sage.misc.functional.ceil((2*precision - 2)/7.0)
+            self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
 
         elif is_ComplexField(self.base_ring()):
-            # TODO: here we would convert the SAGE precision to a format
-            # Singular understands, and would call
-            # self.__singular = singular.ring("(complex,<PREC>,I", _vars )
-            self.__singular = singular.ring("(complex,I)", _vars,  order=order)
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            precision = self.base_ring().precision()
+            digits = sage.misc.functional.ceil((2*precision - 2)/7.0)
+            self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
         elif self.base_ring().is_prime_field():
             self.__singular = singular.ring(self.characteristic(), _vars, order=order)

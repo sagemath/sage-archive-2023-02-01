@@ -21,6 +21,8 @@ SKIP        = "%skip"
 SESSION     = "%session"
 FULLSESSION = "%fullsession"
 
+ERRORS = ''
+
 def extract_latex_doc(file_name):
     F = open(file_name)
     sessions = []
@@ -205,6 +207,7 @@ def test_file(file, start, stop):
         return 0
     i = 0
     for S in sessions:
+        sys.stdout.flush()
         try:
             if i >= start:
                 print "Example %s (line %s)"%(i,S[0][0])
@@ -219,9 +222,11 @@ def test_file(file, start, stop):
             print "User interrupt."
             return
         except RuntimeError:
-            print "Example %s (line %s)"%(i,S[0][0])
+            s = "Example %s (line %s)"%(i,S[0][0])
+            print s
             print "Documentation contains a mistake.  Please fix and re-run."
-            return 1
+            ERRORS += '%s\n'%s
+            #return 1
         i += 1
         if stop != 0 and i > stop:
             break
@@ -229,6 +234,7 @@ def test_file(file, start, stop):
 
 if __name__ ==  '__main__':
     import os, sys
+    print ''
     if len(sys.argv) == 1:
         print "Usage: %s <filename.tex> [start number] [stop number]"%(sys.argv[0])
         print "Test the documentation in a latex file using SAGE."
@@ -244,3 +250,7 @@ if __name__ ==  '__main__':
         initialize_sage()
         if test_file(file, start, stop):
             sys.exit(1)
+        if len(ERRORS) > 0:
+            print ERRORS
+            sys.exit(1)
+        sys.exit(0)

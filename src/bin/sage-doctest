@@ -4,7 +4,7 @@ import os, re, sys, signal
 
 argv = sys.argv
 
-from sage.misc.preparser import preparse
+import sage.misc.preparser
 import sage.misc.misc
 
 
@@ -37,6 +37,13 @@ def comment_modifier(s):
         return NOT_IMPLEMENTED
     return NONE
 
+def preparse_line_with_prompt(L):
+    i = L.find(':')
+    if i == -1:
+        return sage.misc.preparser.preparse(L)
+    else:
+        return L[:i+1] + sage.misc.preparser.preparse(L[i+1:])
+
 def doc_preparse(s):
     """
     Run the preparser on the documentation string s.
@@ -66,26 +73,26 @@ def doc_preparse(s):
             line = ''
             if c == LONG_TIME:
                 if long_time:
-                    line = preparse(L)
+                    line = preparse_line_with_prompt(L)
                 else:
                     line = '\n'  # extra line so output ignored
             elif c == RANDOM:
                 if L.find("=") == -1 and L.find("print") == -1:
                     L = L.replace('sage:', 'sage: _=')
-                line = preparse(L) + '\n'   # extra line so output ignored
+                line = preparse_line_with_prompt(L) + '\n'   # extra line so output ignored
             elif c == NOT_IMPLEMENTED:
                 line = '\n'   # not tested
             elif c == OPTIONAL:
                 if optional:
-                    line = preparse(L)
+                    line = preparse_line_with_prompt(L)
                 else:
                     line = '\n'
             else:
-                line = preparse(L)
+                line = preparse_line_with_prompt(L)
             t.append(line)
 
-        elif begin == '...: ':
-            t.append(preparse(L, reset=False))
+        elif begin[:3] == '...':
+            t.append(preparse_line_with_prompt(L))
         else:
             t.append(L)
     return '\n'.join(t)

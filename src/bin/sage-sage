@@ -95,7 +95,9 @@ sage_setup() {
 
 # Below the command
 # _=sage.misc.interpreter.do_prefilter_paste('',False)
+
 SAGE_STARTUP_COMMAND="from sage.all import *; import sage.misc.interpreter; import os; os.chdir(\"$CUR\"); _=sage.misc.interpreter.do_prefilter_paste('',False)"
+
 export SAGE_STARTUP_COMMAND
 
 if [ $# -gt 0 ]; then
@@ -107,7 +109,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
+    sage-ipython   $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
 }
 
 if [ $# -eq 0 ]; then
@@ -143,7 +145,7 @@ fi
 
 if [ $1 = '-q' ]; then
    sage_setup
-   sage-ipython $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
+   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
    exit $?
 fi
 
@@ -245,7 +247,7 @@ fi
 
 if [ $1 = '-mpl' ]; then
    sage_setup
-   ipython $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
+   ipython  $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
    exit $?
 fi
 

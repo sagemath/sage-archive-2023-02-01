@@ -41,7 +41,7 @@ def test(F, cmd):
     t = time.time()
     if skip(F):
         return
-    err = os.system("sage-%s %s 2>/dev/null"%(cmd, F))
+    err = os.system("sage-%s %s"%(cmd, F))
     if err != 0:
         failed.append(abs(F))
     os.system("mv -f __test* %s 2>/dev/null"%(TMP))

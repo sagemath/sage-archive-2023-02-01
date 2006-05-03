@@ -103,6 +103,9 @@ fi
 
 echo "$PKG_NAME"
 
+echo "Machine:"
+uname -a
+
 if [ -f "$INSTALLED/$PKG_NAME" -a $FORCE -eq 0 ]; then
     echo "sage: $1 is already installed"
     touch "$INSTALLED/$PKG_NAME"

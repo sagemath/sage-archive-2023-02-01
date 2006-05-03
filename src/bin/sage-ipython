@@ -1,4 +1,4 @@
-#!/usr/bin/env sage.bin
+#!sage.bin
 # -*- coding: utf-8 -*-
 """IPython -- An enhanced Interactive Python
 

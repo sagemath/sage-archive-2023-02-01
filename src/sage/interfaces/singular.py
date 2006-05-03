@@ -632,16 +632,15 @@ class Singular(Expect):
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 3
-            //        block   1 : ordering lp
+            //        block   1 : ordering rp
             //                  : names    x y z
             //        block   2 : ordering C
             sage: singular.current_ring()
             //   characteristic : 127
             //   number of vars : 3
-            //        block   1 : ordering lp
+            //        block   1 : ordering rp
             //                  : names    x y z
             //        block   2 : ordering C
-
         """
         name = self.current_ring_name()
         if name:

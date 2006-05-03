@@ -46,62 +46,63 @@ class PolynomialRing_singular_repr:
         are unsupported right now.
 
         INPUT:
-           singular -- Singular instance
+            singular -- Singular instance
 
         OUTPUT:
-           singular ring matching this ring
+            singular ring matching this ring
 
         EXAMPLES:
-           sage: r=MPolynomialRing(GF(2**8),10,'x')
-           sage: r._singular_()
-           //   characteristic : 2
-           //   1 parameter    : a
-           //   minpoly        : (a^8+a^4+a^3+a^2+1)
-           //   number of vars : 10
-           //        block   1 : ordering lp
-           //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
-           //        block   2 : ordering C
-           sage: r=MPolynomialRing(GF(127),2,'x')
-           sage: r._singular_()
-           //   characteristic : 127
-           //   number of vars : 2
-           //        block   1 : ordering lp
-           //                  : names    x0 x1
-           //        block   2 : ordering C
-           sage: r=MPolynomialRing(QQ,2,'x')
-           sage: r._singular_()
-           //   characteristic : 0
-           //   number of vars : 2
-           //        block   1 : ordering lp
-           //                  : names    x0 x1
-           //        block   2 : ordering C
-           sage: r=PolynomialRing(QQ)
-           sage: r._singular_()
-           //   characteristic : 0
-           //   number of vars : 1
-           //        block   1 : ordering lp
-           //                  : names    x
-           //        block   2 : ordering C
-           sage: r=PolynomialRing(GF(127))
-           sage: r._singular_()
-           //   characteristic : 127
-           //   number of vars : 1
-           //        block   1 : ordering lp
-           //                  : names    x
-           //        block   2 : ordering C
-           sage: r=PolynomialRing(GF(2**8),'y')
-           sage: r._singular_()
-           //   characteristic : 2
-           //   1 parameter    : a
-           //   minpoly        : (a^8+a^4+a^3+a^2+1)
-           //   number of vars : 1
-           //        block   1 : ordering lp
-           //                  : names    y
-           //        block   2 : ordering C
+            sage: r=MPolynomialRing(GF(2**8),10,'x')
+            sage: r._singular_()
+            //   characteristic : 2
+            //   1 parameter    : a
+            //   minpoly        : (a^8+a^4+a^3+a^2+1)
+            //   number of vars : 10
+            //        block   1 : ordering rp
+            //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
+            //        block   2 : ordering C
+            sage: r=MPolynomialRing(GF(127),2,'x')
+            sage: r._singular_()
+            //   characteristic : 127
+            //   number of vars : 2
+            //        block   1 : ordering rp
+            //                  : names    x0 x1
+            //        block   2 : ordering C
+            sage: r=MPolynomialRing(QQ,2,'x')
+            sage: r._singular_()
+            //   characteristic : 0
+            //   number of vars : 2
+            //        block   1 : ordering rp
+            //                  : names    x0 x1
+            //        block   2 : ordering C
+            sage: r=PolynomialRing(QQ)
+            sage: r._singular_()
+            //   characteristic : 0
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+            sage: r=PolynomialRing(GF(127))
+            sage: r._singular_()
+            //   characteristic : 127
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    x
+            //        block   2 : ordering C
+            sage: r=PolynomialRing(GF(2**8),'y')
+            sage: r._singular_()
+            //   characteristic : 2
+            //   1 parameter    : a
+            //   minpoly        : (a^8+a^4+a^3+a^2+1)
+            //   number of vars : 1
+            //        block   1 : ordering lp
+            //                  : names    y
+            //        block   2 : ordering C
 
         WARNING:
-           If the base ring is a finite extension field the ring will not only be
-           returned but also be set as the current ring in Singular.
+           If the base ring is a finite extension field the ring will
+           not only be returned but also be set as the current ring in
+           Singular.
         """
         try:
             R = self.__singular
@@ -127,28 +128,30 @@ class PolynomialRing_singular_repr:
 
         if self.ngens()==1:
             _vars = str(self.gen())
+            order = 'lp'
         else:
             _vars = str(self.gens())
+            order = self.term_order().singular_str()
 
         if is_RealField(self.base_ring()):
             # TODO: here we would convert the SAGE bit precision to a format
             # Singular understands, and would call
             # self.__singular = singular.ring("(real,<PREC>", _vars )
-            self.__singular = singular.ring("real", _vars )
+            self.__singular = singular.ring("real", _vars, order=order)
 
         elif is_ComplexField(self.base_ring()):
             # TODO: here we would convert the SAGE precision to a format
             # Singular understands, and would call
             # self.__singular = singular.ring("(complex,<PREC>,I", _vars )
-            self.__singular = singular.ring("(complex,I)", _vars)
+            self.__singular = singular.ring("(complex,I)", _vars,  order=order)
 
         elif self.base_ring().is_prime_field():
-            self.__singular = singular.ring(self.characteristic(), _vars )
+            self.__singular = singular.ring(self.characteristic(), _vars, order=order)
             return self.__singular
 
         elif self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars )
+            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order)
             self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
             singular.eval("minpoly=%s"%(self.__minpoly) )
 

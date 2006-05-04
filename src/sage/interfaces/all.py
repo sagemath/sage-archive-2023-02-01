@@ -1,5 +1,6 @@
 # interfaces to other interpreters
 
+from ecm import ECM
 from expect import is_ExpectElement
 from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElement, Gap
 from genus2reduction import genus2reduction, Genus2reduction

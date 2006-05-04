@@ -5,7 +5,9 @@ from misc import (alarm, srange, xsrange,
                   random_sublist, mul, prod, walltime, generic_cmp,
                   repr_lincomb, tmp_dir, tmp_filename,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit, upgrade)
+                  is_32_bit, is_64_bit)
+
+from package import install_package, optional_packages, upgrade
 
 from pager import pager
 

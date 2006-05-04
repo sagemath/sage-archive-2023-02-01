@@ -463,6 +463,108 @@ class log_dvi(Log):
         return '\\SAGE Log %s'%self._time
 
 
+# Coarse MathML logger
+class log_html_mathml(Log):
+    r"""
+    Create a running log of your SAGE session as a mathml web page.
+
+    Easy usage: \code{log_html_mathml()}
+
+    TODO: Pressing "control-D" can mess up the I/O sequence because of
+    a known bug.
+    """
+    def _init(self):
+        SAGE_ROOT = os.environ['SAGE_ROOT']
+        os.system('ln -sf %s/devel/doc/commontex/macros.tex %s/macros.tex'%(SAGE_ROOT, self._dir))
+        os.system('ln -sf /home/dfdeshom/custom/hermes-0.9.4/dlt.tex %s/dlt.tex'% self._dir)
+        os.system('ln -sf /home/dfdeshom/custom/hermes-0.9.4/*.xsl %s/'% self._dir)
+        self._in_verbatim = False
+
+    def __repr__(self):
+        return "mathml Logger"
+
+    def _build(self):
+
+        seed = self._filename[:-4]+'.s.tex'
+        dvi = self._filename[:-4]+'.s.dvi'
+        lib = self._filename[:-4]+'.lib.xml'
+        pub = self._filename[:-4]+'.pub.xml'
+
+        cmd = 'cd %s; seed %s >/dev/null; latex \\\\nonstopmode \\\\input %s '%(
+            self._dir,self._filename,seed)
+        cmd += " 2>/dev/null 1>/dev/null"
+
+        # turn to xml
+        cmd += '; hermes %s > %s' %(dvi, lib)
+        pubfile = '/home/dfdeshom/custom/hermes-0.9.4/pub.xslt'
+        cmd += ';xsltproc %s %s > %s '%(pubfile, lib, pub)
+        os.system(cmd)
+
+        # Bug in XSLT generation forces us to do this
+        f = open(pub,'r')
+        pubstr = f.read()
+        import re
+        repl= re.sub("<math xmlns=\"http://www.w3.org/1998/Math/MathML\">",
+               "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">",
+               pubstr)
+
+        open(pub,'w').write(repl)
+
+    def view(self):
+        if not self._viewer is None:
+            viewer = self._viewer
+        else:
+            viewer = BROWSER
+        self._build()
+        F = os.path.splitext(self._filename)[0] + '.pub.xml'
+        print F
+        os.system('%s  %s &' %('/home/dfdeshom/firefox/firefox', F))
+
+    def _get_input(self, n, followed_by_output):
+        if n >= len(self._input):
+            return
+        s = ''
+        if not self._in_verbatim:
+            s += '\\begin{verbatim}'
+            self._in_verbatim = True
+        I = self._input[n]
+        s += "%s %s: %s"%(n,  interpreter._prompt, I)
+        if followed_by_output:
+            s += '\\end{verbatim}'
+            self._in_verbatim = False
+        self._after_output = False
+        return s
+
+    def _get_output(self, n):
+        s = ''
+        self._after_output = True
+        if self._in_verbatim:
+            s += '\\end{verbatim}\n'
+            self._in_verbatim = False
+        L = latex.latex(self._output[n])
+        s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
+        return s
+
+    def _filename(self):
+        return 'sagelog.tex'
+
+    def _header(self):
+        return """
+\\documentclass{article}
+\\input{macros}
+\\title{%s}\\author{}
+\\begin{document}
+\\maketitle
+"""%self._title()
+
+    def _footer(self):
+        if self._in_verbatim:
+            return r"\end{verbatim}\end{document}"
+        else:
+            return r"\end{document}"
+
+    def _title(self):
+        return '\\SAGE Log %s'%self._time
 
 
 

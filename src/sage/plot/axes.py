@@ -70,7 +70,7 @@ def tasteful_ticks(minval, maxval):
                 d1 = eval(sl[1])
 
     #choose a step size depending on either
-    #1st or 2nd digits, d0 and d1,off given maxval or minval
+    #1st or 2nd digits, d0 and d1, of given maxval or minval
     o0 = 10**(p-1)
     o1 = 10**(p-2)
     #fundamental step sizes: [1,2,2.5,5,10]
@@ -80,25 +80,11 @@ def tasteful_ticks(minval, maxval):
 	    step = funda*o1
 	elif d1 < 5 and p==1:
 	    funda = 2.5
-	    step = funda*o1 #2.5*10^(1-2)=0.25
-        elif d1 < 5 and p!=1:
-	    funda = 2
 	    step = funda*o1
         else:
 	    funda = 2
 	    step = funda*o1
-    elif d0 == 2:
-	if p==1:
-	    funda = 5
-    	    step = funda*o1 #5*10^(1-2)=0.5
-	else:
-	    funda = 5
-	    step = funda*o1
-    elif d0 == 3:
-	#if p == 1:
-	#    funda = 5
-	#    step = funda*o1
-	#else:
+    elif d0 == 2 or d0 == 3:
 	funda = 5
         step = funda*o1
     elif d0 == 4 or d0 == 5 or d0 == 6:
@@ -108,8 +94,8 @@ def tasteful_ticks(minval, maxval):
 	funda = 2
         step = funda*o0
 
-    #the fundamental range
-    #fundrange = srange(step, d0*o0 + d1*o1 + step, step)
+    #the 'fundamental' range
+    #srange(step, d0*o0 + d1*o1 + step, step)
     fundrange = srange(0, d0*o0 + d1*o1 + step, step)
 
 
@@ -186,21 +172,22 @@ def find_axes(minval, maxval):
 
     if (abs((maxval - minval)/float(max(abs(maxval),abs(minval)))) < 0.2):
         tslmajor, oppaxis, step = tasteless_ticks(minval, maxval, 10)
-
     else:
         tslmajor, oppaxis, step = tasteful_ticks(minval, maxval)
 
-
-
-    tslminor = srange(minval-0.2*2*step, maxval+2*0.2*step, 0.2*step)
+    tslminor = srange(minval+0.2*2*step, maxval+0.2*2*step+0.2*step, 0.2*step)  #-0.2*2*step
+    tslminor.sort()
     z = tslmajor[0]
     eps = z-tslminor[0]
-    for w in tslminor[1:]:
+    for w in tslminor: #[1:]
         eps2 = z-w
         if abs(eps2) > abs(eps):
             break
     tslminor = [w + eps for w in tslminor]
-
+    tslminor = set(tslminor).union([-x for x in tslminor])
     return oppaxis, step, tslminor, tslmajor
+
+
+
 
 

@@ -1,6 +1,22 @@
 """
 Interface to Sloane On-Line Encyclopedia of Integer Sequences
 
+TODO:
+
+    -- When this program gets a sloane sequence from the database
+       it actually downloads a huge amount of information about
+       it, then throws most of it away.  Also, it returns the
+       data to the user as a very simple tuple.  It would be
+       much better to return an instance of a class
+
+         class SloanSequence:
+             ...
+
+       and the class should have methods for each of the things
+       that Sloane records about a sequence.  Also, when possible,
+       it should be able to compute more terms.
+
+
 To look up sequence A060843, type one of the following:
 
     sage: sloane_sequence(60843)
@@ -210,8 +226,8 @@ def parse_sequence(text):
     description = ''
     seqnum = -1
 
-    # Fix broken lines: they end with '\' and the next line is indented.
-    text = text.replace('\\\n  ', '');
+    # Fix broken lines: the next line is indented.
+    text = text.replace('\n               ', '');
 
     for line in re.split(r'[\s,]*\n', text):
         m = entry.search(line)

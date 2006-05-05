@@ -1,4 +1,4 @@
-from eis_series import eisenstein_series
+from eis_series import eisenstein_series_qexp
 from sage.rings.all import QQ, Integer
 from sage.modular.dims import dimension_cusp_forms_gamma0
 from sage.matrix.all import MatrixSpace
@@ -68,8 +68,8 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
             break
     assert not (b is None), "bug in VM basis"
 
-    F4 = 240*eisenstein_series(4, prec)
-    F6 = -504*eisenstein_series(6, prec)
+    F4 = 240*eisenstein_series_qexp(4, prec=prec)
+    F6 = -504*eisenstein_series_qexp(6, prec=prec)
     if var != 'q':
         F4 = R(F4)
         F6 = R(F6)
@@ -84,7 +84,7 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
             g *= m
 
     if not cusp_only:
-        G.insert(0, R(eisenstein_series(k, prec)))
+        G.insert(0, R(eisenstein_series_qexp(k, prec=prec)))
 
     M = MatrixSpace(QQ, len(G), prec)
     # we have to slice since precision in products can increase.
@@ -100,10 +100,10 @@ def delta_qexp(prec=10, var='q'):
     """
     Return the q-expansion of Delta.
     """
-    F4 = 240*eisenstein_series(4, prec)
-    F6 = -504*eisenstein_series(6, prec)
+    F4 = 240*eisenstein_series_qexp(4, prec=prec)
+    F6 = -504*eisenstein_series_qexp(6, prec=prec)
     R = QQ[[var]]
     if var != 'q':
         F4 = R(F4)
         F6 = R(F6)
-    return (F4**3 - F6**2)/R(1728,prec)
+    return (F4**3 - F6**2)/R(1728, prec)

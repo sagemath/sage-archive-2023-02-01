@@ -485,26 +485,35 @@ class log_html_mathml(Log):
         return "mathml Logger"
 
     def _build(self):
+        import re
 
         seed = self._filename[:-4]+'.s.tex'
         dvi = self._filename[:-4]+'.s.dvi'
         lib = self._filename[:-4]+'.lib.xml'
         pub = self._filename[:-4]+'.pub.xml'
 
-        cmd = 'cd %s; seed %s >/dev/null; latex \\\\nonstopmode \\\\input %s '%(
-            self._dir,self._filename,seed)
-        cmd += " 2>/dev/null 1>/dev/null"
+        # execute this first to generate seed file
+        cmd = 'cd %s; seed %s >/dev/null'%(self._dir,self._filename)
+        os.system(cmd)
+
+        # Remove \mbox occurences in seed file
+        mboxstr = open(seed,'r').read()
+        mboxrepl = re.sub('\\\mbox','',mboxstr)
+        open(seed,'w').write(mboxrepl)
+
+        cmd = "cd %s ; latex \\\\nonstopmode \\\\input %s  2>/dev/null 1>/dev/null"% \
+               (self._dir,seed)
 
         # turn to xml
         cmd += '; hermes %s > %s' %(dvi, lib)
+        os.system(cmd)
         pubfile = '$SAGE_ROOT/data/hermes/pub.xslt'
-        cmd += ';xsltproc %s %s > %s '%(pubfile, lib, pub)
+        cmd += '; xsltproc %s %s > %s '%(pubfile, lib, pub)
         os.system(cmd)
 
         # Bug in XSLT generation forces us to do this
-        f = open(pub,'r')
-        pubstr = f.read()
-        import re
+        pubstr = open(pub,'r').read()
+
         repl= re.sub("<math xmlns=\"http://www.w3.org/1998/Math/MathML\">",
                "<math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\">",
                pubstr)
@@ -546,7 +555,7 @@ class log_html_mathml(Log):
         return s
 
     def _filename(self):
-        return 'sagelog.pub.xml'
+        return 'sagelog.tex'
 
     def _header(self):
         return """

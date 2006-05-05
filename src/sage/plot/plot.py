@@ -1,9 +1,9 @@
-"""
-Plotting
+r"""
+2D Plotting
 
-AUTHORS:
-    -- Alex Clemesha and William Stein (2006-04-10): initial version
-    -- David Joyner: examples
+SAGE provides 2-d plotting functionality with an interface inspired by
+the interface for plotting in Mathematica.  The underlying rendering
+is mostly implemented using the matplotlib Python library.
 
 EXAMPLES:
 We construct a plot involving several graphics objects:
@@ -11,10 +11,10 @@ We construct a plot involving several graphics objects:
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
 
-Next we construct reflection of above polygon about the y-axis by
-iterating over list of first-coordinates of the first graphic element
-of P (which is the actual Polygon -- note that P is a Graphics object,
-which consists of a single polygon):
+Next we construct the reflection of the above polygon about the
+$y$-axis by iterating over the qlist of first-coordinates of the first
+graphic element of $P$ (which is the actual Polygon; note that $P$ is
+a Graphics object, which consists of a single polygon):
 
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
 
@@ -33,6 +33,11 @@ We combine together different graphics objects using "+":
     Polygon defined by 3 points
     sage: list(H[1])
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
+
+AUTHORS:
+    -- Alex Clemesha and William Stein (2006-04-10): initial version
+    -- David Joyner: examples
+    -- Alex Clemesha (2006-05-04) major update
 """
 
 __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg', 'Value', \
@@ -62,7 +67,15 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg', 'Value', \
 # make points, but the scatter function provides some
 # 'convenient' functionality, so I guess it is worth it?
 #
-# This is for version 0.86 matplotlib
+# This is for version 0.86 matplotlib, and these
+# changes are included by default in the matplotlib
+# included with SAGE.
+#
+#*****************************************************************************
+
+__doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
+                 'Value', 'Figure', 'patches', 'flatten', \
+                 'find_axes']
 
 import os
 
@@ -869,8 +882,9 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     ...           g += circle((x,y), ocur, rgbcolor=hue(r/paths))
     ...       rnext = (r+1)^2
     ...       ocur = (rnext-r)-ocur
+    ...
     sage: g.save("c2.png", xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
-
+    sage: os.unlink('c2.png')     # remove temp file
     """
     def _reset(self):
 	self.options={'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
@@ -896,13 +910,15 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
     Type disk.options to see all options
 
     EXAMPLES:
-	make some disks
-	sage: bl=disk((0.0,0.0),1,180,270,rgbcolor=(1,1,0))
-	sage: tr=disk((0.0,0.0),1,0,90,rgbcolor=(1,1,0))
-	sage: tl=disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
-	sage: br=disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
-	sage: P=tl+tr+bl+br
+    Make some dangerous disks:
+
+	sage: bl = disk((0.0,0.0),1,180,270,rgbcolor=(1,1,0))
+	sage: tr = disk((0.0,0.0),1,0,90,rgbcolor=(1,1,0))
+	sage: tl = disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
+	sage: br = disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
+	sage: P  = tl+tr+bl+br
 	sage: P.save("danger.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
+        sage: os.unlink('danger.png')     # remove temp file
 
     """
     def _reset(self):
@@ -1193,13 +1209,12 @@ def list_plot(data, plotjoined=False, **kwargs):
 
 	sage: r = [(random(),random()) for _ in range(20)]
 
-	Here is a bunch of random red points
-	sage: list_plot(r,rgbcolor=(1,0,0)).save("random.png")
+    Here are a bunch of random red points:
+	sage: list_plot(r,rgbcolor=(1,0,0)).save('random.png')
+        sage: os.unlink('random.png')
 
-	This gives all the random points joined in a purple line:
+    This gives all the random points joined in a purple line:
 	sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save("randomjoin.png")
-
-
     """
     if not isinstance(data[0], (list, tuple)):
 	 data = zip(range(len(data)),data)
@@ -1265,12 +1280,13 @@ class GraphicsArray:
         os.system('gqview %s >/dev/null&'%filename)
 
 def graphics_array(array):
-    """
-    graphics_array take a list of lists (or tuples)
+    r"""
+    \code{graphics_array} take a list of lists (or tuples)
     of graphics objects and plots them all on one canvas.
 
     EXAMPLE:
-	Make some plots of sin functions
+    Make some plots of $\sin$ functions:
+
 	sage: f = lambda x: sin(x)
 	sage: g = lambda x: sin(2*x)
 	sage: h = lambda x: sin(4*x)
@@ -1279,8 +1295,8 @@ def graphics_array(array):
 	sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
 	sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
 
-	now make a graphics array out of the plots:
-	then you can type either: ga.show() or ga.save()
+    Now make a graphics array out of the plots;
+    Ten you can type either: \code{ga.show()} or \code{ga.save()}.
 
 	sage: ga = graphics_array(((p1,p2),(p3,p4)))
 

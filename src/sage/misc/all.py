@@ -13,7 +13,7 @@ from sagedoc import search_sage
 
 from getusage import top, get_memory_usage
 
-from log import log_html, log_dvi
+from log import log_html, log_dvi, log_html_mathml
 
 from defaults import set_default_variable_name
 

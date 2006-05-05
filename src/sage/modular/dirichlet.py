@@ -139,11 +139,19 @@ class DirichletCharacter(MultiplicativeGroupElement):
         self.values()  # compute all values
         return self.__values[m]
 
-    def change_base(self, R):
+    def change_ring(self, R):
         """
         Returns the base extension of self to the ring R.
+
+        EXAMPLE:
+            sage: e = DirichletGroup(7, QQ).0
+            sage: f = e.change_ring(QuadraticField(3))
+            sage: f.parent()
+            Group of Dirichlet characters of modulus 7 over Number Field in a with defining polynomial x^2 - 3
         """
-        G = self.parent().change_base(R)
+        if self.base_ring() is R:
+            return self
+        G = self.parent().change_ring(R)
         return G(self)
 
     def __cmp__(self, other):
@@ -280,16 +288,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         self.__bernoulli[k] = ber
         return self.__bernoulli[k]
-
-    def change_base_ring(self, R):
-        """
-        Tries to compute the Dirichlet character over R that has the
-        same values as this character, and if successful returns that
-        character.
-        """
-        if self.base_ring() == R:
-            return self
-        return DirichletGroup(self.modulus(),R)(self)
 
     def conductor(self):
         """
@@ -558,7 +556,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if n == m:
             return self
         K = rings.CyclotomicField(m)
-        return self.change_base_ring(K)
+        return self.change_ring(K)
 
     def minimize_base_ring(self):
         r"""
@@ -574,11 +572,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         if isinstance(self.base_ring(),number_field.NumberField_generic):
             if self.order() <= 2:
-                return self.change_base(rings.RationalField())
+                return self.change_ring(rings.RationalField())
             if arith.euler_phi(self.order()) == self.base_ring().degree():
                 return self
             K = rings.CyclotomicField(self.order())
-            return self.change_base(K)
+            return self.change_ring(K)
 
         raise NotImplementedError, "minimize_base_ring is currently " + \
               "only implemented when the base ring is a number field."
@@ -826,11 +824,19 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
 
-    def change_base(self, R):
+    def change_ring(self, R, zeta=None, zeta_order=None):
         """
         Returns the Dirichlet group over R with the same modulus as self.
+
+        EXAMPLES:
+            sage: G = DirichletGroup(7,QQ); G
+            Group of Dirichlet characters of modulus 7 over Rational Field
+            sage: G.change_ring(CyclotomicField(6))
+            Group of Dirichlet characters of modulus 7 over Cyclotomic Field of order 6 and degree 2
         """
-        return DirichletGroup(self.modulus(), R)
+        return DirichletGroup(self.modulus(), R,
+                              zeta=zeta,
+                              zeta_order=zeta_order)
 
     def __call__(self, x):
         if isinstance(x, (int,rings.Integer)) and x==1:

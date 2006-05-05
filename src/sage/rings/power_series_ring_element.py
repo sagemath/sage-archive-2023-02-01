@@ -482,6 +482,10 @@ class PowerSeries_generic_dense(PowerSeries):
         if n > self.__f.degree():
             if self._prec > n:
                 return self.base_ring()(0)
+            elif isinstance(n, slice):
+                # It makes no sense that this is needed and that
+                # __getslice__ isn't just called by default...
+                return self.__getslice__(slice[0],slice[1])
             else:
                 raise IndexError, "Coefficient %s not known."%n
         return self.__f[n]

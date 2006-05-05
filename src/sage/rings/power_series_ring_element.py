@@ -486,6 +486,10 @@ class PowerSeries_generic_dense(PowerSeries):
                 raise IndexError, "Coefficient %s not known."%n
         return self.__f[n]
 
+    def __getslice__(self, i, j):
+        return self.__f[i:j]
+
+
     def __neg__(self):
         return PowerSeries_generic_dense(self.parent(), -self.__f,
                                          self._prec, check=False)

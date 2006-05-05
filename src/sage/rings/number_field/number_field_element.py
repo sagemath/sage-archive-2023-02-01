@@ -102,7 +102,7 @@ class NumberFieldElement(field_element.FieldElement):
 
     def _latex_(self):
         return self.polynomial()._latex_(name=
-                            self.__element.parent().variable_name())
+                            self.parent().latex_variable_name())
 
     def _pari_(self, var=None):
         """

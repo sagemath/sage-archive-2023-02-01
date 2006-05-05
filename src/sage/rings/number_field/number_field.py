@@ -138,7 +138,8 @@ class NumberField_generic(field.Field):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, polynomial, name=None, check=True):
+    def __init__(self, polynomial, name=None,
+                 latex_name=None, check=True):
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
 
@@ -151,9 +152,19 @@ class NumberField_generic(field.Field):
             raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
 
         self.assign_names(name)
+        if latex_name is None:
+            self.__latex_variable_name = self.variable_name()
+        else:
+            self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
         self.__degree = polynomial.degree()
         self.__polynomial_ring = polynomial.parent()
+
+    def latex_variable_name(self, name=None):
+        if name is None:
+            return self.__latex_variable_name
+        else:
+            self.__latex_variable_name = name
 
     def __repr__(self):
         return "Number Field in %s with defining polynomial %s"%(
@@ -542,7 +553,10 @@ class NumberField_cyclotomic(NumberField_generic):
     """
     def __init__(self, n):
         f = QQ['x'].cyclotomic_polynomial(n)
-        NumberField_generic.__init__(self, f, name="zeta%s"%n, check=False)
+        NumberField_generic.__init__(self, f,
+                                     name="zeta%s"%n,
+                                     latex_name="\\zeta_{%s}"%n,
+                                     check=False)
         n = integer.Integer(n)
         zeta = self.gen()
         zeta._set_multiplicative_order(n)

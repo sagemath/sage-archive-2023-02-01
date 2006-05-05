@@ -1485,7 +1485,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         return QQ(self.__poly[n])
 
     def __getslice__(self, i, j):
-        return [QQ(self.__poly[k]) for k in range(i,j)]
+        return [QQ(x) for x in self.__poly[i:j]]
 
     def _pow(self, n):
         if self.degree() <= 0:

@@ -1209,11 +1209,7 @@ class Polynomial_generic_dense(Polynomial):
     def __getslice__(self, i, j):
         if i < 0:
             i = 0
-        v = self.__coeffs[i:j]
-        zero = self.base_ring()(0)
-        for k in xrange(len(self.__coeffs),j):
-            v.append(zero)
-        return v
+        return self.__coeffs[i:j]
 
     def __setitem__(self, n, value):
         if self._is_gen:
@@ -1882,6 +1878,8 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         return ZZ(self.__poly[n])
 
     def __getslice__(self, i, j):
+        i = max(0,i)
+        j = min(j, self.__poly.degree()+1)
         return [ZZ(self.__poly[k]) for k in range(i,j)]
 
     def _pow(self, n):
@@ -2258,6 +2256,10 @@ class Polynomial_dense_mod_n(Polynomial):
 
     def __getslice__(self, i, j):
         R = self.base_ring()
+        if i < 0:
+            i = 0
+        if j > self.__poly.degree()+1:
+            j = self.__poly.degree()+1
         return [R(self.__poly[k]) for k in range(i,j)]
 
     def _pow(self, n):

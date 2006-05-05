@@ -489,6 +489,9 @@ class PowerSeries_generic_dense(PowerSeries):
     def __getslice__(self, i, j):
         return self.__f[i:j]
 
+    def __iter__(self):
+        for i in range(self.__f.degree()+1):
+            yield self.__f[i]
 
     def __neg__(self):
         return PowerSeries_generic_dense(self.parent(), -self.__f,

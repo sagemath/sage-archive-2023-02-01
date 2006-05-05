@@ -188,6 +188,13 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def __getitem__(self, i):
         return self.__u[i-self.__n]
 
+    def __getslice__(self, i, j):
+        return self.__u[i-self.__n:j-self.__n]
+
+    def __iter__(self):
+        for i in range(self.valuation(), self.degree()+1):
+            yield self[i]
+
     def __setitem__(self, i, value):
         j = i - self.__n
         if j >= 0:

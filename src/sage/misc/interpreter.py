@@ -133,8 +133,14 @@ def do_prefilter_paste(line, continuation):
     # This is so it's OK to have lots of blank space at the
     # beginning of any non-continuation line.
 
-    if not continuation:
+    if continuation:
+        # strip ...'s that appear in examples
+        L = line.lstrip()
+        if L[:3] == '...':
+            line = L[3:]
+    else:
         line = line.lstrip()
+
     line = line.rstrip()
 
     if not line[:7] == 'attach ' and not line[:5] == 'load ':

@@ -369,6 +369,8 @@ class Maple(Expect):
         Get the value of the variable var.
         """
         s = self.eval('%s'%var)
+        if s[0] == '{':
+            return s
         i = s.find('=')
         return s[i+1:]
 

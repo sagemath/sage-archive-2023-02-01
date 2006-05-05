@@ -175,11 +175,11 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
     def kernel(self):
         V = self.matrix().kernel()
-        return self.domain().submodule(V.gens())
+        return self.domain().submodule(V)
 
     def image(self):
         V = self.matrix().image()
-        return self.codomain().submodule(V.gens())
+        return self.codomain().submodule(V)
 
     def matrix(self):
         return self.__matrix

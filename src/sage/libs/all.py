@@ -1,3 +1,4 @@
+import sage.libs.cf.cf as cf
 
 import sage.libs.ntl.all  as ntl
 

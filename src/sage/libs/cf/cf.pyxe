@@ -1,0 +1,1342 @@
+"""
+Interface to the Factory library.
+
+AUTHORS:
+    -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-05-01)
+
+From the Factory manual:
+
+'Factory is a C++ class library which implements a recursive canonical form representation
+ of polynomial data. The library enables the user to use multivariate polynomials over
+ different base domains such as Z, Q, GF(q) and algebraic as well as transcendental
+ extensions of Q and GF(q).
+
+ Factory was developed at the University of Kaiserslautern as an independent part of the
+ computer algebra system singular which uses parts of Factory such as polynomial gcd's
+ and polynomial factorization. This manual describes the features of Factory and
+ how to use it. Since Factory uses inheritance, operator overloading and templates,
+ it will be helpful if the reader has already some experience in C++ programming.
+
+ Factory uses a recursive representation of multivariate polynomial data. Each
+ polynomial in Factory is represented as a univariate polynomial with coefficients
+ that can be polynomials too. To have a unique representation of polynomials we
+ have to fix an ordering on the variables. This ordering is managed by Factory's
+ level system. The basic data type which is introduced by Factory is the class
+ CanonicalForm which handles polynomials as well as elements of the base domain.'
+
+This interface is mainly a one-to-one copy of the low level polynomial arithmetic
+implemented in the Factory. It follows Factory's concept of representing
+multivariate polynomials recursive as univariate polynomials over polynomial rings.
+
+When using this library keep that in mind and avoid relying on variable names
+(i.e. strings) when interfacing this code with the rest of SAGE. Variables in the
+Factory are uniquely represented through their level and not their name (which may
+only have one character btw.)
+
+So far only integers, GF(p), and GF(p^n) have been inplemented as base domains.
+
+EXAMPLES:
+    sage: F = GF(5)
+    sage: R = MPolynomialRing(F,2, names = ['x','y'])
+    sage: x,y = R.gens()
+    sage: f = y**2-x**9-x
+    sage: f == (cf.CF(y)**2-cf.CF(x)**9 - x)._sage_(R)
+    True
+    sage: n = 3
+    sage: astr = ['a'+str(i) for i in range(1,2*n)]
+    sage: R0 = MPolynomialRing(F,2*n+2,names = [str(x),str(y),'t']+astr)
+    sage: vars0 = R0.gens()
+    sage: t = vars0[2]
+    sage: xt = add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
+    sage: yt = t
+    sage: ft = f(xt,yt)
+    sage: cf.setCharacteristic(5)
+    sage: ft == cf.CF(f)([(x,cf.CF(xt)),(y,cf.CF(yt))])._sage_(R0) #fast!
+    True
+
+NOTE: This interface is not very SAGE-ish and is rather meant to function as a backend
+for higher level classes like MPolynomial_polydict for fast polynomial arithmetic.
+This libary is a bit behind Singluar if we shuffle few data to the engine, do lot's of
+computation and shuffle some data back. This loss of performance is believed to be due to the
+clumsy way we deal with memory allocation which can be addresses. If we shuffle around alot of data
+between SAGE and Singular it's performance decreases alot as much IPC overhead is involved,
+while Factory beats the nativ implementation.
+
+"""
+
+#*****************************************************************************
+#
+#   SAGE: System for Algebra and Geometry Experimentation
+#
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+
+#header{
+#include <factory.h>
+#include <iostream>
+#include <sstream>
+using namespace std;
+#}header
+
+cdef extern from "stdlib.h":
+    void free(void *ptr)
+
+
+#################################
+#cdef int _sig_on
+#cdef int _sig_off
+#cdef int _sig_check
+include 'interrupt.pxi'
+#################################
+
+include 'misc.pxi'
+
+cdef class Variable:
+    """
+    The class Variable defines a programming interface to the level system of Factory.
+    Each object of class Variable refers to a level and thus to a variable
+    (determined by the level) of the polynomial ring. Objects of class Variable must not
+    only refer to variables of the polynomial ring, but also to so called algebraic and
+    transcendental variables.
+
+    Arithmetic with Variables can be pretty weird, consider this:
+
+        sage: 1000*cf.Variable('x')
+        x*v_1000
+
+    This behavior is correct as 1000 is coerced into a Variable of level 1000 whichs default name
+    happens to be 'v_1000'
+    """
+
+    cdef void *thisptr
+
+    def __init__(self, name=None, level=None):
+        """
+        The class Variable defines a programming interface to the level system of Factory.
+        Each object of class Variable refers to a level and thus to a variable
+        (determined by the level) of the polynomial ring. Objects of class Variable must not
+        only refer to variables of the polynomial ring, but also to so called algebraic and
+        transcendental variables.
+
+        INPUT:
+            name  -- The level of the variable is specified to be the level of the variable which has
+                     name name. That means that the generated object can not only be a polynomial
+                     variable but also an algebraic or transcendental variable. In the case that
+                     there is no variable with name name the generated variable refers to the
+                     anonymous polynomial variable which has the lowest level. After the construction
+                     the name of the variable is set to name.
+
+                     If name is an integer it is interpreted as a level.
+
+            level -- The constructor generates an object of class Variable with level set to level.
+                     level has to be a level of a polynomial variable or of a transcendental variable.
+
+        The default constructor creates an object with level set to LEVEL_BASEDOMAIN. Such a variable evaluates
+        into the unit element of the current base domain when converted to a CanonicalForm
+        """
+
+        #embed{ void *Variable_init()
+            return new Variable();
+        #}embed
+
+        #embed{ void *Variable_initn(char name)
+            return new Variable(name);
+        #}embed
+
+        #embed{ void *Variable_initl(int level)
+            return new Variable(level);
+        #}embed
+
+        #embed{ void *Variable_initln( int level, char name)
+            return new Variable(level,name);
+        #}embed
+
+        cdef char *cNameStr
+        cdef char cName
+
+        from sage.ext.integer import Integer
+
+        if isinstance(name,int) or isinstance(name,Integer):
+            level=name
+            name =None
+
+        if name!=None and isinstance(name,str):
+            cNameStr = name
+            cName = cNameStr[0]
+            if level!=None:
+                self.thisptr = Variable_initln(int(level), cName)
+            else:
+                self.thisptr = Variable_initn(cName)
+        else:
+            if level!=None:
+                self.thisptr = Variable_initl(int(level))
+            else:
+                self.thisptr = Variable_init()
+
+    def __dealloc__(Variable self):
+        delete_Variable(self.thisptr)
+
+    def level(self):
+        """
+        Returns the level of this variable.
+        """
+        #embed{ int Variable_level(void *obj)
+	return ((Variable *)obj)->level();
+        #}embed
+
+        return Variable_level(self.thisptr)
+
+    def name(Variable self):
+        """
+        Returns the name of this variable. Do not identify a Variable
+        via it's name() us it's level() instead.
+        """
+        #embed{ char Variable_name(void *obj)
+	return ((Variable *)obj)->name();
+        #}embed
+
+        # this is slow, but I crashed the nativ way
+        return str(CanonicalForm(self))
+
+    def highest(self):
+        #embed{ void *Variable_highest(void *obj)
+            return new Variable(((Variable *)obj)->highest());
+        #}embed
+        _sig_on
+        return make_Variable(Variable_highest(self.thisptr))
+
+    def next(self):
+        """
+        This method returns an object of class Variable which refers
+        to the variable which has the same level as self increased by one.
+        """
+        #embed{ void *Variable_next(void *obj)
+            return new Variable(((Variable *)obj)->next());
+        #}embed
+        _sig_on
+        return make_Variable(Variable_next(self.thisptr))
+
+    def __cmp__(self, Variable other):
+        """
+        Comparison is performed by comparing the levels.
+        """
+        #embed{ int Variable_cmp(void *obj,void *obj2)
+	if(*(Variable *)obj == *(Variable *)obj2) {
+           return 0;
+	} else if( *(Variable *)obj < *(Variable *)obj2) {
+	   return -1;
+        } else if( *(Variable *)obj > *(Variable *)obj2) {
+	   return 1;
+        }
+        #}embed
+
+        return Variable_cmp(self.thisptr,other.thisptr)
+
+    def __add__(self, other):
+        return CanonicalForm(self) + CanonicalForm(other)
+
+    def __sub__(self, other):
+        return CanonicalForm(self) - CanonicalForm(other)
+
+    def __mul__(self, other):
+        return CanonicalForm(self) * CanonicalForm(other)
+
+    def __div__(self, other):
+        return CanonicalForm(self) / CanonicalForm(other)
+
+    def __pow__(self, long other, ignored):
+        return CanonicalForm(self)**other
+
+    def __mod__(self, other):
+        return CanonicalForm(self) % CanonicalForm(other)
+
+    def __repr__(self):
+        #embed{ char *Variable_to_str(void* x)
+        ostringstream instore;
+        instore << *(Variable*)x ;
+        int n = strlen(instore.str().data());
+        char* buf = new char[n+1];
+        strcpy(buf, instore.str().data());
+        #}embed
+
+##         cdef char *ret
+##         _sig_on
+##         ret = Variable_to_str(self.thisptr)
+##         _sig_off
+##         return string(ret)
+
+        #might be slow but it kept crashing otherwise
+        return str(CanonicalForm(self))
+
+
+
+
+#embed{ void delete_Variable( void *obj)
+if(obj) {
+    delete ((Variable*)obj);
+}
+#}embed
+
+cdef make_Variable(void *x):
+    """
+    """
+    cdef Variable y
+    _sig_off
+    y = Variable()
+    delete_Variable(y.thisptr)
+    y.thisptr = x
+    return y
+
+cdef class CanonicalForm:
+    """
+    CanonicalForm is the main class in the Factory
+    """
+    cdef void *thisptr
+    cdef void *iterator
+
+    def __init__(self,arg=None, exp=None, cache=None):
+        """
+        If arg is a Variable and exp==None this constructor generates a canonical form
+        out of the variable arg.  If the level of x is the level of the base domain
+        (LEVEL_BASEDOMAIN) then the unit element of the current base domain is created.
+
+        If arg is an integer this constructor generates an object of class CanonicalForm out
+        of this integer. In the case of a finite base domain the canonical mapping of the
+        integers into the domain is used.
+
+        If arg is a Variable and exp is an integer this constructor generates an object of
+        class CanonicalForm, which is the polynomial arg^exp. In the case that x has
+        level LEVEL_BASEDOMAIN the  unit element of the current base domain is created.
+
+        INPUT:
+            arg --   integer or Variable
+            exp --   optional exponent for arg
+            cache -- optional base field cache to use MPolynomial elements
+
+        """
+        #embed{ void *CF_init()
+            return new CanonicalForm();
+        #}embed
+
+        #embed{ void *CF_initi(int arg)
+            return new CanonicalForm(arg);
+        #}embed
+
+        #embed{ void *CF_initV(void *arg)
+            return new CanonicalForm(*(Variable *)arg);
+        #}embed
+
+        #embed{ void *CF_initVn(void *arg, int exp)
+            return new CanonicalForm(*(Variable *)arg,exp);
+        #}embed
+
+        #embed{ void *CF_copy(void *arg)
+            return new CanonicalForm(*(CanonicalForm *)arg);
+        #}embed
+
+        #embed{ void *str_to_CF(char* s)
+        istringstream *in = new istringstream(s);
+        CanonicalForm* y = new CanonicalForm();
+        *in >> *y;
+        delete in;
+        return y;
+        #}embed
+
+        cdef CanonicalForm cPoly
+
+        from sage.rings.multi_polynomial_element import is_MPolynomialRingElement
+
+        if is_MPolynomialRingElement(arg):
+            poly = CF(0)
+            for e,c in arg.element().dict().iteritems():
+                t = CF(0)
+                if cache!=None:
+                    if not cache.has_key(str(c)):
+                        cache[str(c)]=CF(str(c))
+                    t = t + cache[c]
+                else:
+                    t = t + CF(str(c))
+                for i from 1 <= i <= len(e):
+                    t = t * Variable(i)**e[i-1]
+                poly = poly + t
+            cPoly = poly
+            self.thisptr = cPoly.thisptr
+
+        elif isinstance(arg,CanonicalForm):
+            self.thisptr = CF_copy(<void*>(<CanonicalForm>arg).thisptr)
+
+        elif exp!=None:
+            if isinstance(arg,Variable):
+                self.thisptr = CF_initVn(<void*>(<Variable>arg).thisptr,int(exp))
+
+            else:
+                raise TypeError, "Cannot create CanonicalForm with %s and %s"%(arg,exp)
+
+        elif arg==None:
+            self.thisptr = CF_init()
+
+        elif isinstance(arg,Variable):
+            self.thisptr = CF_initV(<void*>(<Variable>arg).thisptr)
+
+        elif isinstance(arg,str):
+            arg = "".join([arg,";"])
+            self.thisptr = str_to_CF(arg)
+        else:
+            try:
+                arg = int(arg)
+                self.thisptr = CF_initi(arg)
+            except:
+                raise TypeError, "Cannot create CanonicalForm with params %s and %s"%(arg, exp)
+
+    def __repr__(self):#
+        """
+        """
+        #embed{ char *CF_to_str(void* x)
+        ostringstream instore;
+        instore << *(CanonicalForm*)x ;
+        int n = strlen(instore.str().data());
+        char* buf = new char[n+1];
+        strcpy(buf, instore.str().data());
+        return buf;
+        #}embed
+
+        cdef char *ret
+        _sig_on
+        ret = CF_to_str(self.thisptr)
+        return string(ret)
+
+    def __add__(left, right):
+        #embed{ void *CF_add(void *l, void *r)
+        return new CanonicalForm((*(CanonicalForm*)l) + (*(CanonicalForm*)r));
+        #}embed
+
+        cdef CanonicalForm cRight
+        cdef CanonicalForm cLeft
+        try:
+            cLeft = CanonicalForm(left)
+            cRight = CanonicalForm(right)
+        except TypeError:
+            raise ArithmeticError, "Cannot add %s and %s"%(left,right)
+        _sig_on
+        return make_CF(CF_add(cLeft.thisptr,cRight.thisptr))
+
+    def __sub__(left, right):
+        #embed{ void *CF_sub(void *l, void *r)
+        return new CanonicalForm((*(CanonicalForm*)l) - (*(CanonicalForm*)r));
+        #}embed
+        cdef CanonicalForm cRight
+        cdef CanonicalForm cLeft
+        try:
+            cRight = CanonicalForm(right)
+            cLeft = CanonicalForm(left)
+        except TypeError:
+            raise ArithmeticError, "Cannot subtract %s from %s"%(right,left)
+        _sig_on
+        return make_CF(CF_sub(cLeft.thisptr,cRight.thisptr))
+
+    def __mul__(left, right):
+        #embed{ void *CF_mul(void *l, void *r)
+        return new CanonicalForm((*(CanonicalForm*)l) * (*(CanonicalForm*)r));
+        #}embed
+
+        cdef CanonicalForm cRight
+        cdef CanonicalForm cLeft
+        try:
+            cRight = CanonicalForm(right)
+            cLeft = CanonicalForm(left)
+        except TypeError:
+            raise ArithmeticError, "Cannot multiply %s and %s"%(left,right)
+        _sig_on
+        return make_CF(CF_mul(cLeft.thisptr,cRight.thisptr))
+
+    def __div__(left, right):
+        #embed{ void *CF_div(void *l, void *r)
+        return new CanonicalForm((*(CanonicalForm*)l) / (*(CanonicalForm*)r));
+        #}embed
+
+        cdef CanonicalForm cRight
+        cdef CanonicalForm cLeft
+        try:
+            cRight = CanonicalForm(right)
+            cLeft = CanonicalForm(left)
+        except TypeError:
+            raise ArithmeticError, "Cannot divide %s through %s"%(left,right)
+        _sig_on
+        return make_CF(CF_div(cLeft.thisptr,cRight.thisptr))
+
+    def __pow__(CanonicalForm self,long e, ignored):
+        #embed{ void *CF_pow(void *l, long e)
+        return new CanonicalForm( power((*(CanonicalForm*)l),e) );
+        #}embed
+        _sig_on
+        return make_CF(CF_pow(self.thisptr, e))
+
+    def __neg__(CanonicalForm self):
+        #embed{ void *CF_neg(void *l)
+        return new CanonicalForm(-(*(CanonicalForm*)l));
+        #}embed
+        _sig_on
+        return make_CF(CF_neg(self.thisptr))
+
+##
+##    Commenting out all in place arithmetic as SAGE does not use in place arithmetic,
+##    e.g. when you e += 1 for an element which is also an element of a list the element
+##    in the list does not change in SAGE.
+##
+##     def __iadd__(CanonicalForm self,other):
+##         #embed{ void CF_iadd(void *l, void *r)
+##         (*(CanonicalForm*)l) += (*(CanonicalForm*)r);
+##         #}embed
+
+##         cdef CanonicalForm cOther
+##         try:
+##             cOther = CanonicalForm(other)
+##         except TypeError:
+##             raise ArithmeticError, "Cannot add %s and %s"%(self,other)
+
+##         CF_iadd(self.thisptr,cOther.thisptr)
+##         return self
+
+##     def __isub__(CanonicalForm self, other):
+##         #embed{ void *CF_isub(void *l, void *r)
+##         (*(CanonicalForm*)l) -= (*(CanonicalForm*)r);
+##         #}embed
+##         cdef CanonicalForm cOther
+##         try:
+##             cOther = CanonicalForm(other)
+##         except TypeError:
+##             raise ArithmeticError, "Cannot subtract %s from %s"%(other,self)
+##         CF_isub(self.thisptr,cOther.thisptr)
+##         return self
+
+##     def __imul__(CanonicalForm self, other):
+##         #embed{ void *CF_imul(void *l, void *r)
+##         (*(CanonicalForm*)l) *= (*(CanonicalForm*)r);
+##         #}embed
+
+##         cdef CanonicalForm cOther
+##         try:
+##             cOther = CanonicalForm(other)
+##         except TypeError:
+##             raise ArithmeticError, "Cannot multiply %s and %s"%(self,other)
+
+##         CF_imul(self.thisptr,cOther.thisptr)
+##         return self
+
+##     def __idiv__(CanonicalForm self, other):
+##         #embed{ void CF_idiv(void *l, void *r)
+##         (*(CanonicalForm*)l) /= (*(CanonicalForm*)r);
+##         #}embed
+
+##         cdef CanonicalForm cOther
+##         try:
+##             cOther = CanonicalForm(other)
+##         except TypeError:
+##             raise ArithmeticError, "Cannot divide %s through %s"%(self,other)
+
+##         CF_idiv(self.thisptr,cOther.thisptr)
+##         return self
+
+##     def __ipow__(CanonicalForm self,long e, ignored):
+##         #embed{ void CF_ipow(void *l, long e)
+##         (*(CanonicalForm*)l) = power((*(CanonicalForm*)l),e);
+##         #}embed
+##         CF_ipow(self.thisptr,e)
+##         return self
+
+
+    def __cmp__(CanonicalForm self,other):
+        """
+        It is possible to compare two canonical forms. Therefore, you can use
+        this operator. The behaviour of < and > in the case of polynomials is
+        not fixed yet, but may deal with levels and degrees in a future
+        release of the Factory library.
+        """
+        #embed{ int CF_cmp(void *obj,void *obj2)
+	if( *(CanonicalForm *)obj == *(CanonicalForm *)obj2 ) {
+           return 0;
+	} else if(*(CanonicalForm *)obj < *(CanonicalForm *)obj2) {
+	   return -1;
+        } else if(*(CanonicalForm *)obj > *(CanonicalForm *)obj2) {
+	   return 1;
+        }
+        #}embed
+
+        cdef int res
+        cdef CanonicalForm cOther
+        if not isinstance(other, CanonicalForm):
+            try:
+                cOther = CanonicalForm(other)
+            except TypeError:
+                raise TypeError, "Cannot compare %s and %s"%(self,other)
+        else:
+            cOther = other
+        _sig_on
+        res = CF_cmp(self.thisptr,cOther.thisptr)
+        _sig_off
+        return res
+
+    def __mod__(CanonicalForm self, other):
+        #embed{ void *CF_mod(void *l, void *r)
+        return new CanonicalForm((*(CanonicalForm*)l) % (*(CanonicalForm*)r));
+        #}embed
+
+        cdef CanonicalForm cOther
+        try:
+            cOther = CanonicalForm(other)
+        except TypeError:
+            raise ArithmeticError, "Cannot take %s modulo %s"%(self,other)
+        _sig_on
+        return make_CF(CF_mod(self.thisptr,cOther.thisptr))
+
+    def __getitem__(CanonicalForm self, i):
+        """
+        operator [] - return i'th coefficient from self.
+
+        Returns self if self is in a base domain and i equals zero.
+        Returns zero (from the current domain) if self is in a base
+        domain and i is larger than zero.  Otherwise, returns the
+        coefficient to x^i in self (if x denotes the main variable of
+        self) or zero if self does not contain x^i.  Elements in an
+        algebraic extension are considered polynomials.  i should be
+        larger or equal zero.
+
+        INPUT:
+            i -- exponent, this may be a tuple of exponents
+
+        EXAMPLE:
+            sage: f=cf.CF('3*x*y^2')
+            sage: f[1]
+            0
+            sage: f[2]
+            3*x
+            sage: f[2,1]
+            3
+
+        NOTE:
+            Never use a loop like
+
+            for i in range(f.degree( )):
+                print f[ i ]
+
+            which is much slower than
+
+            for c in f:
+                print c
+
+        """
+        #embed{ void *CF_getitem(void *e,int i)
+        if (((CanonicalForm*)e)->degree() < i) {
+            return new CanonicalForm(0);
+        } else {
+            return new CanonicalForm((*(CanonicalForm*)e)[i]);
+        }
+        #}embed
+        cdef void *ret
+        if isinstance(i,int):
+            _sig_on
+            ret = CF_getitem(self.thisptr,i)
+            return make_CF(ret)
+        elif isinstance(i,tuple):
+            _sig_on
+            ret = self.thisptr
+            for j in i:
+                ret = CF_getitem(ret,int(j))
+            return make_CF(ret)
+        else:
+            raise TypeError, "Cannot return coefficent for %s"%i
+
+    def __iter__(CanonicalForm self):
+        """
+        Iterator with respect to the main variable. It returns
+        coeffients and expontents of terms. You may get the
+        variable these refer to by calling mvar() on self.
+        """
+        return self
+
+    def __next__(CanonicalForm self):
+        """
+        Iterator implementation.
+        """
+        #embed{ void *CF_iterinit(void *e)
+        return new CFIterator(*(CanonicalForm*)e);
+        #}embed
+
+        #embed{ void *CF_iter(void *it, int *exp)
+        if(((CFIterator*)it)->hasTerms()) {
+            CanonicalForm *ret = new CanonicalForm(((CFIterator*)it)->coeff());
+            *exp = ((CFIterator*)it)->exp();
+            (*(CFIterator*)it)++;
+            return ret;
+        } else {
+            return NULL;
+        }
+        #}embed
+
+        cdef void *ret
+        cdef int exp
+
+        if self.is_zero():
+            raise StopIteration
+
+        if self.iterator == NULL:
+            self.iterator = CF_iterinit(self.thisptr)
+
+        _sig_on
+        ret = CF_iter(self.iterator,&exp)
+        _sig_off
+        if ret!=NULL:
+            _sig_on
+            return (make_CF(ret),exp)
+        else:
+            self.iterator = CF_iterinit(self.thisptr)
+            raise StopIteration
+
+    def __call__(CanonicalForm self, arg):
+        """
+        Returns the current object with the substitution described through arg performed.
+
+        If arg is a list or tuple and it's elements are not tuples it is interpreted
+        as a list of values to substituted in at their list index.
+
+        If arg is a list or tuple and it's elements are tuples with two elements
+        then it is interpreted to hold the variable to be substitute as the first element
+        of those tuples and the value to be substituted in as the second.
+
+        If arg is a dict it's keys are interpreted to describe the variables and the
+        matching values the values to be substituted in.
+
+        INPUT:
+            arg -- tuple, list or dict to describe substitution
+
+        EXAMPLES:
+            sage: f=cf.CF(3)*cf.Variable('x')*cf.Variable('y'); f
+            3*x*y
+            sage: f(dict([('x','2')]))
+            6*y
+            sage: f((('x','2'),))
+            6*y
+            sage: f((3,'z'))
+            9*z
+        """
+        #embed{ void CF_call(void *self, void *f, void *x)
+        (*(CanonicalForm*)self) = (*(CanonicalForm*)self)(*(CanonicalForm*)f,*(Variable*)x);
+        #}embed
+
+        cdef void *r
+        cdef Variable x
+        cdef CanonicalForm f
+
+        if isinstance(arg,tuple) or isinstance(arg,list):
+            if not isinstance(arg[0],tuple) and len(arg)==self.mvar().level():
+                r = CF_copy(self.thisptr)
+                _sig_on
+                for i from 0 <= i < len(arg):
+                    f = CanonicalForm(arg[i])
+                    x = Variable(i+1)
+                    CF_call(r,f.thisptr,x.thisptr)
+                return make_CF(r)
+            elif len(arg[0])==2:
+                r = CF_copy(self.thisptr)
+                _sig_on
+                for var,val in arg:
+                    f = CanonicalForm(val)
+                    x = CanonicalForm(var).mvar() #safer than calling Variable
+                    CF_call(r,f.thisptr,x.thisptr)
+                return make_CF(r)
+        elif isinstance(arg,dict):
+            r = CF_copy(self.thisptr)
+            _sig_on
+            for var,val in arg.iteritems():
+                f = CanonicalForm(val)
+                x = CanonicalForm(var).mvar() #safer than calling Variable
+                CF_call(r,f.thisptr,x.thisptr)
+            return make_CF(r)
+        else:
+            raise TypeError, "Cannot substitute with parameter %s"%arg
+
+    def is_one(CanonicalForm self):
+        """
+        This predicate returns true if self represents the unit element of the
+        current base domain. There is also the possibiliy to test if a
+        CanonicalForm f is one via f == 1, but f.is_one() is faster since
+        there is no conversion of the integer 1 into a CanonicalForm and
+        then doing a comparison of two objects of class CanonicalForm.
+        """
+        #embed{ int CF_isOne(void *e)
+        return ((CanonicalForm*)e)->isOne();
+        #}embed
+        return bool(CF_isOne(self.thisptr))
+
+    def is_zero(CanonicalForm self):
+        """
+        This predicate returns true if self represents the zero element of the
+        current base domain. Like the predicate is_one using the predicate f.is_zero()
+        is also faster than a comparison via f == 0.
+        """
+        #embed{ int CF_isZero(void *e)
+        return ((CanonicalForm*)e)->isZero();
+        #}embed
+
+        return bool(CF_isZero(self.thisptr))
+
+    def is_imm(CanonicalForm self):
+        """
+        This predicate returns true if self is represented as an immediate object
+        (e.g. is a small integer or an object of a finite base field).
+        See Chapter 14 [Internal Design], page 21, for information about how
+        immediate objects are represented.
+
+        The return value represents if self is represented as a immediate
+        value in the Factory and makes no statement about this
+        element in SAGE.
+        """
+        #embed{ int CF_isImm(void *e)
+        return ((CanonicalForm*)e)->isImm();
+        #}embed
+        return bool(CF_isImm(self.thisptr))
+
+    def _int_(CanonicalForm self):
+        """
+        This selector returns the integer value of self. This is only valid if
+        the value of self is in the range of the machine integers. A good way to
+        find out if this is the case is to test if the current object is an
+        immediate object via self.is_imm().
+        """
+        #embed{ int CF_intval(void *e)
+        return ((CanonicalForm*)e)->intval();
+        #}embed
+        return CF_intval(self.thisptr)
+
+    def lc(CanonicalForm self):
+        """
+        Returns the leading coefficient of self with respect to
+        lexicographic ordering.  Elements in an algebraic extension
+        are considered polynomials so lc() always returns a leading
+        coefficient in a base domain.  This method is useful to get
+        the base domain over which self is defined.
+
+        Returns self if self is in a base domain.
+        """
+        #embed{ void *CF_lc(void *e)
+        return new CanonicalForm(((CanonicalForm*)e)->lc());
+        #}embed
+        _sig_on
+        return make_CF(CF_lc(self.thisptr))
+
+    def Lc(CanonicalForm self):
+        """
+        Returns the leading coefficient of self with respect to
+        lexicographic ordering.  In contrast to lc() elements in an
+        algebraic extension are considered coefficients so Lc() always
+        returns a leading coefficient in a coefficient domain.
+
+        Returns self if self is in a base domain.
+        """
+        #embed{ void *CF_Lc(void *e)
+        return new CanonicalForm(((CanonicalForm*)e)->Lc());
+        #}embed
+        _sig_on
+        return make_CF(CF_Lc(self.thisptr))
+
+    def LC(CanonicalForm self, v=None):
+        """
+        LC( ) returns the leading coefficient of self where self is
+        considered a univariate polynomial in its main variable.  An
+        element of an algebraic extension is considered an univariate
+        polynomial, too.
+
+        LC( v ) returns the leading coefficient of CO where CO is
+        considered an univariate polynomial in the polynomial variable
+        v.
+
+        Returns self if self is in a base domain.
+
+        INPUT:
+            v -- if set the leading coefficient with respect to this
+                        variable is returned.
+        OUTPUT:
+            CanonicalForm representing the lead coefficient.
+
+
+        """
+        #embed{ void *CF_LC(void *e,void *v)
+        if (v == NULL) {
+            return new CanonicalForm(((CanonicalForm*)e)->LC());
+        } else {
+            return new CanonicalForm( ((CanonicalForm*)e)->LC( *((Variable*)v) ) );
+        }
+        #}embed
+
+        if v==None:
+            _sig_on
+            return make_CF(CF_LC(self.thisptr,NULL))
+
+        if not isinstance(v, Variable):
+            v = Variable(v)
+        _sig_on
+        return make_CF(CF_LC(self.thisptr,(<Variable>v).thisptr))
+
+    def total_degree(CanonicalForm self):
+        """
+        Returns the total degree of self.
+        """
+        #embed{ int CF_total_degree(void *e)
+        return totaldegree(*(CanonicalForm*)e);
+        #}embed
+        return CF_total_degree(self.thisptr)
+
+    def degree(CanonicalForm self, x=None):
+        """
+        This selector returns the degree of self with respect to its main variable or
+        a provided variable.  If self is an element of a coefficient domain the returned
+        degree is zero except that the current object represents the zero of a
+        base domain in which case -1 is returned.
+
+        INPUT:
+            variable -- if set the degree with respect to this variable will be returned.
+        """
+
+        #embed{ int CF_degree(void *e,void *x)
+        if (x == NULL) {
+            return ((CanonicalForm*)e)->degree();
+        } else {
+            return ((CanonicalForm*)e)->degree( *((Variable*)x) );
+        }
+        #}embed
+
+        if x==None:
+            return CF_degree(self.thisptr,NULL)
+
+        if not isinstance(x,Variable):
+            variable = Variable(x)
+        return CF_degree(self.thisptr,(<Variable>x).thisptr)
+
+    def lt(CanonicalForm self):
+        """
+        Returns the leading term with respect to the main variable.
+
+        This is equivalent to head() in the Factory C++ API.
+        """
+        #embed{ void *CF_head(void *e)
+        return new CanonicalForm(head(*(CanonicalForm*)e));
+        #}embed
+        _sig_on
+        return make_CF(CF_head(self.thisptr))
+
+    def tail(CanonicalForm self):
+        """
+        Returns f - lt(f)
+        """
+        #embed{ void *CF_tail(void *e)
+        return new CanonicalForm((*(CanonicalForm*)e) - head(*(CanonicalForm*)e));
+        #}embed
+        _sig_on
+        return make_CF(CF_tail(self.thisptr))
+
+
+    def tailcoeff(CanonicalForm self):
+        """
+        This selector returns the tail coefficient of self. That is the non
+        vanishing coefficient of the term with the lowest exponent. If self represents
+        the zero element of a base domain then zero is returned.
+        """
+        #embed{ void *CF_tailcoeff(void *e)
+        return new CanonicalForm(((CanonicalForm*)e)->tailcoeff());
+        #}embed
+        _sig_on
+        return make_CF(CF_tailcoeff(self.thisptr))
+
+    def taildegree(CanonicalForm self):
+        """
+        This selector returns the lowest exponent of the terms of self that have non
+        vanishing coefficients. If the self represents the zero element of a base
+        domain then None is returned.
+        """
+        #embed{ int CF_taildegree(void *e)
+        return ((CanonicalForm*)e)->taildegree();
+        #}embed
+
+        cdef res
+        res = CF_taildegree(self.thisptr)
+        if res==-1:
+            return
+        else:
+            return res
+
+    def mvar(CanonicalForm self):
+        """
+        This selector returns the main varible of self.
+        If self is an element of a base domain then Variable(LEVEL_BASEDOMAIN) is returned.
+        """
+        #embed{ void *CF_mvar(void *e)
+        return new Variable(((CanonicalForm*)e)->mvar());
+        #}embed
+        _sig_on
+        return make_Variable(CF_mvar(self.thisptr))
+
+    def level(CanonicalForm self):
+        """
+        This selector returns the level of the main variable of self.
+        """
+
+        #embed{ int CF_level(void *e)
+        return ((CanonicalForm*)e)->level();
+        #}embed
+
+        return CF_level(self.thisptr)
+
+    def mapinto(CanonicalForm self, mapMe = False):
+        """
+        This method returns the mapping of the current object into the current base domain.
+        If the current object is a polynomial, then the value returned by mapdomain is the
+        polynomial mapped into the polynomial ring over the current base domain.
+        """
+
+        #embed{ void *CF_mapinto(void *self)
+        return new CanonicalForm(((CanonicalForm*)self)->mapinto());
+        #}embed
+        #embed{ void CF_mapintos(void *self)
+        *(CanonicalForm*)self = ((CanonicalForm*)self)->mapinto();
+        #}embed
+
+        if mapMe:
+            CF_mapintos(self.thisptr)
+        else:
+            _sig_on
+            return make_CF(CF_mapinto(self.thisptr))
+
+    def inZ(CanonicalForm self):
+        """
+        This method returns true if the object is a rational integer.
+        """
+        #embed{ int CF_inZ(void *self)
+        return ((CanonicalForm*)self)->inZ();
+        #}embed
+        return bool(CF_inZ(self.thisptr))
+
+    def inQ(CanonicalForm self):
+        """
+        This method returns true if the object is a rational number.
+        """
+        #embed{ int CF_inQ(void *self)
+        return ((CanonicalForm*)self)->inQ();
+        #}embed
+        return bool(CF_inQ(self.thisptr))
+
+    def inFF(CanonicalForm self):
+        """
+        This method returns true if the object is an element of Fp.
+        """
+        #embed{ int CF_inFF(void *self)
+        return ((CanonicalForm*)self)->inFF();
+        #}embed
+        return bool(CF_inFF(self.thisptr))
+
+    def inGF(CanonicalForm self):
+        """
+        This method returns true if the object is an element of GF(q).
+         """
+        #embed{ int CF_inGF(void *self)
+        return ((CanonicalForm*)self)->inGF();
+        #}embed
+        return bool(CF_inGF(self.thisptr))
+
+    def inPP(CanonicalForm self):
+        """
+        This method returns true if the object is in a prime power domain.
+        """
+        #embed{ int CF_inPP(void *self)
+        return ((CanonicalForm*)self)->inPP();
+        #}embed
+        return bool(CF_inPP(self.thisptr))
+
+    def inBaseDomain(CanonicalForm self):
+        """
+        This method returns true if the object is an element of a base domain,
+        e.g. Z, Q, Z mod p, Fp or GF(q).
+        """
+        #embed{ int CF_inBaseDomain(void *self)
+        return ((CanonicalForm*)self)->inBaseDomain();
+        #}embed
+        return bool(CF_inBaseDomain(self.thisptr))
+
+    def inExtension(CanonicalForm self):
+        """
+        This method returns true if the object is an element of an algebraic
+        extension.
+
+        NOTE: In Factory thit means that the object is not an element of GF(q)
+        even if that would be true mathematically. All that can be said when inExtension
+        returns true is, that the object contains an algebraic variable.
+        """
+        #embed{ int CF_inExtension(void *self)
+        return ((CanonicalForm*)self)->inExtension();
+        #}embed
+        return bool(CF_inExtension(self.thisptr))
+
+    def inCoeffDomain(CanonicalForm self):
+        """
+        This method returns true if the object is not a polynomial.
+        """
+        #embed{ int CF_inCoeffDomain(void *self)
+        return ((CanonicalForm*)self)->inCoeffDomain();
+        #}embed
+        return bool(CF_inCoeffDomain(self.thisptr))
+
+    def inPolyDomain(CanonicalForm self):
+        """
+        This method returns true if the object is a polynomial.
+        """
+        #embed{ int CF_inPolyDomain(void *self)
+        return ((CanonicalForm*)self)->inPolyDomain();
+        #}embed
+        return bool(CF_inPolyDomain(self.thisptr))
+
+
+    def isFFinGF(CanonicalForm self):
+        """
+        """
+        #embed{ int CF_isFFinGF(void *self)
+        return ((CanonicalForm*)self)->isFFinGF();
+        #}embed
+        return bool(CF_isFFinGF(self.thisptr))
+
+    def isUnivariate(CanonicalForm self):
+        """
+        Returns True if self is univariate, False otherwise
+        """
+        #embed{ int CF_isUnivariate(void *self)
+        return ((CanonicalForm*)self)->isUnivariate();
+        #}embed
+        return bool(CF_isUnivariate(self.thisptr))
+
+    def isHomogeneous(CanonicalForm self):
+        """
+        Returns True if self is homogeneous, False otherwise
+        """
+        #embed{ int CF_isHomogeneous(void *self)
+        return ((CanonicalForm*)self)->isHomogeneous();
+        #}embed
+        return bool(CF_isHomogeneous(self.thisptr))
+
+    def __cflist__(self, f, e):
+        level = f.level()-1
+        if f.inCoeffDomain():
+            return []+[tuple([f,tuple(e)])]
+        else:
+            retval = []
+            for c,e2 in f:
+                e[level]=e2
+                retval = retval + self.__cflist__(c,list(e))
+            return retval
+
+    def _sage_(self,r,cache=None):
+        """
+        Coerces self into r.
+
+        A very simple coercion strategy is used:  The variable with level=1
+        is mapped to the first variable in the ring, the variable with level=2
+        to the second, etc. Elements of the coefficient domain are
+        coerced via strings. So in that case variable names (e.g. of an
+        algebraic variable) do matter in contrast to the warning state
+        earlier.
+
+        INPUT:
+            r -- ring to coerce to
+            cache -- optional finite field cache
+
+        EXAMPLES:
+            sage: f=cf.CF('3*x+2')
+            sage: r=MPolynomialRing(GF(127),2,'x')
+            sage: f._sage_(r)
+            2 + 3*x0
+            sage: cf.setCharacteristic(GF(2**8))
+            a
+            sage: f=cf.CF('a^20*x+a^10');f
+            a^7*x+a^5*x+a^4*x+a^2*x+a^6+a^5+a^4+a^2
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: f._sage_(r)
+            a^6 + a^5 + a^4 + a^2 + (a^7 + a^5 + a^4 + a^2)*x0
+        """
+
+        d={}
+        level = self.level()-1
+
+        from sage.rings.multi_polynomial_ring import polydict
+
+        if self.inCoeffDomain():
+            # catch the constant case
+            d[tuple([int(0),]*r.ngens())]=self
+            return r(polydict.PolyDict(d))
+
+        for c,e in self:
+            exp = [int(0),]*r.ngens()
+            exp[level]= e
+            l = self.__cflist__(c,exp)
+            for c2,e2 in l:
+                if cache!=None:
+                    if not cache.has_key(str(c2)):
+                        cache[str(c2)]=r.base_ring()(str(c2))
+                    d[tuple(e2)]=cache[str(c2)]
+                else:
+                    d[tuple(e2)]=r.base_ring()(str(c2))
+        return r(polydict.PolyDict(d))
+
+
+CF =  CanonicalForm
+
+#embed{ void delete_CF( void *obj)
+if(obj) {
+    delete ((CanonicalForm*)obj);
+}
+#}embed
+
+cdef make_CF(void *x):
+    """
+    """
+    cdef CanonicalForm y
+    _sig_off
+    y = CanonicalForm()
+    delete_CF(y.thisptr)
+    y.thisptr = x
+    return y
+
+
+def setCharacteristic(p):
+    """
+    Sets the characteristic for all following Factory operations to p. We also
+    accept SAGE finite fields here which will be automatically coerced to a format
+    the Factory can understand. If the finite fieldis an extension field the
+    algebraic element 'a' is returned which is the root of the defining polynomial
+    of the extension field.
+
+    INPUT:
+        p -- characteristic to use in Factory
+
+    TODO:
+        The Factory also supports p^n as base chacteristic but that would need the gftable
+        lookup which is not provided in the format needed by the Factory through Singular.
+        Use rootOf() if you need to to construct GF(p^n) which however - I guess - is
+        slower than the setCharacteristic(p,n) approach. If you provide this function
+        with a SAGE finite field this behavior is implemented.
+    """
+    #embed{ void setCharacteristicp(int p)
+    setCharacteristic(p);
+    #}embed
+
+    #embed{ void setCharacteristicpn(int p, int n)
+    setCharacteristic(p,n);
+    #}embed
+
+    #embed{ void setCharacteristicpnn(int p, int n, char name)
+    setCharacteristic(p,n,n);
+    #}embed
+
+    try:
+        setCharacteristicp(int(p.characteristic()))
+        return rootOf(str(p.polynomial()),"a")
+    except:
+        try:
+            setCharacteristicp(int(p))
+        except:
+            raise TypeError, "Cannot set characteristic for %s"%p
+
+def getCharacteristic():
+    """
+    Returns the currently set characteristic
+    """
+    #embed{ int getCharacteristicp()
+    return getCharacteristic();
+    #}embed
+    return getCharacteristicp()
+
+def rootOf(mipo, char *name = NULL, force=True):
+    """
+    This function returns the algebraic variable that is defined by the minimal polynomial mipo.
+    name has to be a name that is not yet assigned to a variable. This is the only way to define
+    an algebraic variable. The level of the returned variable depends on how many algebraic variables
+    are defined so far. The variable remains anonymous if the user does not specify a name.
+    mipo has to be an irreducible univariate polynomial over the current base domain.
+
+    INPUT:
+        mipo -- minimal polynomial to define the algebraic variable, this must be a CanonicalForm
+                or something coercable to ca CanonicalForm via the CanonicalForm constructor
+        name -- name to assign to the algebraic variable
+    """
+    #embed{ void *rootOfpn(void *mipo, char name)
+    return new Variable(rootOf(*(CanonicalForm*)mipo, name));
+    #}embed
+    #embed{ void *rootOfp(void *mipo)
+    return new Variable(rootOf(*(CanonicalForm*)mipo));
+    #}embed
+
+    cdef char *cName
+    cdef char cChar
+    cdef CanonicalForm cMipo
+
+    if not isinstance(mipo,CanonicalForm):
+        cMipo = CanonicalForm(mipo)
+    else:
+        cMipo = mipo
+
+    if name == NULL or len(name)==0:
+        _sig_on
+        return make_Variable(rootOfp(cMipo.thisptr))
+    else:
+        # we try not to generate a new variable if the
+        # current one is the desired one
+        if not force:
+            try:
+                a = Variable(name)
+                mMipo = getMipo(a,cMipo.mvar())
+                if mMipo == cMipo:
+                    return a
+            except:
+                pass
+        cName = name
+        cChar = cName[0]
+        _sig_on
+        return make_Variable(rootOfpn(cMipo.thisptr,cChar))
+
+def getMipo( a,  x=None ):
+    """
+    This function returns the minimal polynomial that defines the algebraic
+    variable a. The minimal polynomial is returned as a CanonicalForm of variable x.
+    """
+    #embed{ void *CF_getMipo(void *a, void *x)
+    return new CanonicalForm(getMipo(*(Variable*)a,*(Variable*)x));
+    #}embed
+
+    cdef Variable cA
+    cdef Variable cX
+
+    if x==None:
+        x='x'
+
+    if not isinstance(a,Variable):
+        cA = Variable(a)
+    else:
+        cA = a
+    if not isinstance(x,Variable):
+        cX = Variable(x)
+    else:
+        cX = x
+
+    _sig_on
+    return make_CF(CF_getMipo(cA.thisptr,cX.thisptr))
+
+

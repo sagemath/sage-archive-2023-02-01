@@ -80,6 +80,11 @@ pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
                  libraries = ['pari', 'gmp'])
 
+cf = Extension('sage.libs.cf.cf',
+               sources = ["sage/libs/cf/cf.pyxe", "sage/libs/cf/ftmpl_inst.cc"],
+               libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
+               )
+
 ext_modules = [ \
     ec, \
 
@@ -88,6 +93,8 @@ ext_modules = [ \
     mwrank, \
 
     ntl, \
+
+    cf, \
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
@@ -121,6 +128,7 @@ ext_modules = [ \
     Extension('sage.ext.gens',
               sources = ['sage/ext/gens.pyx']), \
 
+    # this is twice, that correct?
     Extension('sage.ext.mpfr',
               sources = ['sage/ext/mpfr.pyx', 'sage/ext/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
@@ -219,11 +227,9 @@ def need_to_create(file1, file2):
     return False
 
 
-# This is *not* used, but I wrote it in case I want
-# to use pyrexembed at some point.
 def process_pyrexembed_file(f):
     # This is a pyrexembed file, so process accordingly.
-    dir, base = os.path.split(f[:-4])
+    dir, base = os.path.split(f[:-5])
     tmp = '%s/.tmp'%dir
     if os.path.exists(tmp) and not os.path.isdir(tmp):
         print "Please delete file '%s' in %s"%(tmp, dir)
@@ -238,6 +244,7 @@ def process_pyrexembed_file(f):
     # The following three files will be produced by pyrexembed.
     cpp_file = "%s/%s_embed.cpp"%(dir, base)
     c_file = "%s/%s.c"%(dir, base)
+    pyx_file = "%s/%s.pyx"%(dir,base)
     pyx_embed_file = "%s/%s.pyx"%(tmp, base)
     h_file = "%s_embed.h"%base
     if need_to_create(f, pyxe_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
@@ -248,7 +255,7 @@ def process_pyrexembed_file(f):
             print "Error running pyrexembed."
             sys.exit(ret)
     process_pyrex_file(pyx_embed_file)
-    cmd = 'cp %s/*.c %s/; cp %s/*.h %s/; cp %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir)
+    cmd = 'cp %s/*.pyx %s/; cp %s/*.c %s/; cp %s/*.h %s/; cp %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
     print cmd
     os.system(cmd)
     return [cpp_file, c_file]
@@ -279,14 +286,13 @@ def pyrex(ext_modules):
         for i in range(len(m.sources)):
             f = m.sources[i]
             s = open(f).read()
-            #if f[-4:] == '.pyx' and s.find("#embed") != -1 and s.find('#}embed') != -1:
-            #    new_sources += process_pyrexembed_file(f)
-            if f[-4:] == ".pyx":
+            if f[-5:] == '.pyxe':# and s.find("#embed") != -1 and s.find('#}embed') != -1:
+                new_sources = process_pyrexembed_file(f)
+            elif f[-4:] == ".pyx":
                 new_sources += process_pyrex_file(f)
             else:
                 new_sources.append(f)
         m.sources = new_sources
-
 
 
 #############################################
@@ -350,6 +356,7 @@ setup(name        = 'sage',
                      'sage.libs.ntl',
                      'sage.libs.ec',
                      'sage.libs.pari',
+                     'sage.libs.cf',
 
                      'sage.matrix',
 

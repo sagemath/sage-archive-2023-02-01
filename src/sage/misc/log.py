@@ -473,7 +473,7 @@ class log_dvi(Log):
 
 #
 # Coarse MathML logger
-class log_html_mathml(Log):
+class log_html_mathml(log_dvi):
     r"""
     Create a running log of your SAGE session as a mathml web page.
 
@@ -537,58 +537,5 @@ class log_html_mathml(Log):
 
         os.system('%s  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
 
-    def _get_input(self, n, followed_by_output):
-        if n >= len(self._input):
-            return
-        s = ''
-        if not self._in_verbatim:
-            s += '\\begin{verbatim}'
-            self._in_verbatim = True
-        I = self._input[n]
-        s += "%s %s: %s"%(n,  interpreter._prompt, I)
-        s += '\\end{verbatim}'
-        if followed_by_output:
-            self._in_verbatim = False
-        else:
-            s += '\\begin{verbatim}'
-        self._after_output = False
-        return s
-
-    def _get_output(self, n):
-        s = ''
-        self._after_output = True
-        if self._in_verbatim:
-            s += '\\end{verbatim}\n'
-            self._in_verbatim = False
-        L = latex.latex(self._output[n])
-
-        #If L is LaTeX output, no need to format it
-        if "latex" in self._input[n]:
-            s+= "\\begin{verbatim}%s\\end{verbatim}" %L
-        else:
-            s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
-        return s
-
     def _filename(self):
         return 'sagelog.tex'
-
-    def _header(self):
-        return """
-\\documentclass{article}
-\\input{macros}
-\\title{%s}\\author{}
-\\begin{document}
-\\maketitle
-"""%self._title()
-
-    def _footer(self):
-        if self._in_verbatim:
-            return r"\end{verbatim}\end{document}"
-        else:
-            return r"\end{document}"
-
-    def _title(self):
-        return '\\SAGE Log %s'%self._time
-
-
-

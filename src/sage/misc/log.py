@@ -424,9 +424,11 @@ class log_dvi(Log):
             self._in_verbatim = True
         I = self._input[n]
         s += "%s %s: %s"%(n,  interpreter._prompt, I)
+        s += '\\end{verbatim}'
         if followed_by_output:
-            s += '\\end{verbatim}'
             self._in_verbatim = False
+        else:
+            s += '\\begin{verbatim}'
         self._after_output = False
         return s
 
@@ -436,8 +438,14 @@ class log_dvi(Log):
         if self._in_verbatim:
             s += '\\end{verbatim}\n'
             self._in_verbatim = False
+
         L = latex.latex(self._output[n])
-        s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
+        # If we explitcitly ask for LaTeX output,
+        # no need to format L
+        if "latex" in self._input[n]:
+            s+= "\\begin{verbatim}%s\\end{verbatim}" %L
+        else:
+            s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
         return s
 
     def _filename(self):
@@ -538,9 +546,11 @@ class log_html_mathml(Log):
             self._in_verbatim = True
         I = self._input[n]
         s += "%s %s: %s"%(n,  interpreter._prompt, I)
+        s += '\\end{verbatim}'
         if followed_by_output:
-            s += '\\end{verbatim}'
             self._in_verbatim = False
+        else:
+            s += '\\begin{verbatim}'
         self._after_output = False
         return s
 
@@ -551,7 +561,12 @@ class log_html_mathml(Log):
             s += '\\end{verbatim}\n'
             self._in_verbatim = False
         L = latex.latex(self._output[n])
-        s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
+
+        #If L is LaTeX output, no need to format it
+        if "latex" in self._input[n]:
+            s+= "\\begin{verbatim}%s\\end{verbatim}" %L
+        else:
+            s += '\n\\begin{center}$\\displaystyle %s $\\end{center}\n'%L
         return s
 
     def _filename(self):

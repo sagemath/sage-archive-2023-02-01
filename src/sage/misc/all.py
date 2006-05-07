@@ -33,6 +33,8 @@ from functional import *
 
 from latex import latex, view
 
+from mathml import mathml
+
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
                        khinchin, twinprime, merten, brun)
 

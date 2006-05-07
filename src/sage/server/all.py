@@ -1,1 +1,1 @@
-from server1 import http_server as http_server1
+from server1 import server_http1

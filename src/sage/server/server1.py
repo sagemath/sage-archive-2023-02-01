@@ -241,7 +241,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         shutil.copyfileobj(source, outputfile)
 
 sage0=None
-def http_server(port=8000, address='localhost', ncols=90,
+def server_http1(port=8000, address='localhost', ncols=90,
                 nrows=8, dir=None, viewer=False):
     global directory, fulltext_log, log, files, numcols, numrows, sage0
     remove_dir = False

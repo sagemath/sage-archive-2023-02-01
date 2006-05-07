@@ -53,6 +53,8 @@ import interpreter
 import latex
 import misc
 
+import sage.plot.all
+
 
 offset = 0
 loggers = []
@@ -336,15 +338,20 @@ class log_html(Log):
         except AttributeError:
             latex.png(x, single_png, debug=self._debug)
         oi = '%s/images/o%s.html'%(self._dir, n)
-        open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre>'%(x, L))
+        open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre><img src="%s">'%(
+            x, L, single_png))
+        extra_img_opts = ''
+        if sage.plot.all.is_Graphics(x):
+            extra_img_opts = 'width=300'
         return """<center> <table border=0 cellpadding=20 cellspacing=2
                 bgcolor=lightgrey>
                <tr><td bgcolor=white>
                <a href="%s">
-               <img src="%s" alt="%s">
+               <img src="%s" alt="%s" %s>%s
                 </a>
              </td></tr></table> </center>\n<hr>\n"""%('images/o%s.html'%n,
-                                                      'images/%s.png'%n, L)
+                                                      'images/%s.png'%n, L,
+                                                      extra_img_opts)
 
     def _filename(self):
         return 'index.html'

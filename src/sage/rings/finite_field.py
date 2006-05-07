@@ -761,7 +761,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     def _coerce_(self, x):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
-        if isinstance(x, RingElement):
+        if isinstance(x, finite_field_element.FiniteFieldElement):
             K = x.parent()
             if K is self:
                 return x

@@ -69,14 +69,18 @@ class FractionFieldElement(field_element.FieldElement):
         try:
             g = self.__numerator.gcd(self.__denominator)
             if g != 1:
-                self.__numerator, _ = self.__numerator.quo_rem(g)
-                self.__denominator, _ = self.__denominator.quo_rem(g)
-            if self.__denominator != 1 and self.__denominator.is_unit():
+                numer, _ = self.__numerator.quo_rem(g)
+                denom, _ = self.__denominator.quo_rem(g)
+            else:
+                numer = self.__numerator
+                denom = self.__denominator
+            if denom != 1 and denom.is_unit():
                 try:
-                    self.__numerator *= self.__denominator.inverse_of_unit()
-                    self.__denominator = self.__denominator.parent()(1)
+                    numer *= denom.inverse_of_unit()
+                    denom = denom.parent()(1)
                 except:
                     pass
+            self.__numerator = numer; self.__denominator = denom
         except AttributeError, s:
             raise ArithmeticError, "unable to reduce because lack of gcd or quo_rem algorithm"
         except TypeError, s:

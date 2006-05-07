@@ -280,9 +280,11 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: f.parent()
             Fraction Field of Univariate Polynomial Ring in x over Integer Ring
 
-        Note that / is still a constructor for elements of the
-        fraction field in all cases as long as both arguments have the
-        same parent.
+        Note that / is a constructor for elements of the fraction
+        field in all cases as long as both arguments have the same
+        parent.  This agrees with the behavior for integers and
+        rational numbers.
+
             sage: R, x = QQ['x'].objgen()
             sage: f = x^3 + 5
             sage: g = R(3)
@@ -290,6 +292,15 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             1/3*x^3 + 5/3
             sage: h.parent()
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+        This is another example over a non-prime finite field
+        (submited by a student of Jon Hanke).  It illustrates
+        cancellation between the numerator and denominator
+        over a non-prime finite field.
+            sage: R.<x> = PolynomialRing(GF(5^2), 'x')
+            sage: f = x^3 + 4*x
+            sage: f / (x - 1)
+            x^2 + x
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():

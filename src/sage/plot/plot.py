@@ -98,6 +98,18 @@ except ImportError:
 
 from axes import find_axes
 
+def is_Graphics(x):
+    """
+    Return True if x is a Graphics object.
+
+    EXAMPLES:
+        sage: is_Graphics(1)
+        False
+        sage: is_Graphics(disk((0.0,0.0),1,0,90))
+        True
+    """
+    return isinstance(x, Graphics)
+
 class Graphics(SageObject):
     """
     The Graphics object is an empty list of graphics objects

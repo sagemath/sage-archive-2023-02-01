@@ -32,6 +32,7 @@ AUTHOR:
     -- William Stein (2006-02-27): changed html generation so log directory
                                    is relocatable (no hardcoded paths).
     -- William Stein (2006-03-04): changed environment variable to BROWSER.
+    -- Didier Deshommes (dfdeshom@gmail.com) (2006-05-06): added MathML support; refactored code.
 """
 
 # Note: there is a webbrowser module standard with Python.

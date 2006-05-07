@@ -30,6 +30,8 @@ import os
 
 import os.path
 
+import sage.plot.all
+
 from misc import tmp_dir
 
 def list_function(x):
@@ -215,6 +217,9 @@ def png(x, filename, density=150, debug=False, brk=0):
     Create a png image representation of x and save to the given
     filename.
     """
+    if sage.plot.all.is_Graphics(x):
+        x.save(filename)
+        return
     s = _latex_file_([x], math_left='$\\displaystyle', math_right='$', title='',
                      debug=debug, tiny=False, extra_preamble='\\textheight=2\\textheight',
                      brk=brk)

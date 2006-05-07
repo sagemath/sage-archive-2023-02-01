@@ -40,7 +40,7 @@ def darcs_ensure_installed():
     global known_installed
     if known_installed:
         return
-    if os.system('which darcs 1>/dev/null 2>/dev/null') == 0:
+    if os.system('darcs --help 1>/dev/null 2>/dev/null') == 0:
         known_installed = True
         return
     darcs_install()
@@ -51,7 +51,12 @@ class Darcs:
 
     If you try to use it and don't have darcs installed on your computer,
     darcs will be automatically downloaded and installed (assuming you
-    have a net connection).
+    have a net connection).  Also, you do not have to explicitly initialize
+    your repository in order to use it.   E.g., if you do
+           \code{darcs_src.changes()}
+    and you've never used darcs before, darcs will be downloaded and
+    installed, then the latest source repository will be downloaded
+    and installed.
 
     The few of the simplest and most useful commands are directly
     provided as member functions.  However, you can use the full
@@ -86,6 +91,7 @@ class Darcs:
         Run 'darcs cmd' where cmd is an arbitrary string
         in the darcs repository.
         """
+	darcs_ensure_installed()
         if check_initialized and not self.__initialized:
             self.initialize()
         darcs_ensure_installed()

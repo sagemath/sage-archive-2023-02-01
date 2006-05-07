@@ -25,6 +25,13 @@ if [ ! -d $DEVEL/old ]; then
     mkdir $DEVEL/old
 fi
 
+if [ -d $DEVEL/sage-darcs ]; then
+    cd $DEVEL/sage-darcs
+    darcs pull http://modular.math.washington.edu/sage/dist/src/sage-darcs
+    exit $?
+fi
+
+
 mv $DEVEL/sage-* $DEVEL/old/
 
 if [ ! -d $DEVEL/$E ]; then

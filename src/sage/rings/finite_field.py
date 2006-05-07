@@ -53,6 +53,7 @@ import sage.libs.pari.all as pari
 
 import finite_field_element
 import integer_mod_ring
+import integer_mod
 
 from sage.structure.element import RingElement
 
@@ -759,19 +760,45 @@ class FiniteField_ext_pari(FiniteField_generic):
             raise TypeError, "no coercion of %s into %s defined."%(x, self)
 
     def _coerce_(self, x):
+        """
+        Canonical coercion to self.
+
+        EXAMPLES:
+            sage: GF(4)._coerce_(GF(2)(1))
+            1
+            sage: GF(4)._coerce_(GF(4).0)
+            a
+            sage: GF(4)._coerce_(3)
+            1
+            sage: GF(4)._coerce_(2/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of 2/3 to Finite Field in a of size 2^2
+            sage: GF(8)._coerce_(GF(4).0)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of a to Finite Field in a of size 2^3
+            sage: GF(16)._coerce_(GF(4).0)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of a to Finite Field in a of size 2^4 defined; adding this is planned (see rings/finite_field.py to help!)
+        """
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
-        if isinstance(x, finite_field_element.FiniteFieldElement):
+        if isinstance(x, (finite_field_element.FiniteFieldElement,
+                          integer_mod.IntegerMod)):
             K = x.parent()
             if K is self:
                 return x
+            if isinstance(K, integer_mod_ring.IntegerModRing_generic):
+                return self(int(x))
             if K.characteristic() == self.characteristic():
                 if K.degree() == 1:
                     return self(int(x))
                 elif self.degree() % K.degree() == 0:
                     # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise NotImplementedError, "nontrivial finite field coercions not implemented"
-        raise TypeError
+                    raise TypeError, 'no canonical coercion of %s to %s defined; adding this is planned (see rings/finite_field.py to help!)'%(x, self)
+        raise TypeError, 'no canonical coercion of %s to %s'%(x, self)
 
     def __len__(self):
         """

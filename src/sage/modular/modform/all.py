@@ -1,6 +1,12 @@
-# nothing exported right now, since the code is not ready!
+#########################################################################
+#       Copyright (C) 2004--2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#########################################################################
 
-from modform import ModularForms, ModularFormsWithCharacter
+#from constructor import ModularForms, CuspForms
 
 from eis_series import eisenstein_series_qexp
 

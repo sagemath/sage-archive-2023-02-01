@@ -1,39 +1,48 @@
-"""
+r"""
 Interface to the Factory library.
 
 AUTHORS:
     -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-05-01)
+    -- William Stein (2006-05-07): trivial reformating of long lines
 
 From the Factory manual:
 
-'Factory is a C++ class library which implements a recursive canonical form representation
- of polynomial data. The library enables the user to use multivariate polynomials over
- different base domains such as Z, Q, GF(q) and algebraic as well as transcendental
- extensions of Q and GF(q).
+    Factory is a C++ class library which implements a recursive
+    canonical form representation of polynomial data. The library
+    enables the user to use multivariate polynomials over different
+    base domains such as Z, Q, GF(q) and algebraic as well as
+    transcendental extensions of Q and GF(q).
 
- Factory was developed at the University of Kaiserslautern as an independent part of the
- computer algebra system singular which uses parts of Factory such as polynomial gcd's
- and polynomial factorization. This manual describes the features of Factory and
- how to use it. Since Factory uses inheritance, operator overloading and templates,
- it will be helpful if the reader has already some experience in C++ programming.
+    Factory was developed at the University of Kaiserslautern as an
+    independent part of the computer algebra system singular which
+    uses parts of Factory such as polynomial gcd's and polynomial
+    factorization. This manual describes the features of Factory and
+    how to use it. Since Factory uses inheritance, operator
+    overloading and templates, it will be helpful if the reader has
+    already some experience in C++ programming.
 
- Factory uses a recursive representation of multivariate polynomial data. Each
- polynomial in Factory is represented as a univariate polynomial with coefficients
- that can be polynomials too. To have a unique representation of polynomials we
- have to fix an ordering on the variables. This ordering is managed by Factory's
- level system. The basic data type which is introduced by Factory is the class
- CanonicalForm which handles polynomials as well as elements of the base domain.'
+    Factory uses a recursive representation of multivariate polynomial
+    data. Each polynomial in Factory is represented as a univariate
+    polynomial with coefficients that can be polynomials too. To have
+    a unique representation of polynomials we have to fix an ordering
+    on the variables. This ordering is managed by Factory's level
+    system. The basic data type which is introduced by Factory is the
+    class CanonicalForm which handles polynomials as well as elements
+    of the base domain.
 
-This interface is mainly a one-to-one copy of the low level polynomial arithmetic
-implemented in the Factory. It follows Factory's concept of representing
-multivariate polynomials recursive as univariate polynomials over polynomial rings.
+This interface is mainly a one-to-one copy of the low level polynomial
+arithmetic implemented in the Factory. It follows Factory's concept of
+representing multivariate polynomials recursive as univariate
+polynomials over polynomial rings.
 
-When using this library keep that in mind and avoid relying on variable names
-(i.e. strings) when interfacing this code with the rest of SAGE. Variables in the
-Factory are uniquely represented through their level and not their name (which may
-only have one character btw.)
+When using this library keep that in mind and avoid relying on
+variable names (i.e. strings) when interfacing this code with the rest
+of SAGE. Variables in the Factory are uniquely represented through
+their level and not their name (which may only have one character
+btw.)
 
-So far only integers, GF(p), and GF(p^n) have been inplemented as base domains.
+So far only integers, GF(p), and GF(p^n) have been inplemented as base
+domains.
 
 EXAMPLES:
     sage: F = GF(5)
@@ -54,14 +63,15 @@ EXAMPLES:
     sage: ft == cf.CF(f)([(x,cf.CF(xt)),(y,cf.CF(yt))])._sage_(R0) #fast!
     True
 
-NOTE: This interface is not very SAGE-ish and is rather meant to function as a backend
-for higher level classes like MPolynomial_polydict for fast polynomial arithmetic.
-This libary is a bit behind Singluar if we shuffle few data to the engine, do lot's of
-computation and shuffle some data back. This loss of performance is believed to be due to the
-clumsy way we deal with memory allocation which can be addresses. If we shuffle around alot of data
-between SAGE and Singular it's performance decreases alot as much IPC overhead is involved,
-while Factory beats the nativ implementation.
-
+\note{This interface is not very SAGE-ish and is rather meant to
+function as a backend for higher level classes like
+MPolynomial_polydict for fast polynomial arithmetic.  This libary is a
+bit behind Singluar if we shuffle few data to the engine, do lot's of
+computation and shuffle some data back. This loss of performance is
+believed to be due to the clumsy way we deal with memory allocation
+which can be addresses. If we shuffle around alot of data between SAGE
+and Singular it's performance decreases alot as much IPC overhead is
+involved, while Factory beats the native implementation.}
 """
 
 #*****************************************************************************
@@ -83,7 +93,6 @@ while Factory beats the nativ implementation.
 #*****************************************************************************
 
 
-
 #header{
 #include <factory.h>
 #include <iostream>
@@ -93,7 +102,6 @@ using namespace std;
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
-
 
 #################################
 #cdef int _sig_on
@@ -106,48 +114,55 @@ include 'misc.pxi'
 
 cdef class Variable:
     """
-    The class Variable defines a programming interface to the level system of Factory.
-    Each object of class Variable refers to a level and thus to a variable
-    (determined by the level) of the polynomial ring. Objects of class Variable must not
-    only refer to variables of the polynomial ring, but also to so called algebraic and
-    transcendental variables.
+    The class Variable defines a programming
+    interface to the level system of Factory.  Each object of class
+    Variable refers to a level and thus to a variable (determined by
+    the level) of the polynomial ring. Objects of class Variable must
+    not only refer to variables of the polynomial ring, but also to so
+    called algebraic and transcendental variables.
 
     Arithmetic with Variables can be pretty weird, consider this:
 
         sage: 1000*cf.Variable('x')
         x*v_1000
 
-    This behavior is correct as 1000 is coerced into a Variable of level 1000 whichs default name
-    happens to be 'v_1000'
+    This behavior is correct as 1000 is coerced into a Variable of
+    level 1000 whichs default name happens to be'v_1000'
     """
 
     cdef void *thisptr
 
     def __init__(self, name=None, level=None):
         """
-        The class Variable defines a programming interface to the level system of Factory.
-        Each object of class Variable refers to a level and thus to a variable
-        (determined by the level) of the polynomial ring. Objects of class Variable must not
-        only refer to variables of the polynomial ring, but also to so called algebraic and
-        transcendental variables.
+        The class Variable defines a programming interface to the
+        level system of Factory.  Each object of class Variable refers
+        to a level and thus to a variable (determined by the level) of
+        the polynomial ring. Objects of class Variable must not only
+        refer to variables of the polynomial ring, but also to so
+        called algebraic and transcendental variables.
 
         INPUT:
-            name  -- The level of the variable is specified to be the level of the variable which has
-                     name name. That means that the generated object can not only be a polynomial
-                     variable but also an algebraic or transcendental variable. In the case that
-                     there is no variable with name name the generated variable refers to the
-                     anonymous polynomial variable which has the lowest level. After the construction
-                     the name of the variable is set to name.
 
-                     If name is an integer it is interpreted as a level.
+	    name -- The level of the variable is specified to be the
+	    level of the variable which has name name. That means that
+	    the generated object can not only be a polynomial variable
+	    but also an algebraic or transcendental variable. In the
+	    case that there is no variable with name name the
+	    generated variable refers to the anonymous polynomial
+	    variable which has the lowest level. After the
+	    construction the name of the variable is set to name.
 
-            level -- The constructor generates an object of class Variable with level set to level.
-                     level has to be a level of a polynomial variable or of a transcendental variable.
+	    If name is an integer it is interpreted as a level.
 
-        The default constructor creates an object with level set to LEVEL_BASEDOMAIN. Such a variable evaluates
-        into the unit element of the current base domain when converted to a CanonicalForm
+            level -- The constructor generates an object of class
+            Variable with level set to level.  level has to be a level
+            of a polynomial variable or of a transcendental variable.
+
+        The default constructor creates an object with level set to
+        LEVEL_BASEDOMAIN. Such a variable evaluates into the unit
+        element of the current base domain when converted to a
+        CanonicalForm
         """
-
         #embed{ void *Variable_init()
             return new Variable();
         #}embed
@@ -173,7 +188,7 @@ cdef class Variable:
             level=name
             name =None
 
-        if name!=None and isinstance(name,str):
+        if name != None and isinstance(name,str):
             cNameStr = name
             cName = cNameStr[0]
             if level!=None:
@@ -309,17 +324,21 @@ cdef class CanonicalForm:
 
     def __init__(self,arg=None, exp=None, cache=None):
         """
-        If arg is a Variable and exp==None this constructor generates a canonical form
-        out of the variable arg.  If the level of x is the level of the base domain
-        (LEVEL_BASEDOMAIN) then the unit element of the current base domain is created.
+        If arg is a Variable and exp==None this constructor generates
+        a canonical form out of the variable arg.  If the level of x
+        is the level of the base domain (LEVEL_BASEDOMAIN) then the
+        unit element of the current base domain is created.
 
-        If arg is an integer this constructor generates an object of class CanonicalForm out
-        of this integer. In the case of a finite base domain the canonical mapping of the
-        integers into the domain is used.
+        If arg is an integer this constructor generates an object of
+        class CanonicalForm out of this integer. In the case of a
+        finite base domain the canonical mapping of the integers into
+        the domain is used.
 
-        If arg is a Variable and exp is an integer this constructor generates an object of
-        class CanonicalForm, which is the polynomial arg^exp. In the case that x has
-        level LEVEL_BASEDOMAIN the  unit element of the current base domain is created.
+        If arg is a Variable and exp is an integer this constructor
+        generates an object of class CanonicalForm, which is the
+        polynomial arg^exp. In the case that x has level
+        LEVEL_BASEDOMAIN the unit element of the current base domain
+        is created.
 
         INPUT:
             arg --   integer or Variable
@@ -491,10 +510,11 @@ cdef class CanonicalForm:
         _sig_on
         return make_CF(CF_neg(self.thisptr))
 
-##
-##    Commenting out all in place arithmetic as SAGE does not use in place arithmetic,
-##    e.g. when you e += 1 for an element which is also an element of a list the element
-##    in the list does not change in SAGE.
+##    Commenting out all in place arithmetic as SAGE does not use in
+##    place arithmetic, e.g. when you e += 1 for an element which is
+##    also an element of a list the element in the list does not
+##    change in SAGE.
+
 ##
 ##     def __iadd__(CanonicalForm self,other):
 ##         #embed{ void CF_iadd(void *l, void *r)
@@ -707,17 +727,21 @@ cdef class CanonicalForm:
 
     def __call__(CanonicalForm self, arg):
         """
-        Returns the current object with the substitution described through arg performed.
+        Returns the current object with the substitution described
+        through arg performed.
 
-        If arg is a list or tuple and it's elements are not tuples it is interpreted
-        as a list of values to substituted in at their list index.
+        If arg is a list or tuple and it's elements are not tuples it
+        is interpreted as a list of values to substituted in at their
+        list index.
 
-        If arg is a list or tuple and it's elements are tuples with two elements
-        then it is interpreted to hold the variable to be substitute as the first element
-        of those tuples and the value to be substituted in as the second.
+        If arg is a list or tuple and it's elements are tuples with
+        two elements then it is interpreted to hold the variable to be
+        substitute as the first element of those tuples and the value
+        to be substituted in as the second.
 
-        If arg is a dict it's keys are interpreted to describe the variables and the
-        matching values the values to be substituted in.
+        If arg is a dict it's keys are interpreted to describe the
+        variables and the matching values the values to be substituted
+        in.
 
         INPUT:
             arg -- tuple, list or dict to describe substitution
@@ -770,11 +794,12 @@ cdef class CanonicalForm:
 
     def is_one(CanonicalForm self):
         """
-        This predicate returns true if self represents the unit element of the
-        current base domain. There is also the possibiliy to test if a
-        CanonicalForm f is one via f == 1, but f.is_one() is faster since
-        there is no conversion of the integer 1 into a CanonicalForm and
-        then doing a comparison of two objects of class CanonicalForm.
+        This predicate returns true if self represents the unit
+        element of the current base domain. There is also the
+        possibiliy to test if a CanonicalForm f is one via f == 1, but
+        f.is_one() is faster since there is no conversion of the
+        integer 1 into a CanonicalForm and then doing a comparison of
+        two objects of class CanonicalForm.
         """
         #embed{ int CF_isOne(void *e)
         return ((CanonicalForm*)e)->isOne();
@@ -783,9 +808,10 @@ cdef class CanonicalForm:
 
     def is_zero(CanonicalForm self):
         """
-        This predicate returns true if self represents the zero element of the
-        current base domain. Like the predicate is_one using the predicate f.is_zero()
-        is also faster than a comparison via f == 0.
+        This predicate returns true if self represents the zero
+        element of the current base domain. Like the predicate is_one
+        using the predicate f.is_zero() is also faster than a
+        comparison via f == 0.
         """
         #embed{ int CF_isZero(void *e)
         return ((CanonicalForm*)e)->isZero();
@@ -795,14 +821,15 @@ cdef class CanonicalForm:
 
     def is_imm(CanonicalForm self):
         """
-        This predicate returns true if self is represented as an immediate object
-        (e.g. is a small integer or an object of a finite base field).
-        See Chapter 14 [Internal Design], page 21, for information about how
-        immediate objects are represented.
+        This predicate returns true if self is represented as an
+        immediate object (e.g. is a small integer or an object of a
+        finite base field).  See Chapter 14 [Internal Design], page
+        21, for information about how immediate objects are
+        represented.
 
-        The return value represents if self is represented as a immediate
-        value in the Factory and makes no statement about this
-        element in SAGE.
+        The return value represents if self is represented as a
+        immediate value in the Factory and makes no statement about
+        this element in SAGE.
         """
         #embed{ int CF_isImm(void *e)
         return ((CanonicalForm*)e)->isImm();
@@ -811,10 +838,11 @@ cdef class CanonicalForm:
 
     def _int_(CanonicalForm self):
         """
-        This selector returns the integer value of self. This is only valid if
-        the value of self is in the range of the machine integers. A good way to
-        find out if this is the case is to test if the current object is an
-        immediate object via self.is_imm().
+        This selector returns the integer value of self. This is only
+        valid if the value of self is in the range of the machine
+        integers. A good way to find out if this is the case is to
+        test if the current object is an immediate object via
+        self.is_imm().
         """
         #embed{ int CF_intval(void *e)
         return ((CanonicalForm*)e)->intval();
@@ -860,8 +888,7 @@ cdef class CanonicalForm:
         polynomial, too.
 
         LC( v ) returns the leading coefficient of CO where CO is
-        considered an univariate polynomial in the polynomial variable
-        v.
+        considered an univariate polynomial in the polynomial variable v.
 
         Returns self if self is in a base domain.
 
@@ -901,13 +928,15 @@ cdef class CanonicalForm:
 
     def degree(CanonicalForm self, x=None):
         """
-        This selector returns the degree of self with respect to its main variable or
-        a provided variable.  If self is an element of a coefficient domain the returned
-        degree is zero except that the current object represents the zero of a
-        base domain in which case -1 is returned.
+        This selector returns the degree of self with respect to its
+        main variable or a provided variable.  If self is an element
+        of a coefficient domain the returned degree is zero except
+        that the current object represents the zero of a base domain
+        in which case -1 is returned.
 
         INPUT:
-            variable -- if set the degree with respect to this variable will be returned.
+            variable -- if set the degree with respect to this
+            variable will be returned.
         """
 
         #embed{ int CF_degree(void *e,void *x)
@@ -950,9 +979,10 @@ cdef class CanonicalForm:
 
     def tailcoeff(CanonicalForm self):
         """
-        This selector returns the tail coefficient of self. That is the non
-        vanishing coefficient of the term with the lowest exponent. If self represents
-        the zero element of a base domain then zero is returned.
+        This selector returns the tail coefficient of self. That is
+        the non vanishing coefficient of the term with the lowest
+        exponent. If self represents the zero element of a base domain
+        then zero is returned.
         """
         #embed{ void *CF_tailcoeff(void *e)
         return new CanonicalForm(((CanonicalForm*)e)->tailcoeff());
@@ -962,9 +992,9 @@ cdef class CanonicalForm:
 
     def taildegree(CanonicalForm self):
         """
-        This selector returns the lowest exponent of the terms of self that have non
-        vanishing coefficients. If the self represents the zero element of a base
-        domain then None is returned.
+        This selector returns the lowest exponent of the terms of self
+        that have non vanishing coefficients. If the self represents
+        the zero element of a base domain then None is returned.
         """
         #embed{ int CF_taildegree(void *e)
         return ((CanonicalForm*)e)->taildegree();
@@ -979,8 +1009,9 @@ cdef class CanonicalForm:
 
     def mvar(CanonicalForm self):
         """
-        This selector returns the main varible of self.
-        If self is an element of a base domain then Variable(LEVEL_BASEDOMAIN) is returned.
+        This selector returns the main varible of self.  If self is an
+        element of a base domain then Variable(LEVEL_BASEDOMAIN) is
+        returned.
         """
         #embed{ void *CF_mvar(void *e)
         return new Variable(((CanonicalForm*)e)->mvar());
@@ -1001,9 +1032,10 @@ cdef class CanonicalForm:
 
     def mapinto(CanonicalForm self, mapMe = False):
         """
-        This method returns the mapping of the current object into the current base domain.
-        If the current object is a polynomial, then the value returned by mapdomain is the
-        polynomial mapped into the polynomial ring over the current base domain.
+        This method returns the mapping of the current object into the
+        current base domain.  If the current object is a polynomial,
+        then the value returned by mapdomain is the polynomial mapped
+        into the polynomial ring over the current base domain.
         """
 
         #embed{ void *CF_mapinto(void *self)
@@ -1075,13 +1107,14 @@ cdef class CanonicalForm:
         return bool(CF_inBaseDomain(self.thisptr))
 
     def inExtension(CanonicalForm self):
-        """
+        r"""
         This method returns true if the object is an element of an algebraic
         extension.
 
-        NOTE: In Factory thit means that the object is not an element of GF(q)
-        even if that would be true mathematically. All that can be said when inExtension
-        returns true is, that the object contains an algebraic variable.
+        \code{In Factory this means that the object is not an element
+        of GF(q) even if that would be true mathematically. All that
+        can be said when inExtension returns true is, that the object
+        contains an algebraic variable.}
         """
         #embed{ int CF_inExtension(void *self)
         return ((CanonicalForm*)self)->inExtension();
@@ -1148,12 +1181,12 @@ cdef class CanonicalForm:
         """
         Coerces self into r.
 
-        A very simple coercion strategy is used:  The variable with level=1
-        is mapped to the first variable in the ring, the variable with level=2
-        to the second, etc. Elements of the coefficient domain are
-        coerced via strings. So in that case variable names (e.g. of an
-        algebraic variable) do matter in contrast to the warning state
-        earlier.
+        A very simple coercion strategy is used: The variable with
+        level=1 is mapped to the first variable in the ring, the
+        variable with level=2 to the second, etc. Elements of the
+        coefficient domain are coerced via strings. So in that case
+        variable names (e.g. of an algebraic variable) do matter in
+        contrast to the warning state earlier.
 
         INPUT:
             r -- ring to coerce to
@@ -1218,21 +1251,24 @@ cdef make_CF(void *x):
 
 def setCharacteristic(p):
     """
-    Sets the characteristic for all following Factory operations to p. We also
-    accept SAGE finite fields here which will be automatically coerced to a format
-    the Factory can understand. If the finite fieldis an extension field the
-    algebraic element 'a' is returned which is the root of the defining polynomial
-    of the extension field.
+    Sets the characteristic for all following Factory operations to
+    p. We also accept SAGE finite fields here which will be
+    automatically coerced to a format the Factory can understand. If
+    the finite fieldis an extension field the algebraic element 'a' is
+    returned which is the root of the defining polynomial of the
+    extension field.
 
     INPUT:
         p -- characteristic to use in Factory
 
     TODO:
-        The Factory also supports p^n as base chacteristic but that would need the gftable
-        lookup which is not provided in the format needed by the Factory through Singular.
-        Use rootOf() if you need to to construct GF(p^n) which however - I guess - is
-        slower than the setCharacteristic(p,n) approach. If you provide this function
-        with a SAGE finite field this behavior is implemented.
+        The Factory also supports p^n as base chacteristic but that
+        would need the gftable lookup which is not provided in the
+        format needed by the Factory through Singular.  Use rootOf()
+        if you need to to construct GF(p^n) which however - I guess -
+        is slower than the setCharacteristic(p,n) approach. If you
+        provide this function with a SAGE finite field this behavior
+        is implemented.
     """
     #embed{ void setCharacteristicp(int p)
     setCharacteristic(p);
@@ -1266,15 +1302,20 @@ def getCharacteristic():
 
 def rootOf(mipo, char *name = NULL, force=True):
     """
-    This function returns the algebraic variable that is defined by the minimal polynomial mipo.
-    name has to be a name that is not yet assigned to a variable. This is the only way to define
-    an algebraic variable. The level of the returned variable depends on how many algebraic variables
-    are defined so far. The variable remains anonymous if the user does not specify a name.
-    mipo has to be an irreducible univariate polynomial over the current base domain.
+    This function returns the algebraic variable that is defined by
+    the minimal polynomial mipo.  name has to be a name that is not
+    yet assigned to a variable. This is the only way to define an
+    algebraic variable. The level of the returned variable depends on
+    how many algebraic variables are defined so far. The variable
+    remains anonymous if the user does not specify a name.  mipo has
+    to be an irreducible univariate polynomial over the current base
+    domain.
 
     INPUT:
-        mipo -- minimal polynomial to define the algebraic variable, this must be a CanonicalForm
-                or something coercable to ca CanonicalForm via the CanonicalForm constructor
+        mipo -- minimal polynomial to define the algebraic variable,
+                this must be a CanonicalForm or something coercable to
+                ca CanonicalForm via the CanonicalForm constructor
+
         name -- name to assign to the algebraic variable
     """
     #embed{ void *rootOfpn(void *mipo, char name)
@@ -1314,8 +1355,9 @@ def rootOf(mipo, char *name = NULL, force=True):
 
 def getMipo( a,  x=None ):
     """
-    This function returns the minimal polynomial that defines the algebraic
-    variable a. The minimal polynomial is returned as a CanonicalForm of variable x.
+    This function returns the minimal polynomial that defines the
+    algebraic variable a. The minimal polynomial is returned as a
+    CanonicalForm of variable x.
     """
     #embed{ void *CF_getMipo(void *a, void *x)
     return new CanonicalForm(getMipo(*(Variable*)a,*(Variable*)x));

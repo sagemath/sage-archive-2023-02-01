@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Creating Spaces of Modular Forms
 
 EXAMPLES:

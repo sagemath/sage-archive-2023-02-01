@@ -237,27 +237,28 @@ def process_pyrexembed_file(f):
     if not os.path.exists(tmp):
         os.makedirs(tmp)
     pyxe_file = "%s/%s.pyxe"%(tmp, base)
-    os.system('cp %s %s'%(f, pyxe_file))
-    os.system('cp %s/*.pxi %s'%(dir, tmp))
-    os.system('cp %s/*.pxd %s'%(dir, tmp))
-    os.system('cp %s/*.h %s'%(dir, tmp))
-    # The following three files will be produced by pyrexembed.
+
+    # The following files will be produced by pyrexembed.
     cpp_file = "%s/%s_embed.cpp"%(dir, base)
     c_file = "%s/%s.c"%(dir, base)
     pyx_file = "%s/%s.pyx"%(dir,base)
     pyx_embed_file = "%s/%s.pyx"%(tmp, base)
-    h_file = "%s_embed.h"%base
+    h_file = "%s/%s_embed.h"%(tmp, base)
     if need_to_create(f, pyxe_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
+        os.system('cp -p %s %s'%(f, pyxe_file))
+        os.system('cp -p %s/*.pxi %s'%(dir, tmp))
+        os.system('cp -p %s/*.pxd %s'%(dir, tmp))
+        os.system('cp -p %s/*.h %s'%(dir, tmp))
         cmd = "pyrexembed %s"%pyxe_file
         print cmd
         ret = os.system(cmd)
         if ret != 0:
             print "Error running pyrexembed."
             sys.exit(ret)
-    process_pyrex_file(pyx_embed_file)
-    cmd = 'cp %s/*.pyx %s/; cp %s/*.c %s/; cp %s/*.h %s/; cp %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
-    print cmd
-    os.system(cmd)
+        process_pyrex_file(pyx_embed_file)
+        cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
+        print cmd
+        os.system(cmd)
     return [cpp_file, c_file]
 
 def process_pyrex_file(f):

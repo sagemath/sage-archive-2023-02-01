@@ -68,8 +68,8 @@ def test_file(F):
         test(F, 'doctest_tex')
     elif ext in ['.py', '.pyx', '.tex']:
         test(F, 'doctest '+opts)
-    elif os.path.isdir(F) and not ".doctest"  in F and not '.old' in F \
-             and not '#' in F and not '/notes' in F:
+    elif os.path.isdir(F) and not (F[:1] == '.') \
+            and not '#' in F and not '/notes' in F:
         ld = os.listdir(F)
         if not ('__nodoctest__' in ld):
             for L in ld:

@@ -21,11 +21,11 @@ def darcs_install():
     """
     uname = os.uname()[0]
     if uname == 'CYGWIN':
-        package.install_package('darcs-cygwin')
+        package.install_package('darcs_cygwin')
     elif uname == 'Darwin':
-        package.install_package('darcs-darwin')
+        package.install_package('darcs_darwin')
     elif uname == 'Linux':
-        package.install_package('darcs-linux')
+        package.install_package('darcs_linux')
     else:
         raise RuntimeError, "No SAGE darcs package available for your platform (this just means you need to get a darcs binary yourself and put it somewhere in your PATH)."
 

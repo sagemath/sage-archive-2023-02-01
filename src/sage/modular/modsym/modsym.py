@@ -113,7 +113,7 @@ def ModularSymbols(group  = 1,
         20
 
     We create a space with character:
-        sage: e = DirichletGroup(13).gen()**2
+        sage: e = (DirichletGroup(13).0)^2
         sage: e.order()
         6
         sage: M = ModularSymbols(e, 2); M

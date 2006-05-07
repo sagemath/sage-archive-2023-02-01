@@ -72,6 +72,7 @@ def delete_tmpfiles():
     try:
         shutil.rmtree(SAGE_TMP)
     except OSError, msg:
+        print msg
         pass
 
 SAGE_TMP_INTERFACE='%s/interface/'%SAGE_TMP
@@ -873,6 +874,9 @@ set_trace = pdb.set_trace
 #################################################################
 
 def tmp_dir(name):
+    """
+    Create and return a temporary directory in $HOME/.sage/tmp/pid/
+    """
     name = str(name)
     n = 0
     while True:
@@ -918,3 +922,26 @@ def tmp_filename(name='tmp'):
 is_64_bit = sys.maxint >= 9223372036854775807
 is_32_bit = not is_64_bit
 
+#################################################################
+# Word wrap lines
+#################################################################
+def word_wrap(s, ncols=85):
+    t = []
+    for x in s.split('\n'):
+        if len(x) == 0 or x.lstrip()[:5] == 'sage:':
+            t.append(x)
+            continue
+        while len(x) > ncols:
+            k = ncols
+            while k > 0 and x[k] != ' ':
+                k -= 1
+            if k < 20:
+                k = ncols
+            t.append(x[:k])
+            x = x[k:]
+            k=0
+            while k < len(x) and x[k] == ' ':
+                k += 1
+            x = x[k:]
+        t.append(x)
+    return '\n'.join(t)

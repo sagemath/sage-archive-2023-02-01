@@ -14,12 +14,17 @@ def version():
     import sage.version
     return 'SAGE Version %s, Build Date: %s'%(sage.version.version, sage.version.date)
 
-def banner():
+def banner_text():
     bars = "-"*56
-    print bars
-    print "| %-52s |"%version()
-    print "| %-52s |"%'Distributed under the GNU General Public License V2.'
-    print "| %-52s |"%'For help type <anything>? or <anything>??.'
-    print bars
-    print ""
+    s = bars + '\n'
+    s += "| %-52s |\n"%version()
+    s += "| %-52s |\n"%'Distributed under the GNU General Public License V2.'
+    s += "| %-52s |\n"%'For help type <anything>? or <anything>??.'
+    s += bars
+    return s
+
+
+def banner():
+    print banner_text() + '\n'
+
 

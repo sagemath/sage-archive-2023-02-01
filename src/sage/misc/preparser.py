@@ -48,7 +48,7 @@ in_triple_quote = False
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
-def preparse(line, reset=True):
+def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.split("\n")[0]   # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
@@ -81,6 +81,24 @@ def preparse(line, reset=True):
         in_single_quote = False
         in_double_quote = False
         in_triple_quote = False
+
+
+    if ignore_prompts:
+        # Get rid of leading sage: so that pasting of examples from
+        # the documentation works.
+        for prompt in ['sage:', '>>>']:
+            while True:
+                strip = False
+                if line[:3] == prompt:
+                    line = line[3:].lstrip()
+                    strip = True
+                elif line[:5] == prompt:
+                    line = line[5:].lstrip()
+                    strip = True
+                if not strip:
+                    break
+                else:
+                    line = line.lstrip()
 
     while i < len(line):
         if bracket_depth > 0 and line[i] == ",":
@@ -227,13 +245,15 @@ def preparse(line, reset=True):
 
     # Time command like in MAGMA: (commented out, since it's standard in IPython now)
     L = line.lstrip()
-    #if L[:5] == "time ":
-    #    # strip semicolon from end of line
-    #     if line[-1:] == ";":
-    #         line = line[:-1]
-    #     indent = ' '*(len(line) - len(L))
-    #     line = indent + '__time__=misc.cputime(); __wall__=misc.walltime(); %s; print \
-    #"Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
+
+    if do_time:
+        if L[:5] == "time ":
+            # strip semicolon from end of line
+             if line[-1:] == ";":
+                 line = line[:-1]
+             indent = ' '*(len(line) - len(L))
+             line = indent + '__time__=misc.cputime(); __wall__=misc.walltime(); %s; print \
+        "Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
 
     return line
 
@@ -243,7 +263,8 @@ def preparse(line, reset=True):
 ## Apply the preparser to an entire file
 ######################################################
 
-def preparse_file(contents, attached={}):
+def preparse_file(contents, attached={}, magic=True,
+                  do_time=False, ignore_prompts=False):
     if not isinstance(contents, str):
         raise TypeError, "contents must be a string"
 
@@ -257,8 +278,8 @@ def preparse_file(contents, attached={}):
     A = contents.split('\n')
     i = 0
     while i < len(A):
-        L = A[i]
-        if L[:7] == "attach ":
+        L = A[i].rstrip()
+        if magic and L[:7] == "attach ":
             name = eval(L[7:])
             try:
                 if not attached.has_key(name):
@@ -267,7 +288,7 @@ def preparse_file(contents, attached={}):
             except IOError, OSError:
                 pass
             L = 'load ' + L[7:]
-        if L[:5] == "load ":
+        if magic and L[:5] == "load ":
             try:
                 name_load = eval(L[5:])
                 if name_load in loaded_files:
@@ -294,7 +315,7 @@ def preparse_file(contents, attached={}):
                     else:
                         import interpreter
                         L = interpreter.load_pyrex(name_load)
-        F.append(preparse(L, reset=False))
+        F.append(preparse(L, reset=False, do_time=do_time, ignore_prompts=ignore_prompts))
         i += 1
     # end while
 

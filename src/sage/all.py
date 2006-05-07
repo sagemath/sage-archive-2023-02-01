@@ -49,6 +49,7 @@ from sage.categories.all import *
 from sage.sets.all       import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
+from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *

@@ -26,7 +26,7 @@ def install_package(package=None):
         X = [Y for Y in X[i+1:] if Y != '']
         X.sort()
         return X
-    os.system('sage -i "%s"'%package)
+    os.system('sage -f "%s"'%package)
 
 def optional_packages():
     """

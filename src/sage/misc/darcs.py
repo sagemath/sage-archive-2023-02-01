@@ -95,9 +95,17 @@ class Darcs:
         if check_initialized and not self.__initialized:
             self.initialize()
         darcs_ensure_installed()
-        s = 'cd %s && darcs %s'%(self.__dir, cmd)
+        s = 'cd "%s" && darcs %s'%(self.__dir, cmd)
         print s
         return os.system(s)
+
+    def apply(self, patchfile, options=''):
+        """
+        Apply patches from a darcs patch to the repository.
+        """
+        patchfile = os.path.abspath(patchfile)
+        print "Applying patchfile %s"%patchfile
+        self('apply %s "%s"'%(options, patchfile))
 
     def changes(self, options=''):
         """
@@ -147,7 +155,7 @@ class Darcs:
                 return
             n = self.__dir.split('/')[-1]
             if not self.__target is None:
-                os.system('cd %s/.. && ln -snf %s %s'%(self.__dir, n, self.__target))
+                os.system('cd "%s/.." && ln -snf %s %s'%(self.__dir, n, self.__target))
             if os.path.exists('%s/install'%self.__dir):
                 # Darcs pull doesn't preserve permissions.
                 os.system('chmod a+x %s/install'%self.__dir)

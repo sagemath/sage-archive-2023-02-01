@@ -1826,7 +1826,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__watkins_data = sage.libs.ec.all.ec(self.ainvs())
             return self.__watkins_data
 
-    def modular_degree(self, algorithm='ec'):
+    def modular_degree(self, algorithm='sympow'):
         r"""
         Return the modular degree of this elliptic curve.
 
@@ -1835,13 +1835,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         INPUT:
            algorithm -- string:
-              'ec' -- (default) use Mark Watkins's C program ec
-              'sympow' -- use Mark Watkin's (newer) C program sympow
+              'sympow' -- (default) use Mark Watkin's (newer) C program sympow
+              'ec' -- use Mark Watkins's C program ec
               'magma' -- requires that MAGMA be installed (also implemented
                          by Mark Watkins)
 
         \note{On 64-bit computers ec does not work, so \sage uses
-        sympow if ec is selected on a 64-bit computer.}
+        sympow even if ec is selected on a 64-bit computer.}
 
         The correctness of this function when called with algorithm "ec"
         is subject to the following three hypothesis:
@@ -1875,12 +1875,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         at what point to curtail this expansion.''  (Quote from an
         email of Mark Watkins.)
 
-        \note{ec is typically faster than sympow for computation of
-        modular degrees.  One of the main difference between ec and
-        sympow for computation of modular degrees is that the former
-        guesses that fewer terms will be needed to find the modular
-        degree, and thus the Euler product need not be expanded as far.}
-
         \note{If the curve is loaded from the large Cremona database,
         then the modular degree is taken from the database.}
 
@@ -1902,6 +1896,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1984
             sage: EllipticCurve([0, 0, 1, -7, 6]).modular_degree(algorithm='magma')  # optional
             1984
+
+        We compute the modular degree of the curve with rank four having smallest
+        (known) conductor:
+
+            sage: E = EllipticCurve([1, -1, 0, -79, 289])
+            sage: factor(E.conductor())
+            2 * 117223
+            sage: factor(E.modular_degree())
+            2^7 * 2617
         """
         try:
             return self.__modular_degree

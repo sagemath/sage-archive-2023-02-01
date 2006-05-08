@@ -5,7 +5,7 @@ These functions make setup and use of darcs with SAGE
 easier.
 """
 
-import os
+import os, shutil
 
 import package
 
@@ -20,7 +20,7 @@ def darcs_install():
     it anywhere in your PATH.
     """
     uname = os.uname()[0]
-    if uname == 'CYGWIN':
+    if uname[:6] == 'CYGWIN':
         package.install_package('darcs_cygwin')
     elif uname == 'Darwin':
         package.install_package('darcs_darwin')
@@ -177,6 +177,12 @@ class Darcs:
         """
         self('record %s'%options)
 
+    def unrecord(self, options=''):
+        """
+        Remove recorded patches without changing the working copy.
+        """
+        self('unrecord %s'%options)
+
     def send(self, filename, options='', url=None):
         """
         Create a darcs patch bundle with the given filename
@@ -193,13 +199,20 @@ class Darcs:
         """
         if url is None:
             url = self.__url
-        filename = os.path.abspath(filename) + '.darcs_patch_bundle'
+        # We write to a local tmp file, then move, since unders
+        # windows darcs has a bug that makes it fail to write
+        # to any filename that is at all complicated!
+        filename = os.path.abspath(filename) + '.darcs'
         print 'Writing to %s'%filename
-        self('send -o %s %s %s'%(filename, options, url))
-        if os.path.exists(filename):
-            print 'Successfully created patch bundle %s'%filename
+        tmpfile = '%s/tmpdarcs'%self.__dir
+        if os.path.exists(tmpfile):
+            os.unlink(tmpfile)
+        self('send %s %s -o tmpdarcs '%(options, url))
+        if os.path.exists(tmpfile):
+            shutil.move(tmpfile, filename)
+            print 'Successfully created darcs patch bundle %s'%filename
         else:
-            print 'Problem creating patch bundle %s'%filename
+            print 'Problem creating darcs patch bundle %s'%filename
 
     def what(self, options=''):
         """

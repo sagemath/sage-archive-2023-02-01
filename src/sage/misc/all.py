@@ -7,8 +7,7 @@ from misc import (alarm, srange, xsrange,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit)
 
-from darcs import darcs_src, darcs_doc
-
+from darcs import darcs_src, darcs_doc, darcs_scripts
 from package import install_package, optional_packages, upgrade
 
 from pager import pager

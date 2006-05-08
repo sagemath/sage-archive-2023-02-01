@@ -847,6 +847,14 @@ class FiniteField_ext_pari(FiniteField_generic):
             self.__polynomial = R(self._pari_modulus())
         return self.__polynomial
 
+    def __hash__(self):
+        """
+        An extension field is described by it's characteristic and it's minimal polynomial.
+
+        So if you have two GFs with the same mathematical properties but different names
+        for their algebraic variables they will still have the same hash.
+        """
+        return hash((self.characteristic(),self.polynomial()))
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_field):
     def __init__(self, p, name=None):

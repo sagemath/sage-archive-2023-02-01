@@ -11,7 +11,6 @@ else:
 
 NO_WARN = True
 
-
 if not os.environ.has_key('SAGE_ROOT'):
     print "    ERROR: The environment variable SAGE_ROOT must be defined."
     sys.exit(1)
@@ -244,7 +243,7 @@ def process_pyrexembed_file(f):
     pyx_file = "%s/%s.pyx"%(dir,base)
     pyx_embed_file = "%s/%s.pyx"%(tmp, base)
     h_file = "%s/%s_embed.h"%(tmp, base)
-    if need_to_create(f, pyxe_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
+    if need_to_create(f, pyx_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
         os.system('cp -p %s %s'%(f, pyxe_file))
         os.system('cp -p %s/*.pxi %s'%(dir, tmp))
         os.system('cp -p %s/*.pxd %s'%(dir, tmp))

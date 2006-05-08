@@ -46,6 +46,7 @@ domains.
 
 EXAMPLES:
     sage: F = GF(5)
+    sage: cf.setBaseDomain(F)
     sage: R = MPolynomialRing(F,2, names = ['x','y'])
     sage: x,y = R.gens()
     sage: f = y**2-x**9-x
@@ -59,7 +60,6 @@ EXAMPLES:
     sage: xt = add([vars0[i]*t**(i-2) for i in range(3,2*n+2)])
     sage: yt = t
     sage: ft = f(xt,yt)
-    sage: cf.setCharacteristic(5)
     sage: ft == cf.CF(f)([(x,cf.CF(xt)),(y,cf.CF(yt))])._sage_(R0) #fast!
     True
 
@@ -123,8 +123,8 @@ cdef class Variable:
 
     Arithmetic with Variables can be pretty weird, consider this:
 
-        sage: 1000*cf.Variable('x')
-        x*v_1000
+        sage: 1000*cf.Variable(1)
+        v_1*v_1000
 
     This behavior is correct as 1000 is coerced into a Variable of
     level 1000 whichs default name happens to be'v_1000'
@@ -322,7 +322,7 @@ cdef class CanonicalForm:
     cdef void *thisptr
     cdef void *iterator
 
-    def __init__(self,arg=None, exp=None, cache=None):
+    def __init__(self,arg=None, arg2=None, cache=None):
         """
         If arg is a Variable and exp==None this constructor generates
         a canonical form out of the variable arg.  If the level of x
@@ -340,10 +340,38 @@ cdef class CanonicalForm:
         LEVEL_BASEDOMAIN the unit element of the current base domain
         is created.
 
+        If arg is a SAGE polynomial this constructor generates an
+        object of class CanonicalForm, which is a representaion of arg
+        over currently active base domain.  If arg is defined over a
+        finite extension field arg2 must be an algebraic Variable
+        representing this field. Those variables are returned by
+        setBaseDomain when called with a finite extension field as
+        parameter.
+
+        If arg is a string it is parsed by the CF library. It is not
+        recommended to use string IO for communication with this
+        library as names are not unique in this library and the result
+        might not match the expectations. The best practice here is to
+        construct a SAGE ring, pass the string to that ring and pass
+        the newly constructed SAGE polynomial to this library.
+
         INPUT:
-            arg --   integer or Variable
-            exp --   optional exponent for arg
+            arg --   integer, Variable, Polynomial, or string
+            arg2 --  optional second argument in dependence of first one
             cache -- optional base field cache to use MPolynomial elements
+
+        EXAMPLES:
+            sage: R=PolynomialRing(GF(127),2)
+            sage: f=R('3234*x0*x1+6575*x0^2+52')
+            sage: cf.setBaseDomain(GF(127))
+            sage: cf.CF(f)
+            59*v_1*v_2+98*v_1^2+52
+            sage: cf.CF(f)._sage_(R)
+            52 + 59*x0*x1 + 98*x0^2
+            sage: cf.CF(f)._sage_(R)==f
+            True
+
+
 
         """
         #embed{ void *CF_init()
@@ -374,51 +402,85 @@ cdef class CanonicalForm:
         return y;
         #}embed
 
+        #embed{ void CF_polygen(void *ret, int c, int level, long e)
+           *(CanonicalForm*)ret += c * CanonicalForm(Variable(level),e);
+        #}embed
+
+        #embed{ void CF_mongen(void *ret, int level, long e)
+           if(e!=0)
+              *(CanonicalForm*)ret *= CanonicalForm(Variable(level),e);
+        #}embed
+
         cdef CanonicalForm cPoly
+        cdef CanonicalForm t
+        cdef int varlevel
 
         from sage.rings.multi_polynomial_element import is_MPolynomialRingElement
+        from sage.rings.field_element import is_FieldElement
+        from sage.rings.polynomial_element import is_Polynomial
 
-        if is_MPolynomialRingElement(arg):
+        # maybe a switch-case dict might be faster here?
+        if is_FieldElement(arg) and arg.parent().degree()!=1:
+           cPoly = CF(0)
+           if not isinstance(arg2,Variable):
+              raise TypeError, "Need algebraic variable for BaseDomain"
+           varlevel  = arg2.level()
+           f = arg._pari_().lift().lift()
+           if f.poldegree() == 0:
+              self.thisptr = CF_initi(int(f))
+              return
+           for i from 0 <= i <= f.poldegree():
+              CF_polygen(cPoly.thisptr,int(f[i]),varlevel,i)
+           self.thisptr = cPoly.thisptr
+           return
+
+        elif is_MPolynomialRingElement(arg):
             poly = CF(0)
             for e,c in arg.element().dict().iteritems():
                 t = CF(0)
                 if cache!=None:
-                    if not cache.has_key(str(c)):
-                        cache[str(c)]=CF(str(c))
+                    if not cache.has_key(c):
+                        cache[c]=CF(c,arg2)
                     t = t + cache[c]
                 else:
-                    t = t + CF(str(c))
+                    t = t + CF(c,arg2)
                 for i from 1 <= i <= len(e):
-                    t = t * Variable(i)**e[i-1]
+                    CF_mongen(t.thisptr,i,e[i-1])
                 poly = poly + t
             cPoly = poly
+            self.thisptr = cPoly.thisptr
+            return
+
+        elif is_Polynomial(arg):
+            cPoly = CF(0)
+            v = Variable(1)
+            #TODO: speed can be improved here
+            for i from 0 <= i <= arg.degree():
+                cPoly = cPoly + CF(arg[i])*CF(v,i)
             self.thisptr = cPoly.thisptr
 
         elif isinstance(arg,CanonicalForm):
             self.thisptr = CF_copy(<void*>(<CanonicalForm>arg).thisptr)
 
-        elif exp!=None:
-            if isinstance(arg,Variable):
-                self.thisptr = CF_initVn(<void*>(<Variable>arg).thisptr,int(exp))
-
-            else:
-                raise TypeError, "Cannot create CanonicalForm with %s and %s"%(arg,exp)
-
-        elif arg==None:
-            self.thisptr = CF_init()
-
-        elif isinstance(arg,Variable):
+        elif isinstance(arg,Variable) and arg2==None:
             self.thisptr = CF_initV(<void*>(<Variable>arg).thisptr)
+
+        elif isinstance(arg,Variable) and arg2!=None:
+            self.thisptr = CF_initVn(<void*>(<Variable>arg).thisptr,int(arg2))
 
         elif isinstance(arg,str):
             arg = "".join([arg,";"])
             self.thisptr = str_to_CF(arg)
+
+        elif arg==None:
+            self.thisptr = CF_init()
+
         else:
             try:
                 arg = int(arg)
                 self.thisptr = CF_initi(arg)
             except:
-                raise TypeError, "Cannot create CanonicalForm with params %s and %s"%(arg, exp)
+                raise TypeError, "Cannot create CanonicalForm with params %s and %s"%(arg, arg2)
 
     def __repr__(self):#
         """
@@ -638,11 +700,14 @@ cdef class CanonicalForm:
             i -- exponent, this may be a tuple of exponents
 
         EXAMPLE:
-            sage: f=cf.CF('3*x*y^2')
+            sage: r=MPolynomialRing(ZZ,2,['x','y'])
+            sage: x,y = r.gens()
+            sage: cf.setBaseDomain(ZZ)
+            sage: f=cf.CF(3*x*y^2)
             sage: f[1]
             0
             sage: f[2]
-            3*x
+            3*v_1
             sage: f[2,1]
             3
 
@@ -747,14 +812,14 @@ cdef class CanonicalForm:
             arg -- tuple, list or dict to describe substitution
 
         EXAMPLES:
-            sage: f=cf.CF(3)*cf.Variable('x')*cf.Variable('y'); f
-            3*x*y
-            sage: f(dict([('x','2')]))
-            6*y
-            sage: f((('x','2'),))
-            6*y
-            sage: f((3,'z'))
-            9*z
+            sage: f=cf.CF(3)*cf.Variable(1)*cf.Variable(2)
+            sage: f
+            3*v_1*v_2
+            sage: f((cf.Variable(1),'2'))
+            6*v_1
+            sage: f((3,2))
+            18
+
         """
         #embed{ void CF_call(void *self, void *f, void *x)
         (*(CanonicalForm*)self) = (*(CanonicalForm*)self)(*(CanonicalForm*)f,*(Variable*)x);
@@ -1036,6 +1101,10 @@ cdef class CanonicalForm:
         current base domain.  If the current object is a polynomial,
         then the value returned by mapdomain is the polynomial mapped
         into the polynomial ring over the current base domain.
+
+        INPUT:
+            mapMe -- if True this object is mappend and nothing is returned
+                     (default: False)
         """
 
         #embed{ void *CF_mapinto(void *self)
@@ -1148,7 +1217,7 @@ cdef class CanonicalForm:
         #}embed
         return bool(CF_isFFinGF(self.thisptr))
 
-    def isUnivariate(CanonicalForm self):
+    def is_univariate(CanonicalForm self):
         """
         Returns True if self is univariate, False otherwise
         """
@@ -1157,7 +1226,7 @@ cdef class CanonicalForm:
         #}embed
         return bool(CF_isUnivariate(self.thisptr))
 
-    def isHomogeneous(CanonicalForm self):
+    def is_homogeneous(CanonicalForm self):
         """
         Returns True if self is homogeneous, False otherwise
         """
@@ -1193,41 +1262,59 @@ cdef class CanonicalForm:
             cache -- optional finite field cache
 
         EXAMPLES:
-            sage: f=cf.CF('3*x+2')
+            sage: cf.setBaseDomain(GF(127))
             sage: r=MPolynomialRing(GF(127),2,'x')
+            sage: f=cf.CF(r('3*x0+2'))
             sage: f._sage_(r)
             2 + 3*x0
-            sage: cf.setCharacteristic(GF(2**8))
-            a
-            sage: f=cf.CF('a^20*x+a^10');f
-            a^7*x+a^5*x+a^4*x+a^2*x+a^6+a^5+a^4+a^2
-            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: k = GF(2**8)
+            sage: v = cf.setBaseDomain(k)
+            sage: r=MPolynomialRing(k,2,'x')
+            sage: f=cf.CF(r('a^20*x0+a^10'),v);f
+            a_1^7*v_1+a_1^5*v_1+a_1^4*v_1+a_1^2*v_1+a_1^6+a_1^5+a_1^4+a_1^2
             sage: f._sage_(r)
             a^6 + a^5 + a^4 + a^2 + (a^7 + a^5 + a^4 + a^2)*x0
         """
+        from sage.rings.polynomial_ring import is_PolynomialRing
 
-        d={}
-        level = self.level()-1
+        if is_PolynomialRing(r):
+           l = [0]*(self.degree()+1)
+           base = r.base_ring()
+           for c,e in self:
+               cs = str(c)
+               if cache!=None:
+                  if not cache.has_key(cs):
+                     cache[cs]=base(cs)
+                  l[e]=cache[cs]
+               else:
+                  l[e]=base(cs)
+           return r(l)
+        else:
+            d={}
+            level = self.level()-1
 
-        from sage.rings.multi_polynomial_ring import polydict
+            from sage.rings.multi_polynomial_ring import polydict
 
-        if self.inCoeffDomain():
-            # catch the constant case
-            d[tuple([int(0),]*r.ngens())]=self
+            kgen = str(r.base_ring().gen())
+
+            if self.inCoeffDomain():
+                # catch the constant case
+                d[tuple([int(0),]*r.ngens())]=self
+                return r(polydict.PolyDict(d))
+
+            for c,e in self:
+                exp = [int(0),]*r.ngens()
+                exp[level]= e
+                l = self.__cflist__(c,exp)
+                for c2,e2 in l:
+                    cs = str(c2).replace(str(c2.mvar()),kgen)
+                    if cache!=None:
+                        if not cache.has_key(cs):
+                            cache[cs]=r.base_ring()(cs)
+                        d[tuple(e2)]=cache[cs]
+                    else:
+                        d[tuple(e2)]=r.base_ring()(cs)
             return r(polydict.PolyDict(d))
-
-        for c,e in self:
-            exp = [int(0),]*r.ngens()
-            exp[level]= e
-            l = self.__cflist__(c,exp)
-            for c2,e2 in l:
-                if cache!=None:
-                    if not cache.has_key(str(c2)):
-                        cache[str(c2)]=r.base_ring()(str(c2))
-                    d[tuple(e2)]=cache[str(c2)]
-                else:
-                    d[tuple(e2)]=r.base_ring()(str(c2))
-        return r(polydict.PolyDict(d))
 
 
 CF =  CanonicalForm
@@ -1249,7 +1336,7 @@ cdef make_CF(void *x):
     return y
 
 
-def setCharacteristic(p):
+def setCharacteristic(int p):
     """
     Sets the characteristic for all following Factory operations to
     p. We also accept SAGE finite fields here which will be
@@ -1282,14 +1369,45 @@ def setCharacteristic(p):
     setCharacteristic(p,n,n);
     #}embed
 
-    try:
-        setCharacteristicp(int(p.characteristic()))
-        return rootOf(str(p.polynomial()),"a")
-    except:
-        try:
-            setCharacteristicp(int(p))
-        except:
-            raise TypeError, "Cannot set characteristic for %s"%p
+    setCharacteristicp(p)
+
+__domains__ = dict()
+
+def setBaseDomain(k,force=False):
+    """
+    Sets the CF BaseDomain so it matches k. At the moment
+    GF(p), GF(p^n), and ZZ are supported. If an extension
+    field is provided the algebraic variable used to describe
+    this extension field is returned nothing otherwise. This
+    variable is needed to coerce SAGE polynomials to CF polynomials.
+
+    This variable is also cached locally so if the same finite
+    extension field is provided twice the same variable will be
+    returned. This behavior can be overriden by setting force to True.
+
+    Caching the algebraic variable locally not only is faster than
+    recreating one when needed it alsoe ensures coercion from SAGE
+    polynomials yields the same results evertime, even if one lost
+    track of the algebraic variable needed to coerce.
+
+    INPUT:
+        force -- enforce creation of a new algebraic variable (default: False)
+
+    """
+    global __domains__
+
+    from sage.rings.finite_field import is_FiniteField
+
+    setCharacteristicp(int(k.characteristic()))
+
+    if is_FiniteField(k) and k.degree()!=1:
+        if not __domains__.has_key(k) or force==True:
+            setCharacteristic(0) #make sure nex step works
+            __domains__[k] = rootOf(k.polynomial())
+            setCharacteristic(k.characteristic())
+        return  __domains__[k]
+
+
 
 def getCharacteristic():
     """
@@ -1300,8 +1418,8 @@ def getCharacteristic():
     #}embed
     return getCharacteristicp()
 
-def rootOf(mipo, char *name = NULL, force=True):
-    """
+def rootOf(mipo, char *name = NULL):
+    r"""
     This function returns the algebraic variable that is defined by
     the minimal polynomial mipo.  name has to be a name that is not
     yet assigned to a variable. This is the only way to define an
@@ -1317,6 +1435,9 @@ def rootOf(mipo, char *name = NULL, force=True):
                 ca CanonicalForm via the CanonicalForm constructor
 
         name -- name to assign to the algebraic variable
+
+    \note{Do not use this function to construct a base domain for
+    finite extension fields. Use setBaseDomain() instead.}
     """
     #embed{ void *rootOfpn(void *mipo, char name)
     return new Variable(rootOf(*(CanonicalForm*)mipo, name));
@@ -1338,16 +1459,6 @@ def rootOf(mipo, char *name = NULL, force=True):
         _sig_on
         return make_Variable(rootOfp(cMipo.thisptr))
     else:
-        # we try not to generate a new variable if the
-        # current one is the desired one
-        if not force:
-            try:
-                a = Variable(name)
-                mMipo = getMipo(a,cMipo.mvar())
-                if mMipo == cMipo:
-                    return a
-            except:
-                pass
         cName = name
         cChar = cName[0]
         _sig_on
@@ -1358,6 +1469,10 @@ def getMipo( a,  x=None ):
     This function returns the minimal polynomial that defines the
     algebraic variable a. The minimal polynomial is returned as a
     CanonicalForm of variable x.
+
+    INPUT:
+        a -- algebraic variable
+        x -- variable the minimal polynomial is expressed in
     """
     #embed{ void *CF_getMipo(void *a, void *x)
     return new CanonicalForm(getMipo(*(Variable*)a,*(Variable*)x));

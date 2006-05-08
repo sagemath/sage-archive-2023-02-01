@@ -230,7 +230,7 @@ def need_to_create(file1, file2):
 def process_pyrexembed_file(f):
     # This is a pyrexembed file, so process accordingly.
     dir, base = os.path.split(f[:-5])
-    tmp = '%s/.tmp'%dir
+    tmp = '%s/.tmp_pyrexembed'%dir
     if os.path.exists(tmp) and not os.path.isdir(tmp):
         print "Please delete file '%s' in %s"%(tmp, dir)
         sys.exit(1)

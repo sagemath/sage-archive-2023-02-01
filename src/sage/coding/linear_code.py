@@ -130,11 +130,11 @@ def min_wt_vec(Gmat,F):
     AUTHOR: David Joyner (11-2005)
     """
     gap.eval("G:="+Gmat)
-    k = eval(gap.eval("Length("+Gmat+")"))
+    k = int(gap.eval('Length(G)'))
     q = F.order()
     qstr = str(q)
     gap.eval("C:=GeneratorMatCode("+Gmat+",GF("+qstr+"))")
-    n = eval(gap.eval("WordLength(C)"))
+    n = int(gap.eval("WordLength(C)"))
     zerovec = [0 for i in range(n)]
     zerovecstr = "Z("+qstr+")*"+str(zerovec)
     all = []
@@ -148,7 +148,7 @@ def min_wt_vec(Gmat,F):
         all.append([[gap_to_sage(gap.eval("v["+str(i+1)+"]"),F)
                               for i in range(n)],
                     [gap_to_sage(gap.eval("m["+str(i+1)+"]"),F)
-                              for i in range(k)],eval(dist)])
+                              for i in range(k)],int(dist)])
     ans = all[0]
     for x in all:
         if x[2]<ans[2] and x[2]>0:
@@ -344,9 +344,7 @@ class LinearCode(module.Module):
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()
-        #k=len(G.rows())
-        #n=len(G.columns())
-        Gstr=str(gap(G))+"*Z("+str(q)+")"
+        Gstr = str(gap(G))+"*Z("+str(q)+")^0"
         return min_wt_vec(Gstr,F)[2]
 
 
@@ -426,7 +424,6 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(4))
             sage: C.dual_code()
             Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
-
         """
         F = self.base_ring()
         q = F.order()
@@ -434,6 +431,11 @@ class LinearCode(module.Module):
         n = len(G.columns())
         k = len(G.rows())
         Gstr = str(gap(G))
+	C = gap.GeneratorMatCode(Gstr, 'GF(%s)'%q)
+        H = C.CheckMat()
+        A = H._matrix_(GF(q))
+        return LinearCode(A)
+
         gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
         Hmat = gap.eval("H:=CheckMat( C )")
         H = [[gap_to_sage(gap.eval("H["+str(i)+"]["+str(j)+"]"),F)

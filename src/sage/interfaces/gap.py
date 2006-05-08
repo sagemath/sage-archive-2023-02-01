@@ -388,7 +388,7 @@ class Gap(Expect):
         os.killpg(self._expect.pid, 2)
         raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def _eval_line(self, line, allow_use_file=False, wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
         try:
@@ -398,7 +398,6 @@ class Gap(Expect):
             #import pdb; pdb.set_trace()
             if allow_use_file and len(line) > self._eval_using_file_cutoff:
                 return self._eval_line_using_file(line, tmp)
-
             try:
                 (normal, error) = self._execute_line(line, wait_for_prompt=wait_for_prompt,
                                                  expect_eof= (self._quit_string() in line))

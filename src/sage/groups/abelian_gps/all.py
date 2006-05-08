@@ -23,8 +23,6 @@ all.py -- export of abelian groups to SAGE
 #*****************************************************************************
 
 
-from abelian import AbelianGroup
-
 from abelian_group import AbelianGroup,is_AbelianGroup,AbelianGroup_class,AbelianGroup_subgroup, word_problem
 
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement

@@ -92,8 +92,7 @@ try:
 
 except ImportError:
 
-    print "WARNING -- for some reason matplotlib isn't installed correctly"
-    print "on your system.   Please email wstein@gmail.com for help."
+    print "WARNING -- matplotlib did not build correctly."
 
 
 from axes import find_axes

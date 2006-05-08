@@ -1,4 +1,7 @@
-import sage.libs.cf.cf as cf
+try:
+    import sage.libs.cf.cf as cf
+except ImportError:
+    pass
 
 import sage.libs.ntl.all  as ntl
 

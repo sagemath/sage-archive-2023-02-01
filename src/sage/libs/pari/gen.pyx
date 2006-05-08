@@ -795,6 +795,60 @@ cdef class gen:
         _sig_off
         return t
 
+    def ispower(gen self, k=None):
+        r"""
+        Determine whether or not self is a perfect k-th power.
+        If k is not specified, find the largest k so that self
+        is a k-th power.
+
+        NOTE: There is a BUG in the PARI C-library function (at least
+        in PARI 2.2.12-beta) that is used to implement this function!
+        This is in GP:
+        \begin{verbatim}
+           ? p=nextprime(10^100); n=p^100; m=p^2; m^50==n; ispower(n,50)
+        \end{verbatim}
+
+        INPUT:
+            k -- int (optional)
+
+        OUTPUT:
+            power -- int, what power it is
+            g -- what it is a power of
+
+        EXAMPLES:
+            sage: pari(9).ispower()
+            (2, 3)
+            sage: pari(17).ispower()
+            (1, 17)
+            sage: pari(17).ispower(2)
+            (False, None)
+            sage: pari(17).ispower(1)
+            (1, 17)
+            sage: pari(2).ispower()
+            (1, 2)
+        """
+        cdef int n
+        cdef GEN x
+
+        _sig_on
+        if k is None:
+            _sig_on
+            n = isanypower(self.g, &x)
+            if n == 0:
+                _sig_off
+                return 1, self
+            else:
+                return n, P.new_gen(x)
+        else:
+            k = int(k)
+            t0GEN(k)
+            _sig_on
+            n = ispower(self.g, t0, &x)
+            if n == 0:
+                _sig_off
+                return False, None
+            else:
+                return k, P.new_gen(x)
 
     ###########################################
     # 1: Standard monadic or dyadic OPERATORS

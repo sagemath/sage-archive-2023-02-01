@@ -240,17 +240,7 @@ class MatrixGroup(Group):
             sage: G.order()
             480
         """
-        #from sage.misc.misc import add
-        from sage.interfaces.gap import GapElement
-        if not(self.is_finite()):
-            return Infinity()
-        F = self.base_ring()
-        deg = self.degree()
-        gp_gens = self.gens()
-        L = [gap(A) for A in gp_gens]
-        sL = ','.join(str(x) for x in L)
-        ans = gap.eval('Size(Group([%s]))'%sL)
-        return eval(ans)
+        return integer.Integer(gap(self).Size())
 
     def conjugacy_class_representatives(self):
         """

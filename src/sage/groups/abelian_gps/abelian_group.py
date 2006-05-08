@@ -166,7 +166,6 @@ def word_problem(words, g, verbose = False):
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
         Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
         sage: word_problem([a*b,a*c], b*c)
-        b*c = (a*b)^1*(a*c)^1
         [[a*b, 1], [a*c, 1]]
         sage: word_problem([a*b,a*c],b*c)
         [[a*b, 1], [a*c, 1]]

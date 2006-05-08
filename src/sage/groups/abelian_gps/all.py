@@ -2,8 +2,6 @@
 all.py -- export of abelian groups to SAGE
 """
 
-# add to groups/all.py: "from abelian.all import *"
-
 #*****************************************************************************
 #
 #   SAGE: System for Algebra and Geometry Experimentation

@@ -359,6 +359,23 @@ class AbelianGroup_class(group.AbelianGroup):
 ##                 return False
 ##         return True
 
+    def exponent(self):
+        """
+        Return the exponent of this abelian group.
+
+        EXAMPLES:
+            G = AbelianGroup([2,3,7]); G
+            Abelian group on 3 generators (f0, f1, f2) with invariants [2, 3, 7]
+            sage: G.exponent()
+            42
+        """
+        try:
+            return self.__exponent
+        except AttributeError:
+            e = Integer(gap(self).Exponent())
+            self.__exponent = e
+            return e
+
     def _repr_(self):
         """
         Print method.

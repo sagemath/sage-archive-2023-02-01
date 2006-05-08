@@ -25,7 +25,7 @@ AUTHORS:
 import ell_point
 from ell_field import EllipticCurve_field
 
-import sage.groups.abelian as abelian
+import sage.groups.all
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
@@ -1968,8 +1968,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Returns the torsion subgroup of this elliptic curve.
 
-        The flag is passed onto PARI and has the same algorithm meaning as there.
-        So: If flag = 0, use Doud's algorithm; if flag = 1, use Lutz-Nagell.
+        The flag is passed onto PARI and has the same algorithm
+        meaning as there.  So: If flag = 0, use Doud's algorithm; if
+        flag = 1, use Lutz-Nagell.
+
+        EXAMPLES:
+            sage: EllipticCurve('11a').torsion_subgroup()
+            Abelian group on 1 generators (f,) with invariants [5]
+            sage: EllipticCurve('37b').torsion_subgroup()
+            Abelian group on 1 generators (f,) with invariants [3]
         """
         try:
             return self.__torsion
@@ -1979,7 +1986,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             except RuntimeError:
                 self.__pari_double_prec()
                 return self.torsion_subgroup(flag)
-            self.__torsion = abelian.AbelianGroup(G[1].python())
+            self.__torsion = sage.groups.all.AbelianGroup(G[1].python())
         return self.__torsion
 
     def newform(self):

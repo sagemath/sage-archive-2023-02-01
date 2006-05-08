@@ -22,7 +22,6 @@ import math
 
 from sage.rings.all import MPolynomialRing
 
-import sage.groups.abelian as abelian
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field

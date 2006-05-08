@@ -50,8 +50,7 @@ import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
-
-import sage.groups.abelian
+import sage.groups.abelian_gps.abelian_group
 
 
 import number_field_element
@@ -266,7 +265,8 @@ class NumberField_generic(field.Field):
             s = str(k[7][0])  # it's the [8][1] entry in pari, but the python interface is 0 based.
             s = s.replace(";",",")
             s = eval(s)
-            self.__class_group = sage.groups.abelian.AbelianGroup(s[1])
+            self.__class_group = \
+               sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
         return self.__class_group
 
     def class_number(self):

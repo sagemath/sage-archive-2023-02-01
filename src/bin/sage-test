@@ -22,9 +22,13 @@ def abs(f):
     return "[*] %s"%os.path.abspath(f)[len(CUR)+1:]
 
 def skip(F):
-    if F == "all.py" or F == ".doctest" or F == "__init__.py" or F[0] == '.' or \
-           open(F).readline().find("nodoctest") != -1:
-        print "%s (skipping)"%abs(F)
+    G = os.path.abspath(F)
+    if G == "all.py" or G == "__init__.py" \
+          or G[0] == '.' or '/.' in G or \
+          'doctest' in G or \
+          'nodoctest' in open(G).readline():
+        if not ('doctest' in G):
+            print "%s (skipping)"%abs(F)
         return True
     sys.stdout.write("%-60s"%abs(F))
     sys.stdout.flush()

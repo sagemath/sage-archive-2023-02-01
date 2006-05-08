@@ -27,14 +27,14 @@ NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4
 
 def comment_modifier(s):
     L = s.lower()
-    if L.find('random') != -1:
-        return RANDOM
-    elif L.find('long time') != -1:
-        return LONG_TIME
-    elif L.find('optional') != -1:
+    if 'optional' in L != -1:
         return OPTIONAL
-    elif L.find('todo: not implemented') != -1:
+    elif 'long time' in L != -1:
+        return LONG_TIME
+    elif 'todo: not implemented' in L != -1:
         return NOT_IMPLEMENTED
+    elif 'random' in L != -1:
+        return RANDOM
     return NONE
 
 def preparse_line_with_prompt(L):

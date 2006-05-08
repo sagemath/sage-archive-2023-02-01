@@ -246,7 +246,7 @@ class Expect(SageObject):
 
     def _eval_line_using_file(self, line, tmp):
         F = open(tmp, 'w')
-        F.write(line)
+        F.write(line+'\n')
         F.close()
         s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
         return self._post_process_from_file(s)

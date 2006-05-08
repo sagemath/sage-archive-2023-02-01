@@ -266,11 +266,11 @@ def server_http1(port=8000, address='localhost', ncols=90,
                                       HTML_Interface)
     sa = httpd.socket.getsockname()
     #print "Serving HTTP on", sa[0], "port", sa[1], "..."
+    print "Web interface at http://%s:%s"%(address, port)
+    print "Running log at %s"%logfile
 
     try:
 
-        print "Web interface at http://%s:%s"%(address, port)
-        print "Running log at %s"%logfile
         if viewer:
             os.system('%s file:///%s&'%(BROWSER, logfile))
             os.system('%s http://%s:%s&'%(BROWSER, address, port))

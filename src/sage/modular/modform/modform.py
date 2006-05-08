@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Modular Forms
 
 [[overview of what is here.]]

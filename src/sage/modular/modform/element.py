@@ -1,4 +1,6 @@
-
+"""nodoctest
+Elements of modular forms spaces.
+"""
 
 class ModularFormElement:
     """

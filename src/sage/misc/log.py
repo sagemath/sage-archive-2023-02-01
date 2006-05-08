@@ -347,7 +347,7 @@ class log_html(Log):
                 bgcolor=lightgrey>
                <tr><td bgcolor=white>
                <a href="%s">
-               <img src="%s" alt="%s" %s>%s
+               <img src="%s" alt="%s" %s>
                 </a>
              </td></tr></table> </center>\n<hr>\n"""%('images/o%s.html'%n,
                                                       'images/%s.png'%n, L,

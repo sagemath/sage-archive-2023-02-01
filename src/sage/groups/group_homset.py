@@ -1,0 +1,53 @@
+"""
+Set of homomorphisms between two groups.
+
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.categories.all import Homset, Groups, Morphism
+
+GROUPS = Groups()
+
+
+def is_GroupHomset(H):
+    return isinstance(H, GroupHomset_generic)
+
+def GroupHomset(G, H):
+    return RingHomset_generic(G, H)
+
+
+class GroupHomset_generic(Homset):
+    """
+    This class will not work since morphism.GroupHomomorphism_coercion
+    is undefined and morphism.GroupHomomorphism_im_gens is undefined.
+    """
+    def __init__(self, G, H):
+        Homset.__init__(self, G, H, GROUPS)
+
+    def _repr_(self):
+        return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())
+
+    def __call__(self, im_gens, check=True):
+        """
+        EXAMPLES:
+
+        """
+        try:
+            return morphism.GroupHomomorphism_im_gens(self, im_gens, check=check)
+        except (NotImplementedError, ValueError), err:
+            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+
+    def natural_map(self):
+        return morphism.GroupHomomorphism_coercion(self)
+
+
+
+
+

@@ -241,7 +241,7 @@ class Scheme(SageObject):
                 raise TypeError, "unable to determine codomain"
         return self.Hom(Y)(x)
 
-    def Hom(self, Y, cat=None, check=True):
+    def _Hom_(self, Y, cat=None, check=True):
         """
         Return the set of scheme morphisms from self to Y.
         """

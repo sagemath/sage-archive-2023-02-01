@@ -1,0 +1,268 @@
+r"""
+Permutation group homomorphisms
+
+AUTHOR:
+    - David Joyner (2006-03-21): first version
+
+EXAMPLES:
+    sage: G = CyclicPermutationGroup(4)
+    sage: gens = G.gens()
+    sage: H = DihedralGroup(4)
+    sage: g = G([(1,2,3,4)]); g
+    (1,2,3,4)
+    sage: phi = PermutationGroupMorphism_im_gens( G, H, gens, gens)
+    sage: phi.image(G)
+    'Group([ (1,2,3,4) ])'
+    sage: phi.kernel()
+    Group(())
+    sage: phi.image(g)
+    '(1,2,3,4)'
+    sage: phi(g)
+    '(1,2,3,4)'
+    sage: phi.range()
+    Dihedral group of order 8 as a permutation group
+    sage: phi.codomain()
+    Dihedral group of order 8 as a permutation group
+    sage: phi.domain()
+    Cyclic group of order 4 as a permutation group
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2006 David Joyner and William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+
+import random
+
+import sage.structure.element as element
+import sage.groups.group as group
+from sage.categories.morphism import *
+
+from sage.rings.all      import RationalField, Integer
+from sage.matrix.all     import MatrixSpace
+from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
+
+import sage.ext.coerce as coerce
+
+def gap_format(x):
+    """
+    Put a permutation in Gap format, as a string.
+    """
+    x = str(x).replace(' ','')
+    return x.replace('),(',')(').replace('[','').replace(']','')
+
+def is_PermutationGroupMorphism(f):
+    return isinstance(f, PermutationGroupMorphism);
+
+class PermutationGroupMap(Morphism):
+    """
+    A set-theoretic map between PermutationGroups.
+    """
+    def __init__(self, parent):
+	Morphism.__init__(self, parent)
+
+    def _repr_type(self):
+        return "PermutationGroup"
+
+class PermutationGroupMorphism_id:
+    """
+    TODO: NOT FINISHED YET!!
+    Return the identity homomorphism from X to itself.
+
+    EXAMPLES:
+    """
+    def __init__(self, X):
+        PermutationGroupMorphism.__init__(self, X.Hom(X))
+
+    def _repr_defn(self):
+        return "Identity map of "+str(X)
+
+class PermutationGroupMorphism_from_gap:
+    """
+    This is a Python trick to allow SAGE programmers to create a group
+    homomorphism using GAP using very general constructions. An
+    example of its usage is in the direct_product instance method of
+    the PermutationGroup_generic class in permgroup.py.
+
+    Basic syntax:
+
+    PermutationGroupMorphism_from_gap(domain_group,
+               range_group,'phi:=gap_hom_command;','phi')
+    And don't forget the line: from
+    sage.groups.perm_gps.permgroup_morphism import
+    PermutationGroupMorphism_from_gap to your program.
+    """
+    def __init__(self, G, H, gap_hom_str, name="phi" ):
+        self._domain = G
+        self._codomain = H
+        if not(isinstance(G, PermutationGroup_generic)):
+            raise TypeError, "Sorry, the groups must be permutation groups."
+    	if not(isinstance(H, PermutationGroup_generic)):
+            raise TypeError, "Sorry, the groups must be permutation groups."
+    	G0  = G._gap_init_()
+    	H0  = H._gap_init_()
+        self.gap_hom_string = gap_hom_str
+        self._name = name
+        self.hom = gap.eval(gap_hom_str)
+
+    def __repr__(self):
+        return "Homomorphism : %s --> %s"%(self.domain(),self.range())
+
+    def __str__(self):
+        return "Homomorphism : %s --> %s"%(self.domain(),self.range())
+
+    def _latex_(self):
+        return self.domain()._latex_()+" \rightarrow "+self.range()._latex_()
+
+    def domain(self):
+        return self._domain
+
+    def range(self):
+        return self._codomain
+
+    def codomain(self):
+        return self._codomain
+
+    def kernel(self):
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+        gap_ker = gap.eval("Kernel("+self._name+")")
+        print gap_ker
+
+    def image(self, J):
+        """
+        J must be a subgroup of G. Computes the subgroup of
+        H which is the image of J.
+        """
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+        return gap.eval("Image("+self._name+", "+str(J._gap_init_())+")")
+
+    def __call__( self, g ):
+        """
+    	Some python code for wrapping GAP's Images function but only for
+        permutation groups. Returns an error if g is not in G.
+
+    	"""
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+    	return PermutationGroupElement(gap.eval("Image( "+self._name+", "+str(g)+")"),self.range(), check = True)
+
+class PermutationGroupMorphism_im_gens:
+    """
+    Some python code for wrapping GAP's GroupHomomorphismByImages
+    function but only for permutation groups. Can be
+    expensive if G is large. Returns "fail" if
+    gens does not generate self or if the map does not
+    extend to a group homomorphism, self --> other.
+
+    EXAMPLES:
+        sage: G = CyclicPermutationGroup(4)
+        sage: gens = G.gens()
+        sage: H = DihedralGroup(4)
+        sage: g = G([(1,3),(2,4)]); g
+	(1,3)(2,4)
+	sage: phi = PermutationGroupMorphism_im_gens( G, H, gens, gens)
+        sage: phi
+        Homomorphism : Cyclic group of order 4 as a permutation group --> Dihedral group of order 8 as a permutation group
+	sage: phi(g)
+	'(1,3)(2,4)'
+        sage: gens1 = G.gens()
+        sage: gens2 = ((4,3,2,1),)
+        sage: phi = PermutationGroupMorphism_im_gens( G, G, gens1, gens2)
+        sage: g = G([(1,2,3,4)]); g
+	(1,2,3,4)
+	sage: phi(g)
+	'(1,4,3,2)'
+
+    AUTHOR: David Joyner (2-2006)
+    """
+    def __init__(self, G, H, gensG, imgsH ):
+        self._domain = G
+        self._codomain = H
+        if not(isinstance(G, PermutationGroup_generic)):
+            raise TypeError, "Sorry, the groups must be permutation groups."
+    	if not(isinstance(H, PermutationGroup_generic)):
+            raise TypeError, "Sorry, the groups must be permutation groups."
+    	G0  = G._gap_init_()
+    	H0  = H._gap_init_()
+    	gaplist_gens = [gap_format(x) for x in gensG]
+    	gaplist_imgs = [gap_format(x) for x in imgsH]
+    	L = gaplist_gens
+    	if len(L) == 1:
+            genss = "["+L[0]+"]"
+    	if len(L)>1:
+            genss = "["+L[0]+add([","+L[i+1] for i in range(len(L)-1)])+"]"
+    	L = gaplist_imgs
+    	if len(L) == 1:
+            imgss = "["+L[0]+"]"
+    	if len(L)>1:
+            imgss = "["+L[0]+add([","+L[i+1] for i in range(len(L)-1)])+"]"
+    	args = str(G0)+","+str(H0)+","+genss+","+ imgss
+    	phi0 = gap.eval("phi := GroupHomomorphismByImages("+args+")")
+        self.gap_hom_string = "phi := GroupHomomorphismByImages("+args+")"
+    	if phi0=="fail":
+            raise ValueError,"The map "+str(gensG)+"-->"+str(imgsH)+" isn't a homomorphism."
+    	self.hom = gap.eval("phi")
+
+    def __repr__(self):
+        return "Homomorphism : %s --> %s"%(self.domain(),self.range())
+
+    def __str__(self):
+        return "Homomorphism : %s --> %s"%(self.domain(),self.range())
+
+    def _latex_(self):
+        return self.domain()._latex_()+" \rightarrow "+self.range()._latex_()
+
+    def domain(self):
+        return self._domain
+
+    def range(self):
+        return self._codomain
+
+    def codomain(self):
+        return self._codomain
+
+    def kernel(self):
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+        gap_ker = gap.eval("Kernel(phi)")
+        print gap_ker
+
+    def image(self, J):
+        """
+        J must be a subgroup of G. Computes the subgroup of
+        H which is the image of J.
+        """
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+        return gap.eval("Image( phi, "+str(J._gap_init_())+")")
+
+    def __call__( self, g ):
+        """
+    	Some python code for wrapping GAP's Images function but only for
+        permutation groups. Returns an error if g is not in G.
+
+    	EXAMPLES:
+    	    sage: G = CyclicPermutationGroup(4)
+    	    sage: gens = G.gens()
+            sage: H = DihedralGroup(4)
+            sage: phi = PermutationGroupMorphism_im_gens( G, H, gens, gens)
+            sage: g = G([(1,3),(2,4)]); g
+	    (1,3)(2,4)
+            sage: phi(g)
+	    '(1,3)(2,4)'
+
+    	"""
+        cmd = self.gap_hom_string
+        gap.eval(cmd)
+    	return gap.eval("Image( phi, "+str(g)+")")
+
+PermutationGroupMorphism = PermutationGroupMorphism_im_gens
+
+

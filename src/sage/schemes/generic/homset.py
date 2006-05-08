@@ -1,6 +1,7 @@
 """
 Set of homomorphisms between two schemes
 """
+
 # Some naive point enumeration routines for default.
 # AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>
 

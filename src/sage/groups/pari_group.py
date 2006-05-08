@@ -5,7 +5,7 @@ PARI Groups
 import group
 from sage.libs.all import pari, pari_gen
 
-import permgroup
+import perm_gps.permgroup as permgroup
 
 class PariGroup(group.FiniteGroup):
     def __init__(self, x, degree=None):

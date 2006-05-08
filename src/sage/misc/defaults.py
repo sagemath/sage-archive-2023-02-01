@@ -36,7 +36,8 @@ def latex_variable_names(n, name=None):
     n = int(n)
     if n == 1:
         return [name]
-    return tuple(['%s_{%s}'%(name,i) for i in range(n)])
+    v = tuple(['%s_{%s}'%(name,i) for i in range(n)])
+    return v
 
 def set_default_variable_name(name, separator=''):
     r"""

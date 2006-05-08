@@ -1,5 +1,5 @@
 """
-Abstract base class for all groups
+Base class for all groups
 """
 
 #*****************************************************************************
@@ -16,6 +16,10 @@ Abstract base class for all groups
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+doc="""
+Base class for all groups
+"""
 
 import random
 import sage.rings.coerce

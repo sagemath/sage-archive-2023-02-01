@@ -194,6 +194,10 @@ cdef class SageObject:
             sage: QQ.Hom(ZZ, Sets())
             Set of Morphisms from Rational Field to Integer Ring in Category of sets
         """
+        try:
+            return self._Hom_(codomain, cat)
+        except (TypeError, AttributeError):
+            pass
         from sage.categories.all import Hom
         return Hom(self, codomain, cat)
 

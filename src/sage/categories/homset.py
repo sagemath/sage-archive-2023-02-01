@@ -61,6 +61,12 @@ def Hom(X, Y, cat=None):
         H = _cache[key]()
         if H: return H
 
+    if cat is None or (cat is X.category() and cat is Y.category()):
+        try:
+            H = X._Hom_(Y)
+        except AttributeError:
+            pass
+
     cat_X = X.category()
     cat_Y = Y.category()
     if cat is None:

@@ -1,5 +1,5 @@
 """
-Base classes for groups.
+PYREX: sage.ext.group
 """
 
 from sage.ext.group import *

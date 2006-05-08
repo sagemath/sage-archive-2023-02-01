@@ -543,24 +543,24 @@ class GapElement(ExpectElement):
         Return matrix over the (\sage) ring R determined by self, where self
         should be a Gap matrix.
 
-            sage: s = gap("Z(3)*[[1,2,3],[3,4,5]]"); s
-            [ [ Z(3), Z(3)^0, 0*Z(3) ], [ 0*Z(3), Z(3), Z(3)^0 ] ]
-            sage: matrix(s, GF(3))
-            [2 0 1]
-            [2 0 1]
+            sage: s = gap("(Z(7)^0)*[[1,2,3],[4,5,6]]"); s
+            [ [ Z(7)^0, Z(7)^2, Z(7) ], [ Z(7)^4, Z(7)^5, Z(7)^3 ] ]
+            sage: matrix(s, GF(7))
+            [1 2 3]
+            [4 5 6]
 
             sage: s = gap("[[1,2], [3/4, 5/6]]"); s
             [ [ 1, 2 ], [ 3/4, 5/6 ] ]
             sage: m = matrix(s, QQ); m
-            [  1 3/4]
-            [  2 5/6]
+            [  1   2]
+            [3/4 5/6]
             sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             sage: s = gap('[[Z(16),Z(16)^2],[Z(16)^3,Z(16)]]')
             sage: matrix(s, GF(16))
-            [  a a^3]
-            [a^2   a]
+            [  a a^2]
+            [a^3   a]
         """
         P = self.parent()
         v = self.DimensionsMat()
@@ -569,33 +569,8 @@ class GapElement(ExpectElement):
 
         from sage.matrix.matrix_space import MatrixSpace
         M = MatrixSpace(R, n, m)
-        entries = [[R(self[i,j]) for i in range(1,n+1)] for j in range(1,m+1)]
-
+        entries = [[R(self[r,c]) for c in range(1,m+1)] for r in range(1,n+1)]
         return M(entries)
-
-        mat = copy.copy(s)
-        mat = mat.replace("\n","")
-        mat = mat.replace("] ]","")
-        mat = mat.replace("[ [","")
-        mat = mat.split("],")
-        rows_str = mat
-        rowss = []
-        for x in rows_str:
-            rowss.append(x.split(","))
-        rows_mat = [[] for i in range(len(rowss))]
-        for i in range(len(rowss)):
-            for x in rowss[i]:
-                x = x.replace("]","")
-                x = x.replace("[","")
-                rows_mat[i].append(x)
-        M = []
-        for i in range(m):
-            rows = []
-            for x in rows_mat[i]:
-                rows.append(gap2sage_finite_field(x,F))
-            M.append(rows)
-        MS = MatrixSpace(F,m,n)
-        return MS(M)
 
     def trait_names(self):
         if '__trait_names' in self.__dict__:

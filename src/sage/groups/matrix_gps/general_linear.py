@@ -37,7 +37,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from group import Group
+from sage.groups.group import Group
 from sage.rings.all import Integer, is_Ring
 from sage.rings.finite_field import is_FiniteField
 from sage.matrix.matrix_space import MatrixSpace

@@ -18,6 +18,9 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.misc.latex as latex
 
+def is_MatrixSpace(x):
+    return isinstance(x, MatrixSpace_generic)
+
 __cache = {}
 def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     """

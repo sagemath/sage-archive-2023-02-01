@@ -206,9 +206,10 @@ cdef class Generators(sage_object.SageObject):
         if isinstance(names, str) and self.ngens() > 1 and len(names) == self.ngens():
             names = tuple(names)
         if isinstance(names, str):
-            names = sage.misc.defaults.variable_names(self.ngens(), names)
-            latex_names = sage.misc.defaults.latex_variable_names(self.ngens(), names)
+            name = names
+            names = sage.misc.defaults.variable_names(self.ngens(), name)
             names = self.__certify_names(names)
+            latex_names = sage.misc.defaults.latex_variable_names(self.ngens(), name)
         else:
             names = self.__certify_names(names)
             if not isinstance(names, (list, tuple)):

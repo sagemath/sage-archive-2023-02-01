@@ -346,6 +346,9 @@ setup(name        = 'sage',
                      'sage.geometry',
 
                      'sage.groups',
+                     'sage.groups.abelian_gps',
+                     'sage.groups.matrix_gps',
+                     'sage.groups.perm_gps',
 
                      'sage.interfaces',
 

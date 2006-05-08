@@ -238,6 +238,8 @@ def is_prime(n, flag=0):
     OUTPUT:
         bool -- True or False
 
+    \note{We do not consider negatives of prime numbers as prime.}
+
     EXAMPLES::
         sage: is_prime(389)
         True
@@ -258,14 +260,61 @@ def is_prime(n, flag=0):
     """
     return pari(n).isprime()
 
-    ## if n in [2,3,5,7,11,13,17,19,23,29,31,37,41,43,47]:
-    ##         return True
-    ##     if n <= 50:
-    ##         return False
-    ##     return (power_mod(2,n-1,n) == 1) and \
-    ##            (power_mod(3,n-1,n) == 1) and \
-    ##            (power_mod(5,n-1,n) == 1) and \
-    ##            (power_mod(7,n-1,n) == 1)
+def is_prime_power(n, flag=0, use_pari=False):
+    r"""
+    Returns True if $x$ is a prime power, and False otherwise.  The result
+    is proven correct -- {\em this is NOT a pseudo-primality test!}.
+
+    INPUT:
+        n -- an integer
+        flag (for primality testing) -- int
+                0 (default): use a combination of algorithms.
+                1: certify primality using the Pocklington-Lehmer Test.
+                2: certify primality using the APRCL test.
+        use_pari -- (default False); whether to use PARI to determine
+                if the integer is a power.  this is vastly faster,
+                but there is a serious bug in PARI version 2.2.12-beta,
+                so using this is not recommended.   Try pari(2).ispower?
+                for more details about the bug.
+
+    OUTPUT:
+        bool -- True or False
+
+    IMPLEMENTATION: Calls the PARI isprime and factor (or ispower) functions.
+
+    EXAMPLES::
+        sage: is_prime_power(389)
+        True
+        sage: is_prime_power(2000)
+        False
+        sage: is_prime_power(2)
+        True
+        sage: is_prime_power(1024)
+        True
+        sage: is_prime_power(-1)
+        False
+        sage: is_prime_power(1)
+        True
+        sage: is_prime_power(997^100)
+        True
+        sage: is_prime_power(997^100, use_pari=True)
+        True
+
+    """
+    Z = sage.rings.integer.Integer
+    n = Z(n)
+    if n == 1:
+        return True
+    if n < 1:
+        return False
+    if is_prime(n, flag):
+        return True
+    if use_pari:
+        k, g = pari(n).ispower()
+        if not k:
+            return False
+        return g.isprime(flag)
+    return len(n.factor()) == 1
 
 def valuation(m, p):
     """

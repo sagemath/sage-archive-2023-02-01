@@ -194,7 +194,7 @@ def word_problem(words, g, verbose = False):
                  "PreImagesRepresentative") and may be faster.
 
     """
-    from sage.groups.permgroup import PermutationGroup
+    from sage.groups.perm_gps.all import PermutationGroup
     from sage.interfaces.all import gap
     G = g.parent()
     invs = G.invariants()
@@ -364,7 +364,7 @@ class AbelianGroup_class(group.AbelianGroup):
         Return the exponent of this abelian group.
 
         EXAMPLES:
-            G = AbelianGroup([2,3,7]); G
+            sage: G = AbelianGroup([2,3,7]); G
             Abelian group on 3 generators (f0, f1, f2) with invariants [2, 3, 7]
             sage: G.exponent()
             42

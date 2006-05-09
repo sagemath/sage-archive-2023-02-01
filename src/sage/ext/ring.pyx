@@ -400,8 +400,12 @@ cdef class PrincipalIdealDomain(IntegralDomain):
     def class_group(self):
         """
         Return the trivial group, since the class group of a PID is trivial.
+
+        EXAMPLES:
+            sage: QQ.class_group()
+            Abelian group on 0 generators () with invariants []
         """
-        from sage.groups.abelian import AbelianGroup
+        from sage.groups.abelian_gps.abelian_group import AbelianGroup
         return AbelianGroup([])
 
     def gcd(self, x, y, coerce=True):

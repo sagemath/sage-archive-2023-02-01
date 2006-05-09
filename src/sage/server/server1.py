@@ -46,9 +46,10 @@ class IO_Line:
         html_in = """
         <table width=95%% align=center border=0 cellpadding=2 bgcolor='#FFFFFF'>
         <tr><td align=center>
-         <textarea name='input'  bgcolor='%s' rows='%s' cols='%s' id='input'>%s</textarea>
+         <textarea name='%s'  bgcolor='%s' rows='%s'
+                   cols='%s' id='input' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
          </td></tr></table>
-         """%(cmd_color, cmd_nrows, ncols, self.cmd)
+         """%(number, cmd_color, cmd_nrows, ncols, number, self.cmd)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
@@ -65,18 +66,17 @@ class IO_Line:
             html_out = """
              <table width=95%%  align=center border=0 bgcolor='%s' cellpadding=2><tr>
              <td bgcolor='#FFFFFF' align=center>
-             <textarea rows="%s" cols="%s">%s</textarea>
+             <textarea readonly rows="%s" cols="%s">%s</textarea>
              %s</td></tr></table><br>
              """%(out_color, out_nrows, ncols, out, files)
         else:
             html_out = ''
 
         c = """<div align=center>
-        <form name="" method=post action="">
+        <form name="" method=post action="" id="%s">
         %s
         %s
-        %s
-        </form></div>"""%(button, html_in, html_out)
+        </form></div>"""%(number, html_in, html_out)
         return c
 
 class Log:
@@ -103,7 +103,7 @@ class Log:
                 color = "#FFFFFF"
             else:
                 color = "#FFFFFF"
-            j = n-i-1
+            j = i
             L = self._log[j]
             s += L.html(j, numrows, ncols, cmd_color=color) + '<hr>'
         return s
@@ -136,32 +136,53 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         new.sort()
         return new
 
-    def __show_page(self):
+    def __show_page(self, number):
         global log
         f = self.send_head()
         if f:
             f = StringIO()
-            f.write("<html><head><title>SAGE Calculator</title></head>\n")
-            f.write('<body><div align=center><H1><font color="darkgreen">SAGE</font></H1>')
+            f.write("""
+            <html><head><title>SAGE Calculator</title></head>\n
+            <script language=javascript>
+            function scroll_to_bottom() {
+                document.getElementById(%s).scrollIntoView()
+            }
+
+            function ifShiftEnter(number, event) {
+                var theCode = event.keyCode ? event.keyCode :
+                               event.which ? event.which : event.charCode;
+                if (theCode == 13 && event.shiftKey) {
+                   document.forms[number].submit();   /* TODO */
+                   return false;
+                }
+                else
+                   return true;
+            }
+            </script>
+            """%number)
+
+            f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H1><font color="darkgreen">SAGE</font></H1>')
             f.write('<h2<tr>%s</h2></div>'%\
                     sage.misc.banner.version())
             if len(log) == 0 or log[-1].cmd != '':
                 I = IO_Line()
                 log.append(I)
+            #f.write('<br><hr><h2 align=center>Complete Session Log</h2>')
+            #f.write("""<table width=90%% align=center bgcolor='#CCCCCC' cellpadding=10>
+            #<tr><td bgcolor='#FFFFFF'>
+            #  <pre>%s</pre>
+            #  </td></tr></table>
+            #  """%fulltext_log)
+            f.write('<hr>')
             f.write(log.html(numcols))
-            f.write('<br><hr><h2 align=center>Complete Session Log</h2>')
-            f.write("""<table width=90%% align=center bgcolor='#CCCCCC' cellpadding=10>
-            <tr><td bgcolor='#FFFFFF'>
-              <pre>%s</pre>
-              </td></tr></table>
-              """%fulltext_log)
+            f.write('</body></html>')
             f.seek(0)
             self.copyfile(f, self.wfile)
             f.close()
             return f
 
     def do_GET(self):
-        self.__show_page()
+        self.__show_page(0)
 
     def do_POST(self):
         global log, fulltext_log
@@ -172,9 +193,12 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         elif ctype == 'application/x-www-form-urlencoded':
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
-            code_to_eval = C['input'][0]
+            print C
+            number = eval(C.keys()[0])
+            code_to_eval = C[C.keys()[0]][0]
+            #code_to_eval = C['input'][0]
             fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
-            number = eval(C['exec'][0].split()[-1])
+            #number = eval(C['exec'][0].split()[-1])
             #print "INPUT:\n%s"%code_to_eval
             try:
                 if number > len(log)-1:
@@ -202,15 +226,15 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 #print 'OUTPUT:\n%s'%o
                 o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
-                fulltext_log += '# ' + '\n# '.join(o.split('\n')) + '\n'
+                fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
                 log[number].out = o
                 log[number].file_list = self.__new_files()
-                self.__show_page()
+                self.__show_page(number)
 
             except (RuntimeError, TypeError), msg:
                 print "ERROR!!!", msg
-                self.__show_page()
+                self.__show_page(0)
 
         else:
             self.body = {}                   # Unknown content-type

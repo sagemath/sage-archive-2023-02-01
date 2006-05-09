@@ -95,6 +95,9 @@ else:
 	    BROWSER = 'konqueror'
 
 
+def browser():
+    global BROWSER
+    return BROWSER
 
 REFRESH = ''
 
@@ -341,8 +344,8 @@ class log_html(Log):
         open(oi,'w').write('<pre>OUTPUT:\n%s\n\n\nLATEX:\n%s</pre><img src="%s">'%(
             x, L, single_png))
         extra_img_opts = ''
-        if sage.plot.all.is_Graphics(x):
-            extra_img_opts = 'width=300'
+        #if sage.plot.all.is_Graphics(x):
+        #    extra_img_opts = 'width=300'
         return """<center> <table border=0 cellpadding=20 cellspacing=2
                 bgcolor=lightgrey>
                <tr><td bgcolor=white>

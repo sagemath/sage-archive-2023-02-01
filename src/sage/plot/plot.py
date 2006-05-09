@@ -77,6 +77,11 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
                  'Value', 'Figure', 'patches', 'flatten', \
                  'find_axes']
 
+DEFAULT_FIGSIZE=[4,3]
+
+import sage.misc.log
+import sage.misc.misc
+
 import os
 
 from sage.ext.sage_object import SageObject
@@ -410,7 +415,7 @@ class Graphics(SageObject):
 	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
 					color='k',linewidth=0.6))
 
-    def show(self, xmin=None, xmax=None, ymin=None, ymax=None,figsize=[6, 4.5], filename=None):
+    def show(self, xmin=None, xmax=None, ymin=None, ymax=None,figsize=DEFAULT_FIGSIZE, filename=None):
         """
 	Show a graphics image with default image viewer.
 	(Current implementation is hackish)
@@ -426,10 +431,11 @@ class Graphics(SageObject):
 
         """
         if filename is None:
-            filename = 'sage.png' #%tmp_filename()
+            filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize)
         # TODO: fix -- I don't know how...
-        os.system('gqview %s >/dev/null&'%filename)
+        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.log.browser(), filename))
+        #os.system('gqview %s >/dev/null&'%filename)
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
         if self.__xmin is None:
@@ -469,7 +475,7 @@ class Graphics(SageObject):
 
 	return xmin,xmax,ymin,ymax
 
-    def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=[6, 4.5],
+    def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
 		fig=None, sub=None, savenow=True):
         """
 	Save the graphics to a (png) image file.

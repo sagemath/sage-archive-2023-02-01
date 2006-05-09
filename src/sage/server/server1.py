@@ -3,6 +3,19 @@ SAGE Server 1 (of many)
 
 AUTHOR:
     -- William Stein (2006-05-06): initial version
+
+TODO:
+   * shrink/expand input/output blocks
+   * Add plain text annotation that is not evaluated
+     between blocks (maybe in html?)
+   * Option to delete blocks
+   * Make block expand if enter a lot of text into it.
+   * Evaluate the entire worksheet
+   * Theme-able / skinn-able
+   * Embedded graphics from plots;
+       also embed png from latexing of math objects (so they look nice).
+   * Downloading and access to exact log of IO to client SAGE process
+   * save session objects as to log objects so don't have to re-eval?
 """
 
 ###########################################################################
@@ -42,6 +55,9 @@ class IO_Line:
         else:
             cmd_nrows = nrows
 
+        #if not render_if_empty and len(self.cmd.strip()) == 0 \
+        #   and (self.out.strip()) == 0:
+        #    return ''
 
         w = max((ncols - 15), 3)
         html_in = """
@@ -108,9 +124,8 @@ class Log(SageObject):
                 color = "#FFFFFF"
             else:
                 color = "#FFFFFF"
-            j = i
-            L = self._log[j]
-            s += L.html(j, numrows, ncols, cmd_color=color)
+            L = self._log[i]
+            s += L.html(i, numrows, ncols, cmd_color=color)
         return s
 
     def set_last_cmd(self, cmd):
@@ -272,7 +287,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
 
 sage0=None
 def server_http1(name=None, port=8000, address='localhost', ncols=90,
-                 nrows=8, dir=None, viewer=False, log=None):
+                 nrows=8, dir=None, viewer=True, log=None):
     """
     Start a SAGE http server at the given port.
 
@@ -326,7 +341,7 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
     try:
 
         if viewer:
-            os.system('%s file:///%s&'%(BROWSER, logfile))
+            #os.system('%s file:///%s&'%(BROWSER, logfile))
             os.system('%s http://%s:%s&'%(BROWSER, address, port))
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."

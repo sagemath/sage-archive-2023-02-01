@@ -24,6 +24,7 @@ import sage.misc.preparser
 import sage.misc.misc
 import sage.misc.banner
 from sage.misc.log import BROWSER
+from sage.ext.sage_object import load, SageObject
 
 class IO_Line:
     def __init__(self, cmd='', out=''):
@@ -44,11 +45,13 @@ class IO_Line:
 
         w = max((ncols - 15), 3)
         html_in = """
-        <table width=95%% align=center border=0 cellpadding=2 bgcolor='#FFFFFF'>
-        <tr><td align=center>
-         <textarea name='%s'  bgcolor='%s' rows='%s'
+        <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF'>
+        <tr><td align=left bgcolor='#DDDDDD'>
+        <table border=0 cellpadding=7 bgcolor='#FFFFFF'><tr><td>
+         <textarea style="border: 0px;"
+                   name='%s'  bgcolor='%s' rows='%s'
                    cols='%s' id='input' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
-         </td></tr></table>
+        </td></tr></table></td></tr></table>
          """%(number, cmd_color, cmd_nrows, ncols, number, self.cmd)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
@@ -57,29 +60,31 @@ class IO_Line:
         if len(self.file_list) == 0:
             files = ''
         else:
-            files = '<br>' + ('&nbsp'*3).join(['<a href="%s">%s</a>'%(F,F) for F in self.file_list])
+            files = ('&nbsp'*3).join(['<a href="%s">%s</a>'%(F,F) for F in self.file_list])
 
         out = self.out
 
         if len(out) >  0:
-            out_nrows = min(out_nrows, len(out.split('\n')))
+            #out_nrows = min(out_nrows, len(out.split('\n')))
+            out_nrows = len(out.split('\n'))
+#             <textarea style="color:blue" readonly rows="%s" cols="%s">%s</textarea>
             html_out = """
-             <table width=95%%  align=center border=0 bgcolor='%s' cellpadding=2><tr>
-             <td bgcolor='#FFFFFF' align=center>
-             <textarea readonly rows="%s" cols="%s">%s</textarea>
-             %s</td></tr></table><br>
-             """%(out_color, out_nrows, ncols, out, files)
+             <table   border=0 bgcolor='%s' cellpadding=0><tr>
+             <td bgcolor='#FFFFFF' align=left>
+             <font color='blue'><pre>%s</pre>%s</font>
+             </td></tr></table>
+             """%(out_color, out, files)
         else:
             html_out = ''
 
-        c = """<div align=center>
+        c = """
         <form name="" method=post action="" id="%s">
         %s
         %s
-        </form></div>"""%(number, html_in, html_out)
+        </form>"""%(number, html_in, html_out)
         return c
 
-class Log:
+class Log(SageObject):
     def __init__(self):
         self._log = []
 
@@ -105,7 +110,7 @@ class Log:
                 color = "#FFFFFF"
             j = i
             L = self._log[j]
-            s += L.html(j, numrows, ncols, cmd_color=color) + '<hr>'
+            s += L.html(j, numrows, ncols, cmd_color=color)
         return s
 
     def set_last_cmd(self, cmd):
@@ -137,12 +142,12 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         return new
 
     def __show_page(self, number):
-        global log
+        global current_log
         f = self.send_head()
         if f:
             f = StringIO()
             f.write("""
-            <html><head><title>SAGE Calculator</title></head>\n
+            <html><head><title>SAGE Calculator (%s)</title></head>\n
             <script language=javascript>
             function scroll_to_bottom() {
                 document.getElementById(%s).scrollIntoView()
@@ -159,14 +164,14 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                    return true;
             }
             </script>
-            """%number)
+            """%(save_name, number))
 
-            f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H1><font color="darkgreen">SAGE</font></H1>')
-            f.write('<h2<tr>%s</h2></div>'%\
-                    sage.misc.banner.version())
-            if len(log) == 0 or log[-1].cmd != '':
+            f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H2><font color="darkgreen"><a href="http://modular.math.washington.edu/sage">SAGE</a>: Software for Algebra and Geometry Experimentation</font></H2>')
+            f.write('<h3<tr>%s</h3>'%sage.misc.banner.version())
+            f.write('(enter input and press shift-enter)')
+            if len(current_log) == 0 or current_log[-1].cmd != '':
                 I = IO_Line()
-                log.append(I)
+                current_log.append(I)
             #f.write('<br><hr><h2 align=center>Complete Session Log</h2>')
             #f.write("""<table width=90%% align=center bgcolor='#CCCCCC' cellpadding=10>
             #<tr><td bgcolor='#FFFFFF'>
@@ -174,8 +179,10 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             #  </td></tr></table>
             #  """%fulltext_log)
             f.write('<hr>')
-            f.write(log.html(numcols))
-            f.write('</body></html>')
+            if save_name:
+                current_log.save(save_name)
+            f.write(current_log.html(numcols))
+            f.write('</div></body></html>')
             f.seek(0)
             self.copyfile(f, self.wfile)
             f.close()
@@ -185,7 +192,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         self.__show_page(0)
 
     def do_POST(self):
-        global log, fulltext_log
+        global current_log, fulltext_log
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         length = int(self.headers.getheader('content-length'))
         if ctype == 'multipart/form-data':
@@ -201,11 +208,11 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             #number = eval(C['exec'][0].split()[-1])
             #print "INPUT:\n%s"%code_to_eval
             try:
-                if number > len(log)-1:
-                    log.set_last_cmd(code_to_eval)
-                    number = len(log)-1
+                if number > len(current_log)-1:
+                    current_log.set_last_cmd(code_to_eval)
+                    number = len(current_log)-1
                 else:
-                    log[number].cmd = code_to_eval
+                    current_log[number].cmd = code_to_eval
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
                 s = [x for x in s.split('\n') if len(x.split()) > 0]   # remove all blank lines
@@ -223,13 +230,12 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     print "Keyboard interrupt!"
                     o = msg
 
-                #print 'OUTPUT:\n%s'%o
                 o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
-                log[number].out = o
-                log[number].file_list = self.__new_files()
+                current_log[number].out = o
+                current_log[number].file_list = self.__new_files()
                 self.__show_page(number)
 
             except (RuntimeError, TypeError), msg:
@@ -265,9 +271,26 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         shutil.copyfileobj(source, outputfile)
 
 sage0=None
-def server_http1(port=8000, address='localhost', ncols=90,
-                nrows=8, dir=None, viewer=False):
-    global directory, fulltext_log, log, files, numcols, numrows, sage0
+def server_http1(name=None, port=8000, address='localhost', ncols=90,
+                 nrows=8, dir=None, viewer=False, log=None):
+    """
+    Start a SAGE http server at the given port.
+
+    Typical usage:
+        server_http1('mysession')
+
+    Use it.  To start it later, just type server_http1('mysession') again.
+
+    INPUT:
+        name -- name of the server; all I/O is saved in the file
+                with that name in current directory.  If you restart
+                the server with that same name then it will restart
+                in the state you left it (though of course none of the
+                blocks will have been evaluated).
+        port -- port on computer where the server is served
+    """
+    global directory, fulltext_log, current_log, \
+           files, numcols, numrows, sage0, save_name
     remove_dir = False
     if dir is None:
         remove_dir = True
@@ -280,8 +303,15 @@ def server_http1(port=8000, address='localhost', ncols=90,
     numcols = int(ncols)
     numrows = int(nrows)
     files = os.listdir(directory)
+    save_name = name
     fulltext_log = ''
-    log = Log()
+    if log is None and (not name is None) and \
+           (os.path.exists(name) or os.path.exists(name + '.sobj')):
+        log = load(name)
+    if log is None:
+        current_log = Log()
+    else:
+        current_log = log
     sage0 = sage.interfaces.sage0.Sage(logfile=logfile)
     sage0.eval('os.chdir("%s")'%directory)
     server_address = (address, int(port))
@@ -308,7 +338,10 @@ def server_http1(port=8000, address='localhost', ncols=90,
         print msg
         print "Shutting down server."
 
+    if not name is None:
+        log.save(name)
 
+    return current_log
 
 
 

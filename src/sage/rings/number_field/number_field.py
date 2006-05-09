@@ -75,11 +75,6 @@ def NumberField(polynomial, name='a', check=True):
         check -- bool (default: True); do type checking and
                  irreducibility checking.
 
-    \note{Relative extensions are not directly supported yet (but will
-    be soon).  However, you can make a quotient of a polynomial ring
-    over a number field, hence at least construct relative extensions.
-    See the examples below.}
-
     EXAMPLES:
         sage: z = QQ['z'].0
         sage: K = NumberField(z^2 - 2,'s'); K
@@ -91,8 +86,18 @@ def NumberField(polynomial, name='a', check=True):
         sage: s^2
         2
 
-    EXAMPLE: Relative number field as polynomial quotient ring.
-
+    EXAMPLES: Constructing a relative number field
+        sage: K, a = NumberField(x^2 - 2).objgen()
+        sage: R, t = K['t'].objgen()
+        sage: L = K.extension(t^3+t+a); L
+        Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
+        sage: L.absolute_field()
+        Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
+        sage: b = L.gen()
+        sage: a*b
+        -b^4 - b^2
+        sage: L.lift_to_base(-3*b^3 - 3*b + 1)
+        3*a + 1
     """
     global _objsNumberField
     key = (polynomial, name)
@@ -121,6 +126,9 @@ def is_QuadraticField(x):
 
 def is_NumberField(x):
     return isinstance(x, NumberField_generic)
+
+def is_NumberFieldExtension(x):
+    return isinstance(x, NumberField_extension)
 
 def CyclotomicField(n):
     return NumberField_cyclotomic(n)
@@ -156,8 +164,8 @@ class NumberField_generic(field.Field):
         else:
             self.__latex_variable_name = latex_name
         self.__polynomial = polynomial
-        self.__degree = polynomial.degree()
-        self.__polynomial_ring = polynomial.parent()
+        self.__pari_bnf_certified = False
+        self.__absolute_field = self
 
     def latex_variable_name(self, name=None):
         if name is None:
@@ -170,7 +178,7 @@ class NumberField_generic(field.Field):
                    self.variable_name(), self.polynomial())
 
     def _latex_(self):
-        return "%s[%s]/(%s)"%(latex(Q), self.variable_name(), self.polynomial()._latex_(self.variable_name()))
+        return "%s[%s]/(%s)"%(latex(QQ), self.variable_name(), self.polynomial()._latex_(self.variable_name()))
 
     def __call__(self, x):
         """
@@ -239,29 +247,41 @@ class NumberField_generic(field.Field):
             self.__pari_nf = f.nfinit()
             return self.__pari_nf
 
-    def pari_bnf(self):
+    def pari_bnf(self, certify=False):
         """
         PARI big number field corresponding to this field.
         """
         try:
+            if certify:
+                self.pari_bnf_certify()
             return self.__pari_bnf
         except AttributeError:
             f = self.pari_polynomial()
             self.__pari_bnf = f.bnfinit()
+            if certify:
+                self.pari_bnf_certify()
             return self.__pari_bnf
+
+    def pari_bnf_certify(self):
+        """
+        Run the PARI bnfcertify function to ensure the correctness of answers.
+        """
+        if not self.__pari_bnf_certified:
+            if self.pari_bnf(certify=False).bnfcertify() != 1:
+                raise ValueError, "The result is not correct according to bnfcertify"
+            self.__pari_bnf_certified = True
 
     def characteristic(self):
         return 0
 
-    def class_group(self):
-        """
-        WARNING: Assume GRH, etc. !!
-          TODO: Change to use bnf_certify, unless user requests not to.
+    def class_group(self, certify=True):
+        r"""
+        Return the class group of this field.
         """
         try:
             return self.__class_group
         except AttributeError:
-            k = self.pari_bnf()
+            k = self.pari_bnf(certify)
             s = str(k[7][0])  # it's the [8][1] entry in pari, but the python interface is 0 based.
             s = s.replace(";",",")
             s = eval(s)
@@ -269,8 +289,8 @@ class NumberField_generic(field.Field):
                sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
         return self.__class_group
 
-    def class_number(self):
-        return self.class_group().order()
+    def class_number(self, certify=True):
+        return self.class_group(certify).order()
 
     def composite_fields(self, other):
         """
@@ -286,7 +306,7 @@ class NumberField_generic(field.Field):
         return [NumberField(h, name=self.variable_name()) for h in C]
 
     def degree(self):
-        return self.__degree
+        return self.polynomial().degree()
 
     def discriminant(self, v=None):
         """
@@ -309,6 +329,34 @@ class NumberField_generic(field.Field):
             return Q(self.trace_pairing(v).det())
 
     disc = discriminant
+
+    def elements_of_norm(self, n, certify=True):
+        r"""
+        Return a list of solutions modulo units of positive norm to
+        $Norm(a) = n$, where a can be any integer in this number field.
+
+        EXAMPLES:
+            sage: K = NumberField(x^2+1)
+            sage: K.elements_of_norm(3)
+            []
+            sage: K.elements_of_norm(50)
+            [7*a - 1, -5*a + 5, a - 7]
+        """
+        B = self.pari_bnf(certify).bnfisintnorm(n)
+        R = self.polynomial().parent()
+        return [self(QQ['x'](R(g))) for g in B]
+
+    def extension(self, poly, name='b'):
+        """
+        Return the relative extension of this field by a given polynomial.
+
+        EXAMPLE:
+            sage: K, a = NumberField(x^3 - 2).objgen()
+            sage: t = K['x'].gen()
+            sage: L = K.extension(t^2 + a); L
+            Extension by x^2 + a of the Number Field in a with defining polynomial x^3 - 2
+        """
+        return NumberField_extension(self, poly, name)
 
     def factor_integer(self, n):
         """
@@ -394,6 +442,24 @@ class NumberField_generic(field.Field):
             self.__integral_basis = [self(R(g).list()) for g in B]
         return self.__integral_basis
 
+    def narrow_class_group(self, certify = True):
+        r"""
+        Return the narrow class group of this field.
+
+        EXAMPLES:
+            sage: NumberField(x^3+x+9).narrow_class_group()
+            Abelian group on 1 generators (f,) with invariants [2]
+        """
+        try:
+            return self.__narrow_class_group
+        except AttributeError:
+            k = self.pari_bnf(certify)
+            s = str(k.bnfnarrow())
+            s = s.replace(";",",")
+            s = eval(s)
+            self.__narrow_class_group = sage.groups.abelian_gps.abelian_group.AbelianGroup(s[1])
+        return self.__narrow_class_group
+
     def ngens(self):
         return 1
 
@@ -410,7 +476,7 @@ class NumberField_generic(field.Field):
         return self.__polynomial
 
     def polynomial_ring(self):
-        return self.__polynomial_ring
+        return self.polynomial().parent()
 
     def polynomial_quotient_ring(self):
         """
@@ -423,6 +489,27 @@ class NumberField_generic(field.Field):
             Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^3 + 2*x - 5
         """
         return self.polynomial_ring().quotient(self.polynomial(), self.variable_name())
+
+    def regulator(self, certify=True):
+        """
+        Return the regulator of this number field.
+
+        Note that PARI computes the regulator to higher precision than
+        the SAGE default.
+
+        EXAMPLES:
+            sage: NumberField(x^2-2).regulator()
+            0.88137358701954305
+            sage: NumberField(x^4+x^3+x^2+x+1).regulator()
+            0.96242365011920694
+        """
+        try:
+            return self.__regulator
+        except AttributeError:
+            k = self.pari_bnf(certify)
+            s = str(k[7][1])  # it's the [8][2] entry in pari, but the python interface is 0 based.
+            self.__regulator = eval(s)
+        return self.__regulator
 
     def trace_pairing(self, v):
         """
@@ -446,7 +533,7 @@ class NumberField_generic(field.Field):
                 A[j,i] = t
         return A
 
-    def units(self):
+    def units(self, certify = True):
         """
         Return generators for the unit group modulo torsion.
 
@@ -462,7 +549,7 @@ class NumberField_generic(field.Field):
         try:
             return self.__units
         except AttributeError:
-            B = self.pari_bnf().bnfunit()
+            B = self.pari_bnf(certify).bnfunit()
             R = self.polynomial().parent()
             self.__units = [self(R(g)) for g in B]
             return self.__units
@@ -513,8 +600,9 @@ class NumberField_generic(field.Field):
             else:
                 return self(-1)
         else:
-            f = self.polynomial_ring().cyclotomic_polynomial(n)
-            F = polynomial_ring.PolynomialRing(self)(f)
+            field = self.__absolute_field
+            f = field.polynomial_ring().cyclotomic_polynomial(n)
+            F = polynomial_ring.PolynomialRing(field)(f)
             R = F.roots()
             if len(R) == 0:
                 raise ValueError, "There are no %s-th roots of unity self."%n
@@ -522,6 +610,268 @@ class NumberField_generic(field.Field):
                 return [r[0] for r in R]
             else:
                 return R[0][0]
+
+    def zeta_coefficients(self, n):
+        """
+        Compute the first n coefficients of the Dedekind zeta function
+        of this field as a Dirichlet series.
+
+        EXAMPLE:
+            sage: NumberField(x^2+1).zeta_coefficients(10)
+            [1, 1, 0, 1, 2, 0, 0, 1, 1, 2]
+        """
+        return self.pari_nf().dirzetak(n)
+
+
+
+class NumberField_extension(NumberField_generic):
+    """
+    EXAMPLES:
+        sage: K, a = NumberField(x^3 - 2).objgen()
+        sage: t = K['x'].gen()
+        sage: L = K.extension(t^2+t+a); L
+        Extension by x^2 + x + a of the Number Field in a with defining polynomial x^3 - 2
+    """
+    def __init__(self, base, polynomial, name='b', latex_name=None):
+        """
+        Note: polynomial must be defined in the ring \code{K['x']}, where
+        K is the base field.
+        """
+        if not is_NumberField(base):
+            raise TypeError, "base (=%s) must be a number field"%base
+        if not isinstance(polynomial, polynomial_element.Polynomial):
+            raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
+        if name == base.variable_name():
+            raise ValueError, "Base field and extension cannot have the same name"
+        if polynomial.parent().base_ring() != base:
+            raise ValueError, "The polynomial must be defined over the base field"
+
+        # Ignore the variable names already in use, and redefine the fields
+        # by polynomials in x and y to follow PARI's ordering convention.
+
+        base_pari_poly = str(base.polynomial())
+        base_pari_var = base.polynomial().parent().variable_name()
+        base_pari_poly = base_pari_poly.replace(base_pari_var, 'y')
+        yvar = base.variable_name()
+        xvar = polynomial.parent().variable_name()
+
+        # Generate the nf and bnf corresponding to the base field
+        # defined as polynomials in y, e.g. for rnfisfree
+
+        # Convert the polynomial defining the base field into a
+        # polynomial in y to satisfy PARI's ordering requirements.
+        # NOTE: This might not work properly if the base field is not
+        #       defined by a polynomial in one variable.
+        Qx = base.polynomial().parent()
+        Qy = (base.polynomial().base_ring())['y']
+        phi = Qx.hom([Qy.gen()])
+        base_polynomial_y = phi(base.polynomial())
+
+        self.__base_nf = pari(base_polynomial_y).nfinit()
+        self.__base_bnf = pari(base_polynomial_y).bnfinit()
+
+        # Use similar methods to convert the polynomial defining the
+        # relative extension into a polynomial in x, with y denoting
+        # the generator of the base field.
+        # NOTE: This should be rewritten if there is a way to extend
+        #       homomorphisms K -> K' to homomorphisms K[x] -> K'[x].
+        base_field_y = NumberField(base.polynomial(), 'y')
+        Kx = base_field_y['x']
+        i = base.hom([base_field_y.gen()]) # inclusion K -> K' with a -> y
+        rel_coeffs = [i(c) for c in polynomial.coeffs()]
+        polynomial_y = sum([rel_coeffs[i]*Kx.gen()**i for i in range(0,len(rel_coeffs))])
+
+        self.__pari_relative_polynomial = pari(str(polynomial_y))
+        self.__rnf = self.__base_nf.rnfinit(self.__pari_relative_polynomial)
+
+        self.__base_field = base
+        NumberField_generic.__init__(self, self.absolute_polynomial(), name=name, latex_name=latex_name, check=False)
+
+        self.assign_names(name)
+        self.__relative_polynomial = polynomial
+        self.__pari_bnf_certified = False
+
+    def __repr__(self):
+        return "Extension by %s of the Number Field in %s with defining polynomial %s"%(
+            self.polynomial(), self.base_field().variable_name(),
+            self.base_field().polynomial())
+
+    def _latex_(self):
+        r"""
+        Return a \LaTeX representation of the extension.
+
+        EXAMPLE:
+            sage: K, a = NumberField(x^3 - 2).objgen()
+            sage: t = K['x'].gen()
+            sage: K.extension(t^2+t+a)._latex_()
+            '\\mbox{\\bf{}Q}[b,a]/(b^{2} + b + a, a^{3} - 2)'
+        """
+        return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.variable_name(), self.base_field().variable_name(), self.polynomial()._latex_(self.variable_name()), self.base_field().polynomial()._latex_(self.base_field().variable_name()))
+
+    def __call__(self, x):
+        """
+        Coerce x into this number field.
+        """
+        if isinstance(x, number_field_element.NumberFieldElement):
+            if x.parent() == self:
+                return x
+            if x.parent() == self.base_field():
+                return self.__base_inclusion(x)
+
+        if not isinstance(x, (int, long, rational.Rational,
+                              integer.Integer, pari_gen,
+                              polynomial_element.Polynomial,
+                              list)):
+            raise TypeError, "Cannot coerce %s into %s"%(x,self)
+
+        return number_field_element.NumberFieldElement(self, x)
+
+    def _coerce_(self, x):
+        if isinstance(x, number_field_element.NumberFieldElement):
+            if x.parent() == self:
+                return x
+            if x.parent() == self.base_field():
+                return self.__base_inclusion(x)
+        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
+            return number_field_element.NumberFieldElement(self, x)
+        raise TypeError
+
+    def __base_inclusion(self, element):
+        """
+        Given an element of the base field, give its inclusion into this
+        extension (according to PARI's rnfeltreltoabs) in terms of the
+        generator of this field.
+        """
+        if not number_field_element.is_NumberFieldElement(element):
+            raise TypeError, "element must be a NumberFieldElement"
+        if element.parent() != self.base_field():
+            raise TypeError, "element must belong to the base field"
+        base_field_y = NumberField(self.base_field().polynomial(), 'y')
+        phi = self.base_field().hom([base_field_y.gen()])
+        expr_x = self.pari_rnf().rnfeltreltoabs(str(phi(element)))
+
+        # Convert to a polynomial in x, then to one in gen(), and return it
+        return self(QQ['x'](str(expr_x).replace('^','**')))
+
+    def __pari_base_bnf(self, certify=False):
+        # No need to certify the same field twice, so we'll just check
+        # that the base field is certified.
+        if certify:
+            self.base_field().pari_bnf_certify()
+        return self.__base_bnf
+
+    def __pari_base_nf(self):
+        return self.__base_nf
+
+    def pari_polynomial(self):
+        """
+        PARI polynomial corresponding to polynomial that defines
+        this field.
+        """
+        try:
+            return self.__pari_polynomial
+        except AttributeError:
+            self.__pari_polynomial = self.absolute_polynomial()._pari_()
+            return self.__pari_polynomial
+
+    def pari_rnf(self):
+        return self.__rnf
+
+    def pari_relative_polynomial(self):
+        return self.__pari_relative_polynomial
+
+    def absolute_field(self, name=None):
+        r"""
+        Return this field as an extension of $\Q$ rather than an
+        extension of the base field.
+        """
+        try:
+            return self.__absolute_field
+        except AttributeError:
+            if name is None:
+                name = self.variable_name()
+            self.__absolute_field = NumberField(self.absolute_polynomial(), name)
+            return self.__absolute_field
+
+    def absolute_polynomial(self):
+        r"""
+        Return the polynomial over $\Q$ which defines this field as an
+        extension of the rational numbers.
+        """
+        try:
+            return self.__absolute_polynomial
+        except AttributeError:
+            pbn = self.__pari_base_nf()
+            prp = self.pari_relative_polynomial()
+            pari_poly = str(pbn.rnfequation(prp)).replace('^', '**')
+            R = self.base_field().polynomial().parent()
+            self.__absolute_polynomial = R(pari_poly)
+            return self.__absolute_polynomial
+
+    def base_field(self):
+        return self.__base_field
+
+    def galois_group(self, pari_group = False, use_kash=False):
+        r"""
+        Return the Galois group of the Galois closure of this number
+        field as an abstract group.  Note that even though this is an
+        extension $L/K$, the group will be computed as if it were $L/\Q$.
+
+        For more (important!) documentation, so the documentation
+        for Galois groups of polynomials over $\Q$, e.g., by
+        typing \code{K.polynomial().galois_group?}, where $K$
+        is a number field.
+
+        EXAMPLE:
+            sage: K = NumberField(x^2 + 1); R = K['x']
+            sage: a, t = K.gen(), R.gen()
+            sage: L = K.extension(t^5-t+a)
+            sage: L.galois_group()
+            Transitive group number 22 of degree 10
+        """
+        return self.absolute_polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)
+
+    def is_free(self, certify=True):
+        r"""
+        Determine whether or not $L/K$ is free (i.e. if $\mathcal{O}_L$ is
+        a free $\mathcal{O}_K$-module).
+
+        EXAMPLES:
+            sage: K = NumberField(x^2+6)
+            sage: L = K.extension(K['x'].gen()^2 + 3) ## extend by x^2+3
+            sage: L.is_free()
+            False
+        """
+        base_bnf = self.__pari_base_bnf(certify)
+        if base_bnf.rnfisfree(self.pari_relative_polynomial()) == 1:
+            return True
+        return False
+
+    def lift_to_base(self, element):
+        """
+        Lift an element of this extension into the base field if possible,
+        or raise a ValueError if it is not possible.
+
+        EXAMPLES:
+        sage: K = NumberField(x^3 - 2, 'a')
+        sage: R = K['x']
+        sage: L = K.extension(R.gen()^2 - K.gen(), 'b')
+        sage: b = L.gen()
+        sage: L.lift_to_base(b^4)
+        a^2
+        sage: L.lift_to_base(b)
+        Traceback (most recent call last):
+        ...
+        ValueError: The element b is not in the base field
+        """
+        element_x = str(element).replace(self.variable_name(), 'x')
+        poly_xy = str(self.pari_rnf().rnfeltabstorel(element_x)).replace('^','**')
+        if poly_xy.find('x') >= 0:
+            raise ValueError, "The element %s is not in the base field"%element
+        return self.base_field()( QQ['y'](poly_xy) )
+
+    def polynomial(self):
+        return self.__relative_polynomial
 
 
 

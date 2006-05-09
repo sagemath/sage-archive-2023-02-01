@@ -35,6 +35,9 @@ from sage.libs.all import pari_gen
 
 QQ = rational_field.RationalField()
 
+def is_NumberFieldElement(x):
+    return isinstance(x, NumberFieldElement)
+
 class NumberFieldElement(field_element.FieldElement):
     """
     An element of a number field.
@@ -80,18 +83,26 @@ class NumberFieldElement(field_element.FieldElement):
             sage: loads(s.dumps()) == s
             True
         """
+        ppr = parent.polynomial_ring()
+        if isinstance(parent, number_field.NumberField_extension):
+            ppr = parent.base_field().polynomial_ring()
+
         if isinstance(parent, str):
             print 'parent = ', parent
             print 'f = ', f
         if isinstance(f, pari_gen):
             f = f.lift()
-            f = parent.polynomial_ring()(f)
+            f = ppr(f)
         if not isinstance(f, polynomial.Polynomial):
-            f = parent.polynomial_ring()(f)
+            f = ppr(f)
         if f.degree() >= parent.degree():
-            f %= parent.polynomial()
+            if isinstance(parent, number_field.NumberField_extension):
+                f %= parent.absolute_polynomial()
+            else:
+                f %= parent.polynomial()
         field_element.FieldElement.__init__(self, parent)
         self.__element = f
+        self.__field = parent
 
     def __repr__(self):
         x = self.__element
@@ -101,8 +112,7 @@ class NumberFieldElement(field_element.FieldElement):
         return codomain(self.__element(im_gens[0]))
 
     def _latex_(self):
-        return self.polynomial()._latex_(name=
-                            self.parent().latex_variable_name())
+        return self.polynomial()._latex_(name=self.__field.variable_name())
 
     def _pari_(self, var=None):
         """

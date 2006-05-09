@@ -3887,9 +3887,23 @@ cdef class gen:
             _sig_on
             return P.new_gen(bnfinit0(self.g, flag, t0, prec))
 
+    def bnfisintnorm(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(bnfisintnorm(self.g, t0))
+
+    def bnfnarrow(self):
+        _sig_on
+        return self.new_gen(buchnarrow(self.g))
+
     def bnfunit(self):
         _sig_on
         return self.new_gen(buchfu(self.g))
+
+    def dirzetak(self, n):
+        t0GEN(n)
+        _sig_on
+        return self.new_gen(dirzetak(self.g, t0))
 
     def idealfactor(self, x):
         t0GEN(x)
@@ -3916,6 +3930,22 @@ cdef class gen:
         _sig_on
         return P.new_gen(nfinit0(self.g, flag, prec))
 
+    def rnfeltabstorel(self, x):
+        t0GEN(x)
+        _sig_on
+        polymodmod = self.new_gen(rnfelementabstorel(self.g, t0))
+        return polymodmod.centerlift().centerlift()
+
+    def rnfeltreltoabs(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfelementreltoabs(self.g, t0))
+
+    def rnfequation(self, poly):
+        t0GEN(poly)
+        _sig_on
+        return self.new_gen(rnfequation0(self.g, t0, 0))
+
     def rnfinit(self, poly):
         """
         EXAMPLES:
@@ -3930,6 +3960,10 @@ cdef class gen:
         _sig_on
         return P.new_gen(rnfinitalg(self.g, t0, prec))
 
+    def rnfisfree(self, poly):
+        t0GEN(poly)
+        _sig_on
+        return rnfisfree(self.g, t0)
 
 
 

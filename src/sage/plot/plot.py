@@ -77,7 +77,7 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
                  'Value', 'Figure', 'patches', 'flatten', \
                  'find_axes']
 
-DEFAULT_FIGSIZE=[4,3]
+DEFAULT_FIGSIZE=[5,4]
 
 import sage.misc.log
 import sage.misc.misc
@@ -433,7 +433,6 @@ class Graphics(SageObject):
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize)
-        # TODO: fix -- I don't know how...
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.log.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
@@ -1294,11 +1293,13 @@ class GraphicsArray:
             subplot = figure.add_subplot(rows, cols, i)
 	    g.save(filename, fig=figure, sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
-    def show(self, filename=""):
-	if not filename:
-            filename = '/tmp/sage.png'
+    def show(self, filename=None):
+        if filename is None:
+            filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename)
-        os.system('gqview %s >/dev/null&'%filename)
+        os.system('%s %s 2>/dev/null 1>/dev/null &'%(
+                         sage.misc.log.browser(), filename))
+        #os.system('gqview %s >/dev/null&'%filename)
 
 def graphics_array(array):
     r"""

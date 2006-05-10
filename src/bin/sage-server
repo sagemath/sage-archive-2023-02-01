@@ -1,0 +1,13 @@
+#!/usr/bin/env sage-python
+
+import os, sys, socket
+from sage.all import *
+
+port = 8001
+
+while True:
+    try:
+        server_http1(sys.argv[1], port=port)
+        sys.exit(0)
+    except socket.error:
+        port += 1

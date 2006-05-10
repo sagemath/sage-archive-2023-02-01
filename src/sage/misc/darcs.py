@@ -175,6 +175,12 @@ class Darcs:
         if url is None:
             url = self.__url
         self('pull %s %s'%(options, url))
+        if self.__target == 'sage':
+            print ""
+            print "Now building the new SAGE libraries"
+            os.system('sage -b')
+            print "You *MUST* restart SAGE in order for the changes to take effect!"
+
 
     def record(self, options=''):
         """

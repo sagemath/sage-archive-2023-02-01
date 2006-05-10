@@ -423,7 +423,7 @@ cdef class CanonicalForm:
         if is_FieldElement(arg) and arg.parent().degree()!=1:
            cPoly = CF(0)
            if not isinstance(arg2,Variable):
-              raise TypeError, "Need algebraic variable for BaseDomain"
+              arg2 = setBaseDomain(arg.parent())
            varlevel  = arg2.level()
            f = arg._pari_().lift().lift()
            if f.poldegree() == 0:
@@ -1299,7 +1299,10 @@ cdef class CanonicalForm:
 
             if self.inCoeffDomain():
                 # catch the constant case
-                d[tuple([int(0),]*r.ngens())]=self
+                cs = str(self)
+                if not self.inFF():
+                   cs = cs.replace(str(self.mvar()),kgen)
+                d[tuple([int(0),]*r.ngens())]=r.base_ring()(cs)
                 return r(polydict.PolyDict(d))
 
             for c,e in self:
@@ -1307,7 +1310,9 @@ cdef class CanonicalForm:
                 exp[level]= e
                 l = self.__cflist__(c,exp)
                 for c2,e2 in l:
-                    cs = str(c2).replace(str(c2.mvar()),kgen)
+                    cs = str(c2)
+                    if not c2.inFF():
+                        cs = cs.replace(str(c2.mvar()),kgen)
                     if cache!=None:
                         if not cache.has_key(cs):
                             cache[cs]=r.base_ring()(cs)

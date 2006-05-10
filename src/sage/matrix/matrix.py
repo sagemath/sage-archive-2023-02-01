@@ -97,6 +97,8 @@ from sage.structure.mutability import Mutability
 
 import sage.ext.dense_matrix_pyx
 
+from sage.interfaces.all import singular as singular_default
+
 cputime = misc.cputime
 
 def is_Matrix(x):
@@ -3675,6 +3677,21 @@ class Matrix_generic_dense_domain(Matrix_domain, Matrix_generic_dense):
                        coerce_entries=True,
                        copy=True):
         Matrix_generic_dense.__init__(self, parent, entries, coerce_entries, copy)
+
+    def _singular_(self, singular=singular_default):
+        """
+        Tries to coerce this matrix to a singular matrix.
+        """
+
+
+
+        try:
+            self.base_ring()._singular_()
+        except (NotImplementedError, AttributeError):
+            raise TypeError, "Cannot coerce to Singular"
+
+        return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
+
 
 class Matrix_generic_sparse_domain(Matrix_domain, Matrix_generic_sparse):
     def __init__(self, parent, entries=0,

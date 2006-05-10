@@ -226,13 +226,9 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         elif ctype == 'application/x-www-form-urlencoded':
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
-            print C
             number = eval(C.keys()[0])
             code_to_eval = C[C.keys()[0]][0]
-            #code_to_eval = C['input'][0]
             fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
-            #number = eval(C['exec'][0].split()[-1])
-            #print "INPUT:\n%s"%code_to_eval
             try:
                 if number > len(current_log)-1:
                     current_log.set_last_cmd(code_to_eval)
@@ -244,9 +240,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 s = [x for x in s.split('\n') if len(x.split()) > 0]   # remove all blank lines
                 if len(s) > 0:
                     t = s[-1]
-                    if len(t) > 0 and t[0] != ' ' and t[0] != '\t' and t[:5] != 'print' \
-                       and t[:4] != 'time' and not ('=' in t):
-                        s[-1] = 'print %s'%s[-1]
+                    if len(t) > 0 and not t[0].isspace():
+                        s[-1] = "exec compile('%s', '', 'single')"%t
                 s = '\n'.join(s)
 
                 open('%s/_temp_.py'%directory, 'w').write(s)
@@ -345,8 +340,7 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
     httpd = BaseHTTPServer.HTTPServer(server_address,
                                       HTML_Interface)
     sa = httpd.socket.getsockname()
-    #print "Serving HTTP on", sa[0], "port", sa[1], "..."
-    print "Web interface at http://%s:%s"%(address, port)
+    print "SAGE Web interface at http://%s:%s"%(address, port)
     print "Running log at %s"%logfile
 
     try:
@@ -356,7 +350,6 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
             os.system('%s http://%s:%s&'%(BROWSER, address, port))
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."
-
         httpd.serve_forever()
 
     except KeyboardInterrupt, msg:
@@ -365,7 +358,7 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
         print "Shutting down server."
 
     if not name is None:
-        log.save(name)
+        current_log.save(name)
 
     return current_log
 

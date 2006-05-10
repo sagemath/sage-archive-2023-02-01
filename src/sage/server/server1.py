@@ -25,6 +25,8 @@ TODO:
    [] Save session objects as to log objects so don't have to re-eval?
    [] The entire page is resent/updated every time you hit shift-enter;
       using 'AJAX' this flicker/lag could be completely eliminated.
+   [] When pressing shift-enter a line feed is inserted temporarily
+      into the inbox, which is unnerving.
 """
 
 ###########################################################################

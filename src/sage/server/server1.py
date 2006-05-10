@@ -5,33 +5,26 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] The "move to the current input box" javascript *only* works
+      with firefox (not opera, not konqueror).
    [] shrink/expand input/output blocks
-
    [] Add plain text annotation that is not evaluated
       between blocks (maybe in html?)
       E.g., just make ctrl-enter on a block by HTML-it.
-
    [] Ability to interrupt running calculations directly
       from the web interface (no console access)
-
    [] Nice animation while a computation is proceeding.
-
    [] Some way to show output as it is computed.
-
    [] Option to delete blocks
-
    [] Make block expand if enter a lot of text into it.
-
    [] Evaluate the entire worksheet
-
-   [] Theme-able / skinn-able
-
+   [] Theme-able / skin-able
    [] Embedded graphics from plots;
        also embed png from latexing of math objects (so they look nice).
-
    [] Downloading and access to exact log of IO to client SAGE process
-
    [] Save session objects as to log objects so don't have to re-eval?
+   [] The entire page is resent/updated every time you hit shift-enter;
+      using 'AJAX' this flicker/lag could be completely eliminated.
 """
 
 ###########################################################################

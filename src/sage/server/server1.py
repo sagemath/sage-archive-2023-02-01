@@ -6,8 +6,12 @@ AUTHOR:
 
 TODO:
    [] The "move to the current input box" javascript *only* works
-      with firefox (not opera, not konqueror).
-   [] shrink/expand input/output blocks
+      with firefox (not opera, not konqueror); also this should
+      just keep the page position where it is rather than move it.
+      Moving to a more AJAX-ish model would alternatively fix this, maybe.
+   [] A. Clemesha: shrink/expand input/output blocks
+   [] A. Clemesha: When hit shift-enter the next text box should be made
+      into focus.
    [] Add plain text annotation that is not evaluated
       between blocks (maybe in html?)
       E.g., just make ctrl-enter on a block by HTML-it.
@@ -237,7 +241,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     current_log[number].cmd = code_to_eval
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
-                s = [x for x in s.split('\n') if len(x.split()) > 0]   # remove all blank lines
+                s = [x for x in s.split('\n') if len(x.split()) > 0 and \
+                      x.lstrip()[0] != '#']   # remove all blank lines and comment lines
                 if len(s) > 0:
                     t = s[-1]
                     if len(t) > 0 and not t[0].isspace():
@@ -251,7 +256,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     print "Keyboard interrupt!"
                     o = msg
 
-                o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 

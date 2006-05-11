@@ -246,7 +246,10 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 if len(s) > 0:
                     t = s[-1]
                     if len(t) > 0 and not t[0].isspace():
+                        # broken if input has triple quotes!!
+                        t = t.replace("'","\\'")
                         s[-1] = "exec compile('%s', '', 'single')"%t
+
                 s = '\n'.join(s)
 
                 open('%s/_temp_.py'%directory, 'w').write(s)

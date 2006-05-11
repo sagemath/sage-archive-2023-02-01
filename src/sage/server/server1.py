@@ -104,7 +104,7 @@ class IO_Line:
              <td bgcolor='#FFFFFF' align=left>
              <font color='blue'><pre>%s</pre>%s</font>
              </td></tr></table>
-             """%(out_color, out, files)
+             """%(out_color, out.replace('<','&lt;'), files)
         else:
             html_out = ''
 

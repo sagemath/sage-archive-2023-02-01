@@ -31,6 +31,7 @@ TODO:
       using 'AJAX' this flicker/lag could be completely eliminated.
    [] When pressing shift-enter a line feed is inserted temporarily
       into the inbox, which is unnerving.
+   [] Add authentication
 """
 
 ###########################################################################

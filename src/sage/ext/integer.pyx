@@ -266,6 +266,9 @@ cdef class Integer(element.EuclideanDomainElement):
     def _latex_(self):
         return self.str()
 
+    def _mathml_(self):
+        return '<mn>%s</mn>'%self
+
     def __str_malloc(self, int base=10):
         """
         Return the string representation of \\code{self} in the given

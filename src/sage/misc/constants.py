@@ -221,6 +221,9 @@ class Pi(Constant):
     def _latex_(self):
         return "\\pi"
 
+    def _mathml_(self):
+        return "<mi>&pi;</mi>"
+
     def __float__(self):
         return math.pi
 

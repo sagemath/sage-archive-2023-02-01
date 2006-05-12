@@ -22,6 +22,8 @@ include "interrupt.pxi"  # ctrl-c interrupt block support
 
 import operator
 
+from sage.misc.mathml import mathml
+
 import sage.misc.misc as misc
 import sage.rings.rational_field
 import sage.rings.coerce
@@ -227,6 +229,17 @@ cdef class Rational(element.FieldElement):
                 return "-\\frac{%s}{%s}"%(-self.numer(), self.denom())
             else:
                return "\\frac{%s}{%s}"%(self.numer(), self.denom())
+
+    def _mathml_(self):
+        if self.denom() == 1:
+            return '<mn>%s</mn>'%(self.numer())
+        else:
+            t = ''
+            if self < 0:
+                t = t + '<mo>-</mo>'
+            t = + '<mfrac><mrow>%s<mrow>%s</mrow></mfrac>'%(
+                mathml(abs(self.numer())), mathml(self.denom()))
+            return t
 
     def _mpfr_(self, R):
         return R(self.numerator()) / R(self.denominator())

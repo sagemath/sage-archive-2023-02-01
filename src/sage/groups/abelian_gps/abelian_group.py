@@ -3,6 +3,7 @@ Multiplicative Abelian Groups
 
 AUTHOR:
     -- David Joyner (2006-03) (based on free abelian monoids by David Kohel)
+    -- David Joyner (2006-05) several significant bug fixes
 
 TODO:
    * additive abelian groups should also be supported
@@ -77,7 +78,7 @@ creates the identity element even in the rank zero case.
 
     sage: T = AbelianGroup(0,[])
     sage: T
-    Abelian group on 0 generators () with invariants []
+    AbelianGroup( 0, [])
     sage: T.gens()
     ()
     sage: T(1)
@@ -89,7 +90,7 @@ the underlying representation is lists of integer exponents.
 
     sage: F = AbelianGroup(5,[3,4,5,5,7],names = list("abcde"))
     sage: F
-    Abelian group on 5 generators (a, b, c, d, e) with invariants [3, 4, 5, 5, 7]
+    AbelianGroup( 5, [3, 4, 5, 5, 7])
     sage: (a,b,c,d,e) = F.gens()
     sage: a*b^2*e*d
     a*b^2*d*e
@@ -104,6 +105,8 @@ REFERENCES:
          theory, Springer, 2000.
     [C2] ------, A course in computational algebraic number
          theory, Springer, 1996.
+    [R]  J. Rotman, An introduction to the theory of groups, 4th ed,
+         Springer, 1995.
 
 """
 
@@ -118,14 +121,15 @@ REFERENCES:
 # TODO: change the "invariants" terminology everywhere to elementary_divisors
 
 import weakref
+import copy
 
 from sage.ext.integer import Integer
 
 # TODO: get rid of the import *'s -- figure out exactly
 # what you use below and include only that.
 
-from sage.rings.infinity import *
-from sage.rings.arith import *
+from sage.rings.infinity import Infinity
+from sage.rings.arith import factor,is_prime_power
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from sage.misc.misc import add, prod
 import sage.groups.group as group
@@ -164,7 +168,7 @@ def word_problem(words, g, verbose = False):
 
     EXAMPLE:
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
-        Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
+        AbelianGroup( 3, [2, 3, 4])
         sage: word_problem([a*b,a*c], b*c)
         [[a*b, 1], [a*c, 1]]
         sage: word_problem([a*b,a*c],b*c)
@@ -262,13 +266,17 @@ def AbelianGroup(n, invfac=None, names="f"):
         sage: d * b**2 * c**3
         b^2*c^3*d
         sage: F = AbelianGroup(3,[2]*3); F
-        Abelian group on 3 generators (f0, f1, f2) with invariants [2, 2, 2]
+        AbelianGroup( 3, [2, 2, 2])
         sage: H = AbelianGroup([2,3], names="xy"); H
-        Abelian group on 2 generators (x, y) with invariants [2, 3]
+        AbelianGroup( 2, [2, 3])
+        sage: AbelianGroup(5)
+        AbelianGroup( 5, [0, 0, 0, 0, 0])
+        sage: AbelianGroup(5).order()
+        Infinity
 
     Notice how $0$'s are padded on.
         sage: AbelianGroup(5, [2,3,4])
-        Abelian group on 5 generators (f0, f1, f2, f3, f4) with invariants [2, 3, 4, 0, 0]
+        AbelianGroup( 5, [0, 0, 2, 3, 4])
 
     The invariant list can't be longer than the number of generators.
         sage: AbelianGroup(2, [2,3,4])
@@ -283,7 +291,7 @@ def AbelianGroup(n, invfac=None, names="f"):
         else:
             invfac = []
     if len(invfac) < n:
-        invfac = invfac + [0] * (n - len(invfac))
+        invfac = [0] * (n - len(invfac)) + invfac
     elif len(invfac) > n:
         raise ValueError, "invfac (=%s) must have length n (=%s)"%(invfac, n)
     M = AbelianGroup_class(n, invfac, names)
@@ -295,7 +303,7 @@ def is_AbelianGroup(x):
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
-        Abelian group on 5 generators (a, b, c, d, e) with invariants [5, 5, 7, 8, 9]
+        AbelianGroup( 5, [5, 5, 7, 8, 9])
         sage: is_AbelianGroup(F)
         True
         sage: is_AbelianGroup(AbelianGroup(7, [3]*7))
@@ -310,15 +318,15 @@ class AbelianGroup_class(group.AbelianGroup):
     [a1,a2,...,ak] must be a list of prime powers.
 
     EXAMPLES:
-        sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
+        sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); print F
         Abelian group on 5 generators (a, b, c, d, e) with invariants [5, 5, 7, 8, 9]
-        sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); F
-	Traceback (most recent call last):
-        ...
-        ValueError: each invariant factor (=[2, 4, 12, 24, 120])  must be a prime power.
+        sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); print F
+        Abelian group on 5 generators (a, b, c, d, e) with invariants [2, 4, 12, 24, 120]
+        sage: F.elementary_divisors()
+        [2, 3, 3, 3, 4, 4, 5, 8, 8]
 
     Thus we see that the "invariants" are not the invariant factors but
-    the "elementary divisors" (in the terminology of Rotman).
+    the "elementary divisors" (in the terminology of Rotman [R]).
     """
     def __init__(self, n, invfac, names="f"):
         #invfac.sort()
@@ -327,13 +335,38 @@ class AbelianGroup_class(group.AbelianGroup):
             raise ValueError, "n (=%s) must be nonnegative."%n
         self.__ngens = n
         self.assign_names(names)
-        for i in range(len(invfac)):
-           if invfac[i] > 1 and not is_prime_power(invfac[i]):
-               raise ValueError, "each invariant factor (=%s)  must be a prime power."%invfac
         self.__invariants = invfac
 
     def invariants(self):
-        return self.__invariants
+        invs = self.__invariants
+        invs.sort()
+        return invs
+
+    def elementary_divisors(self):
+        """
+        EXAMPLES:
+            sage: G = AbelianGroup(2,[2,6])
+            sage: G
+            AbelianGroup( 2, [2, 6])
+            sage: print G
+            Abelian group on 2 generators (f0, f1) with invariants [2, 6]
+            sage: G.invariants()
+            [2, 6]
+            sage: G.elementary_divisors()
+            [2, 2, 3]
+
+        """
+        inv = self.invariants()
+        invs = copy.deepcopy(inv)
+        invs2 = copy.deepcopy(invs)
+        for a in invs:
+           if a > 1 and not is_prime_power(a):
+               invs2.remove(a)
+               facs = factor(a)
+               pfacs = [facs[i][0]**facs[i][1] for i in range(len(facs))]
+               invs2 = invs2 + pfacs
+        invs2.sort()
+        return invs2
 
 ##     def is_subgroup(self, other):
 ##         """
@@ -365,10 +398,11 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup([2,3,7]); G
-            Abelian group on 3 generators (f0, f1, f2) with invariants [2, 3, 7]
+            AbelianGroup( 3, [2, 3, 7])
             sage: G.exponent()
             42
         """
+        from sage.interfaces.all import gap
         try:
             return self.__exponent
         except AttributeError:
@@ -376,27 +410,42 @@ class AbelianGroup_class(group.AbelianGroup):
             self.__exponent = e
             return e
 
-    def _repr_(self):
+    def __str__(self):
         """
         Print method.
 
         EXAMPLES:
-            sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); F
-            Abelian group on 5 generators (a, b, c, d, e) with invariants [5, 64, 729, 0, 0]
-	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); F
+            sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); print F
+            Abelian group on 5 generators (a, b, c, d, e) with invariants [0, 0, 5, 64, 729]
+	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); print F
             Abelian group on 5 generators (a, b, c, d, e) with invariants [1, 1, 5, 64, 729]
-            sage: F.rename('my group G')
-            sage: F
-            my group G
+
         """
         n = self.__ngens
         invs = self.invariants()
+        eds = self.elementary_divisors()
         m = len(invs)
         if m==n:
             return "Abelian group on %s generators %s with invariants %s"%(n,self.gens(),invs)
         else:
-            invs = self.invariants()+[0]*(n-m)
+            invs = [0]*(n-m) + self.invariants()
             return "Abelian group on %s generators %s with invariants %s"%(n,self.gens(),invs)
+
+    def __repr__(self):
+        s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
+        return s
+
+    def _latex_(self):
+        r"""
+        Return latex representation of this group.
+
+        EXAMPLES:
+            sage: F = AbelianGroup(10, [2]*10)
+            sage: F._latex_()
+            '${\rm AbelianGroup}( 10, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2] )$'
+        """
+        s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
+        return s
 
     def __call__(self, x):
         """
@@ -447,7 +496,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         Only works for finite groups.
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
-            Abelian group on 3 generators (a, b, c) with invariants [0, 3, 4]
+            AbelianGroup( 3, [0, 3, 4])
             sage: G._gap_init_()
             Traceback (most recent call last):
             ...
@@ -526,7 +575,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,3]); G
-            Abelian group on 2 generators (f0, f1) with invariants [2, 3]
+            AbelianGroup( 2, [2, 3])
             sage: G.permutation_group()
             Permutation Group with generators [(1,4)(2,5)(3,6), (1,2,3)(4,5,6)]
         """
@@ -552,23 +601,30 @@ class AbelianGroup_class(group.AbelianGroup):
 
     def subgroup(self, gensH, names="f"):
          """
-         Create a subgroup of this group.
+         Create a subgroup of this group. The "big" group must be defined
+         using "named" generators.
 
          INPUT:
              gensH -- list of elements which are products of the
                       generators of the ambient abelian group G = self
          EXAMPLES:
              sage: G.<a,b,c> = AbelianGroup(3, [2,3,4]); G
-             Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
+             AbelianGroup( 3, [2, 3, 4])
              sage: H = G.subgroup([a*b,a]); H
-             Subgroup of Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4] generated by [a*b, a]
+             AbelianGroup( 2, [2, 3])
              sage: H < G
              True
              sage: F = G.subgroup([a,b^2])
              sage: F
-             Subgroup of Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4] generated by [a, b^2]
+             AbelianGroup( 2, [2, 3])
              sage: F.gens()
              [a, b^2]
+             sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
+             sage: a,b,c,d,e = F.gens()
+             sage: F.subgroup([a,b])
+             AbelianGroup( 2, [0, 0])
+             sage: F.subgroup([c,e])
+             AbelianGroup( 4, [2, 3, 5, 729])
 
          """
          if not isinstance(gensH, (list, tuple)):
@@ -590,15 +646,22 @@ class AbelianGroup_class(group.AbelianGroup):
            sage: G1 = AbelianGroup([2,3,4,5])
            sage: G2 = AbelianGroup([2,3,4,5,1])
            sage: G1 < G2
-           True
+           False
            sage: G1 > G2
            False
            sage: G1 == G2
-           False
+           True
+
        """
        if not is_AbelianGroup(right):
            return -1
-       return cmp(self.invariants(), right.invariants())
+       self_invs = self.invariants()
+       right_invs = right.invariants()
+       for i in range(self_invs.count(1)):
+           self_invs.remove(1)
+       for i in range(right_invs.count(1)):
+           right_invs.remove(1)
+       return cmp(self_invs, right_invs)
 
 
 class AbelianGroup_subgroup(AbelianGroup_class):
@@ -608,26 +671,53 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
     TODO: * There should be a way to coerce an element of a subgroup
             into the ambient group.
-          * Does NOT work for infinite groups.
+
     """
     def __init__(self, ambient, gens, names="f"):
         """
 
         EXAMPLES:
-            sage: A = AbelianGroup(5,[3, 5, 5, 7, 8], names="abcde")
-            sage: a,b,c,d,e=A.gens()
+            sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
+            sage: a,b,c,d,e = F.gens()
+            sage: F.subgroup([a^3,b])
+            AbelianGroup( 2, [0, 0])
+            sage: F.subgroup([c])
+            AbelianGroup( 3, [2, 3, 5])
+            sage: F.subgroup([a,c])
+            AbelianGroup( 4, [0, 2, 3, 5])
+            sage: F.subgroup([a,b*c])
+            AbelianGroup( 2, [0, 0])
+            sage: F.subgroup([b*c,d])
+            AbelianGroup( 2, [0, 64])
+            sage: F.subgroup([a*b,c^6,d],names = list("xyz"))
+            AbelianGroup( 3, [0, 5, 64])
+            sage: G = F.subgroup([a*b,c^6,d],names = list("xyz"))
+            sage: G
+            AbelianGroup( 3, [0, 5, 64])
+            sage: print G
+            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [0, 0, 30, 64, 729]
+            generated by [a*b, c^6, d] with elementary divisors [0, 5, 64]
+            sage: x,y,z = G.gens()
+            sage: x.order()
+            Infinity
+            sage: y.order()
+            5
+            sage: z.order()
+            64
+            sage: A = AbelianGroup(5,[3, 5, 5, 7, 8], names = "abcde")
+            sage: a,b,c,d,e = A.gens()
             sage: A.subgroup([a,b])
-            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [3, 5, 5, 7, 8] generated by [a, b]
+            AbelianGroup( 2, [3, 5])
             sage: A.subgroup([a,b,c,d^2,e])
-            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [3, 5, 5, 7, 8] generated by [a, b, c, d^2, e]
+            AbelianGroup( 5, [3, 5, 5, 7, 8])
             sage: A.subgroup([a,b,c,d^2,e^2])
-            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [3, 5, 5, 7, 8] generated by [a, b, c, d^2, e^2]
+            AbelianGroup( 5, [3, 4, 5, 5, 7])
             sage: B = A.subgroup([a^3,b,c,d,e^2]); B
-            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [3, 5, 5, 7, 8] generated by [b, c, d, e^2]
+            AbelianGroup( 4, [4, 5, 5, 7])
             sage: B.invariants()
             [4, 5, 5, 7]
-            sage: A=AbelianGroup(4,[1009, 2003, 3001, 4001], names="abcd")
-            sage: a,b,c,d=A.gens()
+            sage: A = AbelianGroup(4,[1009, 2003, 3001, 4001], names = "abcd")
+            sage: a,b,c,d = A.gens()
             sage: B = A.subgroup([a^3,b,c,d])
             sage: B.invariants()
             [1009, 2003, 3001, 4001]
@@ -635,80 +725,83 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             24266473210027
             sage: B.order()
             24266473210027
+            sage: A = AbelianGroup(4,[1008, 2003, 3001, 4001], names = "abcd")
+            sage: a,b,c,d = A.gens()
+            sage: B = A.subgroup([a^3,b,c,d])
+            sage: B
+            AbelianGroup( 6, [3, 7, 16, 2003, 3001, 4001])
+            sage: print B
+            Subgroup of Abelian group on 4 generators (a, b, c, d) with invariants [1008, 2003, 3001, 4001]
+            generated by [a^3, b, c, d] with elementary divisors [3, 7, 16, 2003, 3001, 4001]
 
         Infinite groups can also be handled:
-            sage: G = AbelianGroup([3,4,0], names="abc")
+            sage: G = AbelianGroup([3,4,0], names = "abc")
             sage: a,b,c = G.gens()
             sage: F = G.subgroup([a,b^2,c]); F
-            Subgroup of Abelian group on 3 generators (a, b, c) with invariants [3, 4, 0] generated by [a, b^2, c]
+            AbelianGroup( 3, [0, 3, 4])
             sage: F.invariants()
-            [2, 3, 0]
+            [0, 3, 4]
             sage: F.gens()
             [a, b^2, c]
             sage: F.order()
             Infinity
 
         """
+        from sage.interfaces.all import gap
         if not isinstance(ambient, AbelianGroup_class):
             raise TypeError, "ambient (=%s) must be an abelian group."%ambient
         if not isinstance(gens, list):
             raise TypeError, "gens (=%s) must be a list"%gens
 
         self.__ambient_group = ambient
-        Hgens = [x for x in gens if x!=ambient(1)]  ## in case someone puts 1 in the list of generators
+        Hgens = [x for x in gens if x != ambient(1)]  ## in case someone puts 1 in the list of generators
         self.__gens = Hgens
         m = len(gens)
         ell = len(ambient.gens())
         ambient_invs = ambient.invariants()
-        invsf = [x for x in ambient_invs if x>0]    ## fixes the problem with
-        invs0 = [x for x in ambient_invs if x==0]   ## the infinite parts
+        invsf = [x for x in ambient_invs if x > 0]    ## fixes the problem with
+        invs0 = [x for x in ambient_invs if x == 0]   ## the infinite parts
         Ggens = list(ambient.variable_names())
-        #print Ggens
         if invs0!=[]:
             Gfgens = [x for x in ambient.variable_names() if
-                        ambient_invs[Ggens.index(x)]!=0]
+                        ambient_invs[Ggens.index(x)] != 0]
             Ggens0 = [x for x in ambient.variable_names() if
-                        ambient_invs[Ggens.index(x)]==0]
-            #print invsf,Gfgens, Ggens0                ## ^^ only look at "finite" names
-            Gf = AbelianGroup_class(len(invsf), invsf, names=Gfgens)
-            #print Gf
+                        ambient_invs[Ggens.index(x)] == 0]
+            ##     ^^ only look at "finite" names
+            Gf = AbelianGroup_class(len(invsf), invsf, names = Gfgens)
             s1 = "G:= %s; gens := GeneratorsOfGroup(G)"%Gf._gap_init_()
-            #print s1
             gap.eval(s1)
             Hgensf = [x for x in Hgens if len(set(Ggens0).intersection(set(list(str(x)))))==0]
-            #print Hgensf
+            # computes the gens of H which do not occur ^^ in the infinite part of G
+            Hgens0 = [x for x in Hgens if not(x in Hgensf)]
+            # the "infinite" generators of H
             for i in range(len(Gfgens)):
                cmd = ("%s := gens["+str(i+1)+"]")%Gfgens[i]
-               #print i,"  \n",cmd
                gap.eval(cmd)
         if invs0==[]:
            Hgensf = Hgens
+           Hgens0 = []  # added for consistency
            G = ambient
            s1 = "G:= %s; gens := GeneratorsOfGroup(G)"%G._gap_init_()
-           #print s1
            gap.eval(s1)
            for i in range(len(Ggens)):
                cmd = '%s := gens[%s]'%(Ggens[i], i+1)
                #print i,"  \n",cmd
                gap.eval(cmd)
         s2 = "gensH:=%s"%Hgensf #### remove from this the ones <--> 0 invar
-        #print "s2 = ",s2
         gap.eval(s2)
         s3 = 'H:=Subgroup(G,gensH)'
-        #print s3,"\n"
         gap.eval(s3)
         # a GAP command which returns the "invariants" of the
         # subgroup as an AbelianPcpGroup, RelativeOrdersOfPcp(Pcp(G)),
         # works if G is the subgroup declared as a AbelianPcpGroup
         self.__abinvs = eval(gap.eval("AbelianInvariants(H)"))
         invs = self.__abinvs
-        if invs0!=[]:
-            for x in invs0:
-               invs.append(x)
-        #print "invars: ",invs
-        #print invs
-        #eldivs = list(factor(invs[-1]))
-        #print eldivs
+        #print s3, invs
+        if Hgens0 != []:
+            for x in Hgens0:
+               invs.append(0)
+        #print Hgensf, invs, invs0
         AbelianGroup_class.__init__(self, len(invs), invs, names)
 
     def __cmp__(self, right):
@@ -718,7 +811,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         EXAMPLES:
 	    sage: G = AbelianGroup(3, [2,3,4], names="abc"); G
-            Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
+            AbelianGroup( 3, [2, 3, 4])
 	    sage: a,b,c = G.gens()
 	    sage: F=G.subgroup([a,b^2])
 	    sage: F<G
@@ -740,17 +833,23 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #else:
         #    return 1
 
-    def _repr_(self):
-        s = "Subgroup of %s generated by %s"%(self.ambient_group(), self.gens())
+    def __repr__(self):
+        s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
         return s
 
-    def _latex_(self):
-        r"""
-        Return latex representation of this group.
+    def __str__(self):
+        G = self.ambient_group()
+        eds = self.elementary_divisors()
+        s = "Subgroup of %s \n generated by %s with elementary divisors %s"%(G, self.gens(), eds)
+        return s
 
-        """
-        return self._repr_()
-
+    #def _latex_(self):
+    #    r"""
+    #    Return latex representation of this group.
+    #
+    #    """
+    #    s = "${\rm AbelianGroup}( %s, %s )$"%(len(self.invariants()), self.invariants())
+    #    return s
 
     def ambient_group(self):
         """

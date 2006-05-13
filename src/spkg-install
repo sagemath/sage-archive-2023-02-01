@@ -10,8 +10,8 @@ fi
 
 DEVEL=$SAGE_ROOT/devel
 
-if [ ! -d $DEVEL ]; then
-    mkdir $DEVEL
+if [ ! -d "$DEVEL" ]; then
+    mkdir "$DEVEL"
 fi
 
 if [ $? -ne 0 ]; then
@@ -21,22 +21,30 @@ fi
 D=`pwd`
 E=`basename "$D"`
 
-if [ ! -d $DEVEL/old ]; then
-    mkdir $DEVEL/old
+if [ ! -d "$DEVEL/old" ]; then
+    mkdir "$DEVEL/old"
 fi
 
-if [ -d $DEVEL/sage-darcs ]; then
-    cd $DEVEL/sage-darcs
+if [ -d "$DEVEL/sage-darcs" ]; then
+    cd "$DEVEL/sage-darcs"
     darcs pull http://modular.math.washington.edu/sage/dist/src/sage-darcs
+    if [ $? -ne 0 ]; then
+        echo "Error upgrading SAGE source code using darcs."
+        exit 1
+    fi
+    "$SAGE_ROOT/sage" -b
+    if [ $? -ne 0 ]; then
+        echo "Error building new version of SAGE."
+    fi
     exit $?
 fi
 
 
-mv $DEVEL/sage-* $DEVEL/old/
+mv "$DEVEL/sage-"* "$DEVEL/old/"
 
-if [ ! -d $DEVEL/$E ]; then
-    mkdir $DEVEL/$E
-    cp -pr * $DEVEL/$E
+if [ ! -d "$DEVEL/$E" ]; then
+    mkdir "$DEVEL/$E"
+    cp -pr * "$DEVEL/$E"
     if [ $? -ne 0 ]; then
        exit 1
     fi
@@ -45,9 +53,9 @@ else   # this should never happen since old version gets moved into old
     echo "If you want to put the new version there, copy it from `pwd`"
 fi
 
-cd $SAGE_ROOT/devel
+cd "$SAGE_ROOT/devel"
 rm -f sage
-ln -sf $E sage
+ln -sf "$E" sage
 
 # I'm scared to do this, since it could render a sage install temporarily
 # un-usable...
@@ -61,7 +69,7 @@ if  [ -f "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py" ]; th
     rm "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.pyc"
 fi
 
-cd $E
+cd "$E"
 python setup.py install
 
 if [ $? -ne 0 ]; then

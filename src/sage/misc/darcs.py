@@ -250,7 +250,7 @@ darcs_doc = Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
         url="http://modular.math.washington.edu/sage/dist/src/doc-darcs",
                   target='doc')
 
-darcs_scripts = Darcs('%s/bin/'%os.environ['SAGE_LOCAL'],
+darcs_scripts = Darcs('%s/local/bin/'%os.environ['SAGE_ROOT'],
                   'SAGE scripts',
                   url='',
                   target='')

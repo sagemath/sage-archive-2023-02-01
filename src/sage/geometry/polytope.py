@@ -32,7 +32,7 @@ from sage.ext.sage_object import SageObject
 
 import os
 
-path = '%s/polymake/bin/'%os.environ['SAGE_LOCAL']
+path = '%s/local/polymake/bin/'%os.environ['SAGE_ROOT']
 polymake_command = path + 'polymake'
 
 if os.path.exists(path):

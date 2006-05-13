@@ -95,9 +95,9 @@ try:
     import matplotlib.patches as patches
     from matplotlib.cbook import flatten
 
-except ImportError:
-
-    print "WARNING -- matplotlib did not build correctly."
+except ImportError, msg:
+    print msg
+    print "WARNING -- matplotlib did not build correctly as part of SAGE."
 
 
 from axes import find_axes

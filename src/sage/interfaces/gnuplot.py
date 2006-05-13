@@ -19,7 +19,11 @@ Interface to the Gnuplot interpreter.
 
 import os, time
 
-import Gnuplot as GP
+try:
+    import Gnuplot as GP
+except ImportError:
+    # Functionality just won't be available
+    pass
 
 from sage.ext.sage_object import SageObject
 
@@ -34,8 +38,11 @@ class Gnuplot(SageObject):
         try:
             return self.__gnuplot
         except AttributeError:
-            self.__gnuplot = GP.Gnuplot()
-            return self.__gnuplot
+            try:
+                self.__gnuplot = GP.Gnuplot()
+                return self.__gnuplot
+            except NameError:
+                raise RuntimeError, "Install the gnuplotpy Python module."
 
     def __call__(self, line):
         return self.gnuplot()(line)

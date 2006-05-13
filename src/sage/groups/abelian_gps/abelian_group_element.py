@@ -3,7 +3,7 @@ Abelian group elements
 
 AUTHORS:
     - David Joyner (2006-02); based on free_abelian_monoid_element.py, written by David Kohel.
-
+    - David Joyner (2006-05); bug fix in order
 EXAMPLES:
 Recall an example from abelian groups.
     sage: F = AbelianGroup(5,[4,5,5,7,8],names = list("abcde"))
@@ -162,7 +162,7 @@ class AbelianGroupElement(MonoidElement):
 
         EXAMPLES:
             sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
-            Abelian group on 3 generators (a, b, c) with invariants [2, 3, 4]
+            AbelianGroup( 3, [2, 3, 4])
             sage: a,b,c=G.gens()
             sage: Gp = G.permutation_group(); Gp
             Permutation Group with generators [(1,13)(2,14)(3,15)(4,16)(5,17)(6,18)(7,19)(8,20)(9,21)(10,22)(11,23)(12,24), (1,5,9)(2,6,10)(3,7,11)(4,8,12)(13,17,21)(14,18,22)(15,19,23)(16,20,24), (1,3,2,4)(5,7,6,8)(9,11,10,12)(13,15,14,16)(17,19,18,20)(21,23,22,24)]
@@ -219,7 +219,7 @@ class AbelianGroupElement(MonoidElement):
 
         EXAMPLES:
             sage: F = AbelianGroup(3,[7,8,9]); F
-            Abelian group on 3 generators (f0, f1, f2) with invariants [7, 8, 9]
+            AbelianGroup( 3, [7, 8, 9])
             sage: F.gens()[2].order()
             9
             sage: a,b,c = F.gens()
@@ -236,7 +236,7 @@ class AbelianGroupElement(MonoidElement):
                 return infinity
             return o
         L = list(self.list())
-        N = LCM([invs[i]*L[i] for i in range(len(invs)) if L[i]!=0])
+        N = LCM([invs[i]/GCD(invs[i],L[i]) for i in range(len(invs)) if L[i]!=0])   ####### error here????
         if N == 0:
             return infinity
         else:

@@ -35,7 +35,7 @@ if not os.path.exists(SAGE_ROOT):
 try:
     SAGE_URL = os.environ["SAGE_URL"]
 except KeyError:
-    SAGE_URL = "http://modular.ucsd.edu/sage/"     # default server
+    SAGE_URL = "http://modular.math.washington.edu/sage/"     # default server
 
 LOGFILE = "%s/log/sage_log"%SAGE_ROOT
 

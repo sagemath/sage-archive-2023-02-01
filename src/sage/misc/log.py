@@ -72,11 +72,13 @@ except KeyError:
 
 if os.uname()[0] == "Darwin":
 
-    # Simple on OS X, since there is an open command that opens anything,
-    # using the user's preferences.
-    DVI_VIEWER = 'open'
-    BROWSER = 'open'
-    PDF_VIEWER = 'open'
+    # Simple on OS X, since there is an open command that opens
+    # anything, using the user's preferences.
+    # sage-open -- a wrapper around OS X open that
+    # turns off any of SAGE's special library stuff.
+    DVI_VIEWER = 'sage-open'
+    BROWSER = 'sage-open'
+    PDF_VIEWER = 'sage-open'
 
 else:
 
@@ -89,11 +91,7 @@ else:
     try:
 	BROWSER = os.environ['BROWSER']
     except KeyError:
-	if os.system('which firefox 1>/dev/null 2>/dev/null') == 0:
-	    BROWSER = 'firefox'
-	else:
-	    BROWSER = 'konqueror'
-
+        BROWSER = 'firefox'
 
 def browser():
     global BROWSER

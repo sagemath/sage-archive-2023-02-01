@@ -20,6 +20,11 @@ def install_package(package=None):
         upgrade -- upgrade to latest version of core packages
                    (optional packages are not automatically upgraded).
     """
+    if os.uname()[0][:6] == 'CYGWIN':
+        print "install_package may not work correctly under Microsoft Windows"
+        print "since you can't change an opened file.  Quit all"
+        print "instances of sage and use 'sage -i' instead."
+        return
     if package is None:
         X = os.popen('sage -f').read().split('\n')
         i = X.index('Currently installed packages:')
@@ -84,6 +89,11 @@ def upgrade():
         install_package -- list of all optional packages
         optional_packages -- list of all optional packages
     """
+    if os.uname()[0][:6] == 'CYGWIN':
+        print "Upgrade may not work correctly under Microsoft Windows"
+        print "since you can't change an opened file.  Quit all"
+        print "instances of sage and use 'sage -upgrade' instead."
+        return
     os.system('sage -upgrade')
     print "You should quit and restart SAGE now."
 

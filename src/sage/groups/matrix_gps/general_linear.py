@@ -14,6 +14,10 @@ EXAMPLES:
 AUTHORS:
     -- David Joyner (2006-01)
     -- William Stein (2006-01)
+    -- David Joyner (2006-05) - added _latex_, __str__, examples
+
+TODO:
+  Write a method to coerce GL into a MatrixGroup...
 
 """
 
@@ -46,6 +50,31 @@ from linear import LinearGroup_generic, LinearGroup_finite_field
 def GL(n, R):
     """
     Return the general linear group of degree $n$ over the ring $R$.
+
+    EXAMPLES:
+        sage: G = GL(6,GF(5))
+        sage: G.order()
+        11064475422000000000000000L
+        sage: G.base_ring()
+        Finite Field of size 5
+
+        sage: F = GF(3); MS = MatrixSpace(F,2,2)
+        sage: gens = [MS([[0,1],[1,0]]),MS([[1,1],[0,1]])]
+        sage: G = MatrixGroup(gens)
+        sage: G.order()
+        48
+        sage: H = GL(2,F)
+        sage: H.order()
+        48
+        sage: H == G
+        False
+        sage: H.as_matrix_group() == G
+        False
+        sage: H.gens()
+        [[2 0]
+         [0 1], [2 1]
+                [2 0]]
+
     """
     if not is_Ring(R):
         raise TypeError, "R (=%) must be a ring"%R
@@ -56,11 +85,68 @@ def GL(n, R):
 
 class GeneralLinearGroup_generic(LinearGroup_generic):
     def _gap_init_(self):
+        """
+        EXAMPLES:
+            sage: G = GL(6,GF(5))
+            sage: G._gap_init_()
+            'GL(6, 5)'
+
+        """
         return "GL(%s, %s)"%(self.degree(), self.base_ring().order())
 
-    def _repr_(self):
+    def _latex_(self):
+        """
+        EXAMPLES:
+            sage: G = GL(6,GF(5))
+            sage: G._latex_()
+            'GL$(6, GF(5))$'
+
+        """
+        return "GL$(%s, GF(%s))$"%(self.degree(), self.base_ring().order())
+
+    def __str__(self):
+        """
+        EXAMPLES:
+            sage: G = GL(6,GF(5))
+            sage: print G
+            GL(6, GF(5))
+
+        """
+        return "GL(%s, GF(%s))"%(self.degree(), self.base_ring().order())
+
+    def __repr__(self):
         return "General Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
 
+    def gens(self):
+        """
+        EXAMPLES:
+            sage: G = GL(6,GF(5))
+            sage: G.gens()
+            [[2 0 0 0 0 0]
+             [0 1 0 0 0 0]
+             [0 0 1 0 0 0]
+             [0 0 0 1 0 0]
+             [0 0 0 0 1 0]
+             [0 0 0 0 0 1],
+             [4 0 0 0 0 1]
+             [4 0 0 0 0 0]
+             [0 4 0 0 0 0]
+             [0 0 4 0 0 0]
+             [0 0 0 4 0 0]
+             [0 0 0 0 4 0]]
+        """
+        from sage.interfaces.all import gap
+        F = self.base_ring()
+        G = self._gap_init_()
+        n = eval(gap.eval("Length(GeneratorsOfGroup(%s))"%G))
+        gens = [gap("GeneratorsOfGroup(%s)[%s]"%(G,i))._matrix_(F) for i in range(1,n+1)]
+        return gens
+
+    def as_matrix_group(self):
+        from sage.groups.matrix_gps.matrix_group import MatrixGroup
+        gns = self.gens()
+        G = MatrixGroup(gns)
+        return G
 
 class GeneralLinearGroup_finite_field(LinearGroup_finite_field, GeneralLinearGroup_generic):
     pass

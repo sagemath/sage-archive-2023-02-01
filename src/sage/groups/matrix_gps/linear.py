@@ -8,12 +8,13 @@ Implement GO (general orthogonal) and SO (special orthogonal).
 AUTHORS:
    William Stein -- initial version
    David Joyner  -- degree, base_ring, random, order methods; examples
+   David Joyner (2006-05) -- added center, more examples, renamed random attributes.
 
 REFERENCES:
-[KL] Peter Kleidman and Martin Liebeck. The subgroup structure of the finite
-classical groups. Cambridge University Press, 1990.
-[C] R. W. Carter. Simple groups of Lie type, volume 28 of Pure and
-Applied Mathematics. John Wiley and Sons, 1972.
+    [KL] Peter Kleidman and Martin Liebeck. The subgroup structure of the finite
+    classical groups. Cambridge University Press, 1990.
+    [C] R. W. Carter. Simple groups of Lie type, volume 28 of Pure and
+    Applied Mathematics. John Wiley and Sons, 1972.
 
 """
 
@@ -107,23 +108,17 @@ class LinearGroup_finite_field(LinearGroup_generic):
         cmd = self._gap_init_()
         return eval(gap.eval("Size("+cmd+")"))
 
-    def random2(self):
+    def random(self):
         """
+        Wraps GAP's Random function.
+
         EXAMPLES:
             sage: G = Sp(4,GF(3))
-            sage: G.random()
-
-            [0 1 2 0]
-	    [2 1 2 2]
-            [1 1 2 0]
-            [1 2 2 2]
-            sage: G = SL(4,GF(3))
-            sage: G.random()
-
-            [1 2 2 0]
-            [2 1 2 0]
+            sage: G.random()        ## random output
+            [0 2 1 1]
+            [1 1 1 2]
+            [2 2 2 2]
             [0 2 0 2]
-            [1 2 2 1]
 
         """
         F = self.field_of_definition()
@@ -131,11 +126,16 @@ class LinearGroup_finite_field(LinearGroup_generic):
         s = gap("Random("+cmd+")")
         return s._matrix_(F)
 
-    def random(self):
+    def random_gap(self):
         """
-        Return a random element of this group.
+        Return a random element of this group, using GAP with
+        the output in GAP notation.
 
         EXAMPLES:
+            sage: G = Sp(4,GF(3))
+            sage: G.random_gap()        ## random output
+            [ [ Z(3), 0*Z(3), Z(3), 0*Z(3) ], [ Z(3), Z(3), Z(3)^0, Z(3) ],
+              [ Z(3), 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, Z(3), Z(3)^0, Z(3)^0 ] ]
 
         """
         from matrix_group_element import MatrixGroupElement
@@ -162,6 +162,8 @@ class LinearGroup_finite_field(LinearGroup_generic):
         Return a complete set of representatives of the conjugacy
         classes of the group.
 
+        WARNING: Does not work for unitary groups.
+
         EXAMPLES:
             sage: G = GL(2,GF(3))
             sage: C = G.conjugacy_class_representatives()
@@ -185,4 +187,31 @@ class LinearGroup_finite_field(LinearGroup_generic):
         self.__reps = [x._matrix_(K) for x in reps]
         return self.__reps
 
+    def center(self):
+        """
+        Return the center the group (wraps GAP's Center function).
 
+        WARNING: Does not work for unitary groups.
+
+        EXAMPLES:
+            sage: G = GL(2,GF(3))
+            sage: C = G.center()
+            [[1 0]
+             [0 1], [2 0]
+                    [0 2]]
+            sage: C
+            Matrix group over Finite Field of size 3 with 2 generators:
+             [[[1, 0], [0, 1]], [[2, 0], [0, 2]]]
+            sage: print C
+            MatrixGroup( [[[1, 0], [0, 1]], [[2, 0], [0, 2]]] )
+
+        """
+        from sage.misc.sage_eval import sage_eval as seval
+        from matrix_group import MatrixGroup
+        F = self.base_ring()
+        G = self._gap_()
+        C = G.Center()
+        reps = C.Elements()
+        repns = [x._matrix_(F) for x in reps]
+        print repns
+        return MatrixGroup(repns)

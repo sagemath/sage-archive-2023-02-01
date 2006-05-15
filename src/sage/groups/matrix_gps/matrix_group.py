@@ -12,7 +12,7 @@ matrices.
 """
 
 ##############################################################################
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -131,11 +131,11 @@ class MatrixGroup(Group):
             True
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
 
-
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: G = MatrixGroup([MS(1), MS([1,2,3,4])])
             sage: G
-            Matrix group over Finite Field of size 5 with 2 generators
+            Matrix group over Finite Field of size 5 with 2 generators:
+             [[[1, 0], [0, 1]], [[1, 2], [3, 4]]]
             sage: G.gens()
             [[1 0]
             [0 1], [1 2]
@@ -162,7 +162,8 @@ class MatrixGroup(Group):
             sage: G = MatrixGroup(gens)
             sage: g = G.random()
             sage: g.parent()
-            Matrix group over Finite Field of size 5 with 2 generators
+            Matrix group over Finite Field of size 5 with 2 generators:
+             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
             sage: g in G
             True
 
@@ -185,10 +186,46 @@ class MatrixGroup(Group):
         gens_gap = [gap(x) for x in self.gensG]
         return gap.eval("Group("+str(gens_gap)+")").replace("\n","")
 
-    def _repr_(self):
-        return "Matrix group over %s with %s generators"%(self.base_ring(), self.ngens())
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
+            sage: G = MatrixGroup(gens)
+            sage: G
+            Matrix group over Finite Field of size 5 with 2 generators:
+             [[[1, 2], [4, 1]], [[1, 1], [0, 1]]]
+
+        """
+        gns = [x.list() for x in self.gens()]
+        return "Matrix group over %s with %s generators: \n %s"%(self.base_ring(), self.ngens(), gns)
+
+    def __str__(self):
+        """
+        print method
+
+        EXAMPLES:
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
+            sage: G = MatrixGroup(gens)
+            sage: print G
+            MatrixGroup( [[[1, 2], [4, 1]], [[1, 1], [0, 1]]] )
+        """
+        gns = [x.list() for x in self.gens()]
+        return "MatrixGroup( %s )"%gns
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
+            sage: G = MatrixGroup(gens)
+            sage: G._latex_()
+            '\\left\\langle \\left(\\begin{array}{rr}\n1&2\\\\\n4&1\n\\end{array}\\right), \\left(\\begin{array}{rr}\n1&1\\\\\n0&1\n\\end{array}\\right) \\right\\rangle'
+
+        Type view(G._latex_()) to view this in xdvi (assuming xdvi and latex are
+        installed).
+        """
         gens = ', '.join([latex(x) for x in self.gens()])
         return '\\left\\langle %s \\right\\rangle'%gens
 
@@ -203,7 +240,8 @@ class MatrixGroup(Group):
 
     def random(self):
         """
-        Returns a random matrix from the matrix group.
+        Returns a random matrix from the matrix group. Wraps GAP's
+        Random function. Is very slow for large groups.
 
         EXAMPLES:
             sage: F = GF(5); MS = MatrixSpace(F,2,2)

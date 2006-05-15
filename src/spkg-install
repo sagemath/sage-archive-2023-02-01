@@ -70,9 +70,12 @@ if  [ -f "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py" ]; th
 fi
 
 cd "$E"
+mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" ./old_install 2>/dev/null
 python setup.py install
 
 if [ $? -ne 0 ]; then
+    mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" ./broken_install 2>/dev/null
+    mv old_install "$SAGE_LOCAL/lib/python2.4/site-packages/sage"
     echo "ERROR installing SAGE"
     exit 1
 fi

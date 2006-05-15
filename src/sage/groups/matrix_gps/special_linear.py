@@ -3,6 +3,8 @@ Special Linear Groups
 
 AUTHOR:
     -- William Stein: initial version
+    -- David Joyner (2006-05) - added examples, _latex_, __str__, gens,
+                                      as_matrix_group
 
 EXAMPLES:
         sage: SL(2, ZZ)
@@ -43,10 +45,75 @@ def SL(n, R):
 
 class SpecialLinearGroup_generic(LinearGroup_generic):
     def _gap_init_(self):
-        return "SL(%s, %s)"%(self.degree(), self.base_ring().order())
+        """
+        EXAMPLES:
+            sage: G = SL(6,GF(5))
+            sage: print G
+            SL(6, GF(5))
 
-    def _repr_(self):
+        """
+        return "SL(%s, GF(%s))"%(self.degree(), self.base_ring().order())
+
+    def _latex_(self):
+        """
+        EXAMPLES:
+            sage: G = SL(6,GF(5))
+            sage: G._latex_()
+            'SL$(6, GF(5))$'
+
+        """
+        return "SL$(%s, GF(%s))$"%(self.degree(), self.base_ring().order())
+
+    def __str__(self):
+        """
+        EXAMPLES:
+            sage: G = SL(6,GF(5))
+            sage: print G
+            SL(6, GF(5))
+
+        """
+        return "SL(%s, GF(%s))"%(self.degree(), self.base_ring().order())
+
+    def __repr__(self):
         return "Special Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
+
+    def gens(self):
+        """
+        EXAMPLES:
+            sage: G = SL(6,GF(5))
+            sage: G.gens()
+            [[2 0 0 0 0 0]
+            [0 3 0 0 0 0]
+            [0 0 1 0 0 0]
+            [0 0 0 1 0 0]
+            [0 0 0 0 1 0]
+            [0 0 0 0 0 1],
+            [4 0 0 0 0 1]
+            [4 0 0 0 0 0]
+            [0 4 0 0 0 0]
+            [0 0 4 0 0 0]
+            [0 0 0 4 0 0]
+            [0 0 0 0 4 0]]
+        """
+        from sage.interfaces.all import gap
+        F = self.base_ring()
+        G = self._gap_init_()
+        n = eval(gap.eval("Length(GeneratorsOfGroup(%s))"%G))
+        gens = [gap("GeneratorsOfGroup(%s)[%s]"%(G,i))._matrix_(F) for i in range(1,n+1)]
+        return gens
+
+    def as_matrix_group(self):
+        """
+        EXAMPLES:
+            sage: G = SL(6,GF(5))
+            sage: G.as_matrix_group()
+            Matrix group over Finite Field of size 5 with 2 generators:
+            [[[2, 0, 0, 0, 0, 0], [0, 3, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[4, 0, 0, 0, 0, 1], [4, 0, 0, 0, 0, 0], [0, 4, 0, 0, 0, 0], [0, 0, 4, 0, 0, 0], [0, 0, 0, 4, 0, 0], [0, 0, 0, 0, 4, 0]]]
+        """
+        from sage.groups.matrix_gps.matrix_group import MatrixGroup
+        gns = self.gens()
+        G = MatrixGroup(gns)
+        return G
 
 class SpecialLinearGroup_finite_field(SpecialLinearGroup_generic, LinearGroup_finite_field):
     pass

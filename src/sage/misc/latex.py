@@ -71,6 +71,13 @@ def str_function(x):
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
                str: str_function, int:str, long:str, float:str}
 
+class Latex(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
+
 
 def latex(x):
     """
@@ -82,18 +89,18 @@ def latex(x):
     """
     try:
 
-        return x._latex_()
+        return Latex(x._latex_())
 
     except (AttributeError, TypeError):
 
         for k, f in latex_table.iteritems():
             if isinstance(x, k):
-                return f(x)
+                return Latex(f(x))
 
         if x is None:
-            return "\\mbox{\\rm None}"
+            return Latex("\\mbox{\\rm None}")
 
-        return str_function(str(x))
+        return Latex(str_function(str(x)))
 
 
 def _latex_file_(objects, title='SAGE', expert=True, debug=False, \

@@ -54,22 +54,30 @@ mathml_table = {list: list_function,
                long:str,
                float:str}
 
+class MathML(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
+
+
 def mathml(x):
     """
     Output x formated for inclusion in a MathML document.
     """
     try:
 
-        return x._mathml_()
+        return MathML(x._mathml_())
 
     except (AttributeError, TypeError):
 
         for k, f in mathml_table.iteritems():
             if isinstance(x, k):
-                return f(x)
+                return MathML(f(x))
 
         if x is None:
-            return "MATHML version of 'None'"
+            return MathML("MATHML version of 'None'")
 
-        return str_function(str(x))
+        return MathML(str_function(str(x)))
 

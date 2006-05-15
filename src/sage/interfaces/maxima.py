@@ -307,7 +307,7 @@ error.  In \sage this is automatically fixed via a substition for
 trig functions, which may have potentially bad side effects:
 
     sage: latex(maxima('sin(u) + sinh(v^2)'))
-    '\\sin{}hv^2 + \\sin{}u'
+    '\sin{}hv^2 + \sin{}u'
 
 It would be nice if somebody would fix this problem.  One way would
 be to improve Maxima by making the fix to Maxima and giving this back
@@ -317,7 +317,7 @@ Here's another example:
 
     sage: g = maxima('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
     sage: latex(g)
-    ' - \\frac{ie^{3ix}}{6} - \\frac{ie^{ix}}{2} + c'
+    ' - \frac{ie^{3ix}}{6} - \frac{ie^{ix}}{2} + c'
 
 \subsection{Long Input}
 The MAXIMA interface reads in even very long input (using files) in a

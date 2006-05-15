@@ -119,7 +119,7 @@ class Set_generic(SageObject):
         return self
 
 class Set_object(Set_generic):
-    """
+    r"""
     A set attached to an almost arbitrary object.
 
     EXAMPLES:
@@ -129,12 +129,12 @@ class Set_object(Set_generic):
         sage: S = Set(K)
 
         sage: latex(S)
-        '\\left\\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\\right\\}'
+        '\left\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\right\}'
         sage: loads(S.dumps()) == S
         True
 
         sage: latex(Set(ZZ))
-        '\\mbox{\\bf{}Z}'
+        '\mbox{\bf{}Z}'
     """
     def __init__(self, X):
         """
@@ -150,7 +150,7 @@ class Set_object(Set_generic):
         self.__object = X
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of this set.
 
         This is often the same as the latex representation of this
@@ -158,7 +158,7 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: latex(Set(QQ))
-            '\\mbox{\\bf{}Q}'
+            '\mbox{\bf{}Q}'
 
         When the object is finite or a special set then the latex
         representation can be more interesting.
@@ -527,7 +527,7 @@ class Set_object_union(Set_object):
     A formal union of two sets.
     """
     def __init__(self, X, Y):
-        """
+        r"""
         EXAMPLES:
             sage: S = Set(QQ^2)
             sage: T = Set(ZZ)
@@ -535,7 +535,7 @@ class Set_object_union(Set_object):
             Set-theoretic union of Vector space of dimension 2 over Rational Field and Integer Ring
 
             sage: latex(X)
-            '\\mbox{\\bf{}Q}^{2} \\cup \\mbox{\\bf{}Z}'
+            '\mbox{\bf{}Q}^{2} \cup \mbox{\bf{}Z}'
 
             sage: loads(X.dumps()) == X
             True
@@ -576,7 +576,7 @@ class Set_object_union(Set_object):
         return -1
 
     def _repr_(self):
-        """
+        r"""
         Return string representation of self.
 
         EXAMPLES:
@@ -587,12 +587,12 @@ class Set_object_union(Set_object):
                                                    self.__Y.object())
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES:
             sage: latex(Set(ZZ).union(Set(GF(5))))
-            '\\mbox{\\bf{}Z} \\cup \\left\\{1, 0, 3, 2, 4\\right\\}'
+            '\mbox{\bf{}Z} \cup \left\{1, 0, 3, 2, 4\right\}'
         """
         return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
@@ -648,14 +648,14 @@ class Set_object_intersection(Set_object):
     Formal intersection of two sets.
     """
     def __init__(self, X, Y):
-        """
+        r"""
         EXAMPLES:
             sage: S = Set(QQ^2)
             sage: T = Set(ZZ)
             sage: X = S.intersection(T); X
             Set-theoretic intersection of Vector space of dimension 2 over Rational Field and Integer Ring
             sage: latex(X)
-            '\\mbox{\\bf{}Q}^{2} \\cap \\mbox{\\bf{}Z}'
+            '\mbox{\bf{}Q}^{2} \cap \mbox{\bf{}Z}'
 
             sage: loads(X.dumps()) == X
             True
@@ -712,13 +712,13 @@ class Set_object_intersection(Set_object):
                                                           self.__Y.object())
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         EXAMPLES:
             sage: X = Set(ZZ).intersection(Set(QQ))
             sage: latex(X)
-            '\\mbox{\\bf{}Z} \\cap \\mbox{\\bf{}Q}'
+            '\mbox{\bf{}Z} \cap \mbox{\bf{}Q}'
         """
         return '%s \\cap %s'%(latex(self.__X), latex(self.__Y))
 

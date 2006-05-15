@@ -5,6 +5,8 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] Ability to switch from one log (=workbook) to another via
+      the web interface.
    [] The "move to the current input box" javascript *only* works
       with firefox (not opera, not konqueror); also this should
       just keep the page position where it is rather than move it.
@@ -32,6 +34,12 @@ TODO:
    [] When pressing shift-enter a line feed is inserted temporarily
       into the inbox, which is unnerving.
    [] Add authentication
+   [] Embed the log object in the html file, so server session
+      can be restared directly using the html file!  E.g., embed
+      pickled Log object in a comment at end of the .html file.
+   [] Ability to upload and download source files (to be run)
+      via web interface; maybe ability to edit them too, via some
+      'rich' code editing javascript 'widget'.
 """
 
 ###########################################################################

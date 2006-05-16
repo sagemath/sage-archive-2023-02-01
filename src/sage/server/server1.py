@@ -357,14 +357,20 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
     httpd = BaseHTTPServer.HTTPServer(server_address,
                                       HTML_Interface)
     sa = httpd.socket.getsockname()
-    print "SAGE Web interface at http://%s:%s"%(address, port)
+    print "********************************************************"
+    print "*                                                      *"
+    print "*     Open the following address in your web browser:  *"
+    print "*                                                      *"
+    print "*       http://%s:%s"%(address, port)
+    print "*                                                      *"
+    print "********************************************************"
     print "Running log at %s"%logfile
 
     try:
 
         if viewer:
             #os.system('%s file:///%s&'%(BROWSER, logfile))
-            os.system('%s http://%s:%s&'%(BROWSER, address, port))
+            os.system('%s http://%s:%s 2>/dev/null 1>/dev/null &'%(BROWSER, address, port))
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."
         httpd.serve_forever()

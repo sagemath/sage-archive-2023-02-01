@@ -7,7 +7,7 @@ def bug():
     Simple script for putting a bug report in a standard format.
 
     EXAMPLES:
-        sage.: bug()
+`        sage.: bug()
         We will now create a bug report in a standard format.
         Bug in command (one line)? bug
         Expected output (one line)? bugs

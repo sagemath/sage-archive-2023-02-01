@@ -3,12 +3,13 @@ Contains general base classes for homomorphisms between the matrix groups
 
 
 AUTHORS:
-   David Joyner -- initial version
+    David Joyner and William Stein (2006-03) -- initial version
+    David Joyner (2006-05) -- examples added
 
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -41,16 +42,29 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
     """
     Some python code for wrapping GAP's GroupHomomorphismByImages
     function but only for matrix groups. Can be expensive if G is
-    large. Returns"fail" if gens does not generate self or if the
+    large. Returns "fail" if gens does not generate self or if the
     map does not extend to a group homomorphism, self --> other.
 
     TODO: what does it mean to return fail?  It's a constructor
     for a class.
 
     EXAMPLES:
-    TODO -- add them.  !!
+        sage: F = GF(5); MS = MatrixSpace(F,2,2)
+        sage: G = MatrixGroup([MS([1,1,0,1])])
+        sage: H = MatrixGroup([MS([1,0,1,1])])
+        sage: phi = G.hom(H.gens())
+        sage: phi
+        Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+        sage: phi(MS([1,1,0,1]))
+        [1 0]
+        [1 1]
+        sage: F = GF(7); MS = MatrixSpace(F,2,2)
+        sage: F.multiplicative_generator()
+        3
+        sage: G = MatrixGroup([MS([3,0,0,1])])
+        sage: a = G.gens()[0]^2
+        sage: phi = G.hom([a])
 
-    AUTHOR: David Joyner (3-2006)
     """
     def __init__(self, homset, imgsH, check=True):
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
@@ -72,6 +86,20 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         return self._gap_str
 
     def kernel(self):
+        """
+        EXAMPLES:
+            sage: F = GF(7); MS = MatrixSpace(F,2,2)
+            sage: F.multiplicative_generator()
+            3
+            sage: G = MatrixGroup([MS([3,0,0,1])])
+            sage: a = G.gens()[0]^2
+            sage: phi = G.hom([a])
+            sage: phi.kernel()
+            'Group([ [ [ Z(7)^3, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
+            sage: phi.image(G.gens()[0])
+            '[ [ Z(7)^2, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ]'
+
+        """
         cmd = self._gap_hom_string
         gap.eval(cmd)
         gap_ker = gap.eval("Kernel(phi)")
@@ -81,12 +109,45 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         """
         J must be a subgroup of G. Computes the subgroup of
         H which is the image of J.
+
+        EXAMPLES:
+            sage: F = GF(7); MS = MatrixSpace(F,2,2)
+            sage: F.multiplicative_generator()
+            3
+            sage: G = MatrixGroup([MS([3,0,0,1])])
+            sage: a = G.gens()[0]^2
+            sage: phi = G.hom([a])
+            sage: phi.image(G.gens()[0])
+            '[ [ Z(7)^2, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ]'
+            sage: H = MatrixGroup([MS(a.list())])
+            sage: H
+            Matrix group over Finite Field of size 7 with 1 generators:
+            [[[2, 0], [0, 1]]]
+            sage: phi.image(H)
+            'Group([ [ [ Z(7)^4, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
+
         """
         cmd = self._gap_hom_string
         gap.eval(cmd)
         return gap.eval("Image( phi, "+str(J._gap_init_())+")")
 
-    def _repr_(self):
+    def __repr__(self):
+        """
+        EXAMPLES:
+            sage: F = GF(5); MS = MatrixSpace(F,2,2)
+            sage: G = MatrixGroup([MS([1,1,0,1])])
+            sage: H = MatrixGroup([MS([1,0,1,1])])
+            sage: phi = G.hom(H.gens())
+            sage: phi
+            Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+            sage: phi(MS([1,1,0,1]))
+            [1 0]
+            [1 1]
+
+        """
+        return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
+
+    def __str__(self):
         return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
 
     def _latex_(self):

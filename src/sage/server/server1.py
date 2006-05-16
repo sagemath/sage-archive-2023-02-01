@@ -189,7 +189,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             <html><head><title>SAGE Calculator (%s)</title></head>\n
             <script language=javascript>
             function scroll_to_bottom() {
-                document.getElementById(%s).scrollIntoView()
+                document.getElementById(%s).scrollIntoView();
+                document.io%s.elements[0].focus();
             }
 
             function ifShiftEnter(number, event) {
@@ -203,7 +204,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                    return true;
             }
             </script>
-            """%(save_name, number))
+            """%(number, number+1))
 
             f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H2><font color="darkgreen"><a href="http://modular.math.washington.edu/sage">SAGE</a>: Software for Algebra and Geometry Experimentation</font></H2>')
             f.write('<h3<tr>%s</h3>'%sage.misc.banner.version())

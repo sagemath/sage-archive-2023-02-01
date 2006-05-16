@@ -604,9 +604,15 @@ cdef class gen:
         """
         cdef GEN x
         cdef long lx, *xp
-        x = self.g
+        if  typ(self.g)==t_POL and self.poldegree()<=0:
+            # this is a work around for the case that e.g.
+            # GF(q).random_element() returns zero, which is of type
+            # t_POL(MOD)
+            x = polcoeff0(self.g,0,self.get_var(-1))
+        else:
+            x = self.g
         if typ(x) != t_INT:
-            raise TypeError, "gen must be of PARI type t_INT"
+            raise TypeError, "gen must be of PARI type t_INT or t_POL of degree 0"
         if not signe(x):
             return 0
         lx = lgefint(x)-3   # take 1 to account for the MSW

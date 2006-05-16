@@ -22,7 +22,7 @@ os.system('tar -xvf %s'%tarball)
 
 # read list of needed packages
 
-mindist_filelist = open('%s/spkg/standard/mindist_filelist'%r
+libdist_filelist = open('%s/spkg/standard/libdist_filelist'%r
                              ).read().split('\n')
 
 bin = '%s/local/bin/'%r
@@ -41,7 +41,7 @@ for F in os.listdir('%s/spkg/standard'%r):
     name, ext = os.path.splitext(F)
     i = name.find('-')
     name_without_version = name[:i]
-    if len(ext) > 1 and not name_without_version in mindist_filelist:
+    if len(ext) > 1 and not name_without_version in libdist_filelist:
         open('%s/spkg/installed/%s'%(r, name),'w').close()
         open('%s/spkg/standard/%s'%(r, F),'w').close()
 
@@ -54,6 +54,95 @@ setup = open('%s/setup.py'%r,'w')
 
 setup.write("""
 import os, sys
+
+#################################################
+# Test that all pre-requisites are met in this Python install for
+# using SAGE.
+#################################################
+
+SAGE_ROOT=os.path.abspath('.')
+os.environ['PATH'] = os.environ['PATH'] + ':%s/local/bin/'%SAGE_ROOT
+
+print "Checking prerequisites for installing the SAGE library..."
+
+
+print "matplotlib..."
+try:
+    from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.transforms import Value
+    from matplotlib.figure import Figure
+    import matplotlib.patches as patches
+    from matplotlib.cbook import flatten
+except ImportError, msg:
+    print msg
+    print 'You must install matplotlib so that the above error does not occur.'
+    sys.exit(1)
+
+print "pyrex..."
+try:
+    import Pyrex
+except ImportError, msg:
+    print msg
+    print 'You must install Pyrex first.'
+    sys.exit(1)
+
+print "pyrexc..."
+if os.system('which pyrexc 2>/dev/null 1>/dev/null'):
+    print 'The pyrexec pyrex compiler must be in your PATH'
+    sys.exit(1)
+
+print "pyrexembed..."
+if os.system('which pyrexembed 2>/dev/null 1>/dev/null'):
+    print 'The pyrexeembed pyrex pre-compiler must be in your PATH'
+    sys.exit(1)
+
+print "ZODB (Zope Object Database)..."
+try:
+    import ZODB
+except ImportError, msg:
+    print msg
+    print 'You must install ZODB (the ZOPE Object Database).'
+    sys.exit(1)
+
+print "IPython..."
+try:
+    import IPython
+except ImportError, msg:
+    print msg
+    print 'You must install IPython first.'
+    sys.exit(1)
+
+print "gap..."
+if os.system('which gap 2>/dev/null 1>/dev/null'):
+    print 'WARNING: Much of SAGE will not work without GAP installed.'
+    print 'Make sure the "gap" command is available.'
+    sys.exit(1)
+
+print "maxima..."
+if os.system('which maxima 2>/dev/null 1>/dev/null'):
+    print 'WARNING: Much of SAGE will not work without Maxima installed.'
+    print 'Make sure the "maxima" command is available.'
+    sys.exit(1)
+
+print "flex..."
+if os.system('which flex 2>/dev/null 1>/dev/null'):
+    print 'The Singular component of SAGE requires flex to build. Please install.'
+    print 'You must use the SAGE version of Singular (the standard version'
+    print 'is missing important patches, etc.).'
+    sys.exit(1)
+
+print "bison..."
+if os.system('which bison 2>/dev/null 1>/dev/null'):
+    print 'The Singular component of SAGE requires flex to build. Please install.'
+    print 'You must use the SAGE version of Singular (the standard version'
+    print 'is missing important patches, etc.).'
+    sys.exit(1)
+
+
+#################################################
+# Do the actual build and install
+#################################################
+
 python_exe = sys.executable
 e = os.system('cd local/bin/; ln -sf %s python'%python_exe)
 if e:
@@ -110,7 +199,7 @@ os.unlink('%s/ipythonrc'%r)
 readme = open('%s/README.txt'%r).read()
 
 readme = """
-This is the readme for sage-mindist, which is the
+This is the readme for sage-libdist, which is the
 distribution of
    SAGE: Software for Algebra and Geometry Experimentation
 
@@ -142,14 +231,14 @@ open('%s/README.txt'%r,'w').write(readme)
 
 
 i = r.find('-')
-mindist = 'sage-mindist%s'%r[i:]
+libdist = 'sage-libdist%s'%r[i:]
 
-if os.path.exists(mindist):
-    os.system('rm -rf %s'%mindist)
+if os.path.exists(libdist):
+    os.system('rm -rf %s'%libdist)
 
-os.system('mv %s %s'%(r,mindist))
+os.system('mv %s %s'%(r,libdist))
 
-os.system('tar -cvf %s.tar %s'%(mindist,mindist))
+os.system('tar -cvf %s.tar %s'%(libdist,libdist))
 
-os.system('rm -rf %s'%mindist)
+os.system('rm -rf %s'%libdist)
 

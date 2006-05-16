@@ -3,11 +3,16 @@
 import os, sys, socket
 from sage.all import *
 
+if len(sys.argv) > 1:
+    name = sys.argv[1]
+else:
+    name = None
+
 port = 8001
 
 while True:
     try:
-        server_http1(sys.argv[1], port=port)
+        server_http1(name = name, port=port)
         sys.exit(0)
     except socket.error:
         port += 1

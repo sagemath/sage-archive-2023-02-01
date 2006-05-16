@@ -25,14 +25,20 @@ usage_advanced() {
     echo "  -br           -- build and install any changes, then run SAGE"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
+    echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
-    echo "  -h, -?        -- print help message"
+    echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
+    echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
     echo "  -grep <string>-- grep through all the SAGE library code for string"
+    echo "  -h, -?        -- print help message"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "                   if no packages given, print a list of all installed"
+    echo "  -kash <..>    -- run SAGE's Kash with given arguments"
+    echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"
     echo "  -optional     -- list all optional packages that can be downloaded"
-    echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
     echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
+    echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
+    echo "  -M2 <..>      -- run SAGE's Macaulay2 with given arguments"
     echo "  -mpl          -- run with matplotlib support (requires optional matplotlib package)"
     echo "  -np           -- run with no output prompts (useful for making doctests)"
     echo "  -pkg <dir>    -- create SAGE package dir.spkg from a give directory (bzip2 compression)"
@@ -40,7 +46,8 @@ usage_advanced() {
     echo "  -python       -- run the python interpreter (use 'from sage.all import *')"
     echo "  -q            -- quiet; start with no banner"
     echo "  -sdist VER    -- build a source distribution of SAGE"
-    echo "  -mdist VER    -- build a *minimal* sage source distro"
+    echo "  -server1 [name]-- run SAGE as a web server (on localhost), logging "
+    echo "                    to the given filename"
     echo "  -t [-optional] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
     echo "                           -long     -- include lines with the phrase 'long time'"
@@ -122,18 +129,78 @@ if [ $1 = '-cleantmp' ]; then
     exit $?
 fi
 
-if [ $1 = "-log" ]; then
-   sage-log
-   exit 0
+#####################################################################
+# Run SAGE's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+if [ $1 = '-gap' ]; then
+    cd $CUR
+    shift
+    gap $*
+    exit $?
+fi
+
+if [ $1 = '-gp' ]; then
+    cd $CUR
+    shift
+    gp $*
+    exit $?
+fi
+
+if [ $1 = '-singular' ]; then
+    cd $CUR
+    shift
+    singular $*
+    exit $?
+fi
+
+if [ $1 = '-kash' ]; then
+    cd $CUR
+    shift
+    kash $*
+    exit $?
+fi
+
+if [ $1 = '-maxima' ]; then
+    cd $CUR
+    shift
+    maxima $*
+    exit $?
+fi
+
+if [ $1 = '-M2' ]; then
+    cd $CUR
+    shift
+    M2 $*
+    exit $?
 fi
 
 if [ $1 = '-python' ]; then
-    sage_setup
+    cd $CUR
     shift
-    #python $* -c "from sage.all import *"
-    cd "$CUR"
     python $*
     exit $?
+fi
+
+if [ $1 = '-darcs' ]; then
+    cd $CUR
+    shift
+    darcs $*
+    exit $?
+fi
+
+#####################################################################
+# Run SAGE's versions of the standard Algebra/Geometry etc. software
+#####################################################################
+
+if [ $1 = "-server1" -o $1 = "-server" ]; then
+   sage-server $2
+   exit 0
+fi
+
+if [ $1 = "-log" ]; then
+   sage-log
+   exit 0
 fi
 
 if [ $1 = '-grep' ]; then
@@ -262,7 +329,7 @@ if [ $1 = '-sdist' ]; then
    exit $?
 fi
 
-if [ $1 = '-mdist' ]; then
+if [ $1 = '-ldist' ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -276,7 +343,7 @@ if [ $1 = '-mdist' ]; then
        echo "Error changing to source distribution directory"
        exit 1
    fi
-   $SAGE_ROOT/local/bin/sage-mindist sage-$2.tar
+   $SAGE_ROOT/local/bin/sage-libdist sage-$2.tar
    exit $?
 fi
 

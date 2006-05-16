@@ -179,6 +179,11 @@ cdef class gen:
     ###########################################
     # ACCESS
     ###########################################
+    #def __getattr__(self, attr):
+    def getattr(self, attr):
+        t0GEN(str(self) + '.' + str(attr))
+        return self.new_gen(t0)
+
     def __getitem__(gen self, n):
         """
         Return a *copy* of the nth entry.
@@ -3892,6 +3897,11 @@ cdef class gen:
         _sig_on
         return self.new_gen(bnfisintnorm(self.g, t0))
 
+    def bnfisprincipal(self, x, long flag=1):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(isprincipalall(self.g, t0, flag))
+
     def bnfnarrow(self):
         _sig_on
         return self.new_gen(buchnarrow(self.g))
@@ -3905,10 +3915,56 @@ cdef class gen:
         _sig_on
         return self.new_gen(dirzetak(self.g, t0))
 
+    def idealadd(self, x, y):
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        return self.new_gen(idealadd(self.g, t0, t1))
+
+    def idealdiv(self, x, y, long flag=0):
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        return self.new_gen(idealdiv0(self.g, t0, t1, flag))
+
     def idealfactor(self, x):
         t0GEN(x)
         _sig_on
         return self.new_gen(idealfactor(self.g, t0))
+
+    def idealhnf(self, a, b=None):
+        t0GEN(a)
+        _sig_on
+        if b is None:
+            return self.new_gen(idealhermite(self.g, t0))
+        else:
+            t1GEN(b)
+            return self.new_gen(idealhnf0(self.g, t0, t1))
+
+    def idealmul(self, x, y, long flag=0):
+        t0GEN(x); t1GEN(y)
+        _sig_on
+        if flag == 0:
+            return self.new_gen(idealmul(self.g, t0, t1))
+        else:
+            return self.new_gen(idealmulred(self.g, t0, t1, prec))
+
+    def idealnorm(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(idealnorm(self.g, t0))
+
+    def idealtwoelt(self, x, a=None):
+        t0GEN(x)
+        _sig_on
+        if a is None:
+            return self.new_gen(ideal_two_elt0(self.g, t0, NULL))
+        else:
+            t1GEN(a)
+            return self.new_gen(ideal_two_elt0(self.g, t0, t1))
+
+    def idealval(self, x, p):
+        t0GEN(x); t1GEN(p)
+        _sig_on
+        return idealval(self.g, t0, t1)
 
     def nfbasis(self, long flag=0, p=0):
         cdef gen _p
@@ -3930,6 +3986,16 @@ cdef class gen:
         _sig_on
         return P.new_gen(nfinit0(self.g, flag, prec))
 
+    def rnfcharpoly(self, T, a, v='x'):
+        t0GEN(T); t1GEN(a); t2GEN(v)
+        _sig_on
+        return self.new_gen(rnfcharpoly(self.g, t0, t1, gvar(t2)))
+
+    def rnfdisc(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfdiscf(self.g, t0))
+
     def rnfeltabstorel(self, x):
         t0GEN(x)
         _sig_on
@@ -3945,6 +4011,39 @@ cdef class gen:
         t0GEN(poly)
         _sig_on
         return self.new_gen(rnfequation0(self.g, t0, 0))
+
+    def rnfidealabstorel(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealabstorel(self.g, t0))
+
+    def rnfidealadd(self, nf, x, y):
+        # Note the extra nf parameter, which should be the pari_nf
+        # corresponding to self.
+        a = self.rnfidealreltoabs(x)
+        b = self.rnfidealreltoabs(y)
+        sum = nf.idealadd(a, b)
+        return self.rnfidealabstorel(sum)
+
+    def rnfidealhnf(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealhermite(self.g, t0))
+
+    def rnfidealnormrel(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealnormrel(self.g, t0))
+
+    def rnfidealreltoabs(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealreltoabs(self.g, t0))
+
+    def rnfidealtwoelt(self, x):
+        t0GEN(x)
+        _sig_on
+        return self.new_gen(rnfidealtwoelement(self.g, t0))
 
     def rnfinit(self, poly):
         """
@@ -3964,6 +4063,7 @@ cdef class gen:
         t0GEN(poly)
         _sig_on
         return rnfisfree(self.g, t0)
+
 
 
 

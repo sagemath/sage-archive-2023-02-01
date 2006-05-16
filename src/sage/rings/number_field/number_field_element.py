@@ -271,8 +271,15 @@ class NumberFieldElement(field_element.FieldElement):
         #return self.matrix().determinant()
 
     def charpoly(self):
-        R = polynomial_ring.PolynomialRing(QQ)
-        return R(self._pari_().charpoly())
+        # formerly R = polynomial_ring.PolynomialRing(QQ) (for fields K/Q)
+        R = self.parent().polynomial_ring()
+        if not isinstance(self.parent(), number_field.NumberField_extension):
+            return R(self._pari_().charpoly())
+        else:
+            nf = self.parent()._pari_base_nf()
+            prp = self.parent().pari_relative_polynomial()
+            elt = str(self.polynomial()._pari_())
+            return R(nf.rnfcharpoly(prp, elt))
         # return self.matrix().charpoly()
 
     def minpoly(self):

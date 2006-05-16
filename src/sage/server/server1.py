@@ -101,9 +101,26 @@ class IO_Line:
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
 
         if len(self.file_list) == 0:
-            files = ''
+            files  = ''
+            images = ''
         else:
-            files = ('&nbsp'*3).join(['<a href="%s">%s</a>'%(F,F) for F in self.file_list])
+            images = []
+            files  = []
+            for F in self.file_list:
+                if(F[-4:] == '.png'):
+                    images.append('<img src="%s/%s">'%(number,F))
+                else:
+                    files.append('<a href="%s/%s">%s</a>'%(number,F,F))
+
+            if len(images) == 0:
+                images = ''
+            else:
+                images = "<br>%s"%'<br>'.join(images)
+            if len(files)  == 0:
+                files  = ''
+            else:
+                files  = ('&nbsp'*3).join(files)
+
 
         out = self.out
 
@@ -124,7 +141,7 @@ class IO_Line:
         <form name="io%s" method=post action="" id="%s">
         %s
         %s
-        </form>"""%(number, number, html_in, html_out)
+        </form>"""%(number, html_in, html_out)
         return c
 
 class Log(SageObject):
@@ -165,23 +182,12 @@ class Log(SageObject):
             self._log = [IO_Line()]
         self._log[-1].out = str(out)
 
-    def set_last_filelist(self, files):
-        if len(self._log) == 0:
-            self._log = [IO_Line()]
-        self._log[-1].file_list = files
-
 
 
 class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
-    def __new_files(self):
-        global directory, files
-        new = []
-        for k in os.listdir(directory):
-            if not k in files and k != '_temp_.py':
-                new.append(k)
-                files.append(k)
-        new.sort()
-        return new
+    def __files(self,number):
+        global directory
+        return os.listdir("%s/%s"%(directory,number))
 
     def __show_page(self, number):
         global current_log
@@ -232,7 +238,20 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             return f
 
     def do_GET(self):
-        self.__show_page(0)
+        if self.path[-4:] == '.png' or self.path[-5:] == '.sobj':
+            if os.path.exists("%s%s"%(directory,self.path)):
+                f = self.send_head()
+                if f:
+                    binfile = open("%s%s"%(directory,self.path), 'rb').read()
+                    f.write(binfile)
+                    f.seek(0)
+                    self.copyfile(f,self.wfile)
+                    f.close()
+                    return f
+            else:
+                self.file_not_found()
+        else:
+            self.__show_page(0)
 
     def do_POST(self):
         global current_log, fulltext_log
@@ -244,6 +263,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
             number = eval(C.keys()[0])
+            current_dir = "%s/%d"%(directory,number)
             code_to_eval = C[C.keys()[0]][0]
             fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
             try:
@@ -251,6 +271,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     current_log.set_last_cmd(code_to_eval)
                     number = len(current_log)-1
                 else:
+                    # re-evaluating a code block
                     current_log[number].cmd = code_to_eval
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
@@ -266,6 +287,15 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 s = '\n'.join(s)
 
                 open('%s/_temp_.py'%directory, 'w').write(s)
+
+                if not os.path.exists(current_dir):
+                    os.mkdir(current_dir)
+
+                for F in os.listdir(current_dir):
+                    os.unlink("%s/%s"%(current_dir,F))
+
+                sage0._eval_line('os.chdir("%s")'%current_dir)
+
                 try:
                     o = sage0._eval_line('execfile("%s/_temp_.py")'%directory)
                 except KeyboardInterrupt, msg:
@@ -277,7 +307,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
                 current_log[number].out = o
-                current_log[number].file_list = self.__new_files()
+                current_log[number].file_list = self.__files(number)
                 self.__show_page(number)
 
             except (RuntimeError, TypeError), msg:
@@ -299,10 +329,26 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         if f:
             f.close()
 
+    def file_not_found(self):
+        self.send_response(404)
+        self.send_header("Content-type", 'text/plain')
+        self.end_headers()
+        f = StringIO()
+        f.write("File not found")
+        f.seek(0)
+        self.copyfile(f, self.wfile)
+        f.close()
+        return f
 
     def send_head(self):
         self.send_response(200)
-        self.send_header("Content-type", 'text/html')
+        if self.path[-4:] == '.png':
+            self.send_header("Content-type", 'image/png')
+        elif self.path[-5:] == '.sobj':
+            self.send_header("Content-type", 'application/sobj')
+        else:
+            self.send_header("Content-type", 'text/html')
+
         self.end_headers()
         f = StringIO()
         #print "URL Path: %s\n" % self.path

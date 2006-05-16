@@ -145,14 +145,13 @@ class LinearGroup_finite_field(LinearGroup_generic):
 
     def __contains__(self, x):
         """
-        Return True if $x$ is an element of this abelian group.
+        Return True if $x$ is an element of this group.
 
         EXAMPLES:
             sage: G = GL(3,GF(4))
             sage: g = G.random()
             sage: g in G
             True
-
         """
         from matrix_group_element import MatrixGroupElement
         return isinstance(x, MatrixGroupElement) and x.parent() == self

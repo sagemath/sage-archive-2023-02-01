@@ -129,12 +129,12 @@ class Set_object(Set_generic):
         sage: S = Set(K)
 
         sage: latex(S)
-        '\left\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\right\}'
+        \left\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\right\}
         sage: loads(S.dumps()) == S
         True
 
         sage: latex(Set(ZZ))
-        '\mbox{\bf{}Z}'
+        \mbox{\bf{}Z}
     """
     def __init__(self, X):
         """
@@ -158,7 +158,7 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: latex(Set(QQ))
-            '\mbox{\bf{}Q}'
+            \mbox{\bf{}Q}
 
         When the object is finite or a special set then the latex
         representation can be more interesting.
@@ -535,7 +535,7 @@ class Set_object_union(Set_object):
             Set-theoretic union of Vector space of dimension 2 over Rational Field and Integer Ring
 
             sage: latex(X)
-            '\mbox{\bf{}Q}^{2} \cup \mbox{\bf{}Z}'
+            \mbox{\bf{}Q}^{2} \cup \mbox{\bf{}Z}
 
             sage: loads(X.dumps()) == X
             True
@@ -592,7 +592,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: latex(Set(ZZ).union(Set(GF(5))))
-            '\mbox{\bf{}Z} \cup \left\{1, 0, 3, 2, 4\right\}'
+            \mbox{\bf{}Z} \cup \left\{1, 0, 3, 2, 4\right\}
         """
         return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
@@ -655,7 +655,7 @@ class Set_object_intersection(Set_object):
             sage: X = S.intersection(T); X
             Set-theoretic intersection of Vector space of dimension 2 over Rational Field and Integer Ring
             sage: latex(X)
-            '\mbox{\bf{}Q}^{2} \cap \mbox{\bf{}Z}'
+            \mbox{\bf{}Q}^{2} \cap \mbox{\bf{}Z}
 
             sage: loads(X.dumps()) == X
             True
@@ -718,7 +718,7 @@ class Set_object_intersection(Set_object):
         EXAMPLES:
             sage: X = Set(ZZ).intersection(Set(QQ))
             sage: latex(X)
-            '\mbox{\bf{}Z} \cap \mbox{\bf{}Q}'
+            \mbox{\bf{}Z} \cap \mbox{\bf{}Q}
         """
         return '%s \\cap %s'%(latex(self.__X), latex(self.__Y))
 

@@ -215,7 +215,7 @@ class SL2Z(Gamma0):
         [1 1]
         [0 1]
         sage: latex(G)
-        '\mbox{\rm SL}_2(\mbox{\bf{}Z})'
+        \mbox{\rm SL}_2(\mbox{\bf{}Z})
         sage: G([1,-1,0,1])
         [ 1 -1]
         [ 0  1]

@@ -1,5 +1,9 @@
 """
 Number Fields
+
+AUTHORS:
+   -- William Stein (2004, 2005): initial version
+   -- Steven Sivek (2006-05-12): added support for relative extensions
 """
 
 #*****************************************************************************
@@ -87,7 +91,7 @@ def NumberField(polynomial, name='a', check=True):
         2
 
     EXAMPLES: Constructing a relative number field
-        sage: K, a = NumberField(x^2 - 2).objgen()
+        sage: K.<a> = NumberField(x^2 - 2)
         sage: R, t = K['t'].objgen()
         sage: L = K.extension(t^3+t+a); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2

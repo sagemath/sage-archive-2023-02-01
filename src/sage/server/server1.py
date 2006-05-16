@@ -118,10 +118,10 @@ class IO_Line:
             html_out = ''
 
         c = """
-        <form name="" method=post action="" id="%s">
+        <form name="io%s" method=post action="" id="%s">
         %s
         %s
-        </form>"""%(number, html_in, html_out)
+        </form>"""%(number, number, html_in, html_out)
         return c
 
 class Log(SageObject):
@@ -204,7 +204,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                    return true;
             }
             </script>
-            """%(number, number+1))
+            """%(save_name, number, number+1))
 
             f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H2><font color="darkgreen"><a href="http://modular.math.washington.edu/sage">SAGE</a>: Software for Algebra and Geometry Experimentation</font></H2>')
             f.write('<h3<tr>%s</h3>'%sage.misc.banner.version())

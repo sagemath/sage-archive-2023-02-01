@@ -24,10 +24,7 @@ import operator, os, sys, signal, time, weakref, random
 
 from banner import version, banner
 
-try:
-    SAGE_ROOT = os.environ["SAGE_ROOT"]
-except KeyError:
-     raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the directory in which you built SAGE."
+SAGE_ROOT = os.environ["SAGE_ROOT"]
 
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)

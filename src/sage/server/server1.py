@@ -51,6 +51,9 @@ TODO:
 
 
 import BaseHTTPServer
+import socket
+
+
 from StringIO import StringIO
 import os, sys
 import shutil
@@ -353,11 +356,22 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
         current_log = log
     sage0 = sage.interfaces.sage0.Sage(logfile=logfile)
     sage0.eval('os.chdir("%s")'%directory)
-    server_address = (address, int(port))
     HTML_Interface.protocol_version = "HTTP/1.0"
-    httpd = BaseHTTPServer.HTTPServer(server_address,
-                                      HTML_Interface)
-    sa = httpd.socket.getsockname()
+
+
+    while True:
+        try:
+            server_address = (address, int(port))
+            httpd = BaseHTTPServer.HTTPServer(server_address,
+                                              HTML_Interface)
+            sa = httpd.socket.getsockname()
+        except socket.error, msg:
+            print msg
+            port += 1
+            print "Trying next port (=%s)"%port
+        else:
+            break
+
     print "********************************************************"
     print "*                                                      *"
     print "*     Open the following address in your web browser:  *"

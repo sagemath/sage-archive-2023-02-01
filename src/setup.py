@@ -93,7 +93,7 @@ ext_modules = [ \
 
     ntl, \
 
-    cf, \
+    #cf, \
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \

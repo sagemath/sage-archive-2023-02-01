@@ -322,7 +322,7 @@ cdef class CanonicalForm:
     cdef void *thisptr
     cdef void *iterator
 
-    def __init__(self,arg=None, arg2=None, cache=None):
+    def __init__(self,arg=None, arg2=None, kcache=None):
         """
         If arg is a Variable and exp==None this constructor generates
         a canonical form out of the variable arg.  If the level of x
@@ -358,7 +358,7 @@ cdef class CanonicalForm:
         INPUT:
             arg --   integer, Variable, Polynomial, or string
             arg2 --  optional second argument in dependence of first one
-            cache -- optional base field cache to use MPolynomial elements
+            kcache -- optional base field cache to use MPolynomial elements
 
         EXAMPLES:
             sage: R=PolynomialRing(GF(127),2)
@@ -403,12 +403,12 @@ cdef class CanonicalForm:
         #}embed
 
         #embed{ void CF_polygen(void *ret, int c, int level, long e)
-           *(CanonicalForm*)ret += c * CanonicalForm(Variable(level),e);
+            *(CanonicalForm*)ret += c * CanonicalForm(Variable(level),e);
         #}embed
 
         #embed{ void CF_mongen(void *ret, int level, long e)
-           if(e!=0)
-              *(CanonicalForm*)ret *= CanonicalForm(Variable(level),e);
+            if(e!=0)
+                *(CanonicalForm*)ret *= CanonicalForm(Variable(level),e);
         #}embed
 
         cdef CanonicalForm cPoly
@@ -421,27 +421,27 @@ cdef class CanonicalForm:
 
         # maybe a switch-case dict might be faster here?
         if is_FieldElement(arg) and arg.parent().degree()!=1:
-           cPoly = CF(0)
-           if not isinstance(arg2,Variable):
-              arg2 = setBaseDomain(arg.parent())
-           varlevel  = arg2.level()
-           f = arg._pari_().lift().lift()
-           if f.poldegree() == 0:
-              self.thisptr = CF_initi(int(f))
-              return
-           for i from 0 <= i <= f.poldegree():
-              CF_polygen(cPoly.thisptr,int(f[i]),varlevel,i)
-           self.thisptr = cPoly.thisptr
-           return
+            cPoly = CF(0)
+            if not isinstance(arg2,Variable):
+                arg2 = setBaseDomain(arg.parent())
+            varlevel  = arg2.level()
+            f = arg._pari_().lift().lift()
+            if f.poldegree() == 0:
+                self.thisptr = CF_initi(int(f))
+                return
+            for i from 0 <= i <= f.poldegree():
+                CF_polygen(cPoly.thisptr,int(f[i]),varlevel,i)
+            self.thisptr = cPoly.thisptr
+            return
 
         elif is_MPolynomialRingElement(arg):
             poly = CF(0)
             for e,c in arg.element().dict().iteritems():
                 t = CF(0)
-                if cache!=None:
-                    if not cache.has_key(c):
-                        cache[c]=CF(c,arg2)
-                    t = t + cache[c]
+                if kcache!=None:
+                    if not kcache.has_key(c):
+                        kcache[c]=CF(c,arg2)
+                    t = t + kcache[c]
                 else:
                     t = t + CF(c,arg2)
                 for i from 1 <= i <= len(e):
@@ -959,7 +959,7 @@ cdef class CanonicalForm:
 
         INPUT:
             v -- if set the leading coefficient with respect to this
-                        variable is returned.
+                variable is returned.
         OUTPUT:
             CanonicalForm representing the lead coefficient.
 
@@ -1104,7 +1104,7 @@ cdef class CanonicalForm:
 
         INPUT:
             mapMe -- if True this object is mappend and nothing is returned
-                     (default: False)
+                (default: False)
         """
 
         #embed{ void *CF_mapinto(void *self)
@@ -1150,7 +1150,7 @@ cdef class CanonicalForm:
     def inGF(CanonicalForm self):
         """
         This method returns true if the object is an element of GF(q).
-         """
+            """
         #embed{ int CF_inGF(void *self)
         return ((CanonicalForm*)self)->inGF();
         #}embed
@@ -1246,7 +1246,7 @@ cdef class CanonicalForm:
                 retval = retval + self.__cflist__(c,list(e))
             return retval
 
-    def _sage_(self,r,cache=None):
+    def _sage_(self, r, kcache=None):
         """
         Coerces self into r.
 
@@ -1259,7 +1259,7 @@ cdef class CanonicalForm:
 
         INPUT:
             r -- ring to coerce to
-            cache -- optional finite field cache
+            kcache -- optional finite field cache
 
         EXAMPLES:
             sage: cf.setBaseDomain(GF(127))
@@ -1277,18 +1277,20 @@ cdef class CanonicalForm:
         """
         from sage.rings.polynomial_ring import is_PolynomialRing
 
+        self.mapinto(mapMe=True)
+
         if is_PolynomialRing(r):
-           l = [0]*(self.degree()+1)
-           base = r.base_ring()
-           for c,e in self:
-               cs = str(c)
-               if cache!=None:
-                  if not cache.has_key(cs):
-                     cache[cs]=base(cs)
-                  l[e]=cache[cs]
-               else:
-                  l[e]=base(cs)
-           return r(l)
+            l = [0]*(self.degree()+1)
+            base = r.base_ring()
+            for c,e in self:
+                cs = str(c)
+                if kcache!=None:
+                    if not kcache.has_key(cs):
+                        kcache[cs]=base(cs)
+                    l[e]=kcache[cs]
+                else:
+                    l[e]=base(cs)
+            return r(l)
         else:
             d={}
             level = self.level()-1
@@ -1297,11 +1299,15 @@ cdef class CanonicalForm:
 
             kgen = str(r.base_ring().gen())
 
+            if self.is_zero():
+                # obey binary compatibility
+                return r(polydict.PolyDict({}))
+
             if self.inCoeffDomain():
                 # catch the constant case
                 cs = str(self)
                 if not self.inFF():
-                   cs = cs.replace(str(self.mvar()),kgen)
+                    cs = cs.replace(str(self.mvar()),kgen)
                 d[tuple([int(0),]*r.ngens())]=r.base_ring()(cs)
                 return r(polydict.PolyDict(d))
 
@@ -1310,13 +1316,15 @@ cdef class CanonicalForm:
                 exp[level]= e
                 l = self.__cflist__(c,exp)
                 for c2,e2 in l:
+                    if c2.is_zero():
+                        continue
                     cs = str(c2)
                     if not c2.inFF():
                         cs = cs.replace(str(c2.mvar()),kgen)
-                    if cache!=None:
-                        if not cache.has_key(cs):
-                            cache[cs]=r.base_ring()(cs)
-                        d[tuple(e2)]=cache[cs]
+                    if kcache!=None:
+                        if not kcache.has_key(cs):
+                            kcache[cs]=r.base_ring()(cs)
+                        d[tuple(e2)]=kcache[cs]
                     else:
                         d[tuple(e2)]=r.base_ring()(cs)
             return r(polydict.PolyDict(d))
@@ -1436,8 +1444,8 @@ def rootOf(mipo, char *name = NULL):
 
     INPUT:
         mipo -- minimal polynomial to define the algebraic variable,
-                this must be a CanonicalForm or something coercable to
-                ca CanonicalForm via the CanonicalForm constructor
+            this must be a CanonicalForm or something coercable to
+            ca CanonicalForm via the CanonicalForm constructor
 
         name -- name to assign to the algebraic variable
 

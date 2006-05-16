@@ -221,7 +221,7 @@ class Darcs:
         tmpfile = '%s/tmpdarcs'%self.__dir
         if os.path.exists(tmpfile):
             os.unlink(tmpfile)
-        self('send %s %s -o tmpdarcs '%(options, url))
+        self('send %s -o tmpdarcs %s'%(options, url))
         if os.path.exists(tmpfile):
             shutil.move(tmpfile, filename)
             print 'Successfully created darcs patch bundle %s'%filename

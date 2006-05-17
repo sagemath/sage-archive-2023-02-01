@@ -403,7 +403,7 @@ cdef class PrincipalIdealDomain(IntegralDomain):
 
         EXAMPLES:
             sage: QQ.class_group()
-            Abelian group on 0 generators () with invariants []
+            Trivial Abelian Group
         """
         from sage.groups.abelian_gps.abelian_group import AbelianGroup
         return AbelianGroup([])

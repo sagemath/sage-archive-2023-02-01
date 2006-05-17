@@ -162,7 +162,7 @@ class AbelianGroupElement(MonoidElement):
 
         EXAMPLES:
             sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
-            AbelianGroup( 3, [2, 3, 4])
+            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
             sage: a,b,c=G.gens()
             sage: Gp = G.permutation_group(); Gp
             Permutation Group with generators [(1,13)(2,14)(3,15)(4,16)(5,17)(6,18)(7,19)(8,20)(9,21)(10,22)(11,23)(12,24), (1,5,9)(2,6,10)(3,7,11)(4,8,12)(13,17,21)(14,18,22)(15,19,23)(16,20,24), (1,3,2,4)(5,7,6,8)(9,11,10,12)(13,15,14,16)(17,19,18,20)(21,23,22,24)]
@@ -219,7 +219,7 @@ class AbelianGroupElement(MonoidElement):
 
         EXAMPLES:
             sage: F = AbelianGroup(3,[7,8,9]); F
-            AbelianGroup( 3, [7, 8, 9])
+            Abelian Group isomorphic to Z/7Z x Z/8Z x Z/9Z
             sage: F.gens()[2].order()
             9
             sage: a,b,c = F.gens()

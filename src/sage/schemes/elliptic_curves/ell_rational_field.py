@@ -1974,9 +1974,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve('11a').torsion_subgroup()
-            Abelian group on 1 generators (f,) with invariants [5]
+            Abelian Group isomorphic to Z/5Z
             sage: EllipticCurve('37b').torsion_subgroup()
-            Abelian group on 1 generators (f,) with invariants [3]
+            Abelian Group isomorphic to Z/3Z
         """
         try:
             return self.__torsion

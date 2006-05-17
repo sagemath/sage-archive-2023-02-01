@@ -17,7 +17,7 @@ EXAMPLES:
     sage: Sets()
     Category of sets
     sage: GSets(AbelianGroup([2,4,9]))
-    Category of G-sets for Abelian group on 3 generators (f0, f1, f2) with invariants [2, 4, 9]
+    Category of G-sets for Abelian Group isomorphic to Z/2Z x Z/4Z x Z/9Z
     sage: Semigroups()
     Category of semigroups
     sage: VectorSpaces(FiniteField(11))
@@ -32,7 +32,6 @@ category of all objects of $O$.  For example,
     sage: x = V.gen(1)
     sage: x.category()
     Category of elements of Vector space of dimension 3 over Rational Field
-
 """
 
 #*****************************************************************************

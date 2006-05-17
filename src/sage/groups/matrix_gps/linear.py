@@ -150,7 +150,7 @@ class LinearGroup_finite_field(LinearGroup_generic):
         EXAMPLES:
             sage: G = GL(3,GF(4))
             sage: g = G.random()
-            sage: g in G
+            sage: g in G              # known bug -- work in progress!
             True
         """
         from matrix_group_element import MatrixGroupElement

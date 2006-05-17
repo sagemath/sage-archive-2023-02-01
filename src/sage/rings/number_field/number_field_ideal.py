@@ -108,13 +108,34 @@ class NumberFieldIdeal(Ideal_fractional):
 
     def __div__(self, other):
         """
-        x.__div__(y) <==> x/y
+        Return the quotient self / other.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 5)
+            sage: I = K.ideal(2/(5+a))
+            sage: J = K.ideal(17+a)
+            sage: I/J
+            Fractional ideal (-17/1420*a + 1/284) of Number Field in a with defining polynomial x^2 - 5
+            sage: (I/J) * J
+            Fractional ideal (-1/5*a) of Number Field in a with defining polynomial x^2 - 5
+            sage: (I/J) * J == I
+            True
         """
-        return x * y.__invert__()
+        return self * other.__invert__()
 
     def __invert__(self):
         """
-        x.__invert__() <==> 1/x
+        Return the multiplicative inverse of self.  Call with ~self.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: I = K.ideal(2/(5+a))
+            sage: ~I
+            Fractional ideal (1/2*a + 5/2) of Number Field in a with defining polynomial x^3 - 2
+            sage: 1/I
+            Fractional ideal (1/2*a + 5/2) of Number Field in a with defining polynomial x^3 - 2
+            sage: (1/I) * I
+            Fractional ideal (1) of Number Field in a with defining polynomial x^3 - 2
         """
         if self.is_zero():
             raise ZeroDivisionError
@@ -127,7 +148,7 @@ class NumberFieldIdeal(Ideal_fractional):
 
     def __pow__(self, right):
         """
-        I.__pow__(y) <==> I^n
+        Return self to the power of right.
         """
         right = int(right)
         if right < 0:
@@ -139,6 +160,12 @@ class NumberFieldIdeal(Ideal_fractional):
     def pari_hnf(self):
         """
         Return PARI's representation of this ideal in Hermite normal form.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 - 2)
+            sage: I = K.ideal(2/(5+a))
+            sage: I.pari_hnf()
+            [2, 0, 50/127; 0, 2, 244/127; 0, 0, 2/127]
         """
         try:
             return self.__pari_hnf
@@ -196,7 +223,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: J.gens()
             (2, i + 1)
             sage: J.gens_reduced()
-            (i + 1)
+            (i + 1,)
         """
         try:
             ## Compute the single generator, if it exists
@@ -224,7 +251,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Return a list of generators for this ideal as a $\mathbb{Z}$-module.
 
         EXAMPLE:
-            sage: K, i = NumberField(x^2+1, 'i')
+            sage: K.<i> = NumberField(x^2 + 1)
             sage: J = K.ideal(i+1)
             sage: J.integral_basis()
             [2, i + 1]
@@ -244,7 +271,7 @@ class NumberFieldIdeal(Ideal_fractional):
             False
             sage: J,d = I.integral_split()
             sage: J
-            Fractional ideal (-1/2*a + 5/2) of Number Field in a with defining polynomial x^2-5
+            Fractional ideal (-1/2*a + 5/2) of Number Field in a with defining polynomial x^2 - 5
             sage: J.is_integral()
             True
             sage: d

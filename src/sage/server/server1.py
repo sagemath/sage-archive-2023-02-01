@@ -141,7 +141,9 @@ class IO_Line:
         <form name="io%s" method=post action="" id="%s">
         %s
         %s
-        </form>"""%(number, html_in, html_out)
+        %s
+        %s
+        </form>"""%(number, number, html_in, html_out, files, images)
         return c
 
 class Log(SageObject):

@@ -90,6 +90,21 @@ class Expect(SageObject):
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
 
+    def _get(self, wait=0.1):
+        E = self._expect
+        E.timeout = float(wait)
+        try:
+            E.expect(self._prompt)
+        except (pexpect.TIMEOUT, pexpect.EOF), msg:
+            return None
+        return E.before
+
+    def _send(self, cmd):
+        if self._expect is None:
+            self._start()
+        E = self._expect
+        E.sendline(cmd)
+
     def is_remote(self):
         return self.__is_remote
 

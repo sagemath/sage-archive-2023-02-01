@@ -6,7 +6,7 @@ from sage.all import *
 if len(sys.argv) > 1:
     name = sys.argv[1]
 else:
-    name = None
+    name = "default_sage_server"
 
 port = 8001
 

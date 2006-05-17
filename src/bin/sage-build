@@ -3,6 +3,7 @@
 build() {
    if [ -d $SAGE_ROOT/devel/$1/ ]; then
       cd $SAGE_ROOT/devel/$1/
+      chmod +x ./install
       time ./install $SAGE_ROOT
       if [ $? -ne 0 ]; then
          echo "Error building $1"

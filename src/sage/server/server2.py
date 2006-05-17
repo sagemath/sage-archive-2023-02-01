@@ -1,47 +1,8 @@
 """
-SAGE Server 1 (of many)
+SAGE Server 2 -- making nonblocking
 
-AUTHOR:
-    -- William Stein (2006-05-06): initial version
+   WORK IN PROGRESS!!!
 
-TODO:
-   [] Ability to switch from one log (=workbook) to another via
-      the web interface.
-   [] The "move to the current input box" javascript *only* works
-      with firefox (not opera, not konqueror); also this should
-      just keep the page position where it is rather than move it.
-      Moving to a more AJAX-ish model would alternatively fix this, maybe.
-   [] A. Clemesha: shrink/expand input/output blocks
-   [] Add plain text annotation that is not evaluated
-      between blocks (maybe in html?)
-      E.g., just make ctrl-enter on a block by HTML-it.
-   [] Ability to interrupt running calculations directly
-      from the web interface (no console access)
-   [] Nice animation while a computation is proceeding.
-   [] Some way to show output as it is computed.
-   [] Option to delete blocks
-   [] Make block expand if enter a lot of text into it.
-   [] Evaluate the entire worksheet
-   [] Theme-able / skin-able
-   [] Downloading and access to exact log of IO to client SAGE process
-   [] Save session objects as to log objects so don't have to re-eval?
-   [] The entire page is resent/updated every time you hit shift-enter;
-      using 'AJAX' this flicker/lag could be completely eliminated.
-   [] When pressing shift-enter a line feed is inserted temporarily
-      into the inbox, which is unnerving.
-   [] Add authentication
-   [] Embed the log object in the html file, so server session
-      can be restared directly using the html file!  E.g., embed
-      pickled Log object in a comment at end of the .html file.
-   [] Ability to upload and download source files (to be run)
-      via web interface; maybe ability to edit them too, via some
-      'rich' code editing javascript 'widget'.
-   [] rewrite tables using CSS
-DONE
-   [x] A. Clemesha: When hit shift-enter the next text box should be made
-      into focus.
-   [x] Embedded graphics from plots;
-       also embed png from latexing of math objects (so they look nice).
 """
 
 ###########################################################################
@@ -68,6 +29,8 @@ import sage.misc.banner
 from sage.misc.log import BROWSER
 from sage.ext.sage_object import load, SageObject
 
+# Globals
+queue = []
 
 class IO_Line:
     def __init__(self, cmd='', out=''):
@@ -264,72 +227,14 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         length = int(self.headers.getheader('content-length'))
         if ctype == 'multipart/form-data':
             self.body = cgi.parse_multipart(self.rfile, pdict)
+
         elif ctype == 'application/x-www-form-urlencoded':
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
             number = eval(C.keys()[0])
-            current_dir = "%s/%d"%(directory,number)
             code_to_eval = C[C.keys()[0]][0]
-            fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
-            try:
-                if number > len(current_log)-1:
-                    current_log.set_last_cmd(code_to_eval)
-                    number = len(current_log)-1
-                else:
-                    # re-evaluating a code block
-                    current_log[number].cmd = code_to_eval
-                s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
-                                                      do_time=True, ignore_prompts=True)
-                s = [x for x in s.split('\n') if len(x.split()) > 0 and \
-                      x.lstrip()[0] != '#']   # remove all blank lines and comment lines
-                if len(s) > 0:
-                    t = s[-1]
-                    if len(t) > 0 and not t[0].isspace():
-                        # broken if input has triple quotes!!
-                        t = t.replace("'","\\'")
-                        s[-1] = "exec compile('%s', '', 'single')"%t
-
-                s = '\n'.join(s)
-
-                open('%s/_temp_.py'%directory, 'w').write(s)
-
-                if not os.path.exists(current_dir):
-                    os.mkdir(current_dir)
-
-                for F in os.listdir(current_dir):
-                    os.unlink("%s/%s"%(current_dir,F))
-
-                sage0._eval_line('os.chdir("%s")'%current_dir)
-
-                try:
-                    o = sage0._eval_line('execfile("%s/_temp_.py")'%directory)
-                    #sage0._send('execfile("%s/_temp_.py")'%directory)
-                except KeyboardInterrupt, msg:
-                    print "Keyboard interrupt!"
-                    o = msg
-
-                #while True:
-                #    print "waiting for output"
-                #    o = sage0._get()
-                #    if o is None:
-                #        print "output isn't ready yet"
-                #    else:
-                #        print "o = ", o
-                #        break
-                #    import time
-                #    time.sleep(0.5)
-
-                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
-
-                fulltext_log += '\n'.join(o.split('\n')) + '\n'
-
-                current_log[number].out = o
-                current_log[number].file_list = self.__files(number)
-                self.__show_page(number)
-
-            except (RuntimeError, TypeError), msg:
-                print "ERROR!!!", msg
-                self.__show_page(0)
+            enqeue_a_new_calculation(code_to_eval, number)
+            self.__show_page(number)
 
         else:
             self.body = {}                   # Unknown content-type
@@ -375,8 +280,88 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile):
         shutil.copyfileobj(source, outputfile)
 
+####################
+
+cells_waiting_to_be_evaluated = []
+
+def update_log(code_to_eval, number):
+    global current_log
+    if number > len(current_log)-1:
+        current_log.set_last_cmd(code_to_eval)
+        number = len(current_log)-1
+    else:
+        # re-evaluating a code block
+        current_log[number].cmd = code_to_eval
+    return number
+
+
+def enque_a_new_calculation(code_to_eval, number):
+
+    #fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
+    number = update_log(code_to_eval, number)
+
+    cells_waiting_to_be_evaluated.append(number)
+
+    if len(cells_waiting_to_be_evaluated) == 1:
+        start_calculating_a_cell(number)
+
+
+def update_evaluation_of_cells():
+    if len(cells_waiting_to_be_evaluated) == 0:
+        return
+    # cell currently calculating
+    number = cells_waiting_to_be_evaluated[0]
+    r = sage0._get()
+    if r is None:
+        # still working on that calculation
+        return
+
+    # we are done, and r contains the result!
+    current_log[number].out = r
+
+    # remove this cell from consideration
+    del cells_waiting_to_be_evaluated[0]
+
+    # start computing the next cell if necessary.
+    if len(cells_waiting_to_be_evaluated) > 0:
+        number = cells_waiting_to_be_evaluated[0]
+        start_calculating_a_cell(number)
+
+def start_calculating_a_cell(number):
+
+    code_to_eval = current_log[number].cmd
+    s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
+                                          do_time=True, ignore_prompts=True)
+
+    s = [x for x in s.split('\n') if len(x.split()) > 0 and \
+          x.lstrip()[0] != '#']   # remove all blank lines and comment lines
+
+    if len(s) > 0:
+        t = s[-1]
+        if len(t) > 0 and not t[0].isspace():
+            # broken if input has triple quotes!!
+            t = t.replace("'","\\'")
+            s[-1] = "exec compile('%s', '', 'single')"%t
+
+    s = '\n'.join(s)
+
+    current_dir = "%s/%d"%(directory, number)
+    open('%s/_temp_.py'%directory, 'w').write(s)
+    if not os.path.exists(current_dir):
+        os.mkdir(current_dir)
+    for F in os.listdir(current_dir):
+        os.unlink("%s/%s"%(current_dir,F))
+
+    sage0._eval_line('os.chdir("%s")'%current_dir)
+    sage0._send('execfile("%s/_temp_.py")'%directory)
+
+    #fulltext_log += '\n'.join(o.split('\n')) + '\n'
+
+
+
+####################
 sage0=None
-def server_http1(name=None, port=8000, address='localhost', ncols=90,
+def server_http2(name=None, port=8000, address='localhost', ncols=90,
                  nrows=8, dir=None, viewer=True, log=None):
     """
     Start a SAGE http server at the given port.

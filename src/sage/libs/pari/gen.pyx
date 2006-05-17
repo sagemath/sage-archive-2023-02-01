@@ -17,7 +17,8 @@ include 'setlvalue.pxi'
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
-pari_instance = PariInstance(100000000, 500000)
+#pari_instance = PariInstance(100000000, 500000)
+pari_instance = PariInstance(50000000, 500000)
 P = pari_instance   # shorthand notation
 
 # so Galois groups are represented in a sane way

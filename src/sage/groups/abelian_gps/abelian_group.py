@@ -78,7 +78,7 @@ creates the identity element even in the rank zero case.
 
     sage: T = AbelianGroup(0,[])
     sage: T
-    AbelianGroup( 0, [])
+    Trivial Abelian Group
     sage: T.gens()
     ()
     sage: T(1)
@@ -90,7 +90,7 @@ the underlying representation is lists of integer exponents.
 
     sage: F = AbelianGroup(5,[3,4,5,5,7],names = list("abcde"))
     sage: F
-    AbelianGroup( 5, [3, 4, 5, 5, 7])
+    Abelian Group isomorphic to Z/3Z x Z/4Z x Z/5Z x Z/5Z x Z/7Z
     sage: (a,b,c,d,e) = F.gens()
     sage: a*b^2*e*d
     a*b^2*d*e
@@ -168,7 +168,7 @@ def word_problem(words, g, verbose = False):
 
     EXAMPLE:
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
-        AbelianGroup( 3, [2, 3, 4])
+        Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
         sage: word_problem([a*b,a*c], b*c)
         [[a*b, 1], [a*c, 1]]
         sage: word_problem([a*b,a*c],b*c)
@@ -266,17 +266,17 @@ def AbelianGroup(n, invfac=None, names="f"):
         sage: d * b**2 * c**3
         b^2*c^3*d
         sage: F = AbelianGroup(3,[2]*3); F
-        AbelianGroup( 3, [2, 2, 2])
+        Abelian Group isomorphic to Z/2Z x Z/2Z x Z/2Z
         sage: H = AbelianGroup([2,3], names="xy"); H
-        AbelianGroup( 2, [2, 3])
+        Abelian Group isomorphic to Z/2Z x Z/3Z
         sage: AbelianGroup(5)
-        AbelianGroup( 5, [0, 0, 0, 0, 0])
+        Abelian Group isomorphic to Z x Z x Z x Z x Z
         sage: AbelianGroup(5).order()
         Infinity
 
     Notice how $0$'s are padded on.
         sage: AbelianGroup(5, [2,3,4])
-        AbelianGroup( 5, [0, 0, 2, 3, 4])
+        Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/4Z
 
     The invariant list can't be longer than the number of generators.
         sage: AbelianGroup(2, [2,3,4])
@@ -303,7 +303,7 @@ def is_AbelianGroup(x):
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
-        AbelianGroup( 5, [5, 5, 7, 8, 9])
+        Abelian Group isomorphic to Z/5Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z
         sage: is_AbelianGroup(F)
         True
         sage: is_AbelianGroup(AbelianGroup(7, [3]*7))
@@ -319,9 +319,9 @@ class AbelianGroup_class(group.AbelianGroup):
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); print F
-        Abelian group on 5 generators (a, b, c, d, e) with invariants [5, 5, 7, 8, 9]
+        AbelianGroup( 5, [5, 5, 7, 8, 9])
         sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); print F
-        Abelian group on 5 generators (a, b, c, d, e) with invariants [2, 4, 12, 24, 120]
+        AbelianGroup( 5, [2, 4, 12, 24, 120])
         sage: F.elementary_divisors()
         [2, 3, 3, 3, 4, 4, 5, 8, 8]
 
@@ -339,6 +339,10 @@ class AbelianGroup_class(group.AbelianGroup):
 
     def invariants(self):
         invs = self.__invariants
+        n = len(invs)
+        for i in range(n):
+            if 1 in invs:
+                invs.remove(1)
         invs.sort()
         return invs
 
@@ -347,9 +351,9 @@ class AbelianGroup_class(group.AbelianGroup):
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,6])
             sage: G
-            AbelianGroup( 2, [2, 6])
+            Abelian Group isomorphic to Z/2Z x Z/2Z x Z/3Z
             sage: print G
-            Abelian group on 2 generators (f0, f1) with invariants [2, 6]
+            AbelianGroup( 2, [2, 6])
             sage: G.invariants()
             [2, 6]
             sage: G.elementary_divisors()
@@ -359,6 +363,10 @@ class AbelianGroup_class(group.AbelianGroup):
         inv = self.invariants()
         invs = copy.deepcopy(inv)
         invs2 = copy.deepcopy(invs)
+        n = len(invs)
+        for i in range(n):
+            if 1 in invs:
+                invs.remove(1)
         for a in invs:
            if a > 1 and not is_prime_power(a):
                invs2.remove(a)
@@ -398,7 +406,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup([2,3,7]); G
-            AbelianGroup( 3, [2, 3, 7])
+            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/7Z
             sage: G.exponent()
             42
         """
@@ -416,23 +424,26 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: F = AbelianGroup(5,[5,64,729],names = list("abcde")); print F
-            Abelian group on 5 generators (a, b, c, d, e) with invariants [0, 0, 5, 64, 729]
+            AbelianGroup( 5, [0, 0, 5, 64, 729])
 	    sage: F = AbelianGroup(5,[1,1,5,64,729],names = list("abcde")); print F
-            Abelian group on 5 generators (a, b, c, d, e) with invariants [1, 1, 5, 64, 729]
+            AbelianGroup( 3, [5, 64, 729])
 
         """
-        n = self.__ngens
-        invs = self.invariants()
-        eds = self.elementary_divisors()
-        m = len(invs)
-        if m==n:
-            return "Abelian group on %s generators %s with invariants %s"%(n,self.gens(),invs)
-        else:
-            invs = [0]*(n-m) + self.invariants()
-            return "Abelian group on %s generators %s with invariants %s"%(n,self.gens(),invs)
-
-    def __repr__(self):
         s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
+        return s
+
+    def _repr_(self):
+        eldv = self.elementary_divisors()
+        if eldv == []:
+            return "Trivial Abelian Group"
+        gp = ""
+        for x in eldv:
+            if x!=0:
+                gp = gp + "Z/%sZ x "%x
+            if x==0:
+                gp = gp + "Z x "
+        gp = gp[:-2]
+        s = "Abelian Group isomorphic to "+gp
         return s
 
     def _latex_(self):
@@ -496,7 +507,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         Only works for finite groups.
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
-            AbelianGroup( 3, [0, 3, 4])
+            Abelian Group isomorphic to Z x Z/3Z x Z/4Z
             sage: G._gap_init_()
             Traceback (most recent call last):
             ...
@@ -575,7 +586,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,3]); G
-            AbelianGroup( 2, [2, 3])
+            Abelian Group isomorphic to Z/2Z x Z/3Z
             sage: G.permutation_group()
             Permutation Group with generators [(1,4)(2,5)(3,6), (1,2,3)(4,5,6)]
         """
@@ -609,22 +620,22 @@ class AbelianGroup_class(group.AbelianGroup):
                       generators of the ambient abelian group G = self
          EXAMPLES:
              sage: G.<a,b,c> = AbelianGroup(3, [2,3,4]); G
-             AbelianGroup( 3, [2, 3, 4])
+             Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
              sage: H = G.subgroup([a*b,a]); H
-             AbelianGroup( 2, [2, 3])
+             Abelian Group isomorphic to Z/2Z x Z/3Z
              sage: H < G
              True
              sage: F = G.subgroup([a,b^2])
              sage: F
-             AbelianGroup( 2, [2, 3])
+             Abelian Group isomorphic to Z/2Z x Z/3Z
              sage: F.gens()
              [a, b^2]
              sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
              sage: a,b,c,d,e = F.gens()
              sage: F.subgroup([a,b])
-             AbelianGroup( 2, [0, 0])
+             Abelian Group isomorphic to Z x Z
              sage: F.subgroup([c,e])
-             AbelianGroup( 4, [2, 3, 5, 729])
+             Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z x Z/729Z
 
          """
          if not isinstance(gensH, (list, tuple)):
@@ -680,22 +691,22 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
             sage: a,b,c,d,e = F.gens()
             sage: F.subgroup([a^3,b])
-            AbelianGroup( 2, [0, 0])
+            Abelian Group isomorphic to Z x Z
             sage: F.subgroup([c])
-            AbelianGroup( 3, [2, 3, 5])
+            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z
             sage: F.subgroup([a,c])
-            AbelianGroup( 4, [0, 2, 3, 5])
+            Abelian Group isomorphic to Z x Z/2Z x Z/3Z x Z/5Z
             sage: F.subgroup([a,b*c])
-            AbelianGroup( 2, [0, 0])
+            Abelian Group isomorphic to Z x Z
             sage: F.subgroup([b*c,d])
-            AbelianGroup( 2, [0, 64])
+            Abelian Group isomorphic to Z x Z/64Z
             sage: F.subgroup([a*b,c^6,d],names = list("xyz"))
-            AbelianGroup( 3, [0, 5, 64])
+            Abelian Group isomorphic to Z x Z/5Z x Z/64Z
             sage: G = F.subgroup([a*b,c^6,d],names = list("xyz"))
             sage: G
-            AbelianGroup( 3, [0, 5, 64])
+            Abelian Group isomorphic to Z x Z/5Z x Z/64Z
             sage: print G
-            Subgroup of Abelian group on 5 generators (a, b, c, d, e) with invariants [0, 0, 30, 64, 729]
+            Subgroup of AbelianGroup( 5, [0, 0, 30, 64, 729])
             generated by [a*b, c^6, d] with elementary divisors [0, 5, 64]
             sage: x,y,z = G.gens()
             sage: x.order()
@@ -707,13 +718,13 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: A = AbelianGroup(5,[3, 5, 5, 7, 8], names = "abcde")
             sage: a,b,c,d,e = A.gens()
             sage: A.subgroup([a,b])
-            AbelianGroup( 2, [3, 5])
+            Abelian Group isomorphic to Z/3Z x Z/5Z
             sage: A.subgroup([a,b,c,d^2,e])
-            AbelianGroup( 5, [3, 5, 5, 7, 8])
+            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z
             sage: A.subgroup([a,b,c,d^2,e^2])
-            AbelianGroup( 5, [3, 4, 5, 5, 7])
+            Abelian Group isomorphic to Z/3Z x Z/4Z x Z/5Z x Z/5Z x Z/7Z
             sage: B = A.subgroup([a^3,b,c,d,e^2]); B
-            AbelianGroup( 4, [4, 5, 5, 7])
+            Abelian Group isomorphic to Z/4Z x Z/5Z x Z/5Z x Z/7Z
             sage: B.invariants()
             [4, 5, 5, 7]
             sage: A = AbelianGroup(4,[1009, 2003, 3001, 4001], names = "abcd")
@@ -729,16 +740,16 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: a,b,c,d = A.gens()
             sage: B = A.subgroup([a^3,b,c,d])
             sage: B
-            AbelianGroup( 6, [3, 7, 16, 2003, 3001, 4001])
+            Abelian Group isomorphic to Z/3Z x Z/7Z x Z/16Z x Z/2003Z x Z/3001Z x Z/4001Z
             sage: print B
-            Subgroup of Abelian group on 4 generators (a, b, c, d) with invariants [1008, 2003, 3001, 4001]
+            Subgroup of AbelianGroup( 4, [1008, 2003, 3001, 4001])
             generated by [a^3, b, c, d] with elementary divisors [3, 7, 16, 2003, 3001, 4001]
 
         Infinite groups can also be handled:
             sage: G = AbelianGroup([3,4,0], names = "abc")
             sage: a,b,c = G.gens()
             sage: F = G.subgroup([a,b^2,c]); F
-            AbelianGroup( 3, [0, 3, 4])
+            Abelian Group isomorphic to Z x Z/3Z x Z/4Z
             sage: F.invariants()
             [0, 3, 4]
             sage: F.gens()
@@ -811,9 +822,10 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         EXAMPLES:
 	    sage: G = AbelianGroup(3, [2,3,4], names="abc"); G
-            AbelianGroup( 3, [2, 3, 4])
+            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
 	    sage: a,b,c = G.gens()
-	    sage: F=G.subgroup([a,b^2])
+	    sage: F=G.subgroup([a,b^2]); F
+            Abelian Group isomorphic to Z/2Z x Z/3Z
 	    sage: F<G
             True
 
@@ -833,9 +845,9 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         #else:
         #    return 1
 
-    def __repr__(self):
-        s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
-        return s
+    #def __repr__(self):
+    #    s = "AbelianGroup( %s, %s)"%(len(self.invariants()), self.invariants())
+    #    return s
 
     def __str__(self):
         G = self.ambient_group()

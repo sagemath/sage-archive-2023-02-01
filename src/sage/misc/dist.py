@@ -25,6 +25,10 @@ def install_scripts(bin_directory=None):
     OUTPUT:
         Verbosely prints what it is doing and creates files
         in bin_directory that are world executable and readable.
+
+    AUTHORS:
+        -- William Stein (code / design)
+        -- Author Gaer (design)
     """
     if bin_directory is None:
         # We do this since the intended user of install_scripts

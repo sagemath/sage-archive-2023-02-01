@@ -98,7 +98,7 @@ class Dokchitser(SageObject):
         0.30599977383405230*z + 0.18654779726816195*z^2 + -0.13679146309718768*z^3 + O(z^4)
         sage: L.check_functional_equation()
         0.0000000000000000061121897480000001            # 32-bit
-        0.0000000000000000060444271116066872            # 64-bit
+        0.0000000000000000060444271116099998            # 64-bit
 
     RANK 2 ELLIPTIC CURVE:
 
@@ -397,7 +397,7 @@ class Dokchitser(SageObject):
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.check_functional_equation ()
             -0.000000000000000000027105054319999997      # 32-bit
-            -0.000000000000000000027105054312137611      # 64-bit
+            -0.000000000000000000027105054312100001      # 64-bit
 
         If we choose the sign in functional equation for the $\zeta$
         function incorrectly, the functional equation doesn't check out.

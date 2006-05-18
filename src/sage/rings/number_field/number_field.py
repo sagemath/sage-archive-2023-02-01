@@ -375,7 +375,8 @@ class NumberField_generic(field.Field):
             sage: K.elements_of_norm(3)
             []
             sage: K.elements_of_norm(50)
-            [7*a - 1, -5*a + 5, a - 7]
+            [7*a - 1, -5*a + 5, a - 7]           # 32-bit
+            [7*a - 1, -5*a + 5, -7*a - 1]        # 64-bit
         """
         B = self.pari_bnf(certify).bnfisintnorm(n)
         R = self.polynomial().parent()

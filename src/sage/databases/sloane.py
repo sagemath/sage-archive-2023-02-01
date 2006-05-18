@@ -20,15 +20,17 @@ TODO:
 To look up sequence A060843, type one of the following:
 
     sage: sloane_sequence(60843)
-    Looking up in Sloane's online database...
+    Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
 
     sage.: sloane_sequence("60843")
-    Looking up in Sloane's online database...
+    Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
+
     sage.: sloane_sequence("060843")
-    Looking up in Sloane's online database...
+    Searching Sloane's online database...
     [60843, 'Busy Beaver problem: maximal number of steps that an n-state Turing machine can make on an initially blank tape before eventually halting.', [1, 6, 21, 107]]
+
 
 Do not prefix an integer with a 0 or it will be interpreted in octal.
 Results are of the form [number, description, list], and invalid

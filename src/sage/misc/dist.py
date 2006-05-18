@@ -28,7 +28,7 @@ def install_scripts(bin_directory=None):
 
     AUTHORS:
         -- William Stein (code / design)
-        -- Author Gaer (design)
+        -- Arthur Gaer (design)
     """
     if bin_directory is None:
         # We do this since the intended user of install_scripts

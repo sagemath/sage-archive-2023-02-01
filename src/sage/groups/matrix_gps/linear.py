@@ -1,14 +1,15 @@
 """
 Contains general base classes for the classical groups
-GL, SL, Sp.
+GL, SL, Sp, SO, SU
 
 TODO:
-Implement GO (general orthogonal) and SO (special orthogonal).
+   Implement "twisted" groups.
 
 AUTHORS:
    William Stein -- initial version
    David Joyner  -- degree, base_ring, random, order methods; examples
-   David Joyner (2006-05) -- added center, more examples, renamed random attributes.
+   David Joyner (2006-05) -- added center, more examples,
+                             renamed random attributes, bug fixes.
 
 REFERENCES:
     [KL] Peter Kleidman and Martin Liebeck. The subgroup structure of the finite
@@ -121,10 +122,11 @@ class LinearGroup_finite_field(LinearGroup_generic):
             [0 2 0 2]
 
         """
+        from matrix_group_element import MatrixGroupElement
         F = self.field_of_definition()
         cmd = self._gap_init_()
         s = gap("Random("+cmd+")")
-        return s._matrix_(F)
+        return MatrixGroupElement(s._matrix_(F),self, check=False)
 
     def random_gap(self):
         """
@@ -150,7 +152,7 @@ class LinearGroup_finite_field(LinearGroup_generic):
         EXAMPLES:
             sage: G = GL(3,GF(4))
             sage: g = G.random()
-            sage: g in G              # known bug -- work in progress!
+            sage: g in G
             True
         """
         from matrix_group_element import MatrixGroupElement
@@ -171,19 +173,42 @@ class LinearGroup_finite_field(LinearGroup_generic):
             sage: C[0]
             [1 0]
             [0 1]
-            sage: [list(g) for g in C]      # prints more nicely
-            [[(1, 0), (0, 1)], [(0, 2), (1, 1)], [(2, 0), (0, 2)], [(0, 2), (1, 2)], [(0, 2), (1, 0)], [(0, 1), (1, 2)], [(0, 1), (1, 1)], [(2, 0), (0, 1)]]
+            sage: [g.list() for g in C]     # prints more nicely
+            [[[1, 0], [0, 1]],
+             [[0, 2], [1, 1]],
+             [[2, 0], [0, 2]],
+             [[0, 2], [1, 2]],
+             [[0, 2], [1, 0]],
+             [[0, 1], [1, 2]],
+             [[0, 1], [1, 1]],
+             [[2, 0], [0, 1]]]
             sage: G = GL(2,GF(4))
             sage: C = G.conjugacy_class_representatives()
-            sage: [list(g) for g in C]      # prints more nicely
-            [[(1, 0), (0, 1)], [(0, 1), (1, 0)], [(a, 0), (0, a)], [(0, a + 1), (1, 0)], [(a + 1, 0), (0, a + 1)], [(0, a), (1, 0)], [(0, 1), (1, a)], [(0, 1), (1, a + 1)], [(0, a), (1, 1)], [(0, a), (1, a)], [(0, a + 1), (1, 1)], [(0, a + 1), (1, a + 1)], [(1, 0), (0, a)], [(1, 0), (0, a + 1)], [(a, 0), (0, a + 1)]]
+            sage: [g.list() for g in C]      # prints more nicely
+            [[[1, 0], [0, 1]],
+             [[0, 1], [1, 0]],
+             [[a, 0], [0, a]],
+             [[0, a + 1], [1, 0]],
+             [[a + 1, 0], [0, a + 1]],
+             [[0, a], [1, 0]],
+             [[0, 1], [1, a]],
+             [[0, 1], [1, a + 1]],
+             [[0, a], [1, 1]],
+             [[0, a], [1, a]],
+             [[0, a + 1], [1, 1]],
+             [[0, a + 1], [1, a + 1]],
+             [[1, 0], [0, a]],
+             [[1, 0], [0, a + 1]],
+             [[a, 0], [0, a + 1]]]
+
         """
+        from matrix_group_element import MatrixGroupElement
         G = self._gap_()
         C = G.ConjugacyClasses()
         gap = G.parent()
         reps = gap.List(C, 'x -> Representative(x)')
         K = self.base_ring()
-        self.__reps = [x._matrix_(K) for x in reps]
+        self.__reps = [MatrixGroupElement(x._matrix_(K),self, check=False) for x in reps]
         return self.__reps
 
     def center(self):

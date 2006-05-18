@@ -106,15 +106,18 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
         # Decide if we should wrap a particular integer or real literal
         if in_number:
-            if line[i] == "." and not (i+1 < len(line) and line[i+1].isalpha()):
+            if line[i] == ".": # and not (i+1 < len(line) and line[i+1].isalpha()):
                 is_real = True
             elif not line[i].isdigit():
                 # end of a number
                 # Do we wrap?
                 if i < len(line) and line[i] in 'eE':
-                    i += 1   # skip wrapping and parsing
+                    # Yes, in scientific notation, so will wrap
+                    is_real = True
+                    i += 1
                     if i < len(line) and line[i] == '-':
                         i += 2
+                    continue
                 elif bracket_depth == 0 or (bracket_depth > 0 and \
                                           not last_bracket_is_after_identifier(line, i)):
                     line, n = wrap_num(i, line, is_real, num_start)

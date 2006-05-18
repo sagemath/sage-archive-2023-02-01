@@ -298,7 +298,7 @@ class Ideal_pid(Ideal_principal):
             sage: I = 8*Z
             sage: I.reduce(10)
             2
-            sage: 10.mod(I)
+            sage: n = 10; n.mod(I)
             2
         """
         f = self.ring()(f)

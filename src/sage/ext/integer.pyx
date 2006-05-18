@@ -845,15 +845,16 @@ cdef class Integer(element.EuclideanDomainElement):
         Return the positive integers $< m$ that are coprime to self.
 
         EXAMPLES:
-            sage: 8.coprime_integers(8)
+            sage: n = 8
+            sage: n.coprime_integers(8)
             [1, 3, 5, 7]
-            sage: 8.coprime_integers(11)
+            sage: n.coprime_integers(11)
             [1, 3, 5, 7, 9]
-            sage: 5.coprime_integers(10)
+            sage: n = 5; n.coprime_integers(10)
             [1, 2, 3, 4, 6, 7, 8, 9]
-            sage: 5.coprime_integers(5)
+            sage: n.coprime_integers(5)
             [1, 2, 3, 4]
-            sage: 99.coprime_integers(99)
+            sage: n = 99; n.coprime_integers(99)
             [1, 2, 4, 5, 7, 8, 10, 13, 14, 16, 17, 19, 20, 23, 25, 26, 28, 29, 31, 32, 34, 35, 37, 38, 40, 41, 43, 46, 47, 49, 50, 52, 53, 56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 79, 80, 82, 83, 85, 86, 89, 91, 92, 94, 95, 97, 98]
 
         AUTHORS:
@@ -1204,7 +1205,7 @@ cdef class Integer(element.EuclideanDomainElement):
             1.4142135623730951
             sage: Z(2).sqrt(100)
             1.4142135623730950488016887242092
-            sage: 39188072418583779289.square_root()
+            sage: n = 39188072418583779289; n.square_root()
             6260037733
             sage: (100^100).sqrt()
             10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -1214,7 +1215,7 @@ cdef class Integer(element.EuclideanDomainElement):
             1.4142135623730951*I
             sage: sqrt(97)
             9.8488578017961039
-            sage: 97.sqrt(200)
+            sage: n = 97; n.sqrt(200)
             9.8488578017961047217462114149176244816961362874427641717231516
         """
         if bits is None:

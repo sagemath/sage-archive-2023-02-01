@@ -74,6 +74,7 @@ AUTHORS:
     -- William Stein (2006-03-01): added tab completion for methods:
               gp.[tab] and x = gp(blah); x.[tab]
     -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
+    -- William Stein (2006-05-17): updated to work with PARI 2.2.13-beta
 """
 
 ##########################################################################
@@ -351,7 +352,7 @@ def gp_version():
     """
     EXAMPLES:
         sage: gp.version()
-        ((2, 2, 12), 'GP/PARI CALCULATOR Version 2.2.12 (beta)')
+        ((2, 2, 13), 'GP/PARI CALCULATOR Version 2.2.13 (beta)')
     """
     v = gp.eval(r'\v')
     i = v.find("Version ")

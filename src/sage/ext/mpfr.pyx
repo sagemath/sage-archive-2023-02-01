@@ -951,12 +951,13 @@ cdef class RealNumber(element.RingElement):
             2
             sage: (2.00).floor()
             2
+            sage: floor(RR(-5/2))
+            -3
         """
-        return self.integer_part()
-        #cdef RealNumber x
-        #x = RealNumber(self._parent, None)
-        #mpfr_floor(x.value, self.value)
-        #return x
+        cdef RealNumber x
+        x = RealNumber(self._parent, None)
+        mpfr_floor(x.value, self.value)
+        return x.integer_part()
 
     def ceil(self):
         """

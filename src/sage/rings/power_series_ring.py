@@ -1,5 +1,20 @@
 """
 Univariate Power Series Rings
+
+EXAMPLES:
+    sage: R = PowerSeriesRing(RationalField())
+    sage: R.random_element(6)
+    -x - x^2 - x^3 - x^4 + O(x^6)
+
+    sage: S = R([1, 3, 5, 7], 10)
+    1 + 3*t + 5*t^2 + 7*t^3 + O(t^10)
+
+    sage: S.truncate(3)
+    5*x^2 + 3*x + 1
+
+AUTHOR:
+    -- William Stein: the code
+    -- Jeremy Cho (2006-05-17): some examples (above)
 """
 
 import weakref

@@ -26,6 +26,12 @@ def install_scripts(bin_directory=None):
         Verbosely prints what it is doing and creates files
         in bin_directory that are world executable and readable.
 
+    NOTE:
+    You may need to run \sage as root in order to run
+    \code{install_scripts} successfully, since the user
+    running \sage will need write permissions on
+    \code{bin_directory}.
+
     AUTHORS:
         -- William Stein (code / design)
         -- Arthur Gaer (design)

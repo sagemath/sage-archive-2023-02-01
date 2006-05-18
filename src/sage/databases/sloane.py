@@ -9,7 +9,7 @@ TODO:
        data to the user as a very simple tuple.  It would be
        much better to return an instance of a class
 
-         class SloanSequence:
+         class SloaneSequence:
              ...
 
        and the class should have methods for each of the things
@@ -49,9 +49,10 @@ To return no more than 2 results (default is 30), type
     Searching Sloane's online database...
     [[27, 'The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77]], [961, 'Prime powers.', [1, 2, 3, 4, 5, 7, 8, 9, 11, 13, 16, 17, 19, 23, 25, 27, 29, 31, 32, 37, 41, 43, 47, 49, 53, 59, 61, 64, 67, 71, 73, 79, 81, 83, 89, 97, 101, 103, 107, 109, 113, 121, 125, 127, 128, 131, 137, 139, 149, 151, 157, 163, 167, 169, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227]]]
 
-Note that the OEIS (???: todo) claims to limit the number of results
-to 100.  Results are lists of the form [ [number, description, list]
-], and invalid input will cause sloane_find to return [].
+Note that the OEIS (http://www.research.att.com/~njas/sequences/) claims to
+limit the number of results to 100.  Results are lists of the form
+[ [number, description, list]], and invalid input will cause sloane_find to
+return [].
 
 In some cases, these functions may return [] even though the inputs are legal.
 These cases correspond to errors from the OEIS server, and calling the
@@ -100,6 +101,8 @@ AUTHOR:
 import bz2, os, re, urllib
 
 from sage.misc.all import verbose
+import sage.rings.integer_ring
+ZZ = sage.rings.integer_ring.IntegerRing()
 
 class SloaneEncyclopediaClass:
     """
@@ -232,7 +235,7 @@ def parse_sequence(text):
     for line in re.split(r'[\s,]*\n', text):
         m = entry.search(line)
         if m:
-            seqnum = int(m.group('num'))
+            seqnum = ZZ(m.group('num').lstrip('0'))
             type = m.group('letter')
             msg = m.group('body').lstrip().rstrip()
             if type == 'S' or type == 'T' or type == 'U':
@@ -246,29 +249,13 @@ def parse_sequence(text):
         list = unsigned
     else:
         list = signed
-    return [seqnum, description, [int(n) for n in list]]
+    return [seqnum, description, [ZZ(n) for n in list]]
 
 def sloane_sequence(number):
-    try:
-        print "Looking up in Sloane's online database..."
-        url = "http://www.research.att.com/cgi-bin/access.cgi/as/njas/sequences/eisA2.cgi?Anum=A%s"%number
-        f = urllib.urlopen(url)
-        s = f.read()
-        f.close()
-    except IOError, msg:
-        raise IOError, "%s\nError fetching the following website:\n    %s\nTry checking your internet connection."%(msg, url)
-
-    t = s.lower()
-    i = t.find("<pre>")
-    j = t.find("</pre>")
-    if i == -1 or j == -1:
-        #return []
-        print s
-        print "url = ", url
+    results = sloane_find('id:A%s'%number)
+    if len(results) == 0:
         raise ValueError, "sequence '%s' not found"%number
-    text = s[i+5:j].strip()
-
-    return parse_sequence(text)
+    return results[0]
 
 def sloane_find(list, nresults = 30, verbose=True):
     liststr = re.sub(r'[\[\] ]', '', str(list))
@@ -293,7 +280,8 @@ def sloane_find(list, nresults = 30, verbose=True):
     i = t.find("<pre>")
     j = t.find("</pre>")
     if i == -1 or j == -1:
-        raise IOError, "Error parsing data (missing pre tags)."
+        #raise IOError, "Error parsing data (missing pre tags)."
+        return []
     text = s[i+5:j].strip()
 
     results = []

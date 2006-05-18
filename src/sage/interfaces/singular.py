@@ -296,7 +296,6 @@ class Singular(Expect):
         Expect._start(self, alt_message)
         # Load some standard libraries.
         self.lib('general')   # assumed loaded by misc/constants.py
-        self.lib(os.environ['SAGE_ROOT']+'/data/extcode/singular/sage')
 
     def __reduce__(self):
         return reduce_load_Singular, ()
@@ -759,63 +758,120 @@ class SingularElement(ExpectElement):
 	"""
         return str(self).replace('^','**')
 
+
     def sage_poly(self, r, kcache=None):
         """
         Returns a SAGE polynomial in the ring r matching
         the provided poly which is a singular polynomial.
 
         INPUT:
-        r      -- MPolynomialRing
-        kcache -- optional dictionary for faster finite
-                  field lookups
+        r      -- MPolynomialRing, you must take care it matches
+                  the current singular ring as e.g. returned by
+                  singular.current_ring()
+        kcache -- optional dictionary for faster finite field lookups,
+                  this is mainly usefull for finite extension fields
 
         OUTPUT:
            MPolynomial
 
         EXAMPLES:
+           sage: R = MPolynomialRing(GF(2**8),2,'xy')
+           sage: f=R('a^20*x^2*y+a^10+x')
+           sage: f._singular_().sage_poly(R)==f
+           True
+           sage: R = PolynomialRing(GF(2**8),1,'x')
+           sage: f=R('a^20*x^3+x^2+a^10')
+           sage: f._singular_().sage_poly(R)==f
+           True
 
         """
 
         from sage.rings.polynomial_ring import is_PolynomialRing
         from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict
+        from sage.rings.polydict import PolyDict
 
-        singular_poly_list = singular.eval("sage_poly(%s)"%(self.name()))
-        singular_poly_list = singular_poly_list.splitlines()
+        sage_repr = {}
+        k = r.base_ring()
 
-        str_fix = ""
+        variable_str = "*".join(r.variable_names())
 
-        if isinstance(r,MPolynomialRing_polydict):
-            from sage.rings.polydict import PolyDict
-            sage_repr =  {}
-            if r.ngens()==1:
-                str_fix = ","
-            if len(singular_poly_list)==1: #'empty list'
-                return r(PolyDict(sage_repr))
-        elif is_PolynomialRing(r) and hasattr(r,"_singular_"):
+        # this returns a string which looks like a list where the first
+        # half of the list is filled with monomials occuring in the
+        # Singular polynomial and the second half filled with the matching
+        # coefficients.
+        #
+        # Our strategy is to split the monomials at "*" to get the powers
+        # in the single variables and then to split the result to get
+        # actual exponent.
+        #
+        # So e.g. ['x^3*y^3','a'] get's splitted to
+        # [[['x','3'],['y','3']],'a']. We may do this fast, as we know
+        # what to expect.
+
+        singular_poly_list = singular.eval("string(coef(%s,%s))"%(self.name(),variable_str)).split(",")
+
+        if singular_poly_list==['1','0'] :
+            return r(0)
+
+        coeff_start = int(len(singular_poly_list)/2)
+
+        if isinstance(r,MPolynomialRing_polydict) and r._can_convert_to_singular():
+            # we need to lookup the index of a given variable represented
+            # through a string
+            var_dict = dict(zip(r.variable_names(),range(r.ngens())))
+
+            for i in range(coeff_start):
+                exp = [int(0)]*r.ngens()
+                monomial = singular_poly_list[i]
+
+                if monomial!="1":
+                    variables = [var.split("^") for var in monomial.split("*") ]
+                    for e in variables:
+                        var = e[0]
+                        if len(e)==int(2):
+                            power = int(e[1])
+                        else:
+                            power=1
+                        exp[var_dict[var]]=power
+
+                if kcache==None:
+                    sage_repr[tuple(exp)]=k(singular_poly_list[coeff_start+i])
+                else:
+                    elem = singular_poly_list[coeff_start+i]
+                    if not kcache.has_key(elem):
+                        kcache[elem] = k( elem )
+                    sage_repr[ tuple(exp) ]= kcache[elem]
+
+            return r(PolyDict(sage_repr))
+
+        elif is_PolynomialRing(r) and r._can_convert_to_singular():
+
             sage_repr = [0]*int(self.deg()+1)
-            if len(singular_poly_list)==1: #'empty list'
-                return r(0)
+
+            for i in range(coeff_start):
+                monomial = singular_poly_list[i]
+                exp = int(0)
+
+                if monomial!="1":
+                    term =  monomial.split("^")
+                    if len(term)==int(2):
+                        exp = int(term[1])
+                    else:
+                        exp = int(1)
+
+                if kcache==None:
+                    sage_repr[exp]=k(singular_poly_list[coeff_start+i])
+                else:
+                    elem = singular_poly_list[coeff_start+i]
+                    if not kcache.has_key(elem):
+                        kcache[elem] = k( elem )
+                    sage_repr[ exp ]= kcache[elem]
+
+            return r(sage_repr)
+
         else:
             raise TypeError, "Cannot coerce %s into %s"%(self,r)
 
-        k = r.base_ring()
-        if kcache==None:
-            for i in range(0,len(singular_poly_list),5):
-                exponents = eval("".join([singular_poly_list[i+2],str_fix]))
-                sage_repr[ exponents ]= k( singular_poly_list[i+4] )
-        else:
-            for i in range(0,len(singular_poly_list),5):
-                exponents = eval("".join([singular_poly_list[i+2],str_fix]))
-                elem = singular_poly_list[i+4].lstrip()
-                if not kcache.has_key(elem):
-                    kcache[elem] = k( elem )
-                sage_repr[ exponents ]= kcache[elem]
-
-        if isinstance(r,MPolynomialRing_polydict):
-            poly = r(PolyDict(sage_repr))
-        else:
-            poly = r(sage_repr)
-        return poly
 
     def set_ring(self):
         self.parent().set_ring(self)

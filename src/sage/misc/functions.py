@@ -577,7 +577,7 @@ class Function_cos(Function):
         return x.cos()
 
     def integral(self):
-        return -cos
+        return -sin
 
 cos = Function_cos()
 

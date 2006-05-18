@@ -27,17 +27,11 @@ if sys.version_info[:2] < (2, 4):
     sys.exit(1)
 
 try:
-
     _l = '%s/local/lib'%os.environ['SAGE_ROOT']
-    if os.environ.has_key('LD_LIBRARY_PATH') and os.environ['LD_LIBRARY_PATH'] != _l:
-        os.environ['LD_LIBRARY_PATH'] += ':' + _l
-    else:
-        os.environ['LD_LIBRARY_PATH'] = _l
-    del _l
-
+    if not _l in os.environ['LD_LIBRARY_PATH']:
+        raise KeyError
 except KeyError:
-
-     raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory."
+     raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
 
 ###################################################################

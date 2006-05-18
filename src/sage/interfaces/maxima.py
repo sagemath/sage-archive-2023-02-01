@@ -526,6 +526,50 @@ class Maxima(Expect):
     def _false_symbol(self):
         return 'false'
 
+    def function(self, args, defn):
+        """
+        Return the Maxima function with given arguments
+        and definition.
+
+        INPUT:
+            args -- a string with variable names separated by commas
+            defn -- a string (or Maxima expression) that defines
+                    a function of the arguments in Maxima.
+
+        EXAMPLES:
+            sage: f = maxima.function('x', 'sin(x)')
+            sage: f(3.2)
+             -.0583741434275801
+            sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
+            sage: f(2,3.5)
+            sin(2) - .9364566872907963
+            sage: f
+            sin(x)+cos(y)
+
+            sage: g = f.integrate('z'); g
+            (cos(y) + sin(x))*z
+            sage: g(1,2,3)
+            3*(cos(2) + sin(1))
+
+        The function definition can be a maxima object:
+            sage: an_expr = maxima('sin(x)*gamma(x)')
+            sage: t = maxima.function('x', an_expr)
+            sage: t
+            gamma(x)*sin(x)
+            sage: t(2)
+            sin(2)
+            sage: float(t(2))
+            0.90929742682568171
+            sage: loads(t.dumps())
+            gamma(x)*sin(x)
+        """
+        name = self._next_var_name()
+        defn = str(defn)
+        args = str(args)
+        maxima.eval('%s(%s) := %s'%(name, args, defn))
+        f = MaximaFunction(self, name, defn, args)
+        return f
+
     def set(self, var, value):
         """
         Set the variable var to the given value.
@@ -1307,6 +1351,36 @@ class MaximaElement(ExpectElement):
                              2 (x - 1)   2 (x + 1)
         """
         return self.partfrac(var)
+
+
+class MaximaFunction(MaximaElement):
+    def __init__(self, parent, name, defn, args):
+        MaximaElement.__init__(self, parent, name, is_name=True)
+        self.__defn = defn
+        self.__args = args
+
+    def __call__(self, *x):
+        self._check_valid()
+        P = self.parent()
+        if len(x) == 1:
+            x = '(%s)'%x
+        return P('%s%s'%(self.name(), x))
+
+    def __repr__(self):
+        return self.__defn
+
+    def integrate(self, var):
+        return self.integral(var)
+
+    def integral(self, var):
+        self._check_valid()
+        P = self.parent()
+        f = P('integrate(%s(%s), %s)'%(self.name(), self.__args, var))
+        if var in self.__args.split(','):
+            args = self.__args
+        else:
+            args = self.__args + ',' + var
+        return P.function(args, str(f))
 
 
 def is_MaximaElement(x):

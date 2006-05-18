@@ -580,3 +580,31 @@ class Function_cos(Function):
         return -cos
 
 cos = Function_cos()
+
+
+class Function_maxima(Function):
+    def __init__(self, x):
+        Function.__init__(self, {'maxima':str(x)})
+        self.__x = x
+        self.__name = x.name()
+        self.__p = x.parent()
+
+    def _repr_(self):
+        return str(self.__x)
+
+    def _latex_(self):
+        return x._latex_()
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _call_(self, x):
+        return float(self.__p.eval('%s(%s)'%(self.__name, x)))
+        #return self.__x(x)
+
+    def integral(self):
+        return Function_maxima(self.__x.integrate())
+
+#def maxima_function(s):
+#    return Function_maxima(maxima(s))
+

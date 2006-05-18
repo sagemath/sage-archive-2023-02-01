@@ -2,15 +2,15 @@
 Univariate Power Series Rings
 
 EXAMPLES:
-    sage: R = PowerSeriesRing(RationalField())
+    sage: R.<t> = PowerSeriesRing(RationalField())
     sage: R.random_element(6)
-    -x - x^2 - x^3 - x^4 + O(x^6)
+    -t - t^2 - t^3 - t^4 + O(t^6)
 
-    sage: S = R([1, 3, 5, 7], 10)
+    sage: S = R([1, 3, 5, 7], 10); S
     1 + 3*t + 5*t^2 + 7*t^3 + O(t^10)
 
     sage: S.truncate(3)
-    5*x^2 + 3*x + 1
+    5*t^2 + 3*t + 1
 
 AUTHOR:
     -- William Stein: the code
@@ -30,13 +30,13 @@ from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
-_objsPowerSeriesRing = {}
+#_objsPowerSeriesRing = {}
 def PowerSeriesRing(base_ring, name=None, default_prec=20):
-    global _objsPowerSeriesRing
-    key = (base_ring, name, default_prec)
-    if _objsPowerSeriesRing.has_key(key):
-        x = _objsPowerSeriesRing[key]()
-        if x != None: return x
+    #global _objsPowerSeriesRing
+    #key = (base_ring, name, default_prec)
+    #if _objsPowerSeriesRing.has_key(key):
+    #    x = _objsPowerSeriesRing[key]()
+    #    if x != None: return x
     if isinstance(base_ring, field.Field):
         R = PowerSeriesRing_over_field(base_ring, name, default_prec)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
@@ -45,7 +45,7 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20):
         R = PowerSeriesRing_generic(base_ring, name, default_prec)
     else:
         raise TypeError, "base_ring must be a commutative ring"
-    _objsPowerSeriesRing[key] = weakref.ref(R)
+    #_objsPowerSeriesRing[key] = weakref.ref(R)
     return R
 
 def is_PowerSeriesRing(x):
@@ -59,6 +59,10 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         self.__power_series_class = power_series_ring_element.PowerSeries_generic_dense
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
         self.assign_names(name)
+
+    def assign_names(self, name):
+        commutative_ring.CommutativeRing.assign_names(self, name)
+        self.__poly_ring.assign_names(name)
 
     def __repr__(self):
         return "Power Series Ring in %s over %s"%(self.variable_name(), self.base_ring())

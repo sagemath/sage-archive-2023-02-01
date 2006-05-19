@@ -11,6 +11,7 @@ AUTHORS:
    -- Martin Albrecht (2006-03-13): added current_ring()
         and current_ring_name()
    -- Stein (2006-04-10): Fixed problems with ideal constructor
+   -- Martin Albrecht (2006-05-18): added sage_poly.
 
 This interface is extremely flexible, since it's exactly like typing
 into the Singular interpreter, and anything that works there should
@@ -223,7 +224,6 @@ robust manner, as long as you are creating a new object.
     sage: t = '"%s"'%10^15000   # 15 thousand character string (note that normal Singular input must be at most 10000)
     sage: a = singular.eval(t)
     sage: a = singular(t)
-
 """
 
 #We could also do these calculations without using the singular
@@ -611,7 +611,6 @@ class Singular(Expect):
             sage: r = MPolynomialRing(GF(127),3,'xyz')
             sage: r._singular_().name() == singular.current_ring_name()
             True
-
         """
         ringlist = self.eval("listvar(ring)").splitlines()
         p = re.compile("// ([a-zA-Z0-9_]*).*\[.*\].*\*.*") #do this in constructor?
@@ -718,7 +717,6 @@ class SingularElement(ExpectElement):
             sage: A
             5,z^3+5*x+y,
             0,0
-
         """
         P = self.parent()
         if not isinstance(value, SingularElement):
@@ -759,43 +757,56 @@ class SingularElement(ExpectElement):
         return str(self).replace('^','**')
 
 
-    def sage_poly(self, r, kcache=None):
+    def sage_poly(self, R, kcache=None):
         """
-        Returns a SAGE polynomial in the ring r matching
-        the provided poly which is a singular polynomial.
+        Returns a SAGE polynomial in the ring r matching the provided
+        poly which is a singular polynomial.
 
         INPUT:
-        r      -- MPolynomialRing, you must take care it matches
-                  the current singular ring as e.g. returned by
-                  singular.current_ring()
-        kcache -- optional dictionary for faster finite field lookups,
-                  this is mainly usefull for finite extension fields
+            R      -- MPolynomialRing: you *must* take care it matches
+                      the current singular ring as, e.g., returned by
+                      singular.current_ring()
+            kcache -- (default: None); an optional dictionary for faster
+                      finite field lookups, this is mainly useful for
+                      finite extension fields
 
         OUTPUT:
            MPolynomial
 
         EXAMPLES:
-           sage: R = MPolynomialRing(GF(2**8),2,'xy')
-           sage: f=R('a^20*x^2*y+a^10+x')
-           sage: f._singular_().sage_poly(R)==f
-           True
-           sage: R = PolynomialRing(GF(2**8),1,'x')
-           sage: f=R('a^20*x^3+x^2+a^10')
-           sage: f._singular_().sage_poly(R)==f
-           True
+            sage: R = MPolynomialRing(GF(2**8),2,'xy')
+            sage: f=R('a^20*x^2*y+a^10+x')
+            sage: f._singular_().sage_poly(R)==f
+            True
+            sage: R = PolynomialRing(GF(2**8),1,'x')
+            sage: f=R('a^20*x^3+x^2+a^10')
+            sage: f._singular_().sage_poly(R)==f
+            True
 
+            sage: R.<XxZaa5,y> = PolynomialRing(Q,2)
+            sage: f = XxZaa5 * y^3 -(1/9)* XxZaa5 + 1
+            sage: singular(f)
+            XxZaa5*y^3-1/9*XxZaa5+1
+            sage: R(singular(f))
+            1 - 1/9*XxZaa5 + XxZaa5*y^3
+
+        AUTHOR: Martin Albrecht (2006-05-18)
         """
-
         from sage.rings.polynomial_ring import is_PolynomialRing
         from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict
         from sage.rings.polydict import PolyDict
+
+
+        r = R          # all code below uses lower case r, but
+                       # I (=W. Stein) want the input variable
+                       # to be called "R" for consistency.
 
         sage_repr = {}
         k = r.base_ring()
 
         variable_str = "*".join(r.variable_names())
 
-        # this returns a string which looks like a list where the first
+        # This returns a string which looks like a list where the first
         # half of the list is filled with monomials occuring in the
         # Singular polynomial and the second half filled with the matching
         # coefficients.
@@ -804,13 +815,14 @@ class SingularElement(ExpectElement):
         # in the single variables and then to split the result to get
         # actual exponent.
         #
-        # So e.g. ['x^3*y^3','a'] get's splitted to
-        # [[['x','3'],['y','3']],'a']. We may do this fast, as we know
-        # what to expect.
+        # So e.g. ['x^3*y^3','a'] get's split to
+        # [[['x','3'],['y','3']],'a']. We may do this quickly,
+        # as we know what to expect.
 
-        singular_poly_list = singular.eval("string(coef(%s,%s))"%(self.name(),variable_str)).split(",")
+        singular_poly_list = singular.eval("string(coef(%s,%s))"%(\
+                                   self.name(),variable_str)).split(",")
 
-        if singular_poly_list==['1','0'] :
+        if singular_poly_list == ['1','0'] :
             return r(0)
 
         coeff_start = int(len(singular_poly_list)/2)
@@ -886,7 +898,7 @@ class SingularElement(ExpectElement):
 
     def sage_structured_str_list(self):
         """
-        If self is a singular list of lists of singular elements,
+        If self is a Singular list of lists of Singular elements,
         returns corresponding SAGE list of lists of strings.
         """
         s = str(self)

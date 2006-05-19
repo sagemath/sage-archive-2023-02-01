@@ -1126,10 +1126,19 @@ class FreeModule_generic_pid(FreeModule_generic):
             Echelon basis matrix:
             [ 1/6  7/3    0]
             [   0 11/3    0]
+
+        We add two modules over $\Z$:
+            sage: A = Matrix(ZZ, 3, 3, [3, 0, -1, 0, -2, 0, 0, 0, -2])
+            sage: V = (A+2).kernel()
+            sage: W = (A-3).kernel()
+            sage: V+W
+            [5 0 0]
+            [0 1 0]
+            [0 0 1]
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError, "other (=%s) must be a free module"%other
-        if not (self.ambient_vector_space() is other.ambient_vector_space()):
+        if not (self.ambient_vector_space() == other.ambient_vector_space()):
             raise TypeError, "ambient vector spaces must be equal"
         return self.span(self.basis() + other.basis())
 

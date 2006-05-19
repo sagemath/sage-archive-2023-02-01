@@ -113,6 +113,14 @@ class Darcs:
         """
         self('changes %s | %s'%(options, PAGER))
 
+    def diff(self, options=''):
+        """
+        Display the diffs from previous versions.
+
+        A useful option is '--last [n]'.
+        """
+        self('diff %s | %s'%(options, PAGER))
+
     def dir(self):
         """
         Return the directory where this repository is located.

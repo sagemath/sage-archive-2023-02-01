@@ -846,7 +846,7 @@ class Matrix(module_element.ModuleElement, Mutability):
         See Sloane's sequence OEIS A079908(3) = 36, "The Dancing School Problems"
 
             sage: print sloane_sequence(79908)                # optional (internet connection)
-            Looking up in Sloane's online database...
+            Searching Sloane's online database...
             [79908, 'Solution to the Dancing School Problem with 3 girls: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
 
             sage: M = MatrixSpace(ZZ,4,5)

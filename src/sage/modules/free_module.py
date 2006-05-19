@@ -1132,6 +1132,8 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: V = (A+2).kernel()
             sage: W = (A-3).kernel()
             sage: V+W
+            Free module of degree 3 and rank 3 over Integer Ring
+            Echelon basis matrix:
             [5 0 0]
             [0 1 0]
             [0 0 1]

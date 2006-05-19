@@ -27,13 +27,13 @@ NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4
 
 def comment_modifier(s):
     L = s.lower()
-    if 'optional' in L != -1:
+    if ('optional' in L) or ('known bug' in L):
         return OPTIONAL
-    elif 'long time' in L != -1:
+    elif 'long time' in L:
         return LONG_TIME
-    elif 'todo: not implemented' in L != -1:
+    elif 'todo: not implemented' in L:
         return NOT_IMPLEMENTED
-    elif 'random' in L != -1:
+    elif 'random' in L:
         return RANDOM
     return NONE
 

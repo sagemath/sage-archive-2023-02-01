@@ -65,6 +65,9 @@ os.environ['PATH'] = os.environ['PATH'] + ':%s/local/bin/'%SAGE_ROOT
 
 print "Checking prerequisites for installing the SAGE library..."
 
+if sys.version_info[:2] < (2, 4):
+    print "SAGE requires Python 2.4 or newer"
+    sys.exit(1)
 
 print "matplotlib..."
 try:
@@ -86,14 +89,17 @@ except ImportError, msg:
     print 'You must install Pyrex first.'
     sys.exit(1)
 
+print "pexpect..."
+try:
+    import pexpect
+except ImportError, msg:
+    print msg
+    print 'You must install the Python pexpect library first.'
+    sys.exit(1)
+
 print "pyrexc..."
 if os.system('which pyrexc 2>/dev/null 1>/dev/null'):
     print 'The pyrexec pyrex compiler must be in your PATH'
-    sys.exit(1)
-
-print "pyrexembed..."
-if os.system('which pyrexembed 2>/dev/null 1>/dev/null'):
-    print 'The pyrexeembed pyrex pre-compiler must be in your PATH'
     sys.exit(1)
 
 print "ZODB (Zope Object Database)..."
@@ -133,7 +139,7 @@ if os.system('which flex 2>/dev/null 1>/dev/null'):
 
 print "bison..."
 if os.system('which bison 2>/dev/null 1>/dev/null'):
-    print 'The Singular component of SAGE requires flex to build. Please install.'
+    print 'The Singular component of SAGE requires bison to build. Please install.'
     print 'You must use the SAGE version of Singular (the standard version'
     print 'is missing important patches, etc.).'
     sys.exit(1)

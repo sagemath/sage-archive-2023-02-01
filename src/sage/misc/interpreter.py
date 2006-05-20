@@ -121,8 +121,25 @@ import pyrex
 
 
 
+attached = { }
 
-attached = { 'attach.sage':0 }
+def attached_files():
+    """
+    Return a list of all files attached to the current session.
+    """
+    global attached
+    X = attached.keys()
+    X.sort()
+    return X
+
+def load_startup_file(file):
+    if os.path.exists(file):
+        X = do_prefilter_paste('load "%s"'%file,False)
+        ipmagic(X)
+    if os.path.exists('attach.sage'):
+        X = do_prefilter_paste('attach "attach.sage"',False)
+        ipmagic(X)
+
 
 def do_prefilter_paste(line, continuation):
     """
@@ -326,7 +343,7 @@ def load_pyrex(name):
 def process_file(name):
     cur = os.path.abspath(os.curdir)
     dir, name = os.path.split(os.path.abspath(name))
-    name2 = "%s_sage.py"%name
+    name2 = "%s/.%s.py"%(dir,name)
     os.chdir(dir)
     contents = open(name).read()
     parsed = preparse_file(contents, attached)

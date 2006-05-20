@@ -283,7 +283,7 @@ def preparse_file(contents, attached={}, magic=True,
     while i < len(A):
         L = A[i].rstrip()
         if magic and L[:7] == "attach ":
-            name = eval(L[7:])
+            name = os.path.abspath(eval(L[7:]))
             try:
                 if not attached.has_key(name):
                     t = os.path.getmtime(name)

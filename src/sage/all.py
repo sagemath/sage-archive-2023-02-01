@@ -85,24 +85,16 @@ except:
     pass
 
 # very useful 2-letter shortcuts
-AA = AffineSpace
 CC = ComplexField()
-EC = EllipticCurve
-FA = FreeAlgebra
-FM = FreeModule
-MS = ModularSymbols
-PG = PermutationGroup
-PP = ProjectiveSpace
-PR = PolynomialRing
 QQ = RationalField()
 RR = RealField()  # default real field
-VS = VectorSpace
 ZZ = IntegerRing()
 # NOTE: QQ, RR, and ZZ are used by the pre-parser, and should not be
 # overwritten by the user, unless they want to change the meaning of
-# int and real in the interpreter (which is a valid thing to do, and
-# doesn't mess up anything else in the SAGE library).
-
+# int and real in the interpreter (which is a potentially valid thing
+# to do, and doesn't mess up anything else in the SAGE library).
+# E.g., typing "int = ZZ" in the SAGE interpreter makes int literals
+# acts as Python ints again.
 
 # Some shorter shortcuts:
 Q = QQ

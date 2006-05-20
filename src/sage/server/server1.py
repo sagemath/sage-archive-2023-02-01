@@ -37,6 +37,10 @@ TODO:
       via web interface; maybe ability to edit them too, via some
       'rich' code editing javascript 'widget'.
    [] rewrite tables using CSS
+   [] load and attaching scripts.
+   [] a way to interactively watch the output of a running computation
+      (in verbose mode).
+
 DONE
    [x] A. Clemesha: When hit shift-enter the next text box should be made
       into focus.

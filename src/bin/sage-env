@@ -82,6 +82,11 @@ SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
 LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
 
+if [ "$SAGE_STARTUP_FILE" = "" ]; then
+    SAGE_STARTUP_FILE="$HOME/.sage/init.sage"
+    export SAGE_STARTUP_FILE
+fi
+
 if [ -d "$SAGE_ROOT/local/lib/python2.4" ]; then
     PYTHONPATH="$SAGE_PATH:$SAGE_ROOT/local/lib/python2.4"   && export PYTHONPATH
     PYTHONHOME="$SAGE_ROOT/local" && export PYTHONHOME

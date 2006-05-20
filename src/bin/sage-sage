@@ -103,7 +103,16 @@ sage_setup() {
 # Below the command
 # _=sage.misc.interpreter.do_prefilter_paste('',False)
 
-SAGE_STARTUP_COMMAND="from sage.all import *; import sage.misc.interpreter; import os; os.chdir(\"$CUR\"); _=sage.misc.interpreter.do_prefilter_paste('',False)"
+# It is very important in the following assignments
+# that there is no whitespace after the backslashes.
+
+SAGE_STARTUP_COMMAND="
+from sage.all import *;\
+import os; os.chdir(\"$CUR\");\
+import sage.misc.interpreter;\
+from sage.misc.interpreter import attached_files;\
+_=sage.misc.interpreter.load_startup_file(\"$SAGE_STARTUP_FILE\");
+"
 
 export SAGE_STARTUP_COMMAND
 

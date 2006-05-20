@@ -291,33 +291,32 @@ def preparse_file(contents, attached={}, magic=True,
             except IOError, OSError:
                 pass
             L = 'load ' + L[7:]
+
         if magic and L[:5] == "load ":
-            try:
-                name_load = eval(L[5:])
-                if name_load in loaded_files:
+            #try:
+            name_load = str(eval(L[5:]))
+            #except:
+            #    name_load = L[5:].strip()
+            if name_load in loaded_files:
+                i += 1
+                continue
+            loaded_files.append(name_load)
+            if name_load[-3:] == '.py':
+                ipmagic('run -i "%s"'%name_load)
+                L = ''
+            elif name_load[-5:] == '.sage':
+                try:
+                    G = open(name_load)
+                except IOError:
+                    print "File '%s' not found, so skipping load of %s"%(name_load, name_load)
                     i += 1
                     continue
-                loaded_files.append(name_load)
-            except:
-                pass
+                else:
+                    A = A[:i] + G.readlines() + A[i+1:]
+                    continue
             else:
-                if isinstance(name_load, str):
-                    if name_load[-3:] == '.py':
-                        ipmagic('run -i "%s"'%name_load)
-                        L = ''
-                    elif name_load[-5:] == '.sage':
-                        try:
-                            G = open(name_load)
-                        except IOError:
-                            print "File '%s' not found, so skipping re-load"%name
-                            i += 1
-                            continue
-                        else:
-                            A = A[:i] + G.readlines() + A[i+1:]
-                            continue
-                    else:
-                        import interpreter
-                        L = interpreter.load_pyrex(name_load)
+                import interpreter
+                L = interpreter.load_pyrex(name_load)
         F.append(preparse(L, reset=False, do_time=do_time, ignore_prompts=ignore_prompts))
         i += 1
     # end while

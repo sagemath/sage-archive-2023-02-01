@@ -191,33 +191,32 @@ def do_prefilter_paste(line, continuation):
         try:
             name = str(eval(line[6:]))
         except:
-            pass
-        else:
-            try:
-                F = open(name)
-            except IOError:
-                print 'Could not open file "%s"'%name
-                return ''
-            print 'Interactively loading "%s"'%name
-            n = len(__IPYTHON__.input_hist)
-            for L in F.readlines():
-                L = L.rstrip()
-                Llstrip = L.lstrip()
-                raw_input('sage: %s'%L.rstrip())
-                __IPYTHON__.input_hist_raw.append(L)
-                if Llstrip[:5] == 'load ' or Llstrip[:7] == 'attach ' \
-                       or Llstrip[:6] == 'iload ':
-                    log.offset -= 1
-                    L = do_prefilter_paste(L, False)
-                    if len(L.strip()) > 0:
-                        ipmagic(L)
-                    L = ''
-                else:
-                    L = preparser_ipython.preparse_ipython(L)
-                __IPYTHON__.input_hist.append(L)
-                __IPYTHON__.push(L)
-            log.offset += 1
-            return ''
+            name = line[6:].strip()
+        try:
+            F = open(name)
+        except IOError:
+            raise ImportError, 'Could not open file "%s"'%name
+
+        print 'Interactively loading "%s"'%name
+        n = len(__IPYTHON__.input_hist)
+        for L in F.readlines():
+            L = L.rstrip()
+            Llstrip = L.lstrip()
+            raw_input('sage: %s'%L.rstrip())
+            __IPYTHON__.input_hist_raw.append(L)
+            if Llstrip[:5] == 'load ' or Llstrip[:7] == 'attach ' \
+                   or Llstrip[:6] == 'iload ':
+                log.offset -= 1
+                L = do_prefilter_paste(L, False)
+                if len(L.strip()) > 0:
+                    ipmagic(L)
+                L = ''
+            else:
+                L = preparser_ipython.preparse_ipython(L)
+            __IPYTHON__.input_hist.append(L)
+            __IPYTHON__.push(L)
+        log.offset += 1
+        return ''
 
 
     #################################################################
@@ -229,32 +228,30 @@ def do_prefilter_paste(line, continuation):
         try:
             name = eval(line[5:])
         except:
-            pass
-        else:
-            if isinstance(name, str):
-                if name[-3:] == '.py':
-                    try:
-                        line = '%run -i "' + name + '"'
-                    except IOError, s:
-                        print s
-                        print "Error loading '%s'"%name
-                        line = ""
-                elif name[-5:] == '.sage':
-                    try:
-                        line = '%run -i "' + process_file(name) + '"'
-                    except IOError, s:
-                        print s
-                        print "Error loading '%s'"%name
-                        line = ""
-                elif name[-5:] == '.spyx':
-                    line = load_pyrex(name)
-                else:
-                    try:
-                        line = '%run -i "' + name + '"'
-                    except IOError, s:
-                        print s
-                        print "Maybe file '%s' does not exist"%name
-                        line = ""
+            name = line[5:].strip()
+        if isinstance(name, str):
+            if name[-3:] == '.py':
+                try:
+                    line = '%run -i "' + name + '"'
+                except IOError, s:
+                    print s
+                    raise ImportError, "Error loading '%s'"%name
+            elif name[-5:] == '.sage':
+                try:
+                    line = '%run -i "' + process_file(name) + '"'
+                except IOError, s:
+                    print s
+                    raise ImportError, "Error loading '%s'"%name
+                    line = ""
+            elif name[-5:] == '.spyx':
+                line = load_pyrex(name)
+            else:
+                try:
+                    line = '%run -i "' + name + '"'
+                except IOError, s:
+                    print s
+                    raise ImportError, "Maybe file '%s' does not exist"%name
+                    line = ""
 
 
     elif line[:13] == 'save_session(':
@@ -287,36 +284,31 @@ def do_prefilter_paste(line, continuation):
         try:
             name = eval(line[7:])
         except:
-            pass
+            name = line[7:].strip()
+        name = os.path.abspath(name)
+        if not os.path.exists(name):
+            raise ImportError, "File '%s' not found."%name
+        elif name[-3:] == '.py':
+            try:
+                line = '%run -i "' + name + '"'
+                attached[name] = os.path.getmtime(name)
+            except IOError, OSError:
+                raise ImportError, "File '%s' not found."%name
+        elif name[-5:] == '.sage':
+            try:
+                line = '%run -i "' + process_file(name) + '"'
+                attached[name] = os.path.getmtime(name)
+            except IOError, OSError:
+                raise ImportError, "File '%s' not found."%name
+        elif name[-5:] == '.spyx':
+            try:
+                line = load_pyrex(name)
+                attached[name] = os.path.getmtime(name)
+            except IOError, OSError:
+                raise ImportError, "File '%s' not found."%name
+                line = ''
         else:
-            if isinstance(name, str):
-                if not os.path.exists(name):
-                    print "File '%s' not found."%name
-                    line = ''
-                elif name[-3:] == '.py':
-                    try:
-                        line = '%run -i "' + name + '"'
-                        attached[name] = os.path.getmtime(name)
-                    except IOError, OSError:
-                        print "File '%s' does not exist."%name
-                        line = ''
-                elif name[-5:] == '.sage':
-                    try:
-                        line = '%run -i "' + process_file(name) + '"'
-                        attached[name] = os.path.getmtime(name)
-                    except IOError, OSError:
-                        print "File '%s' does not exist."%name
-                        line = ''
-                elif name[-5:] == '.spyx':
-                    try:
-                        line = load_pyrex(name)
-                        attached[name] = os.path.getmtime(name)
-                    except IOError, OSError:
-                        print "File '%s' does not exist."%name
-                        line = ''
-                else:
-                    print "load: file (=%s) must have extension .py, .sage or .spyx"%name
-                    line = ''
+            raise ImportError, "load: file (=%s) must have extension .py, .sage or .spyx"%name
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line)
     return line
@@ -332,9 +324,13 @@ def load_pyrex(name):
         dir, mod, cur)
 
 def process_file(name):
-    name2 = ".%s.py"%(os.path.split(name)[1])
+    cur = os.path.abspath(os.curdir)
+    dir, name = os.path.split(os.path.abspath(name))
+    name2 = "%s_sage.py"%name
+    os.chdir(dir)
     contents = open(name).read()
     parsed = preparse_file(contents, attached)
+    os.chdir(cur)
     open(name2,"w").write(parsed)
     return name2
 

@@ -94,15 +94,31 @@ class IO_Line:
         #    return ''
 
         w = max((ncols - 15), 3)
-        html_in = """
-        <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF'>
-        <tr><td align=left bgcolor='#DDDDDD'>
+	#html_in is the html/javascript that starts a 'cell'
+	#this probably needs some refactoring by a css/javascript pro :)
+	html_in ="""
+           <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF'>
+	    <td align=center>
+	"""
+	#below in the javascript that enables the +/- resizing of the textarea
+	html_in +="""
+        <div class="controlarea">
+        <span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s','ina%s')"><b>+</b></a></span>
+        <span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s','ina%s')"><b>-</b></a></span>
+        </div>
+	"""%(number, number, number, number)
+	#below is where the textarea form is added
+	#note: the '<input ... value="90,10">' is for the +/- resizing javascript
+	html_in +="""
+        </td>
+        <tr><td align=center bgcolor='#DDDDDD'>
         <table border=0 cellpadding=7 bgcolor='#FFFFFF'><tr><td>
-         <textarea style="border: 0px;"
-                   name='%s'  bgcolor='%s' rows='%s'
-                   cols='%s' id='input' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
+                 <textarea style="border: 0px;"
+                   name='%s' bgcolor='%s' rows='%s'
+                   cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
         </td></tr></table></td></tr></table>
-         """%(number, cmd_color, cmd_nrows, ncols, number, self.cmd)
+        <input type="hidden" id="ina%s" value="90,5">
+         """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd, number)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
@@ -134,7 +150,7 @@ class IO_Line:
         if len(out) >  0:
             #out_nrows = min(out_nrows, len(out.split('\n')))
             out_nrows = len(out.split('\n'))
-#             <textarea style="color:blue" readonly rows="%s" cols="%s">%s</textarea>
+            #<textarea style="color:blue" readonly rows="%s" cols="%s">%s</textarea>
             html_out = """
              <table   border=0 bgcolor='%s' cellpadding=0><tr>
              <td bgcolor='#FFFFFF' align=left>
@@ -204,7 +220,29 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         if f:
             f = StringIO()
             f.write("""
-            <html><head><title>SAGE Calculator (%s)</title></head>\n
+            <html><head><title>SAGE Calculator %s</title></head>\n
+
+	    <style>
+	    div.controlarea{
+                text-align:right;
+            }
+            span.control {
+            border:1px solid white;
+            font-family:Arial,Verdana, sans-serif;
+            font-size:10pt;
+            }
+
+            span.control a.cs {
+            color:#ccc;
+            text-decoration:none;
+            border:1px solid white;
+            }
+            span.control:hover a.cs, span.control a:hover.cs {
+            color:black;
+            border:1px solid #999;
+            }
+            </style>
+
             <script language=javascript>
             function scroll_to_bottom() {
                 document.getElementById(%s).scrollIntoView();
@@ -221,6 +259,19 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 else
                    return true;
             }
+
+	    function changeAreaSize(val,id1,id2) {
+                var el = document.getElementById(id1);
+                if (val==1) {
+                    el.rows = el.rows + 1;
+                    el.cols = el.cols;
+                } else {
+                    el.rows = el.rows - 1;
+                el.cols;
+                }
+                document.getElementById(id2).value=el.cols+","+el.rows;
+               }
+
             </script>
             """%(save_name, number, number+1))
 
@@ -240,7 +291,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             if save_name:
                 current_log.save(save_name)
             f.write(current_log.html(numcols))
-            f.write('</div></body></html>')
+            f.write('</div><br><br><br><br></body></html>')
             f.seek(0)
             self.copyfile(f, self.wfile)
             f.close()

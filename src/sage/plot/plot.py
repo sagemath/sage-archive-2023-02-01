@@ -713,8 +713,8 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         options = self.options
 	c = to_mpl_color(options['rgbcolor'])
 	f = int(options['fontsize'])
-        va = options['verticalalignment']
-	ha = options['horizontalalignment']
+        va = options['vertical_alignment']
+	ha = options['horizontal_alignment']
 	subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
 					verticalalignment=va,horizontalalignment=ha)
 
@@ -1002,10 +1002,17 @@ class TextFactory(GraphicPrimitiveFactory_text):
 
     EXAMPLES:
 	Type this to see some text in top right plane:
+
         sage: t = text("SAGE is really neat!!",(2,12))
 
 	Type this to see the same text in larger font and colored red:
+
         sage: t = text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+
+	You can also center text differently:
+
+        sage: t1 = text("Hello",(1,1), vertical_alignment="top")
+        sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
 
     """
     def _reset(self):
@@ -1022,8 +1029,8 @@ class TextFactory(GraphicPrimitiveFactory_text):
 # unique text instance
 text = TextFactory()
 text.options['fontsize'] = 10
-text.options['horizontalalignment']= "center"
-text.options['verticalalignment'] = "center"
+text.options['horizontal_alignment']= "center"
+text.options['vertical_alignment'] = "center"
 
 class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     """

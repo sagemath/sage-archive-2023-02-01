@@ -76,7 +76,7 @@ class SpecialOrthogonalGroup_generic(LinearGroup_generic):
         """
         return "SO(%s, %s, %s)"%(  self.invariant_form(), self.degree(), self.base_ring().order())
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES:
             sage: G = SO(3,GF(5))
@@ -203,7 +203,7 @@ class GeneralOrthogonalGroup_generic(LinearGroup_generic):
         """
         return "GO(%s, %s, %s)"%( self.invariant_form(), self.degree(), (self.base_ring()).order() )
 
-    def __repr__(self):
+    def _repr_(self):
         return "General Orthogonal Group of degree %s, form parameter %s, over the %s"%( self.degree(), self.invariant_form(), self.base_ring())
 
     def __str__(self):

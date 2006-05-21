@@ -90,7 +90,7 @@ the underlying representation is lists of integer exponents.
 
     sage: F = AbelianGroup(5,[3,4,5,5,7],names = list("abcde"))
     sage: F
-    Abelian Group isomorphic to Z/3Z x Z/4Z x Z/5Z x Z/5Z x Z/7Z
+    Multiplicative Abelian Group isomorphic to C3 x C4 x C5 x C5 x C7
     sage: (a,b,c,d,e) = F.gens()
     sage: a*b^2*e*d
     a*b^2*d*e
@@ -168,7 +168,7 @@ def word_problem(words, g, verbose = False):
 
     EXAMPLE:
         sage: G.<a,b,c> = AbelianGroup(3,[2,3,4]); G
-        Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+        Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: word_problem([a*b,a*c], b*c)
         [[a*b, 1], [a*c, 1]]
         sage: word_problem([a*b,a*c],b*c)
@@ -266,17 +266,17 @@ def AbelianGroup(n, invfac=None, names="f"):
         sage: d * b**2 * c**3
         b^2*c^3*d
         sage: F = AbelianGroup(3,[2]*3); F
-        Abelian Group isomorphic to Z/2Z x Z/2Z x Z/2Z
+        Multiplicative Abelian Group isomorphic to C2 x C2 x C2
         sage: H = AbelianGroup([2,3], names="xy"); H
-        Abelian Group isomorphic to Z/2Z x Z/3Z
+        Multiplicative Abelian Group isomorphic to C2 x C3
         sage: AbelianGroup(5)
-        Abelian Group isomorphic to Z x Z x Z x Z x Z
+        Multiplicative Abelian Group isomorphic to Z x Z x Z x Z x Z
         sage: AbelianGroup(5).order()
         Infinity
 
     Notice how $0$'s are padded on.
         sage: AbelianGroup(5, [2,3,4])
-        Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/4Z
+        Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C4
 
     The invariant list can't be longer than the number of generators.
         sage: AbelianGroup(2, [2,3,4])
@@ -303,7 +303,7 @@ def is_AbelianGroup(x):
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
-        Abelian Group isomorphic to Z/5Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z
+        Multiplicative Abelian Group isomorphic to C5 x C5 x C7 x C8 x C9
         sage: is_AbelianGroup(F)
         True
         sage: is_AbelianGroup(AbelianGroup(7, [3]*7))
@@ -319,9 +319,9 @@ class AbelianGroup_class(group.AbelianGroup):
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
-        Abelian Group isomorphic to Z/5Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z
+        Multiplicative Abelian Group isomorphic to C5 x C5 x C7 x C8 x C9
         sage: F = AbelianGroup(5,[2, 4, 12, 24, 120],names = list("abcde")); F
-        Abelian Group isomorphic to Z/2Z x Z/3Z x Z/3Z x Z/3Z x Z/4Z x Z/4Z x Z/5Z x Z/8Z x Z/8Z
+        Multiplicative Abelian Group isomorphic to C2 x C3 x C3 x C3 x C4 x C4 x C5 x C8 x C8
         sage: F.elementary_divisors()
         [2, 3, 3, 3, 4, 4, 5, 8, 8]
 
@@ -351,7 +351,7 @@ class AbelianGroup_class(group.AbelianGroup):
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,6])
             sage: G
-            Abelian Group isomorphic to Z/2Z x Z/2Z x Z/3Z
+            Multiplicative Abelian Group isomorphic to C2 x C2 x C3
             sage: G.invariants()
             [2, 6]
             sage: G.elementary_divisors()
@@ -404,7 +404,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup([2,3,7]); G
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/7Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C7
             sage: G.exponent()
             42
         """
@@ -437,11 +437,11 @@ class AbelianGroup_class(group.AbelianGroup):
         v = []
         for x in eldv:
             if x:
-                v.append("Z/%sZ"%x)
+                v.append("C%s"%x)
             else:
                 v.append("Z")
         gp = ' x '.join(v)
-        s = "Abelian Group isomorphic to "+gp
+        s = "Multiplicative Abelian Group isomorphic to "+gp
         return s
 
     def _latex_(self):
@@ -505,7 +505,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         Only works for finite groups.
             sage: G = AbelianGroup(3,[0,3,4],names="abc"); G
-            Abelian Group isomorphic to Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to Z x C3 x C4
             sage: G._gap_init_()
             Traceback (most recent call last):
             ...
@@ -584,7 +584,7 @@ class AbelianGroup_class(group.AbelianGroup):
 
         EXAMPLES:
             sage: G = AbelianGroup(2,[2,3]); G
-            Abelian Group isomorphic to Z/2Z x Z/3Z
+            Multiplicative Abelian Group isomorphic to C2 x C3
             sage: G.permutation_group()
             Permutation Group with generators [(1,4)(2,5)(3,6), (1,2,3)(4,5,6)]
         """
@@ -618,29 +618,29 @@ class AbelianGroup_class(group.AbelianGroup):
                   generators of the ambient abelian group G = self
         EXAMPLES:
             sage: G.<a,b,c> = AbelianGroup(3, [2,3,4]); G
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             sage: H = G.subgroup([a*b,a]); H
-            Abelian Group isomorphic to Z/2Z x Z/3Z, which is the subgroup of
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             generated by [a*b, a]
             sage: H < G
             True
             sage: F = G.subgroup([a,b^2])
             sage: F
-            Abelian Group isomorphic to Z/2Z x Z/3Z, which is the subgroup of
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             generated by [a, b^2]
             sage: F.gens()
             [a, b^2]
             sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
             sage: a,b,c,d,e = F.gens()
             sage: F.subgroup([a,b])
-            Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a, b]
             sage: F.subgroup([c,e])
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z x Z/729Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C5 x C729, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [c, e]
          """
         if not isinstance(gensH, (list, tuple)):
@@ -695,37 +695,37 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: F = AbelianGroup(5,[30,64,729],names = list("abcde"))
             sage: a,b,c,d,e = F.gens()
             sage: F.subgroup([a^3,b])
-            Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a^3, b]
             sage: F.subgroup([c])
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/5Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C5, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [c]
             sage: F.subgroup([a,c])
-            Abelian Group isomorphic to Z x Z/2Z x Z/3Z x Z/5Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x C2 x C3 x C5, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a, c]
             sage: F.subgroup([a,b*c])
-            Abelian Group isomorphic to Z x Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x Z, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a, b*c]
             sage: F.subgroup([b*c,d])
-            Abelian Group isomorphic to Z x Z/64Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x C64, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [b*c, d]
             sage: F.subgroup([a*b,c^6,d],names = list("xyz"))
-            Abelian Group isomorphic to Z x Z/5Z x Z/64Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a*b, c^6, d]
             sage: H.<x,y,z> = F.subgroup([a*b, c^6, d]); H
-            Abelian Group isomorphic to Z x Z/5Z x Z/64Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a*b, c^6, d]
             sage: G = F.subgroup([a*b,c^6,d],names = list("xyz"))
             sage: G
-            Abelian Group isomorphic to Z x Z/5Z x Z/64Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z x Z/2Z x Z/3Z x Z/5Z x Z/64Z x Z/729Z
+            Multiplicative Abelian Group isomorphic to Z x C5 x C64, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x Z x C2 x C3 x C5 x C64 x C729
             generated by [a*b, c^6, d]
             sage: x,y,z = G.gens()
             sage: x.order()
@@ -737,20 +737,20 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: A = AbelianGroup(5,[3, 5, 5, 7, 8], names = "abcde")
             sage: a,b,c,d,e = A.gens()
             sage: A.subgroup([a,b])
-            Abelian Group isomorphic to Z/3Z x Z/5Z, which is the subgroup of
-            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z
+            Multiplicative Abelian Group isomorphic to C3 x C5, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C3 x C5 x C5 x C7 x C8
             generated by [a, b]
             sage: A.subgroup([a,b,c,d^2,e])
-            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z, which is the subgroup of
-            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z
+            Multiplicative Abelian Group isomorphic to C3 x C5 x C5 x C7 x C8, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C3 x C5 x C5 x C7 x C8
             generated by [a, b, c, d^2, e]
             sage: A.subgroup([a,b,c,d^2,e^2])
-            Abelian Group isomorphic to Z/3Z x Z/4Z x Z/5Z x Z/5Z x Z/7Z, which is the subgroup of
-            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z
+            Multiplicative Abelian Group isomorphic to C3 x C4 x C5 x C5 x C7, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C3 x C5 x C5 x C7 x C8
             generated by [a, b, c, d^2, e^2]
             sage: B = A.subgroup([a^3,b,c,d,e^2]); B
-            Abelian Group isomorphic to Z/4Z x Z/5Z x Z/5Z x Z/7Z, which is the subgroup of
-            Abelian Group isomorphic to Z/3Z x Z/5Z x Z/5Z x Z/7Z x Z/8Z
+            Multiplicative Abelian Group isomorphic to C4 x C5 x C5 x C7, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C3 x C5 x C5 x C7 x C8
             generated by [b, c, d, e^2]
             sage: B.invariants()
             [4, 5, 5, 7]
@@ -767,16 +767,16 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             sage: a,b,c,d = A.gens()
             sage: B = A.subgroup([a^3,b,c,d])
             sage: B
-            Abelian Group isomorphic to Z/3Z x Z/7Z x Z/16Z x Z/2003Z x Z/3001Z x Z/4001Z, which is the subgroup of
-            Abelian Group isomorphic to Z/7Z x Z/9Z x Z/16Z x Z/2003Z x Z/3001Z x Z/4001Z
+            Multiplicative Abelian Group isomorphic to C3 x C7 x C16 x C2003 x C3001 x C4001, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C7 x C9 x C16 x C2003 x C3001 x C4001
             generated by [a^3, b, c, d]
 
         Infinite groups can also be handled:
             sage: G = AbelianGroup([3,4,0], names = "abc")
             sage: a,b,c = G.gens()
             sage: F = G.subgroup([a,b^2,c]); F
-            Abelian Group isomorphic to Z x Z/3Z x Z/4Z, which is the subgroup of
-            Abelian Group isomorphic to Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to Z x C3 x C4, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to Z x C3 x C4
             generated by [a, b^2, c]
             sage: F.invariants()
             [0, 3, 4]
@@ -850,13 +850,13 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         EXAMPLES:
 	    sage: G = AbelianGroup(3, [2,3,4], names="abc"); G
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
 	    sage: a,b,c = G.gens()
 	    sage: F=G.subgroup([a,b^2]); F
-            Abelian Group isomorphic to Z/2Z x Z/3Z, which is the subgroup of
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3, which is the subgroup of
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             generated by [a, b^2]
-	    sage: F<G
+    	    sage: F<G
             True
         """
         if not is_AbelianGroup(right):

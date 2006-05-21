@@ -61,10 +61,10 @@ class AbelianGroupMorphism:
     EXAMPLES:
         sage: from abelian_group import AbelianGroup
         sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
-        Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+        Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: a,b,c = G.gens()
         sage: H = AbelianGroup(2,[2,3],names="xy"); H
-        Abelian Group isomorphic to Z/2Z x Z/3Z
+        Multiplicative Abelian Group isomorphic to C2 x C3
         sage: x,y = H.gens()
 
         sage: from abelian_group_morphism import AbelianGroupMorphism
@@ -118,10 +118,10 @@ class AbelianGroupMorphism:
 
         EXAMPLES:
             sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
-            Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+            Multiplicative Abelian Group isomorphic to C2 x C3 x C4
             sage: a,b,c = G.gens()
             sage: H = AbelianGroup(2,[2,3],names="xy"); H
-            Abelian Group isomorphic to Z/2Z x Z/3Z
+            Multiplicative Abelian Group isomorphic to C2 x C3
             sage: x,y = H.gens()
             sage: phi = AbelianGroupMorphism(H,G,[x,y],[a,b])
             sage: phi._gap_init_()
@@ -175,10 +175,10 @@ class AbelianGroupMorphism:
 
         EXAMPLES:
            sage: H = AbelianGroup(3,[2,3,4],names="abc"); H
-           Abelian Group isomorphic to Z/2Z x Z/3Z x Z/4Z
+           Multiplicative Abelian Group isomorphic to C2 x C3 x C4
            sage: a,b,c = H.gens()
            sage: G = AbelianGroup(2,[2,3],names="xy"); G
-           Abelian Group isomorphic to Z/2Z x Z/3Z
+           Multiplicative Abelian Group isomorphic to C2 x C3
            sage: x,y = G.gens()
            sage: phi = AbelianGroupMorphism(G,H,[x,y],[a,b])
            sage: phi.kernel()

@@ -474,7 +474,7 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: NumberField(x^3+x+9).narrow_class_group()
-            Abelian Group isomorphic to Z/2Z
+            Multiplicative Abelian Group isomorphic to C2
         """
         try:
             return self.__narrow_class_group

@@ -17,7 +17,7 @@ EXAMPLES:
     sage: Sets()
     Category of sets
     sage: GSets(AbelianGroup([2,4,9]))
-    Category of G-sets for Abelian Group isomorphic to Z/2Z x Z/4Z x Z/9Z
+    Category of G-sets for Multiplicative Abelian Group isomorphic to C2 x C4 x C9
     sage: Semigroups()
     Category of semigroups
     sage: VectorSpaces(FiniteField(11))

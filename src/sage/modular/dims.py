@@ -6,27 +6,21 @@ a program that Bruce Caskel wrote (around 1996) in PARI, which Kevin
 Buzzard subsequently extended.  I (William Stein) then implemented it
 in C++ for HECKE.  I also implemented it in MAGMA.  Also, the
 functions for dimensions of spaces with nontrivial character are based
-on a paper of Cohen and Oesterle (Springer Lecture notes in math,
-volume 627, pages 69--78).  I asked Cohen about proofs of the formulas
-for nontrivial character, and learned that they have never been
-published.
+on a paper (that has no proofs) by Cohen and Oesterle (Springer
+Lecture notes in math, volume 627, pages 69--78).
 
+The formulas here are more complete than in HECKE or MAGMA.
 """
 
-#*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+##########################################################################
+#       Copyright (C) 2004,2005,2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
 #
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+##########################################################################
 
 
 
@@ -245,13 +239,12 @@ def dimension_cusp_forms_eps(eps, k=2):
         integer -- the dimension
 
     EXAMPLES:
-        sage: G = DirichletGroup(13)
-        sage: e = G.gen()
+        sage: e = DirichletGroup(13).0
         sage: e.order()
         12
         sage: dimension_cusp_forms_eps(e,2)
         0
-        sage: dimension_cusp_forms_eps(e**2,2)
+        sage: dimension_cusp_forms_eps(e^2,2)
         1
     """
     if isinstance(eps, (int,long) ):
@@ -267,10 +260,7 @@ def dimension_cusp_forms_eps(eps, k=2):
         if k % 2 == 0:
             return Z(0)
     if k == 0:
-        if eps.is_trivial():
-            return Z(1)
-        else:
-            return Z(0)
+        return Z(0)
     elif k == 1:
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
 
@@ -281,6 +271,78 @@ def dimension_cusp_forms_eps(eps, k=2):
         return Z(0)
     K = eps.base_ring()
     return Z ( K(idxG0(N)*frac(k-1,12)) + CohenOesterle(eps,k) )
+
+
+def dimension_eis_eps(eps, k=2):
+    r"""
+    The dimension of the space of eisenstein series of weight $k$ and
+    character $\varepsilon$.
+
+    INPUT:
+        eps -- a Dirichlet character
+        k -- integer, a weight >= 2.
+
+    OUTPUT:
+        integer -- the dimension
+
+    EXAMPLES:
+        sage: e = DirichletGroup(13).0
+        sage: e.order()
+        12
+        sage: dimension_eis_eps(e,2)
+        0
+        sage: dimension_eis_eps(e^2,2)
+        2
+        sage: dimension_eis_eps(e,13)
+        2
+
+        sage: G = DirichletGroup(20)
+        sage: dimension_eis_eps(G.0,3)
+        4
+        sage: dimension_eis_eps(G.1,3)
+        6
+        sage: dimension_eis_eps(G.1^2,2)
+        6
+
+        sage: e = prod(DirichletGroup(200).gens())
+        sage: e.conductor()
+        200
+        sage: dimension_eis_eps(e,2)
+        4
+    """
+    if isinstance(eps, (int,long) ):
+        return dimension_eis_gamma0(eps,k)
+
+    if k < 0:
+        return Z(0)
+    if eps.is_even():
+        if k % 2 == 1:
+            return Z(0)
+    else:  # odd
+        if k % 2 == 0:
+            return Z(0)
+    if k == 0:
+        if eps.is_trivial():
+            return Z(1)    # the constants
+        else:
+            return Z(0)
+
+    N = eps.modulus()
+    if (eps.is_odd() and k%2==0) or (eps.is_even() and k%2==1):
+        return Z(0)
+    if eps.is_trivial():
+        return dimension_eis(congroup.Gamma0(N),k)
+    K = eps.base_ring()
+    j = 2-k
+    # We use the Cohen-Oesterle formula in a subtle way to
+    # compute dim M_k(N,eps) (see Ch. 6 of my book on
+    # computing with modular forms).
+    alpha = -Z ( K(idxG0(N)*frac(j-1,12)) + CohenOesterle(eps,j) )
+    if k == 1:
+        return alpha
+    else:
+        return alpha - dimension_cusp_forms_eps(eps, k)
+
 
 def dimension_cusp_forms_gamma0(N,k=2):
     r"""
@@ -314,7 +376,7 @@ def dimension_cusp_forms_gamma0(N,k=2):
     if k < 0:
         return Z(0)
     elif k == 0:
-        return Z(1)
+        return Z(0)
     elif k%2 == 1:
         return Z(0)
     return Z(S0(N,k))
@@ -351,7 +413,7 @@ def dimension_cusp_forms_gamma1(N,k=2):
     if k < 0:
         return Z(0)
     elif k == 0:
-        return Z(1)
+        return Z(0)
     if k == 1:
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
     #if k == 1:
@@ -363,16 +425,22 @@ def dimension_cusp_forms_gamma1(N,k=2):
 def dimension_cusp_forms(group, k=2):
     r"""
     The dimension of the space of cusp forms for the given congruence
-    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$).
+    subgroup or Dirichlet character.
 
     EXAMPLES:
         sage: dimension_cusp_forms(Gamma0(11),2)
         1
         sage: dimension_cusp_forms(Gamma1(13),2)
         2
+        sage: dimension_cusp_forms(DirichletGroup(13).0^2,2)
+        1
+        sage: dimension_cusp_forms(DirichletGroup(13).0,3)
+        1
     """
+    if isinstance(group, dirichlet.DirichletCharacter):
+        return dimension_cusp_forms_eps(group, k)
     if not isinstance(group, congroup.CongruenceSubgroup):
-        raise TypeError, "Argument 1 must be a congruence subgroup."
+        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
     if isinstance(group, congroup.Gamma0):
         return dimension_cusp_forms_gamma0(group.level(),k)
     elif isinstance(group, congroup.Gamma1):
@@ -393,7 +461,10 @@ def dimension_eis(group, k=2):
         11
     """
     if k <= 1:
-        raise NotImplementedError, "Dimension of weight 1 Eisenstein series not yet implemented."
+        # TODO
+        raise NotImplementedError, "Dimension of weight <= 1 Eisenstein series not yet implemented."
+    if isinstance(group, dirichlet.DirichletCharacter):
+        return dimension_eis_eps(group, k)
     if isinstance(group, congroup.Gamma0):
         if k%2 == 1: return 0
         d = c0(group.level())
@@ -404,8 +475,8 @@ def dimension_eis(group, k=2):
         if k==2: d -= 1
         return Z(d)
     else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
-        Gamma0 and Gamma1 is not yet implemented."
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides " + \
+              "Gamma0 and Gamma1 is not yet implemented."
 
 def mumu(N):
     assert N>=1
@@ -446,10 +517,7 @@ def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     if k < 0:
         return Z(0)
     elif k == 0:
-        if N == 1:
-            return Z(1)
-        else:
-            return Z(0)
+        return Z(0)
     elif k%2 == 1:
         return Z(0)
     if p==0 or N%p!=0:
@@ -473,10 +541,7 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     if k < 0:
         return Z(0)
     elif k == 0:
-        if N == 1:
-            return Z(1)
-        else:
-            return Z(0)
+        return Z(0)
     elif k == 1:
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."
 
@@ -517,10 +582,7 @@ def dimension_new_cusp_forms(eps, k=2, p=None):
         if k % 2 == 0:
             return Z(0)
     if k == 0:
-        if N == 1 and eps.is_trivial():
-            return Z(1)
-        else:
-            return Z(0)
+        return Z(0)
 
     elif k == 1:
         raise NotImplementedError, "Computation of dimensions of spaces of weight 1 modular forms not implemented."

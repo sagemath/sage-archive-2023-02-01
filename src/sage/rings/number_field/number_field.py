@@ -420,7 +420,7 @@ class NumberField_generic(field.Field):
 	    sage: zj = fj[0].gens_reduced()[0]; zj
             -3*I - 2
 
-	    We recover the integer that was factor in $ZZ[I]$
+	    We recover the integer that was factor in $ZZ[i]$
 
 	    sage: zi*zj
             13

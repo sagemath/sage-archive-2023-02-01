@@ -1264,6 +1264,7 @@ def hue(h, s=1, v=1):
 
 	hue is an easy way of getting a broader
 	range of colors for graphics
+
 	sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
 
     """
@@ -1305,11 +1306,37 @@ class GraphicsArray(SageObject):
     def _repr_(self):
 	return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
-    def save(self, filename):
-	glist = self.glist
-	rows = self.rows
-	cols = self.cols
-	dims = self.dims
+    def nrows(self):
+        return self._rows
+
+    def ncols(self):
+        return self._cols
+
+    def __getitem__(self, i):
+	i = int(i)
+        return self._glist[i]
+
+    def __setitem__(self, i, g):
+        i = int(i)
+        self._glist[i] = g
+
+    def __len__(self):
+        return len(self._glist)
+
+    def __append__(self, g):
+        self._glist.append(g)
+
+    def _render(self, filename):
+	r"""
+	\code{render} loops over all graphics objects
+	in the array and adds them to the subplot.
+	"""
+	#glist is a list of Graphics objects:
+	glist = self._glist
+	rows = self._rows
+	cols = self._cols
+	dims = self._dims
+        #make a blank matplotlib Figure:
 	figure = Figure()
 	for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)

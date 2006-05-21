@@ -86,6 +86,7 @@ import os
 
 from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
+from math import modf
 
 try:
 
@@ -712,8 +713,10 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         options = self.options
 	c = to_mpl_color(options['rgbcolor'])
 	f = int(options['fontsize'])
+        va = options['verticalalignment']
+	ha = options['horizontalalignment']
 	subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
-					verticalalignment="center",horizontalalignment="center")
+					verticalalignment=va,horizontalalignment=ha)
 
 
 ######################################################################
@@ -1255,33 +1258,52 @@ def hue(h, s=1, v=1):
       hue returns a list of rgb intensities (r, g, b)
       All values are in range 0 to 1.
 
-    TODO EXAMPLES:
+      EXAMPLES:
 	sage: hue(0.6)
-	(0.0, 0.40000000000000036, 1)
+        (0.0, 0.40000000000000036, 1.0)
 
 	hue is an easy way of getting a broader
 	range of colors for graphics
 	sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
 
     """
-    return hsv_to_rgb(h, s, v)
+    if h > 1:
+        h = modf(h)[0]
+    if s > 1:
+        s = modf(s)[0]
+    if v > 1:
+        v = modf(v)[0]
+    c = hsv_to_rgb(h, s, v)
+    return (float(c[0]), float(c[1]), float(c[2]))
 
-class GraphicsArray:
+class GraphicsArray(SageObject):
     """
-    GraphicsArray takes a (m x n) matrix of graphics
+    GraphicsArray takes a (m x n) list of lists of graphics
     objects and plots them all on one canvas.
     """
     def __init__(self, array):
-	self.array = array
-	self.rows = len(self.array)
-	self.cols = len(self.array[0])
-	self.dims = self.rows*self.cols
-	self.glist = []
-	for tup in array: #basically flatten the list
-	    for g in tup:
-		self.glist.append(g)
+	if not isinstance(array, (list, tuple)):
+	    raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+	self._glist = []
+	self._rows = len(array)
+	if self._rows > 0:
+	    if not isinstance(array[0], (list, tuple)):
+		array = [array]
+		self._rows = 1
+	    self._cols = len(array[0])
+	else:
+	    self._cols = 0
+	self._dims = self._rows*self._cols
+	for row in array: #basically flatten the list
+	    if not isinstance(row, (list, tuple)) or len(row) != self._cols:
+	        raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+	    for g in row:
+		if not isinstance(g, Graphics):
+		    raise TypeError, "every element of array must be a Graphics object"
+		self._glist.append(g)
+
     def _repr_(self):
-	return "a graphics array"
+	return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
     def save(self, filename):
 	glist = self.glist
@@ -1293,18 +1315,29 @@ class GraphicsArray:
             subplot = figure.add_subplot(rows, cols, i)
 	    g.save(filename, fig=figure, sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
+    def save(self, filename="ga.png"):
+	"""
+	save the \code{graphics_array} to
+        (for now) a png called 'filename'.
+	"""
+	self._render(filename)
+
     def show(self, filename=None):
+	"""
+	show the \code{graphics_array} in
+        the users browser.
+	"""
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename)
+        self.render(filename)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.log.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
-def graphics_array(array):
+def graphics_array(array,filename="ga.png"):
     r"""
     \code{graphics_array} take a list of lists (or tuples)
-    of graphics objects and plots them all on one canvas.
+    of graphics objects and plots them all on one canvas (single plot).
 
     EXAMPLE:
     Make some plots of $\sin$ functions:
@@ -1321,6 +1354,12 @@ def graphics_array(array):
     Ten you can type either: \code{ga.show()} or \code{ga.save()}.
 
 	sage: ga = graphics_array(((p1,p2),(p3,p4)))
+
+    Here we give only one row:
+	sage: p1 = plot(sin,-4,4)
+        sage: p2 = plot(cos,-4,4)
+	sage: graphics_array([p1, p2])
+        Graphics Array of size 1 x 2
 
     """
     G = GraphicsArray(array)

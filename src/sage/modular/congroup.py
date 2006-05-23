@@ -69,6 +69,9 @@ class CongruenceSubgroup(Group):
     def is_finite(self):
         return False
 
+    def is_subgroup(self, right):
+        raise NotImplementedError
+
     def order(self):
         return infinity
 
@@ -153,6 +156,22 @@ class Gamma0(CongruenceSubgroup):
             return 1
         return 0
 
+    def is_subgroup(self, right):
+        """
+        Return True if self is a subgroup of right.
+        """
+        if right.level() == 1:
+            return True
+        if isinstance(right, Gamma0):
+            return self.level() % right.level() == 0
+        if isinstance(right, Gamma1):
+            if right.level() >= 3:
+                return False
+            elif right.level() == 2:
+                return self.level() == 2
+            # case level 1 dealt with above
+        raise NotImplementedError
+
     def coset_reps(self):
         r"""
         Return representatives for the right cosets of this
@@ -231,6 +250,12 @@ class SL2Z(Gamma0):
     def _latex_(self):
         return "\\mbox{\\rm SL}_2(%s)"%(IntegerRing()._latex_())
 
+    def is_subgroup(self, right):
+        """
+        Return True if self is a subgroup of right.
+        """
+        return right.level() == 1
+
     def gens(self):
         try:
             return self.__gens
@@ -277,6 +302,27 @@ class Gamma1(CongruenceSubgroup):
         elif self.level() > right.level():
             return 1
         return 0
+
+    def is_subgroup(self, right):
+        """
+        Return True if self is a subgroup of right.
+
+        EXAMPLES:
+            sage: Gamma1(3).is_subgroup(SL2Z())
+            True
+            sage: Gamma1(3).is_subgroup(Gamma1(5))
+            False
+            sage: Gamma1(3).is_subgroup(Gamma1(6))
+            False
+            sage: Gamma1(6).is_subgroup(Gamma1(3))
+            True
+
+        """
+        if right.level() == 1:
+            return True
+        if isinstance(right, (Gamma1, Gamma0)):
+            return self.level() % right.level() == 0
+        raise NotImplementedError
 
 class GammaH(CongruenceSubgroup):
     r"""

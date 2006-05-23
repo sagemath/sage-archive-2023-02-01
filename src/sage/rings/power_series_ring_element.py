@@ -88,9 +88,10 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
     def padded_list(self, n):
         """
-        Return list of coefficients of self up to (but not include q^n).
+        Return list of coefficients of self up to (but not include $q^n$).
 
-        Includes 0's in the list on the right so that the list has length n.
+        Includes 0's in the list on the right so that the list has
+        length $n$.
 
         EXAMPLES:
             sage: R.<q> = PowerSeriesRing(QQ)

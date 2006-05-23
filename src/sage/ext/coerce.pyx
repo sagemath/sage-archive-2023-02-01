@@ -171,7 +171,6 @@ def cmp(x, y):
             y = coerce(xp, y)
         except (TypeError, ValueError):
             fails = fails + 1
-
         if fails == 0:
             c0 = __builtin__.cmp(x0,y)
             c1 = __builtin__.cmp(x,y0)

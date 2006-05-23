@@ -34,6 +34,16 @@ We combine together different graphics objects using "+":
     sage: list(H[1])
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
 
+We can put text in a graph:
+    L = [[cos(pi*i/100)^3,sin(pi*i/100)] for i in range(200)]
+    p = line(L, rgbcolor=(1/4,1/8,3/4))
+    t = text('A Bulb', (1.5, 0.25))
+    x = text('x axis', (1.5,-0.2))
+    y = text('y axis', (0.4,0.9))
+    g = p+t+x+y
+    g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
+
+
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples
@@ -140,7 +150,7 @@ class Graphics(SageObject):
         sage: for x in srange(1,h+1):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
-        sage: G.save("triangle.png",figsize=[5,5])
+        sage: G.save('sage.png',figsize=[5,5])
 
     """
 
@@ -425,12 +435,12 @@ class Graphics(SageObject):
 
 	EXAMPLES:
 	    sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
-	    sage: c.save("circ1.png", xmin=-1, xmax=3, ymin=-1, ymax=3)
+	    sage: c.save("sage.png", xmin=-1, xmax=3, ymin=-1, ymax=3)
 
 	    To correct the apect ratio of certain graphics, it is necessary
 	    to show with a 'figsize' of square dimensions.
 
-	    sage: c.save("circ1.png", figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+	    sage: c.save("sage.png", figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         """
         if filename is None:
@@ -477,8 +487,9 @@ class Graphics(SageObject):
 
 	return xmin,xmax,ymin,ymax
 
-    def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-		fig=None, sub=None, savenow=True):
+    def save(self, filename='sage.png', xmin=None, xmax=None,
+             ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
+             fig=None, sub=None, savenow=True):
         """
 	Save the graphics to an image file of type: PNG, PS, or SVG,
 	depending on the file extension you give the filename.
@@ -486,12 +497,12 @@ class Graphics(SageObject):
 
 	EXAMPLES:
 	    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-	    sage: c.save("circle.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
+	    sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
 
 	    To correct the apect ratio of certain graphics, it is necessary
 	    to show with a 'figsize' of square dimensions.
 
-	    sage: c.save("circle.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+	    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
 	"""
 
@@ -904,12 +915,12 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
 
     EXAMPLES:
     sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage: c.save("circ1.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
+    sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
 
     To correct the apect ratio of certain graphics, it is necessary
     to show with a 'figsize' of square dimensions.
 
-    sage: c.save("circ1.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
     Here we make an more complicated plot with many circles of different colors
 
@@ -921,8 +932,7 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     ...       rnext = (r+1)^2
     ...       ocur = (rnext-r)-ocur
     ...
-    sage: g.save("c2.png", xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
-    sage: os.unlink('c2.png')     # remove temp file
+    sage: g.save("sage.png", xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
     """
     def _reset(self):
 	self.options={'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
@@ -955,8 +965,7 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 	sage: tl = disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
 	sage: br = disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
 	sage: P  = tl+tr+bl+br
-	sage: P.save("danger.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
-        sage: os.unlink('danger.png')     # remove temp file
+	sage: P.save("sage.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
 
     """
     def _reset(self):
@@ -1255,11 +1264,10 @@ def list_plot(data, plotjoined=False, **kwargs):
 	sage: r = [(random(),random()) for _ in range(20)]
 
     Here are a bunch of random red points:
-	sage: list_plot(r,rgbcolor=(1,0,0)).save('random.png')
-        sage: os.unlink('random.png')
+	sage: list_plot(r,rgbcolor=(1,0,0)).save('sage.png')
 
     This gives all the random points joined in a purple line:
-	sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save("randomjoin.png")
+	sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save('sage.png')
     """
     if not isinstance(data[0], (list, tuple)):
 	 data = zip(range(len(data)),data)
@@ -1364,7 +1372,7 @@ class GraphicsArray(SageObject):
             subplot = figure.add_subplot(rows, cols, i)
 	    g.save(filename, fig=figure, sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
-    def save(self, filename="ga.png"):
+    def save(self, filename="sage.png"):
 	"""
 	save the \code{graphics_array} to
         (for now) a png called 'filename'.
@@ -1383,7 +1391,7 @@ class GraphicsArray(SageObject):
                          sage.misc.log.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
-def graphics_array(array,filename="ga.png"):
+def graphics_array(array,filename="sage.png"):
     r"""
     \code{graphics_array} take a list of lists (or tuples)
     of graphics objects and plots them all on one canvas (single plot).

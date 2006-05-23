@@ -291,7 +291,7 @@ def span(R, gens, check=True, already_echelonized=False):
     else:
         x = gens[0]
         M = FreeModule(R, len(x))
-        return M.span(gens)
+        return M.span(gens, check=check, already_echelonized=already_echelonized)
 
 
 ###############################################################################
@@ -316,13 +316,13 @@ class FreeModule_generic(module.Module):
             rank -- a non-negative integer
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
-            raise TypeError, "base_ring must be a commutative ring"
+            raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
         rank = integer.Integer(rank)
         if rank < 0:
-            raise ValueError, "rank must be nonnegative"
+            raise ValueError, "rank (=%s) must be nonnegative"%rank
         degree = integer.Integer(degree)
         if degree < 0:
-            raise ValueError, "degree must be nonnegative"
+            raise ValueError, "degree (=%s) must be nonnegative"%degree
 
         self.__uses_ambient_inner_product = True
         self.__base_ring = base_ring
@@ -1425,7 +1425,7 @@ class FreeModule_generic_pid(FreeModule_generic):
         A = self.ambient_module()
         return V.intersection(A)
 
-    def span(self, gens, check=True):
+    def span(self, gens, check=True, already_echelonized=False):
         """
         Return the R-span of the given list of gens, where R
         is the base ring of self.  Note that this span need not
@@ -1445,9 +1445,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             ...
             ArithmeticError: gens does not generate a submodule of self
         """
-        return FreeModule_submodule_pid(self.ambient_module(), gens, check=check)
+        return FreeModule_submodule_pid(self.ambient_module(), gens, check=check,
+                                        already_echelonized=already_echelonized)
 
-    def submodule(self, gens, check=True):
+    def submodule(self, gens, check=True, already_echelonized=False):
         r"""
         Create the R-submodule of the ambient vector space with given
         generators, where R is the base ring of self.
@@ -1503,13 +1504,13 @@ class FreeModule_generic_pid(FreeModule_generic):
             gens = gens.gens()
         if not isinstance(gens, (list, tuple)):
             raise TypeError, "gens (=%s) must be a list or tuple"%gens
-        V = self.span(gens, check=True)
+        V = self.span(gens, check=check, already_echelonized=already_echelonized)
         if check:
             if not V.is_submodule(self):
                 raise ArithmeticError, "gens does not generate a submodule of self"
         return V
 
-    def span_of_basis(self, basis, check=True):
+    def span_of_basis(self, basis, check=True, already_echelonized=False):
         r"""
         Return the free R-module with the given basis, where R
         is the base ring of self.  Note that this R-module need not
@@ -1543,9 +1544,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             ArithmeticError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_pid(
-                                    self.ambient_module(), basis, check=check)
+                                    self.ambient_module(), basis, check=check,
+                                    already_echelonized=already_echelonized)
 
-    def submodule_with_basis(self, basis, check=True):
+    def submodule_with_basis(self, basis, check=True, already_echelonized=False):
         """
         Create the R-submodule of the ambient vector space with given
         basis, where R is the base ring of self.
@@ -1581,7 +1583,7 @@ class FreeModule_generic_pid(FreeModule_generic):
 #            sage: W
 #            ???
 #        """
-        V = self.span_of_basis(basis, check=True)
+        V = self.span_of_basis(basis, check=True, already_echelonized=already_echelonized)
         if check:
             if not V.is_submodule(self):
                 raise ArithmeticError, "basis does not span a submodule of self"
@@ -1862,12 +1864,18 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.is_submodule(other)
 
-    def span(self, gens, check=True):
+    def span(self, gens, check=True, already_echelonized=False):
         """
-        Return the K-span of the given list of gens, where K
-        is the base field of self.  Note that this span is
-        a subspace of the ambient vector space, but need
-        not be a suspace of self.
+        Return the K-span of the given list of gens, where K is the
+        base field of self.  Note that this span is a subspace of the
+        ambient vector space, but need not be a suspace of self.
+
+        INPUT:
+            gens -- list of vectors
+            check -- bool (default: True): whether or not to coerce entries of gens
+                                           into base field
+            already_echelonized -- bool (default: False): set this if you know the gens
+                                   are already in echelon form
 
         EXAMPLES:
             sage: V = VectorSpace(GF(7), 3)
@@ -1885,14 +1893,22 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         if not isinstance(gens, (list, tuple)):
             raise TypeError, "gens (=%s) must be a list or tuple"%gens
 
-        return FreeModule_submodule_field(self.ambient_module(), gens, check=check)
+        return FreeModule_submodule_field(self.ambient_module(), gens, check=check,
+                                          already_echelonized=already_echelonized)
 
-    def span_of_basis(self, basis, check=True):
+    def span_of_basis(self, basis, check=True, already_echelonized=False):
         r"""
         Return the free K-module with the given basis, where K
         is the base field of self.  Note that this span is
         a subspace of the ambient vector space, but need
         not be a suspace of self.
+
+        INPUT:
+            basis -- list of vectors
+            check -- bool (default: True): whether or not to coerce entries of gens
+                                           into base field
+            already_echelonized -- bool (default: False): set this if you know the gens
+                                   are already in echelon form
 
         EXAMPLES:
             sage: V = VectorSpace(GF(7), 3)
@@ -1914,15 +1930,18 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             ArithmeticError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_field(
-                                    self.ambient_module(), basis, check=check)
+                                    self.ambient_module(), basis, check=check,
+                                    already_echelonized=already_echelonized)
 
-    def subspace(self, gens, check=True):
+    def subspace(self, gens, check=True, already_echelonized=False):
         """
         Return the subspace of self spanned by the elements of gens.
 
         INPUT:
             gens -- list of vectors
             check -- bool (default: True) verify that gens are all in self.
+            already_echelonized -- bool (default: False) set to True if you know the
+                                   gens are in Echelon form.
 
         EXAMPLES:
         First we create a 1-dimensional vector subspace of an ambient $3$-dimensional
@@ -1947,9 +1966,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             ...
             ArithmeticError: gens does not generate a submodule of self
         """
-        return self.submodule(gens, check=check)
+        return self.submodule(gens, check=check, already_echelonized=already_echelonized)
 
-    def subspace_with_basis(self, gens, check=True):
+    def subspace_with_basis(self, gens, check=True, already_echelonized=False):
         """
         Same as \code{self.submodule_with_basis(...)}.
 
@@ -1979,7 +1998,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: W1 == W2
             True
         """
-        return self.submodule_with_basis(gens, check=check)
+        return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
     def vector_space(self):
         """
@@ -2421,7 +2440,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
                  check=True,
                  echelonize=False,
                  inner_product_matrix=None,
-                 echelonized_basis=None):
+                 echelonized_basis=None,
+                 already_echelonized=False):
         """
         Create a free module with basis over a PID.
 
@@ -2455,8 +2475,8 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         self.__ambient_vector_space = V
         R = ambient.base_ring()
 
-        if echelonize:
-            basis = self.__echelonize(ambient, basis).rows()
+        if echelonize and not already_echelonized:
+            basis = self._echelonize(ambient, basis).rows()
 
         FreeModule_generic.__init__(self, R, len(basis), ambient.degree(),
                             ambient.is_sparse(), inner_product_matrix=inner_product_matrix)
@@ -2472,20 +2492,16 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         else:
 
-            if echelonize:
+            if echelonize or already_echelonized:
                 self.__echelonized_basis = self.__basis
             else:
-                w = self.__echelonize(ambient, basis).rows()
+                w = self._echelonize(ambient, basis).rows()
                 self.__echelonized_basis = basis_seq(self, w)
-
-                #E = self.__echelonize(ambient, basis).rows()
-                #self.__echelonized_basis = [self._element_class(self, x.list(),
-                #                                    coerce_entries=False, copy=True) for x in E]
 
         if check and len(basis) != len(self.__echelonized_basis):
             raise ArithmeticError, "basis vectors must be linearly independent."
 
-    def __echelonize(self, ambient, basis):
+    def _echelonize(self, ambient, basis):
         d = self._denominator(basis)
         MAT = sage.matrix.matrix_space.MatrixSpace(ambient.base_ring(),
                         len(basis), ambient.degree(),
@@ -2936,7 +2952,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
 
 
     """
-    def __init__(self, ambient, gens, check=True, inner_product_matrix=None):
+    def __init__(self, ambient, gens, check=True, inner_product_matrix=None,
+                 already_echelonized=False):
         """
         Create an embedded free module over a PID.
 
@@ -2951,7 +2968,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
         """
         FreeModule_submodule_with_basis_pid.__init__(self, ambient,
                                                      gens, echelonize=True,
-                                                     inner_product_matrix=inner_product_matrix)
+                                                     inner_product_matrix=inner_product_matrix,
+                                                     already_echelonized=already_echelonized)
 
     def _repr_(self):
         s = "Free module of degree %s and rank %s over %s\n"%(
@@ -3019,7 +3037,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
 
     """
     def __init__(self, ambient, basis, check=True, echelonize=False,
-                 inner_product_matrix=None, echelonized_basis=None):
+                 inner_product_matrix=None, echelonized_basis=None,
+                 already_echelonized=False):
         """
         Create a vector space with given basis.
 
@@ -3037,7 +3056,8 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
                                                      check,
                                                      echelonize=echelonize,
                                                      inner_product_matrix=inner_product_matrix,
-                                                     echelonized_basis=echelonized_basis)
+                                                     echelonized_basis=echelonized_basis,
+                                                     already_echelonized=already_echelonized)
 
     def _repr_(self):
         return "Vector space of degree %s and dimension %s over %s\n"%(
@@ -3047,6 +3067,14 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
     def _denominator(self, B):
         # for internal use only
         return 1
+
+    def _echelonize(self, ambient, basis):
+        MAT = sage.matrix.matrix_space.MatrixSpace(ambient.base_ring(),
+                        len(basis), ambient.degree(),
+                        sparse = ambient.is_sparse())
+        A = MAT(basis)
+        E = A.echelon_form(include_zero_rows=False)
+        return E
 
     def is_ambient(self):
         """
@@ -3068,7 +3096,8 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
     """
     An embedded vector subspace with echelonized basis.
     """
-    def __init__(self, ambient, gens, check=True, inner_product_matrix=None):
+    def __init__(self, ambient, gens, check=True,
+                 inner_product_matrix=None, already_echelonized=False):
         """
         Create an embedded vector subspace with echelonized basis.
 
@@ -3086,8 +3115,9 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         if not isinstance(gens, (list, tuple)):
             raise TypeError, "gens (=%s) must be a list or tuple"%gens
         FreeModule_submodule_with_basis_field.__init__(self, ambient, gens, check,
-                                                       echelonize=True,
-                    inner_product_matrix=inner_product_matrix)
+                                                       echelonize = not already_echelonized,
+                                                       inner_product_matrix=inner_product_matrix,
+                                                       already_echelonized = already_echelonized)
 
     def _repr_(self):
         return "Vector space of degree %s and dimension %s over %s\n"%(
@@ -3176,4 +3206,4 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
 
 def basis_seq(V, w):
-    return Sequence(w, universe=V, check = False, immutable=True)
+    return Sequence(w, universe=V, check = False, immutable=True, cr=True)

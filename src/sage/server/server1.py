@@ -9,7 +9,7 @@ TODO:
       line input (and output) will work.
    [] Ability to switch from one log (=workbook) to another via
       the web interface.
-   [] The "move to the current input box" javascript *only* works
+   [x] The "move to the current input box" javascript *only* works
       with firefox (not opera, not konqueror); also this should
       just keep the page position where it is rather than move it.
       Moving to a more AJAX-ish model would alternatively fix this, maybe.
@@ -102,29 +102,37 @@ class IO_Line:
 	#html_in is the html/javascript that starts a 'cell'
 	#this probably needs some refactoring by a css/javascript pro :)
 	html_in ="""
-           <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF'>
+           <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF' width='80%%'>
 	    <td align=center>
 	"""
 	#below in the javascript that enables the +/- resizing of the textarea
-	html_in +="""
+	controls ="""
         <div class="controlarea">
-        <span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s','ina%s')"><b>+</b></a></span>
-        <span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s','ina%s')"><b>-</b></a></span>
+        <table cellpadding=0 cellspacing=0>
+         <tr>
+          <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
+          <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b>-</b></a></span></td>
+         </tr>
+         <tr>
+          <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
+          <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b>+</b></a></span></td>
+         </tr>
+        </table>
         </div>
-	"""%(number, number, number, number)
+	"""%(number, number,number,number)
 	#below is where the textarea form is added
-	#note: the '<input ... value="90,10">' is for the +/- resizing javascript
 	html_in +="""
         </td>
-        <tr><td align=center bgcolor='#DDDDDD'>
-        <table border=0 cellpadding=7 bgcolor='#FFFFFF'><tr><td>
-                 <textarea style="border: 0px;"
+        <tr><td align=center bgcolor='#DDDDDD' cellpadding=1 cellspacing=0>
+        <table border=0 cellpadding=4 cellspacing=0 bgcolor='#FFFFFF' width='100%%'><tr><td>
+                 <textarea style="border: 0px;width: 100%%;"
                    name='%s' bgcolor='%s' rows='%s'
                    cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
         </td>
-        </tr></table></td></tr></table>
-        <input type="hidden" id="ina%s" value="90,5">
-         """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd, number)
+        </tr></table></td>
+        <td align='right' valign='top'>%s</td>
+        </tr></table>
+        """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd,controls)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
@@ -169,10 +177,12 @@ class IO_Line:
         c = """
         <form name="io%s" method=post action="" id="%s">
         %s
+        <div id='out%s'>
         %s
         %s
         %s
-        </form>"""%(number, number, html_in, html_out, files, images)
+        </div>
+        </form>"""%(number, number, html_in, number, html_out, files, images)
         return c
 
 class Log(SageObject):
@@ -238,15 +248,36 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             font-size:10pt;
             }
 
+
+
+
+            input.btn {
+              color:#999999;
+              text-decoration:none;
+              background: white;
+              padding:0px;
+              margin:0px;
+              border:1px solid white;
+            }
+            input.btn:hover {
+              color:black;
+              text-decoration:none;
+              background: white;
+              padding:0px;
+              margin:0px;
+              border:1px solid #333333;
+            }
+
             span.control a.cs {
-            color:#ccc;
+            color:#999999;
             text-decoration:none;
             border:1px solid white;
             }
             span.control:hover a.cs, span.control a:hover.cs {
             color:black;
-            border:1px solid #999;
+            border:1px solid #333333;
             }
+
             </style>
 
             <script language=javascript>
@@ -266,18 +297,28 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                    return true;
             }
 
-	    function changeAreaSize(val,id1,id2) {
-                var el = document.getElementById(id1);
-                if (val==1) {
+	    function changeAreaSize(val,id) {
+                var el = document.getElementById(id);
+                if (val==1)
                     el.rows = el.rows + 1;
-                    el.cols = el.cols;
-                } else {
+                else
                     el.rows = el.rows - 1;
-                el.cols;
-                }
-                document.getElementById(id2).value=el.cols+","+el.rows;
-               }
+            }
 
+            function toggleVisibility(id) {
+                var outBox = document.getElementById('out'+id);
+                if(outBox.style.display == 'none') {
+                    outBox.style.display = 'block';
+                    document.getElementById('tog'+id).innerHTML='H';
+                } else {
+                    outBox.style.display = 'none';
+                    document.getElementById('tog'+id).innerHTML='S';
+                }
+            }
+            function showBox(id) {
+                var el = document.getElementById(id);
+                el.style.display='none';
+            }
             </script>
             """%(save_name, number, number+1))
 

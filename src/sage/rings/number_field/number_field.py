@@ -189,7 +189,7 @@ class NumberField_generic(field.Field):
         Coerce x into this number field.
         """
         if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() == self:
+            if x.parent() is self:
                 return x
             # todo: more general coercision if embedding have been asserted
 

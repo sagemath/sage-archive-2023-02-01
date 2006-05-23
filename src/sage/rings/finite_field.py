@@ -518,6 +518,17 @@ class FiniteField_ext_pari(FiniteField_generic):
 
 
     def __cmp__(self, other):
+        """
+        EXAMPLES:
+            sage: GF(7)(2) == GF(7)(9)
+            True
+            sage: GF(7)(2) == GF(11)(2)
+            False
+            sage: GF(7)(2) == GF(8)(2)
+            False
+            sage: GF(7)(2) == 2
+            True
+        """
         if not isinstance(other, FiniteField_ext_pari):
             return -1
         if (self is other) or (self.__order == other.__order and
@@ -782,15 +793,22 @@ class FiniteField_ext_pari(FiniteField_generic):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion of a to Finite Field in a of size 2^4 defined; adding this is planned (see rings/finite_field.py to help!)
+            sage: k = GF(8)
+            sage: k._coerce_(GF(7)(2))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of 2 to Finite Field in a of size 2^3
         """
+
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
+
         if isinstance(x, (finite_field_element.FiniteFieldElement,
                           integer_mod.IntegerMod)):
             K = x.parent()
             if K is self:
                 return x
-            if isinstance(K, integer_mod_ring.IntegerModRing_generic):
+            if isinstance(K, integer_mod_ring.IntegerModRing_generic) and K.characteristic() % self.characteristic() == 0:
                 return self(int(x))
             if K.characteristic() == self.characteristic():
                 if K.degree() == 1:

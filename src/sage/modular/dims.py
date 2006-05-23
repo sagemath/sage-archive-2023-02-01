@@ -499,16 +499,21 @@ def mumu(N):
 def dimension_modular_forms(group, k=2):
     r"""
     The dimension of the space of cusp forms for the given congruence
-    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$).
+    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$) or Dirichlet
+    character.
 
     EXAMPLES:
         sage: dimension_cusp_forms(Gamma0(11),2)
         1
         sage: dimension_cusp_forms(Gamma1(13),2)
         2
+        sage: e = DirichletGroup(20).1
+        sage: dimension_modular_forms(e,3)
+        9
     """
-    if not isinstance(group, congroup.CongruenceSubgroup):
-        raise TypeError, "Argument 1 must be a congruence subgroup."
+    if not isinstance(group, congroup.CongruenceSubgroup) and \
+         not isinstance(group, dirichlet.DirichletCharacter):
+        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
     return dimension_cusp_forms(group, k) + dimension_eis(group, k)
 
 def dimension_new_cusp_forms_gamma0(N, k=2, p=0):

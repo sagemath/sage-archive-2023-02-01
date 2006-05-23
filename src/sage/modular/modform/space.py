@@ -350,6 +350,24 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def __and__(self, right):
         return self.intersect(right)
 
+    def _has_natural_inclusion_map_to(self, right):
+        """
+        Return true if there is a natural inclusion
+        map from modular forms in self to modular forms
+        in right.
+
+        INPUT:
+            self, right -- spaces of modular forms
+        """
+        if not right.group().is_subgroup(self.group()):
+            return False
+        if right.character() is None:
+            # It's the full Gamma_1(N).
+            return True
+        e = self.character()
+        f = right.character()
+        return f.parent()(e) == f
+
     def __call__(self, x, check=True):
         if isinstance(x, element.ModularFormElement):
             if x.parent() is self:
@@ -358,11 +376,20 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                 f = x.copy()
                 f.set_parent(self)
                 return f
+
+            try:
+                if x.parent()._has_natural_inclusion_map_to(self):
+                    W = self._q_expansion_module()
+                    return self(x.q_expansion(W.degree()))
+            except NotImplementedError:
+                pass
             raise TypeError, "unable to coerce x (= %s) into %s"%(x, self)
+
         elif rings.is_PowerSeries(x):
             W = self._q_expansion_module()
             if W.degree() <= x.prec():
-                x = W.coordinates(x.padded_list(pr))
+                x = W.coordinates(x.padded_list(W.degree()))
+                x = self.free_module().linear_combination_of_basis(x)
             else:
                 raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
         if check:

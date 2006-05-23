@@ -1476,6 +1476,16 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
         """
         Returns the order of the chosen root zeta of unity in the base
         ring $R$.
+
+        EXAMPLES:
+            sage: DirichletGroup(20).zeta_order()
+            4
+            sage: DirichletGroup(60).zeta_order()
+            4
+            sage: DirichletGroup(60, GF(25)).zeta_order()
+            4
+            sage: DirichletGroup(19).zeta_order()
+            18
         """
         return self._zeta_order
 

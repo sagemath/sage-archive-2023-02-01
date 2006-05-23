@@ -88,6 +88,8 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         universe -- (default: None) the universe of elements; if None determined from
                      first element; if list is empty, is category Objects() of all objects.
         check -- (default: True) whether to coerce the elements of x into the universe
+        cr -- (default: False) if True, then print a carriage return after each comma
+                               when printing this sequence.
 
     OUTPUT:
         a sequence
@@ -181,11 +183,13 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         sage: v.parent()([7,8,9])
         [2, 3, 4]
     """
-    def __init__(self, x, universe=None, check=True, immutable=False):
+    def __init__(self, x, universe=None, check=True,
+                 immutable=False, cr=False):
         if not isinstance(x, (list, tuple)):
             x = list(x)
             #raise TypeError, "x must be a list or tuple"
         self.__hash = None
+        self.__cr = cr
         if isinstance(x, Sequence):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
@@ -227,7 +231,10 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         return self.__hash
 
     def _repr_(self):
-        return list.__repr__(self)
+        if self.__cr:
+            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+        else:
+            return list.__repr__(self)
 
     def category(self):
         import sage.categories.all

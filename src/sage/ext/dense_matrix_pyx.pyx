@@ -1609,18 +1609,16 @@ def Matrix_rational_using_crt_and_rr(X):
     for i from 0 <= i < n:
         matrices[i] = Matrix_modint_matrix(X[i])
 
-    _sig_on
     for i from 0 <= i < nr:
+        _sig_check
         m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
         if m[i] == <mpq_t*> 0:
-            _sig_off
             raise MemoryError, "Error allocating matrix"
         for j from 0 <= j < nc:
             for k from 0 <= k < n:
                 v[k] = matrices[k][i][j]
             mpq_init(m[i][j])
             mpq_using_crt_and_rr(m[i][j], v, p, n)
-    _sig_off
     PyMem_Free(p); PyMem_Free(v);
     PyMem_Free(matrices)
 

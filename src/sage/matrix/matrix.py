@@ -2636,9 +2636,12 @@ class Matrix_field(Matrix_pid):
                         pivot_positions.append(c)
                         # Divide row r through by 1/A[r,c], so leading coefficient
                         # is 1.
-                        A.rescale_row(r, ~A.get((r,c)))
+                        z = A.get((r,c))
+                        if z != 1:
+                            A.rescale_row(r, ~z)
                         # Swap
-                        A.swap_rows(r,start_row)
+                        if r != start_row:
+                            A.swap_rows(r,start_row)
                         # Clear column
                         cleared_a_column = True
                         for i in range(nrows):

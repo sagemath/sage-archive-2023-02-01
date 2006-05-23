@@ -173,13 +173,13 @@ class Sympow(SageObject):
         We compute the modular degrees of the lowest known conductor
         curves of the first few ranks:
 
-            sage: sympow.modular_degree(EC('11a'))
+            sage: sympow.modular_degree(EllipticCurve('11a'))
             1
-            sage: sympow.modular_degree(EC('37a'))
+            sage: sympow.modular_degree(EllipticCurve('37a'))
             2
-            sage: sympow.modular_degree(EC('389a'))
+            sage: sympow.modular_degree(EllipticCurve('389a'))
             40
-            sage: sympow.modular_degree(EC('5077a'))
+            sage: sympow.modular_degree(EllipticCurve('5077a'))
             1984
             sage: sympow.modular_degree(EllipticCurve([1, -1, 0, -79, 289]))
             334976

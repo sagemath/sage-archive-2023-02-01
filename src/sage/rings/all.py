@@ -94,7 +94,7 @@ from multi_polynomial_element import MPolynomial, degree_lowest_rational_functio
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing
-from power_series_ring_element import PowerSeries
+from power_series_ring_element import PowerSeries, is_PowerSeries
 
 # Laurent series ring in one variable
 from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing

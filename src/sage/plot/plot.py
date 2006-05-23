@@ -91,6 +91,8 @@ from math import modf
 try:
 
     from matplotlib.backends.backend_agg import FigureCanvasAgg
+    from matplotlib.backends.backend_ps import FigureCanvasPS
+    from matplotlib.backends.backend_svg import FigureCanvasSVG
     from matplotlib.transforms import Value
     from matplotlib.figure import Figure
     import matplotlib.patches as patches
@@ -478,7 +480,9 @@ class Graphics(SageObject):
     def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
 		fig=None, sub=None, savenow=True):
         """
-	Save the graphics to a (png) image file.
+	Save the graphics to an image file of type: PNG, PS, or SVG,
+	depending on the file extension you give the filename.
+        Extension types can be: '.png', '.ps', '.svg'
 
 	EXAMPLES:
 	    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
@@ -509,10 +513,21 @@ class Graphics(SageObject):
 	for g in self.__objects:
 	    g._render_on_subplot(subplot)
 
-        # this is the only reason it outputs png...
+        # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
-            canvas = FigureCanvasAgg(figure)
-            canvas.print_figure(filename)
+	    try:
+	        ext = filename.split('.')[1].lower()
+	    except IndexError:
+		print "file type must be either 'png' or 'ps' or 'svg'"
+	    if ext == 'ps':
+                canvas = FigureCanvasPS(figure)
+	    elif ext == 'svg':
+                canvas = FigureCanvasSVG(figure)
+	    elif ext == 'png':
+                canvas = FigureCanvasAgg(figure)
+	    else:
+	        raise ValueError, "file type must be either 'png' or 'ps' or 'svg'"
+            canvas.print_figure(filename, dpi=80)
 
 ################## Graphics Primitives ################
 

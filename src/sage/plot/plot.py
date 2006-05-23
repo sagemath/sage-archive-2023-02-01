@@ -487,8 +487,9 @@ class Graphics(SageObject):
 
 	return xmin,xmax,ymin,ymax
 
-    def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-		fig=None, sub=None, savenow=True):
+    def save(self, filename='sage.png', xmin=None, xmax=None,
+             ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
+             fig=None, sub=None, savenow=True, dpi=None):
         """
 	Save the graphics to an image file of type: PNG, PS, or SVG,
 	depending on the file extension you give the filename.

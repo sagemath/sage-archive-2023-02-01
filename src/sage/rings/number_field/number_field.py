@@ -191,6 +191,9 @@ class NumberField_generic(field.Field):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
                 return x
+            f = x.polynomial()
+            if f.degree() <= 0:
+                return number_field_element.NumberFieldElement(self, f[0])
             # todo: more general coercision if embedding have been asserted
 
         if not isinstance(x, (int, long, rational.Rational,
@@ -205,6 +208,9 @@ class NumberField_generic(field.Field):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
                 return x
+            f = x.polynomial()
+            if f.degree() <= 0:
+                return number_field_element.NumberFieldElement(self, f[0])
         if isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
@@ -1039,6 +1045,8 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         if isinstance(x, number_field_element.NumberFieldElement) and \
                 isinstance(x.parent(), NumberField_cyclotomic):
+            if x.parent() is self:   # crucial for speed!
+                return x
             K = x.parent()
             n = K.zeta_order()
             m = self.zeta_order()

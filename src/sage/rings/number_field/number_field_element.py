@@ -138,10 +138,8 @@ class NumberFieldElement(field_element.FieldElement):
         return 'Mod(%s, %s)'%(f,g)
 
     def __cmp__(self, other):
-        if not isinstance(other, NumberFieldElement):
+        if not isinstance(other, NumberFieldElement) or self.parent() != other.parent():
             return coerce.cmp(self, other)
-        if self.parent() != other.parent():
-            return -1
         return misc.generic_cmp(self.__element, other.__element)
 
     def _add_(self, other):

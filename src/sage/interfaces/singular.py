@@ -281,7 +281,7 @@ class Singular(Expect):
         Expect.__init__(self,
                         name = 'singular',
                         prompt = '> ',
-                        command = "Singular",
+                        command = "Singular -t",
                         maxread = maxread,
                         server = server,
                         script_subdirectory = script_subdirectory,

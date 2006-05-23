@@ -258,6 +258,7 @@ def is_prime(n, flag=0):
 
     IMPLEMENTATION: Calls the PARI isprime function.
     """
+    n = sage.rings.integer.Integer(n)
     return pari(n).isprime()
 
 def is_prime_power(n, flag=0, use_pari=False):

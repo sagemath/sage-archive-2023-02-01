@@ -87,7 +87,7 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
         EXAMPLES:
             sage: T = ModularSymbols(11).hecke_algebra()
             sage: T.gen(2)
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
         """
         return self.hecke_operator(n)
 
@@ -133,7 +133,7 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
         EXAMPLES:
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: T.module()
-            Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         return self.__M
 
@@ -155,9 +155,9 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: g = T.gens()
             sage: g.next()
-            Hecke operator T_1 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_1 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
             sage: g.next()
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         n = 1
         while True:

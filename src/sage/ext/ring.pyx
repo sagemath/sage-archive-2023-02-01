@@ -225,6 +225,12 @@ cdef class Ring(gens.Generators):
     def __hash__(self):
         return hash(self.__repr__())
 
+    def zeta(self):
+        return self(-1)
+
+    def zeta_order(self):
+        return self.zeta().multiplicative_order()
+
     def random_element(self, bound=None):
         """
         Return a random integer coerced into this ring, where the

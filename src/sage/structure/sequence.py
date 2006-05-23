@@ -194,6 +194,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
                 self.__universe = x.__universe
+                Mutability.__init__(self, immutable)
                 return
         if universe is None:
             if len(x) == 0:

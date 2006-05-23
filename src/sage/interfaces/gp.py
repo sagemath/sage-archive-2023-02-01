@@ -352,7 +352,7 @@ def gp_version():
     """
     EXAMPLES:
         sage: gp.version()
-        ((2, 2, 13), 'GP/PARI CALCULATOR Version 2.2.13 (beta)')
+        ((2, 3, 0), 'GP/PARI CALCULATOR Version 2.3.0 (released)')
     """
     v = gp.eval(r'\v')
     i = v.find("Version ")

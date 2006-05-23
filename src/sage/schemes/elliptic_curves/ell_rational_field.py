@@ -31,7 +31,9 @@ import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
 import sage.misc.constants as constants
-import sage.modular.modform as modform
+import sage.modular.modform.constructor
+import sage.modular.modform.element
+
 import sage.matrix.all as matrix
 import sage.databases.cremona
 from   sage.libs.pari.all import pari
@@ -502,6 +504,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             prec -- an integer
         """
         return PowerSeriesRing(Q, 'q')(self.anlist(prec), prec, check=True)
+
+    def modular_form(self):
+        r"""
+        Return the cuspidal modular form associated to this elliptic curve.
+
+        EXAMPLES:
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        try:
+            return self.__modular_form
+        except AttributeError:
+            M = sage.modular.modform.constructor.ModularForms(self.conductor(),weight=2)
+            f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
+            self.__modular_form = f
+            return f
+
+    def newform(self):
+        """
+        Same as \code{self.modular_form()}.
+        """
+        return self.modular_form()
 
     def q_eigenform(self, prec):
         """
@@ -1989,15 +2014,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__torsion = sage.groups.all.AbelianGroup(G[1].python())
         return self.__torsion
 
-    def newform(self):
-        """
-        Returns the newform attached to this elliptic curve.
-        """
-        def comp(n):  # compute series expansion of newform attached E as power series
-            v = self.anlist(n)
-            return rings.PowerSeries(rings.PowerSeriesRing(rings.Q), v, n)
-        M = modform.ModularForms(self.conductor(), 2)
-        return modform.Newform(M, comp)
 
     ## def newform_eval(self, z, prec):
 ##         """
@@ -2086,7 +2102,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
              [37  0])
 
         This curve had numerous $2$-isogenies:
-        sage: e=EC([1,0,0,-39,90])
+        sage: e=EllipticCurve([1,0,0,-39,90])
             sage: e.isogeny_class ()
             ([Elliptic Curve defined by y^2 + x*y  = x^3 - 39*x + 90 over Rational Field,
               Elliptic Curve defined by y^2 + x*y  = x^3 - 4*x -1 over Rational Field,

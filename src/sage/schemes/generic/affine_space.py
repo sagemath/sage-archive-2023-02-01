@@ -61,10 +61,8 @@ def AffineSpace(n, R=None, names=None):
         sage: A.coordinate_ring()
         Polynomial Ring in X, Y over Rational Field
 
-    You can use \code{AA} for AffineSpace:
-        sage: AA(5)
-        Affine Space of dimension 5 over Integer Ring
-        sage: AA(5)/GF(17)
+    Use the divide operator for base extension.
+        sage: AffineSpace(5)/GF(17)
         Affine Space of dimension 5 over Finite Field of size 17
 
     The default base ring is $\Z$.

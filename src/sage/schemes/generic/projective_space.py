@@ -84,10 +84,8 @@ def ProjectiveSpace(n, R=None, names=None):
         sage: P.coordinate_ring()
         Polynomial Ring in X, Y, Z over Rational Field
 
-    You can use \code{PP} for ProjectiveSpace:
-        sage: PP(5)
-        Projective Space of dimension 5 over Integer Ring
-        sage: PP(5)/GF(17)
+    The divide operator does base extension.
+        sage: ProjectiveSpace(5)/GF(17)
         Projective Space of dimension 5 over Finite Field of size 17
 
     The default base ring is $\Z$.

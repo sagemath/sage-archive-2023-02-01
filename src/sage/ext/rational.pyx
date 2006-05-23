@@ -509,6 +509,18 @@ cdef class Rational(element.FieldElement):
         return x
 
     def __pow__(self, n, dummy):
+        """
+        Raise self to the integer power n.
+
+        EXAMPLES:
+            sage: (2/3)^5
+            32/243
+            sage: (-1/1)^(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: exponent (=1/3) must be an integer.
+            Coerce your numbers to complex numbers first.
+        """
         cdef Rational _self, x
         if not isinstance(self, Rational):
             return self.__pow__(float(n))
@@ -517,7 +529,10 @@ cdef class Rational(element.FieldElement):
             x = _self**(-n)
             return x.__invert__()
         cdef unsigned int _n
-        _n = n
+        try:
+            _n = integer.Integer(n)
+        except TypeError:
+            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
         x = Rational()
         cdef mpz_t num, den
 

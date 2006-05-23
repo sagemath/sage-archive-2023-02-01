@@ -593,12 +593,20 @@ cdef class Integer(element.EuclideanDomainElement):
             1
             sage: 2^-0
             1
+            sage: (-1)^(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: exponent (=1/3) must be an integer.
+            Coerce your numbers to complex numbers first.
         """
         cdef Integer _self, _n
         cdef unsigned int _nval
         if not isinstance(self, Integer):
             return self.__pow__(int(n))
-        _n = Integer(n)
+        try:
+            _n = Integer(n)
+        except TypeError:
+            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
         if _n < 0:
             return Integer(1)/(self**(-_n))
         _self = integer(self)

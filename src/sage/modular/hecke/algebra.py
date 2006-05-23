@@ -171,7 +171,7 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
         EXAMPLES:
             sage: T = ModularSymbols(1,12).hecke_algebra()
             sage: T.hecke_operator(2)
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
         """
         try:
             return self.__hecke_operator[n]
@@ -237,7 +237,7 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
         EXAMPLES:
             sage: T = ModularSymbols(Gamma1(5),3).anemic_hecke_algebra()
             sage: T.hecke_operator(2)
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_1(5) of weight 3 with sign 0 and dimension 4 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 4 for Gamma_1(5) of weight 3 with sign 0 and over Rational Field
             sage: T.hecke_operator(5)
             Traceback (most recent call last):
             ...
@@ -261,9 +261,9 @@ class HeckeAlgebra_anemic(HeckeAlgebra_base):
             sage: T = ModularSymbols(12,2).anemic_hecke_algebra()
             sage: g = T.gens()
             sage: g.next()
-            Hecke operator T_1 on Full Modular Symbols space for Gamma_0(12) of weight 2 with sign 0 and dimension 5 over Rational Field
+            Hecke operator T_1 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
             sage: g.next()
-            Hecke operator T_5 on Full Modular Symbols space for Gamma_0(12) of weight 2 with sign 0 and dimension 5 over Rational Field
+            Hecke operator T_5 on Modular Symbols space of dimension 5 for Gamma_0(12) of weight 2 with sign 0 over Rational Field
         """
         level = self.level()
         n = 1

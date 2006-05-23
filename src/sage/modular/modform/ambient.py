@@ -54,8 +54,8 @@ class ModularFormsAmbient(space.ModularFormsSpace):
         space.ModularFormsSpace.__init__(self, group, weight, character, base_field)
 
     def _repr_(self):
-        return "Space of modular forms on %s of weight %s and dimension %s over %s"%(
-                self.group(), self.weight(), self.dimension(), self.base_field())
+        return "Modular Forms space of dimension %s for %s of weight %s over %s"%(
+                self.dimension(), self.group(), self.weight(), self.base_ring())
 
     def change_ring(self, ring):
         import constructor
@@ -112,6 +112,12 @@ class ModularFormsAmbient(space.ModularFormsSpace):
     ####################################################################
 
     def cuspidal_submodule(self):
+        """
+        EXAMPLES:
+            sage: ModularForms(Gamma1(13)).cuspidal_submodule()
+            Cuspidal subspace of dimension 2 of Modular Forms space of dimension 13 for
+            Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
+        """
         try:
             return self.__cuspidal_submodule
         except AttributeError:
@@ -224,34 +230,29 @@ class ModularFormsAmbient(space.ModularFormsSpace):
         params = self.eisenstein_params()
         assert V.dimension() - c == len(params)
 
-        for i in range(len(params)):
-            chi, psi, t = params[i]
-            if chi.base_ring() != self.base_field():
-                F = chi.base_ring()
-                M = self.change_ring(F)
-                v = V.change_ring(F).gen(c+i)
-            else:
-                M = self
-                v = V.gen(c+i)
-            E = EisensteinSeries(M, v, t, chi, psi)
-            self.__eisenstein_series.append(E)
-        return self.__eisenstein_series
+            sage: ModularForms(27,2).eisenstein_series()
+            [
+            q^3 + O(q^6),
+            q - 3*q^2 + 7*q^4 - 6*q^5 + O(q^6),
+            1/12 + q + 3*q^2 + q^3 + 7*q^4 + 6*q^5 + O(q^6),
+            1/3 + q + 3*q^2 + 4*q^3 + 7*q^4 + 6*q^5 + O(q^6),
+            13/12 + q + 3*q^2 + 4*q^3 + 7*q^4 + 6*q^5 + O(q^6)
+            ]
 
-class ModularFormsAmbient_g0_Q(ModularFormsAmbient):
-    pass
+            sage: ModularForms(Gamma1(5),3).eisenstein_series()
+            [
+            -1/5*zeta4 - 2/5 + q + (4*zeta4 + 1)*q^2 + (-9*zeta4 + 1)*q^3 + (4*zeta4 - 15)*q^4 + O(q^6),
+            q + (zeta4 + 4)*q^2 + (-zeta4 + 9)*q^3 + (4*zeta4 + 15)*q^4 + O(q^6),
+            1/5*zeta4 - 2/5 + q + (-4*zeta4 + 1)*q^2 + (9*zeta4 + 1)*q^3 + (-4*zeta4 - 15)*q^4 + O(q^6),
+            q + (-zeta4 + 4)*q^2 + (zeta4 + 9)*q^3 + (-4*zeta4 + 15)*q^4 + O(q^6)
+            ]
 
-class ModularFormsAmbient_g1_Q(ModularFormsAmbient):
-    pass
-
-class ModularFormsAmbient_eps(ModularFormsAmbient):
-    """
-    A space of modular forms with character.
-    """
-    def __init__(self, character, weight=2, base_field=None):
-        """
-        weight -- int
-        character -- dirichlet.DirichletCharacter
-        base_field -- base field
+            sage: eps = DirichletGroup(13).0^2
+            sage: ModularForms(eps,2).eisenstein_series()
+            [
+            7/13*zeta6 - 18/13 + q + (-2*zeta6 + 3)*q^2 + (3*zeta6 - 2)*q^3 + (-6*zeta6 + 3)*q^4 + -4*q^5 + O(q^6),
+            q + (zeta6 + 2)*q^2 + (-zeta6 + 3)*q^3 + (3*zeta6 + 3)*q^4 + 4*q^5 + O(q^6)
+            ]
         """
         if base_field==None: base_field=character.base_ring()
         if character.base_ring() != base_field:

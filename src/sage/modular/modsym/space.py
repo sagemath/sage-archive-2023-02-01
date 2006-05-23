@@ -223,14 +223,18 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
             sage: M = ModularSymbols(15)
             sage: M.cuspidal_submodule().q_expansion_basis()
-            [q - q^2 - q^3 - q^4 + q^5 + q^6 + O(q^8)]
+            [
+            q - q^2 - q^3 - q^4 + q^5 + q^6 + O(q^8)
+            ]
             sage: M.set_default_prec(20)
 
     Notice that setting the default precision of the ambient space
     affects the subspaces.
 
             sage: M.cuspidal_submodule().q_expansion_basis()
-            [q - q^2 - q^3 - q^4 + q^5 + q^6 + 3*q^8 + q^9 - q^10 - 4*q^11 + q^12 - 2*q^13 - q^15 - q^16 + 2*q^17 - q^18 + 4*q^19 + O(q^20)]
+            [
+            q - q^2 - q^3 - q^4 + q^5 + q^6 + 3*q^8 + q^9 - q^10 - 4*q^11 + q^12 - 2*q^13 - q^15 - q^16 + 2*q^17 - q^18 + 4*q^19 + O(q^20)
+            ]
             sage: M.cuspidal_submodule().default_prec()
             20
         """
@@ -252,7 +256,10 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: M = ModularSymbols(Gamma1(13),2)
             sage: M.set_default_prec(5)
             sage: M.cuspidal_submodule().q_expansion_basis()
-            [q - 4*q^3 - q^4 + O(q^5), q^2 - 2*q^3 - q^4 + O(q^5)]
+            [
+            q - 4*q^3 - q^4 + O(q^5),
+            q^2 - 2*q^3 - q^4 + O(q^5)
+            ]
         """
         if not self.is_ambient():
             return self.ambient_hecke_module().set_default_prec(prec)
@@ -284,23 +291,36 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         EXAMPLES:
             sage: M = ModularSymbols(1, 12).cuspidal_submodule()
             sage: M.q_expansion_basis(8)
-            [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
+            ]
+
             sage: M.q_expansion_basis(8, algorithm='eigen')
-            [q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)]
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
+            ]
+
 
             sage: M = ModularSymbols(1, 24).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
-            [q + 195660*q^3 + 12080128*q^4 + 44656110*q^5 - 982499328*q^6 - 147247240*q^7 + O(q^8),
-             q^2 - 48*q^3 + 1080*q^4 - 15040*q^5 + 143820*q^6 - 985824*q^7 + O(q^8)]
+            [
+            q + 195660*q^3 + 12080128*q^4 + 44656110*q^5 - 982499328*q^6 - 147247240*q^7 + O(q^8),
+            q^2 - 48*q^3 + 1080*q^4 - 15040*q^5 + 143820*q^6 - 985824*q^7 + O(q^8)
+            ]
 
             sage: M = ModularSymbols(11, 2, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
-            [q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)]
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 + O(q^8)
+            ]
 
             sage: M = ModularSymbols(Gamma1(13), 2, sign=1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')
-            [q - 4*q^3 - q^4 + 3*q^5 + 6*q^6 + O(q^8),
-             q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)]
+            [
+            q - 4*q^3 - q^4 + 3*q^5 + 6*q^6 + O(q^8),
+            q^2 - 2*q^3 - q^4 + 2*q^5 + 2*q^6 + O(q^8)
+            ]
+
 
             sage: M = ModularSymbols(Gamma1(5), 3, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8, algorithm='eigen')   # dimension is 0
@@ -308,17 +328,24 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
             sage: M = ModularSymbols(Gamma1(7), 3, sign=-1).cuspidal_submodule()
             sage: M.q_expansion_basis(8)
-            [q - 3*q^2 + 5*q^4 - 7*q^7 + O(q^8)]
+            [
+            q - 3*q^2 + 5*q^4 - 7*q^7 + O(q^8)
+            ]
 
             sage: M = ModularSymbols(43, 2, sign=0).cuspidal_submodule()
             sage: M[0]
-            Dimension 2 subspace of a modular symbols space of level 43
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0 over Rational Field
             sage: M[0].q_expansion_basis()
-            [q - 2*q^2 - 2*q^3 + 2*q^4 - 4*q^5 + 4*q^6 + O(q^8)]
+            [
+            q - 2*q^2 - 2*q^3 + 2*q^4 - 4*q^5 + 4*q^6 + O(q^8)
+            ]
             sage: M[1]
-            Dimension 4 subspace of a modular symbols space of level 43
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0 over Rational Field
             sage: M[1].q_expansion_basis()
-            [q + 2*q^5 - 2*q^6 - 2*q^7 + O(q^8), q^2 - q^3 - q^5 + q^7 + O(q^8)]
+            [
+            q + 2*q^5 - 2*q^6 - 2*q^7 + O(q^8),
+            q^2 - q^3 - q^5 + q^7 + O(q^8)
+            ]
         """
         if prec is None:
             prec = self.default_prec()
@@ -330,25 +357,25 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         if self.sign() == 0:
             P = self.plus_submodule(compute_dual=True)
-            return P.q_expansion_basis(prec=prec, algorithm=algorithm)
+            return Sequence(P.q_expansion_basis(prec=prec, algorithm=algorithm), cr=True)
 
         if self.dimension() == 0:
-            return []
+            return Sequence([])
 
         if algorithm == 'default':
             algorithm = 'hecke'
             #return self._q_expansion_basis_eigen(prec)
 
         if algorithm == 'hecke':
-            return self._q_expansion_basis_hecke_dual(prec)
+            return Sequence(self._q_expansion_basis_hecke_dual(prec), cr=True)
         elif algorithm == 'eigen':
-            return self._q_expansion_basis_eigen(prec)
+            return Sequence(self._q_expansion_basis_eigen(prec), cr=True)
         elif algorithm == 'all':
             B1 = self._q_expansion_basis_hecke_dual(prec)
             B2 = self._q_expansion_basis_eigen(prec)
             if B1 != B2:
                 raise RuntimeError, "There is a bug in q_expansion_basis -- basis computed differently with two algorithms:\n%s\n%s\n"%(B1, B2,)
-            return B1
+            return Sequence(B1, cr=True)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
 
@@ -682,7 +709,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         modular symbols spaces with character of order bigger than $2$:
 
             sage: M = ModularSymbols(DirichletGroup(13).0^2, 2); M
-            Full Modular Symbols space of level 13, weight 2, character [zeta6], sign 0, and dimension 4 over Cyclotomic Field of order 6 and degree 2
+            Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
             sage: M.basis()
             ((1,0), (1,5), (1,10), (1,11))
             sage: M.integral_basis()

@@ -541,7 +541,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return hom(A, "Heilbronn operator(%s,%s)"%(H,t))
 
     def _repr_(self):
-        return "Space of Modular Symbols of dimension %s and weight %s for %s with sign %s and character %s over %s"%(
+        return "Modular Symbols space of dimension %s and weight %s for %s with sign %s and character %s over %s"%(
                 self.dimension(), self.weight(), self.group(), self.sign(), self.character(), self.base_ring())
 
     def _latex_(self):
@@ -819,12 +819,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         EXAMPLES:
             sage: M = ModularSymbols(Gamma0(11),2,sign=0)
             sage: M
-            Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field
+            Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             sage: M.modular_symbols_of_sign(-1)
-            Full Modular Symbols space for Gamma_0(11) of weight 2 with sign -1 and dimension 1 over Rational Field
+            Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Rational Field
             sage: M = ModularSymbols(Gamma1(11),2,sign=0)
             sage: M.modular_symbols_of_sign(-1)
-            Full Modular Symbols space for Gamma_1(11) of weight 2 with sign -1 and dimension 1 over Rational Field
+            Modular Symbols space of dimension 1 for Gamma_1(11) of weight 2 with sign -1 and over Rational Field
         """
         return modsym.ModularSymbols(self.group(), self.weight(), sign=sign, base_ring=self.base_ring())
 
@@ -838,7 +838,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         EXAMPLES:
             sage: M = ModularSymbols(Gamma1(6),2,sign=0)
             sage: M.modular_symbols_of_weight(3)
-            Full Modular Symbols space for Gamma_1(6) of weight 3 with sign 0 and dimension 4 over Rational Field
+            Modular Symbols space of dimension 4 for Gamma_1(6) of weight 3 with sign 0 and over Rational Field
         """
         return modsym.ModularSymbols(self.group(), weight=k, sign=self.sign(), base_ring=self.base_ring())
 
@@ -985,7 +985,7 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
             sign -- int, either -1, 0, or 1
         EXAMPLES:
             sage: ModularSymbols(1,12)
-            Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
             sage: ModularSymbols(1,12, sign=1).dimension()
             2
             sage: ModularSymbols(15,4, sign=-1).dimension()
@@ -1016,9 +1016,9 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
             return 2*dims.dimension_cusp_forms_gamma0(N,k) + dims.c0(N)-1
 
     def _repr_(self):
-        return ("Full Modular Symbols space for Gamma_0(%s) of weight %s with sign %s " + \
-                "and dimension %s over %s")%(self.level(),self.weight(), self.sign(),
-                    self.dimension(), self.base_ring())
+        return ("Modular Symbols space of dimension %s for Gamma_0(%s) of weight %s with sign %s " + \
+                "over %s")%(self.dimension(), self.level(),self.weight(), self.sign(),
+                            self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
         N, k, sign = self.level(), self.weight(), self.sign()
@@ -1101,10 +1101,10 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
         EXAMPLES:
             sage: M = ModularSymbols(11)
             sage: M.modular_symbols_of_level(22)
-            Full Modular Symbols space for Gamma_0(22) of weight 2 with sign 0 and dimension 7 over Rational Field
+            Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
             sage: M = ModularSymbols(Gamma1(6))
             sage: M.modular_symbols_of_level(12)
-            Full Modular Symbols space for Gamma_1(12) of weight 2 with sign 0 and dimension 9 over Rational Field
+            Modular Symbols space of dimension 9 for Gamma_1(12) of weight 2 with sign 0 and over Rational Field
         """
         return modsym.ModularSymbols(congroup.Gamma0(rings.Integer(N)),
                                      self.weight(), sign=self.sign(),
@@ -1232,7 +1232,7 @@ class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
             sign -- int, either -1, 0, or 1
         EXAMPLES:
             sage: ModularSymbols(Gamma1(17),2)
-            Full Modular Symbols space for Gamma_1(17) of weight 2 with sign 0 and dimension 25 over Rational Field
+            Modular Symbols space of dimension 25 for Gamma_1(17) of weight 2 with sign 0 and over Rational Field
             sage: [ModularSymbols(Gamma1(7),k).dimension() for k in [2,3,4,5]]
             [5, 8, 12, 16]
 
@@ -1261,9 +1261,9 @@ class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
         return None
 
     def _repr_(self):
-        return ("Full Modular Symbols space for Gamma_1(%s) of weight %s with sign %s " + \
-                "and dimension %s over %s")%(self.level(),self.weight(), self.sign(),
-                    self.dimension(), self.base_ring())
+        return ("Modular Symbols space of dimension %s for Gamma_1(%s) of weight %s with sign %s " + \
+                "and over %s")%(self.dimension(), self.level(),self.weight(),
+                                self.sign(), self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
         if self.sign() == 0:
@@ -1362,9 +1362,9 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
             sage: eps.order()
             2
             sage: ModularSymbols(eps, 2)
-            Full Modular Symbols space of level 4, weight 2, character [-1], sign 0, and dimension 0 over Rational Field
+            Modular Symbols space of dimension 0 and level 4, weight 2, character [-1], sign 0, over Rational Field
             sage: ModularSymbols(eps, 3)
-            Full Modular Symbols space of level 4, weight 3, character [-1], sign 0, and dimension 2 over Rational Field
+            Modular Symbols space of dimension 2 and level 4, weight 3, character [-1], sign 0, over Rational Field
 
         We next create a space with character of order bigger than 2.
             sage: eps = DirichletGroup(5).gen(0)
@@ -1390,9 +1390,9 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
                 character = eps)
 
     def _repr_(self):
-        return ("Full Modular Symbols space of level %s, weight %s, character %s, sign %s, " + \
-                "and dimension %s over %s")%(self.level(), self.weight(),
-                    self.character(), self.sign(), self.dimension(), self.base_ring())
+        return ("Modular Symbols space of dimension %s and level %s, weight %s, character %s, sign %s, " + \
+                "over %s")%(self.dimension(), self.level(), self.weight(),
+                    self.character(), self.sign(), self.base_ring())
 
 
     def _cuspidal_submodule_dimension_formula(self):

@@ -54,8 +54,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
     #    return self.__class__, self.__reduce, self.__dict__
 
     def _repr_(self):
-        return "Dimension %s subspace of a modular symbols space of level %s"%(
-                    self.rank(), self.level())
+        return "Modular Symbols subspace of dimension %s of %s"%(
+                    self.rank(), self.ambient_module())
 
     def __cmp__(self, other):
         if isinstance(other, ModularSymbolsSubspace):

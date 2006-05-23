@@ -98,7 +98,7 @@ def ModularSymbols(group  = 1,
         sage: ModularSymbols(1,12,-1).dimension()
         1
         sage: ModularSymbols(11,4, sign=1)
-        Full Modular Symbols space for Gamma_0(11) of weight 4 with sign 1 and dimension 4 over Rational Field
+        Modular Symbols space of dimension 4 for Gamma_0(11) of weight 4 with sign 1 over Rational Field
 
     We create some spaces for $\Gamma_1(N)$.
         sage: ModularSymbols(Gamma1(13),2)
@@ -117,7 +117,7 @@ def ModularSymbols(group  = 1,
         sage: e.order()
         6
         sage: M = ModularSymbols(e, 2); M
-        Full Modular Symbols space of level 13, weight 2, character [zeta6], sign 0, and dimension 4 over Cyclotomic Field of order 6 and degree 2
+        Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
         sage: f = M.T(2).charpoly(); f
         x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
@@ -127,7 +127,7 @@ def ModularSymbols(group  = 1,
         sage: e = DirichletGroup(5, RationalField()).gen(); e
         [-1]
         sage: m = ModularSymbols(e, 2); m
-        Full Modular Symbols space of level 5, weight 2, character [-1], sign 0, and dimension 2 over Rational Field
+        Modular Symbols space of dimension 2 and level 5, weight 2, character [-1], sign 0, over Rational Field
 
         sage: m.T(2).charpoly()
         x^2 - 1

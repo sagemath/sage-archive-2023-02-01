@@ -211,8 +211,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: d1 = M.degeneracy_map(33); d1
             Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
             (not printing 2 x 6 matrix)
-            Domain: Full Modular Symbols space for Gamma_0(11) of weight 2 with sign ...
-            Codomain: Full Modular Symbols space for Gamma_0(33) of weight 2 with sign ...
+            Domain: Modular Symbols space of dimension 2 for Gamma_0(11) of weight ...
+            Codomain: Modular Symbols space of dimension 6 for Gamma_0(33) of weight ...
             sage: M.degeneracy_map(33,3).matrix()
             [ 3  2  2  0 -2  1]
             [ 0  2  0 -2  0  0]
@@ -517,9 +517,9 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
             sage: e = DirichletGroup(16)([-1, 1])
             sage: M = ModularSymbols(e, 3, sign=1); M
-            Full Modular Symbols space of level 16, weight 3, character [-1, 1], sign 1, and dimension 4 over Rational Field
+            Modular Symbols space of dimension 4 and level 16, weight 3, character [-1, 1], sign 1, over Rational Field
             sage: M.old_submodule()
-            Dimension 3 subspace of a modular symbols space of level 16
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 4 and level 16, weight 3, character [-1, 1], sign 1, over Rational Field
         """
         try:
             if self.__is_old[p]:

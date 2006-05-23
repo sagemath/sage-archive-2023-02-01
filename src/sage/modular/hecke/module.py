@@ -71,7 +71,8 @@ class HeckeModule_generic(sage.modules.module.Module):
             sage: T == A
             False
             sage: A
-            Anemic Hecke algebra acting on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+            Anemic Hecke algebra acting on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
+
             sage: A.is_anemic()
             True
         """
@@ -103,7 +104,7 @@ class HeckeModule_generic(sage.modules.module.Module):
         EXAMPLES:
             sage: T = ModularSymbols(Gamma1(5),3).hecke_algebra()
             sage: T
-            Full Hecke algebra acting on Full Modular Symbols space for Gamma_1(5) of weight 3 with sign 0 and dimension 4 over Rational Field
+            Full Hecke algebra acting on Modular Symbols space of dimension 4 for Gamma_1(5) of weight 3 with sign 0 and over Rational Field
             sage: T.is_anemic()
             False
 
@@ -275,8 +276,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             [-1  0  0]
             [ 0 -1  0]
             [ 0  0 -1]
-            Domain: Full Modular Symbols space for Gamma_0(11) of weight 2 with sign ...
-            Codomain: Full Modular Symbols space for Gamma_0(11) of weight 2 with sign ...
+            Domain: Modular Symbols space of dimension 3 for Gamma_0(11) of weight ...
+            Codomain: Modular Symbols space of dimension 3 for Gamma_0(11) of weight ...
             sage: M = ModularSymbols(Gamma1(13))
             sage: w = M.atkin_lehner_operator()
             sage: w.fcp()
@@ -287,14 +288,14 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: S.atkin_lehner_operator()
             Hecke module morphism Atkin-Lehner operator W_33 defined by the matrix
             (not printing 6 x 6 matrix)
-            Domain: Dimension 6 subspace of a modular symbols space of level 33
-            Codomain: Dimension 6 subspace of a modular symbols space of level 33
+            Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
 
             sage: S.atkin_lehner_operator(3)
             Hecke module morphism Atkin-Lehner operator W_3 defined by the matrix
             (not printing 6 x 6 matrix)
-            Domain: Dimension 6 subspace of a modular symbols space of level 33
-            Codomain: Dimension 6 subspace of a modular symbols space of level 33
+            Domain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 6 of Modular Symbols space ...
 
             sage: N = M.new_submodule()
             sage: N.atkin_lehner_operator()
@@ -302,8 +303,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             [  1 2/5 4/5]
             [  0  -1   0]
             [  0   0  -1]
-            Domain: Dimension 3 subspace of a modular symbols space of level 33
-            Codomain: Dimension 3 subspace of a modular symbols space of level 33
+            Domain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
+            Codomain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
         """
         if d is None:
             d = self.level()
@@ -653,8 +654,7 @@ class HeckeModule_free_module(HeckeModule_generic):
 
     def hecke_matrix(self, n):
         """
-        The matrix of the n-th Hecke operator acting on the
-        basis for self.
+        The matrix of the $n$-th Hecke operator acting on given basis.
         """
         n = int(n)
         if n <= 0:

@@ -87,7 +87,10 @@ def basis(x):
         sage: V = VectorSpace(QQ,3)
         sage: S = V.subspace([[1,2,0],[2,2,-1]])
         sage: basis(S)
-        [(1, 0, -1), (0, 1, 1/2)]
+        [
+        (1, 0, -1),
+        (0, 1, 1/2)
+        ]
     """
     return x.basis()
 
@@ -392,7 +395,7 @@ def hecke_operator(x,n):
     EXAMPLES:
         sage: M = ModularSymbols(1,12)
         sage: hecke_operator(M,5)
-        Hecke operator T_5 on Full Modular Symbols space for Gamma_0(1) of weight 12 with sign 0 and dimension 3 over Rational Field
+        Hecke operator T_5 on Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
     """
     return x.hecke_operator(n)
 

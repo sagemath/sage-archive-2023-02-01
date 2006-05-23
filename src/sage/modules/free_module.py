@@ -250,7 +250,11 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         sage: V
         Vector space of dimension 3 over Fraction Field of Univariate Polynomial Ring in x over Integer Ring
         sage: V.basis()
-        [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+        [
+        (1, 0, 0),
+        (0, 1, 0),
+        (0, 0, 1)
+        ]
 
     The base must be a field or a \code{TypeError} is raised.
         sage: VectorSpace(IntegerRing(),5)
@@ -477,7 +481,11 @@ class FreeModule_generic(module.Module):
 
         EXAMPLES:
             sage: FreeModule(Integers(12),3).basis()
-            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+            [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
         """
         raise NotImplementedError
 
@@ -2147,7 +2155,11 @@ class FreeModule_ambient(FreeModule_generic):
 
         EXAMPLES:
             sage: A = ZZ^3; B = A.basis(); B
-            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+            [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
             sage: B.universe()
             Ambient free module of rank 3 over the principal ideal domain Integer Ring
         """
@@ -2169,7 +2181,11 @@ class FreeModule_ambient(FreeModule_generic):
 
         EXAMPLES:
             sage: A = ZZ^3; A.echelonized_basis()
-            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+            [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
         """
         return self.basis()
 
@@ -2603,7 +2619,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: M.echelon_coordinates([8,10,12])
             [8, -2]
             sage: B = M.echelonized_basis(); B
-            [(1, 2, 3/7), (0, 3, -30/7)]
+            [
+            (1, 2, 3/7),
+            (0, 3, -30/7)
+            ]
             sage: 8*B[0] - 2*B[1]
             (8, 10, 12)
         """
@@ -2646,7 +2665,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M.echelonized_basis()
-            [(1, 2, 3), (0, 3, 6)]
+            [
+            (1, 2, 3),
+            (0, 3, 6)
+            ]
             sage: M.user_to_echelon_matrix()
             [ 1  0]
             [ 4 -1]
@@ -2706,7 +2728,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V = QQ^3
             sage: W = V.span_of_basis([[1,2,3],[4,5,6]])
             sage: W.echelonized_basis()
-            [(1, 0, -1), (0, 1, 2)]
+            [
+            (1, 0, -1),
+            (0, 1, 2)
+            ]
             sage: A = W.echelon_to_user_matrix(); A
             [-5/3  2/3]
             [ 4/3 -1/3]
@@ -2751,10 +2776,16 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         EXAMPLES:
             sage: V = ZZ^3
             sage: V.basis()
-            [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
+            [
+            (1, 0, 0),
+            (0, 1, 0),
+            (0, 0, 1)
+            ]
             sage: M = V.span_of_basis([['1/8',2,1]])
             sage: M.basis()
-            [(1/8, 2, 1)]
+            [
+            (1/8, 2, 1)
+            ]
         """
         return self.__basis
 
@@ -2816,9 +2847,15 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V = ZZ^3
             sage: M = V.span_of_basis([['1/2',3,1], [0,'1/6',0]])
             sage: M.basis()
-            [(1/2, 3, 1), (0, 1/6, 0)]
+            [
+            (1/2, 3, 1),
+            (0, 1/6, 0)
+            ]
             sage: B = M.echelonized_basis(); B
-            [(1/2, 0, 1), (0, 1/6, 0)]
+            [
+            (1/2, 0, 1),
+            (0, 1/6, 0)
+            ]
             sage: V.span(B) == M
             True
         """
@@ -2836,7 +2873,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V = ZZ^3
             sage: M = V.span_of_basis([['1/2',3,1], [0,'1/6',0]])
             sage: B = M.echelonized_basis(); B
-            [(1/2, 0, 1), (0, 1/6, 0)]
+            [
+            (1/2, 0, 1),
+            (0, 1/6, 0)
+            ]
             sage: M.echelon_coordinate_vector(['1/2', 3, 1])
             (1, 18)
         """

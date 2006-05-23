@@ -368,11 +368,11 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         We compute the old and new submodules of $\sS_2(\Gamma_0(33))$.
 
             sage: M = ModularSymbols(33); S = M.cuspidal_submodule(); S
-            Dimension 6 subspace of a modular symbols space of level 33
+            Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
             sage: S.old_submodule()
-            Dimension 4 subspace of a modular symbols space of level 33
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
             sage: S.new_submodule()
-            Dimension 2 subspace of a modular symbols space of level 33
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
         """
         try:
             if self.__is_old[p]:

@@ -62,12 +62,12 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(Gamma1(13))
             sage: t = M.hecke_operator(2)
             sage: t
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_1(13) of weight 2 with sign 0 and dimension 15 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Rational Field
             sage: t.hecke_module_morphism()
             Hecke module morphism T_2 defined by the matrix
             (not printing 15 x 15 matrix)
-            Domain: Full Modular Symbols space for Gamma_1(13) of weight 2 with sign ...
-            Codomain: Full Modular Symbols space for Gamma_1(13) of weight 2 with sign ...
+            Domain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
+            Codomain: Modular Symbols space of dimension 15 for Gamma_1(13) of weight ...
         """
         try:
             return self.__hecke_module_morphism
@@ -91,9 +91,9 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(11)
             sage: t = M.hecke_operator(2)
             sage: t
-            Hecke operator T_2 on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_2 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             sage: t + t
-            Hecke operator on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
             [ 6  0 -2]
             [ 0 -4  0]
             [ 0  0 -4]
@@ -103,7 +103,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2 - t3
-            Hecke operator on Full Modular Symbols space for Gamma_1(6) of weight 4 with sign 0 and dimension 6 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
             (not printing 6 x 6 matrix)
             sage: (t2 - t3).charpoly()
             x^6 + 36*x^5 + 104*x^4 - 3778*x^3 + 7095*x^2 - 3458*x
@@ -135,7 +135,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         EXAMPLES:
             sage: M = ModularSymbols(11); t2 = M.hecke_operator(2)
             sage: 2*t2
-            Hecke operator on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
             [ 6  0 -2]
             [ 0 -4  0]
             [ 0  0 -4]
@@ -150,7 +150,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(Gamma1(6),4)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2 - t3
-            Hecke operator on Full Modular Symbols space for Gamma_1(6) of weight 4 with sign 0 and dimension 6 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
             (not printing 6 x 6 matrix)
         """
         if not self.__is_compatible(other):
@@ -193,14 +193,18 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2)
             sage: t2.decomposition()
-            [Dimension 1 subspace of a modular symbols space of level 11,
-             Dimension 2 subspace of a modular symbols space of level 11]
+            [
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            ]
 
             sage: M = ModularSymbols(33, sign=1).new_submodule()
             sage: T = M.hecke_operator(2)
             sage: T.decomposition()
-            [Dimension 1 subspace of a modular symbols space of level 33,
-             Dimension 1 subspace of a modular symbols space of level 33]
+            [
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
+            ]
         """
         try:
             return self.__decomposition
@@ -250,11 +254,11 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: T.fcp()
             (x - 4) * (x^2 - 5)^2
             sage: T.image()
-            Dimension 5 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T-4).image()
-            Dimension 4 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T**2-5).image()
-            Dimension 1 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
         """
         return self.hecke_module_morphism().image()
 
@@ -268,11 +272,11 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: T.fcp()
             (x - 4) * (x^2 - 5)^2
             sage: T.kernel()
-            Dimension 0 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T-4).kernel()
-            Dimension 1 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T**2-5).kernel()
-            Dimension 4 subspace of a modular symbols space of level 23
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
         """
         return self.hecke_module_morphism().kernel()
 
@@ -343,7 +347,7 @@ class HeckeOperator(HeckeAlgebraElement):
         EXAMPLES:
             sage: M = ModularSymbols(11)
             sage: M.hecke_operator(2005)
-            Hecke operator T_2005 on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_2005 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
         """
         HeckeAlgebraElement.__init__(self, parent)
         if not isinstance(n, int):
@@ -376,7 +380,7 @@ class HeckeOperator(HeckeAlgebraElement):
             sage: M = ModularSymbols(11)
             sage: t2 = M.hecke_operator(2); t3 = M.hecke_operator(3)
             sage: t2*t3
-            Hecke operator T_6 on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field
+            Hecke operator T_6 on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             sage: t3.matrix() * t2.matrix()
             [12  0 -2]
             [ 0  2  0]
@@ -391,7 +395,7 @@ class HeckeOperator(HeckeAlgebraElement):
         Hecke module homomorphism defined as a matrix:
 
             sage: t2**5
-            Hecke operator on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
             [243   0 -55]
             [  0 -32   0]
             [  0   0 -32]
@@ -444,7 +448,7 @@ class HeckeOperator(HeckeAlgebraElement):
         Return the matrix form of this element of a Hecke algebra.
             sage: T = ModularSymbols(11).hecke_operator(17)
             sage: T.matrix_form()
-            Hecke operator on Full Modular Symbols space for Gamma_0(11) of weight 2 with sign 0 and dimension 3 over Rational Field defined by:
+            Hecke operator on Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field defined by:
             [18  0 -4]
             [ 0 -2  0]
             [ 0  0 -2]

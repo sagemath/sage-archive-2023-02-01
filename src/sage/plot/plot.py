@@ -487,9 +487,8 @@ class Graphics(SageObject):
 
 	return xmin,xmax,ymin,ymax
 
-    def save(self, filename='sage.png', xmin=None, xmax=None,
-             ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-             fig=None, sub=None, savenow=True):
+    def save(self, filename, xmin=None, xmax=None, ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
+		fig=None, sub=None, savenow=True):
         """
 	Save the graphics to an image file of type: PNG, PS, or SVG,
 	depending on the file extension you give the filename.
@@ -532,13 +531,19 @@ class Graphics(SageObject):
 		print "file type must be either 'png' or 'ps' or 'svg'"
 	    if ext == 'ps':
                 canvas = FigureCanvasPS(figure)
+		if dpi is None:
+		    dpi = 72
 	    elif ext == 'svg':
                 canvas = FigureCanvasSVG(figure)
+		if dpi is None:
+		    dpi = 80
 	    elif ext == 'png':
                 canvas = FigureCanvasAgg(figure)
+		if dpi is None:
+		    dpi = 150
 	    else:
 	        raise ValueError, "file type must be either 'png' or 'ps' or 'svg'"
-            canvas.print_figure(filename, dpi=80)
+            canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
 

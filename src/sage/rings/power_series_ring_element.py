@@ -39,6 +39,9 @@ from sage.structure.element import Element_cmp_
 
 Polynomial = polynomial.Polynomial_generic_dense
 
+def is_PowerSeries(x):
+    return isinstance(x, PowerSeries)
+
 class PowerSeries(Element_cmp_, ring_element.RingElement):
     def __init__(self, parent, prec, is_gen=False):
         ring_element.RingElement.__init__(self, parent)

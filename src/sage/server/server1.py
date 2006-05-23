@@ -13,7 +13,7 @@ TODO:
       with firefox (not opera, not konqueror); also this should
       just keep the page position where it is rather than move it.
       Moving to a more AJAX-ish model would alternatively fix this, maybe.
-   [] A. Clemesha: shrink/expand input/output blocks
+   [x] A. Clemesha: shrink/expand input/output blocks
    [] Add plain text annotation that is not evaluated
       between blocks (maybe in html?)
       E.g., just make ctrl-enter on a block by HTML-it.
@@ -42,6 +42,9 @@ TODO:
    [] load and attaching scripts.
    [] a way to interactively watch the output of a running computation
       (in verbose mode).
+   [] undo -- have infinite undo and redo of the SAGE *log*, i.e.,
+      text I/O (and possibly graphics).  does not save *state* of
+      the "sage kernel".
 
 DONE
    [x] A. Clemesha: When hit shift-enter the next text box should be made
@@ -336,19 +339,19 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 else:
                     # re-evaluating a code block
                     current_log[number].cmd = code_to_eval
-                code_to_eval = code_to_eval.replace('\\','')
+                #code_to_eval = code_to_eval.replace('\\','')
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
                 s = [x for x in s.split('\n') if len(x.split()) > 0 and \
                       x.lstrip()[0] != '#']   # remove all blank lines and comment lines
                 if len(s) > 0:
                     t = s[-1]
-                    if len(t) > 0 and not t[0].isspace() and not t[:3] == '"""':
-                        # broken if input has triple quotes!!
+                    if len(t) > 0 and not ':' in t and \
+                           not t[0].isspace() and not t[:3] == '"""':
                         t = t.replace("'","\\'")
                         s[-1] = "exec compile('%s', '', 'single')"%t
 
-                s = '\n'.join(s)
+                s = '\n'.join(s) + '\n'
 
                 open('%s/_temp_.py'%directory, 'w').write(s)
 

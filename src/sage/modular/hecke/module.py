@@ -24,6 +24,7 @@ import sage.modules.module
 import sage.categories.all
 import sage.structure.factorization
 from sage.structure.all import Sequence
+import sage.matrix.matrix_space as matrix_space
 
 import algebra
 import element
@@ -60,6 +61,68 @@ class HeckeModule_generic(sage.modules.module.Module):
         if not isinstance(other, HeckeModule_generic):
             return -1
         return cmp((self.__level, self.__base_ring), (other.__level, other.__base_ring))
+
+    def _compute_hecke_matrix_prime_power(self, n, p, r):
+        # convert input arguments to int's.
+        (n,p,r) = (int(n), int(p), int(r))
+        if not arith.is_prime(p):
+            raise ArithmeticError, "p must be a prime"
+        # T_{p^r} := T_p * T_{p^{r-1}} - eps(p)p^{k-1} T_{p^{r-2}}.
+        pow = p**(r-1)
+        if not self._hecke_matrices.has_key(pow):
+            # The following will force computation of T_{p^s}
+            # for all s<=r-1, except possibly s=0.
+            self._hecke_matrices[pow] = self._compute_hecke_matrix(pow)
+        if not self._hecke_matrices.has_key(1):
+            self._hecke_matrices[1] = self._compute_hecke_matrix(1)
+        Tp = self._hecke_matrices[p]
+        Tpr1 = self._hecke_matrices[pow]
+        eps = self.character()
+        if eps is None:
+            raise NotImplementedError, "_compute_hecke_matrix_prime_power must be overloaded in a derived class"
+        k = self.weight()
+        Tpr2 = self._hecke_matrices[pow/p]
+        return Tp*Tpr1 - eps(p)*(p**(k-1)) * Tpr2
+
+    def _compute_hecke_matrix_general_product(self, n, F):
+        n = int(n)
+        prod = None
+        for p, r in F:
+            pow = int(p**r)
+            if not self._hecke_matrices.has_key(pow):
+                self._hecke_matrices[pow] = self._compute_hecke_matrix(pow)
+            if prod == None:
+                prod = self._hecke_matrices[pow]
+            else:
+                prod *= self._hecke_matrices[pow]
+        return prod
+
+    def _compute_dual_hecke_matrix(self, n):
+        return self.hecke_matrix(n).transpose()
+
+    def _compute_hecke_matrix(self, n):
+        n = int(n)
+        if n<1:
+            raise ValueError, "Hecke operator T_%s is not defined."%n
+        if n==1:
+            Mat = matrix_space.MatrixSpace(self.base_ring(),self.rank())
+            return Mat(1)
+
+        if arith.is_prime(n):
+            return self._compute_hecke_matrix_prime(n)
+
+        F = arith.factor(n)
+        if len(F) == 1:  # nontrivial prime power case
+            return self._compute_hecke_matrix_prime_power(n, F[0][0],F[0][1])
+
+        else:
+            return self._compute_hecke_matrix_general_product(n, F)
+
+    def _compute_hecke_matrix_prime(self, p):
+        """
+        Compute and return the matrix of the p-th Hecke operator.
+        """
+        raise NotImplementedError
 
     def anemic_hecke_algebra(self):
         """
@@ -262,6 +325,9 @@ class HeckeModule_free_module(HeckeModule_generic):
     def ambient(self):
         return self.ambient_hecke_module()
 
+    def ambient_module(self):
+        return self.ambient_hecke_module()
+
     def atkin_lehner_operator(self, d=None):
         """
         Return the Atkin-Lehner operator $W_d$ on this space, if
@@ -386,7 +452,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         except KeyError:
             pass
         if self.rank() == 0:
-            self.__decomposition[key] = Sequence([], immutable=True)
+            self.__decomposition[key] = Sequence([], immutable=True, cr=True)
             return self.__decomposition[key]
 
         time = misc.verbose("Decomposing %s"%self)
@@ -562,7 +628,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         except AttributeError:
             self._dual_hecke_matrices = {}
         if not self._dual_hecke_matrices.has_key(n):
-            self._compute_dual_hecke_matrix(n)
+            T = self._compute_dual_hecke_matrix(n)
+            self._dual_hecke_matrices[n] = T
         return self._dual_hecke_matrices[n]
 
     def eigenvalue(self, n):
@@ -664,8 +731,9 @@ class HeckeModule_free_module(HeckeModule_generic):
         except AttributeError:
             self._hecke_matrices = {}
         if not self._hecke_matrices.has_key(n):
-            self._compute_hecke_matrix(n)
-            self._hecke_matrices[n].set_immutable()
+            T = self._compute_hecke_matrix(n)
+            T.set_immutable()
+            self._hecke_matrices[n] = T
         return self._hecke_matrices[n]
 
     def hecke_operator(self, n):

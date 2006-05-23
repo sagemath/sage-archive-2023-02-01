@@ -10,43 +10,43 @@ Submodules of spaces of modular forms
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-class ModularForms_submodule(space.ModularFormsSpace):
+import space
+
+import sage.modular.hecke.submodule
+
+class ModularFormsSubmodule(space.ModularFormsSpace,
+                            sage.modular.hecke.submodule.HeckeSubmodule):
     """
     A submodule of an ambient space of modular forms.
     """
-    def __init__(self, ambient_space, vector_space):
+    def __init__(self, ambient_space, submodule):
         """
             ambient_space -- ModularFormsSpace
-            submodule -- a vector submodule of the underlying vector space of the ambient space.
+            submodule -- a submodule of the ambient space.
         """
-        self.__ambient_space = ambient_space
-        self.__vector_space = vector_space
         A = ambient_space
-        ModularFormsSpace.__init__(self, A.group(), A.weight(), A.character(), A.base_field())
+        sage.modular.hecke.submodule.HeckeSubmodule.__init__(self, A, submodule)
+        space.ModularFormsSpace.__init__(self, A.group(), A.weight(),
+                                         A.character(), A.base_ring())
 
-    def __repr__(self):
-        return "ModularFormsSubmodule(%s,dim=%s)"%(self.ambient_space(), self.dimension())
-        #return "Submodule of dimension %s of modular forms of weight %s on %s with character %s."%(
-        #    self.dimension(), self.weight(), self.group(), self.character())
+    def _repr_(self):
+        return "Modular Forms subspace of dimension %s of %s"%(self.dimension(), self.ambient_module())
 
-    def is_ambient(self):
-        return False
-
-    def ambient_space(self):
-        return self.__ambient_space
-
-    def change_ring(self):
+    def change_ring(self, base_ring):
         raise NotImplementedError, "Base change only currently implemented for ambient spaces."
 
-    def vector_space(self):
-        return self.__vector_space
+    def _compute_coefficients(self, element, X):
+        raise NotImplementedError
 
-    def dimension(self):
-        try:
-            return self.__dimension
-        except AttributeError:
-            self.__dimension = self.vector_space().dimension()
-        return self.__dimension
+    def _compute_q_expansion_basis(self, prec):
+        A = self.ambient_module()
+        return [A._q_expansion(element = f.element(), prec=prec) for f in self.basis()]
+
+
+class ModularFormsSubmoduleWithBasis(ModularFormsSubmodule):
+    pass
+
+
 
 
 

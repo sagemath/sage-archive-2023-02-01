@@ -31,18 +31,42 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
     """
     Element of a Hecke module.
     """
-    def __init__(self, parent, x):
+    def __init__(self, parent, x=None):
         """
         INPUT:
             parent -- a Hecke module
             x -- element of the free module associated to parent
         """
         sage.modules.module_element.ModuleElement.__init__(self, parent)
-        self.__element = x
+        if not x is None:
+            self.__element = x
 
     def _repr_(self):
-        return str(self.__element)
+        return str(self.element())
+
+    def _compute_element(self):
+        raise NotImplementedError
 
     def element(self):
+        try:
+            return self.__element
+        except AttributeError:
+            self.__element = self._compute_element()
         return self.__element
 
+    def ambient_module(self):
+        return self.parent().ambient_module()
+
+    def __mul__(self, right):
+        return self.parent()(self.element()*right)
+
+    def __neg__(self):
+        return self.parent()(-self.element())
+
+    def __pos__(self):
+        return self
+
+    def __sub__(self, right):
+        if self.parent() != right.parent():
+            raise ArithmeticError, "parents must be the same"
+        return self.parent()(self.element() - right.element())

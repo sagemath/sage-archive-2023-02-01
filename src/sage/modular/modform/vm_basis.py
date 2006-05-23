@@ -1,7 +1,22 @@
-from eis_series import eisenstein_series_qexp
-from sage.rings.all import QQ, Integer
-from sage.modular.dims import dimension_cusp_forms_gamma0
+"""
+The Victor Miller Basis
+"""
+
+#########################################################################
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#########################################################################
+
 from sage.matrix.all import MatrixSpace
+from sage.modular.dims import dimension_cusp_forms_gamma0
+from sage.rings.all import QQ, Integer
+from sage.structure.all import Sequence
+
+from eis_series import eisenstein_series_qexp
+
 
 def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     r"""
@@ -29,10 +44,14 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
         sage: victor_miller_basis(2, 6)
         []
         sage: victor_miller_basis(4, 6)
-        [1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)]
+        [
+        1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+        ]
 
         sage: victor_miller_basis(6, 6, var='w')
-        [1 - 504*w - 16632*w^2 - 122976*w^3 - 532728*w^4 - 1575504*w^5 + O(w^6)]
+        [
+        1 - 504*w - 16632*w^2 - 122976*w^3 - 532728*w^4 - 1575504*w^5 + O(w^6)
+        ]
 
         sage: victor_miller_basis(6, 6)
         [
@@ -92,8 +111,8 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
         F6 = R(F6)
     Delta = (F4**3 - F6**2)/R(1728,prec)
     d = dimension_cusp_forms_gamma0(1, k)
-    g = F6**(2*d + b) * F4**a
     m = Delta / (F6*F6)
+    g = m * F6**(2*d + b) * F4**a
     G = []
     for j in range(d):
         G.append(g)
@@ -105,12 +124,12 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
 
     M = MatrixSpace(QQ, len(G), prec)
     # we have to slice since precision in products can increase.
-    e = [list(g)[:int(prec)] for g in G]
+    e = [g.padded_list(prec) for g in G]
     A = M(sum(e, []))
     # this is still provably correct -- the guess is still proven right.
     # it's just that naive guess based on coefficients is way too big.
     E = A.echelon_form(height_guess=10**(k))
-    return [R(list(v), prec) for v in E.rows()]
+    return Sequence([R(list(v), prec) for v in E.rows()], cr=True)
 
 
 def delta_qexp(prec=10, var='q'):

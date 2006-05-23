@@ -1,16 +1,29 @@
-"""nodoctest
+"""
 Elements of modular forms spaces.
 """
 
-class ModularFormElement:
+#########################################################################
+#       Copyright (C) 2004--2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#########################################################################
+
+import space
+import sage.modular.hecke.element as element
+import sage.rings.all as rings
+
+class ModularFormElement(element.HeckeModuleElement):
     """
     An element of a space of modular forms.
     """
-    def __init__(self, parent, vector, check=True):
+    def __init__(self, parent, x):
         """
         INPUT:
             parent -- ModularForms (an ambient space of modular forms)
-            vector -- a vector on the basis for parent
+            x -- a vector on the basis for parent
+
         OUTPUT:
             ModularFormElement -- a modular form
 
@@ -18,35 +31,24 @@ class ModularFormElement:
             sage: M = ModularForms(Gamma0(11),2)
             sage: f = M.0
             sage: f.parent()
-            Space of modular forms on Congruence Subgroup Gamma0(11) of weight 2 and dimension 2 over Rational Field
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(11) of weight 2 over Rational Field
         """
-
-        if not isinstance(parent, ModularForms):
+        if not isinstance(parent, space.ModularFormsSpace):
             raise TypeError, "First argument must be an ambient space of modular forms."
-        self.__parent = parent
-        if not isinstance(vector, free_module_element.FreeModuleElement):
-            raise TypeError, "Second argument must be a vector."
-        self.__vector = vector
-        if not vector in parent.vector_space():
-            raise ArithmeticError, "Vector must be an element of the " +\
-                      " vector space of the ambient space."
+        element.HeckeModuleElement.__init__(self, parent, x)
 
     def __ensure_is_compatible(self, other):
         if not isinstance(other, ModularFormElement):
             raise TypeError, "Second argument must be a modular form."
-        if self.ambient_space() != other.ambient_space():
+        if self.ambient_module() != other.ambient_module():
             raise ArithmeticError, "Modular forms must be in the same ambient space."
 
-    def __add__(self, other):
-        self.__ensure_is_compatible(other)
-        return ModularFormElement(self.ambient_space(), self.vector() + other.vector())
-
-    def __radd__(self, left):
-        return self+left
+    def _add_(self, other):
+        return ModularFormElement(self.ambient_module(), self.element() + other.element())
 
     def __cmp__(self, other):
         self.__ensure_is_compatible(other)
-        return self.__vector == other.__vector
+        return self.element() == other.element()
 
     def coefficients(self, X):
         """
@@ -59,61 +61,52 @@ class ModularFormElement:
         except AttributeError:
             self.__coefficients = {}
         Y = [n for n in X   if    not (n in self.__coefficients.keys())]
-        v = self.compute(Y)
+        v = self._compute(Y)
         for i in range(len(v)):
             self.__coefficients[X[i]] = v[i]
         return v
 
-    def compute(self, X):
-        """
-        Compute the coefficients a_n of self, for integers n>=0 in the list X.
-        The results need not be cached; use the coefficients method instead
-        for cached results.
-        """
-        return self.__parent.compute_coefficients(self.__vector, X)
+##     def _compute(self, X):
+##         r"""
+##         Compute the coefficients $a_n$ of self, for integers $n \geq
+##         0$ in the list $X$.
+
+##         NOTES: The results need not be cached; use the coefficients
+##         method instead for cached results.
+##         """
+##         return self.parent()._compute_coefficients(self.element(), X)
 
     def __getitem__(self, n):
-        return self.coefficients([n])[0]
+        return self.q_expansion(n+1)[int(n)]
 
     def __getslice__(self, i, j):
-        return self.coefficients(range(i,j))
+        return self.q_expansion(j+1)[int(i):int(j)]
 
-    def __neg__(self):
-        return (-1)*self
+    def padded_list(self, n):
+        return self.q_expansion(n).padded_list(n)
 
-    def __pos__(self):
-        return self
 
-    def __repr__(self):
-        return str(self.qexp())
+    def _repr_(self):
+        return str(self.q_expansion())
 
     def _latex_(self):
-        return latex(self.qexp())
+        return self.q_expansion()._latex_()
 
-    def __sub__(self, right):
-        return self + (-right)
-
-    def __rsub__(self, left):
-        raise TypeError
-
-    def base_field(self):
-        return self.parent().base_field()
+    def base_ring(self):
+        return self.parent().base_ring()
 
     def character(self):
         chi = self.parent().character()
-        if chi == None:
+        if chi is None:
             raise NotImplementedError, "Determination of character in this " + \
                   "case not implemented yet."
         return chi
 
     def is_zero(self):
-        return self.vector().is_zero()
+        return self.element().is_zero()
 
     def level(self):
         return self.parent().level()
-
-    def parent(self):
-        return self.__parent
 
     def prec(self):
         try:
@@ -122,27 +115,55 @@ class ModularFormElement:
             return self.parent().prec()
         return self.__qexp.prec()
 
-    def qexp(self, prec=None):
+    def q_expansion(self, prec=None):
         r"""
         The $q$-expansion of the modular form to precision $O(q^\text{prec})$.
         This function takes one argument, which is the integer prec.
+
+        EXAMPLES:
+        We compute the cusp form $\Delta$.
+            sage: delta = CuspForms(1,12).0
+            sage: delta.q_expansion()
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+
+        We compute the $q$-expansion of one of the cusp forms of level 23:
+            sage: f = CuspForms(23,2).0
+            sage: f.q_expansion()
+            q - q^3 - q^4 + O(q^6)
+            sage: f.q_expansion(10)
+            q - q^3 - q^4 - 2*q^6 + 2*q^7 - q^8 + 2*q^9 + O(q^10)
+            sage: f.q_expansion(2)
+            q + O(q^2)
+            sage: f.q_expansion(1)
+            O(q^1)
+            sage: f.q_expansion(0)
+            O(q^0)
         """
-        if prec == None: prec = self.parent().prec()
-
-        R = rings.PowerSeriesRing(self.base_field(), name='q')
-        q = R.gen(0)
-
+        if prec is None:
+            prec = self.prec()
+        prec = rings.Integer(prec)
+        if prec < 0:
+            raise ValueError, "prec (=%s) must be at least 0"%prec
         try:
-            self.__qexp
+            current_prec, f = self.__q_expansion
         except AttributeError:
-            self.__qexp = R(0, prec=0)
+            current_prec, f = -1, 0
+        if current_prec == prec:
+            return f
+        elif current_prec > prec:
+            return f.add_bigoh(prec)
+        f = self._compute_q_expansion(prec)
+        self.__q_expansion = (prec, f)
+        return f
 
-        pr = self.__qexp.prec()
-        if prec > pr:
-            v = self.compute(range(pr,prec))
-            self.__qexp = R(list(self.__qexp) + v, prec=prec)
+    def _compute_q_expansion(self, prec=None):
+        return self.parent()._q_expansion(element = self.element(), prec=prec)
 
-        return self.__qexp.O(prec)
+    def qexp(self, prec=None):
+        """
+        Same as self.q_expansion(prec).
+        """
+        return self.q_expansion(prec)
 
     def weight(self):
         return self.parent().weight()
@@ -159,10 +180,78 @@ class ModularFormElement:
         return v
 
 
+
+class ModularFormElement_elliptic_curve(ModularFormElement):
+    """
+    A modular form attached to an elliptic curve.
+
+    EXAMPLES:
+        sage: E = EllipticCurve('5077a')
+        sage: f = E.modular_form()
+        sage: f
+        q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + O(q^6)
+        sage: f.q_expansion(10)
+        q - 2*q^2 - 3*q^3 + 2*q^4 - 4*q^5 + 6*q^6 - 4*q^7 + 6*q^9 + O(q^10)
+        sage: f.parent()
+        Modular Forms space of dimension 423 for Congruence Subgroup Gamma0(5077) of weight 2 over Rational Field
+    """
+    def __init__(self, parent, E, x=None):
+        """
+        Modular form attached to an elliptic curve as an element
+        of a space of modular forms.
+        """
+        ModularFormElement.__init__(self, parent, x)
+        self.__E = E
+
+    def elliptic_curve(self):
+        return self.__E
+
+    def _compute_element(self):
+        # TODO
+        raise NotImplementedError, "todo -- compute q-exp, find element of space, etc."
+
+    def _compute_q_expansion(self, prec=None):
+        r"""
+        The $q$-expansion of the modular form to precision $O(q^\text{prec})$.
+        This function takes one argument, which is the integer prec.
+
+        EXAMPLES:
+        """
+        if prec is None:
+            prec = self.parent().prec()
+        return self.__E.q_expansion(prec)
+
+######################################################################
+
 class EisensteinSeries(ModularFormElement):
+    """
+    An Eisenstein series.
+
+    EXAMPLES:
+        sage: E = EisensteinForms(1,12)
+        sage: E.eisenstein_series()
+        [
+        691/65520 + q + 2049*q^2 + 177148*q^3 + 4196353*q^4 + 48828126*q^5 + O(q^6)
+        ]
+        sage: E = EisensteinForms(11,2)
+        sage: E.eisenstein_series()
+        [
+        5/12 + q + 3*q^2 + 4*q^3 + 7*q^4 + 6*q^5 + O(q^6)
+        ]
+        sage: E = EisensteinForms(Gamma1(7),2)
+        sage: E.set_precision(4)
+        sage: E.eisenstein_series()
+        [
+        1/4 + q + 3*q^2 + 4*q^3 + O(q^4),
+        1/7*zeta6 - 3/7 + q + (-2*zeta6 + 1)*q^2 + (3*zeta6 - 2)*q^3 + O(q^4),
+        q + (-zeta6 + 2)*q^2 + (zeta6 + 2)*q^3 + O(q^4),
+        -1/7*zeta6 - 2/7 + q + (2*zeta6 - 1)*q^2 + (-3*zeta6 + 1)*q^3 + O(q^4),
+        q + (zeta6 + 1)*q^2 + (-zeta6 + 3)*q^3 + O(q^4)
+        ]
+    """
     def __init__(self, parent, vector, t, chi, psi):
         N = parent.level()
-        K = parent.base_field()
+        K = parent.base_ring()
         if chi.parent().modulus() != N or psi.parent().modulus() != N:
             raise ArithmeticError, "Incompatible moduli"
         if chi.parent().base_ring() != K or psi.parent().base_ring() != K:
@@ -177,7 +266,12 @@ class EisensteinSeries(ModularFormElement):
         self.__psi = psi
         self.__t   = t
 
-    def compute(self, X):
+    def _compute_q_expansion(self, prec):
+        F = self._compute(range(prec))
+        R = self.parent()._q_expansion_ring()
+        return R(F, prec)
+
+    def _compute(self, X):
         """
         Compute the coefficients of $q^n$ of the power series of self,
         for $n$ in the list $X$.  The results are not cached.  (Use
@@ -192,19 +286,18 @@ class EisensteinSeries(ModularFormElement):
         """
         Compute E_2 - t*E_2(q^t)
         """
-        F = self.base_field()
+        F = self.base_ring()
         v = []
         t = self.__t
         for n in X:
             if n <= 0:
                 v.append(F(t-1)/F(24))
             else:
-                an = arith.sigma(n,1)
+                an = rings.sigma(n,1)
                 if n%t==0:
-                    an -= t*arith.sigma(n/t,1)
+                    an -= t*rings.sigma(n/t,1)
                 v.append(an)
         return v
-
 
     def __compute_general_case(self, X):
         """
@@ -230,24 +323,22 @@ class EisensteinSeries(ModularFormElement):
                 v.append(zero)
             else:
                 m = i/t
-                v.append(sum([psi(n)*chi(m/n)*n**(k-1) for n in arith.divisors(m)]))
+                v.append(sum([psi(n)*chi(m/n)*n**(k-1) for \
+                               n in rings.divisors(m)]))
         return v
 
     def __defining_parameters(self):
         try:
             return self.__defining_params
         except AttributeError:
+            chi = self.__chi
+            psi = self.__psi
             k = self.weight()
-            chi = self.__chi.minimize_base_ring()
-            psi = self.__psi.minimize_base_ring()
-            n = arith.LCM(chi.base_ring().zeta().multiplicative_order(),\
-                          psi.base_ring().zeta().multiplicative_order())
-            K = rings.CyclotomicField(n)
-            chi = chi.change_ring(K)
-            psi = psi.change_ring(K)
             t = self.__t
             L = chi.conductor()
             M = psi.conductor()
+            K = chi.base_ring()
+            n = K.zeta_order()
             if L == 1:
                 c0 = K(-psi.bernoulli(k))/K(2*k)
             else:
@@ -264,6 +355,12 @@ class EisensteinSeries(ModularFormElement):
     def t(self):
         return self.__t
 
+    def parameters(self):
+        """
+        Return chi, psi, and t, which are the defining parameters of self.
+        """
+        return self.__chi, self.__psi, self.__t
+
     def L(self):
         return self.__chi.conductor()
 
@@ -279,111 +376,7 @@ class EisensteinSeries(ModularFormElement):
 
     def level_at_which_new(self):
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
-            return arith.factor(self.__t)[0][0]
+            return factor(self.__t)[0][0]
         return self.L()*self.M()
 
 
-def __find_eisen_chars(character, k):
-    N = character.modulus()
-    if character.is_trivial():
-        V = [(character, character, t) for t in arith.divisors(N) if t>1]
-        if k != 2:
-            V.insert(0,(character, character, 1))
-        return V
-
-    eps = character
-    if eps(-1) != (-1)**k:
-        return []
-    eps = eps.maximize_base_ring()
-    G = eps.parent()
-
-    # Find all pairs chi, psi such that:
-    #
-    #  (1) cond(chi)*cond(psi) divides the level, and
-    #
-    #  (2) chi == eps*psi, where eps is the nebentypus character of self.
-    #
-    # See [Miyake, Modular Forms] Lemma 7.1.1.
-
-    K = G.base_ring()
-    C = {}
-
-    t0 = misc.cputime()
-
-    for e in G:
-        m = rings.Integer(e.conductor())
-        if C.has_key(m):
-            C[m].append(e)
-        else:
-            C[m] = [e]
-
-    misc.verbose("Enumeration with conductors.",t0)
-
-    params = []
-    for L in arith.divisors(N):
-        misc.verbose("divisor %s"%L)
-        if not C.has_key(L):
-            continue
-        GL = C[L]
-        for R in arith.divisors(N/L):
-            if not C.has_key(R):
-                continue
-            GR = C[R]
-            for chi in GL:
-                for psi in GR:
-                    if chi == eps*psi:
-                        for t in arith.divisors(N/(R*L)):
-                            params.append( (chi,psi,t) )
-    return params
-
-
-def __find_eisen_chars_gamma1(N, k):
-    pairs = []
-    s = (-1)**k
-    G = dirichlet.DirichletGroup(N)
-    E = list(G)
-    parity = [c(-1) for c in E]
-    for i in range(len(E)):
-        for j in range(i,len(E)):
-            if parity[i]*parity[j] == s and N % (E[i].conductor()*E[j].conductor()) == 0:
-                pairs.append((E[i],E[j]))
-                if i!=j: pairs.append((E[j],E[i]))
-        #endfors
-    #end if
-
-    triples = []
-    D = arith.divisors(N)
-    for chi, psi in pairs:
-        c_chi = chi.conductor()
-        c_psi = psi.conductor()
-        D = arith.divisors(N/(c_chi * c_psi))
-        if (k==2 and chi.is_trivial() and psi.is_trivial()):
-            D.remove(1)
-        for t in D:
-            triples.append((chi, psi, t))
-    return triples
-
-
-
-def compute_eisenstein_params(character, k):
-    """
-    Compute and return a list of all parameters $(\chi,\psi,t)$ that
-    define the Eisenstein series with given character and weight $k$.
-
-    Only the parity of $k$ is relevant.
-
-    If character is an integer $N$, then the parameters for
-    $\Gamma_1(N)$ are computed instead.  Then the condition is that
-    $\chi(-1)*\psi(-1) =(-1)^k$.
-    """
-
-    if isinstance(character, (int,long)):
-        N = character
-        character = None
-    else:
-        N = character.modulus()
-
-    if character != None:
-        return __find_eisen_chars(character, k)
-    else:
-        return __find_eisen_chars_gamma1(N, k)

@@ -1,14 +1,9 @@
 """
 Modular Forms
-
-[[overview of what is here.]]
-
-EXAMPLES:
-
 """
 
 #########################################################################
-#       Copyright (C) 2004--2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -20,51 +15,61 @@ import math
 import weakref
 
 # SAGE packages
-import sage.rings.arith as arith
+import sage.rings.all as rings
 import sage.modular.congroup as congroup
 import sage.misc.db as db
 import sage.modular.dims as dims
 import sage.modular.dirichlet as dirichlet
 import sage.modular.hecke.all as hecke
 import sage.misc.misc as misc
-import sage.modular.modsym as modsym
+import sage.modular.modsym.all as modsym
 import sage.modules.free_module as free_module
 import sage.modules.free_module_element as free_module_element
 import sage.rings.all as rings
 
 from sage.misc.all import latex
 
+import cuspidal_submodule
 import defaults
-
+import eisenstein_submodule
+import eis_series
 import space
+import submodule
 
-class ModularFormsAmbient(space.ModularFormsSpace):
+class ModularFormsAmbient(space.ModularFormsSpace,
+                          hecke.AmbientHeckeModule):
     """
     An ambient space of modular forms.
     """
-    def __init__(self, group, weight, ring):
+    def __init__(self, group, weight, base_ring, character=None):
         if not isinstance(group, congroup.CongruenceSubgroup):
-            group = congroup.Gamma0(group)
+            raise TypeError, 'group (=%s) is a group'%group
+        weight = rings.Integer(weight)
 
-        if isinstance(group, congroup.Gamma0):
-            character = dirichlet.TrivialCharacter(group.level(), base_field)
-        else:
-            character = None
+        if character is None and isinstance(group, congroup.Gamma0):
+            character = dirichlet.TrivialCharacter(group.level(), base_ring)
 
-        space.ModularFormsSpace.__init__(self, group, weight, character, base_field)
+        space.ModularFormsSpace.__init__(self, group, weight, character, base_ring)
+        hecke.AmbientHeckeModule.__init__(self, base_ring, self.dimension(), group.level(), weight)
 
     def _repr_(self):
         return "Modular Forms space of dimension %s for %s of weight %s over %s"%(
                 self.dimension(), self.group(), self.weight(), self.base_ring())
 
-    def change_ring(self, ring):
+    def change_ring(self, base_ring):
         import constructor
-        return constructor.ModularForms(self.group(), self.weight(), ring)
+        M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
+        return M
 
     def dimension(self):
-        if hasattr(self, "__dimension"): return self.__dimension
-        self.__dimension = self.dim_eisenstein() + self.dim_cuspidal()
-        return self.__dimension
+        try:
+            return self.__dimension
+        except AttributeError:
+            self.__dimension = self._dim_eisenstein() + self._dim_cuspidal()
+            return self.__dimension
+
+    def rank(self):
+        return self.dimension()
 
     def ambient_space(self):
         return self
@@ -72,45 +77,60 @@ class ModularFormsAmbient(space.ModularFormsSpace):
     def is_ambient(self):
         return True
 
-    def modular_symbols(self):
-        if hasattr(self, "__modsym"): return self.__modsym
-        self.__modsym = modsym.ModularSymbols(self.weight(), self.group(),
-                                                  self.base_field())
-        return self.__modsym
+    def modular_symbols(self, sign=0):
+        """
+        Return the corresponding space of modular symbols with the given sign.
 
-    def vector_space(self):
-        if hasattr(self, "__vector_space"): return self.__vector_space
-        self.__vector_space = free_module.VectorSpace(self.base_field(),
+        EXAMPLES:
+            sage: S = ModularForms(11,2)
+            sage: S.modular_symbols()
+            Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            sage: S.modular_symbols(sign=1)
+            Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field
+            sage: S.modular_symbols(sign=-1)
+            Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Rational Field
+
+            sage: ModularForms(1,12).modular_symbols()
+            Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
+        """
+        sign = rings.Integer(sign)
+        try:
+            return self.__modular_symbols[sign]
+        except AttributeError:
+            self.__modular_symbols = {}
+        except KeyError:
+            pass
+        M = modsym.ModularSymbols(group = self.group(),
+                                  weight = self.weight(),
+                                  sign = sign,
+                                  base_ring = self.base_ring())
+        self.__modular_symbols[sign] = M
+        return M
+
+    def module(self):
+        if hasattr(self, "__module"): return self.__module
+        self.__module = free_module.VectorSpace(self.base_ring(),
                                                  self.dimension())
-        return self.__vector_space
+        return self.__module
 
-    def prec(self, set=None):
+    def prec(self, new_prec=None):
         """
         Set or get default initial precision for printing modular forms.
         """
-        if set == None:
-            if hasattr(self, "__prec"): return self.__prec
-            self.__prec = defaults.DEFAULT_PRECISION
+        if new_prec:
+            self.__prec = new_prec
+        try:
             return self.__prec
-        self.__prec = set
+        except AttributeError:
+            self.__prec = defaults.DEFAULT_PRECISION
+        return self.__prec
 
-    ####################################################################
-    # Computation of q-expansions
-    ####################################################################
-    def qexp(self, vector, prec):
-        """
-        Compute the $q$-expansion to precision prec of the linear
-        combination of the basis for this space given by the vector.
-        """
-        R = rings.PowerSeriesRing(self.base_field(), name='q')
-        return rings.q
-        raise NotImplementedError
-
+    def set_precision(self, n):
+        self.__prec = rings.Integer(n)
 
     ####################################################################
     # Computation of Special Submodules
     ####################################################################
-
     def cuspidal_submodule(self):
         """
         EXAMPLES:
@@ -121,48 +141,65 @@ class ModularFormsAmbient(space.ModularFormsSpace):
         try:
             return self.__cuspidal_submodule
         except AttributeError:
-            n = self.dim_cuspidal()
-            V = self.vector_space()
-            W = V.submodule([V.gen(i) for i in range(n)])
-            self.__cuspidal_submodule = ModularFormsSubmodule(self, W)
+            self.__cuspidal_submodule = cuspidal_submodule.CuspidalSubmodule(self)
         return self.__cuspidal_submodule
 
     def eisenstein_submodule(self):
         try:
             return self.__eisenstein_submodule
         except AttributeError:
-            n = self.dim_cuspidal()
-            d = self.dimension()
-            V = self.vector_space()
-            W = V.submodule([V.gen(i) for i in range(n, d)])
-            self.__eisenstein_submodule = ModularFormsSubmodule(self, W)
+            self.__eisenstein_submodule = eisenstein_submodule.EisensteinSubmodule(self)
         return self.__eisenstein_submodule
 
-    def new_submodule(self):
+    def new_submodule(self, p=None):
         try:
-            return self.__new_submodule
+            return self.__new_submodule[p]
         except AttributeError:
-            s = self.dim_new_cuspidal()
-            e = self.dim_new_eisenstein()
-            d = self.dim_cuspidal()
-            B = range(s) + range(d, d+e)
-            V = self.vector_space()
-            W = V.submodule([V.gen(i) for i in B])
-            self.__new_submodule = ModularFormsSubmodule(self, W)
-        return self.__new_submodule
+            self.__new_submodule = {}
+        except KeyError:
+            pass
+        if not p is None:
+            p = rings.Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p (=%s) must be a prime or None."%p
+
+        if p is None:
+            self.__new_submodule[None] = self._full_new_submodule()
+        else:
+            self.__new_submodule[p] = self._new_submodule(p)
+
+    def _full_new_submodule(self):
+        s = self._dim_new_cuspidal()
+        e = self._dim_new_eisenstein()
+        d = self._dim_cuspidal()
+        B = range(s) + range(d, d+e)
+        V = self.module()
+        W = V.submodule([V.gen(i) for i in B])
+        return submodule.ModularFormsSubmodule(self, W)
+
+    def _new_submodule(self, p):
+        raise NotImplementedError
+
+    def _q_expansion(self, element, prec):
+        B = self.q_expansion_basis(prec)
+        f = self._q_expansion_zero()
+        for i in range(len(element)):
+            if element[i] != 0:
+                f += element[i] * B[i]
+        return f
 
 
     ####################################################################
     # Computations of Dimensions
     ####################################################################
-    def dim_cuspidal(self):
+    def _dim_cuspidal(self):
         try:
             return self.__the_dim_cuspidal
         except AttributeError:
             self.__the_dim_cuspidal = dims.dimension_cusp_forms(self.group(), self.weight())
         return self.__the_dim_cuspidal
 
-    def dim_eisenstein(self):
+    def _dim_eisenstein(self):
         try:
             return self.__the_dim_eisenstein
         except AttributeError:
@@ -172,7 +209,7 @@ class ModularFormsAmbient(space.ModularFormsSpace):
                 self.__the_dim_eisenstein = dims.dimension_eis(self.group(), self.weight())
         return self.__the_dim_eisenstein
 
-    def dim_new_cuspidal(self):
+    def _dim_new_cuspidal(self):
         try:
             return self.__the_dim_new_cuspidal
         except AttributeError:
@@ -180,12 +217,12 @@ class ModularFormsAmbient(space.ModularFormsSpace):
                 self.group(), self.weight())
         return self.__the_dim_new_cuspidal
 
-    def dim_new_eisenstein(self):
+    def _dim_new_eisenstein(self):
         try:
             return self.__the_dim_new_eisenstein
         except AttributeError:
             if isinstance(self.group(), congroup.Gamma0) and self.weight() == 2:
-                if arith.is_prime(self.level()):
+                if rings.is_prime(self.level()):
                     d = 1
                 else:
                     d = 0
@@ -210,25 +247,13 @@ class ModularFormsAmbient(space.ModularFormsSpace):
                     eps = self.level()
                 else:
                     raise NotImplementedError
-            params = compute_eisenstein_params(eps, self.weight())
+            params = eis_series.compute_eisenstein_params(eps, self.weight())
             self.__eisenstein_params = params
         return self.__eisenstein_params
 
     def eisenstein_series(self):
-        try:
-            return self.__eisenstein_series
-        except AttributeError:
-            pass
-        time = misc.verbose("Finding eisenstein series.")
-
-        misc.verbose("Finished finding eisenstein series.", time)
-
-        self.__eisenstein_series = []
-        c = self.dim_cuspidal()
-
-        V = self.vector_space()
-        params = self.eisenstein_params()
-        assert V.dimension() - c == len(params)
+        """
+        Return all Eisenstein series associated to this space.
 
             sage: ModularForms(27,2).eisenstein_series()
             [
@@ -254,75 +279,17 @@ class ModularFormsAmbient(space.ModularFormsSpace):
             q + (zeta6 + 2)*q^2 + (-zeta6 + 3)*q^3 + (3*zeta6 + 3)*q^4 + 4*q^5 + O(q^6)
             ]
         """
-        if base_field==None: base_field=character.base_ring()
-        if character.base_ring() != base_field:
-            character = character.change_ring(base_field)
-        self.__weight, self.__character = weight, character
-        group = congroup.Gamma1(character.modulus())
-        base_field = character.base_ring()
-        ModularFormsSpace.__init__(self, group, weight, character, base_field)
+        return self.eisenstein_submodule().eisenstein_series()
 
-    def __repr__(self):
-        return "Space of Modular Forms with character %s, weight %s, and dimension %s over %s"%(
-                    self.character(), self.weight(), self.dimension(), self.base_field())
+    def _compute_q_expansion_basis(self, prec):
+        """
+        EXAMPLES:
 
-    def change_ring(self, F):
-        return ModularFormsWithCharacter(self.weight(), self.character(), F)
 
-    def modular_symbols(self):
-        try:
-            return self.__modsym
-        except AttributeError:
-            self.__modsym = modsym.ModularSymbolsWithCharacter(\
-                self.character(), self.weight(), self.base_field())
-        return self.__modsym
-
-    ####################################################################
-    # Computations of Dimensions
-    ####################################################################
-    def dim_cuspidal(self):
-        try:
-            return self.__the_dim_cuspidal
-        except AttributeError:
-            self.__the_dim_cuspidal = dims.dimension_cusp_forms_eps(
-                self.character(), self.weight())
-        return self.__the_dim_cuspidal
-
-    def dim_eisenstein(self):
-        try:
-            return self.__the_dim_eisenstein
-        except AttributeError:
-            if self.character().is_trivial():
-                edim = dims.dimension_eis(self.group(), self.weight())
-            else:
-                # calling self.eisenstein_series() is guaranteed to have the
-                # side affect of setting self.__the_dim_eisenstein...
-                self.eisenstein_series()  # todo: more direct way?
-                edim = len(self.eisenstein_params())
-            self.__the_dim_eisenstein = edim
-        return self.__the_dim_eisenstein
-
-    def dim_new_cuspidal(self):
-        try:
-            return self.__the_dim_new_cuspidal
-        except AttributeError:
-            self.__the_dim_new_cuspidal = dims.dimension_new_cusp_forms(
-                self.character(), self.weight())
-        return self.__the_dim_new_cuspidal
-
-    def dim_new_eisenstein(self):
-        try:
-            return self.__the_dim_new_eisenstein
-        except AttributeError:
-            if self.character().is_trivial() and self.weight() == 2:
-                if arith.is_prime(self.level()):
-                    d = 1
-                else:
-                    d = 0
-            else:
-                E = self.eisenstein_series()
-                d = len([g for g in E if g.new_level() == self.level()])
-            self.__the_dim_new_eisenstein = d
-        return self.__the_dim_new_cuspidal
-
+        """
+        S = self.cuspidal_submodule()
+        E = self.eisenstein_submodule()
+        B_S = S._compute_q_expansion_basis(prec)
+        B_E = E._compute_q_expansion_basis(prec)
+        return B_S + B_E
 

@@ -15,18 +15,24 @@ EXAMPLES:
 
 import weakref
 
-import ambient
 
 import sage.modular.congroup as congroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 
+import ambient
+import ambient_eps
+import ambient_g0
+import ambient_g1
+import ambient_R
+import defaults
 import element
+
 
 def canonical_parameters(group, weight, base_ring):
     weight = rings.Integer(weight)
     if weight <= 1:
-        raise ValueError, "the weight must be at least 2"
+        raise NotImplementedError, "weight must be at least 2"
 
     if isinstance(group, (int, rings.Integer)):
         group = congroup.Gamma0(group)
@@ -37,7 +43,7 @@ def canonical_parameters(group, weight, base_ring):
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
 
-    return group, weight, sign, base_ring
+    return group, weight, base_ring
 
 _cache = {}
 
@@ -47,8 +53,9 @@ def ModularForms_clear_cache():
 
 def ModularForms(group  = 1,
                  weight = 2,
-                 base_ring = rings.RationalField(),
-                 use_cache = True):
+                 base_ring = None,
+                 use_cache = True,
+                 prec = defaults.DEFAULT_PRECISION):
     r"""
     Create an ambient space of modular forms.
 
@@ -110,40 +117,58 @@ def ModularForms(group  = 1,
         sage: m.T(2).charpoly()
         x^6 - 873*x^4 - 82632*x^2 - 1860496
     """
+    if isinstance(group, dirichlet.DirichletCharacter):
+        if base_ring is None:
+            base_ring = group.minimize_base_ring().base_ring()
+    if base_ring is None:
+        base_ring = rings.QQ
+
     key = canonical_parameters(group, weight, base_ring)
 
     if use_cache and _cache.has_key(key):
          M = _cache[key]()
-         if not (M is None): return M
+         if not (M is None):
+             M.set_precision(prec)
+             return M
 
     (group, weight, base_ring) = key
 
     M = None
     if isinstance(group, congroup.Gamma0):
-        if base_ring is rings.RationalField():
-            M = ambient.ModularFormsAmbient_g0_Q(group.level(), weight)
+        M = ambient_g0.ModularFormsAmbient_g0_Q(group.level(), weight)
+        if base_ring != rings.QQ:
+            M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif isinstance(group, congroup.Gamma1):
-        if base_ring is rings.RationalField():
-            M = ambient.ModularFormsAmbient_g1_Q(group.level(), weight)
+        M = ambient_g1.ModularFormsAmbient_g1_Q(group.level(), weight)
+        if base_ring != rings.QQ:
+            M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
         eps = group
-        M = ambient.ModularFormsAmbient_eps(eps, weight)
+        eps = eps.minimize_base_ring()
+        if eps.is_trivial():
+            return ModularForms(eps.modulus(), weight, base_ring,
+                                use_cache = use_cache,
+                                prec = prec)
+        M = ambient_eps.ModularFormsAmbient_eps(eps, weight)
+        if base_ring != eps.base_ring():
+            M = ambient_R.ModularFormsAmbient_R(M, base_ring)
 
     if M is None:
         raise NotImplementedError, \
-  "computation of requested space of modular symbols not defined or implemented"
+           "computation of requested space of modular forms not defined or implemented"
 
+    M.set_precision(prec)
     _cache[key] = weakref.ref(M)
     return M
-
 
 
 def CuspForms(group  = 1,
               weight = 2,
               base_ring = rings.RationalField(),
-              use_cache = True):
+              use_cache = True,
+              prec = defaults.DEFAULT_PRECISION):
     """
     Create a space of cuspidal modular forms.
 
@@ -151,13 +176,14 @@ def CuspForms(group  = 1,
     description of the input parameters.
     """
     return ModularForms(group, weight, base_ring,
-                        use_cache=use_cache).cuspidal_submodule()
+                        use_cache=use_cache, prec=prec).cuspidal_submodule()
 
 
 def EisensteinForms(group  = 1,
               weight = 2,
               base_ring = rings.RationalField(),
-              use_cache = True):
+              use_cache = True,
+              prec = defaults.DEFAULT_PRECISION):
     """
     Create a space of eisenstein modular forms.
 
@@ -165,4 +191,4 @@ def EisensteinForms(group  = 1,
     description of the input parameters.
     """
     return ModularForms(group, weight, base_ring,
-                        use_cache=use_cache).eisenstein_submodule()
+                        use_cache=use_cache, prec=prec).eisenstein_submodule()

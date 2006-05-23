@@ -90,16 +90,12 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     def _compute_dual_hecke_matrix(self, n):
         A = self.ambient_hecke_module().dual_hecke_matrix(n)
         check =  arith.gcd(self.level(), n) != 1
-        T = A.restrict(self.dual_free_module(), check=check)
-        self._dual_hecke_matrices[n] = T
-        return T
+        return A.restrict(self.dual_free_module(), check=check)
 
     def _compute_hecke_matrix(self, n):
         A = self.ambient_hecke_module().hecke_matrix(n)
         check = arith.gcd(self.level(), n) != 1
-        T = A.restrict(self.free_module(), check=check)
-        self._hecke_matrices[n] = T
-        return T
+        return A.restrict(self.free_module(), check=check)
 
     def _compute_atkin_lehner_matrix(self, d):
         A = self.ambient_hecke_module()._compute_atkin_lehner_matrix(d)
@@ -135,6 +131,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
     def ambient_hecke_module(self):
         return self.__ambient
 
+    def ambient(self):
+        return self.__ambient
+
     def complement(self, bound=None):
         """
         Return the largest Hecke-stable complement of this space.
@@ -146,7 +145,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         if self.is_ambient():
             return self.ambient_hecke_module().zero_submodule()
 
-        if self.is_full_hecke_module(compute=False):
+        if self.is_full_hecke_module():
             anemic = False
         else:
             anemic = True
@@ -249,6 +248,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
 
     def free_module(self):
+        return self.__submodule
+
+    def module(self):
         return self.__submodule
 
     def intersection(self, other):
@@ -402,6 +404,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
 
     def rank(self):
         return self.__submodule.rank()
+
+    def dimension(self):
+        return self.rank()
 
     def submodule(self, M, Mdual=None, check=True):
         """

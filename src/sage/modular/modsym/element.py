@@ -111,9 +111,6 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
     def __neg__(self):
         return ModularSymbolsElement(self.parent(), -self.element())
 
-    def __pos__(self):
-        return self
-
     def __sub__(self, right):
         if self.parent() != right.parent():
             raise ArithmeticError, "parents must be the same"

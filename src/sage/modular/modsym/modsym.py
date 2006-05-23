@@ -102,7 +102,7 @@ def ModularSymbols(group  = 1,
 
     We create some spaces for $\Gamma_1(N)$.
         sage: ModularSymbols(Gamma1(13),2)
-        Full Modular Symbols space for Gamma_1(13) of weight 2 with sign 0 and dimension 15 over Rational Field
+        Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Rational Field
         sage: ModularSymbols(Gamma1(13),2, sign=1).dimension()
         13
         sage: ModularSymbols(Gamma1(13),2, sign=-1).dimension()

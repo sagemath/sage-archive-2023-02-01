@@ -36,7 +36,8 @@ import sage.modular.hecke.all as hecke
 import sage.modular.modsym.element
 import sage.structure.gens as gens
 import sage.rings.arith as arith
-from sage.rings.all import PowerSeriesRing, Integer, O
+from   sage.rings.all import PowerSeriesRing, Integer, O
+from   sage.structure.all import Sequence
 
 
 class ModularSymbolsSpace(hecke.HeckeModule_free_module):
@@ -96,23 +97,23 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def cuspidal_submodule(self):
         raise NotImplementedError
 
-##     def cuspidal_subspace(self):
-##         """
-##         Synonym for cuspidal_submodule.
-##         """
-##         return self.cuspidal_submodule()
+    def cuspidal_subspace(self):
+        """
+        Synonym for cuspidal_submodule.
+        """
+        return self.cuspidal_submodule()
 
-##     def new_subspace(self, p=None):
-##         """
-##         Synonym for new_submodule.
-##         """
-##         return self.new_submodule(p)
+    def new_subspace(self, p=None):
+        """
+        Synonym for new_submodule.
+        """
+        return self.new_submodule(p)
 
-##     def eisenstein_subspace(self):
-##         """
-##         Synonym for eisenstein_submodule.
-##         """
-##         return self.eisenstein_submodule()
+    def eisenstein_subspace(self):
+        """
+        Synonym for eisenstein_submodule.
+        """
+        return self.eisenstein_submodule()
 
     def dimension_of_associated_cuspform_space(self):
         if not self.is_cuspidal():
@@ -266,6 +267,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         else:
             self.__default_prec = Integer(prec)
 
+    def set_precision(self, prec):
+        """
+        Same as self.set_default_prec(prec).
+        """
+        self.set_default_prec(prec)
+
     def q_expansion_basis(self, prec=None, algorithm='default'):
         r"""
         Returns a basis of q-expansions (as power series) to precision
@@ -351,6 +358,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             prec = self.default_prec()
         else:
             prec = Integer(prec)
+
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be >= 1"%prec
 
         if not self.is_cuspidal():
             raise ArithmeticError, "space must be cuspidal"
@@ -492,6 +502,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
     def _q_expansion_basis_hecke_dual(self, prec):
         d = self.dimension_of_associated_cuspform_space()
+        prec = Integer(prec)
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be >= 1"%prec
         if d >= prec-1:
             d = prec-1
         K = self.base_ring()

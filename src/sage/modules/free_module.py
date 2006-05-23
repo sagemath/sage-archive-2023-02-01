@@ -267,7 +267,7 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         raise TypeError, "K must be a field"
     return FreeModule(K, dimension, sparse, inner_product_matrix)
 
-def span(R, gens):
+def span(R, gens, check=True, already_echelonized=False):
     """
     Return the $R$-span of gens.
 

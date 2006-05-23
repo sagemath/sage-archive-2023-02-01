@@ -10,11 +10,25 @@ Generic spaces of modular forms
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
+from sage.structure.all import Sequence
+
+import sage.modular.hecke.all as hecke
+import sage.modular.congroup as congroup
+import sage.modular.dirichlet as dirichlet
+import sage.rings.all as rings
+
+import defaults
+import element
+import hecke_operator_on_qexp
+import submodule
+
 class ModularFormsSpace(hecke.HeckeModule_generic):
     """
     A generic space of modular forms.
     """
-    def __init__(self, group, weight, character, base_field):
+    def __init__(self, group, weight, character, base_ring):
+        print "MODULAR FORMS ARE UNDER DEVELOPMENT"
+        print "DO *NOT* USE"
         if not isinstance(group, congroup.CongruenceSubgroup):
             raise TypeError, "group (=%s) must be a congruence subroup"%group
         weight = int(weight)
@@ -22,31 +36,305 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         #    raise TypeError, "weight must be an int"
         if not ((character is None) or isinstance(character, dirichlet.DirichletCharacter)):
             raise TypeError, "character must be a Dirichlet character"
-        if not isinstance(base_field, rings.Ring):
-            raise TypeError, "base_field must be a ring"
-        if not base_field.is_field():
-            raise ArithmeticError, "base_field must be a field."
-        self.__weight, self.__group, self.__character, self.__base_field = \
-                      weight, group, character, base_field
-        hecke.HeckeModule_generic.__init__(self, base_field, group.level())
+        if not isinstance(base_ring, rings.Ring):
+            raise TypeError, "base_ring must be a ring"
+        self.__weight, self.__group, self.__character, self.__base_ring = \
+                      weight, group, character, base_ring
+        hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
-    def ambient_space(self):
-        raise NotImplementedError   # do not implement this
+    def prec(self, new_prec=None):
+        return self.ambient().prec(new_prec)
+
+    def set_precision(self, new_prec):
+        self.ambient().set_precision(new_prec)
 
     def change_ring(self):
         raise NotImplementedError
 
-    def weight(self): return self.__weight
+    def weight(self):
+        return self.__weight
 
-    def group(self): return self.__group
+    def group(self):
+        return self.__group
 
-    def character(self): return self.__character
+    def character(self):
+        return self.__character
 
-    def base_field(self): return self.__base_field
+    def base_ring(self):
+        return self.__base_ring
 
-    def has_character(self): return self.character() != None
+    def has_character(self):
+        return self.character() != None
 
-    def is_ambient(self): raise NotImplementedError
+    def is_ambient(self):
+        raise NotImplementedError
+
+    def __normalize_prec(self, prec):
+        if prec is None:
+            prec = self.prec()
+        else:
+            prec = rings.Integer(prec)
+        if prec < 0:
+            raise ValueError, "prec (=%s) must be at least 0"%prec
+        return prec
+
+    def echelon_form(self):
+        r"""
+        Return a space of modular forms isomorphic to self but
+        with basis of $q$-expansions in reduced echelon form.
+
+        This is useful, e.g., since the default basis for ambient
+        spaces is not in echelon form, since it's the space of
+        cusp forms in echelon form followed by the Eisenstein
+        series in echelon form.
+
+        EXAMPLES:
+        We first illustrate two ambient spaces and their echelon forms.
+
+            sage: M = ModularForms(11)
+            sage: M.basis()
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6),
+            1 + 12/5*q + 36/5*q^2 + 48/5*q^3 + 84/5*q^4 + 72/5*q^5 + O(q^6)
+            ]
+            sage: M.echelon_form().basis()
+            [
+            1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + O(q^6),
+            q - 2*q^2 - q^3 + 2*q^4 + q^5 + O(q^6)
+            ]
+
+            sage: M = ModularForms(Gamma1(6),4)
+            sage: M.basis()
+            [
+            q - 2*q^2 - 3*q^3 + 4*q^4 + 6*q^5 + O(q^6),
+            1 + O(q^6),
+            q + 126*q^5 + O(q^6),
+            q^2 + O(q^6),
+            q^3 + O(q^6)
+            ]
+            sage: M.echelon_form().basis()
+            [
+            1 + O(q^6),
+            q + 126*q^5 + O(q^6),
+            q^2 + O(q^6),
+            q^3 + O(q^6),
+            q^4 - 30*q^5 + O(q^6)
+            ]
+
+        We create a space with a funny basis then compute the corresponding
+        echelon form.
+            sage: M = ModularForms(11,4)
+            sage: M.basis()
+            [
+            q + 3*q^3 - 6*q^4 - 7*q^5 + O(q^6),
+            q^2 - 4*q^3 + 2*q^4 + 8*q^5 + O(q^6),
+            1 + O(q^6),
+            q + 9*q^2 + 28*q^3 + 73*q^4 + 126*q^5 + O(q^6)
+            ]
+            sage: F = M.span_of_basis([M.0 + 1/3*M.1, M.2 + M.3]); F.basis()
+            [
+            q + 1/3*q^2 + 5/3*q^3 - 16/3*q^4 - 13/3*q^5 + O(q^6),
+            1 + q + 9*q^2 + 28*q^3 + 73*q^4 + 126*q^5 + O(q^6)
+            ]
+            sage: E = F.echelon_form(); E.basis()
+            [
+            1 + 26/3*q^2 + 79/3*q^3 + 235/3*q^4 + 391/3*q^5 + O(q^6),
+            q + 1/3*q^2 + 5/3*q^3 - 16/3*q^4 - 13/3*q^5 + O(q^6)
+            ]
+        """
+        try:
+            return self.__echelon_form
+        except AttributeError:
+            E = self.span_of_basis(self.echelon_basis())
+            self.__echelon_form = E
+            return E
+
+    def echelon_basis(self):
+        try:
+            return self.__echelon_basis
+        except AttributeError:
+            F = self.free_module()
+            W = self._q_expansion_module()
+            pr = W.degree()
+            B = self.q_echelon_basis(pr)
+            E = [self(F.linear_combination_of_basis(W.coordinates(f.padded_list(pr)))) \
+                              for f in B]
+            self.__echelon_basis = E
+            return E
+
+    def integral_basis(self):
+        try:
+            return self.__integral_basis
+        except AttributeError:
+            W = self._q_expansion_module()
+            pr = W.degree()
+            B = self.q_integral_basis(pr)
+            I = [self(W.coordinates(f.padded_list(pr))) for f in B]
+            self.__integral_basis = I
+            return I
+
+    def _q_expansion_module(self, prec=None):
+        try:
+            return self.__q_expansion_module
+        except AttributeError:
+            pass
+        if prec is None:
+            prec = int(1.2*self.dimension()) + 2
+        C = self.q_expansion_basis(prec)
+        V = self.base_ring()**prec
+        try:
+            W = V.span_of_basis([f.padded_list(prec) for f in C])
+        except AttributeError:
+            return self._q_expansion_module(self, 2*prec)
+        self.__q_expansion_module = W
+        return W
+
+    def q_expansion_basis(self, prec=None):
+        """
+        The number of q-expansions returned equals the dimension.
+
+        INPUT:
+            prec -- integer (>=0) or None
+
+        EXAMPLES:
+            sage: S = ModularForms(11,2).cuspidal_submodule()
+            sage: S.q_expansion_basis(5)
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + O(q^5)
+            ]
+            sage: S = ModularForms(1,24).cuspidal_submodule()
+            sage: S.q_expansion_basis(5)
+            [
+            q + 195660*q^3 + 12080128*q^4 + O(q^5),
+            q^2 - 48*q^3 + 1080*q^4 + O(q^5)
+            ]
+        """
+        prec = self.__normalize_prec(prec)
+        if prec == 0:
+            z = self._q_expansion_ring()(0,prec)
+            return Sequence([z]*int(self.dimension()), cr=True)
+        try:
+            current_prec, B = self.__q_expansion_basis
+        except AttributeError:
+            current_prec, B = -1, Sequence([], cr=True)
+        if current_prec == prec:
+            return B
+        elif current_prec > prec:
+            return Sequence([f.add_bigoh(prec) for f in B], cr=True)
+        B = self._compute_q_expansion_basis(prec)
+        z = self._q_expansion_ring()(0,prec)
+        B = B + [z]*(self.dimension() - len(B))
+        B = Sequence(B, immutable=True, cr=True)
+        self.__q_expansion_basis = (prec, B)
+        return B
+
+    def _compute_q_expansion_basis(self, prec):
+        raise NotImplementedError
+
+    def q_echelon_basis(self, prec=None):
+        r"""
+        Return the echelon form of the basis of $q$-expansions of self
+        up to precision prec.
+
+        The $q$-expansions are power series (not actual modular forms).
+        The number of $q$-expansions returned equals the dimension.
+        """
+        prec = self.__normalize_prec(prec)
+        if prec == 0:
+            z = self._q_expansion_ring()(0,0)
+            return Sequence([z]*int(self.dimension()), cr=True)
+        try:
+            current_prec, B = self.__q_echelon_basis
+        except AttributeError:
+            current_prec, B = -1, []
+        if current_prec == prec:
+            return B
+        elif current_prec > prec:
+            return Sequence([f.add_bigoh(prec) for f in B], cr=True)
+
+        B = self.q_expansion_basis(prec)
+        R = self.base_ring()
+        A = R**prec
+        gens = [f.padded_list(prec) for f in B]
+        C = A.span(gens)
+
+        T = self._q_expansion_ring()
+        S = [T(f.list(), prec) for f in C.basis()]
+        for _ in range(self.dimension() - len(S)):
+            S.append(T(0,prec))
+        S = Sequence(S, immutable=True, cr=True)
+        self.__q_echelon_basis = (prec, S)
+        return S
+
+
+
+    def q_integral_basis(self, prec=None):
+        r"""
+        Return a $\Z$-reduced echelon basis of $q$-expansions for self.
+
+        The $q$-expansions are power series with coefficients in $\Z$;
+        they are \emph{not} actual modular forms.
+
+        The base ring of self must be $\Q$.  The number of $q$-expansions
+        returned equals the dimension.
+
+        EXAMPLES:
+            sage: S = CuspForms(11,2)
+            sage: S.q_integral_basis(5)
+            [
+            q - 2*q^2 - q^3 + 2*q^4 + O(q^5)
+            ]
+        """
+        if not self.base_ring() == rings.QQ:
+            raise TypeError, "the base ring must be Q"
+        prec = self.__normalize_prec(prec)
+        R = rings.PowerSeriesRing(rings.ZZ, name=defaults.DEFAULT_VARIABLE)
+        if prec == 0:
+            z = R(0,prec)
+            return Sequence([z]*int(self.dimension()), cr=True)
+        try:
+            current_prec, B = self.__q_integral_basis
+        except AttributeError:
+            current_prec, B = -1, Sequence([], cr=True, immutable=True)
+
+        if current_prec == prec:
+            return B
+        elif current_prec > prec:
+            return Sequence([f.add_bigoh(prec) for f in B], cr=True)
+
+        B = self.q_expansion_basis(prec)
+
+        # It's over Q; we just need to intersect it with ZZ^n.
+        A = rings.ZZ**prec
+        zero = rings.ZZ(0)
+        gens = [f.padded_list(prec) for f in B]
+        C = A.span(gens)
+        D = C.saturation()
+        S = [R(f.list(),prec) for f in D.basis()]
+        for _ in range(self.dimension() - len(S)):
+            S.append(R(0,prec))
+        S = Sequence(S, immutable=True, cr=True)
+        self.__q_integral_basis = (prec, S)
+        return S
+
+    def _q_expansion_ring(self):
+        try:
+            return self.__q_expansion_ring
+        except AttributeError:
+            R = rings.PowerSeriesRing(self.base_ring(), name=defaults.DEFAULT_VARIABLE)
+            self.__q_expansion_ring = R
+            return R
+
+    def _q_expansion_zero(self):
+        try:
+            return self.__q_expansion_zero
+        except AttributeError:
+            f = self._q_expansion_ring()(0)
+            self.__q_expansion_zero = f
+            return f
+
+    def _q_expansion(self, element, prec):
+        return self.ambient_module()._q_expansion(element, prec)
 
     def __add__(self, right):
         if self.ambient_space() != right.ambient_space():
@@ -63,23 +351,31 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.intersect(right)
 
     def __call__(self, x, check=True):
-        if is_instance(x, ModularForm):
-            if x.parent() == self:
+        if isinstance(x, element.ModularFormElement):
+            if x.parent() is self:
                 return x
             if not check:
                 f = x.copy()
                 f.set_parent(self)
                 return f
-            assert NotImplementedError
-        return ModularFormElement(self, x, check=check)
+            raise TypeError, "unable to coerce x (= %s) into %s"%(x, self)
+        elif rings.is_PowerSeries(x):
+            W = self._q_expansion_module()
+            if W.degree() <= x.prec():
+                x = W.coordinates(x.padded_list(pr))
+            else:
+                raise TypeError, "q-expansion needed to at least precision %s"%W.degree()
+        if check:
+            x = self.free_module()(x)
+        return element.ModularFormElement(self, x)
 
     def __cmp__(self, x):
         if not isinstance(x, ModularFormsSpace):
             return -1
         if self.is_ambient() or x.is_ambient():
             if not (self.is_ambient() and x.is_ambient()): return -1
-            if (self.__group, self.__weight, self.__character, self.__base_field) == \
-               (x.__group, x.__weight, x.__character, x.__base_field):
+            if (self.__group, self.__weight, self.__character, self.__base_ring) == \
+               (x.__group, x.__weight, x.__character, x.__base_ring):
                 return 0
             else:
                 return -1
@@ -118,7 +414,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             n = dims.dimension_new_cusp_forms(eps.restrict(M), k)
             for t in arith.divisors(N/M):
                 basis = [V.gen(i+j) for j in range(n)]
-                print M, basis
                 if len(basis) > 0:
                     B.append((M, t, True, basis))
                 i += n
@@ -141,14 +436,69 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         self.__newspace_bases_list = B
         return self.__newspace_bases_list
 
+    def span_of_basis(self, B):
+        W = self._q_expansion_module()
+        F = self.free_module()
+        prec = W.degree()
+        C = [F.linear_combination_of_basis(W.coordinates(f.padded_list(prec))) for f in B]
+        S = F.span_of_basis(C)
+        return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
+
+    def span(self, B):
+        W = self._q_expansion_module()
+        F = self.free_module()
+        prec = W.degree()
+        C = [F.linear_combination_of_basis(W.coordinates(f.padded_list(prec))) for f in B]
+        S = F.span(C)
+        return submodule.ModularFormsSubmoduleWithBasis(self.ambient(), S)
+
     def __submodule_from_subset_of_basis(self, x):
         V = self.vector_space()
         return V.submodule([V.gen(i) for i in x], check=False)
 
+    def _compute_hecke_matrix_prime(self, p, prec=None):
+        """
+        EXAMPLES:
+            sage: M = ModularForms(11,2)
+            sage: M2 = M.span([M.0 + M.1])
+            sage: M2.hecke_matrix(2)
+               should raise arithmetic error since not invariant.
+        """
+        if prec is None:
+            # Initial guess -- will increase if need be.
+            prec = p*self.dimension() + 1
+        try:
+            cur, _ = self.__q_expansion_basis
+        except AttributeError:
+            pass
+        else:
+            if prec < cur:
+                prec = cur
+        B = self.q_expansion_basis(prec)
+        eps = self.character()
+        if eps is None:
+            raise NotImplementedError
+        try:
+            return hecke_operator_on_qexp.hecke_operator_on_basis(B, p,
+                       self.weight(), eps, already_echelonized=False)
+        except ArithmeticError:
+            # Double the precision.
+            return self._compute_hecke_matrix_prime(p, prec = 2*prec+1)
+
+
+    def _compute_hecke_matrix(self, n):
+        if hasattr(self, '_compute_q_expansion_basis'):
+            return hecke.HeckeModule_generic._compute_hecke_matrix(self, n)
+        else:
+            return hecke.HeckeSubmodule._compute_hecke_matrix(self, n)
+
     def basis(self):
-        if hasattr(self, "__basis"): return self.__basis
-        self.__basis = tuple([ModularFormElement(self, x, check=False) for \
-                        x in self.vector_space().basis()])
+        try:
+            return self.__basis
+        except AttributeError:
+            self.__basis = Sequence([element.ModularFormElement(self, x) for \
+                                  x in self.free_module().basis()], immutable=True,
+                                    cr = True)
         return self.__basis
 
     def gen(self, n):
@@ -233,6 +583,24 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             self.__is_cuspidal = True
         S.__is_eisenstein = (S.dimension()==0)
 
+    def cuspidal_subspace(self):
+        """
+        Synonym for cuspidal_submodule.
+        """
+        return self.cuspidal_submodule()
+
+    def new_subspace(self, p=None):
+        """
+        Synonym for new_submodule.
+        """
+        return self.new_submodule(p)
+
+    def eisenstein_subspace(self):
+        """
+        Synonym for eisenstein_submodule.
+        """
+        return self.eisenstein_submodule()
+
     def decomposition(self):
         """
 
@@ -302,9 +670,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return self.vector_space()
         return self.__embedded_submodule
 
-    def hecke_matrix(self, n):
-        raise NotImplementedError
-
     def intersect(self, right):
         if self.ambient_space() != right.ambient_space():
             raise ArithmeticError, "Intersection of %s and %s not defined."%\
@@ -323,6 +688,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     def level(self):
         return self.group().level()
 
-    def modular_symbols(self):
+    def modular_symbols(self, sign=0):
         raise NotImplementedError
 

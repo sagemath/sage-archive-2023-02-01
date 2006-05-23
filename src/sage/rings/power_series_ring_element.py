@@ -496,9 +496,11 @@ class PowerSeries_generic_dense(PowerSeries):
         PowerSeries.__init__(self, parent, prec, is_gen)
 
     def __call__(self, x):
-        if x.parent() == self.parent():
-            x = x.add_bigoh(self.prec()*x.valuation())
-            #x = x.parent()(x, self.prec()*x.valuation())  # truncate
+        try:
+            if x.parent() is self.parent():
+                x = x.add_bigoh(self.prec()*x.valuation())
+        except AttributeError:
+            pass
         return self.__f(x)
 
     def __setitem__(self, n, value):

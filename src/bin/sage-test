@@ -23,6 +23,10 @@ def abs(f):
 
 def skip(F):
     G = os.path.abspath(F)
+    i = G.rfind('/')
+    if os.path.exists('%s/nodoctest'%G[:i]):
+        print "%s (skipping) -- nodoctest file in directory"%abs(F)
+        return True
     if G == "all.py" or G == "__init__.py" \
           or G[0] == '.' or '/.' in G or \
           'doctest' in G or \

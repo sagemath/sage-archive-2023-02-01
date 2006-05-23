@@ -7,6 +7,7 @@ if len(sys.argv) != 2 or sys.argv[1][-4:]  != '.tar':
     sys.exit(1)
 
 tarball = sys.argv[1]
+version = tarball[5:-4]
 
 if not os.path.exists(tarball):
     print "%s: file %s does not exist"%(sys.argv[0], tarball)
@@ -15,10 +16,33 @@ r = tarball[:-4]
 if os.path.exists(r):
     os.system('rm -rf %s'%r)
 
-# extract
+# extract sage-x.y.z.tar
 os.system('tar -xvf %s'%tarball)
 
 
+
+############################################
+## Make any modifications to sage_scripts ##
+# Modify sage-make_relative, since we don't
+# need to make Python scripts relative for
+# the library install.
+#
+os.chdir('sage-%s'%version)
+sage_scripts = 'sage_scripts-%s'%version
+if os.system('tar -jxvf spkg/standard/%s.spkg'%sage_scripts):
+    raise RuntimeError, "Error extract %s.spkg"%sage_scripts
+F = open('%s/sage-make_relative'%sage_scripts,'w')
+F.write('#!/bin/sh\n')
+F.write('echo "Skipping making Python scripts relative."\n')
+F.close()
+if os.system('tar -jcvf spkg/standard/%s.spkg %s'%(sage_scripts, sage_scripts)):
+    raise RuntimeError, "Error creating modified %s.spkg"%sage_scripts
+os.system('rm -rf %s'%sage_scripts)
+os.chdir('..')
+
+
+
+############################################
 
 # read list of needed packages
 

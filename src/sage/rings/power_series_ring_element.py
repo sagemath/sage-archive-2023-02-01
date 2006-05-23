@@ -86,6 +86,31 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
     def list(self):
         raise NotImplementedError
 
+    def padded_list(self, n):
+        """
+        Return list of coefficients of self up to (but not include q^n).
+
+        Includes 0's in the list on the right so that the list has length n.
+
+        EXAMPLES:
+            sage: R.<q> = PowerSeriesRing(QQ)
+            sage: f = 1 - 17*q + 13*q^2 + 10*q^4 + O(q^7)
+            sage: f.list()
+            [1, -17, 13, 0, 10]
+            sage: f.padded_list(7)
+            [1, -17, 13, 0, 10, 0, 0]
+            sage: f.padded_list(10)
+            [1, -17, 13, 0, 10, 0, 0, 0, 0, 0]
+            sage: f.padded_list(3)
+            [1, -17, 13]
+        """
+        v = self.list()
+        if len(v) < n:
+            z = self.parent().base_ring()(0)
+            return v + [z]*(n - len(v))
+        else:
+            return v[:int(n)]
+
     def prec(self):
         """
         The precision of $...+O(x^r)$ is by definition $r$.

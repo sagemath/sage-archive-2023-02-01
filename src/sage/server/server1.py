@@ -5,6 +5,8 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] The whole interface needs to be slimmed down so bunches of single
+      line input (and output) will work.
    [] Ability to switch from one log (=workbook) to another via
       the web interface.
    [] The "move to the current input box" javascript *only* works
@@ -116,7 +118,8 @@ class IO_Line:
                  <textarea style="border: 0px;"
                    name='%s' bgcolor='%s' rows='%s'
                    cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
-        </td></tr></table></td></tr></table>
+        </td>
+        </tr></table></td></tr></table>
         <input type="hidden" id="ina%s" value="90,5">
          """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd, number)
 

@@ -1,17 +1,22 @@
 r"""nodoctest
 Use Matplotlib to draw graphics.
 
-Matplotlib is not included with SAGE.  Please download it from
+Matplotlib is included with \SAGE, but the version built with \sage
+doesn't have any GUI built by default.  Instead, we take care to make
+sure the backends (for producing png, eps, svg, etc.)  are built by
+default.  This is much easier -- getting matplotlib's GUI's to build
+in any configuration is nontrivial and greatly enhances the dependency
+requirements for \SAGE.  Supporting the backends though is easy, and is
+all that we need for, e.g., producing graphs that will be embedded in
+the web browser interface to \SAGE.
 
-        http://matplotlib.sourceforge.net/
-
-and install it into your SAGE environment.  Be sure to use the Python
-interpreter in your SAGE build tree, not one that is global to your
-system.  Matplotlib depends on Numeric or Numarray and some GUI
-toolkits, and as such is not trivial to install.
-
-\note{There is a also a special startup script for SAGE that works
-much better with Matplotlib, but which hasn't been released.}
+We spent a lot of time deciding between matplotlib and gnuplot as the
+canonical ``included with SAGE'' graphing system.  Gnuplot lost
+primarily because of its non-GPL compatible license, which basically
+disqualified it from further consideration for being in the core of
+SAGE.  Matplotlib produces very beautiful graphics, so I'm quite happy
+to go with it though, and it's nice that the code is all Python so
+very readable.
 """
 
 #*****************************************************************************

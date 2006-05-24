@@ -519,7 +519,7 @@ cdef class Rational(element.FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to complex numbers first.
+            Coerce your numbers to real or complex numbers first.
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):

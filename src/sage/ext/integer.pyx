@@ -597,7 +597,7 @@ cdef class Integer(element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to complex numbers first.
+            Coerce your numbers to real or complex numbers first.
         """
         cdef Integer _self, _n
         cdef unsigned int _nval

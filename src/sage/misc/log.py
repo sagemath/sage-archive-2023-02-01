@@ -80,6 +80,13 @@ if os.uname()[0] == "Darwin":
     BROWSER = 'sage-open'
     PDF_VIEWER = 'sage-open'
 
+elif os.uname()[0][:6] == "CYGWIN":
+    BROWSER = '/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe'
+    if not os.path.exists(BROWSER):
+        BROWSER='/cygdrive/c/WINDOWS/system32/dllcache/iexplore.exe'
+    PDF_VIWER = BROWSER
+    DVI_VIWER = BROWSER
+
 else:
 
     # Try to get something from the environment on other OS's.
@@ -313,7 +320,7 @@ class log_html(Log):
             viewer = self._viewer
         else:
             viewer = BROWSER
-        os.system('%s %s&'%(viewer, self._filename))
+        os.system('"%s" "%s"&'%(viewer, self._filename))
 
     def _build(self):
         return
@@ -544,7 +551,7 @@ class log_html_mathml(log_dvi):
             viewer = BROWSER
         self._build()
 
-        os.system('%s  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
+        os.system('"%s"  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
 
     def _filename(self):
         return 'sagelog.tex'

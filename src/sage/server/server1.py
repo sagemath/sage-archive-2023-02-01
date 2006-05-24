@@ -518,7 +518,11 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
     fulltext_log = ''
     if log is None and (not name is None) and \
            (os.path.exists(name) or os.path.exists(name + '.sobj')):
-        log = load(name)
+        try:
+            log = load(name)
+        except IOError:
+            print "Unable to load log %s (creating new log)"%name
+
     if log is None:
         current_log = Log()
     else:

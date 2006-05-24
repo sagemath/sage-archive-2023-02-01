@@ -35,13 +35,14 @@ We combine together different graphics objects using "+":
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
 
 We can put text in a graph:
-    L = [[cos(pi*i/100)^3,sin(pi*i/100)] for i in range(200)]
-    p = line(L, rgbcolor=(1/4,1/8,3/4))
-    t = text('A Bulb', (1.5, 0.25))
-    x = text('x axis', (1.5,-0.2))
-    y = text('y axis', (0.4,0.9))
-    g = p+t+x+y
-    g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
+
+    sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)] for i in range(200)]
+    sage: p = line(L, rgbcolor=(1/4,1/8,3/4))
+    sage: t = text('A Bulb', (1.5, 0.25))
+    sage: x = text('x axis', (1.5,-0.2))
+    sage: y = text('y axis', (0.4,0.9))
+    sage: g = p+t+x+y
+    sage: g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
 
 AUTHORS:

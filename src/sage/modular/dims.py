@@ -237,15 +237,6 @@ def dimension_cusp_forms_eps(eps, k=2):
 
     OUTPUT:
         integer -- the dimension
-
-    EXAMPLES:
-        sage: e = DirichletGroup(13).0
-        sage: e.order()
-        12
-        sage: dimension_cusp_forms_eps(e,2)
-        0
-        sage: dimension_cusp_forms_eps(e^2,2)
-        1
     """
     if isinstance(eps, (int,long) ):
         return dimension_cusp_forms_gamma0(eps,k)
@@ -283,31 +274,6 @@ def dimension_eis_eps(eps, k=2):
 
     OUTPUT:
         integer -- the dimension
-
-    EXAMPLES:
-        sage: e = DirichletGroup(13).0
-        sage: e.order()
-        12
-        sage: dimension_eis_eps(e,2)
-        0
-        sage: dimension_eis_eps(e^2,2)
-        2
-        sage: dimension_eis_eps(e,13)
-        2
-
-        sage: G = DirichletGroup(20)
-        sage: dimension_eis_eps(G.0,3)
-        4
-        sage: dimension_eis_eps(G.1,3)
-        6
-        sage: dimension_eis_eps(G.1^2,2)
-        6
-
-        sage: e = prod(DirichletGroup(200).gens())
-        sage: e.conductor()
-        200
-        sage: dimension_eis_eps(e,2)
-        4
     """
     if isinstance(eps, (int,long) ):
         return dimension_eis_gamma0(eps,k)
@@ -353,26 +319,6 @@ def dimension_cusp_forms_gamma0(N,k=2):
 
     OUTPUT:
         integer -- the dimension
-
-    EXAMPLES:
-        sage: dimension_cusp_forms_gamma0(11,2)
-        1
-        sage: dimension_cusp_forms_gamma0(11,0)
-        0
-        sage: dimension_cusp_forms_gamma0(1,12)
-        1
-        sage: dimension_cusp_forms_gamma0(1,2)
-        0
-        sage: dimension_cusp_forms_gamma0(1,4)
-        0
-        sage: dimension_cusp_forms_gamma0(389,2)
-        32
-        sage: dimension_cusp_forms_gamma0(389,4)
-        97
-        sage: dimension_cusp_forms_gamma0(2005,2)
-        199
-        sage: dimension_cusp_forms_gamma0(11,1)
-        0
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -396,25 +342,6 @@ def dimension_cusp_forms_gamma1(N,k=2):
         integer -- the dimension
 
     EXAMPLES:
-        sage: dimension_cusp_forms_gamma1(11,2)
-        1
-        sage: dimension_cusp_forms_gamma1(1,12)
-        1
-        sage: dimension_cusp_forms_gamma1(1,2)
-        0
-        sage: dimension_cusp_forms_gamma1(1,4)
-        0
-        sage: dimension_cusp_forms_gamma1(389,2)
-        6112
-        sage: dimension_cusp_forms_gamma1(389,4)
-        18721
-        sage: dimension_cusp_forms_gamma1(2005,2)
-        159201
-
-        sage: dimension_cusp_forms_gamma1(11,1)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: computation of dimensions of spaces of weight 1 modular forms not implemented in general.
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -430,61 +357,6 @@ def dimension_cusp_forms_gamma1(N,k=2):
     #    return 0
     return Z(S1(N,k))
 
-def dimension_cusp_forms(group, k=2):
-    r"""
-    The dimension of the space of cusp forms for the given congruence
-    subgroup or Dirichlet character.
-
-    EXAMPLES:
-        sage: dimension_cusp_forms(Gamma0(11),2)
-        1
-        sage: dimension_cusp_forms(Gamma1(13),2)
-        2
-        sage: dimension_cusp_forms(DirichletGroup(13).0^2,2)
-        1
-        sage: dimension_cusp_forms(DirichletGroup(13).0,3)
-        1
-    """
-    if isinstance(group, dirichlet.DirichletCharacter):
-        return dimension_cusp_forms_eps(group, k)
-    if not isinstance(group, congroup.CongruenceSubgroup):
-        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
-    if isinstance(group, congroup.Gamma0):
-        return dimension_cusp_forms_gamma0(group.level(),k)
-    elif isinstance(group, congroup.Gamma1):
-        return dimension_cusp_forms_gamma1(group.level(),k)
-    else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
-        Gamma0 and Gamma1 is not yet implemented."
-
-def dimension_eis(group, k=2):
-    """
-    The dimension of the space of eisenstein series for the given
-    congruence subgroup.
-
-    EXAMPLES:
-        sage: dimension_eis(Gamma0(11),2)
-        1
-        sage: dimension_eis(Gamma1(13),2)
-        11
-    """
-    if k <= 1:
-        # TODO
-        raise NotImplementedError, "Dimension of weight <= 1 Eisenstein series not yet implemented."
-    if isinstance(group, dirichlet.DirichletCharacter):
-        return dimension_eis_eps(group, k)
-    if isinstance(group, congroup.Gamma0):
-        if k%2 == 1: return 0
-        d = c0(group.level())
-        if k==2: d -= 1
-        return Z(d)
-    elif isinstance(group, congroup.Gamma1):
-        d = c1(group.level())
-        if k==2: d -= 1
-        return Z(d)
-    else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides " + \
-              "Gamma0 and Gamma1 is not yet implemented."
 
 def mumu(N):
     assert N>=1
@@ -496,34 +368,10 @@ def mumu(N):
             p *= -2
     return Z(p)
 
-def dimension_modular_forms(group, k=2):
-    r"""
-    The dimension of the space of cusp forms for the given congruence
-    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$) or Dirichlet
-    character.
-
-    EXAMPLES:
-        sage: dimension_cusp_forms(Gamma0(11),2)
-        1
-        sage: dimension_cusp_forms(Gamma1(13),2)
-        2
-        sage: e = DirichletGroup(20).1
-        sage: dimension_modular_forms(e,3)
-        9
-    """
-    if not isinstance(group, congroup.CongruenceSubgroup) and \
-         not isinstance(group, dirichlet.DirichletCharacter):
-        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
-    return dimension_cusp_forms(group, k) + dimension_eis(group, k)
-
 def dimension_new_cusp_forms_gamma0(N, k=2, p=0):
     r"""
     Dimension of the p-new subspace of $S_k(\Gamma_0(N))$.
     If $p=0$, dimension of the new subspace.
-
-    EXAMPLES:
-        sage: dimension_new_cusp_forms_gamma0(100,2)
-        1
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -544,10 +392,6 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     Return the dimension of the $p$-new subspace of
     $S_k(\Gamma_1(N))$.  If $p=0$, return the dimension of the new
     subspace.
-
-    EXAMPLES:
-        sage: dimension_new_cusp_forms_gamma1(100,2)
-        141
     """
     if N <= 0:
         raise ArithmeticError, "the level N (=%s) must be positive"%N
@@ -564,7 +408,7 @@ def dimension_new_cusp_forms_gamma1(N,k=2,p=0):
     return dimension_new_cusp_forms_gamma1(N,k) - \
            2*dimension_new_cusp_forms_gamma1(N//p,k)
 
-def dimension_new_cusp_forms_group(group, k=2):
+def dimension_new_cusp_forms_group(group, k=2, p=0):
     """
     Return the dimension of the new space of cusp forms for the
     congruence subgroup group.
@@ -572,14 +416,15 @@ def dimension_new_cusp_forms_group(group, k=2):
     assert isinstance(group, congroup.CongruenceSubgroup), \
            "Argument 1 must be a congruence subgroup."
     if isinstance(group, congroup.Gamma0):
-        return dimension_new_cusp_forms_gamma0(group.level(),k)
+        return dimension_new_cusp_forms_gamma0(group.level(), k, p)
     elif isinstance(group, congroup.Gamma1):
-        return dimension_new_cusp_forms_gamma1(group.level(),k)
+        return dimension_new_cusp_forms_gamma1(group.level(), k, p)
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
         Gamma0 and Gamma1 is not yet implemented."
 
-def dimension_new_cusp_forms(eps, k=2, p=None):
+
+def dimension_new_cusp_forms_eps(eps, k=2, p=0):
     """
     Dimension of the new subspace (or p-new subspace) of cusp forms of
     weight k and character eps.
@@ -602,7 +447,7 @@ def dimension_new_cusp_forms(eps, k=2, p=None):
 
 
     N = eps.modulus()
-    if p is None or N%p != 0 or valuation(eps.conductor(),p) == valuation(N,p):
+    if p == 0 or N%p != 0 or valuation(eps.conductor(),p) == valuation(N,p):
         D = [eps.conductor()*d for d in divisors(N//eps.conductor())]
         return sum([dimension_cusp_forms_eps(eps.restrict(M), k)*mumu(N//M) for M in D])
     eps_p = eps.restrict(N//p)
@@ -611,4 +456,224 @@ def dimension_new_cusp_forms(eps, k=2, p=None):
 
 
 
+
+####################################################################
+# Exported Functions
+####################################################################
+
+def dimension_new_cusp_forms(X, k=2, p=0):
+    """
+    Return the dimension of the new (or p-new) subspace of
+    cusp forms for the character or group X.
+
+    INPUT:
+        X -- congruence subgroup or Dirichlet character
+        k -- weight (integer)
+        p -- 0 or a prime
+
+    EXAMPLES:
+        sage: dimension_new_cusp_forms(Gamma0(100),2)
+        1
+        sage: dimension_new_cusp_forms(Gamma0(100),4)
+        5
+
+        sage: dimension_new_cusp_forms(Gamma1(100),2)
+        141
+        sage: dimension_new_cusp_forms(Gamma1(100),4)
+        463
+
+        sage: dimension_new_cusp_forms(DirichletGroup(100).1^2,2)
+        2
+        sage: dimension_new_cusp_forms(DirichletGroup(100).1^2,4)
+        8
+
+        sage: sum(dimension_new_cusp_forms(e,3) for e in DirichletGroup(30))
+        12
+        sage: dimension_new_cusp_forms(Gamma1(30),3)
+        12
+    """
+    if isinstance(X, congroup.CongruenceSubgroup):
+        return dimension_new_cusp_forms_group(X,k,p)
+    elif isinstance(X, dirichlet.DirichletCharacter):
+        return dimension_new_cusp_forms_eps(X,k,p)
+    else:
+        raise TypeError, "X (=%s) must be a congruence subgroup or Diirichlet character"%X
+
+def dimension_cusp_forms(X, k=2):
+    r"""
+    The dimension of the space of cusp forms for the given congruence
+    subgroup or Dirichlet character.
+
+    INPUT:
+        X -- congruence subgroup or Dirichlet character
+        k -- weight (integer)
+
+    EXAMPLES:
+        sage: dimension_cusp_forms(Gamma0(11),2)
+        1
+        sage: dimension_cusp_forms(Gamma1(13),2)
+        2
+
+        sage: dimension_cusp_forms(DirichletGroup(13).0^2,2)
+        1
+        sage: dimension_cusp_forms(DirichletGroup(13).0,3)
+        1
+
+        sage: dimension_cusp_forms(Gamma0(11),2)
+        1
+        sage: dimension_cusp_forms(Gamma0(11),0)
+        0
+        sage: dimension_cusp_forms(Gamma0(1),12)
+        1
+        sage: dimension_cusp_forms(Gamma0(1),2)
+        0
+        sage: dimension_cusp_forms(Gamma0(1),4)
+        0
+
+        sage: dimension_cusp_forms(Gamma0(389),2)
+        32
+        sage: dimension_cusp_forms(Gamma0(389),4)
+        97
+        sage: dimension_cusp_forms(Gamma0(2005),2)
+        199
+        sage: dimension_cusp_forms(Gamma0(11),1)
+        0
+
+        sage: dimension_cusp_forms(Gamma1(11),2)
+        1
+        sage: dimension_cusp_forms(Gamma1(1),12)
+        1
+        sage: dimension_cusp_forms(Gamma1(1),2)
+        0
+        sage: dimension_cusp_forms(Gamma1(1),4)
+        0
+
+        sage: dimension_cusp_forms(Gamma1(389),2)
+        6112
+        sage: dimension_cusp_forms(Gamma1(389),4)
+        18721
+        sage: dimension_cusp_forms(Gamma1(2005),2)
+        159201
+
+        sage: dimension_cusp_forms(Gamma1(11),1)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: computation of dimensions of spaces of weight 1 modular forms not implemented in general.
+
+        sage: e = DirichletGroup(13).0
+        sage: e.order()
+        12
+        sage: dimension_cusp_forms(e,2)
+        0
+        sage: dimension_cusp_forms(e^2,2)
+        1
+    """
+    if isinstance(X, dirichlet.DirichletCharacter):
+        return dimension_cusp_forms_eps(X, k)
+    if not isinstance(X, congroup.CongruenceSubgroup):
+        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
+    if isinstance(X, congroup.Gamma0):
+        return dimension_cusp_forms_gamma0(X.level(),k)
+    elif isinstance(X, congroup.Gamma1):
+        return dimension_cusp_forms_gamma1(X.level(),k)
+    else:
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
+        Gamma0 and Gamma1 is not yet implemented."
+
+def dimension_eis(X, k=2):
+    """
+    The dimension of the space of eisenstein series for the given
+    congruence subgroup.
+
+    INPUT:
+        X -- congruence subgroup or Dirichlet character
+        k -- weight (integer)
+
+    EXAMPLES:
+        sage: dimension_eis(Gamma0(11),2)
+        1
+        sage: dimension_eis(Gamma1(13),2)
+        11
+        sage: dimension_eis(Gamma1(2006),2)
+        3711
+
+        sage: e = DirichletGroup(13).0
+        sage: e.order()
+        12
+        sage: dimension_eis(e,2)
+        0
+        sage: dimension_eis(e^2,2)
+        2
+
+        sage: e = DirichletGroup(13).0
+        sage: e.order()
+        12
+        sage: dimension_eis(e,2)
+        0
+        sage: dimension_eis(e^2,2)
+        2
+        sage: dimension_eis(e,13)
+        2
+
+        sage: G = DirichletGroup(20)
+        sage: dimension_eis(G.0,3)
+        4
+        sage: dimension_eis(G.1,3)
+        6
+        sage: dimension_eis(G.1^2,2)
+        6
+
+        sage: e = prod(DirichletGroup(200).gens())
+        sage: e.conductor()
+        200
+        sage: dimension_eis(e,2)
+        4
+    """
+    if k <= 1:
+        # TODO
+        raise NotImplementedError, "Dimension of weight <= 1 Eisenstein series not yet implemented."
+    if isinstance(X, dirichlet.DirichletCharacter):
+        return dimension_eis_eps(X, k)
+    if isinstance(X, congroup.Gamma0):
+        if k%2 == 1: return 0
+        d = c0(X.level())
+        if k==2: d -= 1
+        return Z(d)
+    elif isinstance(X, congroup.Gamma1):
+        d = c1(X.level())
+        if k==2: d -= 1
+        return Z(d)
+    else:
+        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides " + \
+              "Gamma0 and Gamma1 is not yet implemented."
+
+
+def dimension_modular_forms(X, k=2):
+    r"""
+    The dimension of the space of cusp forms for the given congruence
+    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$) or Dirichlet
+    character.
+
+    INPUT:
+        X -- congruence subgroup or Dirichlet character
+        k -- weight (integer)
+
+    EXAMPLES:
+        sage: dimension_modular_forms(Gamma0(11),2)
+        2
+        sage: dimension_modular_forms(Gamma1(13),2)
+        13
+
+        sage: e = DirichletGroup(20).1
+        sage: dimension_modular_forms(e,3)
+        9
+        sage: dimension_cusp_forms(e,3)
+        3
+        sage: dimension_eis(e,3)
+        6
+    """
+    if not isinstance(X, congroup.CongruenceSubgroup) and \
+         not isinstance(X, dirichlet.DirichletCharacter):
+        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
+    return dimension_cusp_forms(X, k) + dimension_eis(X, k)
 

@@ -81,9 +81,10 @@ if os.uname()[0] == "Darwin":
     PDF_VIEWER = 'sage-open'
 
 elif os.uname()[0][:6] == "CYGWIN":
-    BROWSER = '/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe'
-    if not os.path.exists(BROWSER):
-        BROWSER='/cygdrive/c/WINDOWS/system32/dllcache/iexplore.exe'
+    #BROWSER = '/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe'
+    #if not os.path.exists(BROWSER):
+    #    BROWSER='/cygdrive/c/WINDOWS/system32/dllcache/iexplore.exe'
+    BROWSER="rundll32.exe url.dll,FileProtocolHandler"
     PDF_VIWER = BROWSER
     DVI_VIWER = BROWSER
 
@@ -551,7 +552,7 @@ class log_html_mathml(log_dvi):
             viewer = BROWSER
         self._build()
 
-        os.system('"%s"  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
+        os.system('%s  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))
 
     def _filename(self):
         return 'sagelog.tex'

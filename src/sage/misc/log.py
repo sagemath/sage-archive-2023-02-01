@@ -55,6 +55,7 @@ import misc
 
 import sage.plot.all
 
+from   sage.misc.viewer  import BROWSER, DVI_VIEWER, PDF_VIEWER
 
 offset = 0
 loggers = []
@@ -63,47 +64,6 @@ def update():
     for X in loggers:
         X._update()
 
-try:
-    PDF_VIEWER = os.environ['PDF_VIEWER']
-except KeyError:
-    PDF_VIEWER = 'acroread'
-
-# Set the browsers and viewers.
-
-if os.uname()[0] == "Darwin":
-
-    # Simple on OS X, since there is an open command that opens
-    # anything, using the user's preferences.
-    # sage-open -- a wrapper around OS X open that
-    # turns off any of SAGE's special library stuff.
-    DVI_VIEWER = 'sage-open'
-    BROWSER = 'sage-open'
-    PDF_VIEWER = 'sage-open'
-
-elif os.uname()[0][:6] == "CYGWIN":
-    #BROWSER = '/cygdrive/c/Program Files/Mozilla Firefox/firefox.exe'
-    #if not os.path.exists(BROWSER):
-    #    BROWSER='/cygdrive/c/WINDOWS/system32/dllcache/iexplore.exe'
-    BROWSER="rundll32.exe url.dll,FileProtocolHandler"
-    PDF_VIWER = BROWSER
-    DVI_VIWER = BROWSER
-
-else:
-
-    # Try to get something from the environment on other OS's.
-
-    try:
-        DVI_VIEWER = os.environ['DVI_VIEWER']
-    except KeyError:
-        DVI_VIEWER = 'xdvi -s 5'
-    try:
-	BROWSER = os.environ['BROWSER']
-    except KeyError:
-        BROWSER = 'firefox'
-
-def browser():
-    global BROWSER
-    return BROWSER
 
 REFRESH = ''
 

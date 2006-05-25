@@ -435,49 +435,72 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
                 for k in range(d+1)]
         return Polynomial(self.parent(), w)
 
-    def _mul_fateman(self,right):
-        """
-        Returns the product of two polynomials using Kronecker's
-        trick to do the multiplication.  This could be used
-        used over a generic base ring.
+    def _mul_fateman(self, right):
+        r"""
+        Returns the product of two polynomials using Kronecker's trick
+        to do the multiplication.  This could be used used over a
+        generic base ring.
+
+        NOTES:
+        \begin{itemize}
+          \item Since this is implemented in interpreted Python, it
+                could be hugely sped up by reimplementing it in Pyrex.
+          \item Over the reals there is precision loss, at least in
+                the current implementation.
+        \end{itemize}
 
         INPUT:
-           self: Polynomial
-           right: Polynomial (over same base ring as self)
+           self -- Polynomial
+           right -- Polynomial (over same base ring as self)
 
         OUTPUT: Polynomial
            The product self*right.
 
         ALGORITHM:
         Based on a paper by R. Fateman
-        http://www.cs.berkeley.edu/~fateman/papers/polysbyGMP.pdf
-        The idea is to encode dense univariate
-        polynomials as big integers, instead of sequences of
-        coefficients. The paper argues that because integer
-        multiplication is so cheap, that encoding 2 polynomials
-        to big numbers and then decoding the result might
-        be faster than popular multiplication algorithms.
+
+          {\tt http://www.cs.berkeley.edu/~fateman/papers/polysbyGMP.pdf}
+
+        The idea is to encode dense univariate polynomials as big
+        integers, instead of sequences of coefficients. The paper
+        argues that because integer multiplication is so cheap, that
+        encoding 2 polynomials to big numbers and then decoding the
+        result might be faster than popular multiplication algorithms.
         This seems true when the degree is larger than 200.
-        Timings (P4):
-        sage: y = PolynomialRing(RealField()).gen() ; f= sum([(random())*14323200*y**i for i in range(1,600)])  ;
-        sage: %time f._mul_karatsuba(f);
-        CPU times: user 1.84 s, sys: 0.00 s, total: 1.84 s
-        Wall time: 1.85
-        sage: %time f._mul_fateman(g);
-        CPU times: user 1.25 s, sys: 0.07 s, total: 1.31 s
-        Wall time: 1.32
+
+        EXAMPLES:
+            sage: S.<y> = PolynomialRing(RR)
+            sage: f = y^10 - 1.393493*y + 0.3
+            sage: f._mul_karatsuba(f)
+            1.0000000000000000*y^20 - 2.7869860000000002*y^11 + 0.60000000000000031*y^10 + 0.00000000000000011102230246251565*y^8 - 0.00000000000000011102230246251565*y^6 - 0.00000000000000011102230246251565*y^3 + 1.9418227410490003*y^2 - 0.83609580000000017*y + 0.089999999999999997
+            sage: f._mul_fateman(f)
+            1.0000000000000000*y^20 - 2.7869860000000002*y^11 + 0.59999999999999998*y^10 + 1.9418227410490003*y^2 - 0.83609580000000006*y + 0.089999999999999997
 
         Advantages:
-        * Faster than Karatsuba over Q and Z
-        * Potentially less complicated :)
+
+        \begin{itemize}
+
+        \item Faster than Karatsuba over $\Q$ and $\Z$
+             (but much slower still than calling NTL's
+             optimized C++ implementation, which is the
+             default over $\Z$)
+
+        \item Potentially less complicated.
+
+        \end{itemize}
 
         Drawbacks:
-        * slower over R when the degree of both of polynomials is less
-          than 250 (roughly)
-        * Over R, results may not be as accurate as the Karatsuba
-          case. This is because we represent coefficients of
-          polynomials over R as fractions, then convert them back to
-          floating-point numbers.
+        \begin{itemize}
+        \item Slower over R when the degree of both of polynomials is less
+              than 250 (roughly).
+        \item Over R, results may not be as accurate as the Karatsuba
+              case. This is because we represent coefficients of
+              polynomials over R as fractions, then convert them back to
+              floating-point numbers.
+        \end{itemize}
+
+        AUTHOR:
+           -- Didier Deshommes (2006-05-25)
         """
         def to_int2(f_list,g_list):
             """

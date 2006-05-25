@@ -58,6 +58,15 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 
 from coerce import bin_op
 
+from real_field import RealField, is_RealNumber
+RR = RealField()
+
+# Faster than SAGE's
+from math import log as pylog
+from math import ceil as pyceil
+from math import floor as pyfloor
+from arith import gcd
+
 QQ = rational_field.RationalField()
 
 ZZ = integer_ring.IntegerRing()
@@ -425,6 +434,127 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
                   i <= d1 and k-i <= d2 and self[i]!=0 and right[k-i]!=0]) \
                 for k in range(d+1)]
         return Polynomial(self.parent(), w)
+
+    def _mul_fateman(self,right):
+        """
+        Returns the product of two polynomials using Kronecker's
+        trick to do the multiplication.  This could be used
+        used over a generic base ring.
+
+        INPUT:
+           self: Polynomial
+           right: Polynomial (over same base ring as self)
+
+        OUTPUT: Polynomial
+           The product self*right.
+
+        ALGORITHM:
+        Based on a paper by R. Fateman
+        http://www.cs.berkeley.edu/~fateman/papers/polysbyGMP.pdf
+        The idea is to encode dense univariate
+        polynomials as big integers, instead of sequences of
+        coefficients. The paper argues that because integer
+        multiplication is so cheap, that encoding 2 polynomials
+        to big numbers and then decoding the result might
+        be faster than popular multiplication algorithms.
+        This seems true when the degree is larger than 200.
+        Timings (P4):
+        sage: y = PolynomialRing(RealField()).gen() ; f= sum([(random())*14323200*y**i for i in range(1,600)])  ;
+        sage: %time f._mul_karatsuba(f);
+        CPU times: user 1.84 s, sys: 0.00 s, total: 1.84 s
+        Wall time: 1.85
+        sage: %time f._mul_fateman(g);
+        CPU times: user 1.25 s, sys: 0.07 s, total: 1.31 s
+        Wall time: 1.32
+
+        Advantages:
+        * Faster than Karatsuba over Q and Z
+        * Potentially less complicated :)
+
+        Drawbacks:
+        * slower over R when the degree of both of polynomials is less
+          than 250 (roughly)
+        * Over R, results may not be as accurate as the Karatsuba
+          case. This is because we represent coefficients of
+          polynomials over R as fractions, then convert them back to
+          floating-point numbers.
+        """
+        def to_int2(f_list,g_list):
+            """
+            Convert an polynomial to an integer by evaluating it
+            INPUT: p, a list of integers
+            OUTPUT: padding
+            """
+            max_coeff_f = max([abs(i) for i in f_list])
+            max_coeff_g = max([abs(i) for i in g_list])
+            b = (1+min(len(f_list),len(g_list)))*max_coeff_f*max_coeff_g
+            return int(pyceil(pylog(b,2)))
+
+        def to_poly(number,padding):
+            """
+            Converts a number to a polynomial, according
+            to a padding
+            OUTPUT: a list containing the coefficient of
+            a polynomial of degree len(list)
+
+            """
+            coeffs = []
+            flag=0
+            append = coeffs.append
+            if number < 0:
+                number = -number
+                flag=1
+
+            while number > 0:
+                r =  number%(1<<padding)
+                number = (number-r) >> padding
+                if r > (1<<(padding-1)):
+                    r -= 1<<padding
+                    number+=1
+                append(r)
+
+            if flag==1:
+                return [-c for c in coeffs]
+            return coeffs
+        def mul(f,g):
+            """
+            Multiply 2 polynomials
+            """
+
+            f=f.base_extend(QQ)
+            g=g.base_extend(QQ)
+
+            f_list = f.list()
+            g_list = g.list()
+
+            # If these polynomials have real
+            # coefficients, convert them to
+            # rational coeficients.
+            # Note: no precision is lost in this
+            # direction
+
+            fgcd = gcd(f_list)
+            ggcd = gcd(g_list)
+
+            # Need to change ring to ZZ
+            z_poly_f=(f*fgcd.denominator()).base_extend(ZZ)
+            z_poly_g=(g*ggcd.denominator()).base_extend(ZZ)
+
+            div = 1/(fgcd.denominator()*ggcd.denominator())
+
+            z_poly_f_list = z_poly_f.coeffs()
+            z_poly_g_list = z_poly_g.coeffs()
+            padding = to_int2(z_poly_f_list,z_poly_g_list)
+
+            n_f = z_poly_f(1<<padding)
+            n_g = z_poly_g(1<<padding)
+
+            if div == 1: return to_poly(n_f*n_g,padding)
+            #return to_poly(n_f*n_g,padding)
+            else:
+                l=to_poly(n_f*n_g,padding)
+                return [QQ(i*div) for i in l]
+        return self.parent()(mul(self,right))
 
     def _mul_karatsuba(self, right):
         r"""

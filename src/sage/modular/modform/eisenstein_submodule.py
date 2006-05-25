@@ -8,6 +8,7 @@ EXAMPLES:
 from sage.structure.all import Sequence
 from sage.misc.all import verbose
 import sage.rings.all as rings
+from sage.categories.all import Objects
 
 import eis_series
 import element
@@ -143,7 +144,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             E = Sequence([element.EisensteinSeries(self.change_ring(chi.base_ring()),
                                                       None, t, chi, psi) for \
                                               chi, psi, t in P], immutable=True,
-                         cr = True)
+                         cr = True, universe=Objects())
             assert len(E) == self.dimension(), "bug in enumeration of Eisenstein series."
             self.__eisenstein_series = E
             return E

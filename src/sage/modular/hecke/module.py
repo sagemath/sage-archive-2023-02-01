@@ -459,7 +459,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         T = self.ambient_hecke_module().hecke_algebra()
         if bound is None:
             bound = self.hecke_bound()
-        D = Sequence([])
+        D = Sequence([], cr=True)
         U = [self.free_module()]
         if compute_dual:
             Udual = [self.free_module()]

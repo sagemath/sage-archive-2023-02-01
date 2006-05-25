@@ -374,6 +374,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         if isinstance(x, element.ModularFormElement):
             if x.parent() is self:
                 return x
+
             if not check:
                 f = x.copy()
                 f.set_parent(self)

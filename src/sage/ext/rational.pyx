@@ -154,6 +154,25 @@ cdef class Rational(element.FieldElement):
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
 
+        elif isinstance(x, mpfr.RealNumber):
+            if x == 0:
+                mpq_set_si(self.value, 0, 1)
+                return
+
+            xstr = x.str(2)
+            if '.' in xstr:
+                exp = (len(xstr) - (xstr.index('.') +1))
+                p = (1<<exp)
+                pstr = '1'+'0'*exp
+                s = (x*p).str(2)+'/'+pstr
+                if not mpq_set_str( self.value, s, 2) == 0:
+                    raise TypeError, "unable to convert %s to a rational"%x
+                mpq_canonicalize(self.value)
+            else:
+                if not mpq_set_str(self.value, xstr, 2 ) == 0:
+                    raise TypeError, "unable to convert %s to a rational"%x
+                mpq_canonicalize(self.value)
+
         elif isinstance(x, str):
             if not mpq_set_str(self.value, x, 0) == 0:
                 raise TypeError, "unable to convert %s to a rational"%x

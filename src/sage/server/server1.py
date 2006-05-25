@@ -5,6 +5,8 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] input one form shouldn't delete data from any other forms;
+       e.g., you could be editing one form and submit another!
    [] The whole interface needs to be slimmed down so bunches of single
       line input (and output) will work.
    [] Ability to switch from one log (=workbook) to another via

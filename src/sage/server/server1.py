@@ -481,7 +481,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         shutil.copyfileobj(source, outputfile)
 
 sage0=None
-def server_http1(name=None, port=8000, address='localhost', ncols=90,
+def server_http1(name='default_server',
+                 port=8000, address='localhost', ncols=90,
                  nrows=8, dir=None, viewer=True, log=None,
                  max_tries=10):
     """
@@ -521,7 +522,7 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
             name += '.sobj'
     save_name = name[:-5]
     fulltext_log = ''
-    if log is None and (not name is None) and os.path.exists(name):
+    if log is None and os.path.exists(name):
         try:
             log = load(name)
         except IOError:
@@ -577,8 +578,7 @@ def server_http1(name=None, port=8000, address='localhost', ncols=90,
         print msg
         print "Shutting down server."
 
-    if not name is None:
-        current_log.save(name)
+    current_log.save(name)
 
     return current_log
 

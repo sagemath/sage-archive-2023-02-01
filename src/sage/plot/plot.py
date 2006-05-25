@@ -90,7 +90,7 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
 
 DEFAULT_FIGSIZE=[5,4]
 
-import sage.misc.log
+import sage.misc.viewer
 import sage.misc.misc
 
 import os
@@ -447,7 +447,7 @@ class Graphics(SageObject):
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.save(filename, xmin, xmax, ymin, ymax, figsize)
-        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.log.browser(), filename))
+        os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
@@ -528,23 +528,23 @@ class Graphics(SageObject):
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
 	    try:
-	        ext = filename.split('.')[1].lower()
+                ext = os.path.splitext(filename)[1].lower()
 	    except IndexError:
 		print "file type must be either 'png' or 'ps' or 'svg'"
-	    if ext == 'ps':
+	    if ext == '.ps':
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
-	    elif ext == 'svg':
+	    elif ext == '.svg':
                 canvas = FigureCanvasSVG(figure)
 		if dpi is None:
 		    dpi = 80
-	    elif ext == 'png':
+	    elif ext == '.png':
                 canvas = FigureCanvasAgg(figure)
 		if dpi is None:
 		    dpi = 150
 	    else:
-	        raise ValueError, "file type must be either 'png' or 'ps' or 'svg'"
+	        raise ValueError, "file type (filename=%s) must be either 'png' or 'ps' or 'svg'"%(filename)
             canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
@@ -1395,7 +1395,7 @@ class GraphicsArray(SageObject):
             filename = sage.misc.misc.tmp_filename() + '.png'
         self.render(filename)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
-                         sage.misc.log.browser(), filename))
+                         sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
 def graphics_array(array,filename="sage.png"):

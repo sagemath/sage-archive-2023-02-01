@@ -137,6 +137,15 @@ cdef class Rational(element.FieldElement):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert sage to a rational
+
+            sage: QQ(RR(3929329/32))
+            3929329/32
+            sage: QQ(RR(1/7)) - 1/7
+            -1/126100789566373888
+            sage: QQ(23.2)
+            6530219459687219/281474976710656
+            sage: 6530219459687219.0/281474976710656
+            23.1999999999999993
         """
         cdef int n
         if isinstance(x, Rational):

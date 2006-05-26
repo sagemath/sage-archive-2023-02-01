@@ -1,18 +1,12 @@
 #!/usr/bin/env sage-python
 
 import os, sys, socket
+from sage.server.server1 import server_http1
 from sage.all import *
 
+port = 8000
+
 if len(sys.argv) > 1:
-    name = sys.argv[1]
+    server_http1(sys.argv[1], port=port)
 else:
-    name = "default_sage_server"
-
-port = 8001
-
-while True:
-    try:
-        server_http1(name = name, port=port)
-        sys.exit(0)
-    except socket.error:
-        port += 1
+    server_http1(port=port)

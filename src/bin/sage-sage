@@ -203,8 +203,10 @@ fi
 #####################################################################
 
 if [ $1 = "-server1" -o $1 = "-server" ]; then
-   sage-server $2
-   exit 0
+   cd $CUR
+   shift
+   sage-server $*
+   exit $?
 fi
 
 if [ $1 = "-log" ]; then

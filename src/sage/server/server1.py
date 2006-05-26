@@ -534,7 +534,7 @@ def server_http1(dir ='sage_server',
 
     numcols = int(ncols)
     numrows = int(nrows)
-    logsobj_file = '%s/log.sobj'%directory
+    logsobj_file = '%s/cells.sobj'%directory
 
     if log is None and os.path.exists(logsobj_file):
         try:

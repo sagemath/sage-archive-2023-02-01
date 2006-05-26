@@ -124,8 +124,8 @@ class IO_Line:
                    cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea></td>
           <td valign='top'><table cellpadding=0 cellspacing=0>
            <tr>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(2,'in%s')"><b> + </b></a></span></td>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(2,'in%s')"><b> - </b></a></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b> + </b></a></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b> - </b></a></span></td>
            </tr>
            <tr>
             <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>

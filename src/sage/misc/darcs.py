@@ -21,7 +21,7 @@ def darcs_install():
     """
     uname = os.uname()[0]
     if uname[:6] == 'CYGWIN':
-        package.install_package('darcs_cygwin')
+        package.install_package('darcs_cygwin', force=True)
     elif uname == 'Darwin':
         package.install_package('darcs_darwin')
     elif uname == 'Linux':

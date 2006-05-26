@@ -1,6 +1,6 @@
 import os
 
-def install_package(package=None):
+def install_package(package=None, force=False):
     """
     Install a package or return a list of all packages
     that have been installed into this SAGE install.
@@ -12,7 +12,7 @@ def install_package(package=None):
         package -- optional; if specified, install the
                    given package.  If not, list all
                    installed packages.
-
+ppp
     IMPLEMENTATION: calls 'sage -f'.
 
     RELATED COMMANDS:
@@ -23,7 +23,8 @@ def install_package(package=None):
     if os.uname()[0][:6] == 'CYGWIN':
         print "install_package may not work correctly under Microsoft Windows"
         print "since you can't change an opened file.  Quit all"
-        print "instances of sage and use 'sage -i' instead."
+        print "instances of sage and use 'sage -i' instead or"
+        print "use the force option to install_package."
         return
     if package is None:
         X = os.popen('sage -f').read().split('\n')

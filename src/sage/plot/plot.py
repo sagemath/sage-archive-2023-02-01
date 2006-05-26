@@ -488,7 +488,7 @@ class Graphics(SageObject):
 
 	return xmin,xmax,ymin,ymax
 
-    def save(self, filename='sage.png', xmin=None, xmax=None,
+    def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=None):
         """
@@ -506,6 +506,20 @@ class Graphics(SageObject):
 	    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
 	"""
+        if filename is None:
+            i = 0
+            while os.path.exists('sage%s.png'%i):
+                i += 1
+            filename = 'sage%s.png'%i
+
+        try:
+            ext = os.path.splitext(filename)[1].lower()
+        except IndexError:
+            raise ValueError, "file extension must be either 'png', 'ps', 'svg' or 'sobj'"
+
+        if ext == '' or ext == '.sobj':
+            SageObject.save(self, filename)
+            return
 
         xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
 
@@ -527,10 +541,6 @@ class Graphics(SageObject):
 
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
-	    try:
-                ext = os.path.splitext(filename)[1].lower()
-	    except IndexError:
-		print "file type must be either 'png' or 'ps' or 'svg'"
 	    if ext == '.ps':
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
@@ -543,14 +553,14 @@ class Graphics(SageObject):
                 canvas = FigureCanvasAgg(figure)
 		if dpi is None:
 		    dpi = 150
-	    else:
-	        raise ValueError, "file type (filename=%s) must be either 'png' or 'ps' or 'svg'"%(filename)
+            else:
+                raise ValueError, "file extension must be either 'png', 'ps', 'svg' or 'sobj'"
             canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
 
-class GraphicPrimitive:
-    def __repr__(self):
+class GraphicPrimitive(SageObject):
+    def _repr_(self):
         return "Graphics primitive"
 
 
@@ -564,7 +574,7 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         self.ydata = ydata
         self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "Line defined by %s points"%len(self)
 
     def __getitem__(self, i):
@@ -602,7 +612,7 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
 	self.r = r
         self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "Circle defined by (%s,%s) with r=%s"%(self.x, self.y, self.r)
 
     def _render_on_subplot(self, subplot):
@@ -631,7 +641,7 @@ class GraphicPrimitive_Disk(GraphicPrimitive):
 	self.theta2 = theta2
 	self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "Disk defined by (%s,%s) with r=%s with theta (%s, %s)"%(self.x,
 			 self.y, self.r, self.theta1, self.theta2)
 
@@ -659,7 +669,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         self.ydata = ydata
         self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "Point set defined by %s point(s)"%len(self.xdata)
 
     def __getitem__(self, i):
@@ -698,7 +708,7 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
         self.ydata = ydata
         self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "Polygon defined by %s points"%len(self)
 
     def __getitem__(self, i):
@@ -739,7 +749,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         self.y = point[1]
         self.options = options
 
-    def __repr__(self):
+    def _repr_(self):
         return "%s at the point (%s,%s)"%(self.string, self.x, self.y)
 
     def _render_on_subplot(self, subplot):
@@ -898,7 +908,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         pass
 
-    def __repr__(self):
+    def _repr_(self):
         return "type line? for help and examples."
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
@@ -944,7 +954,7 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     def _reset(self):
 	self.options={'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
 
-    def __repr__(self):
+    def _repr_(self):
         return "type circle? for help and examples"
 
     def _from_xdata_ydata(self, point, r, options):
@@ -978,7 +988,7 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
     def _reset(self):
 	self.options={'fill':True,'resolution':40,'thickness':0}
 
-    def __repr__(self):
+    def _repr_(self):
         return "type disk? for help and examples"
 
     def _from_xdata_ydata(self, point, r, theta1, theta2, options):
@@ -1010,7 +1020,7 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         self.options = {'pointsize':10,'faceted':False,'rgbcolor':(0,0,0)}
 
-    def __repr__(self):
+    def _repr_(self):
         return "type point? for options help"
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
@@ -1049,7 +1059,7 @@ class TextFactory(GraphicPrimitiveFactory_text):
     def _reset(self):
         self.options = {'fontsize':10,'rgbcolor':(0,0,0)}
 
-    def __repr__(self):
+    def _repr_(self):
         return "type text? for help and examples"
 
     def _from_xdata_ydata(self, string, point, options):
@@ -1145,7 +1155,7 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     def _reset(self):
         pass
 
-    def __repr__(self):
+    def _repr_(self):
         return "SAGE polygon; type polygon? for help and examples."
 
     def _from_xdata_ydata(self, xdata, ydata, coerce, options):
@@ -1185,7 +1195,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         o['plot_division'] = 1000      # change when fix adapter
         o['max_bend'] = 0.1            # change when fix adapter
 
-    def __repr__(self):
+    def _repr_(self):
         return "plot; type plot? for help and examples."
 
     def __call__(self, f, xmin, xmax, parametric=False, **kwds):
@@ -1379,7 +1389,7 @@ class GraphicsArray(SageObject):
             subplot = figure.add_subplot(rows, cols, i)
 	    g.save(filename, fig=figure, sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
-    def save(self, filename="sage.png"):
+    def save(self, filename=None):
 	"""
 	save the \code{graphics_array} to
         (for now) a png called 'filename'.

@@ -23,6 +23,7 @@ TODO:
    [] Evaluate the entire worksheet
    [] Theme-able / skin-able
    [] Downloading and access to exact log of IO to client SAGE process
+   [] Saving and loading of all objects in a session
    [] Save session objects as to log objects so don't have to re-eval?
    [] The entire page is resent/updated every time you hit shift-enter;
       using 'AJAX' this flicker/lag could be completely eliminated.
@@ -46,6 +47,10 @@ TODO:
       another system, e.g., Maxima.
 
 DONE
+   [x] Saving and loading of individual objects: -- should be trivial,
+      but is very tedious right now.
+       (maybe all relative paths for save/load should be redirected
+        to sage_server directory?!)
    [x] The "move to the current input box" javascript *only* works
       with firefox (not opera, not konqueror); also this should
       just keep the page position where it is rather than move it.
@@ -141,9 +146,9 @@ class IO_Line:
             files  = []
             for F in self.file_list:
                 if(F[-4:] == '.png'):
-                    images.append('<img src="%s/%s">'%(number,F))
+                    images.append('<img src="cells/%s/%s">'%(number,F))
                 else:
-                    files.append('<a href="%s/%s">%s</a>'%(number,F,F))
+                    files.append('<a href="cells/%s/%s">%s</a>'%(number,F,F))
 
             if len(images) == 0:
                 images = ''
@@ -224,7 +229,7 @@ class Log(SageObject):
 class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
     def __files(self,number):
         global directory
-        return os.listdir("%s/%s"%(directory,number))
+        return os.listdir("%s/cells/%s"%(directory,number))
 
     def __show_page(self, number):
         global current_log
@@ -327,29 +332,25 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             """%(save_name, number, number+1))
 
             f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H2><font color="darkgreen"><a href="http://modular.math.washington.edu/sage">SAGE</a>: Software for Algebra and Geometry Experimentation</font></H2>')
-            f.write('<h3<tr>%s</h3>'%sage.misc.banner.version())
-            f.write('(enter input and press shift-enter)')
+            f.write('<h3>%s</h3>'%sage.misc.banner.version())
+            f.write('<h3><a href="logfile.txt">Log File</a></h3>')
             if len(current_log) == 0 or current_log[-1].cmd != '':
                 I = IO_Line()
                 current_log.append(I)
-            #f.write('<br><hr><h2 align=center>Complete Session Log</h2>')
-            #f.write("""<table width=90%% align=center bgcolor='#CCCCCC' cellpadding=10>
-            #<tr><td bgcolor='#FFFFFF'>
-            #  <pre>%s</pre>
-            #  </td></tr></table>
-            #  """%fulltext_log)
-            f.write('<hr>')
-            if save_name:
-                current_log.save(save_name)
+            current_log.save(logsobj_file)
             f.write(current_log.html(numcols))
             f.write('</div><br><br><br><br></body></html>')
             f.seek(0)
             self.copyfile(f, self.wfile)
+
+            f.seek(0)
+            self.copyfile(f, open('%s/index.html'%directory,'w'))
+
             f.close()
             return f
 
     def do_GET(self):
-        if self.path[-4:] == '.png' or self.path[-5:] == '.sobj':
+        if self.path[-4:] == '.png' or self.path[-5:] == '.sobj' or self.path[-4:] == '.txt':
             if os.path.exists("%s%s"%(directory,self.path)):
                 f = self.send_head()
                 if f:
@@ -365,7 +366,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__show_page(0)
 
     def do_POST(self):
-        global current_log, fulltext_log
+        global current_log
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         length = int(self.headers.getheader('content-length'))
         if ctype == 'multipart/form-data':
@@ -374,9 +375,10 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
             number = eval(C.keys()[0])
-            current_dir = "%s/%d"%(directory,number)
+            print "Evaluating cell %s"%number
+            current_dir = "%s/cells/%d"%(directory,number)
             code_to_eval = C[C.keys()[0]][0]
-            fulltext_log += '\n#%s\n'%('-'*70) + '\n' + code_to_eval + '\n\n'
+            open(logfile,'a').write('\n#### INPUT \n' + code_to_eval + '\n')
             try:
                 if number > len(current_log)-1:
                     current_log.set_last_cmd(code_to_eval)
@@ -401,7 +403,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 open('%s/_temp_.py'%directory, 'w').write(s)
 
                 if not os.path.exists(current_dir):
-                    os.mkdir(current_dir)
+                    os.makedirs(current_dir)
 
                 for F in os.listdir(current_dir):
                     os.unlink("%s/%s"%(current_dir,F))
@@ -410,7 +412,10 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
 
                 try:
                     o = sage0._eval_line('execfile("%s/_temp_.py")'%directory)
-                    #sage0._send('execfile("%s/_temp_.py")'%directory)
+                    if not 'Traceback (most recent call last):' in o:
+                        open(logfile,'a').write('#### OUTPUT \n' + o + '\n')
+                    else:
+                        open(logfile,'a').write('#### OUTPUT (error)\n')
                 except KeyboardInterrupt, msg:
                     print "Keyboard interrupt!"
                     o = msg
@@ -425,10 +430,6 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 #        break
                 #    import time
                 #    time.sleep(0.5)
-
-                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
-
-                fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
                 current_log[number].out = o
                 current_log[number].file_list = self.__files(number)
@@ -468,6 +469,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
+        elif self.path[-4:] == '.txt':
+            self.send_header("Content-type", 'image/text')
         elif self.path[-5:] == '.sobj':
             self.send_header("Content-type", 'application/sobj')
         else:
@@ -482,10 +485,13 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile):
         shutil.copyfileobj(source, outputfile)
 
-sage0=None
-def server_http1(name='default_server',
-                 port=8000, address='localhost', ncols=90,
-                 nrows=8, dir=None, viewer=True, log=None,
+def server_http1(dir ='sage_server',
+                 port=8000,
+                 address='localhost',
+                 ncols=90,
+                 nrows=8,
+                 viewer=True,
+                 log=None,
                  max_tries=10):
     """
     Start a SAGE http server at the given port.
@@ -496,47 +502,54 @@ def server_http1(name='default_server',
     Use it.  To start it later, just type server_http1('mysession') again.
 
     INPUT:
-        name -- name of the server; all I/O is saved in the file
-                with that name in current directory.  If you restart
+        dir -- (default: 'sage_server') name of the server directory; your
+                session is saved in a directory with that name.  If you restart
                 the server with that same name then it will restart
-                in the state you left it (though of course none of the
-                blocks will have been evaluated).
-        port -- port on computer where the server is served
-        max_tries -- maximum number of ports > port to try in case
-                port can't be opened.
+                in the state you left it, but with none of the
+                variables defined (you have to re-eval blocks).
+        port -- (default: 8000) port on computer where the server is served
+        address -- (default: 'localhost') address that the server will listen on
+        ncols -- (default: 90) default number of columns for input boxes
+        nrows -- (default: 8) default number of rows for input boxes
+        viewer -- bool (default:True); if True, pop up a web browser at the URL
+        log    -- (default: None) resume from a previous log
+        max_tries -- (default: 10) maximum number of ports > port to try in
+                     case given port can't be opened.
     """
-    global directory, fulltext_log, current_log, \
-           files, numcols, numrows, sage0, save_name
-    remove_dir = False
-    if dir is None:
-        remove_dir = True
-        directory = sage.misc.misc.tmp_dir('server')
-    else:
-        directory = os.path.abspath(dir)
+    global directory, current_log, logsobj_file, \
+           numcols, numrows, sage0, save_name, logfile
+    save_name = dir
+    dir = '_'.join(dir.split())  # no white space
+    directory = os.path.abspath(dir)
+
+    if os.path.isfile(directory):
+        raise RuntimeError, 'Please delete or move the file "%s" and run the server again'%directory
+
+    if not os.path.exists(directory):
+        print 'Creating directory "%s"'%directory
+        os.makedirs(directory)
+
     logfile = '%s/logfile.txt'%directory
-    open(logfile,'w').close()  # touch the file
-    #os.system('tail -f %s&'%logfile)
+    open(logfile,'a').close()  # touch the file
+
     numcols = int(ncols)
     numrows = int(nrows)
-    files = os.listdir(directory)
-    if name[-5:] != '.sobj':
-        name += '.sobj'
-    save_name = name[:-5]
-    fulltext_log = ''
+    logsobj_file = '%s/log.sobj'%directory
 
-
-    if log is None and os.path.exists(name):
+    if log is None and os.path.exists(logsobj_file):
         try:
-            log = load(name)
+            log = load(logsobj_file)
         except IOError:
-            print "Unable to load log %s (creating new log)"%name
-
+            print "Unable to load log %s (creating new log)"%logsobj_file
 
     if log is None:
         current_log = Log()
     else:
         current_log = log
-    sage0 = sage.interfaces.sage0.Sage(logfile=logfile)
+    sage0 = sage.interfaces.sage0.Sage()
+    if not os.path.exists('%s/sobj'%directory):
+        os.path.makedirs('%s/sobj'%directory)
+    sage0.eval('import sage.ext.sage_object; sage.ext.sage_object.base="%s/sobj"'%directory)
     sage0.eval('os.chdir("%s")'%directory)
     HTML_Interface.protocol_version = "HTTP/1.0"
 
@@ -581,7 +594,7 @@ def server_http1(name='default_server',
         print msg
         print "Shutting down server."
 
-    current_log.save(name)
+    current_log.save(logsobj_file)
 
     return current_log
 

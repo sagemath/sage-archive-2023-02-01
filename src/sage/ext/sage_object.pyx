@@ -10,7 +10,11 @@ import os
 import zlib; comp = zlib
 import bz2; comp_other = bz2
 
-cdef add_ext(s):
+base=None
+
+cdef process(s):
+    if not base is None and (len(s) == 0 or s[0] != '/'):
+        s = base + '/' + s
     if s[-5:] != '.sobj':
         return s + '.sobj'
     else:
@@ -121,7 +125,7 @@ cdef class SageObject:
                 filename = self._default_filename
             except AttributeError:
                 raise RuntimeError, "no default filename, so it must be specified"
-        filename = add_ext(filename)
+        filename = process(filename)
         try:
             self._default_filename = filename
         except AttributeError:
@@ -419,7 +423,7 @@ def load(filename):
     Load \sage object from the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
     """
-    filename = add_ext(filename)
+    filename = process(filename)
     X = loads(open(filename).read())
     try:
         X._default_filename = os.path.abspath(filename)
@@ -439,7 +443,7 @@ def save(obj, filename=None):
         obj.save(filename)
     except (AttributeError, RuntimeError, TypeError):
         s = comp.compress(cPickle.dumps(obj, protocol=2))
-        open(add_ext(filename), 'w').write(s)
+        open(process(filename), 'w').write(s)
 
 def dumps(obj):
     """

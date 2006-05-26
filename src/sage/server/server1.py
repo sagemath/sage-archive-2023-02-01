@@ -5,8 +5,6 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
-   [] input one form shouldn't delete data from any other forms;
-       e.g., you could be editing one form and submit another!
    [] The whole interface needs to be slimmed down so bunches of single
       line input (and output) will work.
    [] Ability to switch from one log (=workbook) to another via
@@ -15,7 +13,7 @@ TODO:
       with firefox (not opera, not konqueror); also this should
       just keep the page position where it is rather than move it.
       Moving to a more AJAX-ish model would alternatively fix this, maybe.
-   [x] A. Clemesha: shrink/expand input/output blocks
+   [] A. Clemesha: shrink/expand input/output blocks
    [] Add plain text annotation that is not evaluated
       between blocks (maybe in html?)
       E.g., just make ctrl-enter on a block by HTML-it.
@@ -44,9 +42,6 @@ TODO:
    [] load and attaching scripts.
    [] a way to interactively watch the output of a running computation
       (in verbose mode).
-   [] undo -- have infinite undo and redo of the SAGE *log*, i.e.,
-      text I/O (and possibly graphics).  does not save *state* of
-      the "sage kernel".
 
 DONE
    [x] A. Clemesha: When hit shift-enter the next text box should be made
@@ -63,24 +58,21 @@ DONE
 ###########################################################################
 
 
-# Standard Python libraries
 import BaseHTTPServer
-import cgi
-import os, sys
-import select
-import shutil
 import socket
-from   StringIO import StringIO
 
 
-# SAGE libraries
+from StringIO import StringIO
+import os, sys
+import shutil
+import cgi
+import select
 import sage.interfaces.sage0
-
-import sage.misc.banner
-import sage.misc.misc
 import sage.misc.preparser
-from   sage.misc.viewer     import BROWSER
-from   sage.ext.sage_object import load, SageObject
+import sage.misc.misc
+import sage.misc.banner
+from sage.misc.log import BROWSER
+from sage.ext.sage_object import load, SageObject
 
 
 class IO_Line:
@@ -106,38 +98,27 @@ class IO_Line:
         w = max((ncols - 15), 3)
 	#html_in is the html/javascript that starts a 'cell'
 	#this probably needs some refactoring by a css/javascript pro :)
-	html_in ="""
-           <table  border=0 cellspacing=2 cellpadding=2 bgcolor='#FFFFFF' width='80%%'>
-	    <td align=center>
-	"""
+
 	#below in the javascript that enables the +/- resizing of the textarea
-	controls ="""
-        <div class="controlarea">
-        <table cellpadding=0 cellspacing=0>
-         <tr>
-          <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
-          <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b>-</b></a></span></td>
-         </tr>
-         <tr>
-          <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
-          <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b>+</b></a></span></td>
-         </tr>
-        </table>
-        </div>
-	"""%(number, number,number,number)
 	#below is where the textarea form is added
-	html_in +="""
-        </td>
-        <tr><td align=center bgcolor='#DDDDDD' cellpadding=1 cellspacing=0>
-        <table border=0 cellpadding=4 cellspacing=0 bgcolor='#FFFFFF' width='100%%'><tr><td>
-                 <textarea style="border: 0px;width: 100%%;"
+	html_in ="""
+        <div style="width: 80%%" align="center">
+          <table cellpadding=0 cellspacing=0><tr><td>
+          <textarea class="txtarea"
                    name='%s' bgcolor='%s' rows='%s'
-                   cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea>
-        </td>
-        </tr></table></td>
-        <td align='right' valign='top'>%s</td>
-        </tr></table>
-        """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd,controls)
+                   cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea></td>
+          <td valign='top'><table cellpadding=0 cellspacing=0>
+           <tr>
+            <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b>-</b></a></span></td>
+           </tr>
+           <tr>
+            <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b>+</b></a></span></td>
+           </tr>
+          </table></td></tr></table>
+        </div>
+        """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd,number,number,number,number)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
@@ -182,7 +163,7 @@ class IO_Line:
         c = """
         <form name="io%s" method=post action="" id="%s">
         %s
-        <div id='out%s'>
+        <div id='out%s' style='overflow: auto;'>
         %s
         %s
         %s
@@ -244,14 +225,18 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             <html><head><title>SAGE Calculator %s</title></head>\n
 
 	    <style>
-	    div.controlarea{
-                text-align:right;
+            div.controlarea{
+                vertical-align: top;
+                align: left;
             }
             span.control {
-            border:1px solid white;
-            font-family:Arial,Verdana, sans-serif;
-            font-size:10pt;
+                border:1px solid white;
+                font-family:Arial,Verdana, sans-serif;
+                font-size:10pt;
             }
+
+
+
 
             input.btn {
               color:#999999;
@@ -262,12 +247,21 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
               border:1px solid white;
             }
             input.btn:hover {
-              color:black;
-              text-decoration:none;
+              color: black;
+              text-decoration: none;
               background: white;
-              padding:0px;
-              margin:0px;
-              border:1px solid #333333;
+              padding: 0px;
+              margin: 0px;
+              border: 1px solid #333333;
+            }
+            input.txtarea {
+              color: black;
+              text-decoration: none;
+              background: white;
+              padding: 0px;
+              margin: 0px;
+              border: 1px solid #333333;
+              width: 100%%;
             }
 
             span.control a.cs {
@@ -382,19 +376,19 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 else:
                     # re-evaluating a code block
                     current_log[number].cmd = code_to_eval
-                #code_to_eval = code_to_eval.replace('\\','')
+                code_to_eval = code_to_eval.replace('\\','')
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
                 s = [x for x in s.split('\n') if len(x.split()) > 0 and \
                       x.lstrip()[0] != '#']   # remove all blank lines and comment lines
                 if len(s) > 0:
                     t = s[-1]
-                    if len(t) > 0 and not ':' in t and \
-                           not t[0].isspace() and not t[:3] == '"""':
+                    if len(t) > 0 and not t[0].isspace() and not t[:3] == '"""':
+                        # broken if input has triple quotes!!
                         t = t.replace("'","\\'")
                         s[-1] = "exec compile('%s', '', 'single')"%t
 
-                s = '\n'.join(s) + '\n'
+                s = '\n'.join(s)
 
                 open('%s/_temp_.py'%directory, 'w').write(s)
 
@@ -424,7 +418,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 #    import time
                 #    time.sleep(0.5)
 
-                o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
@@ -517,17 +511,11 @@ def server_http1(name='default_server',
     numcols = int(ncols)
     numrows = int(nrows)
     files = os.listdir(directory)
-    if isinstance(name, str):
-        if name[-5:] != '.sobj':
-            name += '.sobj'
-    save_name = name[:-5]
+    save_name = name
     fulltext_log = ''
-    if log is None and os.path.exists(name):
-        try:
-            log = load(name)
-        except IOError:
-            print "Unable to load log %s (creating new log)"%name
-
+    if log is None and (not name is None) and \
+           (os.path.exists(name) or os.path.exists(name + '.sobj')):
+        log = load(name)
     if log is None:
         current_log = Log()
     else:
@@ -568,7 +556,7 @@ def server_http1(name='default_server',
 
         if viewer:
             #os.system('%s file:///%s&'%(BROWSER, logfile))
-            os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
+            os.system('%s http://%s:%s 2>/dev/null 1>/dev/null &'%(BROWSER, address, port))
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."
         httpd.serve_forever()

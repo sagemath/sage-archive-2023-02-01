@@ -5,15 +5,12 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] input one form shouldn't delete data from any other forms;
+       e.g., you could be editing one form and submit another!
    [] The whole interface needs to be slimmed down so bunches of single
       line input (and output) will work.
    [] Ability to switch from one log (=workbook) to another via
       the web interface.
-   [x] The "move to the current input box" javascript *only* works
-      with firefox (not opera, not konqueror); also this should
-      just keep the page position where it is rather than move it.
-      Moving to a more AJAX-ish model would alternatively fix this, maybe.
-   [] A. Clemesha: shrink/expand input/output blocks
    [] Add plain text annotation that is not evaluated
       between blocks (maybe in html?)
       E.g., just make ctrl-enter on a block by HTML-it.
@@ -42,8 +39,18 @@ TODO:
    [] load and attaching scripts.
    [] a way to interactively watch the output of a running computation
       (in verbose mode).
+   [] undo -- have infinite undo and redo of the SAGE *log*, i.e.,
+      text I/O (and possibly graphics).  does not save *state* of
+      the "sage kernel".
+   [] switch into mode where the whole input box is parsed by
+      another system, e.g., Maxima.
 
 DONE
+   [x] The "move to the current input box" javascript *only* works
+      with firefox (not opera, not konqueror); also this should
+      just keep the page position where it is rather than move it.
+      Moving to a more AJAX-ish model would alternatively fix this, maybe.
+   [x] A. Clemesha: shrink/expand input/output blocks
    [x] A. Clemesha: When hit shift-enter the next text box should be made
       into focus.
    [x] Embedded graphics from plots;
@@ -58,21 +65,24 @@ DONE
 ###########################################################################
 
 
+# Standard Python libraries
 import BaseHTTPServer
-import socket
-
-
-from StringIO import StringIO
-import os, sys
-import shutil
 import cgi
+import os, sys
 import select
+import shutil
+import socket
+from   StringIO import StringIO
+
+
+# SAGE libraries
 import sage.interfaces.sage0
-import sage.misc.preparser
-import sage.misc.misc
+
 import sage.misc.banner
-from sage.misc.log import BROWSER
-from sage.ext.sage_object import load, SageObject
+import sage.misc.misc
+import sage.misc.preparser
+from   sage.misc.viewer     import BROWSER
+from   sage.ext.sage_object import load, SageObject
 
 
 class IO_Line:
@@ -236,8 +246,6 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             }
 
 
-
-
             input.btn {
               color:#999999;
               text-decoration:none;
@@ -376,19 +384,19 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 else:
                     # re-evaluating a code block
                     current_log[number].cmd = code_to_eval
-                code_to_eval = code_to_eval.replace('\\','')
+                #code_to_eval = code_to_eval.replace('\\','')
                 s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                       do_time=True, ignore_prompts=True)
                 s = [x for x in s.split('\n') if len(x.split()) > 0 and \
                       x.lstrip()[0] != '#']   # remove all blank lines and comment lines
                 if len(s) > 0:
                     t = s[-1]
-                    if len(t) > 0 and not t[0].isspace() and not t[:3] == '"""':
-                        # broken if input has triple quotes!!
+                    if len(t) > 0 and not ':' in t and \
+                           not t[0].isspace() and not t[:3] == '"""':
                         t = t.replace("'","\\'")
                         s[-1] = "exec compile('%s', '', 'single')"%t
 
-                s = '\n'.join(s)
+                s = '\n'.join(s) + '\n'
 
                 open('%s/_temp_.py'%directory, 'w').write(s)
 
@@ -418,7 +426,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 #    import time
                 #    time.sleep(0.5)
 
-                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 
@@ -511,11 +519,19 @@ def server_http1(name='default_server',
     numcols = int(ncols)
     numrows = int(nrows)
     files = os.listdir(directory)
-    save_name = name
+    if name[-5:] != '.sobj':
+        name += '.sobj'
+    save_name = name[:-5]
     fulltext_log = ''
-    if log is None and (not name is None) and \
-           (os.path.exists(name) or os.path.exists(name + '.sobj')):
-        log = load(name)
+
+
+    if log is None and os.path.exists(name):
+        try:
+            log = load(name)
+        except IOError:
+            print "Unable to load log %s (creating new log)"%name
+
+
     if log is None:
         current_log = Log()
     else:
@@ -523,7 +539,6 @@ def server_http1(name='default_server',
     sage0 = sage.interfaces.sage0.Sage(logfile=logfile)
     sage0.eval('os.chdir("%s")'%directory)
     HTML_Interface.protocol_version = "HTTP/1.0"
-
 
     tries = 0
     while True:
@@ -555,8 +570,8 @@ def server_http1(name='default_server',
     try:
 
         if viewer:
-            #os.system('%s file:///%s&'%(BROWSER, logfile))
-            os.system('%s http://%s:%s 2>/dev/null 1>/dev/null &'%(BROWSER, address, port))
+            os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
+
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."
         httpd.serve_forever()

@@ -548,7 +548,7 @@ def server_http1(dir ='sage_server',
         current_log = log
     sage0 = sage.interfaces.sage0.Sage()
     if not os.path.exists('%s/sobj'%directory):
-        os.path.makedirs('%s/sobj'%directory)
+        os.makedirs('%s/sobj'%directory)
     sage0.eval('import sage.ext.sage_object; sage.ext.sage_object.base="%s/sobj"'%directory)
     sage0.eval('os.chdir("%s")'%directory)
     HTML_Interface.protocol_version = "HTTP/1.0"

@@ -420,6 +420,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     print "Keyboard interrupt!"
                     o = msg
 
+                o = sage.misc.misc.word_wrap(o, ncols=numcols)
+
                 #while True:
                 #    print "waiting for output"
                 #    o = sage0._get()

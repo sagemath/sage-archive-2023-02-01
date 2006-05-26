@@ -129,8 +129,8 @@ Here is an example of solving an algebraic equation:
     [y =  - sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2),y = sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2)]
 
 You can even nicely typeset the solution in latex:
-    sage: print latex(s)
-    \left[\left[a = \frac{25\sqrt{79}i + 25}{6\sqrt{79}i - 34},b = \frac{5\sqrt{79}i + 5}{\sqrt{79}i + 11},c = \frac{\sqrt{79}i + 1}{10}\right],\left[a = \frac{25\sqrt{79}i - 25}{6\sqrt{79}i + 34},b = \frac{5\sqrt{79}i - 5}{\sqrt{79}i - 11},c =  - \frac{\sqrt{79}i - 1}{10}\right]\right]
+    sage: latex(s)
+    \left[ \left[ a=\frac{25 \sqrt{79} i+25}{6 \sqrt{79} i-34} , b=  \frac{5 \sqrt{79} i+5}{\sqrt{79} i+11} , c=\frac{\sqrt{79} i+1}{10}   \right]  , \left[ a=\frac{25 \sqrt{79} i-25}{6 \sqrt{79} i+34} , b=  \frac{5 \sqrt{79} i-5}{\sqrt{79} i-11} , c=-\frac{\sqrt{79} i-1}{10}   \right]  \right]
 
 To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
 (TODO: For OS X should create pdf output and use preview instead?)
@@ -307,7 +307,7 @@ error.  In \sage this is automatically fixed via a substition for
 trig functions, which may have potentially bad side effects:
 
     sage: latex(maxima('sin(u) + sinh(v^2)'))
-    \sin{}hv^2 + \sin{}u
+    \sinh v^2+\sin u
 
 It would be nice if somebody would fix this problem.  One way would
 be to improve Maxima by making the fix to Maxima and giving this back
@@ -317,7 +317,7 @@ Here's another example:
 
     sage: g = maxima('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
     sage: latex(g)
-     - \frac{ie^{3ix}}{6} - \frac{ie^{ix}}{2} + c
+     -\frac{i e^{3 i x}}{6}-\frac{i e^{i x}}{2}+c
 
 \subsection{Long Input}
 The MAXIMA interface reads in even very long input (using files) in a
@@ -349,6 +349,8 @@ import os, re
 from expect import Expect, ExpectElement, tmp
 
 from sage.misc.misc import verbose
+
+from sage.misc.multireplace import multiple_replace
 
 SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
@@ -1275,24 +1277,17 @@ class MaximaElement(ExpectElement):
     def _latex_(self):
         self._check_valid()
         P = self.parent()
-        s = maxima.eval('tex(%s)'%self.name())
-        s = s[2:-7]
-        # Actually trying the latex on some examples
-        # quickly reveals serious bugs in it.  The
-        # following are some attempts to program around
-        # these.
-        s = s.replace('\\%','')
-        s = s.replace('\\sin', '\\sin{}')
-        s = s.replace('\\log', '\\log{}')
-        s = s.replace('\\cos', '\\cos{}')
-        s = s.replace('\\tan', '\\tan{}')
-        s = s.replace('\\arcsin', '\\sin^{-1}{}')
-        s = s.replace('\\arccos', '\\cos^{-1}{}')
-        s = s.replace('\\arctan', '\\tan^{-1}{}')
-        # TODO: What to do about this, which won't work!?
-        #s = s.replace('\\sinh', '\\sinh{}')
-        #s = s.replace('\\cosh', '\\cosh{}')
-        #s = s.replace('\\tanh', '\\tanh{}')
+        s = maxima._eval_line('tex(%s)'%self.name(), reformat=False)
+        if not '$$' in s:
+            raise RuntimeError, "Error texing maxima object."
+        i = s.find('$$')
+        j = s.rfind('$$')
+        s = s[i+2:j]
+        s = multiple_replace({'\r\n':' ',
+                              '\\%':'',
+                              '\\arcsin ':'\\sin^{-1} ',
+                              '\\arccos ':'\\cos^{-1} ',
+                              '\\arctan ':'\\tan^{-1} '}, s)
         return s
 
     def _matrix_(self, R):

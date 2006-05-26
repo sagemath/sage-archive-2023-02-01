@@ -426,7 +426,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 #    import time
                 #    time.sleep(0.5)
 
-                o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 fulltext_log += '\n'.join(o.split('\n')) + '\n'
 

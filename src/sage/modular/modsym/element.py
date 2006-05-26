@@ -30,6 +30,7 @@ import sage.structure.element as element
 import sage.structure.formal_sum as formal_sum
 import ambient
 import sage.modular.hecke.all as hecke
+import sage.misc.latex as latex
 
 _print_mode = "manin"
 
@@ -97,13 +98,25 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
     def _repr_(self):
         if _print_mode == "vector":
             return str(self.element())
-        if _print_mode == "manin":
+        elif _print_mode == "manin":
             m = self.manin_symbol_rep()
         elif _print_mode == "modular":
             m = self.modular_symbol_rep()
         c = [x[0] for x in m]
         v = [x[1] for x in m]
         return misc.repr_lincomb(v, c)
+
+    def _latex_(self):
+        if _print_mode == "vector":
+            return latex(self.element())
+        elif _print_mode == "manin":
+            m = self.manin_symbol_rep()
+        elif _print_mode == "modular":
+            m = self.modular_symbol_rep()
+        c = [x[0] for x in m]
+        v = [x[1] for x in m]
+        return latex.repr_lincomb(v, c)
+
 
     def __mul__(self, right):
         return ModularSymbolsElement(self.parent(), self.element()*right)

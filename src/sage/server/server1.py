@@ -470,7 +470,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
         elif self.path[-4:] == '.txt':
-            self.send_header("Content-type", 'image/text')
+            self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':
             self.send_header("Content-type", 'application/sobj')
         else:

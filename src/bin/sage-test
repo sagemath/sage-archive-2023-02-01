@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys, time
+import os, signal, sys, time
+
+####################################
 
 argv = sys.argv
 
@@ -24,8 +26,8 @@ def abs(f):
 def skip(F):
     G = os.path.abspath(F)
     i = G.rfind('/')
-    if os.path.exists('%s/nodoctest'%G[:i]):
-        print "%s (skipping) -- nodoctest file in directory"%abs(F)
+    if os.path.exists('%s/nodoctest.py'%G[:i]):
+        print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
         return True
     if G == "all.py" or G == "__init__.py" \
           or G[0] == '.' or '/.' in G or \
@@ -49,7 +51,13 @@ def test(F, cmd):
     t = time.time()
     if skip(F):
         return
-    err = os.system("sage-%s %s"%(cmd, F))
+
+    try:
+        s = "%s/local/bin/sage-%s %s"%(SAGE_ROOT, cmd, F)
+        err = os.system(s)
+    except KeyboardInterrupt:
+        print "Keyboard interrupt"
+        err = 1
     if err != 0:
         failed.append(abs(F))
     os.system("mv -f __test* %s 2>/dev/null"%(TMP))

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, re, sys, signal
+TIMEOUT = 90
+
+import os, re, sys, signal, time
 
 argv = sys.argv
 
@@ -22,6 +24,15 @@ if __name__ ==  '__main__':
                    optionflags=doctest.NORMALIZE_WHITESPACE)
     quit_sage(verbose=False)
 """
+
+ALARM = """
+import signal
+def __mysig__(a,b):
+    print "TIME OUT TIME OUT TIME OUT"
+    raise RuntimeError, "timeout"
+signal.signal(signal.SIGALRM, __mysig__)
+signal.alarm(%s)
+"""%TIMEOUT
 
 NONE=0; LONG_TIME=1; RANDOM=2; OPTIONAL=3; NOT_IMPLEMENTED=4
 
@@ -139,7 +150,8 @@ def extract_doc(file_name, module):
 
     n = 0
     i = 0
-    s =  "from sage.all import *\n"
+    s = ALARM
+    s +=  "from sage.all import *\n"
 
     while True:
         i = F.find('"""')
@@ -249,16 +261,19 @@ def test_file(file):
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
         #n = os.system(cmd)
-        tm = 180
-        alarm(tm)
+        tm = time.time()
         try:
             os.system("%s 1>.doctest/out 2>.doctest/err"%cmd)
             out = open('.doctest/out').read()
             err = open('.doctest/err').read()
-        except RuntimeError:
-            err += "\n Error -- TIMED OUT after %s seconds!"%tm
+        except KeyboardInterrupt:
+            err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"
-        alarm(0)
+
+        if time.time() - tm >= TIMEOUT:
+            err = "*** *** Error: TIMED OUT! *** ***"
+            print err
+
         s = post_process(out)  + err
         print s
         if 'Failed' in s or 'Error' in s:

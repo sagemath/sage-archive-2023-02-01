@@ -5,6 +5,9 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] word wrap -- default on, but toggle on/off on a cell-by-cell basis
+      (will require ajax to do the wrapped/non-wrapped computation, or
+      store both versions in the html... so will work offline)
    [] input one form shouldn't delete data from any other forms;
        e.g., you could be editing one form and submit another!
    [] The whole interface needs to be slimmed down so bunches of single

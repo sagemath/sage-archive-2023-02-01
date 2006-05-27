@@ -5,7 +5,7 @@ Determination of Programs for Viewing web pages, etc.
 import os
 
 def cmd_exists(cmd):
-    return os.system('which %s > /dev/null'%cmd) == 0
+    return os.system('which %s 2>/dev/null >/dev/null'%cmd) == 0
 
 
 if os.uname()[0] == 'Darwin':

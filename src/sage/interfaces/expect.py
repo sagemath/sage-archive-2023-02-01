@@ -231,7 +231,7 @@ class Expect(SageObject):
             return
         try:
             self.quit()
-        except TypeError:
+        except (TypeError, AttributeError):
             pass
 
         # The following programs around a bug in pexpect.

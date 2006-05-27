@@ -59,7 +59,6 @@ class AbelianGroupMorphism:
     extend to a group homomorphism, self --> other.
 
     EXAMPLES:
-        sage: from abelian_group import AbelianGroup
         sage: G = AbelianGroup(3,[2,3,4],names="abc"); G
         Multiplicative Abelian Group isomorphic to C2 x C3 x C4
         sage: a,b,c = G.gens()

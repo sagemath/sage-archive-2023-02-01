@@ -24,6 +24,8 @@ cdef extern from "stdlib.h":
 cdef extern from "wrap.h":
     ### misc functions ###
     void mwrank_set_precision(long n)
+    void mwrank_initprimes(char* pfilename, int verb)
+
 
     ### bigint ###
     struct bigint
@@ -44,7 +46,7 @@ cdef extern from "wrap.h":
     double Curvedata_height_constant(Curvedata* curve)
     char* Curvedata_getdiscr(Curvedata* curve)
     char* Curvedata_conductor(Curvedata* m)
-    char* Curvedata_isogeny_class(Curvedata* E, int verbose)     #Added 05-10-04 : IB
+    char* Curvedata_isogeny_class(Curvedata* E, int verbose)
 
     ## mw ##
     struct mw
@@ -96,6 +98,9 @@ def set_precision(n):
 # set the default
 mwrank_set_precision(50)
 #mwrank_set_precision(10)
+
+def initprimes(pfilename, verb):
+    mwrank_initprimes(pfilename, verb)
 
 ############# bigint #################
 
@@ -172,7 +177,7 @@ cdef class _Curvedata:
         _sig_on
         return int(string_sigoff(Curvedata_conductor(self.x)))
 
-    def isogeny_class(self, verbose=False): #Added 05-10-04 : IB
+    def isogeny_class(self, verbose=False):
         _sig_on
         s = string_sigoff(Curvedata_isogeny_class(self.x, verbose))
         _sig_off

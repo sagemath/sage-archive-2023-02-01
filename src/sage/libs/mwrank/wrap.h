@@ -2,7 +2,8 @@
 #include "mwrank/curve.h"
 #include "mwrank/descent.h"
 #include "mwrank/points.h"
-#include "mwrank/isogs.h" //Added 05-10-04 : IB
+#include "mwrank/isogs.h"
+#include "mwrank/marith.h"
 #endif
 
 #ifdef __cplusplus
@@ -14,6 +15,8 @@
 /**************** Miscellaneous functions ****************/
 
 EXTERN void mwrank_set_precision(long n);
+
+EXTERN void mwrank_initprimes(char *pfilename, int verb);
 
 /**************** bigint ****************/
 #ifndef __cplusplus
@@ -58,7 +61,7 @@ EXTERN char* Curvedata_getdiscr(struct Curvedata* curve);
 
 EXTERN char* Curvedata_conductor(struct Curvedata* curve);
 
-EXTERN char* Curvedata_isogeny_class(struct Curvedata* E, int verbose); //Added 05/10/04 : IB
+EXTERN char* Curvedata_isogeny_class(struct Curvedata* E, int verbose);
 
 /**************** mw -- subgroup of the mordell-weil group ****************/
 #ifndef __cplusplus

@@ -15,6 +15,12 @@ void mwrank_set_precision(long n)
 }
 
 
+void mwrank_initprimes(char* pfilename, int verb)
+{
+  initprimes(pfilename, verb);
+}
+
+
 char* stringstream_to_char(ostringstream& instore) {
   int n = strlen(instore.str().data());
   char* buf = new char[n+1];
@@ -100,7 +106,7 @@ char* Curvedata_conductor(struct Curvedata* curve)
   return stringstream_to_char(instore);
 }
 
-char* Curvedata_isogeny_class(struct Curvedata* E, int verbose) //Added 2005-10-05: IB
+char* Curvedata_isogeny_class(struct Curvedata* E, int verbose)
 {
   //copied from allisog.cc
   ostringstream instore;

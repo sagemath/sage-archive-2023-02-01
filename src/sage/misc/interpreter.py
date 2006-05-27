@@ -13,11 +13,19 @@ Modified input.
 
   -- load to load in scripts
 
-  -- Most int literals n are replaced by ZZ(n)
-     and all float literals x by RR(x).  Thus 2/3 is a
-     rational number.  If they are in []'s right after a valid identifier
-     they aren't replaced.
-  --
+  -- Most int literals n are replaced by ZZ(n) Thus 2/3 is a rational
+     number.  If they are in []'s right after a valid identifier they
+     aren't replaced.
+
+  -- real literals get wrapped in "RR" (with a precision)
+
+  -- the R.<x,y,z> = ... notation
+
+TODO:
+  I have no plans for anything further, except to improve the
+  robustness of the above.  Preparsing may work incorrectly for
+  multi-line input lines in some cases; this will be fixed.
+
 All other input is processed normally.
 
 It automatically converts *most* integer literals to SAGE Integer's and

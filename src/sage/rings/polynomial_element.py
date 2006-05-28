@@ -1076,6 +1076,10 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
 
     def list(self):
+        """
+        Return a new copy of the list of the underlying
+        elements of self.
+        """
         raise NotImplementedError
 
     def coeffs(self):
@@ -1393,7 +1397,11 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs.append(value)
 
     def list(self):
-        return self.__coeffs
+        """
+        Return a new copy of the list of the underlying
+        elements of self.
+        """
+        return list(self.__coeffs)
 
     def degree(self):
         return len(self.__coeffs) - 1
@@ -1485,6 +1493,10 @@ class Polynomial_generic_sparse(Polynomial):
             x[n] = value
 
     def list(self):
+        """
+        Return a new copy of the list of the underlying
+        elements of self.
+        """
         zero = self.base_ring()(0)
         v = [zero for _ in xrange(self.degree()+1)]
         for n, x in self.__coeffs.iteritems():
@@ -1882,17 +1894,22 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
     def list(self):
         """
+        Return a new copy of the list of the underlying
+        elements of self.
+
         EXAMPLES:
             sage: x = PolynomialRing(QQ).gen()
-            sage: f = x^3 + 3*x - QQ('17/13')
+            sage: f = x^3 + 3*x - 17/13; f
+            x^3 + 3*x - 17/13
+            sage: v = f.list(); v
+            [-17/13, 3, 0, 1]
+            sage: v[0] = 0
+            sage: f
+            x^3 + 3*x - 17/13
             sage: f.list()
             [-17/13, 3, 0, 1]
         """
-        try:
-            return self.__list
-        except AttributeError:
-            self.__list = [QQ(x) for x in self.__poly.Vecrev()]
-            return self.__list
+        return [QQ(x) for x in self.__poly.Vecrev()]
 
 ##     def partial_fraction(self, g):
 ##         """
@@ -2265,6 +2282,9 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
     def list(self):
         """
+        Return a new copy of the list of the underlying
+        elements of self.
+
         EXAMPLES:
             sage: x = PolynomialRing(ZZ).gen()
             sage: f = x^3 + 3*x - 17
@@ -2489,6 +2509,9 @@ class Polynomial_dense_mod_n(Polynomial):
 
     def list(self):
         """
+        Return a new copy of the list of the underlying
+        elements of self.
+
         EXAMPLES:
             sage: x = PolynomialRing(Integers(100)).gen()
             sage: f = x^3 + 3*x - 17

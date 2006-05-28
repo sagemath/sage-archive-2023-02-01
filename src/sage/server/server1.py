@@ -380,7 +380,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             qs = self.rfile.read(length)
             C = cgi.parse_qs(qs, keep_blank_values=1)
             number = eval(C.keys()[0])
-            print "Evaluating cell %s"%number
+            print "Workbook '%s': evaluating cell number %s"%(
+                save_name, number)
             current_dir = "%s/cells/%d"%(directory,number)
             code_to_eval = C[C.keys()[0]][0]
             open(logfile,'a').write('\n#### INPUT \n' + code_to_eval + '\n')

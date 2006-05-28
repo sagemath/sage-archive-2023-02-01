@@ -215,7 +215,7 @@ class Expect(SageObject):
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
             raise RuntimeError, "Unable to start %s"%self.__name
-        self._expect.timeout = 9999999  # don't make this bigger, or it breaks on OS X
+        self._expect.timeout = None
         for X in self.__init_code:
             self.eval(X)
 

@@ -5,6 +5,11 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] restart (with confirm) button -- lets you restart the
+      client SAGE interpreter that is being run by the web server.
+      This way you don't have to keep restarting the web server
+      when doing code development.  Have button that can also
+      save session, restart, and load session!
    [] debugger -- some way to enter pdb and use it from web interface
    [] way to time how long a computation takes.
    [] word wrap -- default on, but toggle on/off on a cell-by-cell basis

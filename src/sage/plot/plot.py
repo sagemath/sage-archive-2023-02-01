@@ -334,15 +334,25 @@ class Graphics(SageObject):
 
     def _line(self, xdata, ydata, options):
         self.__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
-        self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        try:
+            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
 
     def _point(self, xdata, ydata, options):
         self.__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
-        self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        try:
+            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
+
 
     def _polygon(self, xdata, ydata, options):
         self.__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        try:
+            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
 
     def _text(self, string, point, options):
         self.__objects.append(GraphicPrimitive_Text(string, point, options))
@@ -816,7 +826,7 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-	if not isinstance(points[0], (list, tuple)):
+        if len(points) > 0 and not isinstance(points[0], (list, tuple)):
 	    xdata = [float(points[0])]
 	    ydata = [float(points[1])]
 	else:
@@ -1216,7 +1226,12 @@ class PlotFactory(GraphicPrimitiveFactory):
         data = []
         for i in xrange(plot_points + 1):
             x = xmin + i*delta
-            data.append((x, float(f(x))))
+            try:
+                y = f(x)
+                data.append((x, float(y)))
+            except TypeError:
+                print "Not adding invalid point (=%s) to plot"%y
+                pass
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])

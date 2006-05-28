@@ -10,6 +10,14 @@ TODO:
       This way you don't have to keep restarting the web server
       when doing code development.  Have button that can also
       save session, restart, and load session!
+   [] ability to select any subset of the cells, e.g., by
+      checking on a button next to each or something and do
+      each of the following ops:
+          delete them
+          export them as another workbook
+      Also, should be able to insert a workbook between two cells.
+      Basically, copy, paste, and delete with bits of workbooks.
+      Should also be able to reorganize them.
    [] debugger -- some way to enter pdb and use it from web interface
    [] way to time how long a computation takes.
    [] word wrap -- default on, but toggle on/off on a cell-by-cell basis

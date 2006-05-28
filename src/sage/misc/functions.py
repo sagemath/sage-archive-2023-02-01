@@ -83,7 +83,9 @@ class FunctionRing_class(CommutativeRing):
             return x
         elif is_Polynomial(x):
             return Function_polynomial(x)
-        elif isinstance(x, sage.ext.element.Element):
+        #elif isinstance(x, sage.ext.element.Element):
+        elif isinstance(x, (sage.ext.integer.Integer,
+                            sage.ext.rational.Rational)):
             return constants.Constant_gen(x)
         raise TypeError
 

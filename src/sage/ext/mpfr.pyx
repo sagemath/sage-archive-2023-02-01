@@ -316,8 +316,13 @@ cdef class RealField(ring.Field):
                 return self(x)
             else:
                 raise TypeError
-        if isinstance(x, (int, long, integer.Integer, rational.Rational)):
+        if isinstance(x, (int, long, integer.Integer,
+                          rational.Rational)):
             return self(x)
+        try:
+            return x._mpfr_(self)
+        except AttributeError:
+            pass
         raise TypeError
 
     def __cmp__(self, other):

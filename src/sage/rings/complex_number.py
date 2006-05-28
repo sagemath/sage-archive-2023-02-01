@@ -382,6 +382,65 @@ class ComplexNumber(ring_element.RingElement):
         """
         return self.parent()(self._pari_().cosh())
 
+
+    def eta(self, omit_frac=False):
+        r"""
+        Return the value of the Dedekind $\eta$ function on self,
+        intelligently computed using $\SL(2,\Z)$ transformations.
+
+        INPUT:
+            self -- element of the upper half plane (if not,
+                    a raises a ValueError).
+            omit_frac -- (bool, default: False), if True, omit
+                    the e^(pi i z / 12) factor.
+
+        OUTPUT:
+            a complex number
+
+        The $\eta$ function is
+        $$
+           \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
+        $$
+
+        ALGORITHM: Uses the PARI C library.
+
+        EXAMPLES:
+        First we compute $\eta(1+i)$
+            sage: i = CC.0
+            sage: z = 1+i; z.eta()
+            0.74204877583656470 + 0.19883137022991071*I
+
+        We compute eta to low precision directly from the definition.
+            sage: z = 1 + i; z.eta()
+            0.74204877583656470 + 0.19883137022991071*I
+            sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
+            0.74204877583656470 + 0.19883137022991068*I
+
+        The optional argument allows us to omit the fractional part:
+            sage: z = 1 + i
+            sage: z.eta(omit_frac=True)
+            0.99812906992595851 - 0.00000000000000000000081276931900000004*I
+            sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
+            0.99812906992595840 + 0.00000000000000000052001876663675507*I
+
+        We illustrate what happens when $z$ is not in the
+        upper half plane.
+            sage: z = CC(1)
+            sage: z.eta()
+            Traceback (most recent call last):
+            ...
+            ValueError: 1.0000000000000000 must be in the upper half plane
+
+        You can also use functional notation.
+            sage: eta(1+I)
+            0.74204877583656470 + 0.19883137022991071*I
+        """
+        try:
+            return self.parent()(self._pari_().eta(not omit_frac))
+        except pari.PariError:
+            raise ValueError, "%s must be in the upper half plane"%self
+
+
     def sin(self):
         """
         EXAMPLES:

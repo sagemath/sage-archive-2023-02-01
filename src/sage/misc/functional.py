@@ -309,6 +309,23 @@ disc = discriminant
 #    except AttributeError:
 #        return __builtin__.eval(x)
 
+def eta(x):
+    r"""
+    Return the value of the eta function at $x$, which must
+    be in the upper half plane.
+
+    The $\eta$ function is
+        $$
+           \eta(z) = e^{\pi i z / 12} \prod_{n=1}^{\infty}(1-e^{2\pi inz})
+        $$
+
+    EXAMPLES:
+        sage: eta(1+I)
+        0.74204877583656470 + 0.19883137022991071*I
+    """
+    try: return x.eta()
+    except AttributeError: return CC(x).eta()
+
 def exp(x):
     """
     Return the value of the exponentation function at x.

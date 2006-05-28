@@ -16,6 +16,8 @@ EXAMPLES:
     [[1:2:1]]
 """
 
+import os
+
 include 'interrupt.pxi'
 
 cdef extern from "stdlib.h":
@@ -99,8 +101,31 @@ def set_precision(n):
 mwrank_set_precision(50)
 #mwrank_set_precision(10)
 
-def initprimes(pfilename, verb):
-    mwrank_initprimes(pfilename, verb)
+def initprimes(filename, verb=False):
+    """
+    mwrank_initprimes(filename, verb=False):
+
+    INPUT:
+        filename -- (string) the name of a file of primes
+        verb -- (bool: default False) verbose or not?
+
+    EXAMPLES:
+        sage.: mwrank_initprimes("PRIMES", True)
+        Computed 78519 primes, largest is 1000253
+        reading primes from file PRIMES
+        read extra prime 10000000019
+        finished reading primes from file PRIMES
+        Extra primes in list: 10000000019
+        sage.: mwrank_initprimes("PRIMES", False)
+
+        sage: mwrank_initprimes("xPRIMES", True)
+        Traceback (most recent call last):
+        ...
+        IOError: No such file or directory: xPRIMES
+    """
+    if not os.path.exists(filename):
+        raise IOError, 'No such file or directory: %s'%filename
+    mwrank_initprimes(filename, verb)
 
 ############# bigint #################
 

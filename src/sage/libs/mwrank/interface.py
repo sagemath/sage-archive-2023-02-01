@@ -12,7 +12,8 @@ methods that are implemented using this module.
 that is implemented via SWIG.}
 """
 
-from sage.libs.mwrank.mwrank import _bigint, _Curvedata, _mw, _two_descent, set_precision as _set_precision
+from sage.libs.mwrank.mwrank import (_bigint, _Curvedata, _mw, _two_descent,
+                                     set_precision as _set_precision)
 
 from sage.structure.all import SageObject
 

@@ -98,7 +98,7 @@ class Dokchitser(SageObject):
         0.30599977383405230*z + 0.18654779726816195*z^2 + -0.13679146309718768*z^3 + O(z^4)
         sage: L.check_functional_equation()
         0.0000000000000000061121897480000001            # 32-bit
-        0.0000000000000000060444271116099998            # 64-bit
+        0.0000000000000000060444271116066872            # 64-bit
 
     RANK 2 ELLIPTIC CURVE:
 
@@ -113,7 +113,7 @@ class Dokchitser(SageObject):
         1.5186330005768536
         sage: L.taylor_series(1,4)
         -0.000000000000000000000012815814569193140 + 0.0000000000000000000000072626829063558658*z + 0.75931650028842679*z^2 + -0.43030233758336200*z^3 + O(z^4)  # 32-bit
-        -0.000000000000000000000026912956656300001 + 0.000000000000000000000015251490196900001*z + 0.75931650028842679*z^2 + -0.43030233758336200*z^3 + O(z^4)   # 64-bit
+        -0.000000000000000000000026912956656279676 + 0.000000000000000000000015251490196878257*z + 0.75931650028842679*z^2 + -0.43030233758336200*z^3 + O(z^4)   # 64-bit
 
     RAMANUJAN DELTA L-FUNCTION:
 
@@ -397,7 +397,7 @@ class Dokchitser(SageObject):
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.check_functional_equation ()
             -0.000000000000000000027105054319999997      # 32-bit
-            -0.000000000000000000027105054312100001      # 64-bit
+            -0.000000000000000000027105054312137611      # 64-bit
 
         If we choose the sign in functional equation for the $\zeta$
         function incorrectly, the functional equation doesn't check out.

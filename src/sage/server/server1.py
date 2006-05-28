@@ -163,8 +163,10 @@ class IO_Line:
             images = []
             files  = []
             for F in self.file_list:
-                if(F[-4:] == '.png'):
+                if F[-4:] == '.png':
                     images.append('<img src="cells/%s/%s">'%(number,F))
+                elif F[-4:] == '.svg':
+                    images.append('<embed src="cells/%s/%s" type="image/svg+xml" name="emap">'%(number, F))
                 else:
                     files.append('<a href="cells/%s/%s">%s</a>'%(number,F,F))
 
@@ -368,7 +370,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             return f
 
     def do_GET(self):
-        if self.path[-4:] == '.png' or self.path[-5:] == '.sobj' or self.path[-4:] == '.txt':
+        if self.path[-4:] in ['.png', '.svg', '.txt'] or self.path[-5:] == '.sobj':
             if os.path.exists("%s%s"%(directory,self.path)):
                 f = self.send_head()
                 if f:
@@ -490,6 +492,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
+        elif self.path[-4:] == '.svg':
+            self.send_header("Content-type", 'image/svg+xml')
         elif self.path[-4:] == '.txt':
             self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':

@@ -150,8 +150,14 @@ def prime_pi(x):
         168
         sage: prime_pi(100000)
         9592
+        sage: prime_pi(0.5)
+        0
+        sage: prime_pi(-10)
+        0
     """
-    return pari(x).primepi()
+    if x < 2:
+        return sage.rings.integer.Integer(0)
+    return sage.rings.integer.Integer(pari(x).primepi())
 
 number_of_primes = prime_pi
 

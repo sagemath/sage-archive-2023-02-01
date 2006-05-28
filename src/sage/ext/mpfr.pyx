@@ -48,11 +48,12 @@ import sage.rings.coerce
 import operator
 import rational
 
-import sage.rings.complex_number
+import sage.rings.complex_field
 
 import integer
 
 import sage.rings.infinity
+
 
 
 #*****************************************************************************
@@ -623,7 +624,7 @@ cdef class RealNumber(element.RingElement):
             sage: loads(dumps(b)) == b
             True
             sage: b = R(-1).sqrt(); b
-            NaN
+            1.0000000000000000000000000000000000000000000000000000000000000*I
             sage: loads(dumps(b)) == b
             True
         """
@@ -1044,16 +1045,23 @@ cdef class RealNumber(element.RingElement):
     def __complex__(self):
         return complex(float(self))
 
+    def _complex_number_(self):
+        return sage.rings.complex_field.ComplexField(self.prec())(self)
+
+
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
     ###########################################
+
+    def is_NaN(self):
+        return bool(mpfr_nan_p(self.value))
 
     cdef int cmp(RealNumber self, RealNumber x):
         cdef int a,b
         a = mpfr_nan_p(self.value)
         b = mpfr_nan_p(x.value)
         if a != b:
-            return -1    # nothing equal to Nan
+            return -1    # nothing is equal to Nan
         cdef int i
         i = mpfr_cmp(self.value, x.value)
         if i < 0:
@@ -1097,7 +1105,12 @@ cdef class RealNumber(element.RingElement):
 
     def sqrt(self):
         """
-        Return the square root of self.
+        Return a square root of self.
+
+        If self is negative a complex number is returned.
+
+        If you use self.square_root() then a real number will always
+        be returned (though it will be NaN if self is negative).
 
         EXAMPLES:
             sage: r = 4.0
@@ -1114,7 +1127,26 @@ cdef class RealNumber(element.RingElement):
 
             sage: r = -2.0
             sage: r.sqrt()
+            1.4142135623730951*I
+            """
+        if self >= 0:
+            return self.square_root()
+        return self._complex_number_().sqrt()
+
+
+    def square_root(self):
+        """
+        Return a square root of self.  A real number will always be
+        returned (though it will be NaN if self is negative).
+
+        Use self.sqrt() to get a complex number if self is negative.
+
+        EXAMPLES:
+            sage: r = -2.0
+            sage: r.square_root()
             NaN
+            sage: r.sqrt()
+            1.4142135623730951*I
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1147,12 +1179,19 @@ cdef class RealNumber(element.RingElement):
         _sig_on
         mpfr_pow(x.value, self.value, exponent.value, self._parent.rnd)
         _sig_off
+        if mpfr_nan_p(x.value):
+            return self._complex_number_()**exponent._complex_number_()
         return x
 
     def __pow__(self, exponent, modulus):
         """
         Compute self raised to the power of exponent, rounded in
         the direction specified by the parent of self.
+
+        If the result is not a real number, self and the exponent are
+        both coerced to complex numbers (with sufficient precision),
+        then the exponentiation is computed in the complex numbers.
+        Thus this function can return either a real or complex number.
 
         EXAMPLES:
             sage: R = RealField(30)
@@ -1162,8 +1201,8 @@ cdef class RealNumber(element.RingElement):
             sage: a^a
             1.2971114814
             sage: b = R(-1)
-            sage: b^0.5
-            NaN
+            sage: b^(1/2)
+            -0.00000000000000000010842021725 + 1.0000000000*I
         """
         cdef RealNumber x
         if not isinstance(self, RealNumber):

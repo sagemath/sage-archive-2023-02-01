@@ -2007,6 +2007,19 @@ cdef class gen:
         _sig_on
         return P.new_gen(lift0(x.g, P.get_var(v)))
 
+    def numbpart(gen x):
+        """
+        numbpart(x): returns the number of partitions of x.
+
+        EXAMPLES:
+            sage: pari(20).numbpart()
+            627
+            sage: pari(100).numbpart()
+            190569292
+        """
+        _sig_on
+        return P.new_gen(numbpart(x.g))
+
     def numerator(gen x):
         """
         numerator(x): Returns the numerator of x.

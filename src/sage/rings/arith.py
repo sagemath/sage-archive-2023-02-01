@@ -1679,9 +1679,35 @@ def farey(v, lim):
                 return lower
             upper = mediant
 
+def number_of_partitions(n):
+    """
+    Return the number of partitions of the integer $n$.
+
+    To compute all the partitions of $n$ use \code{partitions(n)}.
+
+    EXAMPLES:
+        sage: number_of_partitions(3)
+        3
+        sage: number_of_partitions(10)
+        42
+        sage: number_of_partitions(40)
+        37338
+        sage: number_of_partitions(100)
+        190569292
+        sage: number_of_partitions(-5)
+        0
+        sage: number_of_partitions(0)
+        1
+    """
+    ZZ = sage.rings.integer.Integer
+    return ZZ(pari(ZZ(n)).numbpart())
+
 def partitions(n):
     """
-    Generate the partitions of an integer.
+    Generator of all the partitions of the integer $n$.
+
+    To compute the number of partitions of $n$ use
+    \code{number_of_partitions(n)}.
 
     INPUT:
         n -- int

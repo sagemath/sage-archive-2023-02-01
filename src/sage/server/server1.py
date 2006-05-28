@@ -5,6 +5,8 @@ AUTHOR:
     -- William Stein (2006-05-06): initial version
 
 TODO:
+   [] debugger -- some way to enter pdb and use it from web interface
+   [] way to time how long a computation takes.
    [] word wrap -- default on, but toggle on/off on a cell-by-cell basis
       (will require ajax to do the wrapped/non-wrapped computation, or
       store both versions in the html... so will work offline)

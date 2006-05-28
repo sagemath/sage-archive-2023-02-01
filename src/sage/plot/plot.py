@@ -1230,7 +1230,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except TypeError:
-                print "Not adding invalid point (=%s) to plot"%y
+                print "Not adding invalid point f(%s) to plot"%x
                 pass
         # adaptive refinement
         i, j = 0, 0

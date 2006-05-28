@@ -975,7 +975,7 @@ cdef class gen:
         OUTPUT:
             gen
         EXAMPLES:
-            sage: pari(1.5).Col()
+            sage: pari('1.5').Col()
             [1.500000000000000000000000000]~               # 32-bit
             [1.5000000000000000000000000000000000000]~     # 64-bit
             sage: pari([1,2,3,4]).Col()
@@ -2546,7 +2546,7 @@ cdef class gen:
         and $|x| > 1$ then $\asin(x)$ is complex.
 
         EXAMPLES:
-            sage: pari(pari(0.5).sin()).asin()
+            sage: pari(pari('0.5').sin()).asin()
             0.5000000000000000000000000000               # 32-bit
             0.50000000000000000000000000000000000000     # 64-bit
             sage: pari(2).asin()
@@ -3303,7 +3303,7 @@ cdef class gen:
         q.theta(z): Jacobi sine theta-function.
 
         EXAMPLES:
-            sage: pari(0.5).theta(2)
+            sage: pari('0.5').theta(2)
             1.632025902952598833772353216               # 32-bit
             1.6320259029525988337723532162682089972     # 64-bit
         """
@@ -3315,7 +3315,7 @@ cdef class gen:
         """
         q.thetanullk(k): return the k-th derivative at z=0 of theta(q,z)
         EXAMPLES:
-            sage: pari(0.5).thetanullk(1)
+            sage: pari('0.5').thetanullk(1)
             0.5489785325603405618549383537             # 32-bit
             0.54897853256034056185493835370857284861   # 64-bit
         """
@@ -3410,6 +3410,13 @@ cdef class gen:
         _sig_on
         return P.new_gen(contfrac0(x.g, t0, lmax))
 
+    def contfracpnqn(gen x, b=0, long lmax=0):
+        """
+        contfracpnqn(x): [p_n,p_{n-1}; q_n,q_{n-1}] corresponding to the continued
+        fraction x.
+        """
+        _sig_on
+        return P.new_gen(pnqn(x.g))
 
 
     def gcd(gen x, y, long flag=0):
@@ -5054,6 +5061,7 @@ cdef class PariInstance:
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
         with at lest precision decimal \emph{digits} of precision.
         """
+        global prec
         cdef unsigned long old_prec
         old_prec = prec
         if not precision:
@@ -5068,9 +5076,11 @@ cdef class PariInstance:
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
         with precision \emph{bits} of precision.
         """
+        global prec
+
         cdef unsigned long old_prec
         old_prec = prec
-        precision = long(precision / 3.4) - 1     # be safe, since log_2(10) = 3.3219280948873626
+        precision = long(precision / 3.4)+1     # be safe, since log_2(10) = 3.3219280948873626
         if not precision:
             precision = prec
         self.set_real_precision(precision)

@@ -1053,6 +1053,9 @@ cdef class RealNumber(element.RingElement):
     def _complex_number_(self):
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
+    def _pari_(self):
+        return sage.libs.pari.all.pari.new_with_bits_prec(str(self), self._parent.prec)
+
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=

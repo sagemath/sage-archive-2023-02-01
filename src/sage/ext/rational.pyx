@@ -97,12 +97,12 @@ cdef Rational_sub_(Rational self, Rational other):
 
 cdef class Rational(element.FieldElement):
 
-    def __new__(self, x=None):
+    def __new__(self, x=None, int base=0):
         mpq_init(self.value)
 
-    def __init__(self, x=None):
+    def __init__(self, x=None, int base=0):
         if not (x is None):
-            self.__set_value(x)
+            self.__set_value(x, base)
 
     def parent(self):
         return sage.rings.rational_field.Q
@@ -113,41 +113,10 @@ cdef class Rational(element.FieldElement):
     def _reduce_set(self, s):
         mpq_set_str(self.value, s, 32)
 
-    def __set_value(self, x):
-        """
-        EXAMPLES:
-            sage: a = long(901824309821093821093812093810928309183091832091)
-            sage: b = QQ(a); b
-            901824309821093821093812093810928309183091832091
-            sage: QQ(b)
-            901824309821093821093812093810928309183091832091
-            sage: QQ(int(93820984323))
-            93820984323
-            sage: QQ(ZZ(901824309821093821093812093810928309183091832091))
-            901824309821093821093812093810928309183091832091
-            sage: QQ('-930482/9320842317')
-            -930482/9320842317
-            sage: QQ((-930482, 9320842317))
-            -930482/9320842317
-            sage: QQ([9320842317])
-            9320842317
-            sage: QQ(pari(39029384023840928309482842098430284398243982394))
-            39029384023840928309482842098430284398243982394
-            sage: QQ('sage')
-            Traceback (most recent call last):
-            ...
-            TypeError: unable to convert sage to a rational
-
-            sage: QQ(RR(3929329/32))
-            3929329/32
-            sage: QQ(RR(1/7)) - 1/7
-            -1/126100789566373888
-            sage: QQ(23.2)
-            6530219459687219/281474976710656
-            sage: 6530219459687219.0/281474976710656
-            23.1999999999999993
-        """
+    def __set_value(self, x, int base):
         cdef int n
+        cdef integer.Integer num, den
+
         if isinstance(x, Rational):
             set_from_Rational(self, x)
 
@@ -167,23 +136,28 @@ cdef class Rational(element.FieldElement):
             if x == 0:
                 mpq_set_si(self.value, 0, 1)
                 return
-
-            xstr = x.str(2)
-            if '.' in xstr:
-                exp = (len(xstr) - (xstr.index('.') +1))
-                p = (1<<exp)
-                pstr = '1'+'0'*exp
-                s = (x*p).str(2)+'/'+pstr
-                if not mpq_set_str( self.value, s, 2) == 0:
+            if not base:
+                v = x._pari_().contfrac().contfracpnqn()
+                s = '%s/%s'%(hex(v[0,0]), hex(v[1,0]))
+                if mpq_set_str(self.value, s, 16):
                     raise TypeError, "unable to convert %s to a rational"%x
-                mpq_canonicalize(self.value)
             else:
-                if not mpq_set_str(self.value, xstr, 2 ) == 0:
-                    raise TypeError, "unable to convert %s to a rational"%x
-                mpq_canonicalize(self.value)
+                xstr = x.str(base)
+                if '.' in xstr:
+                    exp = (len(xstr) - (xstr.index('.') +1))
+                    p = base**exp
+                    pstr = '1'+'0'*exp
+                    s = (x*p).str(base)+'/'+pstr
+                    if mpq_set_str( self.value, s, base):
+                        raise TypeError, "unable to convert %s to a rational"%x
+                    mpq_canonicalize(self.value)
+                else:
+                    if mpq_set_str(self.value, xstr, base):
+                        raise TypeError, "unable to convert %s to a rational"%x
+                    mpq_canonicalize(self.value)
 
         elif isinstance(x, str):
-            if not mpq_set_str(self.value, x, 0) == 0:
+            if mpq_set_str(self.value, x, base):
                 raise TypeError, "unable to convert %s to a rational"%x
             mpq_canonicalize(self.value)
 
@@ -192,13 +166,12 @@ cdef class Rational(element.FieldElement):
 
         elif isinstance(x, tuple) and len(x) == 2:
             s = "%s/%s"%x
-            if not mpq_set_str(self.value, s, 0) == 0:
+            if mpq_set_str(self.value, s, 0):
                 raise TypeError, "unable to convert %s to a rational"%s
             mpq_canonicalize(self.value)
 
         elif isinstance(x, list) and len(x) == 1:
-
-            self.__set_value(x[0])
+            self.__set_value(x[0], base)
 
         elif isinstance(x, sage.libs.pari.all.pari_gen):
             # TODO: figure out how to convert to pari integer in base 16

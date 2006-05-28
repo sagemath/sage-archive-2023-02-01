@@ -93,11 +93,66 @@ class RationalField(_uniq, field.Field):
     def _latex_(self):
         return "\\mbox{\\bf{}Q}"
 
-    def __call__(self, x):
+    def __call__(self, x, base=0):
         """
         Coerce x into the field of rational numbers.
+
+        EXAMPLES:
+            sage: a = long(901824309821093821093812093810928309183091832091)
+            sage: b = QQ(a); b
+            901824309821093821093812093810928309183091832091
+            sage: QQ(b)
+            901824309821093821093812093810928309183091832091
+            sage: QQ(int(93820984323))
+            93820984323
+            sage: QQ(ZZ(901824309821093821093812093810928309183091832091))
+            901824309821093821093812093810928309183091832091
+            sage: QQ('-930482/9320842317')
+            -930482/9320842317
+            sage: QQ((-930482, 9320842317))
+            -930482/9320842317
+            sage: QQ([9320842317])
+            9320842317
+            sage: QQ(pari(39029384023840928309482842098430284398243982394))
+            39029384023840928309482842098430284398243982394
+            sage: QQ('sage')
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert sage to a rational
+
+        Coercion from the reals to the rational is done by default
+        using continued fractions.
+
+            sage: QQ(RR(3929329/32))
+            3929329/32
+            sage: QQ(-RR(3929329/32))
+            -3929329/32
+            sage: QQ(RR(1/7)) - 1/7
+            0
+
+        If you specify an optional second base argument, then
+        the string representation of the float is used.
+            sage: QQ(23.2, 2)
+            6530219459687219/281474976710656
+            sage: 6530219459687219.0/281474976710656
+            23.1999999999999993
+            sage: QQ(23.2, 10)
+            116/5
+
+        Here's a nice example involving elliptic curves:
+            sage: E = EllipticCurve('11a')
+            sage: L = E.Lseries_at1(300)[0]; L
+            0.25384186085600002
+            sage: O = E.omega(); O
+            1.269209304279553421688794613
+            sage: t = L/O; t
+            0.20000000000007040
+            sage: QQ(t)
+            1/5
         """
-        return sage.rings.rational.Rational(x)
+        if isinstance(x, sage.rings.rational.Rational):
+            return x
+        return sage.rings.rational.Rational(x, base)
 
     def _coerce_(self, x):
         if isinstance(x, sage.rings.rational.Rational):

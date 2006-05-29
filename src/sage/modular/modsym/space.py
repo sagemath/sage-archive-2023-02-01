@@ -109,6 +109,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         """
         return self.new_submodule(p)
 
+    def old_subspace(self, p=None):
+        """
+        Synonym for new_submodule.
+        """
+        return self.old_submodule(p)
+
     def eisenstein_subspace(self):
         """
         Synonym for eisenstein_submodule.

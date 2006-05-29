@@ -602,7 +602,7 @@ cdef class RealNumber(element.RingElement):
             d = parent(x.denominator())
             mpfr_div(self.value, n.value, d.value, parent.rnd)
         else:
-            s = str(x)
+            s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
                 if s == 'NaN' or s == '@NaN@':
                     mpfr_set_nan(self.value)

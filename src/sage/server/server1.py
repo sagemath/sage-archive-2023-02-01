@@ -576,6 +576,7 @@ def server_http1(dir ='sage_server',
         os.makedirs('%s/sobj'%directory)
     sage0.eval('import sage.ext.sage_object; sage.ext.sage_object.base="%s/sobj"'%directory)
     sage0.eval('os.chdir("%s")'%directory)
+    sage0.eval('import sage.plot.plot; sage.plot.plot.EMBEDDED_MODE=True')
     HTML_Interface.protocol_version = "HTTP/1.0"
 
     tries = 0

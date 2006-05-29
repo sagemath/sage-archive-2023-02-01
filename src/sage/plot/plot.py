@@ -44,11 +44,24 @@ We can put text in a graph:
     sage: g = p+t+x+y
     sage: g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
+We plot the Riemann zeta function along the critical line and
+see the first few zeros:
+
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*I)), 1,27,rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
+    sage: (p1+p2).save('sage.png')
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples
     -- Alex Clemesha (2006-05-04) major update
+    -- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server integration
+
+TODO:
+    [] more arithmetic operations on plot objects, e.g., rescaling,
+       negation, etc.
+    [] ability to change all properties of a graph easily, e.g.,
+       the rgbcolor.
 """
 
 __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg', 'Value', \
@@ -89,6 +102,8 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
                  'find_axes']
 
 DEFAULT_FIGSIZE=[5,4]
+
+EMBEDDED_MODE = False
 
 import sage.misc.viewer
 import sage.misc.misc
@@ -439,7 +454,9 @@ class Graphics(SageObject):
 	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
 					color='k',linewidth=0.6))
 
-    def show(self, xmin=None, xmax=None, ymin=None, ymax=None,figsize=DEFAULT_FIGSIZE, filename=None):
+    def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
+             figsize=DEFAULT_FIGSIZE, filename=None,
+             dpi=None):
         """
 	Show this graphics image with the default image viewer.
 
@@ -451,11 +468,13 @@ class Graphics(SageObject):
 	to show with a 'figsize' of square dimensions.
 
 	    sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
-
         """
+        if EMBEDDED_MODE:
+            self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi)
+            return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
@@ -1387,7 +1406,7 @@ class GraphicsArray(SageObject):
     def __append__(self, g):
         self._glist.append(g)
 
-    def _render(self, filename):
+    def _render(self, filename, dpi=None):
 	r"""
 	\code{render} loops over all graphics objects
 	in the array and adds them to the subplot.
@@ -1401,22 +1420,26 @@ class GraphicsArray(SageObject):
 	figure = Figure()
 	for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
-	    g.save(filename, fig=figure, sub=subplot, savenow = (i==dims))   # only save if i==dims.
+	    g.save(filename, dpi=dpi, fig=figure,
+                   sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
-    def save(self, filename=None):
+    def save(self, filename=None, dpi=None):
 	"""
 	save the \code{graphics_array} to
         (for now) a png called 'filename'.
 	"""
-	self._render(filename)
+	self._render(filename, dpi=dpi)
 
-    def show(self, filename=None):
+    def show(self, filename=None, dpi=None):
 	r"""
 	Show this graphics array using the default viewer.
 	"""
+        if EMBEDDED_MODE:
+            self.save(filename, dpi=dpi)
+            return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.render(filename)
+        self._render(filename, dpi=dpi)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)

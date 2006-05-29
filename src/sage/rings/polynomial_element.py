@@ -1314,6 +1314,22 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         """
         return self.parent()(self[:int(n)], check=False)
 
+    def radical(self):
+        """
+        Returns the radical of self; over a field, this is the product of the
+        distinct irreducible factors of self. (This is also sometimes called the
+        "square-free part" of self, but that term is ambiguous; it is sometimes used
+        to mean the quotient of self by its maximal square factor.)
+
+        EXAMPLES:
+            sage: P = PolynomialRing(Integers())
+            sage: x = P.gen()
+            sage: t = (x^2-x+1)^3 * (3*x-1)^2
+            sage: t.radical()
+            3*x^3 - 4*x^2 + 4*x - 1
+        """
+        return self // self.gcd(self.derivative())
+
 class Polynomial_generic_dense(Polynomial):
     """
     A generic dense polynomial.

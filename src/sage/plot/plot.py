@@ -441,17 +441,16 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,figsize=DEFAULT_FIGSIZE, filename=None):
         """
-	Show a graphics image with default image viewer.
-	(Current implementation is hackish)
+	Show this graphics image with the default image viewer.
 
 	EXAMPLES:
 	    sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
-	    sage: c.save("sage.png", xmin=-1, xmax=3, ymin=-1, ymax=3)
+	    sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-	    To correct the apect ratio of certain graphics, it is necessary
-	    to show with a 'figsize' of square dimensions.
+	To correct the apect ratio of certain graphics, it is necessary
+	to show with a 'figsize' of square dimensions.
 
-	    sage: c.save("sage.png", figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+	    sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
 
         """
         if filename is None:
@@ -1412,9 +1411,8 @@ class GraphicsArray(SageObject):
 	self._render(filename)
 
     def show(self, filename=None):
-	"""
-	show the \code{graphics_array} in
-        the users browser.
+	r"""
+	Show this graphics array using the default viewer.
 	"""
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'

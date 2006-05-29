@@ -26,7 +26,11 @@ elif os.uname()[0][:6] == 'CYGWIN':
     # Bobby Moreti provided the following.
 
     if not os.environ.has_key('BROWSER'):
-        BROWSER = r'%SystemRoot%\system32\rundll32.exe url.dll,FileProtocolHandler'
+        systemroot = os.environ['SYSTEMROOT'].replace(':','/').replace('\\','')
+        systemroot = '/cygdrive/' + systemroot
+        BROWSER = '%s/system32/rundll32.exe url.dll,FileProtocolHandler'%\
+                  systemroot
+
     DVI_VIEWER = BROWSER
     PDF_VIEWER = BROWSER
     PNG_VIEWER = BROWSER

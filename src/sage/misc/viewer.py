@@ -25,7 +25,8 @@ elif os.uname()[0][:6] == 'CYGWIN':
     # determining what opens things.
     # Bobby Moreti provided the following.
 
-    BROWSER= 'rundll32.exe url.dll,FileProtocolHandler'
+    if not os.environ.has_key('BROWSER'):
+        BROWSER = r'%SystemRoot%\system32\rundll32.exe url.dll,FileProtocolHandler'
     DVI_VIEWER = BROWSER
     PDF_VIEWER = BROWSER
     PNG_VIEWER = BROWSER

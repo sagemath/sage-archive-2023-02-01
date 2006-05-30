@@ -513,8 +513,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__modulus = modulus
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
-        self.__gen = finite_field_element.FiniteFieldElement(self,
-            pari.pari('a'))
+        self.__gen = finite_field_element.FiniteFieldElement(self, pari.pari('a'))
 
 
     def __cmp__(self, other):
@@ -748,10 +747,11 @@ class FiniteField_ext_pari(FiniteField_generic):
                 raise TypeError, "no coercion of non-constant polynomial %s into %s defined."%(x,self)
 
         elif isinstance(x, str):
+            x = x.replace(self.variable_name(),'a')
             x = pari.pari(x)
             t = x.type()
             if t == 't_POL':
-                if (x.variable() == self.variable_name() \
+                if (x.variable() == 'a' \
                     and x.polcoeff(0).type()[2] == 'I'): #t_INT and t_INTMOD
                     return self(x)
             if t[2] == 'I': #t_INT and t_INTMOD
@@ -760,8 +760,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         try:
             if x.parent() == self.vector_space():
-                name = self.variable_name()
-                x = pari.pari('+'.join(['%s*%s^%s'%(x[i],name, i) for i in range(self.degree())]))
+                x = pari.pari('+'.join(['%s*a^%s'%(x[i], i) for i in range(self.degree())]))
                 return finite_field_element.FiniteFieldElement(self, x)
         except AttributeError:
             pass

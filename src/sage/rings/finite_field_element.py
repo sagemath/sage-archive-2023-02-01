@@ -375,7 +375,7 @@ class FiniteFieldElement(field_element.FieldElement):
             return Integer(1)
         return self.parent().characteristic()
 
-    def __repr__(self):
+    def _repr_(self):
         return ("%s"%(self.__value.lift().lift())).replace('a',self.parent().variable_name())
 
     def _latex_(self):

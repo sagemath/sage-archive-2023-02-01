@@ -923,7 +923,7 @@ class NumberField_extension(NumberField_generic):
             sage: K = NumberField(x^2 + 1); R = K['x']
             sage: a, t = K.gen(), R.gen()
             sage: L = K.extension(t^5-t+a)
-            sage: L.galois_group()
+            sage: L.galois_group()                     # optional
             Transitive group number 22 of degree 10
         """
         return self.absolute_polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)

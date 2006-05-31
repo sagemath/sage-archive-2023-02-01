@@ -536,7 +536,7 @@ def next_prime(n, proof=True):
     """
     The next prime greater than the integer n.  If n is prime, then
     this function does not return n, but the next prime after n.  If
-    the optional argument proof is false (the default), this function
+    the optional argument proof is False (the default), this function
     only returns a pseudo-prime, as defined by the PARI nextprime
     function.
 
@@ -559,7 +559,7 @@ def next_prime(n, proof=True):
     if n == 2:
         return sage.rings.integer.Integer(3)
     if not proof:  # pari nextprime is probabilistic (according to their docs)
-        return eval(str(pari(n+1).nextprime()))
+        return sage.rings.integer.Integer((eval(str(pari(n+1).nextprime()))))
 
     if n % 2 == 0:
         n += 1

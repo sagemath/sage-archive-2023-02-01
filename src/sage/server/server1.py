@@ -518,13 +518,14 @@ def server_http1(dir ='sage_server',
                  viewer=True,
                  log=None,
                  max_tries=10):
-    """
+    r"""
     Start a SAGE http server at the given port.
 
     Typical usage:
-        server_http1('mysession')
+        \code{server_http1('mysession')}
 
-    Use it.  To start it later, just type server_http1('mysession') again.
+    Use it.  To start it later, just type \code{server_http1('mysession')}
+    again.
 
     INPUT:
         dir -- (default: 'sage_server') name of the server directory; your
@@ -540,6 +541,42 @@ def server_http1(dir ='sage_server',
         log    -- (default: None) resume from a previous log
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
+
+    NOTES:
+
+    When you type
+
+      server_http1(...)
+
+    you start a web server on the machine you type
+    that command on.  You don't connect to another
+    machine.  It's kind of like starting apache
+    on a server.  So do this if you want to start
+    a SAGE notebook accessible from anywher.
+
+    \begin{enumerate}
+    \item Figure out the external IP address of your server, say
+       128.208.160.191  (that's sage.math's, actually).
+    \item On your server, type
+       server_http1('mysession', address='128.208.160.191')
+    \item Assuming you have permission to open a port on that
+       machine, it will startup and display a URL, e.g.,
+           \url{http://128.208.160.191:8000}
+       Note this URL.
+    \item Go to any computer in the world (!), or at least
+       behind your firewall, and use any web browser to
+       visit the above URL.  You're using \sage.
+    \end{enumerate}
+
+    \note{There are no security precautions in place yet.  If
+    you open a server as above, and somebody figures this out, they
+    could use their web browser to connect to the same sage session,
+    and type something nasty like \code{os.system('cd; rm -rf *')}
+    and your home directory would be hosed.   I'll be adding an
+    authentication screen in the near future.  In the meantime
+    (and even then), you should consider creating a user with
+    very limited privileges (e.g., empty home directory), and
+    running \code{server_http1} as that user.}
     """
     global directory, current_log, logsobj_file, \
            numcols, numrows, sage0, save_name, logfile

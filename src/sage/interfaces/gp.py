@@ -103,7 +103,7 @@ class Gp(Expect):
     using Gp (and get the result back as a string).
     """
     def __init__(self, stacksize=10000000,   # 10MB
-                 maxread=100000, script_subdirectory="",
+                 maxread=100000, script_subdirectory=None,
                  logfile=None,
                  server=None,
                  init_list_length=1024):
@@ -338,7 +338,7 @@ def is_GpElement(x):
     return isinstance(x, GpElement)
 
 # An instance
-gp = Gp(script_subdirectory='user')
+gp = Gp()
 
 def reduce_load_GP():
     return gp

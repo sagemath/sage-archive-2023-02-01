@@ -381,7 +381,7 @@ class Kash(Expect):
     def __init__(self,
                  max_workspace_size=None,
                  maxread=100000,
-                 script_subdirectory="user",
+                 script_subdirectory=None,
                  restart_on_ctrlc = True,
                  logfile=None,
                  server=None):

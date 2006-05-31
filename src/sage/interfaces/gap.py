@@ -170,7 +170,7 @@ class Gap(Expect):
     AUTHORS: William Stein and David Joyner
     """
     def __init__(self, max_workspace_size=None,
-                 maxread=100000, script_subdirectory="user",
+                 maxread=100000, script_subdirectory=None,
                  use_workspace_cache = True,
                  server=None,
                  logfile = None):

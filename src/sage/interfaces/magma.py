@@ -121,7 +121,8 @@ class Magma(Expect):
         sage: magma.SetDefaultRealFieldPrecision(200, nvals=0)  # optional and requires MAGMA >= v2.12
 
     """
-    def __init__(self, maxread=10000, script_subdirectory="user", logfile=None, server=None):
+    def __init__(self, maxread=10000, script_subdirectory=None,
+                 logfile=None, server=None):
         Expect.__init__(self,
                         name = "magma",
                         prompt = ">>SAGE>>",
@@ -221,6 +222,12 @@ class Magma(Expect):
     #    """
         #self.eval("delete %s"%var)
     #    self.eval("%s:=0"%var)
+
+    def chdir(self, dir):
+        """
+        Change to the given directory.
+        """
+        magma.eval('ChangeDirectory("%s")'%dir)
 
     def attach(self, filename):
         self.eval('Attach("%s")'%filename)

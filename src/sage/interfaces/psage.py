@@ -48,7 +48,7 @@ number = 0
 
 
 class PSage(Sage):
-    def __init__(self,  maxread=10000, script_subdirectory="user",
+    def __init__(self,  maxread=10000, script_subdirectory=None,
                  logfile=None,  preparse=True):
         Sage.__init__(self, maxread=maxread, script_subdirectory=script_subdirectory,
                       logfile=logfile,  preparse=preparse)

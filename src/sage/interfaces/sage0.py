@@ -100,7 +100,7 @@ class Sage(Expect):
     its arguments using the s interpeter, so the call to s3 is passed
     \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
-    def __init__(self, maxread=10000, script_subdirectory="user",
+    def __init__(self, maxread=10000, script_subdirectory=None,
                        logfile=None,  preparse=True, server=None):
         Expect.__init__(self,
                         name = 'sage',

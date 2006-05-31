@@ -276,7 +276,7 @@ class Singular(Expect):
 
     AUTHORS: David Joyner and William Stein
     """
-    def __init__(self, maxread=1000, script_subdirectory="user",
+    def __init__(self, maxread=1000, script_subdirectory=None,
                  logfile=None, server=None):
         Expect.__init__(self,
                         name = 'singular',

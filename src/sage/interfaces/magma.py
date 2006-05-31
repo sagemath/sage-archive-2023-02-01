@@ -62,6 +62,14 @@ named parameter to a function call:
     sage: n.Factorization(nvals=2)
     ([ <2, 1>, <17, 1>, <59, 1> ], -1)
 
+We verify that an obviously principal ideal is principal:
+
+    sage: _ = magma.eval('R<x> := PolynomialRing(RationalField())')
+    sage: O = magma.NumberField('x^2+23').MaximalOrder()
+    sage: I = magma('ideal<%s|%s.1>'%(O.name(),O.name()))
+    sage: I.IsPrincipal(nvals=2)
+    (true, [1, 0])
+
 \subsection{Long Input}
 The Magma interface reads in even very long input (using files) in a
 robust manner.

@@ -142,12 +142,12 @@ class IO_Line:
                    cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea></td>
           <td valign='top'><table cellpadding=0 cellspacing=0>
            <tr>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b> + </b></a></span></td>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b> - </b></a></span></td>
+            <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
+            <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
            </tr>
            <tr>
-            <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
-            <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b> + </b></a></span></td>
+            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b> - </b></a></span></td>
            </tr>
           </table></td></tr></table>
         </div>
@@ -441,7 +441,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     print "Keyboard interrupt!"
                     o = msg
 
-                o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
 
                 #while True:
                 #    print "waiting for output"

@@ -114,19 +114,17 @@ from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
 from math import modf
 
-try:
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.backends.backend_ps import FigureCanvasPS
+from matplotlib.backends.backend_svg import FigureCanvasSVG
+from matplotlib.transforms import Value
+from matplotlib.figure import Figure
+import matplotlib.patches as patches
+from matplotlib.cbook import flatten
 
-    from matplotlib.backends.backend_agg import FigureCanvasAgg
-    from matplotlib.backends.backend_ps import FigureCanvasPS
-    from matplotlib.backends.backend_svg import FigureCanvasSVG
-    from matplotlib.transforms import Value
-    from matplotlib.figure import Figure
-    import matplotlib.patches as patches
-    from matplotlib.cbook import flatten
-
-except ImportError, msg:
-    print msg
-    print "WARNING -- matplotlib did not build correctly as part of SAGE."
+#except ImportError, msg:
+#    print msg
+#    print "WARNING -- matplotlib did not build correctly as part of SAGE."
 
 
 from axes import find_axes
@@ -520,9 +518,10 @@ class Graphics(SageObject):
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=None):
         """
-	Save the graphics to an image file of type: PNG, PS, or SVG,
+	Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
 	depending on the file extension you give the filename.
-        Extension types can be: '.png', '.ps', '.svg'
+        Extension types can be: '.png', '.ps', '.eps', '.svg',
+        and '.sobj' (for a SAGE object you can load later).
 
 	EXAMPLES:
 	    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
@@ -543,7 +542,7 @@ class Graphics(SageObject):
         try:
             ext = os.path.splitext(filename)[1].lower()
         except IndexError:
-            raise ValueError, "file extension must be either 'png', 'ps', 'svg' or 'sobj'"
+            raise ValueError, "file extension must be either 'png', 'eps', 'svg' or 'sobj'"
 
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
@@ -569,7 +568,7 @@ class Graphics(SageObject):
 
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
-	    if ext == '.ps':
+	    if ext in ['.eps', '.ps']:
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
@@ -582,7 +581,7 @@ class Graphics(SageObject):
 		if dpi is None:
 		    dpi = 150
             else:
-                raise ValueError, "file extension must be either 'png', 'ps', 'svg' or 'sobj'"
+                raise ValueError, "file extension must be either 'png', 'eps', 'svg' or 'sobj'"
             canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
@@ -706,16 +705,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
 	elif i == 1:
 	    return self.ydata
 	else:
-	    return IndexError("Index out of range")
-
-    def __setitem__(self, i, val):
-	i = int(i)
-       	if i == 0:
-            self.xdata = float(val)
-	elif i == 1:
-	    self.ydata = float(val)
-	else:
-	    return IndexError("Index out of range")
+	    raise IndexError, "Index out of range"
 
     def _render_on_subplot(self,subplot):
         options = self.options
@@ -831,13 +821,6 @@ class GraphicPrimitiveFactory_text(GraphicPrimitiveFactory):
 	for k, v in kwds.iteritems():
             options[k] = v
         return self._from_xdata_ydata(string, (float(point[0]), float(point[1])), options=options)
-
-class GraphicPrimitiveFactory_point(GraphicPrimitiveFactory):
-    def __call__(self, point, **kwds):
-	options = dict(self.options)
-        for k, v in kwds.iteritems():
-            options[k] = v
-        return self._from_xdata_ydata(float(point[0]), float(point[1]), options=options)
 
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
@@ -1085,7 +1068,9 @@ class TextFactory(GraphicPrimitiveFactory_text):
 
     """
     def _reset(self):
-        self.options = {'fontsize':10,'rgbcolor':(0,0,0)}
+        self.options = {'fontsize':10, 'rgbcolor':(0,0,0),
+                        'horizontal_alignment':'center',
+                        'vertical_alignment':'center'}
 
     def _repr_(self):
         return "type text? for help and examples"
@@ -1097,9 +1082,6 @@ class TextFactory(GraphicPrimitiveFactory_text):
 
 # unique text instance
 text = TextFactory()
-text.options['fontsize'] = 10
-text.options['horizontal_alignment']= "center"
-text.options['vertical_alignment'] = "center"
 
 class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     """

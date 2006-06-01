@@ -4,7 +4,7 @@ using namespace std;
 
 #include "wrap.h"
 #include <NTL/mat_poly_ZZ.h>
-
+#include <NTL/LLL.h>
 
 //////// ZZ //////////
 
@@ -1023,6 +1023,11 @@ struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D)
   return W;
 }
 
+long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x)
+{
+  *det = new ZZ();
+  return LLL(**det,*x,(long)1);
+}
 
 struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
 {

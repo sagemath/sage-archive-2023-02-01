@@ -203,7 +203,7 @@ EXTERN struct ZZ* mat_ZZ_getitem(const struct mat_ZZ* x, int i, int j);
 EXTERN struct ZZ* mat_ZZ_determinant(const struct mat_ZZ* x, long deterministic);
 EXTERN struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D);
 EXTERN struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A);
-
+EXTERN long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x);
 
 /* //////// ZZ_p ////////// */
 /* #ifndef __cplusplus */

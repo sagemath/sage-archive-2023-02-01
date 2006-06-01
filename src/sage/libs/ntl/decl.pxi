@@ -163,6 +163,7 @@ cdef extern from "wrap.h":
     ZZ* mat_ZZ_determinant(mat_ZZ* x, long deterministic)
     mat_ZZ* mat_ZZ_HNF(mat_ZZ* A, ZZ* D)
     ZZX* mat_ZZ_charpoly(mat_ZZ* A)
+    long mat_ZZ_LLL(ZZ **det, mat_ZZ *x)
 
     #### GF2X
     struct GF2X

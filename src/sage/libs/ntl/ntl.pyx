@@ -1911,23 +1911,23 @@ cdef class ntl_mat_ZZ:
     r"""
     The \class{mat_ZZ} class implements arithmetic with matrices over $\Z$.
     """
-    def __init__(self, nrows=0, unsigned long ncols=0, v=None):
+    def __init__(self, nrows=0,  ncols=0, v=None):
         if nrows == _INIT:
             return
         cdef unsigned long i, j
         cdef ntl_ZZ tmp
         if nrows == 0 and ncols == 0:
             return
+        nrows = int(nrows)
+        ncols = int(ncols)
         self.x = new_mat_ZZ(nrows, ncols)
         self.__nrows = nrows
         self.__ncols = ncols
         if v != None:
-            _sig_on
             for i from 0 <= i < nrows:
                 for j from 0 <= j < ncols:
-                    tmp = ntl_ZZ(v[i*ncols+j])
-                    mat_ZZ_setitem(self.x, i+1, j+1, <ZZ*> tmp.x)
-            _sig_off
+                    tmp = make_new_ZZ(v[i*ncols+j])
+                    mat_ZZ_setitem(self.x, i, j, <ZZ*> tmp.x)
 
 
     def __dealloc__(self):
@@ -1975,14 +1975,17 @@ cdef class ntl_mat_ZZ:
         cdef ntl_ZZ y
         cdef int i, j
         if not isinstance(x, ntl_ZZ):
-            x = ntl_ZZ(x)
-        y = x
+            y = make_new_ZZ(x)
+        else:
+            y = x
         if not isinstance(ij, tuple) or len(ij) != 2:
             raise TypeError, 'ij must be a 2-tuple'
-        i, j = ij
+        i, j = int(ij[0]),int(ij[1])
         if i < 0 or i >= self.__nrows or j < 0 or j >= self.__ncols:
             raise IndexError, "array index out of range"
+        _sig_on
         mat_ZZ_setitem(self.x, i, j, <ZZ*> y.x)
+        _sig_off
 
     def __getitem__(self, ij):
         cdef int i, j
@@ -2052,7 +2055,36 @@ cdef class ntl_mat_ZZ:
     def charpoly(self):
         return make_ZZX(mat_ZZ_charpoly(self.x));
 
+    def LLL(self):
+        """
+        performs LLL reduction.
 
+        self is an m x n matrix, viewed as m rows of n-vectors.  m may be less
+        than, equal to, or greater than n, and the rows need not be
+        linearly independent. self is transformed into an LLL-reduced basis,
+        and the return value is the rank r of self so as det2 (see below).
+        The first m-r rows of self are zero.
+
+        More specifically, elementary row transformations are performed on
+        self so that the non-zero rows of new-self form an LLL-reduced basis
+        for the lattice spanned by the rows of old-self.
+        The default reduction parameter is delta=3/4, which means
+        that the squared length of the first non-zero basis vector
+        is no more than 2^{r-1} times that of the shortest vector in
+        the lattice.
+
+        det2 is calculated as the *square* of the determinant
+        of the lattice---note that sqrt(det2) is in general an integer
+        only when r = n.
+
+        WARNING: After applying this method your matrix will be a vector of
+        vectors.
+        """
+        cdef ZZ *det2
+        _sig_on
+        rank = int(mat_ZZ_LLL(&det2,self.x))
+        _sig_off
+        return rank,make_ZZ(det2)
 
 cdef make_mat_ZZ(mat_ZZ* x):
     cdef ntl_mat_ZZ y

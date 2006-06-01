@@ -2077,6 +2077,33 @@ cdef class ntl_mat_ZZ:
         of the lattice---note that sqrt(det2) is in general an integer
         only when r = n.
 
+        EXAMPLE:
+            sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
+            sage: M.LLL()
+            (2, 54)
+            sage: M
+            [[0 0 0]
+            [2 1 0]
+            [-1 1 3]
+            ]
+            sage: M=ntl.mat_ZZ(4,4,[-6,9,-15,-18,4,-6,10,12,10,-16,18,35,-24,36,-46,-82]); M
+            [[-6 9 -15 -18]
+            [4 -6 10 12]
+            [10 -16 18 35]
+            [-24 36 -46 -82]
+            ]
+            sage: M.LLL()
+            (3, 19140)
+            sage: M
+            [[0 0 0 0]
+            [0 -2 0 0]
+            [-2 1 -5 -6]
+            [0 -1 -7 5]
+            ]
+
+sage:
+
+
         WARNING: After applying this method your matrix will be a vector of
         vectors.
         """
@@ -2743,7 +2770,7 @@ cdef class ntl_mat_GF2E:
             v     -- either list or Matrix over GF(2**x)
 
         EXAMPLES:
-            ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
+            sage: ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m=ntl.mat_GF2E(10,10)
             sage: m=ntl.mat_GF2E(v=Matrix(GF(2**8),10,10))
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])

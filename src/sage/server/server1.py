@@ -4,6 +4,9 @@ SAGE Server 1 (of many)
 AUTHOR:
     -- William Stein (2006-05-06): initial version
 
+INCOMPLETE CHANGE:
+  Added JavaScript functionality for AJAX (asyncRequest, etc.)
+
 TODO:
    [] restart (with confirm) button -- lets you restart the
       client SAGE interpreter that is being run by the web server.
@@ -310,6 +313,65 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             </style>
 
             <script language=javascript>
+            var asyncObj
+            function getAsyncObject(handler) {
+              var asyncObj=null
+
+              if (navigator.userAgent.indexOf("Opera")>=0) {
+                alert("Opera does not support asynchronous requests.  Try Firefox?")
+                return
+              }
+              if (navigator.userAgent.indexOf("MSIE")>=0) {
+                var strName="Msxml2.XMLHTTP"
+                if (navigator.appVersion.indexOf("MSIE 5.5")>=0) {
+                  strName="Microsoft.XMLHTTP"
+                }
+                try {
+                  asyncObj=new ActiveXObject(strName)
+                  asyncObj.onreadystatechange=handler
+                  return objXmlHttp
+                }
+                catch(e) {
+                  alert("Error. Scripting for ActiveX disabled.  Enable ActiveX in your browser controls, or use Firefox.")
+                  return
+                }
+              }
+              if (navigator.userAgent.indexOf("Mozilla")>=0) {
+                asyncObj=new XMLHttpRequest()
+                asyncObj.onload=handler
+                asyncObj.onerror=handler
+                return asyncObj
+              }
+            }
+
+            function asyncCallbackHandler(name, callback) {
+              return eval('function() {
+                             asyncObj = ' + name + ';
+                             try {
+                               if ((asyncObj.readyState==4 || asyncObj.readyState=="complete")
+                                   && asyncObj.status == 200)
+                               ' + callback + '("success", asyncObj.responseText);
+                               } catch(e) {
+                               ' + callback + '("failure", e);
+                               } finally {}
+                             }');
+            }
+
+            function asyncRequest(name, url, callback, postvars) {
+              asyncObj=getAsyncObj(asyncCallbackHandler(name, callback))
+              eval(name + '=asyncObj;');
+
+              if(postvars != null) {
+                asyncObj.open('POST',url,false);
+                asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+                asyncObj.send(postvars);
+              } else {
+                asyncObj.open('GET',url,true);
+                asyncObj.setRequestHeader('Content-Type',  "text/html");
+                asyncObj.send(null);
+              }
+            }
+
             function scroll_to_bottom() {
                 document.getElementById(%s).scrollIntoView();
                 document.io%s.elements[0].focus();

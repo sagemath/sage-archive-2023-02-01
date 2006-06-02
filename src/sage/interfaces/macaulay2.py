@@ -255,7 +255,8 @@ class Macaulay2Element(ExpectElement):
 
     def __getitem__(self, n):
         self._check_valid()
-        return self.parent().new('%s#%s'%(self.name(), n))
+        #return self.parent().new('%s#%s'%(self.name(), n))
+        return self.parent().new('%s_%s'%(self.name(), n))
 
     def __call__(self, x):
         self._check_valid()

@@ -2055,7 +2055,7 @@ cdef class ntl_mat_ZZ:
     def charpoly(self):
         return make_ZZX(mat_ZZ_charpoly(self.x));
 
-    def LLL(self):
+    def LLL(self, a=3, b=4, return_U=False, verbose=False):
         r"""
         Performs LLL reduction of self (puts self in an LLL form).
 
@@ -2076,6 +2076,34 @@ cdef class ntl_mat_ZZ:
         det2 is calculated as the \emph{square} of the determinant of
         the lattice---note that sqrt(det2) is in general an integer
         only when r = n.
+
+        If return_U is True, a value U is returned which is the
+        transformation matrix, so that U is a unimodular m x m matrix
+        with U * old-self = new-self.  Note that the first m-r rows of
+        U form a basis (as a lattice) for the kernel of old-B.
+
+        The parameters a and b allow an arbitrary reduction parameter
+        delta=a/b, where 1/4 < a/b <= 1, where a and b are positive
+        integers.  For a basis reduced with parameter delta, the
+        squared length of the first non-zero basis vector is no more
+        than 1/(delta-1/4)^{r-1} times that of the shortest vector in
+        the lattice.
+
+        The algorithm employed here is essentially the one in Cohen's
+        book: [H. Cohen, A Course in Computational Algebraic Number
+        Theory, Springer, 1993]
+
+        INPUT:
+           a        -- parameter a as described above (default: 3)
+           b        -- parameter b as described above (default: 4)
+           return_U -- return U as described above
+           verbose  -- if True NTL will produce some verbatim messages on
+                       what's going on internally (default: False)
+
+        OUTPUT:
+            (rank,det2,[U]) where rank,det2, and U are as described
+            above and U is an optional return value if return_U is
+            True.
 
         EXAMPLE:
             sage: M=ntl.mat_ZZ(3,3,[1,2,3,4,5,6,7,8,9])
@@ -2101,15 +2129,22 @@ cdef class ntl_mat_ZZ:
             [0 -1 -7 5]
             ]
 
-
-        WARNING: After applying this method your matrix will be a
-        vector of vectors.
+        WARNING: This method modifies self. So after applying this method your matrix
+        will be a vector of vectors.
         """
         cdef ZZ *det2
-        _sig_on
-        rank = int(mat_ZZ_LLL(&det2,self.x))
-        _sig_off
-        return rank,make_ZZ(det2)
+        cdef mat_ZZ *U
+        if return_U:
+            _sig_on
+            U = new_mat_ZZ(self.nrows(),self.ncols())
+            rank = int(mat_ZZ_LLL_U(&det2, self.x, U, int(a), int(b), int(verbose)))
+            _sig_off
+            return rank, make_ZZ(det2), make_mat_ZZ(U)
+        else:
+            _sig_on
+            rank = int(mat_ZZ_LLL(&det2,self.x,int(a),int(b),int(verbose)))
+            _sig_off
+            return rank,make_ZZ(det2)
 
 cdef make_mat_ZZ(mat_ZZ* x):
     cdef ntl_mat_ZZ y

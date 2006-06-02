@@ -1023,11 +1023,18 @@ struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D)
   return W;
 }
 
-long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x)
+long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x, long a, long b, long verbose)
 {
   *det = new ZZ();
-  return LLL(**det,*x,(long)0);
+  return LLL(**det,*x,a,b,verbose);
 }
+
+long mat_ZZ_LLL_U(struct ZZ **det, struct mat_ZZ *x, struct mat_ZZ *U, long a, long b, long verbose)
+{
+  *det = new ZZ();
+  return LLL(**det,*x,*U,a,b,verbose);
+}
+
 
 struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)
 {

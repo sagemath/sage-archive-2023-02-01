@@ -315,38 +315,44 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
 
     def lagrange_polynomial(self, points):
         """
-        Interpolation polynomial in the Lagrange form.
+        Return the Lagrange interpolation polynomial in self
+        associated to the given list of points.
 
         Given a list of points, i.e. tuples of elements of self's base
         ring, this function returns the interpolation polynomial in
         the Lagrange form.
 
         INPUT:
-            points -- a list of tuples representing points the function
-                      described by the returned polynomial must pass.
+            points -- a list of tuples representing points through which
+                      the polynomial returned by this function must pass.
 
         EXAMPLE:
-        sage: R=PolynomialRing(QQ)
-        sage: f=R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)]);f
-        -23/84*x^3 - 11/84*x^2 + 13/7*x + 1
-        sage: f(0)
-        1
-        sage: f(2)
-        2
-        sage: f(3)
-        -2
-        sage: f(-4)
-        9
-        sage: R=PolynomialRing(GF(2**3))
-        sage: a=R.base_ring().gen()
-        sage: f=R.lagrange_polynomial([(a^2+a,a),(a,1),(a^2,a^2+a+1)]); f
-        a^2*x^2 + a^2*x + a^2
-        sage: f(a^2+a)
-        a
-        sage: f(a)
-        1
-        sage: f(a^2)
-        a^2 + a + 1
+            sage: R = PolynomialRing(QQ)
+            sage: f = R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)]);f
+            -23/84*x^3 - 11/84*x^2 + 13/7*x + 1
+            sage: f(0)
+            1
+            sage: f(2)
+            2
+            sage: f(3)
+            -2
+            sage: f(-4)
+            9
+            sage: R = PolynomialRing(GF(2**3))
+            sage: a = R.base_ring().gen()
+            sage: f = R.lagrange_polynomial([(a^2+a,a),(a,1),(a^2,a^2+a+1)]); f
+            a^2*x^2 + a^2*x + a^2
+            sage: f(a^2+a)
+            a
+            sage: f(a)
+            1
+            sage: f(a^2)
+            a^2 + a + 1
+
+        NOTE:  This is a straight forward Lagrange construction and no
+        measures were taken to optimize it.   (If you need something
+        that is highly optimized, consider implementing it and including
+        it with SAGE.)
         """
         var = self.gen()
 
@@ -355,8 +361,8 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             divis = 1
             for i in range(len(points)):
                 if i!=j:
-                    denom  *= (var          - points[i][0])
-                    divis *=  (points[j][0] - points[i][0])
+                    denom *= (var          - points[i][0])
+                    divis *= (points[j][0] - points[i][0])
             return denom/divis
 
         P = 0

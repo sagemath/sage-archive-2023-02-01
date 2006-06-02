@@ -2258,7 +2258,7 @@ cdef class ntl_GF2X:
     def bin(ntl_GF2X self):
         """
         Returns binary representation of this element. It is
-        the same as setting \code{ntl.set_hex_output(False)} and
+        the same as setting \code{ntl.hex_output(False)} and
         representing this element afterwards. However it should be
         faster and preserves the HexOutput state as opposed to
         the above code.
@@ -2278,7 +2278,7 @@ cdef class ntl_GF2X:
     def hex(ntl_GF2X self):
         """
         Returns hexadecimal representation of this element. It is
-        the same as setting \code{ntl.set_hex_output(True)} and
+        the same as setting \code{ntl.hex_output(True)} and
         representing this element afterwards. However it should be
         faster and preserves the HexOutput state as opposed to
         the above code.
@@ -2431,25 +2431,32 @@ def GF2X_hex_repr(have_hex=None):
         GF2X_hex(0)
     __have_GF2X_hex_repr=have_hex
 
-def set_GF2E_modulus(p):
+def ntl_GF2E_modulus(p=None):
     """
-    Initializes the current modulus to P
-    required: deg(P) >= 1
+    Initializes the current modulus to P; required: deg(P) >= 1
 
-    The input is either ntl.GF2X or is
-    tried to be converted to a ntl.GF2X
-    element.
+    The input is either ntl.GF2X or is tried to be converted to a
+    ntl.GF2X element.
+
+    If no parameter p is given: Yields copy of the current GF2E
+    modulus.
 
     INPUT:
-        x -- modulus
+        p -- modulus
 
     EXAMPLES:
-        sage: ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
+        sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
         sage: ntl.GF2E_modulus().hex()
         '0xb11'
     """
     global __have_GF2E_modulus
     cdef ntl_GF2X elem
+
+    if p==None:
+        if __have_GF2E_modulus == True:
+            return make_GF2X(GF2E_modulus())
+        else:
+            raise "NoModulus"
 
     if not isinstance(p,ntl_GF2X):
         elem = make_new_GF2X(p)
@@ -2461,15 +2468,6 @@ def set_GF2E_modulus(p):
 
     ntl_GF2E_set_modulus(<GF2X*>elem.gf2x_x)
     __have_GF2E_modulus=True
-
-def ntl_GF2E_modulus():
-    """
-    Yields copy of the current GF2E modulus
-    """
-    if __have_GF2E_modulus == True:
-        return make_GF2X(GF2E_modulus())
-    else:
-        raise "NoModulus"
 
 def ntl_GF2E_modulus_degree():
     """
@@ -2485,7 +2483,7 @@ def ntl_GF2E_sage():
     Returns a SAGE FiniteField element matching the current modulus.
 
     EXAMPLES:
-        sage: ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
+        sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
         sage: ntl.GF2E_sage()
         Finite Field in a of size 2^8
     """
@@ -2511,7 +2509,7 @@ cdef class ntl_GF2E(ntl_GF2X):
     The \\class{GF2E} represents a finite extension field over GF(2) using NTL.
     Elements are represented as polynomials over GF(2) modulo \\code{ntl.GF2E_modulus()}.
 
-    This modulus must be set using \\code{ ntl.set_GF2E_modulus() } and is unique for
+    This modulus must be set using \\code{ ntl.GF2E_modulus(p) } and is unique for
     alle elements in ntl.GF2E. So it is not possible at the moment e.g. to have elements
     in GF(2**4) and GF(2**8) at the same time. You might however be lucky and get away
     with not touch the elements in GF(2**4) while having the GF(2**8) modulus set and vice
@@ -2663,7 +2661,7 @@ def make_new_GF2E(x=[]):
     """
     Constructs a new  finite field element in GF(2**x).
 
-    A modulus \emph{must} have been set with \code{ntl.set_GF2E_modulus(ntl.GF2X(<value>))}
+    A modulus \emph{must} have been set with \code{ntl.GF2E_modulus(ntl.GF2X(<value>))}
     when calling this constructor.  A value may be passed to this constructor. If you pass a string
     to the constructor please note that byte sequences and the hexadecimal notation are Little Endian in NTL.
     So e.g. '[0 1]' == '0x2' == x.
@@ -2675,7 +2673,7 @@ def make_new_GF2E(x=[]):
         a new ntl.GF2E element
 
     EXAMPLES:
-        sage: m=ntl.set_GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
+        sage: m=ntl.GF2E_modulus(ntl.GF2X([1,1,0,1,1,0,0,0,1]))
         sage: ntl.GF2E(ntl.ZZ_pX([1,1,3]))
         [1 1 1]
         sage: ntl.GF2E('0x1c')
@@ -2800,7 +2798,7 @@ cdef class ntl_mat_GF2E:
             v     -- either list or Matrix over GF(2**x)
 
         EXAMPLES:
-            sage: ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
+            sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m=ntl.mat_GF2E(10,10)
             sage: m=ntl.mat_GF2E(v=Matrix(GF(2**8),10,10))
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])
@@ -2953,7 +2951,7 @@ cdef class ntl_mat_GF2E:
         Returns a list of the entries in this matrix
 
         EXAMPLES:
-            sage: ntl.set_GF2E_modulus([1,1,0,1,1,0,0,0,1])
+            sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m = ntl.mat_GF2E(2,2,[ntl.GF2E_random() for x in xrange(2*2)])
             sage: m.list()                   # random output
             [[1 0 1 0 1 0 1 1], [0 1 0 0 0 0 1], [0 0 0 1 0 0 1], [1 1 1 0 0 0 0 1]]

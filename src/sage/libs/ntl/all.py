@@ -47,7 +47,6 @@ from sage.libs.ntl.ntl import (make_new_ZZ as ZZ,
 
                  make_new_GF2E as GF2E, \
                  ntl_GF2E as GF2E_class, \
-                 set_GF2E_modulus, \
                  ntl_GF2E_random as GF2E_random, \
                  ntl_GF2E_modulus as GF2E_modulus, \
                  ntl_GF2E_modulus_degree as GF2E_degree, \

@@ -2056,25 +2056,25 @@ cdef class ntl_mat_ZZ:
         return make_ZZX(mat_ZZ_charpoly(self.x));
 
     def LLL(self):
-        """
-        performs LLL reduction.
+        r"""
+        Performs LLL reduction of self (puts self in an LLL form).
 
-        self is an m x n matrix, viewed as m rows of n-vectors.  m may be less
-        than, equal to, or greater than n, and the rows need not be
-        linearly independent. self is transformed into an LLL-reduced basis,
-        and the return value is the rank r of self so as det2 (see below).
-        The first m-r rows of self are zero.
+        self is an m x n matrix, viewed as m rows of n-vectors.  m may
+        be less than, equal to, or greater than n, and the rows need
+        not be linearly independent. self is transformed into an
+        LLL-reduced basis, and the return value is the rank r of self
+        so as det2 (see below).  The first m-r rows of self are zero.
 
-        More specifically, elementary row transformations are performed on
-        self so that the non-zero rows of new-self form an LLL-reduced basis
-        for the lattice spanned by the rows of old-self.
-        The default reduction parameter is delta=3/4, which means
-        that the squared length of the first non-zero basis vector
-        is no more than 2^{r-1} times that of the shortest vector in
-        the lattice.
+        More specifically, elementary row transformations are
+        performed on self so that the non-zero rows of new-self form
+        an LLL-reduced basis for the lattice spanned by the rows of
+        old-self.  The default reduction parameter is $\delta=3/4$,
+        which means that the squared length of the first non-zero
+        basis vector is no more than $2^{r-1}$ times that of the
+        shortest vector in the lattice.
 
-        det2 is calculated as the *square* of the determinant
-        of the lattice---note that sqrt(det2) is in general an integer
+        det2 is calculated as the \emph{square} of the determinant of
+        the lattice---note that sqrt(det2) is in general an integer
         only when r = n.
 
         EXAMPLE:
@@ -2101,11 +2101,9 @@ cdef class ntl_mat_ZZ:
             [0 -1 -7 5]
             ]
 
-sage:
 
-
-        WARNING: After applying this method your matrix will be a vector of
-        vectors.
+        WARNING: After applying this method your matrix will be a
+        vector of vectors.
         """
         cdef ZZ *det2
         _sig_on

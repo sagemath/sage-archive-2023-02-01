@@ -1026,7 +1026,7 @@ struct mat_ZZ* mat_ZZ_HNF(const struct mat_ZZ* A, const struct ZZ* D)
 long mat_ZZ_LLL(struct ZZ **det, struct mat_ZZ *x)
 {
   *det = new ZZ();
-  return LLL(**det,*x,(long)1);
+  return LLL(**det,*x,(long)0);
 }
 
 struct ZZX* mat_ZZ_charpoly(const struct mat_ZZ* A)

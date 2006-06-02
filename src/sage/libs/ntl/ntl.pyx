@@ -2409,30 +2409,27 @@ def make_new_GF2X(x=[]):
 #
 ##############################################################################
 
-def set_GF2X_hex_repr(have_hex):
+def GF2X_hex_repr(have_hex=None):
     """
     Represent GF2X and GF2E elements in the more compact
     hexadecimal form to the user.
+
+    If no parameter is provided the currently set value will be
+    returned.
 
     INPUT:
         have_hex if True hex representation will be used
     """
     global __have_GF2X_hex_repr
-    if have_hex:
+
+    if have_hex==None:
+        return __have_GF2X_hex_repr
+
+    if have_hex==True:
         GF2X_hex(1)
     else:
         GF2X_hex(0)
     __have_GF2X_hex_repr=have_hex
-
-def get_GF2X_hex_repr():
-    """
-    Returns whether hex representation is chosen or not.
-
-    OUTPUT:
-        True if hex representation is set
-    """
-
-    return __have_GF2X_hex_repr
 
 def set_GF2E_modulus(p):
     """

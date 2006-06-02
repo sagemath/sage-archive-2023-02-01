@@ -52,9 +52,7 @@ from sage.libs.ntl.ntl import (make_new_ZZ as ZZ,
                  ntl_GF2E_modulus as GF2E_modulus, \
                  ntl_GF2E_modulus_degree as GF2E_degree, \
                  ntl_GF2E_sage as GF2E_sage, \
-                 set_GF2X_hex_repr as set_hex_output, \
-                 get_GF2X_hex_repr as have_hex_output, \
-
+                 GF2X_hex_repr as hex_output, \
 
                  make_new_GF2EX as GF2EX, \
                  ntl_GF2EX as GF2EX_class, \

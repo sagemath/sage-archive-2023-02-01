@@ -14,7 +14,7 @@ def plot3d_soya(A, fullscreen=False):
 
     EXAMPLES:
         sage: A = MatrixSpace(RR,32)([sin(i/2)*cos(j/2) for i in range(32) for j in range(32)])
-        sage: from sage.plot.plot3d import plot3d_soya      # optional
+        sage: from sage.plot.plot3dsoya import plot3d_soya      # optional
         sage.: plot3d_soya(A)           # optional
     """
 

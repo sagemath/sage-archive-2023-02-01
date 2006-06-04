@@ -299,8 +299,6 @@ def is_prime_power(n, flag=0):
         True
         sage: is_prime_power(997^100)
         True
-        sage: is_prime_power(997^100, use_pari=True)
-        True
     """
     Z = sage.rings.integer.Integer
     n = Z(n)

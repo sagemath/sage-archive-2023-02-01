@@ -352,7 +352,7 @@ class Genus2reduction(SageObject):
         return s[i:j+2], Q, P
 
     def __call__(self, Q, P):
-        from sage.rings.all import ZZ
+        from sage.rings.all import ZZ, QQ
         from sage.misc.all import sage_eval
 
         s, Q, P = self.raw(Q, P)
@@ -362,10 +362,10 @@ class Genus2reduction(SageObject):
             prime_to_2_conductor_only = True
         else:
             prime_to_2_conductor_only = False
-
+        x = QQ['x'].gen(0)
         i = s.find('y^2 = ') + len('y^2 = ')
         j = i + s[i:].find('\n')
-        minimal_equation = sage_eval(s[i:j])
+        minimal_equation = sage_eval(s[i:j], {'x':x})
 
 
         s = s[j+1:]

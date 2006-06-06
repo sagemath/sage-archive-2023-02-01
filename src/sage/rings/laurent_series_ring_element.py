@@ -34,7 +34,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             a Laurent series
 
         EXAMPLES:
-            sage: K, q = Frac(C[['q']]).objgen()
+            sage: K, q = Frac(CC[['q']]).objgen()
             sage: K
             Laurent Series Ring in q over Complex Field with 53 bits of precision
             sage: q

@@ -2487,7 +2487,7 @@ class Matrix_field(Matrix_pid):
             [0 1 0]
             [0 0 1]
             sage: W = MatrixSpace(CC,2,2)
-            sage: B = W([1, 2+3*i,4+5*i,9]); B
+            sage: B = W([1, 2+3*I,4+5*I,9]); B
             [                       1.0000000000000000 2.0000000000000000 + 3.0000000000000000*I]
             [4.0000000000000000 + 5.0000000000000000*I                        9.0000000000000000]
             sage: B.column_space()
@@ -2904,6 +2904,7 @@ class Matrix_field(Matrix_pid):
             sage: A.is_invertible()
             True
             sage: W = MatrixSpace(CC,2,2)
+            sage: i = CC.0
             sage: B = W([1, 2+3*i, 4+5*i, 9])
             sage: B.is_invertible()
             True

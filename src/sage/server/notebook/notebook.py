@@ -112,9 +112,9 @@ class Notebook(SageObject):
 
     def save(self, filename=None):
         if filename is None:
-            SageObject.save(self, self.__filename)
+            SageObject.save(self, os.path.abspath(self.__filename))
         else:
-            SageObject.save(self, filename)
+            SageObject.save(self, os.path.abspath(filename))
 
     def start(self, port=8000, address='localhost',
                     max_tries=10, open_viewer=False):

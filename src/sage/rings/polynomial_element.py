@@ -1544,8 +1544,9 @@ class Polynomial_generic_field(Polynomial,
             self = quotient*other + remainder.
 
         EXAMPLES:
-            sage: K = NumberField(x**ZZ(2)-ZZ(2),'t')
-            sage: P, x = PolynomialRing(K).objgen()
+            sage: R.<y> = PolynomialRing(QQ)
+            sage: K = NumberField(y^2 - 2,'t')
+            sage: P.<x> = PolynomialRing(K)
             sage: x.quo_rem(K(1))
             (x, 0)
             sage: x.xgcd(K(1))
@@ -1724,6 +1725,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         returned if the initial precision was not sufficient.}
 
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^4 - 17*x^3 - 2*x + 1
             sage: G = f.galois_group(); G            # uses optional database_gap package
             Transitive group number 5 of degree 4

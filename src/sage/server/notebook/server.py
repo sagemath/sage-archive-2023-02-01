@@ -47,7 +47,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         input_text = C['input'][0]
         id = int(C['id'][0])
         input_text = input_text.replace('__plus__','+')
-        print id, input_text
+        verbose('%s: %s'%(id, input_text))
         W = notebook.current_workbook()
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
@@ -71,7 +71,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         qs = self.rfile.read(length)
         C = cgi.parse_qs(qs, keep_blank_values=1)
         id = int(C['id'][0])
-        print "Adding new cell before cell with id %s"%id
+        verbose("Adding new cell before cell with id %s"%id)
         W = notebook.current_workbook()
         C = W.new_cell_before(id)
         notebook.save()
@@ -85,7 +85,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         qs = self.rfile.read(length)
         C = cgi.parse_qs(qs, keep_blank_values=1)
         id = int(C['id'][0])
-        print "Possibly deleting cell with id %s"%id
+        verbose("Possibly deleting cell with id %s"%id)
         self.send_response(200)
         self.send_header("Content-type", 'text/plain')
         self.end_headers()
@@ -133,7 +133,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif self.path[-3:] == '.ps':
             self.send_header("Content-type", 'application/postscript')
         elif self.path[-4:] == '.eps':
-            print 'eps!!'
             self.send_header("Content-type", 'image/x-eps')
         elif self.path[-4:] == '.svg':
             self.send_header("Content-type", 'image/svg+xml')
@@ -160,7 +159,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write("SAGE Server: File not found")
 
     def do_GET(self):
-        print "GET: " + self.path
+        verbose("GET: " + self.path)
 
         # The question mark hack here is so that images will be reloaded when
         # the async request requests the output text for a computation.
@@ -169,7 +168,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if i != -1:
             self.path = self.path[:i]
 
-        print self.path
+        verbose(self.path)
 
         if self.path[-13:] == '/update_cells':
             self.update_cells()
@@ -199,7 +198,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
-        print "POST: %s"%post_dict
+        verbose("POST: %s"%post_dict)
 
         if content_type == 'multipart/form-data':
             self.body = cgi.parse_multipart(self.rfile, post_dict)

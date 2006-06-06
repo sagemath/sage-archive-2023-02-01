@@ -195,7 +195,7 @@ class Pi(Constant):
         sage: gp(pi)
         3.141592653589793238462643383            # 32-bit
         3.1415926535897932384626433832795028842  # 64-bit
-        sage: R(pi)
+        sage: RR(pi)
         3.1415926535897931
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
@@ -252,7 +252,7 @@ class E(Constant):
     The base of the natural logarithm.
 
     EXAMPLES:
-        sage: R(e)
+        sage: RR(e)
         2.7182818284590451
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
@@ -323,7 +323,7 @@ class GoldenRatio(Constant):
 
     EXAMPLES:
         sage: gr = golden_ratio
-        sage: R(gr)
+        sage: RR(gr)
         1.6180339887498949
         sage: R = RealField(200)
         sage: R(gr)
@@ -363,7 +363,7 @@ class Log2(Constant):
         log2
         sage: float(log2)
         0.69314718055994529
-        sage: R(log2)
+        sage: RR(log2)
         0.69314718055994529
         sage: R = RealField(200); R
         Real Field with 200 bits of precision

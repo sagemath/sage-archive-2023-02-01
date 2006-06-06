@@ -285,20 +285,20 @@ class Function_arith(Function):
         sage: s = (pi + pi) * e + e
         sage: s
         (((pi + pi)*e) + e)
-        sage: R(s)
+        sage: RR(s)
         19.797750273806177
         sage: maxima(s)
         2*%e*%pi + %e
 
         sage: t = e^2 + pi + 2/3; t
         (((e^2) + pi) + 2/3)
-        sage: R(t)
+        sage: RR(t)
         11.197315419187108
         sage: maxima(t)
         %pi + %e^2 + 2/3
         sage: t^e
         ((((e^2) + pi) + 2/3)^e)
-        sage: R(t^e)
+        sage: RR(t^e)
         710.86524768885772
     """
     def __init__(self, x, y, op):

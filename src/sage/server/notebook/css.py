@@ -443,10 +443,10 @@ textarea.cell_input {
   /* background-color: #efefef; */
   background-color: white;
 
-  border-right: 0px;
-  border-top: 0px solid #ffffff;
-  border-bottom: 0px solid #ffffff;
-  border-left: 0px solid #ffffff;
+  border-right: 1px #ffffff;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
 
   font-family: courier, monospace;
   font-size:12pt;

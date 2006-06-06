@@ -50,7 +50,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
     The quotient ring of $R$ by the ideal $I$.
 
     EXAMPLES:
-        sage: R = PolynomialRing(Z)
+        sage: R.<x> = PolynomialRing(Z)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)

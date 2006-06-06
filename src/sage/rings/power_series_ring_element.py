@@ -477,7 +477,7 @@ class PowerSeries_generic_dense(PowerSeries):
     def __init__(self, parent, f=0, prec=infinity, check=True, is_gen=False):
         """
         EXAMPLES:
-            sage: R, q = PowerSeriesRing(C, 'q').objgen()
+            sage: R, q = PowerSeriesRing(CC, 'q').objgen()
             sage: R
             Power Series Ring in q over Complex Field with 53 bits of precision
             sage: loads(q.dumps()) == q

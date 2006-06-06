@@ -31,11 +31,13 @@ def sage_eval(_obj_, extra_locals={}):
         8
 
     This illustrates interfaces:
-        sage: f = gp('x^3 + x + 1')
+        sage: f = gp('2/3')
+        sage: type(f)
+        <class 'sage.interfaces.gp.GpElement'>
         sage: f._sage_()
-        x^3 + x + 1
+        2/3
         sage: type(f._sage_())
-        <class 'sage.rings.polynomial_element.Polynomial_rational_dense'>
+        <type 'rational.Rational'>
         sage: a = gap(939393/2433)
         sage: a._sage_()
         313131/811
@@ -78,7 +80,7 @@ def sage_eval(_obj_, extra_locals={}):
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
         'PolynomialRing(..., [ x ])'
         sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;')
-        sage: ff; sage_eval(ff)
+        sage: ff; sage_eval(ff, {'x':x})
         'x^2+1'
         x^2 + 1
         sage: eval(ff)

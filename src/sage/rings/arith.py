@@ -2024,13 +2024,13 @@ def falling_factorial(x, a):
         sage: factorial(10)
         3628800
 
-        sage: falling_factorial(1+i, i)
+        sage: falling_factorial(1+I, I)
         0.65296549642016677 + 0.34306583981654537*I
 
-        sage: falling_factorial(1+i, 4)
+        sage: falling_factorial(1+I, 4)
         2.0000000000000000 + 4.0000000000000000*I
 
-        sage: falling_factorial(i, 4)
+        sage: falling_factorial(I, 4)
         -10.000000000000000
 
         sage: M = MatrixSpace(ZZ, 4, 4)
@@ -2087,15 +2087,15 @@ def rising_factorial(x, a):
         sage: rising_factorial(10,RR('3.3'))
         2826.3889582496449
 
-        sage: rising_factorial(1+i, i)
+        sage: rising_factorial(1+I, I)
         0.26681639063783236 + 0.12278335400637194*I
 
-        sage: rising_factorial(i, 4)
+        sage: rising_factorial(I, 4)
         -10.000000000000000
 
-    See falling_factorial(i, 4)!
+    See falling_factorial(I, 4).
 
-        sage: x = PolynomialRing(IntegerRing(),'x').gen()
+        sage: R.<x> = PolynomialRing(ZZ)
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 

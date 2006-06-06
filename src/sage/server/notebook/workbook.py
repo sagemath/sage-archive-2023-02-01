@@ -22,6 +22,8 @@ import pexpect
 from sage.ext.sage_object  import SageObject
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
+from sage.misc.misc        import verbose
+
 from cell import Cell
 
 INTERRUPT_TRIES = 40
@@ -110,14 +112,14 @@ class Workbook:
         try:
             return self.__sage
         except AttributeError:
-            print "Initializing SAGE."
+            verbose("Initializing SAGE.")
             os.environ['PAGER'] = 'cat'
             self.__sage = Sage(logfile='%s/sage.log'%self.directory())
             S = self.__sage
             S.eval('import sage.server.support as _support_')
             S.eval('__SAGENB__globals = set(globals().keys())')
             object_directory = os.path.abspath(self.__notebook.object_directory())
-            print object_directory
+            verbose(object_directory)
             S.eval('_support_.init("%s")'%object_directory)
             return S
 
@@ -182,7 +184,6 @@ class Workbook:
 
 
     def check_comp(self):
-        print self.__queue
         if len(self.__queue) == 0:
             return 'e', None
         S = self.sage()
@@ -195,7 +196,7 @@ class Workbook:
         try:
             done, out = S._so_far()
         except RuntimeError:
-            print "Computation was interrrupted or failed. Restarting."
+            verbose("Computation was interrrupted or failed. Restarting.")
             self.__comp_is_running = False
             self.start_next_comp()
             return 'w', C
@@ -258,7 +259,7 @@ class Workbook:
                 E.timeout = t
                 break
             except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                print "Trying again to interrupt SAGE (try %s)..."%i
+                verbose("Trying again to interrupt SAGE (try %s)..."%i)
 
         if not success:
             del self.__sage
@@ -338,7 +339,6 @@ class Workbook:
             input = 'print _support_.completions("%s", globals(), format=True)'%input
 
         input = ignore_prompts_and_output(input)
-        print input
 
         s = preparse_file(input, magic=False, do_time=True, ignore_prompts=True)
         s = [x for x in s.split('\n') if len(x.split()) > 0 and \
@@ -414,7 +414,6 @@ def ignore_prompts_and_output(s):
         return s
     s = ''
     for I in t:
-        print I
         I2 = I.lstrip()
         if I2[:5] == 'sage:':
             s += I2[5:].lstrip() + '\n'

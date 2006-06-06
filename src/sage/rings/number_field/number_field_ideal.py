@@ -55,8 +55,6 @@ class NumberFieldIdeal(Ideal_fractional):
         INPUT:
             field -- a number field
             x -- a list of NumberFieldElements belonging to the field
-
-        EXAMPLES:
         """
         if not isinstance(field, number_field.NumberField_generic):
             raise TypeError, "field (=%s) must be a number field."%field
@@ -111,6 +109,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Return the quotient self / other.
 
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2 - 5)
             sage: I = K.ideal(2/(5+a))
             sage: J = K.ideal(17+a)
@@ -128,6 +127,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Return the multiplicative inverse of self.  Call with ~self.
 
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^3 - 2)
             sage: I = K.ideal(2/(5+a))
             sage: ~I
@@ -162,6 +162,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Return PARI's representation of this ideal in Hermite normal form.
 
         EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^3 - 2)
             sage: I = K.ideal(2/(5+a))
             sage: I.pari_hnf()
@@ -218,6 +219,7 @@ class NumberFieldIdeal(Ideal_fractional):
         set \code{certify=False} if you don't want to prove correctness.
 
         EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<i> = NumberField(x^2+1, 'i')
             sage: J = K.ideal([i+1, 2])
             sage: J.gens()
@@ -251,6 +253,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Return a list of generators for this ideal as a $\mathbb{Z}$-module.
 
         EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<i> = NumberField(x^2 + 1)
             sage: J = K.ideal(i+1)
             sage: J.integral_basis()
@@ -265,6 +268,7 @@ class NumberFieldIdeal(Ideal_fractional):
         smallest positive integer such that this ideal is equal to I/d.
 
         EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2-5)
             sage: I = K.ideal(2/(5+a))
             sage: I.is_integral()
@@ -307,6 +311,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Determine if this ideal is integral.
 
         EXAMPLES:
+           sage: R.<x> = PolynomialRing(QQ)
            sage: K.<a> = NumberField(x^5-x+1)
            sage: K.ideal(a).is_integral()
            True
@@ -408,6 +413,7 @@ class NumberFieldIdeal(Ideal_fractional):
         where $I$ is this ideal.  If $I = 0$, raise a ValueError.
 
         EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2+6)
             sage: I = K.ideal([4,a])/7
             sage: I.smallest_integer()
@@ -506,6 +512,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         Compute the relative norm of this extension L/K as an ideal of K.
 
         EXAMPLE:
+            sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
             sage: L.ideal(b).norm()

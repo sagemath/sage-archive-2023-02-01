@@ -1067,9 +1067,8 @@ def __factor_using_pari(n, int_=False, debug_level=0):
     else:
         import sage.rings.integer_ring
         Z = sage.rings.integer_ring.IntegerRing()
-    if debug_level > 0:
-        prev = pari.get_debug_level()
-        pari.set_debug_level(debug_level)
+    prev = pari.get_debug_level()
+    pari.set_debug_level(debug_level)
     F = pari(n).factor()
     B = F[0]
     e = F[1]

@@ -1,0 +1,513 @@
+"""
+Javascript (AJAX) Component of SAGE Notebook
+
+AUTHORS:
+    -- William Stein
+    -- Tom Boothby
+    -- Alex Clemesha
+
+
+This file is one big raw triple-quoted string that contains a bunch of
+javascript.  This javascript is inserted into the head of the notebook
+web page.
+"""
+
+###########################################################################
+#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+###########################################################################
+
+def javascript():
+    return r"""
+
+///////////////////////////////////////////////////////////////////
+// An AJAX framework for connections back to the
+// SAGE server (written by Tom Boothby).
+///////////////////////////////////////////////////////////////////
+
+cell_output_delta = 200;
+
+SEP = '___S_A_G_E___';
+
+var asyncObj
+function getAsyncObject(handler) {
+  var asyncObj=null
+
+  if (navigator.userAgent.indexOf("Opera")>=0) {
+    asyncObj=new XMLHttpRequest();
+    asyncObj.onload=handler;
+    asyncObj.onerror=handler;
+    return asyncObj;
+  }
+  if (navigator.userAgent.indexOf("MSIE")>=0) {
+    var strName = "Msxml2.XMLHTTP";
+    if (navigator.appVersion.indexOf("MSIE 5.5")>=0) {
+      strName = "Microsoft.XMLHTTP";
+    }
+    try {
+      asyncObj = new ActiveXObject(strName);
+      asyncObj.onreadystatechange = handler;
+      return objXmlHttp;
+    }
+    catch(e) {
+      alert("Error. Scripting for ActiveX disabled.  Enable ActiveX in your browser controls, or use Firefox.") ;
+      return
+    }
+  }
+  if (navigator.userAgent.indexOf("Mozilla")>=0) {
+    asyncObj = new XMLHttpRequest();
+    asyncObj.onload  = handler;
+    asyncObj.onerror = handler;
+    return asyncObj;
+  }
+}
+
+function asyncCallbackHandler(name, callback) {
+    function f() {
+                 eval('asyncObj = ' + name);
+                 try {
+                   if ((asyncObj.readyState==4 || asyncObj.readyState=="complete")
+                           && asyncObj.status == 200)
+                       callback("success", asyncObj.responseText);
+                   } catch(e) {
+                       callback("failure", e);
+                   } finally { }
+              };
+    return f;
+}
+
+function async_request(name, url, callback, postvars) {
+  f = asyncCallbackHandler(name, callback);
+  asyncObj = getAsyncObject(f);
+  eval(name + '=asyncObj;');
+
+  if(postvars != null) {
+    asyncObj.open('POST',url,false);
+    asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+    asyncObj.send(postvars);
+  } else {
+    asyncObj.open('GET',url,true);
+    asyncObj.setRequestHeader('Content-Type',  "text/html");
+    asyncObj.send(null);
+  }
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// WORKBOOK functions -- for the individual cells
+//
+///////////////////////////////////////////////////////////////////
+
+function focus_on(id, id_before) {
+    var cell = document.getElementById('cell_input_' + id);
+    cell.focus();
+    try {
+/*       var cell_before = document.getElementById('cell_div_output_' + id_before); */
+       var cell_before = document.getElementById('cell_input_' + id_before);
+       cell_before.scrollIntoView();
+    } catch(e) {
+    } finally {}
+}
+
+function cell_input_resize(number) {
+   var cell_input = document.getElementById('cell_input_' + number);
+   rows = cell_input.value.split('\n').length - 1;
+   if (rows <= 1) {
+      rows = 2;
+   } else {
+      /* to avoid bottom chop off */
+      rows = rows + 1;
+   }
+   cell_input.style.height = null;
+   cell_input.rows = rows;
+}
+
+function cell_input_minimize_size(number) {
+   var cell_input = document.getElementById('cell_input_' + number);
+   rows = cell_input.value.split('\n').length ;
+   if (rows < 1) {
+      rows = 1;
+   }
+   cell_input.rows = rows;
+   if (rows == 1) {
+       cell_input.style.height = '1.5em';
+   }
+}
+
+function cell_delete_callback(status, response_text) {
+    if (status == "failure") {
+        alert(response_text);
+        return ;
+    }
+    var X = response_text.split(SEP);
+    if (X[0] == 'ignore') {
+        return;   /* do not delete, for some reason */
+    }
+    cell = document.getElementById('cell_' + X[1]);
+    var workbook = document.getElementById('workbook');
+    workbook.removeChild(cell);
+    focus_on(X[2], X[2]);
+}
+
+function cell_delete(id) {
+   async_request('async_obj_cell_delete', '/delete_cell', cell_delete_callback, 'id='+id)
+}
+
+function cell_input_key_event(number, event) {
+
+    var the_code = event.keyCode ? event.keyCode :
+                   event.which ? event.which : event.charCode;
+
+    var cell_input = document.getElementById('cell_input_' + number);
+
+    if (the_code == 8 && cell_input.value == '') {
+        cell_delete(number);
+        return false;
+    }
+
+    cell_input_resize(number);
+
+    if (the_code == 13) {
+       if (event.shiftKey) {
+           // User pressed shift-enter
+           evaluate_cell(number, 0);
+           return false;
+       } else if (event.ctrlKey) {
+           evaluate_cell(number, 1);
+           return false;
+       }
+    }
+    else if (the_code == 27) {  // command completion
+       evaluate_cell(number, 2);
+       return false;
+    }
+    else if (the_code == 99 && event.ctrlKey) {
+       interrupt();
+    }
+    return true;
+}
+
+cell_id = 0;
+last_action = 0;
+function evaluate_cell(id, action) {
+    cell_id = id;
+    last_action = action;
+    cell_input_minimize_size(id);
+    evaluated_cell_id = 'cell_input_' + id
+    var cell_input = document.getElementById(evaluated_cell_id);
+    input = cell_input.value;
+    input = escape(input);
+    input = input.replace(/\+/g,"__plus__");
+    cell_set_running(id);
+    document.getElementById('interrupt').className = 'interrupt';
+    async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
+            'id=' + id + '&input='+input)
+}
+
+
+updating = 0;
+function evaluate_cell_callback(status, response_text) {
+    /* update focus and possibly add a new cell to the end */
+    var X = response_text.split(SEP);
+
+    if (X[1] != 'no_new_cell') {
+        /* add a new cell to the very end */
+       var new_cell = document.createElement("div");
+       new_cell.innerHTML = X[1];
+       new_cell.id = 'cell_' + X[0];
+       var workbook = document.getElementById('workbook');
+       workbook.appendChild(new_cell);
+    }
+    if (last_action != 2) {
+       focus_on(X[0],X[2]);
+    }
+
+    /* set check-for-updates process in progress */
+    if (!updating) {
+        updating = 1;
+        check_for_cell_output();
+    }
+}
+
+
+function cell_output_click(id, event) {
+    var cell_div = document.getElementById('cell_div_output_' + id);
+    var cell_output = document.getElementById('cell_output_' + id);
+    var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+
+    if (cell_div.className == 'cell_output_hidden') {
+        cell_div.className = 'cell_output';
+        cell_output.className = 'cell_output';
+    } else if (cell_div.className == 'cell_output' && event.layerX <= 50) {
+        if (cell_output_nowrap.className == 'cell_output_nowrap') {
+             cell_output_nowrap.className = 'cell_output_nowrap_visible';
+             cell_output.className = 'cell_output_nowrap';
+        } else {
+             cell_output_nowrap.className = 'cell_output_nowrap';
+             cell_output.className = 'cell_output';
+             cell_div.className = 'cell_output_hidden';
+             cell_output.className = 'cell_output_hidden';
+        }
+    }
+}
+
+function cell_set_running(id) {
+    var cell_div = document.getElementById('cell_div_output_' + id)
+    cell_div.className = 'cell_output_running';
+}
+
+function cell_set_done(id) {
+    var cell_div = document.getElementById('cell_div_output_' + id)
+    cell_div.className = 'cell_output';
+}
+
+function check_for_cell_output() {
+    async_request('async_obj_check', '/update_cells', update_cell_output, null)
+}
+
+function set_output_text(id, text, wrapped_text, status) {
+    /* fill in output text got so far */
+    var cell_output = document.getElementById('cell_output_' + id);
+    var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+    cell_output.className = 'cell_output';
+    cell_output.innerHTML = wrapped_text;
+    cell_output_nowrap.innerHTML = text;
+
+    if (status == 'd') {
+         cell_set_done(id);
+    } else {
+         cell_set_running(id);
+    }
+}
+
+function set_variable_list(variables) {
+    var varlist = document.getElementById('variable_list');
+    varlist.innerHTML = variables;
+}
+
+function set_object_list(objects) {
+    var objlist = document.getElementById('object_list');
+    objlist.innerHTML = objects;
+}
+
+function update_cell_output(status, response_text) {
+    if (status == "success") {
+        if (response_text == 'empty') {
+            /* done -- nothing being computed, since queue is empty */
+            updating = 0;
+            document.getElementById('interrupt').className = 'interrupt_grey';
+        } else {
+            /* computing output for a cell */
+            i = response_text.indexOf(' ');
+            id = response_text.substring(1, i);
+
+            D = response_text.slice(i+1).split(SEP);
+            output_text = D[0];
+            output_text_wrapped = D[1];
+            stat = response_text.charAt(0)
+            set_output_text(id, output_text, output_text_wrapped, stat);
+
+
+            if (stat == 'd') {
+                variable_list = D[2];
+                set_variable_list(variable_list);
+                object_list = D[3];
+                set_object_list(object_list);
+            }
+
+            /* wait for output from next cell */
+            setTimeout('check_for_cell_output()', cell_output_delta);
+        }
+    } else {
+        /* error message ? */
+    }
+}
+
+///////////////////////////////////////////////////////////////////
+//  Insert and move cells
+///////////////////////////////////////////////////////////////////
+
+
+function insert_new_cell_before_callback(status, response_text) {
+    if (status == "failure") {
+        alert(response_text);
+        return ;
+    }
+    /* Insert a new cell _before_ a cell. */
+    var X = response_text.split(SEP);
+    var new_cell = document.createElement("div");
+    new_cell.id = 'cell_' + X[0];
+    new_cell.innerHTML = X[1];
+    var cell = document.getElementById('cell_' + X[2]);
+    var workbook = document.getElementById('workbook');
+    workbook.insertBefore(new_cell, cell);
+    focus_on(X[0]);
+}
+
+function insert_new_cell_before(id) {
+    async_request('async_obj_add_new_cell', '/new_cell',
+                   insert_new_cell_before_callback, 'id='+id);
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
+// INTROSPECTION functions -- for getting help
+//
+///////////////////////////////////////////////////////////////////
+
+function inspect_variable(name) {
+    alert(name);
+
+}
+
+// SEARCH BOX
+function search_box() {
+    var s = document.getElementById("search_input").value;
+    document.getElementById("search_input").style.color = "#888";
+    if (s.indexOf('?') == -1) {
+        callback = search_fill_in_completions;
+    } else {
+        search_fill_in_doc('success','searching...');
+        callback = search_fill_in_doc;
+    }
+    async_request('async_obj_search', '/search', callback, 'query='+s)
+}
+
+function search_fill_in_doc(status, response_text) {
+    document.getElementById("search_input").style.color = "#000";
+    if (status  == "success") {
+       expand_doc_box();
+
+       document.getElementById("search_doc_topbar").innerHTML =
+           '<table bgcolor="73a6ff" width="100%" height="100%"><tr>  \
+           <td align=left class="menubar">Documentation</td><td align=right class="menubar"> \
+       <a class="menubar" href="javascript:shrink_doc_box()">&nbsp;&nbsp;X&nbsp;&nbsp</a></td></tr> </table>'
+
+       document.getElementById("search_doc").innerHTML = '<pre>' + response_text + '</pre>';
+    }
+}
+
+function search_fill_in_completions(status, response_text) {
+    document.getElementById("search_input").style.color = "#000";
+    if (status  == "success") {
+       shrink_doc_box();
+       document.getElementById("search_doc").innerHTML = response_text;
+       document.getElementById("search_doc_topbar").innerHTML =
+           '<table bgcolor="73a6ff" width="100%"><tr><td align=left class="menubar"> \
+           Completions \
+            </td><td></td></tr></table>';
+    }
+}
+
+function shrink_doc_box() {
+    document.getElementById("search_doc").style.width = '154px';
+    document.getElementById("search_doc").style.height = '150px';
+    document.getElementById("search_doc").style.font = 'arial';
+    document.getElementById("search_doc_topbar").style.width = '158px';
+    document.getElementById("search_input").style.width = '160px';
+}
+
+function expand_doc_box() {
+    document.getElementById("search_doc_topbar").style.width = '700px';
+    document.getElementById("search_doc").style.width = '696';
+    document.getElementById("search_doc").style.font = 'courier';
+    document.getElementById("search_doc").style.height = '80%';
+    document.getElementById("search_input").style.width = '702px';
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
+// CONTROL functions
+//
+///////////////////////////////////////////////////////////////////
+
+function interrupt_callback(status, response_text) {
+    if (response_text == "restart") {
+        alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
+    }
+    var link = document.getElementById("interrupt");
+    link.className = "interrupt";
+    link.innerHTML = "Interrupt"
+}
+
+function interrupt() {
+    var link = document.getElementById("interrupt");
+    if (link.className == "interrupt_grey") {
+        return;
+    }
+    link.className = "interrupt_in_progress";
+    link.innerHTML = "Interrupt!"
+    async_request('async_obj_interrupt', '/interrupt', interrupt_callback, null);
+}
+
+function evaluate_all_callback(status, response_text) {
+    /* Iterate through every input cell in the document, in order,
+       and call the evaluate_cell function on it.
+    */
+    if (status == "success") {
+        v = response_text.split(' ');
+        i = v.length;
+        for(i=0; i<v.length; i++) {
+            evaluate_cell(v[i],0);
+        }
+    }
+}
+
+function evaluate_all() {
+    /* Use async request back to the server to find out the
+       *ordered* list of active cells in the current workbook.
+    */
+    async_request('async_obj_evaluate_all', '/cell_id_list',
+                      evaluate_all_callback, null);
+}
+
+function hide_all_callback(status, response_text) {
+    /* Iterate through every input cell in the document, in order,
+       and hide it.
+    */
+    if (status == "success") {
+        v = response_text.split(' ');
+        i = v.length;
+        for(i=0; i<v.length; i++) {
+           id = v[i];
+           var cell_div = document.getElementById('cell_div_output_' + id);
+           var cell_output = document.getElementById('cell_output_' + id);
+           var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+           cell_output_nowrap.className = 'cell_output_nowrap';
+           cell_output.className = 'cell_output';
+           cell_div.className = 'cell_output_hidden';
+           cell_output.className = 'cell_output_hidden';
+        }
+    }
+}
+
+function hide_all() {
+    /* Use async request back to the server to find out the
+       *ordered* list of active cells in the current workbook.
+    */
+    async_request('async_obj_hide_all', '/cell_id_list',
+                      hide_all_callback, null);
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// HELP Window
+//
+///////////////////////////////////////////////////////////////////
+
+function show_help_window() {
+    var help = document.getElementById("help_window");
+    help.style.display = "block";
+
+}
+
+function hide_help_window() {
+    var help = document.getElementById("help_window");
+    help.style.display = "none";
+
+}
+"""

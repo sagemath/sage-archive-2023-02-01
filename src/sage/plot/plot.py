@@ -102,7 +102,7 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
                  'find_axes']
 
 DEFAULT_FIGSIZE=[5,4]
-
+DEFAULT_DPI = 125
 EMBEDDED_MODE = False
 
 import sage.misc.viewer
@@ -454,7 +454,7 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=None):
+             dpi=DEFAULT_DPI):
         """
 	Show this graphics image with the default image viewer.
 
@@ -516,7 +516,7 @@ class Graphics(SageObject):
 
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-             fig=None, sub=None, savenow=True, dpi=None):
+             fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI):
         """
 	Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
 	depending on the file extension you give the filename.
@@ -582,6 +582,7 @@ class Graphics(SageObject):
 		    dpi = 150
             else:
                 raise ValueError, "file extension must be either 'png', 'eps', 'svg' or 'sobj'"
+            #canvas.resize(100,100)
             canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
@@ -1405,14 +1406,14 @@ class GraphicsArray(SageObject):
 	    g.save(filename, dpi=dpi, fig=figure,
                    sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
-    def save(self, filename=None, dpi=None):
+    def save(self, filename=None, dpi=DEFAULT_DPI):
 	"""
 	save the \code{graphics_array} to
         (for now) a png called 'filename'.
 	"""
 	self._render(filename, dpi=dpi)
 
-    def show(self, filename=None, dpi=None):
+    def show(self, filename=None, dpi=DEFAULT_DPI):
 	r"""
 	Show this graphics array using the default viewer.
 	"""

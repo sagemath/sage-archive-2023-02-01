@@ -26,6 +26,8 @@ method _latex_(self) that returns a string.
 __doc_exclude = ['_latex_file_', 'list_function', 'tuple_function', \
                  'bool_function', 'str_function', 'tmp_dir']
 
+EMBEDDED_MODE = False
+
 import os
 
 import os.path
@@ -188,6 +190,9 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     Compute a latex representation of each object in objects, compile, and display
     using xdvi.  (Requires latex and xdvi be installed.)
 
+    NOTE: In notebook mode this function simply embeds a png image
+    in the output and doesn't do any of the following.
+
     INPUT:
         objects -- list (or object)
         title -- string
@@ -201,6 +206,15 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     OUTPUT:
         Pops up xdvi with the objects displayed.
     """
+    if EMBEDDED_MODE:
+        if sage.plot.all.is_Graphics(objects):
+            objects.show()
+            return
+        i = 0
+        while os.path.exists('sage%s.png'%i):
+            i += 1
+        png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
+        return
     s = _latex_file_(objects, title=title, expert=expert,
                      debug=debug, sep=sep, tiny=tiny, center=center)
 
@@ -219,7 +233,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     os.system('cd %s; chmod +x go; ./go %s&'%(tmp,direct))
     #return os.popen('cd %s; chmod +x go; ./go %s & '%(tmp,direct), 'r').read()
 
-def png(x, filename, density=150, debug=False, brk=0):
+def png(x, filename, density=150, debug=False, brk=0, do_in_background=True, tiny=False):
     """
     Create a png image representation of x and save to the given
     filename.
@@ -228,7 +242,7 @@ def png(x, filename, density=150, debug=False, brk=0):
         x.save(filename)
         return
     s = _latex_file_([x], math_left='$\\displaystyle', math_right='$', title='',
-                     debug=debug, tiny=False, extra_preamble='\\textheight=2\\textheight',
+                     debug=debug, tiny=tiny, extra_preamble='\\textheight=2\\textheight',
                      brk=brk)
     abs_path_to_png = os.path.abspath(filename)
 
@@ -247,7 +261,11 @@ def png(x, filename, density=150, debug=False, brk=0):
         direct = '1>/dev/null 2>/dev/null'
     else:
         direct = ''
-    os.system('cd %s; chmod +x go; ./go %s&'%(tmp,direct))
+    if do_in_background:
+        background = '&'
+    else:
+        background = ''
+    os.system('cd %s; chmod +x go; ./go %s%s'%(tmp,direct,background))
     return s
 
 def coeff_repr(c):

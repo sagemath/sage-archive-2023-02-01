@@ -1,8 +1,10 @@
 """
-SAGE Server 1 (of many)
+SAGE Web Notebook
 
-AUTHOR:
+AUTHORS:
     -- William Stein (2006-05-06): initial version
+    -- Alex Clemesha
+    -- Tom Boothby
 
 INCOMPLETE CHANGE:
   Added JavaScript functionality for AJAX (asyncRequest, etc.)
@@ -69,7 +71,7 @@ TODO:
 
 DONE
    [x] Saving and loading of individual objects: -- should be trivial,
-      but is very tedious right now.
+       but is very tedious right now.
        (maybe all relative paths for save/load should be redirected
         to sage_server directory?!)
    [x] The "move to the current input box" javascript *only* works
@@ -91,7 +93,7 @@ DONE
 ###########################################################################
 
 
-# Standard Python libraries
+# Python libraries
 import BaseHTTPServer
 import cgi
 import os, sys
@@ -101,17 +103,53 @@ import socket
 from   StringIO import StringIO
 
 
+import server1_css as css, server1_js as js
+
 # SAGE libraries
 import sage.interfaces.sage0
 
-import sage.misc.banner
-import sage.misc.misc
+from   sage.misc.misc import word_wrap
 import sage.misc.preparser
 from   sage.misc.viewer     import BROWSER
 from   sage.ext.sage_object import load, SageObject
 
+def get_doc(query):
+    query = query.replace('\n','').strip()
+    if query[:9] == '?__last__':
+        return get_docstring_last(int(query[9:])/15)
+    if len(query) > 1:
+        if query[:2] == '??':
+            return get_source_code(query[2:])
+        elif query[-2:] == '??':
+            return get_source_code(query[:-2])
+    if len(query) > 0:
+        if query[0] == '?':
+            return get_docstring(query[1:])
+        elif query[-1] == '?':
+            return get_docstring(query[:-1])
+    return get_completions(query)
 
-class IO_Line:
+def get_docstring(query):
+    cmd = '_support_.docstring("%s", globals())'%query
+    z = sage0.eval(cmd)
+    z = z.replace('\\n','\n').replace('\\t','        ')[1:-1]
+    z = word_wrap(z, ncols=numcols)
+    return z
+
+def get_source_code(query):
+    cmd = '"".join(_support_.source_code("%s", globals()))'%query
+    z = sage0.eval(cmd)
+    z = z.replace('\\n','\n').replace("\\","").replace('\\t','        ')[1:-1]
+    return z
+
+def get_completions(query):
+    cmd = '"<br>".join(_support_.completions("%s", globals()))'%query
+    z = sage0.eval(cmd)
+    _last_ = z
+    return z[1:-1]
+
+
+class Cell:
     def __init__(self, cmd='', out=''):
         self.cmd = cmd
         self.out = out
@@ -137,24 +175,51 @@ class IO_Line:
 
 	#below in the javascript that enables the +/- resizing of the textarea
 	#below is where the textarea form is added
+
+        textbox = """
+                 <td>
+                     <textarea class="txtarea" name='%s' rows='%s' cols='%s'
+                        id='in%s' onkeypress='cell_key_event(%s,event);'>%s</textarea>
+                 </td>
+        """%(number, cmd_nrows,  ncols, number, number, self.cmd)
+
+        plusminus_hideshow = """
+           <div class='control_area'>
+             <table cellpadding=0 cellspacing=0>
+               <tr>
+                 <td>
+                    <span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')">-</a></span>
+                 </td>
+               </tr>
+               <tr>
+                 <td>
+                    <span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')">+</a></span>
+                 </td>
+                 <td>
+                    <span class="control"><a class="cs" id='tog%s' href="javascript:toggleVisibility(%s);">H</a></span>
+                 </td>
+               </tr>
+             </table>
+          </div>
+        """%(number, number, number, number)
+
+        submit = """
+            <span class="control"><input type='submit' class="btn" value="&gt;"></span>
+        """
+
 	html_in ="""
-        <div style="width: 80%%" align="center">
-          <table cellpadding=0 cellspacing=0><tr><td>
-          <textarea class="txtarea"
-                   name='%s' bgcolor='%s' rows='%s'
-                   cols='%s' id='in%s' onkeypress='ifShiftEnter(%s,event);'>%s</textarea></td>
-          <td valign='top'><table cellpadding=0 cellspacing=0>
-           <tr>
-            <td><span class="control"><input type='submit' class="btn" value="&gt;"></span></td>
-            <td><span class="control"><a class="cs" href="javascript:toggleVisibility(%s);"><b id='tog%s'>H</b></a></span></td>
-           </tr>
-           <tr>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(1,'in%s')"><b> + </b></a></span></td>
-            <td><span class="control"><a class="cs" href="javascript:changeAreaSize(-1,'in%s')"><b> - </b></a></span></td>
-           </tr>
-          </table></td></tr></table>
-        </div>
-        """%(number, cmd_color, cmd_nrows, ncols, number, number, self.cmd,number,number,number,number)
+        <div style="width: 100%%" align="center">
+          <table cellpadding=0 cellspacing=0>
+             <tr>
+                 <td valign='top'>
+                   %s
+                 </td>
+                 <td valign='middle'>
+                   %s
+                 </td>
+             </tr>
+          </table>
+        </div>"""%(textbox, plusminus_hideshow)
 
         button = '<input align=center name="exec" type="submit" id="with4" \
                     value="%sEnter %s(%s)">'%(' '*w, ' '*w, number)
@@ -185,15 +250,14 @@ class IO_Line:
 
         out = self.out
 
-        if len(out) >  0:
-            #out_nrows = min(out_nrows, len(out.split('\n')))
+        if isinstance(out, str) and len(out) >  0:
             out_nrows = len(out.split('\n'))
-            #<textarea style="color:blue" readonly rows="%s" cols="%s">%s</textarea>
             html_out = """
-             <table   border=0 bgcolor='%s' cellpadding=0><tr>
-             <td bgcolor='#FFFFFF' align=left>
+             <table align=center border=0 bgcolor='%s' cellpadding=0><tr>
+             <td bgcolor='#FFFFFF'>
              <font color='blue'><pre>%s</pre>%s</font>
-             </td></tr></table>
+             </td>
+             </tr></table>
              """%(out_color, out.replace('<','&lt;'), files)
         else:
             html_out = ''
@@ -201,7 +265,7 @@ class IO_Line:
         c = """
         <form name="io%s" method=post action="" id="%s">
         %s
-        <div id='out%s' style='overflow: auto;'>
+        <div id='out%s' class='output_box'>
         %s
         %s
         %s
@@ -209,44 +273,43 @@ class IO_Line:
         </form>"""%(number, number, html_in, number, html_out, files, images)
         return c
 
-class Log(SageObject):
+class Workbook(SageObject):
     def __init__(self):
-        self._log = []
+        self.__cells = []
 
     def __repr__(self):
-        return str(self._log)
+        return str(self.__cells)
 
     def __len__(self):
-        return len(self._log)
+        return len(self.__cells)
 
     def __getitem__(self, n):
-        return self._log[n]
+        return self.__cells[n]
 
     def append(self, L):
-        self._log.append(L)
+        self.__cells.append(L)
 
     def html(self, ncols):
-        n = len(self._log)
+        n = len(self.__cells)
         s = ''
-        for i in range(len(self._log)):
+        for i in range(len(self.__cells)):
             if i == 0:
                 color = "#FFFFFF"
             else:
                 color = "#FFFFFF"
-            L = self._log[i]
+            L = self.__cells[i]
             s += L.html(i, numrows, ncols, cmd_color=color)
         return s
 
     def set_last_cmd(self, cmd):
-        if len(self._log) == 0:
-            self._log = [IO_Line()]
-        self._log[-1].cmd = str(cmd)
+        if len(self.__cells) == 0:
+            self.__cells = [Cell()]
+        self.__cells[-1].cmd = str(cmd)
 
     def set_last_out(self, out):
-        if len(self._log) == 0:
-            self._log = [IO_Line()]
-        self._log[-1].out = str(out)
-
+        if len(self.__cells) == 0:
+            self.__cells = [Cell()]
+        self.__cells[-1].out = str(out)
 
 
 class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -255,173 +318,106 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         return os.listdir("%s/cells/%s"%(directory,number))
 
     def __show_page(self, number):
-        global current_log
+        global current_workbook
         f = self.send_head()
         if f:
             f = StringIO()
-            f.write("""
-            <html><head><title>SAGE Calculator %s</title></head>\n
-
-	    <style>
-            div.controlarea{
-                vertical-align: top;
-                align: left;
-            }
-            span.control {
-                border:1px solid white;
-                font-family:Arial,Verdana, sans-serif;
-                font-size:10pt;
-            }
-
-
-            input.btn {
-              color:#999999;
-              text-decoration:none;
-              background: white;
-              padding:0px;
-              margin:0px;
-              border:1px solid white;
-            }
-            input.btn:hover {
-              color: black;
-              text-decoration: none;
-              background: white;
-              padding: 0px;
-              margin: 0px;
-              border: 1px solid #333333;
-            }
-            input.txtarea {
-              color: black;
-              text-decoration: none;
-              background: white;
-              padding: 0px;
-              margin: 0px;
-              border: 1px solid #333333;
-              width: 100%%;
-            }
-
-            span.control a.cs {
-            color:#999999;
-            text-decoration:none;
-            border:1px solid white;
-            }
-            span.control:hover a.cs, span.control a:hover.cs {
-            color:black;
-            border:1px solid #333333;
-            }
-
-            </style>
-
-            <script language=javascript>
-            var asyncObj
-            function getAsyncObject(handler) {
-              var asyncObj=null
-
-              if (navigator.userAgent.indexOf("Opera")>=0) {
-                alert("Opera does not support asynchronous requests.  Try Firefox?")
-                return
-              }
-              if (navigator.userAgent.indexOf("MSIE")>=0) {
-                var strName="Msxml2.XMLHTTP"
-                if (navigator.appVersion.indexOf("MSIE 5.5")>=0) {
-                  strName="Microsoft.XMLHTTP"
-                }
-                try {
-                  asyncObj=new ActiveXObject(strName)
-                  asyncObj.onreadystatechange=handler
-                  return objXmlHttp
-                }
-                catch(e) {
-                  alert("Error. Scripting for ActiveX disabled.  Enable ActiveX in your browser controls, or use Firefox.")
-                  return
-                }
-              }
-              if (navigator.userAgent.indexOf("Mozilla")>=0) {
-                asyncObj=new XMLHttpRequest()
-                asyncObj.onload=handler
-                asyncObj.onerror=handler
-                return asyncObj
-              }
-            }
-
-            function asyncCallbackHandler(name, callback) {
-              return eval('function() {
-                             asyncObj = ' + name + ';
-                             try {
-                               if ((asyncObj.readyState==4 || asyncObj.readyState=="complete")
-                                   && asyncObj.status == 200)
-                               ' + callback + '("success", asyncObj.responseText);
-                               } catch(e) {
-                               ' + callback + '("failure", e);
-                               } finally {}
-                             }');
-            }
-
-            function asyncRequest(name, url, callback, postvars) {
-              asyncObj=getAsyncObj(asyncCallbackHandler(name, callback))
-              eval(name + '=asyncObj;');
-
-              if(postvars != null) {
-                asyncObj.open('POST',url,false);
-                asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-                asyncObj.send(postvars);
-              } else {
-                asyncObj.open('GET',url,true);
-                asyncObj.setRequestHeader('Content-Type',  "text/html");
-                asyncObj.send(null);
-              }
-            }
-
+            f.write('<html><head><title>SAGE: %s</title></head>\n\n'%save_name)
+            f.write('<style>' + css.css() + '</style>\n\n')
+            J = js.javascript()
+            J += """
             function scroll_to_bottom() {
-                document.getElementById(%s).scrollIntoView();
-                document.io%s.elements[0].focus();
-            }
+                try {
+                   document.getElementById(%s).scrollIntoView();
+                   document.forms[%s].elements[0].focus();
+                } catch(e) {}
+                finally {}
+            }"""%(number-1, number+1)
+            f.write('<script language=javascript>' + J + '</script>\n\n')
+            f.write("""
+            <body onload="javascript:scroll_to_bottom()">
 
-            function ifShiftEnter(number, event) {
-                var theCode = event.keyCode ? event.keyCode :
-                               event.which ? event.which : event.charCode;
-                if (theCode == 13 && event.shiftKey) {
-                   document.forms[number].submit();
-                   return false;
-                }
-                else
-                   return true;
-            }
+            <span class="banner">
+            <a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a>
+            </span>
+                   <input type="text" id="search_input" class="search_input" onKeyUp="search_box();" value="">
+                    <span id="search_doc_topbar" class="search_doc_topbar">
+                        <table bgcolor="73a6ff" width="100%">
+                            <tr>
+                                <td align=left class="menubar">
+                                    Completions
+                                </td>
+                            </tr>
+                        </table>
+                    </span>
+                    <span id="search_doc" class="search_doc">
+                    </span>
 
-	    function changeAreaSize(val,id) {
-                var el = document.getElementById(id);
-                if (val==1)
-                    el.rows = el.rows + 1;
-                else
-                    el.rows = el.rows - 1;
-            }
+                <span class="top_control_bar">
+                  <input type="text" id="search_fulltext_input"
+                         class="search_fulltext" value="Search"></input>
+                  <a class='evaluate' href="/interrupt">Evaluate All</a>
+                  <a class='interrupt' href="/interrupt">Interrupt</a>
+                </span>
 
-            function toggleVisibility(id) {
-                var outBox = document.getElementById('out'+id);
-                if(outBox.style.display == 'none') {
-                    outBox.style.display = 'block';
-                    document.getElementById('tog'+id).innerHTML='H';
-                } else {
-                    outBox.style.display = 'none';
-                    document.getElementById('tog'+id).innerHTML='S';
-                }
-            }
-            function showBox(id) {
-                var el = document.getElementById(id);
-                el.style.display='none';
-            }
-            </script>
-            """%(save_name, number, number+1))
+                <span class="variables_topbar">
+                    <table bgcolor="73a6ff" width="100%">
+                        <tr>
+                            <td align=left class="menubar">
+                                Variables
+                            </td>
+                            <td align=right>
+                                <a href="/load">Load</a>
+                            </td>
+                        </tr>
+                    </table>
+                </span>
+                <span class="variable_list">
+                a<br>b<br>c<br>d<br>a<br>b<br>c<br>d<br>a<br>b<br>c<br>d<br>a<br>b<br>c<br>d<br>
+                </span>
 
-            f.write('<body onload="javascript:scroll_to_bottom()"><div align=center><H2><font color="darkgreen"><a href="http://modular.math.washington.edu/sage">SAGE</a>: Software for Algebra and Geometry Experimentation</font></H2>')
-            f.write('<h3>%s</h3>'%sage.misc.banner.version())
-            f.write('<h3><a href="logfile.txt">Log File</a></h3>')
-            if len(current_log) == 0 or current_log[-1].cmd != '':
-                I = IO_Line()
-                current_log.append(I)
-            current_log.save(logsobj_file)
-            f.write(current_log.html(numcols))
-            f.write('</div><br><br><br><br></body></html>')
+                <span class="workbooks_topbar">
+                    <table bgcolor="73a6ff" width="100%">
+                        <tr>
+                            <td align=left class="menubar">
+                                Workbooks
+                            </td>
+                            <td align=right>
+                                <a href="/new">New</a>
+                            </td>
+                        </tr>
+                    </table>
+                </span>
+                <span class="workbooks_list">
+                    Linear Algebra<br>
+                    Modular Forms<br>
+                    Visibility<br>
+                    Misc Graphcs<br>
+                    Linear Algebra<br>
+                    Modular Forms<br>
+                    Visibility<br>
+                    Misc Graphcs<br>
+                    Linear Algebra<br>
+                    Modular Forms<br>
+                    Visibility<br>
+                    Misc Graphcs<br>
+                </span>
+
+                <div class="workbook_title">
+                  Linear Algebra
+                </div>
+                <span class="workbook">
+                <table width="100%" height="100%" bgcolor="white"><tr><td align=center>
+                <br><br><br>
+            """)
+            #f.write('<a href="logfile.txt">Log File</a>')
+            if len(current_workbook) == 0 or current_workbook[-1].cmd != '':
+                I = Cell()
+                current_workbook.append(I)
+            current_workbook.save(workbook_sobj_file)
+            f.write(current_workbook.html(numcols))
+            f.write('</td></tr></table>\n')
+            f.write('</span></body></html>\n')
             f.seek(0)
             self.copyfile(f, self.wfile)
 
@@ -444,85 +440,113 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     return f
             else:
                 self.file_not_found()
+
+        elif self.path[-8:] == 'walltime':
+            self.send_response(200)
+            self.send_header("Content-type", 'text/plain')
+            self.end_headers()
+            f = StringIO()
+            f.write(sage0._eval_line('int(walltime(_start_time_))'))
+            f.seek(0)
+            self.copyfile(f, self.wfile)
+            f.close()
+            return f
+
         else:
             self.__show_page(0)
 
     def do_POST(self):
-        global current_log
+        global current_workbook
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         length = int(self.headers.getheader('content-length'))
+        print "POST: ", self.path
         if ctype == 'multipart/form-data':
             self.body = cgi.parse_multipart(self.rfile, pdict)
         elif ctype == 'application/x-www-form-urlencoded':
-            qs = self.rfile.read(length)
-            C = cgi.parse_qs(qs, keep_blank_values=1)
-            number = eval(C.keys()[0])
-            print "Workbook '%s': evaluating cell number %s"%(
-                save_name, number)
-            current_dir = "%s/cells/%d"%(directory,number)
-            code_to_eval = C[C.keys()[0]][0]
-            open(logfile,'a').write('\n#### INPUT \n' + code_to_eval + '\n')
-            try:
-                if number > len(current_log)-1:
-                    current_log.set_last_cmd(code_to_eval)
-                    number = len(current_log)-1
-                else:
-                    # re-evaluating a code block
-                    current_log[number].cmd = code_to_eval
-                #code_to_eval = code_to_eval.replace('\\','')
-                s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
-                                                      do_time=True, ignore_prompts=True)
-                s = [x for x in s.split('\n') if len(x.split()) > 0 and \
-                      x.lstrip()[0] != '#']   # remove all blank lines and comment lines
-                if len(s) > 0:
-                    t = s[-1]
-                    if len(t) > 0 and not ':' in t and \
-                           not t[0].isspace() and not t[:3] == '"""':
-                        t = t.replace("'","\\'")
-                        s[-1] = "exec compile('%s', '', 'single')"%t
-
-                s = '\n'.join(s) + '\n'
-
-                open('%s/_temp_.py'%directory, 'w').write(s)
-
-                if not os.path.exists(current_dir):
-                    os.makedirs(current_dir)
-
-                for F in os.listdir(current_dir):
-                    os.unlink("%s/%s"%(current_dir,F))
-
-                sage0._eval_line('os.chdir("%s")'%current_dir)
-
+            if self.path == '/search':
+                qs = self.rfile.read(length)
+                C = cgi.parse_qs(qs, keep_blank_values=1)
+                d = get_doc(C['query'][0])
+                d = d.replace(' ','&nbsp;')
+                self.send_response(200)
+                self.send_header("Content-type", 'text/plain')
+                self.end_headers()
+                f = StringIO()
+                f.write('%s'%d)
+                f.seek(0)
+                self.copyfile(f, self.wfile)
+                f.close()
+                return f
+            else:
+                qs = self.rfile.read(length)
+                C = cgi.parse_qs(qs, keep_blank_values=1)
+                number = eval(C.keys()[0])
+                print "Workbook '%s': evaluating cell number %s"%(
+                    save_name, number)
+                current_dir = "%s/cells/%d"%(directory,number)
+                code_to_eval = C[C.keys()[0]][0]
+                open(log_file,'a').write('\n#### INPUT \n' + code_to_eval + '\n')
                 try:
-                    o = sage0._eval_line('execfile("%s/_temp_.py")'%directory)
-                    if not 'Traceback (most recent call last):' in o:
-                        open(logfile,'a').write('#### OUTPUT \n' + o + '\n')
+                    if number > len(current_workbook)-1:
+                        current_workbook.set_last_cmd(code_to_eval)
+                        number = len(current_workbook)-1
                     else:
-                        open(logfile,'a').write('#### OUTPUT (error)\n')
-                except KeyboardInterrupt, msg:
-                    print "Keyboard interrupt!"
-                    o = msg
+                        # re-evaluating a code block
+                        current_workbook[number].cmd = code_to_eval
+                    #code_to_eval = code_to_eval.replace('\\','')
+                    s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
+                                                          do_time=True, ignore_prompts=True)
+                    s = [x for x in s.split('\n') if len(x.split()) > 0 and \
+                          x.lstrip()[0] != '#']   # remove all blank lines and comment lines
+                    if len(s) > 0:
+                        t = s[-1]
+                        if len(t) > 0 and not ':' in t and \
+                               not t[0].isspace() and not t[:3] == '"""':
+                            t = t.replace("'","\\'")
+                            s[-1] = "exec compile('%s', '', 'single')"%t
 
-                #o = sage.misc.misc.word_wrap(o, ncols=numcols)
+                    s = '\n'.join(s) + '\n'
 
-                #while True:
-                #    print "waiting for output"
-                #    o = sage0._get()
-                #    if o is None:
-                #        print "output isn't ready yet"
-                #    else:
-                #        print "o = ", o
-                #        break
-                #    import time
-                #    time.sleep(0.5)
+                    open('%s/_temp_.py'%directory, 'w').write(s)
 
-                current_log[number].out = o
-                current_log[number].file_list = self.__files(number)
-                self.__show_page(number)
+                    if not os.path.exists(current_dir):
+                        os.makedirs(current_dir)
 
-            except (RuntimeError, TypeError), msg:
-                print "ERROR!!!", msg
-                self.__show_page(0)
+                    for F in os.listdir(current_dir):
+                        os.unlink("%s/%s"%(current_dir,F))
+
+                    sage0._eval_line('os.chdir("%s")'%current_dir)
+
+                    try:
+                        o = sage0._eval_line('execfile("%s/_temp_.py")'%directory)
+                        if not 'Traceback (most recent call last):' in o:
+                            open(log_file,'a').write('#### OUTPUT \n' + o + '\n')
+                        else:
+                            open(log_file,'a').write('#### OUTPUT (error)\n')
+                    except KeyboardInterrupt, msg:
+                        print "Keyboard interrupt!"
+                        o = msg
+
+                    o = word_wrap(o, ncols=numcols)
+
+                    #while True:
+                    #    print "waiting for output"
+                    #    o = sage0._get()
+                    #    if o is None:
+                    #        print "output isn't ready yet"
+                    #    else:
+                    #        print "o = ", o
+                    #        break
+                    #    import time
+                    #    time.sleep(0.5)
+
+                    current_workbook[number].out = o
+                    current_workbook[number].file_list = self.__files(number)
+                    self.__show_page(number)
+
+                except (RuntimeError, TypeError), msg:
+                    print "ERROR!!!", msg
+                    self.__show_page(0)
 
         else:
             self.body = {}                   # Unknown content-type
@@ -572,14 +596,14 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile):
         shutil.copyfileobj(source, outputfile)
 
-def server_http1(dir ='sage_server',
-                 port=8000,
-                 address='localhost',
-                 ncols=90,
-                 nrows=8,
-                 viewer=True,
-                 log=None,
-                 max_tries=10):
+def server_http1(dir       ='sage_server',
+                 port      = 8000,
+                 address   = 'localhost',
+                 ncols     = 80,
+                 nrows     = 8,
+                 viewer    = True,
+                 workbook  = None,
+                 max_tries = 10):
     r"""
     Start a SAGE http server at the given port.
 
@@ -600,7 +624,7 @@ def server_http1(dir ='sage_server',
         ncols -- (default: 90) default number of columns for input boxes
         nrows -- (default: 8) default number of rows for input boxes
         viewer -- bool (default:True); if True, pop up a web browser at the URL
-        log    -- (default: None) resume from a previous log
+        workbook    -- (default: None) resume from a previous workbook
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
 
@@ -640,8 +664,8 @@ def server_http1(dir ='sage_server',
     very limited privileges (e.g., empty home directory), and
     running \code{server_http1} as that user.}
     """
-    global directory, current_log, logsobj_file, \
-           numcols, numrows, sage0, save_name, logfile
+    global directory, current_workbook, workbook_sobj_file, \
+           numcols, numrows, sage0, save_name, log_file
     save_name = dir
     dir = '_'.join(dir.split())  # no white space
     directory = os.path.abspath(dir)
@@ -653,29 +677,32 @@ def server_http1(dir ='sage_server',
         print 'Creating directory "%s"'%directory
         os.makedirs(directory)
 
-    logfile = '%s/logfile.txt'%directory
-    open(logfile,'a').close()  # touch the file
+    log_file = '%s/logfile.txt'%directory
+    open(log_file,'a').close()  # touch the file
 
     numcols = int(ncols)
     numrows = int(nrows)
-    logsobj_file = '%s/cells.sobj'%directory
+    workbook_sobj_file = '%s/cells.sobj'%directory
 
-    if log is None and os.path.exists(logsobj_file):
+    if workbook is None and os.path.exists(workbook_sobj_file):
         try:
-            log = load(logsobj_file)
+            workbook = load(workbook_sobj_file)
         except IOError:
-            print "Unable to load log %s (creating new log)"%logsobj_file
+            print "Unable to load log %s (creating new log)"%workbook_sobj_file
 
-    if log is None:
-        current_log = Log()
+    if workbook is None:
+        current_workbook = Workbook()
     else:
-        current_log = log
+        current_workbook = workbook
     sage0 = sage.interfaces.sage0.Sage()
     if not os.path.exists('%s/sobj'%directory):
         os.makedirs('%s/sobj'%directory)
-    sage0.eval('import sage.ext.sage_object; sage.ext.sage_object.base="%s/sobj"'%directory)
-    sage0.eval('os.chdir("%s")'%directory)
-    sage0.eval('import sage.plot.plot; sage.plot.plot.EMBEDDED_MODE=True')
+
+    # Initialize the sage0 object for use with the web notebook interface.
+    sage0.eval('import sage.server.support as _support_')
+    sage0.eval('_support_.init("%s/sobj")'%directory)
+
+    #sage0._eval_line('_start_time_=walltime()')
     HTML_Interface.protocol_version = "HTTP/1.0"
 
     tries = 0
@@ -690,8 +717,7 @@ def server_http1(dir ='sage_server',
             port += 1
             tries += 1
             if tries > max_tries:
-                print "Not trying any more ports.  Probably your network is down."
-                break
+                raise RuntimeError,"Not trying any more ports.  Probably your network is down."
             print "Trying next port (=%s)"%port
         else:
             break
@@ -703,7 +729,7 @@ def server_http1(dir ='sage_server',
     print "*       http://%s:%s"%(address, port)
     print "*                                                      *"
     print "********************************************************"
-    print "Running log at %s"%logfile
+    print "Running log at %s"%log_file
 
     try:
 
@@ -719,9 +745,9 @@ def server_http1(dir ='sage_server',
         print msg
         print "Shutting down server."
 
-    current_log.save(logsobj_file)
+    current_workbook.save(workbook_sobj_file)
 
-    return current_log
+    return current_workbook
 
 
 

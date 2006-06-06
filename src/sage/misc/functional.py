@@ -30,8 +30,7 @@ from sage.rings.all import (RealField, ComplexField,
 import sage.rings.integer_ring
 import sage.categories.all
 QQ = RationalField()
-R = RealField()
-C = ComplexField()
+RR = RealField()
 CC = ComplexField()
 
 from sage.libs.all import pari
@@ -113,7 +112,7 @@ def ceil(x):
     Return the ceiling of x.
     """
     try: return x.ceil()
-    except AttributeError: return R(x).ceil()
+    except AttributeError: return RR(x).ceil()
 
 ceiling = ceil
 
@@ -161,7 +160,7 @@ def cos(x):
         -0.99999999999978639
     """
     try: return x.cos()
-    except AttributeError: return R(x).cos()
+    except AttributeError: return RR(x).cos()
 
 def acos(x):
     """
@@ -174,7 +173,7 @@ def acos(x):
         0.90455689430238140 - 1.0612750619050357*I
     """
     try: return x.acos()
-    except AttributeError: return R(x).acos()
+    except AttributeError: return RR(x).acos()
 
 def asin(x):
     """
@@ -187,7 +186,7 @@ def asin(x):
         0.66623943249251527 + 1.0612750619050357*I
     """
     try: return x.asin()
-    except AttributeError: return R(x).asin()
+    except AttributeError: return RR(x).asin()
 
 def atan(x):
     """
@@ -200,7 +199,7 @@ def atan(x):
         1.0172219678978514 + 0.40235947810852507*I
     """
     try: return x.atan()
-    except AttributeError: return R(x).atan()
+    except AttributeError: return RR(x).atan()
 
 ## def cuspidal_submodule(x):
 ##     return x.cuspidal_submodule()
@@ -331,7 +330,7 @@ def exp(x):
     Return the value of the exponentation function at x.
     """
     try: return x.exp()
-    except AttributeError: return R(x).exp()
+    except AttributeError: return RR(x).exp()
 
 def factor(x, *args, **kwds):
     """
@@ -639,7 +638,7 @@ def log(x,b=None):
     if b is None:
         try: return x.log()
         except AttributeError:
-            return R(x).log()
+            return RR(x).log()
     else:
         try: return x.log(b)
         except AttributeError:
@@ -781,7 +780,7 @@ def real(x):
         1.0000000000000000
     """
     try: return x.real()
-    except AttributeError: return C(x).real()
+    except AttributeError: return CC(x).real()
 
 def regulator(x):
     """
@@ -800,6 +799,15 @@ def quo(x, y, var=None):
         return x/y
 
 quotient = quo
+
+def show(x):
+    """
+    Show a graphics object x.
+    """
+    try:
+        return x.show()
+    except AttributeError:
+        raise AttributeError, "object %s does not support show."%x
 
 def sqrt(x):
     """
@@ -832,7 +840,7 @@ def sin(x):
     Return the sin of x.
     """
     try: return x.sin()
-    except AttributeError: return R(x).sin()
+    except AttributeError: return RR(x).sin()
 
 def square_free_part(x):
     """
@@ -898,7 +906,7 @@ def tan(x):
         0.99995367427815629
     """
     try: return x.tan()
-    except AttributeError: return R(x).tan()
+    except AttributeError: return RR(x).tan()
 
 def transpose(x):
     """

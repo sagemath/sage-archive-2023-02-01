@@ -91,19 +91,40 @@ class Expect(SageObject):
         self._available_vars = []
 
     def _get(self, wait=0.1):
+        if self._expect is None:
+            self._start()
         E = self._expect
+        t = E.timeout
         E.timeout = float(wait)
         try:
             E.expect(self._prompt)
         except (pexpect.TIMEOUT, pexpect.EOF), msg:
+            E.timeout = t
             return None
+        E.timeout = t
         return E.before
 
     def _send(self, cmd):
         if self._expect is None:
             self._start()
         E = self._expect
+        self.__so_far = ''
         E.sendline(cmd)
+
+    def _so_far(self, wait=0.1):
+        """
+        Return whether done and output so far.
+        """
+        G = self._get(wait=wait)
+        try:
+            if G:
+                G = self.__so_far + G
+                del self.__so_far
+                return True, G
+            self.__so_far += self._expect.before
+            return False, self.__so_far
+        except AttributeError:   # no __so_far
+            raise RuntimeError, "nothing being evaluated right now."
 
     def is_remote(self):
         return self.__is_remote

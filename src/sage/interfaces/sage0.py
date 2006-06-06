@@ -105,7 +105,7 @@ class Sage(Expect):
         Expect.__init__(self,
                         name = 'sage',
                         prompt = '>>> ',
-                        command = "sage -python",
+                        command = "sage -python -u",
                         server = server,
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,

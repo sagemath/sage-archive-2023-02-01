@@ -78,7 +78,10 @@ cdef class SageObject:
         try:
             return self.__custom_name
         except AttributeError:
-            return self._repr_()
+            try:
+                return self._repr_()
+            except AttributeError:
+                return str(type(self))
 
 
     def _plot_(self, *args, **kwds):

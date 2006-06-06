@@ -86,6 +86,7 @@ except:
 
 # very useful 2-letter shortcuts
 CC = ComplexField()
+I = CC.gen(0)
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
@@ -96,23 +97,16 @@ ZZ = IntegerRing()
 # E.g., typing "int = ZZ" in the SAGE interpreter makes int literals
 # acts as Python ints again.
 
+
 # Some shorter shortcuts:
-Q = QQ
-Z = ZZ
-R = RR
-C = CC
-I = CC.gen(0)
-i = CC.gen(0)
+# Q = QQ
+# Z = ZZ
+# C = CC
+#i = CC.gen(0)
 true = True
 false = False
 
 oo = infinity
-x  = PolynomialRing(RationalField(),'x').gen()
-
-# add this at some point, so can define elliptic curves nicely.
-#_, y = MPolynomialRing(RationalField(),2,'xy').gens()
-
-tm = misc.cputime
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()

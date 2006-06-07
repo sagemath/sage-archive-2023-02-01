@@ -85,6 +85,12 @@ cf = Extension('sage.libs.cf.cf',
                libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
                )
 
+linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
+                   sources = ["sage/libs/linbox/finite_field_givaro.pyxe"],
+                   libraries = ['linbox', 'gmp', 'gmpxx', 'givaro', 'ntl', 'stdc++', 'm']
+                   )
+
+
 ext_modules = [ \
     ec, \
 
@@ -95,6 +101,8 @@ ext_modules = [ \
     ntl, \
 
     cf, \
+
+    linbox_gfq, \
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
@@ -373,6 +381,7 @@ setup(name        = 'sage',
                      'sage.libs.ec',
                      'sage.libs.pari',
                      'sage.libs.cf',
+                     'sage.libs.linbox',
 
                      'sage.matrix',
 

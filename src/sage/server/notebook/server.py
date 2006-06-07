@@ -129,7 +129,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         workbook_id = int(C['workbook_id'][0])
         workbook = notebook.get_workbook_with_id(workbook_id)
         L = workbook.cell_id_list()
-        self.wfile.write(' '.join(str(x) for x in L))
+        s = ' '.join(str(x) for x in L)
+        self.wfile.write(s)
 
     def get_file(self):
         path = self.path

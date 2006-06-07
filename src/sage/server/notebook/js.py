@@ -490,11 +490,13 @@ function evaluate_all_callback(status, response_text) {
        and call the evaluate_cell function on it.
     */
     if (status == "success") {
+        var v, i;
         v = response_text.split(' ');
-        i = v.length;
         for(i=0; i<v.length; i++) {
             evaluate_cell(v[i],0);
         }
+    } else {
+   /*     alert(response_text); */
     }
 }
 
@@ -511,10 +513,10 @@ function hide_all_callback(status, response_text) {
        and hide it.
     */
     if (status == "success") {
-        v = response_text.split(' ');
-        i = v.length;
+        var v = response_text.split(' ');
+        var i;
         for(i=0; i<v.length; i++) {
-           id = v[i];
+           var id = v[i];
            var cell_div = document.getElementById('cell_div_output_' + id);
            var cell_output = document.getElementById('cell_output_' + id);
            var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);

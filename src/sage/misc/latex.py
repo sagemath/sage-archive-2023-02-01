@@ -185,7 +185,7 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
 
 
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
-         sep='$$ $$', tiny=False,  center=False):
+         sep='$$ $$', tiny=False,  center=False, **kwds):
     """
     Compute a latex representation of each object in objects, compile, and display
     using xdvi.  (Requires latex and xdvi be installed.)
@@ -208,7 +208,7 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
     """
     if EMBEDDED_MODE:
         if sage.plot.all.is_Graphics(objects):
-            objects.show()
+            objects.show(**kwds)
             return
         i = 0
         while os.path.exists('sage%s.png'%i):

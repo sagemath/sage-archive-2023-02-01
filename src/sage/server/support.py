@@ -13,12 +13,13 @@ import sage.misc.sagedoc as sagedoc
 # Initialization
 ######################################################################
 
-def init(object_directory):
+def init(object_directory=None):
     """
     Initialize SAGE for use with the web notebook interface.
     """
     sage.plot.plot.EMBEDDED_MODE = True
-    sage.ext.sage_object.base=object_directory
+    if object_directory:
+        sage.ext.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
 
 

@@ -1,4 +1,4 @@
-"""
+r"""
 Javascript (AJAX) Component of SAGE Notebook
 
 AUTHORS:
@@ -96,19 +96,53 @@ function async_request(name, url, callback, postvars) {
 
 ///////////////////////////////////////////////////////////////////
 //
-// WORKBOOK functions -- for the individual cells
+// OBJECT functions -- for managing saved objects
+//
+///////////////////////////////////////////////////////////////////
+
+function click_on_object(name) {
+/*
+    o = document.open("/" + name + ".sobj");
+    */
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
+// WORKBOOK functions -- for switching between and managing workbooks
+//
+///////////////////////////////////////////////////////////////////
+
+workbook_id=0;   // The current workbook.
+
+function add_new_workbook() {
+    alert('add new workbook ');
+}
+
+function switch_to_workbook(id) {
+    /* 1. check to see if workbook is already loaded into the DOM
+       2. If not, load it into the dom.
+       3. Move it to the front and everything else to the back by changing the css.
+    */
+/*    alert('switch to workbook ' + id); */
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
+// CELL functions -- for the individual cells
 //
 ///////////////////////////////////////////////////////////////////
 
 function focus_on(id, id_before) {
-    var cell = document.getElementById('cell_input_' + id);
-    cell.focus();
-    try {
-/*       var cell_before = document.getElementById('cell_div_output_' + id_before); */
+       var cell = document.getElementById('cell_input_' + id);
+       if (cell) {
+          cell.focus();
+       }
+/*       var cell_before = document.getElementById('cell_div_output_' + id_before);  */
        var cell_before = document.getElementById('cell_input_' + id_before);
-       cell_before.scrollIntoView();
-    } catch(e) {
-    } finally {}
+       if (cell_before)
+          cell_before.scrollIntoView();
 }
 
 function cell_input_resize(number) {
@@ -121,6 +155,7 @@ function cell_input_resize(number) {
       rows = rows + 1;
    }
    cell_input.style.height = null;
+   /* cell_input.style.height = 1.5*rows + 'em'; */   // this sort of works in konqueror...
    cell_input.rows = rows;
 }
 
@@ -132,6 +167,7 @@ function cell_input_minimize_size(number) {
    }
    cell_input.rows = rows;
    if (rows == 1) {
+       /* hack because of bug in firefox with 1-row textarea */
        cell_input.style.height = '1.5em';
    }
 }
@@ -148,7 +184,10 @@ function cell_delete_callback(status, response_text) {
     cell = document.getElementById('cell_' + X[1]);
     var workbook = document.getElementById('workbook');
     workbook.removeChild(cell);
-    focus_on(X[2], X[2]);
+    id_before = X[2];
+    var cell_before = document.getElementById('cell_input_' + id_before);
+    cell_before.focus();
+    cell_before.scrollIntoView();
 }
 
 function cell_delete(id) {
@@ -211,7 +250,6 @@ updating = 0;
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
     var X = response_text.split(SEP);
-
     if (X[1] != 'no_new_cell') {
         /* add a new cell to the very end */
        var new_cell = document.createElement("div");
@@ -264,7 +302,8 @@ function cell_set_done(id) {
 }
 
 function check_for_cell_output() {
-    async_request('async_obj_check', '/update_cells', update_cell_output, null)
+    async_request('async_obj_check', '/update_cells',
+                    update_cell_output, 'workbook_id='+workbook_id)
 }
 
 function set_output_text(id, text, wrapped_text, status) {
@@ -359,8 +398,9 @@ function insert_new_cell_before(id) {
 ///////////////////////////////////////////////////////////////////
 
 function inspect_variable(name) {
+/*
     alert(name);
-
+*/
 }
 
 // SEARCH BOX
@@ -441,7 +481,8 @@ function interrupt() {
     }
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt!"
-    async_request('async_obj_interrupt', '/interrupt', interrupt_callback, null);
+    async_request('async_obj_interrupt', '/interrupt',
+                  interrupt_callback, 'workbook_id='+workbook_id);
 }
 
 function evaluate_all_callback(status, response_text) {
@@ -462,7 +503,7 @@ function evaluate_all() {
        *ordered* list of active cells in the current workbook.
     */
     async_request('async_obj_evaluate_all', '/cell_id_list',
-                      evaluate_all_callback, null);
+                      evaluate_all_callback, 'workbook_id='+workbook_id);
 }
 
 function hide_all_callback(status, response_text) {
@@ -490,7 +531,7 @@ function hide_all() {
        *ordered* list of active cells in the current workbook.
     */
     async_request('async_obj_hide_all', '/cell_id_list',
-                      hide_all_callback, null);
+                      hide_all_callback, 'workbook_id='+workbook_id);
 }
 
 ///////////////////////////////////////////////////////////////////

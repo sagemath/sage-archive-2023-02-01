@@ -357,8 +357,10 @@ class Expect(SageObject):
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
     def eval(self, code):
+        code = str(code)
+        code = code.strip()
         try:
-            return '\n'.join([self._eval_line(L) for L in str(code).split('\n')])
+            return '\n'.join([self._eval_line(L) for L in code.split('\n')])
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:

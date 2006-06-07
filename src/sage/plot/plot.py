@@ -897,9 +897,9 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         sage: p = line(L, rgbcolor=(3/4,1/4,5/8))
 
     A purple plot of the Riemann zeta function $\zeta(1/2 + it)$, $0<t<30$:
-    ({\em much} better that the gnuplot version!):
 
-        sage: L = [[(pari(1/2 + i*I/10).zeta().real()).precision(1),(pari(1/2 + i*I/10).zeta().imag()).precision(1)] for i in range (0,300)]
+        sage: v = [zeta(0.5 + i/10 * I) for i in range(300)]
+        sage: L = [(z.real(), z.imag()) for z in v]
         sage: p = line(L, rgbcolor=(3/4,1/2,5/8))
 
     A purple plot of the Hasse-Weil $L$-function $L(E, 1 + it)$, $-1<t<10$:

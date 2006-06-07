@@ -134,8 +134,8 @@ class Cell:
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
-              onFocus   = 'cell_input_resize(%s);'
-              onBlur    = 'cell_input_minimize_size(%s);'
+              onFocus   = 'event.target.className="cell_input_active"; cell_input_resize(%s);'
+              onBlur    = 'event.target.className="cell_input"; cell_input_minimize_size(%s);'
               %s
            >%s</textarea>
         """%(new, r, id, id, id, id, id, style, t)
@@ -172,13 +172,17 @@ class Cell:
     def html_out(self, ncols=0):
         out_wrap = self.output_text(ncols)
         out_no_wrap = self.output_text(0)
-        s = """<div class="cell_output" id="cell_div_output_%s"
+        if self.computing():
+            cls = "cell_output_running"
+        else:
+            cls = "cell_output"
+        s = """<div class="%s" id="cell_div_output_%s"
                  onClick="cell_output_click(%s, event);">
                  <table class="cell_output"><tr><td>
                  <pre class="cell_output" id="cell_output_%s">%s</pre>
                  <pre class="cell_output_nowrap" id="cell_output_nowrap_%s">%s</pre>
                  </tr></td></table>
-               </div>"""%(self.__id, self.__id,
+               </div>"""%(cls, self.__id, self.__id,
                           self.__id, out_wrap,
                           self.__id, out_no_wrap)
         return s

@@ -4,65 +4,46 @@ def css():
 
 /**** TOP CONTROL BAR ************************/
 
-span.top_control_bar {
-   z-index: 5;
+div.top_control_bar {
+   z-index: 0;
    background-color: white;
    position: fixed;
-   left: 12.6em;
+   left: 0px;
    width: 100%;
    top: 0px;
-   height: 5ex;
-  /* border: 2px solid #c3d9ff; */
-   border-bottom: 3px solid #c3d9ff;
+   padding-left: 2ex;
 }
 
-
-span.top_control_bar  input.search_fulltext {
+span.control_commands {
    position: fixed;
-   left: 14em;
-   top: 5px;
-   width: 15em;
-   background-color:white;
-   font-family:arial;
-   font-size:14px;
-   color:#808080;
-}
-
-div.workbook_title {
-   z-index: 6;
-   position:fixed;
-   left: 15em;
-   top: 5px;
-   font-family:arial;
-   font-size:20px;
-   color:black;
-   padding:5;
-   background:white;
-   display:inline;
-}
-
-span.top_control_bar  a.evaluate{
-   text-decoration: underline;
-   position: fixed;
-   right: 10em;
-   top: 1px;
-   background-color:white;
+   top:1ex;
+   right:1ex;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
    font-family:arial;
    font-size:12px;
-   font-weight:bold;
+   text-decoration:underline;
+}
+
+span.vbar {
+   height:1.5ex;
+   border-left:1px solid black;
+}
+
+div.top_control_bar a.evaluate {
+   background-color:white;
    padding:5;
 }
 
-span.top_control_bar a.evaluate:hover {
+div.top_control_bar a.evaluate:hover {
    background-color:#00bb00;
    color:#FFFFFF;
+   cursor:pointer;
 }
 
-span.top_control_bar  a.interrupt {
+div.top_control_bar  a.interrupt {
    text-decoration: underline;
-   position: fixed;
-   right: 17em;
-   top: 1px;
    font-family:arial;
    font-size:12px;
    font-weight:bold;
@@ -71,71 +52,45 @@ span.top_control_bar  a.interrupt {
    background-color:white;
 }
 
-span.top_control_bar a.interrupt:hover {
+div.top_control_bar a.interrupt:hover {
    background-color:#bb0000;
    color:#FFFFFF;
+   cursor:pointer;
 }
 
-span.top_control_bar  a.interrupt_grey {
-   text-decoration: underline;
-   position: fixed;
-   right: 17em;
-   top: 1px;
-   font-family:arial;
-   font-size:12px;
-   font-weight:bold;
+div.top_control_bar  a.interrupt_grey {
    color:#888888;
    padding:5;
    background-color:white;
 }
 
-span.top_control_bar  a.interrupt_in_progress {
-   text-decoration: underline;
-   position: fixed;
-   right: 17em;
-   top: 1px;
-   font-family:arial;
-   font-size:12px;
-   font-weight:bold;
+div.top_control_bar  a.interrupt_in_progress {
    color:#FFFFFF;
    padding:5;
    background-color:#bb0000;
    text-decoration:blink;
 }
 
-span.top_control_bar  a.hide{
-   text-decoration: underline;
-   position: fixed;
-   right: 3em;
-   top: 1px;
+div.top_control_bar  a.hide{
    background-color:white;
-   font-family:arial;
-   font-size:12px;
-   font-weight:bold;
    padding:5;
 }
 
-span.top_control_bar a.hide:hover {
+div.top_control_bar a.hide:hover {
    background-color:#0000bb;
    color:#FFFFFF;
+   cursor:pointer;
 }
 
-span.top_control_bar  a.help {
-   text-decoration: underline;
-   position: fixed;
-   right: 23em;
-   top: 1px;
-   font-family:arial;
-   font-size:12px;
-   font-weight:bold;
-   color:#000000;
+div.top_control_bar  a.help {
    padding:5;
    background-color:white;
 }
 
-span.top_control_bar a.help:hover {
+div.top_control_bar a.help:hover {
    background-color:#00bb00;
    color:#FFFFFF;
+   cursor:pointer;
 }
 
 /***** SEARCH / HELP AREA *********************************/
@@ -209,142 +164,212 @@ span.pane {
    z-index:30;
    font-family:courier, monospace;
    font-size:12px;
-/*   overflow: auto; */
-   overflow:none;
-/*   position: fixed; */
-   position: absolute;
+   position: fixed;
    left: 1em;
-   top: -3ex;
-   width: 12em;
-   height: 100%;
-   margin: 1px;
-   /* border:1px solid #387CAF;  */
-   padding: 2px;
+   top: 33px;
+   width: 180px;
+   height:100%;
+   margin: 0px;
+   padding-right: 2px;
+   padding-left: 2px;
+   padding-top: 0px;
+   bottom: 0ex;
 }
 
-/* span.pane:hover {
-   width:30em;
-} */
 
 
 /************ VARIABLES **************************/
 
 span.pane div.variables_topbar {
-   color:#FFFFFF;
-   height: 2ex;
-   top: 0ex;
-   background-color: #73a6ff;
+   color:black;
+   background-color: #c3d9ff;
    font-family:arial;
    text-decoration: none;
-   font-size:15px;
-   font-weight:bold;
-   padding: 2px;
+   font-size:13px;
+   height: 2ex;
+   padding-left: 10px;
+   margin:0;
+   width: 174px;
 }
 
 span.pane div.variables_list {
+   font-size:11px;
    top:0ex;
-   height:20ex;
-   border:1px solid #387CAF;
-   padding:1ex;
+   height:25ex;
+   border:2px solid #c3d9ff;
+   width: 180px;
    overflow:auto;
 }
 
 div.variable_name {
+   padding-left:1ex;
+   border-top:1px solid #d3e9ff;
 }
 
 div.variable_name:hover {
-   background-color:#dfdfdf;
-   font-size:18px;
+   background-color:#c3d9ff;
+   cursor:pointer;
 }
 
 span.varname {
 }
 
 span.vartype {
-   color:blue;
+  /* color:#888888; */
+  color:#657d6c;
 }
 
 /************ ATTACHED **************************/
 
 span.pane div.attached_topbar {
-   color:#FFFFFF;
+   color: black;
    height: 2ex;
    top: 0ex;
-   background-color: #73a6bb;
+   background-color: #c3d9ff;
    text-decoration: none;
-   font-size:15px;
-   font-weight:bold;
+   font-size:13px;
    font-family:arial;
-   padding: 2px;
+   padding-left: 10px;
+   width: 174px;
 }
 
 span.pane div.attached_list {
+   font-size:11px;
    top:0ex;
-   height:20ex;
-   border:1px solid #387CAF;
-   padding:1ex;
+   height:25ex;
+   border:2px solid  #c3d9ff;
+   width: 180px;
    overflow:auto;
 }
 
 /************ WORKBOOKS **************************/
 
 span.pane div.workbooks_topbar {
-   color:#FFFFFF;
+   color:black;
    height: 2ex;
-   background-color: #73aaa6;
+   background-color: #b5edbc;
    text-decoration: none;
-   font-size:15px;
-   font-weight:bold;
+   font-size:13px;
    font-family:arial;
-   padding: 2px;
+   padding-left: 10px;
+   margin:0;
+   width: 174px;
 }
 
-span.pane div.workbooks_list {
-   height:20ex;
-   border:1px solid #387CAF;
-   padding:1ex;
+span.pane div.workbook_list {
+   font-size:11px;
+   height:25ex;
+   border:2px solid #b5edbc;
+   overflow:auto;
+   width: 180px;
 }
 
-div.workbook_name {
-
+a.new_workbook {
+   font-family: arial, monospace;
+   font-size:8pt;
+   text-decoration:underline;
+   text-align:right;
+   color: #0000aa
 }
 
-div.workbooks_name:hover {
-   background-color:#cfcfcf;
+a.new_workbook:hover {
+  cursor:pointer;
+}
+
+a.upload_workbook {
+   font-family: arial, monospace;
+   font-size:8pt;
+   text-decoration:underline;
+   text-align:right;
+   color: #0000aa
+}
+
+a.upload_workbook:hover {
+  cursor:pointer;
+}
+
+span.pane a.workbook_current {
+   font-size:11px;
+   padding-left:1ex;
+   border-top:1px solid #c3d9ff;
+   background-color:#c3d9ff;
+   text-decoration:none;
+   color:black;
+ }
+
+span.pane a.workbook_current_computing {
+   font-size:11px;
+   padding-left:1ex;
+   border-top:1px solid #c3d9ff;
+   background-color:#ffd1d1;
+   text-decoration:none;
+   color:black;
+ }
+
+span.pane a.workbook_other {
+   font-size:11px;
+   padding-left:1ex;
+   border-top:1px solid #c3d9ff;
+   background-color:white;
+   text-decoration:none;
+   color:black;
+}
+
+span.pane a.workbook_other:hover {
+   background-color:#c3d9ff;
+   text-decoration:none;
+   cursor:pointer;
+}
+
+span.pane a.workbook_other_computing {
+   font-size:11px;
+   padding-left:1ex;
+   border-top:1px solid #c3d9ff;
+   background-color:ffd1d1;
+   text-decoration:none;
+   color:black;
 }
 
 /************ OBJECTS **************************/
 
 span.pane div.objects_topbar {
-   color:#FFFFFF;
+   color:black;
    height: 2ex;
    top: 0ex;
-   background-color: #aa73a6;
+   background-color: #b5edbc;
    text-decoration: none;
-   font-size:15px;
-   font-weight:bold;
+   font-size:13px;
    font-family:arial;
-   padding: 2px;
+   padding-left: 10px;
+   width: 174px;
 }
 
-span.pane div.objects_list {
-   height:20ex;
-   border:1px solid #387CAF;
-   padding:1ex;
+span.pane div.object_list {
+   font-size:11px;
+   height:25ex;
+   border:2px solid #b5edbc;
+   width: 180px;
+   overflow:auto;
 }
 
-div.object_name {
-
+a.object_name {
+   padding-left:1ex;
+   border-top:1px solid #b5edbc;
+   background-color:white;
+   text-decoration:none;
+   color:black;
 }
 
-div.object_name:hover {
-   background-color:#cfcfcf;
+a.object_name:hover {
+   background-color:#b5edbc;
+   text-decoration:none;
+   color:black;
+   cursor:pointer;
 }
 
 
 
 /************ CONTROLS **************************/
-
 
 div.control_area{
     vertical-align: top;
@@ -375,34 +400,29 @@ div.workbook {
   overflow:auto;
   z-index:1;
   background-color: white;
-  border: 1px solid #387CAF;
-  top: 6ex;
+  border-top: 32px solid #c3d9ff;
+  border-left: 10px solid #c3d9ff;
+  top: 36px;
   bottom: 0ex;
   right: 0ex;
-  left: 12em;
-  padding: 2ex;
+  left: 205px;
+  padding-top: 0ex;
+  padding-left: 1ex;
   float: right;
-  /* width:65em; */
-/*  width: 80%;
-  height:85%;*/
 }
 
-div.workbook0 {
-  z-index:1;
-  position:absolute;
-  text-align:center;
-  /* background-color: #c3d9ff; */
-  background-color: white;
-  /* border-left: 1px solid #387CAF;  */
-  top: 4ex;
-  left: 12em;
-  padding: 2ex;
-  float: right;
-  width:100%;
+span.workbook_title {
+   padding-top: 3px;
+   font-family:arial;
+   font-size:22px;
+   font-weight:bold;
+   color:black;
+   display:inline;
+   position: fixed;
 }
+
 
 span.banner{
-  z-index:5;
   background-color:white;
   font-family:arial;
   font-size:30px;
@@ -410,10 +430,6 @@ span.banner{
   font-weight: bold;
   color: #387CAF;
   margin: 0px;
-  position: fixed;
-  top: -5px;
-  left: 6em;
-  padding: 5px;
 }
 
 
@@ -440,39 +456,50 @@ input.btn:hover {
 /************ CELLS **************************/
 
 textarea.cell_input {
-  /* background-color: #efefef; */
   background-color: white;
 
-  border-right: 1px #ffffff;
-  border-top: 1px solid #ffffff;
-  border-bottom: 1px solid #ffffff;
-  border-left: 1px solid #ffffff;
+  border: 2px solid #ffffff;
 
   font-family: courier, monospace;
   font-size:12pt;
 
   overflow:hidden;
 
-  /* margin-left: 1em;*/
-  padding-left: 1em;
-  padding: 0px;
+  padding-left:0px;
+  padding-top:0px;
+  padding-bottom:0px;
 
   width: 100%;
 }
 
-textarea.cell_input:hover {
-  border-right: 1px solid #c3d9ff;
-  border-top: 1px solid #c3d9ff;
-  border-bottom: 1px solid #c3d9ff;
-  border-left: 1px solid #c3d9ff;
+textarea.cell_input_active {
+  background-color: white;
+
+  border: 2px solid #73a6ff;
+
+  font-family: courier, monospace;
+  font-size:12pt;
+
+  overflow:hidden;
+
+  padding-left:0px;
+  padding-top:0px;
+  padding-bottom:0px;
+
+  width: 100%;
 }
+
+/*textarea.cell_input:hover {
+  border: 2px solid #73a6ff;
+}
+*/
 
 div.cell_output {
   width: 100%;
   margin: 0px;
   padding: 2px;
   border-left: 2px solid #000088;
-  background: #efefff
+/*  background: #eff2ff */
 }
 
 div.cell_output:hover {
@@ -512,17 +539,23 @@ div.cell_output_running {
   margin: 0px;
   padding: 5px;
   border-left: 5px solid #880000;
-  /* background-color: #fff1f1; */
-  background-color: #ffd1d1;
+  background-color: #ffeeee;
+  /*
+  border-left: 5px solid #008800;
+  background-color: #d1ffd1;
+  */
+}
+
+div.cell_output_running:hover {
+  cursor:wait;
 }
 
 div.cell_output_hidden {
   width: 100%;
-  height: 5px;
+  height: 10px;
   margin: 0px;
-  padding: 5px;
-  /* border-left: 2em solid #000088; */
-  border-left: 4em solid #aaaaaa;
+  /* padding: 5px;*/
+  border-left: 4em solid #c3d9ff;
 }
 
 div.cell_output_hidden:hover {
@@ -575,6 +608,7 @@ div.help_window {
 
 
 div.help_window_title {
+    z-index:60;
     position:fixed;
     overflow:auto;
     background-color: #3d86d0;
@@ -591,6 +625,7 @@ div.help_window_title {
 }
 
 div.help_window_close {
+    z-index:60;
     position:fixed;
     overflow:auto;
     background-color: #5d99d5;
@@ -607,7 +642,9 @@ div.help_window_close {
 }
 
 div.help_window_close:hover {
+    z-index:60;
     background-color: #6d79c5;
+    cursor:pointer;
 }
 
 table.help_window {

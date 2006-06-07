@@ -800,12 +800,12 @@ def quo(x, y, var=None):
 
 quotient = quo
 
-def show(x):
+def show(x, *args, **kwds):
     """
     Show a graphics object x.
     """
     try:
-        return x.show()
+        return x.show(*args, **kwds)
     except AttributeError:
         raise AttributeError, "object %s does not support show."%x
 

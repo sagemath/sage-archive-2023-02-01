@@ -40,23 +40,23 @@ notebook = None
 
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
-    def eval_cell(self, time=False, completions=False):
+    def get_postvars(self):
         length = int(self.headers.getheader('content-length'))
         qs = self.rfile.read(length)
-        C = cgi.parse_qs(qs, keep_blank_values=1)
+        return cgi.parse_qs(qs, keep_blank_values=1)
+
+    def eval_cell(self, time=False, completions=False):
+        C = self.get_postvars()
         input_text = C['input'][0]
         id = int(C['id'][0])
         input_text = input_text.replace('__plus__','+')
         verbose('%s: %s'%(id, input_text))
-        W = notebook.current_workbook()
+        W = notebook.get_workbook_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         notebook.save()
 
         cell.evaluate(time, completions)
-        self.send_response(200)
-        self.send_header("Content-type", 'text/plain')
-        self.end_headers()
 
         if cell.is_last():
             new_cell = W.append_new_cell()
@@ -67,46 +67,37 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                              'no_new_cell' + SEP + str(id))
 
     def new_cell(self):
-        length = int(self.headers.getheader('content-length'))
-        qs = self.rfile.read(length)
-        C = cgi.parse_qs(qs, keep_blank_values=1)
+        C = self.get_postvars()
         id = int(C['id'][0])
         verbose("Adding new cell before cell with id %s"%id)
-        W = notebook.current_workbook()
-        C = W.new_cell_before(id)
+        W = notebook.get_workbook_that_has_cell_with_id(id)
+        cell = W.new_cell_before(id)
         notebook.save()
-        self.send_response(200)
-        self.send_header("Content-type", 'text/plain')
-        self.end_headers()
-        self.wfile.write(str(C.id()) + SEP + C.html(div_wrap=False) + SEP + str(id))
+        self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + str(id))
 
     def delete_cell(self):
-        length = int(self.headers.getheader('content-length'))
-        qs = self.rfile.read(length)
-        C = cgi.parse_qs(qs, keep_blank_values=1)
+        C = self.get_postvars()
         id = int(C['id'][0])
-        verbose("Possibly deleting cell with id %s"%id)
-        self.send_response(200)
-        self.send_header("Content-type", 'text/plain')
-        self.end_headers()
-
-        W = notebook.current_workbook()
+        verbose("Deleting cell with id %s"%id)
+        W = notebook.get_workbook_that_has_cell_with_id(id)
         if len(W) <= 1 or W.is_last_id_and_previous_is_nonempty(id):
             self.wfile.write('ignore')
         else:
-            next_id = W.delete_cell_with_id(id)
+            prev_id = W.delete_cell_with_id(id)
             notebook.save()
-            self.wfile.write('delete' + SEP + str(id) + SEP + str(next_id))
+            self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id))
 
 
     def update_cells(self):
-        workbook = notebook.current_workbook()
+        C = self.get_postvars()
+        workbook_id = int(C['workbook_id'][0])
+        workbook = notebook.get_workbook_with_id(workbook_id)
         cols = notebook.defaults()['word_wrap_cols']
         status, cell = workbook.check_comp()
         if status == 'd':
             notebook.save()
             variables = workbook.variables_html()
-            objects = notebook.objects_html()
+            objects = notebook.object_list_html()
         else:
             variables = '...'  # not used
             objects = "..." # note used
@@ -122,9 +113,33 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             workbook.start_next_comp()
         self.wfile.write(msg)
 
+    def interrupt(self):
+        C = self.get_postvars()
+        workbook_id = int(C['workbook_id'][0])
+        workbook = notebook.get_workbook_with_id(workbook_id)
+        self.send_head()
+        t = workbook.interrupt()
+        if t:
+            self.wfile.write('ok')
+        else:
+            self.wfile.write('restart')
+
+    def cell_id_list(self):
+        C = self.get_postvars()
+        workbook_id = int(C['workbook_id'][0])
+        workbook = notebook.get_workbook_with_id(workbook_id)
+        L = workbook.cell_id_list()
+        self.wfile.write(' '.join(str(x) for x in L))
+
     def get_file(self):
+        path = self.path
+        if path[-5:] == '.sobj':
+            path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
+        else:
+            path = path[1:]
+
         try:
-            binfile = open(self.path[1:], 'rb').read()
+            binfile = open(path, 'rb').read()
         except IOError:
             return self.file_not_found()
         self.send_response(200)
@@ -139,7 +154,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif self.path[-4:] == '.txt':
             self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':
-            self.send_header("Content-type", 'application/sobj')
+            self.send_header("Content-type", 'application/sage')
         self.end_headers()
         f = StringIO()
         f.write(binfile)
@@ -148,9 +163,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.close()
         return f
 
-    def show_page(self):
+    def show_page(self, workbook_id=None):
         self.send_head()
-        self.wfile.write(notebook.html())
+        self.wfile.write(notebook.html(workbook_id=workbook_id))
 
     def file_not_found(self):
         self.send_response(404)
@@ -170,31 +185,18 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         verbose(self.path)
 
-        if self.path[-13:] == '/update_cells':
-            self.update_cells()
-
-        elif self.path[-10:] == '/interrupt':
-            self.send_head()
-            t = notebook.interrupt()
-            if t:
-                self.wfile.write('ok')
-            else:
-                self.wfile.write('restart')
-            return
-
-        elif self.path[-13:] == '/cell_id_list':
-            L = notebook.current_workbook().cell_id_list()
-            self.send_head()
-            self.wfile.write(' '.join(str(x) for x in L))
-            return
-
-        elif self.path[-4:] in ['.eps', '.png', '.svg', '.txt'] or \
-             self.path[-5:] == '.sobj' or self.path[-3:] == '.ps':
+        if self.path[-4:] in ['.eps', '.png', '.svg', '.txt'] or \
+               self.path[-5:] == '.sobj' or self.path[-3:] == '.ps':
 
             return self.get_file()
 
         else:
-            self.show_page()
+            i = self.path.rfind('/')
+            try:
+                workbook_id = int(self.path[1:])
+            except ValueError:
+                workbook_id = None
+            self.show_page(workbook_id)
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
@@ -204,6 +206,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.body = cgi.parse_multipart(self.rfile, post_dict)
 
         elif content_type == 'application/x-www-form-urlencoded':
+            self.send_response(200)
+            self.send_header("Content-type", 'text/plain')
+            self.end_headers()
             if self.path[-6:] == '/eval0':
                 self.eval_cell(time=False)
             elif self.path[-6:] == '/eval1':
@@ -214,6 +219,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.new_cell()
             elif self.path[-12:] == '/delete_cell':
                 self.delete_cell()
+            elif self.path[-13:] == '/update_cells':
+                self.update_cells()
+            elif self.path[-10:] == '/interrupt':
+                self.interrupt()
+            elif self.path[-13:] == '/cell_id_list':
+                self.cell_id_list()
         else:
             self.body = {}                   # Unknown content-type
 

@@ -1469,6 +1469,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.Lseries_zeros(2)
             [0.00000000000, 5.0031700134]
 
+            sage: a = E.Lseries_zeros(20)      # long time
+            sage: point([(1,x) for x in a])    # graph  (long time)
+
         AUTHOR:
             -- Uses Rubinstein's L-functions calculator.
         """

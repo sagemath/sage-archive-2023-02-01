@@ -26,23 +26,36 @@ from sage.misc.misc        import verbose
 
 from cell import Cell
 
-INTERRUPT_TRIES = 40
+INTERRUPT_TRIES = 20
+import notebook as _notebook
 
 class Workbook:
-    def __init__(self, name, notebook):
+    def __init__(self, name, notebook, id):
         name = ' '.join(name.split())
-        self.__next_id = 0
+        self.__id = id
+        self.__next_id = (_notebook.MAX_WORKBOOKS) * id
         self.__name = name
         self.__notebook = notebook
+        dir = list(name)
+        for i in range(len(dir)):
+            if not dir[i].isalnum() and dir[i] != '_':
+                dir[i]='_'
+        dir = ''.join(dir)
         self.__dir = '%s/%s'%(notebook.workbook_directory(), '_'.join(name.split()))
+        while os.path.exists(self.__dir):
+            self.__dir += "_"
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
         self.__queue = []
         self.__cells = [ ]
         self.append_new_cell()
-        #for i in range(20):
-        #    self.__cells.append(self.new_cell())
+
+    def __cmp__(self, other):
+        return cmp((self.__id, self.__name), (other.__id, other.__name))
+
+    def computing(self):
+        return self.__comp_is_running
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -55,6 +68,9 @@ class Workbook:
             self.__queue = []
         except AttributeError:
             pass
+
+    def id(self):
+        return self.__id
 
     def cell_id_list(self):
         return [C.id() for C in self.__cells]
@@ -95,18 +111,23 @@ class Workbook:
 
     def delete_cell_with_id(self, id):
         """
-        Remove the cell with given id and return the next cell after it.
+        Remove the cell with given id and return the cell before it.
         """
         cells = self.__cells
         for i in range(len(cells)):
             if cells[i].id() == id:
                 del cells[i]
-                if i < len(cells):
-                    return cells[i].id()
-        return cells[-1].id()
+                if i > 0:
+                    return cells[i-1].id()
+                else:
+                    return cells[0].id()
+        return cells[0].id()
 
     def directory(self):
         return self.__dir
+
+    def DIR(self):
+        return self.__notebook.DIR()
 
     def sage(self):
         try:
@@ -116,6 +137,7 @@ class Workbook:
             os.environ['PAGER'] = 'cat'
             self.__sage = Sage(logfile='%s/sage.log'%self.directory())
             S = self.__sage
+            S.eval('__DIR__="%s"; DIR=__DIR__'%self.DIR())
             S.eval('import sage.server.support as _support_')
             S.eval('__SAGENB__globals = set(globals().keys())')
             object_directory = os.path.abspath(self.__notebook.object_directory())
@@ -164,6 +186,10 @@ class Workbook:
             return
 
         self.__comp_is_running = True
+        try:
+            del self.__variables   # cache could change...
+        except AttributeError:
+            pass
 
         C = self.__queue[0]
         if C.interrupted():
@@ -176,8 +202,7 @@ class Workbook:
         if C.time():
             S._eval_line('__t__=cputime(); __w__=walltime()')
 
-
-        tmp = '%s/tmp.py'%self.directory()
+        tmp = '%s/_temp_.py'%self.directory()
         i = self.preparse_input(C.input_text(), C.completions())
         open(tmp,'w').write(i + '\nprint ""\n')
         S._send('execfile("%s")'%os.path.abspath(tmp))
@@ -247,7 +272,7 @@ class Workbook:
         S = self.sage()
         E = S._expect
         t = E.timeout
-        E.timeout = 0.2
+        E.timeout = 0.1
         success = False
         for i in range(INTERRUPT_TRIES):
             E.sendline('q')
@@ -310,11 +335,52 @@ class Workbook:
             i += 1
         return False, None
 
+    def preparse(self, s):
+        return preparse_file(s, magic=False, do_time=False, ignore_prompts=False)
+
+    def _normalize_load_filename(self, filename):
+        filename = filename.strip().strip('"').strip("'")
+        if len(filename) > 0 and filename[0] != '/':
+            filename = '%s/%s'%(self.DIR(), filename)
+        return filename
+
+    def check_for_load_and_attach(self, s):
+        u = []
+        for t in s.split('\n'):
+            if t[:5] == 'load ':
+                filename = self._normalize_load_filename(t[5:])
+                try:
+                    F = open(filename).read()
+                except IOError:
+                    t = "print 'Error loading %s -- file not found'"%filename
+                else:
+                    if filename[-3:] == '.py':
+                        t = F
+                    elif filename[-5:] == '.sage':
+                        t = self.preparse(F)
+            elif t[:7] == 'attach ':
+                filename = self._normalize_load_filename(t[7:])
+
+            u.append(t)
+        return '\n'.join(u)
+
+    def check_for_system_switching(self, s):
+        if s[0] == '%':
+            i = s.find('\n')
+            if i == -1:
+                i = len(s)
+            j = min(s.find(' '), i)
+            sys = s[1:j]
+            s = 'print %s.eval("""%s""")'%(sys,s[i+1:])
+            print s
+            return True, s
+        return False, s
 
     def preparse_input(self, input, completions=False):
         input = input.strip()
 
         contains, new_input = self._input_contains_question_mark_query_not_in_quotes(input)
+
         if contains:
             input = new_input
 
@@ -338,14 +404,19 @@ class Workbook:
             input = self._get_last_identifier(input)
             input = 'print _support_.completions("%s", globals(), format=True)'%input
 
-        input = ignore_prompts_and_output(input)
+        switched, s = self.check_for_system_switching(input)
 
-        s = preparse_file(input, magic=False, do_time=True, ignore_prompts=True)
+        if not switched:
+            s = ignore_prompts_and_output(input)
+            s = self.preparse(input)
+            s = self.check_for_load_and_attach(s)
+
         s = [x for x in s.split('\n') if len(x.split()) > 0 and \
                x.lstrip()[0] != '#']   # remove all blank lines and comment lines
+
         if len(s) > 0:
             t = s[-1]
-            if len(t) > 0 and not ':' in t and \
+            if not switched and len(t) > 0 and not ':' in t and \
                    not t[0].isspace() and not t[:3] == '"""': # \
                    #and not t[:5] == 'print' and not '=' in t:
                 #s[-1] = 'print %s'%t
@@ -363,13 +434,28 @@ class Workbook:
     def append(self, L):
         self.__cells.append(L)
 
+    def known_variables(self):
+        try:
+            return self.__variables
+        except AttributeError:
+            return []
+
     def variables(self):
+        try:
+            self.__sage
+        except AttributeError:
+            return []
+        try:
+            return self.__variables
+        except AttributeError:
+            pass
         cmd = '",".join(["%s-%s"%(__x__,type(globals()[__x__])) for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_"])'
         S = self.sage()
         v = S.eval(cmd)[1:-1]
         v = v.replace("<type '","").replace("<class '","").replace("'>","")
         w = v.split(',')
         w.sort()
+        self.__variables = w
         return w
 
     def variables_html(self):
@@ -387,6 +473,8 @@ class Workbook:
     def html(self):
         n = len(self.__cells)
         s = ''
+
+        s += '<span class="workbook_title">%s</span>\n'%self.name()
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         for i in range(n):

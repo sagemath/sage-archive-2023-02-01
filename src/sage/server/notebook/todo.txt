@@ -1,3 +1,44 @@
+[] some "magic":
+     - time command ?? check if "time" is a valid identifier using var
+       list, and if not then give the time.
+     - attach   # will work from DIR if not abs path.
+     - load     # will work from DIR if not abs path.
+     - save_session -- saves to objects dir
+
+     - %gp: at the top of a block and it gets executed in pari.
+
+[] i need to rethink the design of having multiple workbooks at once:
+    possibilities:
+        xx have multiple workbook div's all in the html, each
+           with an id.  have a way to "close" a workbook, i.e.,
+           button in upper right (Maybe a close link like the Help, etc. links).
+           the update function has to tell about *all* the workbooks
+           rather than just one:
+               update contains:
+                    number of workbooks with data
+                    workbook number <data>  ...
+                    workbook number <data>  ...
+               and the workbook data will allow us to set the color
+               on the the workbooks tab on the left.
+
+[] should be able to download/upload complete workbooks as a single file
+   and move them in/out of other notebooks.  How?
+     1. an sobj defines the workbook, and a tarball the data and graphs,
+        so tarball it up with the sobj.
+     2. interface -- when you mouse over a workbook, a menu appears with
+        the option to download it to a file.
+     3. Also, there's an upload link in the workbooks list.
+
+[] variables: easy way to save any variable to a var with the same name
+   in the common saved objects store.
+
+[] click on saved object or variable and get a download ?
+
+[] todo: make the saved state file backup the last safe state, to
+   avoid the potential for corruption if the server Python process is
+   killed while saving state.  Also, this could easily allow for a
+   sophisticated undo function; design ideas welcome...
+
 [] support for .sage/init.sage
 
 [] print -- javascript button, which displays the whole page as one page
@@ -18,7 +59,16 @@
      -- switching
      -- deleting
 
+[] workbooks list -- could have status information, e.g.,
+   if a comp is running, could make the entry redish until
+   it is done.
+
+
+[] '\n' alone on a line breaks it.  If it isn't the first line it's ok.
+
 IDEAS:
+
+[] favicon
 
 [] os.sytem('pydoc -k <...>')  -- interesting
 
@@ -26,6 +76,10 @@ IDEAS:
 
 [] when eval: always insert a new cell after the current one???
      mathematica does *not* do this, but word processors do.
+
+[] save all objects in a session to a single variable:
+     - a button in the variables pane -- asks for var name.
+       OR drag variables pane to workbooks (?).
 
 
 OLD TODO:
@@ -130,4 +184,19 @@ DONE:
 
 [x] Introspection:
       Tab completion / search / help -- bring in from before.
+
+[x] bug: when backspace away a cell, get taken to next -- should get taken to previous.
+
+[x] another idea:
+     where to comps get run?  they could all be run from
+     an explicitly given directory when the notebook is
+     started.  Then new files are copied to their cell
+     directories.    another possibility:
+       define a variable "HOME" in all sage0's,
+       which is the directory
+       from which SAGE was started.   Then users
+       can load by using HOME + ...
+
+
+[x] fix variables pane
 

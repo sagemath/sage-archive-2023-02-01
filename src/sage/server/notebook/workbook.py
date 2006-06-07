@@ -369,7 +369,9 @@ class Workbook:
             i = s.find('\n')
             if i == -1:
                 i = len(s)
-            j = min(s.find(' '), i)
+            j = s.find(' ')
+            if j == -1:
+                j = i
             sys = s[1:j]
             s = 'print %s.eval("""%s""")'%(sys,s[i+1:])
             print s

@@ -146,6 +146,7 @@ class Notebook(SageObject):
         print '*' + ' '*j + s + ' '*j + '*'
         print '*'+ ' '*(n-2) + '*'
         print '*'*n
+        print "WARNING!!! Currently the SAGE Notebook *only* works with Firefox."
 
         if open_viewer:
             os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
@@ -177,9 +178,9 @@ class Notebook(SageObject):
         body += '  <br><div class="variables_topbar">Variables</div>\n'
         body += '  <div class="variables_list" id="variable_list"></div><br>\n'
         body += '  <div class="attached_topbar">Attached Files</div>\n'
-        body += '  <div class="attached_list" id="attached_list"></div><br>\n'
+        body += '  <div class="attached_list" id="attached_list">(not implemented)</div><br>\n'
         body += '  <div class="workbooks_topbar">Workbooks</div>\n'
-        body += '  <div class="workbooks_list">untitled</div><br>\n'
+        body += '  <div class="workbooks_list">(not implemented)</div><br>\n'
         body += '  <div class="objects_topbar">Saved Objects</div>\n'
         body += '  <div class="objects_list" id="object_list">%s</div>\n'%self.objects_html()
         body += '</td></tr></table></span>\n'
@@ -294,6 +295,9 @@ def notebook(dir       ='sage_notebook',
     (and even then), you should consider creating a user with
     very limited privileges (e.g., empty home directory).}
     """
+    print "WARNING -- the SAGE Notebook is currently in alpha"
+    print "testing.  It also only looks right on Firefox on"
+    print "William Stein's Linux laptop!  Please give me feedback."
     if os.path.exists(dir):
         if not os.path.isdir(dir):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir

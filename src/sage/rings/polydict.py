@@ -270,7 +270,7 @@ class PolyDict:
 
         When atomic_exponents is False, the exponents are surrounded
         in parenthesis, since ^ has such high precedence.
-            sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
+            sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: f.latex(['a','b','c'], atomic_exponents=False)
             '2 a^{2/3}b^{3}c^{5} + 3 ab^{2}c + 4 a^{2}bc'
         """
@@ -334,7 +334,7 @@ class PolyDict:
 
         When atomic_exponents is False, the exponents are surrounded
         in parenthesis, since ^ has such high precedence.
-            sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
+            sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: f.poly_repr(['a','b','c'], atomic_exponents=False)
             '2*a^(2/3)*b^(3)*c^(5) + 3*a*b^(2)*c + 4*a^(2)*b*c'
         """
@@ -398,8 +398,8 @@ class PolyDict:
             PolyDict with representation {(1, 2): 3, (1, 5): -3, (1, 1): 3, (2, 1): 4}
 
         Next we add two polynomials with fractional exponents in 3 variables:
-            sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
-            sage: g = PolyDict({(Q('2/3'),3,5):3}, force_int_exponents=False)
+            sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
+            sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
             sage: f+g
             PolyDict with representation {(2/3, 3, 5): 5, (1, 2, 1): 3, (2, 1, 1): 4}
         """
@@ -429,8 +429,8 @@ class PolyDict:
             PolyDict with representation {(2, 7): -9, (3, 2): 12, (4, 6): -4, (4, 4): -8, (3, 8): -6, (2, 3): 9, (3, 6): -12, (3, 4): 6, (3, 5): -6}
 
         Next we multiply two polynomials with fractional exponents in 3 variables:
-            sage: f = PolyDict({(Q('2/3'),3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
-            sage: g = PolyDict({(Q('2/3'),3,5):3}, force_int_exponents=False)
+            sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
+            sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
             sage: f*g
             PolyDict with representation {(8/3, 4, 6): 12, (4/3, 6, 10): 6, (5/3, 5, 6): 9}
 

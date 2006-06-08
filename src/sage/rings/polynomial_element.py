@@ -137,11 +137,11 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             the value of f at a.
 
         EXAMPLES:
-            sage: x = Q['x'].gen()
+            sage: x = QQ['x'].gen()
             sage: f = x/2 - 5
             sage: f(3)
             -7/2
-            sage: x = Z['x'].gen()
+            sage: x = ZZ['x'].gen()
             sage: f = (x-1)^5
             sage: f(2/3)
             -1/243
@@ -274,7 +274,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def __div__(self, right):
         """
         EXAMPLES:
-            sage: x = QQ['x'].gen()
+            sage: x = QQ['x'].0
             sage: f = (x^3 + 5)/3; f
             1/3*x^3 + 5/3
             sage: f.parent()
@@ -294,7 +294,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         parent.  This agrees with the behavior for integers and
         rational numbers.
 
-            sage: R, x = QQ['x'].objgen()
+            sage: R.<x> = QQ['x']
             sage: f = x^3 + 5
             sage: g = R(3)
             sage: h = f/g; h
@@ -786,7 +786,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         Next we compute the denominator of a polynomial with rational coefficients.
             sage: Q = RationalField()
-            sage: x = PolynomialRing(Q).gen()
+            sage: x = PolynomialRing(QQ).gen()
             sage: f = Q('1/17')*x^19 - Q('2/3')*x + Q('1/3'); f
             1/17*x^19 - 2/3*x + 1/3
             sage: f.denominator()
@@ -1090,7 +1090,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         \code{self.list()} directly.)
 
         EXAMPLES:
-            sage: x = Q['x'].0
+            sage: x = QQ['x'].0
             sage: f = 10*x^3 + 5*x + 2/17
             sage: f.coeffs()
             [2/17, 5, 0, 10]
@@ -1335,7 +1335,7 @@ class Polynomial_generic_dense(Polynomial):
     A generic dense polynomial.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(PolynomialRing(Q)).objgen()
+        sage: R, x = PolynomialRing(PolynomialRing(QQ)).objgen()
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
@@ -1428,7 +1428,7 @@ class Polynomial_generic_sparse(Polynomial):
     A generic sparse polynomial.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(PolynomialRing(Q), sparse=True).objgen()
+        sage: R, x = PolynomialRing(PolynomialRing(QQ), sparse=True).objgen()
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_sparse'>
@@ -2250,7 +2250,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             factorization of self reduced modulo p.
 
         EXAMPLES:
-            sage: x = Z['x'].0
+            sage: x = ZZ['x'].0
             sage: f = -3*x*(x-2)*(x-9) + x
             sage: f.factor_mod(3)
             x

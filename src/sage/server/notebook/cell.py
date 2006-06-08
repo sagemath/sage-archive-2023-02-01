@@ -12,6 +12,15 @@ list of cells.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+# Maximum number of characters allowed in output.  This is
+# needed avoid overloading web browser.  For example, it
+# should be possible to gracefully survive:
+#    while True:
+#       print "hello world"
+# On the other hand, we don't want to loose the output of big matrices
+# and numbers, so don't make this too small.
+MAX_OUTPUT = 65536
+
 c = 0
 
 import os, shutil
@@ -79,6 +88,8 @@ class Cell:
         return self.__in
 
     def set_output_text(self, output):
+        if len(output) > MAX_OUTPUT:
+            output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
         self.__out = output
 
     def output_text(self, ncols=0):

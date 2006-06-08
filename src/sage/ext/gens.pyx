@@ -118,7 +118,7 @@ cdef class Generators(sage_object.SageObject):
             tuple -- self.gens()
 
         EXAMPLES:
-            sage: R, x = MPolynomialRing(Q,3).objgens()
+            sage: R, x = MPolynomialRing(QQ,3).objgens()
             sage: R
             Polynomial Ring in x0, x1, x2 over Rational Field
             sage: x
@@ -144,7 +144,7 @@ cdef class Generators(sage_object.SageObject):
             an object -- self.gen()
 
         EXAMPLES:
-            sage: R, x = PolynomialRing(Q).objgen()
+            sage: R, x = PolynomialRing(QQ).objgen()
             sage: R
             Univariate Polynomial Ring in x over Rational Field
             sage: x

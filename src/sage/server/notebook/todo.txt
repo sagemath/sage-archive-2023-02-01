@@ -1,9 +1,9 @@
 [] some "magic":
      - time command ?? check if "time" is a valid identifier using var
        list, and if not then give the time.
-     - attach   # will work from DIR if not abs path.
-     - load     # will work from DIR if not abs path.
-     - save_session -- saves to objects dir
+ done    - attach   # will work from DIR if not abs path.
+ done    - load     # will work from DIR if not abs path.
+ done    - save_session -- saves to objects dir
 
      - %gp: at the top of a block and it gets executed in pari.
 
@@ -21,14 +21,6 @@
                and the workbook data will allow us to set the color
                on the the workbooks tab on the left.
 
-[] should be able to download/upload complete workbooks as a single file
-   and move them in/out of other notebooks.  How?
-     1. an sobj defines the workbook, and a tarball the data and graphs,
-        so tarball it up with the sobj.
-     2. interface -- when you mouse over a workbook, a menu appears with
-        the option to download it to a file.
-     3. Also, there's an upload link in the workbooks list.
-
 [] variables: easy way to save any variable to a var with the same name
    in the common saved objects store.
 
@@ -39,8 +31,6 @@
    killed while saving state.  Also, this could easily allow for a
    sophisticated undo function; design ideas welcome...
 
-[] support for .sage/init.sage
-
 [] print -- javascript button, which displays the whole page as one page
    (no scrolling, etc.), etc., and calls print.
 
@@ -50,8 +40,6 @@
 
 [] HTML cells in addition to SAGE code cells; or just better typesetting
    support and way to hide the input (!)
-
-[] Scripts: way to load/attach via web interface.
 
 [] Workbooks:
     (all html downloaded at once; so switching done entirely in js)
@@ -64,9 +52,24 @@
    it is done.
 
 
-[] '\n' alone on a line breaks it.  If it isn't the first line it's ok.
-
 IDEAS:
+
+[] easy user override of css elements.
+
+[] should be able to download/upload complete workbooks as a single file
+   and move them in/out of other notebooks.  How?
+     1. an sobj defines the workbook, and a tarball the data and graphs,
+        so tarball it up with the sobj.
+     2. interface -- when you mouse over a workbook, a menu appears with
+        the option to download it to a file.
+     3. Also, there's an upload link in the workbooks list.
+
+[] good support for a "presentation" mode.
+
+[] Markup mode?:
+   If the input box begins in %html then the output is in html instead
+   of plain text, and the input box gets shrunk.  This would allow for
+   sophisticated markup.
 
 [] favicon
 
@@ -199,4 +202,12 @@ DONE:
 
 
 [x] fix variables pane
+
+[x] support for .sage/init.sage
+
+[x] '\n' alone on a line breaks it.  If it isn't the last line it's ok.
+
+[x] preparser fix -- triple quoted strings in middle of loaded files should be ignored
+
+[x] Scripts: way to load/attach via web interface.
 

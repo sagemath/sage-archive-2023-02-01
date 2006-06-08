@@ -141,7 +141,7 @@ def enum_affine_finite_field(X):
 
 from sage.categories.all import Homset, Schemes
 from sage.rings.all      import (
-    is_FiniteField, is_RationalField, is_RingHomomorphism, Z)
+    is_FiniteField, is_RationalField, is_RingHomomorphism, ZZ)
 
 import spec
 

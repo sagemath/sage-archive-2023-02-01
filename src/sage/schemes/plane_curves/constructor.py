@@ -51,7 +51,7 @@ def Curve(F):
 
     EXAMPLE: A projective plane curve
 
-        sage: x,y,z = Q['x,y,z'].gens()
+        sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve(x^3 + y^3 + z^3); C
         Projective Curve over Rational Field defined by z^3 + y^3 + x^3
         sage: C.genus()
@@ -64,13 +64,13 @@ def Curve(F):
         Affine Curve over Finite Field of size 7 defined by y^2 + x^3 + x^10
         sage: C.genus()
         0
-        sage: x, y = Q['x,y'].gens()
+        sage: x, y = QQ['x,y'].gens()
         sage: Curve(x^3 + y^3 + 1)
         Affine Curve over Rational Field defined by 1 + y^3 + x^3
 
     EXAMPLE: A projective space curve
 
-        sage: x,y,z,w = Q['x,y,z,w'].gens()
+        sage: x,y,z,w = QQ['x,y,z,w'].gens()
         sage: C = Curve([x^3 + y^3 - z^3 - w^3, x^5 - y*z^4]); C
         Projective Space Curve over Rational Field defined by -1*w^3 - z^3 + y^3 + x^3
         sage: C.genus()
@@ -78,21 +78,21 @@ def Curve(F):
 
     EXAMPLE: An affine space curve
 
-        sage: x,y,z = Q['x,y,z'].gens()
+        sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve([y^2 + x^3 + x^10 + z^7,  x^2 + y^2]); C
         Affine Space Curve over Rational Field defined by z^7 + y^2 + x^3 + x^10
         sage: C.genus()
         47
 
     EXAMPLE: We can also make non-reduced non-irreducible curves.
-        sage: x,y,z = Q['x,y,z'].gens()
+        sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve((x-y)*(x+y))
         Projective Curve over Rational Field defined by -1*y^2 + x^2
         sage: Curve((x-y)^2*(x+y)^2)
         Projective Curve over Rational Field defined by y^4 - 2*x^2*y^2 + x^4
 
     EXAMPLE: A union of curves is a curve.
-        sage: x,y,z = Q['x,y,z'].gens()
+        sage: x,y,z = QQ['x,y,z'].gens()
         sage: C = Curve(x^3 + y^3 + z^3)
         sage: D = Curve(x^4 + y^4 + z^4)
         sage: C.union(D)
@@ -114,7 +114,7 @@ def Curve(F):
     EXAMPLE: Defining equation must be homogeneous.
     If the parent polynomial ring is in three variables, then the
     defining ideal must be homogeneous.
-        sage: x,y,z = Q['x,y,z'].gens()
+        sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve(x^2+y^2)
         Projective Curve over Rational Field defined by y^2 + x^2
         sage: Curve(x^2+y^2+z)

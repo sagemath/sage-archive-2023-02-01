@@ -187,8 +187,8 @@ cdef class SageObject:
         default category is \code{self.category()}.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
-            sage: R.Hom(Q)
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: R.Hom(QQ)
             Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
 
         Homspaces are defined for very general \sage objects, even elements of familiar rings.

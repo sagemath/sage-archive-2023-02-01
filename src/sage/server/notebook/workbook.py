@@ -22,7 +22,7 @@ import pexpect
 from sage.ext.sage_object  import SageObject
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
-from sage.misc.misc        import verbose
+from sage.misc.misc        import verbose, DOT_SAGE
 
 from cell import Cell
 
@@ -41,9 +41,11 @@ class Workbook:
             if not dir[i].isalnum() and dir[i] != '_':
                 dir[i]='_'
         dir = ''.join(dir)
-        self.__dir = '%s/%s'%(notebook.workbook_directory(), '_'.join(name.split()))
+        self.__filename = dir
+        self.__dir = '%s/%s'%(notebook.workbook_directory(), dir)
         while os.path.exists(self.__dir):
             self.__dir += "_"
+            self.__filename += '_'
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
@@ -56,6 +58,10 @@ class Workbook:
 
     def computing(self):
         return self.__comp_is_running
+
+    def set_not_computing(self):
+        self.__comp_is_running = False
+        self.__queue = []
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -137,12 +143,20 @@ class Workbook:
             os.environ['PAGER'] = 'cat'
             self.__sage = Sage(logfile='%s/sage.log'%self.directory())
             S = self.__sage
-            S.eval('__DIR__="%s"; DIR=__DIR__'%self.DIR())
+            S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
             S.eval('import sage.server.support as _support_')
             S.eval('__SAGENB__globals = set(globals().keys())')
             object_directory = os.path.abspath(self.__notebook.object_directory())
             verbose(object_directory)
             S.eval('_support_.init("%s")'%object_directory)
+            S.eval('print ""')
+            S.eval('print ""')
+            S.eval('print ""')
+
+            A = self.attached_files()
+            for F in A.iterkeys():
+                A[F] = 0  # expire all
+
             return S
 
 
@@ -198,13 +212,15 @@ class Workbook:
 
         D = C.directory()
         S = self.sage()
+
+
         S._eval_line('os.chdir("%s")'%os.path.abspath(D))
         if C.time():
             S._eval_line('__t__=cputime(); __w__=walltime()')
 
         tmp = '%s/_temp_.py'%self.directory()
-        i = self.preparse_input(C.input_text(), C.completions())
-        open(tmp,'w').write(i + '\nprint ""\n')
+        input = self.preparse_input(C.input_text(), C.completions())
+        open(tmp,'w').write(input + '\nprint ""\n')   # the print "" is a hack.
         S._send('execfile("%s")'%os.path.abspath(tmp))
 
 
@@ -338,30 +354,117 @@ class Workbook:
     def preparse(self, s):
         return preparse_file(s, magic=False, do_time=False, ignore_prompts=False)
 
-    def _normalize_load_filename(self, filename):
-        filename = filename.strip().strip('"').strip("'")
-        if len(filename) > 0 and filename[0] != '/':
-            filename = '%s/%s'%(self.DIR(), filename)
-        return filename
+    def load_any_changed_attached_files(self, s):
+        """
+        Modify s by prepending any necessary load commands
+        corresponding to attached files that have changed.
+        """
+        A = self.attached_files()
+        for F, tm in A.iteritems():
+            new_tm = os.path.getmtime(F)
+            if new_tm > tm:
+                A[F] = new_tm
+                s = 'load %s\n'%F + s
+        return s
 
-    def check_for_load_and_attach(self, s):
+    def attached_files(self):
+        try:
+            A = self.__attached
+        except AttributeError:
+            A = {}
+
+            init_sage = DOT_SAGE + 'init.sage'
+            if os.path.exists(init_sage):
+                A[init_sage] = 0
+
+            self.__attached = A
+        return A
+
+    def attach(self, filename):
+        A = self.attached_files()
+        try:
+            A[filename] = os.path.getmtime(filename)
+        except OSError:
+            print "WARNING: File %s vanished"%filename
+            pass
+
+    def detach(self, filename):
+        A = self.attached_files()
+        try:
+            A.pop(filename)
+        except KeyError:
+            pass
+
+    def _normalized_filenames(self, L):
+        a = []
+        for filename in L.split():
+            filename = filename.strip('"').strip("'")
+            if len(filename) > 0 and filename[0] != '/':
+                filename = '%s/%s'%(self.DIR(), filename)
+            if filename[-3:] != '.py' and filename[-5:] != '.sage' and \
+               not os.path.exists(filename):
+                if os.path.exists(filename + '.sage'):
+                    filename = filename + '.sage'
+                elif os.path.exists(filename + '.py'):
+                    filename = filename + '.py'
+            a.append(filename)
+        return a
+
+    def _load_file(self, filename, files_seen_so_far, this_file):
+        if filename in files_seen_so_far:
+            return "print 'WARNING: Not loading %s -- would create recursive load'"%filename
+        try:
+            F = open(filename).read()
+        except IOError:
+            t = "print 'Error loading %s -- file not found'"%filename
+        else:
+            if filename[-3:] == '.py':
+                t = F
+            elif filename[-5:] == '.sage':
+                t = self.preparse(F)
+        t = self.do_load_and_attach_preparsing(t,
+                          files_seen_so_far + [this_file], filename)
+        return t
+
+
+    def do_load_and_attach_preparsing(self, s, files_seen_so_far=[], this_file=''):
         u = []
         for t in s.split('\n'):
             if t[:5] == 'load ':
-                filename = self._normalize_load_filename(t[5:])
-                try:
-                    F = open(filename).read()
-                except IOError:
-                    t = "print 'Error loading %s -- file not found'"%filename
-                else:
-                    if filename[-3:] == '.py':
-                        t = F
-                    elif filename[-5:] == '.sage':
-                        t = self.preparse(F)
+                z = ''
+                for filename in self._normalized_filenames(t[5:]):
+                    z += self._load_file(filename, files_seen_so_far, this_file) + '\n'
+                t = z
+
             elif t[:7] == 'attach ':
-                filename = self._normalize_load_filename(t[7:])
+                z = ''
+                for filename in self._normalized_filenames(t[7:]):
+                    if not os.path.exists(filename):
+                        z += "print 'Error attaching %s -- file not found'\n"%filename
+                    else:
+                        self.attach(filename)
+                        z += self._load_file(filename, files_seen_so_far, this_file) + '\n'
+                t = z
+
+            elif t[:7]  == 'detach ':
+                for filename in self._normalized_filenames(t[7:]):
+                    self.detach(filename)
+                t = ''
+
+            elif t[:12] in ['save_session', 'load_session']:
+                F = t[12:].strip().strip('(').strip(')').strip("'").strip('"').split(',')[0]
+                if len(F) == 0:
+                    filename = self.__filename
+                else:
+                    filename = F
+                if t[:4] == 'save':
+                    d = '{' + ','.join(["'%s':%s"%(v,v) for v in self.variables(with_types=False)]) + '}'
+                    t = '_support_.save_session(%s, "%s")'%(d, filename)
+                else:
+                    t = 'load_session(locals(), "%s")'%filename
 
             u.append(t)
+
         return '\n'.join(u)
 
     def check_for_system_switching(self, s):
@@ -370,12 +473,15 @@ class Workbook:
         if s[0] == '%':
             i = s.find('\n')
             if i == -1:
-                i = len(s)
+                # nothing to evaluate
+                return True, ''
             j = s.find(' ')
             if j == -1:
                 j = i
+            else:
+                j = min(i,j)
             sys = s[1:j]
-            s = 'print %s.eval("""%s""")'%(sys,s[i+1:])
+            s = 'print %s.eval(r"""%s""")'%(sys,s[i+1:].replace('\n',' '))
             print s
             return True, s
         return False, s
@@ -408,26 +514,25 @@ class Workbook:
             input = self._get_last_identifier(input)
             input = 'print _support_.completions("%s", globals(), format=True)'%input
 
-        switched, s = self.check_for_system_switching(input)
+        switched, input = self.check_for_system_switching(input)
 
         if not switched:
-            s = ignore_prompts_and_output(input)
-            s = self.preparse(input)
-            s = self.check_for_load_and_attach(s)
+            input = ignore_prompts_and_output(input)
+            input = self.preparse(input)
+            input = self.load_any_changed_attached_files(input)
+            input = self.do_load_and_attach_preparsing(input)
 
-        s = [x for x in s.split('\n') if len(x.split()) > 0 and \
+        input = [x for x in input.split('\n') if len(x.split()) > 0 and \
                x.lstrip()[0] != '#']   # remove all blank lines and comment lines
 
-        if len(s) > 0:
-            t = s[-1]
+        if len(input) > 0:
+            t = input[-1]
             if not switched and len(t) > 0 and not ':' in t and \
-                   not t[0].isspace() and not t[:3] == '"""': # \
-                   #and not t[:5] == 'print' and not '=' in t:
-                #s[-1] = 'print %s'%t
-                t = t.replace("'","\\'")
-                s[-1] = "exec compile('%s', '', 'single')"%t
-        s = '\n'.join(s) + '\n'
-        return s
+               not t[0].isspace() and not t[:3] == '"""' and not t[:3] == "'''":
+                t = t.replace("'", "\\u0027")
+                input[-1] = "exec compile(ur'%s', '', 'single')"%t
+        input = '\n'.join(input) + '\n'
+        return input
 
     def notebook(self):
         return self.__notebook
@@ -444,22 +549,30 @@ class Workbook:
         except AttributeError:
             return []
 
-    def variables(self):
+    def variables(self, with_types=True):
         try:
             self.__sage
         except AttributeError:
             return []
-        try:
-            return self.__variables
-        except AttributeError:
-            pass
-        cmd = '",".join(["%s-%s"%(__x__,type(globals()[__x__])) for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_"])'
-        S = self.sage()
-        v = S.eval(cmd)[1:-1]
-        v = v.replace("<type '","").replace("<class '","").replace("'>","")
+        if with_types:
+            try:
+                return self.__variables
+            except AttributeError:
+                pass
+            cmd = '",".join(["%s-%s"%(__x__,type(globals()[__x__])) for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_" and str(type(globals()[__x__])) != "<type \'function\'>"])'
+            S = self.sage()
+            v = S.eval(cmd)[1:-1]
+            v = v.replace("<type '","").replace("<class '","").replace("'>","")
+        else:
+            cmd = '",".join([__x__ for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_" and str(type(globals()[__x__])) != "<type \'function\'>"])'
+            S = self.sage()
+            v = S.eval(cmd)[1:-1]
         w = v.split(',')
         w.sort()
-        self.__variables = w
+        if w[0] == '':
+            del w[0]
+        if with_types:
+            self.__variables = w
         return w
 
     def variables_html(self):
@@ -472,6 +585,17 @@ class Workbook:
                 name = v; typ = ''
             if name:
                 s += div%name + '<span class="varname">%s</span>&nbsp;<span class="vartype">(%s)</span></div>'%(name, typ)
+        return s
+
+    def attached_html(self):
+        s = ''
+        div = '<div class="attached_filename" onClick="inspect_attached_file(\'%s\')">'
+        A = self.attached_files()
+        D = self.DIR()
+        for F, tm in A.iteritems():
+            # uncomment this to remove some absolute path info...
+            # if F[:len(D)] == D: F = F[len(D)+1:]
+            s += div%F + '%s</div>'%F
         return s
 
     def html(self):

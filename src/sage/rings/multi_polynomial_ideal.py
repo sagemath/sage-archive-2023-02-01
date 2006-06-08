@@ -128,7 +128,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         Return Singular ideal corresponding to this ideal.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = R.ideal([x^3 + y, y])
             sage: S = I._singular_()
             sage: S
@@ -154,7 +154,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     def _contains_(self, f):
         """
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = (x^3 + y, y)*R
             sage: x in I
             False
@@ -224,7 +224,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         ALGORITHM: Uses Singular.
 
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(Q, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: pd = I.complete_primary_decomposition(); pd
@@ -255,7 +255,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     def primary_decomposition(self, algorithm='sy'):
         """
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(Q, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.primary_decomposition()   # this fails on some 64-bit machines sometimes during automated testing; I don't know why!
@@ -266,7 +266,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     def associated_primes(self, algorithm='sy'):
         """
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(Q, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.associated_primes()
@@ -336,7 +336,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         Return the intersection of the two ideals.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = x*R
             sage: J = y*R
             sage: I.intersection(J)
@@ -368,7 +368,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             list -- a list of prime ideals
 
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(Q, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
@@ -425,7 +425,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         This returns 0 if and only if the element is in this ideal.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: I = (x^3 + y, y)*R
             sage: I.reduce(y)
             0

@@ -64,7 +64,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def is_zero(self):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = 1/x + x + x^2 + 3*x^4 + O(x^7)
             sage: f.is_zero()
             0
@@ -140,7 +140,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def _latex_(self):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = (17/2)*x^-2 + x + x^2 + 3*x^4 + O(x^7)
             sage: f._latex_()
             '\\frac{17}{2}x^{-2} + x + x^{2} + 3x^{4} + \\cdots'
@@ -210,7 +210,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def __add__(self, right):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = 1/x^10 + x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1 - x + x^2 - x^4 + O(x^8)
             sage: f*g
@@ -246,7 +246,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         series modulo big oh of the precision.
 
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: g = x^2 - x^4 + O(x^8)
             sage: g.degree()
             4
@@ -265,7 +265,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def __mul__(self, right):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = 1/x^3 + x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1 - x + x^2 - x^4 + O(x^8)
             sage: f*g
@@ -279,7 +279,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def __pow__(self, right):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1/x^10 - x + x^2 - x^4 + O(x^8)
             sage: f^7
@@ -294,7 +294,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def __div__(self, right):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1/x^7 - x + x^2 - x^4 + O(x^8)
             sage: f/x
@@ -312,7 +312,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def _cmp_(self, right):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1/x^7 - x + x^2 - x^4 + O(x^8)
             sage: f<g
@@ -329,7 +329,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def unit_part(self):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x + x^2 + 3*x^4 + O(x^7)
             sage: f/x
             1 + x + 3*x^3 + O(x^6)
@@ -344,7 +344,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def valuation(self):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = 1/x + x^2 + 3*x^4 + O(x^7)
             sage: g = 1 - x + x^2 - x^4 + O(x^8)
             sage: f.valuation()
@@ -357,7 +357,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
     def variable(self):
         """
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = 1/x + x^2 + 3*x^4 + O(x^7)
             sage: f.variable()
             'x'
@@ -372,7 +372,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         prec could be negative.
 
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x^2 + 3*x^4 + O(x^7)
             sage: f.prec()
             7
@@ -390,7 +390,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         The formal derivative of this Laurent series.
 
         EXAMPLES:
-            sage: x = Frac(Q[['x']]).0
+            sage: x = Frac(QQ[['x']]).0
             sage: f = x^2 + 3*x^4 + O(x^7)
             sage: f.derivative()
             2*x + 12*x^3 + O(x^6)
@@ -413,7 +413,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         EXAMPLES:
         The integral may or may not be defined if the base ring
         is not a field.
-            sage: t = LaurentSeriesRing(Z, 't').0
+            sage: t = LaurentSeriesRing(ZZ, 't').0
             sage: f = 2*t^-3 + 3*t^2 + O(t^4)
             sage: f.integral()
             -t^-2 + t^3 + O(t^5)
@@ -427,7 +427,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 
         The integral of 1/t is $\log(t)$, which is not given by a Laurent series:
 
-            sage: t = Frac(Q[['t']]).gen()
+            sage: t = Frac(QQ[['t']]).gen()
             sage: f = -1/t^3 - 31/t + O(t^3)
             sage: f.integral()
             Traceback (most recent call last):
@@ -464,7 +464,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         Compute value of this Laurent series at x.
 
         EXAMPLES:
-            sage: t = LaurentSeriesRing(Z, 't').0
+            sage: t = LaurentSeriesRing(ZZ, 't').0
             sage: f = t^(-2) + t^2 + O(t^8)
             sage: f(2)
             17/4

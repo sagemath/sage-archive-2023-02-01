@@ -91,7 +91,7 @@ class SchemeMorphism_id(SchemeMorphism):
     Return the identity morphism from X to itself.
 
     EXAMPLES:
-        sage: X = Spec(Z)
+        sage: X = Spec(ZZ)
         sage: X.identity_morphism()
         Scheme endomorphism of Spectrum of Integer Ring
           Defn: Identity map
@@ -122,14 +122,14 @@ class SchemeMorphism_spec(SchemeMorphism):
     A morphism of spectrums of rings
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(Q).objgens()
-        sage: phi = R.hom([Q(7)]); phi
+        sage: R, x = PolynomialRing(QQ).objgens()
+        sage: phi = R.hom([QQ(7)]); phi
         Ring morphism:
           From: Univariate Polynomial Ring in x over Rational Field
           To:   Rational Field
           Defn: x |--> 7
 
-        sage: X = Spec(Q); Y = Spec(R)
+        sage: X = Spec(QQ); Y = Spec(R)
         sage: f = X.hom(phi); f
         Affine Scheme morphism:
           From: Spectrum of Rational Field
@@ -284,7 +284,7 @@ class SchemeMorphism_affine_coordinates(SchemeMorphism_coordinates):
         v -- a list or tuple of coordinates in R
 
     EXAMPLES:
-        sage: A = AffineSpace(2, Q)
+        sage: A = AffineSpace(2, QQ)
         sage: A(1,2)
         (1, 2)
     """

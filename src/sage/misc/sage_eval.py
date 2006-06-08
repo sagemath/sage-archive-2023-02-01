@@ -76,7 +76,7 @@ def sage_eval(_obj_, extra_locals={}):
     This example illustrates how \code{sage_eval} can be useful
     when evaluating the output of other computer algebra systems.
 
-        sage: x = PolynomialRing(Q).gen()
+        sage: x = PolynomialRing(RationalField()).gen()
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
         'PolynomialRing(..., [ x ])'
         sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;')

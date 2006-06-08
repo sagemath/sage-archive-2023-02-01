@@ -37,7 +37,7 @@ class RingHomset_generic(Homset):
     def __call__(self, im_gens, check=True):
         """
         EXAMPLES:
-            sage: H = Hom(Z,Q)
+            sage: H = Hom(ZZ, QQ)
             sage: phi = H([])
             Traceback (most recent call last):
             ...
@@ -57,7 +57,7 @@ class RingHomset_quo_ring(RingHomset_generic):
     Space of ring homomorphism where the domain is a (formal) quotient ring.
 
     EXAMPLES:
-        sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
         sage: S, (a,b) = (R/(x^2 + y^2)).objgens('ab')
         sage: phi = S.hom([b,a]); phi
         Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)

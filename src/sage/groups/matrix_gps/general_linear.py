@@ -2,9 +2,9 @@ r"""
 General Linear Groups
 
 EXAMPLES:
-    sage: GL(4,Q)
+    sage: GL(4,QQ)
     General Linear Group of degree 4 over Rational Field
-    sage: GL(1,Z)
+    sage: GL(1,ZZ)
     General Linear Group of degree 1 over Integer Ring
     sage: GL(100,RR)
     General Linear Group of degree 100 over Real Field with 53 bits of precision

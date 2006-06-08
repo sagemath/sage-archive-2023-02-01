@@ -73,7 +73,7 @@ class FractionField_generic(field.Field):
         INPUT:
             R -- an integral domain
         EXAMPLES:
-            sage: K, x = FractionField(PolynomialRing(Q)).objgen()
+            sage: K, x = FractionField(PolynomialRing(QQ)).objgen()
             sage: K
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
         """

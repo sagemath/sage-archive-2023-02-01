@@ -492,8 +492,8 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
 class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     """
     EXAMPLES:
-        sage: R, x = PolynomialRing(Q).objgen()
-        sage: S, xbar = R.quotient(x^2 + 1, 'xbar').objgen()
+        sage: R.<x> = PolynomialRing(QQ)
+        sage: S.<xbar> = R.quotient(x^2 + 1)
         sage: S
         Univariate Quotient Polynomial Ring in xbar over Rational Field with modulus x^2 + 1
         sage: loads(S.dumps()) == S

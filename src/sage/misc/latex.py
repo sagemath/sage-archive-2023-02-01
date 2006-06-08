@@ -293,7 +293,7 @@ def repr_lincomb(symbols, coeffs):
         str -- a string
 
     EXAMPLES:
-        sage: t = PolynomialRing(Q, 't').0
+        sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
         '-t\\mbox{\\rm a} + (t - 2)\\mbox{\\rm s} + (t^{12} + 2)\\mbox{\\rm }'

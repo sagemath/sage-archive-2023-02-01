@@ -605,9 +605,9 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             return True        # zero
         nmons = len(degrees) # number of monomials
         from sage.matrix.all import MatrixSpace
-        from sage.rings.all import Z
-        degrees = MatrixSpace(Z,nmons,ngens)(list(sum(degrees, ()))).transpose()
-        all_one = MatrixSpace(Z,nmons,1)([1]*nmons)
+        from sage.rings.all import ZZ
+        degrees = MatrixSpace(ZZ,nmons,ngens)(list(sum(degrees, ()))).transpose()
+        all_one = MatrixSpace(ZZ,nmons,1)([1]*nmons)
 
         found = 0
         # use matrix multiplication to add all corresponding variables occurences

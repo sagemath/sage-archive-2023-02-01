@@ -49,7 +49,7 @@ class Sage(Expect):
         8
 
     Create a vector space of dimension $4$, and compute its generators:
-        sage: V = s('Q^4')
+        sage: V = s('QQ^4')
         sage: V.gens()
         ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 

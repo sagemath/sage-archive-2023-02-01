@@ -4,7 +4,6 @@ Laurent Series Rings
 
 import weakref
 
-from rational_field import Q
 import laurent_series_ring_element
 import power_series_ring
 import commutative_ring
@@ -16,7 +15,7 @@ _objsLaurentSeriesRing = {}
 def LaurentSeriesRing(base_ring, name=None):
     """
     EXAMPLES:
-        sage: R = LaurentSeriesRing(Q, 'x'); R
+        sage: R = LaurentSeriesRing(QQ, 'x'); R
         Laurent Series Ring in x over Rational Field
         sage: x = R.0
         sage: g = 1 - x + x^2 - x^4 +O(x^8); g
@@ -25,14 +24,14 @@ def LaurentSeriesRing(base_ring, name=None):
         10*x^-3 + 2006 - 19*x + x^2 - x^4 + O(x^8)
 
     You can also use more mathematical notation when the base is a field:
-        sage: Frac(Q[['x']])
+        sage: Frac(QQ[['x']])
         Laurent Series Ring in x over Rational Field
         sage: Frac(GF(5)['y'])
         Fraction Field of Univariate Polynomial Ring in y over Finite Field of size 5
 
     Here the fraction field is not just the Laurent series ring, so you can't
     use the \code{Frac} notation to make the Laurent series ring.
-        sage: Frac(Z[['t']])
+        sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
     """
     global _objsLaurentSeriesRing

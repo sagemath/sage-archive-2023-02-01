@@ -722,7 +722,7 @@ def objgens(x, names=None):
 def objgen(x, names=None):
     """
     EXAMPLES:
-        sage: R, x = objgen(FractionField(Q['x']))
+        sage: R, x = objgen(FractionField(QQ['x']))
         sage: R
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: x
@@ -855,7 +855,7 @@ def square_free_part(x):
         sage: square_free_part(10)
         10
 
-        sage: x = Q['x'].0
+        sage: x = QQ['x'].0
         sage: S = square_free_part(-9*x*(x-6)^7*(x-3)^2); S
         -9*x^2 + 54*x
         sage: S.factor()

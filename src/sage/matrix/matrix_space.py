@@ -77,7 +77,7 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         [ 9 12 15]
         [19 26 33]
 
-        sage: M = MatrixSpace(Z, 10)
+        sage: M = MatrixSpace(ZZ, 10)
         sage: M
         Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
         sage: loads(M.dumps()) == M
@@ -222,8 +222,7 @@ class MatrixSpace_generic(gens.Generators):
         lists.
 
         EXAMPLES:
-            sage: Z = IntegerRing()
-            sage: M = MatrixSpace(Z,2)
+            sage: M = MatrixSpace(ZZ, 2)
             sage: M([[1,0],[0,-1]])
             [ 1  0]
             [ 0 -1]

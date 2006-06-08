@@ -50,12 +50,12 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
     The quotient ring of $R$ by the ideal $I$.
 
     EXAMPLES:
-        sage: R.<x> = PolynomialRing(Z)
+        sage: R.<x> = PolynomialRing(ZZ)
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
 
-        sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
         sage: S, (a,b) = (R/(x^2 + y^2)).objgens('ab')
         sage: a^2 + b^2 == 0
         True
@@ -66,7 +66,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
 
     A quotient of a quotient is just the quotient of the
     original top ring by the sum of two ideals.
-        sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
         sage: S, (a,b) = (R/(1 + y^2)).objgens('ab')
         sage: T, (c,d) = (S/(a, )).objgens('cd')
         sage: T
@@ -97,7 +97,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         The covering ring homomorphism $R \to R/I$, equipped with a section.
 
         EXAMPLES:
-            sage: R = Z/(3*Z)
+            sage: R = ZZ/(3*ZZ)
             sage: pi = R.cover()
             sage: pi
             Ring morphism:
@@ -142,7 +142,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         Return the lifting map to the cover.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(Q, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
             sage: S = R.quotient(x^2 + y^2, names=['xbar', 'ybar'])
             sage: pi = S.cover(); pi
             Ring morphism:

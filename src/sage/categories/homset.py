@@ -129,8 +129,8 @@ def hom(X, Y, f):
     Return Hom(X,Y)(f), where f is data that defines an element of Hom(X,Y).
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(Q).objgen()
-        sage: phi = hom(R, Q, [2])
+        sage: R, x = PolynomialRing(QQ).objgen()
+        sage: phi = hom(R, QQ, [2])
         sage: phi(x^2 + 3)
         7
     """
@@ -148,7 +148,7 @@ def End(X, cat=None):
         a set of endomorphisms in cat
 
     EXAMPLES:
-        sage: V = VectorSpace(Q, 3)
+        sage: V = VectorSpace(QQ, 3)
         sage: End(V)
         Set of Morphisms from Vector space of dimension 3 over Rational
         Field to Vector space of dimension 3 over Rational Field in
@@ -176,7 +176,7 @@ def end(X, f):
     Return End(X)(f), where f is data that defines an element of End(X).
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(Q).objgen()
+        sage: R, x = PolynomialRing(QQ).objgen()
         sage: phi = end(R, [x + 1])
         sage: phi
         Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
@@ -191,7 +191,7 @@ class Homset(Set_generic):
     The class for collections of morphisms in a category.
 
     EXAMPLES:
-        sage: H = Hom(Q^2, Q^3)
+        sage: H = Hom(QQ^2, QQ^3)
         sage: loads(H.dumps()) == H
         True
         sage: E = End(AffineSpace(2))

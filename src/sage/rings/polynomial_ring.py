@@ -114,10 +114,10 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
     def __init__(self, base_ring, name=None, sparse=False):
         """
         EXAMPLES:
-            sage: R, x = Q['x'].objgen()
+            sage: R.<x> = QQ['x']
             sage: R(-1) + R(1)
             0
-            sage: (x - Q('2/3'))*(x**2 - 8*x + 16)
+            sage: (x - 2/3)*(x^2 - 8*x + 16)
             x^3 - 26/3*x^2 + 64/3*x - 32/3
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
@@ -225,7 +225,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         The nth cyclotomic polynomial.
 
         EXAMPLES:
-            sage: R = Q['x']
+            sage: R = QQ['x']
             sage: R.cyclotomic_polynomial(8)
             x^4 + 1
             sage: R.cyclotomic_polynomial(12)

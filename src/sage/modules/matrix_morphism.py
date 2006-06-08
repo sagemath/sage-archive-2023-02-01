@@ -8,7 +8,7 @@ or be coercible into vector space of appropriate dimension.
 
 EXAMPLES:
     sage: from sage.modules.matrix_morphism import MatrixMorphism, is_MatrixMorphism
-    sage: V = Q^3
+    sage: V = QQ^3
     sage: T = End(V)
     sage: M = MatrixSpace(QQ,3)
     sage: I = M.identity_matrix()
@@ -63,8 +63,8 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
         EXAMPLES:
             sage: from sage.modules.matrix_morphism import MatrixMorphism
-            sage: T = End(Q^3)
-            sage: M = MatrixSpace(Q,3,3)
+            sage: T = End(QQ^3)
+            sage: M = MatrixSpace(QQ,3)
             sage: I = M.identity_matrix()
             sage: A = MatrixMorphism(T, I)
             sage: loads(A.dumps()) == A

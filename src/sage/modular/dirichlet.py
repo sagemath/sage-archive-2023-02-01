@@ -978,7 +978,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
 
         We create the group of Dirichlet character mod 20 with values
         in the rational numbers:
-            sage: G = DirichletGroup(20, Q); G
+            sage: G = DirichletGroup(20, QQ); G
             Group of Dirichlet characters of modulus 20 over Rational Field
             sage: G.order()
             4
@@ -1008,7 +1008,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
 
         In this example we create a Dirichlet character with values in a
         number field.  We have to give zeta, but not its order.
-            sage: R = PolynomialRing(Q); x = R.gen()
+            sage: R = PolynomialRing(QQ); x = R.gen()
             sage: K = NumberField(x^4 + 1); a = K.gen(0)
             sage: G = DirichletGroup(5, K, a); G
             Group of Dirichlet characters of modulus 5 over Number Field in a with defining polynomial x^4 + 1

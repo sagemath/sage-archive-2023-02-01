@@ -31,7 +31,7 @@ import sage.misc.misc #as repr_lincomb
 
 from sage.structure.all import FormalSum
 
-from sage.rings.all import Z
+from sage.rings.all import ZZ
 
 from projective_space import is_ProjectiveSpace
 
@@ -174,11 +174,11 @@ class Divisor_curve(Divisor_generic):
             know_points = True
             for t in v:
                 if isinstance(t, tuple) and len(t) == 2:
-                    n = Z(t[0])
+                    n = ZZ(t[0])
                     I = t[1]
                     points.append((n,I))
                 else:
-                    n = Z(1)
+                    n = ZZ(1)
                     I = t
                 if is_SchemeMorphism(I):
                     I = CurvePointToIdeal(C,I)
@@ -240,7 +240,7 @@ class Divisor_curve(Divisor_generic):
         """
         P = self.scheme()(P)
    	if not(P in self.support()):
-       	    return Z(0)
+       	    return ZZ(0)
         t, i = search(self.support(), P)
         assert t
         try:

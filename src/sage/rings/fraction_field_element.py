@@ -37,7 +37,7 @@ def is_FractionFieldElement(x):
 class FractionFieldElement(field_element.FieldElement):
     """
     EXAMPLES:
-        sage: K, x = FractionField(PolynomialRing(Q)).objgen()
+        sage: K, x = FractionField(PolynomialRing(QQ)).objgen()
         sage: K
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: loads(K.dumps()) == K

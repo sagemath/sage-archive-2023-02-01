@@ -10,7 +10,7 @@ Jacobian "morphism" as class in Picard group
 
 from sage.schemes.generic.morphism import SchemeMorphism
 
-from sage.rings.all import PolynomialRing, Z
+from sage.rings.all import PolynomialRing, ZZ
 
 def cantor_reduction_simple(a1,b1,f,genus):
     # Divisor reduction.
@@ -156,7 +156,7 @@ class JacobianMorphism_divisor_class(SchemeMorphism):
 
     def __mul__(self, n):
         try:
-            n = Z(n)
+            n = ZZ(n)
         except TypeError:
             raise TypeError, "Argument n (= %s) must be an integer."
         X = self.parent()

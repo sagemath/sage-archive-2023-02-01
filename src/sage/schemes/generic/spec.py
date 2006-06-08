@@ -8,7 +8,7 @@ Spec of a ring
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.rings.all import is_CommutativeRing, Z
+from sage.rings.all import is_CommutativeRing, ZZ
 
 import point
 import scheme
@@ -34,17 +34,17 @@ class Spec(scheme.AffineScheme):
     construct more general schemes.}
 
     EXAMPLES:
-        sage: Spec(Q)
+        sage: Spec(QQ)
         Spectrum of Rational Field
-        sage: Spec(PolynomialRing(Q))
+        sage: Spec(PolynomialRing(QQ))
         Spectrum of Univariate Polynomial Ring in x over Rational Field
-        sage: Spec(PolynomialRing(Q, 3))
+        sage: Spec(PolynomialRing(QQ, 3))
         Spectrum of Polynomial Ring in x0, x1, x2 over Rational Field
         sage: X = Spec(PolynomialRing(GF(49), 3)); X
         Spectrum of Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
         sage: loads(X.dumps()) == X
         True
-        sage: A = Spec(Z); B = Spec(Z)
+        sage: A = Spec(ZZ); B = Spec(ZZ)
         sage: A is B
         False
         sage: A == B
@@ -55,7 +55,7 @@ class Spec(scheme.AffineScheme):
         Traceback (most recent call last):
         ...
         TypeError: R (=5) must be a commutative ring
-        sage: Spec(FreeAlgebra(Q,2))
+        sage: Spec(FreeAlgebra(QQ,2))
         Traceback (most recent call last):
         ...
         TypeError: R (=Free Algebra on 2 generators (x0, x1) over Rational Field) must be a commutative ring
@@ -91,11 +91,11 @@ class Spec(scheme.AffineScheme):
         of the underlying rings.
 
         EXAMPLES:
-            sage: Spec(Q) == Spec(Q)
+            sage: Spec(QQ) == Spec(QQ)
             True
-            sage: Spec(Q) == Spec(ZZ)
+            sage: Spec(QQ) == Spec(ZZ)
             False
-            sage: Spec(Q) == 5
+            sage: Spec(QQ) == 5
             False
             sage: Spec(GF(5)) < Spec(GF(7))
             True
@@ -118,9 +118,9 @@ class Spec(scheme.AffineScheme):
         Return the underlying ring of this scheme.
 
         EXAMPLES:
-            sage: Spec(Q).coordinate_ring()
+            sage: Spec(QQ).coordinate_ring()
             Rational Field
-            sage: Spec(PolynomialRing(Q,3)).coordinate_ring()
+            sage: Spec(PolynomialRing(QQ,3)).coordinate_ring()
             Polynomial Ring in x0, x1, x2 over Rational Field
         """
         return self.__R
@@ -129,9 +129,9 @@ class Spec(scheme.AffineScheme):
         """
         Return the relative dimension of this scheme over its base.
         """
-        if self.base_ring() == Z:
+        if self.base_ring() == ZZ:
             return self.__R.krull_dimension()
         raise NotImplementedError
 
 
-SpecZ = Spec(Z)
+SpecZ = Spec(ZZ)

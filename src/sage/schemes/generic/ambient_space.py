@@ -10,7 +10,7 @@ Ambient Spaces
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import Integer, is_CommutativeRing, Z
+from sage.rings.all import Integer, is_CommutativeRing, ZZ
 from sage.structure.all import Generators
 
 import algebraic_scheme
@@ -27,7 +27,7 @@ class AmbientSpace(scheme.Scheme, Generators):
         n -- dimension
         R -- ring
     """
-    def __init__(self, n, R=Z):
+    def __init__(self, n, R=ZZ):
         if not is_CommutativeRing(R):
             raise TypeError, "R (=%s) must be a commutative ring"%R
         n = Integer(n)
@@ -105,7 +105,7 @@ class AmbientSpace(scheme.Scheme, Generators):
     def assign_names(self, names=None):
         """
         EXAMPLES:
-            sage: A = AffineSpace(2, Q, 'ab'); A
+            sage: A = AffineSpace(2, QQ, 'ab'); A
             Affine Space of dimension 2 over Rational Field
             sage: A.coordinate_ring()
             Polynomial Ring in a, b over Rational Field

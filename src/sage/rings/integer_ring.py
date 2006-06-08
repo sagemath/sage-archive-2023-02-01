@@ -221,13 +221,13 @@ v v v v v v v
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
 
         EXAMPLES:
-            sage: Z/(3*Z)
+            sage: ZZ/(3*ZZ)
             Ring of integers modulo 3
-            sage: Z/(0*Z)
+            sage: ZZ/(0*ZZ)
             Integer Ring
-            sage: Z/3
+            sage: ZZ/3
             Ring of integers modulo 3
-            sage: Z/(3*Q)
+            sage: ZZ/(3*QQ)
             Traceback (most recent call last):
             ...
             TypeError: I (=Principal ideal (1) of Rational Field) must be an ideal of ZZ

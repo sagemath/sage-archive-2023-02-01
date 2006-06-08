@@ -242,22 +242,33 @@ span.pane div.attached_list {
    overflow:auto;
 }
 
+div.attached_filename {
+   padding-left:1ex;
+   border-top:1px solid #d3e9ff;
+}
+
+div.attached_filename:hover {
+   background-color:#c3d9ff;
+   cursor:pointer;
+}
+
 /************ WORKBOOKS **************************/
 
 span.pane div.workbooks_topbar {
    color:black;
    height: 2ex;
+   top: 0ex;
    background-color: #b5edbc;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
    padding-left: 10px;
-   margin:0;
    width: 174px;
 }
 
 span.pane div.workbook_list {
    font-size:11px;
+   top:0ex;
    height:25ex;
    border:2px solid #b5edbc;
    overflow:auto;
@@ -291,8 +302,8 @@ a.upload_workbook:hover {
 span.pane a.workbook_current {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #c3d9ff;
-   background-color:#c3d9ff;
+   border-top:1px solid #b5edbc;
+   background-color:#b5edbc;
    text-decoration:none;
    color:black;
  }
@@ -309,14 +320,14 @@ span.pane a.workbook_current_computing {
 span.pane a.workbook_other {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #c3d9ff;
+   border-top:1px solid #b5edbc;
    background-color:white;
    text-decoration:none;
    color:black;
 }
 
 span.pane a.workbook_other:hover {
-   background-color:#c3d9ff;
+   background-color:#b5edbc;
    text-decoration:none;
    cursor:pointer;
 }

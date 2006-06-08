@@ -1264,7 +1264,7 @@ class Schemes_abstract(Category_uniq):
             Spectrum of Integer Ring
 
         We create a scheme morphism from a ring homomorphism.x
-            sage: phi = Z.hom(Q); phi
+            sage: phi = ZZ.hom(QQ); phi
             Coercion morphism:
               From: Integer Ring
               To:   Rational Field

@@ -1,6 +1,10 @@
 r"""
-Interface to GMP-ECM
+The Elliptic Curve Factorization Method
 
+\sage includes GMP-ECM, which is a highly optimized implementation
+of Lenstra's elliptic curve factorization method.  See
+\url{http://www.komite.net/laurent/soft/ecm/ecm-6.0.1.html}
+for more about GMP-ECM.
 """
 
 import os, pexpect
@@ -114,7 +118,7 @@ class ECM:
         os.system(self.__cmd)
 
 
-    _reccommended_B1_list = {15: 2000,
+    _recommended_B1_list = {15: 2000,
                              20: 11000,
                              25: 50000,
                              30: 250000,
@@ -129,14 +133,16 @@ class ECM:
     """Recommended settings from http://www.mersennewiki.org/index.php/Elliptic_Curve_Method."""
 
     def __B1_table_value(self, factor_digits, min=15, max=70):
-        """Coerces to a key in _reccommended_B1_list."""
+        """Coerces to a key in _recommended_B1_list."""
         if factor_digits < min: factor_digits = min
         if factor_digits > max: raise ValueError('Too many digits to be factored via the elliptic curve method.')
         return 5*ceil(factor_digits/5)
 
-    def reccomended_B1(self, factor_digits):
-        """Recommended settings from http://www.mersennewiki.org/index.php/Elliptic_Curve_Method."""
-        return self._reccommended_B1_list[self.__B1_table_value(factor_digits)]
+    def recommended_B1(self, factor_digits):
+        r"""
+        Recommended settings from \url{http://www.mersennewiki.org/index.php/Elliptic_Curve_Method}.
+        """
+        return self._recommended_B1_list[self.__B1_table_value(factor_digits)]
 
 
     def find_factor(self, n, factor_digits=None, B1=2000, **kwds):
@@ -147,7 +153,7 @@ class ECM:
         if not 'c' in kwds: kwds['c'] = 1000000000
         if not 'I' in kwds: kwds['I'] = 1
         if not factor_digits is None:
-            B1 = self.reccomended_B1(factor_digits);
+            B1 = self.recommended_B1(factor_digits);
         kwds['one'] = ''
         kwds['cofdec'] = ''
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
@@ -189,6 +195,7 @@ class ECM:
                 child.kill(0)
                 self.primality = [false]
                 return [n]
+        del child
 
 
     def factor(self, n, factor_digits=None, B1=2000, **kwds):
@@ -213,7 +220,7 @@ class ECM:
             sage: ECM().factor(602400691612422154516282778947806249229526581)
             [45949729863572179, 13109994191499930367061460439]
 
-            sage: ECM().factor((2^197 + 1)/3)
+            sage: ECM().factor((2^197 + 1)/3)           # takes a long time
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
         """
         factors = self.find_factor(n, factor_digits, B1, **kwds)
@@ -246,8 +253,8 @@ class ECM:
             sage: ecm = ECM()
             sage: ecm.factor((2^197 + 1)/3)
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
-            sage: ecm.get_last_params()
-            {'poly': 'x^1', 'sigma': '161775648', 'B1': '13445', 'B2': '1809531'}
+            sage: ecm.get_last_params()                 # random output
+            {'poly': 'x^1', 'sigma': '1785694449', 'B1': '8885', 'B2': '1002846'}
 
         """
         return self.last_params
@@ -266,15 +273,13 @@ class ECM:
 
         EXAMPLES:
 
-            n = next_prime(11^23)*next_prime(11^37)
+            sage: n = next_prime(11^23)*next_prime(11^37)
 
-            sage: ECM().time(n, 20)
+            sage.: ECM().time(n, 20)
             Expected curves: 77     Expected time: 7.21s
-
-            sage: ECM().time(n, 25)
+            sage.: ECM().time(n, 25)
             Expected curves: 206    Expected time: 1.56m
-
-            sage: ECM().time(n, 30, verbose=1)
+            sage.: ECM().time(n, 30, verbose=1)
             GMP-ECM 6.0.1 [powered by GMP 4.2] [ECM]
 
             Input number is 304481639541418099574459496544854621998616257489887231115912293 (63 digits)
@@ -304,11 +309,14 @@ class ECM:
             Expected curves: 4590   Expected time: 15.24m
 
         """
-        B1 = self.reccomended_B1(factor_digits)
+        B1 = self.recommended_B1(factor_digits)
         self.__cmd = self._ECM__startup_cmd(B1, None, {'v': ' '})
         child = pexpect.spawn(self.__cmd)
         child.sendline(str(n))
-        child.sendeof()
+        try:
+            child.sendeof()
+        except:
+            pass
         child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65', timeout=None)
         if verbose:
             print child.before,

@@ -46,9 +46,9 @@ cdef class Ring(gens.Generators):
 
         EXAMPLES:
         We create several polynomial rings.
-            sage: Z['x']
+            sage: ZZ['x']
             Univariate Polynomial Ring in x over Integer Ring
-            sage: Q['x']
+            sage: QQ['x']
             Univariate Polynomial Ring in x over Rational Field
             sage: GF(17)['abc']
             Univariate Polynomial Ring in abc over Finite Field of size 17
@@ -57,13 +57,13 @@ cdef class Ring(gens.Generators):
 
         We can also create power series rings (in one variable) by
         using double brackets:
-            sage: Q[['t']]
+            sage: QQ[['t']]
             Power Series Ring in t over Rational Field
-            sage: Z[['W']]
+            sage: ZZ[['W']]
             Power Series Ring in W over Integer Ring
 
         Use \code{Frac} (for fraction field) to obtain a Laurent series ring:
-            sage: Frac(Q[['t']])
+            sage: Frac(QQ[['t']])
             Laurent Series Ring in t over Rational Field
 
         """
@@ -294,7 +294,7 @@ cdef class CommutativeRing(Ring):
             I -- an ideal of R
 
         EXAMPLES:
-            sage: R, x = (Z['x']).objgen()
+            sage: R, x = (ZZ['x']).objgen()
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: S = R.quotient(I, 'a')
             sage: S.gens()

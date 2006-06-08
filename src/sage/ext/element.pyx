@@ -472,7 +472,7 @@ cdef class CommutativeRingElement(RingElement):
 
 
         EXAMPLE: Univiate polynomials
-            sage: x = PolynomialRing(Q).gen()
+            sage: x = PolynomialRing(QQ).0
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
             -1
@@ -480,7 +480,8 @@ cdef class CommutativeRingElement(RingElement):
         When little is implemented about a given ring, then mod may
         return simply return $f$.  For example, reduction is not
         implemented for $\Z[x]$ yet. (TODO!)
-            sage: x = PolynomialRing(Z).gen()
+
+            sage: x = PolynomialRing(ZZ).0
             sage: f = x^3 + x + 1
             sage: f.mod(x + 1)
             x^3 + x + 1
@@ -490,7 +491,7 @@ cdef class CommutativeRingElement(RingElement):
         EXAMPLE: Multivariate polynomials
         We reduce a polynomial in two variables modulo a polynomial
         and an ideal:
-            sage: x,y,z = PolynomialRing(Q, 3, 'xyz').gens()
+            sage: x,y,z = PolynomialRing(QQ, 3, 'xyz').gens()
             sage: (x^2 + y^2 + z^2).mod(x+y+z)
             2*z^2 + 2*y*z + 2*y^2
 

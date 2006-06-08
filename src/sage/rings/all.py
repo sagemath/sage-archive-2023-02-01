@@ -46,11 +46,11 @@ from quotient_ring import QuotientRing
 from infinity import infinity, is_Infinity
 
 # Rational integers.
-from integer_ring import IntegerRing, ZZ, Z, crt_basis
+from integer_ring import IntegerRing, ZZ, crt_basis
 from integer import Integer
 
 # Rational numbers
-from rational_field import RationalField, QQ, Q, is_RationalField
+from rational_field import RationalField, QQ, is_RationalField
 from rational import Rational
 Rationals = RationalField
 

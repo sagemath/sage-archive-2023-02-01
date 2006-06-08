@@ -16,7 +16,7 @@ from sage.rings.all import (
     is_Ring,
     MPolynomialRing,
     is_MPolynomialRing,
-    Z)
+    ZZ)
 from sage.misc.all import latex
 
 import algebraic_scheme
@@ -41,7 +41,7 @@ def is_AffineSpace(x):
         True
         sage: is_AffineSpace(AffineSpace(5, GF(9)))
         True
-        sage: is_AffineSpace(Spec(Z))
+        sage: is_AffineSpace(Spec(ZZ))
         False
     """
     return isinstance(x, AffineSpace_generic)
@@ -81,7 +81,7 @@ def AffineSpace(n, R=None, names=None):
         A._coordinate_ring = n
         return A
     if R is None:
-        R = Z  # default is the integers
+        R = ZZ  # default is the integers
     return AffineSpace_generic(n, R, names)
 
 class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
@@ -89,7 +89,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     Affine space of dimension $n$ over the ring $R$.
 
     EXAMPLES:
-        sage: X = AffineSpace(3, Q)
+        sage: X = AffineSpace(3, QQ)
         sage: X.base_scheme()
         Spectrum of Rational Field
         sage: X.base_ring()
@@ -105,7 +105,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         True
 
     We create several other examples of affine spaces.
-        sage: AffineSpace(5, PolynomialRing(Q, 'z'))
+        sage: AffineSpace(5, PolynomialRing(QQ, 'z'))
         Affine Space of dimension 5 over Univariate Polynomial Ring in z over Rational Field
 
         sage: AffineSpace(3, RealField())
@@ -175,11 +175,11 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     def __cmp__(self, right):
         """
         EXAMPLES:
-            sage: AffineSpace(3, Q) == AffineSpace(3, Z)
+            sage: AffineSpace(3, QQ) == AffineSpace(3, ZZ)
             False
-            sage: AffineSpace(1, Z) == AffineSpace(0, Z)
+            sage: AffineSpace(1, ZZ) == AffineSpace(0, ZZ)
             False
-            sage: loads(AffineSpace(1, Z).dumps()) == AffineSpace(1, Z)
+            sage: loads(AffineSpace(1, ZZ).dumps()) == AffineSpace(1, ZZ)
             True
         """
         if not isinstance(right, AffineSpace_generic):
@@ -190,7 +190,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     def _latex_(self):
         r"""
         EXAMPLES:
-            sage: print latex(AffineSpace(1, Z))
+            sage: print latex(AffineSpace(1, ZZ))
             {\mathbf A}_{\mbox{\bf{}Z}}^1
         """
         return "{\\mathbf A}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
@@ -220,7 +220,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     def __pow__(self, m):
         """
         EXAMPLES:
-            sage: A = AffineSpace(1, Q)
+            sage: A = AffineSpace(1, QQ)
             sage: A^5
             Affine Space of dimension 5 over Rational Field
         """
@@ -257,7 +257,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                  this is constructed if it is not given.
 
         EXAMPLES:
-            sage: AA = AffineSpace(2, Q)
+            sage: AA = AffineSpace(2, QQ)
             sage: pi = AA.projective_embedding(0); pi
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field
@@ -315,7 +315,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             X -- a list or tuple of equations
 
         EXAMPLES:
-            sage: A, (x,y) = AffineSpace(2, Q).objgens('xy')
+            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
             sage: X = A.subscheme([x, y^2, x*y^2]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               x

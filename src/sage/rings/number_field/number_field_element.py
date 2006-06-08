@@ -53,7 +53,7 @@ class NumberFieldElement(field_element.FieldElement):
         number fields, and some basic arithmetic.
 
         First we define a polynomial over Q.
-            sage: x = PolynomialRing(Q).0
+            sage: x = PolynomialRing(QQ).0
             sage: f = x^2 + 1
 
         Next we use f to define the number field.

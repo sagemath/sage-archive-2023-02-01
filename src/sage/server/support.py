@@ -5,6 +5,7 @@ import os
 import sage.plot.plot
 import sage.ext.sage_object
 import sage.misc.latex
+import sage.all
 
 import sage.misc.sagedoc as sagedoc
 
@@ -21,7 +22,6 @@ def init(object_directory=None):
     if object_directory:
         sage.ext.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
-
 
 
 ######################################################################
@@ -117,11 +117,15 @@ def docstring(obj_name, globs):
     return s
 
 def source_code(s, globs):
-    obj = eval(s, globs)
+
+    try:
+        obj = eval(s, globs)
+    except NameError:
+        return "No object %s"%s
     try:
         z = inspect.getsourcelines(obj)[0]
-    except TypeError:
-        return "Source code not available."
+    except (TypeError, IndexError):
+        return "Source code for %s not available."%obj
     return '\n'.join(z)
 
 
@@ -141,3 +145,27 @@ def tabulate(v, width=90):
                 s += w + ' '*(col_width - len(w))
         s += '\n'
     return s
+
+def save_session(v, filename):
+    D = {}
+    for k, x in v.iteritems():
+        try:
+            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+        except (IOError, TypeError):
+            print "Unable to save %s"%k
+        else:
+            D[k] = x
+    print "Saving variables to %s"%filename
+    sage.ext.sage_object.save(D, filename)
+
+def load_session(v, filename, state):
+    D = {}
+    for k, x in v.iteritems():
+        try:
+            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+        except (IOError, TypeError):
+            print "Unable to save %s"%k
+        else:
+            D[k] = x
+    print "Saving variables to %s"%filename
+    sage.ext.sage_object.save(D, filename)

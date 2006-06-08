@@ -783,7 +783,7 @@ class SingularElement(ExpectElement):
             sage: f._singular_().sage_poly(R)==f
             True
 
-            sage: R.<XxZaa5,y> = PolynomialRing(Q,2)
+            sage: R.<XxZaa5,y> = PolynomialRing(QQ, 2)
             sage: f = XxZaa5 * y^3 -(1/9)* XxZaa5 + 1
             sage: singular(f)
             XxZaa5*y^3-1/9*XxZaa5+1

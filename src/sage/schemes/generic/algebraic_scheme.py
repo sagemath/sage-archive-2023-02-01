@@ -20,7 +20,8 @@ from sage.rings.all import (
     is_Ideal,
     is_MPolynomialRing,
     is_FiniteField,
-    is_RationalField, Z)
+    is_RationalField,
+    ZZ)
 
 from sage.structure.all import Sequence
 
@@ -42,9 +43,9 @@ def is_AlgebraicScheme(x):
     EXAMPLES:
     Affine space is itself not an algebraic scheme, though the closed subscheme
     defined by no equations is.
-        sage: is_AlgebraicScheme(AffineSpace(10, Q))
+        sage: is_AlgebraicScheme(AffineSpace(10, QQ))
         False
-        sage: V = AffineSpace(10, Q).subscheme([]); V
+        sage: V = AffineSpace(10, QQ).subscheme([]); V
         Closed subscheme of Affine Space of dimension 10 over
         Rational Field defined by:
           (no equations)
@@ -52,16 +53,16 @@ def is_AlgebraicScheme(x):
         True
 
     We create a more complicated closed subscheme.
-        sage: A, x = AffineSpace(10, Q).objgens()
+        sage: A, x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
           x9 + x8 + x7 + x6 + x5 + x4 + x3 + x2 + x1 + x0
         sage: is_AlgebraicScheme(X)
         True
 
-        sage: is_AlgebraicScheme(Q)
+        sage: is_AlgebraicScheme(QQ)
         False
-        sage: S = Spec(Q)
+        sage: S = Spec(QQ)
         sage: is_AlgebraicScheme(S)
         False
     """
@@ -306,7 +307,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         EXAMPLES:
         First we construct the union of a doubled and triplled line
         in the affine plane over $\Q$.
-            sage: A, (x,y) = AffineSpace(2, Q).objgens('xy')
+            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
             sage: X = A.subscheme([(x-1)^2*(x-y)^3]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               -1*y^3 + 3*x*y^2 + 2*x*y^3 - 3*x^2*y - 6*x^2*y^2 - x^2*y^3 + x^3 + 6*x^3*y + 3*x^3*y^2 - 2*x^4 - 3*x^4*y + x^5
@@ -348,7 +349,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         EXAMPLES:
         We construct the union of a line and a tripled-point on the line.
-            sage: A, (x,y) = AffineSpace(2, Q, 'xy').objgens()
+            sage: A, (x,y) = AffineSpace(2, QQ, 'xy').objgens()
             sage: I = ideal([x,y])^3
             sage: P = A.subscheme(I)
             sage: L = A.subscheme([y-1])
@@ -416,7 +417,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         if F == None:
             F = self.base_ring()
         X = self(F)
-        if is_RationalField(F) or F == Z:
+        if is_RationalField(F) or F == ZZ:
             if not B > 0:
                 raise TypeError, "A positive bound B (= %s) must be specified."%B
             try:
@@ -435,7 +436,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
     def dimension(self):
         """
         EXAMPLES:
-            sage: A, (x,y) = AffineSpace(2, Q).objgens('xy')
+            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
             sage: A.subscheme([]).dimension()
             2
             sage: A.subscheme([x]).dimension()
@@ -448,7 +449,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
-            sage: A, (x,y,z,w) = AffineSpace(4, Q).objgens('xyzw')
+            sage: A, (x,y,z,w) = AffineSpace(4, QQ).objgens('xyzw')
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
@@ -528,7 +529,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
     def dimension(self):
         """
         EXAMPLES:
-            sage: A, (x,y) = AffineSpace(2, Q).objgens('xy')
+            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
             sage: A.subscheme([]).dimension()
             2
             sage: A.subscheme([x]).dimension()
@@ -541,7 +542,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
-            sage: A, (x,y,z,w) = AffineSpace(4, Q).objgens('xyzw')
+            sage: A, (x,y,z,w) = AffineSpace(4, QQ).objgens('xyzw')
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:

@@ -53,7 +53,7 @@ class FreeModuleElement(module_element.ModuleElement):
     def __add__(self, right):
         """
         EXAMPLES:
-            sage: V = Q^5
+            sage: V = QQ^5
             sage: W = V.span([V.1, V.2])
             sage: W.0 + V.0
             (1, 1, 0, 0, 0)

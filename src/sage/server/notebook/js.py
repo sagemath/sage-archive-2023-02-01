@@ -496,7 +496,7 @@ function evaluate_all_callback(status, response_text) {
             evaluate_cell(v[i],0);
         }
     } else {
-   /*     alert(response_text); */
+       alert(response_text);
     }
 }
 

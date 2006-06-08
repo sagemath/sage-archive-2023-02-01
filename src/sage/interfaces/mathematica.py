@@ -278,7 +278,7 @@ command-line version of Mathematica.
         directory.  The file contained a single line, which was the
         path to the mathematica math.exe file.  In my case, this was:
 
-        "C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe"
+        C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
 
         The key points are
         1) there is a file named "math.exe", and it will generally be
@@ -294,7 +294,7 @@ command-line version of Mathematica.
       * APPLE OS X: Use following directions, based on those at
       http://support.wolfram.com/applicationpacks/parallel/remoteosxpct2.html
           (a) create a file called math (in your PATH)
-          (b) on the first line type the text "#!/bin/sh" (without quotes)
+          (b) on the first line type the text #!/bin/sh
           (c) On the second line, type the path to the Mathematica kernel
               on Mac OS X, followed by $@. For example, if you installed
               Mathematica 5.0 into your Applications directory on Mac OS X,

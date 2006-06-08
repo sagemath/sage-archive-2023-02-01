@@ -281,6 +281,7 @@ which have "restart kernel" commands, etc.
 ###########################################################################
 
 import os
+import shutil
 import socket
 
 # SAGE libraries
@@ -294,7 +295,8 @@ import js           # javascript
 import server       # web server
 import workbook     # individual workbooks (which make up a notebook)
 
-MAX_WORKBOOKS = 65535
+#MAX_WORKBOOKS = 65535
+MAX_WORKBOOKS = 1024
 
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook'):
@@ -306,7 +308,7 @@ class Notebook(SageObject):
         self.__object_dir   = '%s/objects'%dir
         self.__makedirs()
         self.__next_workbook_id = 0
-        W = self.create_new_workbook('*scratch*')
+        W = self.create_new_workbook('_scratch_')
         self.__default_workbook = W
         self.create_new_workbook('linear algebra')
         self.create_new_workbook('elliptic curves')
@@ -319,6 +321,14 @@ class Notebook(SageObject):
         self.create_new_workbook('Dirichlet Characters')
         self.create_new_workbook('SAGE tests')
         self.save()
+
+
+    # unpickled, no workbooks will think they are
+    # being computed, since they clearly aren't (since
+    # the server just started).
+    def set_not_computing(self):
+        for W in self.__workbooks.values():
+            W.set_not_computing()
 
     def default_workbook(self):
         return self.__default_workbook
@@ -396,16 +406,21 @@ class Notebook(SageObject):
 
     def save(self, filename=None):
         if filename is None:
+            F = os.path.abspath(self.__filename)
+            try:
+                shutil.copy(F, F[:-5] + '-backup.sobj')
+            except IOError:
+                pass
             SageObject.save(self, os.path.abspath(self.__filename))
         else:
             SageObject.save(self, os.path.abspath(filename))
 
     def start(self, port=8000, address='localhost',
-                    max_tries=10, open_viewer=False):
+                    max_tries=128, open_viewer=False):
         tries = 0
         while True:
             try:
-                ns = server.NotebookServer(self, port, address)
+                notebook_server = server.NotebookServer(self, port, address)
             except socket.error, msg:
                 print msg
                 port += 1
@@ -434,7 +449,7 @@ class Notebook(SageObject):
 
         if open_viewer:
             os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
-        ns.serve()
+        notebook_server.serve()
         self.save()
 
     def workbook_list_html(self, current_workbook):
@@ -485,9 +500,11 @@ class Notebook(SageObject):
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="variables_topbar">Variables</div>\n'
-        body += '  <div class="variables_list" id="variable_list">%s</div>\n'%workbook.variables_html()
+        body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
+                workbook.variables_html()
         body += '  <div class="attached_topbar">Attached Files</div>\n'
-        body += '  <div class="attached_list" id="attached_list">(not implemented)</div><br>\n'
+        body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
+                workbook.attached_html()
         body += '  <div class="workbooks_topbar">Workbooks&nbsp;&nbsp;&nbsp;'
         body += '     <a onClick="add_new_workbook()" class="new_workbook">Add</a>\n'
         body += '     <a onClick="upload_workbook()" class="upload_workbook">Upload</a>\n'
@@ -505,42 +522,55 @@ class Notebook(SageObject):
         return body
 
     def _help_window(self):
-        help = [('<b>Evaluate</b> an input cell', 'Press shift-enter.  You can start several calculations at once.'),
-                ('Evaluate cell with <b>timing</b>', 'Press control-enter.  The CPU and wall time are printed.'),
-                ('Evaluate <b>all</b> cells', 'Click the evaluate all link in the upper right.'),
-                ('<b>Move</b> between cells', 'Use tab and shift-tab.'),
+        help = [('<b>Definitions</b>',
+                 'A <i>workbook</i> is an ordered list of SAGE calculations with output. ' +
+                 'A <i>session</i> is a workbook and a set of variables in some state. ' +
+                 'A <i>notebook</i> is a collection of workbooks and saved objects. '),
+                ('<b>Evaluate</b> Input', 'Press shift-enter.  You can start several calculations at once.'),
+                ('<b>Timed</b> Evaluation', 'Press control-enter.  The CPU and wall clock time are printed.'),
+                ('<b>Evaluate all</b> cells', 'Click <u>Evaluate All</u> in the upper right.'),
+                ('Evaluate using <b>GAP, Singular, etc.</b>', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
+                ('<b>Move</b> Around', 'Use tab and shift-tab (standard for web browsers).'),
                 ('<b>Interrupt</b> running calculations',
-                 'Click the interrupt button in the upper right or press ctrl-c in any input cell. This will (attempt) to interrupt SAGE by sending control-c for several seconds; if this fails, it restarts SAGE (your workbook remains unchanged).'),
-                ('<b>Completions</b> of last object in cell', 'Press the escape key.  Press escape in an empty cell for a list of all commands and objects.'),
+                 'Click <u>Interrupt</u> in the upper right or press ctrl-c in any input cell. This will (attempt) to interrupt SAGE by sending control-c for several seconds; if this fails, it restarts SAGE (your workbook is unchanged, but your session is reset).'),
+                ('<b>Completions</b> of last object in cell', 'Press the escape key.'),
                 ('<b>Completion</b> of word anywhere in input',
                   'Type ?c immediately after the word and press escape, e.g., "Ell?c"'),
-                ('<b>Help</b> about an object',
+                ('<b>Help</b> About Object',
                  'Put ? right after the object and press escape.'),
-                ('<b>Detailed help</b> about an object',
-                 'Type "help(name of object)" and press shift-return.'),
-                ('<b>Source code</b> of a command',
+                ('<b>Detailed Help</b>',
+                 'Type "help(object)" and press shift-return.'),
+                ('<b>Source Code</b> of a command',
                  'Put ?? after the command and press escape.'),
-                ('<b>Insert</b> a new cell',
+                ('<b>Insert New</b> Cell',
                  'Put mouse between an output and input until the horizontal line appears and click.'),
-                ('<b>Delete</b> a cell',
+                ('<b>Delete</b> Cell',
                  'Delete cell contents using backspace and the cell will be removed.'),
                 ('<b>Hide/Expand</b> Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('<b>Hide</b> Output', 'Click on the hide output button in the upper right to hide <i>all</i> output.'),
+                ('<b>Hide All</b> Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
                 ('<b>Variables</b>',
-                 'All variables with a new name that you create during this session are listed on the left.  If you overwrite a predefined variable, e.g., ZZ, it will not appear.'),
+                 'All variables with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
                 ('<b>Objects</b>',
                  'All objects that you save in <i>any workbook</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
-                ('<b>Saving Workbooks</b>',
+                ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of workbook).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+                ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
+                ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
+                ('Saving <b>Workbooks</b>',
                  '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a workbook.'),
-                ('<b>Typeset</b> version of object', 'Type "view(objname)". This requires that latex and convert are installed.  Type "latex(objname)" for latex that you can paste into your paper.'),
-                ('<b>Input rules</b>', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
-                ('<b>Working directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
+                ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.'),
+                ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
+                ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
+                ('More <b>Help</b>', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial.'),
+                ('<hr>','<hr>'),
                 ('<b>Acknowledgement</b>', 'The design of SAGE notebook was influenced by Mathematica, GMail, GNU Emacs, and IPython.  AUTHORS: William Stein, Alex Clemesha, and Tom Boothy')
                 ]
         s = """
         <div class="help_window" id="help_window">
         <div class="help_window_title">&nbsp;&nbsp;&nbsp;Help</div>
         <div class="help_window_close" onClick="hide_help_window()">&#215;&nbsp;</div>
+        This is the SAGE Notebook, which is the graphical interface to
+        the computer algebra system SAGE (Software for Algebra and
+        Geometry Exploration).
         <table class="help_window">
         """
         for x, y in help:
@@ -629,9 +659,17 @@ def notebook(dir       ='sage_notebook',
     if os.path.exists(dir):
         if not os.path.isdir(dir):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir
-        if not os.path.exists('%s/nb.sobj'%dir):
+        if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
-        nb = load('%s/nb.sobj'%dir)
+        try:
+            nb = load('%s/nb.sobj'%dir)
+        except:
+            print "****************************************************************"
+            print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
+            print "WARNING -- failed to load notebook data. Trying the backup file."
+            print "****************************************************************"
+            nb = load('%s/nb-backup.sobj'%dir)
+        nb.set_not_computing()
     else:
         nb = Notebook(dir)
 

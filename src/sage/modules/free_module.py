@@ -1123,12 +1123,12 @@ class FreeModule_generic_pid(FreeModule_generic):
         into an ambient space.
 
             sage: V = VectorSpace(RationalField(), 3)
-            sage: W = M.span([Q('1/2')*V.gen(0) - Q('1/3')*V.gen(1)])
+            sage: W = M.span([1/2*V.0 - 1/3*V.1])
 
         Here the command \code{M.span(...)} creates the span of the
         indicated vectors over the base ring of $M$.
 
-            sage: W2 = M.span([Q('1/3')*V.gen(0) + V.gen(1)])
+            sage: W2 = M.span([1/3*V.0 + V.1])
             sage: W + W2
             Free module of degree 3 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -2936,7 +2936,8 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
     principal ideal domain $R$.
 
     EXAMPLES:
-        sage: M = Z^3; W = M.span_of_basis([[1,2,3],[4,5,19]]); W
+        sage: M = ZZ^3
+        sage: W = M.span_of_basis([[1,2,3],[4,5,19]]); W
         Free module of degree 3 and rank 2 over Integer Ring
         User basis matrix:
         [ 1  2  3]
@@ -3018,7 +3019,7 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
     A vector subspace with distinguished basis.
 
     EXAMPLES:
-        sage: M = Q^3; W = M.span([[1,2,3],[4,5,19]]); W
+        sage: M = QQ^3; W = M.span([[1,2,3],[4,5,19]]); W
         Vector space of degree 3 and dimension 2 over Rational Field
         Basis matrix:
         [   1    0 23/3]
@@ -3029,7 +3030,7 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         sage: loads(W.dumps()) == W
         True
 
-        sage: K, x = FractionField(PolynomialRing(Q)).objgen()
+        sage: K.<x> = FractionField(PolynomialRing(QQ))
         sage: M = K^3; W = M.span_of_basis([[1,1,x]])
         sage: loads(W.dumps()) == W
         True

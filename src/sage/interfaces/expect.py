@@ -691,7 +691,10 @@ class ExpectElement(Element_cmp_, RingElement):
         return sage.misc.sage_eval.sage_eval(str(self))
 
     def __repr__(self):
-        self._check_valid()
+        try:
+            self._check_valid()
+        except ValueError:
+            return '(invalid object -- defined in terms of closed session)'
         try:
             if self._get_using_file:
                 return self.parent().get_using_file(self._name)

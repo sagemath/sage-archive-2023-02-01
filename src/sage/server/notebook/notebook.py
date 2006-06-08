@@ -397,7 +397,7 @@ class Notebook(SageObject):
         for W in self.__worksheets.itervalues():
             if W.id() == id:
                 return W
-        return self.__worksheets[0]
+        return self.__worksheets[self.__worksheets()[0]]
         #raise KeyError, "no worksheet with id %s"%id
 
     def get_worksheet_that_has_cell_with_id(self, id):

@@ -1,3 +1,4 @@
+IDEAS:
 [] i need to rethink the design of having multiple worksheets at once:
     possibilities:
         xx have multiple worksheet div's all in the html, each
@@ -16,7 +17,6 @@
      -- switching
      -- deleting
 
-IDEAS:
 [] So to indent lines, seems like the spacebar is the only option.
 
 [] It'll be nice to record the history of commands like in a shell.

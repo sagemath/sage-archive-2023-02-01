@@ -115,8 +115,93 @@ function click_on_object(name) {
 
 worksheet_id=0;   // The current worksheet.
 
-function add_new_worksheet() {
-    alert('add new worksheet ');
+function add_worksheet(name) {
+    async_request('async_obj_add_worksheet', '/add_worksheet',
+                   add_worksheet_callback, 'name='+name)
+}
+
+function add_worksheet_callback(status, response_text) {
+    if (status == "success") {
+        /* expect response_text to encode a pair consisting of
+           the HTML for the updated worksheet list and the
+           name of the new worksheet. */
+        var X = response_text.split(SEP);
+        if (X.length <= 1) {
+            alert(X);
+        } else {
+            set_worksheet_list(X[0]);
+            switch_to_worksheet(X[1]);
+        }
+    } else {
+        alert("Possible failure adding workbook: \n" + response_text);
+    }
+}
+
+function delete_worksheet(name) {
+    async_request('async_obj_delete_worksheet', '/delete_worksheet',
+                   delete_worksheet_callback, 'name='+name)
+}
+
+function delete_worksheet_callback(status, response_text) {
+    if (status == "success") {
+        /* expect response_text to encode a pair consisting of
+           the HTML for the updated worksheet list and the
+           id of a worksheet to switch to in case we just
+           deleted the current worksheet. */
+        var X = response_text.split(SEP);
+        if (X.length <= 1) {
+            alert(X);
+        } else {
+            set_worksheet_list(X[0]);
+            if (X[1] != -1)
+               switch_to_worksheet(X[1]);
+        }
+    } else {
+        alert("Possible failure deleting workbook: \n" + response_text);
+    }
+}
+
+function set_worksheet_list(worksheets) {
+    var wlist = document.getElementById('worksheet_list');
+    wlist.innerHTML = worksheets;
+}
+
+function show_add_new_worksheet_menu() {
+    var add_worksheet_menu = document.getElementById('add_worksheet_menu');
+    add_worksheet_menu.style.display = 'block';
+    document.getElementById('new_worksheet_box').focus()
+}
+
+function hide_add_new_worksheet_menu() {
+    var add_worksheet_menu = document.getElementById('add_worksheet_menu');
+    add_worksheet_menu.style.display = 'none';
+}
+
+function show_delete_worksheet_menu() {
+    var delete_worksheet_menu = document.getElementById('delete_worksheet_menu');
+    delete_worksheet_menu.style.display = 'block';
+    document.getElementById('delete_worksheet_box').focus();
+}
+
+function hide_delete_worksheet_menu() {
+    var delete_worksheet_menu = document.getElementById('delete_worksheet_menu');
+    delete_worksheet_menu.style.display = 'none';
+}
+
+function process_new_worksheet_menu_submit() {
+    hide_add_new_worksheet_menu();
+    var add_worksheet_box = document.getElementById('new_worksheet_box');
+    name = add_worksheet_box.value;
+    add_worksheet_box.value = '';
+    add_worksheet(name);
+}
+
+function process_delete_worksheet_menu_submit() {
+    hide_delete_worksheet_menu();
+    var delete_worksheet_box = document.getElementById('delete_worksheet_box');
+    name = delete_worksheet_box.value;
+    delete_worksheet_box.value = '';
+    delete_worksheet(name);
 }
 
 function switch_to_worksheet(id) {
@@ -124,7 +209,7 @@ function switch_to_worksheet(id) {
        2. If not, load it into the dom.
        3. Move it to the front and everything else to the back by changing the css.
     */
-/*    alert('switch to worksheet ' + id); */
+  /*  alert('switch to worksheet ' + id);  */
 }
 
 

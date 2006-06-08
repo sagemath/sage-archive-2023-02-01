@@ -124,6 +124,30 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.wfile.write('restart')
 
+    def add_worksheet(self):
+        C = self.get_postvars()
+        worksheet_name = C['name'][0]
+        try:
+            W = notebook.create_new_worksheet(worksheet_name)
+        except ValueError, msg:
+            print msg
+            self.wfile.write(msg)
+            return
+        new_worksheet_list = notebook.worksheet_list_html(W.name())
+        self.wfile.write(new_worksheet_list + SEP + str(W.name()))
+
+    def delete_worksheet(self):
+        C = self.get_postvars()
+        worksheet_name = C['name'][0]
+        try:
+            W = notebook.delete_worksheet(worksheet_name)
+        except KeyError, msg:
+            print "Error deleting worksheet: ", msg
+            self.wfile.write(msg)
+            return
+        new_worksheet_list = notebook.worksheet_list_html(W.name())
+        self.wfile.write(new_worksheet_list + SEP + str(W.name()))
+
     def cell_id_list(self):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
@@ -226,6 +250,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.interrupt()
             elif self.path[-13:] == '/cell_id_list':
                 self.cell_id_list()
+            elif self.path[-14:] == '/add_worksheet':
+                self.add_worksheet()
+            elif self.path[-17:] == '/delete_worksheet':
+                self.delete_worksheet()
         else:
             self.body = {}                   # Unknown content-type
 

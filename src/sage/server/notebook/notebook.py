@@ -310,16 +310,6 @@ class Notebook(SageObject):
         self.__next_worksheet_id = 0
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
-        self.create_new_worksheet('linear algebra')
-        self.create_new_worksheet('elliptic curves')
-        self.create_new_worksheet('modular forms')
-        self.create_new_worksheet('elliptic curves modular forms, and fermat')
-        self.create_new_worksheet('test of multi worksheets')
-        self.create_new_worksheet('many new ideas')
-        self.create_new_worksheet('l-series')
-        self.create_new_worksheet('modular degrees')
-        self.create_new_worksheet('Dirichlet Characters')
-        self.create_new_worksheet('SAGE tests')
         self.save()
 
 
@@ -379,7 +369,7 @@ class Notebook(SageObject):
 
     def create_new_worksheet(self, name='untitled'):
         if name in self.__worksheets.keys():
-            raise ValueError, 'name (=%s) already taken.'%name
+            raise KeyError, 'name (=%s) already taken.'%name
         name = str(name)
         id = self.__next_worksheet_id
         if id >= MAX_WORKSHEETS:
@@ -388,6 +378,15 @@ class Notebook(SageObject):
         W = worksheet.Worksheet(name, self, id)
         self.__worksheets[name] = W
         return W
+
+    def delete_worksheet(self, name):
+        if not (name in self.__worksheets.keys()):
+            raise KeyError, "Attempt to delete missing worksheet"
+        del self.__worksheets[name]
+        if len(self.__worksheets) == 0:
+            return self.create_new_worksheet('_scratch_')
+        else:
+            return self.__worksheets[self.__worksheets.keys()[0]]
 
     def worksheet_names(self):
         W = self.__worksheets.keys()
@@ -483,6 +482,22 @@ class Notebook(SageObject):
         else:
             interrupt_class = "interrupt_grey"
 
+        add_new_worksheet_menu = """
+             <div class="add_new_worksheet_menu" id="add_worksheet_menu">
+             <input id="new_worksheet_box" class="add_new_worksheet_menu"></input>
+             <button class="add_new_worksheet_menu" onClick="process_new_worksheet_menu_submit();">add</button>
+             &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_add_new_worksheet_menu()">X</span>
+             </div>
+        """
+
+        delete_worksheet_menu = """
+             <div class="delete_worksheet_menu" id="delete_worksheet_menu">
+             <input id="delete_worksheet_box" class="delete_worksheet_menu"></input>
+             <button class="delete_worksheet_menu" onClick="process_delete_worksheet_menu_submit();">delete</button>
+             &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_delete_worksheet_menu()">X</span>
+             </div>
+        """
+
         vbar = '<span class="vbar"></span>'
 
         body = ''
@@ -505,11 +520,14 @@ class Notebook(SageObject):
         body += '  <div class="attached_topbar">Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
-        body += '  <div class="worksheets_topbar">Worksheets&nbsp;&nbsp;&nbsp;'
-        body += '     <a onClick="add_new_worksheet()" class="new_worksheet">Add</a>\n'
-        body += '     <a onClick="upload_worksheet()" class="upload_worksheet">Upload</a>\n'
+        body += '  <div class="worksheets_topbar">Worksheets&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\n'
+        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Add</a>&nbsp;&nbsp;\n'
+        body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a>\n'
+        #body += '     <a onClick="upload_worksheet()" class="upload_worksheet">Upload</a>\n'
         body += '  </div>\n'
-        body += '  <div class="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
+        body +=    add_new_worksheet_menu
+        body +=    delete_worksheet_menu
+        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
         body += '  <div class="objects_topbar">Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
         body += '</td></tr></table></span>\n'
@@ -553,6 +571,7 @@ class Notebook(SageObject):
                 ('<b>Objects</b>',
                  'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
                 ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+                ('Loading and Saving <b>Objects</b>', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
                 ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
                 ('Saving <b>Worksheets</b>',

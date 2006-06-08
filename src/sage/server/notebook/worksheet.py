@@ -54,7 +54,10 @@ class Worksheet:
         self.append_new_cell()
 
     def __cmp__(self, other):
-        return cmp((self.__id, self.__name), (other.__id, other.__name))
+        try:
+            return cmp((self.__id, self.__name), (other.__id, other.__name))
+        except AttributeError:
+            return -1
 
     def computing(self):
         return self.__comp_is_running
@@ -397,20 +400,36 @@ class Worksheet:
 
     def _normalized_filenames(self, L):
         a = []
+        OBJECTS = os.path.abspath(self.notebook().object_directory())
         for filename in L.split():
             filename = filename.strip('"').strip("'")
-            if len(filename) > 0 and filename[0] != '/':
-                filename = '%s/%s'%(self.DIR(), filename)
-            if filename[-3:] != '.py' and filename[-5:] != '.sage' and \
-               not os.path.exists(filename):
-                if os.path.exists(filename + '.sage'):
-                    filename = filename + '.sage'
-                elif os.path.exists(filename + '.py'):
-                    filename = filename + '.py'
+            if os.path.exists(OBJECTS + '/' + filename):
+                filename = OBJECTS + '/' + filename
+            elif os.path.exists(OBJECTS + '/' + filename + '.sobj'):
+                filename = OBJECTS + '/' + filename + '.sobj'
+            else:
+                if len(filename) > 0 and filename[0] != '/':
+                    filename = '%s/%s'%(self.DIR(), filename)
+                if filename[-3:] != '.py' and filename[-5:] != '.sage' and \
+                   filename[-5:] != '.sobj' and not os.path.exists(filename):
+                    if os.path.exists(filename + '.sage'):
+                        filename = filename + '.sage'
+                    elif os.path.exists(filename + '.py'):
+                        filename = filename + '.py'
+                    elif os.path.exists(filename + '.sobj'):
+                        filename = filename + '.sobj'
             a.append(filename)
         return a
 
     def _load_file(self, filename, files_seen_so_far, this_file):
+        if filename[-5:] == '.sobj':
+            i = filename.rfind('/')
+            if i != -1:
+                name = filename[i+1:-5]
+            else:
+                name = filename[:-5]
+            return '%s = load("%s");'%(name, filename)
+
         if filename in files_seen_so_far:
             return "print 'WARNING: Not loading %s -- would create recursive load'"%filename
         try:
@@ -422,12 +441,17 @@ class Worksheet:
                 t = F
             elif filename[-5:] == '.sage':
                 t = self.preparse(F)
-        t = self.do_load_and_attach_preparsing(t,
+        t = self.do_sage_extensions_preparsing(t,
                           files_seen_so_far + [this_file], filename)
         return t
 
+    def _save_objects(self, s):
+        s = s.replace(',',' ').replace('(',' ').replace(')',' ')
+        v = s.split()
+        return ';'.join(['save(%s,"%s")'%(x,x) for x in v])
 
-    def do_load_and_attach_preparsing(self, s, files_seen_so_far=[], this_file=''):
+
+    def do_sage_extensions_preparsing(self, s, files_seen_so_far=[], this_file=''):
         u = []
         for t in s.split('\n'):
             if t[:5] == 'load ':
@@ -462,6 +486,9 @@ class Worksheet:
                     t = '_support_.save_session(%s, "%s")'%(d, filename)
                 else:
                     t = 'load_session(locals(), "%s")'%filename
+
+            elif t[:5] == 'save ':
+                t = self._save_objects(t[5:])
 
             u.append(t)
 
@@ -520,7 +547,7 @@ class Worksheet:
             input = ignore_prompts_and_output(input)
             input = self.preparse(input)
             input = self.load_any_changed_attached_files(input)
-            input = self.do_load_and_attach_preparsing(input)
+            input = self.do_sage_extensions_preparsing(input)
 
         input = [x for x in input.split('\n') if len(x.split()) > 0 and \
                x.lstrip()[0] != '#']   # remove all blank lines and comment lines

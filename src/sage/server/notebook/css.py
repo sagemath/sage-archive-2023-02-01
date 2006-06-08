@@ -266,6 +266,56 @@ span.pane div.worksheets_topbar {
    width: 174px;
 }
 
+span.X {
+   color:white;
+   font-family:arial monospace;
+   font-weight:bold;
+   cursor:pointer;
+}
+
+span.pane div.add_new_worksheet_menu {
+   color:black;
+   top: 0ex;
+   background-color: #b5edbc;
+   text-decoration: none;
+   font-size:11px;
+   font-family:arial;
+   padding-left: 10px;
+   width: 174px;
+   display:none;
+}
+
+input.add_new_worksheet_menu {
+   width:60%
+}
+
+button.add_new_worksheet_menu {
+   font-size:11px;
+   font-family:arial;
+}
+
+span.pane div.delete_worksheet_menu {
+   color:black;
+   top: 0ex;
+   background-color: #b5edbc;
+   text-decoration: none;
+   font-size:11px;
+   font-family:arial;
+   padding-left: 10px;
+   width: 174px;
+   display:none;
+}
+
+input.delete_worksheet_menu {
+   width:50%
+}
+
+button.delete_worksheet_menu {
+   font-size:11px;
+   font-family:arial;
+   background-color: #ffcccc;
+}
+
 span.pane div.worksheet_list {
    font-size:11px;
    top:0ex;
@@ -284,6 +334,18 @@ a.new_worksheet {
 }
 
 a.new_worksheet:hover {
+  cursor:pointer;
+}
+
+a.delete_worksheet {
+   font-family: arial, monospace;
+   font-size:8pt;
+   text-decoration:underline;
+   text-align:right;
+   color: #0000aa
+}
+
+a.delete_worksheet:hover {
   cursor:pointer;
 }
 

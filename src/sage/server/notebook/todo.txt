@@ -1,68 +1,43 @@
-[] some "magic":
-     - time command ?? check if "time" is a valid identifier using var
-       list, and if not then give the time.
- done    - attach   # will work from DIR if not abs path.
- done    - load     # will work from DIR if not abs path.
- done    - save_session -- saves to objects dir
-
-     - %gp: at the top of a block and it gets executed in pari.
-
-[] i need to rethink the design of having multiple workbooks at once:
+[] i need to rethink the design of having multiple worksheets at once:
     possibilities:
-        xx have multiple workbook div's all in the html, each
-           with an id.  have a way to "close" a workbook, i.e.,
+        xx have multiple worksheet div's all in the html, each
+           with an id.  have a way to "close" a worksheet, i.e.,
            button in upper right (Maybe a close link like the Help, etc. links).
-           the update function has to tell about *all* the workbooks
+           the update function has to tell about *all* the worksheets
            rather than just one:
                update contains:
-                    number of workbooks with data
-                    workbook number <data>  ...
-                    workbook number <data>  ...
-               and the workbook data will allow us to set the color
-               on the the workbooks tab on the left.
-
-[] variables: easy way to save any variable to a var with the same name
-   in the common saved objects store.
-
-[] click on saved object or variable and get a download ?
-
-[] todo: make the saved state file backup the last safe state, to
-   avoid the potential for corruption if the server Python process is
-   killed while saving state.  Also, this could easily allow for a
-   sophisticated undo function; design ideas welcome...
-
-[] print -- javascript button, which displays the whole page as one page
-   (no scrolling, etc.), etc., and calls print.
-
-[] latex -- support for embedding in output?, e.g.,
-        view(x)
-   embeds latex repn.
-
-[] HTML cells in addition to SAGE code cells; or just better typesetting
-   support and way to hide the input (!)
-
-[] Workbooks:
+                    number of worksheets with data
+                    worksheet number <data>  ...
+                    worksheet number <data>  ...
+               and the worksheet data will allow us to set the color
+               on the the worksheets tab on the left.
     (all html downloaded at once; so switching done entirely in js)
      -- new
      -- switching
      -- deleting
 
-[] workbooks list -- could have status information, e.g.,
-   if a comp is running, could make the entry redish until
-   it is done.
-
-
 IDEAS:
+[] So to indent lines, seems like the spacebar is the only option.
+
+[] It'll be nice to record the history of commands like in a shell.
+
+[] HTML cells in addition to SAGE code cells; or just better typesetting
+   support and way to hide the input (!)
+
+[] print -- javascript button, which displays the whole page as one page
+   (no scrolling, etc.), etc., and calls print.
+
+[] click on variable and get a download
 
 [] easy user override of css elements.
 
-[] should be able to download/upload complete workbooks as a single file
+[] should be able to download/upload complete worksheets as a single file
    and move them in/out of other notebooks.  How?
-     1. an sobj defines the workbook, and a tarball the data and graphs,
+     1. an sobj defines the worksheet, and a tarball the data and graphs,
         so tarball it up with the sobj.
-     2. interface -- when you mouse over a workbook, a menu appears with
+     2. interface -- when you mouse over a worksheet, a menu appears with
         the option to download it to a file.
-     3. Also, there's an upload link in the workbooks list.
+     3. Also, there's an upload link in the worksheets list.
 
 [] good support for a "presentation" mode.
 
@@ -82,7 +57,7 @@ IDEAS:
 
 [] save all objects in a session to a single variable:
      - a button in the variables pane -- asks for var name.
-       OR drag variables pane to workbooks (?).
+       OR drag variables pane to worksheets (?).
 
 
 OLD TODO:
@@ -96,9 +71,9 @@ OLD TODO:
       checking on a button next to each or something and do
       each of the following ops:
           delete them
-          export them as another workbook
-      Also, should be able to insert a workbook between two cells.
-      Basically, copy, paste, and delete with bits of workbooks.
+          export them as another worksheet
+      Also, should be able to insert a worksheet between two cells.
+      Basically, copy, paste, and delete with bits of worksheets.
       Should also be able to reorganize them.
 (not really needed)
    [x] way to time how long a computation takes.
@@ -109,7 +84,7 @@ OLD TODO:
        e.g., you could be editing one form and submit another!
    [x] The whole interface needs to be slimmed down so bunches of single
       line input (and output) will work.
-   [] Ability to switch from one log (=workbook) to another via
+   [] Ability to switch from one log (=worksheet) to another via
       the web interface.
    [] Add text annotation that is not evaluated
       between blocks (maybe in html?)
@@ -178,7 +153,7 @@ DONE:
 
 [x] Fix worksheet area so it doesn't scroll horizontally
 
-[x] Separate the variables / scripts panes from the workbooks / objects panes.
+[x] Separate the variables / scripts panes from the worksheets / objects panes.
 
 [x] Variables:
      -- info:
@@ -210,4 +185,28 @@ DONE:
 [x] preparser fix -- triple quoted strings in middle of loaded files should be ignored
 
 [x] Scripts: way to load/attach via web interface.
+
+[] some "magic":
+ done    - attach   # will work from DIR if not abs path.
+ done    - load     # will work from DIR if not abs path.
+ done    - save_session -- saves to objects dir
+
+ done    - %gp: at the top of a block and it gets executed in pari.
+
+[] latex -- support for embedding in output?, e.g.,
+        view(x)
+   embeds latex repn.
+
+[x] todo: make the saved state file backup the last safe state, to
+   avoid the potential for corruption if the server Python process is
+   killed while saving state.  Also, this could easily allow for a
+   sophisticated undo function; design ideas welcome...
+
+[] variables: easy way to save any variable to a var with the same name
+   in the common saved objects store.
+   xxx -- no save session good enough...
+
+[] worksheets list -- could have status information, e.g.,
+   if a comp is running, could make the entry redish until
+   it is done.
 

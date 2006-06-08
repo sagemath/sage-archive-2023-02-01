@@ -109,22 +109,22 @@ function click_on_object(name) {
 
 ///////////////////////////////////////////////////////////////////
 //
-// WORKBOOK functions -- for switching between and managing workbooks
+// WORKSHEET functions -- for switching between and managing worksheets
 //
 ///////////////////////////////////////////////////////////////////
 
-workbook_id=0;   // The current workbook.
+worksheet_id=0;   // The current worksheet.
 
-function add_new_workbook() {
-    alert('add new workbook ');
+function add_new_worksheet() {
+    alert('add new worksheet ');
 }
 
-function switch_to_workbook(id) {
-    /* 1. check to see if workbook is already loaded into the DOM
+function switch_to_worksheet(id) {
+    /* 1. check to see if worksheet is already loaded into the DOM
        2. If not, load it into the dom.
        3. Move it to the front and everything else to the back by changing the css.
     */
-/*    alert('switch to workbook ' + id); */
+/*    alert('switch to worksheet ' + id); */
 }
 
 
@@ -182,8 +182,8 @@ function cell_delete_callback(status, response_text) {
         return;   /* do not delete, for some reason */
     }
     cell = document.getElementById('cell_' + X[1]);
-    var workbook = document.getElementById('workbook');
-    workbook.removeChild(cell);
+    var worksheet = document.getElementById('worksheet');
+    worksheet.removeChild(cell);
     id_before = X[2];
     var cell_before = document.getElementById('cell_input_' + id_before);
     cell_before.focus();
@@ -255,8 +255,8 @@ function evaluate_cell_callback(status, response_text) {
        var new_cell = document.createElement("div");
        new_cell.innerHTML = X[1];
        new_cell.id = 'cell_' + X[0];
-       var workbook = document.getElementById('workbook');
-       workbook.appendChild(new_cell);
+       var worksheet = document.getElementById('worksheet');
+       worksheet.appendChild(new_cell);
     }
     if (last_action != 2) {
        focus_on(X[0],X[2]);
@@ -303,7 +303,7 @@ function cell_set_done(id) {
 
 function check_for_cell_output() {
     async_request('async_obj_check', '/update_cells',
-                    update_cell_output, 'workbook_id='+workbook_id)
+                    update_cell_output, 'worksheet_id='+worksheet_id)
 }
 
 function set_output_text(id, text, wrapped_text, status) {
@@ -380,8 +380,8 @@ function insert_new_cell_before_callback(status, response_text) {
     new_cell.id = 'cell_' + X[0];
     new_cell.innerHTML = X[1];
     var cell = document.getElementById('cell_' + X[2]);
-    var workbook = document.getElementById('workbook');
-    workbook.insertBefore(new_cell, cell);
+    var worksheet = document.getElementById('worksheet');
+    worksheet.insertBefore(new_cell, cell);
     focus_on(X[0]);
 }
 
@@ -482,7 +482,7 @@ function interrupt() {
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt!"
     async_request('async_obj_interrupt', '/interrupt',
-                  interrupt_callback, 'workbook_id='+workbook_id);
+                  interrupt_callback, 'worksheet_id='+worksheet_id);
 }
 
 function evaluate_all_callback(status, response_text) {
@@ -502,10 +502,10 @@ function evaluate_all_callback(status, response_text) {
 
 function evaluate_all() {
     /* Use async request back to the server to find out the
-       *ordered* list of active cells in the current workbook.
+       *ordered* list of active cells in the current worksheet.
     */
     async_request('async_obj_evaluate_all', '/cell_id_list',
-                      evaluate_all_callback, 'workbook_id='+workbook_id);
+                      evaluate_all_callback, 'worksheet_id='+worksheet_id);
 }
 
 function hide_all_callback(status, response_text) {
@@ -530,10 +530,10 @@ function hide_all_callback(status, response_text) {
 
 function hide_all() {
     /* Use async request back to the server to find out the
-       *ordered* list of active cells in the current workbook.
+       *ordered* list of active cells in the current worksheet.
     */
     async_request('async_obj_hide_all', '/cell_id_list',
-                      hide_all_callback, 'workbook_id='+workbook_id);
+                      hide_all_callback, 'worksheet_id='+worksheet_id);
 }
 
 ///////////////////////////////////////////////////////////////////

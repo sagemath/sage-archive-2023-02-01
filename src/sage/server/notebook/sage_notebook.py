@@ -72,7 +72,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
         return os.listdir("%s/cells/%s"%(directory,number))
 
     def __show_page(self, number):
-        global current_workbook
+        global current_worksheet
         f = self.send_head()
         if f:
             f = StringIO()
@@ -106,11 +106,11 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 </h2>
             """)
             #f.write('<a href="logfile.txt">Log File</a>')
-            if len(current_workbook) == 0 or current_workbook[-1].cmd != '':
+            if len(current_worksheet) == 0 or current_worksheet[-1].cmd != '':
                 I = Cell()
-                current_workbook.append(I)
-            current_workbook.save(workbook_sobj_file)
-            f.write(current_workbook.html(numcols))
+                current_worksheet.append(I)
+            current_worksheet.save(worksheet_sobj_file)
+            f.write(current_worksheet.html(numcols))
             f.write('</td></tr></table>\n')
             f.write('</span></body></html>\n')
             f.seek(0)
@@ -151,7 +151,7 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
             self.__show_page(0)
 
     def do_POST(self):
-        global current_workbook
+        global current_worksheet
         ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
         length = int(self.headers.getheader('content-length'))
         print "POST: ", self.path
@@ -176,18 +176,18 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                 qs = self.rfile.read(length)
                 C = cgi.parse_qs(qs, keep_blank_values=1)
                 number = eval(C.keys()[0])
-                print "Workbook '%s': evaluating cell number %s"%(
+                print "Worksheet '%s': evaluating cell number %s"%(
                     save_name, number)
                 current_dir = "%s/cells/%d"%(directory,number)
                 code_to_eval = C[C.keys()[0]][0]
                 open(log_file,'a').write('\n#### INPUT \n' + code_to_eval + '\n')
                 try:
-                    if number > len(current_workbook)-1:
-                        current_workbook.set_last_cmd(code_to_eval)
-                        number = len(current_workbook)-1
+                    if number > len(current_worksheet)-1:
+                        current_worksheet.set_last_cmd(code_to_eval)
+                        number = len(current_worksheet)-1
                     else:
                         # re-evaluating a code block
-                        current_workbook[number].cmd = code_to_eval
+                        current_worksheet[number].cmd = code_to_eval
                     #code_to_eval = code_to_eval.replace('\\','')
                     s = sage.misc.preparser.preparse_file(code_to_eval, magic=False,
                                                           do_time=True, ignore_prompts=True)
@@ -235,8 +235,8 @@ class HTML_Interface(BaseHTTPServer.BaseHTTPRequestHandler):
                     #    import time
                     #    time.sleep(0.5)
 
-                    current_workbook[number].out = o
-                    current_workbook[number].file_list = self.__files(number)
+                    current_worksheet[number].out = o
+                    current_worksheet[number].file_list = self.__files(number)
                     self.__show_page(number)
 
                 except (RuntimeError, TypeError), msg:
@@ -297,7 +297,7 @@ def sage_notebook(dir       ='sage_notebook',
                   ncols     = 80,
                   nrows     = 8,
                   viewer    = True,
-                  workbook  = None,
+                  worksheet  = None,
                   max_tries = 10):
     r"""
     Start a SAGE http server at the given port.
@@ -319,7 +319,7 @@ def sage_notebook(dir       ='sage_notebook',
         ncols -- (default: 90) default number of columns for input boxes
         nrows -- (default: 8) default number of rows for input boxes
         viewer -- bool (default:True); if True, pop up a web browser at the URL
-        workbook    -- (default: None) resume from a previous workbook
+        worksheet    -- (default: None) resume from a previous worksheet
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
 
@@ -359,7 +359,7 @@ def sage_notebook(dir       ='sage_notebook',
     very limited privileges (e.g., empty home directory), and
     running \code{server_http1} as that user.}
     """
-    global directory, current_workbook, workbook_sobj_file, \
+    global directory, current_worksheet, worksheet_sobj_file, \
            numcols, numrows, sage0, save_name, log_file
     save_name = dir
     dir = '_'.join(dir.split())  # no white space
@@ -377,18 +377,18 @@ def sage_notebook(dir       ='sage_notebook',
 
     numcols = int(ncols)
     numrows = int(nrows)
-    workbook_sobj_file = '%s/cells.sobj'%directory
+    worksheet_sobj_file = '%s/cells.sobj'%directory
 
-    if workbook is None and os.path.exists(workbook_sobj_file):
+    if worksheet is None and os.path.exists(worksheet_sobj_file):
         try:
-            workbook = load(workbook_sobj_file)
+            worksheet = load(worksheet_sobj_file)
         except IOError:
-            print "Unable to load log %s (creating new log)"%workbook_sobj_file
+            print "Unable to load log %s (creating new log)"%worksheet_sobj_file
 
-    if workbook is None:
-        current_workbook = Workbook()
+    if worksheet is None:
+        current_worksheet = Worksheet()
     else:
-        current_workbook = workbook
+        current_worksheet = worksheet
     sage0 = sage.interfaces.sage0.Sage()
     if not os.path.exists('%s/sobj'%directory):
         os.makedirs('%s/sobj'%directory)
@@ -441,9 +441,9 @@ def sage_notebook(dir       ='sage_notebook',
         print msg
         print "Shutting down server."
 
-    current_workbook.save(workbook_sobj_file)
+    current_worksheet.save(worksheet_sobj_file)
 
-    return current_workbook
+    return current_worksheet
 
 
 

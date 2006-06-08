@@ -1,7 +1,7 @@
 """
 A Cell.
 
-A cell is a single input/output block.  Workbooks are built out of a
+A cell is a single input/output block.  Worksheets are built out of a
 list of cells.
 """
 
@@ -28,12 +28,12 @@ import os, shutil
 from   sage.misc.misc import word_wrap
 
 class Cell:
-    def __init__(self, id, input, out, workbook):
+    def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)
         self.__out   = str(out)
-        self.__workbook = workbook
-        self.__dir   = '%s/cells/%s'%(workbook.directory(), self.__id)
+        self.__worksheet = worksheet
+        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.__id)
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
@@ -49,10 +49,10 @@ class Cell:
         return 'Cell %s'%self.__id
 
     def is_last(self):
-        return self.__workbook.cell_list()[-1] == self
+        return self.__worksheet.cell_list()[-1] == self
 
     def next_id(self):
-        L = self.__workbook.cell_list()
+        L = self.__worksheet.cell_list()
         k = L.index(self)
         if k == len(L):
             return L[0]
@@ -65,7 +65,7 @@ class Cell:
         return self.__interrupted
 
     def computing(self):
-        return self in self.__workbook.queue()
+        return self in self.__worksheet.queue()
 
     def directory(self):
         if not os.path.exists(self.__dir):
@@ -75,11 +75,11 @@ class Cell:
     def id(self):
         return self.__id
 
-    def workbook(self):
-        return self.__workbook
+    def worksheet(self):
+        return self.__worksheet
 
     def notebook(self):
-        return self.__workbook.notebook()
+        return self.__worksheet.notebook()
 
     def set_input_text(self, input):
         self.__in = input
@@ -107,7 +107,7 @@ class Cell:
         self.__interrupted = False
         self.__time = time
         self.__completions = completions
-        self.__workbook.enqueue(self)
+        self.__worksheet.enqueue(self)
         dir = self.directory()
         for D in os.listdir(dir):
             os.unlink(dir + '/' + D)

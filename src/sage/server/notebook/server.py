@@ -51,7 +51,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         input_text = input_text.replace('__plus__','+')
         verbose('%s: %s'%(id, input_text))
-        W = notebook.get_workbook_that_has_cell_with_id(id)
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         notebook.save()
@@ -70,7 +70,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         id = int(C['id'][0])
         verbose("Adding new cell before cell with id %s"%id)
-        W = notebook.get_workbook_that_has_cell_with_id(id)
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.new_cell_before(id)
         notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + str(id))
@@ -79,7 +79,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         id = int(C['id'][0])
         verbose("Deleting cell with id %s"%id)
-        W = notebook.get_workbook_that_has_cell_with_id(id)
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
         if len(W) <= 1 or W.is_last_id_and_previous_is_nonempty(id):
             self.wfile.write('ignore')
         else:
@@ -90,13 +90,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def update_cells(self):
         C = self.get_postvars()
-        workbook_id = int(C['workbook_id'][0])
-        workbook = notebook.get_workbook_with_id(workbook_id)
+        worksheet_id = int(C['worksheet_id'][0])
+        worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
-        status, cell = workbook.check_comp()
+        status, cell = worksheet.check_comp()
         if status == 'd':
             notebook.save()
-            variables = workbook.variables_html()
+            variables = worksheet.variables_html()
             objects = notebook.object_list_html()
         else:
             variables = '...'  # not used
@@ -110,15 +110,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                                         variables,
                                         objects]))
             # more comps to go.
-            workbook.start_next_comp()
+            worksheet.start_next_comp()
         self.wfile.write(msg)
 
     def interrupt(self):
         C = self.get_postvars()
-        workbook_id = int(C['workbook_id'][0])
-        workbook = notebook.get_workbook_with_id(workbook_id)
+        worksheet_id = int(C['worksheet_id'][0])
+        worksheet = notebook.get_worksheet_with_id(worksheet_id)
         self.send_head()
-        t = workbook.interrupt()
+        t = worksheet.interrupt()
         if t:
             self.wfile.write('ok')
         else:
@@ -126,9 +126,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def cell_id_list(self):
         C = self.get_postvars()
-        workbook_id = int(C['workbook_id'][0])
-        workbook = notebook.get_workbook_with_id(workbook_id)
-        L = workbook.cell_id_list()
+        worksheet_id = int(C['worksheet_id'][0])
+        worksheet = notebook.get_worksheet_with_id(worksheet_id)
+        L = worksheet.cell_id_list()
         s = ' '.join(str(x) for x in L)
         self.wfile.write(s)
 
@@ -164,9 +164,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.close()
         return f
 
-    def show_page(self, workbook_id=None):
+    def show_page(self, worksheet_id=None):
         self.send_head()
-        self.wfile.write(notebook.html(workbook_id=workbook_id))
+        self.wfile.write(notebook.html(worksheet_id=worksheet_id))
 
     def file_not_found(self):
         self.send_response(404)
@@ -194,10 +194,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             i = self.path.rfind('/')
             try:
-                workbook_id = int(self.path[1:])
+                worksheet_id = int(self.path[1:])
             except ValueError:
-                workbook_id = None
-            self.show_page(workbook_id)
+                worksheet_id = None
+            self.show_page(worksheet_id)
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))

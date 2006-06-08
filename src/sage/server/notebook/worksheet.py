@@ -1,7 +1,7 @@
 """
-A Workbook.
+A Worksheet.
 
-A workbook is embedded in a webpage that is served by the SAGE server.
+A worksheet is embedded in a webpage that is served by the SAGE server.
 It is a linearly-ordered collections of numbered cells, where a
 cell is a single input/output block.
 """
@@ -29,11 +29,11 @@ from cell import Cell
 INTERRUPT_TRIES = 20
 import notebook as _notebook
 
-class Workbook:
+class Worksheet:
     def __init__(self, name, notebook, id):
         name = ' '.join(name.split())
         self.__id = id
-        self.__next_id = (_notebook.MAX_WORKBOOKS) * id
+        self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
         dir = list(name)
@@ -42,7 +42,7 @@ class Workbook:
                 dir[i]='_'
         dir = ''.join(dir)
         self.__filename = dir
-        self.__dir = '%s/%s'%(notebook.workbook_directory(), dir)
+        self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
         while os.path.exists(self.__dir):
             self.__dir += "_"
             self.__filename += '_'
@@ -187,8 +187,8 @@ class Workbook:
     def enqueue(self, C):
         if not isinstance(C, Cell):
             raise TypeError
-        if C.workbook() != self:
-            raise ValueError, "C must be have self as workbook."
+        if C.worksheet() != self:
+            raise ValueError, "C must be have self as worksheet."
         if not (C in self.__queue):
             self.__queue.append(C)
         self.start_next_comp()
@@ -602,7 +602,7 @@ class Workbook:
         n = len(self.__cells)
         s = ''
 
-        s += '<span class="workbook_title">%s</span>\n'%self.name()
+        s += '<span class="worksheet_title">%s</span>\n'%self.name()
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         for i in range(n):

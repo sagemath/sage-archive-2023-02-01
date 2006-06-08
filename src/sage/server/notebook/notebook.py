@@ -69,7 +69,7 @@ result doesn't get computed immediately.  You can enter several more
 lines as well, etc.; when the f(6) finally finishes, SAGE goes on
 to compute "f(4)".   You can queue up dozens of calculations.  For
 example, if you hit the "Evaluate All" link in the upper right, the
-whole workbook is queued up for computation.  Try it.   When the
+whole worksheet is queued up for computation.  Try it.   When the
 computation gets stuck on "f(6)", hit the interrupt button and
 all the queued up calculations are cancelled.
 
@@ -158,14 +158,14 @@ don't like using a mouse.
 
 OBJECTS:  When you start a notebook you give a name argument
 to it, and it creates a directory.  Inside that directory there
-will be many workbooks (which you can use all at once and easily
+will be many worksheets (which you can use all at once and easily
 flip through -- not implemented yet), and an object store.
 You can save and load objects (using save and load), and they'll
 be listed in the box on the bottom let, e.g., try
    a = 5
    save(a, 'a')
 and you'll see the "a" appear there.   You can load and save objects
-from any workbook in any other one.
+from any worksheet in any other one.
 
 PASTING in EXAMPLES:
 
@@ -196,7 +196,7 @@ The SAGE Notebook is an AJAX application that can run either
 entirely locally on your desktop machine, or partly on
 a server and via a web browser that could be located somewhere
 else.  There is currently no support for multiple connections, but
-there will be as soon as I get multiple workbooks going (which
+there will be as soon as I get multiple worksheets going (which
 is already mostly there, since it was designed in from the start).
 Anywhere, here are the components of the SAGE Notebook:
 
@@ -216,7 +216,7 @@ Anywhere, here are the components of the SAGE Notebook:
      A Python process with all the SAGE libraries loaded; this
      is started by (1) when a web browser first requests that
      a cell be evaluated.  There's one of these Python processes
-     for each workbook.
+     for each worksheet.
 
  (3) WEB BROWSER:
      The web browser runs a 500-line javascript (and 600 lines of css)
@@ -293,45 +293,45 @@ from   sage.misc.misc       import alarm
 import css          # style
 import js           # javascript
 import server       # web server
-import workbook     # individual workbooks (which make up a notebook)
+import worksheet     # individual worksheets (which make up a notebook)
 
-#MAX_WORKBOOKS = 65535
-MAX_WORKBOOKS = 1024
+#MAX_WORKSHEETS = 65535
+MAX_WORKSHEETS = 1024
 
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook'):
         self.__dir = dir
-        self.__workbooks = {}
+        self.__worksheets = {}
         self.__load_defaults()
         self.__filename     = '%s/nb.sobj'%dir
-        self.__workbook_dir = '%s/workbooks'%dir
+        self.__worksheet_dir = '%s/worksheets'%dir
         self.__object_dir   = '%s/objects'%dir
         self.__makedirs()
-        self.__next_workbook_id = 0
-        W = self.create_new_workbook('_scratch_')
-        self.__default_workbook = W
-        self.create_new_workbook('linear algebra')
-        self.create_new_workbook('elliptic curves')
-        self.create_new_workbook('modular forms')
-        self.create_new_workbook('elliptic curves modular forms, and fermat')
-        self.create_new_workbook('test of multi workbooks')
-        self.create_new_workbook('many new ideas')
-        self.create_new_workbook('l-series')
-        self.create_new_workbook('modular degrees')
-        self.create_new_workbook('Dirichlet Characters')
-        self.create_new_workbook('SAGE tests')
+        self.__next_worksheet_id = 0
+        W = self.create_new_worksheet('_scratch_')
+        self.__default_worksheet = W
+        self.create_new_worksheet('linear algebra')
+        self.create_new_worksheet('elliptic curves')
+        self.create_new_worksheet('modular forms')
+        self.create_new_worksheet('elliptic curves modular forms, and fermat')
+        self.create_new_worksheet('test of multi worksheets')
+        self.create_new_worksheet('many new ideas')
+        self.create_new_worksheet('l-series')
+        self.create_new_worksheet('modular degrees')
+        self.create_new_worksheet('Dirichlet Characters')
+        self.create_new_worksheet('SAGE tests')
         self.save()
 
 
-    # unpickled, no workbooks will think they are
+    # unpickled, no worksheets will think they are
     # being computed, since they clearly aren't (since
     # the server just started).
     def set_not_computing(self):
-        for W in self.__workbooks.values():
+        for W in self.__worksheets.values():
             W.set_not_computing()
 
-    def default_workbook(self):
-        return self.__default_workbook
+    def default_worksheet(self):
+        return self.__default_worksheet
 
     def directory(self):
         return self.__dir
@@ -350,8 +350,8 @@ class Notebook(SageObject):
                            'cell_output_color':'#0000EE',
                            'word_wrap_cols':85}
 
-    def workbook_directory(self):
-        return self.__workbook_dir
+    def worksheet_directory(self):
+        return self.__worksheet_dir
 
     def object_directory(self):
         return self.__object_dir
@@ -374,35 +374,35 @@ class Notebook(SageObject):
 
     def __makedirs(self):
         os.makedirs(self.__dir)
-        os.makedirs(self.__workbook_dir)
+        os.makedirs(self.__worksheet_dir)
         os.makedirs(self.__object_dir)
 
-    def create_new_workbook(self, name='untitled'):
-        if name in self.__workbooks.keys():
+    def create_new_worksheet(self, name='untitled'):
+        if name in self.__worksheets.keys():
             raise ValueError, 'name (=%s) already taken.'%name
         name = str(name)
-        id = self.__next_workbook_id
-        if id >= MAX_WORKBOOKS:
-            raise ValueError, 'there can be at most %s workbooks'%MAX_WORKBOOKS
-        self.__next_workbook_id += 1
-        W = workbook.Workbook(name, self, id)
-        self.__workbooks[name] = W
+        id = self.__next_worksheet_id
+        if id >= MAX_WORKSHEETS:
+            raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
+        self.__next_worksheet_id += 1
+        W = worksheet.Worksheet(name, self, id)
+        self.__worksheets[name] = W
         return W
 
-    def workbook_names(self):
-        W = self.__workbooks.keys()
+    def worksheet_names(self):
+        W = self.__worksheets.keys()
         W.sort()
         return W
 
-    def get_workbook_with_id(self, id):
-        for W in self.__workbooks.itervalues():
+    def get_worksheet_with_id(self, id):
+        for W in self.__worksheets.itervalues():
             if W.id() == id:
                 return W
-        raise KeyError, "no workbook with id %s"%id
+        raise KeyError, "no worksheet with id %s"%id
 
-    def get_workbook_that_has_cell_with_id(self, id):
-        workbook_id = id // MAX_WORKBOOKS
-        return self.get_workbook_with_id(workbook_id)
+    def get_worksheet_that_has_cell_with_id(self, id):
+        worksheet_id = id // MAX_WORKSHEETS
+        return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
         if filename is None:
@@ -452,20 +452,20 @@ class Notebook(SageObject):
         notebook_server.serve()
         self.save()
 
-    def workbook_list_html(self, current_workbook):
+    def worksheet_list_html(self, current_worksheet):
         s = []
-        names = self.workbook_names()
+        names = self.worksheet_names()
         m = max([len(x) for x in names] + [30])
         for n in names:
-            W = self.__workbooks[n]
-            if W == current_workbook:
-                cls = 'workbook_current'
+            W = self.__worksheets[n]
+            if W == current_worksheet:
+                cls = 'worksheet_current'
             else:
-                cls = 'workbook_other'
+                cls = 'worksheet_other'
             if W.computing():
                 cls += '_computing' # actively computing
             name = W.name().replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_workbook(%s)" href="/%s">%s</a>'%(
+            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" href="/%s">%s</a>'%(
                 cls,W.id(),W.id(),name + '&nbsp;'*(m-len(W.name())))
             s.append(txt)
         return '<br>'.join(s)
@@ -476,9 +476,9 @@ class Notebook(SageObject):
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
         return head
 
-    def _html_body(self, workbook_id):
-        workbook = self.get_workbook_with_id(workbook_id)
-        if workbook.computing():
+    def _html_body(self, worksheet_id):
+        worksheet = self.get_worksheet_with_id(worksheet_id)
+        if worksheet.computing():
             interrupt_class = "interrupt"
         else:
             interrupt_class = "interrupt_grey"
@@ -488,7 +488,7 @@ class Notebook(SageObject):
         body = ''
         body += self._help_window()
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner">SAGE</span>\n'
+        body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
         body += '<a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
@@ -496,26 +496,26 @@ class Notebook(SageObject):
         body += '<a class="help" onClick="show_help_window()">Help</a>'
         body += '  </span>'
         body += '</div>'
-        body += '\n<div class="workbook" id="workbook">\n' + workbook.html() + '\n</div>\n'
+        body += '\n<div class="worksheet" id="worksheet">\n' + worksheet.html() + '\n</div>\n'
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="variables_topbar">Variables</div>\n'
         body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
-                workbook.variables_html()
+                worksheet.variables_html()
         body += '  <div class="attached_topbar">Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
-                workbook.attached_html()
-        body += '  <div class="workbooks_topbar">Workbooks&nbsp;&nbsp;&nbsp;'
-        body += '     <a onClick="add_new_workbook()" class="new_workbook">Add</a>\n'
-        body += '     <a onClick="upload_workbook()" class="upload_workbook">Upload</a>\n'
+                worksheet.attached_html()
+        body += '  <div class="worksheets_topbar">Worksheets&nbsp;&nbsp;&nbsp;'
+        body += '     <a onClick="add_new_worksheet()" class="new_worksheet">Add</a>\n'
+        body += '     <a onClick="upload_worksheet()" class="upload_worksheet">Upload</a>\n'
         body += '  </div>\n'
-        body += '  <div class="workbook_list">%s</div>\n'%self.workbook_list_html(workbook)
+        body += '  <div class="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
         body += '  <div class="objects_topbar">Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
         body += '</td></tr></table></span>\n'
-        body += '<script language=javascript>focus_on(%s)</script>\n'%(workbook[0].id())
+        body += '<script language=javascript>focus_on(%s)</script>\n'%(worksheet[0].id())
 
-        if workbook.computing():
+        if worksheet.computing():
             # Set the update checking back in motion.
             body += '<script language=javascript> check_for_cell_output() </script>\n'
 
@@ -523,16 +523,16 @@ class Notebook(SageObject):
 
     def _help_window(self):
         help = [('<b>Definitions</b>',
-                 'A <i>workbook</i> is an ordered list of SAGE calculations with output. ' +
-                 'A <i>session</i> is a workbook and a set of variables in some state. ' +
-                 'A <i>notebook</i> is a collection of workbooks and saved objects. '),
+                 'A <i>worksheet</i> is an ordered list of SAGE calculations with output. ' +
+                 'A <i>session</i> is a worksheet and a set of variables in some state. ' +
+                 'A <i>notebook</i> is a collection of worksheets and saved objects. '),
                 ('<b>Evaluate</b> Input', 'Press shift-enter.  You can start several calculations at once.'),
                 ('<b>Timed</b> Evaluation', 'Press control-enter.  The CPU and wall clock time are printed.'),
                 ('<b>Evaluate all</b> cells', 'Click <u>Evaluate All</u> in the upper right.'),
                 ('Evaluate using <b>GAP, Singular, etc.</b>', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
                 ('<b>Move</b> Around', 'Use tab and shift-tab (standard for web browsers).'),
                 ('<b>Interrupt</b> running calculations',
-                 'Click <u>Interrupt</u> in the upper right or press ctrl-c in any input cell. This will (attempt) to interrupt SAGE by sending control-c for several seconds; if this fails, it restarts SAGE (your workbook is unchanged, but your session is reset).'),
+                 'Click <u>Interrupt</u> in the upper right or press ctrl-c in any input cell. This will (attempt) to interrupt SAGE by sending control-c for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
                 ('<b>Completions</b> of last object in cell', 'Press the escape key.'),
                 ('<b>Completion</b> of word anywhere in input',
                   'Type ?c immediately after the word and press escape, e.g., "Ell?c"'),
@@ -551,12 +551,12 @@ class Notebook(SageObject):
                 ('<b>Variables</b>',
                  'All variables with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
                 ('<b>Objects</b>',
-                 'All objects that you save in <i>any workbook</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
-                ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of workbook).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+                 'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
+                ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
                 ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Saving <b>Workbooks</b>',
-                 '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a workbook.'),
+                ('Saving <b>Worksheets</b>',
+                 '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a worksheet.'),
                 ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.'),
                 ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
@@ -579,25 +579,25 @@ class Notebook(SageObject):
         return s
 
 
-    def html(self, workbook_id=None):
-        if workbook_id is None:
-            W = self.default_workbook()
-            workbook_id = W.id()
+    def html(self, worksheet_id=None):
+        if worksheet_id is None:
+            W = self.default_worksheet()
+            worksheet_id = W.id()
         else:
             try:
-                self.get_workbook_with_id(workbook_id)
+                self.get_worksheet_with_id(worksheet_id)
             except KeyError:
-                W = self.default_workbook()
-                workbook_id = W.id()
+                W = self.default_worksheet()
+                worksheet_id = W.id()
         head = self._html_head()
-        body = self._html_body(workbook_id)
+        body = self._html_body(worksheet_id)
         return """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
-        <script language=javascript>workbook_id=%s</script>
-        """%(head, body, workbook_id)
+        <script language=javascript>worksheet_id=%s</script>
+        """%(head, body, worksheet_id)
 
 
 def notebook(dir       ='sage_notebook',

@@ -1,4 +1,25 @@
+BUGS:
+ [] attached files list doesn't get updated
+ [] fails if load a deleted worksheet.
+ [] fails if worksheet 0 is deleted.
+ [] put the output in nowrap, then
+    import time
+    for i in range(100):
+       time.sleep(1)
+       print i
+ [] update attach list doesn't work.
+
+ [] tabbed worksheets.
+
+
 IDEAS:
+
+[] workbooks -- link
+
+[] keyboard access to variable.
+
+[] undelete -- with a countdown that is interruptable.
+
 [] i need to rethink the design of having multiple worksheets at once:
     possibilities:
         xx have multiple worksheet div's all in the html, each

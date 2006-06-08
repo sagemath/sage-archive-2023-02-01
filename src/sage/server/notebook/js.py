@@ -303,7 +303,8 @@ function cell_input_key_event(number, event) {
            return false;
        }
     }
-    else if (the_code == 27) {  // command completion
+    else if (the_code == 27 || (the_code==39 && event.ctrlKey)) {
+       // command completion
        evaluate_cell(number, 2);
        return false;
     }

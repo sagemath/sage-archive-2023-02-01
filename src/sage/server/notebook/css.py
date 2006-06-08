@@ -486,21 +486,25 @@ div.worksheet {
   overflow:auto;
   z-index:1;
   background-color: white;
-  border-top: 32px solid #c3d9ff;
+  border-top: 0px;
   border-left: 10px solid #c3d9ff;
   top: 36px;
   bottom: 0ex;
   right: 0ex;
   left: 205px;
-  padding-top: 0ex;
-  padding-left: 1ex;
+  padding-left: 0ex;
   float: right;
+  padding-top: 0ex;
 }
 
 span.worksheet_title {
+   z-index:2;
    padding-top: 3px;
+   padding-left: 1em;
+   background-color: #c3d9ff;
+   width: 100%;
    font-family:arial;
-   font-size:22px;
+   font-size: 22px;
    font-weight:bold;
    color:black;
    display:inline;
@@ -540,6 +544,13 @@ input.btn:hover {
 }
 
 /************ CELLS **************************/
+
+div.cellbox {
+  z-index:2;
+  background-color: white;
+  padding-left: .5em;
+  padding-top: 1.5em;
+}
 
 textarea.cell_input {
   background-color: white;

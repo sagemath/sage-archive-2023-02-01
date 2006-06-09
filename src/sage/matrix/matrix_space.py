@@ -163,10 +163,18 @@ class MatrixSpace_generic(gens.Generators):
     	sage: A = MS1.random_element()
     	sage: D = MS2.random_element()
 
-          Each following line throws the same error:
     	sage: coerce(MS1,A)
+        Traceback (most recent call last):
+        ...
+      	TypeError: number coercion failed
     	sage: coerce(MS2,D)
+        Traceback (most recent call last):
+        ...
+      	TypeError: number coercion failed
     	sage: coerce(MS2,1)
+        Traceback (most recent call last):
+        ...
+      	TypeError: number coercion failed
     	sage: coerce(D,1)
         Traceback (most recent call last):
         ...
@@ -299,7 +307,7 @@ class MatrixSpace_generic(gens.Generators):
     	[0 1 0 0]
     	[0 0 1 0]
     	[0 0 0 1]
-    	sage: Er = MS2.identity_matrix
+    	sage: Er = MS2.identity_matrix()
         Traceback (most recent call last):
         ...
     	TypeError: self must be a space of square matrices

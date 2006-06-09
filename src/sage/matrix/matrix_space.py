@@ -19,6 +19,21 @@ import sage.rings.integral_domain as integral_domain
 import sage.misc.latex as latex
 
 def is_MatrixSpace(x):
+    """
+    returns true if self is an instance of MatrixSpace
+    returns false if self is not an instance of MatrixSpace
+
+    EXAMPLES:
+	sage: MS = MatrixSpace(QQ,2)
+	sage: A = MS.random_element()
+	sage: is_MatrixSpace(MS)
+	True
+	sage: is_MatrixSpace(A)
+	False
+	sage: is_MatrixSpace(5)
+	False
+    """
+
     return isinstance(x, MatrixSpace_generic)
 
 __cache = {}
@@ -141,6 +156,22 @@ class MatrixSpace_generic(gens.Generators):
         return self.matrix(entries, coerce_entries, copy)
 
     def _coerce_(self, x):
+        """
+        ERROR:
+    	sage: MS1 = MatrixSpace(QQ,3)
+    	sage: MS2 = MatrixSpace(ZZ,4,5,true)
+    	sage: A = MS1.random_element()
+    	sage: D = MS2.random_element()
+
+          Each following line throws the same error:
+    	sage: coerce(MS1,A)
+    	sage: coerce(MS2,D)
+    	sage: coerce(MS2,1)
+    	sage: coerce(D,1)
+        Traceback (most recent call last):
+        ...
+      	TypeError: number coercion failed
+        """
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
                 raise TypeError, "cannot coerce sparse matrix into dense space for arithmetic"
@@ -156,6 +187,17 @@ class MatrixSpace_generic(gens.Generators):
         return -1
 
     def __repr__(self):
+        """
+        Returns the string representation of a MatrixSpace
+
+        EXAMPLES:
+    	sage: MS = MatrixSpace(ZZ,2,4,true)
+    	sage: repr(MS)
+    	'Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring'
+    	sage: MS
+    	Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring
+
+        """
         if self.is_sparse():
             s = "sparse"
         else:
@@ -164,16 +206,48 @@ class MatrixSpace_generic(gens.Generators):
                     self.__nrows, self.__ncols, s, self.__base_ring)
 
     def _latex_(self):
+        """
+        Returns the latex representation of a MatrixSpace
+
+        EXAMPLES:
+    	sage: MS3 = MatrixSpace(QQ,6,6,true)
+    	sage: latex(MS3)
+    	\mbox{\rm Mat}_{6\times 6}(\mbox{\bf{}Q})
+        """
         return "\\mbox{\\rm Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
 
     def _get_matrix_class(self):
+        """
+        Returns the class of self
+
+        EXAMPLES:
+        sage: MS1 = MatrixSpace(QQ,4)
+        sage: MS2 = MatrixSpace(ZZ,4,5,true)
+        sage: MS1._get_matrix_class()
+        <class 'sage.matrix.matrix.Matrix_dense_rational'>
+        sage: MS2._get_matrix_class()
+        <class 'sage.matrix.matrix.Matrix_sparse_integer'>
+        """
+
         if self.is_dense():
             return matrix.Matrix_generic_dense
         else:
             return matrix.Matrix_generic_sparse
 
     def base_ring(self):
+        """
+        Returns the base ring of a MatrixSpace
+
+        EXAMPLES:
+    	sage: MS3 = MatrixSpace(QQ,6,6,true)
+    	sage: MS4 = MatrixSpace(ZZ,3,5,false)
+    	sage: MS3.base_ring()
+    	Rational Field
+    	sage: base_ring(MS4)
+    	Integer Ring
+        """
+
         return self.__base_ring
 
     def basis(self):
@@ -190,12 +264,47 @@ class MatrixSpace_generic(gens.Generators):
             return self.__basis
 
     def dimension(self):
+        """
+        Returns (m rows) * (n cols) of self as Integer
+
+        EXAMPLES:
+     	sage: MS = MatrixSpace(ZZ,4,6)
+    	sage: u = MS.dimension()
+    	sage: u - 24 == 0
+    	True
+        """
         return self.__nrows * self.__ncols
 
     def dims(self):
+        """
+        Returns (m row, n col) representation of self dimension
+
+        EXAMPLES:
+    	sage: MS = MatrixSpace(ZZ,4,6)
+    	sage: MS.dims()
+    	(4, 6)
+        """
         return (self.__nrows, self.__ncols)
 
     def identity_matrix(self):
+        """
+        Create an identity matrix in self.  (Must be a space of square matrices).
+
+        EXAMPLES:
+    	sage: MS1 = MatrixSpace(ZZ,4)
+    	sage: MS2 = MatrixSpace(QQ,3,4)
+    	sage: I = MS1.identity_matrix()
+    	sage: I
+    	[1 0 0 0]
+    	[0 1 0 0]
+    	[0 0 1 0]
+    	[0 0 0 1]
+    	sage: Er = MS2.identity_matrix
+        Traceback (most recent call last):
+        ...
+    	TypeError: self must be a space of square matrices
+        """
+
         if self.__nrows != self.__ncols:
             raise TypeError, "self must be a space of square matrices"
         A = self(0)
@@ -204,9 +313,17 @@ class MatrixSpace_generic(gens.Generators):
         return A
 
     def is_dense(self):
+        """
+        Returns true if self is dense
+        Returns false if self is sparse
+        """
         return not self.__is_sparse
 
     def is_sparse(self):
+        """
+        Returns true if self is sparse
+        Returns false if self is dense
+        """
         return self.__is_sparse
 
     def gen(self, n):
@@ -222,13 +339,13 @@ class MatrixSpace_generic(gens.Generators):
         lists.
 
         EXAMPLES:
-            sage: M = MatrixSpace(ZZ, 2)
-            sage: M([[1,0],[0,-1]])
-            [ 1  0]
-            [ 0 -1]
-            sage: M([1,0,0,-1])
-            [ 1  0]
-            [ 0 -1]
+        sage: M = MatrixSpace(ZZ, 2)
+        sage: M([[1,0],[0,-1]])
+        [ 1  0]
+        [ 0 -1]
+        sage: M([1,0,0,-1])
+        [ 1  0]
+        [ 0 -1]
 
         """
         if isinstance(x, xrange):

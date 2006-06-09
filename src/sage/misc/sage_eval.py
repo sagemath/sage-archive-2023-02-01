@@ -30,6 +30,13 @@ def sage_eval(_obj_, extra_locals={}):
         sage: sage_eval('2^3')
         8
 
+    Note that you have explicitly define variables and pass
+    them as the second option:
+
+        sage: x = PolynomialRing(RationalField(),"x").gen()
+        sage: sage_eval('x^2+1', {'x':x})
+        x^2 + 1
+
     This illustrates interfaces:
         sage: f = gp('2/3')
         sage: type(f)

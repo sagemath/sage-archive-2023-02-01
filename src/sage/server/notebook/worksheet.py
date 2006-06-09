@@ -151,7 +151,7 @@ class Worksheet:
             S.eval('__SAGENB__globals = set(globals().keys())')
             object_directory = os.path.abspath(self.__notebook.object_directory())
             verbose(object_directory)
-            S.eval('_support_.init("%s")'%object_directory)
+            S.eval('_support_.init("%s", globals())'%object_directory)
             S.eval('print ""')
             S.eval('print ""')
             S.eval('print ""')
@@ -581,18 +581,20 @@ class Worksheet:
             self.__sage
         except AttributeError:
             return []
+        if self.__comp_is_running:
+            return []  # can't get the info.
         if with_types:
             try:
                 return self.__variables
             except AttributeError:
                 pass
-            cmd = '",".join(["%s-%s"%(__x__,type(globals()[__x__])) for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_" and str(type(globals()[__x__])) != "<type \'function\'>"])'
+            cmd = '_support_.variables(True)'
             S = self.sage()
             v = S.eval(cmd)[1:-1]
-            v = v.replace("<type '","").replace("<class '","").replace("'>","")
+            v = v.replace("<type '","").replace("<class '","").replace("'>","").replace('"','')
         else:
-            cmd = '",".join([__x__ for __x__ in globals().keys() if not __x__ in __SAGENB__globals and __x__[0] != "_" and str(type(globals()[__x__])) != "<type \'function\'>"])'
             S = self.sage()
+            cmd = '_support_.variables(False)'
             v = S.eval(cmd)[1:-1]
         w = v.split(',')
         w.sort()

@@ -14,14 +14,21 @@ import sage.misc.sagedoc as sagedoc
 # Initialization
 ######################################################################
 
-def init(object_directory=None):
+sage_globals = None
+globals_at_init = None
+
+def init(object_directory=None, globs={}):
     """
     Initialize SAGE for use with the web notebook interface.
     """
+    global sage_globals, globals_at_init
+    sage_globals = globs
+    globals_at_init = set(globs.keys())
     sage.plot.plot.EMBEDDED_MODE = True
     if object_directory:
         sage.ext.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
+
 
 
 ######################################################################
@@ -169,3 +176,13 @@ def load_session(v, filename, state):
             D[k] = x
     print "Saving variables to %s"%filename
     sage.ext.sage_object.save(D, filename)
+
+
+def variables(with_types=True):
+    if with_types:
+        w = ['%s-%s'%(x,type(v)) for x, v in sage_globals.iteritems() if not \
+             x in globals_at_init and x[0] != '_' and str(type(v)) != "<type 'function'>"]
+    else:
+        w = [x for x, v in sage_globals.iteritems() if not \
+                 x in globals_at_init and x[0] != '_' and str(type(v)) != "<type 'function'>"]
+    return w

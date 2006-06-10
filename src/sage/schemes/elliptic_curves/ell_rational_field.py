@@ -43,6 +43,8 @@ import sage.libs.mwrank.all as mwrank
 import constructor
 from sage.interfaces.all import gp
 
+import mod5family
+
 from sage.rings.all import (
     PowerSeriesRing, O,
     infinity as oo,
@@ -961,7 +963,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def ngens(self):
         return len(self.gens())
 
-    def regulator(self, use_database=False, verbose=None):
+    def regulator(self, use_database=True, verbose=None):
         """
         Returns the regulator of this curve, which must be defined
         over Q.
@@ -982,7 +984,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         except AttributeError:
             if use_database:
                 try:
-                    return R(self.database_curve().db_extra[3])
+                    self.__regulator = R(self.database_curve().db_extra[3])
+                    return self.__regulator
                 except AttributeError, RuntimeError:
                     pass
             G = self.gens()
@@ -3288,7 +3291,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def padic_E2(self, p, prec=20):
         """
-        Return the value of the $p$-adic
+        Return the value of the $p$-adic.
         """
         p = self.__check_padic_hypotheses(p)
         c4, c6 = self.c_invariants()
@@ -3310,6 +3313,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     #    a1, a2, a3, a4, a6 = self.ainvs()
     #   misc.todo("Implement genuine computation of sigma.")
     #    return t + a1/2 * t**2 + (a1**2+a2)/3 * t**3 + (a1**3+2*a1*a2+2*a3)/4 * t**4 + O(t**5)
+
+
+    def mod5family(self):
+        """
+        Return the family of all elliptic curves with the same mod-5
+        representation as self.
+        """
+        E = self.weierstrass_model()
+        a = E.a4()
+        b = E.a6()
+        return mod5family.mod5family(a,b)
 
 
 def cremona_curves(conductors):

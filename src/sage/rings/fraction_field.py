@@ -113,7 +113,7 @@ class FractionField_generic(field.Field):
         if isinstance(x, fraction_field_element.FractionFieldElement) \
            and x.parent() == self:
             return x
-        if x in self.ring():
+        if x.parent() == self.ring():
             return self(x)
         raise TypeError, "no canonical coercion of x(=%s) into %s"%(x,self)
 

@@ -214,6 +214,11 @@ class Worksheet:
             return
 
         D = C.directory()
+        V = self.known_variables()
+        if C.input_text() == 'restart' and not 'restart' in V:
+            self.restart_sage()
+            return
+
         S = self.sage()
 
 
@@ -313,6 +318,22 @@ class Worksheet:
             C.interrupt()
 
         return success
+
+    def restart_sage(self):
+        """
+        Restart SAGE kernel.
+        """
+        # stop the current computation in the running SAGE
+        try:
+            S = self.__sage
+        except AttributeError:
+            # no sage running anyways!
+            return
+        del self.__sage
+
+        # empty the queue
+        for C in self.__queue:
+            C.interrupt()
 
     def postprocess_output(self, out, completions=False):
         i = out.find('\r\n')
@@ -583,17 +604,16 @@ class Worksheet:
             return []
         if self.__comp_is_running:
             return []  # can't get the info.
+        S = self.sage()
         if with_types:
             try:
                 return self.__variables
             except AttributeError:
                 pass
             cmd = '_support_.variables(True)'
-            S = self.sage()
             v = S.eval(cmd)[1:-1]
             v = v.replace("<type '","").replace("<class '","").replace("'>","").replace('"','')
         else:
-            S = self.sage()
             cmd = '_support_.variables(False)'
             v = S.eval(cmd)[1:-1]
         w = v.split(',')

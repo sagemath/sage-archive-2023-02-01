@@ -516,6 +516,8 @@ def gap_reset_workspace(max_workspace_size=None):
 
 class GapElement(ExpectElement):
     def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
         return GapFunctionElement(self, attrname)
 
     def __getitem__(self, n):

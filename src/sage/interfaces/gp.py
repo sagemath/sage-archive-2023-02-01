@@ -310,6 +310,8 @@ class GpElement(ExpectElement):
 
     def __getattr__(self, attrname):
         self._check_valid()
+        if attrname[:1] == "_":
+            raise AttributeError
         return GpFunctionElement(self, attrname)
 
     def __del__(self):

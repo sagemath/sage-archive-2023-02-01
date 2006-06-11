@@ -403,6 +403,8 @@ class MathematicaElement(ExpectElement):
 
     def __getattr__(self, attrname):
         self._check_valid()
+        if attrname[:1] == "_":
+            raise AttributeError
         return MathematicaFunctionElement(self, attrname)
 
     def __float__(self):

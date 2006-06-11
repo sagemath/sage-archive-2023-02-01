@@ -683,6 +683,8 @@ class SingularElement(ExpectElement):
         self._session_number = parent._session_number
 
     def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
         return SingularFunctionElement(self, attrname)
 
     def __len__(self):

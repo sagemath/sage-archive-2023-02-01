@@ -420,6 +420,8 @@ class MagmaFunction(ExpectFunction):
 
 class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
         return MagmaFunctionElement(self, attrname)
 
     def evaluate(self, *args):

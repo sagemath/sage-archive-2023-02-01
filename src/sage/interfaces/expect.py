@@ -703,6 +703,8 @@ class ExpectElement(Element_cmp_, RingElement):
 
     def __getattr__(self, attrname):
         self._check_valid()
+        if attrname[:1] == "_":
+            raise AttributeError
         return FunctionElement(self, attrname)
 
     def hasattr(self, attrname):

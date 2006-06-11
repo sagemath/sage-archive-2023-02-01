@@ -46,24 +46,42 @@ include 'interrupt.pxi'
 
 include 'misc.pxi'
 
+from sage.rings.coerce import bin_op
+import operator
+
+cdef class GFq_element # forward declaration
+
 cdef class GFq:
     cdef void *thisptr
+    cdef GFq_element _gen
+    cdef int iterator
+    cdef int repr
+    cdef char variable[2]
 
-    def __init__(GFq self, int p, int k=1, poly=None):
+    def __init__(GFq self, int p, int k=1, poly=None, repr="int", variable="a"):
         """
         Givaro Finite Field. These are implemented using Zech logs and
         therefor the cardinality must be < 2^20.
 
         INPUT:
-            p    -- characteristic
-            k    -- exponent (default:1)
-            poly -- you may provide a minimal polynomial to use for
-                    reduction. (default: None, so a random polynomial will be
-                    used by the Givaro library)
+            p        -- characteristic
+            k        -- exponent (default:1)
+            poly     -- you may provide a minimal polynomial to use for
+                        reduction. (default: None, so a random polynomial will be
+                        used by the Givaro library)
+            repr     -- controls the way elements are represented to the user:
+                        'log': repr is element.log_repr()
+                        'int': repr is element.int_repr()
+                        'poly': repr is element.poly_repr()
+                        (default: 'int')
+            variable -- variable used for poly_repr (default: 'a')
 
         OUTPUT:
             Givaro finite field with characteristic p and cardinality p^n.
         """
+
+        from sage.rings.polynomial_element import is_Polynomial
+
         #embed{ void *GFq_initpk(int p, int k)
         return new GivaroGfq(p,k);
         #}embed
@@ -74,11 +92,24 @@ cdef class GFq:
 
         cdef void *cPoly
 
+        if repr=='poly':
+            self.repr = 0
+        elif repr=='log':
+            self.repr = 1
+        else:
+            self.repr = 2
+
+        self.variable[0] = ord(variable[0])
+        self.variable[1] = 0
+
         if poly==None:
             _sig_on
             self.thisptr = GFq_initpk(p,k)
             _sig_off
-        elif isinstance(poly,list) or isinstance(poly,tuple):
+            return
+        elif is_Polynomial(poly):
+            poly = poly.list()
+        if isinstance(poly,list) or isinstance(poly,tuple):
             #embed{ void *vec_init(int len)
             vector<integer> *cPoly = new vector<integer>(len);
             return cPoly;
@@ -100,8 +131,12 @@ cdef class GFq:
             _sig_on
             self.thisptr = GFq_initpkp(p,k,cPoly)
             _sig_off
-
             vec_del(cPoly)
+            return
+
+        raise TypeError, "Cannot understand %s"%(poly)
+
+
 
     def __dealloc__(GFq self):
         """
@@ -115,7 +150,7 @@ cdef class GFq:
         delete_GFq(self.thisptr)
 
     def __repr__(GFq self):
-        return "Givaro Finite Field of size %d^%d"%(self.characteristic(),self.exponent())
+        return "Givaro Finite Field of size %d^%d"%(self.characteristic(),self.degree())
 
 
 ##     def residu(GFq self):
@@ -160,7 +195,7 @@ cdef class GFq:
 
         return int(GFq_cardinality(self.thisptr))
 
-    def exponent(GFq self):
+    def degree(GFq self):
         """
         If self.cardinality() == p^n this method returns n.
 
@@ -173,14 +208,37 @@ cdef class GFq:
 
         return int(GFq_exponent(self.thisptr))
 
-##     def size(GFq self):
-##         """
-##         """
-##         #embed{ int GFq_size(void *obj)
-##         return ((GivaroGfq*)obj)->size();
-##         #}embed
 
-##         return int(GFq_size(self.thisptr))
+##     def is_ring(GFq self):
+##         return True
+
+##     def is_integral_domain(GFq self):
+##         return True
+
+##     def is_principal_ideal_domain(GFq self):
+##         return True
+
+    def is_field(GFq self):
+        return True
+
+    def is_finite(GFq self):
+        return True
+
+    def is_prime(GFq self):
+        return self.degree()==1
+
+    def is_prime_field(GFq self):
+        #TODO: what's the difference to the above method?
+        return self.degree()==1
+
+    def is_commutative(GFq self):
+        return True
+
+    def is_atomic_repr(GFq self):
+        if self.repr==0: #poly
+            return False
+        else:
+            return True
 
     def is_prime_field(GFq self):
         """
@@ -226,6 +284,8 @@ cdef class GFq:
 
 
         cdef int res
+        cdef int g
+        cdef int x
 
         if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long):
             res = GFq_element_initi(self.thisptr,int(e))
@@ -236,15 +296,21 @@ cdef class GFq:
         elif isinstance(e,FiniteFieldElement):
             e = e._pari_().lift().lift()
             res = self.int2log(e[0])
+            g = GFq_gen(self.thisptr)
 
             for i from 0 < i <= e.poldegree():
                 # -- axpyin: r <- r + a * x mod p
                 #embed{ int GFq_element_axpyin(void *field, int r, int a, int x)
                 return ((GivaroGfq*)field)->axpyin(r,a,x);
                 #}embed
-
-                res = GFq_element_axpyin(self.thisptr, res, self.int2log(e[i]) , i)
-
+                x = GFq_element_pow(self.thisptr, g, i);
+                res = GFq_element_axpyin(self.thisptr, res, self.int2log(e[i]) , x)
+        elif isinstance(e,GFq_element) and e.parent() == self:
+            return e
+        elif isinstance(e,str):
+            return eval(e.replace("^","**"),{str(self.variable):self.gen()})
+        else:
+            raise TypeError, "Cannot convert %s of type %s into %s"%(e,type(e),self)
         return make_GFq_element(self,res)
 
     def one(GFq self):
@@ -273,7 +339,15 @@ cdef class GFq:
         Returns a generator of self. All elements x of self are
         expressed as log_{self.gen()}(p) internally.
         """
-        return make_GFq_element(self,1)
+        #embed{ int GFq_gen(void *field)
+        int e;
+        return ((GivaroGfq*)field)->gen(e);
+        #}embed
+        if self._gen:
+            return self._gen
+        else:
+            self._gen =  make_GFq_element(self,GFq_gen(self.thisptr))
+            return self._gen
 
     def log2int(GFq self, int p):
         """
@@ -290,7 +364,12 @@ cdef class GFq:
         int res;
         return ((GivaroGfq*)field)->write(res,p);
         #}embed
-        return int(GFq_write(self.thisptr,p))
+        if p<0:
+            raise ArithmeticError, "Cannot deal with negative exponents"
+        _sig_on
+        ret = int(GFq_write(self.thisptr,p))
+        _sig_off
+        return ret
 
     def int2log(GFq self, int p):
         """
@@ -307,7 +386,10 @@ cdef class GFq:
         int res;
         return ((GivaroGfq*)field)->read(res,p);
         #}embed
-        return int(GFq_read(self.thisptr,p))
+        _sig_on
+        ret =  int(GFq_read(self.thisptr,p))
+        _sig_off
+        return ret
 
     def polynomial(self):
         """
@@ -316,16 +398,21 @@ cdef class GFq:
         from sage.rings.polynomial_ring import PolynomialRing
         from sage.rings.finite_field import GF
 
-        quo = int(self.gen()**self.exponent())
-        b = self.characteristic()
+        quo = int(-(self.gen()**(self.degree())))
+        b   = int(self.characteristic())
 
         ret = []
-        for i from 0 <= i < self.exponent():
-            quo,rem = quo/b,quo%b
-            ret.append(rem)
-        ret = ret +[1]
+        for i in range(self.degree()):
+            ret.append(quo%b)
+            quo = quo/b
+        ret = ret + [1]
         return PolynomialRing(GF(self.characteristic()))(ret)
 
+    def modulus(self):
+        """
+        Minimal polynomial of self.
+        """
+        return self.polynomial()
 
     def _sage_(self):
         """
@@ -335,7 +422,129 @@ cdef class GFq:
         from sage.rings.finite_field import FiniteField_ext_pari
         return FiniteField_ext_pari(self.cardinality(),'a',self.polynomial())
 
-FiniteField_ext_givaro = GFq
+    def prime_subfield(self):
+        """
+        """
+        return GFq(self.characteristic())
+
+    def vector_space(GFq_element self):
+        """
+        """
+        import sage.modules.all
+        V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
+        return V
+
+    def __iter__(GFq self):
+        return GFq_iterator(self)
+
+    def __cmp__(GFq self, other):
+        if not isinstance(other,GFq):
+            return 1
+        if self.characteristic()!=other.characteristic():
+            return 1
+        if self.degree()!=other.degree():
+            return 1
+        if self.polynomial()!=other.polynomial():
+            return 1
+        return 0
+
+    def __hash__(GFq self):
+        """
+        """
+        return hash((self.characteristic(),self.polynomial(),"givaro"))
+
+
+    def _element_repr(GFq self, GFq_element e):
+        """
+        Wrapper for log,int, and poly representations.
+        """
+        if self.repr==0:
+            return self._element_poly_repr(e)
+        elif self.repr==1:
+            return self._element_log_repr(e)
+        else:
+            return self._element_int_repr(e)
+
+    def _element_log_repr(GFq self, GFq_element e):
+        """
+        Returns str(i) where base.gen()^i=self
+        """
+        return str(int(e.this))
+
+    def _element_int_repr(GFq self, GFq_element e):
+        """
+	elements of this field will be written in the following
+        manner: for e in ZZp[x] with e = a0 + a1x + a2x^2 + ..., e is
+        represented as: 'n' where n = a0 + a1 * p + a2 * p^2 + ...
+
+        """
+        return str(int(e))
+
+    def _element_poly_repr(GFq self, GFq_element e):
+        """
+        Returns a polynomial expression in base.gen() of self.
+        """
+        variable = str(self.variable)
+
+        quo = self.log2int(e.this)
+        b   = int(self.characteristic())
+
+        ret = ""
+        for i in range(self.degree()):
+            coeff = quo%b
+            if coeff != 0:
+                if i>0:
+                    if coeff==1:
+                        coeff=""
+                    else:
+                        coeff=str(coeff)+"*"
+                    if i>1:
+                        ret = coeff + variable + "^" + str(i) + " + " + ret
+                    else:
+                        ret = coeff + variable + " + " + ret
+                else:
+                    ret = str(coeff) + " + " + ret
+            quo = quo/b
+        if ret == '':
+            return "0"
+        return ret[:-3]
+
+cdef class GFq_iterator:
+    """
+    Iterator implementation
+    """
+    cdef int iterator
+    cdef GFq _parent
+
+    def __init__(self,parent):
+        self._parent = parent
+        self.iterator = -1
+
+    def __next__(self):
+        """
+        """
+
+        self.iterator=self.iterator+1
+
+        if self.iterator==self._parent.cardinality():
+            self.iterator = -1
+            raise StopIteration
+
+        return make_GFq_element(self._parent,self.iterator)
+
+    def __repr__(self):
+        return "Iterator over %s"%self._parent
+
+cdef GFq_copy(GFq orig):
+    cdef GFq copy
+    copy = GFq(orig.characteristic(),orig.degree())
+    delete_GFq(copy.thisptr)
+    #embed{ void *GFq_cpy(void *orig)
+    return new GivaroGfq(*(GivaroGfq*)orig);
+    #}embed
+    copy.thisptr = GFq_cpy(orig.thisptr)
+    copy.iterator = orig.iterator
+    return copy
 
 cdef class GFq_element:
     cdef int this
@@ -370,28 +579,13 @@ cdef class GFq_element:
         pass
 
     def __repr__(GFq_element self):
-        """
-	In LinBox, all Elements of a field will be written in the
-	following manner: for e in ZZp[x] with e = a0 + a1x + a2x^2
-	+ ..., e is represented as: 'n' where n = a0 + a1 * p + a2 *
-	p^2 + ...
-
-        This repesentation is basically base.log2int(self.logrepr()).
-        """
-        return str(self._parent.log2int(self.this))
+        return self._parent._element_repr(self)
 
     def parent(self):
         """
         Returns parent finite field.
         """
         return self._parent
-
-    def logrepr(GFq_element self):
-        """
-        Returns i where base.gen()^i=self
-        """
-        return int(self.this)
-
 
     def is_zero(GFq_element self):
         """
@@ -421,7 +615,7 @@ cdef class GFq_element:
         return bool(GFq_is_unit(self._parent.thisptr,self.this))
 
 
-    def __add__(GFq_element self, GFq_element other):
+    def __add__(GFq_element self, other):
         #embed{ int GFq_element_add(void *field, int x, int y)
         GivaroGfq::Element r;
         return ((GivaroGfq*)field)->add(r,x,y);
@@ -429,8 +623,77 @@ cdef class GFq_element:
 
         cdef int r
 
-        r = GFq_element_add(self._parent.thisptr, self.this , other.this )
+        if not isinstance(other,GFq_element):
+            return bin_op(self,other,operator.add)
+        else:
+            r = GFq_element_add(self._parent.thisptr, self.this , (<GFq_element>other).this )
+            return make_GFq_element(self._parent,r)
+
+
+    def __mul__(GFq_element self, other):
+        #embed{ int GFq_element_mul(void *field, int x, int y)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->mul(r, x, y);
+        #}embed
+
+        cdef int r
+
+        if not isinstance(other,GFq_element):
+            return bin_op(self,other,operator.mul)
+        else:
+            r = GFq_element_mul(self._parent.thisptr, self.this, (<GFq_element>other).this)
+            return make_GFq_element(self._parent,r)
+
+    def __div__(GFq_element self, other):
+        #embed{ int GFq_element_div(void *field, int x, int y)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->div(r, x, y);
+        #}embed
+
+        cdef int r
+
+        if not isinstance(other,GFq_element):
+            return bin_op(self,other,operator.div)
+        else:
+            r = GFq_element_div(self._parent.thisptr, self.this, (<GFq_element>other).this)
+            return make_GFq_element(self._parent,r)
+
+    def __sub__(GFq_element self, other):
+        #embed{ int GFq_element_sub(void *field, int x, int y)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->sub(r, x, y);
+        #}embed
+
+        cdef int r
+
+        if not isinstance(other,GFq_element):
+            return bin_op(self,other,operator.sub)
+        else:
+            r = GFq_element_sub(self._parent.thisptr, self.this, (<GFq_element>other).this)
+            return make_GFq_element(self._parent,r)
+
+    def __neg__(GFq_element self):
+        #embed{ int GFq_element_neg(void *field, int x)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->neg(r, x);
+        #}embed
+
+        cdef int r
+
+        r = GFq_element_neg(self._parent.thisptr, self.this)
         return make_GFq_element(self._parent,r)
+
+    def __invert__(GFq_element self):
+        #embed{ int GFq_element_inv(void *field, int x)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->inv(r, x);
+        #}embed
+
+        cdef int r
+
+        r = GFq_element_inv(self._parent.thisptr, self.this)
+        return make_GFq_element(self._parent,r)
+
 
     def __pow__(GFq_element self, int exp, other):
         #There doesn't seem to exist a power function for GFq. So we
@@ -463,57 +726,63 @@ cdef class GFq_element:
         r = GFq_element_pow(self._parent.thisptr, self.this , exp )
         return make_GFq_element(self._parent,r)
 
-    def __mul__(GFq_element self, GFq_element other):
-        #embed{ int GFq_element_mul(void *field, int x, int y)
-        GivaroGfq::Element r;
-        return ((GivaroGfq*)field)->mul(r, x, y);
-        #}embed
+    def __cmp__(self, other):
+        return cmp(int(self),int(other))
 
-        cdef int r
-
-        r = GFq_element_mul(self._parent.thisptr, self.this, other.this)
-        return make_GFq_element(self._parent,r)
-
-    def __div__(GFq_element self, GFq_element other):
-        #embed{ int GFq_element_div(void *field, int x, int y)
-        GivaroGfq::Element r;
-        return ((GivaroGfq*)field)->div(r, x, y);
-        #}embed
-
-        cdef int r
-
-        r = GFq_element_div(self._parent.thisptr, self.this, other.this)
-        return make_GFq_element(self._parent,r)
-
-    def __sub__(GFq_element self, GFq_element other):
-        #embed{ int GFq_element_sub(void *field, int x, int y)
-        GivaroGfq::Element r;
-        return ((GivaroGfq*)field)->sub(r, x, y);
-        #}embed
-
-        cdef int r
-
-        r = GFq_element_sub(self._parent.thisptr, self.this, other.this)
-        return make_GFq_element(self._parent,r)
-
-    def __neg__(GFq_element self):
-        #embed{ int GFq_element_neg(void *field, int x)
-        GivaroGfq::Element r;
-        return ((GivaroGfq*)field)->neg(r, x);
-        #}embed
-
-        cdef int r
-
-        r = GFq_element_neg(self._parent.thisptr, self.this)
-        return make_GFq_element(self._parent,r)
+    def __richcmp__(self, right, int op):
+        if op == 0:  #<
+            try:
+                return bool(int(self) < int(right))
+            except:
+                return False
+        if op == 2: #==
+            try:
+                return bool(int(self) == int(right))
+            except:
+                return False
+        if op == 4: #>
+            try:
+                return bool(int(self) > int(right))
+            except:
+                return False
+        if op == 1: #<=
+            try:
+                return bool(int(self) <= int(right))
+            except:
+                return False
+        if op == 3: #!=
+            try:
+                return bool(int(self) != int(right))
+            except:
+                return True
+        if op == 5: #>=
+            try:
+                return bool(int(self) >= int(right))
+            except:
+                return False
 
     def __int__(GFq_element self):
         """
         Returns self coerced to an int. The integer returned is
-        equivalent to the representation of self and not to logrepr.
+        equivalent to the representation of self and not to log_repr.
         """
         return self._parent.log2int(self.this)
 
+
+    def log(GFq_element self):
+        """
+        Returns i where base.gen()^i=self
+        """
+        return int(self.this)
+
+    def int_repr(GFq_element self):
+        return self._parent._element_int_repr(self)
+
+    def log_repr(GFq_element self):
+        return self._parent._element_log_repr(self)
+
+    def poly_repr(GFq_element self):
+        return self._parent._element_poly_repr(self)
 
     def _sage_(GFq_element self, k):
         """
@@ -524,13 +793,26 @@ cdef class GFq_element:
             k -- SAGE finite field
 
         OUTPUT:
-            k.gen()^(self.logrepr())
+            k.gen()^(self.log_repr())
 
-        \note{This method is slow}
         """
-        # TODO: check whether integer base conversion and direct
-        # construction of the pari elements is faster
-        return k.gen()**self.this
+        variable = k.gen()._pari_()
+
+        quo = int(self)
+        b   = self._parent.characteristic()
+
+        ret = k._pari_one() - k._pari_one()
+        i = 0
+        while quo!=0:
+            coeff = quo%b
+            if coeff != 0:
+                ret = coeff * variable ** i + ret
+            quo = quo/b
+            i = i+1
+        return k(ret)
+
+    def __hash__(GFq_element self):
+        return hash((self._parent,self.this))
 
 cdef make_GFq_element(GFq parent, int x):
     """

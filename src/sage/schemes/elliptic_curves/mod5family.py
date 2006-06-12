@@ -1,7 +1,16 @@
+
 from sage.rings.all import PolynomialRing, QQ, FractionField, lcm
 from constructor import EllipticCurve
 
 def mod5family(a,b):
+    """
+    Formulas for computing the family of elliptic curves with
+    congruent mod-5 representation.
+
+    AUTHORS:
+        -- Alice Silverberg and Karl Rubin (original PARI/GP version)
+        -- William Stein -- SAGE version.
+    """
     J = 4*a**3 / (4*a**3+27*b**2)
 
     alpha = [0 for _ in range(21)]

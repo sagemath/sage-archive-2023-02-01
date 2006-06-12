@@ -1,10 +1,10 @@
-from sage.rings.all import CommutativeRing, RealField, is_Polynomial
+from sage.rings.all import CommutativeRing, RealField, is_Polynomial, is_RealNumber, is_ComplexNumber
 import sage.rings.all
 from sage.structure.all import RingElement, Element_cmp_
 import operator
 from sage.misc.latex import latex
 import constants
-from sage.interfaces.all import maxima
+from sage.interfaces.maxima import maxima, MaximaFunction
 
 RR = RealField(53)
 
@@ -108,7 +108,7 @@ class Function(Element_cmp_, RingElement):
 
         try:
             return self._call_(x)
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
         return Function_at(self, x)
 
@@ -261,7 +261,7 @@ class Function_composition(Function):
         return '%s(%s)'%(self.__f, self.__g)
 
     def _latex_(self):
-        return '%s(%s)'%(latex(self.__f), latex(self.__g))
+        return '%s\\left(%s\\right)'%(latex(self.__f), latex(self.__g))
 
     def _call_(self, x):
         return self.__f(self.__g(x))
@@ -584,8 +584,56 @@ class Function_cos(Function):
 cos = Function_cos()
 
 
+class Function_exp(Function):
+    def __init__(self):
+        Function.__init__(self,
+            {'maxima':'exp', 'mathematica':'Exp'})
+
+    def _repr_(self):
+        return "expo"
+
+    def _latex_(self):
+        return "\\exp"
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _call_(self, x):
+        return x.exp()
+
+    def integral(self):
+        return expo
+
+expo = Function_exp()
+
+class Function_gamma(Function):
+    def __init__(self):
+        Function.__init__(self,
+            {'maxima':'gamma', 'mathematica':'Gamma'})
+    ## the Maxima notation for the Euler-Mascheroni constant is %gamma.
+
+    def _repr_(self):
+        return "Gamma"
+
+    def _latex_(self):
+        return "\\Gamma"
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _call_(self, x):
+        return x.gamma()
+
+    def integral(self):
+        raise NotImplementedError
+
+gamma_function = Function_gamma()
+
+
 class Function_maxima(Function):
     def __init__(self, x):
+        if not isinstance(x, MaximaFunction):
+            raise TypeError, "x (=%s) must be a MaximaFunction"
         Function.__init__(self, {'maxima':str(x)})
         self.__x = x
         self.__name = x.name()
@@ -595,14 +643,15 @@ class Function_maxima(Function):
         return str(self.__x)
 
     def _latex_(self):
-        return x._latex_()
+        return self.__x._latex_()
 
     def _mpfr_(self, R):
         raise TypeError
 
-    def _call_(self, x):
-        return float(self.__p.eval('%s(%s)'%(self.__name, x)))
-        #return self.__x(x)
+    def _call_(self, z):
+        if is_RealNumber(z) or is_ComplexNumber(z):
+            return z.parent()(self.__x(z))
+        raise TypeError
 
     def integral(self):
         return Function_maxima(self.__x.integrate())
@@ -610,3 +659,8 @@ class Function_maxima(Function):
 #def maxima_function(s):
 #    return Function_maxima(maxima(s))
 
+airy_ai = Function_maxima(maxima.function('x','airy_ai(x)',repr='airy_ai', latex='A_i'))
+airy_ai.__doc__ = "this is the first doc"
+
+airy_bi = Function_maxima(maxima.function('x','airy_bi(x)',repr='airy_bi', latex='B_i'))
+airy_bi.__doc__ = "this is the first doc"

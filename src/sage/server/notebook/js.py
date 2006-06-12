@@ -31,36 +31,26 @@ cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
 
-var asyncObj
+var asyncObj;
+var no_async = false;
+var userAgent = navigator.userAgent.toLowerCase();
 function getAsyncObject(handler) {
-  var asyncObj=null
-
-  if (navigator.userAgent.indexOf("Opera")>=0) {
-    asyncObj=new XMLHttpRequest();
-    asyncObj.onload=handler;
-    asyncObj.onerror=handler;
-    return asyncObj;
-  }
-  if (navigator.userAgent.indexOf("MSIE")>=0) {
-    var strName = "Msxml2.XMLHTTP";
-    if (navigator.appVersion.indexOf("MSIE 5.5")>=0) {
-      strName = "Microsoft.XMLHTTP";
-    }
-    try {
-      asyncObj = new ActiveXObject(strName);
+  asyncObj=null
+  try {
+    if (userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1) {
+      var s =(userAgent.indexOf("msie 5")!=-1)?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
+      asyncObj = new ActiveXObject(s);
       asyncObj.onreadystatechange = handler;
-      return objXmlHttp;
+      return asyncObj;
+    } else {
+      asyncObj = new XMLHttpRequest();
+      asyncObj.onload  = handler;
+      asyncObj.onerror = handler;
+      return asyncObj;
     }
-    catch(e) {
-      alert("Error. Scripting for ActiveX disabled.  Enable ActiveX in your browser controls, or use Firefox.") ;
-      return
-    }
-  }
-  if (navigator.userAgent.indexOf("Mozilla")>=0) {
-    asyncObj = new XMLHttpRequest();
-    asyncObj.onload  = handler;
-    asyncObj.onerror = handler;
-    return asyncObj;
+  } catch(e) {
+    no_async = true;
+    return null;
   }
 }
 

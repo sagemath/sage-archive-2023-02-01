@@ -46,7 +46,6 @@ else:
         for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
             if cmd_exists(cmd):
                 BROWSER = cmd
-
     DVI_VIEWER = BROWSER
     PDF_VIEWER = BROWSER
     PNG_VIEWER = BROWSER

@@ -111,11 +111,12 @@ class FractionField_generic(field.Field):
 
     def _coerce_(self, x):
         if isinstance(x, fraction_field_element.FractionFieldElement) \
-           and x.parent() == self:
+           and x.parent() is self:
             return x
-        if x.parent() == self.ring():
-            return self(x)
-        raise TypeError, "no canonical coercion of x(=%s) into %s"%(x,self)
+        try:
+            return self(self.__R._coerce_(x))
+        except TypeError:
+            raise TypeError, "no canonical coercion of x(=%s) into %s"%(x,self)
 
     def __cmp__(self, other):
         if not isinstance(other, FractionField_generic):

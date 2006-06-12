@@ -1705,3 +1705,5 @@ cdef class RealNumber(element.RingElement):
         _sig_off
         return x
 
+
+RR = RealField()

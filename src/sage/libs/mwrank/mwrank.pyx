@@ -91,15 +91,13 @@ cdef object string_sigoff(char* s):
 
 class __init:
     pass
+
 _INIT = __init()
-
-############# misc functions #################
-def set_precision(n):
-    mwrank_set_precision(n)
-
 # set the default
 mwrank_set_precision(50)
-#mwrank_set_precision(10)
+
+def set_precision(n):
+    mwrank_set_precision(n)
 
 def initprimes(filename, verb=False):
     """

@@ -78,7 +78,7 @@ class LCalc(SageObject):
             h += "-"*70 + '\n'
             h += '\n' + self('--help')
             self.__help = h
-        pager(h)
+        pager()(h)
 
     def zeros(self, n, L=''):
         """

@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 NOTE -- the architecture that people seem to have taken to
 make 3d graphics work in matplotlib is worrisome, since  they
 ignore that object inheritance is an "is-a" relationship.
@@ -16,17 +16,8 @@ import sage.misc.viewer
 import sage.misc.misc
 from sage.ext.sage_object import SageObject
 
-from mpl3d import mplot3d
-#import matplotlib.axes3d as axes3d
-
 from plot import to_float_list, to_mpl_color
 import plot
-
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.backends.backend_ps import FigureCanvasPS
-from matplotlib.backends.backend_svg import FigureCanvasSVG
-
 
 import matplotlib.numerix as nx
 
@@ -49,7 +40,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
 	3d Graphics object consisting of 0 graphics primitives:
 	sage: G.xmax()
-	1
+	0
         """
         return self.__xmax
 
@@ -58,7 +49,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
 	3d Graphics object consisting of 0 graphics primitives:
 	sage: G.xmin()
-	-1
+	0
 	"""
         return self.__xmin
 
@@ -67,7 +58,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
 	3d Graphics object consisting of 0 graphics primitives:
 	sage: G.ymax()
-	1
+	0
 	"""
         return self.__ymax
 
@@ -76,7 +67,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
 	3d Graphics object consisting of 0 graphics primitives:
 	sage: G.ymin()
-	-1
+	0
 	"""
         return self.__ymin
 
@@ -85,7 +76,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
 	3d Graphics object consisting of 0 graphics primitives:
 	sage: G.ymax()
-	1
+	0
 	"""
         return self.__zmax
 
@@ -94,7 +85,7 @@ class Graphics3d(SageObject):
 	sage: G = Graphics3d(); G
         3d Graphics object consisting of 0 graphics primitives:
 	sage: G.ymin()
-	-1
+	0
 	"""
         return self.__zmin
 
@@ -319,11 +310,13 @@ class Graphics3d(SageObject):
 
 	figure = fig
 	if not figure:
+            from matplotlib.figure import Figure
             figure = Figure(figsize)
 
 	if not ax:
             # we call it a subplot for consistency with plot 2d.
             # it's really just axes.
+            from mpl3d import mplot3d
             ax = mplot3d.Axes3D(figure,
                                elev = elevation,
                                azim = azimuth)
@@ -343,14 +336,17 @@ class Graphics3d(SageObject):
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
             if ext in ['.ps', '.eps']:
+                from matplotlib.backends.backend_ps import FigureCanvasPS
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
 	    elif ext == '.svg':
+                from matplotlib.backends.backend_svg import FigureCanvasSVG
                 canvas = FigureCanvasSVG(figure)
 		if dpi is None:
 		    dpi = 80
 	    elif ext == '.png':
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
                 canvas = FigureCanvasAgg(figure)
 		if dpi is None:
 		    dpi = 150

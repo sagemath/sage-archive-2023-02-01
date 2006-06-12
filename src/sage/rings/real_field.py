@@ -2,7 +2,7 @@
 PYREX: sage.ext.mpfr
 """
 
-from sage.ext.mpfr import RealField, RealNumber, mpfr_prec_min, mpfr_prec_max
+from sage.ext.mpfr import RealField, RR, RealNumber, mpfr_prec_min, mpfr_prec_max
 
 def is_RealField(x):
     return isinstance(x, RealField)

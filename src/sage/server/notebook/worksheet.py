@@ -23,7 +23,7 @@ from sage.ext.sage_object  import SageObject
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
-
+import sage.server.support as support
 from cell import Cell
 
 INTERRUPT_TRIES = 20
@@ -353,11 +353,7 @@ class Worksheet:
         return out
 
     def _get_last_identifier(self, s):
-        X = string.ascii_letters + string.digits + '._'
-        i = len(s)-1
-        while i >= 0 and s[i] in X:
-            i -= 1
-        return s[i+1:]
+        return support.get_rightmost_identifier(s)
 
     def _input_contains_question_mark_query_not_in_quotes(self, x):
         """

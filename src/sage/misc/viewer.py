@@ -7,65 +7,89 @@ import os
 def cmd_exists(cmd):
     return os.system('which %s 2>/dev/null >/dev/null'%cmd) == 0
 
+BROWSER    = None
+DVI_VIEWER = None
+PDF_VIEWER = None
+PNG_VIEWER = None
 
-if os.uname()[0] == 'Darwin':
+def viewer():
+    global BROWSER, DVI_VIEWER, PDF_VIEWER, PNG_VIEWER
 
-    # Simple on OS X, since there is an open command that opens
-    # anything, using the user's preferences.
-    # sage-open -- a wrapper around OS X open that
-    # turns off any of SAGE's special library stuff.
+    if not (BROWSER is None):
+        return BROWSER
 
-    BROWSER = 'sage-open'
-    DVI_VIEWER = BROWSER
-    PDF_VIEWER = BROWSER
-    PNG_VIEWER = BROWSER
+    if os.uname()[0] == 'Darwin':
+        # Simple on OS X, since there is an open command that opens
+        # anything, using the user's preferences.
+        # sage-open -- a wrapper around OS X open that
+        # turns off any of SAGE's special library stuff.
 
-elif os.uname()[0][:6] == 'CYGWIN':
-    # Windows is also easy, since it has a system for
-    # determining what opens things.
-    # Bobby Moreti provided the following.
+        BROWSER = 'sage-open'
+        DVI_VIEWER = BROWSER
+        PDF_VIEWER = BROWSER
+        PNG_VIEWER = BROWSER
 
-    if not os.environ.has_key('BROWSER'):
-        systemroot = os.environ['SYSTEMROOT'].replace(':','/').replace('\\','')
-        systemroot = '/cygdrive/' + systemroot
-        BROWSER = '%s/system32/rundll32.exe url.dll,FileProtocolHandler'%\
-                  systemroot
+    elif os.uname()[0][:6] == 'CYGWIN':
+        # Windows is also easy, since it has a system for
+        # determining what opens things.
+        # Bobby Moreti provided the following.
 
-    DVI_VIEWER = BROWSER
-    PDF_VIEWER = BROWSER
-    PNG_VIEWER = BROWSER
+        if not os.environ.has_key('BROWSER'):
+            systemroot = os.environ['SYSTEMROOT'].replace(':','/').replace('\\','')
+            systemroot = '/cygdrive/' + systemroot
+            BROWSER = '%s/system32/rundll32.exe url.dll,FileProtocolHandler'%\
+                      systemroot
 
-else:
+        DVI_VIEWER = BROWSER
+        PDF_VIEWER = BROWSER
+        PNG_VIEWER = BROWSER
 
-    # Try to get something from the environment on other OS's (namely Linux?)
+    else:
 
-    try:
-	BROWSER = os.environ['BROWSER']
-    except KeyError:
-        BROWSER = 'less'  # silly default; lets hope it doesn't come to this!
-        for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
-            if cmd_exists(cmd):
-                BROWSER = cmd
-    DVI_VIEWER = BROWSER
-    PDF_VIEWER = BROWSER
-    PNG_VIEWER = BROWSER
+        # Try to get something from the environment on other OS's (namely Linux?)
 
-    # Alternatives, if they are set in the environment or available.
-    try:
-        DVI_VIEWER = os.environ['DVI_VIEWER']
-    except KeyError:
-        for cmd in ['xdvi', 'kdvi']:
-            if cmd_exists(cmd):
-                DVI_VIEWER = cmd
+        try:
+            BROWSER = os.environ['BROWSER']
+        except KeyError:
+            BROWSER = 'less'  # silly default; lets hope it doesn't come to this!
+            for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
+                if cmd_exists(cmd):
+                    BROWSER = cmd
+        DVI_VIEWER = BROWSER
+        PDF_VIEWER = BROWSER
+        PNG_VIEWER = BROWSER
 
-    try:
-        PDF_VIEWER = os.environ['PDF_VIEWER']
-    except KeyError:
-        for cmd in ['acroread', 'xpdf']:
-            if cmd_exists(cmd):
-                PDF_VIEWER = cmd
-                break
+        # Alternatives, if they are set in the environment or available.
+        try:
+            DVI_VIEWER = os.environ['DVI_VIEWER']
+        except KeyError:
+            for cmd in ['xdvi', 'kdvi']:
+                if cmd_exists(cmd):
+                    DVI_VIEWER = cmd
+
+        try:
+            PDF_VIEWER = os.environ['PDF_VIEWER']
+        except KeyError:
+            for cmd in ['acroread', 'xpdf']:
+                if cmd_exists(cmd):
+                    PDF_VIEWER = cmd
+                    break
+
+    return BROWSER
+
 
 def browser():
-    global BROWSER
+    viewer()
     return BROWSER
+
+def dvi_viewer():
+    viewer()
+    return DVI_VIEWER
+
+def pdf_viewer():
+    viewer()
+    return PDF_VIEWER
+
+def png_viewer():
+    viewer()
+    return PNG_VIEWER

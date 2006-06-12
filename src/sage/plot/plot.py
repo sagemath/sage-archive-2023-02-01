@@ -64,9 +64,6 @@ TODO:
        the rgbcolor.
 """
 
-__doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg', 'Value', \
-                 'Figure', 'patches', 'flatten', 'to_float_list']  #no ref manual
-
 #*****************************************************************************
 #       Copyright (C) 2006 Alex Clemesha and William Stein <wstein@ucsd.edu>
 #
@@ -98,8 +95,8 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg', 'Value', \
 #*****************************************************************************
 
 __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
-                 'Value', 'Figure', 'patches', 'flatten', \
-                 'find_axes']
+                 'Figure', 'patches', 'flatten', \
+                 'find_axes', 'to_float_list']
 
 DEFAULT_FIGSIZE=[5,4]
 DEFAULT_DPI = 125
@@ -114,18 +111,8 @@ from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
 from math import modf
 
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.backends.backend_ps import FigureCanvasPS
-from matplotlib.backends.backend_svg import FigureCanvasSVG
-from matplotlib.transforms import Value
-from matplotlib.figure import Figure
 import matplotlib.patches as patches
 from matplotlib.cbook import flatten
-
-#except ImportError, msg:
-#    print msg
-#    print "WARNING -- matplotlib did not build correctly as part of SAGE."
-
 
 from axes import find_axes
 
@@ -533,6 +520,7 @@ class Graphics(SageObject):
 	    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
 	"""
+        from matplotlib.figure import Figure
         if filename is None:
             i = 0
             while os.path.exists('sage%s.png'%i):
@@ -569,14 +557,17 @@ class Graphics(SageObject):
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
 	    if ext in ['.eps', '.ps']:
+                from matplotlib.backends.backend_ps import FigureCanvasPS
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
 	    elif ext == '.svg':
+                from matplotlib.backends.backend_svg import FigureCanvasSVG
                 canvas = FigureCanvasSVG(figure)
 		if dpi is None:
 		    dpi = 80
 	    elif ext == '.png':
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
                 canvas = FigureCanvasAgg(figure)
 		if dpi is None:
 		    dpi = 150

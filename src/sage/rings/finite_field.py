@@ -57,9 +57,9 @@ import integer_mod
 
 from sage.structure.element import RingElement
 
-import sage.interfaces.all
+import sage.interfaces.gap
 
-_objsFiniteField = {}
+#_objsFiniteField = {}
 def FiniteField(order, name='a'):
     """
     Return a finite field of given order with generator labeled by the given name.
@@ -78,18 +78,19 @@ def FiniteField(order, name='a'):
         sage: GF(9,'a')
         Finite Field in a of size 3^2
     """
-    global _objsFiniteField
-    key = (order, name)
-    if _objsFiniteField.has_key(key):
-        x = _objsFiniteField[key]()
-        if x != None and x.variable_name() == name:      # see example above for why this is necessary
-            return x
+    #global _objsFiniteField
+    #key = (order, name)
+    #if _objsFiniteField.has_key(key):
+    #    x = _objsFiniteField[key]()
+    #    if x != None and x.variable_name() == name:      # see example above for why this is necessary
+    #        return x
     if arith.is_prime(order):
         R = FiniteField_prime_modn(order, name)
     else:
         R = FiniteField_ext_pari(order, name)
-    _objsFiniteField[key] = weakref.ref(R)
     return R
+    #_objsFiniteField[key] = weakref.ref(R)
+    #return R
 
 def GF(order, name='a'):
     """
@@ -729,7 +730,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 # This is where we *would* do coercion from one finite field to another...
                 raise TypeError, "No coercion of %s into %s defined."%(x, self)
 
-        elif sage.interfaces.all.is_GapElement(x):
+        elif sage.interfaces.gap.is_GapElement(x):
             try:
                 return gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
@@ -776,7 +777,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         EXAMPLES:
             sage: GF(4)._coerce_(GF(2)(1))
             1
-            sage: GF(4)._coerce_(GF(4).0)
+            sage: k = GF(4)
+            sage: k._coerce_(k.0)
             a
             sage: GF(4)._coerce_(3)
             1
@@ -894,7 +896,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return self(x)
         if isinstance(x, RingElement):
             K = x.parent()
-            if K is self:
+            if K == self:
                 return x
         raise TypeError, "Unable to coerce %s into %s"%(x, self)
 
@@ -1063,7 +1065,7 @@ def gap_to_sage(x, F):
     else:
         e = int(s[i2+2:])
     if F.degree() == 1:
-        g = int(sage.interfaces.all.gap.eval('Int(Z(%s))'%q))
+        g = int(sage.interfaces.gap.gap.eval('Int(Z(%s))'%q))
     else:
         g = K.multiplicative_generator()
     return F(K(g**e))

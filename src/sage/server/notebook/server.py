@@ -25,7 +25,6 @@ import sage.interfaces.sage0
 
 from   sage.misc.misc import verbose, word_wrap
 import sage.misc.preparser
-from   sage.misc.viewer     import BROWSER
 from   sage.ext.sage_object import load, SageObject
 
 SEP = '___S_A_G_E___'

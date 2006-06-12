@@ -374,7 +374,7 @@ Output of "!sympow -help":
                NOTE: new_data runs a shell script that uses GP
 Other options are used internally/recursively by -new_data
 """
-        pager(h)
+        pager()(h)
 
 
 

@@ -55,7 +55,7 @@ import misc
 
 import sage.plot.all
 
-from   sage.misc.viewer  import BROWSER, DVI_VIEWER, PDF_VIEWER
+from   sage.misc.viewer  import browser, dvi_viewer
 
 offset = 0
 loggers = []
@@ -63,90 +63,6 @@ loggers = []
 def update():
     for X in loggers:
         X._update()
-
-
-REFRESH = ''
-
-#REFRESH = '<meta http-equiv="REFRESH" content="4;">'
-
-# The following javascript is from
-#   http://grizzlyweb.com/webmaster/javascripts/refresh.asp#version2
-# It isn't any good because it jumps the position of the browser
-# view to the top of the page.
-
-## REFRESH = """
-## <noscript>
-## <!--
-##     We have the "refresh" meta-tag in case the user's browser does
-##     not correctly support JavaScript or has JavaScript disabled.
-##     Notice that this is nested within a "noscript" block.
-## -->
-## <meta http-equiv="refresh" content="2">
-
-## </noscript>
-
-## <script language="JavaScript">
-## <!--
-
-## var sURL = unescape(window.location.pathname);
-
-## function doLoad()
-## {
-##     // the timeout value should be the same as in the "refresh" meta-tag
-##     setTimeout( "refresh()", 2*1000 );
-## }
-
-## function refresh()
-## {
-##     //  This version of the refresh function will cause a new
-##     //  entry in the visitor's history.  It is provided for
-##     //  those browsers that only support JavaScript 1.0.
-##     //
-##     window.location.href = sURL;
-## }
-## //-->
-## </script>
-
-## <script language="JavaScript1.1">
-## <!--
-## function refresh()
-## {
-##     //  This version does NOT cause an entry in the browser's
-##     //  page view history.  Most browsers will always retrieve
-##     //  the document from the web-server whether it is already
-##     //  in the browsers page-cache or not.
-##     //
-##     window.location.replace( sURL );
-## }
-## //-->
-## </script>
-
-## <script language="JavaScript1.2">
-## <!--
-## function refresh()
-## {
-##     //  This version of the refresh function will be invoked
-##     //  for browsers that support JavaScript version 1.2
-##     //
-##     //  The argument to the location.reload function determines
-##     //  if the browser should retrieve the document from the
-##     //  web-server.  In our example all we need to do is cause
-##     //  the JavaScript block in the document body to be
-##     //  re-evaluated.  If we needed to pull the document from
-##     //  the web-server again (such as where the document contents
-##     //  change dynamically) we would pass the argument as 'true'.
-
-##     window.location.reload( true );
-## }
-## //-->
-## </script>
-## </head>
-
-## <!--
-##     Use the "onload" event to start the refresh process.
-## -->
-## <body onload="doLoad()">
-## """
 
 class Log:
     """
@@ -280,7 +196,7 @@ class log_html(Log):
         if not self._viewer is None:
             viewer = self._viewer
         else:
-            viewer = BROWSER
+            viewer = browser()
         os.system('"%s" "%s"&'%(viewer, self._filename))
 
     def _build(self):
@@ -385,7 +301,7 @@ class log_dvi(Log):
         if not self._viewer is None:
             viewer = self._viewer
         else:
-            viewer = DVI_VIEWER
+            viewer = dvi_viewer()
         self._build()
         F = os.path.splitext(self._filename)[0] + '.dvi'
         cmd = 'cd %s; %s %s '%(
@@ -509,7 +425,7 @@ class log_html_mathml(log_dvi):
         if not self._viewer is None:
             viewer = self._viewer
         else:
-            viewer = BROWSER
+            viewer = browser()
         self._build()
 
         os.system('%s  %s &' %(BROWSER, self._filename[:-4]+'.pub.xml'))

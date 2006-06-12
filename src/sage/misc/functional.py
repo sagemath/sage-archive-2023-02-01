@@ -25,13 +25,10 @@ AUTHORS: Initial version -- William Stein
 
 from sage.rings.all import (RealField, ComplexField,
                             PolynomialRing, RationalField, Ideal,
-                            IntegerRing, Integer)
+                            IntegerRing, Integer, QQ, RR, CC)
 
 import sage.rings.integer_ring
 import sage.categories.all
-QQ = RationalField()
-RR = RealField()
-CC = ComplexField()
 
 from sage.libs.all import pari
 

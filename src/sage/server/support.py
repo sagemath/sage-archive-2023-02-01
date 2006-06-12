@@ -1,11 +1,12 @@
 import inspect
 import os
-
+import string
 
 import sage.plot.plot
 import sage.ext.sage_object
 import sage.misc.latex
 import sage.all
+import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc
 
@@ -28,12 +29,19 @@ def init(object_directory=None, globs={}):
     if object_directory:
         sage.ext.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
-
+    sage.misc.pager.EMBEDDED_MODE = True
 
 
 ######################################################################
 # Introspection
 ######################################################################
+
+def get_rightmost_identifier(s):
+    X = string.ascii_letters + string.digits + '._'
+    i = len(s)-1
+    while i >= 0 and s[i] in X:
+        i -= 1
+    return s[i+1:]
 
 def completions(s, globs, format=False, width=90):
     """
@@ -47,8 +55,8 @@ def completions(s, globs, format=False, width=90):
         method = s[i+1:]
         obj = s[:i]
         n = len(method)
-        if globs.has_key(obj):
-            O = globs[obj]
+        try:
+            O = eval(obj)
             D = dir(O)
             try:
                 D += O.trait_names()
@@ -58,7 +66,7 @@ def completions(s, globs, format=False, width=90):
                 v = [obj + '.'+x for x in D if x and x[0] != '_']
             else:
                 v = [obj + '.'+x for x in D if x[:n] == method]
-        else:
+        except:
             v = []
     v.sort()
     if format:

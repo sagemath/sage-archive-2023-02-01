@@ -12,9 +12,6 @@ methods that are implemented using this module.
 that is implemented via SWIG.}
 """
 
-from sage.libs.mwrank.mwrank import (_bigint, _Curvedata, _mw, _two_descent,
-                                     set_precision as _set_precision)
-
 from sage.structure.all import SageObject
 
 def set_precision(n):
@@ -28,6 +25,7 @@ def set_precision(n):
     INPUT:
         n -- long
     """
+    from sage.libs.mwrank.mwrank import _set_precision # import here to save time
     _set_precision(n)
 
 class mwrank_EllipticCurve(SageObject):
@@ -76,6 +74,9 @@ class mwrank_EllipticCurve(SageObject):
             ...
             TypeError: not all arguments converted during string formatting
         """
+        # import here to save time during startup (mwrank takes a while to init)
+        from sage.libs.mwrank.mwrank import _Curvedata
+
         if not isinstance(ainvs, list) and len(ainvs) <= 5:
             raise TypeError, "ainvs must be a list of length at most 5."
 
@@ -185,6 +186,7 @@ class mwrank_EllipticCurve(SageObject):
         OUTPUT:
             Nothing -- nothing is returned
         """
+        from sage.libs.mwrank.mwrank import _two_descent # import here to save time
         first_limit = int(first_limit)
         second_limit = int(second_limit)
         n_aux = int(n_aux)
@@ -385,6 +387,7 @@ class mwrank_MordellWeil(SageObject):
             verb = 1
         else:
             verb = 0
+        from sage.libs.mwrank.mwrank import _mw # import here to save time
         self.__mw = _mw(curve._curve_data(), verb, pp, maxr)
 
     def __reduce__(self):

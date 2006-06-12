@@ -76,11 +76,11 @@ from padic_field import pAdicField, Qp, is_pAdicField
 from padic import pAdic
 
 # Real numbers
-from real_field import RealField, is_RealField, is_RealNumber
+from real_field import RealField, is_RealField, is_RealNumber, RR
 Reals = RealField
 
 # Complex numbers
-from complex_field import ComplexField, is_ComplexField
+from complex_field import ComplexField, is_ComplexField, CC
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 

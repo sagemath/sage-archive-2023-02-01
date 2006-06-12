@@ -206,8 +206,6 @@ from sage.misc.all import pager, verbose, DOT_SAGE
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
-import sage.misc.pager
-
 class Maple(Expect):
     """
     Interface to the Maple interpreter.
@@ -409,7 +407,7 @@ class Maple(Expect):
         INPUT:
             str -- a string to search for in the maple help system
         """
-        pager(self._help(str))
+        pager()(self._help(str))
 
     def with(self, package):
         """

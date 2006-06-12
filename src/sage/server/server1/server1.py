@@ -110,7 +110,7 @@ import sage.interfaces.sage0
 
 from   sage.misc.misc import word_wrap
 import sage.misc.preparser
-from   sage.misc.viewer     import BROWSER
+from   sage.misc.viewer     import browser
 from   sage.ext.sage_object import load, SageObject
 
 def get_doc(query):
@@ -734,7 +734,7 @@ def server_http1(dir       ='sage_server',
     try:
 
         if viewer:
-            os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
+            os.system('%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port))
 
         print "Press Control-C to interrupt a running calculation."
         print "If no calculation is running, press Control-C to return to SAGE."

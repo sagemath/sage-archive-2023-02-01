@@ -145,8 +145,8 @@ class Cell:
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
-              onFocus   = 'event.target.className="cell_input_active"; cell_input_resize(%s);'
-              onBlur    = 'event.target.className="cell_input"; cell_input_minimize_size(%s);'
+              onFocus   = 'this.className="cell_input_active"; cell_input_resize(%s);'
+              onBlur    = 'this.className="cell_input"; cell_input_minimize_size(%s);'
               %s
            >%s</textarea>
         """%(new, r, id, id, id, id, id, style, t)

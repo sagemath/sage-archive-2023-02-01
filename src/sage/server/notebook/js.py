@@ -58,12 +58,16 @@ function asyncCallbackHandler(name, callback) {
     function f() {
                  eval('asyncObj = ' + name);
                  try {
-                   if ((asyncObj.readyState==4 || asyncObj.readyState=="complete")
-                           && asyncObj.status == 200)
-                       callback("success", asyncObj.responseText);
-                   } catch(e) {
-                       callback("failure", e);
-                   } finally { }
+                   if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
+                       && asyncObj.status == 200 )
+                     try {
+                       callback('success', asyncObj.responseText);
+                     } catch(e) {
+                       callback('success', "empty");
+                     }
+                 } catch(e) {
+                   callback("failure", e);
+                 } finally { }
               };
     return f;
 }
@@ -74,7 +78,7 @@ function async_request(name, url, callback, postvars) {
   eval(name + '=asyncObj;');
 
   if(postvars != null) {
-    asyncObj.open('POST',url,false);
+    asyncObj.open('POST',url,true);
     asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
     asyncObj.send(postvars);
   } else {

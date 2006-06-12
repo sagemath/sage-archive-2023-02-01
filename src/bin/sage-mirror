@@ -1,0 +1,5 @@
+cd ..
+echo "uploading"
+
+rsync -axLH --rsh=ssh --delete -r -v  bin/sage-* bin/_darcs modular:/home/was/www/sage/dist/src/scripts-darcs/
+

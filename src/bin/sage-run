@@ -1,0 +1,26 @@
+#!/usr/bin/env sage.bin
+
+import os, sys
+
+args=sys.argv[1:]
+
+files = [x for x in args if len(x) > 0 and x[0] != '-']
+
+if len(files) == 0:
+    sys.exit(1)
+
+opts  = ' '.join([x for x in args if len(x) > 0 and x[0] == '-'])
+if os.system('sage-preparse %s'%(' '.join(files))):
+    sys.exit(1)
+
+for file in files:
+    if file[-5:] == '.sage':
+        e = os.system('sage-python %s %s.py'%(opts, file))
+    else:
+        e = os.system('sage-python %s %s'%(opts, file))
+    if e:
+        print "sage: Error running %s using Python"%file
+
+
+
+

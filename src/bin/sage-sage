@@ -5,7 +5,6 @@ usage() {
     echo "| SAGE: Software for Algebra and Geometry Experimentation |"
     echo "-----------------------------------------------------------"
     echo " Optional arguments:"
-    echo "  filename.sage -- run the given file using SAGE"
     echo "  -h, -?        -- print help message"
     echo "  -notebook     -- start the SAGE notebook"
     echo "  -i [packages] -- install the given SAGE packages"
@@ -13,6 +12,7 @@ usage() {
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
+    echo "  file1.sage file2.sage file.py ... -- run given .sage or .py files"
     exit 1
 }
 
@@ -20,7 +20,7 @@ usage_advanced() {
     echo "-----------------------------------------------------------"
     echo "| SAGE: Software for Algebra and Geometry Experimentation |"
     echo "-----------------------------------------------------------"
-    echo "  no options    -- start interactive session"
+    echo "  no options below    -- start interactive session, passing options to ipython"
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b            -- install any changed SAGE Python/Pyrex source code in devel/*"
     echo "  -br           -- build and install any changes, then run SAGE"
@@ -34,6 +34,7 @@ usage_advanced() {
     echo "  -h, -?        -- print help message"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "                   if no packages given, print a list of all installed"
+    echo "  -ipython <...> -- run SAGE's Ipython using the default environment (not SAGE), passing additional options to Ipython"
     echo "  -kash <..>    -- run SAGE's Kash with given arguments"
     echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"
     echo "  -optional     -- list all optional packages that can be downloaded"
@@ -96,14 +97,26 @@ if [ "$SAGE_SERVER" = "" ]; then
     # echo "No server specified by SAGE_SERVER environment variable, so using $SAGE_SERVER"
 fi
 
+matplotlib_setup() {
+    MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
+    if [ ! -f "$MATPLOTLIBRC/" ]; then
+        mkdir -p "$DOT_SAGE"
+        cp "$SAGE_ROOT/matplotlibrc" "$DOT_SAGE/"
+    fi
+}
+
 sage_setup() {
     cat "$SAGE_LOCAL/bin/sage-banner"
     cd "$SAGE_ROOT/local/bin"
-    export IPYTHONDIR="$DOT_SAGE/ipython"
+    IPYTHONDIR="$DOT_SAGE/ipython" && export IPYTHONDIR
+    IPYTHONRC="ipythonrc" && export IPYTHONRC
     if [ ! -d "$IPYTHONDIR" ]; then
-        cp -r $SAGE_ROOT/ipython "$DOT_SAGE"
+        mkdir -p "$DOT_SAGE"
+        cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
+    matplotlib_setup
 }
+
 
 # Below the command
 # _=sage.misc.interpreter.do_prefilter_paste('',False)
@@ -130,7 +143,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython $* -c "$SAGE_STARTUP_COMMAND;"
+    sage-ipython -c "$SAGE_STARTUP_COMMAND;"  $*
 }
 
 if [ $# -eq 0 ]; then
@@ -196,6 +209,13 @@ if [ $1 = '-python' ]; then
     exit $?
 fi
 
+if [ $1 = '-ipython' ]; then
+    cd $CUR
+    shift
+    ipython $*
+    exit $?
+fi
+
 if [ $1 = '-darcs' ]; then
     cd $CUR
     shift
@@ -236,7 +256,7 @@ fi
 if [ $1 = '-q' ]; then
    sage_setup
    shift
-   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
+   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" $*
    exit $?
 fi
 
@@ -405,19 +425,26 @@ if [ $1 = '-gdb' ]; then
     exit $?
 fi
 
-if [ $# -eq 1 ]; then
+if [ $1 = '-preparse' ]; then
+    shift
+    cd "$CUR"
+    sage-preparse $*
+    exit $?
+fi
+
+if [ $# -ge 1 ]; then
    # rewrite this to not use IPYTHON at all ?
-   sage_setup
+   matplotlib_setup
    T=`echo "$1" | sed -e "s/.*\.//"`
    if [ "$T " = "spkg " ]; then
        install "" $*
        exit $?
    fi
-   FILE=$1
-   shift
-   echo "load \"$FILE\"" | sage-ipython -noreadline -po . -pi1 ' ' -nobanner -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" $*
-   echo ""
-   exit 0
+   cd "$CUR"
+   sage-run $*
+   if [ $? -eq 0 ]; then
+       exit 0
+   fi
 fi
 
 usage

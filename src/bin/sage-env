@@ -88,6 +88,7 @@ if [ "$DOT_SAGE" = "" ]; then
 fi
 
 
+
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"
     export SAGE_STARTUP_FILE
@@ -102,11 +103,6 @@ LD_LIBRARY_PATH="$SAGE_ROOT/local/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PAT
 # The following is needed for OS X (especially for the
 # Singular install).
 DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" && export DYLD_LIBRARY_PATH
-
-if [ "$IPYTHONRC" = "" ]; then
-    IPYTHONRC="$SAGE_ROOT"/ipythonrc && export IPYTHONRC
-fi
-
 
 
 if [ "$1" = "-short" ]; then

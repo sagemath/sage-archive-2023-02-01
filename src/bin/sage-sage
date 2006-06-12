@@ -7,6 +7,7 @@ usage() {
     echo " Optional arguments:"
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -h, -?        -- print help message"
+    echo "  -notebook     -- start the SAGE notebook"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
@@ -98,6 +99,10 @@ fi
 sage_setup() {
     cat "$SAGE_LOCAL/bin/sage-banner"
     cd "$SAGE_ROOT/local/bin"
+    export IPYTHONDIR="$DOT_SAGE/ipython"
+    if [ ! -d "$IPYTHONDIR" ]; then
+        cp -r $SAGE_ROOT/ipython "$DOT_SAGE"
+    fi
 }
 
 # Below the command
@@ -125,7 +130,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython   $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
+    sage-ipython $* -c "$SAGE_STARTUP_COMMAND;"
 }
 
 if [ $# -eq 0 ]; then
@@ -209,6 +214,13 @@ if [ $1 = "-server1" -o $1 = "-server" ]; then
    exit $?
 fi
 
+if [ $1 = "-notebook" ]; then
+   cd $CUR
+   shift
+   sage-notebook $*
+   exit $?
+fi
+
 if [ $1 = "-log" ]; then
    sage-log
    exit 0
@@ -223,6 +235,7 @@ fi
 
 if [ $1 = '-q' ]; then
    sage_setup
+   shift
    sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
    exit $?
 fi
@@ -325,6 +338,7 @@ fi
 
 if [ $1 = '-mpl' ]; then
    sage_setup
+   shift
    ipython  $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
    exit $?
 fi
@@ -401,7 +415,7 @@ if [ $# -eq 1 ]; then
    fi
    FILE=$1
    shift
-   echo "load \"$FILE\"" | sage-ipython -noreadline -po . -pi1 ' ' -nobanner -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND"
+   echo "load \"$FILE\"" | sage-ipython -noreadline -po . -pi1 ' ' -nobanner -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" $*
    echo ""
    exit 0
 fi

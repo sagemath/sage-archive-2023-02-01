@@ -1,8 +1,12 @@
 #!/usr/bin/env sage-python
 
 import os, sys, socket
-from sage.server.server1 import server_http1
-from sage.all import *
+
+print open(os.environ['SAGE_ROOT'] + '/local/bin/sage-banner').read()
+
+print "Starting SAGE Web Notebook Server (version 1)..."
+
+from sage.server.server1.server1 import server_http1
 
 port = 8000
 

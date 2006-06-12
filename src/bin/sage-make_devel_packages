@@ -76,25 +76,23 @@ cp -pr sage-* $SCRIPTS/
 #cp -p $SAGE_ROOT/sage $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
 cp -p $SAGE_ROOT/*.txt $SCRIPTS/
-cp -p $SAGE_ROOT/ipythonrc $SCRIPTS/
+cp -pr $SAGE_ROOT/ipython $SCRIPTS/
 cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
+
 echo "#!/bin/sh"                         > $SCRIPTS/spkg-install
-echo "cp sage-* \$SAGE_ROOT/local/bin/">> $SCRIPTS/spkg-install
-#echo "cp sage \$SAGE_ROOT/"           >> $SCRIPTS/spkg-install
-echo "cp sage-python \$SAGE_ROOT/"    >> $SCRIPTS/spkg-install
-echo "cp install \$SAGE_ROOT/spkg/"   >> $SCRIPTS/spkg-install
-echo "cp *.txt \$SAGE_ROOT/"          >> $SCRIPTS/spkg-install
-echo "if [ ! -f \$SAGE_ROOT/ipythonrc ]; then" >> $SCRIPTS/spkg-install
-echo "    cp ipythonrc \$SAGE_ROOT/"  >> $SCRIPTS/spkg-install
+echo "cp sage-* \$SAGE_ROOT/local/bin/"  >> $SCRIPTS/spkg-install
+echo "cp sage-python \$SAGE_ROOT/"       >> $SCRIPTS/spkg-install
+echo "cp install \$SAGE_ROOT/spkg/"      >> $SCRIPTS/spkg-install
+echo "cp *.txt \$SAGE_ROOT/"             >> $SCRIPTS/spkg-install
+echo "if [ -d \$SAGE_ROOT/ipython ]; then" >> $SCRIPTS/spkg-install
+echo "     rm -rf \$SAGE_ROOT/ipython"   >> $SCRIPTS/spkg-install
 echo "fi"                                >> $SCRIPTS/spkg-install
-echo "if [ ! -d \$HOME/.ipython ]; then" >> $SCRIPTS/spkg-install
-echo "    mkdir \$HOME/.ipython"         >> $SCRIPTS/spkg-install
-echo "    cp ipythonrc \$HOME/.ipython/">> $SCRIPTS/spkg-install
-echo "fi"                                >> $SCRIPTS/spkg-install
+echo "cp -r ipython \$SAGE_ROOT/"        >> $SCRIPTS/spkg-install
 echo "cd \$SAGE_ROOT/local/bin/"         >> $SCRIPTS/spkg-install
 echo "ln -sf python sage.bin"            >> $SCRIPTS/spkg-install
 echo "ln -sf Singular sage_singular"     >> $SCRIPTS/spkg-install
 echo "ln -sf gp sage_pari"               >> $SCRIPTS/spkg-install
+
 chmod +x $SCRIPTS/spkg-install
 tar -jcvf $SCRIPTS.spkg $SCRIPTS
 mv $SCRIPTS.spkg $DESTINATION/

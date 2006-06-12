@@ -85,8 +85,9 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
 
     INPUT:
         x -- a list or tuple instance
-        universe -- (default: None) the universe of elements; if None determined from
-                     first element; if list is empty, is category Objects() of all objects.
+        universe -- (default: None) the universe of elements; if None determined
+                    using canonical coercions and the entire list of elements.
+                    If list is empty, is category Objects() of all objects.
         check -- (default: True) whether to coerce the elements of x into the universe
         cr -- (default: False) if True, then print a carriage return after each comma
                                when printing this sequence.
@@ -182,6 +183,8 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         Category of sequences in Finite Field of size 5
         sage: v.parent()([7,8,9])
         [2, 3, 4]
+
+
     """
     def __init__(self, x, universe=None, check=True,
                  immutable=False, cr=False):
@@ -202,6 +205,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
                 universe = sage.categories.all.Objects()
             else:
                 import sage.ext.coerce
+                y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
                 for i in range(len(x)-1):
                     try:
@@ -209,6 +213,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
                     except TypeError:
                         import sage.categories.all
                         universe = sage.categories.all.Objects()
+                        x = list(y)
                         check = False  # no point
                         break
                 if universe is None:   # no type errors raised.

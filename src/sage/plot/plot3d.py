@@ -1,3 +1,13 @@
+"""nodoctest
+NOTE -- the architecture that people seem to have taken to
+make 3d graphics work in matplotlib is worrisome, since  they
+ignore that object inheritance is an "is-a" relationship.
+This is asking for trouble.
+
+Axes ticks are now broken -- it worked with matplotlib-0.87.2, but
+is broken with 0.87.3.   I've set things so now they just aren't
+drawn.
+"""
 
 import os
 
@@ -7,6 +17,7 @@ import sage.misc.misc
 from sage.ext.sage_object import SageObject
 
 from mpl3d import mplot3d
+#import matplotlib.axes3d as axes3d
 
 from plot import to_float_list, to_mpl_color
 import plot
@@ -16,17 +27,18 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backends.backend_ps import FigureCanvasPS
 from matplotlib.backends.backend_svg import FigureCanvasSVG
 
+
 import matplotlib.numerix as nx
 
 class Graphics3d(SageObject):
     def __init__(self):
         #print "WARNING: 3d Graphics -- WORK IN PROGRESS!!"
-        self.__xmin = -1
-        self.__xmax = 1
-        self.__ymin = -1
-        self.__ymax = 1
-        self.__zmin = -1
-        self.__zmax = 1
+        self.__xmin = 0
+        self.__xmax = 0
+        self.__ymin = 0
+        self.__ymax = 0
+        self.__zmin = 0
+        self.__zmax = 0
         self.xlabel = 'x'
         self.ylabel = 'y'
         self.zlabel = 'z'
@@ -273,13 +285,6 @@ class Graphics3d(SageObject):
             zmax = 2*z
             zmin = 0
 
-        xmin -= 0.1*(xmax-xmin)
-        xmax += 0.1*(xmax-xmin)
-        ymin -= 0.1*(ymax-ymin)
-        ymax += 0.1*(ymax-ymin)
-        zmin -= 0.1*(zmax-zmin)
-        zmax += 0.1*(zmax-zmin)
-
 	return xmin,xmax,ymin,ymax,zmin,zmax
 
     def save(self, filename=None,
@@ -287,7 +292,7 @@ class Graphics3d(SageObject):
              ymin=None, ymax=None,
              zmin=None, zmax=None,
              figsize=plot.DEFAULT_FIGSIZE,
-             fig=None, sub=None,
+             fig=None, ax=None,
              savenow=True, dpi=None,
              elevation = 30, azimuth=-60):
         """
@@ -316,25 +321,24 @@ class Graphics3d(SageObject):
 	if not figure:
             figure = Figure(figsize)
 
-	subplot = sub
-	if not subplot:
+	if not ax:
             # we call it a subplot for consistency with plot 2d.
-            # it's really just an axis.
-            subplot = mplot3d.Axes3D(figure,
-                                     elev = elevation,
-                                     azim = azimuth)
+            # it's really just axes.
+            ax = mplot3d.Axes3D(figure,
+                               elev = elevation,
+                               azim = azimuth)
 
-        subplot.set_w_xlim(xmin, xmax)
-        subplot.set_w_ylim(ymin, ymax)
-        subplot.set_w_zlim(zmin, zmax)
-        subplot.set_xlabel(str(self.xlabel))
-        subplot.set_ylabel(str(self.ylabel))
-        subplot.set_zlabel(str(self.zlabel))
+        ax.set_w_xlim(xmin, xmax)
+        ax.set_w_ylim(ymin, ymax)
+        ax.set_w_zlim(zmin, zmax)
+        ax.set_xlabel(str(self.xlabel))
+        ax.set_ylabel(str(self.ylabel))
+        ax.set_zlabel(str(self.zlabel))
 
 	for g in self.__objects:
-	    g._render_on_subplot(subplot)
+	    g._render_on_ax(ax)
 
-        figure.add_axes(subplot)
+        figure.add_axes(ax)
 
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
@@ -387,7 +391,7 @@ class Graphic3dPrimitive_Point(Graphic3dPrimitive):
 	else:
 	    return IndexError("Index out of range")
 
-    def _render_on_subplot(self, subplot):
+    def _render_on_ax(self, subplot):
         options = self.options
 	c = to_mpl_color(options['rgbcolor'])
 	a = float(options['alpha'])
@@ -395,8 +399,6 @@ class Graphic3dPrimitive_Point(Graphic3dPrimitive):
 	faceted = options['faceted'] #faceted=True colors the edge of point
         #subplot.scatter3D(self.xdata, self.ydata, self.zdata, s, c, alpha=a, faceted=False)
         subplot.scatter3D(self.xdata, self.ydata, self.zdata, c=c)
-        from pylab import array
-        subplot.plot3D(array([0,1,0.5]), array([0,1,1.1]), array([0,1,-2.1]))
 
 
 class Graphic3dPrimitive_Line(Graphic3dPrimitive):
@@ -435,7 +437,7 @@ class Graphic3dPrimitive_Line(Graphic3dPrimitive):
 
 
 
-    def _render_on_subplot(self, subplot):
+    def _render_on_ax(self, subplot):
         try:
             xs, ys, zs = self._mpl_data
         except AttributeError:
@@ -478,7 +480,7 @@ class Graphic3dPrimitive_Surface(Graphic3dPrimitive):
         del self._mpl_data
         self.data[int(i)][int(j)] = point
 
-    def _render_on_subplot(self, subplot):
+    def _render_on_ax(self, subplot):
         try:
             X, Y, Z = self._mpl_data
         except AttributeError:

@@ -604,20 +604,21 @@ class Axis(axis.XAxis):
 
         seen = {}
         interval = self.get_view_interval()
-        for tick, loc, (x,y,z), label in zip(majorTicks, majorLocs, points, majorLabels):
-            if tick is None: continue
-            if not interval.contains(loc): continue
-            seen[loc] = 1
-            tick_update_position(tick, x,y,z, angle=angle)
-            tick.set_label1(label)
-            tick.set_label2(label)
-            tick.draw(renderer)
-            if tick.label1On:
-                extent = tick.label1.get_window_extent(renderer)
-                ticklabelBoxes.append(extent)
-            if tick.label2On:
-                extent = tick.label2.get_window_extent(renderer)
-                ticklabelBoxes2.append(extent)
+        # SAGE - commented out since suddenly broken.
+##         for tick, loc, (x,y,z), label in zip(majorTicks, majorLocs, points, majorLabels):
+##             if tick is None: continue
+##             if not interval.contains(loc): continue
+##             seen[loc] = 1
+##             tick_update_position(tick, x,y,z, angle=angle)
+##             tick.set_label1(label)
+##             tick.set_label2(label)
+##             tick.draw(renderer)
+##             if tick.label1On:
+##                 extent = tick.label1.get_window_extent(renderer)
+##                 ticklabelBoxes.append(extent)
+##             if tick.label2On:
+##                 extent = tick.label2.get_window_extent(renderer)
+##                 ticklabelBoxes2.append(extent)
         #
         renderer.close_group('axis3d')
 

@@ -19,7 +19,7 @@ list of cells.
 #       print "hello world"
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
-MAX_OUTPUT = 65536
+MAX_OUTPUT = 32768
 
 c = 0
 
@@ -122,7 +122,7 @@ class Cell:
         html_out = self.html_out(wrap)
         s = html_in + html_out
         if div_wrap:
-            s = '<div id="cell_%s">'%self.id() + s + '</div>'
+            s = '\n\n<div id="cell_%s">'%self.id() + s + '</div>'
         return s
 
     def html_in(self):

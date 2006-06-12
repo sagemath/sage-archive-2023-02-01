@@ -22,7 +22,7 @@ import pexpect
 from sage.ext.sage_object  import SageObject
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
-from sage.misc.misc        import verbose, DOT_SAGE
+from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 
 from cell import Cell
 
@@ -163,10 +163,11 @@ class Worksheet:
             return S
 
 
-    def _new_cell(self):
+    def _new_cell(self, id=None):
         D = self.__notebook.defaults()
-        id = self.__next_id
-        self.__next_id += 1
+        if id is None:
+            id = self.__next_id
+            self.__next_id += 1
         return Cell(id, '', '', self)
 
     def __repr__(self):
@@ -182,7 +183,7 @@ class Worksheet:
         for c in self.__cells:
             if c.id() == id:
                 return c
-        raise IndexError
+        return self._new_cell(id)
 
     def queue(self):
         return self.__queue
@@ -298,17 +299,25 @@ class Worksheet:
         t = E.timeout
         E.timeout = 0.1
         success = False
-        for i in range(INTERRUPT_TRIES):
-            E.sendline('q')
-            E.sendline(chr(3))
-            try:
-                E.expect(S._prompt)
-                E.expect(S._prompt)
-                success = True
-                E.timeout = t
-                break
-            except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                verbose("Trying again to interrupt SAGE (try %s)..."%i)
+        alarm(INTERRUPT_TRIES * E.timeout)
+        try:
+            for i in range(INTERRUPT_TRIES):
+                E.sendline('q')
+                E.sendline(chr(3))
+                try:
+                    E.expect(S._prompt)
+                    E.expect(S._prompt)
+                    success = True
+                    E.timeout = t
+                    break
+                except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                    verbose("Trying again to interrupt SAGE (try %s)..."%i)
+        except:
+            print "Interrupted (escepe via alarm)!"
+            success = False
+        else:
+            # Turn off the alarm.
+            cancel_alarm()
 
         if not success:
             del self.__sage
@@ -328,12 +337,14 @@ class Worksheet:
             S = self.__sage
         except AttributeError:
             # no sage running anyways!
-            return
-        del self.__sage
+            pass
+        else:
+            del self.__sage
 
         # empty the queue
         for C in self.__queue:
             C.interrupt()
+        self.__comp_is_running = False
 
     def postprocess_output(self, out, completions=False):
         i = out.find('\r\n')
@@ -516,6 +527,7 @@ class Worksheet:
         return '\n'.join(u)
 
     def check_for_system_switching(self, s):
+        # s = '%gap\n' + s
         if len(s) == 0:
             return False, s
         if s[0] == '%':
@@ -529,13 +541,15 @@ class Worksheet:
             else:
                 j = min(i,j)
             sys = s[1:j]
-            s = 'print %s.eval(r"""%s""")'%(sys,s[i+1:].replace('\n',' '))
+            s = 'print %s.eval(r"""%s""", strip=False)'%(
+                sys,s[i+1:].replace('\n',' '))
             print s
             return True, s
         return False, s
 
     def preparse_input(self, input, completions=False):
         input = input.strip()
+        # input = '%mathematica\n'+input
 
         contains, new_input = self._input_contains_question_mark_query_not_in_quotes(input)
 
@@ -652,11 +666,15 @@ class Worksheet:
         s = ''
 
         s += '<span class="worksheet_title">%s</span>\n'%self.name()
+        s += '<div class="worksheet_top_padding"></div>'
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
+        s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
             s += cell.html(ncols) + '\n'
+        s += '\n</div>\n'
+        s += '<div class="worksheet_bottom_padding"></div>'
         return s
 
 

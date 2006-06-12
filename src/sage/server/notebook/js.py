@@ -257,11 +257,13 @@ function cell_input_minimize_size(number) {
    }
 }
 
+id_to_delete=-1;
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
-        alert(response_text);
-        return ;
-    }
+        cell = document.getElementById('cell_' + id_to_delete);
+        var worksheet = document.getElementById('worksheet');
+        worksheet.removeChild(cell);
+     }
     var X = response_text.split(SEP);
     if (X[0] == 'ignore') {
         return;   /* do not delete, for some reason */
@@ -276,6 +278,7 @@ function cell_delete_callback(status, response_text) {
 }
 
 function cell_delete(id) {
+   id_to_delete=id;
    async_request('async_obj_cell_delete', '/delete_cell', cell_delete_callback, 'id='+id)
 }
 
@@ -286,6 +289,8 @@ function cell_input_key_event(number, event) {
 
     var cell_input = document.getElementById('cell_input_' + number);
 
+
+/*    alert(the_code); */
     if (the_code == 8 && cell_input.value == '') {
         cell_delete(number);
         return false;
@@ -303,8 +308,9 @@ function cell_input_key_event(number, event) {
            return false;
        }
     }
-    else if (the_code == 27 || (the_code==39 && event.ctrlKey)) {
-       // command completion
+/*     else if (the_code == 9 || (the_code==39 && event.ctrlKey)) { */
+     else if (the_code == 27 || (the_code==39 && event.ctrlKey)) {
+       // command completion: tab or ctrl->
        evaluate_cell(number, 2);
        return false;
     }
@@ -336,12 +342,17 @@ updating = 0;
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
     var X = response_text.split(SEP);
+    if (X[0] == '-1') {
+        /* something went wrong -- i.e., the requested cell doesn't exist. */
+        alert("You requested to evaluate a cell that, for some reason, the server is unaware of.");
+        return;
+    }
     if (X[1] != 'no_new_cell') {
         /* add a new cell to the very end */
        var new_cell = document.createElement("div");
        new_cell.innerHTML = X[1];
        new_cell.id = 'cell_' + X[0];
-       var worksheet = document.getElementById('worksheet');
+       var worksheet = document.getElementById('worksheet_cell_list');
        worksheet.appendChild(new_cell);
     }
     if (last_action != 2) {
@@ -466,7 +477,7 @@ function insert_new_cell_before_callback(status, response_text) {
     new_cell.id = 'cell_' + X[0];
     new_cell.innerHTML = X[1];
     var cell = document.getElementById('cell_' + X[2]);
-    var worksheet = document.getElementById('worksheet');
+    var worksheet = document.getElementById('worksheet_cell_list');
     worksheet.insertBefore(new_cell, cell);
     focus_on(X[0]);
 }

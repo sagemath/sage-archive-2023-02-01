@@ -448,7 +448,8 @@ class Notebook(SageObject):
         print "WARNING!!! Currently the SAGE Notebook *only* works with Firefox."
 
         if open_viewer:
-            os.system('%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port))
+            cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(BROWSER, address, port)
+            os.system(cmd)
         notebook_server.serve()
         self.save()
 
@@ -577,10 +578,11 @@ class Notebook(SageObject):
                 ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
                 ('Saving <b>Worksheets</b>',
                  '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a worksheet.'),
-                ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.'),
+                ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
                 ('<b>Restart</b>', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
+                ('<b>Customizing</b> the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.  The look of the notebook interface is highly customizable via CSS.  Send me your skins!'),
                 ('More <b>Help</b>', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial.'),
                 ('<hr>','<hr>'),
                 ('<b>Acknowledgement</b>', 'The design of SAGE notebook was influenced by Mathematica, GMail, GNU Emacs, and IPython.  AUTHORS: William Stein, Alex Clemesha, and Tom Boothy')
@@ -652,20 +654,20 @@ def notebook(dir       ='sage_notebook',
     accessible from anywhere:
 
     \begin{enumerate}
-    \item Figure out the external IP address of your server, say
-       128.208.160.191  (that's sage.math's, actually).
+    \item Figure out the external address of your server, say
+          'sage.math.washington.edu', for example.
     \item On your server, type
-       server_http1('mysession', address='128.208.160.191')
+       server_http1('mysession', address='sage.math.washington.edu')
     \item Assuming you have permission to open a port on that
        machine, it will startup and display a URL, e.g.,
-           \url{http://128.208.160.191:8000}
+           \url{http://sage.math.washington.edu:8000}
        Note this URL.
     \item Go to any computer in the world (!), or at least
        behind your firewall, and use any web browser to
        visit the above URL.  You're using \sage.
     \end{enumerate}
 
-    \note{There are no security precautions in place yet.  If
+    \note{There are no security precautions in place \emph{yet}!  If
     you open a server as above, and somebody figures this out, they
     could use their web browser to connect to the same sage session,
     and type something nasty like \code{os.system('cd; rm -rf *')}
@@ -673,6 +675,18 @@ def notebook(dir       ='sage_notebook',
     authentication screen in the near future.  In the meantime
     (and even then), you should consider creating a user with
     very limited privileges (e.g., empty home directory).}
+
+    FIREFOX ISSUE:
+    If your default web browser if Firefox, then notebook will
+    open a copy of Firefox at the given URL.  You should
+    definitely set the "open links in new tabs" option in
+    Firefox, or you might loose a web page you were looking at.
+    To do this, just go to
+
+         Edit --> Preferences --> Tabs
+
+    and in "Open links from other apps" select the middle button
+    instead of the bottom button.
     """
     print "WARNING -- the SAGE Notebook is currently in alpha"
     print "testing.  It also only looks right on Firefox on"

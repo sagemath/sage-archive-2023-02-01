@@ -2570,9 +2570,8 @@ class Matrix_field(Matrix_pid):
 
         We can even compute the denominator of matrix over the fraction field
         of $\Z[x]$.
-            sage: K = FractionField(PolynomialRing(IntegerRing()))
-            sage: x = K.gen()
-            sage: A = MatrixSpace(K,2)([1/x, 2/(x+1), 1, 5/(x**3)])
+            sage: K.<x> = FractionField(PolynomialRing(IntegerRing()))
+            sage: A = MatrixSpace(K,2)([1/x, 2/(x+1), 1, 5/(x^3)])
             sage: A.denominator()
             x^4 + x^3
         """

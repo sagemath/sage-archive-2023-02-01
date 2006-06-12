@@ -18,6 +18,8 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.misc.latex as latex
 
+from sage.structure.sequence import Sequence
+
 def is_MatrixSpace(x):
     """
     returns true if self is an instance of MatrixSpace
@@ -65,11 +67,16 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         (2, 2)
         sage: B = MS.basis()
         sage: B
-        [[1 0]
-        [0 0], [0 1]
-        [0 0], [0 0]
-        [1 0], [0 0]
-        [0 1]]
+        [
+        [1 0]
+        [0 0],
+        [0 1]
+        [0 0],
+        [0 0]
+        [1 0],
+        [0 0]
+        [0 1]
+        ]
         sage: B[0]
         [1 0]
         [0 0]
@@ -214,7 +221,7 @@ class MatrixSpace_generic(gens.Generators):
                     self.__nrows, self.__ncols, s, self.__base_ring)
 
     def _latex_(self):
-        """
+        r"""
         Returns the latex representation of a MatrixSpace
 
         EXAMPLES:
@@ -262,14 +269,17 @@ class MatrixSpace_generic(gens.Generators):
         try:
             return self.__basis
         except AttributeError:
-            self.__basis = [self() for _ in range(self.dimension())]
+            v = [self() for _ in range(self.dimension())]
             one = self.base_ring()(1)
             i = 0
             for r in range(self.__nrows):
                 for c in range(self.__ncols):
-                    self.__basis[i][r,c] = one
+                    v[i][r,c] = one
+                    v[i].set_immutable()
                     i += 1
-            return self.__basis
+            B = Sequence(v, universe=self, check=False, immutable=True, cr=True)
+            self.__basis = B
+            return B
 
     def dimension(self):
         """

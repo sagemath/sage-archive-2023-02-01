@@ -419,9 +419,12 @@ class ComplexNumber(ring_element.RingElement):
         The optional argument allows us to omit the fractional part:
             sage: z = 1 + i
             sage: z.eta(omit_frac=True)
-            0.99812906992595851 - 0.00000000000000000000081276931900000004*I
+            0.99812906992595851 - 0.00000000000000000000081276931900000004*I  # 32-bit
+            0.99812906992595851 - 0.00000000000000000000081276931878173961*I  # 64-bit
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.99812906992595840 + 0.00000000000000000052001876663675507*I
+            0.99812906992595840 + 0.00000000000000000052001876663675507*I  # 32-bit
+            0.99812906992595840 + 0.00000000000000000052001876674058408*I  # 64-bit
+
 
         We illustrate what happens when $z$ is not in the
         upper half plane.

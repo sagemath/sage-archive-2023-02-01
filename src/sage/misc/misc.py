@@ -38,9 +38,12 @@ LOGFILE = "%s/log/sage_log"%SAGE_ROOT
 
 
 try:
-    DOT_SAGE = '%s/.sage/'%os.environ['HOME']
+    DOT_SAGE = os.environ['DOT_SAGE']
 except KeyError:
-    DOT_SAGE = '%s/.sage/'%SAGE_ROOT
+    try:
+        DOT_SAGE = '%s/.sage/'%os.environ['HOME']
+    except KeyError:
+        DOT_SAGE = '%s/.sage/'%SAGE_ROOT
 
 if ' ' in DOT_SAGE:
     if os.uname()[0][:6] == 'CYGWIN':

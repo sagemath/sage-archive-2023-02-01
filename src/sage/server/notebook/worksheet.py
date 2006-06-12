@@ -392,10 +392,14 @@ class Worksheet:
         """
         A = self.attached_files()
         for F, tm in A.iteritems():
-            new_tm = os.path.getmtime(F)
-            if new_tm > tm:
-                A[F] = new_tm
-                s = 'load %s\n'%F + s
+            try:
+                new_tm = os.path.getmtime(F)
+            except OSError:
+                pass
+            else:
+                if new_tm > tm:
+                    A[F] = new_tm
+                    s = 'load %s\n'%F + s
         return s
 
     def attached_files(self):

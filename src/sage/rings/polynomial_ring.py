@@ -169,9 +169,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
     def _coerce_(self, x):
         if isinstance(x, polynomial.Polynomial) and x.parent() is self:
             return x
-        if isinstance(x, ring_element.RingElement) and x.parent() == self.base_ring():
-            return self([x])
-        return self([self.base_ring()._coerce_(x)])
+        return self(self.base_ring()._coerce_(x))
 
     def __cmp__(self, other):
         if not isinstance(other, PolynomialRing_generic):

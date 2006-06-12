@@ -151,7 +151,7 @@ class Divisor_curve(Divisor_generic):
                 if isinstance(t, tuple) and len(t) == 2:
                     try:
                         C = t[1].scheme()
-                    except TypeError:
+                    except (TypeError, AttributeError):
                         raise TypeError, \
                               "Argument v (= %s) must consist of multiplicities and points on a scheme."
                 else:

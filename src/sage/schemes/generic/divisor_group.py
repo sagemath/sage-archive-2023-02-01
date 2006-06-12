@@ -9,6 +9,7 @@ AUTHORS:
 #*******************************************************************************
 
 from sage.groups.group import AbelianGroup
+from divisor import Divisor_curve
 
 class DivisorGroup(AbelianGroup):
     def __init__(self, scheme, value_ring=None):

@@ -452,7 +452,7 @@ class Kash(Expect):
     def _continuation_prompt(self):
         return '%'
 
-    def eval(self, x, newlines=False):
+    def eval(self, x, newlines=False, strip=True):
         r"""
         Send the code in the string s to the Kash interpreter and return
         the output as a string.
@@ -461,6 +461,7 @@ class Kash(Expect):
             s -- string containing Kash code.
             newlines -- bool (default: True); if False, remove all
                       backslash-newlines inserted by the Kash output formatter.
+            strip -- ignored
         """
         x = str(x)
         x = x.rstrip()

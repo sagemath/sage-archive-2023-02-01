@@ -128,10 +128,14 @@ class Macaulay2(Expect):
     def _read_in_file_command(self, filename):
         return 'value get "%s"'%filename
 
-    def eval(self, code):
+    def eval(self, code, strip=True):
         """
         Send the code x to the Macaulay2 interpreter and return the output
         as a string suitable for input back into Macaulay2, if possible.
+
+        INPUT:
+            code -- str
+            strip -- ignored
         """
         # TODO: in some cases change toExternalString to toString??
         ans = Expect.eval(self, 'toExternalString(%s)'%code)
@@ -197,13 +201,13 @@ class Macaulay2(Expect):
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
             ideal (- x  + y , x - y)
             <BLANKLINE>
-            o23 : Ideal of sage1
+            o23 : Ideal of sage0
             sage: J = I^3; J.gb()                                    # optional
             GroebnerBasis[status: done; S-pairs encountered up to degree 9]
             <BLANKLINE>
             o27 : GroebnerBasis
             sage: J.gb().generators()                                # optional
-            map(sage1^{{0}}, sage1^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
+            map(sage0^{{0}}, sage0^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]

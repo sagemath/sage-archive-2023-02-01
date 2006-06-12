@@ -161,13 +161,17 @@ class Sage(Expect):
     def preparse(self, x):
         return sage.misc.preparser.preparse(x)
 
-    def eval(self, line):
+    def eval(self, line, strip=True):
         """
         Send the code x to a second instance of the \sage interpreter and
         return the output as a string.
 
         This allows you to run two completely independent copies of \sage
         at the same time in a unified way.
+
+        INPUT:
+            line -- input line of code
+            strip -- ignored
         """
         if self._preparse:
             line = self.preparse(line)

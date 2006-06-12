@@ -99,7 +99,11 @@ class PSage(Sage):
             os.system(cmd)
         Sage.__del__(self)
 
-    def eval(self, x):
+    def eval(self, x, strip=True):
+        """
+            x -- code
+            strip --ignored
+        """
         if self.is_locked():
             return "<<currently executing code>>"
         if self._locked:

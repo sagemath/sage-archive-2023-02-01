@@ -316,10 +316,16 @@ class Singular(Expect):
         #return 'execute(read("%s"))'%filename
         return '< "%s";'%filename
 
-    def eval(self, x, allow_semicolon=False):
+    def eval(self, x, allow_semicolon=False, strip=True):
         """
         Send the code x to the Singular interpreter and return the output
         as a string.
+
+        INPUT:
+            x -- string (of code)
+            allow_semicolon -- default: False;  if False then raise a TypeError
+                               if the input line contains a semicolon.
+            strip -- ignored
 
         EXAMPLES:
             sage: singular.eval('2 > 1')

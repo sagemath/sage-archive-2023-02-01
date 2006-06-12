@@ -359,7 +359,13 @@ class Expect(SageObject):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
-    def eval(self, code):
+    def eval(self, code, strip=True):
+        """
+        INPUT:
+            code -- text to evaluate
+            strip -- bool; whether to strip output prompts, etc.
+                     (ignored in the base class).
+        """
         code = str(code)
         code = code.strip()
         try:

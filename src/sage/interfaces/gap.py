@@ -248,7 +248,7 @@ class Gap(Expect):
     def save_workspace(self):
         self.eval('SaveWorkspace("%s");'%WORKSPACE)
 
-    def eval(self, x, newlines=False):
+    def eval(self, x, newlines=False, strip=True):
         r"""
         Send the code in the string s to the GAP interpreter and return
         the output as a string.
@@ -257,6 +257,7 @@ class Gap(Expect):
             s -- string containing GAP code.
             newlines -- bool (default: True); if False, remove all
                       backslash-newlines inserted by the GAP output formatter.
+            strip -- ignored
         """
         # newlines cause hang (i.e., error but no gap> prompt!)
         x = str(x).rstrip().replace('\n','')
@@ -538,6 +539,17 @@ class GapElement(ExpectElement):
 
     def __len__(self):
         return int(self.Length())
+
+    def _latex_(self):
+        self._check_valid()
+        P = self.parent()
+        try:
+            s = P.eval('LaTeXObj(%s)'%self.name())
+            s = s.replace('\\\\','\\').replace('"','')
+            s = s.replace('%\\n',' ')
+            return s
+        except RuntimeError:
+            return str(self)
 
     def _matrix_(self, R):
         r"""

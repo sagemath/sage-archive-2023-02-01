@@ -166,7 +166,12 @@ class Magma(Expect):
             raise AttributeError
         return MagmaFunction(self, attrname)
 
-    def eval(self, x):
+    def eval(self, x, strip=True):
+        """
+        INPUT:
+            x -- string of code
+            strip -- ignored
+        """
         x = str(x).rstrip()
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'

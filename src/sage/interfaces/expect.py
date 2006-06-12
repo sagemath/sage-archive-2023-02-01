@@ -121,7 +121,10 @@ class Expect(SageObject):
                 G = self.__so_far + G
                 del self.__so_far
                 return True, G
-            self.__so_far += self._expect.before
+            try:
+                self.__so_far += self._expect.before
+            except (AttributeError, TypeError):
+                self.__so_far =  self._expect.before
             return False, self.__so_far
         except AttributeError:   # no __so_far
             raise RuntimeError, "nothing being evaluated right now."

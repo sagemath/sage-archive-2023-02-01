@@ -2083,10 +2083,10 @@ cdef class ntl_mat_ZZ:
         U form a basis (as a lattice) for the kernel of old-B.
 
         The parameters a and b allow an arbitrary reduction parameter
-        delta=a/b, where 1/4 < a/b <= 1, where a and b are positive
+        $\delta=a/b$, where $1/4 < a/b \leq 1$, where a and b are positive
         integers.  For a basis reduced with parameter delta, the
         squared length of the first non-zero basis vector is no more
-        than 1/(delta-1/4)^{r-1} times that of the shortest vector in
+        than $1/(delta-1/4)^{r-1}$ times that of the shortest vector in
         the lattice.
 
         The algorithm employed here is essentially the one in Cohen's

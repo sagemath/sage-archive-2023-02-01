@@ -36,7 +36,7 @@ from func_persist import func_persist
 
 from functional import *
 
-from latex import latex, view
+from latex import latex, view, lprint
 
 from mathml import mathml
 

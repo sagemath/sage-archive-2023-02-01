@@ -215,7 +215,10 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
             i += 1
         png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
         return
-    s = _latex_file_(objects, title=title, expert=expert,
+    if isinstance(objects, Latex):
+        s = str(objects)
+    else:
+        s = _latex_file_(objects, title=title, expert=expert,
                      debug=debug, sep=sep, tiny=tiny, center=center)
 
     SAGE_ROOT = os.environ['SAGE_ROOT']
@@ -318,5 +321,28 @@ def repr_lincomb(symbols, coeffs):
         s = "0"
     s = s.replace("+ -","- ")
     return s
+
+def _view_hook(s):
+    if s is None:
+        return
+    view(s)
+
+_old_hook = None
+def lprint():
+    """
+    Toggle latex print mode on and off.
+    """
+    import sys
+    global _old_hook
+    if _old_hook:
+        sys.displayhook = _old_hook
+        _old_hook = None
+        print "Latex print mode off."
+    else:
+        _old_hook = sys.displayhook
+        sys.displayhook = _view_hook
+        print "Latex print mode on."
+
+
 
 

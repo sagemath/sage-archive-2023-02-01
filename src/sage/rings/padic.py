@@ -165,6 +165,8 @@ class pAdic(field_element.FieldElement):
 
         EXAMPLES:
             sage: K = Qp(11)
+            sage: K.prec()
+            20
             sage: a = K(211/17); a
             4 + 4*11 + 11^2 + 7*11^3 + 9*11^5 + 5*11^6 + 4*11^7 + 8*11^8 + 7*11^9 + 9*11^10 + 3*11^11 + 10*11^12 + 11^13 + 5*11^14 + 6*11^15 + 2*11^16 + 3*11^17 + 11^18 + 7*11^19 + O(11^20)
             sage: a.ordp()
@@ -173,6 +175,10 @@ class pAdic(field_element.FieldElement):
             10*11^-2 + 5*11^-1 + 4 + 2*11 + O(11^Infinity)
             sage: b.ordp()
             -2
+
+            sage: K = Qp(11, prec=5)
+            sage: a = K(211/17); a
+            4 + 4*11 + 11^2 + 7*11^3 + O(11^5)
         """
         return self.__ordp
 

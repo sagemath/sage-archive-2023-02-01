@@ -9,20 +9,16 @@ from infinity import infinity
 from integer_mod_ring import IntegerModRing
 import padic
 
-padics = {}
-def pAdicField(p):
-    if padics.has_key(p):
-        x = padics[p]()
-        if x != None:
-            return x
-    K = pAdicField_generic(p)
-    padics[p] = weakref.ref(K)
-    return K
-
-Qp = pAdicField
-
-def is_pAdicField(x):
-    return isinstance(x, pAdicField_generic)
+#padics = {}
+#def pAdicField(p):
+#    return pAdicField_generic(p)
+    #if padics.has_key(p):
+    #    x = padics[p]()
+    #    if x != None:
+    #        return x
+    #K = pAdicField_generic(p)
+    #padics[p] = weakref.ref(K)
+    #return K
 
 class pAdicField_generic(field.Field):
     r"""
@@ -122,4 +118,12 @@ class pAdicField_generic(field.Field):
         return 0
 
 
+
+
+
+Qp = pAdicField_generic
+pAdicField = Qp
+
+def is_pAdicField(x):
+    return isinstance(x, pAdicField_generic)
 

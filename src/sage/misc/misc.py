@@ -849,7 +849,8 @@ def alarm(seconds):
     """
     Raise a KeyboardInterrupt exception in a given number of seconds.
     This is useful for automatically interrupting long computations
-    and can be trapped using exception handling.
+    and can be trapped using exception handling (just catch
+    KeyboardInterrupt).
 
     INPUT:
         seconds -- integer
@@ -860,6 +861,9 @@ def alarm(seconds):
     global __alarm_time
     __alarm_time = seconds
     signal.alarm(seconds)
+
+def cancel_alarm():
+    signal.signal(signal.SIGALRM, signal.SIG_IGN)
 
 
 #################################################################

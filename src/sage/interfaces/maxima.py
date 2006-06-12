@@ -528,7 +528,7 @@ class Maxima(Expect):
     def _false_symbol(self):
         return 'false'
 
-    def function(self, args, defn):
+    def function(self, args, defn, repr=None, latex=None):
         """
         Return the Maxima function with given arguments
         and definition.
@@ -537,6 +537,7 @@ class Maxima(Expect):
             args -- a string with variable names separated by commas
             defn -- a string (or Maxima expression) that defines
                     a function of the arguments in Maxima.
+            repr -- an optional string; if given, this is how the function will print.
 
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
@@ -569,7 +570,9 @@ class Maxima(Expect):
         defn = str(defn)
         args = str(args)
         maxima.eval('%s(%s) := %s'%(name, args, defn))
-        f = MaximaFunction(self, name, defn, args)
+        if repr is None:
+            repr = defn
+        f = MaximaFunction(self, name, repr, args, latex)
         return f
 
     def set(self, var, value):
@@ -1349,10 +1352,11 @@ class MaximaElement(ExpectElement):
 
 
 class MaximaFunction(MaximaElement):
-    def __init__(self, parent, name, defn, args):
+    def __init__(self, parent, name, defn, args, latex):
         MaximaElement.__init__(self, parent, name, is_name=True)
         self.__defn = defn
         self.__args = args
+        self.__latex = latex
 
     def __call__(self, *x):
         self._check_valid()
@@ -1363,6 +1367,12 @@ class MaximaFunction(MaximaElement):
 
     def __repr__(self):
         return self.__defn
+
+    def _latex_(self):
+        if self.__latex is None:
+            return '\\mbox{\\rm %s}'%self.__defn
+        else:
+            return self.__latex
 
     def integrate(self, var):
         return self.integral(var)

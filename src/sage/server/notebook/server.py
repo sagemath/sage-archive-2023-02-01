@@ -17,6 +17,7 @@ import os, sys
 import select
 from   StringIO import StringIO
 import shutil
+import cPickle
 
 import css, js
 
@@ -94,7 +95,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         cols = notebook.defaults()['word_wrap_cols']
         status, cell = worksheet.check_comp()
         if status == 'd':
-            notebook.save()
+            try:
+                notebook.save()
+            except:
+                print "WARNING -- failure to pickle the notebook"
             variables = worksheet.variables_html()
             objects = notebook.object_list_html()
         else:
@@ -189,7 +193,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None):
         self.send_head()
-        self.wfile.write(notebook.html(worksheet_id=worksheet_id))
+        try:
+            self.wfile.write(notebook.html(worksheet_id=worksheet_id))
+        except:
+            print "Error writing out web page."
+            pass
 
     def file_not_found(self):
         self.send_response(404)

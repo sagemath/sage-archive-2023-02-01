@@ -1,5 +1,7 @@
 TODO:
 
+[] save_session broken.
+
 [] rename workbook -- really workbooks should just be files
    on the computer that can be anywhere -- while workin with them
    they are stored in the local notebook directory, but they should
@@ -22,7 +24,6 @@ than the command line, but you won't loose functionality that you
 had on the command line.  Right now this isn't the case, e.g., there's
 no reverse search or history scroll yet.)
 
-
 BUGS:
  [] attached files list doesn't get updated
  [] fails if load a deleted worksheet.
@@ -34,6 +35,9 @@ BUGS:
        print i
 
 IDEAS:
+[] SAJAX -- ajax terminal -- make it embedded somehow (?) into
+   the notebook, e.g., as another tab.
+
  [] tabbed worksheets.
 
 [] >   In an xterm, I can copy and paste input and output to e-mail

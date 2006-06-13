@@ -451,7 +451,7 @@ function update_cell_output(status, response_text) {
             setTimeout('check_for_cell_output()', cell_output_delta);
         }
     } else {
-        /* error message ? */
+        alert("Error updating cell output: " + response_text);
     }
 }
 

@@ -313,7 +313,7 @@ class Worksheet:
                 except (pexpect.TIMEOUT, pexpect.EOF), msg:
                     verbose("Trying again to interrupt SAGE (try %s)..."%i)
         except:
-            print "Interrupted (escepe via alarm)!"
+            print "Interrupted (escape via alarm)!"
             success = False
         else:
             # Turn off the alarm.
@@ -666,12 +666,15 @@ class Worksheet:
         s = ''
 
         s += '<span class="worksheet_title">%s</span>\n'%self.name()
+        s += '<div class="worksheet_top_padding"></div>\n'
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
             s += cell.html(ncols) + '\n'
+        s += '\n</div>\n'
+        s += '<div class="worksheet_bottom_padding"></div>\n'
         return s
 
 

@@ -703,11 +703,17 @@ def notebook(dir       ='sage_notebook',
             print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
             print "WARNING -- failed to load notebook data. Trying the backup file."
             print "****************************************************************"
-            nb = load('%s/nb-backup.sobj'%dir)
+            try:
+                nb = load('%s/nb-backup.sobj'%dir)
+            except:
+                print "Recovering from last op save failed."
+                print "Trying save from last startup."
+                nb = load('%s/nb-older-backup.sobj'%dir)
         nb.set_not_computing()
     else:
         nb = Notebook(dir)
-
+    nb.save()
+    shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.start(port, address, max_tries, open_viewer)
     alarm(1)
     from sage.interfaces.quit import expect_quitall

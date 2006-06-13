@@ -288,7 +288,6 @@ function cell_input_key_event(number, event) {
     cell_input_resize(number);
 
     if (key_send_input(event)) {
-           // User pressed shift-enter
        evaluate_cell(number, 0);
        return false;
     } else if (key_send_input_timed(event)) {
@@ -302,9 +301,8 @@ function cell_input_key_event(number, event) {
        interrupt();
        return false;
     } else if (key_next_cell(event)) {
-
+       alert('hi');
        alert(cell_input.parentNode.firstChild.nextSibling.innerHTML);
-
        cell_input.parentNode.firstChild.nextSibling.focus();
     } else if (key_prev_cell(event)) {
        cell_input.previousSibling.previousSibling.focus();

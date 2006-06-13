@@ -167,6 +167,9 @@ class Darcs:
             if os.path.exists('%s/install'%self.__dir):
                 # Darcs pull doesn't preserve permissions.
                 os.system('chmod a+x %s/install'%self.__dir)
+            os.system('chmod a+x mirror')
+            os.system('chmod a+x rebuild')
+            os.system('chmod a+x spkg-*')
             self.__initialized = True
             if self.__target == 'sage':
                 print ""

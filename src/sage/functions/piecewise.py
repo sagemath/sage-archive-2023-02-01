@@ -482,11 +482,11 @@ class PiecewisePolynomial:
             sage: f.fourier_series_value(100,10)
             1
             sage: f.fourier_series_value(10,10)
-            0.91294525072762767
+            sin(20)
             sage: f.fourier_series_value(20,10)
             1
             sage: f.fourier_series_value(30,10)
-            0.91294525072762767
+            sin(20)
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
 	    sage: f = Piecewise([[(-pi,0),lambda x:0],[(0,pi/2),f1],[(pi/2,pi),f2]])

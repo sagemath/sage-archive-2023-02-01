@@ -294,6 +294,7 @@ import css          # style
 import js           # javascript
 import server       # web server
 import worksheet     # individual worksheets (which make up a notebook)
+import config
 
 #MAX_WORKSHEETS = 65535
 MAX_WORKSHEETS = 1024

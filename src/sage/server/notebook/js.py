@@ -20,7 +20,7 @@ web page.
 ###########################################################################
 
 def javascript():
-    return r"""
+    s = r"""
 
 ///////////////////////////////////////////////////////////////////
 // An AJAX framework for connections back to the
@@ -255,7 +255,7 @@ id_to_delete=-1;
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
         cell = document.getElementById('cell_' + id_to_delete);
-        var worksheet = document.getElementById('worksheet');
+        var worksheet = document.getElementById('worksheet_cell_list');
         worksheet.removeChild(cell);
      }
     var X = response_text.split(SEP);
@@ -263,7 +263,7 @@ function cell_delete_callback(status, response_text) {
         return;   /* do not delete, for some reason */
     }
     cell = document.getElementById('cell_' + X[1]);
-    var worksheet = document.getElementById('worksheet');
+    var worksheet = document.getElementById('worksheet_cell_list');
     worksheet.removeChild(cell);
     id_before = X[2];
     var cell_before = document.getElementById('cell_input_' + id_before);
@@ -277,39 +277,37 @@ function cell_delete(id) {
 }
 
 function cell_input_key_event(number, event) {
-
-    var the_code = event.keyCode ? event.keyCode :
-                   event.which ? event.which : event.charCode;
-
     var cell_input = document.getElementById('cell_input_' + number);
 
-
 /*    alert(the_code); */
-    if (the_code == 8 && cell_input.value == '') {
+    if (key_delete_cell(event) && cell_input.value == '') {
         cell_delete(number);
         return false;
     }
 
     cell_input_resize(number);
 
-    if (the_code == 13) {
-       if (event.shiftKey) {
+    if (key_send_input(event)) {
            // User pressed shift-enter
-           evaluate_cell(number, 0);
-           return false;
-       } else if (event.ctrlKey) {
-           evaluate_cell(number, 1);
-           return false;
-       }
-    }
-/*     else if (the_code == 9 || (the_code==39 && event.ctrlKey)) { */
-     else if (the_code == 27 || (the_code==39 && event.ctrlKey)) {
+       evaluate_cell(number, 0);
+       return false;
+    } else if (key_send_input_timed(event)) {
+       evaluate_cell(number, 1);
+       return false;
+    } else if (key_request_completions(event)) {
        // command completion: tab or ctrl->
        evaluate_cell(number, 2);
        return false;
-    }
-    else if (the_code == 99 && event.ctrlKey) {
+    } else if (key_interrupt(event)) {
        interrupt();
+       return false;
+    } else if (key_next_cell(event)) {
+
+       alert(cell_input.parentNode.firstChild.nextSibling.innerHTML);
+
+       cell_input.parentNode.firstChild.nextSibling.focus();
+    } else if (key_prev_cell(event)) {
+       cell_input.previousSibling.previousSibling.focus();
     }
     return true;
 }
@@ -645,3 +643,66 @@ function hide_help_window() {
 
 }
 """
+
+    s += r"""
+///////////////////////////////////////////////////////////////////
+//
+// KeyCodes
+//
+///////////////////////////////////////////////////////////////////
+
+if(!Event)
+  var Event = new Object();
+function abstract_key_event(e) {
+  e = (e) ? e : (window.event) ? window.event : null;
+
+  var event = new Object();
+  event.shift = (e.modifiers & Event.SHIFT_MASK) || e.shiftKey;
+  event.ctrl  = (e.modifiers & Event.CTRL_MASK ) || e.ctrlKey;
+  event.alt   = (e.modifiers & Event.ALT_MASK  ) || e.altKey;
+
+  event.key = 0;
+  if (e) {
+    if(e.charCode)
+      event.key = e.charCode;
+    else if(e.keyCode)
+      event.key = e.keyCode;
+    else if(e.which)
+      event.key = e.which;
+  }
+//  alert("key: " + event.key + "\nshift: " + event.shift + "\nctrl: " + event.ctrl + "\nalt: " + event.alt)
+  return event;
+}
+
+// The following functions are auto-generated
+%s
+"""%build_all_key_codes()
+
+    return s
+
+
+key_codes = [];
+class JSKeyCode:
+    def __init__(self, name, key='', alt=False, ctrl=False, shift=False):
+        global key_codes
+        self.name  = name
+        self.key   = key
+        self.alt   = alt
+        self.ctrl  = ctrl
+        self.shift = shift
+        key_codes.append(self)
+
+    def js_test(self):
+        a = "%s"%self.alt
+        c = "%s"%self.ctrl
+        s = "%s"%self.shift
+
+        return """
+function key_%s(event) {
+  k = abstract_key_event(event);
+  return k.key == %d && k.alt == %s && k.ctrl == %s && k.shift == %s;
+}
+        """%(self.name, self.key, a.lower(), c.lower(), s.lower())
+
+def build_all_key_codes():
+    return ''.join([k.js_test() for k in key_codes])

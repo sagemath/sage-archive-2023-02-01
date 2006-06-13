@@ -107,6 +107,50 @@ class Darcs:
         print "Applying patchfile %s"%patchfile
         self('apply %s "%s"'%(options, patchfile))
 
+    def add(self, files, options=''):
+        """
+        Add the given list of files (or file) or directories
+        to your DARCS repository.
+
+        Add needs to be called whenever you add a new file or
+        directory to your project.  Of course, it also needs to be
+        called when you first create the project, to let darcs know
+        which files should be kept track of.
+
+        INPUT:
+            files -- list or string; name of file or directory.
+            options -- string
+        """
+        if isinstance(files, str):
+            files = [files]
+        for file in files:
+            file = os.path.abspath(file)
+            print "Adding file %s"%file
+            self('add %s "%s"'%(options, file))
+
+    def remove(self, files, options=''):
+        """
+        Remove the given list of files (or file) or directories
+        from your DARCS repository.
+
+        Remove should be called when you want to remove a file from
+        your project, but don't actually want to delete the file.
+        Otherwise just delete the file or directory, and darcs will
+        notice that it has been removed.  Be aware that the file WILL
+        be deleted from any other copy of the repository to which you
+        later apply the patch.
+
+        INPUT:
+            files -- list or string; name of file or directory.
+            options -- string
+        """
+        if isinstance(files, str):
+            files = [files]
+        for file in files:
+            file = os.path.abspath(file)
+            print "Adding file %s"%file
+            self('remove %s "%s"'%(options, file))
+
     def changes(self, options=''):
         """
         Display the change log for this repository.
@@ -213,6 +257,8 @@ class Darcs:
 
         It's OK to hit control-c and restart if something goes wrong.
         """
+        print "NOTE -- if you create new files you must first add them"
+        print "with the add method."
         self('record %s'%options)
 
     def unrecord(self, options=''):

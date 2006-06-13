@@ -440,8 +440,8 @@ if [ $# -ge 1 ]; then
        install "" $*
        exit $?
    fi
-   cd "$CUR"
-   sage-run $*
+   cd "$SAGE_LOCAL/bin/"
+   sage-run "$CUR" $*
    if [ $? -eq 0 ]; then
        exit 0
    fi

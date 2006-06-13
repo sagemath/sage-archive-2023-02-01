@@ -10,9 +10,7 @@ from sage.server.notebook.all import notebook
 
 print "..."
 
-port = 8000
-
 if len(sys.argv) > 1:
-    notebook(sys.argv[1], port=port)
+    notebook(*sys.argv[1:])
 else:
-    notebook(port=port)
+    notebook(port=8000)

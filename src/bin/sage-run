@@ -1,8 +1,10 @@
-#!/usr/bin/env sage.bin
+#!sage.bin
 
 import os, sys
 
-args=sys.argv[1:]
+os.chdir(sys.argv[1])
+
+args=sys.argv[2:]
 
 files = [x for x in args if len(x) > 0 and x[0] != '-']
 

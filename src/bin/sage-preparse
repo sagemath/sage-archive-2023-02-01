@@ -22,7 +22,7 @@ def do_preparse(f, files_before=[]):
     if f[-3:] == '.py':
         return
     if f[-5:] != '.sage':
-        print "%s: Unknown file type %s"%f
+        print "%s: Unknown file type %s"%(sys.argv[0], f)
         sys.exit(1)
     F = open(f).read()
 

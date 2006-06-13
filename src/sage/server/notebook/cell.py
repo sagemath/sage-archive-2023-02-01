@@ -79,9 +79,13 @@ class Cell:
 
     def next_id(self):
         L = self.__worksheet.cell_list()
-        k = L.index(self)
+        try:
+            k = L.index(self)
+        except ValueError:
+            print "Warning -- cell %s no longer exists"%self.id()
+            return L[0].id()
         if k == len(L):
-            return L[0]
+            return L[0].id()
         return L[k+1].id()
 
     def interrupt(self):

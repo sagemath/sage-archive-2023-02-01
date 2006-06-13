@@ -151,6 +151,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         new_worksheet_list = notebook.worksheet_list_html(W.name())
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
+    def plain_text_worksheet(self, worksheet_id):
+        W = notebook.get_worksheet_with_id(worksheet_id)
+        self.wfile.write(W.plain_text())
+
     def cell_id_list(self):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
@@ -165,7 +169,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-
         try:
             binfile = open(path, 'rb').read()
         except IOError:
@@ -219,16 +222,25 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.path[-4:] in ['.eps', '.png', '.svg', '.txt'] or \
                self.path[-5:] == '.sobj' or self.path[-3:] == '.ps':
-
             return self.get_file()
 
-        else:
-            i = self.path.rfind('/')
-            try:
-                worksheet_id = int(self.path[1:])
-            except ValueError:
-                worksheet_id = None
+        path = self.path.strip('/')
+        i = path.find('/')
+        if i == -1:
+            i = len(path)
+
+        try:
+            worksheet_id = int(path[:i])
+        except ValueError:
+            worksheet_id = None
+        path = path[i+1:]
+        if path == 'text':
+            self.plain_text_worksheet(worksheet_id)
+        elif path == '':
             self.show_page(worksheet_id)
+        else:
+            self.file_not_found()
+
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))

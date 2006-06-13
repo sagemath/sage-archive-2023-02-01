@@ -48,6 +48,32 @@ class Cell:
     def __repr__(self):
         return 'Cell %s'%self.__id
 
+    def plain_text(self):
+        s = ''
+        input_lines = self.__in.split('\n')
+        has_prompt = False
+        z = []
+        for v in input_lines:
+            w = v.lstrip()
+            if w[:5] == 'sage:' or w[:3] == '>>>' or w[:3] == '...':
+                has_prompt = True
+                z.append('    ' + v)
+            else:
+                z.append(v)
+
+
+        if has_prompt:
+            s += '\n'.join(z)
+        else:
+            s += '\n'.join('    sage: ' + v for v in input_lines)
+
+        indent = ' '*10
+
+        # output (always indented 6 spaces)
+        s += '\n' + '\n'.join(indent + v for v in self.__out.split('\n'))
+
+        return s
+
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
 

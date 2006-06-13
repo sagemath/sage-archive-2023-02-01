@@ -66,6 +66,12 @@ class Worksheet:
         self.__comp_is_running = False
         self.__queue = []
 
+    def plain_text(self):
+        """
+        Return a plain-text version of the worksheet.
+        """
+        return '\n\n'.join([C.plain_text() for C in self.__cells])
+
     # The following setstate method is here
     # so that when this object is pickled and
     # unpickled, the self.__sage attribute

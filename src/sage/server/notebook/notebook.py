@@ -394,12 +394,15 @@ class Notebook(SageObject):
         W.sort()
         return W
 
+    def get_worksheet_with_name(self, name):
+        return self.__worksheets[name]
+
     def get_worksheet_with_id(self, id):
-        for W in self.__worksheets.itervalues():
-            if W.id() == id:
-                return W
+        if id != None:
+            for W in self.__worksheets.itervalues():
+                if W.id() == id:
+                    return W
         return self.__worksheets[self.worksheet_names()[0]]
-        #raise KeyError, "no worksheet with id %s"%id
 
     def get_worksheet_that_has_cell_with_id(self, id):
         worksheet_id = id // MAX_WORKSHEETS
@@ -467,8 +470,8 @@ class Notebook(SageObject):
             if W.computing():
                 cls += '_computing' # actively computing
             name = W.name().replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" href="/%s">%s</a>'%(
-                cls,W.id(),W.id(),name + '&nbsp;'*(m-len(W.name())))
+            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
+                cls,W.id(),W.id(),W.id(),name + '&nbsp;'*(m-len(W.name())))
             s.append(txt)
         return '<br>'.join(s)
 

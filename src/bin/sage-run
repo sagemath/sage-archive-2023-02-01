@@ -12,7 +12,7 @@ if len(files) == 0:
     sys.exit(1)
 
 opts  = ' '.join([x for x in args if len(x) > 0 and x[0] == '-'])
-if os.system('sage-preparse %s'%(' '.join(files))):
+if os.system('sage -preparse %s'%(' '.join(files))):
     sys.exit(1)
 
 for file in files:

@@ -427,8 +427,8 @@ fi
 
 if [ $1 = '-preparse' ]; then
     shift
-    cd "$CUR"
-    sage-preparse $*
+    cd "$SAGE_LOCAL/bin/"
+    sage-preparse "$CUR" $*
     exit $?
 fi
 

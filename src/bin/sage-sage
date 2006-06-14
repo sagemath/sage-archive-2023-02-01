@@ -50,6 +50,7 @@ usage_advanced() {
     echo "  -sdist VER    -- build a source distribution of SAGE"
     echo "  -server1 [name]-- run SAGE as a web server (on localhost), logging "
     echo "                    to the given filename"
+    echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -t [-optional] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
     echo "                           -long     -- include lines with the phrase 'long time'"

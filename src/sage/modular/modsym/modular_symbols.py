@@ -26,7 +26,7 @@ import sage.rings.arith as arith
 import sage.rings.rational_field as rational_field
 from sage.misc.latex import latex
 
-_C = cusps.Cusps()
+_C = cusps.Cusps
 
 class ModularSymbol:
     r"""

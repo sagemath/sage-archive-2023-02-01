@@ -64,8 +64,9 @@ cdef class SageObject:
         extra attribute, which would be slower and waste a lot of
         memory.}
         """
-        if x is None and hasattr(self, '__custom_name'):
-            self.reset_name()
+        if x is None:
+            if hasattr(self, '__custom_name'):
+                self.reset_name()
         else:
             try:
                 self.__custom_name = str(x)

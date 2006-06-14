@@ -2,8 +2,8 @@ r"""
 The set $\PP^1(\Q)$ of cusps
 
 EXAMPLES:
-    sage: Cusps()
-    The set P^1(Q) of cusps.
+    sage: Cusps
+    Set P^1(QQ) of all cusps
 
     sage: Cusp(oo)
     Infinity
@@ -24,43 +24,110 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import infinity, is_Infinity
+from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-import sage.rings.rational as rational
-import sage.rings.integer as integer
+from sage.structure.element import Element_cmp_
 from sage.ext.sage_object import SageObject
 
-ZZ = IntegerRing(); QQ = RationalField()
 
-class Cusps(SageObject):
+class Cusps_class(SageObject):
     """
     The set of cusps.
 
     EXAMPLES:
-        sage: C = Cusps(); C
-        The set P^1(Q) of cusps.
+        sage: C = Cusps; C
+        Set P^1(QQ) of all cusps
         sage: loads(C.dumps()) == C
         True
     """
-    def __init__(self):
-        pass
-
     def __cmp__(self, right):
-        if isinstance(right, Cusps):
+        """
+        Return equality only if right is the set of cusps.
+
+        EXAMPLES:
+            sage: Cusps == Cusps
+            True
+            sage: Cusps == QQ
+            False
+        """
+        if isinstance(right, Cusps_class):
             return 0
         return -1
 
-    def __repr__(self):
-        return "The set P^1(Q) of cusps."
+    def _repr_(self):
+        """
+        String representation of the set of cusps.
+
+        EXAMPLES:
+            sage: Cusps
+            Set P^1(QQ) of all cusps
+            sage: Cusps.rename('CUSPS'); Cusps
+            CUSPS
+            sage: Cusps.rename(); Cusps
+            Set P^1(QQ) of all cusps
+            sage: Cusps
+            Set P^1(QQ) of all cusps
+        """
+        return "Set P^1(QQ) of all cusps"
+
+    def _latex_(self):
+        """
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: latex(Cusps)
+            \mathbf{P}^1(\mathbf{Q})
+        """
+        return "\\mathbf{P}^1(\\mathbf{Q})"
 
     def __call__(self, x):
+        """
+        Coerce x into the set of cusps.
+
+        EXAMPLES:
+            sage: a = Cusps(-4/5); a
+            -4/5
+            sage: Cusps(a) is a
+            True
+            sage: Cusps(1.5)
+            3/2
+            sage: Cusps(oo)
+            Infinity
+            sage: Cusps(I)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+        """
         if isinstance(x, Cusp):
             return x
         return Cusp(x)
 
+    def _coerce_(self, x):
+        """
+        Canonical coercion of x into the set of cusps.
 
-class Cusp(SageObject):
+        EXAMPLES:
+            sage: Cusps._coerce_(7/13)
+            7/13
+            sage: Cusps._coerce_(GF(7)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError
+            sage: Cusps(GF(7)(3))
+            3
+        """
+        if isinstance(x, Cusp):
+            return x
+        elif is_Infinity(x):
+            return Cusp(x)
+        else:
+            return Cusp(QQ._coerce_(x))
+
+Cusps = Cusps_class()
+
+
+class Cusp(Element_cmp_, SageObject):
     """
     A cusp.
 
@@ -85,15 +152,15 @@ class Cusp(SageObject):
             Infinity
             sage: Cusp(5)
             5
-            sage: Cusp(QQ("1/2"))             # rational number
+            sage: Cusp(1/2)             # rational number
             1/2
-            sage: Cusp('2/3')             # rational number
-            2/3
             sage: Cusp(1.5)
+            3/2
+
+            sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.5000000000000000,1 to a Cusp
-
+            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a
@@ -113,24 +180,30 @@ class Cusp(SageObject):
             self.__b = a.__b
             return
 
-        elif isinstance(a, rational.Rational):
+        elif isinstance(a, Rational):
             a = a/b
             self.__a = a.numer()
             self.__b = a.denom()
             return
 
-        elif isinstance(a, (int, long, integer.Integer)) and \
-                 isinstance(b, (int, long, integer.Integer)):
+        elif isinstance(a, (int, long, Integer)) and \
+                 isinstance(b, (int, long, Integer)):
             a = ZZ(a)
             b = ZZ(b)
 
-        elif isinstance(a, integer.Integer) and isinstance(b, integer.Integer):
+        elif isinstance(a, Integer) and isinstance(b, Integer):
             pass
 
         elif isinstance(a, str):
             a = RationalField()(a)/b
             self.__a = a.numer()
             self.__b = a.denom()
+            return
+
+        elif b==1:
+
+            self.__a = RationalField()(a)
+            self.__b = b
             return
 
         else:
@@ -147,14 +220,76 @@ class Cusp(SageObject):
         self.__b = b//g
         return
 
-    def __cmp__(self, right):
-        if not isinstance(right, Cusp):
-            return -1
-        return cmp([self.__a, self.__b], [right.__a, right.__b])
+    def _cmp_(self, right):
+        """
+        Compare the cusps self and right.  Comparison is as for
+        rational numbers, except with the cusp oo greater than
+        everything but itself.
+
+        The ordering in comparison is only really meaningful
+        for infinity or elements that coerce to the rationals.
+
+        EXAMPLES:
+            sage: Cusp(2/3) == Cusp(oo)
+            False
+
+            sage: Cusp(2/3) < Cusp(oo)
+            True
+
+            sage: Cusp(2/3)> Cusp(oo)
+            False
+
+            sage: Cusp(2/3) > Cusp(5/2)
+            False
+
+            sage: Cusp(2/3) < Cusp(5/2)
+            True
+
+            sage: Cusp(2/3) == Cusp(5/2)
+            False
+
+            sage: Cusp(oo) == Cusp(oo)
+            True
+
+            sage: 19/3 < Cusp(oo)
+            True
+
+            sage: Cusp(oo) < 19/3
+            False
+
+            sage: Cusp(2/3) < Cusp(11/7)
+            True
+
+            sage: Cusp(11/7) < Cusp(2/3)
+            False
+
+            sage: 2 < Cusp(3)
+            True
+        """
+        if self.__b == 0:
+            # self is oo, which is bigger than everything but oo.
+            if right.__b == 0:
+                return 0
+            else:
+                return 1
+        elif right.__b == 0:
+            if self.__b == 0:
+                return 0
+            else:
+                return -1
+        return cmp(self._rational_(), right._rational_())
 
     def is_infinity(self):
         """
         Returns True if this is the cusp infinity.
+
+        EXAMPLES:
+            sage: Cusp(3/5).is_infinity()
+            False
+            sage: Cusp(1,0).is_infinity()
+            True
+            sage: Cusp(0,1).is_infinity()
+            False
         """
         return self.__b == 0
 
@@ -162,10 +297,15 @@ class Cusp(SageObject):
         """
         Return the numerator of the cusp a/b.
 
-        sage: x=Cusp(6,9); x
-        2/3
-        sage: x.numerator()
-        2
+        EXAMPLES:
+            sage: x=Cusp(6,9); x
+            2/3
+            sage: x.numerator()
+            2
+            sage: Cusp(oo).numerator()
+            1
+            sage: Cusp(-5/10).numerator()
+            -1
         """
         return self.__a
 
@@ -173,17 +313,51 @@ class Cusp(SageObject):
         """
         Return the denominator of the cusp a/b.
 
-        sage: x=Cusp(6,9); x
-        2/3
-        sage: x.denominator()
-        3
+        EXAMPLES:
+            sage: x=Cusp(6,9); x
+            2/3
+            sage: x.denominator()
+            3
+            sage: Cusp(oo).denominator()
+            0
+            sage: Cusp(-5/10).denominator()
+            2
         """
         return self.__b
 
     def _rational_(self):
+        """
+        Coerce to a rational number.
+
+        EXAMPLES:
+            sage: QQ(Cusp(oo))
+            Traceback (most recent call last):
+            ...
+            TypeError: cusp Infinity is not a rational number
+            sage: QQ(Cusp(-3,7))
+            -3/7
+        """
+        if self.__b == 0:
+            raise TypeError, "cusp %s is not a rational number"%self
         return self.__a / self.__b
 
     def _integer_(self):
+        """
+        Coerce to an integer.
+
+        EXAMPLES:
+            sage: ZZ(Cusp(-19))
+            -19
+
+            sage: ZZ(Cusp(oo))
+            Traceback (most recent call last):
+            ...
+            TypeError: cusp Infinity is not an integer
+            sage: ZZ(Cusp(-3,7))
+            Traceback (most recent call last):
+            ...
+            TypeError: cusp -3/7 is not an integer
+        """
         if self.__b != 1:
             raise TypeError, "cusp %s is not an integer"%self
         return self.__a
@@ -191,10 +365,26 @@ class Cusp(SageObject):
     def parent(self):
         """
         Return the set of all cusps.
-        """
-        return Cusps()
 
-    def __repr__(self):
+        EXAMPLES:
+            sage: a = Cusp(2/3); b = Cusp(oo)
+            sage: a.parent()
+            Set P^1(QQ) of all cusps
+            sage: a.parent() is b.parent()
+            True
+        """
+        return Cusps
+
+    def _repr_(self):
+        """
+        String representation of this cusp.
+
+        EXAMPLES:
+            sage: a = Cusp(2/3); a
+            2/3
+            sage: a.rename('2/3(cusp)'); a
+            2/3(cusp)
+        """
         if self.__b.is_zero():
             return "Infinity"
         if self.__b != 1:
@@ -203,6 +393,15 @@ class Cusp(SageObject):
             return str(self.__a)
 
     def _latex_(self):
+        r"""
+        Latex representation of this cusp.
+
+        EXAMPLES:
+            sage: latex(Cusp(-2/7))
+            \frac{-2}{7}
+            sage: latex(Cusp(oo))
+            \infty
+        """
         if self.__b.is_zero():
             return "\\infty"
         if self.__b != 1:
@@ -211,12 +410,21 @@ class Cusp(SageObject):
             return str(self.__a)
 
     def __neg__(self):
+        """
+        The negative of this cusp.
+
+        EXAMPLES:
+            sage: -Cusp(2/7)
+            -2/7
+            sage: -Cusp(oo)
+            Infinity
+        """
         return Cusp(-self.__a, self.__b)
 
     def is_gamma0_equiv(self, other, N, transformation = False):
-        """
+        r"""
         Return whether self and other are equivalent modulo the action
-        of Gamma_0(N) via linear fractional transformations.
+        of $\Gamma_0(N)$ via linear fractional transformations.
 
         INPUT:
             other -- Cusp
@@ -251,6 +459,8 @@ class Cusp(SageObject):
             See Proposition 2.2.3 of Cremona's book "Algorithms for Modular
             Elliptic Curves", or Prop 2.27 of Stein's Ph.D. thesis.
         """
+        if not isinstance(other, Cusp):
+            other = Cusp(other)
         N = ZZ(N)
         u1 = self.__a
         v1 = self.__b
@@ -317,7 +527,27 @@ class Cusp(SageObject):
                         v1 = -v2 (mod N) and u1 = -u2 (mod gcd(v1,N))
                    The sign is +1 for the first and -1 for the second.
                    If the two cusps are not equivalent then 0 is returned.
+
+        EXAMPLES:
+            sage: x = Cusp(2,3)
+            sage: y = Cusp(4,5)
+            sage: x.is_gamma1_equiv(y,2)
+            (True, 1)
+            sage: x.is_gamma1_equiv(y,3)
+            (False, 0)
+            sage: z = Cusp(QQ(x) + 10)
+            sage: x.is_gamma1_equiv(z,10)
+            (True, 1)
+            sage: z = Cusp(1,0)
+            sage: x.is_gamma1_equiv(z, 3)
+            (True, -1)
+            sage: Cusp(0).is_gamma1_equiv(oo, 1)
+            (True, 1)
+            sage: Cusp(0).is_gamma1_equiv(oo, 3)
+            (False, 0)
         """
+        if not isinstance(other, Cusp):
+            other = Cusp(other)
         N = ZZ(N)
         u1 = self.__a
         v1 = self.__b
@@ -334,6 +564,15 @@ class Cusp(SageObject):
         """
         Return g(self), where g=[a,b,c,d] is a list of length 4, which
         we view as a linear fractional transformation.
+
+        EXAMPLES:
+            Apply the identity matrix:
+            sage: Cusp(0).apply([1,0,0,1])
+            0
+            sage: Cusp(0).apply([0,-1,1,0])
+            Infinity
+            sage: Cusp(0).apply([1,-3,0,1])
+            -3
         """
         return Cusp(g[0]*self.__a + g[1]*self.__b, g[2]*self.__a + g[3]*self.__b)
 

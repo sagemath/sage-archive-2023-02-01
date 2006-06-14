@@ -205,15 +205,14 @@ class Darcs:
                 print "WARNING -- problem pulling repository."
                 print "Try calling initalize again with the force option?"
                 return
-            n = self.__dir.split('/')[-1]
+            D = self.__dir
+            n = D.split('/')[-1]
             if not self.__target is None:
-                os.system('cd "%s/.." && ln -snf %s %s'%(self.__dir, n, self.__target))
-            if os.path.exists('%s/install'%self.__dir):
+                os.system('cd "%s/.." && ln -snf %s %s'%(D, n, self.__target))
+            if os.path.exists('%s/install'%D):
                 # Darcs pull doesn't preserve permissions.
-                os.system('chmod a+x %s/install'%self.__dir)
-            os.system('chmod a+x mirror')
-            os.system('chmod a+x rebuild')
-            os.system('chmod a+x spkg-*')
+                os.system('cd %s; chmod a+x %s/install'%D)
+            os.system('cd %s; chmod +x spkg-* rebuild mirror ref/update*'%D)
             self.__initialized = True
             if self.__target == 'sage':
                 print ""

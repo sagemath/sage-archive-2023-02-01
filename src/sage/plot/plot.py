@@ -109,7 +109,7 @@ import os
 
 from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
-from math import modf
+from math import sin, cos, modf
 
 import matplotlib.patches as patches
 from matplotlib.cbook import flatten
@@ -136,7 +136,7 @@ class Graphics(SageObject):
     to the empty object.
 
     EXAMPLES:
-	sage: G = Graphics(); G
+        sage: G = Graphics(); G
         Graphics object consisting of 0 graphics primitives:
         sage: c = circle((1,1), 1)
         sage: G+=c; G
@@ -144,7 +144,7 @@ class Graphics(SageObject):
                 0 -- Circle defined by (1.0,1.0) with r=1.0
 
         Here we make a graphic of embeded isoceles triangles,
-	coloring each one with a different color as we go:
+        coloring each one with a different color as we go:
 
         sage: h=10; c=0.4; p=0.1;
         sage: G = Graphics()
@@ -164,38 +164,38 @@ class Graphics(SageObject):
 
     def xmax(self):
         """
-	sage: G = Graphics(); G
-	Graphics object consisting of 0 graphics primitives:
-	sage: G.xmax()
-	1
+        sage: G = Graphics(); G
+        Graphics object consisting of 0 graphics primitives:
+        sage: G.xmax()
+        1
         """
         return self.__xmax
 
     def xmin(self):
-	"""
-	sage: G = Graphics(); G
-	Graphics object consisting of 0 graphics primitives:
-	sage: G.xmin()
-	-1
-	"""
+        """
+        sage: G = Graphics(); G
+        Graphics object consisting of 0 graphics primitives:
+        sage: G.xmin()
+        -1
+        """
         return self.__xmin
 
     def ymax(self):
-	"""
-	sage: G = Graphics(); G
-	Graphics object consisting of 0 graphics primitives:
-	sage: G.ymax()
-	1
-	"""
+        """
+        sage: G = Graphics(); G
+        Graphics object consisting of 0 graphics primitives:
+        sage: G.ymax()
+        1
+        """
         return self.__ymax
 
     def ymin(self):
-	"""
-	sage: G = Graphics(); G
-	Graphics object consisting of 0 graphics primitives:
-	sage: G.ymin()
-	-1
-	"""
+        """
+        sage: G = Graphics(); G
+        Graphics object consisting of 0 graphics primitives:
+        sage: G.ymin()
+        -1
+        """
         return self.__ymin
 
     def _repr_(self):
@@ -207,26 +207,26 @@ class Graphics(SageObject):
             len(self), pr)
 
     def __getitem__(self, i):
-	"""
-	Returns the ith graphics primitive object:
+        """
+        Returns the ith graphics primitive object:
 
-	EXAMPLE:
-	    sage: G = circle((1,1),2) + circle((2,2),5); G
-	    Graphics object consisting of 2 graphics primitives:
-        	    0 -- Circle defined by (1.0,1.0) with r=2.0
-        	    1 -- Circle defined by (2.0,2.0) with r=5.0
-	    sage: G[1]
-	    Circle defined by (2.0,2.0) with r=5.0
-	"""
+        EXAMPLE:
+            sage: G = circle((1,1),2) + circle((2,2),5); G
+            Graphics object consisting of 2 graphics primitives:
+                    0 -- Circle defined by (1.0,1.0) with r=2.0
+                    1 -- Circle defined by (2.0,2.0) with r=5.0
+            sage: G[1]
+            Circle defined by (2.0,2.0) with r=5.0
+        """
         return self.__objects[int(i)]
 
     def __len__(self):
         """
         If G is of type Graphics, then len(G)
-	gives the number of distinct graphics
-	primitives making up that object.
+        gives the number of distinct graphics
+        primitives making up that object.
 
-	EXAMPLES:
+        EXAMPLES:
 
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
             Graphics object consisting of 3 graphics primitives:
@@ -241,10 +241,10 @@ class Graphics(SageObject):
     def __delitem__(self, i):
         """
         If G is of type Graphics, then del(G[i])
-	removes the ith distinct graphic
-	primitive making up that object.
+        removes the ith distinct graphic
+        primitive making up that object.
 
-	EXAMPLES:
+        EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
             Graphics object consisting of 3 graphics primitives:
                     0 -- Circle defined by (1.0,1.0) with r=1.0
@@ -257,32 +257,32 @@ class Graphics(SageObject):
             Graphics object consisting of 2 graphics primitives:
                     0 -- Circle defined by (1.0,1.0) with r=1.0
                     1 -- Circle defined by (1.0,2.0) with r=1.0
-	    sage: len(G)
-	    2
+            sage: len(G)
+            2
         """
         del self.__objects[int(i)]
 
     def __setitem__(self, i, x):
         """
-	You can replace an GraphicsPrimitive (point, line, circle, etc...)
-	in a Graphics object G with any other GraphicsPrimitive
+        You can replace an GraphicsPrimitive (point, line, circle, etc...)
+        in a Graphics object G with any other GraphicsPrimitive
 
-	EXAMPLES:
+        EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
             Graphics object consisting of 3 graphics primitives:
                     0 -- Circle defined by (1.0,1.0) with r=1.0
                     1 -- Circle defined by (1.0,2.0) with r=1.0
                     2 -- Circle defined by (1.0,2.0) with r=5.0
 
-	    sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]);p
-	    Graphics object consisting of 1 graphics primitives:
+            sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]);p
+            Graphics object consisting of 1 graphics primitives:
                     0 -- Polygon defined by 4 points
 
             sage: G[1] = p[0];G
-	    Graphics object consisting of 3 graphics primitives:
-            	    0 -- Circle defined by (1.0,1.0) with r=1.0
-        	    1 -- Polygon defined by 4 points
-        	    2 -- Circle defined by (1.0,2.0) with r=5.0
+            Graphics object consisting of 3 graphics primitives:
+                        0 -- Circle defined by (1.0,1.0) with r=1.0
+                    1 -- Polygon defined by 4 points
+                    2 -- Circle defined by (1.0,2.0) with r=5.0
 
         """
         if not isinstance(x, GraphicPrimitive):
@@ -297,9 +297,9 @@ class Graphics(SageObject):
     def __add__(self, other):
         """
         If you have any Graphics object G1, you can
-	always add any other amount of Graphics objects G2,G3,...
-	to form a new Graphics object:
-	G4 = G1 + G2 + G3
+        always add any other amount of Graphics objects G2,G3,...
+        to form a new Graphics object:
+        G4 = G1 + G2 + G3
 
         EXAMPLES:
             sage: h1 = lambda x : sqrt(x^3  - 1)
@@ -307,9 +307,9 @@ class Graphics(SageObject):
             sage: g1 = plot(h1, 1, 5)
             sage: g2 = plot(h2, 1, 5)
             sage: h = g1 + g2; h
-	    Graphics object consisting of 2 graphics primitives:
-            	    0 -- Line defined by 205 points
-        	    1 -- Line defined by 205 points
+            Graphics object consisting of 2 graphics primitives:
+                        0 -- Line defined by 205 points
+                    1 -- Line defined by 205 points
 
         """
         if isinstance(other, int) and other == 0:
@@ -376,32 +376,32 @@ class Graphics(SageObject):
             self.__ymax = y
 
     def _extend_axes(self, xmin, xmax, ymin, ymax):
-    	self._extend_x_axis(xmin)
-    	self._extend_x_axis(xmax)
-    	self._extend_y_axis(ymin)
-    	self._extend_y_axis(ymax)
+        self._extend_x_axis(xmin)
+        self._extend_x_axis(xmax)
+        self._extend_y_axis(ymin)
+        self._extend_y_axis(ymax)
 
     def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax):
         yspan = ymax - ymin
         xspan = xmax - xmin
 
-	#evalute find_axes for x values and y ticks
-	y_axis_xpos, xstep, xtslminor, xtslmajor = find_axes(xmin, xmax)
-	yltheight = 0.015 * xspan
-	ystheight = 0.25  * yltheight
-	ylabel    = y_axis_xpos -2*ystheight
+        #evalute find_axes for x values and y ticks
+        y_axis_xpos, xstep, xtslminor, xtslmajor = find_axes(xmin, xmax)
+        yltheight = 0.015 * xspan
+        ystheight = 0.25  * yltheight
+        ylabel    = y_axis_xpos -2*ystheight
 
-	#evalute find_axes for y values and x ticks
-	x_axis_ypos, ystep, ytslminor, ytslmajor = find_axes(ymin, ymax)
-	xltheight = 0.015 * yspan
+        #evalute find_axes for y values and x ticks
+        x_axis_ypos, ystep, ytslminor, ytslmajor = find_axes(ymin, ymax)
+        xltheight = 0.015 * yspan
         xstheight = 0.25  * xltheight
-	xlabel    = x_axis_ypos - xltheight
+        xlabel    = x_axis_ypos - xltheight
 
-	#the x axis line
+        #the x axis line
         subplot.add_line(patches.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
                                         color='k', linewidth=0.6))
 
-	#the y axis line
+        #the y axis line
         subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
                                         color='k', linewidth=0.6))
 
@@ -411,48 +411,48 @@ class Graphics(SageObject):
                 return s[:-2]
             return s
 
-	#the x-axis ticks and labels
-	for x in xtslmajor:
+        #the x-axis ticks and labels
+        for x in xtslmajor:
             if x == y_axis_xpos:
                 continue
-	    subplot.text(x, xlabel, format(x), fontsize=5,
+            subplot.text(x, xlabel, format(x), fontsize=5,
                          horizontalalignment="center", verticalalignment="top")
 
-	    subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
-					color='k',linewidth=0.6))
+            subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
+                        color='k',linewidth=0.6))
 
         for x in xtslminor:
-	    subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
-					color='k', linewidth=0.6))
+            subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
+                        color='k', linewidth=0.6))
 
-	#the y-axis ticks and labels
+    #the y-axis ticks and labels
         for y in ytslmajor:
             if y == x_axis_ypos:
                 continue
-	    subplot.text(ylabel, y, format(y), fontsize=5, verticalalignment="center",
-					horizontalalignment="right")
+            subplot.text(ylabel, y, format(y), fontsize=5, verticalalignment="center",
+                    horizontalalignment="right")
 
-	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
-					color='k', linewidth=0.6))
+            subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
+                    color='k', linewidth=0.6))
 
         for y in ytslminor:
-	    subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
-					color='k',linewidth=0.6))
+            subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
+                color='k',linewidth=0.6))
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI):
         """
-	Show this graphics image with the default image viewer.
+        Show this graphics image with the default image viewer.
 
-	EXAMPLES:
-	    sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
-	    sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
+        EXAMPLES:
+            sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+            sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
 
-	To correct the apect ratio of certain graphics, it is necessary
-	to show with a 'figsize' of square dimensions.
+        To correct the apect ratio of certain graphics, it is necessary
+        to show with a 'figsize' of square dimensions.
 
-	    sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
+            sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
         """
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi)
@@ -499,28 +499,27 @@ class Graphics(SageObject):
         ymin -= 0.1*(ymax-ymin)
         ymax += 0.1*(ymax-ymin)
 
-	return xmin,xmax,ymin,ymax
+        return xmin,xmax,ymin,ymax
 
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI):
         """
-	Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
-	depending on the file extension you give the filename.
-        Extension types can be: '.png', '.ps', '.eps', '.svg',
-        and '.sobj' (for a SAGE object you can load later).
+        Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
+        depending on the file extension you give the filename.
+            Extension types can be: '.png', '.ps', '.eps', '.svg',
+            and '.sobj' (for a SAGE object you can load later).
 
-	EXAMPLES:
-	    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-	    sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
+        EXAMPLES:
+            sage: c = circle((1,1),1,rgbcolor=(1,0,0))
+            sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
 
-	    To correct the apect ratio of certain graphics, it is necessary
-	    to show with a 'figsize' of square dimensions.
+            To correct the apect ratio of certain graphics, it is necessary
+            to show with a 'figsize' of square dimensions.
 
-	    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+            sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
 	"""
-        from matplotlib.figure import Figure
         if filename is None:
             i = 0
             while os.path.exists('sage%s.png'%i):
@@ -538,39 +537,36 @@ class Graphics(SageObject):
 
         xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
 
-	figure = fig
-	if not figure:
-             figure = Figure(figsize)
-	subplot = sub
-	if not subplot:
+        figure = fig
+        if not figure:
+            figure = Figure(figsize)
+        subplot = sub
+        if not subplot:
             subplot = figure.add_subplot(111)
         subplot.xaxis.set_visible(False)
-       	subplot.yaxis.set_visible(False)
+        subplot.yaxis.set_visible(False)
         subplot._frameon = False
         subplot.set_xlim(xmin, xmax)
         subplot.set_ylim(ymin, ymax)
-       	self._add_xy_axes(subplot, xmin, xmax, ymin, ymax)
+        self._add_xy_axes(subplot, xmin, xmax, ymin, ymax)
 
-	for g in self.__objects:
-	    g._render_on_subplot(subplot)
+        for g in self.__objects:
+            g._render_on_subplot(subplot)
 
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
 	    if ext in ['.eps', '.ps']:
-                from matplotlib.backends.backend_ps import FigureCanvasPS
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
 	    elif ext == '.svg':
-                from matplotlib.backends.backend_svg import FigureCanvasSVG
                 canvas = FigureCanvasSVG(figure)
 		if dpi is None:
 		    dpi = 80
 	    elif ext == '.png':
-                from matplotlib.backends.backend_agg import FigureCanvasAgg
                 canvas = FigureCanvasAgg(figure)
-		if dpi is None:
-		    dpi = 150
+                if dpi is None:
+                    dpi = 150
             else:
                 raise ValueError, "file extension must be either 'png', 'eps', 'svg' or 'sobj'"
             #canvas.resize(100,100)
@@ -614,8 +610,8 @@ class GraphicPrimitive_Line(GraphicPrimitive):
     def _render_on_subplot(self, subplot):
         options = self.options
         p = patches.Line2D(self.xdata, self.ydata)
-	a = float(options['alpha'])
-	p.set_alpha(a)
+        a = float(options['alpha'])
+        p.set_alpha(a)
         p.set_linewidth(float(options['thickness']))
         p.set_color(to_mpl_color(options['rgbcolor']))
         subplot.add_line(p)
@@ -628,7 +624,7 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
     def __init__(self, x, y, r, options):
         self.x = x
         self.y = y
-	self.r = r
+        self.r = r
         self.options = options
 
     def _repr_(self):
@@ -636,16 +632,16 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options
-	res = int(options['resolution'])
+        res = int(options['resolution'])
         p = patches.Circle((float(self.x), float(self.y)), float(self.r),resolution=res)
         p.set_linewidth(float(options['thickness']))
-	p.set_fill(options['fill'])
-	a = float(options['alpha'])
-	p.set_alpha(a)
-	c = to_mpl_color(options['rgbcolor'])
+        p.set_fill(options['fill'])
+        a = float(options['alpha'])
+        p.set_alpha(a)
+        c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
-	subplot.add_patch(p)
+        subplot.add_patch(p)
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """
@@ -655,26 +651,26 @@ class GraphicPrimitive_Disk(GraphicPrimitive):
     def __init__(self, point, r, theta1, theta2, options):
         self.x = point[0]
         self.y = point[1]
-	self.r = r
-	self.theta1 = theta1
-	self.theta2 = theta2
-	self.options = options
+        self.r = r
+        self.theta1 = theta1
+        self.theta2 = theta2
+        self.options = options
 
     def _repr_(self):
         return "Disk defined by (%s,%s) with r=%s with theta (%s, %s)"%(self.x,
-			 self.y, self.r, self.theta1, self.theta2)
+        self.y, self.r, self.theta1, self.theta2)
 
     def _render_on_subplot(self, subplot):
         options = self.options
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(self.theta1),
- 				float(self.theta2))
+                            float(self.theta2))
         p.set_linewidth(float(options['thickness']))
-	p.set_fill(options['fill'])
-	p.set_alpha(options['alpha'])
-	c = to_mpl_color(options['rgbcolor'])
+        p.set_fill(options['fill'])
+        p.set_alpha(options['alpha'])
+        c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
-	subplot.add_patch(p)
+        subplot.add_patch(p)
 
 class GraphicPrimitive_Point(GraphicPrimitive):
     """
@@ -692,19 +688,19 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         return "Point set defined by %s point(s)"%len(self.xdata)
 
     def __getitem__(self, i):
-	if i == 0:
+        if i == 0:
             return self.xdata
-	elif i == 1:
-	    return self.ydata
-	else:
-	    raise IndexError, "Index out of range"
+        elif i == 1:
+            return self.ydata
+        else:
+            raise IndexError, "Index out of range"
 
     def _render_on_subplot(self,subplot):
         options = self.options
-	c = to_mpl_color(options['rgbcolor'])
-	a = float(options['alpha'])
-	s = int(options['pointsize'])
-	faceted = options['faceted'] #faceted=True colors the edge of point
+        c = to_mpl_color(options['rgbcolor'])
+        a = float(options['alpha'])
+        s = int(options['pointsize'])
+        faceted = options['faceted'] #faceted=True colors the edge of point
         subplot.scatter(self.xdata, self.ydata, s, c, alpha=a, faceted=False)
 
 class GraphicPrimitive_Polygon(GraphicPrimitive):
@@ -740,8 +736,8 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
         options = self.options
         p = patches.Polygon([(self.xdata[i],self.ydata[i]) for i in xrange(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
-	a = float(options['alpha'])
-	p.set_alpha(a)
+        a = float(options['alpha'])
+        p.set_alpha(a)
         c = to_mpl_color(options['rgbcolor'])
         p.set_edgecolor(c)
         p.set_facecolor(c)
@@ -754,7 +750,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
     """
     def __init__(self, string, point, options):
-	self.string = string
+        self.string = string
         self.x = point[0]
         self.y = point[1]
         self.options = options
@@ -764,12 +760,12 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options
-	c = to_mpl_color(options['rgbcolor'])
-	f = int(options['fontsize'])
+        c = to_mpl_color(options['rgbcolor'])
+        f = int(options['fontsize'])
         va = options['vertical_alignment']
-	ha = options['horizontal_alignment']
-	subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
-					verticalalignment=va,horizontalalignment=ha)
+        ha = options['horizontal_alignment']
+        subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
+                        verticalalignment=va,horizontalalignment=ha)
 
 
 ######################################################################
@@ -794,23 +790,23 @@ class GraphicPrimitiveFactory:
 class GraphicPrimitiveFactory_circle(GraphicPrimitiveFactory):
     def __call__(self, point, radius, **kwds):
         options = dict(self.options)
-	for k, v in kwds.iteritems():
+        for k, v in kwds.iteritems():
             options[k] = v
         return self._from_xdata_ydata((float(point[0]), float(point[1])),
                                        float(radius), options=options)
 
 class GraphicPrimitiveFactory_disk(GraphicPrimitiveFactory):
     def __call__(self, point, radius, theta1, theta2, **kwds):
-	options = dict(self.options)
+        options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
         return self._from_xdata_ydata((float(point[0]), float(point[1])),float(radius),
-				float(theta1), float(theta2), options=options)
+                    float(theta1), float(theta2), options=options)
 
 class GraphicPrimitiveFactory_text(GraphicPrimitiveFactory):
     def __call__(self, string, point, **kwds):
-	options = dict(self.options)
-	for k, v in kwds.iteritems():
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
             options[k] = v
         return self._from_xdata_ydata(string, (float(point[0]), float(point[1])), options=options)
 
@@ -820,9 +816,9 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         for k, v in kwds.iteritems():
             options[k] = v
         if len(points) > 0 and not isinstance(points[0], (list, tuple)):
-	    xdata = [float(points[0])]
-	    ydata = [float(points[1])]
-	else:
+            xdata = [float(points[0])]
+            ydata = [float(points[1])]
+        else:
             if coerce:
                 xdata = []
                 ydata = []
@@ -909,7 +905,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         sage: H = G + P + Q
     """
     def _reset(self):
-        pass
+        self.options = {'alpha':1,'rgbcolor':(0,0,0),'thickness':1}
 
     def _repr_(self):
         return "type line? for help and examples."
@@ -923,9 +919,6 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
 
 # unique line instance
 line = LineFactory()
-line.options['alpha'] = 1
-line.options['rgbcolor'] = (0,0,0)
-line.options['thickness'] = 1
 
 
 class CircleFactory(GraphicPrimitiveFactory_circle):
@@ -955,7 +948,7 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     sage: g.save("sage.png", xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
     """
     def _reset(self):
-	self.options={'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
+        self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
 
     def _repr_(self):
         return "type circle? for help and examples"
@@ -967,10 +960,6 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
 
 #an unique circle instance
 circle = CircleFactory()
-circle.options['alpha'] = 1
-circle.options['fill'] = False
-circle.options['resolution'] = 40
-circle.options['thickness'] = 1
 
 class DiskFactory(GraphicPrimitiveFactory_disk):
     """
@@ -980,16 +969,16 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
     EXAMPLES:
     Make some dangerous disks:
 
-	sage: bl = disk((0.0,0.0),1,180,270,rgbcolor=(1,1,0))
-	sage: tr = disk((0.0,0.0),1,0,90,rgbcolor=(1,1,0))
-	sage: tl = disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
-	sage: br = disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
-	sage: P  = tl+tr+bl+br
-	sage: P.save("sage.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
+        sage: bl = disk((0.0,0.0),1,180,270,rgbcolor=(1,1,0))
+        sage: tr = disk((0.0,0.0),1,0,90,rgbcolor=(1,1,0))
+        sage: tl = disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
+        sage: br = disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
+        sage: P  = tl+tr+bl+br
+        sage: P.save("sage.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
 
     """
     def _reset(self):
-	self.options={'fill':True,'resolution':40,'thickness':0}
+        self.options={'alpha':1,'fill':True,'resolution':40,'rgbcolor':(0,0,0),'thickness':0}
 
     def _repr_(self):
         return "type disk? for help and examples"
@@ -1001,10 +990,6 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 
 #an unique disk instance
 disk = DiskFactory()
-disk.options['alpha'] = 1
-disk.options['fill'] = True
-disk.options['rgbcolor'] = (0,0,0)
-disk.options['thickness'] = 0
 
 class PointFactory(GraphicPrimitiveFactory_from_point_list):
     """
@@ -1013,15 +998,15 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
     a single tuple of coordinates or a list of tuples.
 
     EXAMPLES:
-	A purple point from a single tuple or coordinates:
+        A purple point from a single tuple or coordinates:
         sage: p1 = point((0.5,0.5), rgbcolor=hue(0.75))
 
-	Here are some random larger red points, given as a list of tuples
-	sage: p2 = point(((0.5,0.5),(1,2),(0.5,0.9),(-1,-1)),rgbcolor=hue(1),pointsize=30)
+        Here are some random larger red points, given as a list of tuples
+        sage: p2 = point(((0.5,0.5),(1,2),(0.5,0.9),(-1,-1)),rgbcolor=hue(1),pointsize=30)
 
     """
     def _reset(self):
-        self.options = {'pointsize':10,'faceted':False,'rgbcolor':(0,0,0)}
+        self.options = {'alpha':1,'pointsize':10,'faceted':False,'rgbcolor':(0,0,0)}
 
     def _repr_(self):
         return "type point? for options help"
@@ -1035,9 +1020,6 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
 
 # unique point instance
 point=PointFactory()
-point.options['alpha'] = 1
-point.options['pointsize'] = 10
-point.options['faceted'] = False
 
 class TextFactory(GraphicPrimitiveFactory_text):
     """
@@ -1045,15 +1027,15 @@ class TextFactory(GraphicPrimitiveFactory_text):
     Type text.options for a dictionary of options.
 
     EXAMPLES:
-	Type this to see some text in top right plane:
+        Type this to see some text in top right plane:
 
         sage: t = text("SAGE is really neat!!",(2,12))
 
-	Type this to see the same text in larger font and colored red:
+        Type this to see the same text in larger font and colored red:
 
         sage: t = text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
 
-	You can also center text differently:
+        You can also center text differently:
 
         sage: t1 = text("Hello",(1,1), vertical_alignment="top")
         sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
@@ -1084,35 +1066,25 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
 
     EXAMPLES:
     We create a purple-ish polygon:
-	sage: polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
-	Graphics object consisting of 1 graphics primitives:
-        	0 -- Polygon defined by 3 points
+        sage: polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
+        Graphics object consisting of 1 graphics primitives:
+        0 -- Polygon defined by 3 points
 
     Some modern art -- a random polygon:
-	sage: v = [(randrange(-5,5), randrange(-5,5)) for _ in range(10)]
-	sage: polygon(v)
-	Graphics object consisting of 1 graphics primitives:
-        	0 -- Polygon defined by 10 points
+        sage: v = [(randrange(-5,5), randrange(-5,5)) for _ in range(10)]
+        sage: polygon(v)
+        Graphics object consisting of 1 graphics primitives:
+                0 -- Polygon defined by 10 points
 
     A purple hexagon:
 
         sage: L = [[cos(pi*i/3),sin(pi*i/3)] for i in range(6)]
         sage: p = polygon(L, rgbcolor=(1,0,1))
 
-    A green limacon of Pascal:
-
-        sage: L = [[1+cos(pi*i/100)-cos(pi*i/50),sin(pi*i/100)-sin(pi*i/50)] for i in range(200)]
-        sage: p = polygon(L, rgbcolor=(1/4,1,1/2))
-
     A green deltoid:
 
         sage: L = [[-1+cos(pi*i/100)*(1+cos(pi*i/100)),2*sin(pi*i/100)*(1-cos(pi*i/100))] for i in range(200)]
         sage: p = polygon(L, rgbcolor=(1/8,3/4,1/2))
-
-    A blue figure 8:
-
-        sage: L = [[2*cos(pi*i/100)*sqrt(1-sin(pi*i/100)^2),2*sin(pi*i/100)*sqrt(1-sin(pi*i/100)^2)] for i in range(200)]
-        sage: p = polygon(L, rgbcolor=(1/8,1/4,1/2))
 
     A blue hypotrochoid:
 
@@ -1136,11 +1108,6 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         sage: L = [[cos(pi*i/100)^3,sin(pi*i/100)^3] for i in range(200)]
         sage: p = polygon(L, rgbcolor=(3/4,1/4,1/4))
 
-    A blue 8-leaved petal:
-
-        sage: L = [[sin(5*pi*i/100)^2*cos(pi*i/100)^3,sin(5*pi*i/100)^2*sin(pi*i/100)] for i in range(200)]
-        sage: p = polygon(L, rgbcolor=(1/3,1/2,3/5))
-
     And, my favorite, a greenish blob:
 
         sage: L = [[cos(pi*i/100)*(1+cos(pi*i/50)), sin(pi*i/100)*(1+sin(pi*i/50))] for i in range(200)]
@@ -1155,7 +1122,7 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         -- David Joyner (2006-04-14): the long list of examples above.
     """
     def _reset(self):
-        pass
+        self.options={'alpha':1,'rgbcolor':(0,0,0),'thickness':0}
 
     def _repr_(self):
         return "SAGE polygon; type polygon? for help and examples."
@@ -1170,9 +1137,6 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
 
 # unique polygon instance
 polygon = PolygonFactory()
-polygon.options['alpha'] = 1
-polygon.options['rgbcolor'] = (0,0,0)
-polygon.options['thickness'] = 0
 
 class PlotFactory(GraphicPrimitiveFactory):
     """
@@ -1186,10 +1150,10 @@ class PlotFactory(GraphicPrimitiveFactory):
     of graphs of 2 functions.
         sage: def h1(x): return sqrt(x^3  - 1)
         sage: def h2(x): return -sqrt(x^3  - 1)
-	sage: plot([h1, h2], 1,4)
-	Graphics object consisting of 2 graphics primitives:
-        	0 -- Line defined by 204 points
-        	1 -- Line defined by 204 points
+        sage: plot([h1, h2], 1,4)
+        Graphics object consisting of 2 graphics primitives:
+                0 -- Line defined by 204 points
+                1 -- Line defined by 204 points
     """
     def _reset(self):
         o = self.options
@@ -1200,17 +1164,24 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, f, xmin, xmax, parametric=False, **kwds):
+    def __call__(self, funcs, xmin, xmax, parametric=False, polar=False, **kwds):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        if isinstance(f, (list, tuple)) and not parametric:
+        #check to see if funcs is a list of functions that will
+        #be all plotted together.
+        if isinstance(funcs, (list, tuple)) and not parametric:
             G = Graphics()
-            for i in range(0, len(f)):
-                G += plot(f[i], xmin, xmax, **kwds)
+            for i in range(0, len(funcs)):
+                G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
             return G
-	if parametric:
-	    g,f = f #f=(f,g)
+        #parametric_plot will be a list or tuple of two functions (f,g)
+        #and will plotted as (f(x), g(x)) for all x in the given range
+        if parametric:
+            f,g = funcs
+        #or we have only a single function to be plotted:
+        else:
+            f = funcs
         xmin = float(xmin)
         xmax = float(xmax)
         plot_points = int(options['plot_points'])
@@ -1232,17 +1203,18 @@ class PlotFactory(GraphicPrimitiveFactory):
             if abs(data[i+1][1] - data[i][1]) > max_bend:
                 x = (data[i+1][0] + data[i][0])/2
                 y = float(f(x))
-                data.insert(i+1, (x,y))
+                data.insert(i+1, (x, y))
                 j += 1
                 if j > plot_division:
                     # wrong -- just for testing (so no infinite loop)
                     break
             else:
                 i += 1
-	if parametric:
-	    data = [(float(g(x)),y) for x,y in data]
-        g = line(data, coerce=False, **options)
-        return g
+        if parametric:
+            data = [(fdata, g(x)) for x, fdata in data]
+        if polar:
+            data = [(y*cos(x), y*sin(x)) for x, y in data]
+        return line(data, coerce=False, **options)
 
 # unique plot instance
 plot = PlotFactory()
@@ -1252,19 +1224,42 @@ plot = PlotFactory()
 #parametric plot
 def parametric_plot((f,g), xmin, xmax, **kwargs):
     """
-    parametric plot takes two functions as a
+    parametric_plot takes two functions as a
     list or a tuple and make a plot with the
     first function as the x-value and the
     second function as the y-value
 
     EXAMPLE:
-	f = lambda x: sin(x)
-	g = lambda x: sin(2*x)
-	p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        f = lambda x: sin(x)
+        g = lambda x: sin(2*x)
+        p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
 
     """
 
     return plot((f,g), xmin, xmax, parametric=True, **kwargs)
+
+#polar plot
+def polar_plot(funcs, xmin, xmax, **kwargs):
+    """
+        polar_plot takes a single function or
+    a list or tuple of functions and plots
+    them parametrically in the given range.
+
+    EXAMPLES:
+        Here is a blue 8-leaved petal:
+
+        sage: p1 = polar_plot(lambda x:sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
+
+        A red figure-8:
+
+        sage: p2 = polar_plot(lambda x:sqrt(1 - sin(x)^2), 0, 2*pi, rgbcolor=hue(1.0))
+
+        A green limacon of Pascal:
+
+        sage: p3 = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
+
+    """
+    return plot(funcs, xmin, xmax, polar=True, **kwargs)
 
 #list plot
 def list_plot(data, plotjoined=False, **kwargs):
@@ -1273,30 +1268,30 @@ def list_plot(data, plotjoined=False, **kwargs):
     in which case it forms a list of tuples (i,di)
     where i goes from 0 to len(data)-1 and di is
     the ith data value, and puts points at those
-    tuple values
-	list_plot also takes a list of tuples
+    tuple values.
+        list_plot also takes a list of tuples
     (dxi, dyi) where dxi is the ith data representing
     the x-value, and dyi is the ith y-value
         if plotjoined=True, then a line spanning
-    all the data is drawn instead
+    all the data is drawn instead.
 
     EXAMPLES:
-	sage: l = list_plot([i^2 for i in range(5)]); l
-	Graphics object consisting of 1 graphics primitives:
-        	0 -- Point set defined by 5 point(s)
+        sage: l = list_plot([i^2 for i in range(5)]); l
+        Graphics object consisting of 1 graphics primitives:
+                0 -- Point set defined by 5 point(s)
 
-	sage: r = [(random(),random()) for _ in range(20)]
+        sage: r = [(random(),random()) for _ in range(20)]
 
-    Here are a bunch of random red points:
-	sage: list_plot(r,rgbcolor=(1,0,0)).save('sage.png')
+        Here are a bunch of random red points:
+        sage: list_plot(r,rgbcolor=(1,0,0)).save('sage.png')
 
-    This gives all the random points joined in a purple line:
-	sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save('sage.png')
+        This gives all the random points joined in a purple line:
+        sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save('sage.png')
     """
     if not isinstance(data[0], (list, tuple)):
-	 data = zip(range(len(data)),data)
+        data = zip(range(len(data)),data)
     if plotjoined:
-	return line(data, **kwargs)
+        return line(data, **kwargs)
     return point(data, **kwargs)
 
 def to_float_list(v):
@@ -1313,13 +1308,13 @@ def hue(h, s=1, v=1):
       All values are in range 0 to 1.
 
       EXAMPLES:
-	sage: hue(0.6)
+        sage: hue(0.6)
         (0.0, 0.40000000000000036, 1.0)
 
-	hue is an easy way of getting a broader
-	range of colors for graphics
+        hue is an easy way of getting a broader
+        range of colors for graphics
 
-	sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
+        sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
 
     """
     if h > 1:
@@ -1337,28 +1332,28 @@ class GraphicsArray(SageObject):
     objects and plots them all on one canvas.
     """
     def __init__(self, array):
-	if not isinstance(array, (list, tuple)):
-	    raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
-	self._glist = []
-	self._rows = len(array)
-	if self._rows > 0:
-	    if not isinstance(array[0], (list, tuple)):
-		array = [array]
-		self._rows = 1
-	    self._cols = len(array[0])
-	else:
-	    self._cols = 0
-	self._dims = self._rows*self._cols
-	for row in array: #basically flatten the list
-	    if not isinstance(row, (list, tuple)) or len(row) != self._cols:
-	        raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
-	    for g in row:
-		if not isinstance(g, Graphics):
-		    raise TypeError, "every element of array must be a Graphics object"
-		self._glist.append(g)
+        if not isinstance(array, (list, tuple)):
+            raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+        self._glist = []
+        self._rows = len(array)
+        if self._rows > 0:
+            if not isinstance(array[0], (list, tuple)):
+                array = [array]
+                self._rows = 1
+            self._cols = len(array[0])
+        else:
+            self._cols = 0
+        self._dims = self._rows*self._cols
+        for row in array: #basically flatten the list
+            if not isinstance(row, (list, tuple)) or len(row) != self._cols:
+                raise TypeError,"array (=%s) must be a list of lists of Graphics objects"%(array)
+            for g in row:
+                if not isinstance(g, Graphics):
+                    raise TypeError, "every element of array must be a Graphics object"
+                self._glist.append(g)
 
     def _repr_(self):
-	return "Graphics Array of size %s x %s"%(self._rows, self._cols)
+        return "Graphics Array of size %s x %s"%(self._rows, self._cols)
 
     def nrows(self):
         return self._rows
@@ -1367,7 +1362,7 @@ class GraphicsArray(SageObject):
         return self._cols
 
     def __getitem__(self, i):
-	i = int(i)
+        i = int(i)
         return self._glist[i]
 
     def __setitem__(self, i, g):
@@ -1381,33 +1376,33 @@ class GraphicsArray(SageObject):
         self._glist.append(g)
 
     def _render(self, filename, dpi=None):
-	r"""
-	\code{render} loops over all graphics objects
-	in the array and adds them to the subplot.
-	"""
-	#glist is a list of Graphics objects:
-	glist = self._glist
-	rows = self._rows
-	cols = self._cols
-	dims = self._dims
+        r"""
+        \code{render} loops over all graphics objects
+        in the array and adds them to the subplot.
+        """
+        #glist is a list of Graphics objects:
+        glist = self._glist
+        rows = self._rows
+        cols = self._cols
+        dims = self._dims
         #make a blank matplotlib Figure:
-	figure = Figure()
-	for i,g in zip(range(1, dims+1), glist):
+        figure = Figure()
+        for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
-	    g.save(filename, dpi=dpi, fig=figure,
+            g.save(filename, dpi=dpi, fig=figure,
                    sub=subplot, savenow = (i==dims))   # only save if i==dims.
 
     def save(self, filename=None, dpi=DEFAULT_DPI):
-	"""
-	save the \code{graphics_array} to
-        (for now) a png called 'filename'.
-	"""
-	self._render(filename, dpi=dpi)
+        """
+        save the \code{graphics_array} to
+            (for now) a png called 'filename'.
+        """
+        self._render(filename, dpi=dpi)
 
     def show(self, filename=None, dpi=DEFAULT_DPI):
-	r"""
-	Show this graphics array using the default viewer.
-	"""
+        r"""
+        Show this graphics array using the default viewer.
+        """
         if EMBEDDED_MODE:
             self.save(filename, dpi=dpi)
             return
@@ -1418,7 +1413,7 @@ class GraphicsArray(SageObject):
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
-def graphics_array(array,filename="sage.png"):
+def graphics_array(array):
     r"""
     \code{graphics_array} take a list of lists (or tuples)
     of graphics objects and plots them all on one canvas (single plot).
@@ -1426,31 +1421,28 @@ def graphics_array(array,filename="sage.png"):
     EXAMPLE:
     Make some plots of $\sin$ functions:
 
-	sage: f = lambda x: sin(x)
-	sage: g = lambda x: sin(2*x)
-	sage: h = lambda x: sin(4*x)
-	sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
-	sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
-	sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
-	sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
+        sage: f = lambda x: sin(x)
+        sage: g = lambda x: sin(2*x)
+        sage: h = lambda x: sin(4*x)
+        sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
+        sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
+        sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        sage: p4 = parametric_plot((f,h),0,2*pi,rgbcolor=hue(1.0))
 
     Now make a graphics array out of the plots;
     Ten you can type either: \code{ga.show()} or \code{ga.save()}.
 
-	sage: ga = graphics_array(((p1,p2),(p3,p4)))
+        sage: ga = graphics_array(((p1,p2),(p3,p4)))
 
     Here we give only one row:
-	sage: p1 = plot(sin,-4,4)
+        sage: p1 = plot(sin,-4,4)
         sage: p2 = plot(cos,-4,4)
-	sage: graphics_array([p1, p2])
+        sage: graphics_array([p1, p2])
         Graphics Array of size 1 x 2
 
     """
     G = GraphicsArray(array)
     return G
-
-
-
 
 
 

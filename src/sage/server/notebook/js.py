@@ -423,7 +423,9 @@ function update_cell_output(status, response_text) {
         if (response_text == 'empty') {
             /* done -- nothing being computed, since queue is empty */
             updating = 0;
+            /*
             document.getElementById('interrupt').className = 'interrupt_grey';
+            */
         } else {
             /* computing output for a cell */
             i = response_text.indexOf(' ');

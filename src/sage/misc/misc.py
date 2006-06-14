@@ -939,9 +939,12 @@ def word_wrap(s, ncols=85):
             k = ncols
             while k > 0 and x[k] != ' ':
                 k -= 1
-            if k < 20:
+            if k == 0:
                 k = ncols
-            t.append(x[:k])
+                end = '\\'
+            else:
+                end = ''
+            t.append(x[:k] + end)
             x = x[k:]
             k=0
             while k < len(x) and x[k] == ' ':

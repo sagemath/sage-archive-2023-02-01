@@ -70,7 +70,7 @@ class Worksheet:
         """
         Return a plain-text version of the worksheet.
         """
-        return '\n\n'.join([C.plain_text() for C in self.__cells])
+        return '\n'.join([C.plain_text() for C in self.__cells])
 
     # The following setstate method is here
     # so that when this object is pickled and
@@ -274,7 +274,6 @@ class Worksheet:
         return 'd', C
 
     def _process_output(self, s):
-        s = s.replace('<','&lt;')
         s = re.sub('\x08.','',s)
         return s
 

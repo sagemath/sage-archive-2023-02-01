@@ -48,29 +48,48 @@ class Cell:
     def __repr__(self):
         return 'Cell %s'%self.__id
 
-    def plain_text(self):
+    def plain_text(self, ncols=0):
+        if ncols == 0:
+            ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
         input_lines = self.__in.split('\n')
         has_prompt = False
-        z = []
         for v in input_lines:
             w = v.lstrip()
             if w[:5] == 'sage:' or w[:3] == '>>>' or w[:3] == '...':
                 has_prompt = True
-                z.append('    ' + v)
-            else:
-                z.append(v)
+                break
 
 
         if has_prompt:
-            s += '\n'.join(z)
+            s += '\n'.join(input_lines) + '\n'
         else:
-            s += '\n'.join('    sage: ' + v for v in input_lines)
+            in_loop = False
+            for v in input_lines:
+                if len(v) == 0:
+                    s += '\n'
+                elif v[0] == ' ':
+                    in_loop = True
+                    s += '...' + v + '\n'
+                else:
+                    if in_loop:
+                        s += '...\n'
+                        in_loop = False
+                    s += 'sage: ' + v + '\n'
 
-        indent = ' '*10
+        msg = 'Traceback (most recent call last):'
+        if self.__out[:len(msg)] == msg:
+            v = self.__out.split('\n')
+            w = [v[0], '...']
+            for i in range(1,len(v)):
+                if not (len(v[i]) > 0 and v[i][0] == ' '):
+                    w = w + v[i:]
+                    break
+            out = '\n'.join(w)
+        else:
+            out = self.output_text(ncols)
 
-        # output (always indented 6 spaces)
-        s += '\n' + '\n'.join(indent + v for v in self.__out.split('\n'))
+        s += out
 
         return s
 
@@ -211,8 +230,8 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0):
-        out_wrap = self.output_text(ncols)
-        out_no_wrap = self.output_text(0)
+        out_wrap = self.output_text(ncols).replace('<','&lt;')
+        out_no_wrap = self.output_text(0).replace('<','&lt;')
         if self.computing():
             cls = "cell_output_running"
         else:

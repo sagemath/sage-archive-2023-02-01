@@ -483,10 +483,10 @@ class Notebook(SageObject):
 
     def _html_body(self, worksheet_id):
         worksheet = self.get_worksheet_with_id(worksheet_id)
-        if worksheet.computing():
-            interrupt_class = "interrupt"
-        else:
-            interrupt_class = "interrupt_grey"
+        #if worksheet.computing():
+        interrupt_class = "interrupt"
+        #else:
+        #    interrupt_class = "interrupt_grey"
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">

@@ -56,7 +56,7 @@ def completions(s, globs, format=False, width=90):
         obj = s[:i]
         n = len(method)
         try:
-            O = eval(obj)
+            O = eval(obj, globs)
             D = dir(O)
             try:
                 D += O.trait_names()
@@ -189,8 +189,8 @@ def load_session(v, filename, state):
 def variables(with_types=True):
     if with_types:
         w = ['%s-%s'%(x,type(v)) for x, v in sage_globals.iteritems() if not \
-             x in globals_at_init and x[0] != '_' and str(type(v)) != "<type 'function'>"]
+             x in globals_at_init and x[0] != '_'] # and str(type(v)) != "<type 'function'>"]
     else:
         w = [x for x, v in sage_globals.iteritems() if not \
-                 x in globals_at_init and x[0] != '_' and str(type(v)) != "<type 'function'>"]
+                 x in globals_at_init and x[0] != '_'] # and str(type(v)) != "<type 'function'>"]
     return w

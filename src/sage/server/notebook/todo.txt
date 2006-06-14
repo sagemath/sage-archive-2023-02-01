@@ -25,6 +25,7 @@ had on the command line.  Right now this isn't the case, e.g., there's
 no reverse search or history scroll yet.)
 
 BUGS:
+ [] restart doesn't reset the output box in which it occurs.
  [] attached files list doesn't get updated
  [] fails if load a deleted worksheet.
  [] fails if worksheet 0 is deleted.
@@ -35,6 +36,21 @@ BUGS:
        print i
 
 IDEAS:
+[] Make it so tracebacks in output can be toggled between showing
+the inside of the traceback and not via some javascript, with the
+default not showing the traceback (just the first and last line).
+
+[] Ability to load a plain text file log, e.g.,
+
+ sage:  k=linbox.GFq(2,8,GF(2**8).polynomial())
+ sage:  R.<x,y>=PolynomialRing(k,2)
+ sage:  f=k.random_element()*x^3+x*y*k.random_element()+k.random_element();f
+  _3 = 118 + 50*x*y + 183*x^3
+ sage:  time for i in range(1000): _ = f*f
+
+and have it appear immediately as if it were a worksheet.
+(Other direction is basically done now.)
+
 [] SAJAX -- ajax terminal -- make it embedded somehow (?) into
    the notebook, e.g., as another tab.
 

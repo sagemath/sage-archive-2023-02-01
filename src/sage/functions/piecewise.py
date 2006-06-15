@@ -28,13 +28,21 @@ Implemented methods:
     critical points
 
 TODO:
-    Implement (a) functions defined on infinite intervals,
-    (b) max/min location and values,
-    (c) left multiplication by a scalar.
-    (d) Extend the implementation of the trick to pass \sage's pi back
-    and forth with Maxima's %pi to other constants (e, for example)
-    [[Passing the constants to maxima is already implemented; maybe
-    need passing them back?]]
+   [] Implement (a) functions defined on infinite intervals,
+   [] (b) max/min location and values,
+   [] (c) left multiplication by a scalar.
+   [] (d) Extend the implementation of the trick to pass \sage's pi back
+      and forth with Maxima's %pi to other constants (e, for example)
+      [[Passing the constants to maxima is already implemented; maybe
+       need passing them back?]]
+   [] Need: parent object -- ring of piecewise functions
+   [] This class should derive from an element-type class, and should
+      define _add_, _mul_, etc.   That will automatically take care
+      of left multiplication and proper coercion.
+      The coercion mentioned below for scalar mult on right is
+      bad, since it only allows ints and rationals.  The right
+      way is to use an element class and only define _mul_, and
+      have a parent, so anything gets coerced properly.
 
 (For more general non-polynomial piecewise functions, it appears
 a new class of functions (for example, 'ElementaryFunctionRing') is
@@ -65,11 +73,8 @@ import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
-from sage.misc.sage_eval import *
-from sage.rings.rational import *
-from sage.rings.integer import *
-QQ = RationalField()
-RR = RealField()
+from sage.misc.sage_eval import sage_eval
+from sage.rings.all import QQ, RR, Integer, Rational
 
 class PiecewisePolynomial:
     def __init__(self, list_of_pairs):
@@ -107,7 +112,7 @@ class PiecewisePolynomial:
             '\\begin{array}{ll} \\left\\{ 1,& 0 < x < 1 ,\\right. \\end{array}'
 
 	"""
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         intvls = self.intervals()
         fcn_list = [p[1] for p in self.list()]
         tex = ["\\begin{array}{ll} \left\\{"]
@@ -159,7 +164,7 @@ class PiecewisePolynomial:
         critical not occurring on the interval endpoints.
 
         EXAMPLES:
-            sage: x = PolynomialRing(RationalField()).gen()
+            sage: x = PolynomialRing(QQ).0
             sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -169,7 +174,7 @@ class PiecewisePolynomial:
             [5.0]
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         fcns = self.functions()
         N = len(fcns)
         crit_pts = []
@@ -237,7 +242,7 @@ class PiecewisePolynomial:
         Returns the function piece used to evaluate self at x0.
 
         EXAMPLES:
-	    sage: x = PolynomialRing(RationalField()).gen()
+	    sage: x = PolynomialRing(QQ).gen()
             sage: f1 = lambda z:1
             sage: f2 = 1-x
             sage: f3 = lambda y:exp(y)
@@ -280,7 +285,7 @@ class PiecewisePolynomial:
             (pi/2)
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = [maxima('%s'%p[1](x)).integral('x', p[0][0], p[0][1]) \
                  for p in self.list()]
         return sage_eval(str(sum(ints)).replace("%",""))
@@ -337,7 +342,7 @@ class PiecewisePolynomial:
 
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -369,7 +374,7 @@ class PiecewisePolynomial:
             0
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -540,7 +545,7 @@ class PiecewisePolynomial:
 
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = []
         for p in self.list():
             fcn = '2*(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -579,7 +584,7 @@ class PiecewisePolynomial:
 
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = []
         for p in self.list():
             fcn = '2*(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -613,7 +618,7 @@ class PiecewisePolynomial:
 
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(QQ).gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*exp(-%s*x)'%(p[1](x),var)
@@ -640,7 +645,7 @@ class PiecewisePolynomial:
 	self and other.
 
 	EXAMPLES:
-	    sage: x = PolynomialRing(RationalField()).gen()
+	    sage: x = PolynomialRing(QQ).gen()
 	    sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -674,7 +679,7 @@ class PiecewisePolynomial:
 	one piecewise function (self) with another one (other).
 
 	EXAMPLES:
-	    sage: x = PolynomialRing(RationalField()).gen()
+	    sage: x = PolynomialRing(QQ).gen()
 	    sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -692,15 +697,8 @@ class PiecewisePolynomial:
         Note that in this method the functions must be defined using polynomial
 	expressions *not* using the lambda notation.
 	"""
-        R = PolynomialRing(RationalField())
+        R = PolynomialRing(QQ)
         fcn = []
-        if isinstance(self,Rational) or isinstance(self,Integer):    ## needed for scalar multiplication
-            endpts = other.end_points()
-            N = len(list(endpts))
-            for j in range(N-1):
-	        x0 = endpts[j+1]
-	        fcn.append([[endpts[j],endpts[j+1]],R(self)*other.which_function(x0)])
-            return Piecewise(fcn)
         if isinstance(other,Rational) or isinstance(other,Integer):    ## needed for scalar multiplication
             endpts = self.end_points()
             N = len(list(endpts))

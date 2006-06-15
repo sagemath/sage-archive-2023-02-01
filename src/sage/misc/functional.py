@@ -144,20 +144,20 @@ def charpoly(x):
 ##     """
 ##     return x.conductor()
 
-def cos(x):
-    """
-    Return the cosine of x.
+## def cos(x):
+##     """
+##     Return the cosine of x.
 
-    EXAMPLES:
-        sage: z = 1+2*I
-        sage: theta = arg(z)
-        sage: cos(theta)*abs(z)
-        1.0000000000000002
-        sage: cos(3.141592)
-        -0.99999999999978639
-    """
-    try: return x.cos()
-    except AttributeError: return RR(x).cos()
+##     EXAMPLES:
+##         sage: z = 1+2*I
+##         sage: theta = arg(z)
+##         sage: cos(theta)*abs(z)
+##         1.0000000000000002
+##         sage: cos(3.141592)
+##         -0.99999999999978639
+##     """
+##     try: return x.cos()
+##     except AttributeError: return RR(x).cos()
 
 def acos(x):
     """
@@ -832,12 +832,12 @@ def isqrt(x):
     except AttributeError:
         raise NotImplementedError
 
-def sin(x):
-    """
-    Return the sin of x.
-    """
-    try: return x.sin()
-    except AttributeError: return RR(x).sin()
+#def sin(x):
+#    """
+#    Return the sin of x.
+#    """
+#    try: return x.sin()
+#    except AttributeError: return RR(x).sin()
 
 def square_free_part(x):
     """

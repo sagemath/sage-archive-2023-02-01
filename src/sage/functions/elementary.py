@@ -75,18 +75,15 @@ import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
-from sage.misc.sage_eval import *
-from sage.rings.rational import *
-from sage.rings.integer import *
-QQ = RationalField()
-RR = RealField()
-from sage.misc.functions import *
-#from sage.rings.all import CommutativeRing
+from sage.misc.sage_eval import sage_eval
+from sage.rings.all import QQ, RR
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
-from sage.misc.constants import e as E
-from sage.misc.functions import sin,cos
-from sage.misc.functional import exp
+from constants import e as E
+from functions import sin,cos
+
+from functions import *
+
 
 ############################################################
 ##   the algebra generators of the elementary functions

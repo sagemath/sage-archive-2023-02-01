@@ -325,15 +325,13 @@ import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
-from sage.misc.sage_eval import *
-from sage.rings.rational import *
-from sage.rings.integer import *
-QQ = RationalField()
-RR = RealField()
-from sage.misc.functions import *
-#from sage.rings.all import CommutativeRing
+from sage.misc.sage_eval import sage_eval
+from sage.rings.all import QQ, RR
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
+
+from functions import *
+
 from sage.misc.functional import exp
 
 def _setup(prec):
@@ -881,19 +879,5 @@ def error_fcn(t):
     except AttributeError:
         raise NotImplementedError
 
-def eta(t):
-    """
-    Dedekind's eta function, without the $q^{1/24}$. This means
-    the following: if $x$ is a complex number with positive
-    imaginary part, the result is $\prod_{n = 1}^\infty (1-q^n)$,
-    where $q = e^{2i\pi x}$. If $x$ is a power series (or
-    can be converted to a power series) with positive
-    valuation, the result is $\prod_{n = 1}^\infty (1-x^n)$.
-
-    """
-    try:
-        return t.erfc()
-    except AttributeError:
-        raise NotImplementedError
 
 

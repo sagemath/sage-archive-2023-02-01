@@ -1089,7 +1089,7 @@ def rational_reconstruction(A, m, denom_optimization=False):
     if denom_optimization:
         pass
     else:
-        entries = [(i, j, rational.rational_reconstruction(x,m))
+        entries = [(i, j, rational.pyrex_rational_reconstruction(x,m))
                    for i, j, x in A.entries()]
     return SparseMatrix(rational_field.RationalField(), A.nrows(),
                         A.ncols(), entries, coerce=False, sort=False)

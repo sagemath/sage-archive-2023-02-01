@@ -1,13 +1,12 @@
-from sage.rings.all import CommutativeRing, RealField, is_Polynomial, is_RealNumber, is_ComplexNumber
+from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
+                            is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.all
 from sage.structure.all import RingElement, Element_cmp_
 import operator
 from sage.misc.latex import latex
-import constants
 from sage.interfaces.maxima import maxima, MaximaFunction
 import sage.functions.special as special
 
-RR = RealField(53)
 
 class FunctionRing_class(CommutativeRing):
     def __init__(self):
@@ -87,7 +86,7 @@ class FunctionRing_class(CommutativeRing):
         #elif isinstance(x, sage.ext.element.Element):
         elif isinstance(x, (sage.ext.integer.Integer,
                             sage.ext.rational.Rational)):
-            return constants.Constant_gen(x)
+            return Constant_gen(x)
         raise TypeError
 
     def characteristic(self):
@@ -97,11 +96,11 @@ FunctionRing = FunctionRing_class()
 
 class Function(Element_cmp_, RingElement):
     def __init__(self, conversions={}):
-        self.__conversions = conversions
+        self._conversions = conversions
         RingElement.__init__(self, FunctionRing)
 
     def __call__(self, x):
-        if isinstance(x, Function) and not isinstance(x, constants.Constant):
+        if isinstance(x, Function) and not isinstance(x, Constant):
             return Function_composition(self, x)
 
         elif is_Polynomial(x):
@@ -140,43 +139,43 @@ class Function(Element_cmp_, RingElement):
 
     def _gap_init_(self):
         try:
-            return self.__conversions['gap']
+            return self._conversions['gap']
         except KeyError:
             return '"%s"'%self.str()  # no float numbers in GAP!?!
 
     def _kash_init_(self):
         try:
-            return self.__conversions['kash']
+            return self._conversions['kash']
         except KeyError:
             return self.str()
 
     def _maxima_init_(self):
         try:
-            return self.__conversions['maxima']
+            return self._conversions['maxima']
         except KeyError:
             return self.str()
 
     def _mathematica_init_(self):
         try:
-            return self.__conversions['mathematica']
+            return self._conversions['mathematica']
         except KeyError:
             return self.str()
 
     def _maple_init_(self):
         try:
-            return self.__conversions['maple']
+            return self._conversions['maple']
         except KeyError:
             return self.str()
 
     def _octave_init_(self):
         try:
-            return self.__conversions['octave']
+            return self._conversions['octave']
         except KeyError:
             return self.str()
 
     def _pari_init_(self):
         try:
-            return self.__conversions['pari']
+            return self._conversions['pari']
         except KeyError:
             return self.str()
 
@@ -192,7 +191,7 @@ class Function(Element_cmp_, RingElement):
             sage: _ = P.set_precision(old_prec)
         """
         try:
-            return self.__conversions['singular']
+            return self._conversions['singular']
         except KeyError:
             return '"%s"'%self.str()
 
@@ -266,6 +265,15 @@ class Function_composition(Function):
 
     def _call_(self, x):
         return self.__f(self.__g(x))
+
+    def _mpfr_(self, R):
+        return self.__f(self.__g._mpfr_(R))
+
+    def _maxima_(self, M):
+        return self.__f._maxima_(M)(self.__g._maxima_(M))
+
+    def _mathematica_(self, M):
+        return self.__f._mathematica_(M)(self.__g._mathematica_(M))
 
 
 #################################################################
@@ -342,7 +350,7 @@ class Function_arith(Function):
             raise NotImplementedError, 'operator %s unknown'%self.__op
 
     def _call_(self, x):
-        if isinstance(self, constants.Constant):
+        if isinstance(self, Constant):
             return self
         return self.__op(self.__x(x), self.__y(x))
 
@@ -502,10 +510,10 @@ class Function_gen(Function):
         return singular(self.__x)
 
 
-class Function_polynomial(Function):
+class Function_polynomial(Function_gen):
     def __init__(self, f):
         self.__f = f
-        Function.__init__(self)
+        Function_gen.__init__(self, f)
 
     def _repr_(self):
         return str(self.__f)
@@ -536,11 +544,47 @@ class Function_at(Function):
         except AttributeError:
             raise NotImplementedError, 'coercion of %s to maxima not implemented'%self
 
+######################
+# Constant functions
+######################
+
+class Constant(Function):
+    def __call__(self, x):
+        return self
+
+    def _interface_is_cached_(self):
+        """
+        Return False, since coercion of functions to interfaces
+        is not cached.
+
+        We do not cache coercions of functions to interfaces, since
+        the precision of the interface may change.
+
+        EXAMPLES:
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+            sage: old_prec = gp.set_precision(100)
+            sage: gp(pi)
+            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+            sage: _ = gp.set_precision(old_prec)
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+        """
+        return False
+
+class Constant_gen(Constant, Function_gen):
+    def __call__(self, x):
+        return self.obj()
 
 
 ########################################################
 
 class Function_sin(Function):
+    """
+    The sine function.
+    """
     def __init__(self):
         Function.__init__(self,
             {'maxima':'sin', 'mathematica':'Sin'})
@@ -562,7 +606,19 @@ class Function_sin(Function):
 
 sin = Function_sin()
 
+
 class Function_cos(Function):
+    """
+    The cosine function.
+
+    EXAMPLES:
+        sage: z = 1+2*I
+        sage: theta = arg(z)
+        sage: cos(theta)*abs(z)
+        1.0000000000000002
+        sage: cos(3.141592)
+        -0.99999999999978639
+    """
     def __init__(self):
         Function.__init__(self,
             {'maxima':'cos', 'mathematica':'Cos'})
@@ -657,11 +713,18 @@ class Function_maxima(Function):
     def integral(self):
         return Function_maxima(self.__x.integrate())
 
-#def maxima_function(s):
-#    return Function_maxima(maxima(s))
 
-airy_ai = Function_maxima(maxima.function('x','airy_ai(x)',repr='airy_ai', latex='Ai'))
-airy_ai.__doc__ = """
+def maxima_function(var, defn, repr, latex, doc):
+    F = Function_maxima(maxima.function(var, defn, repr, latex))
+    F.__doc__ = doc
+    return F
+
+
+airy_ai = maxima_function(var='x',
+                          defn='airy_ai(x)',
+                          repr='airy_ai',
+                          latex='Ai',
+                          doc=r"""
 The function $Ai(x)$ and the related function $Bi(x)$,
 which is also called an {\it Airy function}, are
 solutions to the differential equation
@@ -688,11 +751,13 @@ REFERENCE:
     * Abramowitz and Stegun: Handbook of Mathematical Functions,
       http://www.math.sfu.ca/~cbm/aands/
     * http://en.wikipedia.org/wiki/Airy_function
+""")
 
-"""
-
-airy_bi = Function_maxima(maxima.function('x','airy_bi(x)',repr='airy_bi', latex='Bi'))
-airy_bi.__doc__ = """
+airy_bi = maxima_function(var='x',
+                          defn='airy_bi(x)',
+                          repr='airy_bi',
+                          latex='Bi',
+                          doc=r"""
 The function $Ai(x)$ and the related function $Bi(x)$,
 which is also called an {\it Airy function}, are
 solutions to the differential equation
@@ -719,5 +784,4 @@ REFERENCE:
     * Abramowitz and Stegun: Handbook of Mathematical Functions,
       http://www.math.sfu.ca/~cbm/aands/
     * http://en.wikipedia.org/wiki/Airy_function
-"""
-
+""")

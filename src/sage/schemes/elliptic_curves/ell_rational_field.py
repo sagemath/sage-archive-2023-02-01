@@ -30,7 +30,7 @@ import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field.number_field as number_field
 import sage.misc.misc as misc
-import sage.misc.constants as constants
+import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 

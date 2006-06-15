@@ -885,32 +885,6 @@ def generic_power(a, m, one=1):
     return power
 
 
-
-"""
- RATIONAL RECONSTRUCTION:
-     Input:  Integer x and a modulus N.
-     Output: Numerator and denominator n, d of the unique rational
-             number r=n/d, if it exists, with
-             |n| and |d| <= sqrt(N/2).
-             Return (0,0) if no such number exists.
-
- The algorithm for rational reconstruction is described
- (with a complete nontrivial proof)
- on pages 656-657 of Knuth, Vol 2, 3rd ed. as the solution to
- exercise 51 on page 379.  See in particular the conclusion
- paragraph right in the middle of page 657, which describes
- the algorithm thus:
-
-    This discussion proves that the problem can be solved efficiently by
-    applying Algorithm 4.5.2X with u=m and v=a, but with the following
-    replacement for step X2: If v3<=sqrt(m/2), the algorithm terminates.
-    The pair (x,y)=(|v2|,v3*sign(v2)) is then the unique solution,
- provided that x and y are coprime and x<=sqrt(m/2); otherwise there is
-    no solution.   (Alg 4.5.2X is the extended Euclidean algorithm.)
-
- Knuth says this algorithm is
- due to Wang, Kornerup, and Gregory from around 1983.
-"""
 def rational_reconstruction(a, m):
     """
     This function tries to compute a pair (x,y), where x/y is a
@@ -920,17 +894,40 @@ def rational_reconstruction(a, m):
     function returns it.  If no such pair exists, this function return
     the pair (0,0).
 
-    The efficient algorithm for computing rational reconstruction is very
-    similar to the extended Euclidean algorithm.  For more details, see Knuth,
-    Vol 2, 3rd ed, pages 656-657.
+    The efficient algorithm for computing rational reconstruction is
+    very similar to the extended Euclidean algorithm.  For more
+    details, see Knuth, Vol 2, 3rd ed, pages 656-657.
+
+     Input:  Integer x and a modulus N.
+     Output: Numerator and denominator n, d of the unique rational
+             number r=n/d, if it exists, with
+             |n| and |d| <= sqrt(N/2).
+             Return (0,0) if no such number exists.
+
+    The algorithm for rational reconstruction is described (with a
+    complete nontrivial proof) on pages 656-657 of Knuth, Vol 2, 3rd
+    ed. as the solution to exercise 51 on page 379.  See in particular
+    the conclusion paragraph right in the middle of page 657, which
+    describes the algorithm thus:
+
+    This discussion proves that the problem can be solved efficiently by
+    applying Algorithm 4.5.2X with u=m and v=a, but with the following
+    replacement for step X2: If v3<=sqrt(m/2), the algorithm terminates.
+    The pair (x,y)=(|v2|,v3*sign(v2)) is then the unique solution,
+    provided that x and y are coprime and x<=sqrt(m/2); otherwise there is
+    no solution.   (Alg 4.5.2X is the extended Euclidean algorithm.)
+
+    Knuth remarks that this algorithm is due to Wang, Kornerup, and
+    Gregory from around 1983.
+
 
     EXAMPLES::
 
-     sage: m = 100000
-     sage: (119*inverse_mod(53,m))%m
-     11323
-     sage: rational_reconstruction(11323,m)
-     (119, 53)
+        sage: m = 100000
+        sage: (119*inverse_mod(53,m))%m
+        11323
+        sage: rational_reconstruction(11323,m)
+        (119, 53)
     """
     a = int(a); m = int(m)
     a %= m

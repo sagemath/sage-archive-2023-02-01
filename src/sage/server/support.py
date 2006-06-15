@@ -1,3 +1,7 @@
+"""
+Support for the Notebook (Introspection and Setup)
+"""
+
 import inspect
 import os
 import string

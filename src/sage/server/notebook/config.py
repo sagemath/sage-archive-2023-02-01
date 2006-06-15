@@ -1,3 +1,7 @@
+"""
+Customization of the Notebook
+"""
+
 from js import JSKeyCode
 
 JSKeyCode('request_completions', key = 39,  ctrl=True)

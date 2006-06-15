@@ -1,4 +1,8 @@
 r"""
+Special Functions
+
+AUTHORS:
+   -- David Joyner (2006-13-06)
 
 Some of Maxima's and Pari's special functions are wrapped.
 
@@ -36,7 +40,7 @@ for an arbitrary real number $\alpha$ (the order).
 \item
 Another important formulation of the two linearly independent
 solutions to Bessel's equation are the {\it Hankel functions}
-$H_\alpha^{(1)}(x)$ and $H_\alpha^(2)}(x)$, defined by:
+$H_\alpha^{(1)}(x)$ and $H_\alpha^(2)(x)$, defined by:
 
 \[
     H_\alpha^{(1)}(x) = J_\alpha(x) + i Y_\alpha(x)
@@ -153,12 +157,13 @@ of both ordinary and hyperbolic trig functions.
 There are twelve Jacobian elliptic functions. Each of the twelve
 corresponds to an arrow drawn from one corner of a rectangle to
 another.
-
+\begin{verbatim}
              n ------------------- d
              |                     |
              |                     |
              |                     |
              s ------------------- c
+\end{verbatim}
 
 Each of the corners of the rectangle are labeled, by convention,
 s, c, d and n. The rectangle is understood to be lying on the complex
@@ -175,7 +180,7 @@ three properties:
 \item
 There is a simple zero at the corner p, and a simple pole
 at the corner q.
-\ite
+\item
 The step from p to q is equal to half the period of the function pq(x);
 that is, the function pq(x) is periodic in the direction pq,
 with the period being twice the distance from p to q.
@@ -202,7 +207,7 @@ Let
 \[
     u=\int_0^\phi \frac{d\theta} {\sqrt {1-m \sin^2 \theta}}
 \]
-Then the Jacobi elliptic function} $sn(u)$ is given by
+Then the \emph{Jacobi elliptic function} $sn(u)$ is given by
 \[
    {sn}\; u = \sin \phi
 \]
@@ -256,26 +261,27 @@ $2K(m)$. The limit $m\rightarrow 0$ gives
 $K(0) = \pi/2$ and trigonometric functions: $sn(x, 0) = \sin x$,
 $cn(x, 0) = \cos x$, $dn(x, 0) = 1$. The limit $m \rightarrow 1$
 gives $K(1) \\rightarrow \infty$ and hyperbolic functions:
-$sn(x, 1) = \tanh x$, $cn(x, 1) = \sech x$,
-$dn(x, 1) = \sech x$.
+$sn(x, 1) = \tanh x$, $cn(x, 1) = \mbox{\rm sech} x$,
+$dn(x, 1) = \mbox{\rm sech} x$.
 
 \item
 The {\it incomplete elliptic integrals} (of the first kind,
 etc.) are:
 \[
 \begin{array}{c}
-\int_0^\phi \frac{1}{\sqrt(1 - m\sin(x)^2}\, dx,\\
-\int_0^\phi \sqrt(1 - m\sin(x)^2\, dx,\\
-\int_0^\phi \frac{\sqrt{1-mt^2)}{\sqrt(1 - t^2}\, dx,\\
-\int_0^\phi \frac{1}{\sqrt(1 - m\sin(x)^2\sqrt(1 - n\sin(x)^2}\, dx,
+\displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2}}\, dx,\\
+\displaystyle\int_0^\phi \sqrt{1 - m\sin(x)^2}\, dx,\\
+\displaystyle\int_0^\phi \frac{\sqrt{1-mt^2}}{\sqrt(1 - t^2)}\, dx,\\
+\displaystyle\int_0^\phi \frac{1}{\sqrt{1 - m\sin(x)^2\sqrt{1 - n\sin(x)^2}}}\, dx,
 \end{array}
 \]
 and the {\it complete} ones are obtained by taking $\phi =\pi/2$.
 
 
 \end{itemize}
+\end{itemize}
 
-
+\begin{verbatim}
 Methods implemented:
     * Bessel functions and Airy functions
     * spherical harmonic functions
@@ -285,8 +291,6 @@ Methods implemented:
     * complete/incomplete elliptic integrals
     * hyperbolic trig functions (for completeness, since
       they are special cases of elliptic functions)
-
-AUTHOR: David Joyner (2006-13-06)
 
 REFERENCE:
     * Abramowitz and Stegun: Handbook of Mathematical Functions,
@@ -300,6 +304,7 @@ REFERENCE:
       Jacobi Elliptic Functions", Math ArXiv, math-ph/0201004
     * Online Encyclopedia of Special Function
       http://algo.inria.fr/esf/index.html
+\end{verbatim}
 
 """
 
@@ -343,18 +348,19 @@ def _setup(prec):
 
 
 def bessel_I(nu,z,alg = "pari",prec=53):
-    """
+    r"""
     Implements the "I-Bessel function", or
     "modified Bessel function, 1st kind", with
     index (or "order") nu and argument z.
 
-    nu -- a real (or complex, for pari) number
-    z  -- a real (positive)
-    alg - "pari" or "maxima"
-    prec - real precision (for Pari only)
+    INPUT:
+        nu -- a real (or complex, for pari) number
+        z  -- a real (positive)
+        alg - "pari" or "maxima"
+        prec - real precision (for Pari only)
 
-    Defn:
-
+    DEFINITION:
+    \begin{verbatim}
     Maxima:
                      inf
                     ====   - nu - 2 k  nu + 2 k
@@ -374,12 +380,12 @@ def bessel_I(nu,z,alg = "pari",prec=53):
                     ====
                     k = 0
 
-
-    Sometimes bessel_I(nu,z) is denoted I_nu(z) in the
+    \end{verbatim}
+    Sometimes \code{bessel_I(nu,z)} is denoted \code{I_nu(z)} in the
     literature.
 
     WARNING:
-       In Maxima (the manual says) i0 is deprecated but bessel_i(0,*)
+       In Maxima (the manual says) i0 is deprecated but \code{bessel_i(0,*)}
        is broken. (Was fixed in recent CVS patch though.)
 
     EXAMPLES:
@@ -393,7 +399,6 @@ def bessel_I(nu,z,alg = "pari",prec=53):
         1.3261601837126531
         sage: bessel_I(0,1,"maxima")    # last few digits are random
         1.2660658777520091
-
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
@@ -408,11 +413,12 @@ def bessel_I(nu,z,alg = "pari",prec=53):
             return eval(maxima.eval("bessel_i(%s,%s)"%(RR(nu),RR(z))))
 
 def bessel_J(nu,z,alg="pari",prec=53):
-    """
+    r"""
     Implements the "J-Bessel function", or
     "Bessel function, 1st kind", with
     index (or "order") nu and argument z.
 
+    \begin{verbatim}
     Defn:
     Maxima:
                      inf
@@ -432,6 +438,7 @@ def bessel_J(nu,z,alg="pari",prec=53):
                     /         k! Gamma(nu + k + 1)
                     ====
                     k = 0
+    \end{verbatim}
 
 
     Sometimes bessel_J(nu,z) is denoted J_nu(z) in the
@@ -459,14 +466,15 @@ def bessel_J(nu,z,alg="pari",prec=53):
         return RR(maxima.eval("bessel_j(%s,%s)"%(RR(nu),RR(z))))
 
 def bessel_K(nu,z,prec=53):
-    """
+    r"""
     Implements the "K-Bessel function", or
     "modifed Bessel function, 2nd kind", with
     index (or "order") nu and argument z. Defn:
-
+\begin{verbatim}
             pi*(bessel_I(-nu, z) - bessel_I(nu, z))
            ----------------------------------------
                         2*sin(pi*nu)
+\end{verbatim}
 
     if nu is not an integer and by taking a limit
     otherwise.
@@ -489,15 +497,15 @@ def bessel_K(nu,z,prec=53):
     return b
 
 def bessel_Y(nu,z):
-    """
+    r"""
     Implements the "Y-Bessel function", or
     "Bessel function of the 2nd kind", with
     index (or "order") nu and argument z. Defn:
-
+\begin{verbatim}
             cos(pi n)*bessel_J(nu, z) - bessel_J(-nu, z)
            -------------------------------------------------
                              sin(nu*pi)
-
+\end{verbatim}
     if nu is not an integer and by taking a limit
     otherwise.
 
@@ -517,7 +525,7 @@ def bessel_Y(nu,z):
     return RR(maxima.eval("bessel_y(%s,%s)"%(RR(nu),RR(z))))
 
 def hypergeometric_U(alpha,beta,x,prec=53):
-    """
+    r"""
     Implements, for $x>0$, the confluent hypergeometric function
     $y = U(a,b,x)$ is defined to be the solution to Kummer's
     differential equation
@@ -532,8 +540,6 @@ def hypergeometric_U(alpha,beta,x,prec=53):
         0.5963440
         sage: hypergeometric_U(1,1,1,200)
         0.59634736232319407413
-
-
     """
     from sage.libs.pari.all import pari
     R,a = _setup(prec)
@@ -542,7 +548,7 @@ def hypergeometric_U(alpha,beta,x,prec=53):
     return b
 
 def incomplete_gamma(s,x,prec=53):
-    """
+    r"""
     Implements the incomplete Gamma function.
 
     The argument x and s are complex numbers
@@ -570,8 +576,7 @@ def incomplete_gamma(s,x,prec=53):
     return b
 
 def spherical_bessel_J(n,x):
-    """
-
+    r"""
     Returns the spherical Bessel function of the first kind
     for integers n > -1.
     Reference: A&S 10.1.8 page 437 and A&S 10.1.15 page 439.
@@ -590,8 +595,7 @@ def spherical_bessel_J(n,x):
     return maxima.eval("spherical_bessel_j(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_bessel_Y(n,x):
-    """
-
+    r"""
     Returns the spherical Bessel function of the second kind
     for integers n > -1.
     Reference: A&S 10.1.9 page 437 and A&S 10.1.15 page 439.
@@ -610,9 +614,9 @@ def spherical_bessel_Y(n,x):
     return maxima.eval("spherical_bessel_y(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_hankel1(n,x):
-    """
+    r"""
     Returns the spherical Hankel function of the first
-    kind for integers n > -1, written as a string.
+    kind for integers $n > -1$, written as a string.
     Reference: A&S 10.1.36 page 439.
 
     EXAMPLES:
@@ -629,7 +633,7 @@ def spherical_hankel1(n,x):
     return maxima.eval("spherical_hankel1(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_hankel2(n,x):
-    """
+    r"""
     Returns the spherical Hankel function of the second
     kind for integers n > -1, written as a string.
     Reference: A&S 10.1.17 page 439.
@@ -648,7 +652,7 @@ def spherical_hankel2(n,x):
     return maxima.eval("spherical_hankel2(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_harmonic(m,n,x,y):
-    """
+    r"""
     Returns the spherical Harmonic function of the second
     kind for integers $n > -1$, $|m|\leq n$, written as a string.
     Reference: Merzbacher 9.64.
@@ -684,7 +688,7 @@ def spherical_harmonic(m,n,x,y):
 ####### elliptic functions and integrals
 
 def jacobi(sym,x,m):
-    """
+    r"""
     Here sym = "pq", where p,q in {c,d,n,s}. This returns the
     value of the Jacobi function pq(x,m), as described in the
     documentation for SAGE's "special" module. There are a
@@ -736,7 +740,7 @@ def jacobi(sym,x,m):
 def inverse_jacobi(sym,x,m):
     """
     Here sym = "pq", where p,q in {c,d,n,s}. This returns the
-    value of the inverse Jacobi function pq^{-1}(x,m). There are a
+    value of the inverse Jacobi function $pq^{-1}(x,m)$. There are a
     total of 12 functions described by this.
 
     EXAMPLES:
@@ -861,7 +865,7 @@ def lngamma(t):
         raise NotImplementedError
 
 def exp_int(t):
-    """
+    r"""
     The exponential integral $\int_x^\infty e^{-x}/x dx$ (t belongs to RR).
     """
     try:
@@ -870,7 +874,7 @@ def exp_int(t):
         raise NotImplementedError
 
 def error_fcn(t):
-    """
+    r"""
     The complementary error function
     $\frac{2}{\sqrt{\pi}}\int_t^\infty e^{-x^2} dx$ (t belongs to RR).
     """

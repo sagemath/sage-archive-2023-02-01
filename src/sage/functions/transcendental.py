@@ -1,5 +1,5 @@
 """
-Computation of transcendental functions.
+Transcendental Functions
 """
 
 #*****************************************************************************

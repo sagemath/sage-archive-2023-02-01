@@ -1,4 +1,6 @@
 r"""
+Orthogonal Polynomials
+
 This module wraps some of the orthogonal/special functions
 in the Maxima package "specfun". The specfun package
 was written by Barton Willis of the University of Nebraska at Kearney.
@@ -100,6 +102,7 @@ can be given in terms of the ``usual'' Legendre polynomials by
 P_\ell^m(x)	&=	(-1)^m(1-x^2)^{m/2}(d^m)/(dx^m)P_\ell(x) \\
 &=  \frac{(-1)^m}{2^\ell \ell!}
 (1-x^2)^{m/2}\frac{d^(\ell+m)}{dx^(\ell+m)}(x^2-1)^\ell.
+\end{array}
 \]
 Assuming $0 \le m \le \ell$, they satisfy the orthogonality relation:
 \[
@@ -155,7 +158,7 @@ P_n^{(\alpha,\beta)}(z)
 =\frac{(\alpha+1)_n}{n!} \,_2F_1\left(-n,1+\alpha+\beta+n;\alpha+1;\frac{1-z}{2}\right) ,
 \]
 where $()_n$ is Pochhammer's symbol (for the rising factorial),
-(Abramowitz & Stegun p561.) and thus have the explicit expression
+(Abramowitz and Stegun p561.) and thus have the explicit expression
 
 \[
 P_n^{(\alpha,\beta)} (z)
@@ -191,7 +194,7 @@ C_n^{(a)}(z)
 =\frac{(2a)^{\underline{n}}}{n!}
 \,_2F_1\left(-n,2a+n;a+\frac{1}{2};\frac{1-z}{2}\right)
 \]
-where $\underline{n}$ is the falling factorial. (See Abramowitz & Stegun p561)
+where $\underline{n}$ is the falling factorial. (See Abramowitz and Stegun p561)
 
 They are named for Leopold Gegenbauer (1849-1903).
 
@@ -214,35 +217,35 @@ Oren Patashnik in their book Concrete Mathematics.
 Methods implemented:
     * chebyshev_T (n, x) - the Chebyshev polynomial of the first kind
       for integers n > -1.
-      REFERENCE: A&S 22.5.31 page 778 and A&S 6.1.22 page 256.
+      REFERENCE: A\&S 22.5.31 page 778 and A\&S 6.1.22 page 256.
     * chebyshev_U (n, x) - the Chebyshev polynomial of the second kind
       for integers n > -1.
-      REFERENCE: A&S, 22.8.3 page 783  and A&S 6.1.22 page 256.
+      REFERENCE: A\&S, 22.8.3 page 783  and A\&S 6.1.22 page 256.
     * gen_laguerre (n, a, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: table on page 789 in A&S.
+      REFERENCE: table on page 789 in A\&S.
     * gen_legendre_P (n, x) - the associated (or generalized) Legendre
       function of the first kind for integers n > -1.
     * gen_legendre_Q (n, x) - the associated (or generalized) Legendre
       function of the second kind for integers n > -1.
       REFERENCE: Gradshteyn and Ryzhik 8.706 page 1000.
     * hermite (n,x) - the Hermite polynomial for integers n > -1.
-      REFERENCE: A&S 22.5.40 and 22.5.41, page 779.
+      REFERENCE: A\&S 22.5.40 and 22.5.41, page 779.
     * jacobi_P (n, a, b, x) - the Jacobi polynomial for integers n > -1
       and a and b symbolic or a > -1 and b > -1.
-      REFERENCE: table on page 789 in A&S.
+      REFERENCE: table on page 789 in A\&S.
     * laguerre (n, x) - the generalized Laguerre polynomial
       for integers n > -1.
-      REFERENCE: A&S 22.5.16, page 778 and A&S page 789.
+      REFERENCE: A\&S 22.5.16, page 778 and A\&S page 789.
     * legendre_P (n, x) - the Legendre polynomial of the first
       kind for integers n > -1.
-      REFERENCE: A&S 22.5.35 page 779.
+      REFERENCE: A\&S 22.5.35 page 779.
     * legendre_Q (n, x) - the Legendre function of the second
       kind for integers n > -1.
     * ultraspherical (n,a,x) - the ultraspherical polynomials for
       integers n > -1. The ultraspherical polynomials are also
       known as Gegenbauer polynomials.
-      REFERENCE: A&S 22.5.27
+      REFERENCE: A\&S 22.5.27
 
 NOTE:
    The first call of any of these will usually cost a bit extra

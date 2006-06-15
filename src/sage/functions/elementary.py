@@ -1,11 +1,16 @@
 r"""
+Elementary Functions
+
 Call a univariate function an "elementary function" if it can be
 written as a sum of functions of the form "polynomial times and
 exponential times a sine or a cosine", ie
-
-       f(x) = (a_nx^n + ... + a_0)exp(ax)cos(bx)
+$$
+       f(x) = (a_nx^n + ... + a_0)\exp(ax)\cos(bx)
+$$
 or
-       f(x) = (a_nx^n + ... + a_0)exp(ax)sin(cx).
+$$
+       f(x) = (a_nx^n + ... + a_0)\exp(ax)\sin(cx).
+$$
 
 These arise naturally in solving constant coefficient ordinary
 differential equations using the method of undetermined coefficients.

@@ -1,8 +1,20 @@
+"""
+SAGE Notebook CSS
+"""
+
 import os
 
 from sage.misc.misc import DOT_SAGE
 
 def css():
+    """
+    Return the CSS header used by the SAGE Notebook.
+
+    EXAMPLES:
+        sage: import sage.server.notebook.css as c
+        sage: type(c.css())
+        <type 'str'>
+    """
     s = r"""
 /**** TOP CONTROL BAR ************************/
 

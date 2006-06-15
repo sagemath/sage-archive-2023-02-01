@@ -1,3 +1,8 @@
+"""
+SAGE Functions Class
+"""
+
+
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.all
@@ -327,7 +332,7 @@ class Function_arith(Function):
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: latex(log2 * e + pi^2/2)
             \log(2) \cdot e + \frac{\pi^{2}}{2}

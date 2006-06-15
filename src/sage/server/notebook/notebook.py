@@ -6,25 +6,21 @@ AUTHORS:
     -- Alex Clemesha
     -- Tom Boothby
 
-SUPPORTED BROWSERS:
-The SAGE notebook works with each of the following browsers:
-\begin{itemize}
-   \item Firefox
-   \item Internet Explorer
-\end{itemize}
+\subsection{Supported Browsers}
+The SAGE notebook currently is fully supported with
+Firefox.  It sort of works with Opera, Konqueror and Safari,
+It will eventually fully support Internet Explorer, but
+currently does not.
 
-  Note that Safari, Opera, and Konqueror are \emph{not} supported.
-
-TUTORIAL:
-
+\subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
-for it (i.e., this is a very quick 3-minute tutorial):
+for it.
 
 Type "2+2" in the blank box and press "shift-enter" (like in Mathematica).
 The line below "2+2" will turn reddish for a moment while SAGE fires
 up and computes the answer.
 
-Your cursor should now be in the next box down.   Type \code{a = 2^1000}
+Your cursor should now be in the next box down.   Type \code{a = 2\^1000}
 and press return, then "a" alone on the second line, then shift-return.
 You'll see a big number.   Also, "a" will appear in the variable
 browser in the upper left corner of the screen.  (Question -- what
@@ -41,7 +37,9 @@ right, all output disappears.
 Next try graphics!  Type "show(plot(sin,0,10))" into an empty
 box and hit shift-enter.   You'll get a graph of sin.   Try another
 function, e.g.,
-     \code{show(plot(lambda x: sin(x)^2 - cos(2*x)^3, -5,5))}
+\begin{verbatim}
+   show(plot(lambda x: sin(x)^2 - cos(2*x)^3, -5,5))
+\end{verbatim}
 Click on the left side of the figure (twice) to make it disappear.
 
 One really cool new feature of the SAGE notebook, is that you can
@@ -52,7 +50,10 @@ please let me know, since I don't know any at all right now.)
 As an example, consider computing factorials, which takes a while
 but not too long.  First, enter the following in a blank box and
 press "shift-return":
-         \code{ def f(n): return len(str(factorial(10^n)))}
+\begin{verbatim}
+def f(n):
+    return len(str(factorial(10^n)))
+\end{verbatim}
 This defines a function that takes a while to compute.   For example,
 time the execution of "f(5)", by typing (in a new box), "f(5)", then
 pressing "ctrl-return".  It should take a few seconds.   Next try
@@ -87,10 +88,12 @@ If this silently fails, type "view(g, debug=True)" instead.
 You need latex and the "convert" and "gs" commands, which is just
 an "apt-get install imagemagick gs" away...  Anyways, you get
 a nicely typeset formula.  Try a matrix next:
+\begin{verbatim}
    A = MatrixSpace(QQ, 5).random_element()
    view(A)
+\end{verbatim}
 
-ADDING AND REMOVING CELLS:
+\subsubsection{Adding and Removing Cells}
 How to add and remove input cells is an interesting design
 decision.  I went with the following:
    (1) To add a new cell, click on a little black line that
@@ -115,7 +118,7 @@ The underlying design of the system is such that adding
 the ability to reorder cells wouldn't be too difficult.
 
 
-INTROSPECTION:
+\subsubsection{Introspection}
 The design for introspection, i.e., finding all completions,
 and finding information information about an object is very
 interesting.   Tom, Alex and I made a number of prototypes
@@ -125,8 +128,8 @@ of what you type into it.   In the end, I've settle on something
 much different, since it seems very easy to use in practice, and
 is more like IPython, so more familiar, and also better if you
 don't like using a mouse.
-
-  (1) to find all completions for the last identifier you're
+\begin{enumerate}
+  \item to find all completions for the last identifier you're
    typing on a line, just hit "escape".  The completions are
    listed in the output box.  In particular, if you hit
    escape in a blank cell you get a list of all sage commands.
@@ -134,29 +137,31 @@ don't like using a mouse.
    the abelian group commands.  Type one in and put a question
    mark afterwards and hit escape for help (see next step).
 
-  (2) To find help for any object in a line, put a question
+  \item To find help for any object in a line, put a question
     mark after it and press "escape".  The object must exist
     in the current scope, e.g., so
       a = 5
       a?
     all in one box won't work.
 
-  (3) To get source code about any object, put ?? after it
+  \item To get source code about any object, put ?? after it
     and press escape.  The help appears below in the output
     box, but you can continue to type in your input box.
 
-  (4) To get extensive help on an object, type "help(object)"
+  \item To get extensive help on an object, type "help(object)"
     and press return.  This works, since (a) I set the
     PAGER to "cat", and (b) I strip out control codes that
     appear in the output.  And this isn't annoying, since web
     browsers are very good for scrolling through long output.
 
-  (5) To find all completions for a word anywhere in a line,
+  \item To find all completions for a word anywhere in a line,
      type "?c" right after the word and press "escape".
+\end{enumerate}
 
   Try the above and give me feedback.  How does this feel to you?
 
-OBJECTS:  When you start a notebook you give a name argument
+\subsubsection{Objects}
+When you start a notebook you give a name argument
 to it, and it creates a directory.  Inside that directory there
 will be many worksheets (which you can use all at once and easily
 flip through -- not implemented yet), and an object store.
@@ -167,8 +172,7 @@ be listed in the box on the bottom let, e.g., try
 and you'll see the "a" appear there.   You can load and save objects
 from any worksheet in any other one.
 
-PASTING in EXAMPLES:
-
+\subsubsection{Pasting in Examples}
 Code is evaluated by exec'ing (after preparsing). Only the output
 of the last line of the cell is implicitly printed. If any line
 starts with "sage:" or ">>>" the entire block is assumed to
@@ -178,7 +182,7 @@ from the docs without any editing, and you can write input
 cells that contains non-evaluated plain text mixed with
 examples by starting the block with ">>>" or including an example.
 
-SAVING:
+\subsubsection{Saving and Loading}
 
 The SAGE notebook is very persistent.  Every time you submit
 a cell for computation, the state of the notebook is saved (a
@@ -190,7 +194,7 @@ if the server Python process is killed while saving state.
 Also, this could easily allow for a sophisticated undo function;
 design ideas welcome...
 
-ARCHITECTURE:
+\subsubsection{Architecture}
 
 The SAGE Notebook is an AJAX application that can run either
 entirely locally on your desktop machine, or partly on
@@ -199,8 +203,8 @@ else.  There is currently no support for multiple connections, but
 there will be as soon as I get multiple worksheets going (which
 is already mostly there, since it was designed in from the start).
 Anywhere, here are the components of the SAGE Notebook:
-
- (1) WEB SERVER:
+\begin{enumerate}
+\item Web Server:
      A Python process that uses the Python standard library's
      BaseHTTPServer.HTTPServer to create a web server.  This
      process also handles all requests from the web browser,
@@ -212,16 +216,17 @@ Anywhere, here are the components of the SAGE Notebook:
      from SAGE to be its own Python module, in case people are
      generally interested in "a web version of IPython"...
 
- (2) SAGE SERVER:
+ \item SAGE Server:
      A Python process with all the SAGE libraries loaded; this
      is started by (1) when a web browser first requests that
      a cell be evaluated.  There's one of these Python processes
      for each worksheet.
 
- (3) WEB BROWSER:
+ \item WEB Browser:
      The web browser runs a 500-line javascript (and 600 lines of css)
      program that Alex, Tom and I wrote, which implements a lot of the
      browser-side part of the SAGE notebook functionality.
+\end{enumerate}
 
 When you use the SAGE Notebook, you are mainly interacting with a
 javascript program.  When you do something serious, e.g., request
@@ -237,14 +242,16 @@ are done. During this time, you can edit cells, submit more computations,
 etc.   Note that output really is updated in real time.  For
 example, try the following from the SAGE Notebook:
 
+\begin{verbatim}
 import time
 for i in range(10):
     print i
     time.sleep(0.5)
+\end{verbatim}
 
 You get to watch as the integers from 1 to 10 are "computed" in
 real time.    Actually, getting it so output is reported in
-real time is, I think, *crucial* to making a really usable
+real time is, I think, \emph{crucial} to making a really usable
 SAGE GUI -- users (i.e., me) want to run huge computations
 and watch the output progress.
 
@@ -270,7 +277,6 @@ setup code, etc.,   Also, you can save variables as you go
 easily (via the "save" command), and get back to where you
 were quickly.    -- This is probably very similar to Mathematica/Maple
 which have "restart kernel" commands, etc.
-
 """
 
 ###########################################################################

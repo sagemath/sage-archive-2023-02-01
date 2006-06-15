@@ -1,5 +1,5 @@
 r"""
-Piecewise-defined functions.
+Piecewise-defined Functions.
 
 \sage implements a very simple class of piecewise-defined functions.
 Functions must be piecewise polynomial, though some methods apply more

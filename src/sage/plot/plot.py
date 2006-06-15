@@ -111,9 +111,15 @@ from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf
 
+############### WARNING ###
+# Try not to import any matplotlib stuff here -- matplotlib is
+# slow to import.  (I did benchmarking and found that by not
+# importing here, and instead importing when needed below, that
+# SAGE startup times are much improved.)  - William
+###############
+
 import matplotlib.patches as patches
 from matplotlib.cbook import flatten
-
 from axes import find_axes
 
 def is_Graphics(x):
@@ -518,8 +524,8 @@ class Graphics(SageObject):
             to show with a 'figsize' of square dimensions.
 
             sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
-
 	"""
+        from matplotlib.figure import Figure
         if filename is None:
             i = 0
             while os.path.exists('sage%s.png'%i):
@@ -556,14 +562,17 @@ class Graphics(SageObject):
         # you can output in PNG, PS, or SVG format, depending on the file extension
 	if savenow:
 	    if ext in ['.eps', '.ps']:
+                from matplotlib.backends.backend_ps import FigureCanvasPS
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
 	    elif ext == '.svg':
-                canvas = FigureCanvasSVG(figure)
+                from matplotlib.backends.backend_svg import FigureCanvasSVG
 		if dpi is None:
 		    dpi = 80
+                canvas = FigureCanvasSVG(figure)
 	    elif ext == '.png':
+                from matplotlib.backends.backend_agg import FigureCanvasAgg
                 canvas = FigureCanvasAgg(figure)
                 if dpi is None:
                     dpi = 150

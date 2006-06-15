@@ -306,9 +306,10 @@ import config
 MAX_WORKSHEETS = 1024
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook', username='', password=''):
+    def __init__(self, dir='sage_notebook', username=None, password=None):
         self.__dir = dir
-        self.auth = "%s:%s"%(username,password)
+        if not (username is None):
+            self.set_auth(username,password)
         self.__worksheets = {}
         self.__load_defaults()
         self.__filename     = '%s/nb.sobj'%dir
@@ -371,7 +372,23 @@ class Notebook(SageObject):
         return self.__defaults
 
     def authorize(self, auth):
-        return self.auth == auth
+        """
+        Returns True if auth is the correct authorization.
+        """
+        a = self.auth_string()
+        if a == ':':
+            return True
+        return a == auth
+
+    def auth_string(self):
+        try:
+            return self.__auth
+        except AttributeError:
+            self.__auth = ":"
+        return self.__auth
+
+    def set_auth(self, username, password):
+        self.__auth = '%s:%s'%(username, password)
 
     def __makedirs(self):
         os.makedirs(self.__dir)
@@ -434,7 +451,8 @@ class Notebook(SageObject):
         tries = 0
         while True:
             try:
-                notebook_server = server.NotebookServer(self, port, address, auth = self.auth)
+                notebook_server = server.NotebookServer(self,
+                         port, address)
             except socket.error, msg:
                 print msg
                 port += 1
@@ -631,11 +649,7 @@ class Notebook(SageObject):
         if authorized:
             body = self._html_body(worksheet_id)
         else:
-            body = """<div id="mainbody">Login Required<br><form>
-                   Name:  <input name="username"><br>
-                   Pass:  <input name="password" type="password">
-                          <input type='button' onClick="login(username.value,password.value);" value="&gt;">
-                   </form></div>"""
+            body = self._html_authorize()
 
         head = self._html_head()
         return """
@@ -646,14 +660,35 @@ class Notebook(SageObject):
         <script language=javascript>worksheet_id=%s</script>
         """%(head, body, worksheet_id)
 
+    def _html_authorize(self):
+        return """
+        <h1>SAGE Notebook Server</h1>
+        <div id="mainbody" class="login">Sign in to the SAGE Notebook<br>
+        <form>
+        <table>
+        <tr><td>
+          <span class="username">Username:</span></td>
+          <td><input name="username" class="username"></td>
+        </tr>
+        <tr><td>
+           <span class="password">Password:</span></td>
+           <td><input name="password" class="username" type="password"></td>
+        </tr>
+        <td>&nbsp</td>
+        <td>
+           <input type='button' onClick="login(username.value,password.value);" value="Sign in">
+           </td></table>
+                   </form></div>
+
+        """
 
 def notebook(dir       ='sage_notebook',
              port      = 8000,
              address   = 'localhost',
              open_viewer    = True,
              max_tries = 10,
-             username  = '',
-             password  = ''):
+             username  = None,
+             password  = None):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -671,6 +706,8 @@ def notebook(dir       ='sage_notebook',
         viewer -- bool (default:True); if True, pop up a web browser at the URL
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
+        username -- user name used for authenticated logins
+        password -- password used for authenticated logins
 
     NOTES:
 
@@ -735,6 +772,8 @@ def notebook(dir       ='sage_notebook',
                 print "Recovering from last op save failed."
                 print "Trying save from last startup."
                 nb = load('%s/nb-older-backup.sobj'%dir)
+        if not (username is None):
+            nb.set_auth(username=username, password=password)
         nb.set_not_computing()
     else:
         nb = Notebook(dir,username=username,password=password)

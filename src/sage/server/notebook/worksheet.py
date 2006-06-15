@@ -670,8 +670,7 @@ class Worksheet:
         n = len(self.__cells)
         s = ''
 
-        s += '<span class="worksheet_title">%s</span>\n'%self.name()
-        s += '<div class="worksheet_top_padding"></div>\n'
+        s += '<div class="worksheet_title">%s</div>\n'%self.name()
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'

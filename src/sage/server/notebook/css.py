@@ -359,6 +359,32 @@ div.worksheet_top_padding {
    height:5%;
 }
 
+div.worksheet_title {
+   z-index:2;
+   top:36px;
+   padding-top: 3px;
+   padding-left: 1em;
+   background-color: #c3d9ff;
+   width: 100%;
+   font-family:arial;
+   font-size: 22px;
+   font-weight:bold;
+   color:black;
+   position: fixed;
+}
+
+div.worksheet_title_under {
+   z-index:0;
+   padding-top: 3px;
+   padding-left: 1em;
+   background-color: #c3d9ff;
+   width: 100%;
+   font-family:arial;
+   font-size: 22px;
+   font-weight:bold;
+   color:black;
+}
+
 div.worksheet_cell_list {
 }
 
@@ -500,27 +526,13 @@ div.worksheet {
   background-color: white;
   border-top: 0px;
   border-left: 10px solid #c3d9ff;
-  top: 36px;
+  top: 65px;
   bottom: 0ex;
   right: 0ex;
   left: 205px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
-}
-
-span.worksheet_title {
-   z-index:2;
-   padding-top: 3px;
-   padding-left: 1em;
-   background-color: #c3d9ff;
-   width: 100%;
-   font-family:arial;
-   font-size: 22px;
-   font-weight:bold;
-   color:black;
-   display:inline;
-   position: fixed;
 }
 
 

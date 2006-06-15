@@ -17,6 +17,8 @@ import os, sys
 import select
 from   StringIO import StringIO
 import shutil
+import Cookie
+import cPickle
 
 import css, js
 
@@ -195,7 +197,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None):
         self.send_head()
-        self.wfile.write(notebook.html(worksheet_id=worksheet_id))
+        try:
+            self.wfile.write(notebook.html(worksheet_id=worksheet_id,
+                                           authorized=self.authorize()))
+        except:
+            print "Error writing out web page."
+
 
     def file_not_found(self):
         self.send_response(404)
@@ -232,7 +239,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if path == 'text':
             self.plain_text_worksheet(worksheet_id)
         elif path == '':
-            self.show_page(worksheet_id)
+            return self.show_page(worksheet_id=worksheet_id)
+        else:
+            self.file_not_found()
+
+    def authorize(self):
+        self.cookie=Cookie.SimpleCookie()
+        if self.headers.has_key('cookie'):
+            self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+        username = password = "";
+        if self.cookie.has_key('username'):
+            username = self.cookie['username'].value
+        if self.cookie.has_key('password'):
+            password = self.cookie['password'].value
+        return notebook.authorize(username + ":" + password);
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
@@ -297,12 +317,18 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 class NotebookServer:
-    def __init__(self, notebook, port, address, auth):
+    def __init__(self, notebook, port, address):
         self.__notebook = notebook
         self.__httpd = BaseHTTPServer.HTTPServer((address,int(port)), WebServer)
         self.__address = address
         self.__port = port
-        self.auth = auth
+
+    def auth_string(self):
+        try:
+            return self.__auth
+        except AttributeError:
+            self.__auth = ":"
+        return self.__auth
 
     def address(self):
         return self.__address

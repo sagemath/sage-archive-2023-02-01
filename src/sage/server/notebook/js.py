@@ -306,13 +306,7 @@ function cell_input_key_event(number, event) {
        interrupt();
        return false;
     } else if (key_next_cell(event)) {
-v v v v v v v
        // jump to next cell
-*************
-       alert('hi');
-       alert(cell_input.parentNode.firstChild.nextSibling.innerHTML);
-       cell_input.parentNode.firstChild.nextSibling.focus();
-^ ^ ^ ^ ^ ^ ^
     } else if (key_prev_cell(event)) {
        // jump to prev cell
     }

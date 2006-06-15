@@ -885,7 +885,7 @@ cdef class Rational(element.FieldElement):
 
 
 
-def rational_reconstruction(integer.Integer a, integer.Integer m):
+def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
     """
     Find the rational reconstruction of a mod m, if it exists.
     INPUT:

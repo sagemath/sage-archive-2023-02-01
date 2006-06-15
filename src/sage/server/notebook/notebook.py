@@ -306,8 +306,9 @@ import config
 MAX_WORKSHEETS = 1024
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook'):
+    def __init__(self, dir='sage_notebook', username='', password=''):
         self.__dir = dir
+        self.auth = "%s:%s"%(username,password)
         self.__worksheets = {}
         self.__load_defaults()
         self.__filename     = '%s/nb.sobj'%dir
@@ -368,6 +369,9 @@ class Notebook(SageObject):
 
     def defaults(self):
         return self.__defaults
+
+    def authorize(self, auth):
+        return self.auth == auth
 
     def __makedirs(self):
         os.makedirs(self.__dir)
@@ -430,7 +434,7 @@ class Notebook(SageObject):
         tries = 0
         while True:
             try:
-                notebook_server = server.NotebookServer(self, port, address)
+                notebook_server = server.NotebookServer(self, port, address, auth = self.auth)
             except socket.error, msg:
                 print msg
                 port += 1
@@ -613,7 +617,7 @@ class Notebook(SageObject):
         return s
 
 
-    def html(self, worksheet_id=None):
+    def html(self, worksheet_id=None, authorized=False):
         if worksheet_id is None:
             W = self.default_worksheet()
             worksheet_id = W.id()
@@ -623,8 +627,17 @@ class Notebook(SageObject):
             except KeyError:
                 W = self.default_worksheet()
                 worksheet_id = W.id()
+
+        if authorized:
+            body = self._html_body(worksheet_id)
+        else:
+            body = """<div id="mainbody">Login Required<br><form>
+                   Name:  <input name="username"><br>
+                   Pass:  <input name="password" type="password">
+                          <input type='button' onClick="login(username.value,password.value);" value="&gt;">
+                   </form></div>"""
+
         head = self._html_head()
-        body = self._html_body(worksheet_id)
         return """
         <html>
         <head>%s</head>
@@ -638,7 +651,9 @@ def notebook(dir       ='sage_notebook',
              port      = 8000,
              address   = 'localhost',
              open_viewer    = True,
-             max_tries = 10):
+             max_tries = 10,
+             username  = '',
+             password  = ''):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -722,7 +737,7 @@ def notebook(dir       ='sage_notebook',
                 nb = load('%s/nb-older-backup.sobj'%dir)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir)
+        nb = Notebook(dir,username=username,password=password)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.start(port, address, max_tries, open_viewer)

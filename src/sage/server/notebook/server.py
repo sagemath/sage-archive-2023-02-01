@@ -17,7 +17,6 @@ import os, sys
 import select
 from   StringIO import StringIO
 import shutil
-import cPickle
 
 import css, js
 
@@ -196,11 +195,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None):
         self.send_head()
-        try:
-            self.wfile.write(notebook.html(worksheet_id=worksheet_id))
-        except:
-            print "Error writing out web page."
-            pass
+        self.wfile.write(notebook.html(worksheet_id=worksheet_id))
 
     def file_not_found(self):
         self.send_response(404)
@@ -220,7 +215,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         verbose(self.path)
 
-        if self.path[-4:] in ['.eps', '.png', '.svg', '.txt'] or \
+        if self.path[-4:] in ['.eps', '.png', '.svg', '.txt', '.ico'] or \
                self.path[-5:] == '.sobj' or self.path[-3:] == '.ps':
             return self.get_file()
 
@@ -238,15 +233,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.plain_text_worksheet(worksheet_id)
         elif path == '':
             self.show_page(worksheet_id)
-        else:
-            self.file_not_found()
-
 
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
         verbose("POST: %s"%post_dict)
 
-        if content_type == 'multipart/form-data':
+        if not self.authorize():
+            self.body = {}
+
+        elif content_type == 'multipart/form-data':
             self.body = cgi.parse_multipart(self.rfile, post_dict)
 
         elif content_type == 'application/x-www-form-urlencoded':
@@ -302,11 +297,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 class NotebookServer:
-    def __init__(self, notebook, port, address):
+    def __init__(self, notebook, port, address, auth):
         self.__notebook = notebook
         self.__httpd = BaseHTTPServer.HTTPServer((address,int(port)), WebServer)
         self.__address = address
         self.__port = port
+        self.auth = auth
 
     def address(self):
         return self.__address

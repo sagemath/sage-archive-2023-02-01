@@ -31,14 +31,19 @@ cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
 
+
+var current_cell;
 var asyncObj;
 var no_async = false;
 var userAgent = navigator.userAgent.toLowerCase();
+var browser_ie = userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1;
+var browser_ie5= userAgent.indexOf("msie 5")!=-1
+
 function getAsyncObject(handler) {
   asyncObj=null
   try {
-    if (userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1) {
-      var s =(userAgent.indexOf("msie 5")!=-1)?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
+    if (browser_ie) {
+      var s =browser_ie5?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
       asyncObj = new ActiveXObject(s);
       asyncObj.onreadystatechange = handler;
       return asyncObj;
@@ -301,11 +306,15 @@ function cell_input_key_event(number, event) {
        interrupt();
        return false;
     } else if (key_next_cell(event)) {
+v v v v v v v
+       // jump to next cell
+*************
        alert('hi');
        alert(cell_input.parentNode.firstChild.nextSibling.innerHTML);
        cell_input.parentNode.firstChild.nextSibling.focus();
+^ ^ ^ ^ ^ ^ ^
     } else if (key_prev_cell(event)) {
-       cell_input.previousSibling.previousSibling.focus();
+       // jump to prev cell
     }
     return true;
 }
@@ -625,6 +634,12 @@ function hide_all() {
                       hide_all_callback, 'worksheet_id='+worksheet_id);
 }
 
+function login(username,password) {
+  document.cookie="username="+username;
+  document.cookie="password="+password;
+  window.location="/";
+}
+
 ///////////////////////////////////////////////////////////////////
 //
 // HELP Window
@@ -647,62 +662,35 @@ function hide_help_window() {
     s += r"""
 ///////////////////////////////////////////////////////////////////
 //
-// KeyCodes
+// KeyCodes (auto-generated from config.py and user's sage config
 //
 ///////////////////////////////////////////////////////////////////
-
-if(!Event)
-  var Event = new Object();
-function abstract_key_event(e) {
-  e = (e) ? e : (window.event) ? window.event : null;
-
-  var event = new Object();
-  event.shift = (e.modifiers & Event.SHIFT_MASK) || e.shiftKey;
-  event.ctrl  = (e.modifiers & Event.CTRL_MASK ) || e.ctrlKey;
-  event.alt   = (e.modifiers & Event.ALT_MASK  ) || e.altKey;
-
-  event.key = 0;
-  if (e) {
-    if(e.charCode)
-      event.key = e.charCode;
-    else if(e.keyCode)
-      event.key = e.keyCode;
-    else if(e.which)
-      event.key = e.which;
-  }
-//  alert("key: " + event.key + "\nshift: " + event.shift + "\nctrl: " + event.ctrl + "\nalt: " + event.alt)
-  return event;
-}
-
-// The following functions are auto-generated
 %s
 """%build_all_key_codes()
 
     return s
 
 
-key_codes = [];
+key_codes = {};
 class JSKeyCode:
     def __init__(self, name, key='', alt=False, ctrl=False, shift=False):
         global key_codes
-        self.name  = name
         self.key   = key
         self.alt   = alt
         self.ctrl  = ctrl
         self.shift = shift
-        key_codes.append(self)
+        key_codes[name] = self
 
-    def js_test(self):
+    def js_test(self, name):
         a = "%s"%self.alt
         c = "%s"%self.ctrl
         s = "%s"%self.shift
 
         return """
-function key_%s(event) {
-  k = abstract_key_event(event);
-  return k.key == %d && k.alt == %s && k.ctrl == %s && k.shift == %s;
+function key_%s(e) {
+  return e.keyCode == %d && e.altKey == %s && e.ctrlKey == %s && e.shiftKey == %s;
 }
-        """%(self.name, self.key, a.lower(), c.lower(), s.lower())
+        """%(name, self.key, a.lower(), c.lower(), s.lower())
 
 def build_all_key_codes():
-    return ''.join([k.js_test() for k in key_codes])
+    return ''.join([k.js_test(n) for n, k in key_codes.items()])

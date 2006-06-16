@@ -364,19 +364,23 @@ function cell_output_click(id, event) {
     var cell_div = document.getElementById('cell_div_output_' + id);
     var cell_output = document.getElementById('cell_output_' + id);
     var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+    var cell_output_html = document.getElementById('cell_output_html_' + id);
 
     if (cell_div.className == 'cell_output_hidden') {
         cell_div.className = 'cell_output';
         cell_output.className = 'cell_output';
+        cell_output_html.className = 'cell_output_html';
     } else if (cell_div.className == 'cell_output' && event.layerX <= 50) {
         if (cell_output_nowrap.className == 'cell_output_nowrap') {
              cell_output_nowrap.className = 'cell_output_nowrap_visible';
              cell_output.className = 'cell_output_nowrap';
+             cell_output_html.className = 'cell_output_html';
         } else {
              cell_output_nowrap.className = 'cell_output_nowrap';
              cell_output.className = 'cell_output';
              cell_div.className = 'cell_output_hidden';
              cell_output.className = 'cell_output_hidden';
+             cell_output_html.className = 'cell_output_hidden';
         }
     }
 }

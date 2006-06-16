@@ -23,6 +23,29 @@ def javascript():
     s = r"""
 
 ///////////////////////////////////////////////////////////////////
+//
+// Cross-Browser Stuff
+//
+///////////////////////////////////////////////////////////////////
+
+var userAgent = navigator.userAgent.toLowerCase();
+var browser_ie = userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1;
+var browser_ie5= userAgent.indexOf("msie 5")!=-1
+
+function get_element(id) {
+  if(document.getElementById)
+    return document.getElementById(id);
+  if(document.all)
+    return document.all[id];
+  if(document.layers)
+    return document.layers[id];
+}
+
+function get_event(e) {
+   return (e==null)?window.event:e;
+}
+
+///////////////////////////////////////////////////////////////////
 // An AJAX framework for connections back to the
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
@@ -35,9 +58,6 @@ SEP = '___S_A_G_E___';
 var current_cell;
 var asyncObj;
 var no_async = false;
-var userAgent = navigator.userAgent.toLowerCase();
-var browser_ie = userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1;
-var browser_ie5= userAgent.indexOf("msie 5")!=-1
 
 function getAsyncObject(handler) {
   asyncObj=null
@@ -161,35 +181,35 @@ function delete_worksheet_callback(status, response_text) {
 }
 
 function set_worksheet_list(worksheets) {
-    var wlist = document.getElementById('worksheet_list');
+    var wlist = get_element('worksheet_list');
     wlist.innerHTML = worksheets;
 }
 
 function show_add_new_worksheet_menu() {
-    var add_worksheet_menu = document.getElementById('add_worksheet_menu');
+    var add_worksheet_menu = document.get_element('add_worksheet_menu');
     add_worksheet_menu.style.display = 'block';
-    document.getElementById('new_worksheet_box').focus()
+    document.get_element('new_worksheet_box').focus()
 }
 
 function hide_add_new_worksheet_menu() {
-    var add_worksheet_menu = document.getElementById('add_worksheet_menu');
+    var add_worksheet_menu = get_element('add_worksheet_menu');
     add_worksheet_menu.style.display = 'none';
 }
 
 function show_delete_worksheet_menu() {
-    var delete_worksheet_menu = document.getElementById('delete_worksheet_menu');
+    var delete_worksheet_menu = get_element('delete_worksheet_menu');
     delete_worksheet_menu.style.display = 'block';
-    document.getElementById('delete_worksheet_box').focus();
+    get_element('delete_worksheet_box').focus();
 }
 
 function hide_delete_worksheet_menu() {
-    var delete_worksheet_menu = document.getElementById('delete_worksheet_menu');
+    var delete_worksheet_menu = get_element('delete_worksheet_menu');
     delete_worksheet_menu.style.display = 'none';
 }
 
 function process_new_worksheet_menu_submit() {
     hide_add_new_worksheet_menu();
-    var add_worksheet_box = document.getElementById('new_worksheet_box');
+    var add_worksheet_box = get_element('new_worksheet_box');
     name = add_worksheet_box.value;
     add_worksheet_box.value = '';
     add_worksheet(name);
@@ -197,7 +217,7 @@ function process_new_worksheet_menu_submit() {
 
 function process_delete_worksheet_menu_submit() {
     hide_delete_worksheet_menu();
-    var delete_worksheet_box = document.getElementById('delete_worksheet_box');
+    var delete_worksheet_box = get_element('delete_worksheet_box');
     name = delete_worksheet_box.value;
     delete_worksheet_box.value = '';
     delete_worksheet(name);
@@ -219,18 +239,17 @@ function switch_to_worksheet(id) {
 ///////////////////////////////////////////////////////////////////
 
 function focus_on(id, id_before) {
-       var cell = document.getElementById('cell_input_' + id);
-       if (cell) {
+       var cell = get_element('cell_input_' + id);
+       if (cell && cell.focus) {
           cell.focus();
        }
-/*       var cell_before = document.getElementById('cell_div_output_' + id_before);  */
-       var cell_before = document.getElementById('cell_input_' + id_before);
-       if (cell_before)
+/*       var cell_before = get_element('cell_div_output_' + id_before);  */
+       var cell_before = get_element('cell_input_' + id_before);
+       if (cell_before && cell_before.scrollIntoView)
           cell_before.scrollIntoView();
 }
 
-function cell_input_resize(number) {
-   var cell_input = document.getElementById('cell_input_' + number);
+function cell_input_resize(cell_input) {
    rows = cell_input.value.split('\n').length - 1;
    if (rows <= 1) {
       rows = 2;
@@ -243,8 +262,7 @@ function cell_input_resize(number) {
    cell_input.rows = rows;
 }
 
-function cell_input_minimize_size(number) {
-   var cell_input = document.getElementById('cell_input_' + number);
+function cell_input_minimize_size(cell_input) {
    rows = cell_input.value.split('\n').length ;
    if (rows < 1) {
       rows = 1;
@@ -259,19 +277,19 @@ function cell_input_minimize_size(number) {
 id_to_delete=-1;
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
-        cell = document.getElementById('cell_' + id_to_delete);
-        var worksheet = document.getElementById('worksheet_cell_list');
+        cell = get_element('cell_' + id_to_delete);
+        var worksheet = get_element('worksheet_cell_list');
         worksheet.removeChild(cell);
-     }
+    }
     var X = response_text.split(SEP);
     if (X[0] == 'ignore') {
         return;   /* do not delete, for some reason */
     }
-    cell = document.getElementById('cell_' + X[1]);
-    var worksheet = document.getElementById('worksheet_cell_list');
+    cell = get_element('cell_' + X[1]);
+    var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
     id_before = X[2];
-    var cell_before = document.getElementById('cell_input_' + id_before);
+    var cell_before = get_element('cell_input_' + id_before);
     cell_before.focus();
     cell_before.scrollIntoView();
 }
@@ -282,50 +300,76 @@ function cell_delete(id) {
 }
 
 function cell_input_key_event(number, event) {
-    var cell_input = document.getElementById('cell_input_' + number);
+    cell_input = get_element('cell_input_'+number);
 
-/*    alert(the_code); */
-    if (key_delete_cell(event) && cell_input.value == '') {
+    e = get_event(event)
+    if (key_delete_cell(e) && cell_input.value == '') {
         cell_delete(number);
         return false;
     }
 
-    cell_input_resize(number);
+    cell_input_resize(cell_input);
 
-    if (key_send_input(event)) {
+    if (key_send_input(e)) {
+           // User pressed shift-enter
        evaluate_cell(number, 0);
        return false;
-    } else if (key_send_input_timed(event)) {
+    } else if (key_send_input_timed(e)) {
        evaluate_cell(number, 1);
        return false;
-    } else if (key_request_completions(event)) {
+    } else if (key_request_completions(e)) {
        // command completion: tab or ctrl->
        evaluate_cell(number, 2);
        return false;
-    } else if (key_interrupt(event)) {
+    } else if (key_interrupt(e)) {
        interrupt();
        return false;
-    } else if (key_next_cell(event)) {
+    } else if (key_next_cell(e)) {
        // jump to next cell
-    } else if (key_prev_cell(event)) {
+    } else if (key_prev_cell(e)) {
        // jump to prev cell
     }
     return true;
 }
 
-cell_id = 0;
-last_action = 0;
+var non_word = new RegExp("[^a-zA-Z0-9._]");
+var evaluated_cell_id = 0;
+var cell_id = 0;
+var last_action = 0;
 function evaluate_cell(id, action) {
     cell_id = id;
     last_action = action;
-    cell_input_minimize_size(id);
     evaluated_cell_id = 'cell_input_' + id
-    var cell_input = document.getElementById(evaluated_cell_id);
-    input = cell_input.value;
+    var cell_input = get_element(evaluated_cell_id);
+    cell_input_minimize_size(cell_input);
+    input = "";
+    if(action == 2) {
+      if(browser_ie) {
+        //for explorer, we call the
+        //   document.selection.createRange().duplicate()
+        //to generate a selection range object which does not effect the
+        //original input box.
+        //Then, we rewind the start point of the range until we encounter
+        //a non-word character, or we've rewound past the beginning of
+        //the textarea).
+        range = document.selection.createRange().duplicate();
+        var i = range.text.length;
+        while((cell_input.value.match(range.text) || i==0) && !non_word.exec(range.text)) {
+          range.moveStart('character', -1);
+          i = i + 1;
+        }
+        input = range.text;
+      } else if(cell_input.selectionEnd) {
+        input = cell_input.value.substr(0,cell_input.selectionEnd);
+      }
+    }
+    if(input == "")
+      input = cell_input.value;
+
     input = escape(input);
     input = input.replace(/\+/g,"__plus__");
     cell_set_running(id);
-    document.getElementById('interrupt').className = 'interrupt';
+    get_element('interrupt').className = 'interrupt';
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
 }
@@ -345,7 +389,7 @@ function evaluate_cell_callback(status, response_text) {
        var new_cell = document.createElement("div");
        new_cell.innerHTML = X[1];
        new_cell.id = 'cell_' + X[0];
-       var worksheet = document.getElementById('worksheet_cell_list');
+       var worksheet = get_element('worksheet_cell_list');
        worksheet.appendChild(new_cell);
     }
     if (last_action != 2) {
@@ -364,12 +408,10 @@ function cell_output_click(id, event) {
     var cell_div = document.getElementById('cell_div_output_' + id);
     var cell_output = document.getElementById('cell_output_' + id);
     var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
-    var cell_output_html = document.getElementById('cell_output_html_' + id);
 
     if (cell_div.className == 'cell_output_hidden') {
         cell_div.className = 'cell_output';
         cell_output.className = 'cell_output';
-        cell_output_html.className = 'cell_output_html';
     } else if (cell_div.className == 'cell_output' && event.layerX <= 50) {
         if (cell_output_nowrap.className == 'cell_output_nowrap') {
              cell_output_nowrap.className = 'cell_output_nowrap_visible';
@@ -386,12 +428,12 @@ function cell_output_click(id, event) {
 }
 
 function cell_set_running(id) {
-    var cell_div = document.getElementById('cell_div_output_' + id)
+    var cell_div = get_element('cell_div_output_' + id)
     cell_div.className = 'cell_output_running';
 }
 
 function cell_set_done(id) {
-    var cell_div = document.getElementById('cell_div_output_' + id)
+    var cell_div = get_element('cell_div_output_' + id)
     cell_div.className = 'cell_output';
 }
 
@@ -402,9 +444,10 @@ function check_for_cell_output() {
 
 function set_output_text(id, text, wrapped_text, output_html, status) {
     /* fill in output text got so far */
-    var cell_output = document.getElementById('cell_output_' + id);
-    var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
-    var cell_output_html = document.getElementById('cell_output_html_' + id);
+    var cell_output = get_element('cell_output_' + id);
+    var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
+    var cell_output_html = get_element('cell_output_html_' + id);
+
     cell_output.className = 'cell_output';
     cell_output.innerHTML = wrapped_text;
     cell_output_nowrap.innerHTML = text;
@@ -418,12 +461,12 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
 }
 
 function set_variable_list(variables) {
-    var varlist = document.getElementById('variable_list');
+    var varlist = get_element('variable_list');
     varlist.innerHTML = variables;
 }
 
 function set_object_list(objects) {
-    var objlist = document.getElementById('object_list');
+    var objlist = get_element('object_list');
     objlist.innerHTML = objects;
 }
 
@@ -432,9 +475,7 @@ function update_cell_output(status, response_text) {
         if (response_text == 'empty') {
             /* done -- nothing being computed, since queue is empty */
             updating = 0;
-            /*
-            document.getElementById('interrupt').className = 'interrupt_grey';
-            */
+            /* get_element('interrupt').className = 'interrupt_grey'; */
         } else {
             /* computing output for a cell */
             i = response_text.indexOf(' ');
@@ -478,8 +519,8 @@ function insert_new_cell_before_callback(status, response_text) {
     var new_cell = document.createElement("div");
     new_cell.id = 'cell_' + X[0];
     new_cell.innerHTML = X[1];
-    var cell = document.getElementById('cell_' + X[2]);
-    var worksheet = document.getElementById('worksheet_cell_list');
+    var cell = get_element('cell_' + X[2]);
+    var worksheet = get_element('worksheet_cell_list');
     worksheet.insertBefore(new_cell, cell);
     focus_on(X[0]);
 }
@@ -504,8 +545,8 @@ function inspect_variable(name) {
 
 // SEARCH BOX
 function search_box() {
-    var s = document.getElementById("search_input").value;
-    document.getElementById("search_input").style.color = "#888";
+    var s = get_element("search_input").value;
+    get_element("search_input").style.color = "#888";
     if (s.indexOf('?') == -1) {
         callback = search_fill_in_completions;
     } else {
@@ -516,25 +557,25 @@ function search_box() {
 }
 
 function search_fill_in_doc(status, response_text) {
-    document.getElementById("search_input").style.color = "#000";
+    get_element("search_input").style.color = "#000";
     if (status  == "success") {
        expand_doc_box();
 
-       document.getElementById("search_doc_topbar").innerHTML =
+       get_element("search_doc_topbar").innerHTML =
            '<table bgcolor="73a6ff" width="100%" height="100%"><tr>  \
            <td align=left class="menubar">Documentation</td><td align=right class="menubar"> \
        <a class="menubar" href="javascript:shrink_doc_box()">&nbsp;&nbsp;X&nbsp;&nbsp</a></td></tr> </table>'
 
-       document.getElementById("search_doc").innerHTML = '<pre>' + response_text + '</pre>';
+       get_element("search_doc").innerHTML = '<pre>' + response_text + '</pre>';
     }
 }
 
 function search_fill_in_completions(status, response_text) {
-    document.getElementById("search_input").style.color = "#000";
+    get_element("search_input").style.color = "#000";
     if (status  == "success") {
        shrink_doc_box();
-       document.getElementById("search_doc").innerHTML = response_text;
-       document.getElementById("search_doc_topbar").innerHTML =
+       get_element("search_doc").innerHTML = response_text;
+       get_element("search_doc_topbar").innerHTML =
            '<table bgcolor="73a6ff" width="100%"><tr><td align=left class="menubar"> \
            Completions \
             </td><td></td></tr></table>';
@@ -542,19 +583,19 @@ function search_fill_in_completions(status, response_text) {
 }
 
 function shrink_doc_box() {
-    document.getElementById("search_doc").style.width = '154px';
-    document.getElementById("search_doc").style.height = '150px';
-    document.getElementById("search_doc").style.font = 'arial';
-    document.getElementById("search_doc_topbar").style.width = '158px';
-    document.getElementById("search_input").style.width = '160px';
+    get_element("search_doc").style.width = '154px';
+    get_element("search_doc").style.height = '150px';
+    get_element("search_doc").style.font = 'arial';
+    get_element("search_doc_topbar").style.width = '158px';
+    get_element("search_input").style.width = '160px';
 }
 
 function expand_doc_box() {
-    document.getElementById("search_doc_topbar").style.width = '700px';
-    document.getElementById("search_doc").style.width = '696';
-    document.getElementById("search_doc").style.font = 'courier';
-    document.getElementById("search_doc").style.height = '80%';
-    document.getElementById("search_input").style.width = '702px';
+    get_element("search_doc_topbar").style.width = '700px';
+    get_element("search_doc").style.width = '696';
+    get_element("search_doc").style.font = 'courier';
+    get_element("search_doc").style.height = '80%';
+    get_element("search_input").style.width = '702px';
 }
 
 
@@ -568,13 +609,13 @@ function interrupt_callback(status, response_text) {
     if (response_text == "restart") {
         alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
     }
-    var link = document.getElementById("interrupt");
+    var link = get_element("interrupt");
     link.className = "interrupt";
     link.innerHTML = "Interrupt"
 }
 
 function interrupt() {
-    var link = document.getElementById("interrupt");
+    var link = get_element("interrupt");
     if (link.className == "interrupt_grey") {
         return;
     }
@@ -616,9 +657,9 @@ function hide_all_callback(status, response_text) {
         var i;
         for(i=0; i<v.length; i++) {
            var id = v[i];
-           var cell_div = document.getElementById('cell_div_output_' + id);
-           var cell_output = document.getElementById('cell_output_' + id);
-           var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+           var cell_div = get_element('cell_div_output_' + id);
+           var cell_output = get_element('cell_output_' + id);
+           var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
            cell_output_nowrap.className = 'cell_output_nowrap';
            cell_output.className = 'cell_output';
            cell_div.className = 'cell_output_hidden';
@@ -648,13 +689,13 @@ function login(username,password) {
 ///////////////////////////////////////////////////////////////////
 
 function show_help_window() {
-    var help = document.getElementById("help_window");
+    var help = get_element("help_window");
     help.style.display = "block";
 
 }
 
 function hide_help_window() {
-    var help = document.getElementById("help_window");
+    var help = get_element("help_window");
     help.style.display = "none";
 
 }

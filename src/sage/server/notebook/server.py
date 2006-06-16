@@ -269,7 +269,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", 'text/plain')
             self.end_headers()
-            if self.path[-6:] == '/eval0':
+            if self.path[-8:]   == '/refresh':
+                self.show_page(worksheet_id=None, body_only=True)
+            elif self.path[-6:] == '/eval0':
                 self.eval_cell(time=False)
             elif self.path[-6:] == '/eval1':
                 self.eval_cell(time=True)

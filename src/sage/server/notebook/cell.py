@@ -201,12 +201,12 @@ class Cell:
            <textarea class="cell_input" rows=%s
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
-              oninput   = 'cell_input_resize(%s);'
-              onFocus   = 'this.className="cell_input_active"; cell_input_resize(%s); current_cell = %s'
-              onBlur    = 'this.className="cell_input"; cell_input_minimize_size(%s);'
+              oninput   = 'cell_input_resize(this);'
+              onFocus   = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s'
+              onBlur    = 'this.className="cell_input"; cell_input_minimize_size(this);'
               %s
            >%s</textarea>
-        """%(new, r, id, id, id, id, id, id, style, t)
+        """%(new, r, id, id, id, style, t)
 
     def files_html(self):
         dir = self.directory()

@@ -111,6 +111,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             msg = '%s%s %s'%(status, cell.id(),
                               SEP.join([cell.output_text(),
                                         cell.output_text(cols),
+                                        cell.output_html(),
                                         variables,
                                         objects]))
             # more comps to go.

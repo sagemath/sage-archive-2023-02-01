@@ -396,13 +396,15 @@ function check_for_cell_output() {
                     update_cell_output, 'worksheet_id='+worksheet_id)
 }
 
-function set_output_text(id, text, wrapped_text, status) {
+function set_output_text(id, text, wrapped_text, output_html, status) {
     /* fill in output text got so far */
     var cell_output = document.getElementById('cell_output_' + id);
     var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+    var cell_output_html = document.getElementById('cell_output_html_' + id);
     cell_output.className = 'cell_output';
     cell_output.innerHTML = wrapped_text;
     cell_output_nowrap.innerHTML = text;
+    cell_output_html.innerHTML = output_html
 
     if (status == 'd') {
          cell_set_done(id);
@@ -437,14 +439,15 @@ function update_cell_output(status, response_text) {
             D = response_text.slice(i+1).split(SEP);
             output_text = D[0];
             output_text_wrapped = D[1];
+            output_html = D[2];
             stat = response_text.charAt(0)
-            set_output_text(id, output_text, output_text_wrapped, stat);
+            set_output_text(id, output_text, output_text_wrapped, output_html, stat);
 
 
             if (stat == 'd') {
-                variable_list = D[2];
+                variable_list = D[3];
                 set_variable_list(variable_list);
-                object_list = D[3];
+                object_list = D[4];
                 set_object_list(object_list);
             }
 

@@ -201,7 +201,7 @@ class Darcs:
                 print "WARNING -- problem initializing repository."
                 print "Try calling initalize again with the force option?"
                 return
-            if self.pull('-v -a'):
+            if self.pull('-a -v'):
                 print "WARNING -- problem pulling repository."
                 print "Try calling initalize again with the force option?"
                 return
@@ -235,19 +235,6 @@ class Darcs:
             os.system('sage -b')
             print "You *MUST* restart SAGE in order for the changes to take effect!"
 
-    def get(self, options='', url=None):
-        """
-        Get darcs repo from the repository at the given url, or use
-        the default 'official' repository if no url is specified.
-        """
-        if url is None:
-            url = self.__url
-        self('get %s %s'%(options, url))
-        if self.__target == 'sage':
-            print ""
-            print "Now building the new SAGE libraries"
-            os.system('sage -b')
-            print "You *MUST* restart SAGE in order for the changes to take effect!"
 
     def record(self, options=''):
         """

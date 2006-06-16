@@ -352,7 +352,7 @@ a.new_worksheet:hover {
 }
 
 div.worksheet_bottom_padding {
-   height:20%;
+   height:50%;
 }
 
 div.worksheet_top_padding {
@@ -576,17 +576,30 @@ div.cellbox {
   padding-top: 1.5em;
 }
 
+pre.cell_input_pre {
+  background-color: white;
+  border: 0px solid #ffffff;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:hidden;
+  padding-left:0px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+}
+
 textarea.cell_input {
   background-color: white;
 
-  border: 2px solid #ffffff;
+  /* border: 2px solid #ffffff; */
+  border: 0px solid #ffffff;
 
   font-family: courier, monospace;
   font-size:12pt;
 
   overflow:hidden;
 
-  padding-left:0px;
+  padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
 
@@ -603,12 +616,14 @@ textarea.cell_input_active {
 
   overflow:hidden;
 
-  padding-left:0px;
+  padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
 
   width: 100%;
 }
+
+
 
 
 div.cell_output {
@@ -690,9 +705,9 @@ pre.cell_output_hidden {
 /************ INSERTING NEW CELLS **************************/
 
 div.insert_new_cell {
-  height:8px;
+  height:10px;
   width:100%;
-  border-top: 1px solid white;
+  border-top: 0px solid white;
   /* border: 2px solid white; */
   display:block;
   font-size:10pt;
@@ -702,7 +717,7 @@ div.insert_new_cell {
 
 div.insert_new_cell:hover {
   /* border: 2px solid #dddddd; */
-  border-top: 1px solid black;
+  border-top: 6px solid black;
 }
 
 

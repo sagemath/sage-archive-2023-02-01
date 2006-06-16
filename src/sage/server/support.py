@@ -165,16 +165,18 @@ def tabulate(v, width=90):
         s += '\n'
     return s
 
-def save_session(v, filename):
+def save_session(filename):
     D = {}
-    for k, x in v.iteritems():
+    v = variables(with_types=False)
+    for k in v:
+        x = sage_globals[k]
         try:
             _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
         except (IOError, TypeError):
             print "Unable to save %s"%k
         else:
             D[k] = x
-    print "Saving variables to %s"%filename
+    print "Saving variables to object %s.sobj"%filename
     sage.ext.sage_object.save(D, filename)
 
 def load_session(v, filename, state):

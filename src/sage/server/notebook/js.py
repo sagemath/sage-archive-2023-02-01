@@ -180,15 +180,19 @@ function delete_worksheet_callback(status, response_text) {
     }
 }
 
+function show_worksheet_menu(worksheet) {
+    // not implemented
+}
+
 function set_worksheet_list(worksheets) {
     var wlist = get_element('worksheet_list');
     wlist.innerHTML = worksheets;
 }
 
 function show_add_new_worksheet_menu() {
-    var add_worksheet_menu = document.get_element('add_worksheet_menu');
+    var add_worksheet_menu = get_element('add_worksheet_menu');
     add_worksheet_menu.style.display = 'block';
-    document.get_element('new_worksheet_box').focus()
+    get_element('new_worksheet_box').focus()
 }
 
 function hide_add_new_worksheet_menu() {
@@ -238,15 +242,20 @@ function switch_to_worksheet(id) {
 //
 ///////////////////////////////////////////////////////////////////
 
-function focus_on(id, id_before) {
+function focus(id) {
+       // make_cell_input_active(id);
        var cell = get_element('cell_input_' + id);
+          cell.focus();
        if (cell && cell.focus) {
           cell.focus();
        }
-/*       var cell_before = get_element('cell_div_output_' + id_before);  */
-       var cell_before = get_element('cell_input_' + id_before);
-       if (cell_before && cell_before.scrollIntoView)
-          cell_before.scrollIntoView();
+}
+
+function scroll_view(id) {
+       var cell = get_element('cell_input_' + id);
+       if (cell && cell.focus) {
+          cell.scrollIntoView();
+       }
 }
 
 function cell_input_resize(cell_input) {
@@ -292,6 +301,7 @@ function cell_delete_callback(status, response_text) {
     var cell_before = get_element('cell_input_' + id_before);
     cell_before.focus();
     cell_before.scrollIntoView();
+    cell_id_list = eval(X[3]);
 }
 
 function cell_delete(id) {
@@ -299,37 +309,128 @@ function cell_delete(id) {
    async_request('async_obj_cell_delete', '/delete_cell', cell_delete_callback, 'id='+id)
 }
 
-function cell_input_key_event(number, event) {
-    cell_input = get_element('cell_input_'+number);
+function cell_input_key_event(id, event) {
+    cell_input = get_element('cell_input_'+id);
 
     e = get_event(event)
+
+//    alert (e.keyCode);
+
     if (key_delete_cell(e) && cell_input.value == '') {
-        cell_delete(number);
+        cell_delete(id);
         return false;
     }
 
     cell_input_resize(cell_input);
 
-    if (key_send_input(e)) {
+/*
+    // Will need IE version... if possible... if we do this, which we shouldn't!
+    if (e.keyCode == 38) {
+        var before_cursor = cell_input.value.substr(0,cell_input.selectionEnd);
+        var i = before_cursor.indexOf('\n');
+        if (i == -1) {
+            jump_to_cell(id,-1);
+        }
+    } else if (e.keyCode == 40) {
+        var before_cursor = cell_input.value.substr(cell_input.selectionEnd);
+        var i = before_cursor.indexOf('\n');
+        if (i == -1) {
+            jump_to_cell(id,1);
+        }
+    } else*/ if (key_send_input(e)) {
            // User pressed shift-enter
-       evaluate_cell(number, 0);
+       evaluate_cell(id, 0);
        return false;
     } else if (key_send_input_timed(e)) {
-       evaluate_cell(number, 1);
+       evaluate_cell(id, 1);
        return false;
     } else if (key_request_completions(e)) {
-       // command completion: tab or ctrl->
-       evaluate_cell(number, 2);
+       // command completion
+       evaluate_cell(id, 2);
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
        return false;
     } else if (key_next_cell(e)) {
-       // jump to next cell
+       jump_to_cell(id, 1);
     } else if (key_prev_cell(e)) {
-       // jump to prev cell
+       jump_to_cell(id, -1);
     }
     return true;
+}
+
+function id_of_cell_delta(id, delta) {
+    if (cell_id_list.length == 0) {
+        alert("bug -- no cells.");
+        return;
+    }
+    var i = cell_id_list.indexOf(id);
+    var new_id;
+    if (i == -1) {
+        return(cell_id_list[0]);
+    } else {
+        i = i + delta;
+        if (i < 0) {
+            i = 0;
+        } else if (i >= cell_id_list.length) {
+            i = cell_id_list.length - 1;
+        }
+        return(cell_id_list[i]);
+    }
+}
+
+/*
+old_id = -1;
+function make_cell_input_active(id) {
+   if (old_id != -1) {
+        make_cell_input_inactive(old_id);
+   }
+   var txt = get_element('cell_input_'+id);
+   if (txt.style.display == "inline") {
+       return;
+   }
+   cell_input_resize(txt);
+   current_cell = id;
+   txt.style.display = "inline";
+
+   var pre = get_element('cell_input_pre_'+id);
+   pre.style.display = "none";
+   txt.value = pre.innerHTML;
+   pre.innerHTML = '';
+}
+
+function make_cell_input_inactive(id) {
+   var txt = get_element('cell_input_'+id);
+   if (txt.style.display != "inline") {
+       return;
+   }
+
+   txt.style.display = "none";
+
+
+   var pre = get_element('cell_input_pre_'+id);
+   pre.style.display = "inline";
+   pre.innerHTML = txt.value;
+   txt.value = '';
+}
+*/
+
+function jump_to_cell(id, delta) {
+    // alert(cell_id_list);
+    var i = id_of_cell_delta(id, delta)
+    focus(i);
+    var j = id_of_cell_delta(i, -1);
+    if (j >= i) {
+        j = i;
+    }
+    scroll_view(j);
+    scroll_view(i);
+}
+
+function escape0(input) {
+    input = escape(input);
+    input = input.replace(/\+/g,"__plus__");
+    return input;
 }
 
 var non_word = new RegExp("[^a-zA-Z0-9._]");
@@ -339,12 +440,24 @@ var last_action = 0;
 function evaluate_cell(id, action) {
     cell_id = id;
     last_action = action;
-    evaluated_cell_id = 'cell_input_' + id
-    var cell_input = get_element(evaluated_cell_id);
+    var cell_input = get_element('cell_input_' + id);
     cell_input_minimize_size(cell_input);
-    input = "";
+
     if(action == 2) {
-      if(browser_ie) {
+       evaluate_cell_completion(id);
+       return;
+    }
+
+    input = escape0(cell_input.value);
+
+    cell_set_running(id);
+    get_element('interrupt').className = 'interrupt';
+    async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
+            'id=' + id + '&input='+input)
+}
+
+function evaluate_cell_completion(id) {
+    if(browser_ie) {
         //for explorer, we call the
         //   document.selection.createRange().duplicate()
         //to generate a selection range object which does not effect the
@@ -355,29 +468,31 @@ function evaluate_cell(id, action) {
         range = document.selection.createRange().duplicate();
         var i = range.text.length;
         while((cell_input.value.match(range.text) || i==0) && !non_word.exec(range.text)) {
-          range.moveStart('character', -1);
-          i = i + 1;
-        }
-        input = range.text;
-      } else if(cell_input.selectionEnd) {
-        input = cell_input.value.substr(0,cell_input.selectionEnd);
-      }
+            range.moveStart('character', -1);
+            i = i + 1;
     }
-    if(input == "")
-      input = cell_input.value;
+        before_cursor = range.text;
+        /* TODO -- total guess -- stein */
+        after_cursor = cell_input.value.substr(i);
+    } else if(cell_input.selectionEnd) {
+        before_cursor = cell_input.value.substr(0,cell_input.selectionEnd);
+        after_cursor = cell_input.value.substr(cell_input.selectionEnd);
+    }
 
-    input = escape(input);
-    input = input.replace(/\+/g,"__plus__");
-    cell_set_running(id);
-    get_element('interrupt').className = 'interrupt';
-    async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
-            'id=' + id + '&input='+input)
+    before_cursor = escape0(before_cursor);
+    after_cursor = escape0(after_cursor);
+    async_request('async_obj_evaluate', '/completions', evaluate_cell_callback,
+          'id=' + id + '&before_cursor='+before_cursor + '&after_cursor='+after_cursor)
 }
 
 
 updating = 0;
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
+    if (status == "failure") {
+        alert(response_text);
+        return;
+    }
     var X = response_text.split(SEP);
     if (X[0] == '-1') {
         /* something went wrong -- i.e., the requested cell doesn't exist. */
@@ -391,9 +506,10 @@ function evaluate_cell_callback(status, response_text) {
        new_cell.id = 'cell_' + X[0];
        var worksheet = get_element('worksheet_cell_list');
        worksheet.appendChild(new_cell);
+       cell_id_list = eval(X[2]);
     }
     if (last_action != 2) {
-       focus_on(X[0],X[2]);
+       focus(X[0]);
     }
 
     /* set check-for-updates process in progress */
@@ -405,14 +521,18 @@ function evaluate_cell_callback(status, response_text) {
 
 
 function cell_output_click(id, event) {
-    var cell_div = document.getElementById('cell_div_output_' + id);
-    var cell_output = document.getElementById('cell_output_' + id);
-    var cell_output_nowrap = document.getElementById('cell_output_nowrap_' + id);
+    e = get_event(event);
+    var cell_div = get_element('cell_div_output_' + id);
+    var cell_output = get_element('cell_output_' + id);
+    var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
+    var cell_output_html = get_element('cell_output_html_' + id);
+
 
     if (cell_div.className == 'cell_output_hidden') {
         cell_div.className = 'cell_output';
         cell_output.className = 'cell_output';
-    } else if (cell_div.className == 'cell_output' && event.layerX <= 50) {
+        cell_output_html.className = 'cell_output_html';
+    } else if (cell_div.className == 'cell_output' && e.layerX <= 50) {
         if (cell_output_nowrap.className == 'cell_output_nowrap') {
              cell_output_nowrap.className = 'cell_output_nowrap_visible';
              cell_output.className = 'cell_output_nowrap';
@@ -452,6 +572,8 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
     cell_output.innerHTML = wrapped_text;
     cell_output_nowrap.innerHTML = text;
     cell_output_html.innerHTML = output_html
+
+    cell_output_html.focus()
 
     if (status == 'd') {
          cell_set_done(id);
@@ -522,7 +644,8 @@ function insert_new_cell_before_callback(status, response_text) {
     var cell = get_element('cell_' + X[2]);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.insertBefore(new_cell, cell);
-    focus_on(X[0]);
+    focus(X[0]);
+    cell_id_list = eval(X[3]);
 }
 
 function insert_new_cell_before(id) {

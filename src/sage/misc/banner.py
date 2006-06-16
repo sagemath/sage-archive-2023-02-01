@@ -19,7 +19,6 @@ def banner_text():
     s = bars + '\n'
     s += "| %-52s |\n"%version()
     s += "| %-52s |\n"%'Distributed under the GNU General Public License V2.'
-    s += "| %-52s |\n"%'For help type <anything>? or <anything>??.'
     s += bars
     return s
 

@@ -224,6 +224,7 @@ class Worksheet:
         V = self.known_variables()
         if C.input_text() == 'restart' and not 'restart' in V:
             self.restart_sage()
+            C.set_output_text('Restarted SAGE','')
             return
 
         S = self.sage()
@@ -519,8 +520,7 @@ class Worksheet:
                 else:
                     filename = F
                 if t[:4] == 'save':
-                    d = '{' + ','.join(["'%s':%s"%(v,v) for v in self.variables(with_types=False)]) + '}'
-                    t = '_support_.save_session(%s, "%s")'%(d, filename)
+                    t = '_support_.save_session("%s")'%filename
                 else:
                     t = 'load_session(locals(), "%s")'%filename
 
@@ -578,7 +578,7 @@ class Worksheet:
             input = 'print _support_.completions("%s", globals(), format=True)'%input
 
         elif completions:
-            input = self._get_last_identifier(input)
+            input = self._get_last_identifier(completions[0])
             input = 'print _support_.completions("%s", globals(), format=True)'%input
 
         switched, input = self.check_for_system_switching(input)
@@ -622,7 +622,10 @@ class Worksheet:
         except AttributeError:
             return []
         if self.__comp_is_running:
-            return []  # can't get the info.
+            try:
+                return self.__variables
+            except AttributeError:
+                return []
         S = self.sage()
         if with_types:
             try:
@@ -679,6 +682,7 @@ class Worksheet:
             s += cell.html(ncols) + '\n'
         s += '\n</div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
+        s += '<script language=javascript>cell_id_list=%s</script>\n'%self.cell_id_list()
         return s
 
 

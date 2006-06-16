@@ -48,8 +48,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def eval_cell(self, time=False, completions=False):
         C = self.get_postvars()
-        input_text = C['input'][0]
         id = int(C['id'][0])
+        input_text = C['input'][0]
         input_text = input_text.replace('__plus__','+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
@@ -62,10 +62,27 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if cell.is_last():
             new_cell = W.append_new_cell()
             self.wfile.write(str(new_cell.id()) + SEP +
-                             new_cell.html(div_wrap=False) + SEP + str(id))
+                             new_cell.html(div_wrap=False) + SEP + str(W.cell_id_list()))
         else:
             self.wfile.write(str(cell.next_id()) + SEP +
                              'no_new_cell' + SEP + str(id))
+
+    def completions(self):
+        C = self.get_postvars()
+        id = int(C['id'][0])
+        before_cursor = C['before_cursor'][0].replace('__plus__','+')
+        after_cursor = C['after_cursor'][0].replace('__plus__','+')
+        input_text = (before_cursor+after_cursor)
+        verbose('completions -- %s: %s|%s'%(id, before_cursor, after_cursor))
+
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
+        cell = W.get_cell_with_id(id)
+        cell.set_input_text(before_cursor + after_cursor)
+        cell.evaluate(completions=[before_cursor, after_cursor])
+
+        self.wfile.write(str(cell.next_id()) + SEP +
+                         'no_new_cell' + SEP + str(id))
+
 
     def new_cell(self):
         C = self.get_postvars()
@@ -74,7 +91,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.new_cell_before(id)
         notebook.save()
-        self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + str(id))
+        self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
+                         str(id) + SEP + str(W.cell_id_list()) )
 
     def delete_cell(self):
         C = self.get_postvars()
@@ -86,7 +104,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             prev_id = W.delete_cell_with_id(id)
             notebook.save()
-            self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id))
+            self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
 
 
     def update_cells(self):
@@ -275,8 +293,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.eval_cell(time=False)
             elif self.path[-6:] == '/eval1':
                 self.eval_cell(time=True)
-            elif self.path[-6:] == '/eval2':
-                self.eval_cell(completions=True)
+            elif self.path[-12:] == '/completions':
+                self.completions()
             elif self.path[-9:]  == '/new_cell':
                 self.new_cell()
             elif self.path[-12:] == '/delete_cell':

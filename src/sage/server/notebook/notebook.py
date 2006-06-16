@@ -565,7 +565,7 @@ class Notebook(SageObject):
         body += '  <div class="objects_topbar">Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
         body += '</td></tr></table></span>\n'
-        body += '<script language=javascript>focus_on(%s)</script>\n'%(worksheet[0].id())
+        body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
 
         if worksheet.computing():
             # Set the update checking back in motion.

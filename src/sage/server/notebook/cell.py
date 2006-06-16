@@ -161,6 +161,11 @@ class Cell:
         self.__completions = False
 
     def evaluate(self, time=False, completions=False):
+        """
+        INPUT:
+            time -- if True return time computation takes
+            completions -- either False or a pair [before_curse, after_cursor] of strings.
+        """
         self.__interrupted = False
         self.__time = time
         self.__completions = completions
@@ -190,9 +195,6 @@ class Cell:
             style = 'style = "height:1.5em"'
         else:
             style = ''
-            #     onClick="if (event.shiftKey) {
-            #           insert_new_cell_before(%s)}">
-            #
         new = """<div class="insert_new_cell" id="insert_new_cell_%s"
                       onClick="insert_new_cell_before(%s)">
                  </div>
@@ -201,12 +203,44 @@ class Cell:
            <textarea class="cell_input" rows=%s
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
-              oninput   = 'cell_input_resize(this);'
-              onFocus   = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s'
+              oninput   = 'cell_input_resize(%s);'
+              onFocus   = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s;'
               onBlur    = 'this.className="cell_input"; cell_input_minimize_size(this);'
               %s
            >%s</textarea>
-        """%(new, r, id, id, id, style, t)
+        """%(new, r, id, id, id, id, style, t)
+
+
+    def xxx_html_in(self):
+        id = self.__id
+        t = self.__in
+        r = len(t.split('\n'))
+        if r <= 1:
+            style = 'style = "height:1.5em"'
+        else:
+            style = ''
+            #     onClick="if (event.shiftKey) {
+            #           insert_new_cell_before(%s)}">
+            #
+        new = """<div class="insert_new_cell" id="insert_new_cell_%s"
+                      onClick="insert_new_cell_before(%s)">
+                 </div>
+              """%(id, id)
+#              onFocus   = 'make_cell_input_active(%s);'
+        s = """%s
+           <textarea class="cell_input" rows=%s
+              id         = 'cell_input_%s'
+              onKeyPress = 'return cell_input_key_event(%s,event);'
+              oninput   = 'cell_input_resize(this);'
+              onBlur    = 'make_cell_input_inactive(%s);'
+              %s></textarea>
+           <pre class="cell_input_pre"
+              id         = 'cell_input_pre_%s'
+              onClick    = 'make_cell_input_active(%s);'
+              > %s </pre>
+        """%(new, r, id, id, id, style,
+                 id, id, t)
+        return s
 
     def files_html(self):
         dir = self.directory()

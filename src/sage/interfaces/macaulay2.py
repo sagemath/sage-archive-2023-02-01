@@ -137,8 +137,10 @@ class Macaulay2(Expect):
             code -- str
             strip -- ignored
         """
+        if strip:
+            code = code.strip()
         # TODO: in some cases change toExternalString to toString??
-        ans = Expect.eval(self, 'toExternalString(%s)'%code)
+        ans = Expect.eval(self, 'toExternalString(%s)'%code, strip=strip)
         if ans.find("stdio:") != -1:
             if 'cannot be converted to external string' in ans:
                 return clean_output(Expect.eval(self, '%s'%code))

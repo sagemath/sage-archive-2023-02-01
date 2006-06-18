@@ -105,6 +105,8 @@ EMBEDDED_MODE = False
 import sage.misc.viewer
 import sage.misc.misc
 
+verbose = sage.misc.misc.verbose
+
 import os
 
 from sage.ext.sage_object import SageObject
@@ -447,7 +449,7 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI):
+             dpi=DEFAULT_DPI, axes=True):
         """
         Show this graphics image with the default image viewer.
 
@@ -465,9 +467,8 @@ class Graphics(SageObject):
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
-        #os.system('gqview %s >/dev/null&'%filename)
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
         if self.__xmin is None:
@@ -509,7 +510,8 @@ class Graphics(SageObject):
 
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-             fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI):
+             fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
+             axes=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -554,7 +556,8 @@ class Graphics(SageObject):
         subplot._frameon = False
         subplot.set_xlim(xmin, xmax)
         subplot.set_ylim(ymin, ymax)
-        self._add_xy_axes(subplot, xmin, xmax, ymin, ymax)
+        if axes:
+            self._add_xy_axes(subplot, xmin, xmax, ymin, ymax)
 
         for g in self.__objects:
             g._render_on_subplot(subplot)
@@ -1326,6 +1329,7 @@ def hue(h, s=1, v=1):
         sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
 
     """
+    h = float(h)
     if h > 1:
         h = modf(h)[0]
     if s > 1:
@@ -1395,6 +1399,7 @@ class GraphicsArray(SageObject):
         cols = self._cols
         dims = self._dims
         #make a blank matplotlib Figure:
+        from matplotlib.figure import Figure
         figure = Figure()
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)

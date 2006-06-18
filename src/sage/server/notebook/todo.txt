@@ -1,41 +1,35 @@
 TODO:
 
-[] rename workbook -- really workbooks should just be files
+[] update the help
+[] testall
+[] bug test by *using*
+
+BUGS:
+(this is hard to replicate!)
+??[] tish -- no empty cell at bottom.
+??        -- TypeError cell_input has no properties.  on evaluate.
+
+IDEAS:
+[] enter to submit when adding a new worksheet or deleting.
+
+[] (Note -- there is currently no support for
+pulling in objects and evaluating code in SAGE by typing
+"sage(...)" inside the input block.  This is planned.)
+
+[] optimization: output should update only the end, not the whole thing every time.
+
+[] (bad idea) Make it so tracebacks in output can be toggled between showing
+the inside of the traceback and not via some javascript, with the
+default not showing the traceback (just the first and last line).
+
+[] (??) convenience: rename worksheet -- really workbooks should just be files
    on the computer that can be anywhere -- while working with them
    they are stored in the local notebook directory, but they should
    be save-able / load-able from anywhere on the computer / network.
 
-[] (Note that the fact that tab completion doesn't currently
-complete, but only lists completions, is a NotImplementedError
-and nothing else.)
-
-[] I'll make control-up and control-down move between input boxes
-(instead of tab).
-
-[] output should update only the end, not the whole thing every time.
-
-[] And the plan is that the notebook should be usable mouse free with,
-at least, no less functionality than one has in the command line.
-(I.e., the mouse may give you more functionality than the command
-line, but you won't loose functionality that you had on the command
-line.  Right now this isn't the case, e.g., there's no reverse search
-or history scroll yet.)
-
-BUGS:
- [] restart doesn't reset the output box in which it occurs.
- [] attached files list doesn't get updated
- [] fails if load a deleted worksheet.
- [] fails if worksheet 0 is deleted.
- [] put the output in nowrap, then
-    import time
-    for i in range(100):
-       time.sleep(1)
-       print i
-
-IDEAS:
-[] Make it so tracebacks in output can be toggled between showing
-the inside of the traceback and not via some javascript, with the
-default not showing the traceback (just the first and last line).
+[] move some buttons to worksheet title:
+    download, text, eval, interrupt, hide
+   --> but this means "scattering links", which Tish thinks is bad.<
 
 [] Ability to load a plain text file log, e.g.,
 
@@ -46,54 +40,15 @@ default not showing the traceback (just the first and last line).
  sage:  time for i in range(1000): _ = f*f
 
 and have it appear immediately as if it were a worksheet.
-(Other direction is basically done now.)
 
 [] SAJAX -- ajax terminal -- make it embedded somehow (?) into
    the notebook, e.g., as another tab.
 
- [] tabbed worksheets.
-
-[] >   In an xterm, I can copy and paste input and output to e-mail
->   an example session to someone.  I can't make firefox copy
->   multiple boxes.
-
-That's because currently the input boxes are all "text areas"
-even the non-active ones.  If I change them to be <pre>'s when
-they aren't selected then you will be able to copy everything
-except the box you're currently typing into.
-
-
-[] restart should start on same worksheet as before.
-
-[] quit function should do something
-
-[] workbooks -- link
-
 [] keyboard access to variable.
 
-[] undelete -- with a countdown that is interruptable.
-
-[] i need to rethink the design of having multiple worksheets at once:
-    possibilities:
-        xx have multiple worksheet div's all in the html, each
-           with an id.  have a way to "close" a worksheet, i.e.,
-           button in upper right (Maybe a close link like the Help, etc. links).
-           the update function has to tell about *all* the worksheets
-           rather than just one:
-               update contains:
-                    number of worksheets with data
-                    worksheet number <data>  ...
-                    worksheet number <data>  ...
-               and the worksheet data will allow us to set the color
-               on the the worksheets tab on the left.
-    (all html downloaded at once; so switching done entirely in js)
-     -- new
-     -- switching
-     -- deleting
+[] undelete -- with a countdown that is interruptable. ???
 
 [] So to indent lines, seems like the spacebar is the only option.
-
-[] It'll be nice to record the history of commands like in a shell.
 
 [] HTML cells in addition to SAGE code cells; or just better typesetting
    support and way to hide the input (!)
@@ -291,3 +246,87 @@ DONE:
  [x] fix that this happens:
     s() if not __x__ in __SAGENB__globals and __x__[0] != "_" and str(type(globals( )[__x__])) != "function"]) ' ()
 
+[x] make evaluation much more robust:
+print ">>> dkjd"
+
+s.chdir("/home/was/people/josh/sage_notebook/worksheets/_scratch_/cells/1")
+[A
+
+ [x] restart doesn't reset the output box in which it occurs.
+ [x] fails if load a deleted worksheet.
+[x] introspect -- if see a ? before any quote and to the right, then introspect.
+
+[] introspection -- f1
+   completions -- f2
+[x] eval of empty cell -- skipped
+[x] variables -- much more robust
+[x] Completion should complete and not just list completions.
+[x] I'll make control-up and control-down move between input boxes
+(instead of tab).
+
+[x] up arrow broken after inputing new cells
+[x] And the plan is that the notebook should be usable mouse free with,
+at least, no less functionality than one has in the command line.
+(I.e., the mouse may give you more functionality than the command
+line, but you won't loose functionality that you had on the command
+line.  Right now this isn't the case, e.g., there's no reverse search
+or history scroll yet.)
+
+ [x] attached files list doesn't get updated
+ [x] fails if worksheet 0 is deleted.
+ [x] put the output in nowrap, then
+    import time
+    for i in range(100):
+       time.sleep(1)
+       print i
+
+[x] tabbed worksheets.  -- just make it easier to use your web browser; i.e., this
+   is already a feature of web browsers.
+
+[x]
+>   In an xterm, I can copy and paste input and output to e-mail
+>   an example session to someone.  I can't make firefox copy
+>   multiple boxes.
+
+That's because currently the input boxes are all "text areas"
+even the non-active ones.  If I change them to be <pre>'s when
+they aren't selected then you will be able to copy everything
+except the box you're currently typing into.
+
+-- fix: text version of worksheet
+
+
+[x] restart should start on same worksheet as before.
+
+[x] workbooks -- link
+
+[x] i need to rethink the design of having multiple worksheets at once:
+    possibilities:
+        xx have multiple worksheet div's all in the html, each
+           with an id.  have a way to "close" a worksheet, i.e.,
+           button in upper right (Maybe a close link like the Help, etc. links).
+           the update function has to tell about *all* the worksheets
+           rather than just one:
+               update contains:
+                    number of worksheets with data
+                    worksheet number <data>  ...
+                    worksheet number <data>  ...
+               and the worksheet data will allow us to set the color
+               on the the worksheets tab on the left.
+    (all html downloaded at once; so switching done entirely in js)
+     -- new
+     -- switching
+     -- deleting
+
+[x] It'll be nice to record the history of commands like in a shell.
+
+[x] quit function should do something
+ sage: quit
+'Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation.'
+
+[x] latex an entry cell.
+
+[x] output shouldn't include html links until it's done.
+[x] tab completion of empty string is 4 spaces.
+
+[x] fix decimal point before number sage_eval('.5') should work!Q

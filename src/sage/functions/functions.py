@@ -206,6 +206,9 @@ class Function(Element_cmp_, RingElement):
     def __float__(self):
         return float(self._mpfr_(RR))
 
+    def __abs__(self):
+        return abs(float(self))
+
     # The following adds formal arithmetic support for functions
     def _add_(self, right):
         return Function_arith(self, right, operator.add)

@@ -52,6 +52,8 @@ def completions(s, globs, format=False, width=90):
     Return a list of completions in the context of globs.
     """
     n = len(s)
+    if n == 0:
+        return '(empty string)'
     if not '.' in s:
         v = [x for x in globs.keys() if x[:n] == s]
     else:
@@ -195,8 +197,8 @@ def load_session(v, filename, state):
 def variables(with_types=True):
     if with_types:
         w = ['%s-%s'%(x,type(v)) for x, v in sage_globals.iteritems() if not \
-             x in globals_at_init and x[0] != '_'] # and str(type(v)) != "<type 'function'>"]
+             x in globals_at_init and x[0] != '_']
     else:
         w = [x for x, v in sage_globals.iteritems() if not \
-                 x in globals_at_init and x[0] != '_'] # and str(type(v)) != "<type 'function'>"]
+                 x in globals_at_init and x[0] != '_']
     return w

@@ -316,7 +316,7 @@ class Singular(Expect):
         #return 'execute(read("%s"))'%filename
         return '< "%s";'%filename
 
-    def eval(self, x, allow_semicolon=False, strip=True):
+    def eval(self, x, allow_semicolon=True, strip=True):
         """
         Send the code x to the Singular interpreter and return the output
         as a string.

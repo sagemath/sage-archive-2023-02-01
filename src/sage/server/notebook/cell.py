@@ -27,16 +27,25 @@ import os, shutil
 
 from   sage.misc.misc import word_wrap
 
+import notebook
+
 class Cell:
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)
         self.__out   = str(out)
         self.__worksheet = worksheet
-        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.__id)
         self.__interrupted = False
         self.__completions = False
         self.has_new_output = False
+        self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+
+    def set_worksheet(self, worksheet, id=None):
+        self.__worksheet = worksheet
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        if not id is None:
+            self.set_id(id)
+        self.__out_html = self.files_html()
 
     def __cmp__(self, right):
         return cmp(self.__id, right.__id)
@@ -48,48 +57,69 @@ class Cell:
     def __repr__(self):
         return 'Cell %s'%self.__id
 
-    def plain_text(self, ncols=0):
+    def plain_text(self, ncols=0, prompts=True):
         if ncols == 0:
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
-        input_lines = self.__in.split('\n')
-        has_prompt = False
-        for v in input_lines:
-            w = v.lstrip()
-            if w[:5] == 'sage:' or w[:3] == '>>>' or w[:3] == '...':
-                has_prompt = True
-                break
 
-
-        if has_prompt:
-            s += '\n'.join(input_lines) + '\n'
+        input_lines = self.__in.strip()
+        if input_lines[:1] == '%':
+            pr = '%s> '%(input_lines.split()[0])[1:]
         else:
-            in_loop = False
-            for v in input_lines:
-                if len(v) == 0:
-                    s += '\n'
-                elif v[0] == ' ':
-                    in_loop = True
-                    s += '...' + v + '\n'
-                else:
-                    if in_loop:
-                        s += '...\n'
-                        in_loop = False
-                    s += 'sage: ' + v + '\n'
+            pr = 'sage: '
 
-        msg = 'Traceback (most recent call last):'
-        if self.__out[:len(msg)] == msg:
-            v = self.__out.split('\n')
-            w = [v[0], '...']
-            for i in range(1,len(v)):
-                if not (len(v[i]) > 0 and v[i][0] == ' '):
-                    w = w + v[i:]
-                    break
-            out = '\n'.join(w)
+        if prompts:
+            input_lines = input_lines.split('\n')
+            has_prompt = False
+            if pr == 'sage: ':
+                for v in input_lines:
+                    w = v.lstrip()
+                    if w[:5] == 'sage:' or w[:3] == '>>>' or w[:3] == '...':
+                        has_prompt = True
+                        break
+            else:
+                # discard first line since it sets the prompt
+                input_lines = input_lines[1:]
+
+            if has_prompt:
+                s += '\n'.join(input_lines) + '\n'
+            else:
+                in_loop = False
+                for v in input_lines:
+                    if len(v) == 0:
+                        s += '<BLANKLINE>\n'
+                    elif v[0] == ' ':
+                        in_loop = True
+                        s += '...' + v + '\n'
+                    else:
+                        if in_loop:
+                            s += '...\n'
+                            in_loop = False
+                        s += pr + v + '\n'
         else:
-            out = self.output_text(ncols)
+            s += self.__in.strip() + '\n'
 
-        s += out
+        if prompts:
+            msg = 'Traceback (most recent call last):'
+            if self.__out[:len(msg)] == msg:
+                v = self.__out.split('\n')
+                w = [v[0], '...']
+                for i in range(1,len(v)):
+                    if not (len(v[i]) > 0 and v[i][0] == ' '):
+                        w = w + v[i:]
+                        break
+                out = '\n'.join(w)
+            else:
+                out = self.output_text(ncols)
+        else:
+            out = self.output_text(ncols).strip().split('\n')
+            out = [x for x in out if x.strip() != '']
+            if len(out) > 0:
+                out = '# ' + '\n# '.join(out)
+            else:
+                out = ''
+
+        s = s.strip() + '\n' + out.strip()
 
         return s
 
@@ -103,9 +133,10 @@ class Cell:
         except ValueError:
             print "Warning -- cell %s no longer exists"%self.id()
             return L[0].id()
-        if k == len(L):
+        try:
+            return L[k+1].id()
+        except IndexError:
             return L[0].id()
-        return L[k+1].id()
 
     def interrupt(self):
         self.__interrupted = True
@@ -124,6 +155,12 @@ class Cell:
     def id(self):
         return self.__id
 
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def set_id(self, id):
+        self.__id = int(id)
+
     def worksheet(self):
         return self.__worksheet
 
@@ -135,6 +172,18 @@ class Cell:
 
     def input_text(self):
         return self.__in
+
+    def changed_input_text(self):
+        try:
+            t = self.__changed_input
+            del self.__changed_input
+            return t
+        except AttributeError:
+            return ''
+
+    def set_changed_input_text(self, new_text):
+        self.__changed_input = new_text
+        self.__in = new_text
 
     def set_output_text(self, output, html):
         if len(output) > MAX_OUTPUT:
@@ -150,25 +199,32 @@ class Cell:
             return ''
 
     def output_text(self, ncols=0):
-        if ncols:
+        if ncols and not self.introspect():
             return word_wrap(self.__out, ncols=ncols)
         return self.__out
 
-    def completions(self):
-        return self.__completions
+    def introspect(self):
+        try:
+            return self.__introspect
+        except AttributeError:
+            return False
 
-    def unset_completions(self):
-        self.__completions = False
 
-    def evaluate(self, time=False, completions=False):
+    def unset_introspect(self):
+        self.__introspect = False
+
+    def set_introspect(self, before_prompt, after_prompt):
+        self.__introspect = [before_prompt, after_prompt]
+
+    def evaluate(self, introspect=False, time=False):
         """
         INPUT:
             time -- if True return time computation takes
-            completions -- either False or a pair [before_curse, after_cursor] of strings.
+            introspect -- either False or a pair [before_curse, after_cursor] of strings.
         """
         self.__interrupted = False
         self.__time = time
-        self.__completions = completions
+        self.__introspect = introspect
         self.__worksheet.enqueue(self)
         dir = self.directory()
         for D in os.listdir(dir):
@@ -176,6 +232,9 @@ class Cell:
 
     def time(self):
         return self.__time
+
+    def do_time(self):
+        self.__time = True
 
     def html(self, wrap=None, div_wrap=True):
         if wrap is None:
@@ -190,56 +249,29 @@ class Cell:
     def html_in(self):
         id = self.__id
         t = self.__in
+        if t[:6] in ['%latex', '%slide']:
+            slide = '_latex'
+        else:
+            slide = ''
         r = len(t.split('\n'))
         if r <= 1:
             style = 'style = "height:1.5em"'
         else:
             style = ''
-        new = """<div class="insert_new_cell" id="insert_new_cell_%s"
-                      onClick="insert_new_cell_before(%s)">
+        s = """<div class="insert_new_cell" id="insert_new_cell_%s"
+                   onmousedown="insert_new_cell_before(%s);">
                  </div>
               """%(id, id)
-        return """%s
-           <textarea class="cell_input" rows=%s
+        s += """
+           <textarea class="cell_input%s" rows=%s
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
-              onFocus   = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s;'
-              onBlur    = 'this.className="cell_input"; cell_input_minimize_size(this);'
+              onFocus = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s;'
+              onBlur  = 'this.className="cell_input"; cell_input_minimize_size(this);'
               %s
            >%s</textarea>
-        """%(new, r, id, id, id, id, style, t)
-
-
-    def xxx_html_in(self):
-        id = self.__id
-        t = self.__in
-        r = len(t.split('\n'))
-        if r <= 1:
-            style = 'style = "height:1.5em"'
-        else:
-            style = ''
-            #     onClick="if (event.shiftKey) {
-            #           insert_new_cell_before(%s)}">
-            #
-        new = """<div class="insert_new_cell" id="insert_new_cell_%s"
-                      onClick="insert_new_cell_before(%s)">
-                 </div>
-              """%(id, id)
-#              onFocus   = 'make_cell_input_active(%s);'
-        s = """%s
-           <textarea class="cell_input" rows=%s
-              id         = 'cell_input_%s'
-              onKeyPress = 'return cell_input_key_event(%s,event);'
-              oninput   = 'cell_input_resize(this);'
-              onBlur    = 'make_cell_input_inactive(%s);'
-              %s></textarea>
-           <pre class="cell_input_pre"
-              id         = 'cell_input_pre_%s'
-              onClick    = 'make_cell_input_active(%s);'
-              > %s </pre>
-        """%(new, r, id, id, id, style,
-                 id, id, t)
+        """%(slide, r, id, id, id, id, style, t)
         return s
 
     def files_html(self):
@@ -272,8 +304,11 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0):
-        out_wrap = self.output_text(ncols).replace('<','&lt;')
         out_no_wrap = self.output_text(0).replace('<','&lt;')
+        if self.introspect():
+            out_wrap = out_no_wrap
+        else:
+            out_wrap = self.output_text(ncols).replace('<','&lt;')
         if self.computing():
             cls = "cell_output_running"
         else:
@@ -289,5 +324,12 @@ class Cell:
                           self.__id, out_wrap,
                           self.__id, out_no_wrap,
                           self.__id, self.output_html())
+
+        r = str(self.relative_id())
+        r = '&nbsp;'*(4-len(r)) + r
+        s = """<table><tr>
+               <td class="cell_number">%s</td>
+               <td class="output_cell">%s</td></tr></table>"""%(r, s)
+
         return s
 

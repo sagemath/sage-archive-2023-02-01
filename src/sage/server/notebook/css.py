@@ -37,17 +37,19 @@ span.control_commands {
    font-weight:normal;
    font-family:arial;
    font-size:12px;
-   text-decoration:underline;
+/*    text-decoration:underline; */
 }
 
 span.vbar {
    height:1.5ex;
    border-left:1px solid black;
+   width:1px;
 }
 
 div.top_control_bar a.evaluate {
    background-color:white;
    padding:5;
+   text-decoration:underline;
 }
 
 div.top_control_bar a.evaluate:hover {
@@ -57,11 +59,13 @@ div.top_control_bar a.evaluate:hover {
 }
 
 div.top_control_bar  a.interrupt {
-   text-decoration: underline;
+/*   text-decoration: underline;
    font-family:arial;
    font-size:12px;
    font-weight:bold;
    color:#000000;
+   */
+   text-decoration:underline;
    padding:5;
    background-color:white;
 }
@@ -83,11 +87,13 @@ div.top_control_bar  a.interrupt_in_progress {
    padding:5;
    background-color:#bb0000;
    text-decoration:blink;
+   text-decoration:underline;
 }
 
 div.top_control_bar  a.hide{
    background-color:white;
    padding:5;
+   text-decoration:underline;
 }
 
 div.top_control_bar a.hide:hover {
@@ -99,10 +105,60 @@ div.top_control_bar a.hide:hover {
 div.top_control_bar  a.help {
    padding:5;
    background-color:white;
+   text-decoration:underline;
 }
 
 div.top_control_bar a.help:hover {
    background-color:#00bb00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar  a.plain_text {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.plain_text:hover {
+   background-color:#00bb00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar  a.doctest_text {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.doctest_text:hover {
+   background-color:#0044bb;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+
+div.top_control_bar  a.history_link {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.history_link:hover {
+   background-color:995533;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar  a.download_sws {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.download_sws:hover {
+   background-color:#55bb22;
    color:#FFFFFF;
    cursor:pointer;
 }
@@ -209,7 +265,7 @@ span.pane div.variables_topbar {
 span.pane div.variables_list {
    font-size:11px;
    top:0ex;
-   height:25ex;
+   height:20ex;
    border:2px solid #c3d9ff;
    width: 180px;
    overflow:auto;
@@ -220,10 +276,10 @@ div.variable_name {
    border-top:1px solid #d3e9ff;
 }
 
-div.variable_name:hover {
+/*div.variable_name:hover {
    background-color:#c3d9ff;
    cursor:pointer;
-}
+}*/
 
 span.varname {
 }
@@ -250,7 +306,7 @@ span.pane div.attached_topbar {
 span.pane div.attached_list {
    font-size:11px;
    top:0ex;
-   height:25ex;
+   height:20ex;
    border:2px solid  #c3d9ff;
    width: 180px;
    overflow:auto;
@@ -260,11 +316,12 @@ div.attached_filename {
    padding-left:1ex;
    border-top:1px solid #d3e9ff;
 }
-
+/*
 div.attached_filename:hover {
    background-color:#c3d9ff;
    cursor:pointer;
 }
+*/
 
 /************ WORKSHEETS **************************/
 
@@ -274,7 +331,7 @@ span.pane div.worksheets_topbar {
    top: 0ex;
    background-color: #b5edbc;
    text-decoration: none;
-   font-size:13px;
+   font-size:12px;
    font-family:arial;
    padding-left: 10px;
    width: 174px;
@@ -306,6 +363,27 @@ input.add_new_worksheet_menu {
 button.add_new_worksheet_menu {
    font-size:11px;
    font-family:arial;
+}
+
+span.pane div.upload_worksheet_menu {
+   color:black;
+   top: 0ex;
+   background-color: #b5edbc;
+   text-decoration: none;
+   font-size:11px;
+   font-family:arial;
+   padding-left: 10px;
+   width: 174px;
+   display:none;
+}
+
+button.upload_worksheet_menu {
+   font-size:11px;
+   font-family:arial;
+}
+
+input.upload_worksheet_menu {
+
 }
 
 span.pane div.delete_worksheet_menu {
@@ -367,7 +445,7 @@ div.worksheet_title {
    background-color: #c3d9ff;
    width: 100%;
    font-family:arial;
-   font-size: 22px;
+   font-size: 16px;
    font-weight:bold;
    color:black;
    position: fixed;
@@ -470,7 +548,7 @@ span.pane div.objects_topbar {
 
 span.pane div.object_list {
    font-size:11px;
-   height:25ex;
+   height:20ex;
    border:2px solid #b5edbc;
    width: 180px;
    overflow:auto;
@@ -526,7 +604,7 @@ div.worksheet {
   background-color: white;
   border-top: 0px;
   border-left: 10px solid #c3d9ff;
-  top: 65px;
+  top: 58px;
   bottom: 0ex;
   right: 0ex;
   left: 205px;
@@ -569,6 +647,17 @@ input.btn:hover {
 
 /************ CELLS **************************/
 
+td.cell_number {
+   font-size:8pt;
+   font-family:arial, monospace;
+   color:#999999;
+   text-align:left;
+}
+
+td.output_cell {
+   width:100%;
+}
+
 div.cellbox {
   z-index:2;
   background-color: white;
@@ -590,36 +679,40 @@ pre.cell_input_pre {
 
 textarea.cell_input {
   background-color: white;
-
-  /* border: 2px solid #ffffff; */
   border: 0px solid #ffffff;
-
   font-family: courier, monospace;
   font-size:12pt;
-
   overflow:hidden;
-
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-
   width: 100%;
+}
+
+textarea.cell_input_latex {
+  background-color: white;
+  color:#aaaaaa;
+  border: 0px solid #ffffff;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:hidden;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+  height:1em;
 }
 
 textarea.cell_input_active {
   background-color: white;
-
-  border: 2px solid #73a6ff;
-
+ /* border: 2px solid #73a6ff; */
+   border: 0px solid #ffffff;
   font-family: courier, monospace;
   font-size:12pt;
-
   overflow:hidden;
-
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-
   width: 100%;
 }
 
@@ -629,15 +722,8 @@ textarea.cell_input_active {
 div.cell_output {
   width: 100%;
   margin: 0px;
-  padding: 2px;
-  border-left: 2px solid #000088;
-}
-
-div.cell_output:hover {
-  /* border-right: 1px solid #000088;
-  border-top: 1px solid #000088;
-  border-bottom: 1px solid #000088;
-  border-left: 2px solid #000088; */
+  padding: 0px;
+  border-left: 1px solid #aaaaff;
 }
 
 table.cell_output {
@@ -668,18 +754,15 @@ pre.cell_output_nowrap_visible {
 div.cell_output_running {
   width: 100%;
   margin: 0px;
-  padding: 5px;
-  border-left: 5px solid #880000;
-  background-color: #ffeeee;
-  /*
-  border-left: 5px solid #008800;
-  background-color: #d1ffd1;
-  */
+  border-left: 1px solid #880000;
+  background-color: #b5edbc;
+/*  padding:2px; */
 }
 
 div.cell_output_running:hover {
-  cursor:wait;
+/*  cursor:wait;*/
 }
+
 
 div.cell_output_hidden {
   width: 100%;
@@ -705,95 +788,16 @@ pre.cell_output_hidden {
 /************ INSERTING NEW CELLS **************************/
 
 div.insert_new_cell {
-  height:10px;
+  height:4px;
   width:100%;
-  border-top: 0px solid white;
-  /* border: 2px solid white; */
+  border-top: 2px solid white;
   display:block;
-  font-size:10pt;
-  text-align:left;
-  /* padding: 2px; */
 }
 
 div.insert_new_cell:hover {
-  /* border: 2px solid #dddddd; */
-  border-top: 6px solid black;
+  border-top: 2px solid #000000;
+  /* background-color:#eeeeee; */
 }
-
-
-/****************** HELP WINDOW ***********************/
-div.help_window {
-    z-index:60;
-    position:fixed;
-    overflow:auto;
-    background-color:white;
-    border: 3px solid #3d86d0;
-    top: 10ex;
-    bottom:10%;
-    left:25%;
-    right:15%;
-    padding:2ex;
-    display:none;
-/*    opacity:0.9;   enable this when computers are faster in a few years?...*/
-}
-
-
-div.help_window_title {
-    z-index:60;
-    position:fixed;
-    overflow:auto;
-    background-color: #3d86d0;
-    font-size:15px;
-    font-weight:bold;
-    font-family:arial monospace;
-    padding: 2px;
-    color:#FFFFFF;
-    border: 3px solid #3d86d0;
-    top: 7ex;
-    height: 2ex;
-    left:25%;
-    right:15%;
-}
-
-div.help_window_close {
-    z-index:60;
-    position:fixed;
-    overflow:auto;
-    background-color: #5d99d5;
-    font-size:18px;
-    font-family:courier monospace;
-    padding: 1px;
-    color:#FFFFFF;
-    border: 3px solid #3d86d0;
-    top: 6.3ex;
-    height: 2ex;
-    width:3ex;
-    right:15%;
-    text-align:right;
-}
-
-div.help_window_close:hover {
-    z-index:60;
-    background-color: #6d79c5;
-    cursor:pointer;
-}
-
-table.help_window {
-  /*  border: 1px solid #000000; */
-    width:100%;
-}
-
-td.help_window_cmd {
-    background-color: #f5e0aa;
-    width:30%;
-    padding:1ex;
-}
-
-td.help_window_how {
-    padding:1ex;
-    width:70%;
-}
-
 """
     user_css = DOT_SAGE + '/notebook.css'
     if os.path.exists(user_css):

@@ -57,7 +57,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
-        if is_real:
+        zz = line[num_start:i]
+        if is_real or '.' in zz:
             # make real field with slightly less precision than
             # number of digits of our number
             n = int(3.32192*(i-num_start-1))
@@ -67,8 +68,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             O = "RealField(max(%s,RR.precision()))('"%n; C = "')"
         else:
             O = "ZZ("; C = ")"
-        line = line[:num_start] + O + line[num_start:i]  \
-               + C + line[i:]
+        line = line[:num_start] + O + zz + C + line[i:]
         return line, len(O+C)
 
     i = 0
@@ -237,8 +237,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 3
                 continue
 
-        if not in_number and not in_quote() and line[i].isdigit() and \
-               (i == 0 or (i > 0 and not isalphadigit_(line[i-1]))):
+        if     not in_number and \
+               not in_quote()and \
+               (line[i].isdigit() or \
+                   (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \
+               (i == 0 or (i > 0 and not (isalphadigit_(line[i-1]) \
+                                          or line[i-1] == ')'))):
             in_number = True
             num_start = i
         i += 1

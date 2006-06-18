@@ -474,6 +474,9 @@ class MapleElement(ExpectElement):
         M = self.parent()
         return float(maple.eval('evalf(%s)'%self.name()))
 
+    def _latex_(self):
+        return self.parent().eval('latex(%s)'%self.name())
+
     def trait_names(self):
         return self.parent().trait_names()
 

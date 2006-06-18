@@ -90,14 +90,17 @@ class Expect(SageObject):
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
 
-    def _get(self, wait=0.1):
+    def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
             self._start()
         E = self._expect
         t = E.timeout
         E.timeout = float(wait)
         try:
-            E.expect(self._prompt)
+            if alternate_prompt is None:
+                E.expect(self._prompt)
+            else:
+                E.expect(alternate_prompt)
         except (pexpect.TIMEOUT, pexpect.EOF), msg:
             E.timeout = t
             return None
@@ -111,21 +114,22 @@ class Expect(SageObject):
         self.__so_far = ''
         E.sendline(cmd)
 
-    def _so_far(self, wait=0.1):
+    def _so_far(self, wait=0.1, alternate_prompt=None):
         """
-        Return whether done and output so far.
+        Return whether done and output so far and new output since last time called.
         """
-        G = self._get(wait=wait)
+        new = self._get(wait=wait, alternate_prompt=alternate_prompt)
         try:
-            if G:
-                G = self.__so_far + G
+            if new:
+                X = self.__so_far + new
                 del self.__so_far
-                return True, G
+                return True, X, new
+            new = self._expect.before
             try:
-                self.__so_far += self._expect.before
+                self.__so_far += new
             except (AttributeError, TypeError):
-                self.__so_far =  self._expect.before
-            return False, self.__so_far
+                self.__so_far = new
+            return False, self.__so_far, new
         except AttributeError:   # no __so_far
             raise RuntimeError, "nothing being evaluated right now."
 
@@ -369,7 +373,7 @@ class Expect(SageObject):
         code = str(code)
         code = code.strip()
         try:
-            return '\n'.join([self._eval_line(L) for L in code.split('\n')])
+            return '\n'.join([self._eval_line(L) for L in code.split('\n') if L != ''])
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:

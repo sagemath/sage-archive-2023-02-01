@@ -28,13 +28,20 @@ __doc_exclude = ['_latex_file_', 'list_function', 'tuple_function', \
 
 EMBEDDED_MODE = False
 
+LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+
+SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+
 import os
 
 import os.path
 
+import random
+
 import sage.plot.all
 
 from misc import tmp_dir
+import sage_eval
 
 def list_function(x):
     K = [latex(v) for v in x]
@@ -73,36 +80,131 @@ def str_function(x):
 latex_table = {list: list_function, tuple:tuple_function, bool:bool_function,
                str: str_function, int:str, long:str, float:str}
 
-class Latex(str):
+class LatexExpr(str):
     def __init__(self, x):
         str.__init__(self, x)
 
     def __repr__(self):
         return str(self)
 
-
 def latex(x):
-    """
-    Output x formated for inclusion in a LaTeX document.
-
-    The output should compile correctly if inserted into any latex
-    document in math mode, assuming the amsmath package is included.
-    No special macros should be required.
-    """
     try:
 
-        return Latex(x._latex_())
+        return LatexExpr(x._latex_())
 
     except (AttributeError, TypeError):
 
         for k, f in latex_table.iteritems():
             if isinstance(x, k):
-                return Latex(f(x))
+                return LatexExpr(f(x))
 
         if x is None:
-            return Latex("\\mbox{\\rm None}")
+            return LatexExpr("\\mbox{\\rm None}")
 
-        return Latex(str_function(str(x)))
+        return LatexExpr(str_function(str(x)))
+
+
+##############################################################
+# The Latex class is used to make slides and latex output in
+# the SAGE Notebook
+#########################################
+
+class Latex:
+    r"""
+    Enter, e.g.,
+    \begin{verbatim}
+        %latex
+        The equation $y^2 = x^3 + x$ defines an elliptic curve.
+        We have $2006 = \sage{factor(2006)}$.
+    \end{verbatim}
+    in an input cell to get a typeset version (care of slitex).
+    Use \code{\%latex_debug} to get debugging output.
+
+    Use \code{latex(...)} to typeset a SAGE object.
+
+    Use \code{\%slide} instead to typeset slides.
+    """
+    def __init__(self, debug=False, slide=False, density=150):
+        self.__debug = debug
+        self.__slide = slide
+        self.__density = density
+
+    def __call__(self, x):
+        return latex(x)
+
+    def _latex_preparse(self, s, vars):
+        i0 = -1
+        while True:
+            i = s.find('\\sage{')
+            if i == -1 or i == i0:
+                return s
+            i0 = i
+            t = s[i+6:]
+            j = t.find('}')
+            if j == -1:
+                return s
+
+            var = t[:j]
+            try:
+                k = latex(sage_eval.sage_eval(var, vars))
+            except:
+                k = '\\mbox{\\rm [%s undefined]}'%var
+            s = s[:i] + k + t[j+1:]
+
+    def eval(self, x, strip=False, filename=None, debug=None, density=None, vars={}):
+        if density is None:
+            density = self.__density
+        if filename is None:
+            filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
+        if debug is None:
+            debug = self.__debug
+        if vars != {}:
+            x = self._latex_preparse(x, vars)
+        O = open('%s.tex'%filename,'w')
+        if self.__slide:
+            O.write(SLIDE_HEADER)
+            O.write('\\begin{document}\n\\begin{slide}\n')
+        else:
+            O.write(LATEX_HEADER)
+            O.write('\\begin{document}\n')
+
+        O.write(x)
+        if self.__slide:
+            O.write('\n\\end{slide}\n\\end{document}')
+        else:
+            O.write('\\end{document}\n')
+
+        O.close()
+        if not debug:
+            redirect=' 2>/dev/null 1>/dev/null '
+        else:
+            redirect=''
+        lt = 'latex \\\\nonstopmode \\\\input{%s.tex} %s'%(filename, redirect)
+        dvips = 'dvips -t landscape %s.dvi %s'%(filename, redirect)
+        convert = 'convert -density %sx%s -rotate 270 -trim %s.ps %s.png %s '%\
+                  (density,density, filename, filename, redirect)
+        cmd = ' ; '.join([lt, dvips, convert])
+        e = os.system(cmd)
+        if e:
+            print "An error occured."
+            try:
+                print open(filename + '.log').read()
+            except IOError:
+                pass
+            return 'Error latexing slide.'
+
+        if not debug:
+            F = os.listdir('.')
+            n = len(filename) + 1
+            d = ' '.join([x for x in F if x[:n] == filename+'.' and x[-4:] != '.png'])
+            cmd = 'rm ' + d
+            e = os.system(cmd)
+        return ''
+
+
+
+
+#########################################
 
 
 def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
@@ -146,7 +248,9 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
         center0 =''
         center1 = ''
 
-    s = '\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n\\input{macros}\n\n\n\\pagestyle{empty}\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n %s\\%s '%(extra_preamble, title, center0, size)
+    s = LATEX_HEADER
+    s += '\n%s\n\\begin{document}\n\\begin{center}{\\Large\\bf %s}\\end{center}\n\\thispagestyle{empty}\n %s\\%s '%(
+        extra_preamble, title, center0, size)
 
     #s += "(If something is missing it may be on the next page or there may be errors in the latex.  Use view with {\\tt debug=True}.)\\vfill"
     s += '\\vfill'
@@ -215,7 +319,8 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
             i += 1
         png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
         return
-    if isinstance(objects, Latex):
+
+    if isinstance(objects, LatexExpr):
         s = str(objects)
     else:
         s = _latex_file_(objects, title=title, expert=expert,

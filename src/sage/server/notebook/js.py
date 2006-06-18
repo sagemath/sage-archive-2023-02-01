@@ -50,7 +50,7 @@ function get_event(e) {
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 
-cell_output_delta = 200;
+cell_output_delta = 350;
 
 SEP = '___S_A_G_E___';
 
@@ -200,6 +200,43 @@ function hide_add_new_worksheet_menu() {
     add_worksheet_menu.style.display = 'none';
 }
 
+function show_upload_worksheet_menu() {
+    var upload_worksheet_menu = get_element('upload_worksheet_menu');
+    upload_worksheet_menu.style.display = 'block';
+    get_element('upload_worksheet_filename').focus()
+}
+
+
+function hide_upload_worksheet_menu() {
+    var upload_worksheet_menu = get_element('upload_worksheet_menu');
+    upload_worksheet_menu.style.display = 'none';
+}
+
+function process_upload_worksheet_menu_submit() {
+    hide_upload_worksheet_menu();
+    var box = get_element('upload_worksheet_filename');
+    var filename = box.value;
+    box.value = '';
+    upload_worksheet(filename);
+}
+
+function upload_worksheet(filename) {
+   async_request('async_upload', '/upload_worksheet',
+       upload_worksheet_callback, 'filename='+filename)
+}
+
+function upload_worksheet_callback(status, response_text) {
+    if (status == "success") {
+        if (response_text.slice(0,5) == "Error") {
+            alert(response_text);
+        } else {
+            set_worksheet_list(response_text);
+        }
+    } else {
+        alert("Possible problem uploading file (file must be local).");
+    }
+}
+
 function show_delete_worksheet_menu() {
     var delete_worksheet_menu = get_element('delete_worksheet_menu');
     delete_worksheet_menu.style.display = 'block';
@@ -245,7 +282,6 @@ function switch_to_worksheet(id) {
 function focus(id) {
        // make_cell_input_active(id);
        var cell = get_element('cell_input_' + id);
-          cell.focus();
        if (cell && cell.focus) {
           cell.focus();
        }
@@ -259,20 +295,32 @@ function scroll_view(id) {
 }
 
 function cell_input_resize(cell_input) {
-   rows = cell_input.value.split('\n').length - 1;
-   if (rows <= 1) {
-      rows = 2;
-   } else {
-      /* to avoid bottom chop off */
-      rows = rows + 1;
-   }
-   cell_input.style.height = null;
-   /* cell_input.style.height = 1.5*rows + 'em'; */   // this sort of works in konqueror...
-   cell_input.rows = rows;
+   try {
+        var rows = cell_input.value.split('\n').length - 1;
+        if (rows <= 1) {
+          rows = 2;
+        } else {
+          /* to avoid bottom chop off */
+          rows = rows + 1;
+        }
+        cell_input.style.height = null;
+        /* cell_input.style.height = 1.5*rows + 'em'; */   // this sort of works in konqueror...
+        cell_input.rows = rows;
+   } catch(e) {
+   } finally {}
 }
 
 function cell_input_minimize_size(cell_input) {
-   rows = cell_input.value.split('\n').length ;
+   var v = cell_input.value;
+   var sl = v.slice(0,6);
+   if (sl == '%latex' || sl == '%slide') {
+       /* this is also set in cell.py */
+       cell_input.className = 'cell_input_latex';
+       cell_input.rows = 1;
+       return;
+   }
+   cell_input.className = 'cell_input';
+   var rows = v.split('\n').length ;
    if (rows < 1) {
       rows = 1;
    }
@@ -294,14 +342,12 @@ function cell_delete_callback(status, response_text) {
     if (X[0] == 'ignore') {
         return;   /* do not delete, for some reason */
     }
-    cell = get_element('cell_' + X[1]);
+    var cell = get_element('cell_' + X[1]);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
-    id_before = X[2];
-    var cell_before = get_element('cell_input_' + id_before);
-    cell_before.focus();
-    cell_before.scrollIntoView();
     cell_id_list = eval(X[3]);
+    var id_before = X[2];
+    focus(eval(id_before), 0);
 }
 
 function cell_delete(id) {
@@ -312,9 +358,9 @@ function cell_delete(id) {
 function cell_input_key_event(id, event) {
     cell_input = get_element('cell_input_'+id);
 
-    e = get_event(event)
+    e = get_event(event);
 
-//    alert (e.keyCode);
+    //alert (e.keyCode);
 
     if (key_delete_cell(e) && cell_input.value == '') {
         cell_delete(id);
@@ -323,38 +369,50 @@ function cell_input_key_event(id, event) {
 
     cell_input_resize(cell_input);
 
-/*
-    // Will need IE version... if possible... if we do this, which we shouldn't!
-    if (e.keyCode == 38) {
+    // Will need IE version... if possible.
+    if (e.keyCode == 38) {  // up arrow
         var before_cursor = cell_input.value.substr(0,cell_input.selectionEnd);
         var i = before_cursor.indexOf('\n');
         if (i == -1) {
             jump_to_cell(id,-1);
+            return false;
+        } else {
+            return true;
         }
-    } else if (e.keyCode == 40) {
+    } else if (e.keyCode == 40) {   // down arrow
         var before_cursor = cell_input.value.substr(cell_input.selectionEnd);
         var i = before_cursor.indexOf('\n');
         if (i == -1) {
             jump_to_cell(id,1);
+            return false;
+        } else {
+            return true;
         }
-    } else*/ if (key_send_input(e)) {
+    } else if (key_send_input(e)) {
            // User pressed shift-enter
        evaluate_cell(id, 0);
        return false;
-    } else if (key_send_input_timed(e)) {
-       evaluate_cell(id, 1);
+    } else if (key_send_input_newcell(e)) {
+      /* evaluate_cell(id, 1); */
+       insert_new_cell_after(id);
        return false;
-    } else if (key_request_completions(e)) {
-       // command completion
+    } else if (key_request_introspections(e)) {
+       // command introspection
        evaluate_cell(id, 2);
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
        return false;
-    } else if (key_next_cell(e)) {
-       jump_to_cell(id, 1);
-    } else if (key_prev_cell(e)) {
-       jump_to_cell(id, -1);
+    } else if (key_page_down(e)) {
+       jump_to_cell(id, 5);
+       return false;
+    } else if (key_page_up(e)) {
+       jump_to_cell(id, -5);
+       return false;
+    } else if (key_request_history(e)) {
+       history_window();
+    } else if (key_request_log(e)) {
+       text_log_window(worksheet_filename);
     }
     return true;
 }
@@ -364,7 +422,7 @@ function id_of_cell_delta(id, delta) {
         alert("bug -- no cells.");
         return;
     }
-    var i = cell_id_list.indexOf(id);
+    var i = array_indexOf(cell_id_list, eval(id));
     var new_id;
     if (i == -1) {
         return(cell_id_list[0]);
@@ -416,15 +474,13 @@ function make_cell_input_inactive(id) {
 */
 
 function jump_to_cell(id, delta) {
-    // alert(cell_id_list);
     var i = id_of_cell_delta(id, delta)
-    focus(i);
-    var j = id_of_cell_delta(i, -1);
+    var j = id_of_cell_delta(i, -2);
     if (j >= i) {
         j = i;
     }
     scroll_view(j);
-    scroll_view(i);
+    focus(i);
 }
 
 function escape0(input) {
@@ -441,14 +497,15 @@ function evaluate_cell(id, action) {
     cell_id = id;
     last_action = action;
     var cell_input = get_element('cell_input_' + id);
-    cell_input_minimize_size(cell_input);
 
-    if(action == 2) {
-       evaluate_cell_completion(id);
+    I = cell_input.value
+
+    if(action == 2) { // Introspection
+       evaluate_cell_introspection(id);
        return;
     }
 
-    input = escape0(cell_input.value);
+    input = escape0(I);
 
     cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
@@ -456,7 +513,10 @@ function evaluate_cell(id, action) {
             'id=' + id + '&input='+input)
 }
 
-function evaluate_cell_completion(id) {
+function evaluate_cell_introspection(id) {
+    var before_cursor;
+    var after_cursor;
+    var cell_input = get_element('cell_input_' + id);
     if(browser_ie) {
         //for explorer, we call the
         //   document.selection.createRange().duplicate()
@@ -479,10 +539,27 @@ function evaluate_cell_completion(id) {
         after_cursor = cell_input.value.substr(cell_input.selectionEnd);
     }
 
+    // If the character right before the cursor is blank, we instead
+    // send 4 spaces.
+    if (is_just_a_tab(before_cursor, id)) {
+        cell_input.value = before_cursor + '    ' + after_cursor;
+        return;
+    }
     before_cursor = escape0(before_cursor);
     after_cursor = escape0(after_cursor);
-    async_request('async_obj_evaluate', '/completions', evaluate_cell_callback,
+    async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
           'id=' + id + '&before_cursor='+before_cursor + '&after_cursor='+after_cursor)
+}
+
+function is_just_a_tab(s, id) {
+    var n = s.length
+    if (n==0)
+       return 1;
+    c = s.charAt(n-1);
+    if (c == ' ' || c == '\t' || c == '\n' || c == ')') {
+       return 1;
+    }
+    return 0;
 }
 
 
@@ -499,16 +576,14 @@ function evaluate_cell_callback(status, response_text) {
         alert("You requested to evaluate a cell that, for some reason, the server is unaware of.");
         return;
     }
-    if (X[1] != 'no_new_cell') {
+    if (X[1] == 'append_new_cell') {
         /* add a new cell to the very end */
-       var new_cell = document.createElement("div");
-       new_cell.innerHTML = X[1];
-       new_cell.id = 'cell_' + X[0];
-       var worksheet = get_element('worksheet_cell_list');
-       worksheet.appendChild(new_cell);
-       cell_id_list = eval(X[2]);
-    }
-    if (last_action != 2) {
+        append_new_cell(X[0],X[2]);
+    } else if (X[1] == 'insert_cell') {
+        /* insert a new cell after the one with id X[3] */
+        do_insert_new_cell_after(X[3], X[2], X[0]);
+        jump_to_cell(X[0], 0);
+    } else if (last_action != 2) {  /* not a introspection */
        focus(X[0]);
     }
 
@@ -568,7 +643,6 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
     var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
     var cell_output_html = get_element('cell_output_html_' + id);
 
-    cell_output.className = 'cell_output';
     cell_output.innerHTML = wrapped_text;
     cell_output_nowrap.innerHTML = text;
     cell_output_html.innerHTML = output_html
@@ -582,6 +656,12 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
     }
 }
 
+function set_input_text(id, text) {
+    /* fill in input text */
+    var cell_input = get_element('cell_input_' + id);
+    cell_input.value = text;
+}
+
 function set_variable_list(variables) {
     var varlist = get_element('variable_list');
     varlist.innerHTML = variables;
@@ -589,6 +669,11 @@ function set_variable_list(variables) {
 
 function set_object_list(objects) {
     var objlist = get_element('object_list');
+    objlist.innerHTML = objects;
+}
+
+function set_attached_files_list(objects) {
+    var objlist = get_element('attached_list');
     objlist.innerHTML = objects;
 }
 
@@ -609,13 +694,21 @@ function update_cell_output(status, response_text) {
             output_html = D[2];
             stat = response_text.charAt(0)
             set_output_text(id, output_text, output_text_wrapped, output_html, stat);
-
+            var j = id_of_cell_delta(id,1);
 
             if (stat == 'd') {
-                variable_list = D[3];
+                new_cell_input = D[3];
+                if (new_cell_input != '') {
+                    set_input_text(id, new_cell_input);
+                }
+                variable_list = D[4];
                 set_variable_list(variable_list);
-                object_list = D[4];
+
+                object_list = D[5];
                 set_object_list(object_list);
+
+                attached_files_list = D[6];
+                set_attached_files_list(attached_files_list);
             }
 
             /* wait for output from next cell */
@@ -630,6 +723,51 @@ function update_cell_output(status, response_text) {
 //  Insert and move cells
 ///////////////////////////////////////////////////////////////////
 
+function insertAfter(parent, node, referenceNode) {
+	parent.insertBefore(node, referenceNode.nextSibling);
+}
+
+function insert_into_array(v, i, x) {
+    /* Return a new array with x inserted into position i of v. */
+    return (v.slice(0,i).concat([x]).concat(v.slice(i,v.length)));
+}
+
+// Array.indexOf( value, begin, strict ) - Return index of the first element that matches value
+function array_indexOf(v, x) {
+    var len = v.length;
+    for(var i=0; i < len; i++) {
+         if(v[i] == x) {
+             return i;
+         }
+    }
+    return -1;
+};
+
+function do_insert_new_cell_before(id, new_html, new_id) {
+  /* Insert a new cell with the given new_id and new_html
+     before the cell with given id. */
+    var new_cell = document.createElement("div");
+    new_cell.id = 'cell_' + new_id;
+    new_cell.innerHTML = new_html;
+    var cell = get_element('cell_' + id);
+    var worksheet = get_element('worksheet_cell_list');
+    worksheet.insertBefore(new_cell, cell);
+    var i = array_indexOf(cell_id_list, eval(id));
+    cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
+}
+
+function do_insert_new_cell_after(id, new_html, new_id) {
+  /* Insert a new cell with the given new_id and new_html
+     after the cell with given id. */
+    var new_cell = document.createElement("div");
+    new_cell.id = 'cell_' + new_id;
+    new_cell.innerHTML = new_html;
+    var cell = get_element('cell_' + id);
+    var worksheet = get_element('worksheet_cell_list');
+    insertAfter(worksheet, new_cell, cell);
+    var i = array_indexOf(cell_id_list, eval(id));
+    cell_id_list = insert_into_array(cell_id_list, i+1, eval(new_id));
+}
 
 function insert_new_cell_before_callback(status, response_text) {
     if (status == "failure") {
@@ -638,14 +776,11 @@ function insert_new_cell_before_callback(status, response_text) {
     }
     /* Insert a new cell _before_ a cell. */
     var X = response_text.split(SEP);
-    var new_cell = document.createElement("div");
-    new_cell.id = 'cell_' + X[0];
-    new_cell.innerHTML = X[1];
-    var cell = get_element('cell_' + X[2]);
-    var worksheet = get_element('worksheet_cell_list');
-    worksheet.insertBefore(new_cell, cell);
-    focus(X[0]);
-    cell_id_list = eval(X[3]);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_before(id, new_html, new_id);
+    focus(new_id);
 }
 
 function insert_new_cell_before(id) {
@@ -653,72 +788,32 @@ function insert_new_cell_before(id) {
                    insert_new_cell_before_callback, 'id='+id);
 }
 
-
-///////////////////////////////////////////////////////////////////
-//
-// INTROSPECTION functions -- for getting help
-//
-///////////////////////////////////////////////////////////////////
-
-function inspect_variable(name) {
-/*
-    alert(name);
-*/
-}
-
-// SEARCH BOX
-function search_box() {
-    var s = get_element("search_input").value;
-    get_element("search_input").style.color = "#888";
-    if (s.indexOf('?') == -1) {
-        callback = search_fill_in_completions;
-    } else {
-        search_fill_in_doc('success','searching...');
-        callback = search_fill_in_doc;
+function insert_new_cell_after_callback(status, response_text) {
+    if (status == "failure") {
+        alert(response_text);
+        return ;
     }
-    async_request('async_obj_search', '/search', callback, 'query='+s)
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_new_cell_after(id, new_html, new_id);
+    focus(new_id);
 }
 
-function search_fill_in_doc(status, response_text) {
-    get_element("search_input").style.color = "#000";
-    if (status  == "success") {
-       expand_doc_box();
-
-       get_element("search_doc_topbar").innerHTML =
-           '<table bgcolor="73a6ff" width="100%" height="100%"><tr>  \
-           <td align=left class="menubar">Documentation</td><td align=right class="menubar"> \
-       <a class="menubar" href="javascript:shrink_doc_box()">&nbsp;&nbsp;X&nbsp;&nbsp</a></td></tr> </table>'
-
-       get_element("search_doc").innerHTML = '<pre>' + response_text + '</pre>';
-    }
+function insert_new_cell_after(id) {
+    async_request('async_obj_add_new_cell', '/new_cell_after',
+                   insert_new_cell_after_callback, 'id='+id);
 }
 
-function search_fill_in_completions(status, response_text) {
-    get_element("search_input").style.color = "#000";
-    if (status  == "success") {
-       shrink_doc_box();
-       get_element("search_doc").innerHTML = response_text;
-       get_element("search_doc_topbar").innerHTML =
-           '<table bgcolor="73a6ff" width="100%"><tr><td align=left class="menubar"> \
-           Completions \
-            </td><td></td></tr></table>';
-    }
-}
-
-function shrink_doc_box() {
-    get_element("search_doc").style.width = '154px';
-    get_element("search_doc").style.height = '150px';
-    get_element("search_doc").style.font = 'arial';
-    get_element("search_doc_topbar").style.width = '158px';
-    get_element("search_input").style.width = '160px';
-}
-
-function expand_doc_box() {
-    get_element("search_doc_topbar").style.width = '700px';
-    get_element("search_doc").style.width = '696';
-    get_element("search_doc").style.font = 'courier';
-    get_element("search_doc").style.height = '80%';
-    get_element("search_input").style.width = '702px';
+function append_new_cell(id, html) {
+    var new_cell = document.createElement("div");
+    new_cell.innerHTML = html;
+    new_cell.id = 'cell_' + id;
+    var worksheet = get_element('worksheet_cell_list');
+    worksheet.appendChild(new_cell);
+    cell_id_list = cell_id_list.concat([id]);
+    jump_to_cell(id, 0);
 }
 
 
@@ -822,6 +917,36 @@ function hide_help_window() {
     help.style.display = "none";
 
 }
+
+///////////////////////////////////////////////////////////////////
+//
+// LOG windows
+//
+///////////////////////////////////////////////////////////////////
+function history_window() {
+    history = window.open ("__history__.html",
+      "", "menubar=no,scrollbars=1,width=700,height=600");
+}
+
+function worksheet_text_window(worksheet) {
+    log = window.open (worksheet+".html","",
+      "menubar=no,scrollbars=1,width=700,height=600");
+}
+
+function doctest_window(worksheet) {
+    log = window.open (worksheet+"__doc__.html","",
+      "menubar=no,scrollbars=1,width=700,height=600");
+}
+
+
+//////////////////////////////////
+// HELP
+/////////////////////////////////
+function show_help_window(worksheet) {
+    help = window.open ("__help__.html","",
+    "menubar=no,scrollbars=1,width=700,height=600");
+}
+
 """
 
     s += r"""
@@ -859,3 +984,63 @@ function key_%s(e) {
 
 def build_all_key_codes():
     return ''.join([k.js_test(n) for n, k in key_codes.items()])
+
+def help_window():
+    help = [('<b>Definitions</b>',
+             'A <i>worksheet</i> is an ordered list of SAGE calculations with output. ' +
+             'A <i>session</i> is a worksheet and a set of variables in some state. ' +
+             'A <i>notebook</i> is a collection of worksheets and saved objects. '),
+            ('<b>Evaluate</b> Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell will be created after the current one.'),
+            ('<b>Timed</b> Evaluation', 'Type "time" at the beginning of the cell.'),
+            ('<b>Evaluate all</b> cells', 'Click <u>Evaluate All</u> in the upper right.'),
+            ('Evaluate using <b>GAP, Singular, etc.</b>', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
+            ('<b>Move</b> between cells', 'Use the up and down arrows on your keyboard.'),
+            ('<b>Interrupt</b> running calculations',
+             'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
+            ('<b>Completions</b>', 'Press F1.'),
+            ('<b>Help</b> About Object',
+             'Put ? right after the object and press F1.'),
+            ('<b>Detailed Help</b>',
+             'Type "help(object)" and press shift-return.'),
+            ('<b>Source Code</b> of a command',
+             'Put ?? after the object and press F1.'),
+            ('<b>Insert New</b> Cell',
+             'Put mouse between an output and input until the horizontal line appears and click.'),
+            ('<b>Delete</b> Cell',
+             'Delete cell contents using backspace and the cell will be removed.'),
+            ('<b>Hide/Expand</b> Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
+            ('<b>Hide All</b> Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
+            ('<b>Variables</b>',
+             'All variables with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
+            ('<b>Objects</b>',
+             'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
+            ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+            ('Loading and Saving <b>Objects</b>', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
+            ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
+            ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
+            ('Saving <b>Worksheets</b>',
+             '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a worksheet.'),
+            ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
+            ('<b>Restart</b>', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
+            ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
+            ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
+            ('<b>Customizing</b> the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.  The look of the notebook interface is highly customizable via CSS.  Send me your skins!'),
+            ('<b>Emacs Keybindings</b>', 'If you are using GNU/Linux, you can change (or create) your .gtkrc-2.0.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
+            ('More <b>Help</b>', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial.'),
+            ('<hr>','<hr>'),
+            ('<b>Acknowledgement</b>', 'The design of SAGE notebook was influenced by Mathematica, GMail, GNU Emacs, and IPython.  AUTHORS: William Stein, Alex Clemesha, and Tom Boothy')
+            ]
+    s = """
+    <div class="help_window" id="help_window">
+    <div class="help_window_title">&nbsp;&nbsp;&nbsp;Help</div>
+    <div class="help_window_close" onClick="hide_help_window()">&#215;&nbsp;</div>
+    This is the SAGE Notebook, which is the graphical interface to
+    the computer algebra system SAGE (Software for Algebra and
+    Geometry Exploration).  <i>It is currently only supported in <b>Firefox</b>.</i>
+    <table class="help_window">
+    """
+    for x, y in help:
+        s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>'%(x,y)
+    s += '</table></div>'
+    return s
+

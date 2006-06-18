@@ -7,30 +7,27 @@ AUTHORS:
     -- Tom Boothby
 
 \subsection{Supported Browsers}
-The SAGE notebook currently is fully supported with
-Firefox.  It sort of works with Opera, Konqueror and Safari,
-It will eventually fully support Internet Explorer, but
-currently does not.
+
+The SAGE notebook currently is fully supported with Firefox only.
+Support is planned for Opera, Konqueror and Safari, and Internet
+Explorer.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
 for it.
 
-Type "2+2" in the blank box and press "shift-enter" (like in Mathematica).
-The line below "2+2" will turn reddish for a moment while SAGE fires
-up and computes the answer.
+Type "2+2" in the blank box and press "shift-enter".
+The line below"2+2" will turn a different color for a moment while a SAGE kernel
+fires up and computes the answer.
 
 Your cursor should now be in the next box down.   Type \code{a = 2\^1000}
 and press return, then "a" alone on the second line, then shift-return.
 You'll see a big number.   Also, "a" will appear in the variable
-browser in the upper left corner of the screen.  (Question -- what
-should go in the variable browser.  I could make mousing over a variable
-display all kinds of info about it... but what info?  It's a design
-question, and feedback would be welcome.)    Next, click just to the
+browser in the left of the screen.    Next, click just to the
 left of the big number in the blue-ish area.  The number will shrink
 a little and change to occupy only one line.  You can see the whole
 number using your browser's horizontal scroll bar.  Click again and
-the number vanishes, to be replaced by a grey bar.  Click on the grey
+the number vanishes, to be replaced by a horizontal bar.  Click on the
 bar and the number is back.  If you click "Hide Output" in the upper
 right, all output disappears.
 
@@ -42,123 +39,142 @@ function, e.g.,
 \end{verbatim}
 Click on the left side of the figure (twice) to make it disappear.
 
-One really cool new feature of the SAGE notebook, is that you can
+One important feature of the SAGE notebook, is that you can
 "queue up" a bunch of calculations in a row, *while* still editing the
-notebook!  This is basically just like in Mathematica, and already
-works pretty well.   (If you have a repeatable way to mess this up,
-please let me know, since I don't know any at all right now.)
-As an example, consider computing factorials, which takes a while
-but not too long.  First, enter the following in a blank box and
-press "shift-return":
+notebook!  As an example, consider computing factorials, which takes a
+while (but not forever).  First, enter the following in a blank box and
+press"shift-return":
 \begin{verbatim}
 def f(n):
     return len(str(factorial(10^n)))
 \end{verbatim}
 This defines a function that takes a while to compute.   For example,
-time the execution of "f(5)", by typing (in a new box), "f(5)", then
-pressing "ctrl-return".  It should take a few seconds.   Next try
+time the execution of "f(5)", by typing (in a new box), "time f(5)".
+It should take a few seconds.   Next try
 "f(6)", which takes quite a while (about 21 seconds on sage.math).
-While f(6) is being computed, note 2 things:
-   (a) the output line for f(6) is in light red, indicating that
-       it is being computed
-   (b) The Interrupt link in the upper right is not greyed out, i.e.,
-       you can click and interrupt the computation.
+While f(6) is being computed, note that the output line for f(6) is a
+different color, indicating that it is being computed
 While f(6) is computing (if it finishes first, restart it by
-just hitting ctrl-enter in the box where "f(6)" is), try typing
+just hitting shift-enter in the box where "f(6)" is), try typing
 "f(4)" in the next box.  You're allowed to give input, but the
 result doesn't get computed immediately.  You can enter several more
 lines as well, etc.; when the f(6) finally finishes, SAGE goes on
 to compute "f(4)".   You can queue up dozens of calculations.  For
 example, if you hit the "Evaluate All" link in the upper right, the
 whole worksheet is queued up for computation.  Try it.   When the
-computation gets stuck on "f(6)", hit the interrupt button and
-all the queued up calculations are cancelled.
+computation gets stuck on "f(6)", hit the interrupt button (or press escape)
+and the queued up calculations are cancelled.
 
 Click "Hide Output" in the upper right.   You'll see just your
-input and grey boxes; clicking on the grey boxes reveals output.
+input and some little boxes; clicking on the boxes reveals output.
 
 You can also embed nicely typeset math.  Try this:
 \begin{verbatim}
-   f = maxima('sin(x^2)')
-   g = f.integrate('x')
-   view(g)
+f = maxima('sin(x^2)')
+g = f.integrate('x')
+view(g)
 \end{verbatim}
 
 If this silently fails, type "view(g, debug=True)" instead.
-You need latex and the "convert" and "gs" commands, which is just
-an "apt-get install imagemagick gs" away...  Anyways, you get
+You need latex and the "convert" and "gs" commands, (use
+an "apt-get install imagemagick gs").  Anyways, you get
 a nicely typeset formula.  Try a matrix next:
 \begin{verbatim}
-   A = MatrixSpace(QQ, 5).random_element()
-   view(A)
+A = MatrixSpace(QQ, 5).random_element()
+view(A)
 \end{verbatim}
+Try typing this into a new box:
+\begin{verbatim}
+%latex
+Consider the matrix $$A = \sage{A},$$
+which has square $$A^2 = \sage{A^2}.$$
+\end{verbatim}
+If you would like to typeset a slide (suitable for presentation),
+use \%slide instead.
+
+\subsubsection{Using Gap, Magma, GP/PARI}
+Make the first line of the input block \code{\%gap}
+\code{\%magma}, or \code{\%gp}, etc.  The rest of the block
+is fed directly to the corresponding interpreter.
+In this way you can make a single session that has input blocks
+that work with a range of different systems.
+
+(Note -- there is currently no support for
+pulling in objects and evaluating code in SAGE by typing
+"sage(...)" inside the input block.  This is planned.)
+
+\subsubsection{Typesetting}
+If you have latex, gv, and the imagemagick programs (e.g., convert)
+installed on your system, you can do nice latex typesetting from
+within SAGE.
+\begin{enumerate}
+\item As usual the command \code{latex(obj)} outputs latex code
+to typeset obj.
+\item The command \code{view(obj)} creates an image representing
+the object, which you can copy and paste into other documents.
+\item If you preface a block with \code{\%latex} the rest of the
+block is typeset and the corresponding image appears.
+The input is also (mostly) hidden.  Use {\%latex_debug} to debug
+latex problems.
+\item If you preface a block with \code{\%slide} the rest of the
+block is typeset as a slide (bigger san serif font)
+and the corresponding image appears.  The input is again hidden.
+Use {\%slide_debug} for debugging.
+\end{enumerate}
+
+Make the first line of the input block \code{\%gap}
+\code{\%magma}, or \code{\%gp}, etc.  The rest of the block
+is fed directly to the corresponding interpreter.
+In this way you can make a single session that has input blocks
+that work with a range of different systems.   You can also
+pull in objects and evaluate code in SAGE by typing
+"sage(...)" inside the input block.
+
 
 \subsubsection{Adding and Removing Cells}
-How to add and remove input cells is an interesting design
-decision.  I went with the following:
-   (1) To add a new cell, click on a little black line that
-       appears when you hover between any two cells, or above
-       the top one.  This is what mathematica does.
-   (2) To delete a cell delete all its contents, then
-       hit backspace.  The cell vanishes forever.
+To add a new cell, click on a little black line that appears when you
+hover between any two cells, or above the top one.  To delete a cell
+delete all its contents, then hit backspace one more time.  The cell
+vanishes forever.
 
-You can also move back and forth between cells using
-"tab" and "shift tab".  Right now, inserting new cells is
-really the only thing in the interface that requires using
-a mouse.  I could make it so there is some sort of keyboard
-shortcut to insert a new cell... though there aren't many
-options, since the web browser takes most of them already.
+You can also move back and forth between cells using the up and down
+arrow.  In particular, when you are at the top of a cell and press
+the up arrow the cursor jumps to the previous cell.
+Press control-enter in a cell to create a new cell after the
+current cell (this does not evaluate the current cell).
 
-Anyway, please try the above out for adding and remove
-cells, and let me know if it is usable.  There
-is currently no support for moving and
-reorganizing cells, and I'm not sure there should be, given
-the somewhat linear nature of interaction with SAGE.
-The underlying design of the system is such that adding
-the ability to reorder cells wouldn't be too difficult.
+There is no direct support for moving and reorganizing cells, though
+you can copy and paste any individual cell into another one.  However,
+the "Text" and "Docstring" buttons provide the full text of the
+worksheet in a very convenient format for copy and paste.
+
+
+\subsubsection{History}
+Click the history button near the top to pop up a history of the last
+1000 (or so) input cells.  After a huge amount of design discussion about
+how to design a history system, a simple popup with the text of
+previous commands seems like the best choice.  It's incredibly simple,
+yet provides an incredible amount of functionality, especially because
+that popup window can be easily searched (at least in Firefox), pasted
+from, etc., and refreshed (use F5 or Ctrl-R).
 
 
 \subsubsection{Introspection}
-The design for introspection, i.e., finding all completions,
-and finding information information about an object is very
-interesting.   Tom, Alex and I made a number of prototypes
-that involve a little input line in the upper left corner
-of the screen whose content varies to reflect all possible completions
-of what you type into it.   In the end, I've settle on something
-much different, since it seems very easy to use in practice, and
-is more like IPython, so more familiar, and also better if you
-don't like using a mouse.
-\begin{enumerate}
-  \item to find all completions for the last identifier you're
-   typing on a line, just hit "escape".  The completions are
-   listed in the output box.  In particular, if you hit
-   escape in a blank cell you get a list of all sage commands.
-   If then type "Ab" followed by hitting escape, you get
-   the abelian group commands.  Type one in and put a question
-   mark afterwards and hit escape for help (see next step).
+To find all completions for an identifier you are typing press
+the tab key.  This should work exactly like IPython, and even
+respects the \code{trait_names()} method.
 
-  \item To find help for any object in a line, put a question
-    mark after it and press "escape".  The object must exist
-    in the current scope, e.g., so
-      a = 5
-      a?
-    all in one box won't work.
+To find help for any object in a line, put ? after it
+and press the tab key.  The cursor must be somewhere in the identifier
+with the question mark after it.   For source code, put ?? after
+the identifier and press tab.  You can also put an identifier by
+itself on a line with ? (or ??) after it and press shift-enter.
 
-  \item To get source code about any object, put ?? after it
-    and press escape.  The help appears below in the output
-    box, but you can continue to type in your input box.
+To get extensive help on an object, type "help(object)" and press
+return.  This works, since I set the PAGER to "cat", and I strip out
+control codes that appear in the output.  And this isn't annoying,
+since web browsers are very good for scrolling through long output.
 
-  \item To get extensive help on an object, type "help(object)"
-    and press return.  This works, since (a) I set the
-    PAGER to "cat", and (b) I strip out control codes that
-    appear in the output.  And this isn't annoying, since web
-    browsers are very good for scrolling through long output.
-
-  \item To find all completions for a word anywhere in a line,
-     type "?c" right after the word and press "escape".
-\end{enumerate}
-
-  Try the above and give me feedback.  How does this feel to you?
 
 \subsubsection{Objects}
 When you start a notebook you give a name argument
@@ -167,20 +183,25 @@ will be many worksheets (which you can use all at once and easily
 flip through -- not implemented yet), and an object store.
 You can save and load objects (using save and load), and they'll
 be listed in the box on the bottom let, e.g., try
-   a = 5
-   save(a, 'a')
+
+a = 5
+save a
+
 and you'll see the "a" appear there.   You can load and save objects
-from any worksheet in any other one.
+from any worksheet in any other one.  (Currently the only way to delete
+objects from the list of saved objects is to remove the object from
+the objects subdirectory.)
 
 \subsubsection{Pasting in Examples}
 Code is evaluated by exec'ing (after preparsing). Only the output
 of the last line of the cell is implicitly printed. If any line
-starts with "sage:" or ">>>" the entire block is assumed to
-contain text and examples, so only lines that begin with a
+starts with "sage:" or ">>>" the {\em entire block} is assumed to
+contain text and examples, and only lines that begin with a
 prompt are executed. Thus you can paste in *complete examples*
 from the docs without any editing, and you can write input
 cells that contains non-evaluated plain text mixed with
 examples by starting the block with ">>>" or including an example.
+(NOTE: Lines beginning with ">>>" are still preparsed.)
 
 \subsubsection{Saving and Loading}
 
@@ -188,59 +209,67 @@ The SAGE notebook is very persistent.  Every time you submit
 a cell for computation, the state of the notebook is saved (a
 few kb's file).  If you quit the notebook and reload, it will
 have everything you typed from the previous session, along
-with all output.   Todo: I'll make the saved state file backup
-the last safe state, to avoid the potential for corruption
-if the server Python process is killed while saving state.
-Also, this could easily allow for a sophisticated undo function;
-design ideas welcome...
+with all output.
+Firefox has an excellent undo function for text input cells.
+Just hit control-z to have ``infinite undo'' for the input
+you've entered in that particular cell.
+
+You can save all variables in a current session by typing
+\code{save_session [optional_name]}.  You can then load
+those session variables into another worksheet using
+\code{load_session}, or load into the same worksheet next
+time you use it.
 
 \subsubsection{Architecture}
 
-The SAGE Notebook is an AJAX application that can run either
+The SAGE Notebook is an ``AJAX application'' that can run either
 entirely locally on your desktop machine, or partly on
 a server and via a web browser that could be located somewhere
-else.  There is currently no support for multiple connections, but
-there will be as soon as I get multiple worksheets going (which
-is already mostly there, since it was designed in from the start).
+else.
+If you run the server and allow remote access (by setting
+address when starting the notebook), you should also set
+the username and password, so not just anybody can access
+the notebook.
+
 Anywhere, here are the components of the SAGE Notebook:
+
 \begin{enumerate}
-\item Web Server:
-     A Python process that uses the Python standard library's
+\item Web Server: A Python process that uses the
+      Python standard library's
      BaseHTTPServer.HTTPServer to create a web server.  This
      process also handles all requests from the web browser,
-     e.g., organizing computation of cells, etc.  It doesn't
-     do any actual mathematics, and only imports a very small
+     e.g., organizing computation of cells, etc.  It
+     only imports a small
      subset of the SAGE library.  In particular, if you do
-     "sage -notebook" at the command line, very little of
-     SAGE is imported.  This could be separated out
-     from SAGE to be its own Python module, in case people are
-     generally interested in "a web version of IPython"...
+     "sage -notebook" at the command line, only some of
+     SAGE is imported.
 
  \item SAGE Server:
      A Python process with all the SAGE libraries loaded; this
      is started by (1) when a web browser first requests that
-     a cell be evaluated.  There's one of these Python processes
+     a cell be evaluated.  There's (up to) one of these
      for each worksheet.
 
- \item WEB Browser:
-     The web browser runs a 500-line javascript (and 600 lines of css)
-     program that Alex, Tom and I wrote, which implements a lot of the
-     browser-side part of the SAGE notebook functionality.
+ \item WEB Browser: The web browser runs a 1000-line javascript (plus
+     800 lines of css) program that Alex, Tom and I wrote from
+     scratch, which implements much of the browser-side part of the
+     SAGE notebook functionality.
+
 \end{enumerate}
 
 When you use the SAGE Notebook, you are mainly interacting with a
 javascript program.  When you do something serious, e.g., request
-computation of some input, create a new cell, etc., a request
-is made from your web browser to the web server telling it what
-is going on.    If it's a calculation, the web server tells the
-SAGE server to get started on the calculation, and tells the web
-browser to check every delta (=0.2 seconds right now) whether
-there is anything new with the calculation.   Your web browser
-then checks back 5 times a second for updates, and when something
-new appears it fills that in.  This continues until all calculations
-are done. During this time, you can edit cells, submit more computations,
-etc.   Note that output really is updated in real time.  For
-example, try the following from the SAGE Notebook:
+computation of some input, create a new cell, etc., a request is made
+from your web browser to the web server telling it what is going on.
+If it's a calculation, the web server tells the SAGE server to get
+started on the calculation, and tells the web browser to check several
+times a second whether there is anything new with the calculation.
+When something new appears it fills that in.  This continues until all
+calculations are done. During this time, you can edit cells, create
+new cells, submit more computations, etc.  Note that output is
+updated as the computation proceeds, so you can verbosely watch
+a computation progressq.  For example, try the following from the SAGE
+Notebook:
 
 \begin{verbatim}
 import time
@@ -249,34 +278,31 @@ for i in range(10):
     time.sleep(0.5)
 \end{verbatim}
 
-You get to watch as the integers from 1 to 10 are "computed" in
-real time.    Actually, getting it so output is reported in
-real time is, I think, \emph{crucial} to making a really usable
-SAGE GUI -- users (i.e., me) want to run huge computations
-and watch the output progress.
+You get to watch as the integers from 1 to 10 are "computed".
+Actually, getting this output to be reported as the computation
+proceeds is, I think, \emph{crucial} to making a really usable SAGE
+GUI--users (i.e., me) want to run huge computations and watch the
+output progress.
 
-The architecture is also good from the point of view of being
-able to interrupt running computations.  What happens when
-you request an interrupt is that the web browser sends a message
-to the web server, which in turn tells the SAGE server to
-stop computing by sending it control-c's (up to about 10 seconds)
-until it either stops, or if it's really frozen (due to a bug,
-or calling into a C function that isn't properly wrapped
-in signal handling, or maybe you run some crazy interactive
-program like pine via "os.system('...')"), it'll just kill
-that SAGE server 2 and restart it.  The result is that
-the user doesn't get a frozen web browser or browser interface
-at any point, and even if the whole SAGE process went down and
-froze, at least all your input and output from your session is
-still there in your browser.  The only thing you've lost is
-the definition of all your variables.  Hit "shift-enter"
-a few times or "evaluate all" and you're back in shape.
-This is much better than having to restart the command prompt
-(e.g., with a terminal interface), then paste back in all your
-setup code, etc.,   Also, you can save variables as you go
-easily (via the "save" command), and get back to where you
-were quickly.    -- This is probably very similar to Mathematica/Maple
-which have "restart kernel" commands, etc.
+The architecture is also good from the point of view of being able to
+interrupt running computations.  What happens when you request an
+interrupt is that the web browser sends a message to the web server,
+which in turn tells the SAGE server to stop computing by sending it
+many interrupt signals (for several seconds) until it either stops, or
+if it's really frozen (due to a bug, or calling into a C function that
+isn't properly wrapped in signal handling, or maybe you run an
+interactive program, e.g., via "os.system('...')"), it'll just kill that SAGE server
+and start a new one.  The result is that the
+user doesn't get a frozen web browser or browser interface at any point,
+and even if the whole SAGE process went down and froze, at least all
+your input and output from your session is still there in your
+browser.  The only thing you've lost is the definition of all your
+variables.  Hit "shift-enter" a few times or "evaluate all" and you're
+back in shape.  This is much better than having to restart the command
+prompt (e.g., with a terminal interface), then paste back in all your
+setup code, etc., Also, you can save variables as you go easily (via
+the "save" command), and get back to where you were quickly.
+
 """
 
 ###########################################################################
@@ -302,8 +328,9 @@ import server       # web server
 import worksheet     # individual worksheets (which make up a notebook)
 import config
 
-#MAX_WORKSHEETS = 65535
-MAX_WORKSHEETS = 1024
+MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
+MAX_HISTORY_LENGTH = 1000
+WRAP_NCOLS = 85
 
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None, password=None):
@@ -317,10 +344,78 @@ class Notebook(SageObject):
         self.__object_dir   = '%s/objects'%dir
         self.__makedirs()
         self.__next_worksheet_id = 0
+        self.__history = []
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.save()
 
+    def add_to_history(self, input_text):
+        H = self.history()
+        H.append(input_text)
+        if len(H) > self.max_history_length() and len(H) > 0:
+            del H[0]
+
+    def history(self):
+        try:
+            return self.__history
+        except AttributeError:
+            self.__history = []
+            return self.__history
+
+    def history_text(self):
+        return '\n\n'.join([H.strip() for H in self.history()])
+
+    def history_with_start(self, start):
+        n = len(start)
+        return [x for x in self.history() if x[:n] == start]
+
+    def export_worksheet(self, worksheet_filename, filename):
+        W = self.get_worksheet_with_filename(worksheet_filename)
+        W.save()
+        cmd = 'cd %s && tar -jcf %s.sws "%s" && mv %s.sws ..'%(
+            self.__worksheet_dir,
+            filename, W.filename(), filename)
+        print cmd
+        os.system(cmd)
+
+    def tmpdir(self):
+        d = '%s/tmp'%self.__dir
+        if os.path.exists(d):
+            os.system('rm -rf "%s"'%d)
+        if not os.path.exists(d):
+            os.makedirs(d)
+        return d
+
+    def import_worksheet(self, filename):
+        if not os.path.exists(filename):
+            raise ValueError, "no file %s"%filename
+        if filename[-4:] != '.sws':
+            raise ValueError, "file %s must have extension sws."%filename
+        tmp = self.tmpdir()
+        cmd = 'cd %s; tar -jxf %s'%(tmp, os.path.abspath(filename))
+        print cmd
+        os.system(cmd)
+        D = os.listdir(tmp)[0]
+        print D
+        worksheet = load('%s/%s/%s.sobj'%(tmp,D,D))
+        S = self.__worksheet_dir
+        cmd = 'rm -rf "%s/%s"'%(S,D)
+        print cmd
+        os.system(cmd)
+        cmd = 'mv %s/%s %s/'%(tmp, D, S)
+        print cmd
+        os.system(cmd)
+        new_id = None
+        id = worksheet.id()
+        for W in self.__worksheets.itervalues():
+            if W.id() == id:
+                new_id = self.__next_worksheet_id
+                self.__next_worksheet_id += 1
+                break
+        worksheet.set_notebook(self, new_id)
+        name = worksheet.name()
+        self.__worksheets[name] = worksheet
+        return worksheet
 
     # unpickled, no worksheets will think they are
     # being computed, since they clearly aren't (since
@@ -342,12 +437,19 @@ class Notebook(SageObject):
         """
         return os.path.abspath('%s/..'%self.__dir)
 
+    def max_history_length(self):
+        try:
+            return self.__defaults['max_history_length']
+        except KeyError:
+            return MAX_HISTORY_LENGTH
+
     def __load_defaults(self):
         # in future this will allow override by a file, and
         # can be set by user via web interface
         self.__defaults = {'cell_input_color':'#0000000',
                            'cell_output_color':'#0000EE',
-                           'word_wrap_cols':85}
+                           'word_wrap_cols':WRAP_NCOLS,
+                           'max_history_length':MAX_HISTORY_LENGTH}
 
     def worksheet_directory(self):
         return self.__worksheet_dir
@@ -363,10 +465,10 @@ class Notebook(SageObject):
     def object_list_html(self):
         m = max([len(x) for x in self.objects()] + [30])
         s = []
-        a = '<a href="/%s.sobj" class="object_name">'
+        a = '<a href="/%s.sobj" class="object_name">\n'
         for name in self.objects():
-            s.append(a%name + name + '&nbsp;'*(m-len(x)) + '</a>')
-        return '<br>'.join(s)
+            s.append(a%name + name + '&nbsp;'*(m-len(name)) + '</a>\n')
+        return '<br>\n'.join(s)
 
     def defaults(self):
         return self.__defaults
@@ -395,11 +497,18 @@ class Notebook(SageObject):
         os.makedirs(self.__worksheet_dir)
         os.makedirs(self.__object_dir)
 
+    def worksheet_ids(self):
+        return set([W.id() for W in self.__worksheets.itervalues()])
+
     def create_new_worksheet(self, name='untitled'):
         if name in self.__worksheets.keys():
             raise KeyError, 'name (=%s) already taken.'%name
         name = str(name)
-        id = self.__next_worksheet_id
+        wids = self.worksheet_ids()
+        id = 0
+        while id in wids:
+            id += 1
+
         if id >= MAX_WORKSHEETS:
             raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
         self.__next_worksheet_id += 1
@@ -410,6 +519,11 @@ class Notebook(SageObject):
     def delete_worksheet(self, name):
         if not (name in self.__worksheets.keys()):
             raise KeyError, "Attempt to delete missing worksheet"
+        W = self.__worksheets[name]
+        cmd = 'rm -rf "%s"'%(W.directory())
+        print cmd
+        os.system(cmd)
+
         del self.__worksheets[name]
         if len(self.__worksheets) == 0:
             return self.create_new_worksheet('_scratch_')
@@ -429,7 +543,14 @@ class Notebook(SageObject):
             for W in self.__worksheets.itervalues():
                 if W.id() == id:
                     return W
-        return self.__worksheets[self.worksheet_names()[0]]
+        return self.__worksheets[self.__worksheets.keys()[0]]
+
+    def get_worksheet_with_filename(self, filename):
+        if id != None:
+            for W in self.__worksheets.itervalues():
+                if W.filename() == filename:
+                    return W
+        raise KeyError, "no such worksheet %s"%filename
 
     def get_worksheet_that_has_cell_with_id(self, id):
         worksheet_id = id // MAX_WORKSHEETS
@@ -485,7 +606,7 @@ class Notebook(SageObject):
         notebook_server.serve()
         self.save()
 
-    def worksheet_list_html(self, current_worksheet):
+    def worksheet_list_html(self, current_worksheet=None):
         s = []
         names = self.worksheet_names()
         m = max([len(x) for x in names] + [30])
@@ -498,13 +619,14 @@ class Notebook(SageObject):
             if W.computing():
                 cls += '_computing' # actively computing
             name = W.name().replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
+            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" target="_new" href="/%s">%s</a>'%(
                 cls,W.id(),W.id(),W.id(),name + '&nbsp;'*(m-len(W.name())))
             s.append(txt)
         return '<br>'.join(s)
 
-    def _html_head(self):
-        head = '<title>SAGE Notebook: %s</title>'%self.directory()
+    def _html_head(self, worksheet_id):
+        worksheet = self.get_worksheet_with_id(worksheet_id)
+        head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css() + '</style>\n'
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
         return head
@@ -524,6 +646,27 @@ class Notebook(SageObject):
              </div>
         """
 
+##         upload_worksheet_menu = """
+##              <div class="upload_worksheet_menu" id="upload_worksheet_menu">
+##              <form method="post" action="upload_worksheet"
+##                    name="upload" enctype="multipart/form-data">
+##              <input class="upload_worksheet_menu" type="file" name="fileField" id="upload_worksheet_filename"></input><br>
+##              <button class="upload_worksheet_menu" onClick="process_upload_worksheet_menu_submit();">upload</button>
+##              &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_upload_worksheet_menu()">X</span>
+##              </form><br>
+##              (only works if server is running locally)
+##              </div>
+##         """
+
+        upload_worksheet_menu = """
+             <div class="upload_worksheet_menu" id="upload_worksheet_menu">
+             <input class="upload_worksheet_menu" type="file" name="fileField" id="upload_worksheet_filename"></input><br>
+             <button class="upload_worksheet_menu" onClick="process_upload_worksheet_menu_submit();">upload</button>
+             &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_upload_worksheet_menu()">CANCEL</span>
+             <br>(only works if server is running locally!)
+             </div>
+        """
+
         delete_worksheet_menu = """
              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
              <input id="delete_worksheet_box" class="delete_worksheet_menu"></input>
@@ -535,35 +678,41 @@ class Notebook(SageObject):
         vbar = '<span class="vbar"></span>'
 
         body = ''
-        body += self._help_window()
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
+        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+        #body += '    <a class="history_link" href="__history__.txt" target="_new">Input History</a> '
+        body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
+        body += '    <a class="download_sws" href="%s.sws">Download</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Docstring</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
-        body += '<a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '<a class="hide" onClick="hide_all()">Hide Output</a>' + vbar
-        body += '<a class="help" onClick="show_help_window()">Help</a>'
+        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+        body += '    <a class="hide" onClick="hide_all()">Hide Output</a>'
         body += '  </span>'
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n' + worksheet.html() + '\n</div>\n'
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
+        body += '  <div class="worksheets_topbar">Worksheets&nbsp;\n'
+        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Add</a> '
+        body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>'
+        body += '  </div>\n'
+        body +=    add_new_worksheet_menu
+        body +=    upload_worksheet_menu
+        body +=    delete_worksheet_menu
+        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
+        body += '  <div class="objects_topbar">Saved Objects</div>\n'
+        body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
+        body += '<br>\n'
         body += '  <div class="variables_topbar">Variables</div>\n'
         body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
                 worksheet.variables_html()
         body += '  <div class="attached_topbar">Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
-        body += '  <div class="worksheets_topbar">Worksheets&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\n'
-        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Add</a>&nbsp;&nbsp;\n'
-        body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a>\n'
-        #body += '     <a onClick="upload_worksheet()" class="upload_worksheet">Upload</a>\n'
-        body += '  </div>\n'
-        body +=    add_new_worksheet_menu
-        body +=    delete_worksheet_menu
-        body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '  <div class="objects_topbar">Saved Objects</div>\n'
-        body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
         body += '</td></tr></table></span>\n'
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
 
@@ -573,60 +722,99 @@ class Notebook(SageObject):
 
         return body
 
-    def _help_window(self):
-        help = [('<b>Definitions</b>',
-                 'A <i>worksheet</i> is an ordered list of SAGE calculations with output. ' +
-                 'A <i>session</i> is a worksheet and a set of variables in some state. ' +
-                 'A <i>notebook</i> is a collection of worksheets and saved objects. '),
-                ('<b>Evaluate</b> Input', 'Press shift-enter.  You can start several calculations at once.'),
-                ('<b>Timed</b> Evaluation', 'Press control-enter.  The CPU and wall clock time are printed.'),
-                ('<b>Evaluate all</b> cells', 'Click <u>Evaluate All</u> in the upper right.'),
-                ('Evaluate using <b>GAP, Singular, etc.</b>', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('<b>Move</b> Around', 'Use tab and shift-tab (standard for web browsers).'),
-                ('<b>Interrupt</b> running calculations',
-                 'Click <u>Interrupt</u> in the upper right or press ctrl-c in any input cell. This will (attempt) to interrupt SAGE by sending control-c for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
-                ('<b>Completions</b> of last object in cell', 'Press ctrl right-arrow or the escape key.'),
-                ('<b>Completion</b> of word anywhere in input',
-                  'Type ?c immediately after the word and press ctrl right-arrow or escape, e.g., "Ell?c"'),
-                ('<b>Help</b> About Object',
-                 'Put ? right after the object and press ctrl right-arrow or escape.'),
-                ('<b>Detailed Help</b>',
+    def help_window(self):
+        help = [
+               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell is created after the current one (and the current one is not evaluated).'),
+                ('Timed Evaluation', 'Type "time" at the beginning of the cell.'),
+                ('Evaluate all cells', 'Click <u>Evaluate All</u> in the upper right.'),
+                ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
+                ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.'),
+               ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.'),
+                ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
+                ('Move between cells', 'Use the up and down arrows on your keyboard.'),
+                ('Interrupt running calculations',
+                 'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
+                ('Tab completion', 'Press tab while the cursor is on an identifier.'),
+                ('Help About',
+                 'Type ? immediately after the object or function and press tab.'),
+                ('Source Code',
+                 'Put ?? after the object and press tab.'),
+                ('Detailed Help',
                  'Type "help(object)" and press shift-return.'),
-                ('<b>Source Code</b> of a command',
-                 'Put ?? after the command and press ctrl right-arrow or escape.'),
-                ('<b>Insert New</b> Cell',
-                 'Put mouse between an output and input until the horizontal line appears and click.'),
-                ('<b>Delete</b> Cell',
-                 'Delete cell contents using backspace and the cell will be removed.'),
-                ('<b>Hide/Expand</b> Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('<b>Hide All</b> Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
-                ('<b>Variables</b>',
-                 'All variables with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
-                ('<b>Objects</b>',
-                 'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
-                ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
-                ('Loading and Saving <b>Objects</b>', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
-                ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
-                ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Saving <b>Worksheets</b>',
-                 '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a worksheet.'),
-                ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
-                ('<b>Restart</b>', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
-                ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
-                ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
-                ('<b>Customizing</b> the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.  The look of the notebook interface is highly customizable via CSS.  Send me your skins!'),
-                ('<b>Emacs Keybindings</b>', 'If you are using GNU/Linux, you can change (or create) your .gtkrc-2.0.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
-                ('More <b>Help</b>', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial.'),
+                ('Insert New Cell',
+                 'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it (the current cell is not evaluated).'),
+                ('Delete Cell',
+                 'Delete cell contents the press backspace.'),
+                ('Text of Worksheet', 'Click the <u>Text</u> and <u>Docstring</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
+                ('History', 'Click the <u>History</u> link for a history of commands entered in any worksheet of this notebook.  This appears in a popup window, which you can search (control-F) and copy and paste from.'),
+                ('Hide/Expand Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
+                ('Hide All Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
+                ('Variables',
+                 'All variables and functions with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
+                ('Objects',
+                 'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to save and load objects.'),
+                ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
+                ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
+                ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
+                ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
+                ('Saving Worksheets',
+                 'Click Download in the upper right to download a complete worksheet to a local .sws file.  Note that uploading is not implemented yet (the <i>only</i> thing left is implementing upload of binary data to the server). Note that <i>everything</i> that has been submitted is automatically saved to disk, and is there for you next time you access the notebook.'),
+                ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
+                ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
+                ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
+                ('Customizing the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.'),
+                ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
+                ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
                 ('<hr>','<hr>'),
-                ('<b>Acknowledgement</b>', 'The design of SAGE notebook was influenced by Mathematica, GMail, GNU Emacs, and IPython.  AUTHORS: William Stein, Alex Clemesha, and Tom Boothy')
                 ]
+
+        help.sort()
         s = """
-        <div class="help_window" id="help_window">
-        <div class="help_window_title">&nbsp;&nbsp;&nbsp;Help</div>
-        <div class="help_window_close" onClick="hide_help_window()">&#215;&nbsp;</div>
+
         This is the SAGE Notebook, which is the graphical interface to
         the computer algebra system SAGE (Software for Algebra and
         Geometry Exploration).
+        <br><b>Use Firefox:</b> <i>It currently only works in <b>Firefox</b>, but might
+        work to some extent in other browsers.</i><br>
+        AUTHORS: William Stein, Tom Boothby, Alex Clemesha (with feedback from many people,
+        especially Fernando Perez and Joe Wetherell).
+
+        <br><hr>
+        <style>
+        div.help_window {
+            background-color:white;
+            border: 3px solid #3d86d0;
+            top: 10ex;
+            bottom:10%;
+            left:25%;
+            right:15%;
+            padding:2ex;
+        }
+
+
+        table.help_window {
+            background-color:white;
+            width:100%;
+        }
+
+        td.help_window_cmd {
+            background-color: #f5e0aa;
+            width:30%;
+            padding:1ex;
+            font-weight:bold;
+        }
+
+        td.help_window_how {
+            padding:1ex;
+            width:70%;
+        }
+        </style>
+        <div class="help_window">
+
+        A <i>worksheet</i> is an ordered list of SAGE calculations with output.
+        A <i>session</i> is a worksheet and a set of variables in some state.
+        A <i>notebook</i> is a collection of worksheets and saved objects.
+
         <table class="help_window">
         """
         for x, y in help:
@@ -641,7 +829,7 @@ class Notebook(SageObject):
             worksheet_id = W.id()
         else:
             try:
-                self.get_worksheet_with_id(worksheet_id)
+                W = self.get_worksheet_with_id(worksheet_id)
             except KeyError:
                 W = self.default_worksheet()
                 worksheet_id = W.id()
@@ -651,14 +839,14 @@ class Notebook(SageObject):
         else:
             body = self._html_authorize()
 
-        head = self._html_head()
+        head = self._html_head(worksheet_id)
         return """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
-        <script language=javascript>worksheet_id=%s</script>
-        """%(head, body, worksheet_id)
+        <script language=javascript>worksheet_id=%s; worksheet_filename="%s"</script>
+        """%(head, body, worksheet_id, W.filename())
 
     def _html_authorize(self):
         return """
@@ -685,7 +873,7 @@ class Notebook(SageObject):
 def notebook(dir       ='sage_notebook',
              port      = 8000,
              address   = 'localhost',
-             open_viewer    = True,
+             open_viewer    = False,
              max_tries = 10,
              username  = None,
              password  = None):
@@ -785,6 +973,7 @@ def notebook(dir       ='sage_notebook',
     expect_quitall(verbose=False)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
+    return nb
 
 
 

@@ -46,39 +46,45 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         qs = self.rfile.read(length)
         return cgi.parse_qs(qs, keep_blank_values=1)
 
-    def eval_cell(self, time=False, completions=False):
+
+    def eval_cell(self, newcell=False, introspect=False):
         C = self.get_postvars()
         id = int(C['id'][0])
         input_text = C['input'][0]
         input_text = input_text.replace('__plus__','+')
+        notebook.add_to_history(input_text)
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
         notebook.save()
 
-        cell.evaluate(time, completions)
+        cell.evaluate(introspect=introspect)
 
         if cell.is_last():
             new_cell = W.append_new_cell()
-            self.wfile.write(str(new_cell.id()) + SEP +
-                             new_cell.html(div_wrap=False) + SEP + str(W.cell_id_list()))
+            self.wfile.write(str(new_cell.id()) + SEP + 'append_new_cell' + SEP + \
+                             new_cell.html(div_wrap=False))
+        elif newcell:
+            new_cell = W.new_cell_after(id)
+            self.wfile.write(str(new_cell.id()) + SEP + 'insert_cell' + SEP + \
+                             new_cell.html(div_wrap=False) + SEP + str(id))
         else:
             self.wfile.write(str(cell.next_id()) + SEP +
                              'no_new_cell' + SEP + str(id))
 
-    def completions(self):
+    def introspect(self):
         C = self.get_postvars()
         id = int(C['id'][0])
         before_cursor = C['before_cursor'][0].replace('__plus__','+')
         after_cursor = C['after_cursor'][0].replace('__plus__','+')
         input_text = (before_cursor+after_cursor)
-        verbose('completions -- %s: %s|%s'%(id, before_cursor, after_cursor))
+        verbose('introspect -- %s: %s|%s'%(id, before_cursor, after_cursor))
 
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(before_cursor + after_cursor)
-        cell.evaluate(completions=[before_cursor, after_cursor])
+        cell.evaluate(introspect=[before_cursor, after_cursor])
 
         self.wfile.write(str(cell.next_id()) + SEP +
                          'no_new_cell' + SEP + str(id))
@@ -92,7 +98,17 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         cell = W.new_cell_before(id)
         notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
-                         str(id) + SEP + str(W.cell_id_list()) )
+                         str(id))
+
+    def new_cell_after(self):
+        C = self.get_postvars()
+        id = int(C['id'][0])
+        verbose("Adding new cell after cell with id %s"%id)
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
+        cell = W.new_cell_after(id)
+        notebook.save()
+        self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
+                         str(id) + SEP)
 
     def delete_cell(self):
         C = self.get_postvars()
@@ -120,18 +136,28 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 print "WARNING -- failure to pickle the notebook"
             variables = worksheet.variables_html()
             objects = notebook.object_list_html()
+            attached_files = worksheet.attached_html()
         else:
             variables = '...'  # not used
             objects = "..." # note used
+            attached_files = '...' # not used
         if cell is None:
             msg = 'empty'
         else:
+            if status == 'd':
+                new_input = cell.changed_input_text()
+                out_html = cell.output_html()
+            else:
+                new_input = ''
+                out_html = ''
             msg = '%s%s %s'%(status, cell.id(),
-                              SEP.join([cell.output_text(),
-                                        cell.output_text(cols),
-                                        cell.output_html(),
+                              SEP.join([cell.output_text().replace('<','&lt;'),
+                                        cell.output_text(cols).replace('<','&lt;'),
+                                        out_html,
+                                        new_input,
                                         variables,
-                                        objects]))
+                                        objects,
+                                        attached_files]))
             # more comps to go.
             worksheet.start_next_comp()
         self.wfile.write(msg)
@@ -165,15 +191,73 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             W = notebook.delete_worksheet(worksheet_name)
         except KeyError, msg:
-            print "Error deleting worksheet: ", msg
+            msg = "Error deleting worksheet: " + str(msg)
             self.wfile.write(msg)
             return
         new_worksheet_list = notebook.worksheet_list_html(W.name())
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
-    def plain_text_worksheet(self, worksheet_id):
-        W = notebook.get_worksheet_with_id(worksheet_id)
-        self.wfile.write(W.plain_text())
+    def upload_worksheet_local_file(self):
+        C = self.get_postvars()
+        filename = C['filename'][0]
+        try:
+            W = notebook.import_worksheet(filename)
+        except ValueError, msg:
+            msg = "Error uploading worksheet: " + str(msg)
+            print msg
+            self.wfile.write(msg)
+            return
+        self.wfile.write(notebook.worksheet_list_html())
+
+        #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
+
+    def plain_text_worksheet(self, filename, prompts=True):
+        self.send_head()
+        W = notebook.get_worksheet_with_filename(filename)
+        t = W.plain_text(prompts = prompts)
+        t = t.replace('<','&lt;')
+        s = '<head>\n'
+        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<pre>' + t + '</pre>'
+        s += '</body>\n'
+        self.wfile.write(s)
+
+    def input_history_text(self):
+        self.send_head()
+        t = notebook.history_text()
+        t = t.replace('<','&gt;')
+        s = '<head>\n'
+        s += '<title>SAGE Input History</title>\n'
+        s += '</head>\n'
+        s += '<body>\n'
+        s += '<pre>' + t + '</pre>\n'
+        s += '<a name="bottom"></a>\n'
+        s += '<script language=javascript> window.location="#bottom"</script>\n'
+        s += '</body>\n'
+        self.wfile.write(s)
+
+    def help_window(self):
+        self.send_head()
+        self.wfile.write(notebook.help_window())
+
+
+    def download_worksheet(self, filename):
+        try:
+            notebook.export_worksheet(filename, filename)
+        except KeyError:
+            self.file_not_found()
+            return
+        self.send_response(200)
+        self.send_header("Content-type", 'application/sage')
+        self.end_headers()
+        binfile = open('%s/%s.sws'%(notebook.directory(), filename), 'rb').read()
+        f = StringIO()
+        f.write(binfile)
+        f.seek(0)
+        shutil.copyfileobj(f, self.wfile)
+        f.close()
 
     def cell_id_list(self):
         C = self.get_postvars()
@@ -189,15 +273,38 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
+        if path[-5:] == '.html' and not '/' in path:
+            worksheet_filename = path[:-5]
+            if worksheet_filename == '__history__':
+                self.input_history_text()
+            elif worksheet_filename == '__help__':
+                self.help_window()
+            elif worksheet_filename[-7:] == '__doc__':
+                self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
+            else:
+                self.plain_text_worksheet(worksheet_filename, prompts=False)
+            return
+        elif path[-4:] == '.sws':
+            worksheet_filename = path[:-4]
+            self.download_worksheet(worksheet_filename)
+            return
+
         try:
             binfile = open(path, 'rb').read()
-        except IOError:
+        except IOError, msg:
+            print 'file not found', msg
             return self.file_not_found()
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
         elif self.path[-3:] == '.ps':
             self.send_header("Content-type", 'application/postscript')
+        elif self.path[-4:] == '.tex':
+            self.send_header("Content-type", 'application/latex')
+        elif self.path[-4:] == '.dvi':
+            self.send_header("Content-type", 'application/x-dvi')
+        elif self.path[-4:] == '.log':
+            self.send_header("Content-type", 'text/plain')
         elif self.path[-4:] == '.eps':
             self.send_header("Content-type", 'image/x-eps')
         elif self.path[-4:] == '.svg':
@@ -206,6 +313,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':
             self.send_header("Content-type", 'application/sage')
+        elif self.path[-5:] == '.html':
+            self.send_header("Content-type", 'text/html')
         self.end_headers()
         f = StringIO()
         f.write(binfile)
@@ -216,11 +325,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None):
         self.send_head()
-        try:
-            self.wfile.write(notebook.html(worksheet_id=worksheet_id,
-                                           authorized=self.authorize()))
-        except:
-            print "Error writing out web page."
+        self.wfile.write(notebook.html(worksheet_id=worksheet_id,
+                                       authorized=self.authorize()))
 
 
     def file_not_found(self):
@@ -241,8 +347,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         verbose(self.path)
 
-        if self.path[-4:] in ['.eps', '.png', '.svg', '.txt', '.ico'] or \
-               self.path[-5:] == '.sobj' or self.path[-3:] == '.ps':
+        if self.path[-4:] in ['.eps', '.png', '.svg', '.tex', '.dvi', '.log', \
+                              '.txt', '.ico', '.sws'] or \
+               self.path[-5:] in ['.sobj', '.html'] or self.path[-3:] == '.ps':
             return self.get_file()
 
         path = self.path.strip('/')
@@ -255,9 +362,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         except ValueError:
             worksheet_id = None
         path = path[i+1:]
-        if path == 'text':
-            self.plain_text_worksheet(worksheet_id)
-        elif path == '':
+        if path == '':
             return self.show_page(worksheet_id=worksheet_id)
         else:
             self.file_not_found()
@@ -281,7 +386,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.body = {}
 
         elif content_type == 'multipart/form-data':
-            self.body = cgi.parse_multipart(self.rfile, post_dict)
+            if self.path == '/upload_worksheet':
+                self.upload_worksheet_local_file()
+
+                #fs = cgi.FieldStorage(self.rfile, post_dict)
+                #print fs
+                #print post_dict
+                #print fs.make_file().read()
 
         elif content_type == 'application/x-www-form-urlencoded':
             self.send_response(200)
@@ -290,13 +401,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if self.path[-8:]   == '/refresh':
                 self.show_page(worksheet_id=None, body_only=True)
             elif self.path[-6:] == '/eval0':
-                self.eval_cell(time=False)
+                self.eval_cell(newcell=False)
             elif self.path[-6:] == '/eval1':
-                self.eval_cell(time=True)
-            elif self.path[-12:] == '/completions':
-                self.completions()
+                self.eval_cell(newcell=True)
+            elif self.path[-11:] == '/introspect':
+                self.introspect()
             elif self.path[-9:]  == '/new_cell':
                 self.new_cell()
+            elif self.path[-15:] == '/new_cell_after':
+                self.new_cell_after()
             elif self.path[-12:] == '/delete_cell':
                 self.delete_cell()
             elif self.path[-13:] == '/update_cells':
@@ -309,6 +422,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.add_worksheet()
             elif self.path[-17:] == '/delete_worksheet':
                 self.delete_worksheet()
+            elif self.path == '/upload_worksheet':
+                self.upload_worksheet_local_file()
         else:
             self.body = {}                   # Unknown content-type
 

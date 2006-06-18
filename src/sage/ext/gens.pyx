@@ -99,9 +99,9 @@ cdef class Generators(sage_object.SageObject):
         Return a list of all elements in this object, if possible (the
         object must define an iterator).
         """
-        try:
+        if self.__list != None:
             return self.__list
-        except AttributeError:
+        else:
             self.__list = list(self.__iter__())
         return self.__list
 
@@ -163,9 +163,9 @@ cdef class Generators(sage_object.SageObject):
        object, in order.
        """
        cdef int i, n
-       try:
+       if self.__gens != None:
            return self.__gens
-       except AttributeError:
+       else:
            v = []
            n = self.ngens()
            for i from 0 <= i < n:
@@ -177,9 +177,9 @@ cdef class Generators(sage_object.SageObject):
         r"""
         Return a dictionary whose entries are \code{var_name:variable}.
         """
-        try:
+        if self.__gens_dict != None:
             return self.__gens_dict
-        except AttributeError:
+        else:
             v = {}
             for x in self.gens():
                 v[str(x)] = x
@@ -224,42 +224,72 @@ cdef class Generators(sage_object.SageObject):
         self.__latex_names = tuple(latex_names)
 
     def _names_from_obj(self, X):
-        try:
+        if self.__names != None and self.__latex_names != None:
             old = (self.__names, self.__latex_names)
-        except AttributeError:
+        else:
             old = None
-        try:
-            if X is None:
-                del self.__names
-                del self.__latex_names
-                return old
-            if not isinstance(X, tuple):
+        if X is None:
+            self.__names = None
+            self.__latex_names = None
+            return old
+        if not isinstance(X, tuple):
+            if X.__names!=None and X.__latex_names!=None:
                 X = (X.__names, X.__latex_names)
-            (self.__names, self.__latex_names) =  X
-        except AttributeError:
-            pass
+            else:
+                return old
+        (self.__names, self.__latex_names) =  X
         return old
 
     def variable_names(self):
-        try:
+        if self.__names!=None:
             return self.__names
-        except AttributeError:
+        else:
             self.__names = sage.misc.defaults.variable_names(self.ngens())
             return self.__names
 
     def latex_variable_names(self):
-        try:
+        if self.__latex_names != None:
             return self.__latex_names
-        except AttributeError:
+        else:
             self.__latex_names = sage.misc.defaults.latex_variable_names(self.ngens())
             return self.__latex_names
 
     def variable_name(self):
         return self.variable_names()[0]
 
-
     def latex_name(self):
         return self.variable_name()
+
+    def __getstate__(self):
+        try:
+            d = list(self.__dict__.copy().iteritems()) # so we can add elements
+        except AttributeError:
+            pass
+        d = dict(d)
+        d['__gens'] = self.__gens
+        d['__gens_dict'] = self.__gens_dict
+        d['__list'] = self.__list
+        d['__names'] = self.__names
+        d['__latex_names'] = self.__latex_names
+        try:
+            d['__generator_orders'] = self.__generator_orders
+        except AttributeError:
+            pass
+
+        return d
+
+    def __setstate__(self,d):
+        try:
+            self.__dict__ = d
+            self.__generator_orders = d['__generator_orders']
+        except (AttributeError,KeyError):
+            pass
+        self.__gens = d['__gens']
+        self.__gens_dict = d['__gens_dict']
+        self.__list = d['__list']
+        self.__names = d['__names']
+        self.__latex_names = d['__latex_names']
+
 
     #################################################################################
     # Morphisms of objects with generators
@@ -349,9 +379,9 @@ cdef class Generators(sage_object.SageObject):
 
 cdef class MultiplicativeAbelianGenerators(Generators):
     def generator_orders(self):
-        try:
+        if self.__generator_orders != None:
             return self.__generator_orders
-        except AttributeError:
+        else:
             g = []
             for x in self.gens():
                 g.append(x.multiplicative_order())
@@ -368,9 +398,9 @@ cdef class MultiplicativeAbelianGenerators(Generators):
 
 cdef class AdditiveAbelianGenerators(Generators):
     def generator_orders(self):
-        try:
+        if self.__generator_orders != None:
             return self.__generator_orders
-        except AttributeError:
+        else:
             g = []
             for x in self.gens():
                 g.append(x.additive_order())

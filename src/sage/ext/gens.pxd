@@ -2,10 +2,14 @@ import sage_object
 cimport sage_object
 
 cdef class Generators(sage_object.SageObject):
-    pass
+    cdef public object __gens
+    cdef public object __gens_dict
+    cdef public object __list
+    cdef public object __names
+    cdef public object __latex_names
 
 cdef class MultiplicativeAbelianGenerators(Generators):
-    pass
+    cdef public object __generator_orders
 
 cdef class AdditiveAbelianGenerators(Generators):
-    pass
+    cdef public object __generator_orders

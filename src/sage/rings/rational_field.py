@@ -14,13 +14,12 @@ import sage.structure.factorization
 import complex_field
 import infinity
 
-
 _obj = {}
 class _uniq(object):
     def __new__(cls):
         if _obj.has_key(0):
             return _obj[0]
-        O = object.__new__(cls)
+        O = field.Field.__new__(cls)
         _obj[0] = O
         return O
 

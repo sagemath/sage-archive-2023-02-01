@@ -5,10 +5,10 @@ cdef class Ring(gens.Generators):
     pass
 
 cdef class CommutativeRing(Ring):
-    pass
+    cdef public object __ideal_monoid
 
 cdef class IntegralDomain(CommutativeRing):
-#    cdef object _fraction_field
+    cdef public object __fraction_field
     pass
 
 cdef class DedekindDomain(IntegralDomain):
@@ -23,6 +23,11 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
 
 cdef class Field(PrincipalIdealDomain):
     pass
+
+cdef class FiniteField(Field):
+    cdef public object __multiplicative_generator
+    cdef public object __polynomial_ring
+    cdef public object __vector_space
 
 cdef class Algebra(Ring):
     pass

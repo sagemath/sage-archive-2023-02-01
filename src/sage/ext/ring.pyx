@@ -23,6 +23,7 @@ import sage.ext.coerce
 import sage.rings.finite_field
 import sage.rings.integer_ring
 import sage.rings.rational_field
+import sage.ext.integer
 
 cdef class Ring(gens.Generators):
     """
@@ -274,15 +275,15 @@ cdef class CommutativeRing(Ring):
         """
         Return the monoid of ideals of this ring.
         """
-        try:
+        if self.__ideal_monoid != None:
             return self.__ideal_monoid
-        except AttributeError:
+        else:
             from sage.rings.ideal_monoid import IdealMonoid
             M = IdealMonoid(self)
-            try:
-                self.__ideal_monoid = M
-            except AttributeError:   # for pyrex classes
-                pass
+            #try:
+            self.__ideal_monoid = M
+            #except AttributeError:   # for pyrex classes
+            #    pass
             return M
 
     def quotient(self, I, names=None):
@@ -339,9 +340,9 @@ cdef class IntegralDomain(CommutativeRing):
         """
         Return the fraction field of self.
         """
-        try:
+        if self.__fraction_field != None:
             return self.__fraction_field
-        except AttributeError:
+        else:
             import sage.rings.fraction_field
             self.__fraction_field = sage.rings.fraction_field.FractionField_generic(self)
         return self.__fraction_field
@@ -536,6 +537,297 @@ cdef class Field(PrincipalIdealDomain):
         else:
             import sage.rings.finite_field
             return sage.rings.finite_field.FiniteField(self.characteristic())
+
+cdef class FiniteFieldIterator:
+    cdef object iter
+    cdef FiniteField parent
+    def __init__(self,FiniteField parent):
+        self.parent = parent
+        self.iter =iter(self.parent.vector_space())
+
+    def __next__(self):
+        return self.parent(self.iter.next())
+
+cdef class FiniteField(Field):
+    """
+    """
+
+    def __init__(self):
+        """
+        EXAMPLES:
+            sage: K = GF(7); K
+            Finite Field of size 7
+            sage: loads(K.dumps()) == K
+            True
+            sage: GF(7^10)
+            Finite Field in a of size 7^10
+            sage: K = GF(7^10, 'a'); K
+            Finite Field in a of size 7^10
+            sage: loads(K.dumps()) == K
+            True
+        """
+        raise NotImplementedError
+
+    def _latex_(self):
+        if self.degree() > 1:
+            e = "^{%s}"%self.degree()
+        else:
+            e = ""
+        return "\\mbox{\\rm F}_{%s%s}"%(self.characteristic(), e)
+
+    def _gap_init_(self):
+        return 'GF(%s)'%self.order()
+
+    def __cmp__(self, other):
+        """
+        Compares this finite field with other.  Two finite fields are
+        equal if and only if they have the same cardinality *and* the
+        defining polynomials are the same.
+
+        EXAMPLES:
+            sage: FiniteField(3**2) == FiniteField(3**3)
+            False
+            sage: FiniteField(3**2) == FiniteField(3**2)
+            True
+            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'alpha')
+            False
+            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'beta')
+            True
+        """
+        if self is other: return 0
+        if not isinstance(other, FiniteField):
+            return -1
+        if self.characteristic() < other.characteristic():
+            return -1
+        elif self.characteristic() > other.characteristic():
+            return 1
+        if self.variable_name() != other.variable_name():
+            return -1
+        if self.order() < other.order():
+            return -1
+        elif self.order()== other.order() and \
+                 (self.degree() == 1 or self.polynomial() == other.polynomial()):
+            return 0
+        return 1
+
+##     def __getstate__(self):
+##         d = []
+##         try:
+##             d = d + list(self.__dict__.iteritems())
+##         except AttributeError:
+##             pass
+##         d = d + list(Field.__getstate__(self).iteritems())
+##         d = dict(d)
+##         #d['__multiplicative_generator'] = self.__multiplicative_generator
+##         #d['__polynomial_ring'] = self.__polynomial_ring
+##         #d['__vector_space'] = self.__vector_space
+##         return d
+
+##     def __setstate__(self,d):
+##         try:
+##             self.__dict__ = d
+##         except AttributeError:
+##             pass
+##         Field.__setstate__(self,d)
+##         self.__multiplicative_generator = d['__multiplicative_generator']
+##         self.__polynomial_ring = d['__polynomial_ring']
+##         self.__vector_space = d['__vector_space']
+
+##     def __getitem__(self, n):
+##         """
+##         Returns $n$-th element of the field.  The ordering is
+##         not randomized (though it could conceivably change from
+##         one version of SAGE to another).
+
+##         EXAMPLES:
+##             sage: k = GF(8, 'a')
+##             sage: k[0]
+##             0
+##             sage: k[1]
+##             1
+##             sage: k[7]
+##             a^2 + a + 1
+##         """
+##         if n < 0 or n >= self.order():
+##             raise IndexError, "n (=%s) must be between 0 and the order %s of the field."%(\
+##                 n, self.order())
+##         V = self.vector_space()
+##         return self(V[n])
+
+    def __iter__(self):
+        return FiniteFieldIterator(self)
+
+    def gen(self):
+        raise NotImplementedError
+
+    def zeta_order(self):
+        return self.multiplicative_generator().multiplicative_order()
+
+    def zeta(self, n=None):
+        """
+        Returns an element of multiplicative order n in this this
+        finite field, if there is one.  Raises a ValueError if there
+        is not.
+
+        EXAMPLES:
+            sage: k = GF(7)
+            sage: k.zeta()
+            3
+            sage: k.zeta().multiplicative_order()
+            6
+            sage: k.zeta(3)
+            2
+            sage: k.zeta(3).multiplicative_order()
+            3
+            sage: k = GF(49)
+            sage: k.zeta().multiplicative_order()
+            48
+            sage: k.zeta(6)
+            3
+        """
+        z = self.multiplicative_generator()
+        if n is None:
+            return z
+        else:
+            n = sage.ext.integer.Integer(n)
+            m = z.multiplicative_order()
+            if m % n != 0:
+                raise ValueError, "No %sth root of unity in self"%n
+            return z**(m.__floordiv__(n))
+
+    def multiplicative_generator(self):
+        """
+        Return a generator for the multiplicative group of this field.
+        The generator is not randomized, though it could change from
+        one version of SAGE to another.
+
+        EXAMPLES:
+            sage: k = GF(997)
+            sage: k.multiplicative_generator()
+            7
+            sage: k = GF(11**3, name='a')
+            sage: k.multiplicative_generator()
+            a
+        """
+
+        from sage.rings.arith import primitive_root
+
+        if self.__multiplicative_generator != None:
+            return self.__multiplicative_generator
+        else:
+            if self.degree() == 1:
+                self.__multiplicative_generator = self(primitive_root(self.order()))
+                return self.__multiplicative_generator
+            n = self.order() - 1
+            a = self.gen(0)
+            if a.multiplicative_order() == n:
+                self.__multiplicative_generator = a
+                return a
+            for a in self:
+                if a == 0:
+                    continue
+                if a.multiplicative_order() == n:
+                    self.__multiplicative_generator = a
+                    return a
+
+    def ngens(self):
+        """
+        The number of generators of the finite field.  Always 1.
+
+        EXAMPLES:
+            sage: k = FiniteField(3**4)
+            sage: k.ngens()
+            1
+        """
+        return 1
+
+    def is_field(self):
+        """
+        Returns whether or not the finite field is a field, i.e.,
+        always returns True.
+
+        EXAMPLES:
+            sage: k = FiniteField(3**4)
+            sage: k.is_field()
+            True
+        """
+        return True
+
+    def is_finite(self):
+        return True
+
+    def order(self):
+        raise NotImplementedError
+
+    def cardinality(self):
+        """
+        Same as self.order().
+        """
+        return self.order()
+
+    def unit_group_exponent(self):
+        """
+        The exponent of the unit group of the finite field.  For a
+        finite field, this is always the order minus 1.
+
+        EXAMPLES:
+            sage: k = GF(2**10)
+            sage: k.order()
+            1024
+            sage: k.unit_group_exponent()
+            1023
+        """
+        return self.order() - 1
+
+
+    def random_element(self, bound=None):
+        """
+        A random element of the finite field.
+
+        INPUT:
+            bound -- ignored
+
+        EXAMPLES:
+            sage.: k = GF(2**10, 'a')
+            sage.: k.random_element()
+            a^9 + a
+        """
+        if self.degree() == 1:
+            return self(random.randrange(self.order()))
+        v = self.vector_space().random_element()
+        return self(v)
+
+    def polynomial(self):
+        raise NotImplementedError
+
+    def polynomial_ring(self):
+        """
+        Returns the polynomial ring over the prime subfield in the
+        same variable as this finite field.
+
+        EXAMPLES:
+            sage: k = FiniteField(3**4, "alpha")
+            sage: k.polynomial_ring()
+            Univariate Polynomial Ring in alpha over Finite Field of size 3
+        """
+        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.finite_field import GF
+
+        if self.__polynomial_ring != None:
+            return self.__polynomial_ring
+        else:
+            self.__polynomial_ring = PolynomialRing(
+                GF(self.characteristic()), self.variable_name())
+            return self.__polynomial_ring
+
+    def vector_space(self):
+        if self.__vector_space != None:
+            return self.__vector_space
+        else:
+            import sage.modules.all
+            V = sage.modules.all.VectorSpace(self.prime_subfield(),self.degree())
+            self.__vector_space = V
+            return V
 
 cdef class Algebra(Ring):
     """

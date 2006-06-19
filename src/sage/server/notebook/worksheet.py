@@ -106,7 +106,7 @@ class Worksheet:
         for C in self.__cells:
             t = C.plain_text(prompts=prompts).strip()
             if t != '':
-                s += '\n\n' + t
+                s += '\n' + t
         return s
 
     # The following setstate method is here

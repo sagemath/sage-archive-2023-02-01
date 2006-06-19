@@ -417,7 +417,7 @@ function cell_input_key_event(id, event) {
        return false;
     } else if (key_send_input_newcell(e)) {
       /* evaluate_cell(id, 1); */
-       evaluate_cell(id, 0);
+       evaluate_cell(id, 1);
        insert_new_cell_after(id);
        return false;
     } else if (key_request_introspections(e)) {
@@ -824,7 +824,7 @@ function insert_new_cell_after_callback(status, response_text) {
     var new_html = X[1];
     var id = eval(X[2]);
     do_insert_new_cell_after(id, new_html, new_id);
-    focus(new_id);
+    jump_to_cell(new_id,0);
 }
 
 function insert_new_cell_after(id) {

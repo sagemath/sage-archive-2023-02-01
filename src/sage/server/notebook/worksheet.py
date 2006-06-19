@@ -651,7 +651,6 @@ class Worksheet:
         z = s
         s = s.lstrip()
         S = self.system()
-        print S
         if not (S is None):
             if s[:5] != '%sage':
                 return True, 'print %s.eval(r"""%s""")'%(self.__system, s)
@@ -796,7 +795,12 @@ class Worksheet:
         s = ''
 
         if include_title:
-            s += '<div class="worksheet_title">Worksheet: %s</div>\n'%self.name()
+            S = self.system()
+            if not (S is None):
+                system = ' (%s mode)'%S
+            else:
+                system =''
+            s += '<div class="worksheet_title">Worksheet: %s%s</div>\n'%(self.name(),system)
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'

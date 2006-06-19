@@ -337,9 +337,7 @@ class Notebook(SageObject):
                  username=None, password=None,
                  color='default', system=None):
         self.__dir = dir
-        if system == 'sage':
-            system = None
-        self.__system = system
+        self.set_system(system)
         self.__color = color
         if not (username is None):
             self.set_auth(username,password)
@@ -363,7 +361,10 @@ class Notebook(SageObject):
             return None
 
     def set_system(self, system):
-        self.__system = system
+        if system == 'sage':
+            self.__system = None
+        elif system:  # don't change if it is None
+            self.__system = system
 
     def color(self):
         try:
@@ -713,15 +714,9 @@ class Notebook(SageObject):
 
         vbar = '<span class="vbar"></span>'
 
-        S = self.system()
-        if not (S is None):
-            system = ' (%s mode)'%S
-        else:
-            system =''
-
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner">SAGE Notebook %s%s</span>\n'%(self.__dir,system)
+        body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
@@ -947,6 +942,8 @@ def notebook(dir       ='sage_notebook',
                     'gmail'
                     'grey'
                     ('#ff0000', '#0000ff')
+        system -- default computer algebra system to use for new
+                  worksheets.
 
     NOTES:
 

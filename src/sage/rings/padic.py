@@ -27,7 +27,7 @@ AUTHORS:
 
 import operator
 
-from sage.libs.all import pari, pari_gen
+from sage.libs.all import pari, pari_gen, PariError
 from sage.structure.element import Element
 from infinity import infinity
 
@@ -39,7 +39,7 @@ import padic_field
 import sage.rings.arith
 import rational
 import field_element
-from rational_field import frac
+from rational_field import frac, QQ
 
 class pAdic(field_element.FieldElement):
     r"""
@@ -84,13 +84,16 @@ class pAdic(field_element.FieldElement):
         self.__parent = parent
 
         if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            try:
-                big_oh = x.padicprec(self.__p)
-                x = int(x.lift())
-            except RuntimeError:
-                raise TypeError, "unable to coerce (wrong prime)"
+            t = x.lift()
+            big_oh = x.padicprec(self.__p)
+            if t.type() == 't_INT':
+                x = int(t)
+            else:
+                x = QQ(t)
 
-        elif isinstance(x, integer.Integer):
+            # we then use code below (so don't make the next line elif)
+
+        if isinstance(x, integer.Integer):
 
             x = int(x)
 
@@ -122,7 +125,7 @@ class pAdic(field_element.FieldElement):
                 ordp = x.valuation(p)
                 unit = int(x/(p**ordp))
             else:
-                raise TypeError
+                raise TypeError, "unable to compute ordp from x (=%s) of type %s"%(x, type(x))
         self.__unit = unit
         self.__ordp = ordp
         if big_oh is infinity and ordp is infinity:
@@ -139,6 +142,46 @@ class pAdic(field_element.FieldElement):
         PARI representation of a p-adic is the same as in SAGE.
         """
         return str(self)
+
+    def sqrt(self):
+        """
+        Return a square root of self.  See the documentation of
+        self.square_root for examples.
+        """
+        return self.square_root()
+
+    def square_root(self):
+        """
+        Return a square root of self in the $p$-adics.
+
+        EXAMPLES:
+            sage: n = 1 +17 + O(17^2); n
+            1 + 17 + O(17^2)
+            sage: m = n.square_root(); m
+            1 + 9*17 + O(17^2)
+            sage: m^2
+            1 + 17 + O(17^2)
+
+            sage: K = pAdicField(3,prec=10)
+            sage: x = K(22/7); x
+            1 + 2*3 + 2*3^3 + 3^4 + 2*3^5 + 3^7 + 2*3^9 + O(3^10)
+            sage: y = x.sqrt(); y
+            1 + 3 + 3^2 + 3^3 + 3^5 + 3^6 + 2*3^7 + 2*3^8 + 3^9 + O(3^10)
+            sage: y^2
+            1 + 2*3 + 2*3^3 + 3^4 + 2*3^5 + 3^7 + 2*3^9 + O(3^10)
+
+            sage: x = x/9; x
+            3^-2 + 2*3^-1 + 2*3 + 3^2 + 2*3^3 + 3^5 + 2*3^7 + O(3^8)
+            sage: y = x.sqrt(); y
+            3^-1 + 1 + 3 + 3^2 + 3^4 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^9)
+            sage: y^2
+            3^-2 + 2*3^-1 + 2*3 + 3^2 + 2*3^3 + 3^5 + 2*3^7 + O(3^8)
+        """
+        try:
+            return self.parent()(self._pari_().sqrt())
+        except PariError:
+            raise ValueError, "square root of %s not a padic number"%self
+
 
     def denominator(self):
         """
@@ -405,7 +448,7 @@ class pAdic(field_element.FieldElement):
             sage: K(5)^30
             11 + 14*19 + 19^2 + 7*19^3 + O(19^Infinity)
         """
-        right = int(right)
+        right = integer.Integer(right)
         if self == 0:
             if right == 0:
                 raise ValueError, "0^0 not defined"
@@ -417,7 +460,9 @@ class pAdic(field_element.FieldElement):
             return pAdic(self.__parent, 1)
         ordp = right * self.__ordp
         if self.__prec == infinity:
-            return pAdic(self.__parent, (self.__p**ordp) * self.__unit**right)
+            z = pAdic(self.__parent, self.__unit**right)
+            z.__ordp = ordp
+            return z
         else:
             prec = self.__prec
         unit = arith.power_mod(self.__unit, right, self.__p**prec)

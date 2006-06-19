@@ -6,9 +6,15 @@ import os
 
 from sage.misc.misc import DOT_SAGE
 
-def css():
+def css(color='gmail'):
     """
     Return the CSS header used by the SAGE Notebook.
+
+    INPUT:
+        color -- string or pair of html colors, e.g.,
+                    'gmail'
+                    'grey'
+                    ('#ff0000', '#0000ff')
 
     EXAMPLES:
         sage: import sage.server.notebook.css as c
@@ -252,7 +258,7 @@ span.pane {
 
 span.pane div.variables_topbar {
    color:black;
-   background-color: #c3d9ff;
+   background-color: <color1>;
    font-family:arial;
    text-decoration: none;
    font-size:13px;
@@ -266,7 +272,7 @@ span.pane div.variables_list {
    font-size:11px;
    top:0ex;
    height:20ex;
-   border:2px solid #c3d9ff;
+   border:2px solid <color1>;
    width: 180px;
    overflow:auto;
 }
@@ -277,7 +283,7 @@ div.variable_name {
 }
 
 /*div.variable_name:hover {
-   background-color:#c3d9ff;
+   background-color:<color1>;
    cursor:pointer;
 }*/
 
@@ -295,7 +301,7 @@ span.pane div.attached_topbar {
    color: black;
    height: 2ex;
    top: 0ex;
-   background-color: #c3d9ff;
+   background-color: <color1>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
@@ -307,7 +313,7 @@ span.pane div.attached_list {
    font-size:11px;
    top:0ex;
    height:20ex;
-   border:2px solid  #c3d9ff;
+   border:2px solid  <color1>;
    width: 180px;
    overflow:auto;
 }
@@ -318,7 +324,7 @@ div.attached_filename {
 }
 /*
 div.attached_filename:hover {
-   background-color:#c3d9ff;
+   background-color:<color1>;
    cursor:pointer;
 }
 */
@@ -329,7 +335,7 @@ span.pane div.worksheets_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
-   background-color: #b5edbc;
+   background-color: <color2>;
    text-decoration: none;
    font-size:12px;
    font-family:arial;
@@ -347,7 +353,7 @@ span.X {
 span.pane div.add_new_worksheet_menu {
    color:black;
    top: 0ex;
-   background-color: #b5edbc;
+   background-color: <color2>;
    text-decoration: none;
    font-size:11px;
    font-family:arial;
@@ -368,7 +374,7 @@ button.add_new_worksheet_menu {
 span.pane div.upload_worksheet_menu {
    color:black;
    top: 0ex;
-   background-color: #b5edbc;
+   background-color: <color2>;
    text-decoration: none;
    font-size:11px;
    font-family:arial;
@@ -389,7 +395,7 @@ input.upload_worksheet_menu {
 span.pane div.delete_worksheet_menu {
    color:black;
    top: 0ex;
-   background-color: #b5edbc;
+   background-color: <color2>;
    text-decoration: none;
    font-size:11px;
    font-family:arial;
@@ -412,7 +418,7 @@ span.pane div.worksheet_list {
    font-size:11px;
    top:0ex;
    height:25ex;
-   border:2px solid #b5edbc;
+   border:2px solid <color2>;
    overflow:auto;
    width: 180px;
 }
@@ -442,7 +448,7 @@ div.worksheet_title {
    top:36px;
    padding-top: 3px;
    padding-left: 1em;
-   background-color: #c3d9ff;
+   background-color: <color1>;
    width: 100%;
    font-family:arial;
    font-size: 16px;
@@ -455,7 +461,7 @@ div.worksheet_title_under {
    z-index:0;
    padding-top: 3px;
    padding-left: 1em;
-   background-color: #c3d9ff;
+   background-color: <color1>;
    width: 100%;
    font-family:arial;
    font-size: 22px;
@@ -493,8 +499,8 @@ a.upload_worksheet:hover {
 span.pane a.worksheet_current {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #b5edbc;
-   background-color:#b5edbc;
+   border-top:1px solid <color2>;
+   background-color:<color2>;
    text-decoration:none;
    color:black;
  }
@@ -502,7 +508,7 @@ span.pane a.worksheet_current {
 span.pane a.worksheet_current_computing {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #c3d9ff;
+   border-top:1px solid <color1>;
    background-color:#ffd1d1;
    text-decoration:none;
    color:black;
@@ -511,14 +517,14 @@ span.pane a.worksheet_current_computing {
 span.pane a.worksheet_other {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #b5edbc;
+   border-top:1px solid <color2>;
    background-color:white;
    text-decoration:none;
    color:black;
 }
 
 span.pane a.worksheet_other:hover {
-   background-color:#b5edbc;
+   background-color:<color2>;
    text-decoration:none;
    cursor:pointer;
 }
@@ -526,7 +532,7 @@ span.pane a.worksheet_other:hover {
 span.pane a.worksheet_other_computing {
    font-size:11px;
    padding-left:1ex;
-   border-top:1px solid #c3d9ff;
+   border-top:1px solid <color1>;
    background-color:ffd1d1;
    text-decoration:none;
    color:black;
@@ -538,7 +544,7 @@ span.pane div.objects_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
-   background-color: #b5edbc;
+   background-color: <color2>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
@@ -549,21 +555,21 @@ span.pane div.objects_topbar {
 span.pane div.object_list {
    font-size:11px;
    height:20ex;
-   border:2px solid #b5edbc;
+   border:2px solid <color2>;
    width: 180px;
    overflow:auto;
 }
 
 a.object_name {
    padding-left:1ex;
-   border-top:1px solid #b5edbc;
+   border-top:1px solid <color2>;
    background-color:white;
    text-decoration:none;
    color:black;
 }
 
 a.object_name:hover {
-   background-color:#b5edbc;
+   background-color:<color2>;
    text-decoration:none;
    color:black;
    cursor:pointer;
@@ -603,7 +609,7 @@ div.worksheet {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid #c3d9ff;
+  border-left: 10px solid <color1>;
   top: 58px;
   bottom: 0ex;
   right: 0ex;
@@ -739,7 +745,8 @@ div.cell_output {
 table.cell_output_box {
   margin:0px;
   padding:0px;
-  border:1px solid #cccccc;
+  border-top:1px solid #cccccc;
+  border-bottom:1px solid #cccccc;
 }
 
 pre.cell_output_wrap {
@@ -791,7 +798,7 @@ div.cell_output_running {
   width: 100%;
   margin: 0px;
   /* border-left: 1px solid #880000;  */
-  background-color: #b5edbc;
+  background-color: <color2>;
 }
 
 div.cell_output_running:hover {
@@ -804,8 +811,8 @@ div.cell_output_hidden {
   height: 3px;
   margin: 0px;
   border-left: 4em solid #aaaaaa;
-/*   border-top: 1px solid #c3d9ff;
-  border-bottom: 1px solid #c3d9ff  ;
+/*   border-top: 1px solid <color1>;
+  border-bottom: 1px solid <color1>;
   */
 }
 
@@ -832,6 +839,21 @@ div.insert_new_cell:hover {
   /* background-color:#eeeeee; */
 }
 """
+    if color == 'gmail':
+        color1 = '#c3d9ff'
+        color2 = '#b5edbc'
+    elif color == 'grey':
+        color1 = '#aaaaaa'
+        color2 = '#888888'
+    elif color == 'default':
+        color1 = '#aaaaaa'
+        color2 = '#888888'
+    elif isinstance(color, (tuple,list)):
+        color1, color2 = color
+    else:
+        raise ValueError, "unknown color scheme %s"%color
+
+    s = s.replace('<color1>',color1).replace('<color2>',color2)
     user_css = DOT_SAGE + '/notebook.css'
     if os.path.exists(user_css):
         s += '\n' + open(user_css).read()

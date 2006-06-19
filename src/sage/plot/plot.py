@@ -463,7 +463,7 @@ class Graphics(SageObject):
             sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
         """
         if EMBEDDED_MODE:
-            self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi)
+            self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'

@@ -40,6 +40,16 @@ class Cell:
         self.has_new_output = False
         self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
 
+    def set_cell_output_type(self, typ='wrap'):
+        self.__type = typ
+
+    def cell_output_type(self):
+        try:
+            return self.__type
+        except AttributeError:
+            self.__type = 'wrap'
+            return 'wrap'
+
     def set_worksheet(self, worksheet, id=None):
         self.__worksheet = worksheet
         self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
@@ -188,7 +198,7 @@ class Cell:
     def set_output_text(self, output, html):
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output
+        self.__out = output.strip()
         self.__out_html = html
 
     def output_html(self):
@@ -226,6 +236,7 @@ class Cell:
         self.__time = time
         self.__introspect = introspect
         self.__worksheet.enqueue(self)
+        self.__type = 'wrap'
         dir = self.directory()
         for D in os.listdir(dir):
             os.unlink(dir + '/' + D)
@@ -236,42 +247,48 @@ class Cell:
     def do_time(self):
         self.__time = True
 
-    def html(self, wrap=None, div_wrap=True):
+    def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
-        html_in  = self.html_in()
-        html_out = self.html_out(wrap)
+        html_in  = self.html_in(do_print=do_print)
+        html_out = self.html_out(wrap, do_print=do_print)
         s = html_in + html_out
         if div_wrap:
             s = '\n\n<div id="cell_%s">'%self.id() + s + '</div>'
         return s
 
-    def html_in(self):
+    def html_in(self, do_print=False):
         id = self.__id
         t = self.__in
-        if t[:6] in ['%latex', '%slide']:
-            slide = '_latex'
+
+        if t.lstrip()[:5] == '%hide':
+            cls = "cell_input_hide"
         else:
-            slide = ''
-        r = len(t.split('\n'))
-        if r <= 1:
-            style = 'style = "height:1.5em"'
-        else:
-            style = ''
+            cls = "cell_input"
+
+        if do_print:
+            if cls == 'cell_input_hide':
+                return ''
+            else:
+                s = '<pre>%s</pre>'%(self.__in.replace('<','&lt;'))
+                return s
+
         s = """<div class="insert_new_cell" id="insert_new_cell_%s"
                    onmousedown="insert_new_cell_before(%s);">
                  </div>
               """%(id, id)
+
+        r = len(t.split('\n'))
+
         s += """
-           <textarea class="cell_input%s" rows=%s
+           <textarea class="%s" rows=%s
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
               onFocus = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s;'
-              onBlur  = 'this.className="cell_input"; cell_input_minimize_size(this);'
-              %s
+              onBlur  = 'this.className="cell_input"; cell_input_minimize_size(this); return true;'
            >%s</textarea>
-        """%(slide, r, id, id, id, id, style, t)
+        """%(cls, r, id, id, id, id, t)
         return s
 
     def files_html(self):
@@ -303,33 +320,42 @@ class Cell:
             files  = ('&nbsp'*3).join(files)
         return images + files
 
-    def html_out(self, ncols=0):
-        out_no_wrap = self.output_text(0).replace('<','&lt;')
+    def html_out(self, ncols=0, do_print=False):
+        out_nowrap = self.output_text(0).replace('<','&lt;').strip()
         if self.introspect():
-            out_wrap = out_no_wrap
+            out_wrap = out_nowrap
         else:
-            out_wrap = self.output_text(ncols).replace('<','&lt;')
+            out_wrap = self.output_text(ncols).replace('<','&lt;').strip()
+
+        typ = self.cell_output_type()
+
         if self.computing():
             cls = "cell_output_running"
         else:
-            cls = "cell_output"
-        s = """<div class="%s" id="cell_div_output_%s"
-                 onClick="cell_output_click(%s, event);">
-                 <table class="cell_output"><tr><td>
-                 <pre class="cell_output" id="cell_output_%s">%s</pre>
-                 <pre class="cell_output_nowrap" id="cell_output_nowrap_%s">%s</pre>
-                 </td></tr>
-                 <tr><td><pre class="cell_output_html" id="cell_output_html_%s">%s</pre></td></tr></table>
-               </div>"""%(cls, self.__id, self.__id,
-                          self.__id, out_wrap,
-                          self.__id, out_no_wrap,
-                          self.__id, self.output_html())
+            cls = 'cell_output_' + typ
 
-        r = str(self.relative_id())
-        r = '&nbsp;'*(4-len(r)) + r
-        s = """<table><tr>
-               <td class="cell_number">%s</td>
-               <td class="output_cell">%s</td></tr></table>"""%(r, s)
+        top = '<div class="%s" id="cell_div_output_%s">'%(
+                         cls, self.__id)
 
-        return s
+        out_html = self.output_html()
+        if out_html != '':
+            out_html = '<br>' + out_html
+
+        out = """<pre class="cell_output_%s" id="cell_output_%s">%s</pre>
+                 <pre class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</pre>
+                 <span class="cell_output_html_%s" id="cell_output_html_%s">%s</span>
+                 """%(typ, self.__id, out_wrap,
+                      typ, self.__id, out_nowrap,
+                      typ, self.__id, out_html)
+
+
+        s = top + out + '\n</div>'
+
+        r = '[%s]'%self.relative_id()
+        r += '&nbsp;'*(5-len(r))
+        tbl = """<table class="cell_output_box"><tr>
+               <td class="cell_number" onClick="cycle_cell_output_type(%s);">%s</td>
+               <td class="output_cell">%s</td></tr></table>"""%(self.__id, r, s)
+
+        return tbl
 

@@ -645,13 +645,14 @@ input.btn:hover {
   border: 1px solid #333333;
 }
 
-/************ CELLS **************************/
+/************ CELL INPUT **************************/
 
 td.cell_number {
    font-size:8pt;
    font-family:arial, monospace;
    color:#999999;
    text-align:left;
+   cursor:pointer;
 }
 
 td.output_cell {
@@ -689,10 +690,13 @@ textarea.cell_input {
   width: 100%;
 }
 
-textarea.cell_input_latex {
+textarea.cell_input_hide {
   background-color: white;
-  color:#aaaaaa;
+/*  color:#999999; */
+  color:#cccccc;
   border: 0px solid #ffffff;
+  border-top: 1px solid #aaaaff;
+  border-bottom: 1px solid #aaaaff;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -700,7 +704,7 @@ textarea.cell_input_latex {
   padding-top:0px;
   padding-bottom:0px;
   width: 100%;
-  height:1em;
+  height:1.2em;
 }
 
 textarea.cell_input_active {
@@ -718,70 +722,99 @@ textarea.cell_input_active {
 
 
 
+/************ CELL OUTPUT **************************/
+/* This is complicated and redundant but it makes
+   the other Python and Javascript code way simpler,
+   and you have a lot of options for customizability. */
 
 div.cell_output {
-  width: 100%;
-  margin: 0px;
-  padding: 0px;
-  border-left: 1px solid #aaaaff;
-}
-
-table.cell_output {
-  margin-left:2em;
-}
-
-pre.cell_output {
   font-family: courier, monospace;
   font-size:12pt;
-  color:#000088;
-  display:inline;
+  width: 95%;
+  margin: 0px;
+  padding: 0px;
+ /* border-left: 1px solid #aaaaff;  */
 }
 
-pre.cell_output_nowrap {
+table.cell_output_box {
+  margin:0px;
+  padding:0px;
+  border:1px solid #cccccc;
+}
+
+pre.cell_output_wrap {
   font-family: courier, monospace;
-  font-size:10pt;
+  font-size:12pt;
+  margin:0px;
+  padding:0px;
   color:#000088;
+}
+pre.cell_output_nowrap {
+  display:none;
+}
+pre.cell_output_hidden {
   display:none;
 }
 
-pre.cell_output_nowrap_visible {
+
+pre.cell_output_nowrap_wrap {
+  display:none;
+}
+pre.cell_output_nowrap_nowrap {
   font-family: courier, monospace;
-  font-size:10pt;
-  color:#000066;
-  display:inline;
+  font-size:12pt;
+  margin:0px;
+  padding:0px;
+  color:#000088;
+}
+pre.cell_output_nowrap_hidden {
+  display:none;
+}
+
+span.cell_output_html_wrap {
+  font-family: courier, monospace;
+  font-size:12pt;
+}
+
+span.cell_output_html_nowrap {
+  font-family: courier, monospace;
+  font-size:12pt;
+}
+
+span.cell_output_html_hidden {
+   display:none;
 }
 
 div.cell_output_running {
+  font-family: courier, monospace;
+  font-size:12pt;
   width: 100%;
   margin: 0px;
-  border-left: 1px solid #880000;
+  /* border-left: 1px solid #880000;  */
   background-color: #b5edbc;
-/*  padding:2px; */
 }
 
 div.cell_output_running:hover {
-/*  cursor:wait;*/
+  /*  cursor:wait;*/
 }
 
 
 div.cell_output_hidden {
   width: 100%;
-  height: 10px;
+  height: 3px;
   margin: 0px;
-  /* padding: 5px;*/
-  border-left: 4em solid #c3d9ff;
-}
-
-div.cell_output_hidden:hover {
-  /* border-right: 1px solid #000088;
-  border-top: 1px solid #000088;
-  border-bottom: 1px solid #000088;
-  border-left: 8px solid #000088;
+  border-left: 4em solid #aaaaaa;
+/*   border-top: 1px solid #c3d9ff;
+  border-bottom: 1px solid #c3d9ff  ;
   */
 }
 
 pre.cell_output_hidden {
   display: none;
+}
+
+pre.cell_output_hide {
+  display:none;
 }
 
 

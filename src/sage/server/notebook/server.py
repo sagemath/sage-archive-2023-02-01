@@ -47,6 +47,26 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         return cgi.parse_qs(qs, keep_blank_values=1)
 
 
+    def cell_output_set(self):
+        C = self.get_postvars()
+        id = int(C['id'][0])
+        typ = C['type'][0]
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
+        cell = W.get_cell_with_id(id)
+        cell.set_cell_output_type(typ)
+
+    def hide_all(self):
+        C = self.get_postvars()
+        id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(id)
+        W.hide_all()
+
+    def show_all(self):
+        C = self.get_postvars()
+        id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(id)
+        W.show_all()
+
     def eval_cell(self, newcell=False, introspect=False):
         C = self.get_postvars()
         id = int(C['id'][0])
@@ -224,6 +244,21 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += '</body>\n'
         self.wfile.write(s)
 
+    def html_worksheet(self, filename, do_print=False):
+        self.send_head()
+        W = notebook.get_worksheet_with_filename(filename)
+        s = '<head>\n'
+        s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        s += '<script language=javascript>' + js.javascript() + '</script>\n'
+        s += '<style>' + css.css() + '</style>\n'
+        s += '</head>\n'
+        s += '<body>\n'
+        s += W.html(include_title=False, do_print=do_print)
+        if do_print:
+            s += '<script language=javascript>window.print()</script>\n'
+        s += '\n</body>\n'
+        self.wfile.write(s)
+
     def input_history_text(self):
         self.send_head()
         t = notebook.history_text()
@@ -281,10 +316,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.help_window()
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
+            elif worksheet_filename[-9:] == '__plain__':
+                self.plain_text_worksheet(worksheet_filename[:-9], prompts=False)
+            elif worksheet_filename[-9:] == '__print__':
+                self.html_worksheet(worksheet_filename[:-9], do_print=True)
             else:
-                self.plain_text_worksheet(worksheet_filename, prompts=False)
+                self.html_worksheet(worksheet_filename, do_print=False)
             return
+
         elif path[-4:] == '.sws':
+
             worksheet_filename = path[:-4]
             self.download_worksheet(worksheet_filename)
             return
@@ -404,6 +445,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.eval_cell(newcell=False)
             elif self.path[-6:] == '/eval1':
                 self.eval_cell(newcell=True)
+            elif self.path[-16:] == '/cell_output_set':
+                self.cell_output_set()
+            elif self.path[-9:]  == '/hide_all':
+                self.hide_all()
+            elif self.path[-9:]  == '/show_all':
+                self.show_all()
             elif self.path[-11:] == '/introspect':
                 self.introspect()
             elif self.path[-9:]  == '/new_cell':

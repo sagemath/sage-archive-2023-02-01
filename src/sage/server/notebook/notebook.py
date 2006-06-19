@@ -145,7 +145,7 @@ current cell (this does not evaluate the current cell).
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text" and "Docstring" buttons provide the full text of the
+the "Text" and "Doctext" buttons provide the full text of the
 worksheet in a very convenient format for copy and paste.
 
 
@@ -348,6 +348,16 @@ class Notebook(SageObject):
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.save()
+
+    def set_directory(self, dir):
+        if dir == self.__dir:
+            return
+        self.__dir = dir
+        self.__filename = '%s/nb.sobj'%dir
+        self.__worksheet_dir = '%s/worksheets'%dir
+        self.__object_dir = '%s/objects'%dir
+        for W in self.__worksheets.itervalues():
+            W.set_notebook(self)
 
     def add_to_history(self, input_text):
         H = self.history()
@@ -682,14 +692,15 @@ class Notebook(SageObject):
         body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        #body += '    <a class="history_link" href="__history__.txt" target="_new">Input History</a> '
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
-        body += '    <a class="download_sws" href="%s.sws">Download</a>'%worksheet.filename() + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Docstring</a>'%worksheet.filename() + vbar
-        body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Doctext</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
+        body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="hide" onClick="hide_all()">Hide Output</a>'
+        body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
+        body += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
+        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename()
         body += '  </span>'
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n' + worksheet.html() + '\n</div>\n'
@@ -735,20 +746,23 @@ class Notebook(SageObject):
                 ('Interrupt running calculations',
                  'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
                 ('Tab completion', 'Press tab while the cursor is on an identifier.'),
+                ('Print worksheet', 'Click the print button.'),
                 ('Help About',
                  'Type ? immediately after the object or function and press tab.'),
                 ('Source Code',
                  'Put ?? after the object and press tab.'),
+                ('Hide Input',
+                 'Put %hide at the beginning of the cell.  This can be followed by %gap, %latex, %maxima, etc.  Note that %hide must be first. Put a blank line at the beginning so the "%hide" does not appear.'),
                 ('Detailed Help',
                  'Type "help(object)" and press shift-return.'),
                 ('Insert New Cell',
                  'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it (the current cell is not evaluated).'),
                 ('Delete Cell',
                  'Delete cell contents the press backspace.'),
-                ('Text of Worksheet', 'Click the <u>Text</u> and <u>Docstring</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
+                ('Text of Worksheet', 'Click the <u>Text</u> and <u>Doctext</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
                 ('History', 'Click the <u>History</u> link for a history of commands entered in any worksheet of this notebook.  This appears in a popup window, which you can search (control-F) and copy and paste from.'),
-                ('Hide/Expand Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-                ('Hide All Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
+                ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
+                ('Hide/Show All Output', 'Click <u>Hide</u> in the upper right to hide <i>all</i> output. Click <u>Show</u> to show all output.'),
                 ('Variables',
                  'All variables and functions with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
                 ('Objects',
@@ -758,14 +772,13 @@ class Notebook(SageObject):
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
                 ('Saving Worksheets',
-                 'Click Download in the upper right to download a complete worksheet to a local .sws file.  Note that uploading is not implemented yet except locally (the <i>only</i> thing left is implementing upload of binary data to the server). Note that <i>everything</i> that has been submitted is automatically saved to disk, and is there for you next time you access the notebook.'),
+                 'Click <ul>Save</ul> in the upper right to download a complete worksheet to a local .sws file.  Note that uploading is not implemented yet except locally (the <i>only</i> thing left is implementing upload of binary data to the server). Note that <i>everything</i> that has been submitted is automatically saved to disk, and is there for you next time you access the notebook.'),
                 ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
                 ('Customizing the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.'),
                 ('Emacs Keybindings', 'If you are using GNU/Linux, you can change (or create) a <tt>.gtkrc-2.0</tt> file.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
                 ('More Help', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial (or see the SAGE reference manual).'),
-                ('<hr>','<hr>'),
                 ]
 
         help.sort()
@@ -960,6 +973,8 @@ def notebook(dir       ='sage_notebook',
                 print "Recovering from last op save failed."
                 print "Trying save from last startup."
                 nb = load('%s/nb-older-backup.sobj'%dir)
+
+        nb.set_directory(dir)
         if not (username is None):
             nb.set_auth(username=username, password=password)
         nb.set_not_computing()

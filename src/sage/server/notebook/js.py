@@ -79,6 +79,10 @@ function getAsyncObject(handler) {
   }
 }
 
+function generic_callback(status, response_text) {
+   /* do nothing */
+}
+
 function asyncCallbackHandler(name, callback) {
     function f() {
                  eval('asyncObj = ' + name);
@@ -310,25 +314,44 @@ function cell_input_resize(cell_input) {
    } finally {}
 }
 
+function lstrip(s) {
+    var n = s.length;
+    var i = 0;
+    while (i < n && (s[i] == ' ' || s[i] == '\n' || s[i] == '\t')) {
+        i = i + 1;
+    }
+    return s.slice(i);
+}
+
 function cell_input_minimize_size(cell_input) {
-   var v = cell_input.value;
-   var sl = v.slice(0,6);
-   if (sl == '%latex' || sl == '%slide') {
-       /* this is also set in cell.py */
-       cell_input.className = 'cell_input_latex';
-       cell_input.rows = 1;
-       return;
-   }
-   cell_input.className = 'cell_input';
-   var rows = v.split('\n').length ;
-   if (rows < 1) {
+    var v = cell_input.value;
+    var w = lstrip(v);
+    var sl = w.slice(0,5);
+    if (sl == '%hide') {
+        cell_input.className = 'cell_input_hide';
+        return;
+    }
+
+    cell_input.className = 'cell_input';
+    var rows = v.split('\n').length ;
+    if (rows < 1) {
       rows = 1;
-   }
-   cell_input.rows = rows;
-   if (rows == 1) {
-       /* hack because of bug in firefox with 1-row textarea */
+    }
+    cell_input.rows = rows;
+    if (rows == 1) {
+       // hack because of bug in firefox with 1-row textarea
        cell_input.style.height = '1.5em';
-   }
+    }
+}
+
+function cell_input_minimize_all() {
+    var v = cell_id_list;
+    var n = v.length;
+    var i;
+    for(i=0; i<n; i++) {
+        var cell=get_element('cell_input_' + v[i]);
+        cell_input_minimize_size(cell);
+    }
 }
 
 id_to_delete=-1;
@@ -594,42 +617,46 @@ function evaluate_cell_callback(status, response_text) {
     }
 }
 
-
-function cell_output_click(id, event) {
-    e = get_event(event);
+function cell_output_set_type(id, typ) {
     var cell_div = get_element('cell_div_output_' + id);
     var cell_output = get_element('cell_output_' + id);
     var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
     var cell_output_html = get_element('cell_output_html_' + id);
 
+    cell_div.className = 'cell_output_' + typ;
+    cell_output.className = 'cell_output_' + typ;
+    cell_output_nowrap.className ='cell_output_nowrap_' + typ;
+    cell_output_html.className   ='cell_output_html_' + typ;
 
-    if (cell_div.className == 'cell_output_hidden') {
-        cell_div.className = 'cell_output';
-        cell_output.className = 'cell_output';
-        cell_output_html.className = 'cell_output_html';
-    } else if (cell_div.className == 'cell_output' && e.layerX <= 50) {
-        if (cell_output_nowrap.className == 'cell_output_nowrap') {
-             cell_output_nowrap.className = 'cell_output_nowrap_visible';
-             cell_output.className = 'cell_output_nowrap';
-             cell_output_html.className = 'cell_output_html';
-        } else {
-             cell_output_nowrap.className = 'cell_output_nowrap';
-             cell_output.className = 'cell_output';
-             cell_div.className = 'cell_output_hidden';
-             cell_output.className = 'cell_output_hidden';
-             cell_output_html.className = 'cell_output_hidden';
-        }
+    /* Do async request back to the server */
+    async_request('async_obj_check', '/cell_output_set',
+                    generic_callback, 'id='+id+'&type=' + typ)
+}
+
+function cycle_cell_output_type(id) {
+    var cell_div = get_element('cell_div_output_' + id);
+
+    if (cell_div.className == 'cell_output_hidden' || cell_div.className=='cell_output_running') {
+        cell_output_set_type(id, 'wrap');
+        return;
+    }
+
+    if (cell_div.className == 'cell_output_wrap') {
+        cell_output_set_type(id, 'nowrap');
+    } else {
+        cell_output_set_type(id, 'hidden');
     }
 }
 
 function cell_set_running(id) {
+    cell_output_set_type(id, 'wrap');
     var cell_div = get_element('cell_div_output_' + id)
     cell_div.className = 'cell_output_running';
 }
 
 function cell_set_done(id) {
     var cell_div = get_element('cell_div_output_' + id)
-    cell_div.className = 'cell_output';
+    cell_div.className = 'cell_output_wrap';
 }
 
 function check_for_cell_output() {
@@ -645,9 +672,7 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
 
     cell_output.innerHTML = wrapped_text;
     cell_output_nowrap.innerHTML = text;
-    cell_output_html.innerHTML = output_html
-
-    cell_output_html.focus()
+    cell_output_html.innerHTML = output_html;
 
     if (status == 'd') {
          cell_set_done(id);
@@ -843,54 +868,38 @@ function interrupt() {
                   interrupt_callback, 'worksheet_id='+worksheet_id);
 }
 
-function evaluate_all_callback(status, response_text) {
-    /* Iterate through every input cell in the document, in order,
-       and call the evaluate_cell function on it.
-    */
-    if (status == "success") {
-        var v, i;
-        v = response_text.split(' ');
-        for(i=0; i<v.length; i++) {
-            evaluate_cell(v[i],0);
-        }
-    } else {
-       alert(response_text);
-    }
-}
 
 function evaluate_all() {
-    /* Use async request back to the server to find out the
-       *ordered* list of active cells in the current worksheet.
-    */
-    async_request('async_obj_evaluate_all', '/cell_id_list',
-                      evaluate_all_callback, 'worksheet_id='+worksheet_id);
-}
-
-function hide_all_callback(status, response_text) {
     /* Iterate through every input cell in the document, in order,
-       and hide it.
+       and evaluate.
     */
-    if (status == "success") {
-        var v = response_text.split(' ');
-        var i;
-        for(i=0; i<v.length; i++) {
-           var id = v[i];
-           var cell_div = get_element('cell_div_output_' + id);
-           var cell_output = get_element('cell_output_' + id);
-           var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
-           cell_output_nowrap.className = 'cell_output_nowrap';
-           cell_output.className = 'cell_output';
-           cell_div.className = 'cell_output_hidden';
-           cell_output.className = 'cell_output_hidden';
-        }
+    var v = cell_id_list;
+    var n = v.length;
+    var i;
+    for(i=0; i<n; i++) {
+        evaluate_cell(v[i],0);
     }
 }
 
 function hide_all() {
-    /* Use async request back to the server to find out the
-       *ordered* list of active cells in the current worksheet.
-    */
-    async_request('async_obj_hide_all', '/cell_id_list',
+    var v = cell_id_list;
+    var n = v.length;
+    var i;
+    for(i=0; i<n; i++) {
+        cell_output_set_type(v[i],'hidden');
+    }
+    async_request('async_obj_hide_all', '/hide_all',
+                      hide_all_callback, 'worksheet_id='+worksheet_id);
+}
+
+function show_all() {
+    var v = cell_id_list;
+    var n = v.length;
+    var i;
+    for(i=0; i<n; i++) {
+        cell_output_set_type(v[i],'wrap');
+    }
+    async_request('async_obj_hide_all', '/show_all',
                       hide_all_callback, 'worksheet_id='+worksheet_id);
 }
 
@@ -929,7 +938,7 @@ function history_window() {
 }
 
 function worksheet_text_window(worksheet) {
-    log = window.open (worksheet+".html","",
+    log = window.open (worksheet+"__plain__.html","",
       "menubar=no,scrollbars=1,width=700,height=600");
 }
 
@@ -938,6 +947,11 @@ function doctest_window(worksheet) {
       "menubar=no,scrollbars=1,width=700,height=600");
 }
 
+
+function print_window(worksheet) {
+    log = window.open (worksheet+"__print__.html","",
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=0");
+}
 
 //////////////////////////////////
 // HELP
@@ -984,63 +998,4 @@ function key_%s(e) {
 
 def build_all_key_codes():
     return ''.join([k.js_test(n) for n, k in key_codes.items()])
-
-def help_window():
-    help = [('<b>Definitions</b>',
-             'A <i>worksheet</i> is an ordered list of SAGE calculations with output. ' +
-             'A <i>session</i> is a worksheet and a set of variables in some state. ' +
-             'A <i>notebook</i> is a collection of worksheets and saved objects. '),
-            ('<b>Evaluate</b> Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell will be created after the current one.'),
-            ('<b>Timed</b> Evaluation', 'Type "time" at the beginning of the cell.'),
-            ('<b>Evaluate all</b> cells', 'Click <u>Evaluate All</u> in the upper right.'),
-            ('Evaluate using <b>GAP, Singular, etc.</b>', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-            ('<b>Move</b> between cells', 'Use the up and down arrows on your keyboard.'),
-            ('<b>Interrupt</b> running calculations',
-             'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
-            ('<b>Completions</b>', 'Press F1.'),
-            ('<b>Help</b> About Object',
-             'Put ? right after the object and press F1.'),
-            ('<b>Detailed Help</b>',
-             'Type "help(object)" and press shift-return.'),
-            ('<b>Source Code</b> of a command',
-             'Put ?? after the object and press F1.'),
-            ('<b>Insert New</b> Cell',
-             'Put mouse between an output and input until the horizontal line appears and click.'),
-            ('<b>Delete</b> Cell',
-             'Delete cell contents using backspace and the cell will be removed.'),
-            ('<b>Hide/Expand</b> Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
-            ('<b>Hide All</b> Output', 'Click <u>Hide Output</u> in the upper right to hide <i>all</i> output.'),
-            ('<b>Variables</b>',
-             'All variables with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
-            ('<b>Objects</b>',
-             'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to load and save objects.'),
-            ('Loading and Saving <b>Sessions</b>', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),
-            ('Loading and Saving <b>Objects</b>', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
-            ('Loading <b>SAGE/Python Scripts</b>', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
-            ('<b>Attaching</b> Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-            ('Saving <b>Worksheets</b>',
-             '<i>Everything</i> that has been submitted is automatically saved to disk, and is there for you next time.  You do not have to do anything special to save a worksheet.'),
-            ('<b>Typesetting</b>', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
-            ('<b>Restart</b>', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
-            ('<b>Input</b> Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
-            ('Working <b>Directory</b>', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook; to open a file in that directory, do "open(DIR+\'filename\')".'),
-            ('<b>Customizing</b> the look', 'Learn about cascading style sheets (CSS), then create a file notebook.css in your $HOME/.sage directory.  Use "view source" on a notebook web page to see the CSS that you can override.  The look of the notebook interface is highly customizable via CSS.  Send me your skins!'),
-            ('<b>Emacs Keybindings</b>', 'If you are using GNU/Linux, you can change (or create) your .gtkrc-2.0.  Add the line <tt>gtk-key-theme-name = "Emacs"</tt> to it.  See <a target="_blank" href="http://kb.mozillazine.org/Emacs_Keybindings_(Firefox)">this page</a> [mozillazine.org] for more details.'),
-            ('More <b>Help</b>', 'Type "help(sage.server.notebook.notebook)" for a detailed discussion of the architecture of the SAGE notebook and a tutorial.'),
-            ('<hr>','<hr>'),
-            ('<b>Acknowledgement</b>', 'The design of SAGE notebook was influenced by Mathematica, GMail, GNU Emacs, and IPython.  AUTHORS: William Stein, Alex Clemesha, and Tom Boothy')
-            ]
-    s = """
-    <div class="help_window" id="help_window">
-    <div class="help_window_title">&nbsp;&nbsp;&nbsp;Help</div>
-    <div class="help_window_close" onClick="hide_help_window()">&#215;&nbsp;</div>
-    This is the SAGE Notebook, which is the graphical interface to
-    the computer algebra system SAGE (Software for Algebra and
-    Geometry Exploration).  <i>It is currently only supported in <b>Firefox</b>.</i>
-    <table class="help_window">
-    """
-    for x, y in help:
-        s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>'%(x,y)
-    s += '</table></div>'
-    return s
 

@@ -1,14 +1,5 @@
 TODO:
 
-[] update the help
-[] testall
-[] bug test by *using*
-
-BUGS:
-(this is hard to replicate!)
-??[] tish -- no empty cell at bottom.
-??        -- TypeError cell_input has no properties.  on evaluate.
-
 IDEAS:
 [] enter to submit when adding a new worksheet or deleting.
 
@@ -330,3 +321,7 @@ except the box you're currently typing into.
 [x] tab completion of empty string is 4 spaces.
 
 [x] fix decimal point before number sage_eval('.5') should work!Q
+[x] update the help
+[x] add hide/show of input cells
+[x] add print-screen function
+[x] Have the cell output option be saved via async.

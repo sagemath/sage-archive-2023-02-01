@@ -94,17 +94,14 @@ class Expect(SageObject):
         if self._expect is None:
             self._start()
         E = self._expect
-        t = E.timeout
-        E.timeout = float(wait)
+        wait=float(wait)
         try:
             if alternate_prompt is None:
-                E.expect(self._prompt)
+                E.expect(self._prompt, timeout=wait)
             else:
-                E.expect(alternate_prompt)
+                E.expect(alternate_prompt, timeout=wait)
         except (pexpect.TIMEOUT, pexpect.EOF), msg:
-            E.timeout = t
             return None
-        E.timeout = t
         return E.before
 
     def _send(self, cmd):
@@ -120,7 +117,7 @@ class Expect(SageObject):
         """
         new = self._get(wait=wait, alternate_prompt=alternate_prompt)
         try:
-            if new:
+            if not new is None:
                 X = self.__so_far + new
                 del self.__so_far
                 return True, X, new

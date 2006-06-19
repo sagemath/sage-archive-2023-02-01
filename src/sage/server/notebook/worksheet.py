@@ -203,7 +203,7 @@ class Worksheet:
         except AttributeError:
             verbose("Initializing SAGE.")
             os.environ['PAGER'] = 'cat'
-            self.__sage = Sage()
+            self.__sage = Sage(maxread=1)
             try:
                 del self.__variables
             except AttributeError:
@@ -334,9 +334,9 @@ class Worksheet:
             return 'd', C
 
         try:
-            done, out, new = S._so_far(alternate_prompt=SAGE_END+str(self.synchro()))
-        except RuntimeError:
-            verbose("Computation was interrupted or failed. Restarting.")
+            done, out, new = S._so_far(wait=0.1, alternate_prompt=SAGE_END+str(self.synchro()))
+        except RuntimeError, msg:
+            verbose("Computation was interrupted or failed. Restarting.\n"+msg)
             self.__comp_is_running = False
             self.start_next_comp()
             return 'w', C
@@ -345,7 +345,7 @@ class Worksheet:
         if not done:
             # Still computing
             out = self._strip_synchro_from_start_of_output(out)
-            C.set_output_text(out, C.files_html())
+            C.set_output_text(out, '')
             return 'w', C
 
         # Finished a computation.
@@ -398,7 +398,10 @@ class Worksheet:
             if i != -1:
                 t = s[i+len(SAGE_VARS)+1:]
                 t = t.replace("<type '","").replace("<class '","").replace("'>","")
-                self.__variables = eval(t)
+                try:
+                    self.__variables = eval(t)
+                except:
+                    self.__variables = []
                 s = s[:i-1]
         return s
 
@@ -426,19 +429,17 @@ class Worksheet:
         # stop the current computation in the running SAGE
         S = self.sage()
         E = S._expect
-        t = E.timeout
-        E.timeout = 0.1
+        tm = 0.1
         success = False
-        alarm(INTERRUPT_TRIES * E.timeout)
+        alarm(INTERRUPT_TRIES * tm)
         try:
             for i in range(INTERRUPT_TRIES):
                 E.sendline('q')
                 E.sendline(chr(3))
                 try:
-                    E.expect(S._prompt)
-                    E.expect(S._prompt)
+                    E.expect(S._prompt, timeout=tm)
+                    E.expect(S._prompt, timeout=tm)
                     success = True
-                    E.timeout = t
                     break
                 except (pexpect.TIMEOUT, pexpect.EOF), msg:
                     verbose("Trying again to interrupt SAGE (try %s)..."%i)
@@ -630,27 +631,31 @@ class Worksheet:
 
 
     def check_for_system_switching(self, s):
-        # s = '%gap\n' + s
-        if len(s) == 0:
-            return False, s
-        if s[0] == '%':
-            i = s.find('\n')
-            if i == -1:
-                # nothing to evaluate
-                return True, ''
-            j = s.find(' ')
-            if j == -1:
-                j = i
-            else:
-                j = min(i,j)
-            sys = s[1:j]
-            s = s[i+1:]
-            if sys in ['latex', 'latex_debug', 'slide', 'slide_debug']:
-                t = 'print %s.eval(r"""%s""", vars=globals())'%(sys,s)
-            else:
-                t = 'print %s.eval(r"""%s""")'%(sys,s)
-            return True, t
-        return False, s
+        z = s
+        s = s.lstrip()
+        if len(s) == 0 or s[0] != '%':
+            return False, z
+        if s[:5] == '%hide':
+            t = s[5:].lstrip()
+            if len(t) == 0 or t[0] != '%':
+                return False, t
+            s = t
+        i = s.find('\n')
+        if i == -1:
+            # nothing to evaluate
+            return True, ''
+        j = s.find(' ')
+        if j == -1:
+            j = i
+        else:
+            j = min(i,j)
+        sys = s[1:j]
+        s = s[i+1:]
+        if sys in ['latex', 'latex_debug', 'slide', 'slide_debug']:
+            t = 'print %s.eval(r"""%s""", vars=globals())'%(sys,s)
+        else:
+            t = 'print %s.eval(r"""%s""")'%(sys,s)
+        return True, t
 
     def preparse_input(self, C):
         input = C.input_text().strip()
@@ -760,21 +765,31 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
-    def html(self):
+    def html(self, include_title=True, do_print=False):
         n = len(self.__cells)
         s = ''
 
-        s += '<div class="worksheet_title">Worksheet: %s</div>\n'%self.name()
+        if include_title:
+            s += '<div class="worksheet_title">Worksheet: %s</div>\n'%self.name()
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
-            s += cell.html(ncols) + '\n'
+            s += cell.html(ncols,do_print=do_print) + '\n'
         s += '\n</div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
-        s += '<script language=javascript>cell_id_list=%s</script>\n'%self.cell_id_list()
+        if not do_print:
+            s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
         return s
+
+    def show_all(self):
+        for C in self.__cells:
+            C.set_cell_output_type('wrap')
+
+    def hide_all(self):
+        for C in self.__cells:
+            C.set_cell_output_type('hidden')
 
 
 def ignore_prompts_and_output(s):

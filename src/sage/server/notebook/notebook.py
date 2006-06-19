@@ -141,7 +141,7 @@ You can also move back and forth between cells using the up and down
 arrow.  In particular, when you are at the top of a cell and press
 the up arrow the cursor jumps to the previous cell.
 Press control-enter in a cell to create a new cell after the
-current cell (this does not evaluate the current cell).
+current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
@@ -748,7 +748,7 @@ class Notebook(SageObject):
 
     def help_window(self):
         help = [
-               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell is created after the current one (and the current one is not evaluated).'),
+               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "time" at the beginning of the cell.'),
                 ('Evaluate all cells', 'Click <u>Evaluate All</u> in the upper right.'),
                 ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
@@ -769,7 +769,7 @@ class Notebook(SageObject):
                 ('Detailed Help',
                  'Type "help(object)" and press shift-return.'),
                 ('Insert New Cell',
-                 'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it (the current cell is not evaluated).'),
+                 'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it.'),
                 ('Delete Cell',
                  'Delete cell contents the press backspace.'),
                 ('Text of Worksheet', 'Click the <u>Text</u> and <u>Doctext</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),

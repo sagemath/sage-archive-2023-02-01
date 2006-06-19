@@ -1,7 +1,16 @@
 TODO:
 
+   [] images in output sometimes "moved down" after reload of page!
+   [] add a "restart sage" button in the top.
+   [] tab completion always sticks cursor at end of text.  is there
+      a trick to get around this?
+   [] deleting saved objects
+   [] "time " disappears from saved input for cells
+   [] worksheets with lots of graphics feel slow.  why?
 
 IDEAS:
+[] Make an entire Gap Notebook or Magma Notebook or ...
+
 [] enter to submit when adding a new worksheet or deleting.
 
 [] (Note -- there is currently no support for

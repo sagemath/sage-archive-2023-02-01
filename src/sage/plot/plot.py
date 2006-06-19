@@ -389,7 +389,7 @@ class Graphics(SageObject):
         self._extend_y_axis(ymin)
         self._extend_y_axis(ymax)
 
-    def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax):
+    def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax, axes_label=None):
         yspan = ymax - ymin
         xspan = xmax - xmin
 
@@ -420,6 +420,7 @@ class Graphics(SageObject):
             return s
 
         #the x-axis ticks and labels
+        #first draw major tick marks and their corresponding values
         for x in xtslmajor:
             if x == y_axis_xpos:
                 continue
@@ -429,11 +430,14 @@ class Graphics(SageObject):
             subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
                         color='k',linewidth=0.6))
 
+        #now draw the x-axis minor tick marks
         for x in xtslminor:
             subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
                         color='k', linewidth=0.6))
 
-    #the y-axis ticks and labels
+
+        #the y-axis ticks and labels
+        #first draw major tick marks and their corresponding values
         for y in ytslmajor:
             if y == x_axis_ypos:
                 continue
@@ -443,13 +447,28 @@ class Graphics(SageObject):
             subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
                     color='k', linewidth=0.6))
 
+        #now draw the x-axis minor tick marks
         for y in ytslminor:
             subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
                 color='k',linewidth=0.6))
 
+        #now draw the x and y axis labels
+        if axes_label:
+            al = axes_label
+            if not isinstance(al, (list,tuple)) or len(al) != 2:
+                raise TypeError, "axes_label must be a list of two strings."
+            #x-axis label
+            subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=6,
+                         horizontalalignment="center", verticalalignment="center")
+            #y-axis label
+            subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=6,
+                         horizontalalignment="center", verticalalignment="center")
+
+
+
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=True):
+             dpi=DEFAULT_DPI, axes=True, axes_label=None):
         """
         Show this graphics image with the default image viewer.
 
@@ -463,7 +482,8 @@ class Graphics(SageObject):
             sage.: c.show(figsize=[5,5], xmin=-1, xmax=3, ymin=-1, ymax=3)
         """
         if EMBEDDED_MODE:
-            self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes)
+            self.save(filename, xmin, xmax, ymin, ymax, figsize,
+                    dpi=dpi, axes=axes, axes_label=axes_label)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
@@ -511,7 +531,7 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True):
+             axes=True, axes_label=None):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -557,7 +577,7 @@ class Graphics(SageObject):
         subplot.set_xlim(xmin, xmax)
         subplot.set_ylim(ymin, ymax)
         if axes:
-            self._add_xy_axes(subplot, xmin, xmax, ymin, ymax)
+            self._add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
 
         for g in self.__objects:
             g._render_on_subplot(subplot)

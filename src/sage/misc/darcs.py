@@ -128,6 +128,12 @@ class Darcs:
             print "Adding file %s"%file
             self('add %s "%s"'%(options, file))
 
+    def get(self):
+        if self.__initialized:
+            print "not getting -- already initialized"
+        self('get '+self.__url)
+        self.__initialized = True
+
     def remove(self, files, options=''):
         """
         Remove the given list of files (or file) or directories
@@ -197,14 +203,15 @@ class Darcs:
             if not os.path.exists(self.__dir):
                 os.makedirs(self.__dir)
             print "Creating a new darcs repository!  %s"%self.__name
-            if self('initialize', check_initialized=False):
-                print "WARNING -- problem initializing repository."
-                print "Try calling initalize again with the force option?"
-                return
-            if self.pull('-a -v'):
-                print "WARNING -- problem pulling repository."
-                print "Try calling initalize again with the force option?"
-                return
+            self.get()
+##             if self('initialize', check_initialized=False):
+##                 print "WARNING -- problem initializing repository."
+##                 print "Try calling initalize again with the force option?"
+##                 return
+##             if self.pull('-a -v'):
+##                 print "WARNING -- problem pulling repository."
+##                 print "Try calling initalize again with the force option?"
+##                 return
             D = self.__dir
             n = D.split('/')[-1]
             if not self.__target is None:

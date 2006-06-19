@@ -335,8 +335,11 @@ WRAP_NCOLS = 85
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',
                  username=None, password=None,
-                 color='default'):
+                 color='default', system=None):
         self.__dir = dir
+        if system == 'sage':
+            system = None
+        self.__system = system
         self.__color = color
         if not (username is None):
             self.set_auth(username,password)
@@ -351,6 +354,16 @@ class Notebook(SageObject):
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.save()
+
+    def system(self):
+        try:
+            return self.__system
+        except AttributeError:
+            self.__system = None
+            return None
+
+    def set_system(self, system):
+        self.__system = system
 
     def color(self):
         try:
@@ -535,7 +548,7 @@ class Notebook(SageObject):
         if id >= MAX_WORKSHEETS:
             raise ValueError, 'there can be at most %s worksheets'%MAX_WORKSHEETS
         self.__next_worksheet_id += 1
-        W = worksheet.Worksheet(name, self, id)
+        W = worksheet.Worksheet(name, self, id, system=self.system())
         self.__worksheets[name] = W
         return W
 
@@ -700,9 +713,15 @@ class Notebook(SageObject):
 
         vbar = '<span class="vbar"></span>'
 
+        S = self.system()
+        if not (S is None):
+            system = ' (%s mode)'%S
+        else:
+            system =''
+
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
+        body += '  <span class="banner">SAGE Notebook %s%s</span>\n'%(self.__dir,system)
         body += '  <span class="control_commands">\n'
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
@@ -903,7 +922,8 @@ def notebook(dir       ='sage_notebook',
              max_tries = 10,
              username  = None,
              password  = None,
-             color     = None):
+             color     = None,
+             system    = None):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -997,9 +1017,11 @@ def notebook(dir       ='sage_notebook',
             nb.set_auth(username=username, password=password)
         if not (color is None):
             nb.set_color(color)
+        if not system is None:
+            nb.set_system(system)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password, color=color)
+        nb = Notebook(dir,username=username,password=password, color=color, system=system)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.start(port, address, max_tries, open_viewer)

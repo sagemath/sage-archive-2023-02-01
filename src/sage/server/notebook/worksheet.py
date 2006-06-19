@@ -36,9 +36,10 @@ SAGE_ERROR='error' + SAGE_END
 SAGE_VARS='__SAGE_VARS__'
 
 class Worksheet:
-    def __init__(self, name, notebook, id):
+    def __init__(self, name, notebook, id, system=None):
         name = ' '.join(name.split())
         self.__id = id
+        self.__system = system
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
@@ -487,7 +488,11 @@ class Worksheet:
         return out
 
     def _get_last_identifier(self, s):
-        return support.get_rightmost_identifier(s)
+        t = support.get_rightmost_identifier(s)
+        S = self.system()
+        if S:
+            t = S + '.' + t
+        return t
 
     def preparse(self, s):
         return preparse_file(s, magic=False, do_time=False, ignore_prompts=False)
@@ -632,10 +637,28 @@ class Worksheet:
 
         return '\n'.join(u)
 
+    def system(self):
+        try:
+            return self.__system
+        except AttributeError:
+            self.__system = None
+            return None
+
+    def set_system(self, system=None):
+        self.__system = system
 
     def check_for_system_switching(self, s):
         z = s
         s = s.lstrip()
+        S = self.system()
+        print S
+        if not (S is None):
+            if s[:5] != '%sage':
+                return True, 'print %s.eval(r"""%s""")'%(self.__system, s)
+            else:
+                s = s[5:].lstrip()
+                z = s
+
         if len(s) == 0 or s[0] != '%':
             return False, z
         if s[:5] == '%hide':

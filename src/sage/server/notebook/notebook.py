@@ -918,7 +918,7 @@ def notebook(dir       ='sage_notebook',
 
         address -- (default: 'localhost') address that the server
                    will listen on
-        viewer -- bool (default:True); if True, pop up a web browser at the URL
+        open_viewer -- bool (default:False); if True, pop up a web browser at the URL
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
         username -- user name used for authenticated logins

@@ -343,8 +343,8 @@ class Worksheet:
 
         out = self.postprocess_output(out, C.introspect())
         if not done:
-            # Still computing
             out = self._strip_synchro_from_start_of_output(out)
+            # Still computing
             C.set_output_text(out, '')
             return 'w', C
 
@@ -383,7 +383,10 @@ class Worksheet:
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
         if i == -1:
-            return s
+            j = s.find('Traceback')
+            if j == -1:
+                return s
+            return s[j:]
         return s[i+len(z):]
 
     def _process_output(self, s):

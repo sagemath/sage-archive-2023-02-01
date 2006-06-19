@@ -797,8 +797,9 @@ div.cell_output_running {
   font-size:12pt;
   width: 100%;
   margin: 0px;
-  /* border-left: 1px solid #880000;  */
+  /* border-left: 2px solid #880000;  */
   background-color: <color2>;
+  border: 1px solid <color2>;
 }
 
 div.cell_output_running:hover {
@@ -846,8 +847,8 @@ div.insert_new_cell:hover {
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default':
-        color1 = '#99fc99'
-        color2 = '#dedede'
+        color1 = '#dedede'
+        color2 = '#99fc99'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

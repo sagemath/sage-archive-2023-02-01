@@ -1,5 +1,6 @@
 TODO:
 
+
 IDEAS:
 [] enter to submit when adding a new worksheet or deleting.
 
@@ -325,3 +326,6 @@ except the box you're currently typing into.
 [x] add hide/show of input cells
 [x] add print-screen function
 [x] Have the cell output option be saved via async.
+[x] doesn't chop off exec stuff after some errors:
+for i in range(10):
+

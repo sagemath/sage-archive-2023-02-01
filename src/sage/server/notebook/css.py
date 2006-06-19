@@ -6,7 +6,7 @@ import os
 
 from sage.misc.misc import DOT_SAGE
 
-def css(color='gmail'):
+def css(color='default'):
     """
     Return the CSS header used by the SAGE Notebook.
 
@@ -846,8 +846,8 @@ div.insert_new_cell:hover {
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default':
-        color1 = '#aaaaaa'
-        color2 = '#888888'
+        color1 = '#99fc99'
+        color2 = '#dedede'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

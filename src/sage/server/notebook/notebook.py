@@ -359,6 +359,9 @@ class Notebook(SageObject):
             self.__color = 'default'
             return self.__color
 
+    def set_color(self,color):
+        self.__color = color
+
     def set_directory(self, dir):
         if dir == self.__dir:
             return
@@ -900,7 +903,7 @@ def notebook(dir       ='sage_notebook',
              max_tries = 10,
              username  = None,
              password  = None,
-             color     = 'default'):
+             color     = None):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -992,9 +995,11 @@ def notebook(dir       ='sage_notebook',
         nb.set_directory(dir)
         if not (username is None):
             nb.set_auth(username=username, password=password)
+        if not (color is None):
+            nb.set_color(color)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password)
+        nb = Notebook(dir,username=username,password=password, color=color)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.start(port, address, max_tries, open_viewer)

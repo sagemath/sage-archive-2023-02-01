@@ -417,6 +417,7 @@ function cell_input_key_event(id, event) {
        return false;
     } else if (key_send_input_newcell(e)) {
       /* evaluate_cell(id, 1); */
+       evaluate_cell(id, 0);
        insert_new_cell_after(id);
        return false;
     } else if (key_request_introspections(e)) {

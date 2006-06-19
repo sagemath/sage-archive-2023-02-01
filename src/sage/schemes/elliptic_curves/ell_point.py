@@ -159,8 +159,35 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
     def height(self):
         """
         The Neron-Tate canonical height of the point.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+            sage: P = E([5,5]); P
+            (5 : 5 : 1)
+            sage: h = P.height()
+            sage: RR = h.parent()
+            sage: RR.scientific_notation(True)
+            sage: h
+            -1.4246355279999999e-248
+            sage: Q = 5*P
+            sage: Q.height()
+            0.0000000000000000e-1
+
+            sage: E = EllipticCurve('37a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: P = E([0,0])
+            sage: P.height()
+            5.1111408239968840e-2
+            sage: P.order()
+            Infinity
+            sage: E.regulator()
+            0.051111408239968840
         """
-        return self.curve().pari_curve().ellheight([self[0], self[1]])
+        if self.is_zero():
+            return rings.RR(0)
+        h = self.curve().pari_curve().ellheight([self[0], self[1]])
+        return rings.RR(h)
 
     def xy(self):
         return self[0], self[1]

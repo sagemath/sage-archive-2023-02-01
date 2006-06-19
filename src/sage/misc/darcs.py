@@ -131,8 +131,17 @@ class Darcs:
     def get(self):
         if self.__initialized:
             print "not getting -- already initialized"
-        self('get '+self.__url)
-        self.__initialized = True
+        D = self.__dir
+        i = D.rfind('/')
+        if i == -1:
+            D = ''
+        else:
+            D = D[:i]
+        s = 'cd "%s" && darcs get %s'%(D, self.__url)
+        print s
+        n = os.system(s)
+        if n:
+            self.__initialized = True
 
     def remove(self, files, options=''):
         """
@@ -200,8 +209,6 @@ class Darcs:
         already done so.
         """
         if force or not os.path.exists('%s/_darcs'%self.__dir):
-            if not os.path.exists(self.__dir):
-                os.makedirs(self.__dir)
             print "Creating a new darcs repository!  %s"%self.__name
             self.get()
 ##             if self('initialize', check_initialized=False):

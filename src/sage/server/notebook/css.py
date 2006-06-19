@@ -846,9 +846,9 @@ div.insert_new_cell:hover {
     elif color == 'grey':
         color1 = '#aaaaaa'
         color2 = '#888888'
-    elif color == 'default':
+    elif color == 'default' or color == None:
         color1 = '#dedede'
-        color2 = '#99fc99'
+        color2 = '#b5edbc'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

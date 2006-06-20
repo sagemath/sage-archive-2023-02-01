@@ -755,7 +755,6 @@ pre.cell_output_wrap {
   margin:0px;
   padding:0px;
   color:#000088;
-  height:1em;
 }
 pre.cell_output_nowrap {
   display:none;
@@ -799,7 +798,7 @@ div.cell_output_running {
   width: 100%;
   margin: 0px;
   /* border-left: 2px solid #880000;  */
-  background-color: <color2>;
+  background-color: #55FF55;
   border: 1px solid <color2>;
 }
 
@@ -848,7 +847,7 @@ div.insert_new_cell:hover {
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default' or color == None:
-        color1 = '#dedede'
+        color1 = '#debbde'
         color2 = '#b5edbc'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color

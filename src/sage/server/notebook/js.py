@@ -715,8 +715,8 @@ function update_cell_output(status, response_text) {
             id = response_text.substring(1, i);
 
             D = response_text.slice(i+1).split(SEP);
-            output_text = D[0];
-            output_text_wrapped = D[1];
+            output_text = D[0] + ' ';
+            output_text_wrapped = D[1] + ' ';
             output_html = D[2];
             stat = response_text.charAt(0)
             set_output_text(id, output_text, output_text_wrapped, output_html, stat);

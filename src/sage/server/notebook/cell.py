@@ -341,9 +341,9 @@ class Cell:
         if out_html != '':
             out_html = '<br>' + out_html
 
-        out = """<pre class="cell_output_%s" id="cell_output_%s">%s</pre>
-                 <pre class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</pre>
-                 <span class="cell_output_html_%s" id="cell_output_html_%s">%s</span>
+        out = """<pre class="cell_output_%s" id="cell_output_%s">%s </pre>
+                 <pre class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </pre>
+                 <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
                  """%(typ, self.__id, out_wrap,
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)

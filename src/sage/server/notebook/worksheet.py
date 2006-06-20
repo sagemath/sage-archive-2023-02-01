@@ -473,15 +473,13 @@ class Worksheet:
             # no sage running anyways!
             pass
         self.interrupt()
-        alarm(1)
+        alarm(2)
         try:
             del self.__sage
         except:
             print "Error deleting SAGE object!"
             pass
-        else:
-            # turn off alarm.
-            cancel_alarm()
+        cancel_alarm()
 
         # empty the queue
         for C in self.__queue:

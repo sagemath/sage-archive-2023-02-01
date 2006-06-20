@@ -61,6 +61,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         W = notebook.get_worksheet_with_id(id)
         W.hide_all()
 
+    def restart_sage(self):
+        C = self.get_postvars()
+        id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(id)
+        W.restart_sage()
+        self.wfile.write('done')
+
     def show_all(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
@@ -186,7 +193,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
-        self.send_head()
         t = worksheet.interrupt()
         if t:
             self.wfile.write('ok')
@@ -254,8 +260,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
-        if do_print:
-            s += '<script language=javascript>window.print()</script>\n'
+        #if do_print:
+        #    s += '<script language=javascript>window.print()</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 
@@ -449,6 +455,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.cell_output_set()
             elif self.path[-9:]  == '/hide_all':
                 self.hide_all()
+            elif self.path[-13:] == '/restart_sage':
+                self.restart_sage()
             elif self.path[-9:]  == '/show_all':
                 self.show_all()
             elif self.path[-11:] == '/introspect':

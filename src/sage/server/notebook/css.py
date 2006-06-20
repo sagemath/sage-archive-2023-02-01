@@ -64,6 +64,25 @@ div.top_control_bar a.evaluate:hover {
    cursor:pointer;
 }
 
+div.top_control_bar a.restart_sage {
+   background-color:white;
+   padding:5;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.restart_sage:hover {
+   background-color:#ff0000;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar  a.restart_sage_in_progress {
+   color:#FFFFFF;
+   padding:5;
+   background-color:#ff0000;
+   text-decoration:blink;
+}
+
 div.top_control_bar  a.interrupt {
 /*   text-decoration: underline;
    font-family:arial;
@@ -93,7 +112,6 @@ div.top_control_bar  a.interrupt_in_progress {
    padding:5;
    background-color:#bb0000;
    text-decoration:blink;
-   text-decoration:underline;
 }
 
 div.top_control_bar  a.hide{

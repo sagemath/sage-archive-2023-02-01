@@ -145,7 +145,7 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text" and "Doctext" buttons provide the full text of the
+the "Text1" and "Text2" buttons provide the full text of the
 worksheet in a very convenient format for copy and paste.
 
 
@@ -716,28 +716,29 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner">SAGE Notebook %s</span>\n'%self.__dir
+        body += '  <span class="banner">SAGE %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Doctext</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
-        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
         body += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
-        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename()
+        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
+        body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
+        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
         body += '  </span>'
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n' + worksheet.html() + '\n</div>\n'
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
-        body += '  <div class="worksheets_topbar">Worksheets&nbsp;\n'
+        body += '  <div class="worksheets_topbar">'
         body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Add</a> '
         body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>'
-        body += '  </div>\n'
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>'
+        body += '  &nbsp;Worksheets</div>\n'
         body +=    add_new_worksheet_menu
         body +=    upload_worksheet_menu
         body +=    delete_worksheet_menu

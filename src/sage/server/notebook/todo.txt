@@ -41,7 +41,6 @@ I don't see this if I use the "pre-defined" default browser.
 TODO:
    [] latex -- add support for embedding images using \includegraphics
    [] images in output sometimes "moved down" after reload of page!
-   [] add a "restart sage" button in the top.
    [] deleting saved objects
 
 []This reminds me, I wonder if the GPL requires an "about" link, which
@@ -391,3 +390,4 @@ except the box you're currently typing into.
 for i in range(10):
 
    [x] "time " disappears from saved input for cells
+   [x] add a "restart sage" button in the top.

@@ -865,7 +865,7 @@ function interrupt() {
         return;
     }
     link.className = "interrupt_in_progress";
-    link.innerHTML = "Interrupt!"
+    link.innerHTML = "Interrupt"
     async_request('async_obj_interrupt', '/interrupt',
                   interrupt_callback, 'worksheet_id='+worksheet_id);
 }
@@ -883,6 +883,9 @@ function evaluate_all() {
     }
 }
 
+function hide_all_callback() {
+}
+
 function hide_all() {
     var v = cell_id_list;
     var n = v.length;
@@ -894,6 +897,9 @@ function hide_all() {
                       hide_all_callback, 'worksheet_id='+worksheet_id);
 }
 
+function show_all_callback() {
+}
+
 function show_all() {
     var v = cell_id_list;
     var n = v.length;
@@ -902,7 +908,32 @@ function show_all() {
         cell_output_set_type(v[i],'wrap');
     }
     async_request('async_obj_hide_all', '/show_all',
-                      hide_all_callback, 'worksheet_id='+worksheet_id);
+                      show_all_callback, 'worksheet_id='+worksheet_id);
+}
+
+function restart_sage_callback(status, response_text) {
+    var link = get_element("restart_sage");
+    link.className = "restart_sage";
+    link.innerHTML = "Restart";
+    updating = 0;
+    set_variable_list('');
+    var v = cell_id_list;
+    var n = v.length;
+    var i;
+    for(i=0; i<n; i++) {
+        var c = get_element('cell_div_output_'+v[i]);
+        if (c.className ==  'cell_output_running') {
+            c.className = 'cell_output_wrap';
+        }
+    }
+}
+
+function restart_sage() {
+    var link = get_element("restart_sage");
+    link.className = "restart_sage_in_progress";
+    link.innerHTML = "Restart";
+    async_request('async_obj_restart_sage', '/restart_sage',
+                      restart_sage_callback, 'worksheet_id='+worksheet_id);
 }
 
 function login(username,password) {

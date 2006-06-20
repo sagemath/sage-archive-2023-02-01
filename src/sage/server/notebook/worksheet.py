@@ -26,7 +26,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 20
+INTERRUPT_TRIES = 10
 INITIAL_NUM_CELLS = 1
 import notebook as _notebook
 
@@ -432,7 +432,7 @@ class Worksheet:
         # stop the current computation in the running SAGE
         S = self.sage()
         E = S._expect
-        tm = 0.1
+        tm = 0.05
         success = False
         alarm(INTERRUPT_TRIES * tm)
         try:
@@ -472,13 +472,25 @@ class Worksheet:
         except AttributeError:
             # no sage running anyways!
             pass
-        else:
+        self.interrupt()
+        alarm(1)
+        try:
             del self.__sage
+        except:
+            print "Error deleting SAGE object!"
+            pass
+        else:
+            # turn off alarm.
+            cancel_alarm()
 
         # empty the queue
         for C in self.__queue:
             C.interrupt()
         self.__comp_is_running = False
+        try:
+            del self.__variables
+        except AttributeError:
+            pass
 
     def postprocess_output(self, out, introspect=False):
         i = out.find('\r\n')

@@ -755,6 +755,7 @@ pre.cell_output_wrap {
   margin:0px;
   padding:0px;
   color:#000088;
+  height:1em;
 }
 pre.cell_output_nowrap {
   display:none;

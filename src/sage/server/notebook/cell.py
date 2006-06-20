@@ -198,7 +198,7 @@ class Cell:
     def set_output_text(self, output, html):
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output.strip() + ' '
+        self.__out = output.strip()
         self.__out_html = html
 
     def output_html(self):

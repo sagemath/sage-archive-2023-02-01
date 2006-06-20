@@ -50,7 +50,8 @@ function get_event(e) {
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 
-cell_output_delta = 350;
+// cell_output_delta = 1000;
+cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
 

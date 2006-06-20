@@ -343,8 +343,8 @@ class Worksheet:
 
         out = self.postprocess_output(out, C.introspect())
         if not done:
-            out = self._strip_synchro_from_start_of_output(out)
             # Still computing
+            out = self._process_output(out)
             C.set_output_text(out, '')
             return 'w', C
 

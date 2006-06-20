@@ -30,7 +30,8 @@ EMBEDDED_MODE = False
 
 LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
 
-SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+#SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
+SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n\\textwidth=1.3\\textwidth\\textheight=2\\textheight'
 
 import os
 
@@ -163,14 +164,14 @@ class Latex:
         O = open('%s.tex'%filename,'w')
         if self.__slide:
             O.write(SLIDE_HEADER)
-            O.write('\\begin{document}\n\\begin{slide}\n')
+            O.write('\\begin{document}\n\n')
         else:
             O.write(LATEX_HEADER)
             O.write('\\begin{document}\n')
 
         O.write(x)
         if self.__slide:
-            O.write('\n\\end{slide}\n\\end{document}')
+            O.write('\n\n\\end{document}')
         else:
             O.write('\\end{document}\n')
 
@@ -180,8 +181,11 @@ class Latex:
         else:
             redirect=''
         lt = 'latex \\\\nonstopmode \\\\input{%s.tex} %s'%(filename, redirect)
-        dvips = 'dvips -t landscape %s.dvi %s'%(filename, redirect)
-        convert = 'convert -density %sx%s -rotate 270 -trim %s.ps %s.png %s '%\
+        #dvips = 'dvips -t landscape %s.dvi %s'%(filename, redirect)
+        dvips = 'dvips %s.dvi %s'%(filename, redirect)
+        #convert = 'convert -density %sx%s -rotate 270 -trim %s.ps %s.png %s '%\
+         #         (density,density, filename, filename, redirect)
+        convert = 'convert -density %sx%s -trim %s.ps %s.png %s '%\
                   (density,density, filename, filename, redirect)
         cmd = ' ; '.join([lt, dvips, convert])
         e = os.system(cmd)

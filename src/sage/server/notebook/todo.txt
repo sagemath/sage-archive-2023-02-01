@@ -1,15 +1,67 @@
-TODO:
+BUGS:
+   [] tab completion sticks cursor at end of text when expands output.
+   [] Safari -- (from J. Walker) I just tried (1.3.3.6)
+"R.<x>=PolynomialRing(Integers(),'x')" in Safari, it mostly seemed to
+work, save the minor problem that the "(" following the procedure name
+doesn't seem to take.  When I try to execute it I get a traceback
+indicating that it (sage) hasn't seen the "(".
+   [] Regarding your tip for locally specifying default browser, this
+may not work ideally on Mac OS X: first, 'firefox' is generally not
+accessible (it is "/whereever/you/keep/applications/
+FireFox.app/Content/MacOS/firefox", and there may need to be other
+arguments used to make it work smoothly.  If you use the "open"
+command, then "/wherever/you/keep/applications/ FireFox.app" (no
+trailing "/") should work.
 
+As it is, I see lots of crankiness in the SAGE window where I call
+notebook(), e.g., 2006-06-19 13:30:10.530 firefox-bin[21348] CFLog
+(21): Error loading /System/Library/
+Components/DictionaryService.component/Contents/MacOS/DictionaryService:
+error code 4, error number 0 (Symbol not found:
+__cg_png_destroy_write_struct Referenced from:
+/System/Library/Frameworks/ApplicationServices.framework/Versions/A/
+Frameworks/ImageIO.framework/Versions/A/ImageIO Expected in:
+/SandBox/Justin/sb/sage-1.3.1.1/local/lib/libPng.dylib
+
+   [] If I set the default browser, as described by William, I get the
+following when I exit SAGE, after using ^C to exit the notebook server:
+sage: ^C
+blah blah ...
+sage:
+KeyboardInterrupt
+sage: ^D
+Exiting SAGE (CPU time 0m0.34s, Wall time 8m0.28s).
+Python 2.4.3 (#1, May 17 2006, 23:50:57)
+[GCC 4.0.1 (Apple Computer, Inc. build 5250)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+ >>>
+I don't see this if I use the "pre-defined" default browser.
+
+
+TODO:
+   [] latex -- add support for embedding images using \includegraphics
    [] images in output sometimes "moved down" after reload of page!
    [] add a "restart sage" button in the top.
-   [] tab completion always sticks cursor at end of text.  is there
-      a trick to get around this?
    [] deleting saved objects
-   [] "time " disappears from saved input for cells
-   [] worksheets with lots of graphics feel slow.  why?
+
+[]This reminds me, I wonder if the GPL requires an "about" link, which
+opens a new webpage (or a new tab) with your name+email and the copyright
+info. Even if it's not required, I think it's a good idea. What do you
+think?
+That's a good idea.   The license() command gives that info, but
+it's already so long it gets truncated.   It should be that there
+is a link that pops up the license() info in a popup.
+
+[] At some point I'll add a feature so you can set the session when
+you create a new worksheet.  What I've just done is make it so that
+any new worksheets created use a given CAS.  If you restart the
+notebook with a different system= option, then new worksheets get that
+CAS, but old ones stay the way they are.
 
 IDEAS:
 [] Make an entire Gap Notebook or Magma Notebook or ...
+
+   [] worksheets with lots of graphics sometimes feel slow.
 
 [] enter to submit when adding a new worksheet or deleting.
 
@@ -338,3 +390,4 @@ except the box you're currently typing into.
 [x] doesn't chop off exec stuff after some errors:
 for i in range(10):
 
+   [x] "time " disappears from saved input for cells

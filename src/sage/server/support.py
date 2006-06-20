@@ -147,7 +147,7 @@ def source_code(s, globs):
         z = inspect.getsourcelines(obj)[0]
     except (TypeError, IndexError):
         return "Source code for %s not available."%obj
-    return '\n'.join(z)
+    return ''.join(z)
 
 
 def tabulate(v, width=90):

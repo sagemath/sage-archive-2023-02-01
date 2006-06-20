@@ -296,18 +296,17 @@ class Worksheet:
             return
         elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
             C.do_time()
-            C.set_input_text(I[5:].lstrip())
+            I = I[5:].lstrip()
 
         S = self.sage()
-
 
         tmp = '%s/tmp.py'%self.directory()
         input = 'os.chdir("%s")\n'%os.path.abspath(D)
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
-        if C.input_text()[-1:] == '?':
-            C.set_introspect(C.input_text(), '')
-        input += self.preparse_input(C)
+        if I[-1:] == '?':
+            C.set_introspect(I, '')
+        input += self.preparse_input(I, C)
 
         if C.time():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
@@ -682,8 +681,7 @@ class Worksheet:
             t = 'print %s.eval(r"""%s""")'%(sys,s)
         return True, t
 
-    def preparse_input(self, C):
-        input = C.input_text().strip()
+    def preparse_input(self, input, C):
         introspect = C.introspect()
         if introspect:
             before_prompt, after_prompt = introspect

@@ -17,9 +17,12 @@ disjoint cycles.
 
 You can construct the following permutation groups:
 
--- SymmetricGroup, $S_n$ of ordr $n!$
+-- SymmetricGroup, $S_n$ of order $n!$ (n can also be a list $X$ of distinct
+                   positive integers, in which case it returns $S_X$)
 
--- AlternatingGroup, $A_n$ or order $n!/2$
+-- AlternatingGroup, $A_n$ or order $n!/2$ (n can also be a list $X$
+                   of distinct positive integers, in which case it returns
+                   $A_X$)
 
 -- DihedralGroup, $D_n$ of order $2n$
 
@@ -35,11 +38,19 @@ You can construct the following permutation groups:
 -- PSL(n,q), projective special linear group of $n\times n$ matrices over
              the finite field GF(q)
 
--- PSp(2n,q), projective symplectic linear group of $2n\times 2n$ matrices over
-             the finite field GF(q)
+-- PSp(2n,q), projective symplectic linear group of $2n\times 2n$ matrices
+              over the finite field GF(q)
 
 -- PSU(n,q), projective special unitary group of $n\times n$ matrices having
-             coefficients in the finite field $GF(q^2)$
+             coefficients in the finite field $GF(q^2)$ that respect a
+             fixed nondegenerate sesquilinear form, of determinant 1.
+
+-- PGU(n,q), projective general unitary group of $n\times n$ matrices having
+             coefficients in the finite field $GF(q^2)$ that respect a
+             fixed nondegenerate sesquilinear form, modulo the centre.
+
+-- direct_product_permgroups, which takes a list of permutation
+             groups and returns their direct product.
 
 JOKE:
     Q: What's hot, chunky, and acts on a polygon? A: Dihedral soup.
@@ -55,14 +66,14 @@ AUTHOR:
     - David Joyner (2006-03): reorganization into subdirectory perm_gps;
                               added __contains__, has_element; fixed _cmp_;
                               added subgroup class+methods, PGL,PSL,PSp, PSU classes,
+    - David Joyner (2006-06): added PGU, functionality to SymmetricGroup, AlternatingGroup,
+                                    direct_product_permgroups
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
     Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
     Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
 
-TODO:
-    Implement PGU over GF(q) as a permutation group.
 
 """
 
@@ -533,7 +544,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             ans.append(PermutationGroup(DS[i], from_group = True))
         return ans
 
-
     def character_table(self):
         r"""
         Returns the matrix of values of the irreducible characters of
@@ -713,9 +723,37 @@ class PermutationGroup_generic(group.FiniteGroup):
                 for i in range(1,n+1)]
 
 
+def direct_product_permgroups(P):
+    """
+    Takes the direct product of the permutation groups listed in P.
+
+    EXAMPLES:
+        sage: G1 = AlternatingGroup([1,2,4,5])
+        sage: G2 = AlternatingGroup([3,4,6,7])
+        sage: D = direct_product_permgroups([G1,G2,G1])
+        sage: D.order()
+        1728
+        sage: D = direct_product_permgroups([G1])
+        sage: D==G1
+        True
+    """
+    n = len(P)
+    if n==1:
+        return P[0]
+    from sage.groups.perm_gps.permgroup_morphism import PermutationGroupMorphism_from_gap
+    G = [H._gap_init_() for H in P]
+    Glist = ""
+    for H in G:
+        Glist = Glist + H + ","
+    cmd = "G:=DirectProduct([" + Glist[:-1] + "])"
+    gap.eval(cmd)
+    return PermutationGroup(gap.eval("G"), from_group = True)
+
 class SymmetricGroup(PermutationGroup_generic):
     """
     The full symmetric group of order $n!$, as a permutation group.
+    (If n is a list of positive integers then it returns the
+    symmetric group of the associated set.)
     """
     def __init__(self, n):
         """
@@ -730,19 +768,56 @@ class SymmetricGroup(PermutationGroup_generic):
             Symmetric group of order 8! as a permutation group
             sage: G.degree()
             8
-
             sage: S8 = SymmetricGroup(8)
             sage: loads(dumps(S8)) == S8
             True
+            sage: G = SymmetricGroup([1,2,4,5])
+            sage: G
+            Symmetric group of order 4! as a permutation group
+            sage: G.set()
+            [1, 2, 4, 5]
+            sage: G = SymmetricGroup(4)
+            sage: G
+            Symmetric group of order 4! as a permutation group
+            sage: G.set()
+            [1, 2, 3, 4]
+
         """
-        n = Integer(n)
-        if n < 1:
-            raise ValueError, "n (=%s) must be >= 1"%n
-        PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+        self._deg = n
+        from types import ListType
+        if isinstance(n,ListType):
+            PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+        elif isinstance(n,Integer):
+            n = Integer(n)
+            if n < 1:
+                raise ValueError, "n (=%s) must be >= 1"%n
+            PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+        else:
+            raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
     def _repr_(self):
-        return "Symmetric group of order %s! as a permutation group"%self.degree()
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            deg = len(self._deg)
+        else:
+            deg = self.degree()
+        return "Symmetric group of order %s! as a permutation group"%deg
 
+    def __str__(self):
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            deg = len(self._deg)
+        else:
+            deg = self.degree()
+        return "SymmetricGroup(%s)"%deg
+
+    def set(self):
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            X = self._deg
+        else:
+            X = range(1,self._deg + 1)
+        return X
 
 class AlternatingGroup(PermutationGroup_generic):
     """
@@ -761,15 +836,47 @@ class AlternatingGroup(PermutationGroup_generic):
             Alternating group of order 8!/2 as a permutation group
             sage: loads(G.dumps()) == G
             True
+            sage: G = AlternatingGroup([1,2,4,5])
+            sage: G
+            Alternating group of order 4!/2 as a permutation group
+            sage: G.set()
+            [1, 2, 4, 5]
         """
-        n = Integer(n)
-        if n < 1:
-            raise ValueError, "n (=%s) must be >= 1"%n
-        PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+        self._deg = n
+        from types import ListType
+        if isinstance(n,ListType):
+            PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+        elif isinstance(n,Integer):
+            n = Integer(n)
+            if n < 1:
+                raise ValueError, "n (=%s) must be >= 1"%n
+            PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
+        else:
+            raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
     def _repr_(self):
-        return "Alternating group of order %s!/2 as a permutation group"%self.degree()
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            deg = len(self._deg)
+        else:
+            deg = self.degree()
+        return "Alternating group of order %s!/2 as a permutation group"%deg
 
+    def __str__(self):
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            deg = len(self._deg)
+        else:
+            deg = self.degree()
+        return "AlternatingGroup(%s)"%deg
+
+    def set(self):
+        from types import ListType
+        if isinstance(self._deg,ListType):
+            X = self._deg
+        else:
+            X = range(1,self._deg + 1)
+        return X
 
 class CyclicPermutationGroup(PermutationGroup_generic):
     """
@@ -1048,6 +1155,43 @@ class PSU(PermutationGroup_generic):
 
     def __str__(self):
         return "The projective special unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+
+class PGU(PermutationGroup_generic):
+    """
+    The projective general unitary groups over GF(q).
+    """
+    def __init__(self, n, q):
+        """
+        INPUT:
+            n -- positive integer; the degree
+            q -- prime power; the size of the ground field
+
+        OUTPUT:
+            PGU(n,q)
+
+        EXAMPLE:
+            sage: PGU(2,3)
+            Permutation Group with generators [(3,4)(5,8)(6,9)(7,10), (1,2,6)(3,7,10)(4,8,5)]
+            sage: print PGU(2,3)
+            The projective general unitary group of degree 2 over Finite Field of size 3 (matrix representation has coefficients in Finite Field in a of size 3^2)
+
+        """
+        id = 'PGU(%s,%s)'%(n,q)
+        PermutationGroup_generic.__init__(self, id,
+                                          from_group=True, check=False)
+        self._q = q
+        self._base_ring = GF(q)
+        self._field_of_definition = GF(q**2)
+        self._n = n
+
+    def field_of_definition(self):
+        return self._field_of_definition
+
+    def base_ring(self):
+        return self._base_ring
+
+    def __str__(self):
+        return "The projective general unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
 
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """

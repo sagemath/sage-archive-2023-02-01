@@ -528,12 +528,13 @@ class Worksheet:
             A = self.__attached
         except AttributeError:
             A = {}
-
-            init_sage = DOT_SAGE + 'init.sage'
-            if os.path.exists(init_sage):
-                A[init_sage] = 0
-
             self.__attached = A
+
+        init_sage = DOT_SAGE + 'init.sage'
+        if os.path.exists(init_sage):
+            A[init_sage] = 0
+        elif A.has_key(init_sage):
+            del A[init_sage]
         return A
 
     def attach(self, filename):

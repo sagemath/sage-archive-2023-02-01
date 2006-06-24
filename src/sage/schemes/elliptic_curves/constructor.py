@@ -23,7 +23,10 @@ import sage.rings.all as rings
 
 def EllipticCurve(x, y=None):
     r"""
-    There are several ways to construct elliptic curves:
+    There are several ways to construct an elliptic curve:
+      $$
+          y^2 + a_1 xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6.
+      $$
 
         -- EllipticCurve([a1,a2,a3,a4,a6]): Elliptic curve with given
            a-invariants.  The invariants are coerced into a the parent

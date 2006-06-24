@@ -314,6 +314,12 @@ class Magma(Expect):
     def _equality_symbol(self):
         return 'eq'
 
+    def _lessthan_symbol(self):
+        return ' lt '
+
+    def _greaterthan_symbol(self):
+        return ' gt '
+
     # For efficiency purposes, you should definitely override these
     # in your derived class.
     def _true_symbol(self):

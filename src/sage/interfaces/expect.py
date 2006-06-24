@@ -454,6 +454,12 @@ class Expect(SageObject):
         except AttributeError:
             self.__false_symbol = self.eval('1 %s 2'%self._equality_symbol())
 
+    def _lessthan_symbol(self):
+        return '<'
+
+    def _greaterthan_symbol(self):
+        return '>'
+
 
     ############################################################
     #         Functions for working with variables.
@@ -637,9 +643,9 @@ class ExpectElement(Element_cmp_, RingElement):
         #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
         #    return coerce.cmp(self, other)
         P = self.parent()
-        if P.eval("%s < %s"%(self.name(), other.name())) == P._true_symbol():
+        if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
-        elif P.eval("%s > %s"%(self.name(), other.name())) == P._true_symbol():
+        elif P.eval("%s %s %s"%(self.name(), P._greaterthan_symbol(), other.name())) == P._true_symbol():
             return 1
         elif P.eval("%s %s %s"%(self.name(), P._equality_symbol(),
                                  other.name())) == P._true_symbol():

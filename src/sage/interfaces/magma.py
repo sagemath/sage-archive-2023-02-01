@@ -380,6 +380,7 @@ class Magma(Expect):
                 print "\nCreating list of all MAGMA intrinsics for use in tab completion."
                 print "This takes a few minutes the first time, but is saved to the"
                 print "file '%s' for future instant use."%INTRINSIC_CACHE
+                print "MAGMA may produce errors during this process, which are safe to ignore."
                 print "Delete that file to force recreation of this cache."
                 print "Scanning MAGMA types ..."
                 tm = sage.misc.misc.cputime()

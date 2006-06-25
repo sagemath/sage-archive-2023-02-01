@@ -716,7 +716,7 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner">SAGE %s</span>\n'%self.__dir
+        body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a> %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar

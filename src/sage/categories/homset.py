@@ -49,9 +49,7 @@ def Hom(X, Y, cat=None):
         Category of vector spaces over Rational Field
         sage: G = SymmetricGroup(3)
         sage: Hom(G, G)
-        Set of Morphisms from Symmetric group of order 3! as a
-        permutation group to Symmetric group of order 3! as a
-        permutation group in Category of groups
+        Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
         sage: Hom(ZZ, QQ, Sets())
         Set of Morphisms from Integer Ring to Rational Field in Category of sets
     """
@@ -156,7 +154,7 @@ def End(X, cat=None):
 
         sage: G = SymmetricGroup(3)
         sage: S = End(G); S
-        Set of Morphisms from Symmetric group of order 3! as a permutation group to Symmetric group of order 3! as a permutation group in Category of groups
+        Set of Morphisms from SymmetricGroup(3) to SymmetricGroup(3) in Category of groups
         sage: is_Endset(S)
         True
         sage: S.domain()

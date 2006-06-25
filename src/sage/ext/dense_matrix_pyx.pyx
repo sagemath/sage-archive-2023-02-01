@@ -1503,6 +1503,7 @@ cdef class Matrix_rational:
                 verbose("p=%s"%p)
                 A = B.matrix_modint(p)
                 A.echelon()
+                #print A   # debug
                 if self.nrows == self.ncols and len(A.pivots()) == self.ncols:
                     # special case -- the echelon form must be the identity matrix.
                     return Matrix_rational_identity(self.nrows)
@@ -1542,7 +1543,12 @@ cdef class Matrix_rational:
                 continue
             d = E.denom()
             Es = E.scalar_multiple(d)
-            hdE = (E.scalar_multiple(d)).height()
+            hdE = (Es).height()
+            #print "Es = ", Es   # debug
+            #print "hdE = ", hdE # debug
+            #print "hA = ", hA   # debug
+            #print "A = ", B     # debug
+            #print "prod = ", prod  # debug
             if hdE * hA * self.ncols < prod:
                 self.__pivots = best_pivots
                 E._set_pivots(list(best_pivots))
@@ -1625,6 +1631,8 @@ def Matrix_rational_using_crt_and_rr(X):
     cdef Matrix_rational M
     M = Matrix_rational(nr, nc, LEAVE_UNINITIALIZED)
     M.set_matrix(m)
+    #print "X = ", X  # debug
+    #print "M = ", M  # debug
     return M
 
 def Matrix_rational_random(nrows, ncols, bound):

@@ -57,6 +57,15 @@ cdef int mpq_rational_reconstruction(mpq_t answer, mpz_t a, mpz_t m) except -1:
     If the rational reconstruction doesn't exist,
     raises a ValueError
     """
+##     #debug
+##     cdef char* s
+##     s = mpz_get_str(NULL, 10, a)
+##     t = str(s)
+##     print 'a = ', t
+##     s = mpz_get_str(NULL, 10, m)
+##     t = str(s)
+##     print 'm = ', t
+##     #debug
     mpz_mod(a, a, m)     # a = a % m
     if mpz_sgn(a) == 0 or mpz_sgn(m) == 0:    # a or m is zero
         mpq_set_si(answer, 0, 1)              # return 0
@@ -147,7 +156,7 @@ cdef int mpz_crt_intvec(mpz_t* answer, mpz_t* modulus,
 
     mpz_set_ui(a1, v[0])
     mpz_set_ui(mod1, m[0])
-    for i from 1 <= i < n-1:
+    for i from 1 <= i < n:
         mpz_set_ui(a2, v[i])
         mpz_set_ui(mod2, m[i])
         mpz_gcdext(g, s, t, mod1, mod2)

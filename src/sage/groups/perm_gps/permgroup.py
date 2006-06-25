@@ -86,6 +86,7 @@ REFERENCES:
 
 
 import random
+from types import ListType
 
 import sage.structure.element as element
 import sage.groups.group as group
@@ -736,9 +737,13 @@ def direct_product_permgroups(P):
         sage: D = direct_product_permgroups([G1])
         sage: D==G1
         True
+        sage: direct_product_permgroups([])
+        Symmetric group of order 0! as a permutation group
     """
     n = len(P)
-    if n==1:
+    if n == 0:
+        return SymmetricGroup(1)
+    if n == 1:
         return P[0]
     from sage.groups.perm_gps.permgroup_morphism import PermutationGroupMorphism_from_gap
     G = [H._gap_init_() for H in P]
@@ -784,19 +789,18 @@ class SymmetricGroup(PermutationGroup_generic):
 
         """
         self._deg = n
-        from types import ListType
-        if isinstance(n,ListType):
-            PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
-        elif isinstance(n,Integer):
-            n = Integer(n)
-            if n < 1:
-                raise ValueError, "n (=%s) must be >= 1"%n
+        if isinstance(n, ListType):
             PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
         else:
-            raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
+            try:
+                n = Integer(n)
+                if n < 1:
+                    raise ValueError, "n (=%s) must be >= 1"%n
+                PermutationGroup_generic.__init__(self, 'SymmetricGroup(%s)'%n, from_group = True)
+            except TypeError, msg:
+                raise ValueError, "%s\nn (=%s) must be an integer >= 1 or a list (but n has type %s)"%(msg, n,type(n))
 
     def _repr_(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             deg = len(self._deg)
         else:
@@ -804,7 +808,6 @@ class SymmetricGroup(PermutationGroup_generic):
         return "Symmetric group of order %s! as a permutation group"%deg
 
     def __str__(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             deg = len(self._deg)
         else:
@@ -812,7 +815,6 @@ class SymmetricGroup(PermutationGroup_generic):
         return "SymmetricGroup(%s)"%deg
 
     def set(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             X = self._deg
         else:
@@ -843,7 +845,6 @@ class AlternatingGroup(PermutationGroup_generic):
             [1, 2, 4, 5]
         """
         self._deg = n
-        from types import ListType
         if isinstance(n,ListType):
             PermutationGroup_generic.__init__(self, 'AlternatingGroup(%s)'%n, from_group = True)
         elif isinstance(n,Integer):
@@ -855,7 +856,6 @@ class AlternatingGroup(PermutationGroup_generic):
             raise ValueError, "n (=%s) must be an integer >= 1 or a list"%n
 
     def _repr_(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             deg = len(self._deg)
         else:
@@ -863,7 +863,6 @@ class AlternatingGroup(PermutationGroup_generic):
         return "Alternating group of order %s!/2 as a permutation group"%deg
 
     def __str__(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             deg = len(self._deg)
         else:
@@ -871,7 +870,6 @@ class AlternatingGroup(PermutationGroup_generic):
         return "AlternatingGroup(%s)"%deg
 
     def set(self):
-        from types import ListType
         if isinstance(self._deg,ListType):
             X = self._deg
         else:

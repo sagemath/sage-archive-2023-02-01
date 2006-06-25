@@ -26,7 +26,7 @@ fi
 mkdir $TMP
 
 cd $SAGE_ROOT
-cp -pr examples local makefile README CHANGELOG *.sage sage ipythonrc data $TMP/
+cp -pr examples local makefile README CHANGELOG *.sage sage ipython matplotlibrc data $TMP/
 cp -prL doc $TMP/
 if [ -d devel/sage ]; then
    cd devel/sage

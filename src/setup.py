@@ -269,7 +269,7 @@ def process_pyrex_file(f):
             os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
     c_file = f[:-4] + ".c"
     if need_to_create(f, c_file):
-        cmd = "pyrexc %s"%f
+        cmd = "pyrexc -I%s %s"%(os.getcwd(),f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

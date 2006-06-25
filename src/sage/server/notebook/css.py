@@ -7,14 +7,14 @@ import os
 from sage.misc.misc import DOT_SAGE
 
 def css(color='default'):
-    """
+    r"""
     Return the CSS header used by the SAGE Notebook.
 
     INPUT:
         color -- string or pair of html colors, e.g.,
                     'gmail'
                     'grey'
-                    ('#ff0000', '#0000ff')
+                    \code{('#ff0000', '#0000ff')}
 
     EXAMPLES:
         sage: import sage.server.notebook.css as c

@@ -929,9 +929,7 @@ def notebook(dir       ='sage_notebook',
                 you restart the server with that same name then it will
                 restart in the state you left it, but with none of the
                 variables defined (you have to re-eval blocks).
-
         port -- (default: 8000) port on computer where the server is served
-
         address -- (default: 'localhost') address that the server
                    will listen on
         open_viewer -- bool (default:False); if True, pop up a web browser at the URL

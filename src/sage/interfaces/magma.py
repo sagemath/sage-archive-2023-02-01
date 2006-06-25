@@ -243,12 +243,39 @@ class Magma(Expect):
         magma.eval('ChangeDirectory("%s")'%dir)
 
     def attach(self, filename):
+        r"""
+        Attach the given file to the running instance of MAGMA.
+
+        Attaching a file in MAGMA makes all intrinsics defined in the
+        file available to the shell.  Moreover, if the file doesn't
+        start with the \code{freeze;} command, then the file is
+        reloaded whenver it is changed.  Note that functions and
+        procedures defined in the file are \emph{not} available.
+        For only those, use \code{magma.load(filename)}.
+        """
         self.eval('Attach("%s")'%filename)
     Attach = attach
 
     def attach_spec(self, filename):
+        r"""
+        Attach the given spec file to the running instance of MAGMA.
+
+        This attaches numerous files to the running MAGMA (see the
+        MAGMA documentation for more details).
+        """
         self.eval('AttachSpec("%s")'%filename)
     AttachSpec = attach_spec
+
+    def load(self, filename):
+        """
+        Load the file with given filename using the 'load' command
+        in the MAGMA shell.
+
+        Loading a file in MAGMA makes all the functions and procedures
+        in the file available. The file should not contain any
+        intrinsics (or you'll get errors).
+        """
+        self.eval('load "%s"'%filename)
 
     def _next_var_name(self):
         if self.__seq == 0:

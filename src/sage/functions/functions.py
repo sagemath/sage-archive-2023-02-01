@@ -696,34 +696,48 @@ gamma_function = Function_gamma()
 
 
 class Function_maxima(Function):
-    def __init__(self, x):
-        if not isinstance(x, MaximaFunction):
-            raise TypeError, "x (=%s) must be a MaximaFunction"
-        Function.__init__(self, {'maxima':str(x)})
-        self.__x = x
-        self.__name = x.name()
-        self.__p = x.parent()
+    def __init__(self, var, defn, repr, latex):
+        #if not isinstance(x, MaximaFunction):
+        #    raise TypeError, "x (=%s) must be a MaximaFunction"
+        Function.__init__(self, {'maxima':defn})
+        self.__var = var
+        self.__defn = defn
+        self.__repr = repr
+        self.__latex = latex
+
+    def _x(self):
+        try:
+            return self.__x
+        except AttributeError:
+            self.__x = maxima.function(self.__var, self.__defn,
+                                       self.__repr, self.__latex)
+            return self.__x
 
     def _repr_(self):
-        return str(self.__x)
+        return self.__repr
 
     def _latex_(self):
-        return self.__x._latex_()
+        if self.__latex is None:
+            self.__latex = maxima(self)._latex_()
+        return self.__latex
 
     def _mpfr_(self, R):
         raise TypeError
 
     def _call_(self, z):
         if is_RealNumber(z) or is_ComplexNumber(z):
-            return z.parent()(self.__x(z))
+            return z.parent()(self._x()(z))
         raise TypeError
 
     def integral(self):
-        return Function_maxima(self.__x.integrate())
+        f = maxima.eval('integrate(%s,%s)'%(self.__defn, self.__var))
+        doc = 'Integral of %s'%self.__repr
+        return maxima_function(var=self.__var, defn=f, repr=f,
+                               latex=None, doc=doc)
 
 
 def maxima_function(var, defn, repr, latex, doc):
-    F = Function_maxima(maxima.function(var, defn, repr, latex))
+    F = Function_maxima(var, defn, repr, latex)
     F.__doc__ = doc
     return F
 

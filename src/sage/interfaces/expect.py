@@ -221,6 +221,7 @@ class Expect(SageObject):
             print "Starting %s"%self.__command.split()[0]
         try:
             self._expect = pexpect.spawn(self.__command, logfile=self.__logfile)
+
         except (pexpect.ExceptionPexpect, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
@@ -235,10 +236,11 @@ class Expect(SageObject):
         self._expect.delaybeforesend = 0
         try:
             self._expect.expect(self._prompt)
-        except (pexpect.TIMEOUT, pexpect.EOF):
+        except (pexpect.TIMEOUT, pexpect.EOF), msg:
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
+            print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
         for X in self.__init_code:
@@ -252,19 +254,22 @@ class Expect(SageObject):
                 return
 
     def __del__(self):
-        if self._expect is None:
-            return
         try:
-            self.quit()
-        except (TypeError, AttributeError):
-            pass
+            if self._expect is None:
+                return
+            try:
+                self.quit()
+            except (TypeError, AttributeError):
+                pass
 
-        # The following programs around a bug in pexpect.
-        def dummy(): pass
-        try:
-            self._expect.close = dummy
-        except AttributeError:
-            pass
+            # The following programs around a bug in pexpect.
+            def dummy(): pass
+            try:
+                self._expect.close = dummy
+            except AttributeError:
+                pass
+        except RuntimeError, msg:
+            print msg
 
     def quit(self):
         if self._expect is None:
@@ -273,11 +278,12 @@ class Expect(SageObject):
         # this is *very useful* when external binaries are started up
         # by shell scripts, and killing the shell script doesn't
         # kill the binary.
+        print "(also exiting spawned %s)"%self
         try:
             os.killpg(self._expect.pid, 9)
-        except OSError:
-            # this is OK, it just means the process was already dead.
-            pass
+        except OSError, msg:
+            print msg
+            print "WARNING: This is usually OK; it just means the process was already dead."
 
     def _quit_string(self):
         return 'quit'

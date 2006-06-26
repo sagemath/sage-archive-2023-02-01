@@ -117,8 +117,9 @@ class Sage(Expect):
 
     def quit(self):
         if not self._expect is None:
-            self._eval_line('quit_sage()')
-        Expect.quit(self)
+            for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
+                self._eval_line('quit_sage(verbose=False)')
+        #Expect.quit(self)
 
     def _remote_tmpfile(self):
         try:

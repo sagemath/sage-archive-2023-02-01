@@ -22,6 +22,8 @@ all.py -- much of sage is imported into this module, so you don't
 #*****************************************************************************
 
 import os, sys
+
+
 if sys.version_info[:2] < (2, 4):
     print >>sys.stderr, "SAGE requires Python 2.4 or newer"
     sys.exit(1)

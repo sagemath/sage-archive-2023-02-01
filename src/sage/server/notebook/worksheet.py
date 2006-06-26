@@ -200,6 +200,9 @@ class Worksheet:
     def DIR(self):
         return self.__notebook.DIR()
 
+    def quit(self):
+        self.restart_sage()
+
     def sage(self):
         try:
             return self.__sage
@@ -338,7 +341,7 @@ class Worksheet:
         try:
             done, out, new = S._so_far(wait=0.1, alternate_prompt=SAGE_END+str(self.synchro()))
         except RuntimeError, msg:
-            verbose("Computation was interrupted or failed. Restarting.\n"+msg)
+            verbose("Computation was interrupted or failed. Restarting.\n%s"%msg)
             self.__comp_is_running = False
             self.start_next_comp()
             return 'w', C
@@ -432,31 +435,35 @@ class Worksheet:
             return True
 
         # stop the current computation in the running SAGE
-        S = self.sage()
-        E = S._expect
-        tm = 0.05
-        success = False
-        alarm(INTERRUPT_TRIES * tm)
         try:
-            for i in range(INTERRUPT_TRIES):
-                E.sendline('q')
-                E.sendline(chr(3))
-                try:
-                    E.expect(S._prompt, timeout=tm)
-                    E.expect(S._prompt, timeout=tm)
-                    success = True
-                    break
-                except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                    verbose("Trying again to interrupt SAGE (try %s)..."%i)
-        except:
-            print "Interrupted (escape via alarm)!"
-            success = False
+            S = self.__sage
+        except AttributeError:
+            pass
         else:
-            # Turn off the alarm.
-            cancel_alarm()
+            E = S._expect
+            tm = 0.05
+            success = False
+            alarm(INTERRUPT_TRIES * tm)
+            try:
+                for i in range(INTERRUPT_TRIES):
+                    E.sendline('q')
+                    E.sendline(chr(3))
+                    try:
+                        E.expect(S._prompt, timeout=tm)
+                        E.expect(S._prompt, timeout=tm)
+                        success = True
+                        break
+                    except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        verbose("Trying again to interrupt SAGE (try %s)..."%i)
+            except:
+                print "Interrupted (escape via alarm)!"
+                success = False
+            else:
+                # Turn off the alarm.
+                cancel_alarm()
 
-        if not success:
-            del self.__sage
+            if not success:
+                del self.__sage
 
         # empty the queue
         for C in self.__queue:
@@ -469,18 +476,21 @@ class Worksheet:
         Restart SAGE kernel.
         """
         # stop the current computation in the running SAGE
+        self.interrupt()
         try:
             S = self.__sage
         except AttributeError:
             # no sage running anyways!
-            pass
-        self.interrupt()
+            return
+
         alarm(2)
         try:
             del self.__sage
-        except:
-            print "Error deleting SAGE object!"
-            pass
+        except AttributeError, msg:
+            print "WARNING: %s"%msg
+        except Exception, msg:
+            print msg
+            print "WARNING: Error deleting SAGE object!"
         cancel_alarm()
 
         # empty the queue

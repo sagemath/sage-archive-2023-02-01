@@ -148,7 +148,8 @@ class Latex:
             var = t[:j]
             try:
                 k = latex(sage_eval.sage_eval(var, vars))
-            except:
+            except Exception, msg:
+                print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
 

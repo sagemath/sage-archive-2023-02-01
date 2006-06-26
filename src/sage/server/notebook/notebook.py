@@ -91,6 +91,19 @@ which has square $$A^2 = \sage{A^2}.$$
 \end{verbatim}
 If you would like to typeset a slide (suitable for presentation),
 use \%slide instead.
+Here is another example:
+\begin{verbatim}
+%latex
+The first ten squares are
+$$
+\sage{', '.join([str(sq(i)) for i in range(1,11)])}
+$$
+
+The primes up to 100 are
+$$
+\sage{', '.join(str(p) for p in prime_range(100))}
+$$
+\end{verbatim}
 
 \subsubsection{Using Gap, Magma, GP/PARI}
 Make the first line of the input block \code{\%gap}

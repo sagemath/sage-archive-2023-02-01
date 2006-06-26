@@ -50,7 +50,7 @@ function get_event(e) {
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 
-cell_output_delta = 200;
+cell_output_delta = 300;
 
 SEP = '___S_A_G_E___';
 
@@ -589,6 +589,7 @@ function is_just_a_tab(s, id) {
 
 
 updating = 0;
+
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
     if (status == "failure") {
@@ -608,15 +609,11 @@ function evaluate_cell_callback(status, response_text) {
         /* insert a new cell after the one with id X[3] */
         do_insert_new_cell_after(X[3], X[2], X[0]);
         jump_to_cell(X[0], 0);
-    } else if (last_action != 2) {  /* not a introspection */
+    } else if (last_action != 2) {  /* not an introspection */
        focus(X[0]);
     }
-
-    /* set check-for-updates process in progress */
-    if (!updating) {
-        updating = 1;
-        check_for_cell_output();
-    }
+    updating=1;
+    check_for_cell_output();
 }
 
 function cell_output_set_type(id, typ) {
@@ -661,14 +658,7 @@ function cell_set_done(id) {
     cell_div.className = 'cell_output_wrap';
 }
 
-do_not_update=0;
 function check_for_cell_output() {
-    if (updating) {
-        setTimeout('check_for_cell_output()', cell_output_delta);
-    }
-    if (do_not_update) {
-        return;
-    }
     async_request('async_obj_check', '/update_cells',
                     update_cell_output, 'worksheet_id='+worksheet_id)
 }
@@ -718,7 +708,6 @@ function update_cell_output(status, response_text) {
             updating = 0;
             /* get_element('interrupt').className = 'interrupt_grey'; */
         } else {
-            do_not_update = 1;
             updating=1;
             /* computing output for a cell */
             i = response_text.indexOf(' ');
@@ -744,9 +733,12 @@ function update_cell_output(status, response_text) {
 
                 attached_files_list = D[6];
                 set_attached_files_list(attached_files_list);
+                check_for_cell_output();
             }
             /* wait for next output */
-            do_not_update=0;
+            if (updating) {
+                setTimeout('check_for_cell_output()', cell_output_delta);
+            }
         }
     } else {
         alert("Error updating cell output: " + response_text);

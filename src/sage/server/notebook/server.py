@@ -156,6 +156,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
         status, cell = worksheet.check_comp()
+        #print status, cell
         if status == 'd':
             try:
                 notebook.save()
@@ -168,7 +169,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             variables = '...'  # not used
             objects = "..." # note used
             attached_files = '...' # not used
-        if cell is None:
+        if cell is None or status == 'e':
             msg = 'empty'
         else:
             if status == 'd':

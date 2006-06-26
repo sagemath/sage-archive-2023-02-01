@@ -50,7 +50,6 @@ function get_event(e) {
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 
-// cell_output_delta = 1000;
 cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
@@ -519,6 +518,7 @@ var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
 function evaluate_cell(id, action) {
+    updating=0;
     cell_id = id;
     last_action = action;
     var cell_input = get_element('cell_input_' + id);
@@ -534,8 +534,11 @@ function evaluate_cell(id, action) {
 
     cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
+    updating=1;
+    do_not_update=0;
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
+    check_for_cell_output();
 }
 
 function evaluate_cell_introspection(id) {
@@ -661,7 +664,14 @@ function cell_set_done(id) {
     cell_div.className = 'cell_output_wrap';
 }
 
+do_not_update=0;
 function check_for_cell_output() {
+    if (updating) {
+        setTimeout('check_for_cell_output()', cell_output_delta);
+    }
+    if (do_not_update) {
+        return;
+    }
     async_request('async_obj_check', '/update_cells',
                     update_cell_output, 'worksheet_id='+worksheet_id)
 }
@@ -711,6 +721,8 @@ function update_cell_output(status, response_text) {
             updating = 0;
             /* get_element('interrupt').className = 'interrupt_grey'; */
         } else {
+            do_not_update = 1;
+            updating=1;
             /* computing output for a cell */
             i = response_text.indexOf(' ');
             id = response_text.substring(1, i);
@@ -724,7 +736,6 @@ function update_cell_output(status, response_text) {
             var j = id_of_cell_delta(id,1);
 
             if (stat == 'd') {
-                new_cell_input = D[3];
                 if (new_cell_input != '') {
                     set_input_text(id, new_cell_input);
                 }
@@ -737,9 +748,8 @@ function update_cell_output(status, response_text) {
                 attached_files_list = D[6];
                 set_attached_files_list(attached_files_list);
             }
-
-            /* wait for output from next cell */
-            setTimeout('check_for_cell_output()', cell_output_delta);
+            /* wait for next output */
+            do_not_update=0;
         }
     } else {
         alert("Error updating cell output: " + response_text);

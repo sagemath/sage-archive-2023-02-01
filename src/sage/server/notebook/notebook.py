@@ -60,7 +60,7 @@ just hitting shift-enter in the box where "f(6)" is), try typing
 result doesn't get computed immediately.  You can enter several more
 lines as well, etc.; when the f(6) finally finishes, SAGE goes on
 to compute "f(4)".   You can queue up dozens of calculations.  For
-example, if you hit the "Evaluate All" link in the upper right, the
+example, if you hit the "Evaluate" link in the upper right, the
 whole worksheet is queued up for computation.  Try it.   When the
 computation gets stuck on "f(6)", hit the interrupt button (or press escape)
 and the queued up calculations are cancelled.

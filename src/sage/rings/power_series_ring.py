@@ -30,6 +30,9 @@ from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact
 
+from sage.interfaces.magma import MagmaElement
+from sage.misc.sage_eval import sage_eval
+
 #_objsPowerSeriesRing = {}
 def PowerSeriesRing(base_ring, name=None, default_prec=20):
     #global _objsPowerSeriesRing
@@ -75,6 +78,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             if prec >= f.prec():
                 return f
             f = f.truncate(prec)
+        elif isinstance(f, MagmaElement) and str(f.Type()) == 'RngSerPowElt':
+            v = sage_eval(f.Eltseq())
+            return self(v) * (self.gen(0)**f.Valuation())
         return self.__power_series_class(self, f, prec, check=check)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):

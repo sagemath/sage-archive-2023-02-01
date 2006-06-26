@@ -844,7 +844,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def gens(self, verbose=False, rank1_search=10,
              algorithm='mwrank_shell',
-             only_use_mwrank=True):
+             only_use_mwrank=True,
+             proof = True):
         """
         Compute and return generators for the Mordell-Weil group E(Q)
         *modulo* torsion.
@@ -932,7 +933,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             X = self.mwrank()
             misc.verbose("Calling mwrank shell.")
             if not 'The rank and full Mordell-Weil basis have been determined unconditionally' in X:
-                raise RuntimeError, '%s\nGenerators not provably computed.'%X
+                msg = 'Generators not provably computed.'
+                if proof:
+                    raise RuntimeError, '%s\n%s'%(X,msg)
+                else:
+                    misc.verbose("Warning -- %s"%msg, level=0)
             G = []
             i = X.find('Generator ')
             while i != -1:

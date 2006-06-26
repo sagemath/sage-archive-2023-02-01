@@ -68,7 +68,9 @@ class Worksheet:
             for C in self.__cells:
                 i = C.relative_id()
                 C.set_worksheet(self, new_id * _notebook.MAX_WORKSHEETS + i)
+            nid = self.__next_id  - _notebook.MAX_WORKSHEETS*self.__id
             self.__id = new_id
+            self.__next_id = _notebook.MAX_WORKSHEETS*new_id + nid
         else:
             for C in self.__cells:
                 C.set_worksheet(self)

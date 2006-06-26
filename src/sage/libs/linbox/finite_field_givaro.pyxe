@@ -182,6 +182,11 @@ cdef class GFq:
 
 ##         return int(GFq_size(self.thisptr))
 
+    def is_prime_field(GFq self):
+        """
+        """
+        return bool(self.degree()==1)
+
     def random_element(GFq self):
         """
         """
@@ -222,7 +227,7 @@ cdef class GFq:
 
         cdef int res
 
-        if isinstance(e,Integer) or isinstance(e,int):
+        if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long):
             res = GFq_element_initi(self.thisptr,int(e))
 
         elif isinstance(e,float):

@@ -253,6 +253,7 @@ cdef class GFq(FiniteField):
         from sage.ext.integer import Integer
         from sage.rings.finite_field_element import FiniteFieldElement
         from sage.modules.free_module_element import FreeModuleElement
+        from sage.libs.pari.gen import gen
 
         #embed{ int GFq_element_init()
         GivaroGfq::Element res = GivaroGfq::Element();
@@ -274,15 +275,25 @@ cdef class GFq(FiniteField):
         cdef int g
         cdef int x
 
+        if isinstance(e,FiniteFieldElement):
+            # reduce FiniteFieldElements to pari
+            e = e._pari_()
+
+        ########
+
         if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long):
             res = GFq_element_initi(self.thisptr,int(e))
 
         elif isinstance(e,float):
             res = GFq_element_initd(self.thisptr,e)
 
-        elif isinstance(e,FiniteFieldElement):
-            e = e._pari_().lift().lift()
-            res = self.int2log(e[0])
+        elif isinstance(e,gen):
+            e = e.lift().lift()
+            try:
+                res = self.int2log(e[0])
+            except TypeError:
+                res = self.int2log(e)
+
             g = GFq_gen(self.thisptr)
 
             for i from 0 < i <= e.poldegree():
@@ -292,20 +303,25 @@ cdef class GFq(FiniteField):
                 #}embed
                 x = GFq_element_pow(self.thisptr, g, i);
                 res = GFq_element_axpyin(self.thisptr, res, self.int2log(e[i]) , x)
+
         elif isinstance(e,GFq_element):
             if e.parent() == self:
                 return e
             if e.parent() == self.prime_subfield():
                 res = self.int2log(int(e))
+
         elif isinstance(e,str):
             return eval(e.replace("^","**"),{str(self.variable_name()):self.gen()})
+
         elif isinstance(e,FreeModuleElement):
             ret = self.zero()
             for i in range(len(e)):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
+
         else:
             raise TypeError, "Cannot convert %s of type %s into %s"%(e,type(e),self)
+
         return make_GFq_element(self,res)
 
     def one(GFq self):
@@ -623,7 +639,7 @@ cdef class GFq_element:
         return bool(GFq_is_unit(self._parent.thisptr,self.this))
 
 
-    def __add__(GFq_element self, other):
+    def __add__(self, other):
         #embed{ int GFq_element_add(void *field, int x, int y)
         GivaroGfq::Element r;
         return ((GivaroGfq*)field)->add(r,x,y);
@@ -631,14 +647,17 @@ cdef class GFq_element:
 
         cdef int r
 
+        if not isinstance(self,GFq_element):
+            other,self = self,other
+
         if not isinstance(other,GFq_element):
             return bin_op(self,other,operator.add)
         else:
-            r = GFq_element_add(self._parent.thisptr, self.this , (<GFq_element>other).this )
-            return make_GFq_element(self._parent,r)
+            r = GFq_element_add((<GFq_element>self)._parent.thisptr, (<GFq_element>self).this , (<GFq_element>other).this )
+            return make_GFq_element((<GFq_element>self)._parent,r)
 
 
-    def __mul__(GFq_element self, other):
+    def __mul__(self, other):
         #embed{ int GFq_element_mul(void *field, int x, int y)
         GivaroGfq::Element r;
         return ((GivaroGfq*)field)->mul(r, x, y);
@@ -646,13 +665,16 @@ cdef class GFq_element:
 
         cdef int r
 
+        if not isinstance(self,GFq_element):
+            other,self = self,other
+
         if not isinstance(other,GFq_element):
             return bin_op(self,other,operator.mul)
         else:
-            r = GFq_element_mul(self._parent.thisptr, self.this, (<GFq_element>other).this)
-            return make_GFq_element(self._parent,r)
+            r = GFq_element_mul((<GFq_element>self)._parent.thisptr, (<GFq_element>self).this, (<GFq_element>other).this)
+            return make_GFq_element((<GFq_element>self)._parent,r)
 
-    def __div__(GFq_element self, other):
+    def __div__(self, other):
         #embed{ int GFq_element_div(void *field, int x, int y)
         GivaroGfq::Element r;
         return ((GivaroGfq*)field)->div(r, x, y);
@@ -660,11 +682,14 @@ cdef class GFq_element:
 
         cdef int r
 
+        if not isinstance(self,GFq_element):
+            other,self = self,other
+
         if not isinstance(other,GFq_element):
             return bin_op(self,other,operator.div)
         else:
-            r = GFq_element_div(self._parent.thisptr, self.this, (<GFq_element>other).this)
-            return make_GFq_element(self._parent,r)
+            r = GFq_element_div((<GFq_element>self)._parent.thisptr, (<GFq_element>self).this, (<GFq_element>other).this)
+            return make_GFq_element((<GFq_element>self)._parent,r)
 
     def __sub__(GFq_element self, other):
         #embed{ int GFq_element_sub(void *field, int x, int y)
@@ -674,11 +699,14 @@ cdef class GFq_element:
 
         cdef int r
 
+        if not isinstance(self,GFq_element):
+            other,self = self,other
+
         if not isinstance(other,GFq_element):
             return bin_op(self,other,operator.sub)
         else:
-            r = GFq_element_sub(self._parent.thisptr, self.this, (<GFq_element>other).this)
-            return make_GFq_element(self._parent,r)
+            r = GFq_element_sub((<GFq_element>self)._parent.thisptr, (<GFq_element>self).this, (<GFq_element>other).this)
+            return make_GFq_element((<GFq_element>self)._parent,r)
 
     def __neg__(GFq_element self):
         #embed{ int GFq_element_neg(void *field, int x)

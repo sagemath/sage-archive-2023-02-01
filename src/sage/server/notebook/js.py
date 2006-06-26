@@ -518,7 +518,6 @@ var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
 function evaluate_cell(id, action) {
-    updating=0;
     cell_id = id;
     last_action = action;
     var cell_input = get_element('cell_input_' + id);
@@ -534,11 +533,9 @@ function evaluate_cell(id, action) {
 
     cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
-    updating=1;
     do_not_update=0;
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
-    check_for_cell_output();
 }
 
 function evaluate_cell_introspection(id) {

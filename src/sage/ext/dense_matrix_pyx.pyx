@@ -74,7 +74,7 @@ ctypedef unsigned int uint
 
 cdef class Matrix_modint:
     cdef uint **matrix
-    cdef uint nrows, ncols, p
+    cdef uint _nrows, _ncols, p
     cdef uint gather
     cdef object __pivots
 
@@ -98,8 +98,8 @@ cdef class Matrix_modint:
             raise OverflowError, "p (=%s) must be < 46340"%p
 
         self.p = p
-        self.nrows = nrows
-        self.ncols = ncols
+        self._nrows = nrows
+        self._ncols = ncols
         self.gather = 2**32/(p*p)
         self.__pivots = None
         if entries == LEAVE_UNINITIALIZED:
@@ -128,8 +128,26 @@ cdef class Matrix_modint:
             raise RuntimeError, "Only set matrix of uninitialized matrix."
         self.matrix = m
 
+    def __getitem__(self, t):
+        if not isinstance(t, tuple) or len(t) != 2:
+            raise IndexError, "Index of matrix item must be a row and a column."
+        cdef int i, j
+        i, j = t
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "Array index out of bounds."
+        return self.matrix[i][j]
+
+    def __setitem__(self, t, x):
+        if not isinstance(t, tuple) or len(t) != 2:
+            raise IndexError, "Index for setting matrix item must be a row and a column."
+        cdef int i, j
+        i, j = t
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "Array index out of bounds."
+        self.matrix[i][j] = int(x) % self.p
+
     def get_entry(Matrix_modint self, int i, int j):
-        if i < 0 or j < 0 or i >= self.nrows or j >= self.ncols:
+        if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
             raise IndexError, "Array index (%s,%s) out of bounds."%(i,j)
         return self.matrix[i][j]
 
@@ -138,12 +156,12 @@ cdef class Matrix_modint:
 
     def _cmp(self, Matrix_modint other):
         cdef uint i, j
-        if self.p != other.p or self.nrows != other.nrows \
-            or self.ncols != other.ncols:
+        if self.p != other.p or self._nrows != other._nrows \
+            or self._ncols != other._ncols:
             return -1
         _sig_on
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 if self.matrix[i][j] != other.matrix[i][j]:
                     _sig_off
                     return -1
@@ -162,7 +180,7 @@ cdef class Matrix_modint:
         if self.matrix == <uint **> 0:
             return
         cdef int i
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             if self.matrix[i] != <uint *> 0:
                 PyMem_Free(self.matrix[i])
         PyMem_Free(self.matrix)
@@ -170,22 +188,22 @@ cdef class Matrix_modint:
     def __mul__(Matrix_modint self, Matrix_modint other):
         if self.gather >= 2:
             return self._multiply_with_delayed_mod(other)
-        if self.ncols != other.nrows:
+        if self._ncols != other._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of other."
         if self.p != other.p:
             raise ArithmeticError, "The base matrices must have the same modulus."
 
         cdef Matrix_modint M
-        M = Matrix_modint(self.p, self.nrows, other.ncols, LEAVE_UNINITIALIZED)
+        M = Matrix_modint(self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
         cdef uint **m
-        m = <uint **> PyMem_Malloc(sizeof(uint*)*self.nrows)
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self._nrows)
         if m == <uint**> 0:
             raise MemoryError, "Error allocating matrix"
 
         cdef uint i, j, k, nr, nc, s, p
         cdef uint *v
-        nr = self.nrows
-        nc = other.ncols
+        nr = self._nrows
+        nc = other._ncols
         p = self.p
 
         _sig_on
@@ -197,7 +215,7 @@ cdef class Matrix_modint:
             for j from 0 <= j < nc:
                 s = 0
                 v = self.matrix[i]
-                for k from 0 <= k < self.ncols:
+                for k from 0 <= k < self._ncols:
                     s = (s + (v[k] * other.matrix[k][j]))%p
                 m[i][j] = s
         _sig_off
@@ -205,26 +223,26 @@ cdef class Matrix_modint:
         return M
 
     def _multiply_with_delayed_mod(Matrix_modint self, Matrix_modint other):
-        if self.ncols != other.nrows:
+        if self._ncols != other._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of other."
         if self.p != other.p:
             raise ArithmeticError, "The base matrices must have the same modulus."
 
         cdef Matrix_modint M
-        M = Matrix_modint(self.p, self.nrows, other.ncols, LEAVE_UNINITIALIZED)
+        M = Matrix_modint(self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
         cdef uint **m
-        m = <uint **> PyMem_Malloc(sizeof(int*)*self.nrows)
+        m = <uint **> PyMem_Malloc(sizeof(int*)*self._nrows)
         if m == <uint**> 0:
             raise MemoryError, "Error allocating matrix"
 
         cdef uint i, j, k, nr, nc, snc, s, p, gather, w, groups, a, b
         cdef uint *v
-        nr = self.nrows
-        nc = other.ncols
-        snc = self.ncols
+        nr = self._nrows
+        nc = other._ncols
+        snc = self._ncols
         gather = self.gather
         p = self.p
-        groups = (self.ncols / gather) + 1
+        groups = (self._ncols / gather) + 1
         _sig_on
         for i from 0 <= i < nr:
             m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
@@ -241,7 +259,7 @@ cdef class Matrix_modint:
                     for k from a <= k < b:
                         s = s + v[k]*other.matrix[k][j]
                     s = s % p
-                ##for k from 0 <= k < self.ncols:
+                ##for k from 0 <= k < self._ncols:
                 ##    s = s  +  v[k] * other.matrix[k][j]
                 m[i][j] = s
         _sig_off
@@ -251,18 +269,18 @@ cdef class Matrix_modint:
     def __repr__(self):
         cdef uint i, j
         s = "[\n"
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 s = s + str(self.matrix[i][j]) + ", "
             s = s + "\n"
         s = s[:-3] + "\n]"
         return s
 
-    def numrows(self):
-        return self.nrows
+    def nrows(self):
+        return self._nrows
 
-    def numcols(self):
-        return self.ncols
+    def ncols(self):
+        return self._ncols
 
     def prime(self):
         return self.p
@@ -272,9 +290,9 @@ cdef class Matrix_modint:
         cdef uint *v
         n = 0
         _sig_on
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             v = self.matrix[i]
-            for j from 0 <= j < self.ncols:
+            for j from 0 <= j < self._ncols:
                 if v[j] != 0:
                     n = n + 1
         _sig_off
@@ -285,9 +303,9 @@ cdef class Matrix_modint:
         cdef uint *r
         v = []
         _sig_on
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             r = self.matrix[i]
-            for j from 0 <= j < self.ncols:
+            for j from 0 <= j < self._ncols:
                 v.append(r[j])
         _sig_off
         return v
@@ -299,8 +317,8 @@ cdef class Matrix_modint:
         start_row = 0
         p = self.p
         m = self.matrix
-        nr = self.nrows
-        nc = self.ncols
+        nr = self._nrows
+        nc = self._ncols
         self.__pivots = []
         for c from 0 <= c < nc:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
@@ -341,11 +359,11 @@ cdef class Matrix_modint:
         """
         Transforms self in place to its Hessenberg form.
         """
-        if self.nrows != self.ncols:
+        if self._nrows != self._ncols:
             raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
 
         cdef uint n
-        n = self.nrows
+        n = self._nrows
 
         cdef uint **h
         h = self.matrix
@@ -402,11 +420,11 @@ cdef class Matrix_modint:
         ints, where the constant term of the characteristic polynomial
         is the 0th coefficient of the vector.
         """
-        if self.nrows != self.ncols:
+        if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly not defined for non-square matrix."
 
         cdef uint i, m, n, p, t
-        n = self.nrows
+        n = self._nrows
         p = self.p
 
         # Replace self by its Hessenberg form, and set H to this form
@@ -463,10 +481,10 @@ cdef class Matrix_modint:
     cdef scale_row(self, uint row, uint multiple, uint start_col):
         cdef uint r, p
         cdef uint* v
-        r = row*self.ncols
+        r = row*self._ncols
         p = self.p
         v = self.matrix[row]
-        for i from start_col <= i < self.ncols:
+        for i from start_col <= i < self._ncols:
             v[i] = (v[i]*multiple) % p
 
     cdef add_multiple_of_row(self, uint row_from, uint multiple,
@@ -476,7 +494,7 @@ cdef class Matrix_modint:
         p = self.p
         v_from = self.matrix[row_from]
         v_to = self.matrix[row_to]
-        nc = self.ncols
+        nc = self._ncols
         for i from start_col <= i < nc:
             v_to[i] = (multiple * v_from[i] +  v_to[i]) % p
 
@@ -486,8 +504,8 @@ cdef class Matrix_modint:
         cdef uint **m
         m = self.matrix
         p = self.p
-        nr = self.nrows
-        for i from start_row <= i < self.nrows:
+        nr = self._nrows
+        for i from start_row <= i < self._nrows:
             m[i][col_to] = (m[i][col_to] + multiple * m[i][col_from]) %p
 
 
@@ -501,8 +519,8 @@ cdef class Matrix_modint:
         cdef uint i, t, nr
         cdef uint **m
         m = self.matrix
-        nr = self.nrows
-        for i from 0 <= i < self.nrows:
+        nr = self._nrows
+        for i from 0 <= i < self._nrows:
             t = m[i][col1]
             m[i][col1] = m[i][col2]
             m[i][col2] = t
@@ -547,12 +565,12 @@ def cmp_pivots(x,y):
 cdef Matrix_rational_cmp(Matrix_rational self, Matrix_rational other):
     if self.matrix == <mpq_t **> 0 or other.matrix == <mpq_t **> 0:
         raise RuntimeError, "Matrix has not yet been initialized!"
-    if self.nrows != other.nrows or self.ncols != other.ncols:
+    if self._nrows != other._nrows or self._ncols != other._ncols:
         return False
     cdef int i, j, k
     _sig_on
-    for i from 0 <= i < self.nrows:
-        for j from 0 <= j < self.ncols:
+    for i from 0 <= i < self._nrows:
+        for j from 0 <= j < self._ncols:
             k = mpq_cmp(self.matrix[i][j], other.matrix[i][j])
             if k < 0:
                 _sig_off
@@ -585,8 +603,8 @@ cdef class Matrix_rational:
     def __init__(self, int nrows, int ncols, object entries=None, construct=False):
         cdef int n, i, j, k, r, base
         cdef mpq_t *v
-        self.nrows = nrows
-        self.ncols = ncols
+        self._nrows = nrows
+        self._ncols = ncols
         self.__pivots = None
         base = 10
         if isinstance(entries, str):
@@ -651,17 +669,17 @@ cdef class Matrix_rational:
         cdef char *a
         cdef char *s, *t, *tmp
 
-        if self.nrows == 0 or self.ncols == 0:
+        if self._nrows == 0 or self._ncols == 0:
             entries = ''
         else:
-            n = self.nrows*self.ncols*10
+            n = self._nrows*self._ncols*10
             s = <char*> PyMem_Malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
             _sig_on
-            for i from 0 <= i < self.nrows:
-                for j from 0 <= j < self.ncols:
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
                     m = mpz_sizeinbase (mpq_numref(self.matrix[i][j]), 32) + \
                         mpz_sizeinbase (mpq_denref(self.matrix[i][j]), 32) + 3
                     if len_so_far + m + 1 >= n:
@@ -685,7 +703,7 @@ cdef class Matrix_rational:
             free(s)
 
         return sage.matrix.dense_matrix_pyx.make_rational_matrix, \
-               (self.nrows, self.ncols, entries)
+               (self._nrows, self._ncols, entries)
 
 
     def __cmp__(self, other):
@@ -697,14 +715,14 @@ cdef class Matrix_rational:
         i, j = ij
         if self.matrix == <mpq_t **>0:
             raise RuntimeError, "Matrix has not yet been initialized!"
-        if i < 0 or i >= self.nrows or j < 0 or j >= self.ncols:
+        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
         s = str(x)
         mpq_set_str(self.matrix[i][j], s, 0)
 
     def __getitem__(self, ij):
         i, j = ij
-        if i < 0 or i >= self.nrows or j < 0 or j >= self.ncols:
+        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
         cdef rational.Rational x
         x = rational.Rational()
@@ -721,9 +739,9 @@ cdef class Matrix_rational:
         cdef int i, j
         if self.matrix == <mpq_t **> 0:
             return
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             if self.matrix[i] != <mpq_t *> 0:
-                for j from 0 <= j < self.ncols:
+                for j from 0 <= j < self._ncols:
                     if self.initialized:
                         mpq_clear(self.matrix[i][j])
                 PyMem_Free(self.matrix[i])
@@ -734,8 +752,8 @@ cdef class Matrix_rational:
         cdef char *a
         s = "[\n"
         _sig_on
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 a = mpq_get_str(NULL, base, self.matrix[i][j])
                 s = s + str(a) + ", "
                 free(a)
@@ -750,15 +768,15 @@ cdef class Matrix_rational:
 
 
     def __mul__(Matrix_rational self, Matrix_rational other):
-        if self.ncols != other.nrows:
+        if self._ncols != other._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of other."
 
         cdef int i, j, k, nr, nc, snc
         cdef mpq_t *v
         cdef mpq_t s, z
-        nr = self.nrows
-        nc = other.ncols
-        snc = self.ncols
+        nr = self._nrows
+        nc = other._ncols
+        snc = self._ncols
 
         cdef Matrix_rational M
         M = Matrix_rational(nr, nc, LEAVE_UNINITIALIZED)
@@ -797,18 +815,18 @@ cdef class Matrix_rational:
         cdef int i, j
         cdef Matrix_rational M
 
-        M = Matrix_rational(self.ncols, self.nrows, entries=LEAVE_UNINITIALIZED)
+        M = Matrix_rational(self._ncols, self._nrows, entries=LEAVE_UNINITIALIZED)
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*self.ncols)
+        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*self._ncols)
         if m == <mpq_t**> 0:
             raise MemoryError, "Error allocating matrix"
 
         _sig_on
-        for i from 0 <= i < self.ncols:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*self.nrows)
+        for i from 0 <= i < self._ncols:
+            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*self._nrows)
             if m[i] == <mpq_t*> 0:
                 raise MemoryError, "Error allocating matrix"
-            for j from 0 <= j < self.nrows:
+            for j from 0 <= j < self._nrows:
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], self.matrix[j][i])
         _sig_off
@@ -832,13 +850,13 @@ cdef class Matrix_rational:
             raise TypeError, "rows (=%s) must be a list"%rows
         nr = len(rows)
         if nr == 0:
-            return Matrix_rational(0, self.ncols)
-        nc = self.ncols
+            return Matrix_rational(0, self._ncols)
+        nc = self._ncols
         v = []
         for i in rows:
             v.append(int(i))
         rows = v
-        if min(rows) < 0 or max(rows) >= self.nrows:
+        if min(rows) < 0 or max(rows) >= self._nrows:
             raise IndexError, "invalid row indexes; rows don't exist"
 
         M = Matrix_rational(nr, nc, entries=LEAVE_UNINITIALIZED)
@@ -871,13 +889,13 @@ cdef class Matrix_rational:
         cdef int i, j, k, nr, nc
         cdef mpq_t s, z
         nr = n
-        nc = self.ncols
+        nc = self._ncols
 
-        if self.nrows != self.ncols:
+        if self._nrows != self._ncols:
             raise ArithmeticError, "matrix must be square"
         if not isinstance(v, list):
             raise TypeError, "v must be a list"
-        if len(v) != self.nrows:
+        if len(v) != self._nrows:
             raise ArithmeticError, "incompatible matrix vector multiple"
 
         cdef Matrix_rational M
@@ -908,7 +926,7 @@ cdef class Matrix_rational:
                 raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_set_si(s,0,1)  # set s = 0
-                for k from 0 <= k < self.nrows:
+                for k from 0 <= k < self._nrows:
                     mpq_mul(z, m[i-1][k], self.matrix[k][j])
                     mpq_add(s, s, z)
                 mpq_init(m[i][j])
@@ -920,8 +938,8 @@ cdef class Matrix_rational:
 
     def scalar_multiple(self, d):
         cdef int i, j, nr, nc
-        nr = self.nrows
-        nc = self.ncols
+        nr = self._nrows
+        nc = self._ncols
 
         cdef mpq_t x
         mpq_init(x)
@@ -954,7 +972,7 @@ cdef class Matrix_rational:
 
     def copy(self):
         cdef int i, j, nr, nc
-        nr = self.nrows; nc = self.ncols
+        nr = self._nrows; nc = self._ncols
 
         cdef Matrix_rational M
         M = Matrix_rational(nr, nc, LEAVE_UNINITIALIZED)
@@ -976,7 +994,7 @@ cdef class Matrix_rational:
 
     def matrix_modint(self, uint p):
         cdef uint nr, nc
-        nr = self.nrows; nc = self.ncols
+        nr = self._nrows; nc = self._ncols
 
         cdef Matrix_modint M
         M = Matrix_modint(p, nr, nc, LEAVE_UNINITIALIZED)
@@ -1021,7 +1039,7 @@ cdef class Matrix_rational:
         integers, use matrix_modint(p).
         """
         cdef uint nr, nc
-        nr = self.nrows; nc = self.ncols
+        nr = self._nrows; nc = self._ncols
 
         cdef Matrix_modint M
         M = Matrix_modint(p, nr, nc, LEAVE_UNINITIALIZED)
@@ -1055,9 +1073,9 @@ cdef class Matrix_rational:
         cdef mpq_t *v
         n = 0
         _sig_on
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             v = self.matrix[i]
-            for j from 0 <= j < self.ncols:
+            for j from 0 <= j < self._ncols:
                 if mpq_sgn(v[j]):   # if nonzero
                     n = n + 1
         _sig_off
@@ -1071,9 +1089,9 @@ cdef class Matrix_rational:
 
         v = []
         _sig_on
-        for i from 0 <= i < self.nrows:
+        for i from 0 <= i < self._nrows:
             r = self.matrix[i]
-            for j from 0 <= j < self.ncols:
+            for j from 0 <= j < self._ncols:
                 x = rational.Rational()
                 x.set_from_mpq(r[j])
                 v.append(x)
@@ -1092,8 +1110,8 @@ cdef class Matrix_rational:
         mpq_init(minus_b)
         start_row = 0
         m = self.matrix
-        nr = self.nrows
-        nc = self.ncols
+        nr = self._nrows
+        nc = self._ncols
         self.__pivots = []
 
         for c from 0 <= c < nc:
@@ -1138,11 +1156,11 @@ cdef class Matrix_rational:
         self.__pivots = v
 
     def hessenberg_form(self):
-        if self.nrows != self.ncols:
+        if self._nrows != self._ncols:
             raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
 
         cdef int n
-        n = self.nrows
+        n = self._nrows
 
         cdef mpq_t **h
         h = self.matrix
@@ -1205,9 +1223,9 @@ cdef class Matrix_rational:
         cdef int r
         cdef mpq_t* v
 
-        r = row*self.ncols
+        r = row*self._ncols
         v = self.matrix[row]
-        for i from start_col <= i < self.ncols:
+        for i from start_col <= i < self._ncols:
             mpq_mul(v[i], v[i], multiple)
 
     cdef add_multiple_of_row(self, int row_from, mpq_t multiple,
@@ -1219,7 +1237,7 @@ cdef class Matrix_rational:
         mpq_init(prod); mpq_init(x)
         v_from = self.matrix[row_from]
         v_to = self.matrix[row_to]
-        for i from start_col <= i < self.ncols:
+        for i from start_col <= i < self._ncols:
             mpq_mul(prod, multiple, v_from[i])
             mpq_add(x, prod, v_to[i])
             mpq_set(v_to[i], x)   # v_to[i] <-- multipe*v_from[i] + v_to[i]
@@ -1233,14 +1251,14 @@ cdef class Matrix_rational:
         cdef int i
         cdef mpq_t *v_from, *v_to
 
-        if row_from < 0 or row_from >= self.nrows:
-            raise IndexError, "row_from is %s but must be >= 0 and < %s"%(row_from, self.nrows)
-        if row_to < 0 or row_to >= self.nrows:
-            raise IndexError, "row_to is %s but must be >= 0 and < %s"%(row_to, self.nrows)
+        if row_from < 0 or row_from >= self._nrows:
+            raise IndexError, "row_from is %s but must be >= 0 and < %s"%(row_from, self._nrows)
+        if row_to < 0 or row_to >= self._nrows:
+            raise IndexError, "row_to is %s but must be >= 0 and < %s"%(row_to, self._nrows)
 
         v_from = self.matrix[row_from]
         v_to = self.matrix[row_to]
-        for i from 0 <= i < self.ncols:
+        for i from 0 <= i < self._ncols:
             mpq_mul(v_to[i], multiple.value, v_from[i])
 
 
@@ -1252,8 +1270,8 @@ cdef class Matrix_rational:
 
         mpq_init(prod); mpq_init(x)
         m = self.matrix
-        nr = self.nrows
-        for i from start_row <= i < self.nrows:
+        nr = self._nrows
+        for i from start_row <= i < self._nrows:
             mpq_mul(prod, multiple, m[i][col_from])
             mpq_add(x, m[i][col_to], prod)
             mpq_set(m[i][col_to], x)
@@ -1272,8 +1290,8 @@ cdef class Matrix_rational:
 
         mpq_init(t)
         m = self.matrix
-        nr = self.nrows
-        for i from 0 <= i < self.nrows:
+        nr = self._nrows
+        for i from 0 <= i < self._nrows:
             mpq_set(t, m[i][col1])
             mpq_set(m[i][col1], m[i][col2])
             mpq_set(m[i][col2], t)
@@ -1285,8 +1303,8 @@ cdef class Matrix_rational:
         mpz_init(y)
         cdef int i, j
         _sig_on
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 mpq_get_den(y,self.matrix[i][j])
                 mpz_lcm(d, d, y)
         _sig_off
@@ -1307,8 +1325,8 @@ cdef class Matrix_rational:
         mpz_init_set_si(h, 0)
         cdef int i, j
         _sig_on
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 mpq_get_num(x,self.matrix[i][j])
                 mpz_abs(x, x)
                 if mpz_cmp(h,x) < 0:
@@ -1339,7 +1357,7 @@ cdef class Matrix_rational:
 ##         This is used for the computation of matrix permanents.
 ##         """
 ##         pr = 1
-##         for row in xrange(self.nrows):
+##         for row in xrange(self._nrows):
 ##             z = 0
 ##             for c in cols:
 ##                 z = z + self[row, c]
@@ -1360,7 +1378,7 @@ cdef class Matrix_rational:
         v = <int*> PyMem_Malloc(n * sizeof(int))
         for c from 0 <= c < n:
             t = cols[c]
-            if t < 0 or t >= self.ncols:
+            if t < 0 or t >= self._ncols:
                 PyMem_Free(v)
                 raise IndexError, "invalid column index (= %s)"%t
             v[c] = t
@@ -1371,7 +1389,7 @@ cdef class Matrix_rational:
 
 
         mpq_set_si(pr, 1, 1)
-        for row from 0 <= row < self.nrows:
+        for row from 0 <= row < self._nrows:
             mpq_set_si(z, 0, 1)
             for c from 0 <= c < n:
                 mpq_add(z, z, self.matrix[row][v[c]])
@@ -1414,8 +1432,8 @@ cdef class Matrix_rational:
         mpq_set_z(denom, d)
         cdef int i, j
         _sig_on
-        for i from 0 <= i < self.nrows:
-            for j from 0 <= j < self.ncols:
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
                 mpq_mul(self.matrix[i][j], self.matrix[i][j], denom)
         _sig_off
         mpq_clear(denom)
@@ -1491,9 +1509,9 @@ cdef class Matrix_rational:
         B = self.clear_denom_copy()
         hA = B.height()
         if height_guess is None:
-            height_guess = (2*hA)**(self.ncols/2+1)
+            height_guess = (2*hA)**(self._ncols/2+1)
         verbose("height_guess=%s"%height_guess)
-        M = self.ncols * height_guess * hA  +  1
+        M = self._ncols * height_guess * hA  +  1
         p = START_PRIME
         X = []
         best_pivots = []
@@ -1504,9 +1522,9 @@ cdef class Matrix_rational:
                 A = B.matrix_modint(p)
                 A.echelon()
                 #print A   # debug
-                if self.nrows == self.ncols and len(A.pivots()) == self.ncols:
+                if self._nrows == self._ncols and len(A.pivots()) == self._ncols:
                     # special case -- the echelon form must be the identity matrix.
-                    return Matrix_rational_identity(self.nrows)
+                    return Matrix_rational_identity(self._nrows)
 
                 c = cmp_pivots(best_pivots, A.pivots())
                 if c <= 0:
@@ -1549,7 +1567,7 @@ cdef class Matrix_rational:
             #print "hA = ", hA   # debug
             #print "A = ", B     # debug
             #print "prod = ", prod  # debug
-            if hdE * hA * self.ncols < prod:
+            if hdE * hA * self._ncols < prod:
                 self.__pivots = best_pivots
                 E._set_pivots(list(best_pivots))
                 return E
@@ -1588,11 +1606,11 @@ def Matrix_rational_using_crt_and_rr(X):
 
     cdef int i, j, k, n, nr, nc
     n = len(X)
-    nr = X[0].numrows()
-    nc = X[0].numcols()
+    nr = X[0].nrows()
+    nc = X[0].ncols()
 
     for i from 1 <= i < n:
-        if X[i].numrows() != nr or X[i].numcols() != nc:
+        if X[i].nrows() != nr or X[i].ncols() != nc:
             raise TypeError, "All matrices in the input must have the same dimensions"
 
     cdef uint *p, *v

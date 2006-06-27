@@ -720,7 +720,14 @@ cdef class Matrix_modint:
                 start_row = start_row + 1
                 _sig_off
 
-
+    def rank(self):
+        """
+        Return the rank found during the last echelon operation on self.
+        Of course if self is changed, then the rank could be incorrect.
+        """
+        if self.__pivots == None:
+            raise ArithmeticError, "Echelon form has not yet been computed."
+        return len(self.__pivots)
 
     def linear_combination_of_rows(self, Vector_modint v):
         if self.nr != v.degree():

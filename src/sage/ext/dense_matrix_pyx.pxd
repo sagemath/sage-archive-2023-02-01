@@ -6,7 +6,7 @@ cdef class Matrix_rational:
     """
     cdef mpq_t **matrix
     cdef mpq_t tmp
-    cdef int nrows, ncols
+    cdef int _nrows, _ncols
     cdef object __pivots
     cdef int initialized
 

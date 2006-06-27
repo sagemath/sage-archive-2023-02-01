@@ -723,7 +723,7 @@ pre.cell_input_pre {
 }
 
 textarea.cell_input {
-  background-color: #fff5ee;
+  background-color: #ffffff;
   border: 0px solid #ffffff;
   font-family: courier, monospace;
   font-size:12pt;

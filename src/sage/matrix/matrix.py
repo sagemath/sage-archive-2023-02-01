@@ -3455,6 +3455,59 @@ class Matrix_generic_sparse(Matrix):
             return self.__entries[ij]
         return self.__zero
 
+    def add_multiple_of_row(self, i, j, s):
+        """
+        Replace row i by s times row j.
+        """
+        self._require_mutable()
+        s = self.base_ring()(s)
+
+        if s == self.__zero:
+            return
+
+        i = int(i)
+        j = int(j)
+
+        for c in xrange(self.ncols()):
+            jc = (j,c)
+            ic = (i,c)
+            if self.__entries.has_key(jc):
+                iv = s*self.__entries[jc]
+            else:
+                continue
+
+            if self.__entries.has_key(ic):
+                self.__entries[ic] += iv
+            else:
+                self.__entries[ic]  = iv
+
+    def add_multiple_of_column(self, i, j, s):
+        """
+        Replace column i by s times column j.
+        """
+        self._require_mutable()
+        s = self.base_ring()(s)
+
+        if s == self.__zero:
+            return
+
+        i = int(i)
+        j = int(j)
+
+        for r in xrange(self.nrows()):
+            ri = (r,i)
+            rj = (r,j)
+
+            if self.__entries.has_key(rj):
+                iv = s*self.__entries[rj]
+            else:
+                continue
+
+            if self.__entries.has_key(ri):
+                self.__entries[ri] += iv
+            else:
+                self.__entries[ri]  = iv
+
     def _dict(self):
         return self._entries()
 

@@ -42,6 +42,7 @@ usage_advanced() {
     echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
     echo "  -M2 <..>      -- run SAGE's Macaulay2 with given arguments"
     echo "  -mpl          -- run with matplotlib support (requires optional matplotlib package)"
+    echo "  -mwrank <..>  -- run SAGE's mwrank with given arguments"
     echo "  -np           -- run with no output prompts (useful for making doctests)"
     echo "  -pkg <dir>    -- create SAGE package dir.spkg from a give directory (bzip2 compression)"
     echo "  -pkg_nc <dir> -- create SAGE package dir.spkg from a give directory (no compression)"
@@ -193,6 +194,13 @@ if [ $1 = '-maxima' ]; then
     cd $CUR
     shift
     maxima $*
+    exit $?
+fi
+
+if [ $1 = '-mwrank' ]; then
+    cd $CUR
+    shift
+    mwrank $*
     exit $?
 fi
 

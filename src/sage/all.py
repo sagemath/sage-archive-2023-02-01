@@ -102,6 +102,13 @@ ZZ = IntegerRing()
 # acts as Python ints again.
 
 
+
+# Use SAGE's range instead of range, since get Integer.
+# This greatly reduces confusion.
+range = srange
+xrange = xsrange
+
+
 # Some shorter shortcuts:
 # Q = QQ
 # Z = ZZ

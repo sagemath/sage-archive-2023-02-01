@@ -10,6 +10,8 @@ AUTHORS:
 """
 
 import math
+import types
+from sage.misc.misc import xsrange
 
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
@@ -5030,7 +5032,8 @@ cdef class PariInstance:
             return s
         elif hasattr(s, '_pari_'):
             return s._pari_()
-        elif isinstance(s, (list, xrange, tuple)):
+        elif isinstance(s, (types.ListType, types.XRangeType,
+                            types.TupleType, xsrange)):
             v = self.vector(len(s))
             for i, x in enumerate(s):
                 v[i] = self(x)

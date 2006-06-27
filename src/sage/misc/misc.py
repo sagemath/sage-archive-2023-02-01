@@ -22,6 +22,8 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 
 import operator, os, sys, signal, time, weakref, random
 
+from sage.ext.sage_object import SageObject
+
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
@@ -589,7 +591,7 @@ def srange(a,b=None,step=1):
     else:
         return v
 
-def xsrange(a,b=None,step=1):
+class xsrange:
     """
     Return an iterator over numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
@@ -623,6 +625,24 @@ def xsrange(a,b=None,step=1):
         sage: list(xsrange(0, 1, R('0.4')))
         [0, 0.40000000000000002, 0.80000000000000004]
     """
+    def __init__(self, a, b=None, step=1):
+        self.__a = a
+        self.__b = b
+        self.__step = step
+
+    def _repr_(self):
+        return 'xrange(%s, %s, %s)'%(self.__a, self.__b, self.__step)
+
+    def __len__(self):
+        if self.__b is None:
+            return int(self.__a / self.__step)
+        return int((self.__b - self.__a) / self.__step)
+
+    def __iter__(self):
+        return _xsrange(self.__a, self.__b, self.__step)
+
+
+def _xsrange(a,b=None,step=1):
     if b is None:
         b = a
         try:

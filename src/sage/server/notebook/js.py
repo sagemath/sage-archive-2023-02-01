@@ -56,7 +56,7 @@ function get_event(e) {
 ///////////////////////////////////////////////////////////////////
 
 // in milliseconds
-cell_output_delta = 50;
+cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
 

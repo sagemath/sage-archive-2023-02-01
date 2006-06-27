@@ -98,7 +98,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
     EXAMPLES:
         sage: v = Sequence(range(10))
         sage: v.universe()
-        <type 'int'>
+        Integer Ring
         sage: v
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 

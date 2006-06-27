@@ -17,6 +17,7 @@ import sage.rings.field as field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.misc.latex as latex
+from sage.misc.misc import xsrange
 
 from sage.structure.sequence import Sequence
 
@@ -366,7 +367,7 @@ class MatrixSpace_generic(gens.Generators):
         [ 0 -1]
 
         """
-        if isinstance(x, xrange):
+        if isinstance(x, xsrange):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()

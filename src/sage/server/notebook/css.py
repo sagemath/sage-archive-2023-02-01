@@ -686,7 +686,7 @@ td.cell_number {
 }
 
 td.cell_number:hover {
-   font-size:12pt;
+   color:#555555;
    cursor:pointer;
 }
 

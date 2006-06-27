@@ -328,6 +328,24 @@ class Worksheet:
         self.__comp_is_running = True
         S._send(cmd)
 
+    def check_cell(self, id):
+        """
+        Check the status on computation of the cell with given id.
+
+        INPUT:
+            id -- an integer
+
+        OUTPUT:
+            status -- a string, either 'd' (done) or 'w' (working)
+            cell -- the cell with given id
+        """
+        cell = self.get_cell_with_id(id)
+        if cell in self.__queue:
+            status = 'w'
+        else:
+            status = 'd'
+        return status, cell
+
     def check_comp(self):
         if len(self.__queue) == 0:
             return 'e', None

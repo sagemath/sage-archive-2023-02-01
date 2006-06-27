@@ -150,20 +150,28 @@ def source_code(s, globs):
     return ''.join(z)
 
 
-def tabulate(v, width=90):
-    if len(v) == 0:
+def tabulate(v, width=90, ncols=3):
+    e = len(v)
+    if e == 0:
         return ''
+    while True:
+        col_widths = []
+        nrows = e//ncols + 1
+        for c in range(ncols):
+            m = max([0] + [len(v[r+c*nrows]) for r in range(nrows) if r+c*nrows < e])
+            col_widths.append(m+3)
+        if ncols > 1 and max(col_widths + [0]) > width//ncols:
+            ncols -= 1
+        else:
+            break
     n = max(len(x) for x in v)
-    ncols = width // (n + 7)
-    nrows = len(v)//ncols + 1
-    col_width = width//ncols
     s = ''
     for r in range(nrows):
         for c in range(ncols):
             i = r + c*nrows
-            if i < len(v):
+            if i < e:
                 w = v[i]
-                s += w + ' '*(col_width - len(w))
+                s += w + ' '*(col_widths[c] - len(w))
         s += '\n'
     return s
 

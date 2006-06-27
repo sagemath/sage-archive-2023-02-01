@@ -683,7 +683,20 @@ td.cell_number {
    font-family:arial, monospace;
    color:#999999;
    text-align:left;
+}
+
+td.cell_number:hover {
+   font-size:12pt;
    cursor:pointer;
+}
+
+td.cell_number_running {
+   font-size:10pt;
+   font-family:arial, monospace;
+   color:#006400;
+   text-align:left;
+   cursor:pointer;
+   text-decoration:blink;
 }
 
 td.output_cell {
@@ -710,7 +723,7 @@ pre.cell_input_pre {
 }
 
 textarea.cell_input {
-  background-color: white;
+  background-color: #fff5ee;
   border: 0px solid #ffffff;
   font-family: courier, monospace;
   font-size:12pt;
@@ -740,7 +753,6 @@ textarea.cell_input_hide {
 
 textarea.cell_input_active {
   background-color: white;
- /* border: 2px solid #73a6ff; */
    border: 0px solid #ffffff;
   font-family: courier, monospace;
   font-size:12pt;
@@ -770,8 +782,13 @@ div.cell_output {
 table.cell_output_box {
   margin:0px;
   padding:0px;
-  border-top:1px solid #cccccc;
-  border-bottom:1px solid #cccccc;
+/*  border: 1px solid <color1>; */
+  border-top:1px solid <color1>;
+  border-bottom:1px solid <color1>;
+}
+
+table.cell_output_box:hover {
+  background-color: #fafafa;
 }
 
 pre.cell_output_wrap {
@@ -779,7 +796,9 @@ pre.cell_output_wrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000088;
+  color:#0000aa;
+  padding-left:3px;
+  /*  background-color: #fbeefb; */
 }
 pre.cell_output_nowrap {
   display:none;
@@ -797,7 +816,9 @@ pre.cell_output_nowrap_nowrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000088;
+  color:#0000aa;
+  padding-left:3px;
+/*  background-color: #fbeefb;   */
 }
 pre.cell_output_nowrap_hidden {
   display:none;
@@ -823,8 +844,9 @@ div.cell_output_running {
   width: 100%;
   margin: 0px;
   /* border-left: 2px solid #880000;  */
-  background-color: #55FF55;
-  border: 1px solid <color2>;
+  /* background-color: #eeeeee; */
+  padding-left:3px;
+  background-color:#98fb98;
 }
 
 div.cell_output_running:hover {
@@ -854,7 +876,7 @@ pre.cell_output_hide {
 /************ INSERTING NEW CELLS **************************/
 
 div.insert_new_cell {
-  height:4px;
+  height:2px;
   width:100%;
   border-top: 2px solid white;
   display:block;

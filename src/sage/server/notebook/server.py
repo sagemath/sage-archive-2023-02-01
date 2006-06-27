@@ -149,13 +149,19 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             notebook.save()
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
 
-
-    def update_cells(self):
+    def cell_update(self):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
+        cell_id = int(C['cell_id'][0])
+
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
-        status, cell = worksheet.check_comp()
+
+        # update the computation one step.
+        worksheet.check_comp()
+        # now get latest status on our cell
+        status, cell = worksheet.check_cell(cell_id)
+
         #print status, cell   # debug
         if status == 'd':
             try:
@@ -169,26 +175,64 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             variables = '...'  # not used
             objects = "..." # note used
             attached_files = '...' # not used
-        if cell is None or status == 'e':
-            msg = 'empty'
+        if status == 'd':
+            new_input = cell.changed_input_text()
+            out_html = cell.output_html()
         else:
-            if status == 'd':
-                new_input = cell.changed_input_text()
-                out_html = cell.output_html()
-            else:
-                new_input = ''
-                out_html = ''
-            msg = '%s%s %s'%(status, cell.id(),
-                              SEP.join([cell.output_text().replace('<','&lt;'),
-                                        cell.output_text(cols).replace('<','&lt;'),
-                                        out_html,
-                                        new_input,
-                                        variables,
-                                        objects,
-                                        attached_files]))
-            # more comps to go.
-            worksheet.start_next_comp()
+            new_input = ''
+            out_html = ''
+        msg = '%s%s %s'%(status, cell.id(),
+                          SEP.join([cell.output_text().replace('<','&lt;'),
+                                    cell.output_text(cols).replace('<','&lt;'),
+                                    out_html,
+                                    new_input,
+                                    variables,
+                                    objects,
+                                    attached_files]))
+
+        # more comps to go ?
+        worksheet.start_next_comp()
         self.wfile.write(msg)
+
+##     def update_cells(self):
+##         C = self.get_postvars()
+##         worksheet_id = int(C['worksheet_id'][0])
+##         worksheet = notebook.get_worksheet_with_id(worksheet_id)
+##         cols = notebook.defaults()['word_wrap_cols']
+##         status, cell = worksheet.check_comp()
+##         print status, cell   # debug
+##         if status == 'd':
+##             try:
+##                 notebook.save()
+##             except:
+##                 print "WARNING -- failure to pickle the notebook"
+##             variables = worksheet.variables_html()
+##             objects = notebook.object_list_html()
+##             attached_files = worksheet.attached_html()
+##         else:
+##             variables = '...'  # not used
+##             objects = "..." # note used
+##             attached_files = '...' # not used
+##         if cell is None or status == 'e':
+##             msg = 'empty'
+##         else:
+##             if status == 'd':
+##                 new_input = cell.changed_input_text()
+##                 out_html = cell.output_html()
+##             else:
+##                 new_input = ''
+##                 out_html = ''
+##             msg = '%s%s %s'%(status, cell.id(),
+##                               SEP.join([cell.output_text().replace('<','&lt;'),
+##                                         cell.output_text(cols).replace('<','&lt;'),
+##                                         out_html,
+##                                         new_input,
+##                                         variables,
+##                                         objects,
+##                                         attached_files]))
+##             # more comps to go.
+##             worksheet.start_next_comp()
+##         self.wfile.write(msg)
 
     def interrupt(self):
         C = self.get_postvars()
@@ -468,8 +512,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.new_cell_after()
             elif self.path[-12:] == '/delete_cell':
                 self.delete_cell()
-            elif self.path[-13:] == '/update_cells':
-                self.update_cells()
+            elif self.path[-12:] == '/cell_update':
+                self.cell_update()
+            #elif self.path[-13:] == '/update_cells':
+            #    self.update_cells()
             elif self.path[-10:] == '/interrupt':
                 self.interrupt()
             elif self.path[-13:] == '/cell_id_list':

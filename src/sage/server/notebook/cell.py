@@ -354,8 +354,9 @@ class Cell:
         r = '[%s]'%self.relative_id()
         r += '&nbsp;'*(5-len(r))
         tbl = """<table class="cell_output_box"><tr>
-               <td class="cell_number" onClick="cycle_cell_output_type(%s);">%s</td>
-               <td class="output_cell">%s</td></tr></table>"""%(self.__id, r, s)
+               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
+               <td class="output_cell">%s</td></tr></table>"""%(
+                   self.__id, self.__id, r, s)
 
         return tbl
 

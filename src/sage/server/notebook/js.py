@@ -22,6 +22,11 @@ web page.
 def javascript():
     s = r"""
 
+
+// The active cell list.
+var active_cell_list = [];
+
+
 ///////////////////////////////////////////////////////////////////
 //
 // Cross-Browser Stuff
@@ -51,7 +56,7 @@ function get_event(e) {
 ///////////////////////////////////////////////////////////////////
 
 // in milliseconds
-cell_output_delta = 200;
+cell_output_delta = 50;
 
 SEP = '___S_A_G_E___';
 
@@ -151,13 +156,13 @@ function add_worksheet_callback(status, response_text) {
            name of the new worksheet. */
         var X = response_text.split(SEP);
         if (X.length <= 1) {
-            alert(X);
+            alert("Unable to add worksheet.");
         } else {
             set_worksheet_list(X[0]);
             switch_to_worksheet(X[1]);
         }
     } else {
-        alert("Possible failure adding workbook: \n" + response_text);
+        alert("Possible failure adding workbook.");
     }
 }
 
@@ -174,14 +179,14 @@ function delete_worksheet_callback(status, response_text) {
            deleted the current worksheet. */
         var X = response_text.split(SEP);
         if (X.length <= 1) {
-            alert(X);
+            alert("Possible failure deleting workbook.");
         } else {
             set_worksheet_list(X[0]);
             if (X[1] != -1)
                switch_to_worksheet(X[1]);
         }
     } else {
-        alert("Possible failure deleting workbook: \n" + response_text);
+        alert("Possible failure deleting workbook.");
     }
 }
 
@@ -233,7 +238,7 @@ function upload_worksheet(filename) {
 function upload_worksheet_callback(status, response_text) {
     if (status == "success") {
         if (response_text.slice(0,5) == "Error") {
-            alert(response_text);
+            alert("Error uploading worksheet.");
         } else {
             set_worksheet_list(response_text);
         }
@@ -422,7 +427,7 @@ function cell_input_key_event(id, event) {
        insert_new_cell_after(id);
        return false;
     } else if (key_request_introspections(e)) {
-       // command introspection
+       // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
        return false;
     } else if (key_interrupt(e)) {
@@ -514,13 +519,12 @@ function escape0(input) {
     return input;
 }
 
-var non_word = new RegExp("[^a-zA-Z0-9._]");
-var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
 function evaluate_cell(id, action) {
     cell_id = id;          // set global var
     last_action = action;  // set global var
+    active_cell_list = active_cell_list.concat([id]);
 
     if(action == 2) { // Introspection
        evaluate_cell_introspection(id);
@@ -532,11 +536,12 @@ function evaluate_cell(id, action) {
     var input = escape0(I);
     cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
-    do_not_update=0;
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
+    start_update_check();
 }
 
+var non_word = new RegExp("[^a-zA-Z0-9._]");
 function evaluate_cell_introspection(id) {
     var before_cursor;
     var after_cursor;
@@ -572,7 +577,8 @@ function evaluate_cell_introspection(id) {
     before_cursor = escape0(before_cursor);
     after_cursor = escape0(after_cursor);
     async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
-          'id=' + id + '&before_cursor='+before_cursor + '&after_cursor='+after_cursor)
+          'id=' + id + '&before_cursor='+before_cursor + '&after_cursor='+after_cursor);
+    start_update_check();
 }
 
 function is_just_a_tab(s, id) {
@@ -592,7 +598,7 @@ updating = 0;
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
     if (status == "failure") {
-        alert(response_text);
+        alert("Failure evaluating a cell.");
         return;
     }
     var X = response_text.split(SEP);
@@ -611,7 +617,6 @@ function evaluate_cell_callback(status, response_text) {
     } else if (last_action != 2) {  /* not an introspection */
        focus(X[0]);
     }
-    check_for_cell_output();
 }
 
 function cell_output_set_type(id, typ) {
@@ -628,6 +633,7 @@ function cell_output_set_type(id, typ) {
     /* Do async request back to the server */
     async_request('async_obj_check', '/cell_output_set',
                     generic_callback, 'id='+id+'&type=' + typ)
+
 }
 
 function cycle_cell_output_type(id) {
@@ -647,24 +653,39 @@ function cycle_cell_output_type(id) {
 
 function cell_set_running(id) {
     cell_output_set_type(id, 'wrap');
-    var cell_div = get_element('cell_div_output_' + id)
+    var cell_div = get_element('cell_div_output_' + id);
     cell_div.className = 'cell_output_running';
+    var cell_number = get_element('cell_number_' + id);
+    cell_number.className = 'cell_number_running';
 }
 
 function cell_set_done(id) {
     var cell_div = get_element('cell_div_output_' + id)
     cell_div.className = 'cell_output_wrap';
+    var cell_number = get_element('cell_number_' + id);
+    cell_number.className = 'cell_number';
 }
 
-function check_for_cell_output() {
-    async_request('async_obj_check', '/update_cells',
-                    update_cell_output, 'worksheet_id='+worksheet_id);
+function check_for_cell_update() {
+    if (active_cell_list.length == 0) {
+        cancel_update_check();
+        return;
+    }
+    var cell_id = active_cell_list[0];
+    async_request('async_obj_cell_update', '/cell_update',
+                    check_for_cell_update_callback,
+                    'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
 }
 
 update_timeout = -1;
 function start_update_check() {
-    updating = 1;
-    update_timeout = setTimeout('check_for_cell_output()', cell_output_delta);
+    if (active_cell_list.length > 0) {
+        updating = 1;
+        update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
+    } else {
+        cancel_update_check();
+    }
+
 }
 
 function cancel_update_check() {
@@ -694,6 +715,7 @@ function set_input_text(id, text) {
     /* fill in input text */
     var cell_input = get_element('cell_input_' + id);
     cell_input.value = text;
+    return false;
 }
 
 function set_variable_list(variables) {
@@ -711,43 +733,45 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
-function update_cell_output(status, response_text) {
-    start_update_check();
-    if (status == "success") {
-        if (response_text == 'empty') {
-            /* done -- nothing being computed, since queue is empty */
-            /* get_element('interrupt').className = 'interrupt_grey'; */
-            cancel_update_check();
-        } else {
-            /* computing output for a cell */
-            i = response_text.indexOf(' ');
-            id = response_text.substring(1, i);
-
-            D = response_text.slice(i+1).split(SEP);
-            output_text = D[0] + ' ';
-            output_text_wrapped = D[1] + ' ';
-            output_html = D[2];
-            stat = response_text.charAt(0)
-            set_output_text(id, output_text, output_text_wrapped, output_html, stat);
-            var j = id_of_cell_delta(id,1);
-
-            if (stat == 'd') {
-                if (new_cell_input != '') {
-                    set_input_text(id, new_cell_input);
-                }
-                variable_list = D[4];
-                set_variable_list(variable_list);
-
-                object_list = D[5];
-                set_object_list(object_list);
-
-                attached_files_list = D[6];
-                set_attached_files_list(attached_files_list);
-            }
-        }
-    } else {
-        alert("Error updating cell output: " + response_text);
+function check_for_cell_update_callback(status, response_text) {
+    // make sure the update happens again in a few hundred milliseconds,
+    // unless a problem occurs below.
+    if (status != "success") {
+        cancel_update_check();
+        active_cell_list = [];
+        alert("Error updating cell output (canceling further update checks).");
+        return;
     }
+    start_update_check();
+
+    /* compute output for a cell */
+    var i = response_text.indexOf(' ');
+    var id = response_text.substring(1, i);
+
+    var D = response_text.slice(i+1).split(SEP);
+    output_text = D[0] + ' ';
+    output_text_wrapped = D[1] + ' ';
+    output_html = D[2];
+    new_cell_input = D[3];
+    stat = response_text.charAt(0)
+    set_output_text(id, output_text, output_text_wrapped, output_html, stat);
+    var j = id_of_cell_delta(id,1);
+    if (stat == 'd') {
+        active_cell_list = delete_from_array(active_cell_list, id);
+        if (new_cell_input != '') {
+            set_input_text(id, new_cell_input);
+        }
+
+        variable_list = D[4];
+        set_variable_list(variable_list);
+
+        object_list = D[5];
+        set_object_list(object_list);
+
+        attached_files_list = D[6];
+        set_attached_files_list(attached_files_list);
+    }
+
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -761,6 +785,19 @@ function insertAfter(parent, node, referenceNode) {
 function insert_into_array(v, i, x) {
     /* Return a new array with x inserted into position i of v. */
     return (v.slice(0,i).concat([x]).concat(v.slice(i,v.length)));
+}
+
+function delete_from_array(v, x) {
+    /* Delete first occurrence of x in v.
+       Returns resulting array (creates a new array!).
+       No error if x is not in v.
+    */
+    var i;
+    for (i=0; i<v.length; i++)
+        if (v[i] == x) {
+            return v.slice(0,i).concat(v.slice(i+1,v.length));
+        }
+    return v;
 }
 
 // Array.indexOf( value, begin, strict ) - Return index of the first element that matches value
@@ -802,7 +839,7 @@ function do_insert_new_cell_after(id, new_html, new_id) {
 
 function insert_new_cell_before_callback(status, response_text) {
     if (status == "failure") {
-        alert(response_text);
+        alert("Problem inserting new input cell before current input cell.");
         return ;
     }
     /* Insert a new cell _before_ a cell. */
@@ -821,7 +858,7 @@ function insert_new_cell_before(id) {
 
 function insert_new_cell_after_callback(status, response_text) {
     if (status == "failure") {
-        alert(response_text);
+        alert("Problem inserting new cell after current cell.");
         return ;
     }
     var X = response_text.split(SEP);
@@ -916,6 +953,7 @@ function show_all() {
 }
 
 function restart_sage_callback(status, response_text) {
+    active_cell_list = [];
     var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";

@@ -48,7 +48,8 @@ def install_scripts(bin_directory=None):
     if not (os.path.exists(bin_directory) and os.path.isdir(bin_directory)):
         raise RuntimeError, "'%s' must exist and be a directory"%bin_directory
 
-    for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash']:
+    for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash', \
+              'mwrank', 'ipython']:
         print "\nChecking that SAGE has the command '%s' installed"%c
         if os.system('which %s > /dev/null'%c):
             print "The command '%s' is not available; not adding shortcut"%c

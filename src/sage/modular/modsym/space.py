@@ -429,7 +429,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if f.prec() < prec:
             R = f.parent()
             ext = [self.eigenvalue(n) for n in range(f.prec(),prec)]
-            f = R(list(f) + ext)
+            f = R(f.padded_list(f.prec()) + ext)
             self.__qeigenform = f.add_bigoh(prec)
             return self.__qeigenform
         else:

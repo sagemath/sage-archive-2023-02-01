@@ -3290,6 +3290,31 @@ class Matrix_generic_dense(Matrix):
             raise IndexError, "columns index (j=%s) is out of range"
         self.__entries[int(i*self.ncols() + j)] = self.base_ring()(value)
 
+    def add_multiple_of_row(self, i, j, s):
+        """
+        Replace row i by s times row j.
+        """
+        self._require_mutable()
+        s = self.base_ring()(s)
+        nc = self.ncols()
+        inc = int(i*nc)
+        jnc = int(j*nc)
+        for c in xrange(nc):
+            self.__entries[inc + c] += s * self.__entries[jnc + c]
+
+    def add_multiple_of_column(self, i, j, s):
+        """
+        Replace column i by s times column j.
+        """
+        self._require_mutable()
+        s = self.base_ring()(s)
+        nc = int(self.ncols())
+        nr = int(self.nrows())
+        i = int(i)
+        j = int(j)
+        for r in xrange(nr):
+            self.__entries[r*nc + i] += s * self.__entries[r*nc + j]
+
     def _entries(self):
         return self.__entries
 

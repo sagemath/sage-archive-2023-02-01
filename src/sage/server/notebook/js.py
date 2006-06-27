@@ -50,7 +50,8 @@ function get_event(e) {
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 
-cell_output_delta = 300;
+// in milliseconds
+cell_output_delta = 200;
 
 SEP = '___S_A_G_E___';
 
@@ -518,19 +519,17 @@ var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
 function evaluate_cell(id, action) {
-    cell_id = id;
-    last_action = action;
-    var cell_input = get_element('cell_input_' + id);
-
-    I = cell_input.value
+    cell_id = id;          // set global var
+    last_action = action;  // set global var
 
     if(action == 2) { // Introspection
        evaluate_cell_introspection(id);
        return;
     }
 
-    input = escape0(I);
-
+    var cell_input = get_element('cell_input_' + id);
+    var I = cell_input.value
+    var input = escape0(I);
     cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
     do_not_update=0;
@@ -612,7 +611,6 @@ function evaluate_cell_callback(status, response_text) {
     } else if (last_action != 2) {  /* not an introspection */
        focus(X[0]);
     }
-    updating=1;
     check_for_cell_output();
 }
 
@@ -660,8 +658,20 @@ function cell_set_done(id) {
 
 function check_for_cell_output() {
     async_request('async_obj_check', '/update_cells',
-                    update_cell_output, 'worksheet_id='+worksheet_id)
+                    update_cell_output, 'worksheet_id='+worksheet_id);
 }
+
+update_timeout = -1;
+function start_update_check() {
+    updating = 1;
+    update_timeout = setTimeout('check_for_cell_output()', cell_output_delta);
+}
+
+function cancel_update_check() {
+    updating = 0;
+    clearTimeout(update_timeout);
+}
+
 
 function set_output_text(id, text, wrapped_text, output_html, status) {
     /* fill in output text got so far */
@@ -702,13 +712,13 @@ function set_attached_files_list(objects) {
 }
 
 function update_cell_output(status, response_text) {
+    start_update_check();
     if (status == "success") {
         if (response_text == 'empty') {
             /* done -- nothing being computed, since queue is empty */
-            updating = 0;
             /* get_element('interrupt').className = 'interrupt_grey'; */
+            cancel_update_check();
         } else {
-            updating=1;
             /* computing output for a cell */
             i = response_text.indexOf(' ');
             id = response_text.substring(1, i);
@@ -733,11 +743,6 @@ function update_cell_output(status, response_text) {
 
                 attached_files_list = D[6];
                 set_attached_files_list(attached_files_list);
-                check_for_cell_output();
-            }
-            /* wait for next output */
-            if (updating) {
-                setTimeout('check_for_cell_output()', cell_output_delta);
             }
         }
     } else {

@@ -156,7 +156,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
         status, cell = worksheet.check_comp()
-        #print status, cell
+        #print status, cell   # debug
         if status == 'd':
             try:
                 notebook.save()

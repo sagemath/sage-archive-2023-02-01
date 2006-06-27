@@ -47,6 +47,13 @@ failed_to_start = []
 
 tmp='%s/tmp'%SAGE_TMP_INTERFACE
 
+def _absolute(cmd):
+    c = cmd.split()
+    s  = c[0]
+    t = os.popen('which %s'%s).read().strip()
+    return ' '.join([t] + c[1:])
+
+
 class Expect(SageObject):
     """
     Expect interface object.
@@ -217,17 +224,26 @@ class Expect(SageObject):
         if not os.path.exists(dir):
             os.makedirs(dir)
         os.chdir(dir)
+
+        # This _absolute call below programs around a bug in pexpect:
+        # make a directory X with a subdirectory "magma" and cd into X. Then:
+        #sage: import pexpect
+        #sage: m = pexpect.spawn('magma')
+        #sage: m.interact()  # -- boom!
+
+        cmd = _absolute(self.__command)
+
         if self.__verbose_start:
-            print "Starting %s"%self.__command.split()[0]
+            print "Starting %s"%cmd.split()[0]
         try:
-            self._expect = pexpect.spawn(self.__command, logfile=self.__logfile)
+            self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF):
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)
             raise RuntimeError, "Unable to start %s because the command '%s' failed.\n%s"%(
-                self.__name, self.__command, self._install_hints())
+                self.__name, cmd, self._install_hints())
 
         os.chdir(current_path)
         self._expect.timeout = self.__max_startup_time
@@ -271,6 +287,12 @@ class Expect(SageObject):
         except RuntimeError, msg:
             print msg
 
+    def cputime(self):
+        """
+        CPU time since this process started running.
+        """
+        raise NotImplementedError
+
     def quit(self):
         if self._expect is None:
             return
@@ -278,12 +300,12 @@ class Expect(SageObject):
         # this is *very useful* when external binaries are started up
         # by shell scripts, and killing the shell script doesn't
         # kill the binary.
-        print "(also exiting spawned %s)"%self
+        print "Exiting spawned %s process"%self
         try:
             os.killpg(self._expect.pid, 9)
         except OSError, msg:
+            print "WARNING:"
             print msg
-            print "WARNING: This is usually OK; it just means the process was already dead."
 
     def _quit_string(self):
         return 'quit'

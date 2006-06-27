@@ -65,7 +65,7 @@ class Cell:
             shutil.rmtree(self.__dir, ignore_errors=True)
 
     def __repr__(self):
-        return 'Cell %s'%self.__id
+        return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
     def plain_text(self, ncols=0, prompts=True):
         if ncols == 0:

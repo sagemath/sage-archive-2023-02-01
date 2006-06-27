@@ -115,10 +115,12 @@ class Sage(Expect):
                         )
         self._preparse = preparse
 
-    def quit(self):
+    def quit(self, verbose=False):
         if not self._expect is None:
+            if verbose:
+                print "Exiting spawned %s process."%self
             for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
-                self._eval_line('quit_sage(verbose=False)')
+                self._eval_line('quit_sage(verbose=%s)'%verbose)
         #Expect.quit(self)
 
     def _remote_tmpfile(self):

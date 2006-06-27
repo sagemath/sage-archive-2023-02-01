@@ -157,10 +157,13 @@ class Octave(Expect):
     def _quit_string(self):
         return 'quit;'
 
-    def quit(self):
+    def quit(self, verbose=False):
         # Don't bother, since it just hangs in some cases, and it
         # isn't necessary, since octave behaves well with respect
         # to signals.
+        if not self._expect is None:
+            if verbose:
+                print "Exiting spawned %s process."%self
         return
 
     def _start(self):

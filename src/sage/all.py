@@ -210,7 +210,7 @@ def quit_sage(verbose=True):
         print "Exiting SAGE (CPU time %sm%.2fs, Wall time %sm%.2fs)."%(
                t1m,t1s,t2m,t2s)
     from sage.interfaces.quit import expect_quitall
-    expect_quitall(verbose=False)
+    expect_quitall(verbose=verbose)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 

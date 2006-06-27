@@ -293,14 +293,15 @@ class Expect(SageObject):
         """
         raise NotImplementedError
 
-    def quit(self):
+    def quit(self, verbose=False):
         if self._expect is None:
             return
         # Send a kill -9 to the process *group*.
         # this is *very useful* when external binaries are started up
         # by shell scripts, and killing the shell script doesn't
         # kill the binary.
-        print "Exiting spawned %s process"%self
+        if verbose:
+            print "Exiting spawned %s process."%self
         try:
             os.killpg(self._expect.pid, 9)
         except OSError, msg:

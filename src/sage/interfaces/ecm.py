@@ -9,7 +9,7 @@ for more about GMP-ECM.
 
 import os, pexpect
 import re
-from math import ceil
+from math import ceil, floor
 
 import sage.rings.integer
 from sage.misc.all import verbose, get_verbose, tmp_filename
@@ -227,7 +227,12 @@ class ECM:
         if len(factors) != 2:
             return factors
         _primality = [self.primality[0], self.primality[1]]
-        last_B1 = self.last_params['B1']
+        try:
+            last_B1 = self.last_params['B1']
+        except AttributeError:
+            self.last_params = {}
+            self.last_params['B1'] = 10
+            last_B1 = 10
         if not _primality[1]:
             factors[1:2] = self.factor(factors[1], B1=last_B1, **kwds)
             _primality[1:2] = self.primality

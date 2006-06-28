@@ -19,9 +19,20 @@ JSKeyCode('next_cell',           key = 40,  ctrl =True)
 JSKeyCode('page_up',           key = 33)
 JSKeyCode('page_down',           key = 34)
 JSKeyCode('delete_cell',         key = 8)
+JSKeyCode('generic_submit',      key = 13)
+JSKeyCode('menu_prev',           key = 38)
+JSKeyCode('menu_next',           key = 40)
+JSKeyCode('menu_pick',           key = 13)
 
 
 """
+8  -- backspace
+9  -- tab
+13 -- return
+27 -- esc
+32 -- space
+37 -- left
 38 -- up
+39 -- right
 40 -- down
 """

@@ -19,7 +19,7 @@ from   StringIO import StringIO
 import shutil
 import Cookie
 import cPickle
-
+import base64
 import css, js
 
 # SAGE libraries
@@ -268,9 +268,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         new_worksheet_list = notebook.worksheet_list_html(W.name())
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
-    def upload_worksheet_local_file(self):
-        C = self.get_postvars()
-        filename = C['filename'][0]
+    def import_worksheet_local_file(self, filename):
         try:
             W = notebook.import_worksheet(filename)
         except ValueError, msg:
@@ -278,9 +276,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             print msg
             self.wfile.write(msg)
             return
-        self.wfile.write(notebook.worksheet_list_html())
+        #self.wfile.write(notebook.worksheet_list_html())
 
         #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
+        self.send_response(302)
+        self.send_header("Location", '/%d'%W.id())
+        self.end_headers()
 
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
@@ -328,6 +329,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         self.wfile.write(notebook.help_window())
 
+    def upload_window(self):
+        self.send_head()
+        self.wfile.write(notebook.upload_window())
 
     def download_worksheet(self, filename):
         try:
@@ -371,6 +375,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.plain_text_worksheet(worksheet_filename[:-9], prompts=False)
             elif worksheet_filename[-9:] == '__print__':
                 self.html_worksheet(worksheet_filename[:-9], do_print=True)
+            elif worksheet_filename[-10:]== '__upload__':
+                self.upload_window()
             else:
                 self.html_worksheet(worksheet_filename, do_print=False)
             return
@@ -382,7 +388,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         try:
-            binfile = open(path, 'rb').read()
+            if path[-11:] == 'favicon.ico':
+                binfile = self.favicon()
+            else:
+                binfile = open(path, 'rb').read()
         except IOError, msg:
             print 'file not found', msg
             return self.file_not_found()
@@ -399,6 +408,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", 'text/plain')
         elif self.path[-4:] == '.eps':
             self.send_header("Content-type", 'image/x-eps')
+        elif self.path[-4:] == '.ico':
+            self.send_header("Content-type", 'image/x-icon')
         elif self.path[-4:] == '.svg':
             self.send_header("Content-type", 'image/svg+xml')
         elif self.path[-4:] == '.txt':
@@ -478,13 +489,14 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.body = {}
 
         elif content_type == 'multipart/form-data':
-            if self.path == '/upload_worksheet':
-                self.upload_worksheet_local_file()
+            M = cgi.parse_multipart(self.rfile, post_dict);
 
-                #fs = cgi.FieldStorage(self.rfile, post_dict)
-                #print fs
-                #print post_dict
-                #print fs.make_file().read()
+            if self.path == '/upload_worksheet' and M.has_key('fileField'):
+                f = file('temp.sws','wb')
+                f.write(M['fileField'][0])
+                f.close()
+                self.import_worksheet_local_file('temp.sws')
+                os.unlink('temp.sws');
 
         elif content_type == 'application/x-www-form-urlencoded':
             self.send_response(200)
@@ -524,8 +536,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.add_worksheet()
             elif self.path[-17:] == '/delete_worksheet':
                 self.delete_worksheet()
-            elif self.path == '/upload_worksheet':
-                self.upload_worksheet_local_file()
+#            elif self.path == '/upload_worksheet':
+#                self.upload_worksheet_local_file()
         else:
             self.body = {}                   # Unknown content-type
 
@@ -551,6 +563,37 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", 'text/html')
         self.end_headers()
 
+
+
+    def favicon(self):
+        s = """
+            AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAABDQ0MARUVFAEpKSgBLS0sATU1NAFRUVABWVlYAV1dXAFlZWQBaWloAM4IyAGRkZABlZWUA
+            bm5uAG9vbwBzc3MAAcQAAHV1dQB3eHcAeXl5AHd8dwB+fn4AhYWFAIeHhwCSkpIAmJiYAJmZmQCe
+            np4AoKCgAKWlpQCmpqYAp6enALa2tgC4uLgAubm5AL6+vgDAwMAAwsLCAMPDwwDGxsYA0dHRANLS
+            0gDa2toA3d3dAOTk5ADm5uYA6urqAPDw8ADz8/MA9PT0APX19QD29vYA9/f3APj4+AD5+fkA+vr6
+            APv7+wD8/PwA/f39AP7+/gD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAOzsqLDs7Ozs7Ozs7Ozs7OzsQEB4jOzs7Ozs7Ozs7Ozs7Oig0CxAnJCU5Ozs7Ozs7Ozs7EBAR
+            EBAKGTg6OTs7Ozs7OxAMNQkgEAUuKx0mOzs7Ozs6OBAPEBQEKRAQBxs7Ozs7OzsQFzIQABAIIRAF
+            Hzs7Ozs7EA00MSIQDjEyEBo7Ozs7OzgQFTIQEAMlOTQuOzs7Ozs7LyYtEBIQBSE5Ozs7Ozs7Ozs4
+            EAIkMRAWMzs7Ozs7Ozs7OBABHC82Ljs7Ozs7Ozs7OzsQEAYTJTk7Ozs7Ozs7Ozs7OBAQEBg3Ozs7
+            PDw7Ozs7Ozs5NTA0Ozs7Ozs8PDs7Ozs7Ozs7Ozs7OwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+            """
+        return base64.decodestring(s)
 
 
 

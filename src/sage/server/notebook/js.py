@@ -211,9 +211,9 @@ function hide_add_new_worksheet_menu() {
 }
 
 function show_upload_worksheet_menu() {
-    var upload_worksheet_menu = get_element('upload_worksheet_menu');
-    upload_worksheet_menu.style.display = 'block';
-    get_element('upload_worksheet_filename').focus()
+    w = window.open("__upload__.html", "upload", "width=500, height=200");
+    if(w.focus)
+      w.focus();
 }
 
 
@@ -1044,6 +1044,14 @@ function show_help_window(worksheet) {
 // KeyCodes (auto-generated from config.py and user's sage config
 //
 ///////////////////////////////////////////////////////////////////
+
+//this one isn't auto-generated.  its only purpose is to make
+//onKeyPress stuff simpler for text inputs and the whatlike.
+function is_submit(event) {
+  e = get_event(event);
+  return key_generic_submit(e);
+}
+
 %s
 """%build_all_key_codes()
 

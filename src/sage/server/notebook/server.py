@@ -492,11 +492,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             M = cgi.parse_multipart(self.rfile, post_dict);
 
             if self.path == '/upload_worksheet' and M.has_key('fileField'):
-                f = file('temp.sws','wb')
+                tmp = '%s/tmp.sws'%notebook.directory()
+                f = file(tmp,'wb')
                 f.write(M['fileField'][0])
                 f.close()
-                self.import_worksheet_local_file('temp.sws')
-                os.unlink('temp.sws');
+                self.import_worksheet_local_file(tmp)
+                os.unlink(tmp);
 
         elif content_type == 'application/x-www-form-urlencoded':
             self.send_response(200)

@@ -702,15 +702,6 @@ class Notebook(SageObject):
              </div>
         """
 
-        upload_worksheet_menu = """
-             <div class="upload_worksheet_menu" id="upload_worksheet_menu">
-             <input class="upload_worksheet_menu" type="file" name="fileField" id="upload_worksheet_filename"></input><br>
-             <button class="upload_worksheet_menu" onClick="process_upload_worksheet_menu_submit();">upload</button>
-             &nbsp;&nbsp;&nbsp;<span class="X" onClick="hide_upload_worksheet_menu()">CANCEL</span>
-             <br>(only works if server is running locally!)
-             </div>
-        """
-
         delete_worksheet_menu = """
              <div class="delete_worksheet_menu" id="delete_worksheet_menu">
              <input id="delete_worksheet_box" class="delete_worksheet_menu"

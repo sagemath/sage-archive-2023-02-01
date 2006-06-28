@@ -739,7 +739,6 @@ class Notebook(SageObject):
         body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>'
         body += '  &nbsp;Worksheets</div>\n'
         body +=    add_new_worksheet_menu
-        body +=    upload_worksheet_menu
         body +=    delete_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
         body += '  <div class="objects_topbar">Saved Objects</div>\n'

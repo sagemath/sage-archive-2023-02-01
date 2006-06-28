@@ -725,6 +725,7 @@ class Notebook(SageObject):
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
         body += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
         body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
@@ -734,9 +735,8 @@ class Notebook(SageObject):
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="worksheets_topbar">'
-        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Add</a> '
+        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Create</a> '
         body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>'
         body += '  &nbsp;Worksheets</div>\n'
         body +=    add_new_worksheet_menu
         body +=    delete_worksheet_menu

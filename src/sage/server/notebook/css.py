@@ -64,6 +64,19 @@ div.top_control_bar a.evaluate:hover {
    cursor:pointer;
 }
 
+div.top_control_bar a.upload_worksheet {
+   background-color:white;
+   padding:5;
+   text-decoration:underline;
+   text-align:right;
+}
+
+div.top_control_bar a.upload_worksheet:hover {
+   background-color:#00aa00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
 div.top_control_bar a.restart_sage {
    background-color:white;
    padding:5;
@@ -502,13 +515,6 @@ a.delete_worksheet:hover {
   cursor:pointer;
 }
 
-a.upload_worksheet {
-   font-family: arial, monospace;
-   font-size:8pt;
-   text-decoration:underline;
-   text-align:right;
-   color: #0000aa
-}
 
 a.upload_worksheet:hover {
   cursor:pointer;

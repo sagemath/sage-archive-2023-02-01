@@ -554,7 +554,7 @@ cdef class Matrix_modint:
         X = {}
         for j from 0 <= j < self.rows[i].num_nonzero:
             n = self.rows[i].positions[j]
-            x = Integer()
+            x = integer.Integer()
             x.set_si(self.rows[i].entries[j])
             X[n] = x
         return X
@@ -572,7 +572,7 @@ cdef class Matrix_modint:
         for i from 0 <= i < self.nr:
             for j from 0 <= j < self.rows[i].num_nonzero:
                 n = self.rows[i].positions[j]
-                x = Integer()
+                x = integer.Integer()
                 x.set_si(self.rows[i].entries[j])
                 X[(i,n)] = x
         return X

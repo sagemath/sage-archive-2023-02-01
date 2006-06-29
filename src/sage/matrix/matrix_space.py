@@ -358,14 +358,13 @@ class MatrixSpace_generic(gens.Generators):
         lists.
 
         EXAMPLES:
-        sage: M = MatrixSpace(ZZ, 2)
-        sage: M([[1,0],[0,-1]])
-        [ 1  0]
-        [ 0 -1]
-        sage: M([1,0,0,-1])
-        [ 1  0]
-        [ 0 -1]
-
+            sage: M = MatrixSpace(ZZ, 2)
+            sage: M.matrix([[1,0],[0,-1]])
+            [ 1  0]
+            [ 0 -1]
+            sage: M.matrix([1,0,0,-1])
+            [ 1  0]
+            [ 0 -1]
         """
         if isinstance(x, xsrange):
             x = list(x)

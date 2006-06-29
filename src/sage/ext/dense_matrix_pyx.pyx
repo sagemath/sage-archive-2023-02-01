@@ -1,5 +1,9 @@
 r"""
 Dense matrices over $\FF_p$ and $\QQ$.
+
+This is a compiled implementation of dense matrix algebra over small
+prime finite fields and the rational numbers, which is used mainly
+internally by other classes.
 """
 
 #*****************************************************************************

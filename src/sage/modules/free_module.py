@@ -2641,6 +2641,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             ]
             sage: 8*B[0] - 2*B[1]
             (8, 10, 12)
+
+        We do an example with a sparse vector space:
+            sage: V = VectorSpace(QQ,5, sparse=True)
+            sage: W = V.subspace_with_basis([[0,1,2,0,0], [0,-1,0,0,-1/2]])
+            sage: W.echelonized_basis()
+
+            sage: W.echelon_coordinates([0,0,2,0,-1/2])
+
         """
         if not isinstance(v, sage.modules.free_module_element.FreeModuleElement):
             v = self.ambient_vector_space()(v)
@@ -3034,8 +3042,6 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         sage: M = K^3; W = M.span_of_basis([[1,1,x]])
         sage: loads(W.dumps()) == W
         True
-
-
     """
     def __init__(self, ambient, basis, check=True, echelonize=False,
                  inner_product_matrix=None, echelonized_basis=None,
@@ -3186,6 +3192,11 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             [ 0  1  2]
             sage: W.coordinate_vector([1,5,9])
             (1, 5)
+
+            sage: V = VectorSpace(QQ,5, sparse=True)
+            sage: W = V.subspace([[0,1,2,0,0], [0,-1,0,0,-1/2]])
+            sage: W.coordinate_vector([0,0,2,0,-1/2])
+            (0, 2)
         """
         return self.echelon_coordinate_vector(v)
 

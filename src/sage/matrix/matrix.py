@@ -3658,8 +3658,24 @@ class Matrix_generic_sparse(Matrix):
 
     def matrix_from_columns(self, columns):
         """
-        Return the submatrix of self of columns col[i] for i in
+        Return the matrix obtained from self with columns col[i] for i in
         the list of columns.
+
+        EXAMPLES:
+            sage: A = Matrix(GF(17),2, 3, range(6)); A
+            [0 1 2]
+            [3 4 5]
+            sage: A.matrix_from_columns([0,2])
+            [0 2]
+            [3 5]
+            sage: A.matrix_from_columns([])
+            []
+
+        The columns must all be valid:
+            sage: A.matrix_from_columns([3,5])
+            Traceback (most recent call last):
+            ...
+            IndexError: column 3 out of range
         """
         if not isinstance(columns, list):
             raise TypeError, "columns must be a list of integers"
@@ -3692,8 +3708,28 @@ class Matrix_generic_sparse(Matrix):
 
     def matrix_from_rows(self, rows):
         """
-        Return the submatrix of self of rows row[i] for i in
+        Return the matrix obtained from self of rows row[i] for i in
         the list of rows.
+
+        EXAMPLES:
+            sage: A = Matrix(GF(17),3,2, range(6)); A
+            [0 1]
+            [2 3]
+            [4 5]
+            sage: A.matrix_from_rows([0,2])
+            [0 1]
+            [4 5]
+
+        The matrix need not be a submatix!
+            sage: A = Matrix(GF(17),3,2, range(6)); A
+            [0 1]
+            [2 3]
+            [4 5]
+            sage: A.matrix_from_rows([1,1,2,2])
+            [2 3]
+            [2 3]
+            [4 5]
+            [4 5]
         """
         if not isinstance(rows, list):
             raise TypeError, "rows must be a list of integers"
@@ -3708,7 +3744,7 @@ class Matrix_generic_sparse(Matrix):
                 i += 1
             else:
                 X.append(-1)    # row to be deleted.
-        entries2 = []
+        entries = {}
         E = self._entries()
         for ij in E.iterkeys():
             if ij[0] in R:
@@ -4359,6 +4395,11 @@ class Matrix_sparse_rational(Matrix_rational):
             self.__echelon_form = {}
         except KeyError:
             pass
+
+        # TODO: If we know the echelon form with/without-out zero rows,
+        # we can trivially compute the other one!  This would be an
+        # easy optimization to include.
+
         if self.nrows() == 0:
             E = self.copy()
             E._set_pivots ([])
@@ -4369,7 +4410,7 @@ class Matrix_sparse_rational(Matrix_rational):
             pivots = X.pivots()
             r  = len(pivots)
             if not include_zero_rows:
-                X  = X.submatrix_from_rows(range(r))
+                X  = X.matrix_from_rows(range(r))
                 nr = r
             else:
                 nr = self.nrows()

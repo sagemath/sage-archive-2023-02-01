@@ -1,6 +1,10 @@
 r"""
 Sparse matrices over $\F_p$ and $\Q$
 
+This is a compiled implementation of sparse matrix algebra over small
+prime finite fields and the rational numbers, which is used mainly
+internally by other classes.
+
 AUTHOR:
    -- William Stein (2004): first version
    -- William Stein (2006-02-12): added set_row_to_multiple_of_row
@@ -602,6 +606,10 @@ cdef class Matrix_modint:
         return s
 
     def list(self):
+        """
+        Return list of 3-tuples (i,j,x), where A[i,j] = x and
+        x is nonzero.  The i,j are Python int's.
+        """
         cdef int i
         X = []
         for i from 0 <= i < self.nr:
@@ -1505,13 +1513,24 @@ cdef class Matrix_mpq:
         A.is_init = True
         return A
 
-    def submatrix_from_rows(self, rows):
+    def matrix_from_rows(self, rows):
         """
+        Return the matrix obtained from the rows of self given by the
+        input list of integers.
+
         INPUT:
             rows -- list of integers
 
-        OUTPUT:
-            matrix got from the rows of self given by the input list of integers.
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,2,2,sparse=True)(range(1,5))
+            sage: m = M._Matrix_sparse_rational__matrix
+            sage: s = m.matrix_from_rows([1,1,1])
+            sage: s
+            [
+            3, 4,
+            3, 4,
+            3, 4
+            ]
         """
         cdef int i, j, k, nr
         nr = len(rows)
@@ -1524,6 +1543,7 @@ cdef class Matrix_mpq:
             init_mpq_vector(&A.rows[i], self.nc, self.rows[j].num_nonzero)
             for k from 0 <= k < self.rows[j].num_nonzero:
                 mpq_set(A.rows[i].entries[k], self.rows[j].entries[k])
+                A.rows[i].positions[k] = self.rows[j].positions[k]
 
         A.is_init = True
 

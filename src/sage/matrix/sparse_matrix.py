@@ -818,36 +818,38 @@ class Sparse_matrix_rational(Sparse_matrix_generic):
             entries[k] = (i,j,x*d)
 
     def echelon_form(self, height_guess=None):
-        """
+        r"""
         Returns echelon form of self, possibly modifying self by rescaling.
         Uses a sparse multi-modular method.
 
         ALGORITHM:
-        The following is a modular algorithm for computing the echelon
-        form.  Define the height of a matrix to be the max of the
-        absolute values of the entries.
-        Input: Matrix A with n columns (this).
-         0. Rescale input matrix A to have integer entries.  This does
-            not change echelon form and makes reduction modulo lots of
-            primes significantly easier if there were denominators.
-            Henceforth we assume A has integer entries.
-         1. Let c be a guess for the height of the echelon form.  E.g.,
-            c=1000, since matrix is sparse and application is modular symbols.
-         2. Let M = n * c * H(A) + 1,
-            where n is the number of columns of A.
-         3. List primes p_1, p_2, ..., such that the product of
-            the p_i is at least M.
-         4. Try to compute the rational reconstruction CRT echelon form
-            of A mod the product of the p_i.  If rational
-            reconstruction fails, compute 1 more echelon forms mod the
-            next prime, and attempt again.  Make sure to keep the
-            result of CRT on the primes from before, so we don't have
-            to do that computation again.  Let E be this matrix.
-         5. Compute the denominator d of E.
-            Try to prove that result is correct by checking that
-                  H(d*E)*ncols(A)*H(A) < (prod of reduction primes)
-            where H denotes the height.   If this fails, do step 4 with
-            a few more primes
+            The following is a modular algorithm for computing the echelon
+            form.  Define the height of a matrix to be the max of the
+            absolute values of the entries.
+            Input: Matrix A with n columns (this).
+            \begin{enumerate}
+             \item Rescale input matrix A to have integer entries.  This does
+                not change echelon form and makes reduction modulo lots of
+                primes significantly easier if there were denominators.
+                Henceforth we assume A has integer entries.
+             \item Let c be a guess for the height of the echelon form.  E.g.,
+                c=1000, since matrix is sparse and application is modular symbols.
+             \item Let M = n * c * H(A) + 1,
+                where n is the number of columns of A.
+             \item List primes p_1, p_2, ..., such that the product of
+                the p_i is at least M.
+             \item Try to compute the rational reconstruction CRT echelon form
+                of A mod the product of the p_i.  If rational
+                reconstruction fails, compute 1 more echelon forms mod the
+                next prime, and attempt again.  Make sure to keep the
+                result of CRT on the primes from before, so we don't have
+                to do that computation again.  Let E be this matrix.
+             \item Compute the denominator d of E.
+                Try to prove that result is correct by checking that
+                      H(d*E)*ncols(A)*H(A) < (prod of reduction primes)
+                where H denotes the height.   If this fails, do step 4 with
+                a few more primes
+            \end{enumerate}
         """
         try:
             # If self.__echelon_form is true, this means the matrix self is already

@@ -109,7 +109,7 @@ class Worksheet:
         for C in self.__cells:
             t = C.plain_text(prompts=prompts).strip()
             if t != '':
-                s += '\n' + t
+                s += '\n\n' + t
         return s
 
     # The following setstate method is here
@@ -542,6 +542,7 @@ class Worksheet:
         corresponding to attached files that have changed.
         """
         A = self.attached_files()
+        print A
         for F, tm in A.iteritems():
             try:
                 new_tm = os.path.getmtime(F)
@@ -559,12 +560,12 @@ class Worksheet:
         except AttributeError:
             A = {}
             self.__attached = A
+            init_sage = DOT_SAGE + 'init.sage'
+            if os.path.exists(init_sage):
+                A[init_sage] = 0
+            elif A.has_key(init_sage):
+                del A[init_sage]
 
-        init_sage = DOT_SAGE + 'init.sage'
-        if os.path.exists(init_sage):
-            A[init_sage] = 0
-        elif A.has_key(init_sage):
-            del A[init_sage]
         return A
 
     def attach(self, filename):

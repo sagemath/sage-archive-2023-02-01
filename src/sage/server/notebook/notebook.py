@@ -735,7 +735,7 @@ class Notebook(SageObject):
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="worksheets_topbar">'
-        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">Create</a> '
+        body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">New</a> '
         body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
         body += '  &nbsp;Worksheets</div>\n'
         body +=    add_new_worksheet_menu

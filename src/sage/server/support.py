@@ -1,5 +1,8 @@
 """
-Support for the Notebook (Introspection and Setup)
+Support for the Notebook (introspection and setup)
+
+AUTHOR:
+   * William Stein (much of this code is from IPython).
 """
 
 import inspect
@@ -113,7 +116,7 @@ def get_def(obj, obj_name=''):
     If any exception is generated, None is returned instead and the
     exception is suppressed.
 
-    AUTHOR: Taken from IPython for use in SAGE.
+    AUTHOR: William Stein (but taken from IPython for use in SAGE).
     """
     try:
         return obj_name + inspect.formatargspec(*get_argspec(obj))
@@ -138,16 +141,25 @@ def docstring(obj_name, globs):
     return s
 
 def source_code(s, globs):
-
+    """
+        AUTHOR: William Stein (but taken from IPython for use in SAGE).
+    """
     try:
         obj = eval(s, globs)
     except NameError:
         return "No object %s"%s
+
     try:
-        z = inspect.getsourcelines(obj)[0]
+
+        fname = inspect.getabsfile(obj)
+        lines, num = inspect.getsourcelines(obj)
+        src = ''.join(lines)
+        return """File: %s
+Source Code (starting at line %s):\n%s"""%(fname, num, src)
+
     except (TypeError, IndexError):
+
         return "Source code for %s not available."%obj
-    return ''.join(z)
 
 
 def tabulate(v, width=90, ncols=3):

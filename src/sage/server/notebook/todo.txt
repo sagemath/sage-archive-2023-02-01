@@ -1,5 +1,19 @@
-BUGS:
+ODO/BUGS:
+   [] make it so all requested computations go into the compute
+      stream at once (??)  currently a computation must complete
+      before the next one is sent to the SAGE "compute kernel",
+      but it would probably be easy to send several at once, and
+      the result might be faster and more responsive, especially
+      when evaluating a whole worksheet.
+
+   [] easy way to change the default session for a worksheet.
+
+   [] make the worksheet title be easily changeable independent of the filename.
+   [] Create new worksheet should open a browser window in the new worksheet.
+
    [] tab completion sticks cursor at end of text when expands output.
+       (Tom fixed this -- not in official sage yet)
+
    [] Safari -- (from J. Walker) I just tried (1.3.3.6)
 "R.<x>=PolynomialRing(Integers(),'x')" in Safari, it mostly seemed to
 work, save the minor problem that the "(" following the procedure name
@@ -58,21 +72,32 @@ notebook with a different system= option, then new worksheets get that
 CAS, but old ones stay the way they are.
 
 IDEAS:
-[] Make an entire Gap Notebook or Magma Notebook or ...
+   [] tab completion could also do completions on keyword arguments
+      to methods.   ; these would have to be in addition to all
+      valid identifiers, since you might just want to pass a valid
+      id in.  -- and it shouldn't fail if the object that has the
+      method isn't defined yet.
 
-   [] worksheets with lots of graphics sometimes feel slow.
+   [] try a modified version of the worksheet that does multiple
+      input cells all in a different thread.  This might be
+      horrible, but would be interest to try.
 
-[] enter to submit when adding a new worksheet or deleting.
+   [] worksheets with lots of graphics sometimes feel slow.???
 
-[] (Note -- there is currently no support for
-pulling in objects and evaluating code in SAGE by typing
-"sage(...)" inside the input block.  This is planned.)
+   [] enter to submit when adding a new worksheet or deleting.
 
-[] optimization: output should update only the end, not the whole thing every time.
+   [] (Note -- there is currently no support for
+     pulling in objects and evaluating code in SAGE by typing
+     "sage(...)" inside the input block (for another system).
+        This is planned.)
 
-[] (bad idea) Make it so tracebacks in output can be toggled between showing
-the inside of the traceback and not via some javascript, with the
-default not showing the traceback (just the first and last line).
+   [] optimization: output should update only the end, not the whole
+      thing every time.
+
+   [] (bad idea) Make it so tracebacks in output can be toggled
+between showing the inside of the traceback and not via some
+javascript, with the default not showing the traceback (just the first
+and last line).
 
 [] (??) convenience: rename worksheet -- really workbooks should just be files
    on the computer that can be anywhere -- while working with them
@@ -391,3 +416,5 @@ for i in range(10):
 
    [x] "time " disappears from saved input for cells
    [x] add a "restart sage" button in the top.
+[x] Make an entire Gap Notebook or Magma Notebook or ...
+

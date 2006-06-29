@@ -97,7 +97,8 @@ class Cell:
                 in_loop = False
                 for v in input_lines:
                     if len(v) == 0:
-                        s += '<BLANKLINE>\n'
+                        pass
+                    #    s += '<BLANKLINE>\n'
                     elif v[0] == ' ':
                         in_loop = True
                         s += '...' + v + '\n'

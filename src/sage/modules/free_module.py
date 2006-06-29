@@ -2646,9 +2646,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: V = VectorSpace(QQ,5, sparse=True)
             sage: W = V.subspace_with_basis([[0,1,2,0,0], [0,-1,0,0,-1/2]])
             sage: W.echelonized_basis()
-
+            [
+            (0, 1, 0, 0, 1/2),
+            (0, 0, 1, 0, -1/4)
+            ]
             sage: W.echelon_coordinates([0,0,2,0,-1/2])
-
+            [0, 2]
         """
         if not isinstance(v, sage.modules.free_module_element.FreeModuleElement):
             v = self.ambient_vector_space()(v)

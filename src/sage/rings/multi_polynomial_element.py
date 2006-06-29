@@ -605,35 +605,22 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: f.is_univariate()
             True
         """
-        degrees = self._MPolynomial__element.dict().keys()
+        mons = self.element().dict().keys()
         try:
-            ngens = len(degrees[0]) # number of generators
+            ngens = len(mons[0]) # number of generators
         except:
             return True        # zero
-        nmons = len(degrees) # number of monomials
-        from sage.matrix.all import MatrixSpace
-        from sage.rings.all import ZZ
-        degrees = MatrixSpace(ZZ,nmons,ngens)(list(sum(degrees, ()))).transpose()
-        all_one = MatrixSpace(ZZ,nmons,1)([1]*nmons)
 
-        found = 0
-        # use matrix multiplication to add all corresponding variables occurences
-        #
-        # keys of dictionary are exponent tuples so the keys() list is:
-        #
-        # [(2,0,0), |
-        #  (1,1,0), | addition done by transposing and multiplication with (1,1,...)^T
-        #  (0,1,0)]\/
-        # ---------
-        #   3,2,0  if more than one is not zero -> not univariate
-        for elem in (degrees*all_one).list():
-            if(elem!=0):
-                if(found!=0):
-                    return False
-                else:
-                    found = elem
+        zero = self.base_ring()(0)
+        found = -1
+        for mon in mons:
+            for i in range(ngens):
+                if mon[i]!=zero and found != i:
+                    if found != -1:
+                        return False
+                    else:
+                        found = i
         return True
-
 
     def univariate_polynomial(self, R=None):
         """

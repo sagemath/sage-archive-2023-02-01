@@ -5,6 +5,19 @@ SAGE provides 2-d plotting functionality with an interface inspired by
 the interface for plotting in Mathematica.  The underlying rendering
 is mostly implemented using the matplotlib Python library.
 
+The following graphics primitives are supported:
+\begin{itemize}
+    \item line   -- a line determined by a sequence of points (this need not be straight!)
+    \item circle -- a circle with given radius
+    \item disk   -- a filled disk
+    \item point  -- a point
+    \item text   -- some text
+    \item polygon -- a filled polygon
+    \item plot   -- plot of a function or other SAGE object (e.g., elliptic curve).
+\end{itemize}
+
+Type ? after each primitive in \sage for help and examples.
+
 EXAMPLES:
 We construct a plot involving several graphics objects:
 
@@ -104,6 +117,8 @@ EMBEDDED_MODE = False
 
 import sage.misc.viewer
 import sage.misc.misc
+
+import random
 
 verbose = sage.misc.misc.verbose
 
@@ -465,6 +480,8 @@ class Graphics(SageObject):
                          horizontalalignment="center", verticalalignment="center")
 
 
+    def _plot_(self, **args):
+        return self
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
@@ -613,8 +630,7 @@ class GraphicPrimitive(SageObject):
 
 class GraphicPrimitive_Line(GraphicPrimitive):
     """
-    Primitive class that initializes the
-    line graphics type
+    Primitive class that initializes the line graphics type.
     """
     def __init__(self, xdata, ydata, options):
         self.xdata = xdata
@@ -847,10 +863,18 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
-        if len(points) > 0 and not isinstance(points[0], (list, tuple)):
-            xdata = [float(points[0])]
-            ydata = [float(points[1])]
-        else:
+
+        done = False
+        if not isinstance(points, (list,tuple)) or \
+           (isinstance(points,(list,tuple)) and len(points) == 2):
+            try:
+                xdata = [float(points[0])]
+                ydata = [float(points[1])]
+                done = True
+            except TypeError:
+                pass
+
+        if not done:
             if coerce:
                 xdata = []
                 ydata = []
@@ -1051,7 +1075,7 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         return g
 
 # unique point instance
-point=PointFactory()
+point = PointFactory()
 
 class TextFactory(GraphicPrimitiveFactory_text):
     """
@@ -1196,7 +1220,16 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, funcs, xmin, xmax, parametric=False, polar=False, **kwds):
+    def __call__(self, funcs, xmin=None, xmax=None, parametric=False, polar=False, **kwds):
+        try:
+            return funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
+        except AttributeError:
+            pass
+
+        if xmin is None:
+            xmin = -1
+        if xmax is None:
+            xmax = 1  # defaults
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
@@ -1219,14 +1252,18 @@ class PlotFactory(GraphicPrimitiveFactory):
         plot_points = int(options['plot_points'])
         delta = (xmax - xmin) / plot_points
         data = []
+        dd = delta
         for i in xrange(plot_points + 1):
             x = xmin + i*delta
+            if i < plot_points:
+                x += delta*random.random()
+                if x > xmax:
+                    x = xmax
             try:
                 y = f(x)
                 data.append((x, float(y)))
-            except TypeError:
-                print "Not adding invalid point f(%s) to plot"%x
-                pass
+            except (TypeError, ValueError), msg:
+                raise ValueError, "Unable to compute f(%s)"%x
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -1330,7 +1367,15 @@ def to_float_list(v):
     return [float(x) for x in v]
 
 def to_mpl_color(c):
-    return (float(c[0]), float(c[1]), float(c[2]))
+    c = list(c)
+    for i in range(len(c)):
+        s = float(c[i])
+        if s != 1:
+            s = modf(s)[0]
+            if s < 0:
+                s += 1
+        c[i] = s
+    return tuple(c)
 
 def hue(h, s=1, v=1):
     """
@@ -1338,6 +1383,14 @@ def hue(h, s=1, v=1):
       's' stands for saturation, 'v' stands for value.
       hue returns a list of rgb intensities (r, g, b)
       All values are in range 0 to 1.
+
+      INPUT:
+         h, s, v -- real numbers between 0 and 1.  Note that
+                    if any are not in this range they are automatically
+                    normalized to be in this range by reducing them
+                    modulo 1.
+      OUTPUT:
+         A valid RGB tuple.
 
       EXAMPLES:
         sage: hue(0.6)
@@ -1349,13 +1402,19 @@ def hue(h, s=1, v=1):
         sage: p = plot(sin, -2, 2, rgbcolor=hue(0.6))
 
     """
-    h = float(h)
-    if h > 1:
+    h = float(h); s = float(s); v = float(v)
+    if h != 1:
         h = modf(h)[0]
-    if s > 1:
+        if h < 0:
+            h += 1
+    if s != 1:
         s = modf(s)[0]
-    if v > 1:
+        if s < 0:
+            s += 1
+    if v != 1:
         v = modf(v)[0]
+        if v < 0:
+            v += 1
     c = hsv_to_rgb(h, s, v)
     return (float(c[0]), float(c[1]), float(c[2]))
 

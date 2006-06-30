@@ -689,9 +689,16 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         Draw a graph of this elliptic curve.
 
+        INPUT:
+            xmin, xmax -- points will be computed at least within this
+                          rings, but possibly farther.  These may be
+                          left off.
+            **args -- all other options are passed to the line graphing
+                      primitive.
+
         EXAMPLES:
             sage: E = EllipticCurve([0,-1])
-            sage: plot(E, 1, 4, rgbcolor=hue(0.7))
+            sage: plot(E, rgbcolor=hue(0.7))
             Graphics object consisting of 1 graphics primitives:
                     0 -- Line defined by 200 points
         """
@@ -713,8 +720,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         r.sort()
         if xmax is None:
             xmax = r[-1] + 2
+        xmax = max(xmax, r[-1]+2)
         if xmin is None:
             xmin = r[0]  - 2
+        xmin = min(xmin, r[0]-2)
         if len(r) == 1:
             # one real root; 1 component
             I = [(r[0],xmax)]

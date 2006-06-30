@@ -22,6 +22,8 @@ import math
 
 from sage.rings.all import MPolynomialRing
 
+import sage.plot.all as plot
+
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field
@@ -677,6 +679,65 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                                           54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
                                           3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
                                           15552*a1*a3 + 11664*a2**2 + 46656*a4])
+
+
+    ##############################################################################
+    # Plotting
+    ##############################################################################
+
+    def _plot_(self, xmin=None, xmax=None, **options):
+        """
+        Draw a graph of this elliptic curve.
+        """
+        RR = rings.RealField()
+        K = self.base_ring()
+        try:
+            RR._coerce_(K(1))
+        except TypeError:
+            raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
+        a1, a2, a3, a4, a6 = self.ainvs()
+        R = rings.PolynomialRing(rings.RealField())
+        x = R.gen()
+        d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
+        def f1(z):
+            return (-(a1*z + a3) + sqrt(abs(d(z))))/2
+        def f2(z):
+            return (-(a1*z + a3) - sqrt(abs(d(z))))/2
+        r = [t.real() for t in d.roots() if t.imag() == 0]
+        r.sort()
+        if xmax is None:
+            xmax = r[-1] + 2
+        if xmin is None:
+            xmin = r[0]  - 2
+        if len(r) == 1:
+            # one real root; 1 component
+            I = [(r[0],xmax)]
+        else:
+            # three real roots; 2 components
+            I = [(r[0],r[1]), (r[2],xmax)]
+        I = [(max(a,xmin),min(b,xmax)) for a,b in I]
+
+        g = plot.Graphics()
+        plot_points = 100
+        for j in range(len(I)):
+            a,b = I[j]
+            delta = (b-a)/float(plot_points)
+            v = []
+            w = []
+            for i in range(plot_points):
+                x = a + delta*i
+                v.append((x, f1(x)))
+                w.append((x, f2(x)))
+            if len(I) == 2 and j == 0:  # two components -- the oh.
+                g += plot.line(v + list(reversed(w)) + [v[0]], **options)
+            else:
+                g += plot.line(list(reversed(v)) + w, **options)
+        return g
+
+        for a,b in I:
+            g += plot.plot(f1, a, b, **options)
+            g += plot.plot(f2, a, b, **options)
+        return g
 
 
     ##############################################################################

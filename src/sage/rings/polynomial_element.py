@@ -46,7 +46,7 @@ import fraction_field_element
 import fraction_field
 from infinity import infinity
 import sage.misc.misc as misc
-import sage.misc.sage_eval as sage_eval
+from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 import sage.misc.latex as latex
@@ -58,7 +58,7 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 
 from coerce import bin_op
 
-from real_field import RealField, is_RealNumber
+from real_field import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
 # Faster than SAGE's
@@ -1175,6 +1175,11 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         try:
             return self.__pari
         except AttributeError:
+            K = self.base_ring()
+            n = None
+            if is_RealField(K) or complex_field.is_ComplexField(K):
+                n = pari.get_real_precision()
+                pari.set_real_precision(int(K.prec()*3.5)+1)
             v = self.list()
             try:
                 v = [x._pari_() for x in v]
@@ -1183,6 +1188,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             if variable is None:
                 variable = self.parent().variable_name()
             self.__pari = pari(v).Polrev(variable)
+            if not n is None:
+                pari.set_real_precision(n)
             return self.__pari
 
     def _pari_init_(self):
@@ -1215,6 +1222,12 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         """
         Return all roots of this polynomial.
 
+        If the polynomial is over RR or CC returns all roots in CC
+        with multiplicities all set to 1.
+
+        Over all other rings it just returns the roots that lie in the
+        base ring.
+
         EXAMPLES:
             sage: x = PolynomialRing(RationalField()).gen()
             sage: f = x^3 - 1
@@ -1231,6 +1244,20 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             [(884736/19, 20)]
         """
         seq = []
+
+        K = self.parent().base_ring()
+
+        if is_RealField(K) or complex_field.is_ComplexField(K):
+            if is_RealField(K):
+                K = K.complex_field()
+            n = pari.get_real_precision()
+            pari.set_real_precision(int(K.prec()/3.2)+1)
+            r = pari(self).polroots()
+            r = str(r).rstrip('~')
+            seq = sage_eval(r, {'I':K.gen()})
+            pari.set_real_precision(n)
+            return seq
+
         try:
             rts = self.factor()
         except NotImplementedError:

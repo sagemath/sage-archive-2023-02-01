@@ -4658,8 +4658,7 @@ cdef class gen:
     def algdep(self, long n, bit=0):
         """
         EXAMPLES:
-            sage: n = pari.get_real_precision()
-            sage: pari.set_real_precision (200)
+            sage: n = pari.set_real_precision (200)
             sage: w1 = pari('z1=2-sqrt(26); (z1+I)/(z1-I)')
             sage: f = w1.algdep(12); f
             545*x^11 - 297*x^10 - 281*x^9 + 48*x^8 - 168*x^7 + 690*x^6 - 168*x^5 + 48*x^4 - 281*x^3 - 297*x^2 + 545*x
@@ -4669,6 +4668,7 @@ cdef class gen:
             sage: f.factor()
             [x, 1; x + 1, 2; x^2 + 1, 1; x^2 + x + 1, 1; 545*x^4 - 1932*x^3 + 2790*x^2 - 1932*x + 545, 1]
             sage: pari.set_real_precision(n)
+            200
         """
         cdef long b
         b = bit
@@ -5285,12 +5285,13 @@ cdef class PariInstance:
             sage: orig = pari.get_real_precision(); orig
             28         # 32-bit
             38         # 64-bit
-            sage: pari.set_real_precision(50)
+            sage: _ = pari.set_real_precision(50)
             sage: pari.euler()
             0.57721566490153286060651209008240243104215933593992
 
         We restore precision to the default.
             sage: pari.set_real_precision(orig)
+            50
 
         Euler is returned to the original precision:
             sage: pari.euler()
@@ -5312,20 +5313,19 @@ cdef class PariInstance:
             sage: pari.pi()
             3.141592653589793238462643383             # 32-bit
             3.1415926535897932384626433832795028842   # 64-bit
-            sage: orig_prec = pari.get_real_precision()
-            sage: pari.set_real_precision(5)
+            sage: orig_prec = pari.set_real_precision(5)
             sage: pari.pi()
             3.1416
 
             sage: pari.get_real_precision()
             5
-            sage: pari.set_real_precision(40)
+            sage: _ = pari.set_real_precision(40)
             sage: pari.pi()
             3.141592653589793238462643383279502884197
 
 
         We restore precision to the default.
-            sage: pari.set_real_precision(orig_prec)
+            sage: _ = pari.set_real_precision(orig_prec)
 
         Note that pi is now computed to the original precision:
 

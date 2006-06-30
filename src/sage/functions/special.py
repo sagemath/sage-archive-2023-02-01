@@ -341,10 +341,9 @@ from sage.misc.functional import exp
 
 def _setup(prec):
     from sage.libs.pari.all import pari
-    RR = RealField(int(prec/3.3)+1) ## 3.3 is about log(10,2)
-    a = pari.get_real_precision()
-    pari.set_real_precision(prec)
-    return RR,a
+    RR = RealField(prec)
+    a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
+    return RR, a
 
 
 def bessel_I(nu,z,alg = "pari",prec=53):
@@ -390,9 +389,9 @@ def bessel_I(nu,z,alg = "pari",prec=53):
 
     EXAMPLES:
         sage: bessel_I(1,1,"pari",500)
-        0.56515910399248502720769602760986330732889962158
+        0.56515910399248502720769602760986330732889962162109200948029448947925564096437113409266499776681441006467788605552630267685763768491717981204113120812118
         sage: bessel_I(1,1)
-        0.5651627
+        0.56515910399248503
         sage: bessel_I(2,1.1,"maxima")  # last few digits are random
         0.16708949925104899
         sage: bessel_I(0,1.1,"maxima")  # last few digits are random
@@ -485,10 +484,9 @@ def bessel_K(nu,z,prec=53):
 
     EXAMPLES:
         sage: bessel_K(1,1)
-        0.6019058
+        0.60190723019723458
         sage: bessel_K(1,1,500)
-        0.60190723019723457473754000153561733926158688995
-
+        0.60190723019723457473754000153561733926158688996810645601776795916855358294623784016886370695825821535464409978314005090846929281349329460565572696199608
     """
     from sage.libs.pari.all import pari
     RR,a = _setup(prec)
@@ -537,9 +535,9 @@ def hypergeometric_U(alpha,beta,x,prec=53):
 
     EXAMPLES:
         sage: hypergeometric_U(1,1,1)
-        0.5963440
-        sage: hypergeometric_U(1,1,1,200)
-        0.59634736232319407413
+        0.59634736232319407
+        sage: hypergeometric_U(1,1,1,70)
+        0.59634736232319407434152
     """
     from sage.libs.pari.all import pari
     R,a = _setup(prec)
@@ -551,23 +549,27 @@ def incomplete_gamma(s,x,prec=53):
     r"""
     Implements the incomplete Gamma function.
 
+    INPUT:
+        s, x -- ocmplex numbers.
+        prec -- bits of precision.
+
     The argument x and s are complex numbers
     (x must be a positive real number if s = 0).
     The result returned is $\int_x^\infty e^{-t}t^{s-1}dt$.
 
     EXAMPLES:
         sage: incomplete_gamma(0.1,6,200)
-        119.99999984701215694
+        119.99999984701215693242493354706493878953914933130704861011488
         sage: incomplete_gamma(0,6,200)
-        120.00000000000000000
+        120.00000000000000000000000000000000000000000000000000000000000
         sage: incomplete_gamma(0.3,6,200)
-        119.99990598341125736
+        119.99990598341125737887779259683594390225182610507857843438320
         sage: incomplete_gamma(0.3,6)
-        120.0000
+        119.99990598341125
         sage: incomplete_gamma(0.5,6)
-        119.9980
+        119.99830020752132
         sage: incomplete_gamma(0.5,6,100)
-        119.99830019
+        119.99830020752131890111421425093
     """
     from sage.libs.pari.all import pari
     R,a = _setup(prec)

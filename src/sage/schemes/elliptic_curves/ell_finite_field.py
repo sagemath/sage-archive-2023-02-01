@@ -25,6 +25,8 @@ import sea
 from sage.groups.all import AbelianGroup
 import ell_point
 
+import sage.plot.all as plot
+
 import sage.libs.pari
 pari = sage.libs.pari.all.pari
 
@@ -53,6 +55,32 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         F = self.base_ring()
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
+
+    def _plot_(self, **args):
+        """
+        Draw a graph of this elliptic curve over a prime finite field.
+
+        INPUT:
+            **args -- all other options are passed to the circle
+                      graphing primitive.
+
+        EXAMPLES:
+            sage: E = EllipticCurve(FiniteField(17), [0,1])
+            sage: plot(E, rgbcolor=(0,0,1))
+            Graphics object consisting of 1 graphics primitives:
+                    0 -- Line defined by 200 points
+        """
+        R = self.base_ring()
+        if not R.is_prime_field():
+            raise NotImplementedError
+
+        G = plot.Graphics()
+        for P in self.points():
+            G += plot.point(P, **args)
+        #G.xmin(0)
+        #G.ymin(0)
+        return G
+
 
     def points(self):
         """

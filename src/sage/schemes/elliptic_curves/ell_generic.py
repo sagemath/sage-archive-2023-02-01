@@ -747,6 +747,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 x = a + delta*i
                 v.append((x, f1(x)))
                 w.append((x, f2(x)))
+            v.append((b,f1(b)))
+            w.append((b,f2(b)))
             if len(I) == 2 and j == 0:  # two components -- the oh.
                 g += plot.line(v + list(reversed(w)) + [v[0]], **args)
             else:

@@ -185,41 +185,49 @@ class Graphics(SageObject):
         self.__ymax = 1
         self.__objects = []
 
-    def xmax(self):
+    def xmax(self, new=None):
         """
         sage: G = Graphics(); G
         Graphics object consisting of 0 graphics primitives:
         sage: G.xmax()
         1
         """
-        return self.__xmax
+        if new is None:
+            return self.__xmax
+        self.__xmax = new
 
-    def xmin(self):
+    def xmin(self, new=None):
         """
         sage: G = Graphics(); G
         Graphics object consisting of 0 graphics primitives:
         sage: G.xmin()
         -1
         """
-        return self.__xmin
+        if new is None:
+            return self.__xmin
+        self.__xmin = new
 
-    def ymax(self):
+    def ymax(self, new=None):
         """
         sage: G = Graphics(); G
         Graphics object consisting of 0 graphics primitives:
         sage: G.ymax()
         1
         """
-        return self.__ymax
+        if new is None:
+            return self.__ymax
+        self.__ymax = new
 
-    def ymin(self):
+    def ymin(self, new=None):
         """
         sage: G = Graphics(); G
         Graphics object consisting of 0 graphics primitives:
         sage: G.ymin()
         -1
         """
-        return self.__ymin
+        if new is None:
+            return self.__ymin
+        self.__ymin = new
 
     def _repr_(self):
         pr, i = '', 0

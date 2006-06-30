@@ -329,11 +329,7 @@ class Graphics(SageObject):
             sage: h2 = lambda x : -sqrt(x^3  - 1)
             sage: g1 = plot(h1, 1, 5)
             sage: g2 = plot(h2, 1, 5)
-            sage: h = g1 + g2; h
-            Graphics object consisting of 2 graphics primitives:
-                        0 -- Line defined by 205 points
-                    1 -- Line defined by 205 points
-
+            sage: h = g1 + g2
         """
         if isinstance(other, int) and other == 0:
             return self
@@ -1206,10 +1202,16 @@ class PlotFactory(GraphicPrimitiveFactory):
     of graphs of 2 functions.
         sage: def h1(x): return sqrt(x^3  - 1)
         sage: def h2(x): return -sqrt(x^3  - 1)
-        sage: plot([h1, h2], 1,4)
+        sage: plot([h1, h2], 1,4)    # random output because of random sampling
         Graphics object consisting of 2 graphics primitives:
-                0 -- Line defined by 204 points
-                1 -- Line defined by 204 points
+            0 -- Line defined by 201 points
+            1 -- Line defined by 204 points
+
+    We can also directly plot the elliptic curve:
+        sage: E = EllipticCurve([0,-1])
+        sage: plot(E, 1, 4, rgbcolor=hue(0.6))
+        Graphics object consisting of 1 graphics primitives:
+                0 -- Line defined by 200 points
     """
     def _reset(self):
         o = self.options

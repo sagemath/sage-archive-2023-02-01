@@ -685,9 +685,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     # Plotting
     ##############################################################################
 
-    def _plot_(self, xmin=None, xmax=None, **options):
+    def _plot_(self, xmin=None, xmax=None, **args):
         """
         Draw a graph of this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([0,-1])
+            sage: plot(E, 1, 4, rgbcolor=hue(0.7))
+            Graphics object consisting of 1 graphics primitives:
+                    0 -- Line defined by 200 points
         """
         RR = rings.RealField()
         K = self.base_ring()
@@ -718,7 +724,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         I = [(max(a,xmin),min(b,xmax)) for a,b in I]
 
         g = plot.Graphics()
-        plot_points = 100
+        try:
+            plot_points = int(args['plot_points'])
+        except KeyError:
+            plot_points = 100
+
         for j in range(len(I)):
             a,b = I[j]
             delta = (b-a)/float(plot_points)
@@ -729,14 +739,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 v.append((x, f1(x)))
                 w.append((x, f2(x)))
             if len(I) == 2 and j == 0:  # two components -- the oh.
-                g += plot.line(v + list(reversed(w)) + [v[0]], **options)
+                g += plot.line(v + list(reversed(w)) + [v[0]], **args)
             else:
-                g += plot.line(list(reversed(v)) + w, **options)
-        return g
-
-        for a,b in I:
-            g += plot.plot(f1, a, b, **options)
-            g += plot.plot(f2, a, b, **options)
+                g += plot.line(list(reversed(v)) + w, **args)
         return g
 
 

@@ -221,4 +221,5 @@ def variables(with_types=True):
     else:
         w = [x for x, v in sage_globals.iteritems() if not \
                  x in globals_at_init and x[0] != '_']
+    w.sort()
     return w

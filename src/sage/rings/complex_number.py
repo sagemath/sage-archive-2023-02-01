@@ -79,6 +79,13 @@ class ComplexNumber(ring_element.RingElement):
     def _repr_(self):
         return self.str(10)
 
+    def __getitem__(self, i):
+        if i == 0:
+            return self.__re
+        elif i == 1:
+            return self.__im
+        raise IndexError, "i (=%s) must be between 0 and 1."%i
+
     def str(self, base=10):
         s = ""
         if self.__re != 0:

@@ -73,9 +73,9 @@ specifying the universe of the sequence:
 
 import sage.misc.latex as latex
 import sage.ext.sage_object
-from mutability import Mutability
+#from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
-class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
+class Sequence(sage.ext.sage_object.SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.
@@ -197,7 +197,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
             if universe is None or universe == x.__universe:
                 list.__init__(self, x)
                 self.__universe = x.__universe
-                Mutability.__init__(self, immutable)
+                self._is_immutable = immutable
                 return
         if universe is None:
             if len(x) == 0:
@@ -223,7 +223,7 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
         if check:
             x = [universe(t) for t in x]
         list.__init__(self, x)
-        Mutability.__init__(self, immutable)
+        self._is_immutable = immutable
 
     def __setitem__(self, n, x):
         self._require_mutable()
@@ -251,6 +251,57 @@ class Sequence(Mutability, sage.ext.sage_object.SageObject, list):
 
     def universe(self):
         return self.__universe
+
+    def _require_mutable(self):
+        if self._is_immutable:
+            raise ValueError, "object is immutable; please change a copy instead."%self
+
+    def set_immutable(self):
+        """
+        Make this object immutable, so it can never again be changed.
+
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4/5])
+            sage: v[0] = 5
+            sage: v
+            [5, 2, 3, 4/5]
+            sage: v.set_immutable()
+            sage: v[3] = 7
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+        """
+        self._is_immutable = True
+
+    def is_immutable(self):
+        """
+        Return True if this object is immutable (can not be changed)
+        and False if it is not.
+
+        To make this object immutable use self.set_immutable().
+
+        EXAMPLE:
+            sage: v = Sequence([1,2,3,4/5])
+            sage: v[0] = 5
+            sage: v
+            [5, 2, 3, 4/5]
+            sage: v.is_immutable()
+            False
+            sage: v.set_immutable()
+            sage: v.is_immutable()
+            True
+        """
+        try:
+            return self._is_immutable
+        except AttributeError:
+            return False
+
+    def is_mutable(self):
+        try:
+            return not self._is_immutable
+        except AttributeError:
+            return True
+
 
 
 seq = Sequence

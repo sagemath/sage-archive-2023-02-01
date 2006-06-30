@@ -189,6 +189,11 @@ ext_modules = [ \
               ['sage/ext/p1list.pyx',
                'sage/ext/arith.pyx'],
               libraries = ['gmp']), \
+
+    Extension('sage.structure.mutability_pyx',
+              ['sage/structure/mutability_pyx.pyx']
+              ), \
+
     ]
 
 

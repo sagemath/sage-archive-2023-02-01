@@ -1,5 +1,5 @@
-r"""
-Mutability
+"""
+Mutability Pyrex Implementation
 """
 
 ##########################################################################
@@ -12,5 +12,5 @@ Mutability
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
-from sage.structure.mutability_pyx import Mutability
-
+cdef class Mutability:
+    cdef object _is_immutable

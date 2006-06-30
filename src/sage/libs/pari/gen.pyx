@@ -32,7 +32,7 @@ new_galois_format = 1
 cdef unsigned long prec
 prec = GP_DATA.fmt.sigd
 
-# Also a copy accessible from external pure python code.
+# Also a copy of PARI accessible from external pure python code.
 pari = pari_instance
 
 # temp variables
@@ -4956,21 +4956,28 @@ cdef class PariInstance:
     def set_real_precision(self, long n):
         """
         Sets the PARI default real precision, both for creation of
-        new objects and for printing.
+        new objects and for printing.  This is the number of digits
+        *IN DECIMAL* that real numbers are printed or computed to
+        by default.
 
-        EXAMPLES:
-
+        Returns the previous PARI real precision.
         """
+        cdef unsigned long k
+        global prec
+
+        k = GP_DATA.fmt.sigd
         s = str(n)
         _sig_on
         sd_realprecision(s, 2)
         prec = GP_DATA.fmt.sigd
         _sig_off
+        return int(k)  # Python int
 
     def get_real_precision(self):
         return GP_DATA.fmt.sigd
 
     def set_series_precision(self, long n):
+        global precdl
         precdl = n
 
     def get_series_precision(self):

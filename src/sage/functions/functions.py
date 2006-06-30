@@ -11,6 +11,7 @@ import operator
 from sage.misc.latex import latex
 from sage.interfaces.maxima import maxima, MaximaFunction
 import sage.functions.special as special
+from sage.libs.all import  pari
 
 
 class FunctionRing_class(CommutativeRing):

@@ -488,6 +488,11 @@ class MagmaElement(ExpectElement):
         #except (RuntimeError, TypeError):
         #    return self.evaluate(*args)
 
+    def __len__(self):
+        self._check_valid()
+        P = self.parent()
+        return P('#%s'%self.name())
+
     def set_magma_attribute(self, attrname, value):
         P = self.parent()   # instance of MAGMA that contains this element.
         if not (isinstance(value, MagmaElement) and value.parent() is P):

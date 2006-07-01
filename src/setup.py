@@ -194,6 +194,11 @@ ext_modules = [ \
               ['sage/structure/mutability_pyx.pyx']
               ), \
 
+    Extension('sage.matrix.matrix_pyx',
+              ['sage/matrix/matrix_pyx.pyx']
+              ), \
+
+
     ]
 
 

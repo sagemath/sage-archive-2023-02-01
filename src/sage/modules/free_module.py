@@ -736,7 +736,7 @@ class FreeModule_generic(module.Module):
             return self._inner_product_is_dot_product_cache
         except AttributeError:
             if self.is_ambient():
-                if self._inner_product_matrix is None or self._inner_product_matrix == 1:
+                if self._inner_product_matrix is None or self._inner_product_matrix == integer.Integer(1):
                     self._inner_product_is_dot_product_cache = True
                 else:
                     self._inner_product_is_dot_product_cache = False

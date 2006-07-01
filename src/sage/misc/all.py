@@ -1,4 +1,4 @@
-from misc import (alarm, srange, xsrange,
+from misc import (alarm, srange, xsrange, sxrange, getitem,
                   cputime, verbose, set_verbose, set_verbose_files,
                   get_verbose_files, unset_verbose_files, get_verbose,
                   version, banner, add, union, uniq, powerset, exists, forall,

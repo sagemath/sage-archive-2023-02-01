@@ -641,6 +641,8 @@ class xsrange:
     def __iter__(self):
         return _xsrange(self.__a, self.__b, self.__step)
 
+sxrange = xsrange
+
 
 def _xsrange(a,b=None,step=1):
     if b is None:
@@ -973,4 +975,25 @@ def word_wrap(s, ncols=85):
         t.append(x)
     return '\n'.join(t)
 
+
+def getitem(v, n):
+    r"""
+    Variant of getitem that coerces to an int if a typeerror is raised.
+
+    Thus, e.g., \code{getitem(v,n)} will work even if $v$ is a Python
+    list and $n$ is a SAGE integer.
+
+    EXAMPLES:
+        sage: v = [1,2,3]
+        sage: v[ZZ(1)]
+        Traceback (most recent call last):
+        ...
+        TypeError: list indices must be integers
+        sage: getitem(v, ZZ(1))
+        2
+    """
+    try:
+        return v[n]
+    except TypeError:
+        return v[int(n)]
 

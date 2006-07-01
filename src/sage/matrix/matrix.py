@@ -620,6 +620,10 @@ class Matrix(module_element.ModuleElement, Mutability):
             [3 4 5]
             sage: A.columns()
             [(0, 3), (1, 4), (2, 5)]
+
+            sage: MatrixSpace(RationalField(), 2,3) (sxrange(6))
+            [0 1 2]
+            [3 4 5]
         """
         return self.transpose().rows()
 

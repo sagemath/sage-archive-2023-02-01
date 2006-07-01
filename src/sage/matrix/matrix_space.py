@@ -366,7 +366,7 @@ class MatrixSpace_generic(gens.Generators):
             [ 1  0]
             [ 0 -1]
         """
-        if isinstance(x, xsrange):
+        if isinstance(x, (xrange,xsrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()

@@ -224,6 +224,7 @@ class ECM:
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
         """
         factors = self.find_factor(n, factor_digits, B1, **kwds)
+        factors.sort()
         if len(factors) != 2:
             return factors
         _primality = [self.primality[0], self.primality[1]]
@@ -240,6 +241,7 @@ class ECM:
             factors[0:1] = self.factor(factors[0], B1=last_B1, **kwds)
             _primality[0:1] = self.primality
         self.primality = _primality
+        factors.sort()
         return factors
 
 

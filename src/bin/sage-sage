@@ -46,6 +46,7 @@ usage_advanced() {
     echo "  -np           -- run with no output prompts (useful for making doctests)"
     echo "  -pkg <dir>    -- create SAGE package dir.spkg from a give directory (bzip2 compression)"
     echo "  -pkg_nc <dir> -- create SAGE package dir.spkg from a give directory (no compression)"
+    echo "  -preparse <file.sage> -- produce corresponding file.sage.py "
     echo "  -python       -- run the python interpreter (use 'from sage.all import *')"
     echo "  -q            -- quiet; start with no banner"
     echo "  -sdist VER    -- build a source distribution of SAGE"

@@ -53,6 +53,7 @@ for F in sys.argv[1:]:
      if not download_file("optional/%s"%F):
           if not download_file("standard/%s"%F):
                if not download_file("experimental/%s"%F):
-                    print "Unable to download %s"%F
-                    print "Please see %s for a list of valid packages"%SAGE_SERVER
+                    if not download_file("archive/%s"%F):
+                         print "Unable to download %s"%F
+                         print "Please see %s for a list of valid packages"%SAGE_SERVER
 

@@ -21,7 +21,7 @@ t0 = time.time()
 CUR = os.path.abspath(os.curdir)
 
 def abs(f):
-    return "[*] %s"%os.path.abspath(f)[len(CUR)+1:]
+    return "sage -t %s"%os.path.abspath(f)[len(CUR)+1:]
 
 def skip(F):
     G = os.path.abspath(F)

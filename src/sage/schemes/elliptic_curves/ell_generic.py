@@ -672,6 +672,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def weierstrass_model(self):
         """
         Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: print E
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: F = E.weierstrass_model()
+            sage: print F
+            Elliptic Curve defined by y^2  = x^3 - x + 1/4 over Rational Field
+            sage: print F.minimal_model() == E.minimal_model()
+            True
+
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: F = E.weierstrass_model()
+            sage: print F
+            Elliptic Curve defined by y^2  = x^3 + 61/16*x + 127/32 over Rational Field
+            sage: print F.minimal_model() == E.minimal_model()
+            True
         """
         a0, a1, a2, a3, a4 = self.ainvs()
         import constructor
@@ -699,8 +716,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         EXAMPLES:
             sage: E = EllipticCurve([0,-1])
             sage: plot(E, rgbcolor=hue(0.7))
-            Graphics object consisting of 1 graphics primitives:
-                    0 -- Line defined by 200 points
+            Graphics object consisting of 1 graphics primitive
         """
         RR = rings.RealField()
         K = self.base_ring()

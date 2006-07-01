@@ -47,7 +47,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         EllipticCurve_field.__init__(
             self, [field(x) for x in ainvs])
 
-    def x_pari_(self):
+    def xxx_pari_(self):
         try:
             return self.__pari
         except AttributeError:
@@ -66,9 +66,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve(FiniteField(17), [0,1])
-            sage: plot(E, rgbcolor=(0,0,1))
-            Graphics object consisting of 1 graphics primitives:
-                    0 -- Line defined by 200 points
+            sage: P = plot(E, rgbcolor=(0,0,1))
         """
         R = self.base_ring()
         if not R.is_prime_field():

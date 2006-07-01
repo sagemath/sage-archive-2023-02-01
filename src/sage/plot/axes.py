@@ -184,7 +184,8 @@ def find_axes(minval, maxval):
         if abs(eps2) > abs(eps):
             break
     tslminor = [w + eps for w in tslminor]
-    tslminor = set(tslminor).union([-x for x in tslminor])
+    tslminor = list(set(tslminor).union([-x for x in tslminor]) )
+    tslminor = [x for x in tslminor if x >= minval and x <= maxval]
     return oppaxis, step, tslminor, tslmajor
 
 

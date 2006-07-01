@@ -17,6 +17,8 @@ Points on elliptic curves
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import sage.plot.all as plot
+
 import ell_generic
 import sage.rings.all as rings
 import sage.rings.arith as arith
@@ -121,6 +123,13 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
     def is_zero(self):
         return self[2] == 0
+
+    def _plot_(self, **args):
+        if self.is_zero():
+            return plot.text("$\\infty$", (-3,3), alpha=1, **args)
+
+        else:
+            return plot.point((self[0], self[1]), **args)
 
     def _add_(self, right):
         """

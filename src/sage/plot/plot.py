@@ -35,11 +35,7 @@ We combine together different graphics objects using "+":
 
     sage: H = G + P + Q
     sage: H
-    Graphics object consisting of 3 graphics primitives:
-            0 -- Line defined by 201 points
-            1 -- Polygon defined by 3 points
-            2 -- Polygon defined by 3 points
-
+    Graphics object consisting of 3 graphics primitives
     sage: type(H)
     <class 'sage.plot.plot.Graphics'>
     sage: H[1]
@@ -62,13 +58,15 @@ see the first few zeros:
 
     sage: p1 = plot(lambda t: arg(zeta(0.5+t*I)), 1,27,rgbcolor=(0.8,0,0))
     sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
-    sage: (p1+p2).save('sage.png')
+    sage: p1+p2
+    Graphics object consisting of 2 graphics primitives
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples
     -- Alex Clemesha (2006-05-04) major update
     -- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server integration
+    -- William Stein (2006-07-01): misc polish
 
 TODO:
     [] more arithmetic operations on plot objects, e.g., rescaling,
@@ -114,6 +112,7 @@ __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
 DEFAULT_FIGSIZE=[5,4]
 DEFAULT_DPI = 125
 EMBEDDED_MODE = False
+SHOW_DEFAULT = False
 
 import sage.misc.viewer
 import sage.misc.misc
@@ -160,14 +159,13 @@ class Graphics(SageObject):
 
     EXAMPLES:
         sage: G = Graphics(); G
-        Graphics object consisting of 0 graphics primitives:
+        Graphics object consisting of 0 graphics primitives
         sage: c = circle((1,1), 1)
         sage: G+=c; G
-        Graphics object consisting of 1 graphics primitives:
-                0 -- Circle defined by (1.0,1.0) with r=1.0
+        Graphics object consisting of 1 graphics primitive
 
-        Here we make a graphic of embeded isoceles triangles,
-        coloring each one with a different color as we go:
+    Here we make a graphic of embeded isoceles triangles,
+    coloring each one with a different color as we go:
 
         sage: h=10; c=0.4; p=0.1;
         sage: G = Graphics()
@@ -188,7 +186,7 @@ class Graphics(SageObject):
     def xmax(self, new=None):
         """
         sage: G = Graphics(); G
-        Graphics object consisting of 0 graphics primitives:
+        Graphics object consisting of 0 graphics primitives
         sage: G.xmax()
         1
         """
@@ -199,7 +197,7 @@ class Graphics(SageObject):
     def xmin(self, new=None):
         """
         sage: G = Graphics(); G
-        Graphics object consisting of 0 graphics primitives:
+        Graphics object consisting of 0 graphics primitives
         sage: G.xmin()
         -1
         """
@@ -210,7 +208,7 @@ class Graphics(SageObject):
     def ymax(self, new=None):
         """
         sage: G = Graphics(); G
-        Graphics object consisting of 0 graphics primitives:
+        Graphics object consisting of 0 graphics primitives
         sage: G.ymax()
         1
         """
@@ -221,7 +219,7 @@ class Graphics(SageObject):
     def ymin(self, new=None):
         """
         sage: G = Graphics(); G
-        Graphics object consisting of 0 graphics primitives:
+        Graphics object consisting of 0 graphics primitives
         sage: G.ymin()
         -1
         """
@@ -234,8 +232,10 @@ class Graphics(SageObject):
         for x in self:
             pr += '\n\t%s -- %s'%(i, x)
             i += 1
-        return "Graphics object consisting of %s graphics primitives:%s"%(
-            len(self), pr)
+        s = "Graphics object consisting of %s graphics primitives"%(len(self))
+        if len(self) == 1:
+            s = s[:-1]
+        return s
 
     def __getitem__(self, i):
         """
@@ -243,9 +243,7 @@ class Graphics(SageObject):
 
         EXAMPLE:
             sage: G = circle((1,1),2) + circle((2,2),5); G
-            Graphics object consisting of 2 graphics primitives:
-                    0 -- Circle defined by (1.0,1.0) with r=2.0
-                    1 -- Circle defined by (2.0,2.0) with r=5.0
+            Graphics object consisting of 2 graphics primitives
             sage: G[1]
             Circle defined by (2.0,2.0) with r=5.0
         """
@@ -260,10 +258,7 @@ class Graphics(SageObject):
         EXAMPLES:
 
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
-            Graphics object consisting of 3 graphics primitives:
-                    0 -- Circle defined by (1.0,1.0) with r=1.0
-                    1 -- Circle defined by (1.0,2.0) with r=1.0
-                    2 -- Circle defined by (1.0,2.0) with r=5.0
+            Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
         """
@@ -277,17 +272,12 @@ class Graphics(SageObject):
 
         EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
-            Graphics object consisting of 3 graphics primitives:
-                    0 -- Circle defined by (1.0,1.0) with r=1.0
-                    1 -- Circle defined by (1.0,2.0) with r=1.0
-                    2 -- Circle defined by (1.0,2.0) with r=5.0
+            Graphics object consisting of 3 graphics primitives
             sage: len(G)
             3
             sage: del(G[2])
             sage: G
-            Graphics object consisting of 2 graphics primitives:
-                    0 -- Circle defined by (1.0,1.0) with r=1.0
-                    1 -- Circle defined by (1.0,2.0) with r=1.0
+            Graphics object consisting of 2 graphics primitives
             sage: len(G)
             2
         """
@@ -300,20 +290,13 @@ class Graphics(SageObject):
 
         EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
-            Graphics object consisting of 3 graphics primitives:
-                    0 -- Circle defined by (1.0,1.0) with r=1.0
-                    1 -- Circle defined by (1.0,2.0) with r=1.0
-                    2 -- Circle defined by (1.0,2.0) with r=5.0
+            Graphics object consisting of 3 graphics primitives
 
             sage: p = polygon([[1,3],[2,-2],[1,1],[1,3]]);p
-            Graphics object consisting of 1 graphics primitives:
-                    0 -- Polygon defined by 4 points
+            Graphics object consisting of 1 graphics primitive
 
             sage: G[1] = p[0];G
-            Graphics object consisting of 3 graphics primitives:
-                        0 -- Circle defined by (1.0,1.0) with r=1.0
-                    1 -- Polygon defined by 4 points
-                    2 -- Circle defined by (1.0,2.0) with r=5.0
+            Graphics object consisting of 3 graphics primitives
 
         """
         if not isinstance(x, GraphicPrimitive):
@@ -864,6 +847,10 @@ class GraphicPrimitiveFactory_text(GraphicPrimitiveFactory):
 
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
+        try:
+            return points._plot_(**kwds)
+        except AttributeError:
+            pass
         options = dict(self.options)
         for k, v in kwds.iteritems():
             options[k] = v
@@ -1127,14 +1114,12 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     EXAMPLES:
     We create a purple-ish polygon:
         sage: polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,1))
-        Graphics object consisting of 1 graphics primitives:
-        0 -- Polygon defined by 3 points
+        Graphics object consisting of 1 graphics primitive
 
     Some modern art -- a random polygon:
         sage: v = [(randrange(-5,5), randrange(-5,5)) for _ in range(10)]
         sage: polygon(v)
-        Graphics object consisting of 1 graphics primitives:
-                0 -- Polygon defined by 10 points
+        Graphics object consisting of 1 graphics primitive
 
     A purple hexagon:
 
@@ -1211,15 +1196,11 @@ class PlotFactory(GraphicPrimitiveFactory):
         sage: def h1(x): return sqrt(x^3  - 1)
         sage: def h2(x): return -sqrt(x^3  - 1)
         sage: plot([h1, h2], 1,4)    # random output because of random sampling
-        Graphics object consisting of 2 graphics primitives:
-            0 -- Line defined by 201 points
-            1 -- Line defined by 204 points
+        Graphics object consisting of 2 graphics primitives
 
     We can also directly plot the elliptic curve:
         sage: E = EllipticCurve([0,-1])
-        sage: plot(E, 1, 4, rgbcolor=hue(0.6))
-        Graphics object consisting of 1 graphics primitives:
-                0 -- Line defined by 200 points
+        sage: P = plot(E, 1, 4, rgbcolor=hue(0.6))
     """
     def _reset(self):
         o = self.options
@@ -1230,9 +1211,15 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, funcs, xmin=None, xmax=None, parametric=False, polar=False, **kwds):
+    def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
+                 polar=False, show=None, **kwds):
+        if show is None:
+            show = SHOW_DEFAULT
         try:
-            return funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
+            G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
+            if show:
+                G.show()
+            return G
         except AttributeError:
             pass
 
@@ -1249,6 +1236,8 @@ class PlotFactory(GraphicPrimitiveFactory):
             G = Graphics()
             for i in range(0, len(funcs)):
                 G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
+            if show:
+                G.show()
             return G
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
@@ -1269,6 +1258,8 @@ class PlotFactory(GraphicPrimitiveFactory):
                 x += delta*random.random()
                 if x > xmax:
                     x = xmax
+            else:
+                x = xmax  # guarantee that we get the last point.
             try:
                 y = f(x)
                 data.append((x, float(y)))
@@ -1293,7 +1284,10 @@ class PlotFactory(GraphicPrimitiveFactory):
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:
             data = [(y*cos(x), y*sin(x)) for x, y in data]
-        return line(data, coerce=False, **options)
+        G = line(data, coerce=False, **options)
+        if show:
+            G.show()
+        return G
 
 # unique plot instance
 plot = PlotFactory()
@@ -1301,77 +1295,87 @@ plot = PlotFactory()
 ########## misc functions ###################
 
 #parametric plot
-def parametric_plot((f,g), xmin, xmax, **kwargs):
+def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
     """
-    parametric_plot takes two functions as a
-    list or a tuple and make a plot with the
-    first function as the x-value and the
-    second function as the y-value
+    parametric_plot takes two functions as a list or a tuple and make
+    a plot with the first function giving the x coordinates and the
+    second function giving the y coordinates.
+
+    INPUT:
+        (f,g) -- tuple of functions
+        tmin -- start value of t
+        tmax -- end value of t
+        show -- whether or not to show the plot immediately (default: True)
+        other options -- passed to plot.
 
     EXAMPLE:
-        f = lambda x: sin(x)
-        g = lambda x: sin(2*x)
-        p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
-
+        sage: f = lambda t: sin(t)
+        sage: g = lambda t: sin(2*t)
+        sage: parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        Graphics object consisting of 1 graphics primitive
     """
-
-    return plot((f,g), xmin, xmax, parametric=True, **kwargs)
+    if show is None:
+        show = SHOW_DEFAULT
+    return plot((f,g), tmin, tmax, parametric=True, show=show, **kwargs)
 
 #polar plot
-def polar_plot(funcs, xmin, xmax, **kwargs):
+def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
     """
-        polar_plot takes a single function or
-    a list or tuple of functions and plots
-    them parametrically in the given range.
+    polar_plot takes a single function or a list or tuple of functions
+    and plots them parametrically in the given range.
 
     EXAMPLES:
-        Here is a blue 8-leaved petal:
-
+    Here is a blue 8-leaved petal:
         sage: p1 = polar_plot(lambda x:sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
 
-        A red figure-8:
-
+    A red figure-8:
         sage: p2 = polar_plot(lambda x:sqrt(1 - sin(x)^2), 0, 2*pi, rgbcolor=hue(1.0))
 
-        A green limacon of Pascal:
-
+    A green limacon of Pascal:
         sage: p3 = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
 
     """
+    if show is None:
+        show = SHOW_DEFAULT
     return plot(funcs, xmin, xmax, polar=True, **kwargs)
 
 #list plot
-def list_plot(data, plotjoined=False, **kwargs):
+def list_plot(data, plotjoined=False, show=None, **kwargs):
     """
-        list_plot takes a single list of data,
-    in which case it forms a list of tuples (i,di)
-    where i goes from 0 to len(data)-1 and di is
-    the ith data value, and puts points at those
-    tuple values.
-        list_plot also takes a list of tuples
-    (dxi, dyi) where dxi is the ith data representing
-    the x-value, and dyi is the ith y-value
-        if plotjoined=True, then a line spanning
-    all the data is drawn instead.
+    list_plot takes a single list of data, in which case it forms a
+    list of tuples (i,di) where i goes from 0 to len(data)-1 and di is
+    the ith data value, and puts points at those tuple values.
+
+    list_plot also takes a list of tuples (dxi, dyi) where dxi is the
+    ith data representing the x-value, and dyi is the ith y-value if
+    plotjoined=True, then a line spanning all the data is drawn
+    instead.
 
     EXAMPLES:
-        sage: l = list_plot([i^2 for i in range(5)]); l
-        Graphics object consisting of 1 graphics primitives:
-                0 -- Point set defined by 5 point(s)
+        sage: list_plot([i^2 for i in range(5)])
+        Graphics object consisting of 1 graphics primitive
 
         sage: r = [(random(),random()) for _ in range(20)]
 
-        Here are a bunch of random red points:
-        sage: list_plot(r,rgbcolor=(1,0,0)).save('sage.png')
+    Here are a bunch of random red points:
+        sage: list_plot(r,rgbcolor=(1,0,0))
+        Graphics object consisting of 1 graphics primitive
 
-        This gives all the random points joined in a purple line:
-        sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1)).save('sage.png')
+    This gives all the random points joined in a purple line:
+        sage: list_plot(r, plotjoined=True, rgbcolor=(1,0,1))
+        Graphics object consisting of 1 graphics primitive
     """
+    if show is None:
+        show = SHOW_DEFAULT
     if not isinstance(data[0], (list, tuple)):
         data = zip(range(len(data)),data)
     if plotjoined:
-        return line(data, **kwargs)
-    return point(data, **kwargs)
+        P = line(data, **kwargs)
+    else:
+        P = point(data, **kwargs)
+    if show:
+        P.show()
+    return P
 
 def to_float_list(v):
     return [float(x) for x in v]

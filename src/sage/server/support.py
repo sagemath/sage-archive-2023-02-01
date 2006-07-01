@@ -33,6 +33,7 @@ def init(object_directory=None, globs={}):
     sage_globals = globs
     globals_at_init = set(globs.keys())
     sage.plot.plot.EMBEDDED_MODE = True
+    sage.plot.plot.SHOW_DEFAULT = True
     if object_directory:
         sage.ext.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True

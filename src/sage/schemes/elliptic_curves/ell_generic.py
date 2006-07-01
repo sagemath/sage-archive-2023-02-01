@@ -690,12 +690,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: print F.minimal_model() == E.minimal_model()
             True
         """
-        a0, a1, a2, a3, a4 = self.ainvs()
         import constructor
-        return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
-                                          54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
-                                          3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
-                                          15552*a1*a3 + 11664*a2**2 + 46656*a4])
+        c4, c6 = self.c_invariants()
+        return constructor.EllipticCurve([-c4/(2**4*3), -c6/(2**5*3**3)])
+
+        #a0, a1, a2, a3, a4 = self.ainvs()
+        #return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
+        #                                  54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
+        #                                  3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
+        #                                  15552*a1*a3 + 11664*a2**2 + 46656*a4])
 
 
     ##############################################################################

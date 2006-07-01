@@ -731,7 +731,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if self.torsion_order() % 2 == 0:
             raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@ucsd.edu)."
-        F = self.weierstrass_model()
+        F = self.integral_weierstrass_model()
         a1,a2,a3,a4,a6 = F.a_invariants()
         t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,
                               maxprob=maxprob, limbigprime=limbigprime)
@@ -1844,8 +1844,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return self.pari_curve().ellsigma(z, flag)
 
     def weierstrass_model(self):
+        r"""
+        Return a model of the form $y^2 = x^3 + a*x + b$ for this curve.
+
+        More precisely, we have $a = c_4 / (2^4 \cdot 3)$ and
+        $b = -c_6 / (2^5\cdot 3^3)$, where $c_4, c_6$ are the $c$-invariants
+        for a minimal Weierstrass equation for $E$.
+
+        Use \code{self.integral_weierstrass_model()} for a model with
+        $a,b\in\ZZ$.
+        """
         F = self.minimal_model()
         return EllipticCurve_field.weierstrass_model(F)
+
+    def integral_weierstrass_model(self):
+        """
+        Return a model of the form $y^2 = x^3 + a*x + b$ for this curve with $a,b\in\Z$.
+        """
+        F = self.minimal_model()
+        a0, a1, a2, a3, a4 = F.ainvs()
+        return constructor.EllipticCurve([-27*a0**4 - 216*a0**2*a1 + 648*a0*a2 - 432*a1**2 + 1296*a3, \
+                                          54*a0**6 + 648*a0**4*a1 - 1944*a0**3*a2 + 2592*a0**2*a1**2 -\
+                                          3888*a0**2*a3 - 7776*a0*a1*a2 + 3456*a1**3 - \
+                                          15552*a1*a3 + 11664*a2**2 + 46656*a4])
 
     def watkins_data(self):
         """

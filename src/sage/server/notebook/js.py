@@ -56,7 +56,7 @@ function get_event(e) {
 ///////////////////////////////////////////////////////////////////
 
 // in milliseconds
-cell_output_delta = 200;
+cell_output_delta = 256;
 
 SEP = '___S_A_G_E___';
 
@@ -747,32 +747,45 @@ function check_for_cell_update_callback(status, response_text) {
     /* compute output for a cell */
     var i = response_text.indexOf(' ');
     var id = response_text.substring(1, i);
-
     var D = response_text.slice(i+1).split(SEP);
-    output_text = D[0] + ' ';
-    output_text_wrapped = D[1] + ' ';
-    output_html = D[2];
-    new_cell_input = D[3];
-    stat = response_text.charAt(0)
-    set_output_text(id, output_text, output_text_wrapped, output_html, stat);
+    var output_text = D[0] + ' ';
+    var output_text_wrapped = D[1] + ' ';
+    var output_html = D[2];
+    var new_cell_input = D[3];
+    var interrupted = D[4];
+    var stat = response_text.charAt(0)
     var j = id_of_cell_delta(id,1);
+
+    set_output_text(id, output_text, output_text_wrapped, output_html, stat);
+
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
+
+        if (interrupted == 'false') {
+            set_cell_evaluated(id);
+        }
+
         if (new_cell_input != '') {
             set_input_text(id, new_cell_input);
         }
 
-        variable_list = D[4];
+        var variable_list = D[5];
         set_variable_list(variable_list);
 
-        object_list = D[5];
+        var object_list = D[6];
         set_object_list(object_list);
 
-        attached_files_list = D[6];
+        var attached_files_list = D[7];
         set_attached_files_list(attached_files_list);
     }
 
 }
+
+function set_cell_evaluated(id) {
+    var D = get_element('cell_'+id);
+    D.className = "cell_evaluated";
+}
+
 
 ///////////////////////////////////////////////////////////////////
 //  Insert and move cells

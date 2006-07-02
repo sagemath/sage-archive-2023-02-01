@@ -27,7 +27,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 10
+INTERRUPT_TRIES = 30
 INITIAL_NUM_CELLS = 1
 import notebook as _notebook
 
@@ -206,31 +206,34 @@ class Worksheet:
 
     def sage(self):
         try:
-            return self.__sage
-        except AttributeError:
-            verbose("Initializing SAGE.")
-            os.environ['PAGER'] = 'cat'
-            self.__sage = Sage(maxread=1)
-            try:
-                del self.__variables
-            except AttributeError:
-                pass
             S = self.__sage
-            print "Starting SAGE server for worksheet %s..."%self.name()
-            S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
-            S.eval('from sage.all_notebook import *')
-            S.eval('import sage.server.support as _support_')
-            S.eval('__SAGENB__globals = set(globals().keys())')
-            object_directory = os.path.abspath(self.__notebook.object_directory())
-            verbose(object_directory)
-            S.eval('_support_.init("%s", globals())'%object_directory)
-            print "(done)"
+            if S._expect != None:
+                return S
+        except AttributeError:
+            S = Sage(maxread=1)
+        verbose("Initializing SAGE.")
+        os.environ['PAGER'] = 'cat'
+        self.__sage = S
+        try:
+            del self.__variables
+        except AttributeError:
+            pass
+        S = self.__sage
+        print "Starting SAGE server for worksheet %s..."%self.name()
+        S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
+        S.eval('from sage.all_notebook import *')
+        S.eval('import sage.server.support as _support_')
+        S.eval('__SAGENB__globals = set(globals().keys())')
+        object_directory = os.path.abspath(self.__notebook.object_directory())
+        verbose(object_directory)
+        S.eval('_support_.init("%s", globals())'%object_directory)
+        print "(done)"
 
-            A = self.attached_files()
-            for F in A.iterkeys():
-                A[F] = 0  # expire all
+        A = self.attached_files()
+        for F in A.iterkeys():
+            A[F] = 0  # expire all
 
-            return S
+        return S
 
 
     def _new_cell(self, id=None):
@@ -403,7 +406,7 @@ class Worksheet:
         # Finished a computation.
         self.__comp_is_running = False
         out = self._process_output(out)
-        C.set_output_text(out, C.files_html())
+        C.set_output_text(out, C.files_html(), sage=self.sage())
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
             if before_prompt[-1] != '?':
@@ -481,6 +484,7 @@ class Worksheet:
             # nothing to do
             return True
 
+        success = False
         # stop the current computation in the running SAGE
         try:
             S = self.__sage
@@ -489,8 +493,9 @@ class Worksheet:
         else:
             E = S._expect
             tm = 0.05
-            success = False
-            alarm(INTERRUPT_TRIES * tm)
+            al = INTERRUPT_TRIES * tm
+            print "Trying to interrupt for at most %s seconds"%al
+            alarm(al)
             try:
                 for i in range(INTERRUPT_TRIES):
                     E.sendline('q')
@@ -502,15 +507,15 @@ class Worksheet:
                         break
                     except (pexpect.TIMEOUT, pexpect.EOF), msg:
                         verbose("Trying again to interrupt SAGE (try %s)..."%i)
-            except:
-                print "Interrupted (escape via alarm)!"
-                success = False
-            else:
-                # Turn off the alarm.
-                cancel_alarm()
-
+            except Exception, msg:
+                print msg
+            cancel_alarm()
             if not success:
-                del self.__sage
+                pid = self.__sage.pid()
+                cmd = 'kill -9 -%s'%pid
+                print cmd
+                os.system(cmd)
+                self.__sage._expect = None
 
         # empty the queue
         for C in self.__queue:

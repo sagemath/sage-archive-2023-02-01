@@ -684,6 +684,16 @@ input.btn:hover {
 
 /************ CELL INPUT **************************/
 
+div.cell_evaluated {
+    border-left: 2px solid white;
+    padding-left:3px;
+}
+
+div.cell_not_evaluated {
+    border-left: 2px dotted red;
+    padding-left:3px;
+}
+
 td.cell_number {
    font-size:8pt;
    font-family:arial, monospace;
@@ -729,8 +739,8 @@ pre.cell_input_pre {
 }
 
 textarea.cell_input {
-  background-color: #ffffff;
-  border: 0px solid #ffffff;
+  background-color: white;
+  border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -742,9 +752,8 @@ textarea.cell_input {
 
 textarea.cell_input_hide {
   background-color: white;
-/*  color:#999999; */
   color:#cccccc;
-  border: 0px solid #ffffff;
+  border: 0px solid white;
   border-top: 1px solid #aaaaff;
   border-bottom: 1px solid #aaaaff;
   font-family: courier, monospace;

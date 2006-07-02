@@ -19,7 +19,7 @@ list of cells.
 #       print "hello world"
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
-MAX_OUTPUT = 32768
+MAX_OUTPUT = 65536
 
 c = 0
 
@@ -196,11 +196,18 @@ class Cell:
         self.__changed_input = new_text
         self.__in = new_text
 
-    def set_output_text(self, output, html):
+    def set_output_text(self, output, html, sage=None):
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
         self.__out = output.strip()
         self.__out_html = html
+        self.__sage = sage
+
+    def sage(self):
+        try:
+            return self.__sage
+        except AttributeError:
+            return None
 
     def output_html(self):
         try:
@@ -251,11 +258,17 @@ class Cell:
     def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
+        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        if evaluated:
+            cls = 'cell_evaluated'
+        else:
+            cls = 'cell_not_evaluated'
+
         html_in  = self.html_in(do_print=do_print)
         html_out = self.html_out(wrap, do_print=do_print)
         s = html_in + html_out
         if div_wrap:
-            s = '\n\n<div id="cell_%s">'%self.id() + s + '</div>'
+            s = '\n\n<div id="cell_%s" class="%s">'%(self.id(), cls) + s + '</div>'
         return s
 
     def html_in(self, do_print=False):
@@ -268,7 +281,7 @@ class Cell:
             cls = "cell_input"
 
         if do_print:
-            if cls == 'cell_input_hide':
+            if 'hide' in cls:
                 return ''
             else:
                 s = '<pre>%s</pre>'%(self.__in.replace('<','&lt;'))

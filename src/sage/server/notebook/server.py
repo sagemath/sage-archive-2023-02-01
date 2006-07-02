@@ -181,11 +181,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             new_input = ''
             out_html = ''
+        if cell.interrupted():
+            inter = 'true'
+        else:
+            inter = 'false'
         msg = '%s%s %s'%(status, cell.id(),
                           SEP.join([cell.output_text().replace('<','&lt;'),
                                     cell.output_text(cols).replace('<','&lt;'),
                                     out_html,
                                     new_input,
+                                    inter,
                                     variables,
                                     objects,
                                     attached_files]))

@@ -27,6 +27,8 @@ import ell_point
 
 import sage.plot.all as plot
 
+import ell_point
+
 import sage.libs.pari
 pari = sage.libs.pari.all.pari
 
@@ -47,7 +49,9 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         EllipticCurve_field.__init__(
             self, [field(x) for x in ainvs])
 
-    def xxx_pari_(self):
+        self._point_class = ell_point.EllipticCurvePoint_finite_field
+
+    def _pari_(self):
         try:
             return self.__pari
         except AttributeError:
@@ -55,6 +59,23 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         F = self.base_ring()
         self.__pari = pari('ellinit(Mod(1,%s)*%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
         return self.__pari
+
+    def _gp(self):
+        """
+        Return an elliptic curve in a GP/PARI interpreter with all Cremona's code
+        for finite fields preloaded.
+
+        The base field must have prime order.
+        """
+        try:
+            return self.__gp
+        except AttributeError:
+            pass
+        F = self.base_ring()
+        if not F.is_prime():
+            raise NotImplementedError
+        self.__gp = gp_cremona.ellinit(self.a_invariants(), F.characteristic())
+        return self.__gp
 
     def _plot_(self, **args):
         """
@@ -74,22 +95,35 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
         G = plot.Graphics()
         for P in self.points():
-            G += plot.point(P, **args)
+            if not P.is_zero():
+                G += plot.point(P, **args)
         #G.xmin(0)
         #G.ymin(0)
         return G
 
+    def __points_over_prime_field(self):
+        G, pts = self.abelian_group()
+        points = [self(0)]
+        if len(pts) == 0:
+            return points
+        P = pts[0]
+        Q = P
+        while Q[2] != 0:
+            points.append(Q)
+            Q += P
+        n = len(points)
 
-    def points(self):
-        """
-        All the points on this elliptic curve.
+        if len(pts) > 1:
+            P = pts[1]
+            Q = P
+            while Q[2] != 0:
+                for R in points[:n]:
+                    points.append(R + Q)
+                Q += P
+        return points
 
-        TODO: currently VERY VERY stupid implementation
-        """
-        try:
-            return self.__points
-        except AttributeError: pass
 
+    def __points_over_arbitrary_field(self):
         points = [self(0)]
         for x in self.base_field():
             for y in self.base_field():
@@ -97,7 +131,28 @@ class EllipticCurve_finite_field(EllipticCurve_field):
                     points.append(self([x,y]))
                 except TypeError:
                     pass
-        self.__points = points
+        return points
+
+    def points(self):
+        r"""
+        All the points on this elliptic curve.
+
+        If the base field is another other than $\FF_p$, this function currently
+        uses a VERY VERY naive algorithm.   The problem is that Cremona's gp
+        script \code{ell_zp.gp} currently only treats the case of prime fields.
+        If you need more general functionality, please volunteer to implement
+        it, either by extending \code{ell_zp.gp} (if you know PARI/GP well) or
+        by writing new \sage code.
+        """
+        try:
+            return self.__points
+        except AttributeError: pass
+
+        if self.base_ring().is_prime():
+            self.__points = self.__points_over_prime_field()
+        else:
+            self.__points = self.__points_over_arbitrary_field()
+
         return self.__points
 
     def cardinality(self, algorithm='heuristic', early_abort=False):
@@ -168,6 +223,11 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         self.__cardinality = Integer(N)
         return N
 
+    def _cremona_abgrp_data(self):
+        E = self._gp()
+        gp = E.parent()
+        return eval(gp.eval('[%s.isotype, lift(%s.generators)]'%(E.name(), E.name())))
+
     def abelian_group(self):
         """
         Returns the abelian group structure of the group of points on
@@ -183,7 +243,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         except AttributeError:
             pass
         if self.base_ring().degree() == 1:
-            I, G = eval(gp_cremona.ellzp(self.a_invariants(), self.base_ring().characteristic()))
+            I, G = self._cremona_abgrp_data()
             A = AbelianGroup(I)
             G = tuple(reversed([self(P) for P in G]))
         else:
@@ -193,3 +253,5 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
     def __getitem__(self, n):
         return self.points()[n]
+
+

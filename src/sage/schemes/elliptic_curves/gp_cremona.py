@@ -30,6 +30,7 @@ def init():
         gp = Gp(script_subdirectory='cremona')
         gp.read("bgc.gp")
         gp.read("ell_baby.gp")
+        gp.read("ell_ff.gp")
         gp.read("ell_weil.gp")
         gp.read("ell_zp.gp")
         gp.eval('debug_group=0;')
@@ -63,6 +64,16 @@ def ellzp(e, p):
         raise RuntimeError, "Error: '%s'"%x
     return x
 
+def ellinit(e, p):
+    """
+    INPUT:
+        e -- five-tuple of integers that define an elliptic curve over Z/pZ
+        p -- prime
+    OUTPUT:
+        GP/PARI object
+    """
+    init()
+    return gp("e=ellzpinit(%s,%s);"%(e,p))
 
 
 ################

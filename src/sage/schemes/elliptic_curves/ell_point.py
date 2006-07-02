@@ -78,6 +78,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         sage: loads(T.dumps()) == T
         True
     """
+
     def order(self):
         """
         Return the order of this point on the elliptic curve.
@@ -96,27 +97,15 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             2
         """
         if self.is_zero():
-            return 1
+            return rings.Integer(1)
         E = self.curve()
         try:
             n = int(E.pari_curve().ellorder([self[0], self[1]]))
             if n == 0:
                 return oo
             return n
-        except AttributeError:
-            if E.base_ring().is_finite():
-                print "WARNING -- using naive point order finding over finite field!"
-                # TODO: This is very very naive!!  -- should use baby-step giant step; maybe in mwrank
-                #      note that this is *not* implemented in PARI!
-                P = self
-                n = 1
-                while not P.is_zero():
-                    n += 1
-                    P += self
-                return n
-            else:
-                raise NotImplementedError
-
+        except AttributeError, msg:
+            raise NotImplementedError, "%s\nComputation of order of point."%msg
 
     def curve(self):
         return self.scheme()
@@ -199,7 +188,10 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         return rings.RR(h)
 
     def xy(self):
-        return self[0], self[1]
+        if self[2] == 1:
+            return self[0], self[1]
+        else:
+            return self[0]/self[2], self[1]/self[2]
 
     def sigma(self, p):
         k = rings.Qp(p)
@@ -288,4 +280,50 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 ##         print "sum = ", w + (sigma(t)/e).log()
 
 ##         return hP/Qp(n**2)
+
+
+
+class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
+    def order(self):
+        """
+        Return the order of this point on the elliptic curve.
+        If the point has infinite order, returns 0.
+
+        EXAMPLE:
+            sage: E = EllipticCurve([0,0,1,-1,0])
+            sage: P = E([0,0]); P
+            (0 : 0 : 1)
+            sage: P.order()
+            Infinity
+
+            sage: E = EllipticCurve([0,1])
+            sage: P = E([-1,0])
+            sage: P.order()
+            2
+        """
+        try:
+            return self.__order
+        except AttributeError:
+            pass
+        if self.is_zero():
+            return rings.Integer(1)
+        E = self.curve()
+        K = E.base_ring()
+        if K.is_prime():
+            e = E._gp()
+            self.__order = rings.Integer(e.ellzppointorder(list(self.xy())))
+        else:
+            print "WARNING -- using naive point order finding over finite field!"
+            # TODO: This is very very naive!!  -- should use baby-step giant step; maybe in mwrank
+            #      note that this is *not* implemented in PARI!
+            P = self
+            n = 1
+            while not P.is_zero():
+                n += 1
+                P += self
+            self.__order = rings.Integer(n)
+        return self.__order
+
+
+
 

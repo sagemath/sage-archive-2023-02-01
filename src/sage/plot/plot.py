@@ -483,7 +483,8 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None):
+             dpi=DEFAULT_DPI, axes=True, axes_label=None,
+             **args):
         """
         Show this graphics image with the default image viewer.
 
@@ -1229,7 +1230,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         try:
             G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
             if show:
-                G.show()
+                G.show(**kwds)
             return G
         except AttributeError:
             pass
@@ -1248,7 +1249,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             for i in range(0, len(funcs)):
                 G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
             if show:
-                G.show()
+                G.show(**kwds)
             return G
         #parametric_plot will be a list or tuple of two functions (f,g)
         #and will plotted as (f(x), g(x)) for all x in the given range
@@ -1297,7 +1298,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             data = [(y*cos(x), y*sin(x)) for x, y in data]
         G = line(data, coerce=False, **options)
         if show:
-            G.show()
+            G.show(**kwds)
         return G
 
 # unique plot instance
@@ -1385,7 +1386,7 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
     else:
         P = point(data, **kwargs)
     if show:
-        P.show()
+        P.show(**kwargs)
     return P
 
 def to_float_list(v):
@@ -1492,7 +1493,7 @@ class GraphicsArray(SageObject):
     def __append__(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None):
+    def _render(self, filename, dpi=None, **args):
         r"""
         \code{render} loops over all graphics objects
         in the array and adds them to the subplot.
@@ -1508,25 +1509,25 @@ class GraphicsArray(SageObject):
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.save(filename, dpi=dpi, fig=figure,
-                   sub=subplot, savenow = (i==dims))   # only save if i==dims.
+                   sub=subplot, savenow = (i==dims), **args)   # only save if i==dims.
 
-    def save(self, filename=None, dpi=DEFAULT_DPI):
+    def save(self, filename=None, dpi=DEFAULT_DPI, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi)
+        self._render(filename, dpi=dpi, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI):
+    def show(self, filename=None, dpi=DEFAULT_DPI, **args):
         r"""
         Show this graphics array using the default viewer.
         """
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi)
+            self.save(filename, dpi=dpi, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi)
+        self._render(filename, dpi=dpi, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)

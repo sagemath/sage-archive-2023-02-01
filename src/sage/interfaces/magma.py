@@ -88,9 +88,9 @@ We compute a space of modular forms with character.
     sage: eps = magma.KroneckerCharacter(eps_top, RationalField())
     sage: M2 = magma.ModularForms(eps)
     sage: print M2
-    sage: print M2.Basis()
     Space of modular forms on Gamma_1(5) with character all conjugates
     of [$.1], weight 2, and dimension 2 over Integer Ring.
+    sage: print M2.Basis()
     [
     1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + O(q^8),
     q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + O(q^8)
@@ -100,13 +100,24 @@ In SAGE/Python (and sort of C++) coercion of an element x into a
 structure S is denoted by S(x).  This also works for the MAGMA interface:
 
     sage: G = magma.DirichletGroup(20)
+    sage: G.AssignNames(['a', 'b'])
     sage: (G.1).Modulus()
     20
     sage: e = magma.DirichletGroup(40)(G.1)
     sage: print e
-    sage: print e.Modulus()
     $.1
+    sage: print e.Modulus()
     40
+
+We coerce some polynomial rings into MAGMA:
+
+    sage: R.<y> = PolynomialRing(QQ)
+    sage: S = magma(R)
+    sage: print S
+    sage: S.1
+    Univariate Polynomial Ring in y over Rational Field
+    y
+
 
 AUTHOR:
     -- William Stein (2005): initial version
@@ -463,7 +474,9 @@ class MagmaFunctionElement(FunctionElement):
             X = '(<' + X
             if '(<All>' in X or tt in X:
                 W.append(X)
-        return '\n'.join(W)
+        s = '\n'.join(W)
+        s = sage.misc.misc.word_wrap(s)
+        return s
 
     def __repr__(self):
         M = self._obj.parent()
@@ -484,14 +497,73 @@ class MagmaFunction(ExpectFunction):
                                nvals = nvals)
     def _sage_doc_(self):
         M = self._parent
-        return M.eval(self._name)
+        s = M.eval(self._name)
+        s = sage.misc.misc.word_wrap(s, 80)
+        return s
 
+
+def is_MagmaElement(x):
+    return isinstance(x, MagmaElement)
 
 class MagmaElement(ExpectElement):
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
             raise AttributeError
         return MagmaFunctionElement(self, attrname)
+
+    def AssignNames(self, names):
+        """
+        EXAMPLES:
+            sage: G = magma.DirichletGroup(20)
+            sage: G.AssignNames(['a','b'])
+            sage: G.1
+            a
+
+            sage: G.Elements()
+            [
+            1,
+            a,
+            b,
+            a*b
+            ]
+        """
+        P = self._check_valid()
+        cmd = 'AssignNames(~%s, [%s])'%(self.name(),
+                                        ','.join('"%s"'%x for x in names))
+        P.eval(cmd)
+
+    assign_names = AssignNames
+
+    def gens(self):
+        """
+        Return generators for self.
+
+        If self is named X is MAGMA, this function evaluates X.1, X.2,
+        etc., in MAGMA until an error occurs.  It then returns a SAGE
+        list of the resulting X.i.  Note -- I don't think there is a
+        MAGMA command that returns the list of valid X.i.  There are
+        numerous ad hoc functions for various classes but nothing
+        systematic.  This function gets around that problem.
+
+        AUTHOR:
+            * William Stein -- 2006-07-02
+        """
+        try:
+            return self.__gens
+        except AttributeError:
+            pass
+        G = []
+        i = 1
+        P = self._check_valid()
+        n = self.name()
+        while True:
+            try:
+                G.append(P('%s.%s'%(n,i)))
+            except (RuntimeError, TypeError):
+                break
+            i += 1
+        self.__gens = G
+        return G
 
     def evaluate(self, *args):
         return ExpectElement.__call__(self, *args)
@@ -510,13 +582,28 @@ class MagmaElement(ExpectElement):
         """
         if len(args) > 1:
             return self.evaluate(*args)
-        self._check_valid()
-        P = self.parent()
+        P = self._check_valid()
         x = P(args[0])
         #try:
         return P('%s!%s'%(self.name(), x.name()))
         #except (RuntimeError, TypeError):
         #    return self.evaluate(*args)
+
+    def x__iter__(self):
+        P = self._check_valid()
+        a = P('[x : x in %s]'%self.name())
+        for i in range(int(P.eval('#%s'%a.name()))):
+            yield a[i]
+
+    def __iter__(self):
+        P = self._check_valid()
+        i = 1
+        while True:
+            try:
+                yield self[i]
+            except (TypeError, RuntimeError):
+                return
+            i += 1
 
     def __len__(self):
         self._check_valid()
@@ -543,7 +630,9 @@ class MagmaElement(ExpectElement):
         for x in M:
             i = x.find('(')
             N.append(x[:i])
-        return N + self.list_attributes()
+        v = list(set(N + self.list_attributes()))
+        v.sort()
+        return v
 
     def methods(self, any=False):
         """

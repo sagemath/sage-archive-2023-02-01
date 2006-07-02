@@ -705,6 +705,7 @@ class ExpectElement(Element_cmp_, RingElement):
                 raise ValueError, "The %s session in which this object was defined is no longer running."%P.name()
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."
+        return P
 
     def __contains__(self, x):
         self._check_valid()

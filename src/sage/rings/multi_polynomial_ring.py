@@ -233,6 +233,42 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             return False
         return True
 
+    def _magma_(self, G):
+        """
+        Used in converting this ring to the corresponding ring in MAGMA.
+
+        TODO/WARNING: The term order is not preserved yet!!
+
+        EXAMPLES:
+            sage: R.<y,z,w> = PolynomialRing(QQ,3)
+            sage: magma(R)
+            Polynomial ring of rank 3 over Rational Field
+            Lexicographical Order
+            Variables: y, z, w
+
+            sage: magma(PolynomialRing(GF(7),4))
+            Polynomial ring of rank 4 over GF(7)
+            Lexicographical Order
+            Variables: x0, x1, x2, x3
+
+            sage: magma(PolynomialRing(GF(49),10))
+            Polynomial ring of rank 10 over GF(7^2)
+            Lexicographical Order
+            Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
+
+            sage: magma(PolynomialRing(ZZ['a,b,c'],3))
+            Polynomial ring of rank 3 over Polynomial ring of rank 3 over Integer Ring
+            Lexicographical Order
+            Variables: x0, x1, x2
+        """
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        B = G(self.base_ring())
+        R = G('PolynomialRing(%s, %s)'%(B.name(), self.ngens()))
+        R.assign_names(self.variable_names())
+        return R
+
     def var_dict(self):
         """
         Return dictionary of paris varname:var of the variables

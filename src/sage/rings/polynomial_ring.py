@@ -37,7 +37,7 @@ import sage.misc.latex as latex
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
-from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.interfaces.all import singular as singular_default, is_SingularElement, is_MagmaElement
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
@@ -147,13 +147,45 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string %s to %s"%(x,self)
-        if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
+        elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             return x.univariate_polynomial(self)
+        elif is_MagmaElement(x):
+            x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
 
     def __reduce__(self):
         return sage.rings.polynomial_ring.PolynomialRing, \
                (self.__base_ring, self.variable_name(), self.__is_sparse)
+
+    def _magma_(self, G=None):
+        """
+        Used in converting this ring to the corresponding ring in MAGMA.
+
+        EXAMPLES:
+            sage: R.<y> = PolynomialRing(QQ)
+            sage: S = magma(R)
+            sage: print S
+            Univariate Polynomial Ring in y over Rational Field
+            sage: S.1
+            y
+
+            sage: magma(PolynomialRing(GF(7)))
+            Univariate Polynomial Ring in x over GF(7)
+
+            sage: magma(PolynomialRing(GF(49)))
+            Univariate Polynomial Ring in x over GF(7^2)
+
+            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w')))
+            Univariate Polynomial Ring in x over Univariate Polynomial
+            Ring in w over Integer Ring
+        """
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        B = G(self.base_ring())
+        R = G('PolynomialRing(%s)'%B.name())
+        R.assign_names(self.variable_names())
+        return R
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

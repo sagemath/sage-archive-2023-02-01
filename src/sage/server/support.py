@@ -137,7 +137,9 @@ def docstring(obj_name, globs):
         obj = eval(obj_name, globs)
     except (AttributeError, NameError, SyntaxError):
         return "No object '%s' currently defined."%obj_name
-    s  = 'Type:        %s\n'%type(obj)
+    s  = ''
+    s += 'File:        %s\n'%inspect.getabsfile(obj)
+    s += 'Type:        %s\n'%type(obj)
     s += 'Definition:  %s\n'%get_def(obj, obj_name)
     s += 'Docstring:\n%s\n'%get_doc(obj)
     return s

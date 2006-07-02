@@ -133,7 +133,7 @@ class Latex:
     def __call__(self, x):
         return latex(x)
 
-    def _latex_preparse(self, s, vars):
+    def _latex_preparse(self, s, globals, locals):
         i0 = -1
         while True:
             i = s.find('\\sage{')
@@ -147,21 +147,21 @@ class Latex:
 
             var = t[:j]
             try:
-                k = latex(sage_eval.sage_eval(var, vars))
+                k = latex(sage_eval.sage_eval(var, globals, locals))
             except Exception, msg:
                 print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
 
-    def eval(self, x, strip=False, filename=None, debug=None, density=None, vars={}):
+    def eval(self, x, strip=False, filename=None, debug=None, density=None, globals={}, locals={}):
         if density is None:
             density = self.__density
         if filename is None:
             filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
         if debug is None:
             debug = self.__debug
-        if vars != {}:
-            x = self._latex_preparse(x, vars)
+        if globals != {}:
+            x = self._latex_preparse(x, globals, locals)
         O = open('%s.tex'%filename,'w')
         if self.__slide:
             O.write(SLIDE_HEADER)

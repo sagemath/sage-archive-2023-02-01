@@ -1106,7 +1106,7 @@ class NumberField_cyclotomic(NumberField_generic):
                 K = CyclotomicField(n)
             zeta = K.gen()
             s = s.replace('E(%s)'%n,'zeta')
-            s = sage.misc.all.sage_eval(s, {'zeta':K.gen()})
+            s = sage.misc.all.sage_eval(s, locals={'zeta':K.gen()})
             if K is self:
                 return s
             else:

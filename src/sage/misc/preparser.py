@@ -321,7 +321,8 @@ def preparse_file(contents, attached={}, magic=True,
             else:
                 import interpreter
                 L = interpreter.load_pyrex(name_load)
-        F.append(preparse(L, reset=False, do_time=do_time, ignore_prompts=ignore_prompts))
+        M = preparse(L, reset=False, do_time=do_time, ignore_prompts=ignore_prompts)
+        F.append(M)
         i += 1
     # end while
 

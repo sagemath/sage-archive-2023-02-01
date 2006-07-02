@@ -790,7 +790,7 @@ table.cell_output_box {
   padding:0px;
 /*  border: 1px solid <color1>; */
   border-top:1px solid <color1>;
-  border-bottom:1px solid <color1>;
+  border-bottom:2px solid <color2>;
 }
 
 table.cell_output_box:hover {

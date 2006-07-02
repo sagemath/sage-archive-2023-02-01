@@ -64,7 +64,7 @@ see the first few zeros:
     Graphics object consisting of 2 graphics primitives
 
 Here is a pretty graph:
-    sage: g = Graphics(0)
+    sage: g = Graphics()
     sage: for i in range(60):
     ...    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
     ...                rgbcolor=hue(i/40+0.4), alpha=0.2)

@@ -97,7 +97,7 @@ def format(s):
 
 ###############################
 
-def search_sage(s):
+def search_sage(s, extra=''):
     """
     Search sage source code for lines containing s.  The search is not
     case sensitive.
@@ -106,4 +106,4 @@ def search_sage(s):
     and you must have grep installed.
     """
     from sage.misc.all import pager
-    pager()(os.popen('sage -grep "%s"'%s).read())
+    pager()(os.popen('sage -grep "%s" | grep "%s"'%(s,extra)).read())

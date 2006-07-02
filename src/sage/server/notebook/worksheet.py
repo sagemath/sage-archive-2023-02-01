@@ -16,6 +16,7 @@ cell is a single input/output block.
 import os
 import re
 import string
+import traceback
 
 import pexpect
 
@@ -314,7 +315,32 @@ class Worksheet:
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
         if I[-1:] == '?':
             C.set_introspect(I, '')
+        I = I.replace('\\\n','')
+        C._before_preparse = input + I
         input += self.preparse_input(I, C)
+
+        try:
+            compile(input, '', 'exec')
+        except SyntaxError, msg:
+            t = traceback.format_exc()
+            s = 'File "<string>",'
+            i = t.find(s)
+            if i != -1:
+                t = t[i+len(s):]
+            i = t.find('\n')
+            try:
+                n = int(t[t[:i].rfind(' '):i])  # line number of the exception
+                t = 'Syntax Error:\n    %s'%C._before_preparse.split('\n')[n-1]
+                if False:
+                    if i != -1:
+                        t = t[i:]
+                    v = [w for w in t.split('\n') if w]
+                    t = '\n'.join(['Syntax Error:'] + v[0:-1])
+                C.set_output_text(t, '')
+                del self.__queue[0]
+                return
+            except ValueError:
+                pass
 
         if C.time():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
@@ -322,8 +348,8 @@ class Worksheet:
         if not C.introspect():
             input += 'print "%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
-        input = self.synchronize(input)
 
+        input = self.synchronize(input)
         open(tmp,'w').write(input)
         e = 'execfile("%s")\n'%os.path.abspath(tmp)
         # just in case, put an extra end...
@@ -367,7 +393,7 @@ class Worksheet:
             self.start_next_comp()
             return 'w', C
 
-        out = self.postprocess_output(out, C.introspect())
+        out = self.postprocess_output(out, C)
         if not done:
             # Still computing
             out = self._process_output(out)
@@ -523,10 +549,33 @@ class Worksheet:
         except AttributeError:
             pass
 
-    def postprocess_output(self, out, introspect=False):
+    def postprocess_output(self, out, C):
         i = out.find('\r\n')
         out = out[i+2:]
         out = out.rstrip()
+        if C.introspect():
+            return out
+        tb = 'Traceback (most recent call last):'
+        # the python error message for list indices is not good enough.
+        out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+        try:
+            i = out.find(tb)
+            if i != -1:
+                t = '.py", line'
+                j = out.find(t)
+                z = out[j+5:].find(',')
+                n = int(out[j+len(t):z + j+5])
+                k = out[j:].find('\n')
+                if k != -1:
+                    k += j
+                    l = out[k+1:].find('\n')
+                    if l != -1:
+                        l += k+1
+                        I = C._before_preparse.split('\n')
+                        out = out[:i + len(tb)+1] + '    ' + I[n-2] + out[l:]
+        except (ValueError, IndexError), msg:
+            print msg
+            pass
         return out
 
     def _get_last_identifier(self, s):
@@ -537,7 +586,9 @@ class Worksheet:
         return t
 
     def preparse(self, s):
-        return preparse_file(s, magic=False, do_time=False, ignore_prompts=False)
+        s = preparse_file(s, magic=False, do_time=False,
+                          ignore_prompts=False)
+        return s
 
     def load_any_changed_attached_files(self, s):
         """
@@ -696,7 +747,9 @@ class Worksheet:
         S = self.system()
         if not (S is None):
             if s[:5] != '%sage':
-                return True, 'print %s.eval(r"""%s""")'%(self.__system, s)
+                s = s.replace("'", "\\u0027")
+                t = "print %s.eval(ur'''%s''', globals())"%(self.__system, s)
+                return True, t
             else:
                 s = s[5:].lstrip()
                 z = s
@@ -719,14 +772,11 @@ class Worksheet:
             j = min(i,j)
         sys = s[1:j]
         s = s[i+1:]
-        if sys in ['latex', 'latex_debug', 'slide', 'slide_debug']:
-            t = 'print %s.eval(r"""%s""", vars=globals())'%(sys,s)
-        else:
-            t = 'print %s.eval(r"""%s""")'%(sys,s)
+        s = s.replace("'", "\\u0027")
+        t = "print %s.eval(ur'''%s''', globals())"%(sys, s)
         return True, t
 
     def preparse_input(self, input, C):
-        input = input.replace('\\\n','')
         introspect = C.introspect()
         if introspect:
             before_prompt, after_prompt = introspect
@@ -762,15 +812,18 @@ class Worksheet:
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
 
-                input = [x for x in input.split('\n') if len(x.split()) > 0 and \
-                         x.lstrip()[0] != '#']   # remove all blank lines and comment lines
+                #input = [x for x in input.split('\n') if len(x.split()) > 0 and \
+                #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
+                input = input.split('\n')
 
                 if len(input) > 0:
                     t = input[-1]
-                    if not switched and len(t) > 0 and not ':' in t and \
-                       not t[0].isspace() and not t[:3] == '"""' and not t[:3] == "'''":
+                    try:
+                        compile(t+'\n', '', 'single')
                         t = t.replace("'", "\\u0027")
-                        input[-1] = "exec compile(ur'%s', '', 'single')"%t
+                        input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                    except SyntaxError, msg:
+                        pass
                 input = '\n'.join(input)
 
             input += '\n'

@@ -1254,7 +1254,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             pari.set_real_precision(int(K.prec()/3.2)+1)
             r = pari(self).polroots()
             r = str(r).rstrip('~')
-            seq = sage_eval(r, {'I':K.gen()})
+            seq = sage_eval(r, locals={'I':K.gen()})
             pari.set_real_precision(n)
             return seq
 

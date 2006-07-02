@@ -96,6 +96,17 @@ We compute a space of modular forms with character.
     q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + O(q^8)
     ]
 
+In SAGE/Python (and sort of C++) coercion of an element x into a
+structure S is denoted by S(x).  This also works for the MAGMA interface:
+
+    sage: G = magma.DirichletGroup(20)
+    sage: (G.1).Modulus()
+    20
+    sage: e = magma.DirichletGroup(40)(G.1)
+    sage: print e
+    sage: print e.Modulus()
+    $.1
+    40
 
 AUTHOR:
     -- William Stein (2005): initial version

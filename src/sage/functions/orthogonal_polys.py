@@ -319,7 +319,7 @@ def chebyshev_T(n,x):
         return eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,y)),{str(y):y})
+    return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def chebyshev_U(n,x):
     """
@@ -338,7 +338,7 @@ def chebyshev_U(n,x):
         return eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,y)),{str(y):y})
+    return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def gen_laguerre(n,a,x):
     """
@@ -366,7 +366,7 @@ def gen_laguerre(n,a,x):
         return eval(maxima.eval("gen_laguerre(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("gen_laguerre(%s,%s,%s)"%(n0,a,y)),{str(y):y})
+    return sage_eval(maxima.eval("gen_laguerre(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})
 
 #gegenbauer = ultraspherical
 
@@ -443,7 +443,7 @@ def hermite (n,x):
         return eval(maxima.eval("hermite(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),{str(y):y})
+    return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def jacobi_P(n,a,b,x):
     """
@@ -467,7 +467,7 @@ def jacobi_P(n,a,b,x):
         return eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,y)),{str(y):y})
+    return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,y)),locals={str(y):y})
 
 def laguerre(n,x):
     """
@@ -487,7 +487,7 @@ def laguerre(n,x):
         return eval(maxima.eval("laguerre(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,y)),{str(y):y})
+    return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def legendre_P(n,x):
     """
@@ -507,7 +507,7 @@ def legendre_P(n,x):
         return eval(maxima.eval("legendre_p(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,y)),{str(y):y})
+    return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def legendre_Q(n,x):
     """
@@ -554,7 +554,7 @@ def ultraspherical(n,a,x):
         return eval(maxima.eval("ultraspherical(%s,%s)"%(n0,RR(a),RR(x))))
     R = x.parent()
     y = R.gen()
-    return sage_eval(maxima.eval("ultraspherical(%s,%s,%s)"%(n0,a,y)),{str(y):y})
+    return sage_eval(maxima.eval("ultraspherical(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})
 
 gegenbauer = ultraspherical
 

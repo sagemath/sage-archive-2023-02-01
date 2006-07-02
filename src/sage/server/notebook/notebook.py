@@ -343,7 +343,7 @@ import config
 
 MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
 MAX_HISTORY_LENGTH = 1000
-WRAP_NCOLS = 85
+WRAP_NCOLS = 100
 
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',

@@ -141,7 +141,7 @@ class ComplexField_class(field.Field):
             # TODO: this is probably not the best and most
             # efficient way to do this.  -- Martin Albrecht
             return complex_number.ComplexNumber(self,
-                        sage_eval(x,{"I":self.gen(),"i":self.gen()}))
+                        sage_eval(x, locals={"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
     def _repr_(self):

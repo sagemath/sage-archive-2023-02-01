@@ -98,9 +98,9 @@ so the w = [5] above would work right.
 #*****************************************************************************
 
 __author__ = 'William Stein <wstein@ucsd.edu>'
-__version__= '1.0.0'
+__version__= '1.3.4'
 __license__ = 'GPL'
-__date__   = 'February 2006'
+__date__   = 'July 2006'
 
 import os
 import log

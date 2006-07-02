@@ -12,16 +12,19 @@ Evaluating a string in \sage
 
 from preparser import preparse
 
-def sage_eval(_obj_, extra_locals={}):
+def sage_eval(_obj_, locals={}):
     r"""
     Obtain a \SAGE object from the input string by evaluate it using
-    SAGE (including preparsing and in the context of the \SAGE
-    library, etc.).
+    SAGE.  This means calling eval after preparsing and with
+    globals equal to everything included in the scope of
+    \code{from sage.all import *}.).
 
-    All preparsing is applied and the expression is evaluated in the
+    If the object has an _sage_ method it is called and the value is
+    returned.  Otherwise str is called on the object, and all
+    preparsing is applied and the resulting expression is evaluated in the
     context of \code{from sage.all import *}.  To evaluate the
-    expression with certain variables set, use the extra_locals
-    argument, which should be a dictionary.
+    expression with certain variables set, use the locals argument,
+    which should be a dictionary.
 
     EXAMPLES:
     This example illustrates that preparsing is applied.
@@ -34,7 +37,7 @@ def sage_eval(_obj_, extra_locals={}):
     them as the second option:
 
         sage: x = PolynomialRing(RationalField(),"x").gen()
-        sage: sage_eval('x^2+1', {'x':x})
+        sage: sage_eval('x^2+1', locals={'x':x})
         x^2 + 1
 
     This illustrates interfaces:
@@ -75,9 +78,9 @@ def sage_eval(_obj_, extra_locals={}):
 
     This example illustrates setting a variable for use in evaluation.
         sage: x = 5
-        sage: eval('4/3 + x',  {'x':25})
+        sage: eval('4/3 + x', {'x':25})
         26
-        sage: sage_eval('4/3 + x',  {'x':25})
+        sage: sage_eval('4/3 + x',  locals={'x':25})
         79/3
 
     This example illustrates how \code{sage_eval} can be useful
@@ -87,7 +90,7 @@ def sage_eval(_obj_, extra_locals={}):
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
         'PolynomialRing(..., [ x ])'
         sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;')
-        sage: ff; sage_eval(ff, {'x':x})
+        sage: ff; sage_eval(ff, locals={'x':x})
         'x^2+1'
         x^2 + 1
         sage: eval(ff)
@@ -104,12 +107,5 @@ def sage_eval(_obj_, extra_locals={}):
         except (RuntimeError, NotImplementedError, AttributeError):
             _obj_ = str(_obj_)
 
-    # The following line generates a warning when the file is compiled.
-    # However, I can't think of any way around having it here.  I could
-    # move sage_eval to sage/all.py, but then no part of sage could
-    # use it, which would make it useless.
-    from sage.all import *
-    L = locals()
-    for k, x in extra_locals.items():
-        L[k] = x
-    return eval(preparse(_obj_), globals(), L)
+    import sage.all
+    return eval(preparse(_obj_), sage.all.__dict__, locals)

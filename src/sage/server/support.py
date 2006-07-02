@@ -79,6 +79,7 @@ def completions(s, globs, format=False, width=90):
                 v = [obj + '.'+x for x in D if x[:n] == method]
         except:
             v = []
+    v = list(set(v))   # make uniq
     v.sort()
     if format:
         if len(v) == 0:
@@ -138,7 +139,10 @@ def docstring(obj_name, globs):
     except (AttributeError, NameError, SyntaxError):
         return "No object '%s' currently defined."%obj_name
     s  = ''
-    s += 'File:        %s\n'%inspect.getabsfile(obj)
+    try:
+        s += 'File:        %s\n'%inspect.getabsfile(obj)
+    except TypeError:
+        pass
     s += 'Type:        %s\n'%type(obj)
     s += 'Definition:  %s\n'%get_def(obj, obj_name)
     s += 'Docstring:\n%s\n'%get_doc(obj)
@@ -154,8 +158,10 @@ def source_code(s, globs):
         return "No object %s"%s
 
     try:
-
-        fname = inspect.getabsfile(obj)
+        try:
+            fname = inspect.getabsfile(obj)
+        except TypeError:
+            fname = "unknown"
         lines, num = inspect.getsourcelines(obj)
         src = ''.join(lines)
         return """File: %s

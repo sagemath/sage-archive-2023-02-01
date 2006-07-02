@@ -237,6 +237,24 @@ class EllipticCurve_finite_field(EllipticCurve_field):
             -- an abelian group
             -- tuple of images of each of the generators of the
                abelian group as points on this curve
+
+        AUTHOR: John Cremona
+
+        NOTE: And finally...from what I remember of those gp programs,
+        the algorithm I was using (which is not exactly the same as
+        others use, for example it is not the same as described in
+        Cohen's book) is entirely valid for general finite fields.  It
+        would just be a question of replacing Mod(a,p) by the
+        appropriate alternative.  As I understand it, pari has no
+        trouble doing arithmetic over general finite fileds, with
+        elements represented as Mod(a,b) where b is a suitable
+        irreducible polynomial mod p; though the output format is hard
+        to read then (usually improved by allying lift() twice).
+
+        One word of warning though: the underlying algorithm is
+        definitely *not* intended for use with *large* finite fields!
+        For example, I would regard the factorization of the order of
+        an element as inexpensive.
         """
         try:
             return self.__abelian_group

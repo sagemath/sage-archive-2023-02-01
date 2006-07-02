@@ -299,6 +299,9 @@ class Worksheet:
             self.restart_sage()
             C.set_output_text('Restarted SAGE','')
             return
+        elif I[:5] == '%time':
+            C.do_time()
+            I = I[5:].lstrip()
         elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
             C.do_time()
             I = I[5:].lstrip()

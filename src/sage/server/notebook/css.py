@@ -852,7 +852,8 @@ div.cell_output_running {
   /* border-left: 2px solid #880000;  */
   /* background-color: #eeeeee; */
   padding-left:3px;
-  background-color:#98fb98;
+  /* background-color:#98fb98; */
+  background-color:#c8fbc8;
 }
 
 div.cell_output_running:hover {

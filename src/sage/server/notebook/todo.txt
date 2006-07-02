@@ -1,4 +1,5 @@
 ODO/BUGS:
+   [] clicking anywhere below the last cell should create a new cell at the end.
    [] make it so all requested computations go into the compute
       stream at once (??)  currently a computation must complete
       before the next one is sent to the SAGE "compute kernel",

@@ -1,5 +1,5 @@
 """
-Space of matrices over a ring.
+Spaces of matrices over a ring or field
 """
 
 # System imports

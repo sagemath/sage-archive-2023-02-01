@@ -1,3 +1,63 @@
+r"""
+Matrices over an arbitrary ring
+
+AUTHORS:
+    * William Stein
+    * Martin Albrecht (conversion to Pyrex)
+
+Elements of matrix spaces are of class \code{Matrix} (or a class
+derived from Matrix).  They can be either sparse or dense, and can be
+defined over any base ring.
+
+EXAMPLES:
+
+We create the $2\times 3$ matrix
+$$
+   \left(\begin{matrix} 1&2&3\\4&5&6 \end{matrix}\right)
+$$
+as an element of a matrix space over $\Q$:
+
+    sage: M = MatrixSpace(RationalField(),2,3)
+    sage: A = M([1,2,3, 4,5,6])
+    sage: A
+    [1 2 3]
+    [4 5 6]
+    sage: A.parent()
+    Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+We next change the top-right entry of $A$.  Note that matrix indexing
+is $0$-based in SAGE, so the top right entry is $(0,2)$, which should
+be thought of as ``row number $0$, column number 2''.
+
+    sage: A[0,2] = 389
+    sage: A
+    [  1   2 389]
+    [  4   5   6]
+
+Also notice how matrices print.  All columns have the same width and
+entries in a given column are right justified.   Next we compute the
+reduced row echelon form of $A$.
+
+    sage: A.echelon_form()
+    [      1       0 -1933/3]
+    [      0       1  1550/3]
+
+
+MUTABILITY: Matrices are either immutable or not.  When initially
+created, matrices are typically mutable, so one can change their
+entries.  However, nothing about mutable matrices is cached.  Once a
+matrix $A$ is made immutable using \code{A.set_immutable()} the
+entries of $A$ cannot be changed.  However, properies of $A$ such as
+its rank, characteristic polynomial, etc., are all cached so
+computations involving $A$ may be more efficient.  Once $A$ is made
+immutable it cannot be changed back.  However, one can obtain a
+mutable copy of $A$ using \code{A.copy()}.
+
+The echelon form method always returns immutable matrices with known
+rank.
+"""
+
+
 #*****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
 #
@@ -12,6 +72,10 @@
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+doc = """
+Matrices
+"""
 
 import sage.modules.free_module_element
 import sage.modules.free_module

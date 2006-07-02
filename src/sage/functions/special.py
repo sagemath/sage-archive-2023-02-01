@@ -6,22 +6,22 @@ AUTHORS:
 
 Some of Maxima's and Pari's special functions are wrapped.
 
-Maxima's "specfun" package (which includes spherical harmonic functions,
-spherical Bessel functions (of the 1st and 2nd kind), and
-spherical Hankel functions (of the 1st and 2nd kind))
-was written by Barton Willis of the University of Nebraska at Kearney.
-It is released under the terms of the General Public License (GPL).
+Maxima's special functions package (which includes spherical harmonic
+functions, spherical Bessel functions (of the 1st and 2nd kind), and
+spherical Hankel functions (of the 1st and 2nd kind)) was written by
+Barton Willis of the University of Nebraska at Kearney.  It is
+released under the terms of the General Public License (GPL).
 
 Support for elliptic functions and integrals was written by
 Raymond Toy. It is placed under the terms of the General
 Public License (GPL) that governs the distribution of Maxima.
 
 The (usual) Bessel functions and Airy functions are part of the
-standard Maxima package. Some Bessel functions also are implemented
-in Pari. (Caution: The Pari versions are sometimes different than
-the Maxima version.) For example, the K-Bessel function $K_\nu (z)$
-can be computed using either Maxima or Pari, depending on an
-optional variable you pass to bessel_K.
+standard Maxima package. Some Bessel functions also are implemented in
+Pari. (Caution: The Pari versions are sometimes different than the
+Maxima version.) For example, the K-Bessel function $K_\nu (z)$ can be
+computed using either Maxima or Pari, depending on an optional
+variable you pass to bessel_K.
 
 Next, we summarize some of the properties of the functions implemented
 here.
@@ -339,6 +339,15 @@ from functions import *
 
 from sage.misc.functional import exp
 
+_done = False
+def _init():
+    global _done
+    if _done:
+        return
+    maxima.eval('load("orthopoly");')
+    maxima.eval('orthopoly_returns_intervals:false;')
+    _done = True
+
 def _setup(prec):
     from sage.libs.pari.all import pari
     RR = RealField(prec)
@@ -586,12 +595,12 @@ def spherical_bessel_J(n,x):
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_J(2,x)
-        '( - (1 - 3/x^2)*sin(x) - 3*cos(x)/x)/x'
+        '( - (1 - 24/(8*x^2))*sin(x) - 3*cos(x)/x)/x'
 
     Here I = sqrt(-1).
 
     """
-    maxima.eval('load("specfun")')
+    _init()
     R = x.parent()
     y = R.gen()
     return maxima.eval("spherical_bessel_j(%s,%s)"%(n,y)).replace("%i","I")
@@ -605,12 +614,12 @@ def spherical_bessel_Y(n,x):
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        '((1 - 3/x^2)*cos(x) - 3*sin(x)/x)/x'
+        '-(3*sin(x)/x - (1 - 24/(8*x^2))*cos(x))/x'
 
     Here I = sqrt(-1).
 
     """
-    maxima.eval('load("specfun")')
+    _init()
     R = x.parent()
     y = R.gen()
     return maxima.eval("spherical_bessel_y(%s,%s)"%(n,y)).replace("%i","I")
@@ -622,16 +631,14 @@ def spherical_hankel1(n,x):
     Reference: A&S 10.1.36 page 439.
 
     EXAMPLES:
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: spherical_hankel1(2,x)
-        'I*(3*I/x - 3/x^2 + 1)*%e^(I*x)/x'
+        sage: spherical_hankel1(2,'x')
+        '-3*I*( - x^2/3 - I*x + 1)*%e^(I*x)/x^3'
 
     Here I = sqrt(-1).
 
     """
-    maxima.eval('load("specfun")')
-    R = x.parent()
-    y = R.gen()
+    _init()
+    y = str(x)
     return maxima.eval("spherical_hankel1(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_hankel2(n,x):
@@ -641,16 +648,14 @@ def spherical_hankel2(n,x):
     Reference: A&S 10.1.17 page 439.
 
     EXAMPLES:
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: spherical_hankel2(2,x)
-        '-I*( - 3*I/x - 3/x^2 + 1)*%e^-(I*x)/x'
+        sage: spherical_hankel2(2,'x')
+        '3*I*( - x^2/3 + I*x + 1)*%e^-(I*x)/x^3'
 
     Here I = sqrt(-1).
 
     """
-    maxima.eval('load("specfun")')
-    R = x.parent()
-    y = R.gen()
+    _init()
+    y = str(x)
     return maxima.eval("spherical_hankel2(%s,%s)"%(n,y)).replace("%i","I")
 
 def spherical_harmonic(m,n,x,y):
@@ -670,7 +675,7 @@ def spherical_harmonic(m,n,x,y):
     Here I = sqrt(-1).
 
     """
-    maxima.eval('load("specfun")')
+    _init()
     if not(is_Polynomial(x) and is_Polynomial(y)):
         s1 = maxima.eval("spherical_harmonic(%s,%s,%s,%s)"%(m,n,x,y))
         s2 = s1.replace("%i","I")
@@ -787,26 +792,6 @@ def inverse_jacobi(sym,x,m):
     return 1
 
 #### elliptic integrals
-
-def spherical_hankel2(n,x):
-    """
-    Returns the spherical Hankel function of the second
-    kind for integers n > -1, written as a string.
-    Reference: A&S 10.1.17 page 439.
-
-    EXAMPLES:
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: spherical_hankel2(2,x)
-        '-I*( - 3*I/x - 3/x^2 + 1)*%e^-(I*x)/x'
-
-    Here I = sqrt(-1).
-
-    """
-    maxima.eval('load("specfun")')
-    R = x.parent()
-    y = R.gen()
-    return maxima.eval("spherical_hankel2(%s,%s)"%(n,y)).replace("%i","I")
-
 
 #### hyperboic trig functions (which are special cases
 #### of Jacobi elliptic functions but faster to evaluate directly)

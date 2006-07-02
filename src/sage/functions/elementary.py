@@ -81,7 +81,7 @@ from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR
+from sage.rings.all import QQ, RR, ZZ
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 from constants import e as E
@@ -873,7 +873,7 @@ class ElementaryFunction(ElementaryFunctionRing):
             Elementary function (1/2)cos(4*t) +  1/2
 
         """
-        n = int(n)
+        n = ZZ(n)
         if n < 0:
             raise TypeError,"Negative powers are not allowed"
         if n==0:

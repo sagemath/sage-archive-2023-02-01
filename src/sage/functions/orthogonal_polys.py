@@ -2,17 +2,12 @@ r"""
 Orthogonal Polynomials
 
 This module wraps some of the orthogonal/special functions
-in the Maxima package "specfun". The specfun package
+in the Maxima package "orthopoly". This package
 was written by Barton Willis of the University of Nebraska at Kearney.
 It is released under the terms of the General Public License (GPL).
 Send Maxima-related bug reports and comments on this module to
-willisb@unk.edu. In your report, please include Maxima and specfun
-version information. The specfun version may be found using:
-the commands
-  maxima.eval('load("specfun")')
-and
-  maxima.eval("get('specfun,'version)")
-in SAGE.
+willisb@unk.edu.  In your report, please include Maxima and specfun
+version information.
 
 \begin{itemize}
 \item
@@ -296,11 +291,23 @@ from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR
+from sage.rings.all import QQ, RR, ZZ
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 
 from functions import *
+
+_done = False
+def _init():
+    global _done
+    if _done:
+        return
+    maxima.eval('load("orthopoly");')
+    # TODO -- make it possible to use the intervals returned
+    # instead of just discarding this info!
+    maxima.eval('orthopoly_returns_intervals:false;')
+    _done = True
+
 
 def chebyshev_T(n,x):
     """
@@ -313,10 +320,10 @@ def chebyshev_T(n,x):
         2*x^2 - 1
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -332,10 +339,10 @@ def chebyshev_U(n,x):
         4*x^2 - 1
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -360,10 +367,10 @@ def gen_laguerre(n,a,x):
 
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("gen_laguerre(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("gen_laguerre(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("gen_laguerre(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})
@@ -378,17 +385,17 @@ def gen_legendre_P(n,m,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, "t").gen()
         sage: gen_legendre_P(2,0,t)
-        '3*(t - 1)^2/2 + 3*(t - 1) + 1'
+        '3*(1 - t)^2/2 - 3*(1 - t) + 1'
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
         sage: gen_legendre_P(3,1,t)
-        '-6*(5*(t - 1)^2/4 + 5*(t - 1)/2 + 1)*sqrt(1 - t^2)'
+        '-6*(5*(1 - t)^2/4 - 5*(1 - t)/2 + 1)*sqrt(1 - t^2)'
 
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
-    m0 = int(m) # m must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
+    m0 = ZZ(m) # m must be an integer
     if not(is_Polynomial(x)):
         s = maxima.eval("assoc_legendre_p(%s,%s,%s)"%(n0,m0,RR(x)))
         return sage_eval(s.replace("%i","I"))
@@ -406,19 +413,18 @@ def gen_legendre_Q(n,m,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, "t").gen()
         sage: gen_legendre_Q(2,0,t)
-        '((3*t^2 - 1)*log( - (t + 1)/(t - 1)) - 6*t)/4'
+        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(2,t)
-        '(3*(t - 1)^2/2 + 3*(t - 1) + 1)*log((t + 1)/(1 - t))/2 - 3*t/2'
+        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
-        2.491852640719177
-
+        2.4918525917089540
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
-    m0 = int(m) # m must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
+    m0 = ZZ(m) # m must be an integer
     if not(is_Polynomial(x)):
         s = maxima.eval("assoc_legendre_q(%s,%s,%s)"%(n0,m0,RR(x)))
-        return eval(s.replace("%i","I"))
+        return sage_eval(s.replace("%i","I"))
     R = x.parent()
     y = R.gen()
     s = maxima.eval("assoc_legendre_q(%s,%s,%s)"%(n0,m0,y)).replace("%i","I")
@@ -437,10 +443,10 @@ def hermite (n,x):
         8*x^3 - 12*x
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("hermite(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -461,10 +467,10 @@ def jacobi_P(n,a,b,x):
         5.0099999999999998
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,RR(x))))
+        return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,y)),locals={str(y):y})
@@ -481,10 +487,10 @@ def laguerre(n,x):
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("laguerre(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -499,12 +505,11 @@ def legendre_P(n,x):
         3/2*t^2 - 1/2
         sage: legendre_P(3,1.1)
         1.6775000000000011
-
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("legendre_p(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -517,15 +522,14 @@ def legendre_Q(n,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, 't').gen()
         sage: legendre_Q(2,t)
-        '(3*(t - 1)^2/2 + 3*(t - 1) + 1)*log((t + 1)/(1 - t))/2 - 3*t/2'
+        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(3,0.5)
         -0.19865477147948241
-
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("legendre_q(%s,%s)"%(n0,RR(x))))
+        return sage_eval(maxima.eval("legendre_q(%s,%s)"%(n0,RR(x))))
     R = x.parent()
     y = R.gen()
     return maxima.eval("legendre_q(%s,%s)"%(n0,y))
@@ -548,10 +552,10 @@ def ultraspherical(n,a,x):
         32*t^3 - 12*t
 
     """
-    maxima.eval('load("specfun")')
-    n0 = int(n) # n must be an integer
+    _init()
+    n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return eval(maxima.eval("ultraspherical(%s,%s)"%(n0,RR(a),RR(x))))
+        return sage_eval(maxima.eval("ultraspherical(%s,%s)"%(n0,RR(a),RR(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("ultraspherical(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})

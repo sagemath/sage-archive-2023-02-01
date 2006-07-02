@@ -102,7 +102,7 @@ We follow the tutorial at
     sage: maxima.eval('fpprec : 100')
     '100'
     sage: a.bfloat()
-    8.20121933088197564152489730020812442785204843859314941221237124017312418754011041266612384955016056B1
+    8.20121933088197564152489730020812442785204843859314941221237124017312418754011041266612384955016056b1
 
     sage: maxima('100!')
     93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
@@ -279,7 +279,7 @@ Obtaining digits of $\pi$:
     sage: maxima.eval('fpprec : 100')
     '100'
     sage: maxima(pi).bfloat()
-    3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068B0
+    3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068b0
 
 Defining functions in maxima:
     sage: maxima.eval('fun[a] := a^2')
@@ -542,7 +542,7 @@ class Maxima(Expect):
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
             sage: f(3.2)
-             -.0583741434275801
+            -.05837414342758009
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
             sin(2) - .9364566872907963
@@ -1170,7 +1170,7 @@ class MaximaElement(ExpectElement):
 
         EXAMPLES:
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (.5284822353142306, 4.16331413788384E-11, 231, 0)
+            (.5284822353142306, 4.163314137883845E-11, 231, 0)
 
         Note that GP also does numerical integration, and can do
         so to very high precision very quickly:

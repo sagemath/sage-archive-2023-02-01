@@ -115,7 +115,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
     def _plot_(self, **args):
         if self.is_zero():
-            return plot.text("$\\infty$", (-3,3), alpha=1, **args)
+            return plot.text("$\\infty$", (-3,3), **args)
 
         else:
             return plot.point((self[0], self[1]), **args)

@@ -125,6 +125,8 @@ DEFAULT_DPI = 125
 EMBEDDED_MODE = False
 SHOW_DEFAULT = False
 
+do_verify = True
+
 import sage.misc.viewer
 import sage.misc.misc
 
@@ -563,6 +565,9 @@ class Graphics(SageObject):
 
             sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 	"""
+        global do_verify
+        do_verify = True
+
         from matplotlib.figure import Figure
         if filename is None:
             i = 0
@@ -623,8 +628,45 @@ class Graphics(SageObject):
 ################## Graphics Primitives ################
 
 class GraphicPrimitive(SageObject):
+    def __init__(self, options):
+        self.__options = options
+
+    def _allowed_options(self):
+        return {}
+
+
+    def options(self):
+        O = dict(self.__options)
+        global do_verify
+        if do_verify:
+            A = self._allowed_options()
+            t = False
+            K = A.keys() + ['xmin', 'xmax', 'ymin', 'ymax', 'axes']
+            for k in O.keys():
+                if not k in K:
+                    do_verify = False
+                    verbose("WARNING: Ignoring option '%s'=%s"%(k,O[k]), level=0)
+                    t = True
+            if t:
+                s = "\nThe allowed options for %s are:\n"%self
+                K.sort()
+                for k in K:
+                    if A.has_key(k):
+                        s += "    %-15s%-60s\n"%(k,A[k])
+                verbose(s, level=0)
+
+
+        if 'hue' in O:
+            t = O['hue']
+            if not isinstance(t, (tuple,list)):
+                t = [t,1,1]
+            O['rgbcolor'] = hue(*t)
+            del O['hue']
+        return O
+
     def _repr_(self):
         return "Graphics primitive"
+
 
 
 class GraphicPrimitive_Line(GraphicPrimitive):
@@ -634,7 +676,13 @@ class GraphicPrimitive_Line(GraphicPrimitive):
     def __init__(self, xdata, ydata, options):
         self.xdata = xdata
         self.ydata = ydata
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'alpha':'How transparent the line is.',
+                'thickness':'How thick the line is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
 
     def _repr_(self):
         return "Line defined by %s points"%len(self)
@@ -655,7 +703,7 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         self.ydata.append(float(point[1]))
 
     def _render_on_subplot(self, subplot):
-        options = self.options
+        options = self.options()
         p = patches.Line2D(self.xdata, self.ydata)
         a = float(options['alpha'])
         p.set_alpha(a)
@@ -672,13 +720,21 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
         self.x = x
         self.y = y
         self.r = r
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'alpha':'How transparent the line is.',
+                'resolution': '',
+                'fill': 'Whether or not to fill the polygon.',
+                'thickness':'How thick the border of the polygon is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
 
     def _repr_(self):
         return "Circle defined by (%s,%s) with r=%s"%(self.x, self.y, self.r)
 
     def _render_on_subplot(self, subplot):
-        options = self.options
+        options = self.options()
         res = int(options['resolution'])
         p = patches.Circle((float(self.x), float(self.y)), float(self.r),resolution=res)
         p.set_linewidth(float(options['thickness']))
@@ -701,14 +757,21 @@ class GraphicPrimitive_Disk(GraphicPrimitive):
         self.r = r
         self.theta1 = theta1
         self.theta2 = theta2
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'alpha':'How transparent the line is.',
+                'fill': 'Whether or not to fill the polygon.',
+                'thickness':'How thick the border of the polygon is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
 
     def _repr_(self):
         return "Disk defined by (%s,%s) with r=%s with theta (%s, %s)"%(self.x,
         self.y, self.r, self.theta1, self.theta2)
 
     def _render_on_subplot(self, subplot):
-        options = self.options
+        options = self.options()
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(self.theta1),
                             float(self.theta2))
         p.set_linewidth(float(options['thickness']))
@@ -729,7 +792,14 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         #see top of this file for Point info
         self.xdata = xdata
         self.ydata = ydata
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'alpha':'How transparent the line is.',
+                'pointsize': 'How big the point is.',
+                'faceted': 'If True color the edge of the point.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
 
     def _repr_(self):
         return "Point set defined by %s point(s)"%len(self.xdata)
@@ -743,7 +813,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
             raise IndexError, "Index out of range"
 
     def _render_on_subplot(self,subplot):
-        options = self.options
+        options = self.options()
         c = to_mpl_color(options['rgbcolor'])
         a = float(options['alpha'])
         s = int(options['pointsize'])
@@ -759,7 +829,7 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
     def __init__(self, xdata, ydata, options):
         self.xdata = xdata
         self.ydata = ydata
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
 
     def _repr_(self):
         return "Polygon defined by %s points"%len(self)
@@ -779,8 +849,14 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
         self.xdata.append(float(point[0]))
         self.ydata.append(float(point[1]))
 
+    def _allowed_options(self):
+        return {'alpha':'How transparent the line is.',
+                'thickness': 'How thick the border line is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
+
     def _render_on_subplot(self, subplot):
-        options = self.options
+        options = self.options()
         p = patches.Polygon([(self.xdata[i],self.ydata[i]) for i in xrange(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
         a = float(options['alpha'])
@@ -792,21 +868,26 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
 
 class GraphicPrimitive_Text(GraphicPrimitive):
     """
-    Primitive class that initializes the
-    text graphics type
-
+    Text graphics primitive.
     """
     def __init__(self, string, point, options):
         self.string = string
         self.x = point[0]
         self.y = point[1]
-        self.options = options
+        GraphicPrimitive.__init__(self, options)
 
     def _repr_(self):
-        return "%s at the point (%s,%s)"%(self.string, self.x, self.y)
+        return "Text %s at the point (%s,%s)"%(self.string, self.x, self.y)
+
+    def _allowed_options(self):
+        return {'fontsize': 'How big the text is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.',
+                'vertical_alignment':'if True align vertically.',
+                'horizontal_alignment':'if True align vertically.'}
 
     def _render_on_subplot(self, subplot):
-        options = self.options
+        options = self.options()
         c = to_mpl_color(options['rgbcolor'])
         f = int(options['fontsize'])
         va = options['vertical_alignment']
@@ -1037,7 +1118,7 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 
     """
     def _reset(self):
-        self.options={'alpha':1,'fill':True,'resolution':40,'rgbcolor':(0,0,0),'thickness':0}
+        self.options={'alpha':1,'fill':True,'rgbcolor':(0,0,0),'thickness':0}
 
     def _repr_(self):
         return "type disk? for help and examples"
@@ -1261,6 +1342,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         xmin = float(xmin)
         xmax = float(xmax)
         plot_points = int(options['plot_points'])
+        del options['plot_points']
         delta = (xmax - xmin) / plot_points
         data = []
         dd = delta
@@ -1280,7 +1362,9 @@ class PlotFactory(GraphicPrimitiveFactory):
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
+        del options['max_bend']
         plot_division = int(options['plot_division'])
+        del options['plot_division']
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
                 x = (data[i+1][0] + data[i][0])/2
@@ -1516,6 +1600,9 @@ class GraphicsArray(SageObject):
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
+        global do_verify
+        do_verify = True
+
         self._render(filename, dpi=dpi, **args)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, **args):

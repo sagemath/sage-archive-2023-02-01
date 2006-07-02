@@ -14,6 +14,8 @@ The following graphics primitives are supported:
     \item text   -- some text
     \item polygon -- a filled polygon
     \item plot   -- plot of a function or other SAGE object (e.g., elliptic curve).
+    \item parametric_plot
+    \item list_plot
 \end{itemize}
 
 Type ? after each primitive in \sage for help and examples.
@@ -60,6 +62,15 @@ see the first few zeros:
     sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
     sage: p1+p2
     Graphics object consisting of 2 graphics primitives
+
+Here is a pretty graph:
+    sage: g = Graphics(0)
+    sage: for i in range(60):
+    ...    p = polygon([(i*cos(i),i*sin(i)), (0,i), (i,0)],\
+    ...                rgbcolor=hue(i/40+0.4), alpha=0.2)
+    ...    g = g + p
+    ...
+    sage: g.show(dpi=200, axes=False)
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version

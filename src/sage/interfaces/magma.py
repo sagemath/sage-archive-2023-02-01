@@ -78,6 +78,25 @@ robust manner.
     sage: a = magma.eval(t)
     sage: a = magma(t)
 
+\subsection{Other Examples}
+
+We compute a space of modular forms with character.
+
+    sage: N = 20
+    sage: D = 20
+    sage: eps_top = fundamental_discriminant(D)
+    sage: eps = magma.KroneckerCharacter(eps_top, RationalField())
+    sage: M2 = magma.ModularForms(eps)
+    sage: print M2
+    sage: print M2.Basis()
+    Space of modular forms on Gamma_1(5) with character all conjugates
+    of [$.1], weight 2, and dimension 2 over Integer Ring.
+    [
+    1 + 10*q^2 + 20*q^3 + 20*q^5 + 60*q^7 + O(q^8),
+    q + q^2 + 2*q^3 + 3*q^4 + 5*q^5 + 2*q^6 + 6*q^7 + O(q^8)
+    ]
+
+
 AUTHOR:
     -- William Stein (2005): initial version
     -- William Stein (2006-02-28): added extensive tab completion and interactive

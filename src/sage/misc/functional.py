@@ -760,10 +760,16 @@ def rank(x):
     Return the rank of x.
 
     EXAMPLES:
+    We compute the rank of a matrix:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
         sage: rank(A)
         2
+
+    We compute the rank of an elliptic curve:
+        sage: E=EllipticCurve([0,0,1,-1,0])
+        sage: rank(E)
+        1
     """
     return x.rank()
 

@@ -754,7 +754,7 @@ class Worksheet:
         if not (S is None):
             if s[:5] != '%sage':
                 s = s.replace("'", "\\u0027")
-                t = "print %s.eval(ur'''%s''', globals())"%(self.__system, s)
+                t = "print %s.eval(ur'''%s''', locals=globals())"%(self.__system, s)
                 return True, t
             else:
                 s = s[5:].lstrip()
@@ -779,7 +779,7 @@ class Worksheet:
         sys = s[1:j]
         s = s[i+1:]
         s = s.replace("'", "\\u0027")
-        t = "print %s.eval(ur'''%s''', globals())"%(sys, s)
+        t = "print %s.eval(ur'''%s''', locals=globals())"%(sys, s)
         return True, t
 
     def preparse_input(self, input, C):

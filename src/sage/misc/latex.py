@@ -133,7 +133,7 @@ class Latex:
     def __call__(self, x):
         return latex(x)
 
-    def _latex_preparse(self, s, globals, locals):
+    def _latex_preparse(self, s, locals):
         i0 = -1
         while True:
             i = s.find('\\sage{')
@@ -147,21 +147,32 @@ class Latex:
 
             var = t[:j]
             try:
-                k = latex(sage_eval.sage_eval(var, globals, locals))
+                k = latex(sage_eval.sage_eval(var, locals))
             except Exception, msg:
                 print msg
                 k = '\\mbox{\\rm [%s undefined]}'%var
             s = s[:i] + k + t[j+1:]
 
-    def eval(self, x, strip=False, filename=None, debug=None, density=None, globals={}, locals={}):
+    def eval(self, x, strip=False, filename=None, debug=None,
+             density=None, globals={}, locals={}):
+        """
+        INPUT:
+            x -- string to evaluate.
+            strip -- ignored
+            filename -- output filename
+            debug -- whether to print verbose debugging output
+            density -- how big output image is.
+            globals -- ignored
+            locals -- extra local variables used when evaluating \sage{..}
+                      code in x.
+        """
         if density is None:
             density = self.__density
         if filename is None:
             filename = 'sage%s'%random.randint(1,100) # to defeat browser caches
         if debug is None:
             debug = self.__debug
-        if globals != {}:
-            x = self._latex_preparse(x, globals, locals)
+        x = self._latex_preparse(x, locals)
         O = open('%s.tex'%filename,'w')
         if self.__slide:
             O.write(SLIDE_HEADER)

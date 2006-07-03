@@ -790,7 +790,7 @@ class Notebook(SageObject):
                 ('Hide/Show Output', 'Click on the left side of output to toggle between hidden, shown with word wrap, and shown without word wrap.'),
                 ('Hide/Show All Output', 'Click <u>Hide</u> in the upper right to hide <i>all</i> output. Click <u>Show</u> to show all output.'),
                 ('Variables',
-                 'All variables and functions with a new name that you create during this session are listed on the left.  (Note: If you overwrite a predefined variable, e.g., ZZ, it will not appear.)'),
+                 'All variables and functions that you create during this session are listed on the left.  Even predefined variables that you overwrite will appear.'),
                 ('Objects',
                  'All objects that you save in <i>any worksheet</i> are listed on the left.  Use "save(obj, name)" and "obj = load(name)" to save and load objects.'),
                 ('Loading and Saving Sessions', 'Use "save_session name" to save all variables to an object with given name (if no name is given, defaults to name of worksheet).  Use "load_session name" to <i>merge</i> in all variables from a saved session.'),

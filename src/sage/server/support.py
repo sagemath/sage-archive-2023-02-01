@@ -24,14 +24,17 @@ import sage.misc.sagedoc as sagedoc
 
 sage_globals = None
 globals_at_init = None
+global_names_at_init = None
 
 def init(object_directory=None, globs={}):
     """
     Initialize SAGE for use with the web notebook interface.
     """
-    global sage_globals, globals_at_init
+    global sage_globals, globals_at_init, global_names_at_init
     sage_globals = globs
-    globals_at_init = set(globs.keys())
+    #globals_at_init = set(globs.keys())
+    globals_at_init = globs.values()
+    global_names_at_init = set(globs.keys())
     sage.plot.plot.EMBEDDED_MODE = True
     # Set this to true and plots are shown by default.
     #sage.plot.plot.SHOW_DEFAULT = True
@@ -223,13 +226,28 @@ def load_session(v, filename, state):
     print "Saving variables to %s"%filename
     sage.ext.sage_object.save(D, filename)
 
+def _is_new_var(x, v):
+    if x[:2] == '__':
+        return False
+    if not x in global_names_at_init:
+        return True
+
+    # You might think this would take a long time
+    # since globals_at_init has several thousand entries.
+    # However, it takes 0.0 seconds, which is not noticeable
+    # given that there is at least 0.1 seconds delay
+    # when refreshing the web page!
+    for y in globals_at_init:
+        if v is y:
+            return False
+    return True
 
 def variables(with_types=True):
     if with_types:
-        w = ['%s-%s'%(x,type(v)) for x, v in sage_globals.iteritems() if not \
-             x in globals_at_init and x[0] != '_']
+        w = ['%s-%s'%(x,type(v)) for x, v in sage_globals.iteritems() if \
+             _is_new_var(x, v)]
     else:
-        w = [x for x, v in sage_globals.iteritems() if not \
-                 x in globals_at_init and x[0] != '_']
+        w = [x for x, v in sage_globals.iteritems() if \
+             _is_new_var(x, v)]
     w.sort()
     return w

@@ -47,7 +47,6 @@ include 'interrupt.pxi'
 include 'misc.pxi'
 
 from sage.ext.ring cimport FiniteField
-
 from sage.rings.coerce import bin_op
 import operator
 
@@ -55,27 +54,25 @@ cdef class GFq_element # forward declaration
 
 cdef class GFq(FiniteField):
     cdef void *thisptr
-    #cdef GFq_element _gen
     cdef int repr
-    #cdef char variable[2]
 
-    def __init__(GFq self, int p, int k=1, poly=None, repr="int", variable="a"):
+    def __init__(GFq self, q,name="a",  poly=None, repr="int"):
         """
         Givaro Finite Field. These are implemented using Zech logs and
         therefor the cardinality must be < 2^20.
 
         INPUT:
-            p        -- characteristic
-            k        -- exponent (default:1)
-            poly     -- you may provide a minimal polynomial to use for
-                        reduction. (default: None, so a random polynomial will be
-                        used by the Givaro library)
-            repr     -- controls the way elements are represented to the user:
-                        'log': repr is element.log_repr()
-                        'int': repr is element.int_repr()
-                        'poly': repr is element.poly_repr()
-                        (default: 'int')
-            variable -- variable used for poly_repr (default: 'a')
+            q     -- p^n (must be prime power)
+            name -- variable used for poly_repr (default: 'a')
+            poly  -- you may provide a minimal polynomial to use for
+                     reduction. (default: None, so a random polynomial will be
+                     used by the Givaro library)
+            repr  -- controls the way elements are represented to the user:
+                     'log': repr is element.log_repr()
+                     'int': repr is element.int_repr()
+                     'poly': repr is element.poly_repr()
+                     (default: 'int')
+
 
         OUTPUT:
             Givaro finite field with characteristic p and cardinality p^n.
@@ -84,7 +81,7 @@ cdef class GFq(FiniteField):
         from sage.rings.polynomial_element import is_Polynomial
         import sage.databases.conway
         from sage.rings.finite_field import conway_polynomial
-
+        from sage.ext.integer import Integer
 
         #embed{ void *GFq_initpk(int p, int k)
         return new GivaroGfq(p,k);
@@ -103,12 +100,19 @@ cdef class GFq(FiniteField):
         else:
             self.repr = 2
 
-        #self.variable[0] = ord(variable[0])
-        #self.variable[1] = 0
-        self.assign_names(variable)
+        q = Integer(q)
+        if q < 2:
+            raise ArithmeticError, "q (=%s) must be a prime power"%q
+        F = q.factor()
+        if len(F) > 1:
+            raise ArithmeticError, "q (=%s) must be a prime power"%q
+        p = F[0][0]
+        k = F[0][1]
 
-        if poly==None:
-            if k>1 and sage.databases.conway.ConwayPolynomials().has_polynomial(p, k):
+        self.assign_names(name)
+
+        if poly==None or poly=="random":
+            if k>1 and sage.databases.conway.ConwayPolynomials().has_polynomial(p, k) and poly!="random":
                 poly = conway_polynomial(p, k)
             else:
                 _sig_on
@@ -253,6 +257,7 @@ cdef class GFq(FiniteField):
         from sage.ext.integer import Integer
         from sage.rings.finite_field_element import FiniteFieldElement
         from sage.modules.free_module_element import FreeModuleElement
+        from sage.rings.integer_mod import IntegerMod
         from sage.libs.pari.gen import gen
 
         #embed{ int GFq_element_init()
@@ -281,7 +286,7 @@ cdef class GFq(FiniteField):
 
         ########
 
-        if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long):
+        if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long) or isinstance(e,IntegerMod):
             res = GFq_element_initi(self.thisptr,int(e))
 
         elif isinstance(e,float):
@@ -436,7 +441,7 @@ cdef class GFq(FiniteField):
         """
         from sage.rings.polynomial_ring import PolynomialRing
         #from sage.rings.finite_field import GF
-        return PolynomialRing(GFq(self.characteristic(),1))
+        return PolynomialRing(GFq(self.characteristic()))
 
     def _sage_(self):
         """
@@ -534,6 +539,48 @@ cdef class GFq(FiniteField):
             return "0"
         return ret[:-3]
 
+    def axpy(GFq self,GFq_element a, GFq_element b, GFq_element c):
+        """
+        r <-  c + a * b mod p
+        """
+        #embed{ int GFq_element_axpy(void *field, int a, int b, int c)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->axpy(r, a, b,c);
+        #}embed
+
+        cdef int r
+
+        r = GFq_element_axpy(self.thisptr, a.this, b.this, c.this, )
+        return make_GFq_element(self,r)
+
+    def axmy(GFq self,GFq_element a, GFq_element b, GFq_element c):
+        """
+        r <- a * b - c mod p
+        """
+        #embed{ int GFq_element_axmy(void *field, int a, int b, int c)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->axmy(r, a, b,c);
+        #}embed
+
+        cdef int r
+
+        r = GFq_element_axmy(self.thisptr, a.this, b.this, c.this, )
+        return make_GFq_element(self,r)
+
+    def amxy(GFq self,GFq_element a, GFq_element b, GFq_element c):
+        """
+        r <- c - a * b mod p
+        """
+        #embed{ int GFq_element_amxy(void *field, int a, int b, int c)
+        GivaroGfq::Element r;
+        return ((GivaroGfq*)field)->amxy(r, a, b,c);
+        #}embed
+
+        cdef int r
+
+        r = GFq_element_amxy(self.thisptr, a.this, b.this, c.this, )
+        return make_GFq_element(self,r)
+
 cdef class GFq_iterator:
     """
     Iterator implementation
@@ -562,7 +609,7 @@ cdef class GFq_iterator:
 
 cdef GFq_copy(GFq orig):
     cdef GFq copy
-    copy = GFq(orig.characteristic(),orig.degree())
+    copy = GFq(orig.characteristic()**orig.degree())
     delete_GFq(copy.thisptr)
     #embed{ void *GFq_cpy(void *orig)
     return new GivaroGfq(*(GivaroGfq*)orig);
@@ -573,6 +620,7 @@ cdef GFq_copy(GFq orig):
 cdef class GFq_element:
     cdef int this
     cdef GFq _parent
+    cdef object __multiplicative_order
 
     def __init__(GFq_element self, GFq parent, value=None):
         """
@@ -655,7 +703,6 @@ cdef class GFq_element:
         else:
             r = GFq_element_add((<GFq_element>self)._parent.thisptr, (<GFq_element>self).this , (<GFq_element>other).this )
             return make_GFq_element((<GFq_element>self)._parent,r)
-
 
     def __mul__(self, other):
         #embed{ int GFq_element_mul(void *field, int x, int y)
@@ -852,6 +899,30 @@ cdef class GFq_element:
             quo = quo/b
             i = i+1
         return k(ret)
+
+    def multiplicative_order(GFq_element self):
+        """
+        """
+        # code copy'n'pasted from finite_field_element.py
+        import sage.rings.arith
+        from sage.ext.integer import Integer
+
+        if self.__multiplicative_order!=None:
+            return self.__multiplicative_order
+        else:
+            if self.is_zero():
+                return ArithmeticError, "Multiplicative order of 0 not defined."
+            n = self._parent.order() - 1
+            order = 1
+            for p, e in sage.rings.arith.factor(n):
+                # Determine the power of p that divides the order.
+                a = self**(n/(p**e))
+                while a != self._parent.one():
+                    order = order * p
+                    a = a**p
+            self.__multiplicative_order = order
+            return order
+
 
     def __hash__(GFq_element self):
         return hash((self._parent,self.this))

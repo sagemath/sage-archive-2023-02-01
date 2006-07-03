@@ -125,7 +125,10 @@ def get_def(obj, obj_name=''):
     AUTHOR: William Stein (but taken from IPython for use in SAGE).
     """
     try:
-        return obj_name + inspect.formatargspec(*get_argspec(obj))
+        s = str(inspect.formatargspec(*get_argspec(obj)))
+        s = s.strip('(').strip(')').strip().lstrip('self').lstrip(',').strip()
+        print obj_name
+        return obj_name + '(' + s + ')'
     except:
         return None
 

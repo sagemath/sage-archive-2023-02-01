@@ -370,7 +370,6 @@ class Worksheet:
         # just in case, put an extra end...
         cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
         self.__comp_is_running = True
-        os.system('ls -l %s'%D)
         S._send(cmd)
 
     def check_cell(self, id):
@@ -614,11 +613,15 @@ class Worksheet:
         corresponding to attached files that have changed.
         """
         A = self.attached_files()
+        init_sage = DOT_SAGE + 'init.sage'
+        if not init_sage in A.keys() and os.path.exists(init_sage):
+            A[init_sage] = 0
+
         for F, tm in A.iteritems():
             try:
                 new_tm = os.path.getmtime(F)
             except OSError:
-                pass
+                del A[F]
             else:
                 if new_tm > tm:
                     A[F] = new_tm
@@ -631,11 +634,6 @@ class Worksheet:
         except AttributeError:
             A = {}
             self.__attached = A
-            init_sage = DOT_SAGE + 'init.sage'
-            if os.path.exists(init_sage):
-                A[init_sage] = 0
-            elif A.has_key(init_sage):
-                del A[init_sage]
 
         return A
 

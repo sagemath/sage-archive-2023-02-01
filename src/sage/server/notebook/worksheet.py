@@ -303,12 +303,13 @@ class Worksheet:
             self.restart_sage()
             C.set_output_text('Restarted SAGE','')
             return
-        elif I[:5] == '%time':
-            C.do_time()
-            I = I[5:].lstrip()
-        elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
-            C.do_time()
-            I = I[5:].lstrip()
+        if not C.introspect():
+            if I[:5] == '%time':
+                C.do_time()
+                I = I[5:].lstrip()
+            elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
+                C.do_time()
+                I = I[5:].lstrip()
 
         S = self.sage()
 
@@ -345,7 +346,7 @@ class Worksheet:
             except ValueError:
                 pass
 
-        if C.time():
+        if C.time() and not C.introspect():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
         if not C.introspect():

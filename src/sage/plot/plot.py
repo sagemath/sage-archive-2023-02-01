@@ -1277,13 +1277,52 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
 polygon = PolygonFactory()
 
 class PlotFactory(GraphicPrimitiveFactory):
-    """
+    r"""
+    Use plot by writing
+
+        plot(X, ...)
+
+    where X is a SAGE object that either is callable and returns
+    numbers that can be coerced to floats, or has a _plot_ method
+    that returns a GraphicPrimitive object.
+
     Type plot.options for a dictionary of the default
     options for plots.  You can change this to change
     the defaults for all future plots.  Use plot.reset()
     to reset to the default options.
 
+    The options are:
+        plot_points -- the number of points to initially plot before
+                       doing adaptive refinement
+        plot_division -- the maximum number points including those
+                       computed during adaptive refinement
+        max_bend      -- parameter that affects adaptive refinement
+
+        xmin -- starting x value
+        xmax -- ending x value
+
+    Note that this function does NOT simply sample equally spaced
+    points between xmin and xmax.  Instead it computes equally spaced
+    points and add small perturbations to them.  This reduces the
+    possibility of, e.g., sampling sin only at multiples of $2\pi$,
+    which would yield a very misleading graph.
+
     EXAMPLES:
+    We plot the sin function:
+        sage: P = plot(sin, 0,10); P
+        Graphics object consisting of 1 graphics primitive
+        sage: len(P)     # number of graphics primitives
+        1
+        sage: len(P[0])  # how many points were computed
+        201
+        sage: sage: P = plot(sin, 0,10, plot_points=10); P
+        Graphics object consisting of 1 graphics primitive
+        sage: len(P[0])
+        80
+
+    Use \code{show(plot(sin, 0,10))} or \code{plot(sin,0,10).show()}
+    to show the corresponding graphics object.
+
     We draw the graph of an elliptic curve as the union
     of graphs of 2 functions.
         sage: def h1(x): return sqrt(x^3  - 1)

@@ -114,8 +114,8 @@ We coerce some polynomial rings into MAGMA:
     sage: R.<y> = PolynomialRing(QQ)
     sage: S = magma(R)
     sage: print S
-    sage: S.1
     Univariate Polynomial Ring in y over Rational Field
+    sage: S.1
     y
 
 

@@ -17,7 +17,7 @@ if os.system('sage -preparse %s'%(' '.join(files))):
 
 for file in files:
     if file[-5:] == '.sage':
-        e = os.system('sage-python %s %s.py'%(opts, file))
+        e = os.system('sage-python %s %s.py'%(opts, file[:-5]))
     else:
         e = os.system('sage-python %s %s'%(opts, file))
     if e:

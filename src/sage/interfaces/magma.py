@@ -514,12 +514,12 @@ class MagmaElement(ExpectElement):
     def AssignNames(self, names):
         """
         EXAMPLES:
-            sage: G = magma.DirichletGroup(20)
-            sage: G.AssignNames(['a','b'])
-            sage: G.1
+            sage: G = magma.DirichletGroup(20)   # optional
+            sage: G.AssignNames(['a','b'])       # optional
+            sage: G.1                            # optional
             a
 
-            sage: G.Elements()
+            sage: G.Elements()                   # optional
             [
             1,
             a,

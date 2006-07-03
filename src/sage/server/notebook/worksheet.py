@@ -204,6 +204,15 @@ class Worksheet:
     def quit(self):
         self.restart_sage()
 
+    def next_block_id(self):
+        try:
+            i = self.__next_block_id
+        except AttributeError:
+            i = 0
+        i += 1
+        self.__next_block_id = i
+        return i
+
     def sage(self):
         try:
             S = self.__sage
@@ -219,6 +228,7 @@ class Worksheet:
         except AttributeError:
             pass
         S = self.__sage
+        self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
         S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
         S.eval('from sage.all_notebook import *')
@@ -313,7 +323,8 @@ class Worksheet:
 
         S = self.sage()
 
-        tmp = '%s/tmp.py'%self.directory()
+        #tmp = '%s/code.py'%self.directory()
+        tmp = '%s/cells/code-%s.py'%(self.directory(), self.next_block_id())
         input = 'os.chdir("%s")\n'%os.path.abspath(D)
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
@@ -359,6 +370,7 @@ class Worksheet:
         # just in case, put an extra end...
         cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
         self.__comp_is_running = True
+        os.system('ls -l %s'%D)
         S._send(cmd)
 
     def check_cell(self, id):

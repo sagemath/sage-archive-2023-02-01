@@ -180,7 +180,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             5.1111408239968840e-2
             sage: P.order()
             Infinity
-            sage: E.regulator()
+            sage: E.regulator()      # slightly random output
             0.051111408239968840
         """
         if self.is_zero():

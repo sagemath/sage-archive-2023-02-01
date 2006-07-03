@@ -836,12 +836,13 @@ class Worksheet:
 
                 if len(input) > 0:
                     t = input[-1]
-                    try:
-                        compile(t+'\n', '', 'single')
-                        t = t.replace("'", "\\u0027")
-                        input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
-                    except SyntaxError, msg:
-                        pass
+                    if t[:4] != 'def ':
+                        try:
+                            compile(t+'\n', '', 'single')
+                            t = t.replace("'", "\\u0027")
+                            input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                        except SyntaxError, msg:
+                            pass
                 input = '\n'.join(input)
 
             input += '\n'

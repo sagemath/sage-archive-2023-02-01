@@ -241,22 +241,22 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
 
         EXAMPLES:
             sage: R.<y,z,w> = PolynomialRing(QQ,3)
-            sage: magma(R)
+            sage: magma(R) # optional
             Polynomial ring of rank 3 over Rational Field
             Lexicographical Order
             Variables: y, z, w
 
-            sage: magma(PolynomialRing(GF(7),4))
+            sage: magma(PolynomialRing(GF(7),4)) #optional
             Polynomial ring of rank 4 over GF(7)
             Lexicographical Order
             Variables: x0, x1, x2, x3
 
-            sage: magma(PolynomialRing(GF(49),10))
+            sage: magma(PolynomialRing(GF(49),10)) #optional
             Polynomial ring of rank 10 over GF(7^2)
             Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
 
-            sage: magma(PolynomialRing(ZZ['a,b,c'],3))
+            sage: magma(PolynomialRing(ZZ['a,b,c'],3)) #optional
             Polynomial ring of rank 3 over Polynomial ring of rank 3 over Integer Ring
             Lexicographical Order
             Variables: x0, x1, x2

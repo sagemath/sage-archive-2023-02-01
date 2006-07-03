@@ -163,19 +163,19 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
         EXAMPLES:
             sage: R.<y> = PolynomialRing(QQ)
-            sage: S = magma(R)
-            sage: print S
+            sage: S = magma(R) #optional
+            sage: print S #optional
             Univariate Polynomial Ring in y over Rational Field
-            sage: S.1
+            sage: S.1 #optional
             y
 
-            sage: magma(PolynomialRing(GF(7)))
+            sage: magma(PolynomialRing(GF(7))) #optional
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49)))
+            sage: magma(PolynomialRing(GF(49))) #optional
             Univariate Polynomial Ring in x over GF(7^2)
 
-            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w')))
+            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'))) #optional
             Univariate Polynomial Ring in x over Univariate Polynomial
             Ring in w over Integer Ring
         """

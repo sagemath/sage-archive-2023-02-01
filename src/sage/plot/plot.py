@@ -1315,9 +1315,9 @@ class PlotFactory(GraphicPrimitiveFactory):
         1
         sage: len(P[0])  # how many points were computed
         201
-        sage: sage: P = plot(sin, 0,10, plot_points=10); P
+        sage: P = plot(sin, 0,10, plot_points=10); P
         Graphics object consisting of 1 graphics primitive
-        sage: len(P[0])
+        sage: len(P[0])   # random output
         80
 
     Use \code{show(plot(sin, 0,10))} or \code{plot(sin,0,10).show()}

@@ -556,6 +556,7 @@ div.worksheet_top_padding {
 div.worksheet_title {
    z-index:2;
    top:36px;
+   height:31px;
    padding-top: 3px;
    padding-left: 1em;
    background-color: <color1>;
@@ -713,7 +714,7 @@ div.worksheet {
   background-color: white;
   border-top: 0px;
   border-left: 10px solid <color1>;
-  top: 58px;
+  top: 70px;
   bottom: 0ex;
   right: 0ex;
   left: 205px;

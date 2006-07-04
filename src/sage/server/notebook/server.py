@@ -329,7 +329,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-        if path[-5:] == '.html' and not '/' in path and not 'jsMath' in path:
+        if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
                 self.input_history_text()
@@ -356,8 +356,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
-            elif 'jsMath' in path:
-                binfile = open(SAGE_DATA + '/jsmath/' + path, 'rb').read()
+            elif path[:7] == 'jsmath/':
+                binfile = open(SAGE_DATA + "/" + path, 'rb').read()
             else:
                 binfile = open(path, 'rb').read()
         except IOError, msg:
@@ -424,7 +424,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                               '.txt', '.ico', '.sws'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
-               'jsMath' in self.path:
+               '/jsmath' in self.path:
             return self.get_file()
 
         path = self.path.strip('/')

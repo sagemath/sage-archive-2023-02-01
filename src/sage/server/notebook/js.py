@@ -941,7 +941,7 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
          cell_set_done(id);
          if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
              jsMath.ProcessBeforeShowing(cell_output);
-             jsMath.ProcessBeforeShowing(cell_output_nowrap);
+             /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
          }
     } else {
          cell_set_running(id);

@@ -482,15 +482,26 @@ class Worksheet:
 
 
     def _strip_synchro_from_start_of_output(self, s):
-        #print s
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
         if i == -1:
             j = s.find('Traceback')
-            if j == -1:
-                return s
-            return s[j:]
-        return s[i+len(z):]
+            if j != -1:
+                return s[j:]
+            else:
+                return ''
+        else:
+            s = s[i+len(z):]
+            return s
+##         i = s.find(SAGE_BEGIN)
+##         if i != -1:
+##             j = s[i:].find('\n')
+##             if j != -1:
+##                 i = i + j
+##             else:
+##                 i = i + len(SAGE_BEGIN)
+##             s = s[i+1:]
+##         return s
 
     def _process_output(self, s):
         s = re.sub('\x08.','',s)
@@ -608,10 +619,11 @@ class Worksheet:
         out = out.rstrip()
         if C.introspect():
             return out
-        tb = 'Traceback (most recent call last):'
         # the python error message for list indices is not good enough.
         out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+
         try:
+            tb = 'Traceback (most recent call last):'
             i = out.find(tb)
             if i != -1:
                 t = '.py", line'
@@ -871,14 +883,20 @@ class Worksheet:
                 #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
                 input = input.split('\n')
 
-                if len(input) > 0:
-                    t = input[-1]
+                i = len(input)-1
+                if i >= 0:
+                    while len(input[i]) > 0 and input[i][0] in ' \t':
+                        i -= 1
+                    t = '\n'.join(input[i:])
                     if t[:4] != 'def ':
                         try:
                             compile(t+'\n', '', 'single')
-                            t = t.replace("'", "\\u0027")
-                            input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                            t = t.replace("'", "\\u0027").replace('\n','\\u000a')
+                            #input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                            input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
+                            input = input[:i+1]
                         except SyntaxError, msg:
+                            print msg
                             pass
                 input = '\n'.join(input)
 

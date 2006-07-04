@@ -44,13 +44,21 @@ import sage.plot.all
 from misc import tmp_dir
 import sage_eval
 
+
 def list_function(x):
     K = [latex(v) for v in x]
     if len(K) > 0 and max([len(r) for r in K]) > 60:
-        sep = ', \n\\\\'
+        if EMBEDDED_MODE:
+            s = '\\begin{array}{l}'
+            for w in K:
+                s += w + '\\\\\n'
+            s += '\\end{array}'
+            return s
+        else:
+            sep = ', \n\\\\'
     else:
         sep = ', \n '
-    return "\\left[" + sep.join([latex(v) for v in x]) + "\\right]"
+    return "\\left[" + sep.join(K) + "\\right]"
 
 def tuple_function(x):
     return "\\left(" + ", \n ".join([latex(v) for v in x]) + "\\right)"
@@ -66,7 +74,7 @@ def bool_function(x):
 
 def str_function(x):
     if EMBEDDED_MODE:
-        return '{\\rm %s}'%x
+        return '\\text{%s}'%x
     return "\\mbox{\\rm %s}"%x
 
     # this messes up too many things.
@@ -438,12 +446,15 @@ def repr_lincomb(symbols, coeffs):
     for c in coeffs:
         b = latex(symbols[i])
         if c != 0:
-            coeff = coeff_repr(c)
-            if not first:
-                coeff = " + %s"%coeff
+            if c == 1:
+                s += b
             else:
-                coeff = "%s"%coeff
-            s += "%s%s"%(coeff, b)
+                coeff = coeff_repr(c)
+                if not first:
+                    coeff = " + %s"%coeff
+                else:
+                    coeff = "%s"%coeff
+                s += "%s%s"%(coeff, b)
             first = False
         i += 1
     if first:
@@ -451,13 +462,22 @@ def repr_lincomb(symbols, coeffs):
     s = s.replace("+ -","- ")
     return s
 
-def _view_hook(s):
+#def _view_hook(s):
+#    if s is None:
+#        return ''
+#    if isinstance(s, LatexExpr):
+#        print s
+#    else:
+#        print '<html><div class="math">%s</div></html>'%latex(s)
+#    return ''
+
+def _show_hook(s):
     if s is None:
         return ''
     if isinstance(s, LatexExpr):
         print s
     else:
-        print '<html><div class="math">%s</div></html>'%latex(s)
+        print '<html><span class="math">%s</span></html>'%latex(s)
     return ''
 
 _old_hook = None
@@ -473,7 +493,7 @@ def lprint():
         print "Latex print mode off."
     else:
         _old_hook = sys.displayhook
-        sys.displayhook = _view_hook
+        sys.displayhook = _show_hook
         print "Latex print mode on."
 
 

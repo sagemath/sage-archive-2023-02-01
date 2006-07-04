@@ -684,8 +684,10 @@ class Notebook(SageObject):
         head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css(self.color()) + '</style>\n'
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
+
         head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-        head += '<script src="jsMath.js"></script>\n'
+        #head +=' <script src="/jsmath/plugins/noImageFonts.js"></scripts>\n'
+        head += '<script src="/jsmath/jsMath.js"></script>\n'
 
         return head
 
@@ -756,7 +758,8 @@ class Notebook(SageObject):
                 worksheet.attached_html()
         body += '</td></tr></table></span>\n'
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script language=javascript>jsMath.Process();</script>\n'
+        #body += '<script language=javascript>jsMath.Process();</script>\n'
+        body += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
 
         if worksheet.computing():
             # Set the update checking back in motion.
@@ -766,13 +769,15 @@ class Notebook(SageObject):
 
     def help_window(self):
         help = [
+            ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
+            ('shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
                ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "time" at the beginning of the cell.'),
                 ('Evaluate all cells', 'Click <u>Evaluate All</u> in the upper right.'),
                 ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.'),
-               ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.'),
-                ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)", which will display a nicely typeset image, but requires that <i>latex</i>, <i>gv</i>, and <i>convert</i> are all installed.  Type "lprint()" to make it so all output is typeset.'),
+                ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
+               ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
+                ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)" or "show(objname)", which will display a nicely typeset image (using javascript!).  You do <i>not</i> need latex for this to work.  Type "lprint()" to make it so output is often typeset by default.'),
                 ('Move between cells', 'Use the up and down arrows on your keyboard.'),
                 ('Interrupt running calculations',
                  'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),

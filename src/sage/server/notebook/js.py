@@ -774,28 +774,26 @@ function evaluate_cell_introspection(id, before, after) {
 
     if(before == null) {
         var in_text = text_cursor_split(cell_input);
-        before = in_text[0];
-        after  = in_text[1];
+        before_cursor = before = in_text[0];
+        after_cursor  = after  = in_text[1];
 
         m = command_pat.exec(before);
         if(introspect_id != null)
             halt_introspection();
         introspect_id = id;
 
-        if(before.charAt(before.length-1) != "?") { //this won't match anything ending in ?
+        var last_char_before = before.charAt(before.length-1);
+        if(last_char_before == "?") {
+            replacing = false;
+        } else {
             replacing = true;
             before_replacing_word = m[1];
             replacing_word  = m[2];
-        } else {
-            replacing = false;
         }
 
-        before_cursor = before;  //these are the global variables used in do_replacement() et. al.
-        after_cursor  = after;
-
-        // If the character right before the cursor is blank, we instead
-        // send 4 spaces.
         if (is_just_a_tab(before, id)) {
+            // If the character right before the cursor is blank, we instead
+            // send 4 spaces.
             do_replacement(id, replacing_word+'    ');
             return;
         }
@@ -815,7 +813,7 @@ function is_just_a_tab(s, id) {
     if (n==0)
        return 1;
     c = s.charAt(n-1);
-    if (c == ' ' || c == '\t' || c == '\n' || c == ')') {
+    if (c == ' ' || c == '\t' || c == '\n' || c == ')' || c == '(') {
        return 1;
     }
     return 0;

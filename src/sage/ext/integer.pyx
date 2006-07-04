@@ -967,13 +967,19 @@ cdef class Integer(element.EuclideanDomainElement):
         if self < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
 
+        if mpz_cmp_ui(self.value,4294967295) > 0:
+            raise ValueError, "factorial not implemented for n >= 2^32.\nThis is probably OK, since the answer would have billions of digits."
+
+        cdef unsigned int n
+        n = self
+
         cdef mpz_t x
         cdef Integer z
 
         mpz_init(x)
 
         _sig_on
-        mpz_fac_ui(x, long(self))
+        mpz_fac_ui(x, n)
         _sig_off
 
         z = Integer()

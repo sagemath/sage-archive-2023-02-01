@@ -256,12 +256,17 @@ function deselect_replacement_element() {
 }
 
 function select_replacement_element() {
-    e = get_replacement_element();
-    if(e==null) return;
+    var e = get_replacement_element();
+    if (e==null) return;
     e.className = 'menu_two menu_selected';
-    l = e.getElementsByTagName('a');
+    var l = e.getElementsByTagName('a');
     if(l[0] && l[0].innerHTML)
-        replacement_word = l[0].innerHTML;
+        var h = l[0].innerHTML;
+        var i = h.indexOf('&nbsp')
+        if (i != -1) {
+            h = h.substr(0,i);
+        }
+        replacement_word = h;
 }
 
 function update_introspection_text(preserve_cursor) {

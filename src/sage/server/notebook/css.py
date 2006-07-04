@@ -150,22 +150,20 @@ ul.menu_sub li{
 }
 
 .menu_selected {
-  background-color: #EEFFEE;
-  filter:alpha(opacity=100);   /* Internet Explorer       */
-  -moz-opacity:1;           /* Mozilla 1.6 and below   */
-  opacity: 1;               /* newer Mozilla and CSS-3 */
+  background-color: #8888ff;
 }
 
 ul.menu_one {
   list-style: none;
   position: absolute;
   z-index: 2;
-  background-color: #EEEEFF;
-  filter:alpha(opacity=90);   /* Internet Explorer       */
-  -moz-opacity:0.90;           /* Mozilla 1.6 and below   */
-  opacity: 0.90;               /* newer Mozilla and CSS-3 */
+  background-color: white;
+  border: solid 2px black;
   display:inline;
-  margin: 0px;
+  margin: 5px;
+  font-family:courier, monospace;
+  font-size:15px;
+  padding:5px;
 }
 li.menu_one {
   display:inline;
@@ -173,6 +171,7 @@ li.menu_one {
   float:left;
   margin: 0px;
 }
+
 ul.menu_two {
   display:inline;
   position: relative;
@@ -183,6 +182,8 @@ li.menu_two{
   display:block;
   position:relative;
   margin: 3px;
+  padding-left: 3px;
+  padding-right: 3px;
 }
 
 

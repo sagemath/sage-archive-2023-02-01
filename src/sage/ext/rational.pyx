@@ -238,7 +238,7 @@ cdef class Rational(element.FieldElement):
             t = ''
             if self < 0:
                 t = t + '<mo>-</mo>'
-            t = + '<mfrac><mrow>%s<mrow>%s</mrow></mfrac>'%(
+            t = t + '<mfrac><mrow>%s</mrow><mrow>%s</mrow></mfrac>'%(
                 mathml(abs(self.numer())), mathml(self.denom()))
             return t
 

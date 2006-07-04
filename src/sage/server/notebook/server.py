@@ -193,7 +193,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                                     inter,
                                     variables,
                                     objects,
-                                    attached_files]))
+                                    attached_files,
+                                    cell.introspect_html()]))
 
         # more comps to go ?
         worksheet.start_next_comp()

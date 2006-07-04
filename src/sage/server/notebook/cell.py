@@ -209,11 +209,24 @@ class Cell:
         except AttributeError:
             return None
 
+    def set_introspect_html(self, html, completing=False):
+        if completing:
+            self.__introspect_html = html
+        else:
+            self.__introspect_html = "<pre>"+html.replace('<','&lt;').strip()+"</pre>"
+
     def output_html(self):
         try:
             return self.__out_html
         except AttributeError:
             self.__out_html = ''
+            return ''
+
+    def introspect_html(self):
+        try:
+            return self.__introspect_html
+        except AttributeError:
+            self.__introspect_html = ''
             return ''
 
     def output_text(self, ncols=0):
@@ -265,8 +278,9 @@ class Cell:
             cls = 'cell_not_evaluated'
 
         html_in  = self.html_in(do_print=do_print)
+        introspect = "<div id='introspect_div_%s'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
-        s = html_in + html_out
+        s = html_in + introspect + html_out
         if div_wrap:
             s = '\n\n<div id="cell_%s" class="%s">'%(self.id(), cls) + s + '</div>'
         return s
@@ -299,10 +313,10 @@ class Cell:
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
-              onFocus = 'this.className="cell_input_active"; cell_input_resize(this); current_cell = %s;'
-              onBlur  = 'this.className="cell_input"; cell_input_minimize_size(this); return true;'
+              onFocus = 'cell_focus(%s)'
+              onBlur  = 'cell_blur(%s)'
            >%s</textarea>
-        """%(cls, r, id, id, id, id, t)
+        """%(cls, r, id, id, id, id, id, t)
         return s
 
     def files_html(self):

@@ -412,19 +412,26 @@ class Worksheet:
         if not done:
             # Still computing
             out = self._process_output(out)
-            C.set_output_text(out, '')
+            if not C.introspect():
+                C.set_output_text(out, '')
             return 'w', C
 
         # Finished a computation.
         self.__comp_is_running = False
         out = self._process_output(out)
-        C.set_output_text(out, C.files_html(), sage=self.sage())
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
             if before_prompt[-1] != '?':
                 # completions
                 c = self.best_completion(out, C._word_being_completed)
                 C.set_changed_input_text(before_prompt + c + after_prompt)
+                out = self.completions_html(C.id(), out)
+                C.set_introspect_html(out, completing=True)
+            else:
+                C.set_introspect_html(out, completing=False)
+        else:
+            C.set_output_text(out, C.files_html(), sage=self.sage())
+            C.set_introspect_html('')
 
         del self.__queue[0]
         return 'd', C
@@ -445,6 +452,34 @@ class Worksheet:
                     return w[n:i-1]
             i += 1
         return completions[0][n:m]
+
+    def completions_html(self, id, s, cols=3):
+        if 'no completions of' in s:
+            return ''
+
+        completions = s.split()
+
+        n = len(completions)
+        l = n/cols + n%cols
+
+        if n == 1:
+            return '' # don't show a window, just replace it
+
+        rows = []
+        for r in range(0,l):
+            row = []
+            for c in range(cols):
+                try:
+                    cell = completions[r + l*c]
+                    row.append(cell)
+                except:
+                    pass
+            rows.append(row)
+        return self.__notebook.completions_format(id, rows)
+
+
+
+
 
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN+str(self.synchro())
@@ -817,7 +852,7 @@ class Worksheet:
             else:
                 input = self._get_last_identifier(before_prompt)
                 C._word_being_completed = input
-                input = 'print _support_.completions("%s", globals(), format=True)\n'%input
+                input = 'print "\\n".join(_support_.completions("%s", globals()))'%input
 
         else:
             switched, input = self.check_for_system_switching(input)
@@ -962,6 +997,4 @@ def ignore_prompts_and_output(s):
         elif I2[:3] == '...':
             s += I2[3:] + '\n'
     return s
-
-
 

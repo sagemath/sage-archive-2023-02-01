@@ -717,6 +717,7 @@ class Notebook(SageObject):
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a> %s</span>\n'%self.__dir
         body += '  <span class="control_commands">\n'
+
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
@@ -929,6 +930,29 @@ class Notebook(SageObject):
                    </form></div>
 
         """
+
+    def completions_format(self, cell_id, completions):
+        lists = []
+        for i in range(len(completions)):
+            row = completions[i]
+            for j in range(len(row)):
+                if len(lists) <= j:
+                    lists.append([])
+                cell = """
+   <li id='completion%s_%s_%s' class='menu_two'>
+    <a onClick='do_replacement(%s, "%s")'
+       onMouseOver='select_replacement(%s,%s);'
+    >%s</a>
+   </li>"""%(cell_id, i, j, cell_id, row[j], i,j, row[j])
+                lists[j].append(cell)
+
+        grid = "<ul class='menu_one'>"
+        for list in lists:
+            list = "\n   ".join(list)
+            grid = grid + "\n <li class='menu_one'>\n  <ul class='menu_two'>\n%s\n  </ul>\n </li>"%list
+
+        return grid + "\n</ul>"
+
 
 def notebook(dir       ='sage_notebook',
              port      = 8000,

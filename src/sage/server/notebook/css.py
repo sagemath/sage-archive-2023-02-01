@@ -108,6 +108,84 @@ div.top_control_bar  a.interrupt {
    background-color:white;
 }
 
+ul.menu_but{
+   list-style: none;
+   margin: 0px;
+   padding: 0px;
+}
+
+li.menu_but{
+   display:inline;
+   float:right;
+   width:60px;
+}
+
+li.vbar{
+   border-right: 1px solid #000;
+   float:right;
+   width:20px;
+}
+
+ul.menu_sub{
+   list-style: none;
+   left:0px;
+   position:relative;
+}
+
+ul.menu_sub li{
+   display:inline;
+}
+
+.menu_list {
+  list-style: none;
+  position: relative;
+  z-index: 2;
+}
+
+.menu_item {
+  left: 0px;
+  position: relative;
+  background-color: #9999FF;
+  border: solid 1px #9999FF;
+}
+
+.menu_selected {
+  background-color: #EEFFEE;
+  filter:alpha(opacity=100);   /* Internet Explorer       */
+  -moz-opacity:1;           /* Mozilla 1.6 and below   */
+  opacity: 1;               /* newer Mozilla and CSS-3 */
+}
+
+ul.menu_one {
+  list-style: none;
+  position: absolute;
+  z-index: 2;
+  background-color: #EEEEFF;
+  filter:alpha(opacity=90);   /* Internet Explorer       */
+  -moz-opacity:0.90;           /* Mozilla 1.6 and below   */
+  opacity: 0.90;               /* newer Mozilla and CSS-3 */
+  display:inline;
+  margin: 0px;
+}
+li.menu_one {
+  display:inline;
+  position: relative;
+  float:left;
+  margin: 0px;
+}
+ul.menu_two {
+  display:inline;
+  position: relative;
+  list-style: none;
+  margin: 0px;
+}
+li.menu_two{
+  display:block;
+  position:relative;
+  margin: 3px;
+}
+
+
 div.top_control_bar a.interrupt:hover {
    background-color:#bb0000;
    color:#FFFFFF;

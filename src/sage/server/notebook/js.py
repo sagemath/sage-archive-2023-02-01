@@ -125,6 +125,176 @@ function async_request(name, url, callback, postvars) {
 
 ///////////////////////////////////////////////////////////////////
 //
+// Misc page functions -- for making the page work nicely
+// (this is a crappy descriptor)
+///////////////////////////////////////////////////////////////////
+
+function body_load() {
+//  init_menus();
+}
+
+function init_menus() {
+  for( i = 1; i <= 3; i++) {
+    menu = get_element("menu"+i);
+    menu.style.display="none";
+  }
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// Completions interface stuff
+//
+///////////////////////////////////////////////////////////////////
+
+var introspection_loaded = false;
+var introspect_id;
+var introspection_text = "";
+var replacement_text = "";
+var replacement_row = 0;
+var replacement_col = 0;
+var replacing_word = "";
+var replacement_word = "";
+var replacing = false;
+var sub_introspecting = false;
+
+function capture_replacement_controls(event) {
+  e = get_event(event);
+
+  if(introspect_id != null) {
+  } else {
+    return !key_request_introspections(e);
+  }
+}
+
+function handle_replacement_controls(cell_input, event) {
+    deselect_replacement_element();
+    if(key_menu_up(event)) {
+        if(replacement_row <= 0) {
+            halt_introspection();
+        } else {
+            replacement_row--;
+        }
+    } else if(key_menu_down(event)) {
+        replacement_row++;
+        if(!replacement_element_exists())
+            replacement_row = 0;
+    } else if(key_menu_right(event)) {
+        replacement_col++;
+        if(!replacement_element_exists())
+            replacement_col = 0;
+    } else if(key_menu_left(event)) {
+        replacement_col--;
+        if(!replacement_element_exists()) {
+            replacement_col = 1;
+            while(replacement_element_exists())
+                replacement_col++;
+            replacement_col--;
+        }
+    } else if(key_menu_pick(event)) {
+        do_replacement(introspect_id, replacement_word);
+        return false;
+    } else if(key_request_introspections(event)) {
+        if(sub_introspecting) {
+            introspection_text = replacement_text;
+            introspection_loaded = true;
+            sub_introspecting = false;
+            update_introspection_text();
+        } else {
+            replacement_text = introspection_text;
+            introspection_loaded = false;
+            sub_introspecting = true;
+        }
+    } else {
+       halt_introspection();
+       return true;
+    }
+    select_replacement_element();
+
+    if(sub_introspecting) {
+        active_cell_list = active_cell_list.concat([introspect_id]);
+        evaluate_cell_introspection(introspect_id, before_replacing_word+replacement_word+'?', after_cursor);
+    }
+
+    return false;
+}
+
+function do_replacement(id, word) {
+    var cell_input = get_cell(id);
+    cell_input.value = before_replacing_word + word + after_cursor;
+    if(document.all) {
+        if(cell_input.focus) {
+            cell_input.focus();
+            var range = document.selection.createRange();
+            range.moveStart('character', -after_cursor.length);
+            range.moveEnd('character', -after_cursor.length);
+        }
+    } else {
+        cell_input.selectionStart = cell_input.selectionEnd = before_replacing_word.length + word.length;
+    }
+    halt_introspection();
+}
+
+function get_replacement_element() {
+    return get_element("completion"+introspect_id + "_" + replacement_row + "_" + replacement_col);
+}
+
+function replacement_element_exists() {
+    return get_replacement_element() != null;
+}
+
+function select_replacement(row, col) {
+    deselect_replacement_element();
+    replacement_row = row;
+    replacement_col = col;
+    select_replacement_element();
+}
+
+function deselect_replacement_element() {
+    e = get_replacement_element();
+    if(e==null) return;
+    e.className = 'menu_two';
+}
+
+function select_replacement_element() {
+    e = get_replacement_element();
+    if(e==null) return;
+    e.className = 'menu_two menu_selected';
+    l = e.getElementsByTagName('a');
+    if(l[0] && l[0].innerHTML)
+        replacement_word = l[0].innerHTML;
+}
+
+function update_introspection_text(preserve_cursor) {
+  close_introspection_text();
+  d = get_element("introspect_div_"+introspect_id);
+  if(!d) return;
+
+  if(introspection_loaded) {
+    d.innerHTML = introspection_text;
+    if(replacing)
+      select_replacement_element();
+  } else {
+    d.innerHTML = "loading..."
+  }
+}
+
+function close_introspection_text() {
+  d = get_element("introspect_div_"+introspect_id);
+  if(d!=null)
+    d.innerHTML = "";
+}
+
+function halt_introspection() {
+    close_introspection_text();
+    introspect_id = null;
+    replacing = false;
+    sub_introspecting = false;
+    introspection_loaded = false;
+    replacement_row = replacement_col = 0;
+}
+
+///////////////////////////////////////////////////////////////////
+//
 // OBJECT functions -- for managing saved objects
 //
 ///////////////////////////////////////////////////////////////////
@@ -289,16 +459,37 @@ function switch_to_worksheet(id) {
 //
 ///////////////////////////////////////////////////////////////////
 
+function get_cell(id) {
+    return get_element('cell_input_'+ id);
+}
+
+function cell_focus(id) {
+    e = get_cell(id);
+    if(e == null) return;
+    e.className="cell_input_active";
+    cell_input_resize(e);
+    current_cell = id;
+    if(introspect_id != id)
+        halt_introspection();
+}
+function cell_blur(id) {
+    e = get_cell(id);
+    if(e == null) return;
+    e.className="cell_input";
+    cell_input_minimize_size(e);
+    return true;
+}
+
 function focus(id) {
        // make_cell_input_active(id);
-       var cell = get_element('cell_input_' + id);
+       var cell = get_cell(id);
        if (cell && cell.focus) {
           cell.focus();
        }
 }
 
 function scroll_view(id) {
-       var cell = get_element('cell_input_' + id);
+       var cell = get_cell(id);
        if (cell && cell.focus) {
           cell.scrollIntoView();
        }
@@ -355,7 +546,7 @@ function cell_input_minimize_all() {
     var n = v.length;
     var i;
     for(i=0; i<n; i++) {
-        var cell=get_element('cell_input_' + v[i]);
+        var cell=get_cell(v[i]);
         cell_input_minimize_size(cell);
     }
 }
@@ -385,7 +576,7 @@ function cell_delete(id) {
 }
 
 function cell_input_key_event(id, event) {
-    cell_input = get_element('cell_input_'+id);
+    cell_input = get_cell(id);
 
     e = get_event(event);
 
@@ -396,22 +587,28 @@ function cell_input_key_event(id, event) {
         return false;
     }
 
+    if(introspect_id && introspection_loaded && replacing) {
+        if(!handle_replacement_controls(cell_input, e))
+            return false;  //otherwise, keep going
+        halt_introspection()
+    }
+
     cell_input_resize(cell_input);
 
     // Will need IE version... if possible.
     if (e.keyCode == 38) {  // up arrow
-        var before_cursor = cell_input.value.substr(0,cell_input.selectionEnd);
-        var i = before_cursor.indexOf('\n');
-        if (i == -1) {
+        var before = text_cursor_split(cell_input)[0];
+        var i = before.indexOf('\n');
+        if (i == -1 || before == '') {
             jump_to_cell(id,-1);
             return false;
         } else {
             return true;
         }
     } else if (e.keyCode == 40) {   // down arrow
-        var before_cursor = cell_input.value.substr(cell_input.selectionEnd);
-        var i = before_cursor.indexOf('\n');
-        if (i == -1) {
+        var after = text_cursor_split(cell_input)[1];
+        var i = after.indexOf('\n');
+        if (i == -1 || after == '') {
             jump_to_cell(id,1);
             return false;
         } else {
@@ -473,7 +670,7 @@ function make_cell_input_active(id) {
    if (old_id != -1) {
         make_cell_input_inactive(old_id);
    }
-   var txt = get_element('cell_input_'+id);
+   var txt = get_cell(id);
    if (txt.style.display == "inline") {
        return;
    }
@@ -488,7 +685,7 @@ function make_cell_input_active(id) {
 }
 
 function make_cell_input_inactive(id) {
-   var txt = get_element('cell_input_'+id);
+   var txt = get_cell(id);
    if (txt.style.display != "inline") {
        return;
    }
@@ -519,6 +716,36 @@ function escape0(input) {
     return input;
 }
 
+function text_cursor_split(input) {
+    if(browser_ie) {
+        //for explorer, we call the
+        //   document.selection.createRange().duplicate()
+        //to generate a selection range object which does not effect the
+        //original input box.
+        //Then, we rewind the start point of the range until we encounter
+        //a non-word character, or we've rewound past the beginning of
+        //the textarea).
+        var range = document.selection.createRange().duplicate();
+        var i = range.text.length;
+        while((input.value.match(range.text) || i==0)
+               && range.text.length == i) {
+            range.moveStart('character', -1);
+            i = i + 1;
+        }
+        if(!input.value.match(range.text))
+            range.moveStart('character', 1);
+        b = range.text;
+    } else {
+        b = input.value.substr(0,input.selectionEnd);
+    }
+
+    a = input.value.substr(b.length);
+    return new Array(b,a);
+}
+
+var non_word = new RegExp("[^a-zA-Z0-9_]");
+var command_pat = new RegExp('(.*?)([a-zA-Z._0-9]*)$');
+var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
 function evaluate_cell(id, action) {
@@ -531,7 +758,7 @@ function evaluate_cell(id, action) {
        return;
     }
 
-    var cell_input = get_element('cell_input_' + id);
+    var cell_input = get_cell(id);
     var I = cell_input.value
     var input = escape0(I);
     cell_set_running(id);
@@ -541,43 +768,45 @@ function evaluate_cell(id, action) {
     start_update_check();
 }
 
-var non_word = new RegExp("[^a-zA-Z0-9._]");
-function evaluate_cell_introspection(id) {
-    var before_cursor;
-    var after_cursor;
-    var cell_input = get_element('cell_input_' + id);
-    if(browser_ie) {
-        //for explorer, we call the
-        //   document.selection.createRange().duplicate()
-        //to generate a selection range object which does not effect the
-        //original input box.
-        //Then, we rewind the start point of the range until we encounter
-        //a non-word character, or we've rewound past the beginning of
-        //the textarea).
-        range = document.selection.createRange().duplicate();
-        var i = range.text.length;
-        while((cell_input.value.match(range.text) || i==0) && !non_word.exec(range.text)) {
-            range.moveStart('character', -1);
-            i = i + 1;
-    }
-        before_cursor = range.text;
-        /* TODO -- total guess -- stein */
-        after_cursor = cell_input.value.substr(i);
-    } else if(cell_input.selectionEnd) {
-        before_cursor = cell_input.value.substr(0,cell_input.selectionEnd);
-        after_cursor = cell_input.value.substr(cell_input.selectionEnd);
+var after_cursor, before_cursor, before_replacing_word;
+function evaluate_cell_introspection(id, before, after) {
+    var cell_input = get_cell(id);
+
+    if(before == null) {
+        var in_text = text_cursor_split(cell_input);
+        before = in_text[0];
+        after  = in_text[1];
+
+        m = command_pat.exec(before);
+        if(introspect_id != null)
+            halt_introspection();
+        introspect_id = id;
+
+        if(before.charAt(before.length-1) != "?") { //this won't match anything ending in ?
+            replacing = true;
+            before_replacing_word = m[1];
+            replacing_word  = m[2];
+        } else {
+            replacing = false;
+        }
+
+        before_cursor = before;  //these are the global variables used in do_replacement() et. al.
+        after_cursor  = after;
+
+        // If the character right before the cursor is blank, we instead
+        // send 4 spaces.
+        if (is_just_a_tab(before, id)) {
+            do_replacement(id, replacing_word+'    ');
+            return;
+        }
+    } else {
+        sub_introspecting = true;
     }
 
-    // If the character right before the cursor is blank, we instead
-    // send 4 spaces.
-    if (is_just_a_tab(before_cursor, id)) {
-        cell_input.value = before_cursor + '    ' + after_cursor;
-        return;
-    }
-    before_cursor = escape0(before_cursor);
-    after_cursor = escape0(after_cursor);
+    var before_cursor_e = escape0(before);
+    var after_cursor_e = escape0(after);
     async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
-          'id=' + id + '&before_cursor='+before_cursor + '&after_cursor='+after_cursor);
+          'id=' + id + '&before_cursor='+before_cursor_e + '&after_cursor='+after_cursor_e);
     start_update_check();
 }
 
@@ -694,7 +923,8 @@ function cancel_update_check() {
 }
 
 
-function set_output_text(id, text, wrapped_text, output_html, status) {
+var whitespace = new RegExp("\\w+");
+function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
     /* fill in output text got so far */
     var cell_output = get_element('cell_output_' + id);
     var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
@@ -709,12 +939,30 @@ function set_output_text(id, text, wrapped_text, output_html, status) {
     } else {
          cell_set_running(id);
     }
+
+    if(introspect_id == id && introspect_html) {
+        if (status == 'd') {
+            introspection_loaded = true;
+            introspection_text = introspect_html;
+        }
+        update_introspection_text();
+    }
 }
 
 function set_input_text(id, text) {
     /* fill in input text */
-    var cell_input = get_element('cell_input_' + id);
+    var cell_input = get_cell(id);
     cell_input.value = text;
+    if(cell_input.focus)
+        cell_input.focus();
+
+    if(cell_input.selectionEnd != null) {
+        cell_input.selectionEnd = cell_input.selectionStart = text.length - after_cursor.length;
+    } else if(browser_ie) {
+        var range = document.selection.createRange();
+        range.moveStart('character', -after_cursor.length);
+    }
+
     return false;
 }
 
@@ -742,22 +990,27 @@ function check_for_cell_update_callback(status, response_text) {
         alert("Error updating cell output (canceling further update checks).");
         return;
     }
+    if(response_text == 'empty')
+        return;
     start_update_check();
 
     /* compute output for a cell */
     var i = response_text.indexOf(' ');
     var id = response_text.substring(1, i);
     var D = response_text.slice(i+1).split(SEP);
-    var output_text = D[0] + ' ';
+    var output_text         = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
-    var output_html = D[2];
-    var new_cell_input = D[3];
-    var interrupted = D[4];
+    var output_html         = D[2];
+    var new_cell_input      = D[3];
+    var interrupted         = D[4];
+    var variable_list       = D[5];
+    var object_list         = D[6];
+    var attached_files_list = D[7];
+    var introspect_html     = D[8];
     var stat = response_text.charAt(0)
     var j = id_of_cell_delta(id,1);
 
-    set_output_text(id, output_text, output_text_wrapped, output_html, stat);
-
+    set_output_text(id, output_text, output_text_wrapped, output_html, stat, introspect_html);
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
 
@@ -765,17 +1018,15 @@ function check_for_cell_update_callback(status, response_text) {
             set_cell_evaluated(id);
         }
 
+        if(active_cell_list.length == 0)
+            cancel_update_check();
+
         if (new_cell_input != '') {
             set_input_text(id, new_cell_input);
         }
 
-        var variable_list = D[5];
         set_variable_list(variable_list);
-
-        var object_list = D[6];
         set_object_list(object_list);
-
-        var attached_files_list = D[7];
         set_attached_files_list(attached_files_list);
     }
 
@@ -1066,32 +1317,64 @@ function is_submit(event) {
 }
 
 %s
-"""%build_all_key_codes()
+"""%keyhandler.all_tests()
 
     return s
 
 
-key_codes = {};
+class JSKeyHandler:
+    """This class is used to make javascript functions to check for
+specific keyevents."""
+
+    def __init__(self):
+        self.key_codes = {};
+
+    def set(self, name, key='', alt=False, ctrl=False, shift=False):
+        """Add a named keycode to the handler.  When built by \code{all_tests()},
+it can be called in javascript by \code{key_<key_name>(event_object)}.
+The function returns true if the keycode numbered by the \code{key} parameter
+was pressed with the appropriate modifier keys, false otherwise."""
+        self.key_codes.setdefault(name,[])
+        self.key_codes[name] = [JSKeyCode(key, alt, ctrl, shift)]
+
+    def add(self, name, key='', alt=False, ctrl=False, shift=False):
+        """Similar to \code{set_key(...)}, but this instead checks if there
+is an existing keycode by the specified name, and associates the specified key
+combination to that name in addition.  This way, if different browsers don't catch
+one keycode, multiple keycodes can be assigned to the same test."""
+        try: self.key_codes[name]
+        except KeyError: self.key_codes.setdefault(name,[])
+        self.key_codes[name].append(JSKeyCode(key,alt,ctrl,shift))
+
+    def all_tests(self):
+        """Builds all tests currently in the handler.  Returns a string of
+javascript code which defines all functions."""
+        tests = ''
+        for name, keys in self.key_codes.items():
+            tests += """
+function key_%s(e) {
+  return %s;
+}"""%(name, "\n  || ".join([k.js_test() for k in keys]))
+
+        return tests;
+
+
 class JSKeyCode:
-    def __init__(self, name, key='', alt=False, ctrl=False, shift=False):
+    def __init__(self, key, alt, ctrl, shift):
         global key_codes
         self.key   = key
         self.alt   = alt
         self.ctrl  = ctrl
         self.shift = shift
-        key_codes[name] = self
 
-    def js_test(self, name):
+    def js_test(self):
         a = "%s"%self.alt
         c = "%s"%self.ctrl
         s = "%s"%self.shift
 
-        return """
-function key_%s(e) {
-  return e.keyCode == %d && e.altKey == %s && e.ctrlKey == %s && e.shiftKey == %s;
-}
-        """%(name, self.key, a.lower(), c.lower(), s.lower())
+        return "(e.keyCode == %d && e.altKey == %s && e.ctrlKey == %s && e.shiftKey == %s)"%\
+               (self.key, a.lower(), c.lower(), s.lower())
 
-def build_all_key_codes():
-    return ''.join([k.js_test(n) for n, k in key_codes.items()])
 
+
+keyhandler = JSKeyHandler()

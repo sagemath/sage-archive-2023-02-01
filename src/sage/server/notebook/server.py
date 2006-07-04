@@ -267,6 +267,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         W = notebook.get_worksheet_with_filename(filename)
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
+        if do_print:
+            s += '<script src="/jsmath/jsMath.js"></script>\n'
         s += '<script language=javascript>' + js.javascript() + '</script>\n'
         s += '<style>' + css.css() + '</style>\n'
         s += '</head>\n'
@@ -274,13 +276,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += W.html(include_title=False, do_print=do_print)
         #if do_print:
         #    s += '<script language=javascript>window.print()</script>\n'
+        if do_print:
+            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 
     def input_history_text(self):
         self.send_head()
         t = notebook.history_text()
-        t = t.replace('<','&gt;')
+        t = t.replace('<','&lt;')
         s = '<head>\n'
         s += '<title>SAGE Input History</title>\n'
         s += '</head>\n'

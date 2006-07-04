@@ -981,6 +981,7 @@ class Worksheet:
         s += '<div class="worksheet_bottom_padding"></div>\n'
         if not do_print:
             s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
+            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s
 
     def show_all(self):

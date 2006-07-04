@@ -21,7 +21,7 @@ class Sh:
         os.system('source t > out')
         s = open('out').read()
         os.system('rm t out')
-        t = s.split()
+        t = s.split('\n')
         self._curdir = os.path.abspath(t[-1])
         return '\n'.join(t[:-1])
 

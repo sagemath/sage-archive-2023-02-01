@@ -68,6 +68,8 @@ SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
 if not os.path.exists(SAGE_TMP):
     os.makedirs(SAGE_TMP)
 
+SAGE_DATA = '%s/data'%SAGE_ROOT
+
 def delete_tmpfiles():
     #print "deleting temp files from %s"%SAGE_TMP
     import shutil

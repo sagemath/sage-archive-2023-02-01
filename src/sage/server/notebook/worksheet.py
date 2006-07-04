@@ -482,6 +482,7 @@ class Worksheet:
 
 
     def _strip_synchro_from_start_of_output(self, s):
+        #print s
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
         if i == -1:

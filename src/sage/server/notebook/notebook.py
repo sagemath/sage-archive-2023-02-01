@@ -684,6 +684,9 @@ class Notebook(SageObject):
         head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css(self.color()) + '</style>\n'
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
+        head += '<script>jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
+        head += '<script src="jsMath.js"></script>\n'
+
         return head
 
     def _html_body(self, worksheet_id):
@@ -753,6 +756,7 @@ class Notebook(SageObject):
                 worksheet.attached_html()
         body += '</td></tr></table></span>\n'
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
+        body += '<script language=javascript>jsMath.Process();</script>\n'
 
         if worksheet.computing():
             # Set the update checking back in motion.
@@ -898,14 +902,15 @@ class Notebook(SageObject):
         else:
             body = self._html_authorize()
 
+        body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"</script>'%(worksheet_id, W.filename())
+
         head = self._html_head(worksheet_id)
         return """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
-        <script language=javascript>worksheet_id=%s; worksheet_filename="%s"</script>
-        """%(head, body, worksheet_id, W.filename())
+        """%(head, body)
 
     def _html_authorize(self):
         return """

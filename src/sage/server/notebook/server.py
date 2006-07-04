@@ -25,7 +25,7 @@ import css, js
 # SAGE libraries
 import sage.interfaces.sage0
 
-from   sage.misc.misc import verbose, word_wrap
+from   sage.misc.misc import verbose, word_wrap, SAGE_DATA
 import sage.misc.preparser
 from   sage.ext.sage_object import load, SageObject
 
@@ -186,8 +186,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             inter = 'false'
         msg = '%s%s %s'%(status, cell.id(),
-                          SEP.join([cell.output_text().replace('<','&lt;'),
-                                    cell.output_text(cols).replace('<','&lt;'),
+                          SEP.join([cell.output_text(html=True),
+                                    cell.output_text(cols, html=True),
                                     out_html,
                                     new_input,
                                     inter,
@@ -199,46 +199,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # more comps to go ?
         worksheet.start_next_comp()
         self.wfile.write(msg)
-
-##     def update_cells(self):
-##         C = self.get_postvars()
-##         worksheet_id = int(C['worksheet_id'][0])
-##         worksheet = notebook.get_worksheet_with_id(worksheet_id)
-##         cols = notebook.defaults()['word_wrap_cols']
-##         status, cell = worksheet.check_comp()
-##         print status, cell   # debug
-##         if status == 'd':
-##             try:
-##                 notebook.save()
-##             except:
-##                 print "WARNING -- failure to pickle the notebook"
-##             variables = worksheet.variables_html()
-##             objects = notebook.object_list_html()
-##             attached_files = worksheet.attached_html()
-##         else:
-##             variables = '...'  # not used
-##             objects = "..." # note used
-##             attached_files = '...' # not used
-##         if cell is None or status == 'e':
-##             msg = 'empty'
-##         else:
-##             if status == 'd':
-##                 new_input = cell.changed_input_text()
-##                 out_html = cell.output_html()
-##             else:
-##                 new_input = ''
-##                 out_html = ''
-##             msg = '%s%s %s'%(status, cell.id(),
-##                               SEP.join([cell.output_text().replace('<','&lt;'),
-##                                         cell.output_text(cols).replace('<','&lt;'),
-##                                         out_html,
-##                                         new_input,
-##                                         variables,
-##                                         objects,
-##                                         attached_files]))
-##             # more comps to go.
-##             worksheet.start_next_comp()
-##         self.wfile.write(msg)
 
     def interrupt(self):
         C = self.get_postvars()
@@ -369,7 +329,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-        if path[-5:] == '.html' and not '/' in path:
+        if path[-5:] == '.html' and not '/' in path and not 'jsMath' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
                 self.input_history_text()
@@ -396,6 +356,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
+            elif 'jsMath' in path:
+                binfile = open(SAGE_DATA + '/jsmath/' + path, 'rb').read()
             else:
                 binfile = open(path, 'rb').read()
         except IOError, msg:
@@ -404,6 +366,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
+        elif self.path[-3:] == '.js':
+            self.send_header("Content-type", 'script/javascript')
         elif self.path[-3:] == '.ps':
             self.send_header("Content-type", 'application/postscript')
         elif self.path[-4:] == '.tex':
@@ -458,7 +422,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.path[-4:] in ['.eps', '.png', '.svg', '.tex', '.dvi', '.log', \
                               '.txt', '.ico', '.sws'] or \
-               self.path[-5:] in ['.sobj', '.html'] or self.path[-3:] == '.ps':
+               self.path[-5:] in ['.sobj', '.html'] or \
+               self.path[-3:] in ['.ps', '.js'] or \
+               'jsMath' in self.path:
             return self.get_file()
 
         path = self.path.strip('/')

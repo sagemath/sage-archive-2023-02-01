@@ -57,11 +57,16 @@ def tuple_function(x):
 
 def bool_function(x):
     if x:
-        return "\\mbox{\\rm True}"
+        s = "\\mbox{\\rm True}"
     else:
-        return "\\mbox{\\rm False}"
+        s = "\\mbox{\\rm False}"
+    if EMBEDDED_MODE:
+        return s[5:]
+    return s
 
 def str_function(x):
+    if EMBEDDED_MODE:
+        return '{\\rm %s}'%x
     return "\\mbox{\\rm %s}"%x
 
     # this messes up too many things.
@@ -303,6 +308,8 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
 
     return s
 
+def typeset(x):
+    return LatexExpr('<html><span class="math">%s</span></html>'%latex(x))
 
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
          sep='$$ $$', tiny=False,  center=False, **kwds):
@@ -327,14 +334,15 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
         Pops up xdvi with the objects displayed.
     """
     if EMBEDDED_MODE:
-        if sage.plot.all.is_Graphics(objects):
-            objects.show(**kwds)
-            return
-        i = 0
-        while os.path.exists('sage%s.png'%i):
-            i += 1
-        png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
-        return
+        return typeset(objects)
+        #if sage.plot.all.is_Graphics(objects):
+        #    objects.show(**kwds)
+        #    return
+        #i = 0
+        #while os.path.exists('sage%s.png'%i):
+        #    i += 1
+        #png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
+        #return
 
     if isinstance(objects, LatexExpr):
         s = str(objects)
@@ -445,8 +453,9 @@ def repr_lincomb(symbols, coeffs):
 
 def _view_hook(s):
     if s is None:
-        return
-    view(s)
+        return ''
+    print typeset(s)
+    return ''
 
 _old_hook = None
 def lprint():

@@ -1,4 +1,4 @@
-"""
+r"""
 A Cell.
 
 A cell is a single input/output block.  Worksheets are built out of a
@@ -121,9 +121,9 @@ class Cell:
                         break
                 out = '\n'.join(w)
             else:
-                out = self.output_text(ncols)
+                out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols).strip().split('\n')
+            out = self.output_text(ncols, html=False).strip().split('\n')
             out = [x for x in out if x.strip() != '']
             if len(out) > 0:
                 out = '# ' + '\n# '.join(out)
@@ -229,10 +229,29 @@ class Cell:
             self.__introspect_html = ''
             return ''
 
-    def output_text(self, ncols=0):
+    def output_text(self, ncols=0, html=True):
         if ncols and not self.introspect():
-            return word_wrap(self.__out, ncols=ncols)
-        return self.__out
+            s = word_wrap(self.__out, ncols=ncols)
+        else:
+            s = self.__out
+        if html:
+            # Everything not wrapped in <html> ... </html>
+            # should have the <'s replaced by &lt;'s.
+            t = ''
+            while len(s) > 0:
+                i = s.find('<html>')
+                if i == -1:
+                    t += s.replace('<','&lt;')
+                    break
+                j = s.find('</html>')
+                if j == -1:
+                    t += s.replace('<','&lt;')
+                    break
+                t += s[:i].replace('<','&lt;') + s[i+6:j]
+                s = s[j+7:]
+            s = t
+        return s
+
 
     def introspect(self):
         try:
@@ -309,7 +328,7 @@ class Cell:
         r = len(t.split('\n'))
 
         s += """
-           <textarea class="%s" rows=%s
+           <textarea class="%s" rows=%s cols=1000
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
@@ -349,11 +368,11 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
-        out_nowrap = self.output_text(0).replace('<','&lt;').strip()
+        out_nowrap = self.output_text(0, html=True).strip()
         if self.introspect():
             out_wrap = out_nowrap
         else:
-            out_wrap = self.output_text(ncols).replace('<','&lt;').strip()
+            out_wrap = self.output_text(ncols, html=True).strip()
 
         typ = self.cell_output_type()
 

@@ -21,7 +21,7 @@ import sage.misc.sagedoc as sagedoc
 ######################################################################
 # Initialization
 ######################################################################
-
+EMBEDDED_MODE = False
 sage_globals = None
 globals_at_init = None
 global_names_at_init = None
@@ -31,10 +31,13 @@ def init(object_directory=None, globs={}):
     Initialize SAGE for use with the web notebook interface.
     """
     global sage_globals, globals_at_init, global_names_at_init
+    global EMBEDDED_MODE
+
     sage_globals = globs
     #globals_at_init = set(globs.keys())
     globals_at_init = globs.values()
     global_names_at_init = set(globs.keys())
+    EMBEDDED_MODE = True
     sage.plot.plot.EMBEDDED_MODE = True
     # Set this to true and plots are shown by default.
     #sage.plot.plot.SHOW_DEFAULT = True

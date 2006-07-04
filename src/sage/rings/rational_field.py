@@ -90,7 +90,7 @@ class RationalField(_uniq, field.Field):
         return "Rational Field"
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Q}"
+        return "\\mathbf{Q}"
 
     def __call__(self, x, base=0):
         """

@@ -749,6 +749,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         g = plot.Graphics()
         try:
             plot_points = int(args['plot_points'])
+            del args['plot_points']
         except KeyError:
             plot_points = 100
 

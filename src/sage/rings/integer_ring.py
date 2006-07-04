@@ -146,7 +146,8 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         return "Integer Ring"
 
     def _latex_(self):
-        return "\\mbox{\\bf{}Z}"
+        return "\\mathbf{Z}"
+
 
     def __call__(self, x, base=0):
         if isinstance(x, sage.rings.integer_mod.IntegerMod):

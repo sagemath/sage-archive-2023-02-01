@@ -885,36 +885,36 @@ table.cell_output_box:hover {
   background-color: #fafafa;
 }
 
-pre.cell_output_wrap {
-  font-family: courier, monospace;
+span.cell_output_wrap {
+/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#0000aa;
+  color:#000099;
   padding-left:3px;
   /*  background-color: #fbeefb; */
 }
-pre.cell_output_nowrap {
+span.cell_output_nowrap {
   display:none;
 }
-pre.cell_output_hidden {
+span.cell_output_hidden {
   display:none;
 }
 
 
-pre.cell_output_nowrap_wrap {
+span.cell_output_nowrap_wrap {
   display:none;
 }
-pre.cell_output_nowrap_nowrap {
-  font-family: courier, monospace;
+span.cell_output_nowrap_nowrap {
+/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#0000aa;
+  color:#000099;
   padding-left:3px;
 /*  background-color: #fbeefb;   */
 }
-pre.cell_output_nowrap_hidden {
+span.cell_output_nowrap_hidden {
   display:none;
 }
 

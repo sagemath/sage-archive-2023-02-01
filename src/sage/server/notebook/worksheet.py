@@ -793,7 +793,7 @@ class Worksheet:
     def set_system(self, system=None):
         self.__system = system
 
-    def check_for_system_switching(self, s):
+    def check_for_system_switching(self, s, C):
         z = s
         s = s.lstrip()
         S = self.system()
@@ -826,9 +826,12 @@ class Worksheet:
         s = s[i+1:]
         s = s.replace("'", "\\u0027")
         t = "print %s.eval(ur'''%s''', locals=globals())"%(sys, s)
+        if sys == 'html':
+            C.set_is_html(True)
         return True, t
 
     def preparse_input(self, input, C):
+        C.set_is_html(False)
         introspect = C.introspect()
         if introspect:
             before_prompt, after_prompt = introspect
@@ -856,7 +859,7 @@ class Worksheet:
                 input = 'print "\\n".join(_support_.completions("%s", globals()))'%input
 
         else:
-            switched, input = self.check_for_system_switching(input)
+            switched, input = self.check_for_system_switching(input, C)
 
             if not switched:
                 input = ignore_prompts_and_output(input)

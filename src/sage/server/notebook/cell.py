@@ -250,8 +250,18 @@ class Cell:
                 t += s[:i].replace('<','&lt;') + s[i+6:j]
                 s = s[j+7:]
             s = t
+            if not self.is_html():
+                s = '<pre>' + s + '</pre>'
         return s
 
+    def is_html(self):
+        try:
+            return self.__is_html
+        except AttributeError:
+            return False
+
+    def set_is_html(self, v):
+        self.__is_html = v
 
     def introspect(self):
         try:
@@ -388,8 +398,8 @@ class Cell:
         if out_html != '':
             out_html = '<br>' + out_html
 
-        out = """<pre class="cell_output_%s" id="cell_output_%s">%s </pre>
-                 <pre class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </pre>
+        out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
+                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>
                  <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
                  """%(typ, self.__id, out_wrap,
                       typ, self.__id, out_nowrap,

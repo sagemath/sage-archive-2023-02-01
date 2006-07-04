@@ -454,7 +454,10 @@ def repr_lincomb(symbols, coeffs):
 def _view_hook(s):
     if s is None:
         return ''
-    print typeset(s)
+    if isinstance(s, LatexExpr):
+        print s
+    else:
+        print '<html><div class="math">%s</div></html>'%latex(s)
     return ''
 
 _old_hook = None

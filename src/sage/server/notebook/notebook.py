@@ -684,7 +684,7 @@ class Notebook(SageObject):
         head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css(self.color()) + '</style>\n'
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
-        head += '<script>jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
+        head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
         head += '<script src="jsMath.js"></script>\n'
 
         return head

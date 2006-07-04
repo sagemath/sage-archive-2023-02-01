@@ -34,6 +34,8 @@ import sage.misc.latex
 
 import sage.server.support
 
+import sage.interfaces.expect
+
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
 # usually write f(x), e.g., it is weird to write x.log() and natural
@@ -809,13 +811,15 @@ def show(x, *args, **kwds):
     """
     Show a graphics object x.
     """
-    try:
-        return x.show(*args, **kwds)
-    except AttributeError:
-        if sage.server.support.EMBEDDED_MODE:
-            print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
-            return sage.misc.latex.LatexExpr('') # so not visible output
-        raise AttributeError, "object %s does not support show."%x
+    if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
+        try:
+            return x.show(*args, **kwds)
+        except AttributeError:
+            pass
+    if sage.server.support.EMBEDDED_MODE:
+        print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
+        return sage.misc.latex.LatexExpr('') # so not visible output
+    raise AttributeError, "object %s does not support show."%x
 
 def sqrt(x):
     """

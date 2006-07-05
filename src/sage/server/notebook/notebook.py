@@ -689,6 +689,7 @@ class Notebook(SageObject):
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
+        head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
         #head +=' <script src="/jsmath/plugins/noImageFonts.js"></scripts>\n'
         head += '<script src="/jsmath/jsMath.js"></script>\n'
 

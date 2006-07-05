@@ -25,7 +25,7 @@ import css, js
 # SAGE libraries
 import sage.interfaces.sage0
 
-from   sage.misc.misc import verbose, word_wrap, SAGE_DATA
+from   sage.misc.misc import verbose, word_wrap, SAGE_EXTCODE
 import sage.misc.preparser
 from   sage.ext.sage_object import load, SageObject
 
@@ -361,7 +361,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
             elif path[:7] == 'jsmath/':
-                binfile = open(SAGE_DATA + "/" + path, 'rb').read()
+                binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:
                 binfile = open(path, 'rb').read()
         except IOError, msg:

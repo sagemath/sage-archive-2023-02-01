@@ -12,6 +12,8 @@ javascript.  This javascript is inserted into the head of the notebook
 web page.
 """
 
+from sage.misc.misc import SAGE_URL
+
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
 #
@@ -1314,7 +1316,7 @@ function show_help_window(worksheet) {
 
 
 /********************* js math ***************************/
-jsmath_font_msg = '<a href="http://www.math.union.edu/~dpvc/jsMath/download/jsMath-fonts.html">Click here to download and install the tex fonts (this is easy).</a><br>';
+jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
 
 function jsmath_init() {
     try {
@@ -1332,6 +1334,8 @@ function font_warning() {
 
 
 """
+
+    s = s.replace('SAGE_URL',SAGE_URL)
 
     s += r"""
 ///////////////////////////////////////////////////////////////////

@@ -5,3 +5,5 @@ from plot import (Graphics, line, polygon, plot, point,
 
 from plot3d import (Graphics3d, point3d, line3d)
 
+from plot3dsoya_wrap import plot3dsoya
+

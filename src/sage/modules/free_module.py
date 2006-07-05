@@ -2126,13 +2126,13 @@ class FreeModule_ambient(FreeModule_generic):
         EXAMPLES:
             sage: A = QQ^3
             sage: A._latex_()
-            '\\mbox{\\bf{}Q}^{3}'
+            '\\mathbf{Q}^{3}'
 
             sage: A = GF(5)**20; A._latex_()
             '(\\mbox{\\rm F}_{5})^{20}'
 
             sage: A = MPolynomialRing(Rationals(),3)**20; A._latex_()
-            '(\\mbox{\\bf{}Q}[x_{0}, x_{1}, x_{2}])^{20}'
+            '(\\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}'
         """
         t = "%s"%latex.latex(self.base_ring())
         if t.find(" ") != -1:
@@ -2583,7 +2583,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             sage: A = ZZ^3
             sage: M = A.span_of_basis([[1,2,3],[4,5,6]])
             sage: M._latex_()
-            '\\mbox{\\rm RowSpan}_{\\mbox{\\bf{}Z}}\\left(\\begin{array}{rrr}\n1&2&3\\\\\n4&5&6\n\\end{array}\\right)'
+            '\\mbox{\\rm RowSpan}_{\\mathbf{Z}}\\left(\\begin{array}{rrr}\n1&2&3\\\\\n4&5&6\n\\end{array}\\right)'
         """
         return "\\mbox{\\rm RowSpan}_{%s}%s"%(latex.latex(self.base_ring()), latex.latex(self.basis_matrix()))
         #return "\\mbox{\\rm Span}_{%s}(%s)"%(latex.latex(self.base_ring()), latex.latex(self.basis()))

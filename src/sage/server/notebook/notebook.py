@@ -673,9 +673,12 @@ class Notebook(SageObject):
                 cls = 'worksheet_other'
             if W.computing():
                 cls += '_computing' # actively computing
-            name = W.name().replace(' ','&nbsp;')
+            name = W.name()
+            name += ' (%s)'%len(W)
+            name += ' '*(m-len(name))
+            name = name.replace(' ','&nbsp;')
             txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" target="_new" href="/%s">%s</a>'%(
-                cls,W.id(),W.id(),W.id(),name + '&nbsp;'*(m-len(W.name())))
+                cls,W.id(),W.id(),W.id(),name)
             s.append(txt)
         return '<br>'.join(s)
 

@@ -257,7 +257,7 @@ class Cell:
                 t += s[:i].replace('<','&lt;') + s[i+6:j]
                 s = s[j+7:]
             s = t
-            if not self.is_html():
+            if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre>' + s + '</pre>'
         return s
 
@@ -377,7 +377,7 @@ class Cell:
         if len(images) == 0:
             images = ''
         else:
-            images = "<br>%s"%'<br>'.join(images)
+            images = "%s"%'<br>'.join(images)
         if len(files)  == 0:
             files  = ''
         else:
@@ -402,8 +402,6 @@ class Cell:
                          cls, self.__id)
 
         out_html = self.output_html()
-        if out_html != '':
-            out_html = '<br>' + out_html
 
         out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
                  <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>

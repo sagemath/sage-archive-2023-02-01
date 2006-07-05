@@ -134,7 +134,7 @@ class Set_object(Set_generic):
         True
 
         sage: latex(Set(ZZ))
-        \mbox{\bf{}Z}
+        \mathbf{Z}
     """
     def __init__(self, X):
         """
@@ -158,7 +158,7 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: latex(Set(QQ))
-            \mbox{\bf{}Q}
+            \mathbf{Q}
 
         When the object is finite or a special set then the latex
         representation can be more interesting.
@@ -535,7 +535,7 @@ class Set_object_union(Set_object):
             Set-theoretic union of Vector space of dimension 2 over Rational Field and Integer Ring
 
             sage: latex(X)
-            \mbox{\bf{}Q}^{2} \cup \mbox{\bf{}Z}
+            \mathbf{Q}^{2} \cup \mathbf{Z}
 
             sage: loads(X.dumps()) == X
             True
@@ -718,7 +718,7 @@ class Set_object_intersection(Set_object):
         EXAMPLES:
             sage: X = Set(ZZ).intersection(Set(QQ))
             sage: latex(X)
-            \mbox{\bf{}Z} \cap \mbox{\bf{}Q}
+            \mathbf{Z} \cap \mathbf{Q}
         """
         return '%s \\cap %s'%(latex(self.__X), latex(self.__Y))
 

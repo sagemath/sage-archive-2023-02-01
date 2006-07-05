@@ -44,6 +44,13 @@ import sage.plot.all
 from misc import tmp_dir
 import sage_eval
 
+_have_dvipng = None
+def have_dvipng():
+    return False
+    global _have_dvipng
+    if _have_dvipng is None:
+        _have_dvipng = not bool(os.system('which dvipng >/dev/null'))
+    return _have_dvipng
 
 def list_function(x):
     K = [latex(v) for v in x]
@@ -206,14 +213,16 @@ class Latex:
         else:
             redirect=''
         lt = 'latex \\\\nonstopmode \\\\input{%s.tex} %s'%(filename, redirect)
-        #dvips = 'dvips -t landscape %s.dvi %s'%(filename, redirect)
-        dvips = 'dvips %s.dvi %s'%(filename, redirect)
-        #convert = 'convert -density %sx%s -rotate 270 -trim %s.ps %s.png %s '%\
-         #         (density,density, filename, filename, redirect)
-        convert = 'convert -density %sx%s -trim %s.ps %s.png %s '%\
-                  (density,density, filename, filename, redirect)
-        cmd = ' ; '.join([lt, dvips, convert])
-        e = os.system(cmd)
+        if have_dvipng():
+            dvipng = 'dvipng -q* -T bbox -D %s %s.dvi'%(density, filename)
+            cmd = ' ; '.join([lt, dvipng])
+
+        else:
+            dvips = 'dvips %s.dvi %s'%(filename, redirect)
+            convert = 'convert -density %sx%s -trim %s.ps %s.png %s '%\
+                      (density,density, filename, filename, redirect)
+            cmd = ' ; '.join([lt, dvips, convert])
+        e = os.system(cmd + ' 1>/dev/null 2>/dev/null')
         if e:
             print "An error occured."
             try:

@@ -191,9 +191,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         r"""
         EXAMPLES:
             sage: print latex(AffineSpace(1, ZZ))
-            {\mathbf A}_{\mbox{\bf{}Z}}^1
+            \mathbf{A}_{\mathbf{Z}}^1
         """
-        return "{\\mathbf A}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
+        return "\\mathbf{A}_{%s}^%s"%(latex(self.base_ring()), self.dimension())
 
     def _constructor(self, *args, **kwds):
         return AffineSpace(*args, **kwds)

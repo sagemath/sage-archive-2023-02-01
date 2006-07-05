@@ -785,7 +785,7 @@ class NumberField_extension(NumberField_generic):
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
             sage: K.extension(t^2+t+a)._latex_()
-            '\\mbox{\\bf{}Q}[b,a]/(b^{2} + b + a, a^{3} - 2)'
+            \\mathbf{Q}[b,a]/(b^{2} + b + a, a^{3} - 2)
         """
         return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.variable_name(), self.base_field().variable_name(), self.polynomial()._latex_(self.variable_name()), self.base_field().polynomial()._latex_(self.base_field().variable_name()))
 

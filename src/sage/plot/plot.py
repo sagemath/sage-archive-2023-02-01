@@ -549,7 +549,7 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None):
+             axes=True, axes_label=None, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -566,7 +566,7 @@ class Graphics(SageObject):
             sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 	"""
         global do_verify
-        do_verify = True
+        do_verify = verify
 
         from matplotlib.figure import Figure
         if filename is None:
@@ -1629,19 +1629,19 @@ class GraphicsArray(SageObject):
         #make a blank matplotlib Figure:
         from matplotlib.figure import Figure
         figure = Figure()
+        global do_verify
+        do_verify = True
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.save(filename, dpi=dpi, fig=figure,
-                   sub=subplot, savenow = (i==dims), **args)   # only save if i==dims.
+                   sub=subplot, savenow = (i==dims), verify=do_verify,
+                   **args)   # only save if i==dims.
 
     def save(self, filename=None, dpi=DEFAULT_DPI, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        global do_verify
-        do_verify = True
-
         self._render(filename, dpi=dpi, **args)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, **args):

@@ -295,10 +295,14 @@ class pAdic(field_element.FieldElement):
             return self.__prec
         return self.__prec + self.__ordp
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         if not self.parent().series_print():
-            return "%s^%s * (%s + O(%s^%s))"%(self.__p, self.__ordp, \
-                                              self.__unit, self.__p, self.__prec)
+            if latex:
+                return "%s^{%s} * (%s + O(%s^{%s}))"%(self.__p, self.__ordp, \
+                                                  self.__unit, self.__p, self.__prec)
+            else:
+                return "%s^%s * (%s + O(%s^%s))"%(self.__p, self.__ordp, \
+                                                  self.__unit, self.__p, self.__prec)
         # series printing
         if self.__ordp == infinity:
             return "0"
@@ -321,9 +325,15 @@ class pAdic(field_element.FieldElement):
                 else:
                     var = "%s"%p
                     if exp != 1:
-                        var += "^%s"%exp
+                        if latex:
+                            var += "^{%s}"%exp
+                        else:
+                            var += "^%s"%exp
                     if coeff != 1:
-                        s += "%s*%s + "%(coeff,var)
+                        if latex:
+                            s += "%s\\cdot %s + "%(coeff,var)
+                        else:
+                            s += "%s*%s + "%(coeff,var)
                     else:
                         s += "%s + "%var
             exp += 1
@@ -332,8 +342,14 @@ class pAdic(field_element.FieldElement):
         if self.big_oh() == 1:
             s += ")"
         else:
-            s += "^%s)"%self.big_oh()
+            if latex:
+                s += "^{%s})"%self.big_oh()
+            else:
+                s += "^%s)"%self.big_oh()
         return s
+
+    def _latex_(self):
+        return self._repr_(latex=True)
 
     def _add_(self, right):
         """

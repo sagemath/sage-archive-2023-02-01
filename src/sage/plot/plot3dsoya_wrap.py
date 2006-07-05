@@ -1,3 +1,20 @@
+"""
+
+
+AUTHORS:
+    -- William Stein
+    -- Josh Kantor
+"""
+
+##############################################################################
+#       Copyright (C) 2006 Josh Kantor and William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
+
 def plot3dsoya(f, p=(0,0), side=1.0, res = 8, fineness=25,
                ignore_bad_values=True):
     r"""

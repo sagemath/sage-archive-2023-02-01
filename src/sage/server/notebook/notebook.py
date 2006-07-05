@@ -686,12 +686,12 @@ class Notebook(SageObject):
         worksheet = self.get_worksheet_with_id(worksheet_id)
         head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css(self.color()) + '</style>\n'
-        head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-        head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
-        #head +=' <script src="/jsmath/plugins/noImageFonts.js"></scripts>\n'
+        #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
+        head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
         head += '<script src="/jsmath/jsMath.js"></script>\n'
+        head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
 
@@ -762,8 +762,7 @@ class Notebook(SageObject):
                 worksheet.attached_html()
         body += '</td></tr></table></span>\n'
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
-        #body += '<script language=javascript>jsMath.Process();</script>\n'
-        body += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+        body += '<script language=javascript>jsmath_init();</script>\n'
 
         if worksheet.computing():
             # Set the update checking back in motion.

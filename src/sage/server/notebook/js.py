@@ -801,7 +801,7 @@ function evaluate_cell_introspection(id, before, after) {
         } else {
             replacing = true;
             replacing_word  = m[1];
-            before_replacing_word = before.substr(-replacing_word.length-1);
+            before_replacing_word = before.substring(0, before.length-replacing_word.length);
         }
 
         if (is_just_a_tab(before, id)) {

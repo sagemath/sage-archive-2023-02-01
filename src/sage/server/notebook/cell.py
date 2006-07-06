@@ -324,7 +324,7 @@ class Cell:
         html_in  = self.html_in(do_print=do_print)
         introspect = "<div id='introspect_div_%s'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
-        s = html_in + introspect + html_out
+        s = introspect + html_in + html_out
         if div_wrap:
             s = '\n\n<div id="cell_%s" class="%s">'%(self.id(), cls) + s + '</div>'
         return s

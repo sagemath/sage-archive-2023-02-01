@@ -963,17 +963,18 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
          cell_set_running(id);
     }
 
-    if(introspect_id == id && introspect_html) {
-        if (status == 'd') {
-            introspection_loaded = true;
-            introspection_text = introspect_html;
+    if (introspect_html) {
+        if(introspect_id == id && introspect_html) {
+            if (status == 'd') {
+                introspection_loaded = true;
+                introspection_text = introspect_html;
+            }
+            update_introspection_text();
+        } else {
+            cell_output_html.innerHTML = introspect_html;
+            /* cell_output_html.scrollIntoView(); */
         }
-        update_introspection_text();
-    } else {
-        cell_output_html.innerHTML = introspect_html;
-        focus(id);
-        /* cell_output_html.scrollIntoView(); */
-    }
+   }
 }
 
 function set_input_text(id, text) {

@@ -230,6 +230,8 @@ class Cell:
             return ''
 
     def introspect_html(self):
+        if not self.introspect():
+            return ''
         try:
             return self.__introspect_html
         except AttributeError:

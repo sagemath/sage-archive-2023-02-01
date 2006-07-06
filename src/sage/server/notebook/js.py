@@ -963,7 +963,7 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
          cell_set_running(id);
     }
 
-    if (introspect_html) {
+    if (introspect_html != '') {
         if(introspect_id == id && introspect_html) {
             if (status == 'd') {
                 introspection_loaded = true;
@@ -971,6 +971,8 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
             }
             update_introspection_text();
         } else {
+            cell_output.innerHTML = '';
+            cell_output_nowrap.innerHTML = '';
             cell_output_html.innerHTML = introspect_html;
             /* cell_output_html.scrollIntoView(); */
         }

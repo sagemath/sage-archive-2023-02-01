@@ -174,7 +174,7 @@ class Latex:
             s = s[:i] + k + t[j+1:]
 
     def eval(self, x, strip=False, filename=None, debug=None,
-             density=None, globals={}, locals={}):
+             density=None, locals={}):
         """
         INPUT:
             x -- string to evaluate.
@@ -182,7 +182,6 @@ class Latex:
             filename -- output filename
             debug -- whether to print verbose debugging output
             density -- how big output image is.
-            globals -- ignored
             locals -- extra local variables used when evaluating \sage{..}
                       code in x.
         """

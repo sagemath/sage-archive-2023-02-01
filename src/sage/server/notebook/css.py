@@ -157,8 +157,8 @@ ul.menu_one {
   list-style: none;
   position: absolute;
   z-index: 2;
-  background-color: white;
-  border: solid 2px black;
+  background-color: #dfdfdf;
+  border: solid 1px black;
   display:inline;
   margin: 5px;
   font-family:courier, monospace;
@@ -525,7 +525,7 @@ button.delete_worksheet_menu {
 }
 
 span.pane div.worksheet_list {
-   font-size:11px;
+   font-size:12px;
    top:0ex;
    height:25ex;
    border:2px solid <color2>;
@@ -601,7 +601,7 @@ a.upload_worksheet:hover {
 }
 
 span.pane a.worksheet_current {
-   font-size:11px;
+   font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color2>;
    background-color:<color2>;
@@ -610,7 +610,7 @@ span.pane a.worksheet_current {
  }
 
 span.pane a.worksheet_current_computing {
-   font-size:11px;
+   font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color1>;
    background-color:#ffd1d1;
@@ -619,7 +619,7 @@ span.pane a.worksheet_current_computing {
  }
 
 span.pane a.worksheet_other {
-   font-size:11px;
+   font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color2>;
    background-color:white;
@@ -634,7 +634,7 @@ span.pane a.worksheet_other:hover {
 }
 
 span.pane a.worksheet_other_computing {
-   font-size:11px;
+   font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color1>;
    background-color:ffd1d1;
@@ -960,6 +960,11 @@ div.cell_output_hidden {
   */
 }
 
+pre.shrunk {
+   height:0px;
+   display:inline;
+}
+
 pre.cell_output_hidden {
   display: none;
 }
@@ -972,14 +977,14 @@ pre.cell_output_hide {
 /************ INSERTING NEW CELLS **************************/
 
 div.insert_new_cell {
-  height:2px;
+  height:4px;
   width:100%;
-  border-top: 2px solid white;
+  border-top: 4px solid white;
   display:block;
 }
 
 div.insert_new_cell:hover {
-  border-top: 2px solid #000000;
+  border-top: 4px solid #000000;
   /* background-color:#eeeeee; */
 }
 """

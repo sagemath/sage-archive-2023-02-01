@@ -222,7 +222,12 @@ function handle_replacement_controls(cell_input, event) {
 
 function do_replacement(id, word) {
     var cell_input = get_cell(id);
+    /* alert('before_replacing_word = ' + before_replacing_word + '\n' +
+          'word = '+ word + '\nafter_cursor = ' + after_cursor);
+          */
     cell_input.value = before_replacing_word + word + after_cursor;
+    halt_introspection();
+    return;
     if(document.all) {
         if(cell_input.focus) {
             cell_input.focus();
@@ -504,7 +509,8 @@ function scroll_view(id) {
 
 function cell_input_resize(cell_input) {
    try {
-        var rows = cell_input.value.split('\n').length - 1;
+        //var rows = cell_input.value.split('\n').length - 1;
+        var rows = cell_input.value.split('\n').length + 3;
         if (rows <= 1) {
           rows = 2;
         } else {
@@ -713,7 +719,7 @@ function jump_to_cell(id, delta) {
     if (j >= i) {
         j = i;
     }
-    scroll_view(j);
+    //scroll_view(j);
     focus(i);
 }
 
@@ -842,14 +848,15 @@ function evaluate_cell_callback(status, response_text) {
         return;
     }
     if (X[1] == 'append_new_cell') {
-        /* add a new cell to the very end */
+        // add a new cell to the very end
         append_new_cell(X[0],X[2]);
     } else if (X[1] == 'insert_cell') {
-        /* insert a new cell after the one with id X[3] */
+        // insert a new cell after the one with id X[3]
         do_insert_new_cell_after(X[3], X[2], X[0]);
-        jump_to_cell(X[0], 0);
-    } else if (last_action != 2) {  /* not an introspection */
-       focus(X[0]);
+        // jump_to_cell(X[0], 0);
+        focus(X[0]);
+    } else if (last_action != 2) {  // not an introspection
+        focus(X[0]);
     }
 }
 
@@ -916,6 +923,7 @@ function start_update_check() {
     if (active_cell_list.length > 0) {
         updating = 1;
         update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
+        check_for_cell_update();
     } else {
         cancel_update_check();
     }
@@ -941,6 +949,7 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
 
     if (status == 'd') {
          cell_set_done(id);
+         // TODO: should make this not case sensitive!!  how to .lower() in javascript?
          if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
              try {
                  jsMath.ProcessBeforeShowing(cell_output);
@@ -960,6 +969,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
             introspection_text = introspect_html;
         }
         update_introspection_text();
+    } else {
+        cell_output_html.innerHTML = introspect_html;
+        focus(id);
+        /* cell_output_html.scrollIntoView(); */
     }
 }
 

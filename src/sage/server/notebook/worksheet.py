@@ -345,7 +345,10 @@ class Worksheet:
             i = t.find('\n')
             try:
                 n = int(t[t[:i].rfind(' '):i])  # line number of the exception
-                t = 'Syntax Error:\n    %s'%C._before_preparse.split('\n')[n-1]
+                try:
+                    t = 'Syntax Error:\n    %s'%C._before_preparse.split('\n')[n-1]
+                except IndexError:
+                    pass
                 if False:
                     if i != -1:
                         t = t[i:]
@@ -432,13 +435,12 @@ class Worksheet:
         else:
             C.set_output_text(out, C.files_html(), sage=self.sage())
             C.set_introspect_html('')
+            self.notebook().add_to_history(C.plain_text(ncols=90, prompts=True))
 
         del self.__queue[0]
         return 'd', C
 
     def best_completion(self, s, word):
-        if 'no completions of' in s:
-            return ''
         completions = s.split()
         if len(completions) == 0:
             return ''
@@ -805,15 +807,18 @@ class Worksheet:
     def set_system(self, system=None):
         self.__system = system
 
+    def _eval_cmd(self, system, cmd):
+        cmd = cmd.replace("'", "\\u0027")
+        return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
+
+
     def check_for_system_switching(self, s, C):
         z = s
         s = s.lstrip()
         S = self.system()
         if not (S is None):
             if s[:5] != '%sage':
-                s = s.replace("'", "\\u0027")
-                t = "print %s.eval(ur'''%s''', locals=globals())"%(self.__system, s)
-                return True, t
+                return True, self._eval_cmd(self.__system, s)
             else:
                 s = s[5:].lstrip()
                 z = s
@@ -836,11 +841,10 @@ class Worksheet:
             j = min(i,j)
         sys = s[1:j]
         s = s[i+1:]
-        s = s.replace("'", "\\u0027")
-        t = "print %s.eval(ur'''%s''', locals=globals())"%(sys, s)
+        cmd = self._eval_cmd(sys, s)
         if sys == 'html':
             C.set_is_html(True)
-        return True, t
+        return True, cmd
 
     def preparse_input(self, input, C):
         C.set_is_html(False)

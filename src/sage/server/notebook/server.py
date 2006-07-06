@@ -79,7 +79,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         input_text = C['input'][0]
         input_text = input_text.replace('__plus__','+')
-        notebook.add_to_history(input_text)
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)

@@ -260,3 +260,12 @@ def variables(with_types=True):
              _is_new_var(x, v)]
     w.sort()
     return w
+
+
+
+def syseval(system, cmd):
+    try:
+        return system.eval(cmd, locals = sage_globals)
+    except TypeError:
+        return system.eval(cmd)
+

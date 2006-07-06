@@ -691,6 +691,7 @@ class Notebook(SageObject):
         #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
         head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
         head += '<script src="/jsmath/jsMath.js"></script>\n'
+        head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
@@ -945,13 +946,14 @@ class Notebook(SageObject):
         """
 
     def completions_format(self, cell_id, completions):
+        if len(completions) == 0:
+            return ''
         lists = []
 
         # compute the width of each column
         column_width = []
-        if len(completions) > 0:
-            for i in range(len(completions[0])):
-                column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
+        for i in range(len(completions[0])):
+            column_width.append(max([len(x[i]) for x in completions if i < len(x)]))
 
         for i in range(len(completions)):
             row = completions[i]

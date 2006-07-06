@@ -342,7 +342,7 @@ import worksheet     # individual worksheets (which make up a notebook)
 import config
 
 MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
-MAX_HISTORY_LENGTH = 1000
+MAX_HISTORY_LENGTH = 500
 WRAP_NCOLS = 100
 
 class Notebook(SageObject):
@@ -402,15 +402,16 @@ class Notebook(SageObject):
     def add_to_history(self, input_text):
         H = self.history()
         H.append(input_text)
-        if len(H) > self.max_history_length() and len(H) > 0:
+        while len(H) > self.max_history_length():
             del H[0]
 
     def history(self):
         try:
-            return self.__history
+            s = self.__history
         except AttributeError:
             self.__history = []
-            return self.__history
+            s = self.__history
+        return s
 
     def history_text(self):
         return '\n\n'.join([H.strip() for H in self.history()])

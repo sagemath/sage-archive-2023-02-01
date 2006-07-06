@@ -436,7 +436,7 @@ class Worksheet:
         else:
             C.set_output_text(out, C.files_html(), sage=self.sage())
             C.set_introspect_html('')
-            history = '# %s\n'%time.strftime("%Y-%m-%d   %H:%M",time.localtime(time.time()))
+            history = "# Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
             history += C.plain_text(ncols=90, prompts=True, max_out=270)
             self.notebook().add_to_history(history)
 

@@ -1332,7 +1332,9 @@ function show_help_window(worksheet) {
 
 
 /********************* js math ***************************/
-jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
+
+/* jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>'; */
+jsmath_font_msg = '<a href="SAGE_URL/jsmath">jsMath temporarily disabled while we resolve a windows firefox hang bug</a><br>';
 
 function jsmath_init() {
     try {

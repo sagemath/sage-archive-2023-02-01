@@ -345,6 +345,9 @@ MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existi
 MAX_HISTORY_LENGTH = 500
 WRAP_NCOLS = 100
 
+# Temporarily disabled while we try fix the firefox windows hang bug.
+JSMATH=False
+
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',
                  username=None, password=None,
@@ -688,11 +691,12 @@ class Notebook(SageObject):
         head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         head += '<style>' + css.css(self.color()) + '</style>\n'
 
-        head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-        #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
-        head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
-        head += '<script src="/jsmath/jsMath.js"></script>\n'
-        head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+        if JSMATH:
+            head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
+            #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
+            head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
+            head += '<script src="/jsmath/jsMath.js"></script>\n'
+            head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
         head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head

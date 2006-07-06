@@ -26,6 +26,7 @@ usage_advanced() {
     echo "  -br           -- build and install any changes, then run SAGE"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
+    echo "  -clisp [...]  -- run Common Lisp"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
@@ -37,6 +38,7 @@ usage_advanced() {
     echo "  -ipython <...> -- run SAGE's Ipython using the default environment (not SAGE), passing additional options to Ipython"
     echo "  -kash <..>    -- run SAGE's Kash with given arguments"
     echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"
+    echo "  -lisp [...]   -- run Lisp interpreter included with SAGE"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
     echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
@@ -181,6 +183,20 @@ if [ $1 = '-singular' ]; then
     cd $CUR
     shift
     singular $*
+    exit $?
+fi
+
+if [ $1 = '-clisp' ]; then
+    cd $CUR
+    shift
+    clisp $*
+    exit $?
+fi
+
+if [ $1 = '-lisp' ]; then
+    cd $CUR
+    shift
+    clisp $*
     exit $?
 fi
 
@@ -431,6 +447,7 @@ if [ $1 = '-upgrade' ]; then
 fi
 
 if [ $1 = '-gdb' ]; then
+    sage_setup
     sage-gdb
     exit $?
 fi

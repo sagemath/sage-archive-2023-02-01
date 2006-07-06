@@ -757,7 +757,7 @@ function text_cursor_split(input) {
 }
 
 var non_word = new RegExp("[^a-zA-Z0-9_]");
-var command_pat = new RegExp('(.*?)([a-zA-Z._0-9]*)$');
+var command_pat = new RegExp('([a-zA-Z._0-9]*)$');
 var evaluated_cell_id = 0;
 var cell_id = 0;
 var last_action = 0;
@@ -800,8 +800,8 @@ function evaluate_cell_introspection(id, before, after) {
             replacing = false;
         } else {
             replacing = true;
-            before_replacing_word = m[1];
-            replacing_word  = m[2];
+            replacing_word  = m[1];
+            before_replacing_word = before.substr(-replacing_word.length-1);
         }
 
         if (is_just_a_tab(before, id)) {

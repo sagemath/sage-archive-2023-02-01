@@ -336,6 +336,13 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
 
+    def dict(self):
+        """
+        Return underlying dictioniary with keys the exponents and
+        values the coefficients of this polynomial.
+        """
+        return self.element().dict()
+
     def __getitem__(self, x):
         """
         INPUT:

@@ -73,6 +73,9 @@ notebook with a different system= option, then new worksheets get that
 CAS, but old ones stay the way they are.
 
 IDEAS:
+   [] have a window that pops up and shows all sage commands
+      and is easy to search.
+
    [] tab completion could also do completions on keyword arguments
       to methods.   ; these would have to be in addition to all
       valid identifiers, since you might just want to pass a valid

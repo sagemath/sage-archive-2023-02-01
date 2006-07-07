@@ -639,7 +639,7 @@ class Notebook(SageObject):
             else:
                 break
 
-        s = "SAGE Notebook http://%s:%s"%(address, port)
+        s = "Open your web browser to http://%s:%s"%(address, port)
         t = len(s)
         if t%2:
             t += 1

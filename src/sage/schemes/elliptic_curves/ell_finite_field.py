@@ -17,6 +17,8 @@ Elliptic curves over finite fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import random
+
 from ell_field import EllipticCurve_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer
@@ -124,6 +126,11 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
 
     def __points_over_arbitrary_field(self):
+        # TODO -- rewrite this insanely stupid implementation!!
+        print "WARNING: Using very very stupid algorithm for finding points over"
+        print "non-prime finite field.  Please rewrite.  See the file ell_finite.field.py."
+        # The best way to rewrite is to extend Cremona's code (either gp or mwrank) so
+        # it works over non-prime fields (should be easy), then generate up the group.
         points = [self(0)]
         for x in self.base_field():
             for y in self.base_field():
@@ -154,6 +161,27 @@ class EllipticCurve_finite_field(EllipticCurve_field):
             self.__points = self.__points_over_arbitrary_field()
 
         return self.__points
+
+    def random_element(self):
+        """
+        Returns a random point on this elliptic curve.
+
+        Returns the point at infinity with probability 1/(#k+1)
+        where k is the base field.
+        """
+        k = self.base_field()
+        if random.random() <= 1/float(k.order()+1):
+            return self(0)
+        a1, a2, a3, a4, a6 = self.ainvs()
+        while True:
+            x = k.random_element()
+            d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
+            try:
+                m = d.square_root()
+                y = (-(a1*x + a3) + m) / k(2)
+                return self([x,y])
+            except ValueError:
+                pass
 
     def cardinality(self, algorithm='heuristic', early_abort=False):
         r"""

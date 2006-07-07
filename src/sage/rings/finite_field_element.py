@@ -136,6 +136,25 @@ class FiniteFieldElement(field_element.FieldElement):
         a = self**(n / 2)
         return a == 1
 
+    def square_root(self):
+        """
+        Return a square root of this finite field element in its
+        finite field, if there is one.  Otherwise, raise a ValueError.
+        """
+        R = polynomial_ring.PolynomialRing(self.parent())
+        f = R([-self, 0, 1])
+        g = f.factor()
+        if len(g) == 2 or g[0][1] == 2:
+            return -g[0][0]
+        raise ValueError, "self (=%s) is not a perfect square."%self
+
+    def sqrt(self):
+        """
+        See self.square_root().
+        """
+        return self.square_root()
+
+
     def rational_reconstruction(self):
         """
         If the parent field is a prime field, uses rational reconstruction to

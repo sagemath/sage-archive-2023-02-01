@@ -9,7 +9,7 @@ import operator
 import integer_mod_ring
 import arith
 import rational
-from sage.libs.all import pari
+from sage.libs.all import pari, PariError
 import integer_ring
 import integer
 import commutative_ring_element
@@ -160,9 +160,16 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         return self.lift().gcd(self.modulus()) == 1
 
     def sqrt(self):
-        #if not self.is_square():
-        #    raise ValueError, "%s must be a square, but it isn't."%self
-        return self.parent()(self.__value.sqrt(), construct=True)
+        """
+        Same as self.square_root().
+        """
+        return self.square_root()
+
+    def square_root(self):
+        try:
+            return self.parent()(self.__value.sqrt(), construct=True)
+        except PariError:
+            raise ValueError, "self (=%s) must be a square."%self
 
     def _pari_(self):
         return self.__value

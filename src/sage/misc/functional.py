@@ -891,6 +891,8 @@ def square_free_part(x):
             n *= p
     return n * F.unit()
 
+squarefree_part = square_free_part
+
 def square_root(x):
     """
     Return a square root of x with the same parent as x, if possible,

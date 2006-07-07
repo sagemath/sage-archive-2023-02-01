@@ -557,7 +557,7 @@ def next_prime(n, proof=True):
         n += 2
     while not is_prime(n):  # pari isprime is provably correct
         n += 2
-    return n
+    return sage.rings.integer.Integer(n)
 
 def previous_prime(n):
     """
@@ -595,7 +595,7 @@ def previous_prime(n):
         n -= 1
     while not is_prime(abs(n)):
         n -= 2
-    return n
+    return sage.rings.integer.Integer(n)
 
 
 def divisors(n):

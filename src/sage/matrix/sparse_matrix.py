@@ -950,6 +950,7 @@ class Sparse_matrix_rational(Sparse_matrix_generic):
 
     def matrix_modint(self, n):
         X = []
+        n = int(n)
         for i, j, x in self.list():
             a = x.mod_ui(n)
             if a:

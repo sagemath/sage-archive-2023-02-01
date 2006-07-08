@@ -189,7 +189,8 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         finite field.
 
         \note{If the cardinality of the base field is not prime, this
-        function currently uses a very naive enumeration of all points.}
+        function currently uses a very very naive enumeration of all
+        points.  It's so stupid, that it prints a warning.}
 
         INPUT:
             algorithm -- string (default: 'heuristic')
@@ -212,8 +213,12 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve(GF(4),[1,2,3,4,5]).cardinality()
+            WARNING: Using very very stupid algorithm for finding points over
+            non-prime finite field.  Please rewrite.  See the file ell_finite.field.py.
             8
             sage: EllipticCurve(GF(9),[1,2,3,4,5]).cardinality()
+            WARNING: Using very very stupid algorithm for finding points over
+            non-prime finite field.  Please rewrite.  See the file ell_finite.field.py.
             16
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076

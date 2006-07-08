@@ -592,7 +592,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: latex(Set(ZZ).union(Set(GF(5))))
-            \mbox{\bf{}Z} \cup \left\{1, 0, 3, 2, 4\right\}
+            \mathbf{Z} \cup \left\{1, 0, 3, 2, 4\right\}
         """
         return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
@@ -655,7 +655,7 @@ class Set_object_intersection(Set_object):
             sage: X = S.intersection(T); X
             Set-theoretic intersection of Vector space of dimension 2 over Rational Field and Integer Ring
             sage: latex(X)
-            \mbox{\bf{}Q}^{2} \cap \mbox{\bf{}Z}
+            \mathbf{Q}^{2} \cap \mathbf{Z}
 
             sage: loads(X.dumps()) == X
             True

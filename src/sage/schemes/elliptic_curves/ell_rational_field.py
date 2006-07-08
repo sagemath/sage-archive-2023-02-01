@@ -991,7 +991,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 try:
                     self.__regulator = R(self.database_curve().db_extra[3])
                     return self.__regulator
-                except AttributeError, RuntimeError:
+                except (AttributeError, RuntimeError):
                     pass
             G = self.gens()
             try:  # in some cases self.gens() efficiently computes regulator.

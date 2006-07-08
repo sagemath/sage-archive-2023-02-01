@@ -166,8 +166,8 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         """
         Returns a random point on this elliptic curve.
 
-        Returns the point at infinity with probability 1/(#k+1)
-        where k is the base field.
+        Returns the point at infinity with probability $1/(\#k+1)$
+        where $k$ is the base field.
         """
         k = self.base_field()
         if random.random() <= 1/float(k.order()+1):

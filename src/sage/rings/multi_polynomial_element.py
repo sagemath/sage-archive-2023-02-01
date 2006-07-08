@@ -403,7 +403,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             1 + 5*x - x^9
         """
         if mon == 1:
-            mon = self.parent().gen(0)**0
+            return self.constant_coefficient()
         if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
             raise TypeError, "mon (=%s) must be a monomial in the parent of self."%mon
         R = self.parent()

@@ -56,7 +56,7 @@ cdef class GFq(FiniteField):
     cdef void *thisptr
     cdef int repr
 
-    def __init__(GFq self, q,name="a",  poly=None, repr="int"):
+    def __init__(GFq self, q, name="a",  poly=None, repr="int"):
         """
         Givaro Finite Field. These are implemented using Zech logs and
         therefor the cardinality must be < 2^20.
@@ -164,7 +164,7 @@ cdef class GFq(FiniteField):
         delete_GFq(self.thisptr)
 
     def __repr__(GFq self):
-        return "Givaro Finite Field of size %d^%d"%(self.characteristic(),self.degree())
+        return "Finite Field in %s of size %d^%d"%(self.variable_name(),self.characteristic(),self.degree())
 
 
 ##     def residu(GFq self):
@@ -259,6 +259,7 @@ cdef class GFq(FiniteField):
         from sage.modules.free_module_element import FreeModuleElement
         from sage.rings.integer_mod import IntegerMod
         from sage.libs.pari.gen import gen
+        import sage.interfaces.gap
 
         #embed{ int GFq_element_init()
         GivaroGfq::Element res = GivaroGfq::Element();
@@ -324,6 +325,8 @@ cdef class GFq(FiniteField):
                 ret = ret + self(int(e[i]))*self.gen()**i
             return ret
 
+        elif sage.interfaces.gap.is_GapElement(e):
+            return gap_to_givaro(e, self)
         else:
             raise TypeError, "Cannot convert %s of type %s into %s"%(e,type(e),self)
 
@@ -783,29 +786,31 @@ cdef class GFq_element:
         #had to write one. It is pretty clumbsy (read: slow) right now
 
         #embed{ int GFq_element_pow(void *field, int e, int exp)
-        exp = (exp%((GivaroGfq*)field)->one);
-
-        if(exp<0) {
-            e = ((GivaroGfq*)field)->invin(e);
-            exp = -exp;
+        if(((GivaroGfq*)field)->one == e ) {
+            return e;
         }
 
         if(exp==0) {
             return ((GivaroGfq*)field)->one;
-        } else {
-            if(((GivaroGfq*)field)->isunit(e)) {
-               int ret = ((GivaroGfq*)field)->one;
-               for(int i=0; i< (exp%((GivaroGfq*)field)->characteristic()) ; i++) {
-                   ((GivaroGfq*)field)->mulin(ret,e);
-               };
-               return ret;
-            }
-            return (exp*e)%((GivaroGfq*)field)->one;
         }
+
+        int power = ((GivaroGfq*)field)->one;
+        int i = 0;
+        int epow2 = e;
+        while((exp>>i) > 0) {
+            if((exp>>i) & 1) {
+                ((GivaroGfq*)field)->mulin(power,epow2);
+            }
+            ((GivaroGfq*)field)->mulin(epow2,epow2);
+            i += 1;
+        }
+        return power;
         #}embed
 
         cdef int r
 
+        if exp<0:
+            raise ArithmeticError, "%s cannot be raised to the negative power %s"%(self,exp)
         r = GFq_element_pow(self._parent.thisptr, self.this , exp )
         return make_GFq_element(self._parent,r)
 
@@ -868,10 +873,21 @@ cdef class GFq_element:
         return self._parent._element_poly_repr(self)
 
     def polynomial(GFq_element self):
-        return self._parent.polynomial_ring()(self.poly_repr())
+        quo = self._parent.log2int(self.this)
+        b   = int(self._parent.characteristic())
+
+        ret = []
+        for i in range(self._parent.degree()):
+            coeff = quo%b
+            ret.append(coeff)
+            quo = quo/b
+        return self._parent.polynomial_ring()(ret)
 
     def _latex_(GFq_element self):
-        return self.polynomial()._latex_()
+        if self._parent.degree()>1:
+            return self.polynomial()._latex_()
+        else:
+            return str(self)
 
     def _sage_(GFq_element self, k):
         """
@@ -917,11 +933,21 @@ cdef class GFq_element:
             for p, e in sage.rings.arith.factor(n):
                 # Determine the power of p that divides the order.
                 a = self**(n/(p**e))
-                while a != self._parent.one():
+                while a != 1:
                     order = order * p
                     a = a**p
             self.__multiplicative_order = order
             return order
+
+
+    def _gap_init_(self):
+        F = self._parent
+        if F.order() > 65536:
+            raise TypeError, "order (=%s) must be at most 65536."%F.order()
+        if self == 0:
+            return '0*Z(%s)'%F.order()
+        assert F.degree() > 1
+        return 'Z(%s)^%s'%(F.order(), self.log())
 
 
     def __hash__(GFq_element self):
@@ -935,3 +961,53 @@ cdef make_GFq_element(GFq parent, int x):
     y = GFq_element(parent)
     y.this = x
     return y
+
+cdef gap_to_givaro(x, F):
+    """
+    INPUT:
+        x -- gap finite field element
+        F -- Givaro finite field
+    OUTPUT:
+        element of F
+
+    EXAMPLES:
+        sage: x = gap('Z(13)')
+        sage: F = linbox.GFq(13)
+        sage: F(x)
+        2
+        sage: F(gap('0*Z(13)'))
+        0
+        sage: F = GF(13^2)
+        sage: x = gap('Z(13)')
+        sage: F(x)
+        2
+        sage: x = gap('Z(13^2)^3')
+        sage: F(x)
+        12*a + 11
+        sage: F.multiplicative_generator()^3
+        12*a + 11
+
+    AUTHOR:
+        -- David Joyner and William Stein
+        -- Martin Albrecht (copied from gap_to_sage)
+    """
+    import sage.interfaces.gap
+    s = str(x)
+    if s[:2] == '0*':
+        return F(0)
+    i1 = s.index("(")
+    i2 = s.index(")")
+    q  = eval(s[i1+1:i2].replace('^','**'))
+    if q == F.order():
+        K = F
+    else:
+        K = GFq(q)
+    if s.find(')^') == -1:
+        e = 1
+    else:
+        e = int(s[i2+2:])
+    if F.degree() == 1:
+        g = int(sage.interfaces.gap.gap.eval('Int(Z(%s))'%q))
+        return make_GFq_element(F,F.int2log(g))
+    else:
+        return make_GFq_element(F,e)

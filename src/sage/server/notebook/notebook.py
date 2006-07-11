@@ -622,7 +622,10 @@ class Notebook(SageObject):
             SageObject.save(self, os.path.abspath(filename))
 
     def start(self, port=8000, address='localhost',
-                    max_tries=128, open_viewer=False):
+                    max_tries=128, open_viewer=False,
+                    jsmath=True):
+        global JSMATH
+        JSMATH = jsmath
         tries = 0
         while True:
             try:
@@ -990,7 +993,8 @@ def notebook(dir       ='sage_notebook',
              username  = None,
              password  = None,
              color     = None,
-             system    = None):
+             system    = None,
+             jsmath    = False):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1014,6 +1018,7 @@ def notebook(dir       ='sage_notebook',
                     ('#ff0000', '#0000ff')
         system -- default computer algebra system to use for new
                   worksheets.
+        jsmath -- whether not to enable javascript typset output for math.
 
     NOTES:
 
@@ -1091,7 +1096,7 @@ def notebook(dir       ='sage_notebook',
         nb = Notebook(dir,username=username,password=password, color=color, system=system)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
-    nb.start(port, address, max_tries, open_viewer)
+    nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
     alarm(3)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=False)

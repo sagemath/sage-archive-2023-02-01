@@ -1,4 +1,21 @@
-ODO/BUGS:
+TODO/BUGS:
+   [] session switching -- should be able to switch back and forth
+      multiple times in a given input cell. This would in no way be
+      difficult to code.  E.g.,
+2+2
+%octave
+...
+%sage
+...
+%latex
+...
+etc.
+
+   [] text, eg., matrix, look a little indented when output.
+
+   [] Make a latex output for entire worksheets -- this would lead to nice
+      pdf, etc. printing of worksheets.
+
    [] clicking anywhere below the last cell should create a new cell at the end.
    [] make it so all requested computations go into the compute
       stream at once (??)  currently a computation must complete

@@ -33,6 +33,7 @@ LATEX_HEADER='\\documentclass{article}\\usepackage{fullpage}\\usepackage{amsmath
 #SLIDE_HEADER='\\documentclass[landscape]{slides}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n'
 SLIDE_HEADER='\\documentclass[a0,8pt]{beamer}\\usepackage{fullpage}\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\\usepackage{graphicx}\usepackage{pstricks}\pagestyle{empty}\n\\textwidth=1.1\\textwidth\\textheight=2\\textheight'
 
+
 import os
 
 import os.path

@@ -308,8 +308,11 @@ class Dokchitser(SageObject):
         return self.__to_CC(z)
 
     def derivative(self, s, k=1):
-        """
-        Return the k-th derivative of the L-series at s.
+        r"""
+        Return the $k$-th derivative of the $L$-series at $s$.
+
+        WARNING: If $k$ is greater than the order of vanishing of $L$
+        at $s$ you may get nonsense.
         """
         self.__check_init()
         s = self.__CC(s)

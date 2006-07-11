@@ -305,8 +305,8 @@ class GpElement(ExpectElement):
         return float(pari(str(self)))
 
     def __bool__(self):
-        self._check_valid()
-        return self.parent().eval('%s == 0'%(self.name())) == '1'
+        P = self._check_valid()
+        return P.eval('%s == 0'%(self.name())) == '1'
 
     def __getattr__(self, attrname):
         self._check_valid()
@@ -317,6 +317,14 @@ class GpElement(ExpectElement):
     def __del__(self):
         return  # clearing object is pointless, since it wastes time, and PARI/GP
                 # doesn't really free used memory anyways!
+
+    # This is tempting -- but the (la)tex output is very very
+    # out of date, e.g., for matrices it uses \pmatrix (which
+    # causes an error if amsmath is loaded) and for rationals
+    # it does nothing, etc.
+    #def _latex_(self):
+    #    P = self._check_valid()
+    #    return P.eval('printtex(%s)'%self.name())
 
     def trait_names(self):
         return self.parent().trait_names()

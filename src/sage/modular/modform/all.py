@@ -6,7 +6,7 @@
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
-#from constructor import ModularForms, CuspForms, EisensteinForms
+from constructor import ModularForms, CuspForms, EisensteinForms
 
 from eis_series import eisenstein_series_qexp
 

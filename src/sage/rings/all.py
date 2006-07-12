@@ -76,7 +76,7 @@ from padic_field import pAdicField, Qp, is_pAdicField
 from padic import pAdic
 
 # Real numbers
-from real_field import RealField, is_RealField, is_RealNumber, RR
+from real_field import RealField, is_RealField, is_RealNumber, RR, RealNumber
 Reals = RealField
 
 # Complex numbers

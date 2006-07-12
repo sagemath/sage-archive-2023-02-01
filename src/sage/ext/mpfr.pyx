@@ -36,6 +36,7 @@ AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
 #
 #*****************************************************************************
 
+import math # for log
 import sys
 
 include 'interrupt.pxi'
@@ -240,7 +241,7 @@ cdef class RealField(ring.Field):
         rnd -- (string) the rounding mode
                 RNDN -- round to nearest
                 RNDZ -- round towards zero
-                RNDU -- round towards plus infinity
+                RNDU -- round towards plus infinity (default)
                 RNDD -- round towards minus infinity
 
     EXAMPLES:
@@ -1716,3 +1717,25 @@ cdef class RealNumber(element.RingElement):
 
 
 RR = RealField()
+
+
+def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
+    r"""
+    Return the real number defined by the string s as an element
+    of \code{RealField(prec=n)}, where n has slightly more (controlled
+    by pad) bits than given by s.
+
+    INPUT:
+        s -- a string that defines a real number
+        base -- an integer between 2 and 36
+        pad -- an integer >= 1.
+        rnd -- rounding mode: RNDN, RNDZ, RNDU, RNDD
+        min_prec -- number will have at least this many bits of precision, no matter what.
+    """
+    if base == 10:
+        bits = int(3.32192*len(s))
+    else:
+        bits = int(math.log(base,2)*len(s))
+    R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
+    return RealNumber(R, s, base)
+

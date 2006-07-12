@@ -129,22 +129,29 @@ class Database(_uniq):
             self.read_only = read_only
             self.name = name
             self._thresh = thresh
-            if not os.path.exists("%s/%s"%(DB_HOME,name)):
-                try:
-                    os.makedirs("%s/%s"%(DB_HOME,name))
-                except OSError:    # for online calculator...
-                    pass
-            self._dbname = "%s/%s/%s"%(DB_HOME, name, name)
-            if read_only and not os.path.exists(self._dbname):
-                raise RuntimeError, "The database %s is not installed."%self._dbname
-            fs = FileStorage.FileStorage(self._dbname, read_only=read_only)
-            self._storage = sage.databases.compressed_storage.CompressedStorage(fs, thresh=self._thresh)
-            self._db = DB(self._storage)
-            self.conn = self._db.open()
-            self._root = self.conn.root()
-            if not self._root.has_key("btree"):
-                self._root["btree"] = BTrees.OOBTree.OOBTree()
-            self.root = self._root["btree"]
+            self._load()
+
+
+    def _load(self):
+        name = self.name
+        read_only = self.read_only
+        thresh = self._thresh
+        if not os.path.exists("%s/%s"%(DB_HOME,name)):
+            try:
+                os.makedirs("%s/%s"%(DB_HOME,name))
+            except OSError:    # for online calculator...
+                pass
+        self._dbname = "%s/%s/%s"%(DB_HOME, name, name)
+        if self.read_only and not os.path.exists(self._dbname):
+            raise RuntimeError, "The database %s is not installed."%self._dbname
+        fs = FileStorage.FileStorage(self._dbname, read_only=self.read_only)
+        self._storage = sage.databases.compressed_storage.CompressedStorage(fs, thresh=self._thresh)
+        self._db = DB(self._storage)
+        self.conn = self._db.open()
+        self._root = self.conn.root()
+        if not self._root.has_key("btree"):
+            self._root["btree"] = BTrees.OOBTree.OOBTree()
+        self.root = self._root["btree"]
 
     def abort(self):
         transaction.get().abort()
@@ -237,10 +244,18 @@ class Database(_uniq):
         return "Database %s"%self.name
 
     def __setitem__(self, x, y):
-        self.root[x] = y
+        try:
+            self.root[x] = y
+        except AttributeError:
+            self._init()
+            self.root[x] = y
 
     def __getitem__(self, x):
-        return self.root[x]
+        try:
+            return self.root[x]
+        except AttributeError:
+            self._init()
+            return self.root[x]
 
     def __getslice__(self, i, j):
         return [self[k] for k in range(i,j)]

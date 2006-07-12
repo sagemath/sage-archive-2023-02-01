@@ -29,6 +29,7 @@ import operator
 
 from sage.libs.all import pari, pari_gen, PariError
 from sage.structure.element import Element
+from sage.misc.latex import latex
 from infinity import infinity
 
 import arith
@@ -295,14 +296,14 @@ class pAdic(field_element.FieldElement):
             return self.__prec
         return self.__prec + self.__ordp
 
-    def _repr_(self, latex=False):
+    def _repr_(self, do_latex=False):
         if not self.parent().series_print():
-            if latex:
+            if do_latex:
                 return "%s^{%s} * (%s + O(%s^{%s}))"%(self.__p, self.__ordp, \
-                                                  self.__unit, self.__p, self.__prec)
+                                                  self.__unit, self.__p, latex(self.__prec))
             else:
                 return "%s^%s * (%s + O(%s^%s))"%(self.__p, self.__ordp, \
-                                                  self.__unit, self.__p, self.__prec)
+                                                  self.__unit, self.__p, latex(self.__prec))
         # series printing
         if self.__ordp == infinity:
             return "0"
@@ -325,12 +326,12 @@ class pAdic(field_element.FieldElement):
                 else:
                     var = "%s"%p
                     if exp != 1:
-                        if latex:
+                        if do_latex:
                             var += "^{%s}"%exp
                         else:
                             var += "^%s"%exp
                     if coeff != 1:
-                        if latex:
+                        if do_latex:
                             s += "%s\\cdot %s + "%(coeff,var)
                         else:
                             s += "%s*%s + "%(coeff,var)
@@ -342,14 +343,14 @@ class pAdic(field_element.FieldElement):
         if self.big_oh() == 1:
             s += ")"
         else:
-            if latex:
-                s += "^{%s})"%self.big_oh()
+            if do_latex:
+                s += "^{%s})"%latex(self.big_oh())
             else:
                 s += "^%s)"%self.big_oh()
         return s
 
     def _latex_(self):
-        return self._repr_(latex=True)
+        return self._repr_(do_latex=True)
 
     def _add_(self, right):
         """

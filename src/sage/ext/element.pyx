@@ -80,7 +80,7 @@ cdef class Element(sage_object.SageObject):
         if self._is_atomic():
             return s
         else:
-            return "(%s)"%s
+            return "\\left(%s\\right)"%s
 
     def _is_atomic(self):
         if self.parent().is_atomic_repr():

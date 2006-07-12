@@ -2,8 +2,10 @@ r"""
 Matrices over an arbitrary ring
 
 AUTHORS:
-    * William Stein
-    * Martin Albrecht (conversion to Pyrex)
+    -- William Stein
+    -- Martin Albrecht: conversion to Pyrex
+    -- Jaap Spies: various functions
+
 
 Elements of matrix spaces are of class \code{Matrix} (or a class
 derived from Matrix).  They can be either sparse or dense, and can be
@@ -42,6 +44,11 @@ reduced row echelon form of $A$.
     [      1       0 -1933/3]
     [      0       1  1550/3]
 
+We save and load a matrix:
+    sage: A = Matrix(Integers(8),3,range(9))
+    sage: loads(dumps(A)) == A
+    True
+
 
 MUTABILITY: Matrices are either immutable or not.  When initially
 created, matrices are typically mutable, so one can change their
@@ -55,6 +62,19 @@ mutable copy of $A$ using \code{A.copy()}.
 
 The echelon form method always returns immutable matrices with known
 rank.
+
+EXAMPLES:
+    sage: A = Matrix(Integers(8),3,range(9))
+    sage: A.determinant()
+    0
+    sage: A[0,0] = 5
+    sage: A.determinant()
+    7
+    sage: A.set_immutable()
+    sage: A[0,0] = 5
+    Traceback (most recent call last):
+    ...
+    ValueError: object is immutable; please change a copy instead.
 """
 
 
@@ -121,9 +141,29 @@ cdef class Matrix(ModuleElement):
     def _matrix_(self, R):
         return self.change_ring(R)
 
+    def __reduce__(self):
+        return sage.matrix.matrix.__reduce__Matrix_pyx, \
+                 (self.__class__, self.__dict__,
+                  self.parent(), self.__dict, self.__determinant,
+                  self.__sparse_columns, self.__sparse_rows,
+                  self._mutability)
+
+    def _init(self, attrs, parent, dict, determinant,
+              sparse_columns, sparse_rows,
+              mutability):
+        ModuleElement.__init__(self, parent)
+        self.__dict__ = attrs
+        self.__dict = dict
+        self.__determinant = determinant
+        self.__sparse_columns = sparse_columns
+        self.__sparse_rows = sparse_rows
+        self.__nrows = parent.nrows()
+        self.__ncols = parent.ncols()
+        self._mutability = mutability
+
     def __repr__(self):
-        nr = self.nrows()
-        nc = self.ncols()
+        nr = int(self.nrows())
+        nc = int(self.ncols())
         if nr == 0 or nc == 0:
             return "[]"
         # compute column widths
@@ -1870,3 +1910,12 @@ cdef class Matrix(ModuleElement):
 
     def _lllgram(self):
         raise NotImplementedError
+
+def __reduce__Matrix_pyx(cls, attrs, parent, dict, determinant,
+                         sparse_columns, sparse_rows,
+                         mutability):
+    M = cls.__new__(cls)
+    M._init(attrs, parent, dict, determinant,
+            sparse_columns, sparse_rows,
+            mutability)
+    return M

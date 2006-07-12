@@ -248,7 +248,8 @@ class plot3dsoya:
         self.side = float(side)
         self.N = float(N)
         self.fineness = float(fineness)
-        self.land_size = 2**(int(math.ceil(math.log(self.N*2*self.side)/math.log(2))))  + 1
+        #self.land_size = 2**(int(math.ceil(math.log(self.N*2*self.side)/math.log(2))))  + 1
+        self.land_size = 2**(int(math.ceil(math.log(self.N)/math.log(2)))) + 1
         self.ignore_bad_values = ignore_bad_values
         from sage.matrix.all import MatrixSpace
         from sage.rings.all import RR

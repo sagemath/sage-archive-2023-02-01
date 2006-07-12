@@ -14,3 +14,5 @@ Mutability
 
 from sage.structure.mutability_pyx import Mutability
 
+def __reduce__Mutability(x):
+    return Mutability(x)

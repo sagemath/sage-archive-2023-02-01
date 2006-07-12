@@ -480,7 +480,7 @@ class Worksheet:
                 except:
                     pass
             rows.append(row)
-        return self.__notebook.completions_format(id, rows)
+        return self.__notebook.format_completions_as_html(id, rows)
 
 
 

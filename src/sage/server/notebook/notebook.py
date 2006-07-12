@@ -953,7 +953,7 @@ class Notebook(SageObject):
 
         """
 
-    def completions_format(self, cell_id, completions):
+    def format_completions_as_html(self, cell_id, completions):
         if len(completions) == 0:
             return ''
         lists = []
@@ -969,18 +969,18 @@ class Notebook(SageObject):
                 if len(lists) <= j:
                     lists.append([])
                 cell = """
-   <li id='completion%s_%s_%s' class='menu_two'>
+   <li id='completion%s_%s_%s' class='completion_menu_two'>
     <a onClick='do_replacement(%s, "%s")'
-       onMouseOver='select_replacement(%s,%s);'
+       onMouseOver='this.focus(); select_replacement(%s,%s);'
     >%s</a>
    </li>"""%(cell_id, i, j, cell_id, row[j], i,j,
              row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
                 lists[j].append(cell)
 
-        grid = "<ul class='menu_one'>"
-        for list in lists:
-            list = "\n   ".join(list)
-            grid = grid + "\n <li class='menu_one'>\n  <ul class='menu_two'>\n%s\n  </ul>\n </li>"%list
+        grid = "<ul class='completion_menu_one'>"
+        for L in lists:
+            s = "\n   ".join(L)
+            grid += "\n <li class='completion_menu_one'>\n  <ul class='completion_menu_two'>\n%s\n  </ul>\n </li>"%s
 
         return grid + "\n</ul>"
 
@@ -994,7 +994,7 @@ def notebook(dir       ='sage_notebook',
              password  = None,
              color     = None,
              system    = None,
-             jsmath    = False):
+             jsmath    = True):
     r"""
     Start a SAGE notebook web server at the given port.
 

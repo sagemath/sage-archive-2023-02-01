@@ -57,7 +57,7 @@ from sage.interfaces.all import singular as singular_default
 from sage.libs.ntl.all import mat_ZZ
 cputime = misc.cputime
 
-from sage.matrix.matrix_pyx import Matrix
+from sage.matrix.matrix_pyx import Matrix, __reduce__Matrix_pyx
 
 def is_Matrix(x):
     return isinstance(x, Matrix)

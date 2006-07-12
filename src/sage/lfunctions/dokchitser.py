@@ -304,7 +304,7 @@ class Dokchitser(SageObject):
             i = z.rfind('\n')
             msg = z[:i].replace('digits','decimal digits')
             verbose(msg, level=-1)
-            return self.__to_CC(z[i:])
+            return self.__to_CC(z[i+1:])
         return self.__to_CC(z)
 
     def derivative(self, s, k=1):

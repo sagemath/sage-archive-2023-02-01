@@ -31,7 +31,7 @@ def _adapt(x):
     if isinstance(x, Interval):
         return x
     if isinstance(x, (int, long, float, integer.Integer,
-                      rational.Rational, real_field.RealNumber)):
+                      rational.Rational, real_field.RealNumberClass)):
         return Interval(x)
     raise TypeError, "cannot construct interval from %s"%x
 
@@ -63,7 +63,7 @@ class IntervalRing(ring.Ring, _uniq):
 
     def _coerce_(self, x):
         if isinstance(x, (int, long, float, Interval, integer.Integer,
-                          rational.Rational, real_field.RealNumber)):
+                          rational.Rational, real_field.RealNumberClass)):
             return self(x)
         raise TypeError
 

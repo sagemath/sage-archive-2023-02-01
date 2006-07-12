@@ -417,7 +417,7 @@ def gen_legendre_Q(n,m,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
-        2.4918525917089540
+        2.49185259170895401
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -504,7 +504,7 @@ def legendre_P(n,x):
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
         sage: legendre_P(3,1.1)
-        1.6775000000000011
+        1.67750000000000099
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -524,7 +524,7 @@ def legendre_Q(n,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(3,0.5)
-        -0.19865477147948241
+        -0.198654771479482399
     """
     _init()
     n0 = ZZ(n) # n must be an integer

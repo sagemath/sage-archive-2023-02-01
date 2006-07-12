@@ -12,6 +12,7 @@ Mutability Pyrex Implementation
 #                  http://www.gnu.org/licenses/
 ##########################################################################
 
+
 cdef class Mutability:
 
     def __init__(self, is_immutable=False):
@@ -66,3 +67,9 @@ cdef class Mutability:
             return not self._is_immutable
         except AttributeError:
             return True
+
+    def __reduce__(self):
+        import sage.structure.mutability
+        return sage.structure.mutability.__reduce__Mutability, \
+               tuple([self._is_immutable])
+

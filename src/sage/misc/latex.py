@@ -55,11 +55,13 @@ def have_dvipng():
 
 def list_function(x):
     K = [latex(v) for v in x]
-    if len(K) > 0 and max([len(r) for r in K]) > 60:
+    if len(K) > 0 and sum([len(r) for r in K]) > 80:
         if EMBEDDED_MODE:
             s = '\\begin{array}{l}'
+            K[0] = '[' + K[0]
+            K[-1] = K[-1] + ']'
             for w in K:
-                s += w + '\\\\\n'
+                s += w + ',\\\\\n'
             s += '\\end{array}'
             return s
         else:
@@ -81,9 +83,9 @@ def bool_function(x):
     return s
 
 def str_function(x):
-    if EMBEDDED_MODE:
-        return '\\text{%s}'%x
-    return "\\mbox{\\rm %s}"%x
+    #if EMBEDDED_MODE:
+    return '\\text{%s}'%(x.replace('_','\\_'))
+    #return "\\mbox{\\rm %s}"%x'
 
     # this messes up too many things.
 
@@ -445,7 +447,7 @@ def repr_lincomb(symbols, coeffs):
         sage: t = PolynomialRing(QQ, 't').0
         sage: from sage.misc.latex import repr_lincomb
         sage: repr_lincomb(['a', 's', ''], [-t, t - 2, t^12 + 2])
-        '-t\\mbox{\\rm a} + (t - 2)\\mbox{\\rm s} + (t^{12} + 2)\\mbox{\\rm }'
+        '-t\\text{a} + \\left(t - 2\\right)\\text{s} + \\left(t^{12} + 2\\right)\\text{}'
     """
     s = ""
     first = True

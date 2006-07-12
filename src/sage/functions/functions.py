@@ -341,9 +341,9 @@ class Function_arith(Function):
             sage: latex(log2 * e + pi^2/2)
             \log(2) \cdot e + \frac{\pi^{2}}{2}
             sage: latex(NaN^3 + 1/golden_ratio)
-            \mbox{\rm NaN}^{3} + \frac{1}{\phi}
+            \text{NaN}^{3} + \frac{1}{\phi}
             sage: latex(log2 + euler_gamma + catalan + khinchin + twinprime + merten + brun)
-            \log(2) + \gamma + K + \mbox{\rm khinchin} + \mbox{\rm twinprime} + \mbox{\rm merten} + \mbox{\rm brun}
+            \log(2) + \gamma + K + \text{khinchin} + \text{twinprime} + \text{merten} + \text{brun}
         """
         if self.__op == operator.div:
             return '\\frac{%s}{%s}'%(latex(self.__x), latex(self.__y))

@@ -108,4 +108,10 @@ def sage_eval(_obj_, locals={}):
             _obj_ = str(_obj_)
 
     import sage.all
-    return eval(preparse(_obj_), sage.all.__dict__, locals)
+    p = preparse(_obj_)
+    try:
+        return eval(p, sage.all.__dict__, locals)
+    except SyntaxError, msg:
+        raise SyntaxError, "%s\nError using SAGE to evaluate '%s'"%(msg, p)
+
+

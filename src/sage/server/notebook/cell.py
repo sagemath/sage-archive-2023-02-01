@@ -223,7 +223,8 @@ class Cell:
         if completing:
             self.__introspect_html = html
         else:
-            self.__introspect_html = "<pre>"+html.replace('<','&lt;').strip()+"</pre>"
+            html = html.replace('<','&lt;').strip()
+            self.__introspect_html = '<pre class="introspection">'+html+'</pre>'
 
     def output_html(self):
         try:
@@ -324,14 +325,14 @@ class Cell:
         html_in  = self.html_in(do_print=do_print)
         introspect = "<div id='introspect_div_%s'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
-        s = introspect + html_in + html_out
+        s = html_in  + introspect + html_out
         if div_wrap:
             s = '\n\n<div id="cell_%s" class="%s">'%(self.id(), cls) + s + '</div>'
         return s
 
     def html_in(self, do_print=False):
         id = self.__id
-        t = self.__in
+        t = self.__in.rstrip()
 
         if t.lstrip()[:5] == '%hide':
             cls = "cell_input_hide"
@@ -353,12 +354,12 @@ class Cell:
         r = len(t.split('\n'))
 
         s += """
-           <textarea class="%s" rows=%s cols=1000
+           <textarea class="%s" rows=%s cols=100000 columns=100000
               id         = 'cell_input_%s'
               onKeyPress = 'return cell_input_key_event(%s,event);'
               oninput   = 'cell_input_resize(%s);'
               onFocus = 'cell_focus(%s)'
-              onBlur  = 'cell_blur(%s)'
+              onBlur  = 'cell_blur(%s);'
            >%s</textarea>
         """%(cls, r, id, id, id, id, id, t)
         return s

@@ -71,7 +71,7 @@ def EllipticCurve(x, y=None):
     The following is a curve over the complex numbers:
         sage: E = EllipticCurve(CC, [0,0,1,-1,0])
         sage: E
-        Elliptic Curve defined by y^2 + y = x^3 - 1.0000000000000000*x over Complex Field with 53 bits of precision
+        Elliptic Curve defined by y^2 + 1.0000000000000000*y = x^3 + (-1.0000000000000000)*x over Complex Field with 53 bits of precision
         sage: E.j_invariant()
         2988.9729729729734
     """

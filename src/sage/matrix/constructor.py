@@ -51,7 +51,10 @@ def Matrix(R, nrows, ncols, entries=0, sparse=False):
     """
     if not rings.is_Ring(R):
         raise TypeError, "R (=%s) must be a ring."%R
-    (nrows, ncols) = (int(nrows), int(ncols))
+    if isinstance(ncols, (list, tuple)):
+        entries = ncols
+        ncols = len(entries) / nrows
+    (nrows, ncols) = (rings.Integer(nrows), rings.Integer(ncols))
     return matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse)(entries)
 
 

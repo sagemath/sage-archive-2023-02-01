@@ -18,7 +18,7 @@ Denis Simon's PARI scripts
 #*****************************************************************************
 
 from sage.interfaces.gp import Gp
-from sage.misc.preparser import preparse
+from sage.misc.sage_eval import sage_eval
 from sage.rings.all import RationalField, IntegerRing
 QQ = RationalField()
 ZZ = IntegerRing()
@@ -45,6 +45,5 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
     if verbose > 0:
         print s
     v = gp.eval('ans')
-    v = preparse(v)
-    return eval(v)
+    return sage_eval(v)
 

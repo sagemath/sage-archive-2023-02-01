@@ -12,6 +12,8 @@ AUTHORS:
 import math
 import types
 from sage.misc.misc import xsrange
+import sage.rings.coerce
+import operator
 
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
@@ -134,24 +136,29 @@ cdef class gen:
         return P.new_gen(gdiv(self.g, other.g))
 
     def __add__(self, other):
-        self = P.adapt(self); other = P.adapt(other)
-        return self._add(other)
+        if isinstance(self, gen) and isinstance(other, gen):
+            return self._add(other)
+        return sage.rings.coerce.bin_op(self, other, operator.add)
 
     def __sub__(self, other):
-        self = P.adapt(self); other = P.adapt(other)
-        return self._sub(other)
+        if isinstance(self, gen) and isinstance(other, gen):
+            return self._sub(other)
+        return sage.rings.coerce.bin_op(self, other, operator.sub)
 
     def __mul__(self, other):
-        self = P.adapt(self); other = P.adapt(other)
-        return self._mul(other)
+        if isinstance(self, gen) and isinstance(other, gen):
+            return self._mul(other)
+        return sage.rings.coerce.bin_op(self, other, operator.mul)
 
     def __div__(self, other):
-        self = P.adapt(self); other = P.adapt(other)
-        return self._div(other)
+        if isinstance(self, gen) and isinstance(other, gen):
+            return self._div(other)
+        return sage.rings.coerce.bin_op(self, other, operator.div)
 
     def __mod__(self, other):
-        self = P.adapt(self); other = P.adapt(other)
-        return self._mod(other)
+        if isinstance(self, gen) and isinstance(other, gen):
+            return self._mod(other)
+        return sage.rings.coerce.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)
@@ -5037,9 +5044,11 @@ cdef class PariInstance:
 
         if isinstance(s, gen):
             return s
-        elif hasattr(s, '_pari_'):
+        try:
             return s._pari_()
-        elif isinstance(s, (types.ListType, types.XRangeType,
+        except AttributeError:
+            pass
+        if isinstance(s, (types.ListType, types.XRangeType,
                             types.TupleType, xsrange)):
             v = self.vector(len(s))
             for i, x in enumerate(s):
@@ -5060,8 +5069,11 @@ cdef class PariInstance:
     def _coerce_(self, x):
         """
         Implicit canonical coercion into a PARI object.
-        Nothing coerces in unless it is already a PARI object.
         """
+        try:
+            return self(x)
+        except (TypeError, AttributeError):
+            raise TypeError, "no canonical coercion of %s into PARI"%x
         if isinstance(x, gen):
             return x
         raise TypeError, "x must be a PARI object"
@@ -5607,9 +5619,8 @@ class PariError (RuntimeError):
 
 # We expose a trap function to C.
 # If this function returns without raising an exception,
-# the code is retried. Beware of infinite recursion!
+# the code is retried.
 # This is a proof-of-concept example.
-# The stack should be indeed enlarged!
 # THE TRY CODE IS NOT REENTRANT -- NO CALLS TO PARI FROM HERE !!!
 #              - Gonzalo Tornario
 

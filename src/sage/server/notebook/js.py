@@ -226,8 +226,8 @@ function do_replacement(id, word) {
           'word = '+ word + '\nafter_cursor = ' + after_cursor);
           */
     cell_input.value = before_replacing_word + word + after_cursor;
-    halt_introspection();
-    return;
+    /* halt_introspection(); return; */
+    cell_input.focus();
     if(document.all) {
         if(cell_input.focus) {
             cell_input.focus();
@@ -259,13 +259,13 @@ function select_replacement(row, col) {
 function deselect_replacement_element() {
     e = get_replacement_element();
     if(e==null) return;
-    e.className = 'menu_two';
+    e.className = 'completion_menu_two';
 }
 
 function select_replacement_element() {
     var e = get_replacement_element();
     if (e==null) return;
-    e.className = 'menu_two menu_selected';
+    e.className = 'completion_menu_two completion_menu_selected';
     var l = e.getElementsByTagName('a');
     if(l[0] && l[0].innerHTML)
         var h = l[0].innerHTML;
@@ -280,6 +280,7 @@ function update_introspection_text(preserve_cursor) {
   close_introspection_text();
   d = get_element("introspect_div_"+introspect_id);
   if(!d) return;
+  scroll_view(introspect_id);
 
   if(introspection_loaded) {
     d.innerHTML = introspection_text;
@@ -510,7 +511,7 @@ function scroll_view(id) {
 function cell_input_resize(cell_input) {
    try {
         //var rows = cell_input.value.split('\n').length - 1;
-        var rows = cell_input.value.split('\n').length + 3;
+        var rows = cell_input.value.split('\n').length + 1;
         if (rows <= 1) {
           rows = 2;
         } else {
@@ -592,6 +593,7 @@ function cell_input_key_event(id, event) {
     cell_input = get_cell(id);
 
     e = get_event(event);
+    if (e==null) return;
 
     //alert (e.keyCode);
 
@@ -603,13 +605,13 @@ function cell_input_key_event(id, event) {
     if(introspect_id && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e))
             return false;  //otherwise, keep going
-        halt_introspection()
+        halt_introspection();
     }
 
     cell_input_resize(cell_input);
 
     // Will need IE version... if possible.
-    if (e.keyCode == 38) {  // up arrow
+    if (key_up_arrow(e)) {
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
@@ -618,7 +620,7 @@ function cell_input_key_event(id, event) {
         } else {
             return true;
         }
-    } else if (e.keyCode == 40) {   // down arrow
+    } else if (key_down_arrow(e)) {
         var after = text_cursor_split(cell_input)[1];
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {

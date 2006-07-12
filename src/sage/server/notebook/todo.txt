@@ -1,15 +1,8 @@
 TODO/BUGS:
-   [] session switching -- should be able to switch back and forth
-      multiple times in a given input cell. This would in no way be
-      difficult to code.  E.g.,
-2+2
-%octave
-...
-%sage
-...
-%latex
-...
-etc.
+   [] style the completion list:
+          * css needs descent names
+          * must be out of the way of what we're typing
+          * everything should appear in the same place.
 
    [] text, eg., matrix, look a little indented when output.
 
@@ -90,6 +83,18 @@ notebook with a different system= option, then new worksheets get that
 CAS, but old ones stay the way they are.
 
 IDEAS:
+   [] session switching -- should be able to switch back and forth
+      multiple times in a given input cell. This would in no way be
+      difficult to code.  E.g.,
+2+2
+%octave
+...
+%sage
+...
+%latex
+...
+etc.
+
    [] have a window that pops up and shows all sage commands
       and is easy to search.
 

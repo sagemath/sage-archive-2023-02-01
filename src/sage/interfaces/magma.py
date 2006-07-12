@@ -141,7 +141,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sys
+import os, sys
 
 from sage.structure.element import RingElement
 from expect import console, Expect, ExpectElement, ExpectFunction, FunctionElement
@@ -150,6 +150,9 @@ PROMPT = ">>>"
 import sage.misc.misc
 
 INTRINSIC_CACHE = '%s/magma_intrinsic_cache.sobj'%sage.misc.misc.DOT_SAGE
+MAGMA_SPEC = '%s/magma/spec'%sage.misc.misc.SAGE_EXTCODE
+
+
 
 class Magma(Expect):
     """
@@ -171,11 +174,25 @@ class Magma(Expect):
 
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
-                 logfile=None, server=None):
+                 logfile=None, server=None, user_config=False):
+        """
+        INPUT:
+            maxread -- affects buffering
+            script_subdirectory -- directory where scripts are read from
+            logfile -- output logged to this file
+            server -- address of remote server
+            user_config -- if True, then local user configuration files
+                           will be read by MAGMA.  If False (the default),
+                           then MAGMA is started with the -n option which
+                           supresses user configuration files.
+        """
+        command = 'magma -b '
+        if not user_config:
+            command += ' -n'
         Expect.__init__(self,
                         name = "magma",
                         prompt = ">>SAGE>>",
-                        command = "magma -b -n",
+                        command = command,
                         maxread = maxread,
                         server = server,
                         script_subdirectory = script_subdirectory,
@@ -183,7 +200,7 @@ class Magma(Expect):
                         logfile = logfile,
                         eval_using_file_cutoff=100)
         # We use "-n" above in the Magma startup command so
-        # local user startup changes are not read.
+        # local user startup configuration is not read.
 
         self.__seq = 0
 
@@ -228,6 +245,9 @@ class Magma(Expect):
         self._change_prompt(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
+        if os.path.exists(MAGMA_SPEC):
+            self.attach_spec(MAGMA_SPEC)
+
 
     def set(self, var, value):
         """
@@ -606,9 +626,16 @@ class MagmaElement(ExpectElement):
             i += 1
 
     def __len__(self):
-        self._check_valid()
-        P = self.parent()
-        return P('#%s'%self.name())
+        P = self._check_valid()
+        return int(P.eval('#%s'%self.name()))
+
+    def _latex_(self):
+        P = self._check_valid()
+        s = str(P.eval('Latex(%s)'%self.name()))
+        v = '\\mbox{\\rm '
+        if s[:len(v)] == v:
+            raise AttributeError
+        return s
 
     def set_magma_attribute(self, attrname, value):
         P = self.parent()   # instance of MAGMA that contains this element.

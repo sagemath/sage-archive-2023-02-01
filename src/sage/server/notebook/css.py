@@ -108,83 +108,7 @@ div.top_control_bar  a.interrupt {
    background-color:white;
 }
 
-ul.menu_but{
-   list-style: none;
-   margin: 0px;
-   padding: 0px;
-}
 
-li.menu_but{
-   display:inline;
-   float:right;
-   width:60px;
-}
-
-li.vbar{
-   border-right: 1px solid #000;
-   float:right;
-   width:20px;
-}
-
-ul.menu_sub{
-   list-style: none;
-   left:0px;
-   position:relative;
-}
-
-ul.menu_sub li{
-   display:inline;
-}
-
-.menu_list {
-  list-style: none;
-  position: relative;
-  z-index: 2;
-}
-
-.menu_item {
-  left: 0px;
-  position: relative;
-  background-color: #9999FF;
-  border: solid 1px #9999FF;
-}
-
-.menu_selected {
-  background-color: #8888ff;
-}
-
-ul.menu_one {
-  list-style: none;
-  position: absolute;
-  z-index: 2;
-  background-color: #dfdfdf;
-  border: solid 1px black;
-  display:inline;
-  margin: 5px;
-  font-family:courier, monospace;
-  font-size:15px;
-  padding:5px;
-}
-li.menu_one {
-  display:inline;
-  position: relative;
-  float:left;
-  margin: 0px;
-}
-
-ul.menu_two {
-  display:inline;
-  position: relative;
-  list-style: none;
-  margin: 0px;
-}
-li.menu_two{
-  display:block;
-  position:relative;
-  margin: 3px;
-  padding-left: 3px;
-  padding-right: 3px;
-}
 
 
 div.top_control_bar a.interrupt:hover {
@@ -278,6 +202,65 @@ div.top_control_bar a.download_sws:hover {
    color:#FFFFFF;
    cursor:pointer;
 }
+
+/************** Introspection ****************/
+
+.completion_menu_selected {
+  background-color: #8888ff;
+}
+
+div.introspection {
+}
+
+pre.introspection {
+  font-family:courier, monospace;
+  font-size:15px;
+  background-color: #efefef;
+  border: solid 1px black;
+  padding:8px;
+  margin:8px;
+}
+
+
+ul.completion_menu_one {
+  list-style: none;
+  position: absolute;
+  z-index: 2;
+  background-color: #efefef;
+  border: solid 1px black;
+  display:inline;
+  margin: 5px;
+  font-family:courier, monospace;
+  font-size:15px;
+  padding:5px;
+}
+li.completion_menu_one {
+  display:inline;
+  position: relative;
+  float:left;
+  margin: 0px;
+}
+
+ul.completion_menu_two {
+  display:inline;
+  position: relative;
+  list-style: none;
+  margin: 0px;
+}
+
+li.completion_menu_two{
+  display:block;
+  position:relative;
+  margin: 3px;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+li.completion_menu_two:hover{
+   background-color: #8888bb;
+   cursor:pointer;
+}
+
 
 /***** SEARCH / HELP AREA *********************************/
 
@@ -821,13 +804,15 @@ pre.cell_input_pre {
 textarea.cell_input {
   background-color: white;
   border: 0px solid white;
+  border-left: 1px dotted black;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-  width: 100%;
+  /* width: 100%;  */
+  width:400%;
 }
 
 textarea.cell_input_hide {
@@ -848,14 +833,14 @@ textarea.cell_input_hide {
 
 textarea.cell_input_active {
   background-color: white;
-   border: 0px solid #ffffff;
+  border: 1px solid #8888fe;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-  width: 100%;
+  width: 400%;
 }
 
 
@@ -892,7 +877,7 @@ span.cell_output_wrap {
   margin:0px;
   padding:0px;
   color:#000099;
-  padding-left:3px;
+/*  padding-left:3px; */
   /*  background-color: #fbeefb; */
 }
 span.cell_output_nowrap {
@@ -912,7 +897,7 @@ span.cell_output_nowrap_nowrap {
   margin:0px;
   padding:0px;
   color:#000099;
-  padding-left:3px;
+/*  padding-left:3px;   */
 /*  background-color: #fbeefb;   */
 }
 span.cell_output_nowrap_hidden {
@@ -940,7 +925,7 @@ div.cell_output_running {
   margin: 0px;
   /* border-left: 2px solid #880000;  */
   /* background-color: #eeeeee; */
-  padding-left:3px;
+/*  padding-left:3px;*/
   /* background-color:#98fb98; */
   background-color:#c8fbc8;
 }
@@ -977,14 +962,15 @@ pre.cell_output_hide {
 /************ INSERTING NEW CELLS **************************/
 
 div.insert_new_cell {
-  height:4px;
+  height:6px;
   width:100%;
-  border-top: 4px solid white;
+  /* border-top: 4px solid white; */
   display:block;
 }
 
 div.insert_new_cell:hover {
-  border-top: 4px solid #000000;
+  /* border-top: 4px solid #000000; */
+  background-color: #000000;
   /* background-color:#eeeeee; */
 }
 """

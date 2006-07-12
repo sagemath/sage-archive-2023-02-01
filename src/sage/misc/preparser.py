@@ -61,13 +61,14 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         if is_real or '.' in zz:
             # make real field with slightly less precision than
             # number of digits of our number
-            n = int(3.32192*(i-num_start-1))
+            #n = int(3.32192*(i-num_start-1))
             # we may want to change to something like this:
             #  add a few digits (how many)
             #n = int(3.32192*(i-num_start-1)) + 5
-            O = "RealField(max(%s,RR.precision()))('"%n; C = "')"
+            O = "RealNumber('"; C="')"
+            #O = "RealField(max(%s,RR.precision()))('"%n; C = "')"
         else:
-            O = "ZZ("; C = ")"
+            O = "Integer("; C = ")"
         line = line[:num_start] + O + zz + C + line[i:]
         return line, len(O+C)
 
@@ -321,7 +322,7 @@ def preparse_file(contents, attached={}, magic=True,
             else:
                 import interpreter
                 L = interpreter.load_pyrex(name_load)
-        M = preparse(L, reset=False, do_time=do_time, ignore_prompts=ignore_prompts)
+        M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
         F.append(M)
         i += 1
     # end while

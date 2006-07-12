@@ -164,7 +164,7 @@ class Set_object(Set_generic):
         representation can be more interesting.
 
             sage: print latex(Primes())
-            \mbox{\rm Set of all prime numbers: 2, 3, 5, 7, ...}
+            \text{Set of all prime numbers: 2, 3, 5, 7, ...}
             sage: print latex(Set([1,1,1,5,6]))
             \left\{1, 5, 6\right\}
         """

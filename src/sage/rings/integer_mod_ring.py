@@ -279,10 +279,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 return finite_field.gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
                 raise TypeError, "error coercing %s to finite field"%x
+        return integer_mod.IntegerMod(self, x, construct=construct)
         try:
             return integer_mod.IntegerMod(self, x, construct=construct)
-        except RuntimeError, TypeError:
-            raise TypeError, "no way to coerce %s into this ring."%x
+        except (RuntimeError, TypeError), msg:
+            raise TypeError, "no way to coerce %s of type %s into %s."%(
+                x, type(x), self)
 
     def _coerce_(self, x):
         r"""

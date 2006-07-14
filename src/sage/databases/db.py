@@ -129,10 +129,10 @@ class Database(_uniq):
             self.read_only = read_only
             self.name = name
             self._thresh = thresh
-            self._load()
+            self._load_()
 
 
-    def _load(self):
+    def _load_(self):
         name = self.name
         read_only = self.read_only
         thresh = self._thresh

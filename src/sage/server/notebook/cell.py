@@ -323,7 +323,7 @@ class Cell:
             cls = 'cell_not_evaluated'
 
         html_in  = self.html_in(do_print=do_print)
-        introspect = "<div id='introspect_div_%s'></div>"%self.id()
+        introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
         html_out = self.html_out(wrap, do_print=do_print)
         s = html_in  + introspect + html_out
         if div_wrap:

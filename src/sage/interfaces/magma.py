@@ -297,6 +297,12 @@ class Magma(Expect):
         #self.eval("delete %s"%var)
     #    self.eval("%s:=0"%var)
 
+    def cputime(self, t=None):
+        if t:
+            return float(magma.eval('Cputime(%s)'%t))
+        else:
+            return float(magma.eval('Cputime()'))
+
     def chdir(self, dir):
         """
         Change to the given directory.

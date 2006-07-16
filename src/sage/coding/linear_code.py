@@ -1,12 +1,60 @@
 r"""
 Linear Codes
 
-VERSION: 0.2
+VERSION: 0.3
+
+Let $ F$ be a finite field. A subspace of $ F^n$ (with the standard basis)
+is called a {\it linear code} of length $ n$. If its
+dimension is denoted $k$ then we typically store a basis
+of $C$ as a $k\times n$ matrix (the rows are the basis vectors)
+called the {\it generator matrix} of $C$.
+The rows of the {\it parity check matrix} of $C$ are a basis
+for the code,
+
+\[ C^* = \{ v \in GF(q)^n\ |\ v\cdot c = 0,\ for \ all\ c \in C \},
+\]
+called the {\it dual space} of  $C$.
+
+If $ F=\mathbb{F}_2$ then $ C$ is called a {\it binary code}.
+If $ F$ has $ q$ elements then $ C$ is called a
+{\it $ q$-ary code}. The elements of a code $ C$ are called
+{\it codewords}.
+
+Let $ F$ be a finite field with $ q$ elements. Here's a constructive
+definition of a cyclic code of length $ n$.
+
+    * Pick a monic polynomial $ g(x)\in F[x]$ dividing $ x^n-1$.
+      This is called the {\it generating polynomial} of the code.
+    * For each polynomial $ p(x)\in F[x]$, compute
+      $p(x)g(x)\ ({\rm mod}\ x^n-1). $
+      Denote the answer by $ c_0+c_1x+...+c_{n-1}x^{n-1}$.
+    * $ {\bf c} =(c_0,c_1,...,c_{n-1})$ is a codeword in $ C$. Every
+      codeword in $ C$ arises in this way (from some $ p(x)$).
+The {\it polynomial notation} for the code is to call
+$ c_0+c_1x+...+c_{n-1}x^{n-1}$ the codeword (instead of
+$ (c_0,c_1,...,c_{n-1})$). The polynomial $h(x)=x^n-1)/g(x)$
+is called the {\it check polynomial} of $C$.
+
+Let $ n$ be a positive integer relatively prime to $ q$ and
+let $ \alpha$ be a primitive $n$-th root of unity. Each generator
+polynomial $g$ of a cyclic code $C$ of length $n$ has a factorization
+of the form
+
+\[
+g(x) = (x - \alpha^{k_1})...(x - \alpha^{k_r}),
+\]
+where $ \{k_1,...,k_r\} \subset \{0,...,n-1\}$. The numbers
+$ \alpha^{k_i}$, $ 1 \leq i \leq r$, are called the {\it zeros}
+of the code $ C$. Many families of cyclic codes (such as
+the quadratic residue codes) are defined using properties of the
+zeros of $C$.
+
 
 AUTHOR:
     -- David Joyner (2005-11-22, 2006-12-03): written
     -- William Stein (2006-01-23) -- Inclusion in SAGE
     -- David Joyner (2006-01-30, 2006-04): small fixes
+    -- David Joyner (2006-07): added documentation
 
 This file contains
 \begin{enumerate}
@@ -485,6 +533,11 @@ is_Codeword = fme.is_FreeModuleElement
 
 def HammingCode(r,F):
     """
+
+    The parity check matrix of a Hamming code has rows consisting of
+    all nonzero vectors of length r in its columns, except for a
+    multiplication factor. A Hamming code is a single-error-correcting code.
+
     INPUT:
         r, F -- r>1 an integer, F a finite field.
 
@@ -772,6 +825,7 @@ def RandomLinearCode(n,k,F):
     G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,k+1)]
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(G))
+
 
 
 

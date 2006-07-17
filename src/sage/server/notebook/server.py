@@ -299,6 +299,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         self.wfile.write(notebook.help_window())
 
+    def license_window(self):
+        self.send_head()
+        s = "<html><head><title>SAGE License</title></head>"
+        s+= "<body><font size='-1'><pre>%s</pre></font></body></html>"%sage.misc.copying.license
+        self.wfile.write(s)
+
     def upload_window(self):
         self.send_head()
         self.wfile.write(notebook.upload_window())
@@ -339,6 +345,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.input_history_text()
             elif worksheet_filename == '__help__':
                 self.help_window()
+            elif worksheet_filename == '__license__':
+                self.license_window()
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
             elif worksheet_filename[-9:] == '__plain__':

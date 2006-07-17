@@ -839,8 +839,10 @@ class Notebook(SageObject):
         <br><b>Use Firefox:</b> <i>It currently only works in <b>Firefox</b>, but might
         work to some extent in other browsers.</i><br>
         AUTHORS: William Stein, Tom Boothby, Alex Clemesha (with feedback from many people,
-        especially Fernando Perez and Joe Wetherell).
-
+        especially Fernando Perez and Joe Wetherell).<br><br>
+        LICENSE: All code included with the standard SAGE install is licensed
+        either under the GPL or a GPL-compatible license.  <a href="__license__.html">view full
+        license text</a>
         <br><hr>
         <style>
         div.help_window {

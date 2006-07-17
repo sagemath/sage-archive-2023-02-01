@@ -21,6 +21,7 @@ import Cookie
 import cPickle
 import base64
 import css, js
+import keyboards
 
 # SAGE libraries
 import sage.interfaces.sage0
@@ -356,6 +357,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.download_worksheet(worksheet_filename)
             return
 
+        elif path[-5:] == '__.js' and self.path[-18:-7] == '__keyboard_':
+            self.wfile.write(keyboards.get_keyboard(self.path[-7:-5]))
+            return
         try:
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
@@ -391,6 +395,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-type", 'application/sage')
         elif self.path[-5:] == '.html':
             self.send_header("Content-type", 'text/html')
+        elif self.path[-5:] == '.js':
+            self.send_header("Content-type", 'text/js')
         self.end_headers()
         f = StringIO()
         f.write(binfile)

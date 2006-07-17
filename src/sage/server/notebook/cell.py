@@ -358,10 +358,15 @@ class Cell:
         s += """
            <textarea class="%s" rows=%s cols=100000 columns=100000
               id         = 'cell_input_%s'
-              onKeyPress = 'return cell_input_key_event(%s,event);'
+              onKeyPress = 'return input_keypress(%s,event);'
               oninput   = 'cell_input_resize(%s);'
+v v v v v v v
               onFocus = 'cell_focus(%s)'
               onBlur  = 'cell_blur(%s);'
+*************
+              onFocus = 'return cell_focus(%s)'
+              onBlur  = 'return cell_blur(%s)'
+^ ^ ^ ^ ^ ^ ^
            >%s</textarea>
         """%(cls, r, id, id, id, id, id, t)
         return s

@@ -13,6 +13,7 @@ web page.
 """
 
 from sage.misc.misc import SAGE_URL
+import keyboards
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
@@ -35,9 +36,60 @@ var active_cell_list = [];
 //
 ///////////////////////////////////////////////////////////////////
 
-var userAgent = navigator.userAgent.toLowerCase();
-var browser_ie = userAgent.indexOf("msie")!=-1  && userAgent.indexOf("opera")==-1;
-var browser_ie5= userAgent.indexOf("msie 5")!=-1
+var n=navigator;
+var nav=n.appVersion;
+var nan=n.appName;
+var nua=n.userAgent;
+var browser_op=(nua.indexOf('Opera')!=-1);
+var browser_saf=(nua.indexOf('Safari')!=-1);
+var browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
+var browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
+var browser_ie=((nua.indexOf('MSIE')!=-1)&&!browser_op);
+var browser_ie5=(browser_ie&&(nua.indexOF('MSIE 5')!=-1));
+var os_mac=(nav.indexOf('Mac')!=-1);
+var os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
+var os_lin=(nua.indexOf('Linux')!=-1);
+
+function true_function() {return true;}
+
+get_keyboard();
+
+function get_keyboard() {
+  var b,o;
+  if(browser_op) {
+    b = "o";
+    input_keypress = cell_input_key_event;
+  } else if(browser_ie) {
+    b = "i";
+    document.onkeydown = key_listen_ie;
+    input_keypress = true_function;
+  } else if(browser_saf) {
+    b = "s";
+    input_keypress = cell_input_key_event;
+  } else if(browser_konq) {
+    b = "k";
+    input_keypress = cell_input_key_event;
+  } else {
+    b = "m";
+    input_keypress = cell_input_key_event;
+  }
+
+  if(os_mac) {
+    o = "m";
+  } else if(os_lin) {
+    o = "l";
+  } else {
+    o = "w"
+  }
+
+  async_request('keyboard', '__keyboard_'+b+o+'__.js', get_keyboard_callback, null);
+}
+
+function get_keyboard_callback(status, response) {
+  if(status == 'success') {
+    eval(response);
+  }
+}
 
 function get_element(id) {
   if(document.getElementById)
@@ -50,6 +102,22 @@ function get_element(id) {
 
 function get_event(e) {
    return (e==null)?window.event:e;
+}
+
+function key_event(e) {
+   if(e==null) e = window.event;
+   if(e.modifiers) {
+     this.a = e.modifiers | 1;
+     this.c = e.modifiers | 2;
+     this.s = e.modifiers | 4;
+   } else {
+     this.a = e.altKey;
+     this.c = e.ctrlKey;
+     this.s = e.shiftKey;
+   }
+   this.k = e.keyCode + "," + e.which;
+   this.m = this.k + (this.s?'!':'');
+   return this;
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -159,8 +227,8 @@ var replacement_word = "";
 var replacing = false;
 var sub_introspecting = false;
 
-function capture_replacement_controls(event) {
-  e = get_event(event);
+function capture_replacement_controls(e) {
+  e = new key_event(e);
 
   if(introspect_id != null) {
   } else {
@@ -472,20 +540,26 @@ function switch_to_worksheet(id) {
 //
 ///////////////////////////////////////////////////////////////////
 
+var focused_cell,focused_cell_id;
 function get_cell(id) {
     return get_element('cell_input_'+ id);
 }
 
 function cell_focus(id) {
     e = get_cell(id);
+    focused_cell    = e;
+    focused_cell_id = id;
     if(e == null) return;
     e.className="cell_input_active";
     cell_input_resize(e);
     current_cell = id;
-    if(introspect_id != id)
+    if(introspect_id != id && introspection_loaded)
         halt_introspection();
+    return true;
 }
 function cell_blur(id) {
+    focused_cell    = null;
+    focused_cell_id = -1;
     e = get_cell(id);
     if(e == null) return;
     e.className="cell_input";
@@ -589,11 +663,26 @@ function cell_delete(id) {
    async_request('async_obj_cell_delete', '/delete_cell', cell_delete_callback, 'id='+id)
 }
 
-function cell_input_key_event(id, event) {
+function key_listen_ie() {
+    var e = get_event(null);
+    if(focused_cell_id == -1)
+        return;
+
+    k = new key_event(e);
+    if(key_shift(k) || key_ctrl(k) || key_alt(k))
+      return;
+
+    if(!cell_input_key_event(focused_cell_id, e)) {
+        void(0);
+        e.returnValue=false;
+        e.cancelBubble=true;
+    }
+}
+
+function cell_input_key_event(id, e) {
     cell_input = get_cell(id);
 
     e = get_event(event);
-    if (e==null) return;
 
     //alert (e.keyCode);
 
@@ -611,7 +700,7 @@ function cell_input_key_event(id, event) {
     cell_input_resize(cell_input);
 
     // Will need IE version... if possible.
-    if (key_up_arrow(e)) {
+    if (e.keyCode == 38) {  // up arrow
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
@@ -620,7 +709,7 @@ function cell_input_key_event(id, event) {
         } else {
             return true;
         }
-    } else if (key_down_arrow(e)) {
+    } else if (e.keyCode == 40) {   // down arrow
         var after = text_cursor_split(cell_input)[1];
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {
@@ -970,6 +1059,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
             if (status == 'd') {
                 introspection_loaded = true;
                 introspection_text = introspect_html;
+                if(id != cell_focused_id) {
+                    e = get_cell(id)
+                    e.focus()
+                }
             }
             update_introspection_text();
         } else {
@@ -1366,13 +1459,15 @@ function font_warning() {
 
 //this one isn't auto-generated.  its only purpose is to make
 //onKeyPress stuff simpler for text inputs and the whatlike.
-function is_submit(event) {
-  e = get_event(event);
+function is_submit(e) {
+  e = new key_event(e);
   return key_generic_submit(e);
 }
 
 %s
 """%keyhandler.all_tests()
+
+    s += keyboards.get_keyboard('')
 
     return s
 
@@ -1423,13 +1518,15 @@ class JSKeyCode:
         self.shift = shift
 
     def js_test(self):
-        a = "%s"%self.alt
-        c = "%s"%self.ctrl
-        s = "%s"%self.shift
-
-        return "(e.keyCode == %d && e.altKey == %s && e.ctrlKey == %s && e.shiftKey == %s)"%\
-               (self.key, a.lower(), c.lower(), s.lower())
-
+        t = "(((e.k == %s) || (e.m == %s))"%(self.key, self.key)
+        if self.alt:
+            t += " && e.a"
+        if self.ctrl:
+            t += " && e.c"
+        if self.shift:
+            t += " && e.s"
+        t+= ")"
+        return t
 
 
 keyhandler = JSKeyHandler()

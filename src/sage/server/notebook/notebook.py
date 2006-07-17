@@ -338,8 +338,9 @@ from   sage.misc.misc       import alarm
 import css          # style
 import js           # javascript
 import server       # web server
-import worksheet     # individual worksheets (which make up a notebook)
-import config
+import worksheet    # individual worksheets (which make up a notebook)
+import config       # internal configuration stuff (currently, just keycodes)
+import keyboards    # keyboard layouts
 
 MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
 MAX_HISTORY_LENGTH = 500

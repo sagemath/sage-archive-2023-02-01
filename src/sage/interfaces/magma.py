@@ -299,9 +299,9 @@ class Magma(Expect):
 
     def cputime(self, t=None):
         if t:
-            return float(magma.eval('Cputime(%s)'%t))
+            return float(self.eval('Cputime(%s)'%t))
         else:
-            return float(magma.eval('Cputime()'))
+            return float(self.eval('Cputime()'))
 
     def chdir(self, dir):
         """
@@ -346,11 +346,16 @@ class Magma(Expect):
 
     def _next_var_name(self):
         if self.__seq == 0:
-            self.eval('sage := [* *];')
+            self.eval('_sage_ := [* *];')
         else:
-            self.eval('Append(~sage, 0);')
+            try:
+                self.eval('Append(~_sage_, 0);')
+            except:
+                # this exception could happen if the MAGMA process
+                # was interrupted during startup / initialization.
+                self.eval('_sage_ := [* 0 : i in [1..%s] *];'%self.__seq)
         self.__seq += 1
-        return 'sage[%s]'%self.__seq
+        return '_sage_[%s]'%self.__seq
 
     def function_call(self, function, args=[], params={}, nvals=1):
         if not isinstance(args, list):

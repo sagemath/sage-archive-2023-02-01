@@ -361,11 +361,16 @@ class Cell:
               onKeyPress = 'return input_keypress(%s,event);'
               oninput   = 'cell_input_resize(%s);'
 v v v v v v v
+              onFocus = 'return cell_focus(%s)'
+              onBlur  = 'return cell_blur(%s)'
+*************
+v v v v v v v
               onFocus = 'cell_focus(%s)'
               onBlur  = 'cell_blur(%s);'
 *************
               onFocus = 'return cell_focus(%s)'
               onBlur  = 'return cell_blur(%s)'
+^ ^ ^ ^ ^ ^ ^
 ^ ^ ^ ^ ^ ^ ^
            >%s</textarea>
         """%(cls, r, id, id, id, id, id, t)

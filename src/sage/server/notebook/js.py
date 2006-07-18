@@ -682,7 +682,11 @@ function key_listen_ie() {
 function cell_input_key_event(id, e) {
     cell_input = get_cell(id);
 
-    e = get_event(event);
+    e = new key_event(e);
+    if (e==null) return;
+
+    if(key_request_introspections(e) && browser_op && cell_input.focus)
+        cell_input.focus();
 
     //alert (e.keyCode);
 
@@ -700,7 +704,7 @@ function cell_input_key_event(id, e) {
     cell_input_resize(cell_input);
 
     // Will need IE version... if possible.
-    if (e.keyCode == 38) {  // up arrow
+    if (key_up_arrow(e)) {
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
@@ -709,7 +713,7 @@ function cell_input_key_event(id, e) {
         } else {
             return true;
         }
-    } else if (e.keyCode == 40) {   // down arrow
+    } else if (key_down_arrow(e)) {
         var after = text_cursor_split(cell_input)[1];
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {

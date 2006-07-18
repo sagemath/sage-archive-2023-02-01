@@ -1422,7 +1422,7 @@ function print_window(worksheet) {
 /////////////////////////////////
 function show_help_window(worksheet) {
     help = window.open ("__help__.html","",
-    "menubar=1,scrollbars=1,width=700,height=600");
+    "menubar=1,scrollbars=1,width=800,height=600,resizable=1");
 }
 
 

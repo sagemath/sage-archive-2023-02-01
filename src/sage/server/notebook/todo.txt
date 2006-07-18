@@ -68,7 +68,7 @@ TODO:
    [] images in output sometimes "moved down" after reload of page!
    [] deleting saved objects
 
-[]This reminds me, I wonder if the GPL requires an "about" link, which
+[x]This reminds me, I wonder if the GPL requires an "about" link, which
 opens a new webpage (or a new tab) with your name+email and the copyright
 info. Even if it's not required, I think it's a good idea. What do you
 think?

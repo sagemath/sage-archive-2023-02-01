@@ -164,7 +164,10 @@ cdef class GFq(FiniteField):
         delete_GFq(self.thisptr)
 
     def __repr__(GFq self):
-        return "Finite Field in %s of size %d^%d"%(self.variable_name(),self.characteristic(),self.degree())
+        if self.degree()>1:
+            return "Finite Field in %s of size %d^%d"%(self.variable_name(),self.characteristic(),self.degree())
+        else:
+            return "Finite Field of size %d"%(self.characteristic())
 
 
 ##     def residu(GFq self):
@@ -364,6 +367,11 @@ cdef class GFq(FiniteField):
         #}embed
         return make_GFq_element(self,GFq_gen(self.thisptr))
 
+    def multiplicative_generator(GFq self):
+        """
+        """
+        return self.gen()
+
     def prime_subfield(GFq self):
         return self.base_ring()
 
@@ -387,6 +395,8 @@ cdef class GFq(FiniteField):
         #}embed
         if p<0:
             raise ArithmeticError, "Cannot deal with negative exponents"
+        elif p>=self.order():
+            raise IndexError, "p must be < self.order()"
         _sig_on
         ret = int(GFq_write(self.thisptr,p))
         _sig_off
@@ -444,7 +454,7 @@ cdef class GFq(FiniteField):
         """
         from sage.rings.polynomial_ring import PolynomialRing
         #from sage.rings.finite_field import GF
-        return PolynomialRing(GFq(self.characteristic()))
+        return PolynomialRing(GFq(self.characteristic()),self.variable_name())
 
     def _sage_(self):
         """
@@ -476,6 +486,8 @@ cdef class GFq(FiniteField):
             return 1
         if self.degree()>1:
             if self.polynomial()!=other.polynomial():
+                return 1
+            if self.variable_name()!=other.variable_name():
                 return 1
         return 0
 

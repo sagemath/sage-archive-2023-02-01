@@ -107,9 +107,11 @@ class Expect(SageObject):
                 E.expect(self._prompt, timeout=wait)
             else:
                 E.expect(alternate_prompt, timeout=wait)
-        except (pexpect.TIMEOUT, pexpect.EOF), msg:
-            return None
-        return E.before
+        except pexpect.TIMEOUT, msg:
+            return False, E.before
+        except pexpect.EOF, msg:
+            return True, E.before
+        return True, E.before
 
     def _send(self, cmd):
         if self._expect is None:
@@ -122,13 +124,14 @@ class Expect(SageObject):
         """
         Return whether done and output so far and new output since last time called.
         """
-        new = self._get(wait=wait, alternate_prompt=alternate_prompt)
+        done, new = self._get(wait=wait, alternate_prompt=alternate_prompt)
         try:
-            if not new is None:
+            if done:
+                #if not new is None:
                 X = self.__so_far + new
                 del self.__so_far
                 return True, X, new
-            new = self._expect.before
+            #new = self._expect.before
             try:
                 self.__so_far += new
             except (AttributeError, TypeError):

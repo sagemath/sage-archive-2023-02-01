@@ -1062,9 +1062,6 @@ def notebook(dir       ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
-    print "WARNING -- the SAGE Notebook is currently in alpha"
-    print "testing.  It also only looks right on Firefox on"
-    print "William Stein's Linux laptop!  Please give me feedback."
     if os.path.exists(dir):
         if not os.path.isdir(dir):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir

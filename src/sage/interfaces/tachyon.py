@@ -7,7 +7,7 @@ AUTHOR:
 
 
 from sage.misc.pager import pager
-from sage.misc.all import tmp_filename
+from sage.misc.misc import tmp_filename
 from sage.misc.sagedoc import format
 import os
 

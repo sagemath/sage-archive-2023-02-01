@@ -16,7 +16,6 @@ from sage.misc.all import verbose, get_verbose, tmp_filename
 
 import sage.misc.package
 
-
 class ECM:
     def __init__(self, B1=10, B2=None, **kwds):
         r"""

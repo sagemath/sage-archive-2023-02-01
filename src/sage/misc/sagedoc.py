@@ -27,6 +27,7 @@ substitutes = [('\\item', '*'), \
                ('\\geq', '>='), \
                ('\\le', '<='), \
                ('\\ge', '>='), \
+               ('\\bf', ''),\
                ('\\sage', 'SAGE'), \
                ('\\SAGE', 'SAGE'), \
                ('\\rm', ''), \
@@ -88,6 +89,9 @@ def format(s):
     s = _rmcmd(s, 'code')
     s = _rmcmd(s, 'mbox')
     s = _rmcmd(s, 'text')
+    s = _rmcmd(s, 'section')
+    s = _rmcmd(s, 'subsection')
+    s = _rmcmd(s, 'subsubsection')
     s = _rmcmd(s, 'note', 'NOTE: ', '')
     s = _rmcmd(s, 'emph', '*', '*')
     for a,b in substitutes:

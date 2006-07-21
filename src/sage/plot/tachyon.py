@@ -176,6 +176,12 @@ class Tachyon(SageObject):
     def sphere(self, center, radius, texture):
         self._objects.append(Sphere(center, radius, texture))
 
+    def cylinder(self, center, axis, radius, texture):
+        self._objects.append(Cylinder(center, axis, radius, texture))
+
+    def fcylinder(self, base, apex, radius, texture):
+        self._objects.append(FCylinder(base, apex, radius, texture))
+
 
 class Light:
     def __init__(self, center, radius, color):
@@ -225,6 +231,32 @@ class Sphere:
         return """
         sphere center %s rad %s %s
         """%(tostr(self._center), float(self._radius), self._texture)
+
+
+class Cylinder:
+    def __init__(self, center, axis, radius, texture):
+        self._center = center
+        self._axis = axis
+        self._radius = radius
+        self._texture = texture
+
+    def str(self):
+        return """
+        cylinder center %s axis %s rad %s %s
+        """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
+
+
+class FCylinder:
+    def __init__(self, base, apex, radius, texture):
+        self._center = base
+        self._axis = apex
+        self._radius = radius
+        self._texture = texture
+
+    def str(self):
+        return """
+        fcylinder base %s apex %s rad %s %s
+        """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
 
 
 def tostr(s):

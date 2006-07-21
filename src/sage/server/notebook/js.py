@@ -25,6 +25,22 @@ import keyboards
 def javascript():
     s = r"""
 
+///////////////////////////////////////////////////////////////////
+//
+// GLOBAL VARIABLES
+//
+// PLEASE define all global variables up here, and if you want to
+// set them with anything but simple assignment, 'var' them first,
+// and set them later.  Your code might work in your browser, but
+// it might break initial setup for other critical pieces in  other
+// browsers.  Thanks. (and for the record, I'm guilty of this more
+// than anybody else here -- I figure a big block comment might
+// help keep me in check)
+//
+// Exception: keyboard globals are defined at the end
+//
+///////////////////////////////////////////////////////////////////
+
 
 // The active cell list.
 var active_cell_list = [];

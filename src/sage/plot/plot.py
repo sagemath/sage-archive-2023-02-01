@@ -589,6 +589,21 @@ class Graphics(SageObject):
         figure = fig
         if not figure:
             figure = Figure(figsize)
+
+        # The following is an explanation of the figure.subplots_adjust
+        # line below, which is motivated by not wanting tons of white space
+        # around the edges of plots (by Alex Clemesha):
+        # It is more of a case of expanding the plot to the edge of
+        # the figure instead of cropping the whitespace.  The line
+        # below takes away the excessive whitespace.  ('figsize' and
+        # 'dpi' still work as expected).  We could let users access
+        # these parameters, but I can't think why one would want more
+        # whitespace around the edges.
+
+        figure.subplots_adjust(left=0,  bottom=0,
+                               right=1, top=1,
+                               wspace=None, hspace=None)
+
         subplot = sub
         if not subplot:
             subplot = figure.add_subplot(111)

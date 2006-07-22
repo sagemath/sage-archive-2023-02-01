@@ -78,7 +78,8 @@ class Tachyon(SageObject):
                  raydepth = 12,
                  center = (0, 0, 2),
                  viewdir = (0, 0, -1),
-                 updir = (0, 1, 0),
+                 updir = (0, 0, 1),
+                 look_at = None,
                  projection = 'PERSPECTIVE'):
         self._xres = xres
         self._yres = yres
@@ -87,10 +88,15 @@ class Tachyon(SageObject):
         self._antialiasing = antialiasing
         self._raydepth = raydepth
         self._center = center
-        self._viewdir = viewdir
         self._updir = updir
         self._projection = projection
         self._objects = []
+        if look_at is not None:
+            self._viewdir = (look_at[0] - center[0],look_at[1] - center[1],look_at[2] - center[2])
+        else:
+            self._viewdir = viewdir
+
+
 
     def __repr__(self):
         return self.str()
@@ -169,9 +175,10 @@ class Tachyon(SageObject):
 
     def texture(self, name, ambient=0.2, diffuse=0.8,
                 specular=0.0, opacity=1.0,
-                color=(1.0,0.0, 0.5), texfunc=0):
+                color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=.5, phongtype="PLASTIC"):
         self._objects.append(Texture(name, ambient, diffuse,
-                                     specular, opacity, color, texfunc))
+                                     specular, opacity, color, texfunc,
+                                     phong,phongsize,phongtype))
 
     def sphere(self, center, radius, texture):
         self._objects.append(Sphere(center, radius, texture))
@@ -200,7 +207,7 @@ class Light:
 class Texture:
     def __init__(self, name, ambient=0.2, diffuse=0.8,
                  specular=0.0, opacity=1.0,
-                 color=(1.0,0.0, 0.5), texfunc=0):
+                 color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=0, phongtype="PLASTIC"):
         self._name = name
         self._ambient = ambient
         self._diffuse = diffuse
@@ -208,16 +215,23 @@ class Texture:
         self._opacity = opacity
         self._color = color
         self._texfunc = texfunc
+        self._phong = phong
+        self._phongsize = phongsize
+        self._phongtype = phongtype
 
     def str(self):
         return """
         texdef %s ambient %s diffuse %s specular %s opacity %s
+        phong %s %s phong_size %s
         color %s texfunc %s
         """%(self._name,
              self._ambient,
              self._diffuse,
              self._specular,
              self._opacity,
+             self._phongtype,
+             self._phong,
+             self._phongsize,
              tostr(self._color),
              self._texfunc)
 

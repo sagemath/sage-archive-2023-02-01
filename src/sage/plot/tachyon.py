@@ -19,30 +19,38 @@ class Tachyon(SageObject):
     """
     A scene the can be rendered using the Tachyon ray tracer.
 
+    Note that the coordinates are by default such that z is up,
+    positive y is to the *left* and x is toward you.  This is
+    not oriented according to the right hand rule.
+
     EXAMPLES:
-    Two spheres.
-        sage: t = Tachyon(xres=350,yres=350)
+    Three spheres on the coordinate axes:
+
+        sage: t = Tachyon(xres=500,yres=500, camera_center=(2,0,0))
         sage: t.light((4,3,2), 0.2, (1,1,1))
-        sage: t.texture('t1', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0.8,0.7,0.9))
-        sage: t.sphere((0,-0.5,0), 0.2, 't1')
-        sage: t.sphere((0,0.5,0), 0.4, 't1')
+        sage: t.texture('t2', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
+        sage: t.texture('t3', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,1,0))
+        sage: t.texture('t4', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,0,1))
+        sage: t.sphere((0,0.5,0), 0.2, 't2')
+        sage: t.sphere((0.5,0,0), 0.2, 't3')
+        sage: t.sphere((0,0,0.5), 0.2, 't4')
         sage: t.save()
 
     Sphere's along the twisted cubic.
-        sage: t = Tachyon(xres=512,yres=512, center=(0,0,5))
+        sage: t = Tachyon(xres=512,yres=512, camera_center=(3,0.3,0))
         sage: t.light((4,3,2), 0.2, (1,1,1))
         sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1.0,0,0))
         sage: t.texture('t1', ambient=0.1, diffuse=0.9, specular=0.3, opacity=1.0, color=(0,1.0,0))
-        sage: t.texture('t2', ambient=0.2, diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
+        sage: t.texture('t2', ambient=0.2,diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
         sage: k=0
-        sage: for i in srange(-5,1.5,0.1):
+        sage: for i in srange(-1,1,0.05):
         ...    k += 1
         ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         ...
         sage: t.save()
 
     Many random spheres:
-        sage: t = Tachyon(xres=512,yres=512, center=(0.5,0.5,2), raydepth=4)
+        sage: t = Tachyon(xres=512,yres=512, camera_center=(2,0.5,0.5), look_at=(0.5,0.5,0.5), raydepth=4)
         sage: t.light((4,3,2), 0.2, (1,1,1))
         sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1.0,0,0))
         sage: t.texture('t1', ambient=0.1, diffuse=0.9, specular=0.3, opacity=1.0, color=(0,1.0,0))
@@ -54,32 +62,33 @@ class Tachyon(SageObject):
         ...
         sage: t.save()         # long (several seconds)
 
+
     Points on an elliptic curve:
-        sage: t = Tachyon(xres=512,yres=512, center=(0.5,1,10))
-        sage: t.light((4,3,2), 0.2, (1,1,1))
-        sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1.0,0,0))
+        sage: t = Tachyon(camera_center=(5,2,2), look_at=(0,1,0))
+        sage: t.light((10,3,2), 0.2, (1,1,1))
+        sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
+        sage: t.texture('t1', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,1,0))
+        sage: t.texture('t2', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(0,0,1))
         sage: E = EllipticCurve('37a')
         sage: P = E([0,0])
         sage: Q = P
-        sage: def f(r):
-        ...    h = log(log(r.height() + 1))
-        ...    return h
-        ...
-        sage: for i in range(20):   # increase 20 for a better plot
+        sage: n = 100
+        sage: for i in range(n):   # increase 20 for a better plot
         ...    Q = Q + P
-        ...    t.sphere((Q[0], -f(Q), Q[1]), 0.1, 't0')
+        ...    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
         ...
         sage: t.save()
     """
-    def __init__(self, xres=350, yres=350,
+    def __init__(self,
+                 xres=350, yres=350,
                  zoom = 1.0,
                  antialiasing = False,
                  aspectratio = 1.0,
                  raydepth = 12,
-                 center = (0, 0, 2),
-                 viewdir = (0, 0, -1),
+                 camera_center = (-3, 0, 0),
                  updir = (0, 0, 1),
-                 look_at = None,
+                 look_at = (0,0,0),
+                 viewdir = None,
                  projection = 'PERSPECTIVE'):
         self._xres = xres
         self._yres = yres
@@ -87,12 +96,12 @@ class Tachyon(SageObject):
         self._aspectratio = aspectratio
         self._antialiasing = antialiasing
         self._raydepth = raydepth
-        self._center = center
+        self._camera_center = camera_center
         self._updir = updir
         self._projection = projection
         self._objects = []
-        if look_at is not None:
-            self._viewdir = (look_at[0] - center[0],look_at[1] - center[1],look_at[2] - center[2])
+        if viewdir is None:
+            self._viewdir = [look_at[i] - camera_center[i] for i in range(3)]
         else:
             self._viewdir = viewdir
 
@@ -154,7 +163,7 @@ class Tachyon(SageObject):
         """%(float(self._zoom), float(self._aspectratio),
              int(self._antialiasing),
              int(self._raydepth),
-             tostr(self._center),
+             tostr(self._camera_center),
              tostr(self._viewdir),
              tostr(self._updir))
 

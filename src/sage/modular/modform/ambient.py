@@ -98,6 +98,17 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         return self
 
     def is_ambient(self):
+        """
+        Return True if this an ambient space of modular forms.
+
+        This is an ambient space, so this function always returns True.
+
+        EXAMPLES:
+            sage: ModularForms(11).is_ambient()
+            True
+            sage: CuspForms(11).is_ambient()
+            False
+        """
         return True
 
     def modular_symbols(self, sign=0):
@@ -139,6 +150,31 @@ class ModularFormsAmbient(space.ModularFormsSpace,
     def prec(self, new_prec=None):
         """
         Set or get default initial precision for printing modular forms.
+
+        INPUT:
+            new_prec -- positive integer (default: None)
+
+        OUTPUT:
+            if new_prec is None, returns the current precision.
+
+        EXAMPLES:
+            sage: M = ModularForms(1,12, prec=3)
+            sage: M.prec()
+            3
+
+            sage: M.basis()
+            [
+            q - 24*q^2 + O(q^3),
+            1 + 65520/691*q + 134250480/691*q^2 + O(q^3)
+            ]
+
+            sage: M.prec(5)
+            sage: M.basis()
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5),
+            1 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + O(q^5)
+            ]
+
         """
         if new_prec:
             self.__prec = new_prec
@@ -149,6 +185,8 @@ class ModularFormsAmbient(space.ModularFormsSpace,
         return self.__prec
 
     def set_precision(self, n):
+        if n < 0:
+            raise ValueError, "n (=%s) must be >= 0"%n
         self.__prec = rings.Integer(n)
 
     ####################################################################

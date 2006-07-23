@@ -41,31 +41,227 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
     def prec(self, new_prec=None):
+        """
+        Return or set the default precision used for displaying
+        $q$-expansions of elements of this space.
+
+        INPUT:
+            new_prec -- positive integer (default: None)
+
+        OUTPUT:
+            if new_prec is None, returns the current precision.
+
+        EXAMPLES:
+            sage: M = ModularForms(1,12)
+            sage: S = M.cuspidal_subspace()
+            sage: S.prec()
+            6
+            sage: S.basis()
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            ]
+            sage: S.prec(8)
+            sage: S.basis()
+            [
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
+            ]
+        """
         return self.ambient().prec(new_prec)
 
     def set_precision(self, new_prec):
+        """
+        Set the default precision used for displaying $q$-expansions.
+
+        INPUT:
+            new_prec -- positive integer
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma0(37),2)
+            sage: M.set_precision(10)
+            sage: S = M.cuspidal_subspace()
+            sage: S.basis()
+            [
+            q + q^3 - 2*q^4 - q^7 - 2*q^9 + O(q^10),
+            q^2 + 2*q^3 - 2*q^4 + q^5 - 3*q^6 - 4*q^9 + O(q^10)
+            ]
+
+            sage: S.set_precision(0)
+            sage: S.basis()
+            [
+            O(q^0),
+            O(q^0)
+            ]
+
+        The precision of subspaces is the same as the precision of the
+        ambient space.
+            sage: S.set_precision(2)
+            sage: M.basis()
+            [
+            q + O(q^2),
+            1 + 2/3*q + O(q^2),
+            O(q^2)
+            ]
+
+        The precision must be nonnegative:
+            sage: S.set_precision(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n (=-1) must be >= 0
+
+        We do another example with nontrivial character.
+            sage: M = ModularForms(DirichletGroup(13).0^2)
+            sage: M.set_precision(10)
+            sage: M.cuspidal_subspace().0
+            ???
+        """
         self.ambient().set_precision(new_prec)
 
-    def change_ring(self):
+    def change_ring(self, R):
+        """
+        Change the base ring of this space of modular forms.
+        """
         raise NotImplementedError
 
     def weight(self):
+        """
+        Return the weight of this space of modular forms.
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma1(13),11)
+            sage: M.weight()
+            11
+
+            sage: M = ModularForms(Gamma0(997),100)
+            sage: M.weight()
+            100
+
+            sage: M = ModularForms(Gamma0(97),4)
+            sage: M.weight()
+            4
+            sage: M.eisenstein_submodule().weight()
+            4
+        """
         return self.__weight
 
     def group(self):
+        r"""
+        Return the congruence subgroup associated to this space of
+        modular forms.
+
+        EXAMPLES:
+            sage: ModularForms(Gamma0(12),4).group()
+            Congruence Subgroup Gamma0(12)
+
+            sage: CuspForms(Gamma1(113),2).group()
+            Congruence Subgroup Gamma1(113)
+
+        Note that $\Gamma_1(1)$ and $\SL_2(\Z)$ are replaced by
+        $\Gamma_0(1)$.
+
+            sage: CuspForms(Gamma1(1),12).group()
+            Congruence Subgroup Gamma0(1)
+            sage: CuspForms(SL2Z(),12).group()
+            Congruence Subgroup Gamma0(1)
+        """
         return self.__group
 
     def character(self):
+        """
+        Return the Dirichlet character corresponding to this space
+        of modular forms.  Returns None if there is no specific
+        character corresponding to this space, e.g., if this is a
+        space of modular forms on $\Gamma_1(N)$ with $N>1$.
+
+        EXAMPLES:
+        The trivial character:
+            sage: ModularForms(Gamma0(11),2).character()
+            [1]
+
+        A space of forms with nontrivial character:
+            sage: ModularForms(DirichletGroup(20).0,3).character()
+            [-1, 1]
+
+        A space of forms with no particular character (hence None is returned):
+            sage: print ModularForms(Gamma1(11),2).character()
+            None
+
+        If the level is one then the character is trivial.
+            sage: ModularForms(Gamma1(1),12).character()
+            [1]
+        """
         return self.__character
 
     def base_ring(self):
+        r"""
+        Return the base ring of this space of modular forms.
+
+        EXAMPLES:
+        For spaces of modular forms for $\Gamma_0(N)$ or $\Gamma_1(N)$,
+        the default base ring is $\Q$:
+            sage: ModularForms(11,2).base_ring()
+            Rational Field
+            sage: ModularForms(1,12).base_ring()
+            Rational Field
+            sage: CuspForms(Gamma1(13),3).base_ring()
+            Rational Field
+
+        The base ring can be explicitly specified in the constructor function.
+            sage: ModularForms(11,2,base_ring=GF(13)).base_ring()
+            Finite Field of size 13
+
+        For modular forms with character the default base ring is the field
+        generated by the image of the character.
+            sage: ModularForms(DirichletGroup(13).0,3).base_ring()
+            Cyclotomic Field of order 12 and degree 4
+
+        For example, if the character is quadratic then the field is $\Q$ (if
+        the characteristic is $0$).
+            sage: ModularForms(DirichletGroup(13).0^6,3).base_ring()
+            Rational Field
+
+            sage: ModularForms(DirichletGroup(13, GF(7)).0^6,3).base_ring()
+            Finite Field of size 7
+
+            sage: ModularForms(DirichletGroup(13, GF(7)).0,3).base_ring()
+            Finite Field of size 7
+        """
         return self.__base_ring
 
     def has_character(self):
-        return self.character() != None
+        """
+        Return True if this space of modular forms has a specific
+        character.
+
+        This is True exactly when the character() function does not
+        return None.
+
+        EXAMPLES:
+        A space for $\Gamma_0(N)$ has trivial character, hence has a character.
+            sage: CuspForms(Gamma0(11),2).has_character()
+            True
+
+        A space for $\Gamma_1(N)$ (for $N\geq 2$) never has a specific character.
+            sage: CuspForms(Gamma1(11),2).has_character()
+            False
+            sage: CuspForms(DirichletGroup(11).0,3).has_character()
+            True
+        """
+        return not self.character() is None
 
     def is_ambient(self):
-        raise NotImplementedError
+        """
+        Return True if this an ambient space of modular forms.
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma1(4),4)
+            sage: M.is_ambient()
+            True
+
+            sage: E = M.eisenstein_subspace()
+            sage: E.is_ambient()
+            False
+        """
+        return False   # returning True is defined in the derived AmbientSpace class.
 
     def __normalize_prec(self, prec):
         if prec is None:
@@ -78,13 +274,13 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
     def echelon_form(self):
         r"""
-        Return a space of modular forms isomorphic to self but
-        with basis of $q$-expansions in reduced echelon form.
+        Return a space of modular forms isomorphic to self but with
+        basis of $q$-expansions in reduced echelon form.
 
-        This is useful, e.g., since the default basis for ambient
-        spaces is not in echelon form, since it's the space of
-        cusp forms in echelon form followed by the Eisenstein
-        series in echelon form.
+        This is useful, e.g., the default basis for spaces of modular
+        forms is rarely in echelon form, but echelon form is useful
+        for quickly recognizing whether a $q$-expansion is in the
+        space.
 
         EXAMPLES:
         We first illustrate two ambient spaces and their echelon forms.
@@ -148,6 +344,43 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return E
 
     def echelon_basis(self):
+        """
+        Return a basis for self in reduced echelon form.  This means
+        that if we view the $q$-expansions of the basis as defining
+        rows of a matrix (with infinitely many columns), then this
+        matrix is in reduced echelon form.
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma0(11),4)
+            sage: M.echelon_basis()
+            [
+            1 + O(q^6),
+            q - 9*q^4 - 10*q^5 + O(q^6),
+            q^2 + 6*q^4 + 12*q^5 + O(q^6),
+            q^3 + q^4 + q^5 + O(q^6)
+            ]
+            sage: M.cuspidal_subspace().echelon_basis()
+            [
+            q + 3*q^3 - 6*q^4 - 7*q^5 + O(q^6),
+            q^2 - 4*q^3 + 2*q^4 + 8*q^5 + O(q^6)
+            ]
+
+            sage: M = ModularForms(SL2Z(), 12)
+            sage: M.echelon_basis()
+            [
+            1 + 196560*q^2 + 16773120*q^3 + 398034000*q^4 + 4629381120*q^5 + O(q^6),
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            ]
+
+            sage: M = CuspForms(Gamma0(17),4, prec=10)
+            sage: M.echelon_basis()
+            [
+            q + 2*q^5 - 8*q^7 - 8*q^8 + 7*q^9 + O(q^10),
+            q^2 - 3/2*q^5 - 7/2*q^6 + 9/2*q^7 + q^8 - 4*q^9 + O(q^10),
+            q^3 - 2*q^6 + q^7 - 4*q^8 - 2*q^9 + O(q^10),
+            q^4 - 1/2*q^5 - 5/2*q^6 + 3/2*q^7 + 2*q^9 + O(q^10)
+            ]
+        """
         try:
             return self.__echelon_basis
         except AttributeError:
@@ -162,6 +395,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             return E
 
     def integral_basis(self):
+        """
+
+        """
         try:
             return self.__integral_basis
         except AttributeError:
@@ -704,9 +940,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
                                    (self, right)
         V = self.embedded_submodule().intersect(right.embedded_submodule())
         return ModularForms(self.ambient_space(),V)
-
-    def is_ambient(self):
-        return self.__ambient == None
 
     def key(self):
         if self.is_ambient():

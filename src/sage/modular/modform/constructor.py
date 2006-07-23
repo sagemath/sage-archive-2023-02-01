@@ -40,6 +40,10 @@ def canonical_parameters(group, weight, base_ring):
     elif isinstance(group, dirichlet.DirichletCharacter):
         group = group.minimize_base_ring()
 
+    if isinstance(group, congroup.SL2Z) or \
+       isinstance(group, congroup.Gamma1) and group.level() == 1:
+        group = congroup.Gamma0(1)
+
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
 

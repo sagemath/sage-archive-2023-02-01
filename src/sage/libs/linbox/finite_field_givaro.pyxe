@@ -48,9 +48,19 @@ include 'misc.pxi'
 
 from sage.ext.ring cimport FiniteField
 from sage.rings.coerce import bin_op
+from sage.ext.sage_object cimport SageObject
 import operator
+import sage.rings.arith
+from sage.ext.integer import Integer
+import sage.interfaces.gap
+from sage.libs.pari.all import pari
+from sage.libs.pari.gen import gen
 
-cdef class GFq_element # forward declaration
+
+
+
+
+cdef class GFq_element(SageObject) # forward declaration
 
 cdef class GFq(FiniteField):
     cdef void *thisptr
@@ -199,6 +209,9 @@ cdef class GFq(FiniteField):
     def order(GFq self):
         return self.cardinality()
 
+    def __len__(self):
+        return self.cardinality()
+
     def cardinality(GFq self):
         """
         Return integer representing cardinality of the domain.
@@ -257,12 +270,13 @@ cdef class GFq(FiniteField):
         """
         Coerces several data types to self.
         """
-        from sage.ext.integer import Integer
-        from sage.rings.finite_field_element import FiniteFieldElement
+
+        from sage.rings.multi_polynomial_element import MPolynomial
+        from sage.rings.polynomial_element import Polynomial
         from sage.modules.free_module_element import FreeModuleElement
+        from sage.rings.finite_field_element import FiniteFieldElement
         from sage.rings.integer_mod import IntegerMod
-        from sage.libs.pari.gen import gen
-        import sage.interfaces.gap
+        from sage.rings.rational import Rational
 
         #embed{ int GFq_element_init()
         GivaroGfq::Element res = GivaroGfq::Element();
@@ -290,7 +304,7 @@ cdef class GFq(FiniteField):
 
         ########
 
-        if isinstance(e,Integer) or isinstance(e,int) or isinstance(e,long) or isinstance(e,IntegerMod):
+        if isinstance(e, (Integer,int,long,IntegerMod)):
             res = GFq_element_initi(self.thisptr,int(e))
 
         elif isinstance(e,float):
@@ -330,10 +344,48 @@ cdef class GFq(FiniteField):
 
         elif sage.interfaces.gap.is_GapElement(e):
             return gap_to_givaro(e, self)
+
+        elif isinstance(e, (MPolynomial, Polynomial)):
+            if e.is_constant():
+                return self(e.constant_coefficient())
+            else:
+                raise TypeError, "no coercion of non-constant polynomial %s into %s defined."%(e,self)
+
+        elif isinstance(e, Rational):
+            num = e.numer()
+            den = e.denom()
+            if num>=self.characteristic() or den>=self.characteristic():
+                raise TypeError, "Unable to coerce %s into %s."%(e,self)
+            return self(num)/self(den)
         else:
-            raise TypeError, "Cannot convert %s of type %s into %s"%(e,type(e),self)
+            raise TypeError, "Unable to coerce %s into %s."%(e,self)
 
         return make_GFq_element(self,res)
+
+    def _coerce_(self, x):
+        #from finite_field.py
+
+        from sage.rings.finite_field_element import FiniteFieldElement
+        from sage.rings.integer_mod import IntegerMod
+        from sage.rings.integer_mod_ring import IntegerModRing_generic
+
+        if isinstance(x, (int, long, Integer)):
+            return self(x)
+
+        if isinstance(x, (FiniteFieldElement,IntegerMod,GFq_element)):
+            K = x.parent()
+            if K is self:
+                return x
+            if isinstance(K, IntegerModRing_generic) and K.characteristic() % self.characteristic() == 0:
+                return self(int(x))
+            if K.characteristic() == self.characteristic():
+                if K.degree() == 1:
+                    return self(int(x))
+                elif self.degree() % K.degree() == 0:
+                    # This is where we *would* do coercion from one nontrivial finite field to another...
+                    raise TypeError, 'no canonical coercion of %s to %s defined; adding this is planned (see rings/finite_field.py to help!)'%(x, self)
+        raise TypeError, 'no canonical coercion of %s to %s'%(x, self)
+
 
     def one(GFq self):
         """
@@ -394,7 +446,7 @@ cdef class GFq(FiniteField):
         return ((GivaroGfq*)field)->write(res,p);
         #}embed
         if p<0:
-            raise ArithmeticError, "Cannot deal with negative exponents"
+            raise ArithmeticError, "Cannot serve negative exponent %d"%p
         elif p>=self.order():
             raise IndexError, "p must be < self.order()"
         _sig_on
@@ -422,7 +474,7 @@ cdef class GFq(FiniteField):
         _sig_off
         return ret
 
-    def polynomial(self,r=None):
+    def polynomial(self):
         """
         Minimal polynomial of self in self.polynomial_ring().
         """
@@ -436,16 +488,21 @@ cdef class GFq(FiniteField):
             quo = quo/b
         ret = ret + [1]
 
-        if r==None:
-            r = self.polynomial_ring()
+        from sage.rings.polynomial_ring import PolynomialRing
+        R = PolynomialRing(GFq(self.characteristic()))
 
-        return r(ret)
+        return R(ret)
 
     def modulus(self):
         """
         Minimal polynomial of self in self.polynomial_ring().
         """
         return self.polynomial()
+
+    def _pari_modulus(self):
+        """
+        """
+        return self._sage_()._pari_modulus()
 
     def polynomial_ring(self):
         """
@@ -598,7 +655,8 @@ cdef class GFq(FiniteField):
 
 cdef class GFq_iterator:
     """
-    Iterator implementation
+    Iterator over GFq elements of degree 1. We iterate over fields of
+    higher degree using the VectorSpace iterator.
     """
     cdef int iterator
     cdef GFq _parent
@@ -613,11 +671,11 @@ cdef class GFq_iterator:
 
         self.iterator=self.iterator+1
 
-        if self.iterator==self._parent.cardinality():
+        if self.iterator==self._parent.characteristic():
             self.iterator = -1
             raise StopIteration
 
-        return make_GFq_element(self._parent,self.iterator)
+        return make_GFq_element(self._parent,self._parent.int2log(self.iterator))
 
     def __repr__(self):
         return "Iterator over %s"%self._parent
@@ -632,7 +690,7 @@ cdef GFq_copy(GFq orig):
     copy.thisptr = GFq_cpy(orig.thisptr)
     return copy
 
-cdef class GFq_element:
+cdef class GFq_element(SageObject):
     cdef int this
     cdef GFq _parent
     cdef object __multiplicative_order
@@ -701,6 +759,17 @@ cdef class GFq_element:
         #}embed
         return bool(GFq_is_unit(self._parent.thisptr,self.this))
 
+
+    def is_square(GFq_element self):
+        """
+        """
+        #copied from finite_field_element.py
+        K = self._parent
+        if K.characteristic() == 2:
+            return True
+        n = K.order() - 1
+        a = self**(n / 2)
+        return bool(a == 1)
 
     def __add__(self, other):
         #embed{ int GFq_element_add(void *field, int x, int y)
@@ -821,8 +890,7 @@ cdef class GFq_element:
 
         cdef int r
 
-        if exp<0:
-            raise ArithmeticError, "%s cannot be raised to the negative power %s"%(self,exp)
+        exp = exp % (self._parent.order()-1)
         r = GFq_element_pow(self._parent.thisptr, self.this , exp )
         return make_GFq_element(self._parent,r)
 
@@ -869,11 +937,18 @@ cdef class GFq_element:
         return self._parent.log2int(self.this)
 
 
-    def log(GFq_element self):
+    def logint(GFq_element self):
         """
         Returns i where base.gen()^i=self
         """
         return int(self.this)
+
+    def log(GFq_element self, a):
+        #copied from finite_field_element.py
+        q = (self.parent()).order() - 1
+        return sage.rings.arith.discrete_log_generic(self, a, q)
+
+
 
     def int_repr(GFq_element self):
         return self._parent._element_int_repr(self)
@@ -901,7 +976,7 @@ cdef class GFq_element:
         else:
             return str(self)
 
-    def _sage_(GFq_element self, k):
+    def _sage_(GFq_element self, k=None):
         """
         Returns an element of k supposed to match this element.  No
         checks if k equals self.parent() are performed.
@@ -913,6 +988,9 @@ cdef class GFq_element:
             k.gen()^(self.log_repr())
 
         """
+        if k==None:
+            k=self._parent._sage_()
+
         variable = k.gen()._pari_()
 
         quo = int(self)
@@ -927,6 +1005,24 @@ cdef class GFq_element:
             quo = quo/b
             i = i+1
         return k(ret)
+
+    def _pari_init_(GFq_element self):
+        k=self._parent._sage_()
+
+        variable = k.gen()._pari_()
+
+        quo = int(self)
+        b   = self._parent.characteristic()
+
+        ret = k._pari_one() - k._pari_one()
+        i = 0
+        while quo!=0:
+            coeff = quo%b
+            if coeff != 0:
+                ret = coeff * variable ** i + ret
+            quo = quo/b
+            i = i+1
+        return ret
 
     def multiplicative_order(GFq_element self):
         """
@@ -951,16 +1047,29 @@ cdef class GFq_element:
             self.__multiplicative_order = order
             return order
 
+    def copy(self):
+        return make_GFq_element(self._parent,self.this)
 
-    def _gap_init_(self):
+    def _gap_init_(GFq_element self):
+        #copied from finite_field_element.py
         F = self._parent
         if F.order() > 65536:
             raise TypeError, "order (=%s) must be at most 65536."%F.order()
         if self == 0:
             return '0*Z(%s)'%F.order()
         assert F.degree() > 1
-        return 'Z(%s)^%s'%(F.order(), self.log())
+        g = F.multiplicative_generator()
+        n = g.log(self)
+        return 'Z(%s)^%s'%(F.order(), n)
 
+    def charpoly(GFq_element self):
+        return self._sage_().charpoly()
+
+    def norm(GFq_element self):
+        return self._sage_().norm()
+
+    def trace(GFq_element self):
+        return self._sage_().trace()
 
     def __hash__(GFq_element self):
         return hash((self._parent,self.this))
@@ -989,7 +1098,7 @@ cdef gap_to_givaro(x, F):
         2
         sage: F(gap('0*Z(13)'))
         0
-        sage: F = GF(13^2)
+        sage: F = linbox.GFq(13^2)
         sage: x = gap('Z(13)')
         sage: F(x)
         2

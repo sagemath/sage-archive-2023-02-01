@@ -1,5 +1,5 @@
 """
-Jacobian of a hyperelliptic curve
+Jacobian of a Hyperelliptic curve of Genus 2.
 """
 
 #*****************************************************************************

@@ -70,7 +70,7 @@ class Benchmark:
     bench = run
 
     def runall(self, timeout=60, trials=1):
-        self.run(timeout=timeout, systems = ['sage', 'magma', 'gap', 'gp', 'python', 'maple', 'mathematica', 'macaulay2', 'maxima'])
+        self.run(timeout=timeout, systems = ['sage', 'magma', 'gap', 'gp', 'python', 'maple', 'mathematica', 'macaulay2', 'maxima'], trials=trials)
 
 class Divpoly(Benchmark):
     def __init__(self, n):
@@ -627,6 +627,41 @@ class Factorial(Benchmark):
         n = gp('%s!'%self.__n)
         return float(gp.eval('gettime/1000.0'))
 
+class Fibonacci(Benchmark):
+    def __init__(self, n):
+        self.__n = n
+
+    def __repr__(self):
+        return "Compute the %s-th Fibonacci number"%self.__n
+
+    def sage(self):
+        t = cputime()
+        n = fibonacci(self.__n)
+        return cputime(t)
+
+    def magma(self):
+        t = magma.cputime()
+        n = magma('Fibonacci(%s)'%self.__n)
+        return magma.cputime(t)
+
+    def gap(self):
+        n = gap(self.__n)
+        t = walltime()
+        m = n.Fibonacci()
+        return False, walltime(t)
+
+    def mathematica(self):
+        n = mathematica(self.__n)
+        t = walltime()
+        m = n.Fibonacci()
+        return False, walltime(t)
+
+    def gp(self):
+        gp.eval('gettime')
+        n = gp('fibonacci(%s)'%self.__n)
+        return float(gp.eval('gettime/1000.0'))
+
+
 
 class SEA(Benchmark):
     def __init__(self, p):
@@ -858,6 +893,8 @@ def suite1():
     SquareInts(10,150000).run()
 
     Factorial(2*10**6).run(systems = ['sage', 'magma'])
+    Fibonacci(10**6).run()
+    Fibonacci(2*10^7).run(systems=["sage", "magma", "mathematica"])
 
     MatrixKernel(150,QQ).run()
 

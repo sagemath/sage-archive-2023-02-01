@@ -57,6 +57,29 @@ class ModularFormsAmbient(space.ModularFormsSpace,
                 self.dimension(), self.group(), self.weight(), self.base_ring())
 
     def change_ring(self, base_ring):
+        """
+        Change the base ring of this space of modular forms.
+
+        INPUT:
+            R -- ring
+
+        EXAMPLES:
+            sage: M = ModularForms(Gamma0(37),2)
+            sage: M.basis()
+            [
+            q + q^3 - 2*q^4 + O(q^6),
+            q^2 + 2*q^3 - 2*q^4 + q^5 + O(q^6),
+            1 + 2/3*q + 2*q^2 + 8/3*q^3 + 14/3*q^4 + 4*q^5 + O(q^6)
+            ]
+
+        The basis after changing the base ring is the reduction modulo
+        $3$ of an integral basis.
+            sage: M3 = M.change_ring(GF(3))
+            sage: M3.basis()
+            [
+            ?????
+            ]
+        """
         import constructor
         M = constructor.ModularForms(self.group(), self.weight(), base_ring, prec=self.prec())
         return M

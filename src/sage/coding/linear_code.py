@@ -15,7 +15,7 @@ for the code,
 \]
 called the {\it dual space} of  $C$.
 
-If $ F=\mathbb{F}_2$ then $ C$ is called a {\it binary code}.
+If $F=\FF_2$ then $ C$ is called a {\it binary code}.
 If $ F$ has $ q$ elements then $ C$ is called a
 {\it $ q$-ary code}. The elements of a code $ C$ are called
 {\it codewords}.
@@ -577,7 +577,7 @@ def HammingCode(r,F):
     return LinearCode(MS(G))
 
 def QuadraticResidueCode(n,F):
-    """
+    r"""
     INPUT:
         n, F -- n>2 a prime and F a finite prime field F of order q.
                 Moreover, q must be a quadratic residue modulo n.

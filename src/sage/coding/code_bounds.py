@@ -1,14 +1,19 @@
-"""
-This module provided some upper and lower bounds for the
-parameters of codes.
+r"""
+Bounds for Parameters of Codes
 
+AUTHORS:
+        -- David Joyner (2006-07), initial implementation.
+        -- William Stein (2006-07), minor editing of docs and code
+
+This module provided some upper and lower bounds for the parameters of
+codes.
 
 Let $ F$ be a finite field. A subset $ C$ of $ V=F^n$ is called
 a {\it code} of length $ n$. A subspace of $ V$ (with the standard basis)
 is called a {\it linear code} of length $ n$. If its
 dimension is denoted $k$ then we typically store a basis
 of $C$ as a $k\times n$ matrix (the rows are the basis vectors).
-If $ F=\mathbb{F}_2$ then $ C$ is called a {\it binary code}.
+If $ F=\FF_2$ then $ C$ is called a {\it binary code}.
 If $ F$ has $ q$ elements then $ C$ is called a
 {\it $ q$-ary code}. The elements of a code $ C$ are called
 {\it codewords}. The {\it information rate} of $ C$ is
@@ -24,7 +29,7 @@ are vectors in $ V=F^n$ then we define
 d({\bf v},{\bf w}) =\vert\{i\ \vert\ 1\leq i\leq n,\ v_i\not= w_i\}\vert
 \]
 to be the {\it Hamming distance} between $ {\bf v}$ and $ {\bf w}$.
-The function $ d:V\times V\rightarrow \mathbb{N}$ is called the
+The function $ d:V\times V\rightarrow \mathbf{N}$ is called the
 {\it Hamming metric}. The {\it weight} of a vector (in the
 Hamming metric) is $ d({\bf v},{\bf0})$. The {\it minimum distance}
 of a linear code is the smallest non-zero weight of a codeword
@@ -52,10 +57,11 @@ error-correcting codes.
 It is amusing to note that these quantities are related to efficiently solving a
 generalization of the childhood game of ``20 questions''.
 
-GAME: Player 1 secretly chooses a number from $1$ to $M$ ($M$ is large but fixed).
-Player 2 asks a series of ``yes/no questions'' in an attempt to determine that number.
-Player 1 may lie at most $e$ times ($e\geq 0$ is fixed). What is the minimum
-number of ``yes/no questions'' Player 2 must ask to (always) be able to correctly
+GAME: Player 1 secretly chooses a number from $1$ to $M$ ($M$ is large
+but fixed).  Player 2 asks a series of ``yes/no questions'' in an
+attempt to determine that number.  Player 1 may lie at most $e$ times
+($e\geq 0$ is fixed). What is the minimum number of ``yes/no
+questions'' Player 2 must ask to (always) be able to correctly
 determine the number Player 1 chose?
 
 If feedback is not allowed (the only situation considered here), call this
@@ -75,31 +81,34 @@ known estimates for this number in 2 ways:
     GUAVA's UpperBound( n, d, q )
 
 This module implements:
-* codesize_upper_bound(n,d,q), for the best known (as of May, 2006)
+\begin{itemize}
+\item codesize_upper_bound(n,d,q), for the best known (as of May, 2006)
   upper bound A(n,d) for the size of a code of length n, minimum distance d
   over a field of size q.
-* dimension_upper_bound(n,d,q), an upper bound $B(n,d)=B_q(n,d)$ for the
+\item dimension_upper_bound(n,d,q), an upper bound $B(n,d)=B_q(n,d)$ for the
   dimension of a linear code of length n, minimum distance d over a field of size q.
-* gilbert_lower_bound(n,q,d), a lower bound for number of elements in
+\item gilbert_lower_bound(n,q,d), a lower bound for number of elements in
   the largest code of min dist d in $GF(q)^n$.
-* gv_info_rate(n,delta,q), $log_q(GLB)/n$, where GLB is the Gilbert lower bound
+\item gv_info_rate(n,delta,q), $log_q(GLB)/n$, where GLB is the Gilbert lower bound
   and delta = d/n.
-* gv_bound_asymp(delta,q), asymptotic analog of Gilbert lower bound.
-* plotkin_upper_bound(n,q,d)
-* plotkin_bound_asymp(delta,q), asymptotic analog of Plotkin bound.
-* griesmer_upper_bound(n,q,d)
-* elias_upper_bound(n,q,d)
-* elias_bound_asymp(delta,q), asymptotic analog of Elias bound.
-* hamming_upper_bound(n,q,d)
-* hamming_bound_asymp(delta,q), asymptotic analog of Hamming bound.
-* singleton_upper_bound(n,q,d)
-* singleton_bound_asymp(delta,q), asymptotic analog of Singleton bound.
-* mrrw1_bound_asymp(delta,q), ``first'' asymptotic McEliese-Rumsey-Rodemich-Welsh
+\item gv_bound_asymp(delta,q), asymptotic analog of Gilbert lower bound.
+\item plotkin_upper_bound(n,q,d)
+\item plotkin_bound_asymp(delta,q), asymptotic analog of Plotkin bound.
+\item griesmer_upper_bound(n,q,d)
+\item elias_upper_bound(n,q,d)
+\item elias_bound_asymp(delta,q), asymptotic analog of Elias bound.
+\item hamming_upper_bound(n,q,d)
+\item hamming_bound_asymp(delta,q), asymptotic analog of Hamming bound.
+\item singleton_upper_bound(n,q,d)
+\item singleton_bound_asymp(delta,q), asymptotic analog of Singleton bound.
+\item mrrw1_bound_asymp(delta,q), ``first'' asymptotic McEliese-Rumsey-Rodemich-Welsh
   bound for the information rate.
+\end{itemize}
 
 PROBLEM:
     In this module we shall typically either
     (a) seek bounds on k, given n, d, q,
+
     (b) seek bounds on R, delta, q (assuming n is ``infinity'').
 
 
@@ -113,7 +122,7 @@ REFERENCES:
 
 """
 from sage.interfaces.all import gap
-from sage.rings.all import QQ, RR
+from sage.rings.all import ZZ, QQ, RR
 from sage.rings.arith import factorial
 from sage.misc.functional import log, sqrt
 
@@ -164,7 +173,7 @@ def volume_hamming(n,q,r):
 def gilbert_lower_bound(n,q,d):
     """
     Returns lower bound for number of elements in
-    the largest code of min dist d in GF(q)^n.
+    the largest code of min dist d in $(\FF_q)^n$.
 
     EXAMPLES:
         sage: gilbert_lower_bound(10,2,3)
@@ -177,7 +186,7 @@ def gilbert_lower_bound(n,q,d):
 def plotkin_upper_bound(n,q,d):
     """
     Returns Plotkin upper bound for number of elements in
-    the largest code of min dist d in GF(q)^n. Wraps GAP's
+    the largest code of min dist d in $(\FF_q)^n$. Wraps GAP's
     UpperBoundPlotkin.
 
     EXAMPLES:
@@ -192,7 +201,7 @@ def plotkin_upper_bound(n,q,d):
 def griesmer_upper_bound(n,q,d):
     """
     Returns the Griesmer upper bound for number of elements in
-    the largest code of min dist d in GF(q)^n. Wraps GAP's
+    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
     UpperBoundGriesmer.
 
     EXAMPLES:
@@ -207,7 +216,7 @@ def griesmer_upper_bound(n,q,d):
 def elias_upper_bound(n,q,d):
     """
     Returns the Elias upper bound for number of elements in
-    the largest code of min dist d in GF(q)^n. Wraps GAP's
+    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
     UpperBoundElias.
 
     EXAMPLES:
@@ -222,13 +231,13 @@ def elias_upper_bound(n,q,d):
 def hamming_upper_bound(n,q,d):
     """
     Returns the Hamming upper bound for number of elements in
-    the largest code of min dist d in GF(q)^n. Wraps GAP's
+    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
     UpperBoundHamming.
 
     The Hamming bound (also known as the sphere packing bound) returns an
     upper bound on the size of a code of length n, minimum distance d, over
     a field of size q. The Hamming bound is obtained by dividing the contents
-    of the entire space GF(q)^n by the contents of a ball with radius
+    of the entire space  $(\FF_q)^n$ by the contents of a ball with radius
     floor((d-1)/2). As all these balls are disjoint, they can never contain more
     than the whole vector space.
 
@@ -251,7 +260,7 @@ def hamming_upper_bound(n,q,d):
 def singleton_upper_bound(n,q,d):
     """
     Returns the Singleton upper bound for number of elements in
-    the largest code of min dist d in GF(q)^n. Wraps GAP's
+    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
     UpperBoundSingleton.
 
     This bound is based on the shortening of codes. By shortening an
@@ -323,10 +332,8 @@ def singleton_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: singleton_bound_asymp(x,2)
-        sage: P=plot(f,0,1)
-
-    Now, to display this picture, type ``show(P)''.
-
+        sage: P = plot(f,0,1)
+        sage.: show(P)
     """
     return (1-delta)
 
@@ -335,8 +342,11 @@ def plotkin_bound_asymp(delta,q):
     Computes the asymptotic Plotkin bound for the information rate,
     provided 0 < delta < 1-1/q.
 
-
+    EXAMPLES:
+        sage: plotkin_bound_asymp(1/4,2)
+        1/2
     """
+    q = ZZ(q)
     r = 1-1/q
     return (1-delta/r)
 
@@ -345,10 +355,13 @@ def elias_bound_asymp(delta,q):
     Computes the asymptotic Plotkin bound for the information rate,
     provided 0 < delta < 1-1/q.
 
-
+    EXAMPLES:
+        sage: elias_bound_asymp(1/4,2)
+        0.39912396330714384
     """
+    q = ZZ(q)
     r = 1-1/q
-    return (1-entropy(r-sqrt(r*(r-delta))))
+    return (1-entropy(r-sqrt(r*(r-delta)), q))
 
 def mrrw1_bound_asymp(delta,q):
     """
@@ -358,7 +371,6 @@ def mrrw1_bound_asymp(delta,q):
     EXAMPLES:
         sage: mrrw1_bound_asymp(1/4,2)
         0.35457890266527003
-
     """
     return entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q)
 

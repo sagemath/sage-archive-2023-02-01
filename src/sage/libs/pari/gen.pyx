@@ -2629,6 +2629,19 @@ cdef class gen:
         _sig_on
         return P.new_gen(bernfrac(x))
 
+    def fibonacci(gen x):
+        r"""
+        Return the fibonacci number of index x.
+
+        EXAMPLES:
+            sage: pari(18).bernfrac()
+            43867/798
+            sage: [pari(n).bernfrac() for n in range(10)]
+            [1, -1/2, 1/6, 0, -1/30, 0, 1/42, 0, -1/30, 0]
+        """
+        _sig_on
+        return P.new_gen(fibo(long(x)))
+
     def bernreal(gen x):
         r"""
         The Bernoulli number $B_x$, as for the function bernfrac, but

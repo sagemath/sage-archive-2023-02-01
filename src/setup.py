@@ -342,6 +342,8 @@ setup(name        = 'sage',
 
                      'sage.coding',
 
+                     'sage.combinat',
+
                      'sage.crypto',
 
                      'sage.databases',

@@ -1,5 +1,5 @@
 """
-Jacobian of a hyperelliptic curve
+Jacobian of a General Hyperelliptic Curve
 """
 
 #*****************************************************************************

@@ -243,24 +243,26 @@ class Cell:
             return ''
 
     def output_text(self, ncols=0, html=True):
-        if ncols and not self.introspect():
-            s = word_wrap(self.__out, ncols=ncols)
-        else:
-            s = self.__out
+        s = self.__out
+
+        def format(x):
+            return word_wrap(x.replace('<','&lt'))
+
         if html:
             # Everything not wrapped in <html> ... </html>
-            # should have the <'s replaced by &lt;'s.
+            # should have the <'s replaced by &lt;'s
+            # and be word wrapped.
             t = ''
             while len(s) > 0:
                 i = s.find('<html>')
                 if i == -1:
-                    t += s.replace('<','&lt;')
+                    t += format(s)
                     break
                 j = s.find('</html>')
                 if j == -1:
-                    t += s.replace('<','&lt;')
+                    t += format(s)
                     break
-                t += s[:i].replace('<','&lt;') + s[i+6:j]
+                t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
             if not self.is_html() and len(s.strip()) > 0:

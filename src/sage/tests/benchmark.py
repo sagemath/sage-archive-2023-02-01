@@ -862,7 +862,45 @@ class EllipticCurveMW(Benchmark):
         G = E.Generators()
         return magma.cputime(t)
 
+class FiniteExtFieldMult(Benchmark):
+    def __init__(self,field,times):
+        self.__times = times
+        self.field = field
+        self.e = field.gen()**(field.cardinality()/3)
+        self.f = field.gen()**(2*field.cardinality()/3)
 
+    def __repr__(self):
+        return "Multiply a^(#K/3) with a^(2*#K/3) where a == K.gen()"
+
+    def sage(self):
+        e = self.e
+        f = self.f
+        t = cputime()
+        v = [e*f for _ in range(self.__times)]
+        return cputime(t)
+
+    def pari(self):
+        e = self.e._pari_()
+        f = self.f._pari_()
+        t = cputime()
+        v = [e*f for _ in range(self.__times)]
+        return cputime(t)
+
+    def givaro(self):
+        k = linbox.GFq(self.field.cardinality())
+        e = k(self.e)
+        f = k(self.f)
+        t = cputime()
+        v = [e*f for _ in range(self.__times)]
+        return cputime(t)
+
+    def magma(self):
+        magma.eval('F<a> := GF(%s)'%(self.field.cardinality()))
+        magma.eval('e := a^Floor(%s/3);'%(self.field.cardinality()))
+        magma.eval('f := a^Floor(2*%s/3);'%(self.field.cardinality()))
+        t = magma.cputime()
+        v = magma('[e*f : i in [1..%s]]'%self.__times)
+        return magma.cputime(t)
 
 """
 TODO:

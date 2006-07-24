@@ -532,18 +532,21 @@ def assert_attribute(x, attr, init=None):
 # Useful but hard to classify
 #################################################################
 
-def srange(a,b=None,step=1):
+def srange(a,b=None,step=1, include_endpoint=False):
     """
     Return list of numbers \code{a, a+step, ..., a+k*step},
     where \code{a+k*step < b} and \code{a+(k+1)*step > b}.
 
-    This is the best way to get an iterator over SAGE integers
-    as opposed to Python int's.
+    This is the best way to get an iterator over SAGE integers as
+    opposed to Python int's.  It also allows you to specify step sizes
+    to iterate.  It is potentially much slower than the Python range
+    statement, depending on your application.
 
     INPUT:
         a -- number
         b -- number (default: None)
         step -- number (default: 1)
+
     OUTPUT:
         list
 
@@ -590,7 +593,10 @@ def srange(a,b=None,step=1):
     num_steps = int(float((b-a)/step)) + 1
     v = [a] + [a + k*step for k in range(1,num_steps)]
     if v[num_steps-1] >= b:
-        return v[:-1]
+        if include_endpoint:
+            return v[:-1] + [b]
+        else:
+            return v[:-1]
     else:
         return v
 

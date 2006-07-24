@@ -641,6 +641,33 @@ class MagmaElement(ExpectElement):
         return int(P.eval('#%s'%self.name()))
 
     def _latex_(self):
+        """
+        Return latex representation of self.
+
+        Types that are nicely latex include:
+
+        rationals, matrices, polynomials, binary quadratic forms,
+        elements of quadratic and cyclotomic number fields, points,
+        and elliptic curves.
+
+        EXAMPLES:
+            sage: latex(magma('-2/3'))
+            \frac{-2}{3}
+
+            sage: magma.eval('R<x> := PolynomialRing(RationalField()); f := (x-17/2)^3;')
+            sage: latex(magma('f'))
+            x^{3}-\frac{51}{2}x^{2}+\frac{867}{4}x-\frac{4913}{8}
+
+            sage: latex(magma('(MatrixAlgebra(RationalField(),3)![0,2,3,4,5,6,7,8,9])^(-1)'))
+            \left(\begin{array}{ccc}-1&2&-1\\2&-7&4\\-1&\frac{14}{3}&\frac{-8}{3}\end{array}\right)
+
+            sage: magma.eval('K<a> := CyclotomicField(11)')
+            sage: latex(magma('a^3 + a - 17/3'))
+            \frac{-17}{3}+\zeta_{11}+\zeta_{11}^{3}
+
+            sage: latex(magma('EllipticCurve([1,2/3,3/4,4/5,-5/6])'))
+            y^2+xy+\frac{3}{4}y=x^3+\frac{2}{3}x^2+\frac{4}{5}x-\frac{5}{6}
+        """
         P = self._check_valid()
         s = str(P.eval('Latex(%s)'%self.name()))
         v = '\\mbox{\\rm '

@@ -246,7 +246,7 @@ class Cell:
         s = self.__out
 
         def format(x):
-            return word_wrap(x.replace('<','&lt;'))
+            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
 
         if html:
             # Everything not wrapped in <html> ... </html>

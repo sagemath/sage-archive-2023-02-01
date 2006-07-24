@@ -962,6 +962,8 @@ is_32_bit = not is_64_bit
 #################################################################
 def word_wrap(s, ncols=85):
     t = []
+    if ncols == 0:
+        return s
     for x in s.split('\n'):
         if len(x) == 0 or x.lstrip()[:5] == 'sage:':
             t.append(x)

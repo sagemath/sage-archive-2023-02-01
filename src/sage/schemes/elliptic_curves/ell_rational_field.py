@@ -950,7 +950,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             j = i + X[i:].find('\n')
             self.__regulator = R(X[i+len('Regulator = '):j])
         ####
-        self.__gens = [self.point(x, check=False) for x in G]
+        self.__gens = [self.point(x, check=True) for x in G]
         self.__gens.sort()
         self.__rank = len(self.__gens)
         return self.__gens

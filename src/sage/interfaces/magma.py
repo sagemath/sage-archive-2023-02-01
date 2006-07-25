@@ -655,6 +655,7 @@ class MagmaElement(ExpectElement):
             \frac{-2}{3}
 
             sage: magma.eval('R<x> := PolynomialRing(RationalField()); f := (x-17/2)^3;')
+            ''
             sage: latex(magma('f'))
             x^{3}-\frac{51}{2}x^{2}+\frac{867}{4}x-\frac{4913}{8}
 
@@ -662,6 +663,7 @@ class MagmaElement(ExpectElement):
             \left(\begin{array}{ccc}-1&2&-1\\2&-7&4\\-1&\frac{14}{3}&\frac{-8}{3}\end{array}\right)
 
             sage: magma.eval('K<a> := CyclotomicField(11)')
+            ''
             sage: latex(magma('a^3 + a - 17/3'))
             \frac{-17}{3}+\zeta_{11}+\zeta_{11}^{3}
 

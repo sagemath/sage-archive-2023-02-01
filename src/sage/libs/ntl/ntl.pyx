@@ -1162,6 +1162,12 @@ cdef class ntl_ZZ_pX:
         t = ZZ_pX_getitem(self.x,i)
         return int(string(t))
 
+    def list(self):
+        """
+        Return list of entries as a list of Python int's.
+        """
+        return eval(str(self).replace(' ',','))
+
     def __add__(ntl_ZZ_pX self, ntl_ZZ_pX other):
         """
         EXAMPLES:

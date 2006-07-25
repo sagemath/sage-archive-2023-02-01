@@ -1157,7 +1157,13 @@ class NumberField_cyclotomic(NumberField_generic):
         EXAMPLES:
             sage: C = CyclotomicField(4)
             sage: C.complex_embeddings()
-
+            [Ring morphism:
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I, Ring morphism:
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta4 |--> -0.00000000000000018369701987210297 - 1.0000000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         n = self.zeta_order()

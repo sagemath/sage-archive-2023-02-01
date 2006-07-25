@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 DEVEL = False
+PYTHON_VERSION='2.4'
 
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
@@ -22,7 +23,7 @@ if not os.environ.has_key('SAGE_VERSION'):
 else:
     SAGE_VERSION = os.environ['SAGE_VERSION']
 
-SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
+SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,PYTHON_VERSION)
 
 if not os.path.exists(SITE_PACKAGES):
     SITE_PACKAGES=None
@@ -221,7 +222,7 @@ for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
 
 include_dirs = ['%s/include'%SAGE_LOCAL,
-                '%s/include/python2.4'%SAGE_LOCAL]
+                '%s/include/python%s'%(SAGE_LOCAL, PYTHON_VERSION)]
 
 extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
 

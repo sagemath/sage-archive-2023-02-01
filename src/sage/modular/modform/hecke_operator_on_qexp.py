@@ -11,13 +11,15 @@ from sage.rings.all import (divisors, infinity, gcd, Integer,
                             is_PowerSeries)
 from sage.matrix.all import Matrix
 
-def hecke_operator_on_qexp(f, n, k, eps = DirichletGroup(1).gen(0),
+def hecke_operator_on_qexp(f, n, k, eps = None,
                            prec=None, check=True, _return_list=False):
     r"""
     Given the $q$-expansion $f$ of a modular form with character
     $\varepsilon$, this function computes the Hecke operator $T_{n,k}$
     of weight~$k$ on~$f$.
     """
+    if eps is None:
+        eps = DirichletGroup(1).gen(0)
     if not check:
         if not is_PowerSeries(f):
             raise TypeError, "f (=%s) must be a power series"%f
@@ -52,7 +54,7 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
     TB = [V.coordinate_vector(w) for w in TB]
     return Matrix(V.base_ring(), len(B), len(B), TB, sparse=False)
 
-def hecke_operator_on_basis(B, n, k, eps=DirichletGroup(1).gen(0),
+def hecke_operator_on_basis(B, n, k, eps=None,
                             already_echelonized = False):
     r"""
     Given a basis $B$ of $q$-expansions for a space of modular forms
@@ -67,6 +69,8 @@ def hecke_operator_on_basis(B, n, k, eps=DirichletGroup(1).gen(0),
         already_echelonized -- bool (default: False); if True, use that the
                 basis is already in Echelon form, which saves a lot of time.
     """
+    if eps is None:
+        eps = DirichletGroup(1).gen(0)
     if not isinstance(B, (list, tuple)):
         raise TypeError, "B (=%s) must be a list or tuple"%B
     if len(B) == 0:

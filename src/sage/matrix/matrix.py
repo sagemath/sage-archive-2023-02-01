@@ -2237,7 +2237,7 @@ class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
 
 
     def multimodular_echelon_form(self, height_guess=None, include_zero_rows=True, start_prime=3, proof=True):
-        print "WARNING -- work in progress -- not finished!!!"
+        print "TODO: WARNING -- work in progress -- not finished!!!"
         d = self.denominator()
         if d != 1:
             A = d*self

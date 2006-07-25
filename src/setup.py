@@ -87,7 +87,8 @@ cf = Extension('sage.libs.cf.cf',
 
 linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    sources = ["sage/libs/linbox/finite_field_givaro.pyx"],
-                   libraries = ['linbox', 'gmp', 'gmpxx', 'givaro', 'ntl', 'stdc++', 'm']
+                   libraries = ['linbox', 'gmp', 'gmpxx', 'givaro', 'ntl', 'stdc++', 'm'],
+                   language='c++'
                    )
 
 
@@ -279,22 +280,29 @@ def process_pyrexembed_file(f):
         os.system(cmd)
     return [cpp_file, c_file]
 
-def process_pyrex_file(f):
+def process_pyrex_file(f, m):
     # This is a pyrex file, so process accordingly.
     if SITE_PACKAGES:
         pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
         if need_to_create(f, pyx_inst_file):
             print "%s --> %s"%(f, pyx_inst_file)
             os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
-    c_file = f[:-4] + ".c"
-    if need_to_create(f, c_file):
+    out_file = f[:-4] + ".c"
+    if m.language == 'c++':
+        out_file += 'pp'
+    if need_to_create(f, out_file):
         cmd = "pyrexc -I%s %s"%(os.getcwd(),f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
             print "Error running pyrexc."
             sys.exit(ret)
-    return [c_file]
+        # If the language for the extension is C++,
+        # then move the resulting output file to have the correct extension.
+        # (I don't know how to tell Pyrex to do this automatically.)
+        if m.language == 'c++':
+            os.system('mv %s.c %s'%(f[:-4], out_file))
+    return [out_file]
 
 
 def pyrex(ext_modules):
@@ -308,7 +316,7 @@ def pyrex(ext_modules):
             if f[-5:] == '.pyxe':# and s.find("#embed") != -1 and s.find('#}embed') != -1:
                 new_sources = process_pyrexembed_file(f)
             elif f[-4:] == ".pyx":
-                new_sources += process_pyrex_file(f)
+                new_sources += process_pyrex_file(f, m)
             else:
                 new_sources.append(f)
         m.sources = new_sources

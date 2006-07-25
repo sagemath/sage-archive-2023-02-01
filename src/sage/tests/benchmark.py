@@ -894,6 +894,22 @@ class FiniteExtFieldMult(Benchmark):
         v = [e*f for _ in range(self.__times)]
         return cputime(t)
 
+    def givaro_nck(self):
+        k = linbox.GFq(self.field.cardinality())
+        e = k(self.e)
+        f = k(self.f)
+        t = cputime()
+        v = [e.mul(f) for _ in range(self.__times)]
+        return cputime(t)
+
+    def givaro_raw(self):
+        k = linbox.GFq(self.field.cardinality())
+        e = k(self.e).logint()
+        f = k(self.f).logint()
+        t = cputime()
+        v = [k._mul(e,f) for _ in range(self.__times)]
+        return cputime(t)
+
     def magma(self):
         magma.eval('F<a> := GF(%s)'%(self.field.cardinality()))
         magma.eval('e := a^Floor(%s/3);'%(self.field.cardinality()))

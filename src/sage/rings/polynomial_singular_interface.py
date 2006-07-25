@@ -250,3 +250,114 @@ class Polynomial_singular_repr:
         self.parent()._singular_(singular).set_ring() #this is expensive
         self.__singular = singular(str(self))
         return self.__singular
+
+    def lcm(self,right):
+        """
+        Returns the least common multiple of this element and the right element.
+
+        INPUT:
+            right -- multivariate polynomial
+
+        OUTPUT:
+            multivariate polynomial
+
+        ALGORITHM: Singular
+
+        EXAMPLES:
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2*y + k('a^4+a^3+a')*y + k('a^5')
+            sage: f.lcm(x^4)
+            a^5*x0^4 + (a^4 + a^3 + a)*x0^4*x1 + (a^2 + a)*x0^6*x1
+        """
+        lcm = self._singular_().lcm(right._singular_())
+        return lcm.sage_poly(self.parent())
+
+    def lt(self):
+        """
+        Returns the leading (or initial) term of a polynomial
+        with respect to the monomial ordering.
+
+        OUTPUT:
+            multivariate polynomial representing the lead term of self
+
+        ALGORITHM: Singular
+
+        EXAMPLES:
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
+            sage: f.lt()
+            (a^2 + a)*x0^2
+
+            sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
+            sage: f.lt()
+            (a^4 + a^3 + a)*x1^3
+
+        """
+        try:
+            return self.__lt
+        except AttributeError:
+            self.__lt = self._singular_().lead().sage_poly(self.parent())
+            return self.__lt
+
+    def lm(self):
+        """
+        Returns the leading monomial of a multivariate polynomial as a
+        multivariate polynomial whose coefficient is one.
+
+        ALGORITHM: Singular
+
+        EXAMPLES:
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
+            sage: f.lm()
+            x0^2
+
+            sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
+            sage: f.lm()
+            x1^3
+        """
+        try:
+            return self.__lm
+        except AttributeError:
+            self.__lm = self._singular_().leadmonom().sage_poly(self.parent())
+            return self.__lm
+
+    def lc(self):
+        """
+        Returns the leading (or initial) coefficient of a polynomial
+        with respect to the monomial ordering.
+
+        ALGORITHM: Singular
+
+        EXAMPLES:
+            sage: r=MPolynomialRing(GF(2**8),2,'x')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^2 + k('a^5')
+            sage: f.lc()
+            a^2 + a
+
+            sage: r=MPolynomialRing(GF(2**8),2,'x','deglex')
+            sage: x,y=r.gens()
+            sage: k=r.base_ring()
+            sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
+            sage: f.lc()
+            a^4 + a^3 + a
+        """
+        try:
+            return self.__lc
+        except AttributeError:
+            self.__lc = self.base_ring()(self._singular_().leadcoef().sage_poly(self.parent()))
+            return self.__lc

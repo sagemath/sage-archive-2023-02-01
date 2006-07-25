@@ -86,7 +86,7 @@ cf = Extension('sage.libs.cf.cf',
                )
 
 linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
-                   sources = ["sage/libs/linbox/finite_field_givaro.pyxe"],
+                   sources = ["sage/libs/linbox/finite_field_givaro.pyx"],
                    libraries = ['linbox', 'gmp', 'gmpxx', 'givaro', 'ntl', 'stdc++', 'm']
                    )
 

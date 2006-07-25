@@ -164,10 +164,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         #print status, cell   # debug
         if status == 'd':
-            try:
-                notebook.save()
-            except:
-                print "WARNING -- failure to pickle the notebook"
             variables = worksheet.variables_html()
             objects = notebook.object_list_html()
             attached_files = worksheet.attached_html()
@@ -620,8 +616,11 @@ class NotebookServer:
             print "Press Control-C to stop the server."
             self.__httpd.serve_forever()
         except KeyboardInterrupt:
+            notebook.save()
             print "Shutting down notebook server."
             notebook = None
+        else:
+            notebook.save()
 
 
 

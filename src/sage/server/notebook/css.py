@@ -973,6 +973,56 @@ div.insert_new_cell:hover {
   background-color: #000000;
   /* background-color:#eeeeee; */
 }
+
+
+/************ DEBUG WINDOW **************************/
+
+div.debug_window_active {
+  background-color: white;
+  border: 1px solid #fe8888;
+  overflow:auto;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+}
+div.debug_window_inactive {
+  background-color: white;
+  border: 1px solid #888888;
+  overflow:auto;
+  padding-left:0px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+}
+
+
+textarea.debug_output {
+  background-color: white;
+  border: 0px;
+  font-family: courier, monospace;
+  font-size:10pt;
+  overflow:scroll;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+}
+
+
+textarea.debug_input {
+  background-color: white;
+  border: 1px solid #8888fe;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:scroll;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+}
+
+
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

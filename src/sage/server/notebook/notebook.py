@@ -352,7 +352,7 @@ JSMATH=False
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',
                  username=None, password=None,
-                 color='default', system=None):
+                 color='default', system=None, show_debug = False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -368,6 +368,7 @@ class Notebook(SageObject):
         self.__history = []
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
+        self.__show_debug = show_debug
         self.save()
 
     def system(self):
@@ -478,6 +479,9 @@ class Notebook(SageObject):
     def set_not_computing(self):
         for W in self.__worksheets.values():
             W.set_not_computing()
+
+    def set_debug(self,show_debug):
+        self.__show_debug = show_debug
 
     def default_worksheet(self):
         return self.__default_worksheet
@@ -624,7 +628,7 @@ class Notebook(SageObject):
 
     def start(self, port=8000, address='localhost',
                     max_tries=128, open_viewer=False,
-                    jsmath=True):
+                    jsmath=False):
         global JSMATH
         JSMATH = jsmath
         tries = 0
@@ -751,7 +755,15 @@ class Notebook(SageObject):
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
         body += '  </span>'
         body += '</div>'
-        body += '\n<div class="worksheet" id="worksheet">\n' + worksheet.html() + '\n</div>\n'
+        body += '\n<div class="worksheet" id="worksheet">\n'
+        if self.__show_debug:
+            body += "<div class='debug_window'>"
+            body += "<textarea rows=10 id='debug_output' class='debug_output' onKeyPress='return false;'></textarea>"
+            body += "<textarea rows=5 id='debug_input' class='debug_input' "
+            body += " onKeyPress='return debug_keypress(event);' "
+            body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
+            body += "</div>"
+        body += worksheet.html() + '\n</div>\n'
 
         body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="worksheets_topbar">'
@@ -988,16 +1000,17 @@ class Notebook(SageObject):
         return grid + "\n</ul>"
 
 
-def notebook(dir       ='sage_notebook',
-             port      = 8000,
-             address   = 'localhost',
-             open_viewer    = False,
-             max_tries = 10,
-             username  = None,
-             password  = None,
-             color     = None,
-             system    = None,
-             jsmath    = True):
+def notebook(dir         ='sage_notebook',
+             port        = 8000,
+             address     = 'localhost',
+             open_viewer = False,
+             max_tries   = 10,
+             username    = None,
+             password    = None,
+             color       = None,
+             system      = None,
+             jsmath      = True,
+             show_debug  = False):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1022,6 +1035,8 @@ def notebook(dir       ='sage_notebook',
         system -- default computer algebra system to use for new
                   worksheets.
         jsmath -- whether not to enable javascript typset output for math.
+
+        debug -- whether or not to show a javascript debugging window
 
     NOTES:
 
@@ -1096,6 +1111,7 @@ def notebook(dir       ='sage_notebook',
         nb = Notebook(dir,username=username,password=password, color=color, system=system)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
+    nb.set_debug(show_debug)
     nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
     alarm(3)
     from sage.interfaces.quit import expect_quitall

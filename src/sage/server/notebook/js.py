@@ -29,49 +29,113 @@ def javascript():
 // The active cell list.
 var active_cell_list = [];
 
+//Browser & OS identification
+var browser_op, browser_saf, browser_konq, browser_moz, browser_ie, browser_ie5;
+var os_mac, os_lin, os_win;
+
+var update_error_count = 0;
+var update_error_threshold = 30;
+
+// in milliseconds
+var update_error_delta = 1000;
+var update_normal_delta = 256
+var cell_output_delta = update_normal_delta;
+
+var SEP = '___S_A_G_E___';   // this had better be the same as in the server
+var current_cell = -1;       // gets set on focus / blur
+var asyncObj;
+var no_async = false; //this isn't really used -- should we think about dealing with this?
+
+// introspection variables
+var introspection_loaded = false;
+var introspect_id;
+var introspection_text = "";
+var replacement_text = "";
+var replacement_row = 0;
+var replacement_col = 0;
+var replacing_word = "";
+var replacement_word = "";
+var replacing = false;
+var sub_introspecting = false;
+
+var worksheet_id=0;   // The current worksheet.  Where else does this get set?
+
+var id_to_delete=-1;
+
+//regular expressions used to peek into the cell input for introspection
+var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
+var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
+var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
+var whitespace = "\\w+";
+var nonwhite = "[^ \t\r\n]";
+var one_word_pat = "(" + nonwhite + "+)";
+try{
+  non_word = new RegExp(non_word);
+  command_pat = new RegExp(command_pat);
+  function_pat = new RegExp(function_pat);
+  whitespace = new RegExp(whitespace);
+  one_word_pat = new RegExp(one_word_pat);
+} catch(e){}
+
+var after_cursor, before_cursor, before_replacing_word;
+
+var updating = false;
+
+var update_timeout = -1;
+
+var jsmath_font_msg = '<a href="SAGE_URL/jsmath">jsMath temporarily disabled while we resolve a windows firefox hang bug</a><br>';
+/*var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>'; */
+
+var cell_id_list; // this gets set in worksheet.py
+
+var input_keypress; //this gets set to a function when we set up the keyboards
 
 ///////////////////////////////////////////////////////////////////
 //
 // Cross-Browser Stuff
 //
 ///////////////////////////////////////////////////////////////////
-
-var n=navigator;
-var nav=n.appVersion;
-var nan=n.appName;
-var nua=n.userAgent;
-var browser_op=(nua.indexOf('Opera')!=-1);
-var browser_saf=(nua.indexOf('Safari')!=-1);
-var browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
-var browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
-var browser_ie=((nua.indexOf('MSIE')!=-1)&&!browser_op);
-var browser_ie5=(browser_ie&&(nua.indexOF('MSIE 5')!=-1));
-var os_mac=(nav.indexOf('Mac')!=-1);
-var os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
-var os_lin=(nua.indexOf('Linux')!=-1);
-
 function true_function() {return true;}
+input_keypress = true_function;
 
-get_keyboard();
+try{
+  var n=navigator;
+  var nav=n.appVersion;
+  var nan=n.appName;
+  var nua=n.userAgent;
+  browser_op=(nua.indexOf('Opera')!=-1);
+  browser_saf=(nua.indexOf('Safari')!=-1);
+  browser_konq=(!browser_saf && (nua.indexOf('Konqueror')!=-1) ) ? true : false;
+  browser_moz=( (!browser_saf && !browser_konq ) && ( nua.indexOf('Gecko')!=-1 ) ) ? true : false;
+  browser_ie=((nua.indexOf('MSIE')!=-1)&&!browser_op);
+  browser_ie5=(browser_ie&&(nua.indexOF('MSIE 5')!=-1));
+  os_mac=(nav.indexOf('Mac')!=-1);
+  os_win=( ( (nav.indexOf('Win')!=-1) || (nav.indexOf('NT')!=-1) ) && !os_mac)?true:false;
+  os_lin=(nua.indexOf('Linux')!=-1);
+
+  get_keyboard();
+} catch(e){}
 
 function get_keyboard() {
   var b,o;
+
+  input_keypress = cell_input_key_event;
+  debug_keypress = debug_input_key_event;
+
   if(browser_op) {
     b = "o";
-    input_keypress = cell_input_key_event;
   } else if(browser_ie) {
     b = "i";
+    alert("listening onkeydown");
     document.onkeydown = key_listen_ie;
     input_keypress = true_function;
+    debug_keypress = true_function;
   } else if(browser_saf) {
     b = "s";
-    input_keypress = cell_input_key_event;
   } else if(browser_konq) {
     b = "k";
-    input_keypress = cell_input_key_event;
   } else {
     b = "m";
-    input_keypress = cell_input_key_event;
   }
 
   if(os_mac) {
@@ -124,16 +188,6 @@ function key_event(e) {
 // An AJAX framework for connections back to the
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
-
-// in milliseconds
-cell_output_delta = 256;
-
-SEP = '___S_A_G_E___';
-
-
-var current_cell;
-var asyncObj;
-var no_async = false;
 
 function getAsyncObject(handler) {
   asyncObj=null
@@ -199,6 +253,13 @@ function async_request(name, url, callback, postvars) {
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
 
+function trim(s) {
+    m = one_word_pat.exec(s);
+    if(m == null)
+        return s;
+    return m[1];
+}
+
 function body_load() {
 //  init_menus();
 }
@@ -215,17 +276,6 @@ function init_menus() {
 // Completions interface stuff
 //
 ///////////////////////////////////////////////////////////////////
-
-var introspection_loaded = false;
-var introspect_id;
-var introspection_text = "";
-var replacement_text = "";
-var replacement_row = 0;
-var replacement_col = 0;
-var replacing_word = "";
-var replacement_word = "";
-var replacing = false;
-var sub_introspecting = false;
 
 function capture_replacement_controls(e) {
   e = new key_event(e);
@@ -295,14 +345,11 @@ function do_replacement(id, word) {
           */
     cell_input.value = before_replacing_word + word + after_cursor;
     /* halt_introspection(); return; */
-    cell_input.focus();
+    focus(id);
     if(document.all) {
-        if(cell_input.focus) {
-            cell_input.focus();
-            var range = document.selection.createRange();
-            range.moveStart('character', -after_cursor.length);
-            range.moveEnd('character', -after_cursor.length);
-        }
+        var range = document.selection.createRange();
+        range.moveStart('character', -after_cursor.length);
+        range.moveEnd('character', -after_cursor.length);
     } else {
         cell_input.selectionStart = cell_input.selectionEnd = before_replacing_word.length + word.length;
     }
@@ -335,22 +382,26 @@ function select_replacement_element() {
     if (e==null) return;
     e.className = 'completion_menu_two completion_menu_selected';
     var l = e.getElementsByTagName('a');
-    if(l[0] && l[0].innerHTML)
-        var h = l[0].innerHTML;
+    if(l.length && l[0]!=null) {
+        var h = trim(l[0].innerHTML);
         var i = h.indexOf('&nbsp')
         if (i != -1) {
             h = h.substr(0,i);
         }
         replacement_word = h;
+    }
 }
 
 function update_introspection_text(preserve_cursor) {
   close_introspection_text();
   d = get_element("introspect_div_"+introspect_id);
   if(!d) return;
-  scroll_view(introspect_id);
 
   if(introspection_loaded) {
+    if(introspection_text == "") {
+        halt_introspection();
+        return;
+    }
     d.innerHTML = introspection_text;
     if(replacing)
       select_replacement_element();
@@ -392,8 +443,6 @@ function click_on_object(name) {
 // WORKSHEET functions -- for switching between and managing worksheets
 //
 ///////////////////////////////////////////////////////////////////
-
-worksheet_id=0;   // The current worksheet.
 
 function add_worksheet(name) {
     async_request('async_obj_add_worksheet', '/add_worksheet',
@@ -540,26 +589,20 @@ function switch_to_worksheet(id) {
 //
 ///////////////////////////////////////////////////////////////////
 
-var focused_cell,focused_cell_id;
 function get_cell(id) {
     return get_element('cell_input_'+ id);
 }
 
 function cell_focus(id) {
     e = get_cell(id);
-    focused_cell    = e;
-    focused_cell_id = id;
+    current_cell = id;
     if(e == null) return;
     e.className="cell_input_active";
     cell_input_resize(e);
-    current_cell = id;
-    if(introspect_id != id && introspection_loaded)
-        halt_introspection();
     return true;
 }
 function cell_blur(id) {
-    focused_cell    = null;
-    focused_cell_id = -1;
+    current_cell = -1;
     e = get_cell(id);
     if(e == null) return;
     e.className="cell_input";
@@ -567,18 +610,25 @@ function cell_blur(id) {
     return true;
 }
 
+function debug_focus() {
+    in_debug_input = true;
+    w = get_element('debug_window');
+    if(w)
+       w.className = 'debug_window_active';
+}
+
+function debug_blur() {
+    in_debug_input = false;
+    w = get_element('debug_window');
+    if(w)
+        w.className = 'debug_window_inactive';
+}
+
 function focus(id) {
        // make_cell_input_active(id);
        var cell = get_cell(id);
        if (cell && cell.focus) {
           cell.focus();
-       }
-}
-
-function scroll_view(id) {
-       var cell = get_cell(id);
-       if (cell && cell.focus) {
-          cell.scrollIntoView();
        }
 }
 
@@ -639,7 +689,6 @@ function cell_input_minimize_all() {
     }
 }
 
-id_to_delete=-1;
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
         cell = get_element('cell_' + id_to_delete);
@@ -665,28 +714,62 @@ function cell_delete(id) {
 
 function key_listen_ie() {
     var e = get_event(null);
-    if(focused_cell_id == -1)
-        return;
+    if(current_cell != -1) {
+        k = new key_event(e);
+        if(key_shift(k) || key_ctrl(k) || key_alt(k))
+          return true;
 
-    k = new key_event(e);
-    if(key_shift(k) || key_ctrl(k) || key_alt(k))
-      return;
+        if(!cell_input_key_event(current_cell, e)) {
+            void(0);
+            e.returnValue=false;
+            e.cancelBubble=true;
+            return false;
+        }
+        return true;
+    }
+    if(in_debug_input) {
+        if(!debug_input_key_event(e)) {
+            void(0);
+            e.returnValue=false;
+            e.cancelBubble=true;
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
 
-    if(!cell_input_key_event(focused_cell_id, e)) {
-        void(0);
-        e.returnValue=false;
-        e.cancelBubble=true;
+function debug_input_key_event(e) {
+    e = new key_event(e);
+    debug_input = get_element('debug_input');
+
+    if (key_down_arrow(e)) {
+        var after = text_cursor_split(debug_input)[1];
+        var i = after.indexOf('\n');
+        if (i == -1 || after == '') {
+            focus(cell_id_list[0])
+            return false;
+        } else {
+            return true;
+        }
+    }
+    if (key_send_input(e)) {
+        var out = ""
+        try {
+          out = eval(debug_input.value);
+        } catch(err) {
+          out = "Error: " + err.description;
+        } finally {
+          debug_append(out);
+          return false;
+        }
     }
 }
 
 function cell_input_key_event(id, e) {
     cell_input = get_cell(id);
-
     e = new key_event(e);
     if (e==null) return;
-
-    if(key_request_introspections(e) && browser_op && cell_input.focus)
-        cell_input.focus();
 
     //alert (e.keyCode);
 
@@ -772,6 +855,18 @@ function id_of_cell_delta(id, delta) {
     }
 }
 
+function debug_clear() {
+    output = get_element("debug_output");
+    if(output == null) return;
+    output.value = "";
+}
+
+function debug_append(txt) {
+    output = get_element("debug_output");
+    if(output == null) return;
+    output.value = txt + "\n" + output.value;
+}
+
 /*
 old_id = -1;
 function make_cell_input_active(id) {
@@ -814,7 +909,6 @@ function jump_to_cell(id, delta) {
     if (j >= i) {
         j = i;
     }
-    //scroll_view(j);
     focus(i);
 }
 
@@ -851,20 +945,15 @@ function text_cursor_split(input) {
     return new Array(b,a);
 }
 
-var non_word = new RegExp("[^a-zA-Z0-9_]");
-var command_pat = new RegExp('([a-zA-Z._0-9]*)$');
-var evaluated_cell_id = 0;
-var cell_id = 0;
-var last_action = 0;
 function evaluate_cell(id, action) {
-    cell_id = id;          // set global var
-    last_action = action;  // set global var
     active_cell_list = active_cell_list.concat([id]);
 
     if(action == 2) { // Introspection
        evaluate_cell_introspection(id);
        return;
     }
+
+    jump_to_cell(id,1);
 
     var cell_input = get_cell(id);
     var I = cell_input.value
@@ -876,7 +965,6 @@ function evaluate_cell(id, action) {
     start_update_check();
 }
 
-var after_cursor, before_cursor, before_replacing_word;
 function evaluate_cell_introspection(id, before, after) {
     var cell_input = get_cell(id);
 
@@ -884,8 +972,10 @@ function evaluate_cell_introspection(id, before, after) {
         var in_text = text_cursor_split(cell_input);
         before_cursor = before = in_text[0];
         after_cursor  = after  = in_text[1];
+        before_replacing_word = before;
 
         m = command_pat.exec(before);
+        f = function_pat.exec(before);
         if(introspect_id != null)
             halt_introspection();
         introspect_id = id;
@@ -893,42 +983,32 @@ function evaluate_cell_introspection(id, before, after) {
         var last_char_before = before.charAt(before.length-1);
         if(last_char_before == "?") {
             replacing = false;
-        } else {
+        } else if(m) {
             replacing = true;
             replacing_word  = m[1];
             before_replacing_word = before.substring(0, before.length-replacing_word.length);
-        }
-
-        if (is_just_a_tab(before, id)) {
-            // If the character right before the cursor is blank, we instead
-            // send 4 spaces.
+        } else if(f != null) { //we're in an open function paren -- give info on the function
+            before = f[1] + "?";
+        } else { //just a tab
             do_replacement(id, replacing_word+'    ');
             return;
         }
     } else {
+        debug_append("before non-null")
         sub_introspecting = true;
     }
 
+    update_introspection_text();
     var before_cursor_e = escape0(before);
     var after_cursor_e = escape0(after);
     async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
           'id=' + id + '&before_cursor='+before_cursor_e + '&after_cursor='+after_cursor_e);
     start_update_check();
+
+debug_append('before>' + before + '<endbefore')
+debug_append('after>' + after + '<endafter')
+
 }
-
-function is_just_a_tab(s, id) {
-    var n = s.length
-    if (n==0)
-       return 1;
-    c = s.charAt(n-1);
-    if (c == ' ' || c == '\t' || c == '\n' || c == ')' || c == '(') {
-       return 1;
-    }
-    return 0;
-}
-
-
-updating = 0;
 
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
@@ -949,8 +1029,6 @@ function evaluate_cell_callback(status, response_text) {
         // insert a new cell after the one with id X[3]
         do_insert_new_cell_after(X[3], X[2], X[0]);
         // jump_to_cell(X[0], 0);
-        focus(X[0]);
-    } else if (last_action != 2) {  // not an introspection
         focus(X[0]);
     }
 }
@@ -1011,12 +1089,13 @@ function check_for_cell_update() {
     async_request('async_obj_cell_update', '/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
+    update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
 }
 
-update_timeout = -1;
 function start_update_check() {
+    if(updating) return;
     if (active_cell_list.length > 0) {
-        updating = 1;
+        updating = true;
         update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
         check_for_cell_update();
     } else {
@@ -1026,12 +1105,11 @@ function start_update_check() {
 }
 
 function cancel_update_check() {
-    updating = 0;
+    updating = false;
     clearTimeout(update_timeout);
 }
 
 
-var whitespace = new RegExp("\\w+");
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
     /* fill in output text got so far */
     var cell_output = get_element('cell_output_' + id);
@@ -1045,45 +1123,37 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
     if (status == 'd') {
          cell_set_done(id);
          // TODO: should make this not case sensitive!!  how to .lower() in javascript?
-         if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
+/*         if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
              try {
                  jsMath.ProcessBeforeShowing(cell_output);
-             /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
+             // jsMath.ProcessBeforeShowing(cell_output_nowrap);
              } catch(e) {
                  cell_output.innerHTML = jsmath_font_msg + cell_output.innerHTML;
                  cell_output_nowrap.innerHTML = jsmath_font_msg + cell_output_nowrap.innerHTML;
              }
-         }
+         }*/
     } else {
          cell_set_running(id);
     }
 
-    if (introspect_html != '') {
-        if(introspect_id == id && introspect_html) {
-            if (status == 'd') {
-                introspection_loaded = true;
-                introspection_text = introspect_html;
-                if(id != cell_focused_id) {
-                    e = get_cell(id)
-                    e.focus()
-                }
-            }
-            update_introspection_text();
-        } else {
-            cell_output.innerHTML = '';
-            cell_output_nowrap.innerHTML = '';
-            cell_output_html.innerHTML = introspect_html;
-            /* cell_output_html.scrollIntoView(); */
+    if(introspect_id == id) {
+        if (status == 'd') {
+            introspection_loaded = true;
+            introspection_text = introspect_html;
         }
-   }
+        update_introspection_text();
+    } else if(introspect_html != '') {
+        cell_output.innerHTML = '';
+        cell_output_nowrap.innerHTML = '';
+        cell_output_html.innerHTML = introspect_html;
+    }
 }
 
 function set_input_text(id, text) {
     /* fill in input text */
     var cell_input = get_cell(id);
     cell_input.value = text;
-    if(cell_input.focus)
-        cell_input.focus();
+    focus(id)
 
     if(cell_input.selectionEnd != null) {
         cell_input.selectionEnd = cell_input.selectionStart = text.length - after_cursor.length;
@@ -1114,18 +1184,41 @@ function check_for_cell_update_callback(status, response_text) {
     // make sure the update happens again in a few hundred milliseconds,
     // unless a problem occurs below.
     if (status != "success") {
-        cancel_update_check();
-        active_cell_list = [];
-        alert("Error updating cell output (canceling further update checks).");
+        if(update_error_count>update_error_threshold) {
+            cancel_update_check();
+            active_cell_list = [];
+            var elapsed_time = update_cell_error_count*update_error_delta/1000;
+            var msg = "Error updating cell output after " + elapsed_time + "s";
+            msg += "(canceling further update checks).";
+            alert(msg);
+            return;
+        }
+        cell_output_delta = update_error_delta;
+        update_error_count++;
         return;
+    } else {
+        cell_output_delta = update_normal_delta;
     }
-    if(response_text == 'empty')
-        return;
-    start_update_check();
 
-    /* compute output for a cell */
     var i = response_text.indexOf(' ');
     var id = response_text.substring(1, i);
+    var stat = response_text.substring(0,1)
+
+    if(response_text == 'empty') {
+        cancel_update_check();
+        return;
+    }
+
+    if(stat == 'e') {
+        cancel_update_check();
+        for(i = 0; i < length(active_cell_list); i++) {
+            cell_set_running(active_cell_list[i]);
+        }
+        active_cell_list = []
+        return;
+    }
+
+    /* compute output for a cell */
     var D = response_text.slice(i+1).split(SEP);
     var output_text         = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
@@ -1136,7 +1229,6 @@ function check_for_cell_update_callback(status, response_text) {
     var object_list         = D[6];
     var attached_files_list = D[7];
     var introspect_html     = D[8];
-    var stat = response_text.charAt(0)
     var j = id_of_cell_delta(id,1);
 
     set_output_text(id, output_text, output_text_wrapped, output_html, stat, introspect_html);
@@ -1350,7 +1442,7 @@ function restart_sage_callback(status, response_text) {
     var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";
-    updating = 0;
+    updating = false;
     set_variable_list('');
     var v = cell_id_list;
     var n = v.length;
@@ -1432,10 +1524,9 @@ function show_help_window(worksheet) {
 
 /********************* js math ***************************/
 
-/* jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>'; */
-jsmath_font_msg = '<a href="SAGE_URL/jsmath">jsMath temporarily disabled while we resolve a windows firefox hang bug</a><br>';
 
 function jsmath_init() {
+    return
     try {
         jsMath.Process();
       /*  jsMath.ProcessBeforeShowing();  */

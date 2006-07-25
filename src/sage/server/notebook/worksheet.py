@@ -425,6 +425,8 @@ class Worksheet:
         out = self._process_output(out)
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
+            if len(before_prompt) == 0:
+                return
             if before_prompt[-1] != '?':
                 # completions
                 c = self.best_completion(out, C._word_being_completed)

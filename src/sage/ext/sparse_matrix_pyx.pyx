@@ -2116,7 +2116,7 @@ cdef class Matrix_mpq:
         #print "dd = ", dd
 
         hA = long(self.height())
-        if height_guess == None:
+        if height_guess is None:
             height_guess = 100000*hA**4
         tm = sage.misc.all.verbose("height_guess = %s"%height_guess, level=2)
 

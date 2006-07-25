@@ -305,12 +305,7 @@ def compute_presentation(syms, sign, field, weight):
     \end{enumerate}
 
     """
-    rels = modS_relations(syms)
-    if sign != 0:
-        # Let rels = rels union I relations.
-        rels.update(modI_relations(syms,sign))
-    mod = sparse_2term_quotient(rels, len(syms), field)
-    R = T_relation_matrix_wtk_g0(syms, mod, field, weight)
+    R, mod = relation_matrix_wtk_g0(syms, sign, field, weight)
     if weight==2:
         # heuristically the hecke operators are quite dense for weight > 2
         sparse = True
@@ -318,6 +313,15 @@ def compute_presentation(syms, sign, field, weight):
         sparse = False
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
+
+def relation_matrix_wtk_g0(syms, sign, field, weight):
+    rels = modS_relations(syms)
+    if sign != 0:
+        # Let rels = rels union I relations.
+        rels.update(modI_relations(syms,sign))
+    mod = sparse_2term_quotient(rels, len(syms), field)
+    R = T_relation_matrix_wtk_g0(syms, mod, field, weight)
+    return R, mod
 
 def sparse_2term_quotient(rels, n, F):
     r"""

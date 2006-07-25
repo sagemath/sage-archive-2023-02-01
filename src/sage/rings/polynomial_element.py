@@ -1218,9 +1218,14 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         v.reverse()
         return self.parent()(v)
 
-    def roots(self):
+    def roots(self, multiplicities=True):
         """
         Return all roots of this polynomial.
+
+        INPUT:
+            multiplicities -- bool (default: True, except over RR or CC)
+                              if True return list of pairs (r, n), where r is
+                              the root and n is the multiplicity.
 
         If the polynomial is over RR or CC returns all roots in CC
         with multiplicities all set to 1.
@@ -1242,6 +1247,14 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             [(884736/19, 1)]
             sage: (f^20).roots()
             [(884736/19, 20)]
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: f = K.defining_polynomial()
+            sage: g = f.base_extend(GF(7))
+            sage: g.roots()
+            [(4, 1), (2, 1)]
+            sage: g.roots(multiplicities=False)
+            [4, 2]
         """
         seq = []
 
@@ -1265,7 +1278,10 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         for fac in rts:
             g = fac[0]
             if g.degree() == 1:
-                seq.append((-g[0]/g[1],fac[1]))
+                if multiplicities:
+                    seq.append((-g[0]/g[1],fac[1]))
+                else:
+                    seq.append(-g[0]/g[1])
         return seq
 
     def valuation(self):

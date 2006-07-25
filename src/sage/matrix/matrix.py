@@ -34,7 +34,6 @@ import sage.matrix.sparse_matrix_pyx as sparse_matrix_pyx
 import sage.matrix.sparse_matrix
 import sage.modules.free_module_element
 import sage.modules.free_module
-import sage.matrix.matrix_space
 import matrix_space
 import sage.libs.pari.all as pari
 
@@ -46,7 +45,7 @@ import sage.rings.rational_field as rational_field
 import sage.rings.rational as rational
 import sage.rings.number_field.number_field as number_field
 import sage.rings.coerce as coerce
-from sage.rings.all import is_FiniteField, is_IntegerModRing
+from sage.rings.all import is_FiniteField, is_IntegerModRing, FiniteField
 
 from sage.structure.mutability import Mutability
 
@@ -880,6 +879,17 @@ class Matrix_field(Matrix_pid):
             sage: A = MatrixSpace(K,2)([1/x, 2/(x+1), 1, 5/(x^3)])
             sage: A.denominator()
             x^4 + x^3
+
+        Here's an example involving a cyclotomic field:
+            sage: K.<z> = CyclotomicField(3)
+            sage: M = MatrixSpace(K,3,sparse=True)
+            sage: A = M([(1+z)/3,(2+z)/3,z/3,1,1+z,-2,1,5,-1+z])
+            sage: print A
+            [1/3*z + 1/3 1/3*z + 2/3       1/3*z]
+            [          1       z + 1          -2]
+            [          1           5       z - 1]
+            sage: print A.denominator()
+            3
         """
         if self.nrows() == 0 or self.ncols() == 0:
             return integer.Integer(1)
@@ -1203,7 +1213,7 @@ class Matrix_field(Matrix_pid):
         d = self.denominator()
         A = self*d
         R = d.parent()
-        M = sage.matrix.matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
         return M.kernel()
 
 
@@ -2205,6 +2215,96 @@ class Matrix_sparse_integer(Matrix_integer, Matrix_generic_sparse):
 
 
 #############################################
+## Generic matrices over cyclotomic fields
+#############################################
+class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
+    def __init__(self, parent, entries=0,
+                       coerce_entries=True,
+                       copy=True):
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+
+    def height(self, prec=53):
+        """
+        Return the height of this matrix.
+
+        This is the maximum of the absolute values of any entries of
+        self with respect to all archimedean absolute values.
+        """
+        K = self.base_ring()
+        e = K.complex_embeddings(prec=prec)
+        v = self._entries()
+        return max([max([abs(f(z)) for f in e]) for z in v.itervalues()])
+
+
+    def multimodular_echelon_form(self, height_guess=None, include_zero_rows=True, start_prime=3, proof=True):
+        print "WARNING -- work in progress -- not finished!!!"
+        d = self.denominator()
+        if d != 1:
+            A = d*self
+        else:
+            A = self
+
+        hA = self.height()
+        if height_guess is None:
+            height_guess = 100000*hA**4
+
+        if proof:
+            M = self.ncols() * height_guess * hA  +  1
+        else:
+            M = height_guess + 1
+
+        K = self.base_ring()
+        n = K.degree()
+        p = K.next_split_prime(start_prime-1)
+        X = []
+        best_pivots = []
+        prod = 1
+        f = K.defining_polynomial()
+
+        entries = list(self._entries().iteritems())
+        w = sum([z.list() for _, z in entries], [])
+        B = matrix_space.MatrixSpace(integer_ring.IntegerRing(), len(entries), n)(w)
+        B = B.transpose()
+
+        while True:
+            Fp = FiniteField(p)
+            print 'p = ',p
+            f_mod_p = f.base_extend(Fp)
+            roots = f_mod_p.roots(multiplicities=False)
+            print 'roots = ', roots
+            M = matrix_space.MatrixSpace(Fp, n)
+            v = []
+            for r in roots:
+                z = Fp(1)
+                for i in range(n):
+                    v.append(z)
+                    if i < n-1:
+                        z *= r    # z = z*r
+            F = M(v)
+            print 'F = ', F
+            t = misc.cputime()
+            Finv = F**(-1)
+            print "time to invert", misc.cputime(t)
+            # This will be *vastly* faster soon.
+            print 'F^(-1) = \n', Finv
+
+            FB = F*B
+            print 'F*B = \n', FB
+            MS = matrix_space.MatrixSpace(Fp, self.nrows(), self.ncols(), sparse=True)
+            for i in range(n):
+                row = FB.row(i)
+                d = dict([(entries[j][0],row[j]) for j in range(len(entries))])
+                A_mod_p = MS(d)
+                print 'A modulo %sth prime is\n'%i, A_mod_p
+                E_mod_p = A_mod_p.echelon_form()
+                if self.nrows() == self.ncols() and E_mod_p.rank() == self.nrows():
+                    # the echelon form must be the identity matrix
+                    return self.parent()(1)
+                print 'Echelon form is\n', E_mod_p
+            break
+
+
+#############################################
 ## Generic matrices over the rational numbers
 #############################################
 class Matrix_rational(Matrix_field):
@@ -2233,7 +2333,6 @@ class Matrix_rational(Matrix_field):
             for i in range(n):
                 U[i,n-1] = - U[i,n-1]
         return U
-
 
 #############################################
 ## Dense matrices over the rational numbers

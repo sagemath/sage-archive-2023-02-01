@@ -27,6 +27,7 @@ from sage.interfaces.gp import Gp
 
 import sage.interfaces.all
 import sage.misc.preparser
+import sage.rings.arith
 
 _gp = None
 def gp():
@@ -1147,6 +1148,38 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         return self.hom([CC.zeta(self.zeta_order())], check=False)
+
+    def complex_embeddings(self, prec=53):
+        r"""
+        Return all embeddings of this cyclotomic field into the
+        approximate complex field with precision prec.
+
+        EXAMPLES:
+            sage: C = CyclotomicField(4)
+            sage: C.complex_embeddings()
+
+        """
+        CC = sage.rings.complex_field.ComplexField(prec)
+        n = self.zeta_order()
+        z = CC.zeta(self.zeta_order())
+        X = [m for m in range(n) if sage.rings.arith.gcd(m,n) == 1]
+        return [self.hom([z**n], check=False) for n in X]
+
+    def next_split_prime(self, p=2):
+        """
+        Return the next prime integer $p$ that splits completely in
+        this cyclotomic field (and does not ramify).
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(3)
+            sage: K.next_split_prime(7)
+            13
+        """
+        n = self.zeta_order()
+        while True:
+            p = sage.rings.arith.next_prime(p)
+            if p % n == 1:
+                return p
 
     def integral_basis(self):
         """

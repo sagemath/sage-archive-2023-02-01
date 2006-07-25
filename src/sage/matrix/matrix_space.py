@@ -16,6 +16,7 @@ import sage.rings.integer as integer
 import sage.rings.field as field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
+import sage.rings.number_field.all
 import sage.misc.latex as latex
 from sage.misc.misc import xsrange
 
@@ -469,15 +470,18 @@ class MatrixSpace_field(MatrixSpace_pid):
                         nrows, ncols, sparse)
 
     def _get_matrix_class(self):
+        K = self.base_ring()
         if self.is_dense():
-            if isinstance(self.base_ring(), rational_field.RationalField):
+            if isinstance(K, rational_field.RationalField):
                 return matrix.Matrix_dense_rational
             else:
                 return matrix.Matrix_generic_dense_field
         else:
-            if isinstance(self.base_ring(), rational_field.RationalField):
+            if isinstance(K, rational_field.RationalField):
                 #return matrix.Matrix_sparse_rational
                 return matrix.Matrix_sparse_rational
+            elif sage.rings.number_field.all.is_CyclotomicField(K):
+                return matrix.Matrix_sparse_cyclotomic
             return matrix.Matrix_generic_sparse_field
 
     def base_field(self):

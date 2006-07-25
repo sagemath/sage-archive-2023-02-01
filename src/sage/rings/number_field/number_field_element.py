@@ -25,6 +25,7 @@ import sage.rings.infinity as infinity
 import sage.rings.polynomial_element as polynomial
 import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.rational_field as rational_field
+import sage.rings.rational as rational
 import sage.rings.integer_ring as integer_ring
 import sage.rings.arith as arith
 import sage.misc.misc as misc
@@ -196,13 +197,29 @@ class NumberFieldElement(field_element.FieldElement):
         return integer_ring.IntegerRing()(int(self))
 
     def _rational_(self):
-        v = self.list()
         if self.__element.degree() >= 1:
             raise TypeError, "Unable to coerce %s to a rational"%self
         return self.__element[0]
 
     def polynomial(self):
         return self.__element
+
+    def denominator(self):
+        """
+        Return the denominator of this element, which is by definition
+        the denominator of the corresponding polynomial
+        representation.  I.e., elements of number fields are
+        represented as a polynomial (in reduced form) modulo the
+        modulus of the number field, and the denominator is the
+        denominator of this polynomial.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(3)
+            sage: a = 1/3 + (1/5)*z
+            sage: print a.denominator()
+            15
+        """
+        return self.__element.denominator()
 
     def _set_multiplicative_order(self, n):
         self.__multiplicative_order = n
@@ -320,5 +337,18 @@ class NumberFieldElement(field_element.FieldElement):
 
 
     def list(self):
-        return self.__element[:self.parent().degree()]
+        """
+        EXAMPLE:
+            sage: K.<z> = CyclotomicField(3)
+            sage: (2+3/5*z).list()
+            [2, 3/5]
+            sage: (5*z).list()
+            [0, 5]
+            sage: K(3).list()
+            [3, 0]
+        """
+        n = self.parent().degree()
+        v = self.__element[:n]
+        z = rational.Rational(0)
+        return v + [z]*(n - len(v))
 

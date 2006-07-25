@@ -310,6 +310,7 @@ class Expect(SageObject):
         except OSError, msg:
             print "WARNING:"
             print msg
+        self._expect = None
 
     def _quit_string(self):
         return 'quit'

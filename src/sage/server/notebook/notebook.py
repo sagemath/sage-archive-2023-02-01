@@ -11,7 +11,7 @@ AUTHORS:
 \subsection{Supported Browsers}
 
 The SAGE notebook should work with Firefox (and Mozilla), Opera,
-Konqueror, Safari, and Internet Explorer.
+Konqueror, and Safari. Internet Explorer is not supported (yet!).
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -848,7 +848,7 @@ class Notebook(SageObject):
         This is the SAGE Notebook, which is the graphical interface to
         the computer algebra system SAGE (Software for Algebra and
         Geometry Exploration).   It should work with Firefox, Mozilla,
-        Safari, Opera, Konqueror, and Internet Explorer.
+        Safari, Opera, and Konqueror. Internet Explorer is not supported (yet!).
         <br><br>
         AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
         especially Fernando Perez and Joe Wetherell).<br><br>

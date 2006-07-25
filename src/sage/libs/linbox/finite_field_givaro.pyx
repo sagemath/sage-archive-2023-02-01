@@ -33,12 +33,12 @@ import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
 
-cdef extern from 'interrupt.h':
-    int _sig_on, _sig_off, _sig_check
-    void _sig_str(char*)
-## cdef int _sig_on
-## cdef int _sig_off
-## cdef int _sig_check
+## cdef extern from 'interrupt.h':
+##     int _sig_on, _sig_off, _sig_check
+##     void _sig_str(char*)
+cdef int _sig_on
+cdef int _sig_off
+cdef int _sig_check
 
 cdef extern from "givaro/givrandom.h":
     ctypedef struct GivRandom "GivRandom":
@@ -582,6 +582,23 @@ cdef class GFq(FiniteField):
 
         r = self.objectptr.amxy(r , a.object, b.object, c.object, )
         return make_GFq_element(self,r)
+
+    def _add(GFq self, int r, int l):
+        cdef int res
+        return int(self.objectptr.add(res, r , l ))
+
+    def _mul(GFq self, int r, int l):
+        cdef int res
+        return int(self.objectptr.mul(res, r , l ))
+
+    def _div(GFq self, int r, int l):
+        cdef int res
+        return int(self.objectptr.div(res, r , l ))
+
+    def _sub(GFq self, int r, int l):
+        cdef int res
+        return int(self.objectptr.sub(res, r , l ))
+
 
 cdef class GFq_iterator:
     """

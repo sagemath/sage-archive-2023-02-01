@@ -838,6 +838,12 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
+        elif s[:12] == '%save_server':
+            self.notebook().save()
+            t = s[12:].lstrip()
+            if len(t) == 0 or t[0] != '%':
+                return False, t
+            s = t
         i = s.find('\n')
         if i == -1:
             # nothing to evaluate

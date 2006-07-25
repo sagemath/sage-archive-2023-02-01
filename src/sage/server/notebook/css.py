@@ -1031,9 +1031,9 @@ textarea.debug_input {
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default' or color == None:
-        color1 = '#debbde'
+        color1 = '#aaaaff'
         #color2 = '#b5edbc'
-        color2 = '#6cc777'
+        color2 = '#6cc755'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

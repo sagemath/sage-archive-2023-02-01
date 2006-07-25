@@ -750,8 +750,8 @@ class Notebook(SageObject):
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
         body += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
-        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
+        body += '    <a class="download_sws" href="%s.sws">Download</a>'%worksheet.filename() + vbar
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
         body += '  </span>'
@@ -807,7 +807,7 @@ class Notebook(SageObject):
                 ('Move between cells', 'Use the up and down arrows on your keyboard.'),
                 ('Interrupt running calculations',
                  'Click <u>Interrupt</u> in the upper right or press escape in any input cell. This will (attempt) to interrupt SAGE by sending many interrupts for several seconds; if this fails, it restarts SAGE (your worksheet is unchanged, but your session is reset).'),
-                ('Tab completion', 'Press tab while the cursor is on an identifier.'),
+                ('Tab completion', 'Press tab while the cursor is on an identifier. On some web browsers (e.g., Opera) you must use control-space instead of tab.'),
                 ('Print worksheet', 'Click the print button.'),
                 ('Help About',
                  'Type ? immediately after the object or function and press tab.'),
@@ -833,8 +833,8 @@ class Notebook(SageObject):
                 ('Loading and Saving Objects', 'Use "save obj1 obj2 ..." and "load obj1 obj2 ...".  This allows very easy moving of objects from one worksheet to another, and saving of objects for later use.'),
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
-                ('Saving Worksheets',
-                 'Click <ul>Save</ul> in the upper right to download a complete worksheet to a local .sws file.  Note that uploading is not implemented yet except locally (the <i>only</i> thing left is implementing upload of binary data to the server). Note that <i>everything</i> that has been submitted is automatically saved to disk, and is there for you next time you access the notebook.'),
+                ('Downloading and Uploading Worksheets',
+                 'Click <u>Download</u> in the upper right to download a complete worksheet to a local .sws file, and click <u>Upload</u> to upload a saved worksheet to the notebook.  Note that <i>everything</i> that has been submitted is automatically saved to disk when you quit the notebook server (or type "%save_server" into a cell).'),
                 ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
@@ -847,13 +847,13 @@ class Notebook(SageObject):
         s = """
         This is the SAGE Notebook, which is the graphical interface to
         the computer algebra system SAGE (Software for Algebra and
-        Geometry Exploration).
+        Geometry Exploration).   It should work with Firefox, Mozilla,
+        Safari, Opera, Konqueror, and Internet Explorer.
         <br><br>
         AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
         especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE install is licensed
-        either under the GPL or a GPL-compatible license.  <a href="__license__.html">view full
-        license text</a>
+        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
+        either under the GPL or a GPL-compatible license</a>.
         <br><hr>
         <style>
         div.help_window {

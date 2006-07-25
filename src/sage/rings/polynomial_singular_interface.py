@@ -355,9 +355,15 @@ class Polynomial_singular_repr:
             sage: f=k('a^2+a')*x^2 + k('a^4+a^3+a')*y^3 + k('a^5')
             sage: f.lc()
             a^4 + a^3 + a
+
+            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: f = (-1/3)*(1+x+y+z)
+            sage: (f^3).lc()
+            -1/27
         """
         try:
             return self.__lc
         except AttributeError:
-            self.__lc = self.base_ring()(self._singular_().leadcoef().sage_poly(self.parent()))
+            c = self._singular_().leadcoef().sage_poly(self.parent())
+            self.__lc = self.base_ring()(c.constant_coefficient())
             return self.__lc

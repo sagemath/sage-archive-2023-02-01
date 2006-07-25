@@ -4,13 +4,14 @@ SAGE Notebook Interface
 AUTHORS:
     -- William Stein (2006-05-06): initial version
     -- Alex Clemesha
-    -- Tom Boothby
+    -- Tom Boothby: * support for a wide range of web browsers
+                    * massive refactoring of javascript code
+                    * systematic keyboard controls
 
 \subsection{Supported Browsers}
 
-The SAGE notebook currently is fully supported with Firefox only.
-Support is planned for Opera, Konqueror and Safari, and Internet
-Explorer.
+The SAGE notebook should work with Firefox (and Mozilla), Opera,
+Konqueror, Safari, and Internet Explorer.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -844,13 +845,11 @@ class Notebook(SageObject):
 
         help.sort()
         s = """
-
         This is the SAGE Notebook, which is the graphical interface to
         the computer algebra system SAGE (Software for Algebra and
         Geometry Exploration).
-        <br><b>Use Firefox:</b> <i>It currently only works in <b>Firefox</b>, but might
-        work to some extent in other browsers.</i><br>
-        AUTHORS: William Stein, Tom Boothby, Alex Clemesha (with feedback from many people,
+        <br><br>
+        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
         especially Fernando Perez and Joe Wetherell).<br><br>
         LICENSE: All code included with the standard SAGE install is licensed
         either under the GPL or a GPL-compatible license.  <a href="__license__.html">view full

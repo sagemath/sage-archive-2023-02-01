@@ -641,7 +641,7 @@ class MagmaElement(ExpectElement):
         return int(P.eval('#%s'%self.name()))
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of self.
 
         Types that are nicely latex include:

@@ -389,7 +389,7 @@ v v v v v v v
         global c
         c += 1
         for F in D:
-            if F[-4:] == '.png':
+            if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%s">'%(dir,F,c))
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))

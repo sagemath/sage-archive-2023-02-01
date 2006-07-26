@@ -26,6 +26,8 @@ import keyboards
 # SAGE libraries
 import sage.interfaces.sage0
 
+from sage.misc.misc import alarm, cancel_alarm
+
 from   sage.misc.misc import verbose, word_wrap, SAGE_EXTCODE
 import sage.misc.preparser
 from   sage.ext.sage_object import load, SageObject
@@ -377,6 +379,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
+        if self.path[-4:] == '.bmp':
+            self.send_header("Content-type", 'image/bmp')
         elif self.path[-3:] == '.js':
             self.send_header("Content-type", 'script/javascript')
         elif self.path[-3:] == '.ps':
@@ -402,10 +406,23 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif self.path[-5:] == '.js':
             self.send_header("Content-type", 'text/js')
         self.end_headers()
+
         f = StringIO()
         f.write(binfile)
+        f.flush()
         f.seek(0)
-        shutil.copyfileobj(f, self.wfile)
+
+        # Give at most one second to the browser to download the image,
+        # since this locks the whole server.  Also, Firefox when receiving
+        # some images (maybe corrupted) will totally hang; doing this
+        # deals with that problem.
+        alarm(1)
+        try:
+            shutil.copyfileobj(f, self.wfile)
+        except KeyboardInterrupt:
+            pass
+        else:
+            cancel_alarm()
         f.close()
         return f
 
@@ -433,7 +450,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         verbose(self.path)
 
-        if self.path[-4:] in ['.eps', '.png', '.svg', '.tex', '.dvi', '.log', \
+        if self.path[-4:] in ['.eps', '.png', '.bmp', '.svg', '.tex', \
+                              '.dvi', '.log', \
                               '.txt', '.ico', '.sws'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
@@ -539,6 +557,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
+        if self.path[-4:] == '.bmp':
+            self.send_header("Content-type", 'image/bmp')
         elif self.path[-4:] == '.svg':
             self.send_header("Content-type", 'image/svg+xml')
         elif self.path[-4:] == '.txt':

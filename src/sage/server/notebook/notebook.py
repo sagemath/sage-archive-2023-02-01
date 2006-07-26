@@ -661,7 +661,7 @@ class Notebook(SageObject):
         print '*' + ' '*j + s + ' '*j + '*'
         print '*'+ ' '*(n-2) + '*'
         print '*'*n
-        print "WARNING!!! Currently the SAGE Notebook *only* works with Firefox."
+        print "WARNING: The SAGE Notebook works with Opera, Firefox/Mozilla, and Safari."
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)

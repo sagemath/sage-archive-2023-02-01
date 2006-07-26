@@ -2291,17 +2291,83 @@ class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
             FB = F*B
             print 'F*B = \n', FB
             MS = matrix_space.MatrixSpace(Fp, self.nrows(), self.ncols(), sparse=True)
+            Y = []
             for i in range(n):
                 row = FB.row(i)
                 d = dict([(entries[j][0],row[j]) for j in range(len(entries))])
                 A_mod_p = MS(d)
                 print 'A modulo %sth prime is\n'%i, A_mod_p
                 E_mod_p = A_mod_p.echelon_form()
+                print 'Echelon form is\n', E_mod_p
                 if self.nrows() == self.ncols() and E_mod_p.rank() == self.nrows():
                     # the echelon form must be the identity matrix
                     return self.parent()(1)
-                print 'Echelon form is\n', E_mod_p
-            break
+
+                pivots = E_mod_p.pivots()
+                print 'Pivot columns\n', pivots
+
+                c = dense_matrix_pyx.cmp_pivots(best_pivots, pivots)
+                if c < 0:
+                    # We found something better than ever before.
+                    # So now we throw away everything found so far:
+                    X = []
+                    best_pivots = pivots
+                    Y.append(E_mod_p)
+                    prod = 1
+                elif c <= 0:
+                    # We found something as good as found so far.
+                    Y.append(E_mod_p)
+                else:
+                    # Something worse than found so far; investigate this prime no further.
+                    Y = []
+                    break
+            # end for
+
+            if len(Y) == 0:
+                # modulo some \wp_i, the pivot columns were not maximal.
+                sage.misc.all.verbose("Excluding p=%s (bad pivots)."%p)
+            else:
+                # Then record in X (pivots, lifted matrix).
+                prod *= p
+                X.append((p, Finv, Y))
+
+            if prod >= M:
+                # Now try putting everything together.
+                # 1. Find the union of the nonzero positions of all the matrices
+                nonzero_positions = set([])
+                for _, _, Y in X:
+                    for B in Y:
+                        nonzero_positions = nonzero_positions.union(B.nonzero_positions())
+                nonzero_positions = list(nonzero_positions)
+                nonzero_positions.sort()
+                print "nonzero_positions = ", nonzero_positions
+                k = len(nonzero_positions)
+
+                # 2. Form the dense matrices F^(-1)*C
+                #    where C is the matrix with columns corresponding
+                #    to the nonzero positions found in step 1.  Each
+                #    entry of the column corresponds to one of the primes
+                #    over p.
+                W = []
+                for p, Finv, Y in X:
+                    Fp = Finv.base_ring()
+                    MS = matrix_space.MatrixSpace(Fp, Finv.nrows(), n)
+
+
+                # 3. Use the Chinese Remainder Theorem to compute a lift
+                #    of all the dense matrices found in step 2.
+
+                # 4. Use rational reconstruction to lift the matrix from step 3
+                #    to a matrix with entries in QQ.  If this fails try again
+                #    with more primes, i.e., M bigger.
+
+                # 5. Make the list of entries got by (in the abstract) computing
+                #    the product of [1,zeta,zeta^2, ...., zeta^(d-1)] times the
+                #    matrix found in step 4.
+
+            else:
+                p = K.next_split_prime(start_prime-1)
+
 
 
 #############################################

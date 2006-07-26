@@ -185,6 +185,10 @@ function key_event(e) {
    return this;
 }
 
+function time_now() {
+  return (new Date()).getTime();
+}
+
 ///////////////////////////////////////////////////////////////////
 // An AJAX framework for connections back to the
 // SAGE server (written by Tom Boothby).
@@ -384,12 +388,12 @@ function select_replacement_element() {
     e.className = 'completion_menu_two completion_menu_selected';
     var l = e.getElementsByTagName('a');
     if(l.length && l[0]!=null) {
-        var h = trim(l[0].innerHTML);
+        var h = l[0].innerHTML;
         var i = h.indexOf('&nbsp')
         if (i != -1) {
             h = h.substr(0,i);
         }
-        replacement_word = h;
+        replacement_word = trim(h);
     }
 }
 
@@ -948,6 +952,7 @@ function text_cursor_split(input) {
 
 function evaluate_cell(id, action) {
     active_cell_list = active_cell_list.concat([id]);
+    cell_set_running(id);
 
     if(action == 2) { // Introspection
        evaluate_cell_introspection(id);
@@ -959,7 +964,6 @@ function evaluate_cell(id, action) {
     var cell_input = get_cell(id);
     var I = cell_input.value
     var input = escape0(I);
-    cell_set_running(id);
     get_element('interrupt').className = 'interrupt';
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
@@ -1048,7 +1052,6 @@ function cell_output_set_type(id, typ) {
     /* Do async request back to the server */
     async_request('async_obj_check', '/cell_output_set',
                     generic_callback, 'id='+id+'&type=' + typ)
-
 }
 
 function cycle_cell_output_type(id) {
@@ -1087,7 +1090,7 @@ function check_for_cell_update() {
         return;
     }
     var cell_id = active_cell_list[0];
-    update_time = getTime();
+    update_time = time_now();
     async_request('async_obj_cell_update', '/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
@@ -1096,11 +1099,7 @@ function check_for_cell_update() {
 function start_update_check() {
     if(updating) return;
     updating = true;
-    if (active_cell_list.length > 0) {
-        check_for_cell_update();
-    } else {
-        cancel_update_check();
-    }
+    check_for_cell_update();
 }
 
 function cancel_update_check() {
@@ -1133,7 +1132,6 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
              }
          }
     } else {
-         cell_set_running(id);
     }
 
     if(introspect_id == id) {
@@ -1257,9 +1255,9 @@ function check_for_cell_update_callback(status, response_text) {
 }
 
 function continue_update_check() {
-    var time_left = getTime() - update_time - cell_output_delta;
-    if(time_left > 0) {
-        update_timeout = setTimeout('check_for_cell_update()', time_left);
+    var time_elapsed = time_now() - update_time;
+    if(time_elapsed < cell_output_delta) {
+        update_timeout = setTimeout('check_for_cell_update()', cell_output_delta-time_elapsed);
     } else {
         check_for_cell_update();
     }

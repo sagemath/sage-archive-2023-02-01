@@ -84,7 +84,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
         cell.set_input_text(input_text)
-        notebook.save()
+        #notebook.save()
 
         cell.evaluate(introspect=introspect)
 
@@ -123,7 +123,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose("Adding new cell before cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.new_cell_before(id)
-        notebook.save()
+        #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
                          str(id))
 
@@ -133,7 +133,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose("Adding new cell after cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.new_cell_after(id)
-        notebook.save()
+        #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
                          str(id) + SEP)
 
@@ -146,7 +146,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write('ignore')
         else:
             prev_id = W.delete_cell_with_id(id)
-            notebook.save()
+            #notebook.save()
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
 
     def cell_update(self):

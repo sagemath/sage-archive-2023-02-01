@@ -927,7 +927,7 @@ div.cell_output_running {
   /* background-color: #eeeeee; */
 /*  padding-left:3px;*/
   /* background-color:#98fb98; */
-  background-color:#c8fbc8;
+  background-color:#d8fbe8;
 }
 
 div.cell_output_running:hover {

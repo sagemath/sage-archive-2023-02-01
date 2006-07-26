@@ -1089,7 +1089,6 @@ function check_for_cell_update() {
     async_request('async_obj_cell_update', '/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
-    update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
 }
 
 function start_update_check() {
@@ -1214,7 +1213,7 @@ function check_for_cell_update_callback(status, response_text) {
     if(stat == 'e') {
         cancel_update_check();
         for(i = 0; i < length(active_cell_list); i++) {
-            cell_set_running(active_cell_list[i]);
+            cell_set_done(active_cell_list[i]);
         }
         active_cell_list = []
         return;
@@ -1253,7 +1252,7 @@ function check_for_cell_update_callback(status, response_text) {
         set_object_list(object_list);
         set_attached_files_list(attached_files_list);
     }
-
+    update_timeout = setTimeout('check_for_cell_update()', cell_output_delta);
 }
 
 function set_cell_evaluated(id) {

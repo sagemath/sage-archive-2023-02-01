@@ -1195,6 +1195,7 @@ function check_for_cell_update_callback(status, response_text) {
         }
         cell_output_delta = update_error_delta;
         update_error_count++;
+        continue_update_check();
         return;
     } else {
         cell_output_delta = update_normal_delta;
@@ -1251,8 +1252,12 @@ function check_for_cell_update_callback(status, response_text) {
         set_object_list(object_list);
         set_attached_files_list(attached_files_list);
     }
-    var time_left = getTime() - update_time - cell_output_delta;
 
+    continue_update_check();
+}
+
+function continue_update_check() {
+    var time_left = getTime() - update_time - cell_output_delta;
     if(time_left > 0) {
         update_timeout = setTimeout('check_for_cell_update()', time_left);
     } else {

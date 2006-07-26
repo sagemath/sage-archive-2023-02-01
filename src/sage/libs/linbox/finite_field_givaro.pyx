@@ -2,8 +2,6 @@ r"""
  AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
 
-TODO:
-    -- fix gap_to_givaro.
 """
 
 
@@ -372,7 +370,12 @@ cdef class GFq(FiniteField):
         expressed as log_{self.gen()}(p) internally.
         """
         cdef int r
-        return make_GFq_element(self,self.objectptr.gen(r))
+        from sage.rings.arith import primitive_root
+
+        if self.degree() == 1:
+            return self(primitive_root(self.order()))
+        else:
+            return make_GFq_element(self,self.objectptr.gen(r))
 
     def multiplicative_generator(GFq self):
         """
@@ -467,8 +470,13 @@ cdef class GFq(FiniteField):
         Returns a SAGE Finite Field (which is a FiniteField_ext_pari)
         matching self.
         """
+
         from sage.rings.finite_field import FiniteField_ext_pari
-        return FiniteField_ext_pari(self.cardinality(),'a',self.polynomial())
+        from sage.rings.finite_field import FiniteField_prime_modn
+        if self.degree()>1:
+            return FiniteField_ext_pari(self.cardinality(),self.variable_name(),self.polynomial())
+        else:
+            return FiniteField_prime_modn(self.cardinality(),self.variable_name())
 
     def vector_space(GFq_element self):
          """
@@ -1007,53 +1015,53 @@ cdef make_GFq_element(GFq parent, int x):
     y.object = x
     return y
 
-## cdef gap_to_givaro(x, F):
-##     """
-##     INPUT:
-##         x -- gap finite field element
-##         F -- Givaro finite field
-##     OUTPUT:
-##         element of F
+cdef gap_to_givaro(x, F):
+    """
+    INPUT:
+        x -- gap finite field element
+        F -- Givaro finite field
+    OUTPUT:
+        element of F
 
-##     EXAMPLES:
-##         sage: x = gap('Z(13)')
-##         sage: F = linbox.GFq(13)
-##         sage: F(x)
-##         2
-##         sage: F(gap('0*Z(13)'))
-##         0
-##         sage: F = linbox.GFq(13^2)
-##         sage: x = gap('Z(13)')
-##         sage: F(x)
-##         2
-##         sage: x = gap('Z(13^2)^3')
-##         sage: F(x)
-##         12*a + 11
-##         sage: F.multiplicative_generator()^3
-##         12*a + 11
+    EXAMPLES:
+        sage: x = gap('Z(13)')
+        sage: F = linbox.GFq(13)
+        sage: F(x)
+        2
+        sage: F(gap('0*Z(13)'))
+        0
+        sage: F = linbox.GFq(13^2)
+        sage: x = gap('Z(13)')
+        sage: F(x)
+        2
+        sage: x = gap('Z(13^2)^3')
+        sage: F(x)
+        12*a + 11
+        sage: F.multiplicative_generator()^3
+        12*a + 11
 
-##     AUTHOR:
-##         -- David Joyner and William Stein
-##         -- Martin Albrecht (copied from gap_to_sage)
-##     """
-##     raise NotImplementedError, "This has bugs"
-##     import sage.interfaces.gap
-##     s = str(x)
-##     if s[:2] == '0*':
-##         return F(0)
-##     i1 = s.index("(")
-##     i2 = s.index(")")
-##     q  = eval(s[i1+1:i2].replace('^','**'))
-##     if q == F.order():
-##         K = F
-##     else:
-##         K = GFq(q)
-##     if s.find(')^') == -1:
-##         e = 1
-##     else:
-##         e = int(s[i2+2:])
-##     if F.degree() == 1:
-##         g = int(sage.interfaces.gap.gap.eval('Int(Z(%s))'%q))
-##         return make_GFq_element(F,F.int2log(g))
-##     else:
-##         return make_GFq_element(F,e)
+    AUTHOR:
+        -- David Joyner and William Stein
+        -- Martin Albrecht (copied from gap_to_sage)
+    """
+    import sage.interfaces.gap
+    s = str(x)
+    if s[:2] == '0*':
+        return F(0)
+    i1 = s.index("(")
+    i2 = s.index(")")
+    q  = eval(s[i1+1:i2].replace('^','**'))
+    if q == F.order():
+        K = F
+    else:
+        K = GFq(q)
+    if s.find(')^') == -1:
+        e = 1
+    else:
+        e = int(s[i2+2:])
+
+    if F.degree() == 1:
+        g = int(sage.interfaces.gap.gap.eval('Int(Z(%s))'%q))
+    else:
+        g = K.multiplicative_generator()
+    return F(K(g**e))

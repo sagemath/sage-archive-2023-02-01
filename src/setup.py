@@ -246,7 +246,7 @@ def need_to_create(file1, file2):
     return False
 
 
-def process_pyrexembed_file(f):
+def process_pyrexembed_file(f, m):
     # This is a pyrexembed file, so process accordingly.
     dir, base = os.path.split(f[:-5])
     tmp = '%s/.tmp_pyrexembed'%dir
@@ -274,7 +274,7 @@ def process_pyrexembed_file(f):
         if ret != 0:
             print "Error running pyrexembed."
             sys.exit(ret)
-        process_pyrex_file(pyx_embed_file)
+        process_pyrex_file(pyx_embed_file, m)
         cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
         print cmd
         os.system(cmd)
@@ -314,7 +314,7 @@ def pyrex(ext_modules):
             f = m.sources[i]
             s = open(f).read()
             if f[-5:] == '.pyxe':# and s.find("#embed") != -1 and s.find('#}embed') != -1:
-                new_sources = process_pyrexembed_file(f)
+                new_sources = process_pyrexembed_file(f, m)
             elif f[-4:] == ".pyx":
                 new_sources += process_pyrex_file(f, m)
             else:

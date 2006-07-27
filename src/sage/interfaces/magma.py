@@ -645,10 +645,17 @@ class MagmaElement(ExpectElement):
         Return latex representation of self.
 
         Types that are nicely latex include:
-
-        rationals, matrices, polynomials, binary quadratic forms,
-        elements of quadratic and cyclotomic number fields, points,
-        and elliptic curves.
+        \begin{itemize}
+          \item rationals
+          \item matrices
+          \item polynomials
+          \item binary quadratic forms
+           \item elements of quadratic, cyclotomic number fields, and general
+           number fields
+          \item points
+          \item elliptic curves
+          \item power series
+        \end{itemize}
 
         EXAMPLES:
             sage: latex(magma('-2/3'))
@@ -669,6 +676,31 @@ class MagmaElement(ExpectElement):
 
             sage: latex(magma('EllipticCurve([1,2/3,3/4,4/5,-5/6])'))
             y^2+xy+\frac{3}{4}y=x^3+\frac{2}{3}x^2+\frac{4}{5}x-\frac{5}{6}
+
+
+            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')
+            sage: _=magma.eval('K<a> := NumberField(x^3+17*x+2)')
+            sage: latex(magma('(1/3)*a^2 - 17/3*a + 2'))
+            2-\frac{17}{3}a+\frac{1}{3}a^{2}
+
+        SAGE auto-detects the greek letters and puts backslashes in:
+            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')
+            sage: _=magma.eval('K<alpha> := NumberField(x^3+17*x+2)')
+            sage: latex(magma('(1/3)*alpha^2 - 17/3*alpha + 2'))
+            2-\frac{17}{3}\alpha+\frac{1}{3}\alpha^{2}
+
+        Finite field elements:
+            sage: _=magma.eval('K<a> := GF(27)')
+            sage: latex(magma('a^2+2'))
+            2+a^{2}
+
+        Power Series:
+            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')
+            sage: latex(magma('(1/(1+x))'))
+            1-x+x^{2}-x^{3}+x^{4}-x^{5}+x^{6}-x^{7}+x^{8}-x^{9}+x^{10}-x^{11}+x^{12}-x^{13}+x^{14}-x^{15}+x^{16}-x^{17}+x^{18}-x^{19}+O(x^{20})
+            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')
+            sage: latex(magma('(-1/(2+x + O(x^3)))'))
+            \frac{-1}{2}+\frac{1}{4}x-\frac{1}{8}x^{2}+O(x^{3})
         """
         P = self._check_valid()
         s = str(P.eval('Latex(%s)'%self.name()))

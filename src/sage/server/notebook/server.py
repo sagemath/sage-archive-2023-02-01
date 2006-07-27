@@ -283,8 +283,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         if do_print:
-            pass
-            #s += '<script src="/jsmath/jsMath.js"></script>\n'
+            s += '<script src="/jsmath/jsMath.js"></script>\n'
         s += '<script language=javascript>' + js.javascript() + '</script>\n'
         s += '<style>' + css.css() + '</style>\n'
         s += '</head>\n'
@@ -293,8 +292,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #if do_print:
         #    s += '<script language=javascript>window.print()</script>\n'
         if do_print:
-            pass
-            #s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 

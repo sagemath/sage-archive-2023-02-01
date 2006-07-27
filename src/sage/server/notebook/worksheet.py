@@ -1002,8 +1002,7 @@ class Worksheet:
         if not do_print:
             s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
         else:
-            pass
-            #s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s
 
     def show_all(self):

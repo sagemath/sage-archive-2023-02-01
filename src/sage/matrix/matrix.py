@@ -2236,6 +2236,81 @@ class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
         return max([max([abs(f(z)) for f in e]) for z in v.itervalues()])
 
 
+    def _echelons_modp(self, p, best_pivots=[]):
+        """
+        INPUT:
+            self -- matrix with denominator 1 (not verified)
+            p -- a prime number that splits completely in the base field.
+            best_pivots -- list of pivot positions; if the pivots of
+                           any echelon form mod p are worse than best_pivots,
+                           then this function returns [] and modifies best_pivots.
+
+
+        OUTPUT:
+            list of sparse matrices modulo p in reduced row echelon form
+            got by reducing this matrix modulo all primes over p, or []
+            if best_pivots are better than any pivots of one of these matrices.
+        """
+        Fp = FiniteField(p)
+        print 'p = ',p
+        f_mod_p = f.base_extend(Fp)
+        roots = f_mod_p.roots(multiplicities=False)
+        print 'roots = ', roots
+        M = matrix_space.MatrixSpace(Fp, n)
+        v = []
+        for r in roots:
+            z = Fp(1)
+            for i in range(n):
+                v.append(z)
+                if i < n-1:
+                    z *= r    # z = z*r
+        F = M(v)
+        print 'F = ', F
+        t = misc.cputime()
+        Finv = F**(-1)
+        print "time to invert", misc.cputime(t)
+        # This will be *vastly* faster soon.
+        print 'F^(-1) = \n', Finv
+
+        FB = F*B
+        print 'F*B = \n', FB
+        MS = matrix_space.MatrixSpace(Fp, self.nrows(), self.ncols(), sparse=True)
+        Y = []
+        for i in range(n):
+            row = FB.row(i)
+            d = dict([(entries[j][0],row[j]) for j in range(len(entries))])
+            A_mod_p = MS(d)
+            print 'A modulo %sth prime is\n'%i, A_mod_p
+            E_mod_p = A_mod_p.echelon_form()
+            print 'Echelon form is\n', E_mod_p
+            if self.nrows() == self.ncols() and E_mod_p.rank() == self.nrows():
+                # the echelon form must be the identity matrix
+                return self.parent()(1)
+
+            pivots = E_mod_p.pivots()
+            print 'Pivot columns\n', pivots
+
+            c = dense_matrix_pyx.cmp_pivots(best_pivots, pivots)
+            if c < 0:
+                # We found something better than ever before.
+                # So now we throw away everything found so far:
+                for j in pivots:
+                    if not j in best_pivots:
+                        best_pivots.append(j)
+                best_pivots.sort()
+                Y.append(E_mod_p)
+                prod = 1
+            elif c <= 0:
+                # We found something as good as found so far.
+                Y.append(E_mod_p)
+            else:
+                # Something worse than found so far; investigate this prime no further.
+                Y = []
+                break
+        return Y
+        # end for
+
+
     def multimodular_echelon_form(self, height_guess=None, include_zero_rows=True, start_prime=3, proof=True):
         print "TODO: WARNING -- work in progress -- not finished!!!"
         d = self.denominator()
@@ -2267,61 +2342,11 @@ class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
         B = B.transpose()
 
         while True:
-            Fp = FiniteField(p)
-            print 'p = ',p
-            f_mod_p = f.base_extend(Fp)
-            roots = f_mod_p.roots(multiplicities=False)
-            print 'roots = ', roots
-            M = matrix_space.MatrixSpace(Fp, n)
-            v = []
-            for r in roots:
-                z = Fp(1)
-                for i in range(n):
-                    v.append(z)
-                    if i < n-1:
-                        z *= r    # z = z*r
-            F = M(v)
-            print 'F = ', F
-            t = misc.cputime()
-            Finv = F**(-1)
-            print "time to invert", misc.cputime(t)
-            # This will be *vastly* faster soon.
-            print 'F^(-1) = \n', Finv
-
-            FB = F*B
-            print 'F*B = \n', FB
-            MS = matrix_space.MatrixSpace(Fp, self.nrows(), self.ncols(), sparse=True)
-            Y = []
-            for i in range(n):
-                row = FB.row(i)
-                d = dict([(entries[j][0],row[j]) for j in range(len(entries))])
-                A_mod_p = MS(d)
-                print 'A modulo %sth prime is\n'%i, A_mod_p
-                E_mod_p = A_mod_p.echelon_form()
-                print 'Echelon form is\n', E_mod_p
-                if self.nrows() == self.ncols() and E_mod_p.rank() == self.nrows():
-                    # the echelon form must be the identity matrix
-                    return self.parent()(1)
-
-                pivots = E_mod_p.pivots()
-                print 'Pivot columns\n', pivots
-
-                c = dense_matrix_pyx.cmp_pivots(best_pivots, pivots)
-                if c < 0:
-                    # We found something better than ever before.
-                    # So now we throw away everything found so far:
-                    X = []
-                    best_pivots = pivots
-                    Y.append(E_mod_p)
-                    prod = 1
-                elif c <= 0:
-                    # We found something as good as found so far.
-                    Y.append(E_mod_p)
-                else:
-                    # Something worse than found so far; investigate this prime no further.
-                    Y = []
-                    break
-            # end for
+            best_pivots_before = list(best_pivots)
+            Y = A._echelons_modp(p, best_pivots)
+            if best_pivots_before != best_pivots:
+                # working modulo p we found a better list of pivots than ever before.
+                X = []
 
             if len(Y) == 0:
                 # modulo some \wp_i, the pivot columns were not maximal.

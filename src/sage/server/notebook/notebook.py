@@ -790,7 +790,8 @@ class Notebook(SageObject):
                 worksheet.attached_html()
         body += '</td></tr></table></span>\n'
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script language=javascript>jsmath_init();</script>\n'
+        if JSMATH:
+            body += '<script language=javascript>jsmath_init();</script>\n'
 
         if worksheet.computing():
             # Set the update checking back in motion.

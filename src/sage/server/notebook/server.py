@@ -42,6 +42,8 @@ SEP = '___S_A_G_E___'
 
 notebook = None
 
+SAVE_INTERVAL=10
+
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
@@ -156,6 +158,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             #notebook.save()
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
 
+    def save_notebook_every_so_often(self):
+        return
+        try:
+            i = self.__save_number
+        except AttributeError:
+            i = 0
+        self.__save_number = i + 1
+        if i % SAVE_INTERVAL == 0:
+            notebook.save()
+
     def cell_update(self):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
@@ -170,7 +182,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         status, cell = worksheet.check_cell(cell_id)
 
         #print status, cell   # debug
+
         if status == 'd':
+            self.save_notebook_every_so_often()
             variables = worksheet.variables_html()
             objects = notebook.object_list_html()
             attached_files = worksheet.attached_html()
@@ -178,6 +192,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             variables = '...'  # not used
             objects = "..." # note used
             attached_files = '...' # not used
+
         if status == 'd':
             new_input = cell.changed_input_text()
             out_html = cell.output_html()

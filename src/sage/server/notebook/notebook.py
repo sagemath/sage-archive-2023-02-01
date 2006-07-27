@@ -454,7 +454,7 @@ class Notebook(SageObject):
         os.system(cmd)
         D = os.listdir(tmp)[0]
         print D
-        worksheet = load('%s/%s/%s.sobj'%(tmp,D,D))
+        worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
         S = self.__worksheet_dir
         cmd = 'rm -rf "%s/%s"'%(S,D)
         print cmd
@@ -617,15 +617,19 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
+        from sage.misc.all import cputime
         if filename is None:
+            t = cputime()
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
             except IOError:
                 pass
-            SageObject.save(self, os.path.abspath(self.__filename))
+            print "Saving notebook to %s"%self.__filename
+            SageObject.save(self, os.path.abspath(self.__filename), compress=False)
+            print "Time: %s"%cputime(t)
         else:
-            SageObject.save(self, os.path.abspath(filename))
+            SageObject.save(self, os.path.abspath(filename), compress=False)
 
     def start(self, port=8000, address='localhost',
                     max_tries=128, open_viewer=False,
@@ -669,6 +673,7 @@ class Notebook(SageObject):
         notebook_server.serve()
         self.save()
         self.quit()
+        self.save()
 
     def quit(self):
         for W in self.__worksheets.itervalues():
@@ -1085,18 +1090,18 @@ def notebook(dir         ='sage_notebook',
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
         try:
-            nb = load('%s/nb.sobj'%dir)
+            nb = load('%s/nb.sobj'%dir, compress=False)
         except:
             print "****************************************************************"
             print "  * * * WARNING   * * * WARNING   * * * WARNING   * * * "
             print "WARNING -- failed to load notebook data. Trying the backup file."
             print "****************************************************************"
             try:
-                nb = load('%s/nb-backup.sobj'%dir)
+                nb = load('%s/nb-backup.sobj'%dir, compress=False)
             except:
                 print "Recovering from last op save failed."
                 print "Trying save from last startup."
-                nb = load('%s/nb-older-backup.sobj'%dir)
+                nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
 
         nb.set_directory(dir)
         if not (username is None):

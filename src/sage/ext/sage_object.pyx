@@ -114,7 +114,7 @@ cdef class SageObject:
             self.__version = sage.version.version
             return self.__version
 
-    def save(self, filename=None):
+    def save(self, filename=None, compress=True):
         """
         Save self to the given filename.
 
@@ -134,24 +134,28 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps())
+        open(filename, 'w').write(self.dumps(compress))
 
-    def dump(self, filename):
+    def dump(self, filename, compress=True):
         """
-        Same as self.save(filename)
+        Same as self.save(filename, compress)
         """
-        return self.save(filename)
+        return self.save(filename, compress=compress)
 
-    def dumps(self):
+    def dumps(self, compress=True):
         """
         Dump self to a string s, which can later be reconstituted
         as self using loads(s).
         """
         # the protocol=2 is very important -- this enables
         # saving extensions classes (with no attributes).
-        return comp.compress(cPickle.dumps(self, protocol=2))
+        s = cPickle.dumps(self, protocol=2)
+        if compress:
+            return comp.compress(s)
+        else:
+            return s
 
-    def db(self, name):
+    def db(self, name, compress=True):
         r"""
         Dumps self into the SAGE database.  Use db(name) by itself to
         reload.
@@ -161,7 +165,7 @@ cdef class SageObject:
         #if name is None:
         #    name = self._db_name()
         from sage.misc.all import SAGE_DB
-        return self.dump('%s/%s'%(SAGE_DB,name))
+        return self.dump('%s/%s'%(SAGE_DB,name), compress=compress)
 
 ##     def _db_name(self):
 ##         t = str(type(self)).split()[-1][1:-2]
@@ -420,7 +424,7 @@ cdef class SageObject:
 ##################################################################
 
 
-def load(filename):
+def load(filename, compress=True):
     """
     load(filename):
 
@@ -428,14 +432,14 @@ def load(filename):
     have an .sobj extension added if it doesn't have one.
     """
     filename = process(filename)
-    X = loads(open(filename).read())
+    X = loads(open(filename).read(), compress=compress)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
         pass
     return X
 
-def save(obj, filename=None):
+def save(obj, filename=None, compress=True):
     """
     save(obj, filename=None):
 
@@ -444,31 +448,48 @@ def save(obj, filename=None):
     This will \emph{replace} the contents of filename.
     """
     try:
-        obj.save(filename)
+        obj.save(filename, compress)
     except (AttributeError, RuntimeError, TypeError):
-        s = comp.compress(cPickle.dumps(obj, protocol=2))
+        s = cPickle.dumps(obj, protocol=2)
+        if compress:
+            s = comp.compress(s)
         open(process(filename), 'w').write(s)
 
-def dumps(obj):
+def dumps(obj, compress=True):
     """
     dumps(obj):
 
     Dump obj to a string s.  To recover obj, use loads(s).
     """
     try:
-        return obj.dumps()
+        return obj.dumps(compress)
     except (AttributeError, RuntimeError, TypeError):
-        return comp.compress(cPickle.dumps(obj, protocol=2))
+        if compress:
+            return comp.compress(cPickle.dumps(obj, protocol=2))
+        else:
+            return cPickle.dumps(obj, protocol=2)
 
-def loads(s):
+def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
     using s = dumps(x).
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
-    try:
-        return cPickle.loads(comp.decompress(s))
-    except:
-        return cPickle.loads(comp_other.decompress(s))
+    if compress:
+        try:
+            return cPickle.loads(comp.decompress(s))
+        except:
+            try:
+                return cPickle.loads(comp_other.decompress(s))
+            except:
+                # Maybe data is uncompressed?
+                return cPickle.loads(s)
+    else:
+        try:
+            return cPickle.loads(s)
+        except:
+            # maybe data is compressed?
+            return loads(s, compress=True)
+
 

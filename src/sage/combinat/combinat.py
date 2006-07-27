@@ -453,6 +453,9 @@ def stirling_number1(n,k):
     Wraps GAP's Stirling1.
 
     EXAMPLES:
+        sage: stirling_number1(3,2)
+        3
+
         sage: 9*stirling_number1(9,5)+stirling_number1(9,4)
         269325
         sage: stirling_number1(10,5)

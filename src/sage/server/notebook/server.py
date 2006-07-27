@@ -85,7 +85,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
-        cell.set_input_text(input_text)
+        if not introspect:
+            cell.set_input_text(input_text)
         #notebook.save()
 
         cell.evaluate(introspect=introspect)
@@ -112,7 +113,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         cell = W.get_cell_with_id(id)
-        cell.set_input_text(before_cursor + after_cursor)
+        #TB: this tends to obliterate long cells -- if the user doesn't submit between
+        #introspecting and closing the browser; there's a lot of potential to lose a
+        #large amount of work without warning.  I personally would not expect hitting
+        #tab to save the input.
+        #cell.set_input_text(before_cursor + after_cursor)
         cell.evaluate(introspect=[before_cursor, after_cursor])
 
         self.wfile.write(str(cell.next_id()) + SEP +

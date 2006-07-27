@@ -309,18 +309,20 @@ class Worksheet:
 
         D = C.directory()
         V = self.known_variables()
-        I = C.input_text().strip()
-        if I in ['restart', 'quit', 'exit'] and not I in V:
-            self.restart_sage()
-            C.set_output_text('Restarted SAGE','')
-            return
         if not C.introspect():
+            I = C.input_text().strip()
+            if I in ['restart', 'quit', 'exit'] and not I in V:
+                self.restart_sage()
+                C.set_output_text('Restarted SAGE','')
+                return
             if I[:5] == '%time':
                 C.do_time()
                 I = I[5:].lstrip()
             elif I[:5] in ['time ', 'time\n', 'time\t'] and not 'time' in V:
                 C.do_time()
                 I = I[5:].lstrip()
+        else:
+            I = C.introspect()[0]
 
         S = self.sage()
 

@@ -66,14 +66,11 @@ var id_to_delete=-1;
 var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
-var whitespace = "\\w+";
-var nonwhite = "[^ \t\r\n]";
-var one_word_pat = "(" + nonwhite + "+)";
+var one_word_pat = "(\\w+)";
 try{
   non_word = new RegExp(non_word);
   command_pat = new RegExp(command_pat);
   function_pat = new RegExp(function_pat);
-  whitespace = new RegExp(whitespace);
   one_word_pat = new RegExp(one_word_pat);
 } catch(e){}
 
@@ -282,15 +279,6 @@ function init_menus() {
 //
 ///////////////////////////////////////////////////////////////////
 
-function capture_replacement_controls(e) {
-  e = new key_event(e);
-
-  if(introspect_id != null) {
-  } else {
-    return !key_request_introspections(e);
-  }
-}
-
 function handle_replacement_controls(cell_input, event) {
     deselect_replacement_element();
     if(key_menu_up(event)) {
@@ -345,19 +333,24 @@ function handle_replacement_controls(cell_input, event) {
 
 function do_replacement(id, word) {
     var cell_input = get_cell(id);
-    /* alert('before_replacing_word = ' + before_replacing_word + '\n' +
-          'word = '+ word + '\nafter_cursor = ' + after_cursor);
-          */
+
     cell_input.value = before_replacing_word + word + after_cursor;
-    /* halt_introspection(); return; */
-    focus(id);
-    if(document.all) {
+    focus(id);  //reset the cursor (for explorer)
+
+    try{ //firefox, et. al.
+        var pos = before_replacing_word.length + word.length;
+        cell_input.selectionStart = pos;
+        cell_input.selectionEnd = pos;
+    } catch(e) {}
+    try{ //explorer; anybody else?
         var range = document.selection.createRange();
         range.moveStart('character', -after_cursor.length);
         range.moveEnd('character', -after_cursor.length);
-    } else {
-        cell_input.selectionStart = cell_input.selectionEnd = before_replacing_word.length + word.length;
-    }
+    } catch(e) {}
+
+    if(browser_op)
+      focus(id,true);
+
     halt_introspection();
 }
 
@@ -629,12 +622,20 @@ function debug_blur() {
         w.className = 'debug_window_inactive';
 }
 
-function focus(id) {
-       // make_cell_input_active(id);
-       var cell = get_cell(id);
-       if (cell && cell.focus) {
-          cell.focus();
-       }
+//set and_delay to true if you want to refocus the browser in a keyevent
+//which expects a tab -- Opera apparently resists canceling the tab key
+//event -- so we can subvert that by breaking out of the call stack with
+//a little timeout.
+function focus(id, and_delay) {
+    // make_cell_input_active(id);
+    var cell = get_cell(id);
+    if (cell && cell.focus) {
+        cell.focus();
+        if(and_delay) {
+            setTimeout('focus('+id+',false)', 10);
+        }
+    }
+
 }
 
 function cell_input_resize(cell_input) {
@@ -784,8 +785,10 @@ function cell_input_key_event(id, e) {
     }
 
     if(introspect_id && introspection_loaded && replacing) {
-        if(!handle_replacement_controls(cell_input, e))
+        if(!handle_replacement_controls(cell_input, e)) {
+            if(browser_op) focus(id,true);
             return false;  //otherwise, keep going
+        }
         halt_introspection();
     }
 
@@ -952,15 +955,14 @@ function text_cursor_split(input) {
 
 function evaluate_cell(id, action) {
     active_cell_list = active_cell_list.concat([id]);
-    cell_set_running(id);
 
     if(action == 2) { // Introspection
-       evaluate_cell_introspection(id);
+       evaluate_cell_introspection(id,null,null);
        return;
     }
 
     jump_to_cell(id,1);
-
+    cell_set_running(id);
     var cell_input = get_cell(id);
     var I = cell_input.value
     var input = escape0(I);
@@ -995,24 +997,20 @@ function evaluate_cell_introspection(id, before, after) {
         } else if(f != null) { //we're in an open function paren -- give info on the function
             before = f[1] + "?";
         } else { //just a tab
-            do_replacement(id, replacing_word+'    ');
+            do_replacement(id, '    ');
             return;
         }
     } else {
-        debug_append("before non-null")
         sub_introspecting = true;
     }
 
     update_introspection_text();
     var before_cursor_e = escape0(before);
     var after_cursor_e = escape0(after);
+    cell_set_running(id);
     async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
           'id=' + id + '&before_cursor='+before_cursor_e + '&after_cursor='+after_cursor_e);
     start_update_check();
-
-debug_append('before>' + before + '<endbefore')
-debug_append('after>' + after + '<endafter')
-
 }
 
 function evaluate_cell_callback(status, response_text) {
@@ -1153,12 +1151,16 @@ function set_input_text(id, text) {
     cell_input.value = text;
     focus(id)
 
-    if(cell_input.selectionEnd != null) {
-        cell_input.selectionEnd = cell_input.selectionStart = text.length - after_cursor.length;
-    } else if(browser_ie) {
+    try {
+        pos = text.length - after_cursor.length;
+        cell_input.selectionEnd = pos;
+        cell_input.selectionStart = pos;
+    }catch(e){}
+    try{
         var range = document.selection.createRange();
         range.moveStart('character', -after_cursor.length);
-    }
+        range.moveEnd('character', -after_cursor.length);
+    }catch(e){}
 
     return false;
 }

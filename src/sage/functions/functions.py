@@ -134,6 +134,9 @@ class Function(Element_cmp_, RingElement):
         Return a string representation of self as a decimal number
         to at least the given bits of precision.
         """
+        if bits > 2**23:
+            # Program around a bug in GMP.
+            raise ValueError, "Number of bits must be at most 2^23."
         if not bits is None:
             R = sage.rings.all.RealField(bits)
         else:

@@ -22,7 +22,8 @@ include 'setlvalue.pxi'
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
 #pari_instance = PariInstance(100000000, 500000)
-pari_instance = PariInstance(50000000, 500000)
+pari_instance = PariInstance(75000000, 500000)
+#pari_instance = PariInstance(50000000, 500000)
 P = pari_instance   # shorthand notation
 
 # so Galois groups are represented in a sane way
@@ -5159,8 +5160,6 @@ cdef class PariInstance:
     def allocatemem(self, silent=False):
         r"""
         Double the \emph{PARI} stack.
-
-        This doubles the stack for the PARI C library.
         """
         if not silent:
             print "Doubling the PARI stack."
@@ -5641,6 +5640,8 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
+        raise RuntimeError, "The PARI stack overflowed.  Use pari.allocatemem() to double the stack."
+
         #print "Stack overflow! (%d retries so far)"%retries
         #print " enlarge the stack."
         P.allocatemem(silent=True)

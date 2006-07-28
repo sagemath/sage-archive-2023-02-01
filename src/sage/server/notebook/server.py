@@ -26,9 +26,9 @@ import keyboards
 # SAGE libraries
 import sage.interfaces.sage0
 
-from sage.misc.misc import alarm, cancel_alarm
+from sage.misc.misc import (alarm, cancel_alarm,
+                            verbose, word_wrap, SAGE_EXTCODE)
 
-from   sage.misc.misc import verbose, word_wrap, SAGE_EXTCODE
 import sage.misc.preparser
 from   sage.ext.sage_object import load, SageObject
 
@@ -42,8 +42,10 @@ SEP = '___S_A_G_E___'
 
 notebook = None
 
-SAVE_INTERVAL=10
+import time
 
+SAVE_INTERVAL=30   # time in seconds between saves when notebook is in use.
+last_save_time = time.time()
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
@@ -159,14 +161,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
 
     def save_notebook_every_so_often(self):
-        return
-        try:
-            i = self.__save_number
-        except AttributeError:
-            i = 0
-        self.__save_number = i + 1
-        if i % SAVE_INTERVAL == 0:
+        global last_save_time
+        if time.time() - last_save_time > SAVE_INTERVAL:
             notebook.save()
+            last_save_time = time.time()
 
     def cell_update(self):
         C = self.get_postvars()
@@ -182,9 +180,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         status, cell = worksheet.check_cell(cell_id)
 
         #print status, cell   # debug
-
         if status == 'd':
-            self.save_notebook_every_so_often()
             variables = worksheet.variables_html()
             objects = notebook.object_list_html()
             attached_files = worksheet.attached_html()
@@ -460,7 +456,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         verbose("GET: " + self.path)
-
         # The question mark hack here is so that images will be reloaded when
         # the async request requests the output text for a computation.
         # This is a total hack, inspired by http://www.irt.org/script/416.htm/.
@@ -507,6 +502,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def do_POST(self):
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
         verbose("POST: %s"%post_dict)
+        self.save_notebook_every_so_often()
 
         if not self.authorize():
             self.body = {}

@@ -1,19 +1,7 @@
 BUGS:
-   [] Konqueror -- sometimes shift-enter does not send the input correctly.
-       The input does get sent, but the update queue business just
-       doesn't work right.
-   [] If you tab complete in an empty cell weird stuff happens related to
-      the last tab completion.
+   [] Opera box size resize.
 
 TODO:
-   [] long list of completions -- looks good at top but a weird at the
-      bottom (formatting is munged)
-
-   [] style the completion list:
-          * css needs descent names
-          * must be out of the way of what we're typing
-          * everything should appear in the same place.
-
    [] Make a latex output for entire worksheets -- this would lead to nice
       pdf, etc. printing of worksheets.
 
@@ -29,7 +17,6 @@ TODO:
    [] easy way to change the default session for a worksheet.
 
    [] make the worksheet title be easily changeable independent of the filename.
-
    [] Create new worksheet should open a browser window in the new worksheet.
 
    [] Regarding your tip for locally specifying default browser, this
@@ -454,3 +441,16 @@ indicating that it (sage) hasn't seen the "(".
        e.g., you could be editing one form and submit another!
    [x] The whole interface needs to be slimmed down so bunches of single
       line input (and output) will work.
+   [x] Konqueror -- sometimes shift-enter does not send the input correctly.
+       The input does get sent, but the update queue business just
+       doesn't work right.
+   [x] If you tab complete in an empty cell weird stuff happens related to
+      the last tab completion.
+   [x] style the completion list:
+          * css needs descent names
+          * must be out of the way of what we're typing
+          * everything should appear in the same place.
+
+   [x] long list of completions -- looks good at top but a weird at the
+      bottom (formatting is munged)
+

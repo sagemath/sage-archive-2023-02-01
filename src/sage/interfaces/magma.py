@@ -658,48 +658,48 @@ class MagmaElement(ExpectElement):
         \end{itemize}
 
         EXAMPLES:
-            sage: latex(magma('-2/3'))
+            sage: latex(magma('-2/3'))                            # optional
             \frac{-2}{3}
 
-            sage: magma.eval('R<x> := PolynomialRing(RationalField()); f := (x-17/2)^3;')
+            sage: magma.eval('R<x> := PolynomialRing(RationalField()); f := (x-17/2)^3;')     # optional
             ''
-            sage: latex(magma('f'))
+            sage: latex(magma('f'))                               # optional
             x^{3}-\frac{51}{2}x^{2}+\frac{867}{4}x-\frac{4913}{8}
 
-            sage: latex(magma('(MatrixAlgebra(RationalField(),3)![0,2,3,4,5,6,7,8,9])^(-1)'))
+            sage: latex(magma('(MatrixAlgebra(RationalField(),3)![0,2,3,4,5,6,7,8,9])^(-1)'))    # optional
             \left(\begin{array}{ccc}-1&2&-1\\2&-7&4\\-1&\frac{14}{3}&\frac{-8}{3}\end{array}\right)
 
-            sage: magma.eval('K<a> := CyclotomicField(11)')
+            sage: magma.eval('K<a> := CyclotomicField(11)')       # optional
             ''
-            sage: latex(magma('a^3 + a - 17/3'))
+            sage: latex(magma('a^3 + a - 17/3'))                  # optional
             \frac{-17}{3}+\zeta_{11}+\zeta_{11}^{3}
 
-            sage: latex(magma('EllipticCurve([1,2/3,3/4,4/5,-5/6])'))
+            sage: latex(magma('EllipticCurve([1,2/3,3/4,4/5,-5/6])'))    # optional
             y^2+xy+\frac{3}{4}y=x^3+\frac{2}{3}x^2+\frac{4}{5}x-\frac{5}{6}
 
 
-            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')
-            sage: _=magma.eval('K<a> := NumberField(x^3+17*x+2)')
-            sage: latex(magma('(1/3)*a^2 - 17/3*a + 2'))
+            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')    # optional
+            sage: _=magma.eval('K<a> := NumberField(x^3+17*x+2)')            # optional
+            sage: latex(magma('(1/3)*a^2 - 17/3*a + 2'))                     # optional
             2-\frac{17}{3}a+\frac{1}{3}a^{2}
 
         SAGE auto-detects the greek letters and puts backslashes in:
-            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')
-            sage: _=magma.eval('K<alpha> := NumberField(x^3+17*x+2)')
-            sage: latex(magma('(1/3)*alpha^2 - 17/3*alpha + 2'))
+            sage: _=magma.eval('R<x> := PolynomialRing(RationalField())')    # optional
+            sage: _=magma.eval('K<alpha> := NumberField(x^3+17*x+2)')        # optional
+            sage: latex(magma('(1/3)*alpha^2 - 17/3*alpha + 2'))             # optional
             2-\frac{17}{3}\alpha+\frac{1}{3}\alpha^{2}
 
         Finite field elements:
-            sage: _=magma.eval('K<a> := GF(27)')
-            sage: latex(magma('a^2+2'))
+            sage: _=magma.eval('K<a> := GF(27)')                             # optional
+            sage: latex(magma('a^2+2'))                                      # optional
             2+a^{2}
 
         Power Series:
-            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')
-            sage: latex(magma('(1/(1+x))'))
+            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')   # optional
+            sage: latex(magma('(1/(1+x))'))                                  # optional
             1-x+x^{2}-x^{3}+x^{4}-x^{5}+x^{6}-x^{7}+x^{8}-x^{9}+x^{10}-x^{11}+x^{12}-x^{13}+x^{14}-x^{15}+x^{16}-x^{17}+x^{18}-x^{19}+O(x^{20})
-            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')
-            sage: latex(magma('(-1/(2+x + O(x^3)))'))
+            sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')   # optional
+            sage: latex(magma('(-1/(2+x + O(x^3)))'))                        # optional
             \frac{-1}{2}+\frac{1}{4}x-\frac{1}{8}x^{2}+O(x^{3})
         """
         P = self._check_valid()

@@ -1,7 +1,36 @@
+CRITICAL BUGS:
+   [] When interrupt or restart it doesn't change the
+      cells to not running -- so they stay green!
+      This is a critical bug.
+
 BUGS:
    [] Opera box size resize.
+   [] Control-c / Escape maybe broken.
 
-TODO:
+TODO/IDEAS:
+   [] Undo:  The SAGE Notebook *is* a wiki, albeit with minimal hyperlinking
+(so far).   From moinmoin's help:
+"There are two main ways to devalue a wiki. One is through erasure and
+the other is through corruption. Dealing with erasure is not terribly
+difficult, because there is a change log (and back versions) of every
+page and they can be reverted easily. Thus, when page deletions or
+major content erasures are detected (which should be fairly quickly),
+pages can be restored quite easily to their previous good state.
+
+Explicit and intentional corruption is more difficult to deal
+with. The possibility exists that someone can enter incorrect
+information onto a page, or edit pages to intentionally change the
+information so it is incorrect (for example, people can change the
+attributions on a page to make it look like a different person made a
+particular comment, or someone can change the content of a paragraph
+to alter its meaning in a detrimental way). Pretty much any
+collaborative system has this problem. In practice, wiki corruption is
+an extremely rare event, and one that can be dealt with (if needed)
+with the notification feature (to a fixed auditor) for new material
+submission."
+      Is there any reason why sage worksheets shouldn't have a
+      change log of the input, at least as an *option*?
+
    [] Make a latex output for entire worksheets -- this would lead to nice
       pdf, etc. printing of worksheets.
 
@@ -68,6 +97,8 @@ is a link that pops up the license() info in a popup.
      that any new worksheets created use a given CAS.  If you restart
      the notebook with a different system= option, then new worksheets
      get that CAS, but old ones stay the way they are.
+
+
 
 
    [] session switching -- should be able to switch back and forth

@@ -232,7 +232,7 @@ class Darcs:
                 print ""
                 print "Now building the new SAGE libraries"
                 os.system('sage -b')
-                print "You must restart SAGE in order for the changes to take effect."
+                print "If there were any changes, then you must restart SAGE in order for the changes to take effect."
 
     def pull(self, options='', url=None):
         """

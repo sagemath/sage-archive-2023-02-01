@@ -1070,6 +1070,11 @@ function cycle_cell_output_type(id) {
     }
 }
 
+function cell_set_evaluated(id) {
+    var D = get_element('cell_'+id);
+    D.className = "cell_evaluated";
+}
+
 function cell_set_running(id) {
     cell_output_set_type(id, 'wrap');
     var cell_div = get_element('cell_div_output_' + id);
@@ -1189,7 +1194,7 @@ function check_for_cell_update_callback(status, response_text) {
     if (status != "success") {
         if(update_error_count>update_error_threshold) {
             cancel_update_check();
-            active_cell_list = [];
+            halt_active_cells();
             var elapsed_time = update_cell_error_count*update_error_delta/1000;
             var msg = "Error updating cell output after " + elapsed_time + "s";
             msg += "(canceling further update checks).";
@@ -1215,10 +1220,7 @@ function check_for_cell_update_callback(status, response_text) {
 
     if(stat == 'e') {
         cancel_update_check();
-        for(i = 0; i < length(active_cell_list); i++) {
-            cell_set_done(active_cell_list[i]);
-        }
-        active_cell_list = []
+        halt_active_cells();
         return;
     }
 
@@ -1241,7 +1243,10 @@ function check_for_cell_update_callback(status, response_text) {
         active_cell_list = delete_from_array(active_cell_list, id);
 
         if (interrupted == 'false') {
-            set_cell_evaluated(id);
+            cell_set_evaluated(id);
+        } else {
+            halt_active_cells();
+            cancel_update_check();
         }
 
         if(active_cell_list.length == 0)
@@ -1266,11 +1271,6 @@ function continue_update_check() {
     } else {
         check_for_cell_update();
     }
-}
-
-function set_cell_evaluated(id) {
-    var D = get_element('cell_'+id);
-    D.className = "cell_evaluated";
 }
 
 
@@ -1452,8 +1452,14 @@ function show_all() {
                       show_all_callback, 'worksheet_id='+worksheet_id);
 }
 
+function halt_active_cells() {
+    for(i = 0; i < active_cell_list.length; i++)
+        cell_set_done(active_cell_list[i]);
+    active_cell_list = []
+}
+
 function restart_sage_callback(status, response_text) {
-    active_cell_list = [];
+    halt_active_cells()
     var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";

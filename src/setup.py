@@ -103,8 +103,6 @@ ext_modules = [ \
 
     cf, \
 
-    linbox_gfq, \
-
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 
@@ -230,6 +228,7 @@ if DEVEL:
     extra_compile_args.append('-ggdb')
     ext_modules.append(hanke)
     #ext_modules.append(mpc)
+    ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']

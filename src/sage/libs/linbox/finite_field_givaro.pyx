@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
  AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
 

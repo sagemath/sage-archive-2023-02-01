@@ -1,7 +1,7 @@
-#try:
-import sage.libs.linbox.all as linbox
-#except ImportError:
-#    pass
+try:
+    import sage.libs.linbox.all as linbox
+except ImportError:
+    pass
 
 try:
     import sage.libs.cf.cf as cf

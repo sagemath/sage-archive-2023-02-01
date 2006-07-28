@@ -887,14 +887,13 @@ def generic_power(a, m, one=1):
 
 def rational_reconstruction(a, m):
     """
-    This function tries to compute a pair (x,y), where x/y is a
-    rational number is lowest terms such that reduction of x/y modulo
-    m is equal to a and the absolute values of x and y are both <=
-    sqrt(m/2).  If such a pair exists, that pair is unique and this
-    function returns it.  If no such pair exists, this function return
-    the pair (0,0).
+    This function tries to compute x/y, where x/y is rational number
+    is lowest terms such that reduction of x/y modulo m is equal to a
+    and the absolute values of x and y are both <= sqrt(m/2).  If such
+    x/y exists, that pair is unique and this function returns it.  If
+    no such pair exists, this function raises ZeroDivisionError.
 
-    The efficient algorithm for computing rational reconstruction is
+    An efficient algorithm for computing rational reconstruction is
     very similar to the extended Euclidean algorithm.  For more
     details, see Knuth, Vol 2, 3rd ed, pages 656-657.
 
@@ -927,39 +926,48 @@ def rational_reconstruction(a, m):
         sage: (119*inverse_mod(53,m))%m
         11323
         sage: rational_reconstruction(11323,m)
-        (119, 53)
+        119/53
+
+        sage: rational_reconstruction(400,1000)
+        Traceback (most recent call last):
+        ...
+        ValueError: Rational reconstruction of 400 (mod 1000) does not exist.
     """
-    a = int(a); m = int(m)
-    a %= m
-    if a == 0 or m==0:
-        return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(1))
-    if m < 0:
-        m = -m
-    if a < 0:
-        a = m-a
-    if a == 1:
-        return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(1))
-    u = m
-    v = a
-    bnd = math.sqrt(m/2)
-    U = (1,0,u)
-    V = (0,1,v)
-    while abs(V[2]) > bnd:
-        q = U[2]/V[2]  # floor is implicit
-        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
-        U = V
-        V = T
-    x = abs(V[1])
-    y = V[2]
-    if V[1] < 0:
-        y *= -1
-    if x <= bnd and GCD(x,y) == 1:
-        return (sage.rings.integer.Integer(y),sage.rings.integer.Integer(x))
-    return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(0))
+    return sage.rings.integer.Integer(a).rational_reconstruction(m)
+
+##     a = int(a); m = int(m)
+##     a %= m
+##     if a == 0 or m==0:
+##         return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(1))
+##     if m < 0:
+##         m = -m
+##     if a < 0:
+##         a = m-a
+##     if a == 1:
+##         return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(1))
+##     u = m
+##     v = a
+##     bnd = math.sqrt(m/2)
+##     U = (1,0,u)
+##     V = (0,1,v)
+##     while abs(V[2]) > bnd:
+##         q = U[2]/V[2]  # floor is implicit
+##         T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
+##         U = V
+##         V = T
+##     x = abs(V[1])
+##     y = V[2]
+##     if V[1] < 0:
+##         y *= -1
+##     if x <= bnd and GCD(x,y) == 1:
+##         return (sage.rings.integer.Integer(y),sage.rings.integer.Integer(x))
+##     return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(0))
 
 def mqrr_rational_reconstruction(u, m, T):
     """
     Maximal Quotient Rational Reconstruction.
+
+    FOR fun only -- this is pure Python, so very slow.
 
     Input:
         u, m, and T are integers and

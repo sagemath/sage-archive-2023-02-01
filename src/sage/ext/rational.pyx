@@ -115,7 +115,6 @@ cdef class Rational(element.FieldElement):
 
     def __set_value(self, x, int base):
         cdef int n
-        cdef integer.Integer num, den
 
         if isinstance(x, Rational):
             set_from_Rational(self, x)
@@ -895,9 +894,6 @@ def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
         x -- rings.rational.Rational
     """
     cdef Rational x
-    #if not isinstance(a, integer.Integer) or not isinstance(m, integer.Integer):
-    #    a = integer.Integer(a)
-    #    m = integer.Integer(m)
     x = Rational()
     mpq_rational_reconstruction(x.value, a.get_value()[0], m.get_value()[0])
     return x

@@ -184,10 +184,8 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
             sage: a.rational_reconstruction()
             2/3
         """
-        t = arith.rational_reconstruction(int(self), self.modulus())
-        if t == None or t[1] == 0:
-            raise ZeroDivisionError, "Unable to compute rational reconstruction."
-        return rational.Rational((t[0],t[1]))
+        return integer.Integer(self.__value).rational_reconstruction(self.modulus())
+
 
     def crt(self, other):
         """

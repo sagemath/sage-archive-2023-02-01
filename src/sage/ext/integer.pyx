@@ -764,6 +764,9 @@ cdef class Integer(element.EuclideanDomainElement):
 
         return x
 
+    def rational_reconstruction(self, Integer m):
+        return rational.pyrex_rational_reconstruction(self, m)
+
     def powermodm_ui(self, exp, mod):
         r"""
         Computes self**exp modulo mod, where exp is an unsigned

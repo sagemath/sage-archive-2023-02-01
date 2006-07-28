@@ -569,11 +569,18 @@ cdef class FiniteField(Field):
         raise NotImplementedError
 
     def _latex_(self):
+        r"""
+        EXAMPLES:
+            sage: latex(GF(81))
+            \mathbf{F}_{3^{4}}
+            sage: latex(GF(3))
+            \mathbf{F}_{3}
+        """
         if self.degree() > 1:
             e = "^{%s}"%self.degree()
         else:
             e = ""
-        return "\\mbox{\\rm F}_{%s%s}"%(self.characteristic(), e)
+        return "\\mathbf{F}_{%s%s}"%(self.characteristic(), e)
 
     def _gap_init_(self):
         return 'GF(%s)'%self.order()

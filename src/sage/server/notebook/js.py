@@ -639,20 +639,21 @@ function focus(id, and_delay) {
 }
 
 function cell_input_resize(cell_input) {
-   try {
-        //var rows = cell_input.value.split('\n').length - 1;
-        var rows = cell_input.value.split('\n').length + 1;
-        if (rows <= 1) {
-          rows = 2;
-        } else {
-          /* to avoid bottom chop off */
-          rows = rows + 1;
-        }
-        cell_input.style.height = null;
-        /* cell_input.style.height = 1.5*rows + 'em'; */   // this sort of works in konqueror...
+    var rows = 2;
+    //var rows = cell_input.value.split('\n').length - 1;
+    var rows = cell_input.value.split('\n').length + 1;
+    if (rows <= 1) {
+      rows = 2;
+    } else {
+      /* to avoid bottom chop off */
+      rows = rows + 1;
+    }
+    try {
+        cell_input.style.height = rows + 'em';   // this sort of works in konqueror...
+    } catch(e) {}
+    try{
         cell_input.rows = rows;
-   } catch(e) {
-   } finally {}
+    } catch(e) {}
 }
 
 function lstrip(s) {

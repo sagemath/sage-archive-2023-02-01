@@ -405,6 +405,7 @@ class Graphics(SageObject):
         self._extend_y_axis(ymax)
 
     def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax, axes_label=None):
+        xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
         yspan = ymax - ymin
         xspan = xmax - xmin
 

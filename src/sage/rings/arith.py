@@ -89,6 +89,8 @@ def algdep(z, n):
 
 algebraic_dependency = algdep
 
+from sage.ext.bernoulli_mod_p import bernoulli_mod_p
+
 def bernoulli(n, algorithm='pari'):
     r"""
     Return the n-th Bernoulli number, as a rational number.

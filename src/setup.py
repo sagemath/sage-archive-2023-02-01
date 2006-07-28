@@ -151,6 +151,10 @@ ext_modules = [ \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
+    Extension('sage.ext.bernoulli_mod_p',
+              sources = ['sage/ext/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
+              libraries=['ntl']), \
+
     Extension('sage.ext.intmod_pyx',
               sources = ['sage/ext/intmod_pyx.pyx']), \
 

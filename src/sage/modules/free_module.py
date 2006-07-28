@@ -2124,15 +2124,14 @@ class FreeModule_ambient(FreeModule_generic):
         Return a latex representation of this ambient free module.
 
         EXAMPLES:
-            sage: A = QQ^3
-            sage: A._latex_()
-            '\\mathbf{Q}^{3}'
+            sage: latex(QQ^3)
+            \mathbf{Q}^{3}
 
-            sage: A = GF(5)**20; A._latex_()
-            '(\\mbox{\\rm F}_{5})^{20}'
+            sage: A = GF(5)**20; latex(A)
+            \mathbf{F}_{5}^{20}
 
-            sage: A = MPolynomialRing(Rationals(),3)**20; A._latex_()
-            '(\\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}'
+            sage: A = MPolynomialRing(Rationals(),3)**20; latex(A)
+            (\mathbf{Q}[x_{0}, x_{1}, x_{2}])^{20}
         """
         t = "%s"%latex.latex(self.base_ring())
         if t.find(" ") != -1:

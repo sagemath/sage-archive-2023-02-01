@@ -27,6 +27,7 @@ from sage.ext.sage_object import SageObject
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
+SAGE_LOCAL = SAGE_ROOT + '/local/'
 
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)

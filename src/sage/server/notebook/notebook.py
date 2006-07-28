@@ -1014,7 +1014,8 @@ def notebook(dir         ='sage_notebook',
              color       = None,
              system      = None,
              jsmath      = True,
-             show_debug  = False):
+             show_debug  = False,
+             warn        = True):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1116,6 +1117,10 @@ def notebook(dir         ='sage_notebook',
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)
+
+    if warn and address!='localhost' and username==None:
+        print "WARNING -- it is *extremely* dangerous to let the server listen"
+        print "on an external port without at least setting a username/password!!"
     nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
     alarm(3)
     from sage.interfaces.quit import expect_quitall

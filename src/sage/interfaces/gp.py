@@ -314,6 +314,9 @@ class GpElement(ExpectElement):
             raise AttributeError
         return GpFunctionElement(self, attrname)
 
+    def __len__(self):
+        return int(self.length())
+
     def __del__(self):
         return  # clearing object is pointless, since it wastes time, and PARI/GP
                 # doesn't really free used memory anyways!

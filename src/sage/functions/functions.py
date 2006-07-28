@@ -1,7 +1,17 @@
 """
 SAGE Functions Class
-"""
 
+EXAMPLES:
+    sage: f = 5*sin(x)
+    sage: f
+    (5*sin(x))
+    sage: f(2)
+    (5*sin(2))
+    sage: f(pi)
+    (5*sin(((1*pi) + 0)))
+    sage: float(f(pi))
+    6.1232339957367663e-16
+"""
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR)
@@ -91,7 +101,8 @@ class FunctionRing_class(CommutativeRing):
             return Function_polynomial(x)
         #elif isinstance(x, sage.ext.element.Element):
         elif isinstance(x, (sage.ext.integer.Integer,
-                            sage.ext.rational.Rational)):
+                            sage.ext.rational.Rational,
+                            int,long,float,complex)):
             return Constant_gen(x)
         raise TypeError
 

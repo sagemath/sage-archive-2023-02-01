@@ -1761,7 +1761,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def Lambda(self, s, prec):
         r"""
         Returns the value of the Lambda-series of the elliptic curve E
-        at s can be any complex number.
+        at s, where s can be any complex number.
+
+        IMPLEMENTATION: Fairly *slow* computation using the definitions
+        and implemented in Python.
 
         Uses prec terms of the power series.
 
@@ -1787,6 +1790,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns the value of the L-series of the elliptic curve E at s
         can be any complex number using prec terms of the power series
         expansion.
+
+
+        WARNING: This may be slow.  Consider using \code{Lseries_dokchitser()}
+        instead.
 
         INPUT:
             s -- complex number

@@ -34,7 +34,9 @@ def wiki(directory='sage_wiki', port=9000, address='localhost'):
 
     You must install the optional SAGE moin package. (Use
     optional_packages() for the exact name.)  You must also have latex
-    and dvipng installed for the latex formating to work.
+    (with UTF-8 support) and dvipng installed for the latex formating
+    to work.  On Debian these packages are
+       tetex-bin    latex-ucs     dvipng
 
 
     The moin package contains a modified version of moin moin,

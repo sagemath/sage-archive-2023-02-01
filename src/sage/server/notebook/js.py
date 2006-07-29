@@ -1406,7 +1406,7 @@ function append_new_cell(id, html) {
 function interrupt_callback(status, response_text) {
     if (response_text == "restart") {
         alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
-        restart_callback('success', response_text);
+        restart_sage_callback('success', response_text);
     } else if(status == "success") {
         halt_active_cells()
     }
@@ -1474,7 +1474,9 @@ function halt_active_cells() {
 }
 
 function restart_sage_callback(status, response_text) {
-    halt_active_cells()
+    for(i = 0; i < cell_id_list.length; i++)
+        cell_set_not_evaluated(cell_id_list[i]);
+    active_cell_list = []
     var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";

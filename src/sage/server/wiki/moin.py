@@ -7,7 +7,7 @@ def wiki_create_instance(directory='sage_wiki'):
         from MoinMoin.server.standalone import StandaloneConfig, run
     except ImportError:
         print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.4'),"
+        print "Try something like install_package('moin-1.5.4.p0'),"
         print "but note that the package name may have a different"
         print "version.  Use optional_packages() to get a list"
         print "of current package names."
@@ -27,6 +27,29 @@ def wiki_create_instance(directory='sage_wiki'):
 
 
 def wiki(directory='sage_wiki', port=9000, address='localhost'):
+    r"""
+    Create (if necessary) and start up a Moin Moin wiki.
+
+    The wiki will be served on the given port.
+
+    You must install the optional SAGE moin package. (Use
+    optional_packages() for the exact name.)  You must also have latex
+    and dvipng installed for the latex formating to work.
+
+
+    The moin package contains a modified version of moin moin,
+    which comes with latex typesetting preconfigured.  See
+    \url{http://johannes.sipsolutions.net/Projects/new-moinmoin-latex}
+    for information about how touse the latex formating.  Basically,
+    just use $'s like in normal latex.  But you can also include
+    preambles in a block, e.g.,
+    \begin{verbatim}
+       [[latex(\usepackage{dsfont} % $$\mathds{C}$$)]]
+    \end{verbatim}
+
+    """
+    sys.path.insert(0, os.path.abspath(directory))
+
     try:
         from MoinMoin.server.standalone import StandaloneConfig, run
     except ImportError:
@@ -42,7 +65,6 @@ def wiki(directory='sage_wiki', port=9000, address='localhost'):
     os.chdir(directory)
 
     moin = '%s/share/moin/'%misc.SAGE_LOCAL
-    sys.path.insert(0, '%s/config/'%moin)
     the_port = port
 
     class Config(StandaloneConfig):
@@ -54,7 +76,7 @@ def wiki(directory='sage_wiki', port=9000, address='localhost'):
         # If you installed with --prefix=PREFIX, use 'PREFIX/share/moin/wiki/htdocs'
         docs = '%s/htdocs'%moin
 
-        # Port (default 8000)
+        # Port
         port = the_port
 
         # To serve privileged port under 1024 you will have to run as root.
@@ -93,6 +115,7 @@ def wiki(directory='sage_wiki', port=9000, address='localhost'):
         # Allow overriding any request property by the value defined in
         # this dict e.g properties = {'script_name': '/mywiki'}.
         properties = {}
+
         # Memory profile (default commented)
         # Useful only if you are a developer or interested in moin memory usage
         # A memory profile named 'moin--2004-09-27--01-24.log' is
@@ -103,6 +126,7 @@ def wiki(directory='sage_wiki', port=9000, address='localhost'):
         # Hotshot profile (default commented)
         # Not compatible with threads - use with SimpleServer only.
         ## hotshotProfile = name + '.prof'
+
 
     run(Config)
     return True

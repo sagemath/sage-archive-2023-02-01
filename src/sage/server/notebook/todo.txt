@@ -1,11 +1,5 @@
 CRITICAL BUGS:
-   [] When interrupt or restart it doesn't change the
-      cells to not running -- so they stay green!
-      This is a critical bug.
-   [] Opera box size resize.
-   [] Control-c / Escape maybe broken.
-
-
+  no known critical bugs!!
 
 TODO/IDEAS:
    [] Undo:  The SAGE Notebook *is* a wiki, albeit with minimal hyperlinking
@@ -485,3 +479,8 @@ indicating that it (sage) hasn't seen the "(".
    [x] long list of completions -- looks good at top but a weird at the
       bottom (formatting is munged)
 
+   [x] When interrupt or restart it doesn't change the
+      cells to not running -- so they stay green!
+      This is a critical bug.
+   [x] Opera box size resize.
+   [x] Control-c / Escape maybe broken.

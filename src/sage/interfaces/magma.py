@@ -644,6 +644,9 @@ class MagmaElement(ExpectElement):
         r"""
         Return latex representation of self.
 
+        AUTHOR:
+            -- Jennifer Balakrishnan (jenb@mit.edu)
+
         Types that are nicely latex include:
         \begin{itemize}
           \item rationals

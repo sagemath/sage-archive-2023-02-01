@@ -1,4 +1,4 @@
-"""
+r"""
 Bounds for Parameters of Codes
 
 AUTHORS:

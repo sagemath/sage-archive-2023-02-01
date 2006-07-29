@@ -230,61 +230,61 @@ def min_wt_vec(Gmat,F):
     return ans
 
 def minimum_distance_lower_bound(n,k,F):
-        """
-        Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven,
-        via Steven Sivek's linear_code_bound.
+    r"""
+    Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
+    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven,
+    via Steven Sivek's linear_code_bound.
 
-        EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))     # optional (net connection)
-            3
+    EXAMPLES:
+    sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))     # optional (net connection)
+        3
 
-        Obviously requires an internet connection.
-        """
-        q = F.order()
-        bounds = linear_code_bound(q,n,k)
-        return bounds[0]
+    Obviously requires an internet connection.
+    """
+    q = F.order()
+    bounds = linear_code_bound(q,n,k)
+    return bounds[0]
 
 def minimum_distance_upper_bound(n,k,F):
-        """
-        Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-        via Steven Sivek's linear_code_bound.
+    r"""
+    Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
+    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+    via Steven Sivek's linear_code_bound.
 
-        EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))  # optional (net connection)
-            3
+    EXAMPLES:
+        sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))  # optional (net connection)
+        3
 
-        Obviously requires an internet connection.
-        """
-        q = F.order()
-        bounds = linear_code_bound(q,n,k)
-        return bounds[1]
+    Obviously requires an internet connection.
+    """
+    q = F.order()
+    bounds = linear_code_bound(q,n,k)
+    return bounds[1]
 
 def minimum_distance_why(n,k,F):
-        """
-        Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-        via Steven Sivek's linear_code_bound.
+    r"""
+    Connects to http://www.win.tue.nl/~aeb/voorlincod.html
+    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+    via Steven Sivek's linear_code_bound.
 
-        EXAMPLES:
-            sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
-            Lb(7,4) = 3 is found by truncation of:
-            Lb(8,4) = 4 is found by the (u|u+v) construction
-            applied to [4,3,2] and [4,1,4]-codes
-            Ub(7,4) = 3 follows by the Griesmer bound.
+    EXAMPLES:
+        sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
+        Lb(7,4) = 3 is found by truncation of:
+        Lb(8,4) = 4 is found by the (u|u+v) construction
+        applied to [4,3,2] and [4,1,4]-codes
+        Ub(7,4) = 3 follows by the Griesmer bound.
 
-        Obviously requires an internet connection.
-        """
-        q = F.order()
-        bounds = linear_code_bound(q,n,k)
-        print bounds[2]
+    Obviously requires an internet connection.
+    """
+    q = F.order()
+    bounds = linear_code_bound(q,n,k)
+    print bounds[2]
 
 
 ########################### linear codes python class #######################
 
 class LinearCode(module.Module):
-    """
+    r"""
     A class for linear codes over a finite field or finite ring.
     Each instance is a linear code determined by a generator matrix $G$
     (i.e., a $k\times n$ matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
@@ -376,7 +376,7 @@ class LinearCode(module.Module):
         return (self.base_ring()).characteristic()
 
     def minimum_distance_lower_bound(self):
-        """
+        r"""
         Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
@@ -389,7 +389,7 @@ class LinearCode(module.Module):
         return bounds[0]
 
     def minimum_distance_upper_bound(self):
-        """
+        r"""
         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
@@ -402,7 +402,7 @@ class LinearCode(module.Module):
         return bounds[1]
 
     def minimum_distance_why(self):
-        """
+        r"""
         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
@@ -419,7 +419,7 @@ class LinearCode(module.Module):
                     print line
 
     def minimum_distance(self):
-        """
+        r"""
         Uses a GAP kernel function (in C) written by Steve Linton.
 
         EXAMPLES:
@@ -452,7 +452,7 @@ class LinearCode(module.Module):
 
 
     def spectrum(self):
-        """
+        r"""
         Uses a GAP kernel function (in C) written by Steve Linton.
 
         EXAMPLES:
@@ -852,7 +852,7 @@ def HammingCode(r,F):
     return LinearCode(MS(G))
 
 def QuadraticResidueCode(n,F):
-    """
+    r"""
     A quadratic residue code (or QR code) is a cyclic code whose
     generator polynomial is the product of the polynomials $x-\alpha^i$
     ($\alpha$ is a primitive $n^{th}$ root of unity; $i$ ranges over

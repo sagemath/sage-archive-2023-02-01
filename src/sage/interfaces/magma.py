@@ -660,6 +660,9 @@ class MagmaElement(ExpectElement):
           \item power series
         \end{itemize}
 
+        IMPLEMENTATION:
+            Calls latex.m, which is in SAGE_ROOT/data/extcode/magma/latex.m
+
         EXAMPLES:
             sage: latex(magma('-2/3'))                            # optional
             \frac{-2}{3}
@@ -692,10 +695,25 @@ class MagmaElement(ExpectElement):
             sage: latex(magma('(1/3)*alpha^2 - 17/3*alpha + 2'))             # optional
             2-\frac{17}{3}\alpha+\frac{1}{3}\alpha^{2}
 
+            sage: _=magma.eval('R<alpha> := PolynomialRing(RationalField())') # optional
+            sage: latex(magma('alpha^3-1/7*alpha + 3'))                      # optional
+            \alpha^{3}-\frac{1}{7}\alpha+3
+
+
         Finite field elements:
             sage: _=magma.eval('K<a> := GF(27)')                             # optional
             sage: latex(magma('a^2+2'))                                      # optional
             2+a^{2}
+
+        Printing of unnamed (dollar sign) generators works correctly:
+            sage: latex(magma('FiniteField(81).1^2+1'))                      # optional
+            1+\$.1^{2}
+
+        Finite fields:
+            sage: latex(magma('FiniteField(3)'))                             # optional
+            \mathbf{F}_{{3}}
+            sage: latex(magma('FiniteField(27)'))                            # optional
+            \mathbf{F}_{{3}^{3}}
 
         Power Series:
             sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')   # optional
@@ -704,6 +722,11 @@ class MagmaElement(ExpectElement):
             sage: _=magma.eval('R<x> := PowerSeriesRing(RationalField())')   # optional
             sage: latex(magma('(-1/(2+x + O(x^3)))'))                        # optional
             \frac{-1}{2}+\frac{1}{4}x-\frac{1}{8}x^{2}+O(x^{3})
+
+        p-adic Numbers:
+            sage: latex(magma('pAdicField(7,4)!9333294394/49'))              # optional
+            4\cdot{}7^{-2} + 5\cdot{}7^{-1} + 5\cdot{}1 + 6\cdot{}7^{1} + O(7^{2})
+
         """
         P = self._check_valid()
         s = str(P.eval('Latex(%s)'%self.name()))

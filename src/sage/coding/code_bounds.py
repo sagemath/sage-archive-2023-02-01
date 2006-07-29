@@ -1,14 +1,17 @@
-r"""
+"""
 Bounds for Parameters of Codes
 
 AUTHORS:
         -- David Joyner (2006-07), initial implementation.
         -- William Stein (2006-07), minor editing of docs and code
+                                    (fixed bug in elias_bound_asymp)
+        -- D. Joyner (2006-07), fixed dimension_upper_bound to return an integer,
+                      added example to elias_bound_asymp.
 
-This module provided some upper and lower bounds for the parameters of
-codes.
+This module provided some upper and lower bounds for the parameters of codes.
 
-Let $ F$ be a finite field. A subset $ C$ of $ V=F^n$ is called
+Let $ F$ be a finite field (we denote the finite field with $q$ elements
+$GF(q)$ by $\FF_q$). A subset $ C$ of $ V=F^n$ is called
 a {\it code} of length $ n$. A subspace of $ V$ (with the standard basis)
 is called a {\it linear code} of length $ n$. If its
 dimension is denoted $k$ then we typically store a basis
@@ -31,7 +34,7 @@ d({\bf v},{\bf w}) =\vert\{i\ \vert\ 1\leq i\leq n,\ v_i\not= w_i\}\vert
 to be the {\it Hamming distance} between $ {\bf v}$ and $ {\bf w}$.
 The function $ d:V\times V\rightarrow \mathbf{N}$ is called the
 {\it Hamming metric}. The {\it weight} of a vector (in the
-Hamming metric) is $ d({\bf v},{\bf0})$. The {\it minimum distance}
+Hamming metric) is $ d({\bf v},{\bf 0})$. The {\it minimum distance}
 of a linear code is the smallest non-zero weight of a codeword
 in $C$. The {\it relatively minimum distance} is denoted
 
@@ -43,7 +46,8 @@ and minimum distance $d$ is called an {\it $[n,k,d]_q$-code} and
 $n,k,d$ are called its {\it parameters}.
 A (not necessarily linear) code $C$ with length $n$, size $M=|C|$,
 and minimum distance $d$ is called an {\it $(n,M,d)_q$-code} (using
-parantheses instead of square brackets). Of course, $k=\log_q(M)$ for linear codes.
+parantheses instead of square brackets).
+Of course, $k=\log_q(M)$ for linear codes.
 
 What is the ``best'' code of a given length?
 Let $ F$ be a finite field with $q$ elements. Let $A_q(n,d)$ denote
@@ -51,17 +55,16 @@ the largest $M$ such that there exists a $(n,M,d)$ code in $ F^n$.
 Let $B_q(n,d)$ (also denoted $A^{lin}_q(n,d)$) denote
 the largest $k$ such that there exists a $[n,k,d]$ code in $ F^n$.
 (Of course, $A_q(n,d)\geq B_q(n,d)$.)
-Determining $A_q(n,d),B_q(n,d)$ is one of the main problems in the theory of
+Determining $A_q(n,d)$ and $B_q(n,d)$ is one of the main problems in the theory of
 error-correcting codes.
 
-It is amusing to note that these quantities are related to efficiently solving a
-generalization of the childhood game of ``20 questions''.
+These quantities related to solving a generalization of the childhood
+game of ``20 questions''.
 
-GAME: Player 1 secretly chooses a number from $1$ to $M$ ($M$ is large
-but fixed).  Player 2 asks a series of ``yes/no questions'' in an
-attempt to determine that number.  Player 1 may lie at most $e$ times
-($e\geq 0$ is fixed). What is the minimum number of ``yes/no
-questions'' Player 2 must ask to (always) be able to correctly
+GAME: Player 1 secretly chooses a number from $1$ to $M$ ($M$ is large but fixed).
+Player 2 asks a series of ``yes/no questions'' in an attempt to determine that number.
+Player 1 may lie at most $e$ times ($e\geq 0$ is fixed). What is the minimum
+number of ``yes/no questions'' Player 2 must ask to (always) be able to correctly
 determine the number Player 1 chose?
 
 If feedback is not allowed (the only situation considered here), call this
@@ -88,7 +91,7 @@ This module implements:
 \item dimension_upper_bound(n,d,q), an upper bound $B(n,d)=B_q(n,d)$ for the
   dimension of a linear code of length n, minimum distance d over a field of size q.
 \item gilbert_lower_bound(n,q,d), a lower bound for number of elements in
-  the largest code of min dist d in $GF(q)^n$.
+  the largest code of min distance d in $\FF_q^n$.
 \item gv_info_rate(n,delta,q), $log_q(GLB)/n$, where GLB is the Gilbert lower bound
   and delta = d/n.
 \item gv_bound_asymp(delta,q), asymptotic analog of Gilbert lower bound.
@@ -108,11 +111,11 @@ This module implements:
 PROBLEM:
     In this module we shall typically either
     (a) seek bounds on k, given n, d, q,
-
     (b) seek bounds on R, delta, q (assuming n is ``infinity'').
 
 
 TODO: * Johnson bounds for binary codes.
+
       * mrrw2_bound_asymp(delta,q), ``second'' asymptotic
         McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 
@@ -121,8 +124,18 @@ REFERENCES:
     Cambridge Univ. Press, 2003.
 
 """
+
+#*****************************************************************************
+#       Copyright (C) 2006 David Joyner <wdj@usna.edu>
+#                     2006 William Stein <wstein@ucsd.edu>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 from sage.interfaces.all import gap
-from sage.rings.all import ZZ, QQ, RR
+from sage.rings.all import QQ, RR, ZZ
 from sage.rings.arith import factorial
 from sage.misc.functional import log, sqrt
 
@@ -132,9 +145,9 @@ def codesize_upper_bound(n,d,q):
     minimum distance d over a field of size q. The function first checks for trivial cases
     (like d=1 or n=d), and if the value is in the built-in table. Then it calculates the
     minimum value of the upper bound using the methods of Singleton, Hamming, Johnson, Plotkin
-    and Elias. If the code is binary, A(n, 2*ell-1) = A(n+1,2*ell), so the function takes
+    and Elias. If the code is binary, $A(n, 2\ell-1) = A(n+1,2\ell)$, so the function takes
     the minimum of the values obtained from all methods for the parameters
-    (n, 2*ell-1) and (n+1, 2*ell).
+    $(n, 2\ell-1)$ and $(n+1, 2\ell)$.
 
     Wraps GUAVA's UpperBound( n, d, q ).
 
@@ -147,7 +160,7 @@ def codesize_upper_bound(n,d,q):
 
 def dimension_upper_bound(n,d,q):
     """
-    Returns an upper bound B(n,d) for the dimension of a linear code of length n,
+    Returns an upper bound $B(n,d) = B_q(n,d)$ for the dimension of a linear code of length n,
     minimum distance d over a field of size q.
 
     EXAMPLES:
@@ -155,12 +168,12 @@ def dimension_upper_bound(n,d,q):
         6
 
     """
+    q = ZZ(q)
     return int(log(codesize_upper_bound(n,d,q),q))
 
 def volume_hamming(n,q,r):
     """
-    Returns number of elements in a Hamming ball of radius r in
-    $GF(q)^n$.
+    Returns number of elements in a Hamming ball of radius r in $\FF_q^n$.
 
     EXAMPLES:
         sage: volume_hamming(10,2,3)
@@ -173,7 +186,7 @@ def volume_hamming(n,q,r):
 def gilbert_lower_bound(n,q,d):
     """
     Returns lower bound for number of elements in
-    the largest code of min dist d in $(\FF_q)^n$.
+    the largest code of minimum distance d in $\FF_q^n$.
 
     EXAMPLES:
         sage: gilbert_lower_bound(10,2,3)
@@ -186,7 +199,7 @@ def gilbert_lower_bound(n,q,d):
 def plotkin_upper_bound(n,q,d):
     """
     Returns Plotkin upper bound for number of elements in
-    the largest code of min dist d in $(\FF_q)^n$. Wraps GAP's
+    the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundPlotkin.
 
     EXAMPLES:
@@ -201,7 +214,7 @@ def plotkin_upper_bound(n,q,d):
 def griesmer_upper_bound(n,q,d):
     """
     Returns the Griesmer upper bound for number of elements in
-    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
+    the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundGriesmer.
 
     EXAMPLES:
@@ -216,7 +229,7 @@ def griesmer_upper_bound(n,q,d):
 def elias_upper_bound(n,q,d):
     """
     Returns the Elias upper bound for number of elements in
-    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
+    the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundElias.
 
     EXAMPLES:
@@ -231,21 +244,21 @@ def elias_upper_bound(n,q,d):
 def hamming_upper_bound(n,q,d):
     """
     Returns the Hamming upper bound for number of elements in
-    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
+    the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundHamming.
 
     The Hamming bound (also known as the sphere packing bound) returns an
     upper bound on the size of a code of length n, minimum distance d, over
     a field of size q. The Hamming bound is obtained by dividing the contents
-    of the entire space  $(\FF_q)^n$ by the contents of a ball with radius
+    of the entire space $\FF_q^n$ by the contents of a ball with radius
     floor((d-1)/2). As all these balls are disjoint, they can never contain more
     than the whole vector space.
 
     \[ M \leq {q^n \over V(n,e)}, \]
 
-    where M is the maxmimum number of codewords and V(n,e) is equal to the
+    where M is the maxmimum number of codewords and $V(n,e)$ is equal to the
     contents of a ball of radius e. This bound is useful for small values of d.
-    Codes for which equality holds are called perfect
+    Codes for which equality holds are called {\it perfect}.
 
 
     EXAMPLES:
@@ -260,7 +273,7 @@ def hamming_upper_bound(n,q,d):
 def singleton_upper_bound(n,q,d):
     """
     Returns the Singleton upper bound for number of elements in
-    the largest code of min dist d in  $(\FF_q)^n$. Wraps GAP's
+    the largest code of minimum distance d in $\FF_q^n$. Wraps GAP's
     UpperBoundSingleton.
 
     This bound is based on the shortening of codes. By shortening an
@@ -269,7 +282,7 @@ def singleton_upper_bound(n,q,d):
 
     \[ M \leq q^{n-d+1}. \]
 
-    Codes that meet this bound are called maximum distance separable
+    Codes that meet this bound are called {\it maximum distance separable} (MDS).
 
     EXAMPLES:
         sage: singleton_upper_bound(10,2,3)
@@ -283,13 +296,14 @@ def singleton_upper_bound(n,q,d):
 def gv_info_rate(n,delta,q):
     """
     GV lower bound for information rate of a q-ary code of length n
-    min dist delta*n
+    minimum distance delta*n
 
     EXAMPLES:
         sage: gv_info_rate(100,1/4,3)
         0.36704992608261899
 
     """
+    q = ZZ(q)
     ans=log(gilbert_lower_bound(n,q,int(n*delta)),q)/n
     return ans
 
@@ -298,6 +312,7 @@ def entropy(x,q):
     Computes the entropy on the q-ary symmetric channel.
 
     """
+    q = ZZ(q)
     H = x*log(q-1,q)-x*log(x,q)-(1-x)*log(1-x,q)
     return H
 
@@ -307,9 +322,9 @@ def gv_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: gv_bound_asymp(x,2)
-        sage: P=plot(f,0,1)
+        sage: P = plot(f,0,1)
+        sage.: show(P)
 
-    Now, to display this picture, type ``show(P)''.
     """
     return (1-entropy(delta,q))
 
@@ -320,9 +335,9 @@ def hamming_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: f = lambda x: hamming_bound_asymp(x,2)
-        sage: P=plot(f,0,1)
+        sage: P = plot(f,0,1)
+        sage.: show(P)
 
-    Now, to display this picture, type ``show(P)''.
     """
     return (1-entropy(delta/2,q))
 
@@ -334,6 +349,7 @@ def singleton_bound_asymp(delta,q):
         sage: f = lambda x: singleton_bound_asymp(x,2)
         sage: P = plot(f,0,1)
         sage.: show(P)
+
     """
     return (1-delta)
 
@@ -345,35 +361,35 @@ def plotkin_bound_asymp(delta,q):
     EXAMPLES:
         sage: plotkin_bound_asymp(1/4,2)
         1/2
+
     """
-    q = ZZ(q)
     r = 1-1/q
     return (1-delta/r)
 
 def elias_bound_asymp(delta,q):
     """
-    Computes the asymptotic Plotkin bound for the information rate,
+    Computes the asymptotic Elias bound for the information rate,
     provided 0 < delta < 1-1/q.
 
     EXAMPLES:
         sage: elias_bound_asymp(1/4,2)
         0.39912396330714384
+
     """
-    q = ZZ(q)
     r = 1-1/q
     return (1-entropy(r-sqrt(r*(r-delta)), q))
 
 def mrrw1_bound_asymp(delta,q):
     """
-    Computes the ``first'' asymptotic McEliese-Rumsey-Rodemich-Welsh
+    Computes the ``first asymptotic McEliese-Rumsey-Rodemich-Welsh
     bound for the information rate, provided 0 < delta < 1-1/q.
 
     EXAMPLES:
         sage: mrrw1_bound_asymp(1/4,2)
         0.35457890266527003
+
     """
     return entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q)
-
 
 
 

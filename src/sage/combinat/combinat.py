@@ -656,29 +656,47 @@ def tuples(S,k):
     An ordered tuple of length k of set is an ordered selection with
     repetition and is represented by a list of length k containing
     elements of set.
-
     tuples returns the set of all ordered tuples of length k of the set.
-    Wraps GAP's Tuples.
-
-    WARNING: Wraps GAP -- hence mset must be a list of objects that
-    have string representations that can be interpreted by the GAP
-    intepreter.  If mset consists of at all complicated SAGE objects,
-    this function does *not* do what you expect.  A proper function
-    should be written! (TODO!)
 
     EXAMPLES:
         sage: S = [1,2]
         sage: tuples(S,3)
-        [[1, 1, 1], [1, 1, 2], [1, 2, 1], [1, 2, 2], [2, 1, 1],
-         [2, 1, 2], [2, 2, 1], [2, 2, 2]]
+	[[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]
         sage: mset = ["s","t","e","i","n"]
         sage: tuples(mset,2)
-        ['ee', 'ei', 'en', 'es', 'et', 'ie', 'ii', 'in', 'is', 'it',
-         'ne', 'ni', 'nn', 'ns', 'nt', 'se', 'si', 'sn', 'ss', 'st',
-         'te', 'ti', 'tn', 'ts', 'tt']
+	[['s', 's'], ['t', 's'], ['e', 's'], ['i', 's'], ['n', 's'], ['s', 't'], ['t', 't'],
+	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
+         ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
+	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
+	sage: mset = [x for x in GF(4) if x!=0]
+	sage: tuples(mset,2)
+        [[1, 1],
+         [a, 1],
+         [a + 1, 1],
+         [1, a],
+         [a, a],
+         [a + 1, a],
+         [1, a + 1],
+         [a, a + 1],
+         [a + 1, a + 1]]
+
     """
-    ans=gap.eval("Tuples(%s,%s)"%(S,k))
-    return eval(ans)
+    import copy
+    if k<=0:
+        return [[]]
+    if k==1:
+        return [[x] for x in S]
+    ans = []
+    for s in S:
+        for x in tuples(S,k-1):
+            y = copy.copy(x)
+            y.append(s)
+            ans.append(y)
+    return ans
+    ## code wrapping GAP's Tuples:
+    #ans=gap.eval("Tuples(%s,%s)"%(S,k))
+    #return eval(ans)
+
 
 def number_of_tuples(S,k):
     """

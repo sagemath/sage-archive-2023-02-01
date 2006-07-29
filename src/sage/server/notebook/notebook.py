@@ -748,7 +748,7 @@ class Notebook(SageObject):
         body += '  <span class="control_commands">\n'
 
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a> ' + vbar
+        body += '    <a class="history_link" onClick="history_window()">History</a>&nbsp;' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar

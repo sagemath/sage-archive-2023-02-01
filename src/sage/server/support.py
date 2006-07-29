@@ -133,17 +133,22 @@ def get_def(obj, obj_name=''):
     try:
         s = str(inspect.formatargspec(*get_argspec(obj)))
         s = s.strip('(').strip(')').strip().lstrip('self').lstrip(',').strip()
-        print obj_name
         return obj_name + '(' + s + ')'
     except:
-        return None
+        return '%s( ... )'%obj_name
 
 
-def get_doc(obj):
+def get_doc(obj, obj_name=''):
     try:
-        return sagedoc.format(str(obj._sage_doc_()))
+        s = sagedoc.format(str(obj._sage_doc_()))
     except AttributeError:
-        return sagedoc.format(str(obj.__doc__))
+        s = sagedoc.format(str(obj.__doc__))
+    if obj_name != '':
+        i = obj_name.find('.')
+        if i != -1:
+            obj_name = obj_name[:i]
+        s = s.replace('self.','%s.'%obj_name)
+    return s
 
 def docstring(obj_name, globs):
     try:
@@ -157,7 +162,7 @@ def docstring(obj_name, globs):
         pass
     s += 'Type:        %s\n'%type(obj)
     s += 'Definition:  %s\n'%get_def(obj, obj_name)
-    s += 'Docstring:\n%s\n'%get_doc(obj)
+    s += 'Docstring:\n%s\n'%get_doc(obj, obj_name)
     return s
 
 def source_code(s, globs):

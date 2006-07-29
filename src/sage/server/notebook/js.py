@@ -66,7 +66,7 @@ var id_to_delete=-1;
 var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
-var one_word_pat = "(\\w+)";
+var one_word_pat = "([a-zA-Z_][a-zA-Z._0-9]*)";
 try{
   non_word = new RegExp(non_word);
   command_pat = new RegExp(command_pat);
@@ -310,7 +310,7 @@ function handle_replacement_controls(cell_input, event) {
             replacement_col--;
         }
     } else if(key_menu_pick(event)) {
-        do_replacement(introspect_id, replacement_word);
+        do_replacement(introspect_id, replacement_word, true);
         return false;
     } else if(key_request_introspections(event)) {
         if(sub_introspecting) {
@@ -337,8 +337,11 @@ function handle_replacement_controls(cell_input, event) {
     return false;
 }
 
-function do_replacement(id, word) {
+function do_replacement(id, word,do_trim) {
     var cell_input = get_cell(id);
+
+    if(do_trim) //optimization 'cause Opera has a slow regexp engine
+        word = trim(word);
 
     cell_input.value = before_replacing_word + word + after_cursor;
     focus(id);  //reset the cursor (for explorer)
@@ -392,7 +395,7 @@ function select_replacement_element() {
         if (i != -1) {
             h = h.substr(0,i);
         }
-        replacement_word = trim(h);
+        replacement_word = h;
     }
 }
 
@@ -1004,7 +1007,7 @@ function evaluate_cell_introspection(id, before, after) {
         } else if(f != null) { //we're in an open function paren -- give info on the function
             before = f[1] + "?";
         } else { //just a tab
-            do_replacement(id, '    ');
+            do_replacement(id, '    ',false);
             return;
         }
     } else {
@@ -1404,6 +1407,7 @@ function append_new_cell(id, html) {
 ///////////////////////////////////////////////////////////////////
 
 function interrupt_callback(status, response_text) {
+    restart_sage_callback("success", "");
     if (response_text == "restart") {
         alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
         restart_sage_callback('success', response_text);

@@ -28,7 +28,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 30
+INTERRUPT_TRIES = 60
 INITIAL_NUM_CELLS = 1
 import notebook as _notebook
 
@@ -589,6 +589,9 @@ class Worksheet:
         for C in self.__queue:
             C.interrupt()
 
+        self.__queue = []
+        self.__comp_is_running = False
+
         return success
 
     def restart_sage(self):
@@ -613,10 +616,6 @@ class Worksheet:
             print "WARNING: Error deleting SAGE object!"
         cancel_alarm()
 
-        # empty the queue
-        for C in self.__queue:
-            C.interrupt()
-        self.__comp_is_running = False
         try:
             del self.__variables
         except AttributeError:

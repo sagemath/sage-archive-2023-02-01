@@ -22,12 +22,17 @@ import element
 import hecke_operator_on_qexp
 import submodule
 
+WARN=True
+
 class ModularFormsSpace(hecke.HeckeModule_generic):
     """
     A generic space of modular forms.
     """
     def __init__(self, group, weight, character, base_ring):
-        print "Modular forms -- under development -- do not trust yet."
+        global WARN
+        if WARN:
+            print "Modular forms -- under development -- do not trust yet."
+            WARN=False
         if not isinstance(group, congroup.CongruenceSubgroup):
             raise TypeError, "group (=%s) must be a congruence subroup"%group
         weight = int(weight)

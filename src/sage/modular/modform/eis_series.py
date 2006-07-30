@@ -62,6 +62,8 @@ def __common_minimal_basering(chi, psi):
 def __find_eisen_chars(character, k):
     N = character.modulus()
     if character.is_trivial():
+        if k%2 != 0:
+            return []
         V = [(character, character, t) for t in divisors(N) if t>1]
         if k != 2:
             V.insert(0,(character, character, 1))

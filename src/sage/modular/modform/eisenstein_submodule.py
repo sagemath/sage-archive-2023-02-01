@@ -136,6 +136,11 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
             7/13*zeta6 - 18/13 + q + (-2*zeta6 + 3)*q^2 + (3*zeta6 - 2)*q^3 + (-6*zeta6 + 3)*q^4 + -4*q^5 + O(q^6),
             q + (zeta6 + 2)*q^2 + (-zeta6 + 3)*q^3 + (3*zeta6 + 3)*q^4 + 4*q^5 + O(q^6)
             ]
+
+	    sage: M = ModularForms(19,3).eisenstein_subspace()
+	    sage: M.eisenstein_series()
+            [
+            ]
         """
         try:
             return self.__eisenstein_series
@@ -155,7 +160,7 @@ class EisensteinSubmodule_params(EisensteinSubmodule):
         V = QQ**prec
         G = []
         z = QQ(0)
-        # TODO: Massively optimize, esp when Gamma1, by only including
+        # TODO: Possibly massively optimize, esp when Gamma1, by only including
         # one form from each Galois orbit.
         for e in E:
             f = e.q_expansion(prec)
@@ -196,7 +201,27 @@ class EisensteinSubmodule_g1_Q(EisensteinSubmodule_params):
 class EisensteinSubmodule_eps(EisensteinSubmodule_params):
     """
     Space of Eisenstein forms with given Dirichlet character.
-    """
 
-    def _compute_q_expansion_basis(self, prec):
-        raise NotImplementedError, "must restrict scalars down correctly."
+    EXAMPLES:
+	sage: e = DirichletGroup(27,CyclotomicField(3)).0
+	sage: M = ModularForms(e,2,prec=10).eisenstein_subspace()
+	sage: M.dimension()
+	6
+
+	sage: M.eisenstein_series()
+	[
+	1/3*zeta6 - 2/3 + q + (-2*zeta6 + 1)*q^2 + (2*zeta6 - 3)*q^4 + (5*zeta6 - 4)*q^5 + O(q^6),
+	1/3*zeta6 - 2/3 + q^3 + O(q^6),
+	q + (2*zeta6 - 1)*q^2 + (2*zeta6 - 3)*q^4 + (-5*zeta6 + 4)*q^5 + O(q^6),
+	q + (zeta6 + 1)*q^2 + (zeta6 + 2)*q^4 + (-zeta6 + 5)*q^5 + O(q^6),
+	q^3 + O(q^6),
+	q + (-zeta6 - 1)*q^2 + (zeta6 + 2)*q^4 + (zeta6 - 5)*q^5 + O(q^6)
+	]
+
+	sage: M.basis()
+        ???
+    """
+    # TODO
+    #def _compute_q_expansion_basis(self, prec):
+	#B = EisensteinSubmodule_params._compute_q_expansion_basis(self, prec)
+        #raise NotImplementedError, "must restrict scalars down correctly."

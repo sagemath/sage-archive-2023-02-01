@@ -27,6 +27,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
     A generic space of modular forms.
     """
     def __init__(self, group, weight, character, base_ring):
+        print "Modular forms -- under development -- do not trust yet."
         if not isinstance(group, congroup.CongruenceSubgroup):
             raise TypeError, "group (=%s) must be a congruence subroup"%group
         weight = int(weight)
@@ -766,7 +767,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__basis
 
     def gen(self, n):
-        return self.basis()[n]
+        try:
+            return self.basis()[int(n)]
+        except IndexError:
+            raise ValueError, "Generator %s not defined"%n
 
     def gens(self):
         return self.basis()

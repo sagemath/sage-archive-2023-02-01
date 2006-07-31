@@ -690,11 +690,13 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         m_coefficients = self._MPolynomial__element.dict()
         variable_dict = dict()
 
+        one = self.parent().base_ring()(1)
+
         #get variables
         for exponents in m_coefficients.keys():
             for idx in range( 0 , len(exponents) ):
                 if( exponents[idx] != 0 ):
-                    variable_dict[idx] = 1
+                    variable_dict[idx] = one
 
         return variable_dict.keys()
 

@@ -765,6 +765,9 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         else:
             return False
 
+    def __hash__(self):
+        #requires base field elements are hashable!
+        return hash(tuple(self._MPolynomial__element._PolyDict__repn.items()))
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>

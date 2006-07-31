@@ -1005,7 +1005,11 @@ cdef class GFq_element(SageObject):
         return self._sage_().trace()
 
     def __hash__(GFq_element self):
-        return hash((self._parent,self.object))
+        # GF elements are hashed by hashing their string
+        # representation but string representations are slow. So we
+        # hash the log and the int representation which should provide
+        # the same level of distinction.
+        return hash((self.object,self._parent.log2int(self.object),"givaro"))
 
 cdef make_GFq_element(GFq parent, int x):
     """

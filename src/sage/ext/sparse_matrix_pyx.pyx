@@ -738,7 +738,7 @@ cdef class Matrix_modint(sage.matrix.matrix_pyx.Matrix):
         Return the rank found during the last echelon operation on self.
         Of course if self is changed, then the rank could be incorrect.
         """
-        if self.__pivots == None:
+        if self.__pivots == []:
             raise ArithmeticError, "Echelon form has not yet been computed."
         return len(self.__pivots)
 

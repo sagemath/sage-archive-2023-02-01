@@ -565,8 +565,13 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: f.monomials()
             [y, x^2, 1, x^2*y^2]
         """
-        ring = self.parent()
-        return [ring(polydict.PolyDict({m:int(1)},force_int_exponents=False)) for m in self.exponents()]
+        try:
+            return self.__monomials
+        except AttributeError:
+            ring = self.parent()
+            one = self.parent().base_ring()(1)
+            self.__monomials = [ring(polydict.PolyDict({m:one},force_int_exponents=False)) for m in self.exponents()]
+            return self.__monomials
 
     def constant_coefficient(self):
         """

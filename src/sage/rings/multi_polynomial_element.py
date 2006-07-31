@@ -616,11 +616,10 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         except:
             return True        # zero
 
-        zero = self.base_ring()(0)
         found = -1
         for mon in mons:
             for i in range(ngens):
-                if mon[i]!=zero and found != i:
+                if mon[i]!=0 and found != i:
                     if found != -1:
                         return False
                     else:

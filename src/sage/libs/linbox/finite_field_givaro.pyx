@@ -296,7 +296,7 @@ cdef class GFq(FiniteField):
                 res = self.int2log(int(e))
 
         elif isinstance(e,str):
-            return eval(e.replace("^","**"),{str(self.variable_name()):self.gen()})
+            return self(eval(e.replace("^","**"),{str(self.variable_name()):self.gen()}))
 
         elif isinstance(e,FreeModuleElement):
             ret = self.zero()

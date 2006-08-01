@@ -2,6 +2,8 @@
 Creation of modular symbols spaces
 
 EXAMPLES:
+We create a space and output its category.
+
     sage: C = HeckeModules(RationalField()); C
     Category of Hecke modules over Rational Field
     sage: M = ModularSymbols(11)
@@ -9,6 +11,28 @@ EXAMPLES:
     Category of Hecke modules over Rational Field
     sage: M in C
     True
+
+We create a space compute the charpoly, then compute the same but over
+a bigger field.  In each case we also decompose the space using $T_2$.
+
+    sage: M = ModularSymbols(23,2,base_ring=QQ)
+    sage: print M.T(2).charpoly().factor()
+    sage: print M.decomposition(2)
+    (x - 3) * (x^2 + x - 1)^2
+    [
+    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field,
+    Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
+    ]
+
+    sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5))
+    sage: print M.T(2).charpoly().factor()
+    sage: print M.decomposition(2)
+    (x + -3) * (x + -1/2*a + 1/2)^2 * (x + 1/2*a + 1/2)^2
+    [
+    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5
+    ]
 """
 
 #*****************************************************************************
@@ -58,6 +82,9 @@ def canonical_parameters(group, weight, sign, base_ring):
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
+
+    if not base_ring.is_field():
+        raise TypeError, "(currently) base_ring (=%s) must be a field"%base_ring
 
     return group, weight, sign, base_ring
 

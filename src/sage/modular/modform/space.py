@@ -22,7 +22,7 @@ import element
 import hecke_operator_on_qexp
 import submodule
 
-WARN=True
+WARN=False
 
 class ModularFormsSpace(hecke.HeckeModule_generic):
     """

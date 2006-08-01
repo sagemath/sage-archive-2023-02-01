@@ -1168,14 +1168,14 @@ def ToricCode(P,F):
         Linear code of length 16, dimension 9 over Finite Field of size 5
         sage: C.minimum_distance()
         6
-        sage: C.minimum_distance_upper_bound()
+        sage: C.minimum_distance_upper_bound()   # optional -- uses internet
         6
         sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8))
         sage: C
         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
         sage: C.minimum_distance()  ## long time -- very time consuming
         28
-        sage: print linear_code_bound(8,49,11)[0]
+        sage: print linear_code_bound(8,49,11)[0]    # optional -- uses internet
         28
 
 

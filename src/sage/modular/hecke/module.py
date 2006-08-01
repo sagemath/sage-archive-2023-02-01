@@ -474,9 +474,13 @@ class HeckeModule_free_module(HeckeModule_generic):
             Uprime = []
             Udualprime = []
             for i in range(len(U)):
-                X = t.decomposition_of_subspace(U[i], is_diagonalizable=(self.level()%p != 0))
+                if self.base_ring().characteristic() == 0 and self.level()%p != 0:
+                    is_diagonalizable = True
+                else:
+                    is_diagonalizable = False
+                X = t.decomposition_of_subspace(U[i], is_diagonalizable=is_diagonalizable)
                 if compute_dual:
-                    Xdual = t.transpose().decomposition_of_subspace(Udual[i], is_diagonalizable=(self.level()%p != 0))
+                    Xdual = t.transpose().decomposition_of_subspace(Udual[i], is_diagonalizable=is_diagonalizable)
                     if len(X) != len(Xdual):
                         raise RuntimeError, "Unable to compute compatible dual decomposition."
                 for i in range(len(X)):

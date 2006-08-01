@@ -248,7 +248,7 @@ class BoundarySpace(hecke.HeckeModule_generic):
         elif element.is_ModularSymbolsElement(x):
             M = x.parent()
             if not isinstance(M, ambient.ModularSymbolsAmbient):
-                raise TypeError, "x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient_wtk_g0_Q"%x
+                raise TypeError, "x (=%s) must be an element of a space of modular symbols of type ModularSymbolsAmbient"%x
             if M.level() != self.level():
                 raise TypeError, "x (=%s) must have level %s but has level %s"%(
                     x, self.level(), M.level())
@@ -304,21 +304,22 @@ class BoundarySpace(hecke.HeckeModule_generic):
                 self.__sign,self.__base_ring.name())
 
 
-class BoundarySpace_wtk_g0_Q(BoundarySpace):
+class BoundarySpace_wtk_g0(BoundarySpace):
     """
-    Boundary symbols for Gamma_0(N) of integer weight k > 2 over the field Q.
+    Boundary symbols for Gamma_0(N) of integer weight k > 2 over the field F.
     """
-    def __init__(self, level, weight, sign=0):
+    def __init__(self, level, weight, sign, F):
         """
         Initialize a space of boundary symbols of weight k for
-        Gamma_0(N), over Q.
+        Gamma_0(N), over F.
 
-        For weight 2, it is faster to use BoundarySpace_wt2_g0_Q.
+        For weight 2, it is faster to use BoundarySpace_wt2_g0.
 
         INPUT:
             level -- int, the level
             weight -- integer weight >= 2.
             sign -- int, either -1, 0, or 1
+            F -- field
         """
         level = int(level)
         sign = int(sign)
@@ -331,7 +332,7 @@ class BoundarySpace_wtk_g0_Q(BoundarySpace):
                                  weight = weight,
                                  group  = congroup.Gamma0(level),
                                  sign   = sign,
-                                 base_ring = QQ)
+                                 base_ring = F)
 
     def _repr_(self):
         return ("Space of Boundary Modular Symbols for %s of weight %s " + \
@@ -377,19 +378,20 @@ class BoundarySpace_wtk_g0_Q(BoundarySpace):
         return c1.is_gamma0_equiv(c2, self.level())
 
 
-class BoundarySpace_wtk_g1_Q(BoundarySpace):
-    def __init__(self, level, weight, sign=0):
+class BoundarySpace_wtk_g1(BoundarySpace):
+    def __init__(self, level, weight, sign, F):
         """
-        Initialize a space of boundayr modular symbols for Gamma1(N).
+        Initialize a space of boundary modular symbols for Gamma1(N).
 
         INPUT:
             level -- int, the level
             weight -- int, the weight >= 2
             sign -- int, either -1, 0, or 1
+            F -- base ring
 
         EXAMPLES:
-            sage: from sage.modular.modsym.boundary import BoundarySpace_wtk_g1_Q
-            sage: BoundarySpace_wtk_g1_Q(17,2)
+            sage: from sage.modular.modsym.boundary import BoundarySpace_wtk_g1
+            sage: BoundarySpace_wtk_g1(17, 2, 0, QQ)
             Boundary Modular Symbols space for Gamma_1(17) of weight 2 over Rational Field
         """
         level = int(level)
@@ -403,7 +405,7 @@ class BoundarySpace_wtk_g1_Q(BoundarySpace):
                 weight = weight,
                 group  = congroup.Gamma1(level),
                 sign   = sign,
-                base_ring = QQ)
+                base_ring = F)
 
     def _repr_(self):
         return ("Boundary Modular Symbols space for Gamma_1(%s) of weight %s " + \

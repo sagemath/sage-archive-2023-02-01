@@ -1,5 +1,27 @@
 """
 Ambient spaces of modular symbols.
+
+EXAMPLES:
+
+    We compute a space of modular symbols modulo 2.  The dimension is
+    different than that of the corresponding space in characteristic 0:
+        sage: M = ModularSymbols(11,4,base_ring=GF(2)); M
+        Modular Symbols space of dimension 7 for Gamma_0(11) of weight 4
+        with sign 0 over Finite Field of size 2
+        sage: M.basis()
+        ([X*Y,(1,0)], [X*Y,(1,8)], [X*Y,(1,9)], [X^2,(0,1)], [X^2,(1,8)], [X^2,(1,9)], [X^2,(1,10)])
+        sage: M0 =  ModularSymbols(11,4,base_ring=QQ); M0
+        Modular Symbols space of dimension 6 for Gamma_0(11) of weight 4
+        with sign 0 over Rational Field
+        sage: M0.basis()
+        ([X^2,(0,1)], [X^2,(1,6)], [X^2,(1,7)], [X^2,(1,8)], [X^2,(1,9)], [X^2,(1,10)])
+
+    The charpoly of the Hecke operator $T_2$ has an extra factor $x$.
+        sage: M.T(2).matrix().fcp()
+        x^5 * (x + 1)^2
+        sage: M0.T(2).matrix().fcp()
+        (x - 9)^2 * (x^2 - 2*x - 2)^2
+
 """
 
 #*****************************************************************************
@@ -87,7 +109,10 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         space.ModularSymbolsSpace.__init__(self, group, weight,
                                            character, sign, base_ring)
 
-        formula = self._dimension_formula()
+        try:
+            formula = self._dimension_formula()
+        except NotImplementedError:
+            formula = None
         rank = self.rank()
         if formula != None:
             assert rank == formula, \
@@ -969,20 +994,21 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
 
 
 
-class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
+class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
     r"""
-    Modular symbols for $\Gamma_0(N)$ of integer weight $k > 2$ over the field $\Q$.
+    Modular symbols for $\Gamma_0(N)$ of integer weight $k > 2$ over the field $F$.
     """
-    def __init__(self, N, k, sign=0):
+    def __init__(self, N, k, sign, F):
         r"""
         Initialize a space of modular symbols of weight $k$ for $\Gamma_0(N)$, over $\Q$.
 
-        For weight $2$, it is faster to use \code{ModularSymbols_wt2_g0_Q}.
+        For weight $2$, it is faster to use \code{ModularSymbols_wt2_g0}.
 
         INPUT:
             N -- int, the level
             k -- integer weight >= 2.
             sign -- int, either -1, 0, or 1
+            F -- field
         EXAMPLES:
             sage: ModularSymbols(1,12)
             Modular Symbols space of dimension 3 for Gamma_0(1) of weight 12 with sign 0 over Rational Field
@@ -1002,18 +1028,21 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
             raise TypeError, "sign must be an int in [-1,0,1]"
 
         ModularSymbolsAmbient.__init__(self, weight=k, group=congroup.Gamma0(N),
-                                       sign=sign, base_ring=rational_field.RationalField())
+                                       sign=sign, base_ring=F)
 
 
     def _dimension_formula(self):
-        N, k, sign = self.level(), self.weight(), self.sign()
-        if sign != 0: return None
-        if k%2 == 1:
-            return 0
-        elif k > 2:
-            return 2*dims.dimension_cusp_forms_gamma0(N,k) + dims.c0(N)
+        if self.base_ring().characteristic() == 0:
+            N, k, sign = self.level(), self.weight(), self.sign()
+            if sign != 0: return None
+            if k%2 == 1:
+                return 0
+            elif k > 2:
+                return 2*dims.dimension_cusp_forms_gamma0(N,k) + dims.c0(N)
+            else:
+                return 2*dims.dimension_cusp_forms_gamma0(N,k) + dims.c0(N)-1
         else:
-            return 2*dims.dimension_cusp_forms_gamma0(N,k) + dims.c0(N)-1
+            raise NotImplementedError
 
     def _repr_(self):
         return ("Modular Symbols space of dimension %s for Gamma_0(%s) of weight %s with sign %s " + \
@@ -1021,12 +1050,15 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
                             self.base_ring())
 
     def _cuspidal_submodule_dimension_formula(self):
-        N, k, sign = self.level(), self.weight(), self.sign()
-        if sign == 0:
-            m = 2
+        if self.base_ring().characteristic() == 0:
+            N, k, sign = self.level(), self.weight(), self.sign()
+            if sign == 0:
+                m = 2
+            else:
+                m = 1
+            return m * dims.dimension_cusp_forms_gamma0(N, k)
         else:
-            m = 1
-        return m * dims.dimension_cusp_forms_gamma0(N, k)
+            raise NotImplementedError
 
 
     def _degeneracy_raising_matrix(self, level):
@@ -1064,20 +1096,23 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
 
 
     def _cuspidal_new_submodule_dimension_formula(self):
-        N, k, sign = self.level(), self.weight(), self.sign()
-        if sign == 0:
-            m = 2
+        if self.base_ring().characteristic() == 0:
+            N, k, sign = self.level(), self.weight(), self.sign()
+            if sign == 0:
+                m = 2
+            else:
+                m = 1
+            return m * dims.dimension_new_cusp_forms_gamma0(N, k)
         else:
-            m = 1
-        return m * dims.dimension_new_cusp_forms_gamma0(N, k)
+            raise NotImplementedError
 
     def boundary_space(self):
         try:
             return self.__boundary_space
         except AttributeError:
             pass
-        self.__boundary_space = boundary.BoundarySpace_wtk_g0_Q(
-            self.level(), self.weight(), self.sign())
+        self.__boundary_space = boundary.BoundarySpace_wtk_g0(
+            self.level(), self.weight(), self.sign(), self.base_ring())
         return self.__boundary_space
 
     def manin_symbols(self):
@@ -1112,11 +1147,11 @@ class ModularSymbolsAmbient_wtk_g0_Q(ModularSymbolsAmbient):
 
 
 
-class ModularSymbolsAmbient_wt2_g0_Q(ModularSymbolsAmbient_wtk_g0_Q):
+class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     """
-    Modular symbols for Gamma_0(N) of integer weight 2 over the field Q.
+    Modular symbols for Gamma_0(N) of integer weight 2 over the field F.
     """
-    def __init__(self, N, sign=0):
+    def __init__(self, N, sign, F):
         """
         Initialize a space of modular symbols.
         INPUT:
@@ -1129,30 +1164,36 @@ class ModularSymbolsAmbient_wt2_g0_Q(ModularSymbolsAmbient_wtk_g0_Q):
         EXAMPLES:
             sage: M = ModularSymbols(Gamma0(12),2)
         """
-        ModularSymbolsAmbient_wtk_g0_Q.__init__(self,
-                                                N=N, k=2, sign=sign)
-
-    #def __reduce__(self):
-    #    return self.__class__, self.__pickle, self.__dict__
+        ModularSymbolsAmbient_wtk_g0.__init__(self,
+                                                N=N, k=2, sign=sign, F=F)
 
     def _dimension_formula(self):
-        N, sign = self.level(), self.sign()
-        if sign != 0: return None
-        return 2*dims.dimension_cusp_forms_gamma0(N,2) + dims.c0(N) - 1
+        if self.base_ring().characteristic() == 0:
+            N, sign = self.level(), self.sign()
+            if sign != 0: return None
+            return 2*dims.dimension_cusp_forms_gamma0(N,2) + dims.c0(N) - 1
+        else:
+            raise NotImplementedError
 
     def _cuspidal_submodule_dimension_formula(self):
-        if self.sign() == 0:
-            m = 2
+        if self.base_ring().characteristic() == 0:
+            if self.sign() == 0:
+                m = 2
+            else:
+                m = 1
+            return m * dims.dimension_cusp_forms_gamma0(self.level(), 2)
         else:
-            m = 1
-        return m * dims.dimension_cusp_forms_gamma0(self.level(), 2)
+            raise NotImplementedError
 
     def _cuspidal_new_submodule_dimension_formula(self):
-        if self.sign() == 0:
-            m = 2
+        if self.base_ring().characteristic() == 0:
+            if self.sign() == 0:
+                m = 2
+            else:
+                m = 1
+            return m * dims.dimension_new_cusp_forms_gamma0(self.level(), 2)
         else:
-            m = 1
-        return m * dims.dimension_new_cusp_forms_gamma0(self.level(), 2)
+            raise NotImplementedError
 
 
     def _compute_hecke_matrix_prime(self, p):
@@ -1217,19 +1258,22 @@ class ModularSymbolsAmbient_wt2_g0_Q(ModularSymbolsAmbient_wtk_g0_Q):
             return self.__boundary_space
         except AttributeError:
             pass
-        self.__boundary_space = boundary.BoundarySpace_wtk_g0_Q(
-            self.level(), self.weight(), self.sign())
+        self.__boundary_space = boundary.BoundarySpace_wtk_g0(
+            self.level(), self.weight(), self.sign(), self.base_ring())
         return self.__boundary_space
 
 
-class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
-    def __init__(self, level, weight, sign=0):
+class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
+    def __init__(self, level, weight, sign, F):
         """
         Initialize a space of modular symbols for Gamma1(N).
+
         INPUT:
             level -- int, the level
             weight -- int, the weight >= 2
             sign -- int, either -1, 0, or 1
+            F -- field
+
         EXAMPLES:
             sage: ModularSymbols(Gamma1(17),2)
             Modular Symbols space of dimension 25 for Gamma_1(17) of weight 2 with sign 0 and over Rational Field
@@ -1242,10 +1286,12 @@ class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
                 weight=weight,
                 group=congroup.Gamma1(level),
                 sign=sign,
-                base_ring=rational_field.RationalField())
+                base_ring=F)
 
 
     def _dimension_formula(self):
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError
         level, weight, sign = self.level(), self.weight(), self.sign()
         if sign != 0: return None
         d = 2*dims.dimension_cusp_forms_gamma1(level,weight) + dims.c1(level)
@@ -1256,7 +1302,7 @@ class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
         if weight % 2 == 0:
             return d
 
-        # TODO: I don't know a formula for dim M_k(Gamma_1(N)) for odd k!!!
+        # TODO: I don't know a formula for dim ModSym_k(Gamma_1(N)) for odd k!!!
 
         return None
 
@@ -1325,8 +1371,8 @@ class ModularSymbolsAmbient_wtk_g1_Q(ModularSymbolsAmbient):
             return self.__boundary_space
         except AttributeError:
             pass
-        self.__boundary_space = boundary.BoundarySpace_wtk_g1_Q(
-            self.level(), self.weight(), self.sign())
+        self.__boundary_space = boundary.BoundarySpace_wtk_g1(
+            self.level(), self.weight(), self.sign(), self.base_ring())
         return self.__boundary_space
 
     def manin_symbols(self):
@@ -1396,6 +1442,8 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
 
 
     def _cuspidal_submodule_dimension_formula(self):
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError
         if self.sign() == 0:
             m = 2
         else:
@@ -1403,6 +1451,8 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         return m * dims.dimension_cusp_forms_eps(self.character(), self.weight())
 
     def _cuspidal_new_submodule_dimension_formula(self):
+        if self.base_ring().characteristic() != 0:
+            raise NotImplementedError
         if self.sign() == 0:
             m = 2
         else:
@@ -1486,7 +1536,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         except AttributeError:
             pass
         self.__boundary_space = boundary.BoundarySpace_wtk_eps(
-            self.character(), self.weight(), self.sign())
+            self.character(), self.weight(), self.sign(), self.base_ring())
         return self.__boundary_space
 
     def manin_symbols(self):

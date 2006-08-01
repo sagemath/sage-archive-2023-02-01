@@ -51,7 +51,10 @@ def canonical_parameters(group, weight, sign, base_ring):
         group = congroup.Gamma0(group)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
-        group = group.minimize_base_ring()
+        try:
+            group = group.minimize_base_ring()
+        except NotImplementedError:  # todo -- implement minimize_base_ring over finite fields
+            pass
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -135,6 +138,25 @@ def ModularSymbols(group  = 1,
         6
         sage: m.T(2).charpoly()
         x^6 - 873*x^4 - 82632*x^2 - 1860496
+
+    We create a space of modular symbols with nontrivial character in characteristic 2.
+        sage: G = DirichletGroup(13,GF(4)); G
+        Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
+        sage: e = G.list()[2]; e
+        [a + 1]
+        sage: M = ModularSymbols(e,4); M
+        Modular Symbols space of dimension 8 and level 13, weight 4, character [a + 1], sign 0, over Finite Field in a of size 2^2
+        sage: M.basis()
+        ([X*Y,(1,0)], [X*Y,(1,5)], [X*Y,(1,10)], [X*Y,(1,11)], [X^2,(0,1)], [X^2,(1,10)], [X^2,(1,11)], [X^2,(1,12)])
+        sage: M.T(2).matrix()
+        [    0     0     0     0     0     0     1     1]
+        [    0     0     0     0     0     0     0     0]
+        [    0     0     0     0     0 a + 1     1     a]
+        [    0     0     0     0     0     1 a + 1     a]
+        [    0     0     0     0 a + 1     0     1     1]
+        [    0     0     0     0     0     a     1     a]
+        [    0     0     0     0     0     0 a + 1     a]
+        [    0     0     0     0     0     0     1     0]
     """
     key = canonical_parameters(group, weight, sign, base_ring)
 
@@ -146,19 +168,16 @@ def ModularSymbols(group  = 1,
 
     M = None
     if isinstance(group, congroup.Gamma0):
-
-        if base_ring is rational_field.RationalField():
             if weight == 2:
-                M = ambient.ModularSymbolsAmbient_wt2_g0_Q(
-                    group.level(),sign)
+                M = ambient.ModularSymbolsAmbient_wt2_g0(
+                    group.level(),sign, base_ring)
             else:
-                M = ambient.ModularSymbolsAmbient_wtk_g0_Q(
-                    group.level(), weight, sign)
+                M = ambient.ModularSymbolsAmbient_wtk_g0(
+                    group.level(), weight, sign, base_ring)
 
     elif isinstance(group, congroup.Gamma1):
 
-        if base_ring is rational_field.RationalField():
-            M = ambient.ModularSymbolsAmbient_wtk_g1_Q(group.level(), weight, sign)
+        M = ambient.ModularSymbolsAmbient_wtk_g1(group.level(), weight, sign, base_ring)
 
     elif isinstance(group, dirichlet.DirichletCharacter):
 

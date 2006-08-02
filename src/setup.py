@@ -350,9 +350,9 @@ setup(name        = 'sage',
 
       author      = 'William Stein',
 
-      author_email= 'wstein@math.ucsd.edu',
+      author_email= 'wstein@gmail.com',
 
-      url         = 'http://modular.ucsd.edu/sage',
+      url         = 'http://modular.math.washington.edu/sage',
 
       packages    = ['sage',
 

@@ -451,14 +451,24 @@ cdef class gen:
 
     def __cmp__(gen self, gen other):
         """
-        Comparisons.
+        Comparisons
+
+        Compares the underlying strings unless the inputs
+        are integer, real, or fraction (quotient of integers).
         """
         if gegal(self.g, other.g):
             return 0
-        _sig_on
-        n = gcmp(self.g, other.g)
-        _sig_off
-        return n
+        cdef int tg, to, a
+        tg = typ(self.g)
+        to = typ(other.g)
+
+        cdef int t_g, t_o
+        t_g = typ(self.g); t_o = typ(other.g)
+        if (t_g == t_INT or t_g == t_REAL or t_g == t_FRAC) and \
+           (t_o == t_INT or t_g == t_REAL or t_g == t_FRAC):
+            return gcmp(self.g, other.g)
+
+        return cmp(str(self),str(other))
 
     def __richcmp__(gen self, other, int op):
         """

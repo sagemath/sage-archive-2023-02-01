@@ -455,22 +455,10 @@ cdef class gen:
         """
         if gegal(self.g, other.g):
             return 0
-        cdef int tg, to
-        tg = typ(self.g)
-        to = typ(other.g)
-
-        cdef int t_g, t_o
-        t_g = typ(self.g); t_o = typ(other.g)
-        if (t_g == t_INT or t_g == t_REAL) and (t_o == t_INT or t_o == t_REAL):
-            return gcmp(self.g, other.g)
-
-        sg = str(self)
-        so = str(other)
-        if sg < so:
-            return -1
-        else:
-            return 1
-
+        _sig_on
+        n = gcmp(self.g, other.g)
+        _sig_off
+        return n
 
     def __richcmp__(gen self, other, int op):
         """

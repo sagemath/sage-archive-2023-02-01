@@ -30,7 +30,7 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_field import is_RealField
 import sage.misc.functional
-
+from multi_polynomial_element_pyx import *
 
 class PolynomialRing_singular_repr:
     """
@@ -205,12 +205,20 @@ class Polynomial_singular_repr:
     polynomial classes which support conversion from and to
     Singular polynomials.
     """
-    def _singular_(self, singular=singular_default):
+    def _singular_(self, singular=singular_default, have_ring=False):
         """
         Return Singular polynomial matching this polynomial.
 
         INPUT:
             singular -- Singular instance to use
+
+            have_ring -- if True we will not attempt to set this
+                         element's ring as the current Singular
+                         ring. This is useful to speed up a batch of
+                         f._singular_() calls. However, it's dangerous
+                         as it might lead to wrong results if another
+                         ring is singluar.current_ring().  (default:
+                         False)
 
         EXAMPLES:
             sage: R = PolynomialRing(GF(7))
@@ -234,32 +242,45 @@ class Polynomial_singular_repr:
             sage: R(h^20) == f^20
             True
         """
-        self.parent()._singular_(singular).set_ring() #this is expensive
+        if not have_ring:
+            self.parent()._singular_(singular).set_ring() #this is expensive
+
         try:
+            self.__singular._check_valid()
             if self.__singular.parent() is singular:
                 return self.__singular
-        except AttributeError:
+        except (AttributeError,ValueError):
             pass
-        return self._singular_init_(singular)
+        return self._singular_init_(singular,have_ring=have_ring)
 
-    def _singular_init_(self,singular=singular_default):
+    def _singular_init_(self, singular=singular_default, have_ring=False):
         """
         Return corresponding Singular polynomial but enforce that a new
         instance is created in the Singular interpreter.
+
+        Use self._singular_() instead.
         """
-        self.parent()._singular_(singular).set_ring() #this is expensive
-        self.__singular = singular(str(self))
+        if not have_ring:
+            self.parent()._singular_(singular).set_ring() #this is expensive
+
+        if hasattr(self,"element"):
+            self.__singular = singular(mpoly_repr_pyx(self))
+        else:
+            self.__singular = singular(str(self))
+
         return self.__singular
 
-    def lcm(self,right):
+    def lcm(self, right, have_ring=False):
         """
         Returns the least common multiple of this element and the right element.
 
         INPUT:
             right -- multivariate polynomial
+            have_ring -- see self._singular_() (default:False)
 
         OUTPUT:
-            multivariate polynomial
+            multivariate polynomial representing the least common
+            multiple of self and right
 
         ALGORITHM: Singular
 
@@ -271,16 +292,20 @@ class Polynomial_singular_repr:
             sage: f.lcm(x^4)
             a^5*x0^4 + (a^4 + a^3 + a)*x0^4*x1 + (a^2 + a)*x0^6*x1
         """
-        lcm = self._singular_().lcm(right._singular_())
+        lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
         return lcm.sage_poly(self.parent())
 
-    def lt(self):
+    def lt(self, have_ring=False):
         """
         Returns the leading (or initial) term of a polynomial
         with respect to the monomial ordering.
 
+        INPUT:
+            have_ring -- see self.singular_() (default: False)
+
         OUTPUT:
-            multivariate polynomial representing the lead term of self
+            multivariate polynomial representing the lead term of self i.e.,
+            self.lc()*self.lm()
 
         ALGORITHM: Singular
 
@@ -303,13 +328,19 @@ class Polynomial_singular_repr:
         try:
             return self.__lt
         except AttributeError:
-            self.__lt = self._singular_().lead().sage_poly(self.parent())
+            self.__lt = self._singular_(have_ring=have_ring).lead().sage_poly(self.parent())
             return self.__lt
 
-    def lm(self):
+    def lm(self, have_ring=False):
         """
         Returns the leading monomial of a multivariate polynomial as a
         multivariate polynomial whose coefficient is one.
+
+        INPUT:
+            have_ring -- see self.singular_() (default: False)
+
+        OUTPUT:
+            multivariate polynomial representing the lead monomial of self
 
         ALGORITHM: Singular
 
@@ -331,13 +362,19 @@ class Polynomial_singular_repr:
         try:
             return self.__lm
         except AttributeError:
-            self.__lm = self._singular_().leadmonom().sage_poly(self.parent())
+            self.__lm = self._singular_(have_ring=have_ring).leadmonom().sage_poly(self.parent())
             return self.__lm
 
-    def lc(self):
+    def lc(self, have_ring=False):
         """
         Returns the leading (or initial) coefficient of a polynomial
         with respect to the monomial ordering.
+
+        INPUT:
+            have_ring -- see self.singular_() (default: False)
+
+        OUTPUT:
+            multivariate polynomial representing the lead coefficent of self
 
         ALGORITHM: Singular
 
@@ -364,6 +401,6 @@ class Polynomial_singular_repr:
         try:
             return self.__lc
         except AttributeError:
-            c = self._singular_().leadcoef().sage_poly(self.parent())
+            c = self._singular_(have_ring=have_ring).leadcoef().sage_poly(self.parent())
             self.__lc = self.base_ring()(c.constant_coefficient())
             return self.__lc

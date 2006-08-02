@@ -507,4 +507,17 @@ class PolyDict:
             return self.__one()
         return arith.generic_power(self, n, self.__one())
 
+    def lcmt(self,T):
+        """
+        Provides functionality of lc, lm, and lt by calling the tuple
+        compare function on the provided term order T.
+
+        INPUT:
+            T -- a term order
+        """
+        try:
+            return tuple(reduce(T._tuple_cmpfn(),self.__repn.keys()))
+        except KeyError:
+            raise ArithmeticError, "%s not supported",T
+
 

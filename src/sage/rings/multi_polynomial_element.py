@@ -769,6 +769,80 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         #requires base field elements are hashable!
         return hash(tuple(self._MPolynomial__element._PolyDict__repn.items()))
 
+    def lm(self):
+        """
+        Returns the lead monomial of self with respect to the term order of
+        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
+        accepted.
+
+        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
+        the left-most nonzero entry is positive.
+
+        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
+        the right-most nonzero entry is positive.
+
+        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
+        left-most nonzero entry of $a -b \in Z^n is positive.
+
+        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
+        right-most nonzero entry of $a -b \in Z^n$ is negative.
+
+        EXAMPLES:
+             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+             sage: (x^1*y^2 + y^3*z^4).lm()
+             x*y^2
+             sage: (x^3*y^2*z^4 + x^3*y^2*z^1).lm()
+             x^3*y^2*z^4
+
+             sage: R.<x,y,z>=PolynomialRing(QQ,3,order='deglex')
+             sage: (x^1*y^2*z^3 + x^3*y^2*z^0).lm()
+             x*y^2*z^3
+             sage: (x^1*y^2*z^4 + x^1*y^1*z^5).lm()
+             x*y^2*z^4
+
+             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='degrevlex')
+             sage: (x^1*y^5*z^2 + x^4*y^1*z^3).lm()
+             x*y^5*z^2
+             sage: (x^4*y^7*z^1 + x^4*y^2*z^3).lm()
+             x^4*y^7*z
+
+        """
+        try:
+            return self.__lm
+        except AttributeError:
+            R = self.parent()
+            f = self._MPolynomial__element.lcmt(R.term_order())
+            one = R.base_ring()(1)
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False))
+            return self.__lm
+
+    def lc(self):
+        """
+        Returns the leading coefficent of self i.e.,
+        self.coefficient(self.lm())
+        """
+        try:
+            return self.__lc
+        except AttributeError:
+            R = self.parent()
+            f = self._MPolynomial__element._PolyDict__repn
+            self.__lc = f[self._MPolynomial__element.lcmt(R.term_order())]
+            return self.__lc
+
+    def lt(self):
+        """
+        Returns the leading term of self i.e., self.lc()*self.lm()
+        """
+        try:
+            return self.__lt
+        except AttributeError:
+            R = self.parent()
+            f = self._MPolynomial__element._PolyDict__repn
+            res = self._MPolynomial__element.lcmt(R.term_order())
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False))
+            return self.__lt
+
+
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>
     ############################################################################

@@ -949,6 +949,17 @@ class SingularElement(ExpectElement):
         m = p.match(singular.eval("type(%s)"%self.name()))
         return m.group(int(1))
 
+    def __iter__(self):
+        if self.type()=='matrix':
+            l = self.ncols()
+        else:
+            l = len(self)
+        for i in range(1, l+1):
+            yield self[i]
+
+    def _singular_(self):
+        return self
+
 class SingularFunction(ExpectFunction):
      def _sage_doc_(self):
          return "The SAGE interface to the Singular help system is not implemented."

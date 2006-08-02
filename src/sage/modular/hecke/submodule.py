@@ -142,8 +142,12 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             return self.__complement
         except AttributeError:
             pass
+
         if self.is_ambient():
             return self.ambient_hecke_module().zero_submodule()
+
+        if self.is_zero():
+            return self.ambient_hecke_module()
 
         if self.is_full_hecke_module():
             anemic = False

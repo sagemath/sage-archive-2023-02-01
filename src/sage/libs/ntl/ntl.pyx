@@ -2814,19 +2814,21 @@ cdef class ntl_mat_GF2E:
             return
 
         cdef unsigned long _nrows, _ncols
-        _nrows = nrows
-        _ncols = ncols
+
+        import sage.matrix.matrix
+        if sage.matrix.matrix.is_Matrix(nrows):
+            _nrows = nrows.nrows()
+            _ncols = nrows.ncols()
+            v     = nrows.list()
+        else:
+            _nrows = nrows
+            _ncols = ncols
+
         if not __have_GF2E_modulus:
             raise "NoModulus"
         cdef unsigned long i, j
         cdef ntl_GF2E tmp
 
-
-        from sage.matrix.matrix import Matrix
-        if isinstance(v,Matrix):
-            _nrows = v.nrows()
-            _ncols = v.ncols()
-            v     = v.list()
 
         self.x = new_mat_GF2E(_nrows, _ncols)
         self.__nrows = _nrows

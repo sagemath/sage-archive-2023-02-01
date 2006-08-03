@@ -1536,7 +1536,7 @@ class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):
         except AttributeError:
             pass
         self.__boundary_space = boundary.BoundarySpace_wtk_eps(
-            self.character(), self.weight(), self.sign(), self.base_ring())
+            self.character(), self.weight(), self.sign())
         return self.__boundary_space
 
     def manin_symbols(self):

@@ -862,10 +862,21 @@ class HeckeModule_free_module(HeckeModule_generic):
             return self.__projection
 
     def system_of_eigenvalues(self, n):
-        """
+        r"""
         Assuming that self is a simple space of modular symbols, return
         the eigenvalues $[a_1, \ldots, a_nmax]$ of the Hecke operators
         on self.  See \code{self.eigenvalue(n)} for more details.
+
+        EXAMPLES:
+            sage: def b(N,k=2):
+            ...    t=cputime()
+            ...    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()
+            ...    for A in S.decomposition():
+            ...        print N, A.system_of_eigenvalues(5)
+
+            sage: b(63)
+            63 [1, 1, 0, -1, 2]
+            63 [1, alpha, 0, 1, -2*alpha]
         """
         return [self.eigenvalue(m) for m in range(1,n+1)]
 

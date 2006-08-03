@@ -26,6 +26,8 @@ import sage.structure.factorization
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
 
+import random
+
 import algebra
 import element
 import homspace
@@ -577,7 +579,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             if f.is_irreducible():
                 break
             p = arith.next_prime(p)
-            t += random.choice([-2,-1,1,2]) * M.dual_hecke_operator(p)
+            t += random.choice([-2,-1,1,2]) * self.dual_hecke_matrix(p)
 
         # Write down the eignvector.
         # Write f(x) = (x-alpha)*g(x), where alpha is a root

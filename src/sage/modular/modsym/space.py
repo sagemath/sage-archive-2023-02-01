@@ -186,7 +186,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         #if not self.is_anemic_hecke_module():
         #    raise ArithmeticError, "S must be an anemic Hecke module"
         A = self.ambient_hecke_module()
-        B = A.subspace_generated_by_images(S)
+        B = A.submodule_generated_by_images(S)
         C = self.intersection(B)
         d = C.rank()
         n = S.rank()

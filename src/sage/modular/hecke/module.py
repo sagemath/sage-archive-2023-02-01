@@ -868,6 +868,14 @@ class HeckeModule_free_module(HeckeModule_generic):
         on self.  See \code{self.eigenvalue(n)} for more details.
 
         EXAMPLES:
+        We compute eigenvalues for newforms of level 62.
+            sage: M = ModularSymbols(62,2,sign=-1)
+            sage: S = M.cuspidal_submodule().new_submodule()
+            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
+            [[1, 1, 0], [1, -1, -alpha - 1]]
+
+
+        Next we define a function that does the above:
             sage: def b(N,k=2):
             ...    t=cputime()
             ...    S = ModularSymbols(N,k,sign=-1).cuspidal_submodule().new_submodule()

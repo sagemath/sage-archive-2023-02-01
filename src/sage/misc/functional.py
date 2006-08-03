@@ -646,15 +646,6 @@ def log(x,b=None):
         except AttributeError:
             return log(x) / log(b)
 
-def matrix(x, R):
-    """
-    Return the \sage matrix over $R$ obtained from x, if possible.
-    """
-    try:
-        return x._matrix_(R)
-    except AttributeError:
-        raise TypeError, "No known way to create a matrix from %s"%x
-
 def minimal_polynomial(x):
     """
     Return the minimal polynomial of x.

@@ -321,7 +321,7 @@ class Set_object(Set_generic):
             sage: Set(GF(2)) + Set(GF(4))
             {1, 0, a, a + 1}
             sage: Set(GF(8)) + Set(GF(4))
-            {a, a^2 + 1, a + 1, a^2, 0, a + 1, 1, 0, 1, a, a^2 + a, a^2 + a + 1}
+            {a, a^2 + 1, a + 1, a^2, a + 1, 1, 0, 1, a, a^2 + a, a^2 + a + 1}
         """
         return self.union(X)
 
@@ -342,12 +342,9 @@ class Set_object(Set_generic):
             sage: 2/1 in X
             False
 
-        This intersection is empty because canonical coercions are
-        only defined if they are defined on the whole parent.
-
             sage: X = Set(GF(9)).intersection(Set(GF(27)))
             sage: X
-            {}
+            {0}
         """
         if is_Set(X):
             if self == X:

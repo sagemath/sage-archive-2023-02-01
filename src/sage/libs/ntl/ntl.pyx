@@ -2806,9 +2806,8 @@ cdef class ntl_mat_GF2E:
         EXAMPLES:
             sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m=ntl.mat_GF2E(10,10)
-            sage: m=ntl.mat_GF2E(v=Matrix(GF(2**8),10,10))
+            sage: m=ntl.mat_GF2E(Matrix(GF(2**8),10,10))
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])
-
         """
 
         if nrows is _INIT:

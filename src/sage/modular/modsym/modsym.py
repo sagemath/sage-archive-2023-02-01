@@ -17,8 +17,8 @@ a bigger field.  In each case we also decompose the space using $T_2$.
 
     sage: M = ModularSymbols(23,2,base_ring=QQ)
     sage: print M.T(2).charpoly().factor()
-    sage: print M.decomposition(2)
     (x - 3) * (x^2 + x - 1)^2
+    sage: print M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field,
     Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
@@ -26,8 +26,8 @@ a bigger field.  In each case we also decompose the space using $T_2$.
 
     sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5))
     sage: print M.T(2).charpoly().factor()
-    sage: print M.decomposition(2)
     (x + -3) * (x + -1/2*a + 1/2)^2 * (x + 1/2*a + 1/2)^2
+    sage: print M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,

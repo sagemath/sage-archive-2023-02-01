@@ -5,6 +5,7 @@ AUTHORS:
     -- William Stein
     -- Martin Albrecht: conversion to Pyrex
     -- Jaap Spies: various functions
+    -- Gary Zablackis: fixed a sign bug in generic determinant.
 
 
 Elements of matrix spaces are of class \code{Matrix} (or a class
@@ -1138,6 +1139,16 @@ cdef class Matrix(ModuleElement):
             sage: A.set_immutable()
             sage: A.determinant() is A.determinant()
             True
+
+        We compute the determinant of the arbitrary 3x3 matrix:
+            sage: R = PolynomialRing(QQ,9,'x')
+            sage: A = matrix(R,3,R.gens())
+            sage: A
+            [x0 x1 x2]
+            [x3 x4 x5]
+            [x6 x7 x8]
+            sage: A.determinant()
+            -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
         """
         if self.__determinant != None:
             return self.__determinant
@@ -1152,14 +1163,18 @@ cdef class Matrix(ModuleElement):
         d = R(0)
         s = R(1)
         A = self.matrix_from_rows(range(1, n))
+        sgn = R(-1)
         for i in range(n):
             v = range(n)
             del v[i]
             B = A.matrix_from_columns(v)
             d = d + s*self.get((0,i))*B.determinant()
+            s = s*sgn
         if self.is_immutable():
             self.__determinant = d
         return d
+
+
 
     # shortcuts
     def det(self, *args, **kwds):

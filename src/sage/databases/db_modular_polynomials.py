@@ -60,10 +60,14 @@ class ModularPolynomialDatabase:
         return "%s modular %s database"%(head,poly)
 
     def __getitem__(self,level):
-        if self.model != "Cls":
+        if self.model in ("Atk","Eta"):
             level = Integer(level)
             if not level.is_prime():
                 raise TypeError, "Argument level (= %s) must be prime."%level
+        elif self.model in ("AtkCrr","EtaCrr"):
+            N = Integer(level[0])
+            if not N in (2,3,5,7,13):
+                raise TypeError, "Argument level (= %s) must be prime."%N
         modpol = self._dbpath(level)
         try:
             coeff_list = _dbz_to_integer_list(modpol)
@@ -93,7 +97,7 @@ class ModularPolynomialDatabase:
 class ModularCorrespondenceDatabase(ModularPolynomialDatabase):
     def _dbpath(self,level):
         (Nlevel,crrlevel) = level
-        return "PolMod/%s/corr.%s.%s.dbz"%(
+        return "PolMod/%s/crr.%s.%s.dbz"%(
             self.model, _pad_int(Nlevel,2), _pad_int(crrlevel,3))
 
 class ClassicalModularPolynomialDatabase(ModularPolynomialDatabase):

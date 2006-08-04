@@ -188,7 +188,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             return self(x)
         elif isinstance(x, sage.libs.pari.all.pari_gen) and x.type() == 't_INT':
             return self(x)
-        raise TypeError, 'no canonical coercion of %s to an integer'%x
+        raise TypeError, 'no canonical coercion to an integer'
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

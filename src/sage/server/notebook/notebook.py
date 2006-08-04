@@ -715,7 +715,7 @@ class Notebook(SageObject):
 
         return head
 
-    def _html_body(self, worksheet_id):
+    def _html_body(self, worksheet_id, show_debug=False):
         worksheet = self.get_worksheet_with_id(worksheet_id)
         #if worksheet.computing():
         interrupt_class = "interrupt"
@@ -762,7 +762,7 @@ class Notebook(SageObject):
         body += '  </span>'
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n'
-        if self.__show_debug:
+        if self.__show_debug or show_debug:
             body += "<div class='debug_window'>"
             body += "<textarea rows=10 id='debug_output' class='debug_output' onKeyPress='return false;'></textarea>"
             body += "<textarea rows=5 id='debug_input' class='debug_input' "
@@ -922,7 +922,7 @@ class Notebook(SageObject):
           </html>
          """%(css.css(self.color()),js.javascript())
 
-    def html(self, worksheet_id=None, authorized=False):
+    def html(self, worksheet_id=None, authorized=False, show_debug=False):
         if worksheet_id is None:
             W = self.default_worksheet()
             worksheet_id = W.id()
@@ -934,7 +934,7 @@ class Notebook(SageObject):
                 worksheet_id = W.id()
 
         if authorized:
-            body = self._html_body(worksheet_id)
+            body = self._html_body(worksheet_id,show_debug=show_debug)
         else:
             body = self._html_authorize()
 

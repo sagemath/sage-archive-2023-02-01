@@ -442,10 +442,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.close()
         return f
 
-    def show_page(self, worksheet_id=None):
+    def show_page(self, worksheet_id=None,show_debug=False):
         self.send_head()
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
-                                       authorized=self.authorize()))
+                                       authorized=self.authorize(),
+                                       show_debug=show_debug))
 
 
     def file_not_found(self):
@@ -459,8 +460,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # The question mark hack here is so that images will be reloaded when
         # the async request requests the output text for a computation.
         # This is a total hack, inspired by http://www.irt.org/script/416.htm/.
+        show_debug=False
         i = self.path.rfind('?')
         if i != -1:
+            if 'debug' in self.path[i:]:
+                show_debug = True
             self.path = self.path[:i]
 
         verbose(self.path)
@@ -484,7 +488,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             worksheet_id = None
         path = path[i+1:]
         if path == '':
-            return self.show_page(worksheet_id=worksheet_id)
+            return self.show_page(worksheet_id=worksheet_id,show_debug=show_debug)
         else:
             self.file_not_found()
 

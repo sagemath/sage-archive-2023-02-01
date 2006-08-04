@@ -118,8 +118,7 @@ class PiecewisePolynomial:
             sage: f4 = 10*x-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f
-            Piecewise defined function with 4 parts, [[(0, 1), 1], [(1,
-2), -x + 1], [(2, 3), 2*x], [(3, 10), -x^2 + 10*x]]
+            Piecewise defined function with 4 parts, [[(0, 1), 1], [(1, 2), -x + 1], [(2, 3), 2*x], [(3, 10), -x^2 + 10*x]]
             sage: f.latex()
             '\\left\\{  \\begin{array}{ll}1,& 0 < x < 1 ,\\-x + 1,& 1 < x < 2 ,\\2*x,& 2 < x < 3 ,\\-x^2 + 10*x,& 3 < x < 10 ,\\end{array} \right\\.'
 	"""

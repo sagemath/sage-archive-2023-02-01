@@ -292,6 +292,17 @@ class Matrix_pid(Matrix_domain):
                     space and t is a bool, and t is True exactly
                     when the charpoly of the transpose of self on W
                     is irreducible.
+
+        EXAMPLES:
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,6)
+            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = MS2.random_element()
+            sage: B*11
+            sage: decomposition(A)
+            [(Ambient free module of rank 4 over the principal ideal domain Integer Ring, True)]
+            sage: decomposition(B)
+            [(Vector space of dimension 6 over Rational Field, True)]
         """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
@@ -343,6 +354,23 @@ class Matrix_pid(Matrix_domain):
     def image(self):
         """
         Return the image of the homomorphism on rows defined by this matrix.
+
+        EXAMPLES:
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,6)
+            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = MS2.random_element()
+
+            sage: image(A)
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [  1   0   0 426]
+            [  0   1   0 518]
+            [  0   0   1 293]
+            [  0   0   0 687]
+
+            sage: image(B) == B.row_module()
+            True
         """
         return self.row_module()
 
@@ -508,6 +536,17 @@ class Matrix_integer(Matrix_pid):
             sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
             sage: A.elementary_divisors()
             [0, 3, 1]
+            sage: C = MatrixSpace(ZZ,4)([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = MatrixSpace(QQ,6).random_element()
+
+            sage: B.elementary_divisors()
+            Traceback (most recent call last):
+                B.elementary_divisors()
+            ...
+            AttributeError: 'Matrix_dense_rational' object has no attribute 'elementary_divisors'
+
+            sage: C.elementary_divisors()
+            [687, 1, 1, 1]
 
         SEE ALSO: smith_form
         """

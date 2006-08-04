@@ -49,6 +49,8 @@ a new class of functions (for example, 'ElementaryFunctionRing') is
 needed. This a preliminary 'todo'.)
 
 AUTHOR: David Joyner (2006-04)
+             "       (2006-08) -- fixed bug in latex method reported by
+                                  Thomas Rike
 
 """
 
@@ -109,27 +111,36 @@ class PiecewisePolynomial:
             sage: f2 = lambda x:1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.latex()
-            '\\begin{array}{ll} \\left\\{ 1,& 0 < x < 1 ,\\right. \\end{array}'
-
+            '\\left\\{  \\begin{array}{ll}1,& 0 < x < 1 ,\\-x + 1,& 1 < x < 2 ,\\end{array} \right\\.'
+            sage: f1 = x^0
+            sage: f2 = 1-x
+            sage: f3 = 2*x
+            sage: f4 = 10*x-x^2
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f
+            Piecewise defined function with 4 parts, [[(0, 1), 1], [(1,
+2), -x + 1], [(2, 3), 2*x], [(3, 10), -x^2 + 10*x]]
+            sage: f.latex()
+            '\\left\\{  \\begin{array}{ll}1,& 0 < x < 1 ,\\-x + 1,& 1 < x < 2 ,\\2*x,& 2 < x < 3 ,\\-x^2 + 10*x,& 3 < x < 10 ,\\end{array} \right\\.'
 	"""
         x = PolynomialRing(QQ).gen()
         intvls = self.intervals()
         fcn_list = [p[1] for p in self.list()]
-        tex = ["\\begin{array}{ll} \left\\{"]
+        tex = ["\left\\{ \\begin{array}{ll}"]
         for i in range(len(fcn_list)):
 	    f = fcn_list[i]
 	    a = intvls[i][0]
 	    b = intvls[i][1]
             tex.append(str(f(x)))
 	    tex.append(",& %s < x < %s ,\\"%(a,b))
-        tex = tex[:-2]
-	tex.append("\right\. \end{array}")
+        tex.append("\end{array} \right\.")
 	ltex = ""
         for i in range(len(tex)-1):
             ltex = ltex + tex[i]
         ltex = ltex + str(tex[len(tex)-1]).replace("%","")
         ltex = ltex.replace("\\\right\\.","\\right.")
         ltex = ltex.replace("\\left\\{","\\left\{ ")
+        ltex = ltex.replace("\\\\end{array}","\\end{array}")
         return ltex
 
     def intervals(self):

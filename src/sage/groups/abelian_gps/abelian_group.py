@@ -4,6 +4,8 @@ Multiplicative Abelian Groups
 AUTHOR:
     -- David Joyner (2006-03) (based on free abelian monoids by David Kohel)
     -- David Joyner (2006-05) several significant bug fixes
+    --      "       (2006-08) trivial changes to docs, added random,
+                              fixed bug in how invariants are recorded
 
 TODO:
    * additive abelian groups should also be supported
@@ -101,12 +103,9 @@ the underlying representation is lists of integer exponents.
     [1, 2, 0, 1, 1]
 
 REFERENCES:
-    [C1] H. Cohen Advanced topics in computational number
-         theory, Springer, 2000.
-    [C2] ------, A course in computational algebraic number
-         theory, Springer, 1996.
-    [R]  J. Rotman, An introduction to the theory of groups, 4th ed,
-         Springer, 1995.
+    [C1] H. Cohen {\bf Advanced topics in computational number theory}, Springer, 2000.
+    [C2] ------, {\bf A course in computational algebraic number theory}, Springer, 1996.
+    [R]  J. Rotman, {\bf An introduction to the theory of groups}, 4th ed, Springer, 1995.
 
 """
 
@@ -132,8 +131,8 @@ from sage.rings.infinity import Infinity
 from sage.rings.arith import factor,is_prime_power
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from sage.misc.misc import add, prod
+from sage.misc.mrange import mrange
 import sage.groups.group as group
-
 
 # TODO: this uses perm groups - the AbelianGroupElement instance method
 # uses a different implementation.
@@ -236,7 +235,7 @@ def word_problem(words, g, verbose = False):
 def AbelianGroup(n, invfac=None, names="f"):
     r"""
     Create the multiplicative abelian group in $n$ generators with
-    given invariants, which must be prime powers.
+    given invariants (which need not be prime powers).
 
     INPUT:
         n -- integer
@@ -314,8 +313,8 @@ def is_AbelianGroup(x):
 
 class AbelianGroup_class(group.AbelianGroup):
     """
-    Free abelian group on $n$ generators. The invariant factors
-    [a1,a2,...,ak] must be a list of prime powers.
+    Abelian group on $n$ generators. The invariant factors [a1,a2,...,ak]
+    need not be prime powers (though the elementary divisors will be).
 
     EXAMPLES:
         sage: F = AbelianGroup(5,[5,5,7,8,9],names = list("abcde")); F
@@ -327,24 +326,40 @@ class AbelianGroup_class(group.AbelianGroup):
 
     Thus we see that the "invariants" are not the invariant factors but
     the "elementary divisors" (in the terminology of Rotman [R]).
+    The entry 1 in the list of invariants is ignored:
+
+        sage: F = AbelianGroup(3,[1,2,3],names='a')
+        sage: F.invariants()
+        [2, 3]
+        sage: F.gens()
+        (a0, a1)
+        sage: F.ngens()
+        2
+        sage: (F.0).order()
+        2
+        sage: (F.1).order()
+        3
+
     """
     def __init__(self, n, invfac, names="f"):
         #invfac.sort()
         n = Integer(n)
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
-        self.__ngens = n
-        self.assign_names(names)
-        self.__invariants = invfac
-
-    def invariants(self):
-        invs = self.__invariants
-        n = len(invs)
+        invs = invfac
+        # if necessary, remove 1 from invfac first
         for i in range(n):
             if 1 in invs:
                 invs.remove(1)
         invs.sort()
-        return invs
+        self.__invariants = invs
+        # *now* define ngens
+        self.__ngens = len(self.__invariants)
+        self.assign_names(names)
+
+
+    def invariants(self):
+        return self.__invariants
 
     def elementary_divisors(self):
         """
@@ -479,17 +494,27 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: F = AbelianGroup(10,[2]*10)
             sage: F.2 * F.3 in F
             True
+
         """
         return isinstance(x, AbelianGroupElement) and x.parent() == self
 
     def random(self):
         """
         Return a random element of this group.
+
+        EXAMPLES:
+            sage: G = AbelianGroup([2,3,9])
+            sage: G.random()   ## random
+            f2^8
+
         """
+        from random import randint
+        if self.order()==Infinity:
+            NotImplementedError, "The group must be finite"
         gens = self.gens()
-        g = gens[0]^0
+        g = gens[0]**0
         for i in range(len(gens)):
-            g = g*gens[i]^(random(gens[i].order()))
+            g = g*gens[i]**(randint(1,gens[i].order()))
         return g
 
     def _gap_init_(self):
@@ -548,6 +573,7 @@ class AbelianGroup_class(group.AbelianGroup):
             sage: F = AbelianGroup(10000)
             sage: F.ngens()
             10000
+
         """
         return self.__ngens
 
@@ -678,6 +704,35 @@ class AbelianGroup_class(group.AbelianGroup):
            right_invs.remove(1)
        return cmp(self_invs, right_invs)
 
+    def list(self):
+        """
+        Return list of all elements of this group.
+
+        EXAMPLES:
+            sage: G = AbelianGroup([2,3], names = "ab")
+            sage: G.list()
+            [1, b, b^2, a, a*b, a*b^2]
+        """
+        from sage.combinat.combinat import tuples
+        if not(self.is_finite()):
+           raise NotImplementedError, "Group must be finite"
+        invs = self.invariants()
+        T = mrange(invs)
+        n = self.order()
+        return [AbelianGroupElement(self, t)
+                            for t in T]
+
+    def __iter__(self):
+        """
+        Return an iterator over the elements of this group.
+
+        EXAMPLES:
+            sage: G = AbelianGroup([2,3], names = "ab")
+            sage: [a for a in G]
+            [1, b, b^2, a, a*b, a*b^2]
+        """
+        for g in self.list():
+            yield g
 
 class AbelianGroup_subgroup(AbelianGroup_class):
     """
@@ -915,6 +970,5 @@ class AbelianGroup_subgroup(AbelianGroup_class):
 
         """
         return self.__gens
-
 
 

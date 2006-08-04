@@ -1,10 +1,14 @@
 try:
-    import sage.libs.linbox.all as linbox
+    import sage.libs.cf.cf as cf
 except ImportError:
     pass
 
+from sage.ext.integer import pmem_malloc
+
+pmem_malloc()
+
 try:
-    import sage.libs.cf.cf as cf
+    import sage.libs.linbox.all as linbox
 except ImportError:
     pass
 

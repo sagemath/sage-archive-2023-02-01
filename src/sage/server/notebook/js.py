@@ -862,7 +862,7 @@ function id_of_cell_delta(id, delta) {
     var i = array_indexOf(cell_id_list, eval(id));
     var new_id;
     if (i == -1) {
-        return(cell_id_list[0]);
+        return(id);  /* Better not to move. */
     } else {
         i = i + delta;
         if (i < 0) {

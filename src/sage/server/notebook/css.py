@@ -836,11 +836,11 @@ textarea.cell_input_active {
   border: 1px solid #8888fe;
   font-family: courier, monospace;
   font-size:12pt;
-  overflow:hidden;
+  overflow:auto;
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-  width: 400%;
+  width: 100%;
 }
 
 

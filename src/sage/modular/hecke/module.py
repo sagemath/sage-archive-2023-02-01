@@ -871,7 +871,8 @@ class HeckeModule_free_module(HeckeModule_generic):
         We compute eigenvalues for newforms of level 62.
             sage: M = ModularSymbols(62,2,sign=-1)
             sage: S = M.cuspidal_submodule().new_submodule()
-            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]
+            sage: [A.system_of_eigenvalues(3) for A in S.decomposition()]  # random output
+
             [[1, 1, 0], [1, -1, -alpha - 1]]
 
 

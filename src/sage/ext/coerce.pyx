@@ -105,6 +105,7 @@ def canonical_base_coercion(x, y):
     return x.change_ring(b), y.change_ring(b)
 
 def bin_op(x, y, op):
+    #print "bin_op(%s,%s,%s)"%(x,y,op)   # debug
     if isinstance(y, element.InfinityElement):
         return op(y,x)
     if op == operator.mul and \

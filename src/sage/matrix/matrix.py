@@ -298,7 +298,13 @@ class Matrix_pid(Matrix_domain):
             sage: MS2 = MatrixSpace(QQ,6)
             sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
             sage: B = MS2.random_element()
-            sage: B*11
+            sage: B*11   # random output
+            [-11  22 -11 -11 -11 -11]
+            [ 11 -22 -11 -22  11  11]
+            [-11 -11 -11 -22 -22 -11]
+            [-22  22 -22  22 -11  11]
+            [ 22 -11  11 -22  11  22]
+            [ 11  11  11 -22  22  22]
             sage: decomposition(A)
             [(Ambient free module of rank 4 over the principal ideal domain Integer Ring, True)]
             sage: decomposition(B)

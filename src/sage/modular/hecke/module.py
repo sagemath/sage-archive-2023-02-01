@@ -581,7 +581,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             p = arith.next_prime(p)
             t += random.choice([-2,-1,1,2]) * self.dual_hecke_matrix(p)
 
-        # Write down the eignvector.
+        # Write down the eigenvector.
         # Write f(x) = (x-alpha)*g(x), where alpha is a root
         # of f(x).
         n = f.degree()

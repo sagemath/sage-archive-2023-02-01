@@ -183,6 +183,13 @@ class EllipticCurve_finite_field(EllipticCurve_field):
             except ValueError:
                 pass
 
+    def trace_of_frobenius(self):
+        """
+        Return the trace of Frobenius acting on this elliptic curve.
+        """
+        q = self.base_field().order()
+        return q + 1 - self.cardinality()
+
     def cardinality(self, algorithm='heuristic', early_abort=False):
         r"""
         Return the number of points on this elliptic curve over this

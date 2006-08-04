@@ -105,22 +105,25 @@ def NumberField(polynomial, name='a', check=True):
         sage: L.lift_to_base(-3*b^3 - 3*b + 1)
         3*a + 1
     """
-    global _objsNumberField
-    key = (polynomial, name)
-    if _objsNumberField.has_key(key):
-        K = _objsNumberField[key]()
-        if K != None:
-            return K
+    #global _objsNumberField
+    #key = (polynomial, name)
+    #if _objsNumberField.has_key(key):
+    #    K = _objsNumberField[key]()
+    #    if K != None:
+    #        return K
+
+    R = polynomial.base_ring()
+    if R == ZZ:
+        polynomial = QQ['x'](polynomial)
+    elif isinstance(R, NumberField_generic):
+        return R.extension(polynomial)
 
     if polynomial.degree() == 2:
-
         K = NumberField_quadratic(polynomial, name, check)
-
     else:
-
         K = NumberField_generic(polynomial, name, check)
 
-    _objsNumberField[key] = weakref.ref(K)
+    #_objsNumberField[key] = weakref.ref(K)
     return K
 
 def QuadraticField(D, name='a', check=False):

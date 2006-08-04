@@ -105,9 +105,9 @@ def EllipticCurve(x, y=None):
         # TODO: worry about char != 0!!!!
         j = x
         if j == 0:
-            return EllipticCurve([ 0, 0, 1, 0, 0 ])
+            return EllipticCurve(x.parent(), [ 0, 0, 1, 0, 0 ])
         elif j == 1728:
-            return EllipticCurve([ 0, 0, 0, 1, 0 ])
+            return EllipticCurve(x.parent(), [ 0, 0, 0, 1, 0 ])
         return EllipticCurve((j/1).parent(), [1,0,0,-36/(j - 1728), -1/(j - 1728)])
 
     if not isinstance(x,list):

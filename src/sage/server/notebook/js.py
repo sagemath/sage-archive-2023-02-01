@@ -655,7 +655,7 @@ function cell_input_resize(cell_input) {
       rows = 2;
     } else {
       /* to avoid bottom chop off */
-      rows = rows + 3;
+      rows = rows + 1;
     }
     try {
         cell_input.style.height = rows + 'em';   // this sort of works in konqueror...

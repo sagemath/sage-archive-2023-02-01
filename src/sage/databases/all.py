@@ -65,10 +65,20 @@ from gamma0wt2 import Gamma0Wt2Database
 
 from jones import JonesDatabase
 
-from stein_watkins import  SteinWatkinsAllData, SteinWatkinsPrimeData
+from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 
 from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
 from lincodes import linear_code_bound
+
+from db_modular_polynomials import \
+     ClassicalModularPolynomialDatabase, \
+     DedekindEtaModularPolynomialDatabase, \
+     DedekindEtaModularCorrespondenceDatabase, \
+     AtkinModularPolynomialDatabase, \
+     AtkinModularCorrespondenceDatabase
+
+from db_class_polynomials import \
+     HilbertClassPolynomialDatabase

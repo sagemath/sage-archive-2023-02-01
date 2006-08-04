@@ -4,10 +4,10 @@ Database of Modular Polynomials
 
 #######################################################################
 #
-#   SAGE: System for Algebra and Geometry Experimentation
+#  SAGE: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#                          David Kohel
+#       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,6 +19,7 @@ Database of Modular Polynomials
 
 import bz2, os
 import sage.misc.misc
+import sage.rings.polydict as polydict # internal representation may change!!!
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.multi_polynomial_ring import MPolynomialRing
@@ -37,34 +38,114 @@ def _pad_int(s,n):
     return "0"*(n-len(str(s))) + str(s)
 
 class ModularPolynomialDatabase:
-    def __init__(self):
-        """
-        Initialize the database.
-        """
-        pass
+    def _dbpath(self,level):
+        return "PolMod/%s/pol.%s.dbz"%(self.model, _pad_int(level,3))
 
     def __repr__(self):
-        return "Modular polynomial database"
+        if self.model == "Cls":
+            head = "Classical"
+            poly = "polynomial"
+        elif self.model == "Atk":
+            head = "Atkin"
+            poly = "polynomial"
+        elif self.model == "AtkCrr":
+            head = "Atkin"
+            poly = "correspondence"
+        elif self.model == "Eta":
+            head = "Dedekind eta"
+            poly = "polynomial"
+        elif self.model == "EtaCrr":
+            head = "Dedekind eta"
+            poly = "correspondence"
+        return "%s modular %s database"%(head,poly)
 
     def __getitem__(self,level):
-        model = "Cls"
-        modpol = "PolMod/%s/pol.%s.dbz"%(model, _pad_int(level,3))
+        if self.model != "Cls":
+            level = Integer(level)
+            if not level.is_prime():
+                raise TypeError, "Argument level (= %s) must be prime."%level
+        modpol = self._dbpath(level)
         try:
             coeff_list = _dbz_to_integer_list(modpol)
         except RuntimeError, msg:
             print msg
             raise RuntimeError, \
                   "No database entry for modular polynomial of level %s"%level
-        P = MPolynomialRing(IntegerRing(),2)
-        (X,Y) = P.gens()
-        Phi = P(0)
-        for k in range(len(coeff_list)):
-            cff = coeff_list[k]
-            i = cff[0]
-            j = cff[1]
-            if i == j:
-                mon = X**i*Y**j
-            else:
-                mon = X**i*Y**j + X**j*Y**i
-            Phi += Integer(cff[2])*mon
-        return Phi
+        if self.model == "Cls":
+            P = MPolynomialRing(IntegerRing(),2,"j")
+        else:
+            P = MPolynomialRing(IntegerRing(),2,"x,j")
+        poly = {}
+        if self.model == "Cls":
+            if level == 1:
+                return P(polydict.PolyDict({(1,0):1,(0,1):-1}))
+            for cff in coeff_list:
+                i = cff[0]
+                j = cff[1]
+                poly[(i,j)] = Integer(cff[2])
+                if i != j:
+                    poly[(j,i)] = Integer(cff[2])
+        else:
+            for cff in coeff_list:
+                poly[(cff[0],cff[1])] = Integer(cff[2])
+        return P(polydict.PolyDict(poly))
+
+class ModularCorrespondenceDatabase(ModularPolynomialDatabase):
+    def _dbpath(self,level):
+        (Nlevel,crrlevel) = level
+        return "PolMod/%s/corr.%s.%s.dbz"%(
+            self.model, _pad_int(Nlevel,2), _pad_int(crrlevel,3))
+
+class ClassicalModularPolynomialDatabase(ModularPolynomialDatabase):
+    """
+    The database of classical modular polynomials, i.e. the polynomials
+    Phi_N(X,Y) relating the j-functions j(q) and j(q^N).
+    """
+    def __init__(self):
+        """
+        Initialize the database.
+        """
+        self.model = "Cls"
+
+class DedekindEtaModularPolynomialDatabase(ModularPolynomialDatabase):
+    """
+    The database of modular polynomials Phi_N(X,Y) relating a quotient
+    of Dedekind eta functions, well-defined on X_0(N), relating x(q) and
+    the j-function j(q).
+    """
+    def __init__(self):
+        """
+        Initialize the database.
+        """
+        self.model = "Eta"
+
+class DedekindEtaModularCorrespondenceDatabase(ModularCorrespondenceDatabase):
+    """
+    The database of modular correspondences in $X_0(p) \times X_0(p)$, where
+    the model of the curves $X_0(p) = \PP^1$ are specified by quotients of
+    Dedekind's eta function.
+    """
+    def __init__(self):
+        """
+        Returns the
+        """
+        self.model = "EtaCrr"
+
+class AtkinModularPolynomialDatabase(ModularPolynomialDatabase):
+    """
+    The database of modular polynomials Phi(x,j) for $X_0(p)$, where
+    x is a function on invariant under the Atkin-Lehner invariant,
+    with pole of minimal order at infinity.
+    """
+    def __init__(self):
+        """
+        Initialize the database.
+        """
+        self.model = "Atk"
+
+class AtkinModularCorrespondenceDatabase(ModularCorrespondenceDatabase):
+    def __init__(self):
+        """
+        Initialize the database.
+        """
+        self.model = "AtkCrr"

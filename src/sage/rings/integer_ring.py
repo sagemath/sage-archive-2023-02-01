@@ -179,7 +179,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             sage: ZZ._coerce_(GF(7)(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of 2 to an integer
+            TypeError: no canonical coercion to an integer
         """
 
         if isinstance(x, sage.rings.integer.Integer):

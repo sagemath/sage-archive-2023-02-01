@@ -312,7 +312,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             TypeError: no canonical coercion of 2/3 into Ring of integers modulo 17        """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
-        if isinstance(x, integer_mod.IntegerMod) and x.parent().order() % self.modules() == 0:
+        if isinstance(x, integer_mod.IntegerMod) and x.parent().order() % self.modulus() == 0:
             return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of %s into %s"%(x, self)
 

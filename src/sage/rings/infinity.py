@@ -26,7 +26,7 @@ class Infinity(InfinityElement):
     def __add__(self, other):
         if isinstance(other, (RingElement, Infinity, int, long)):
             return self
-        raise TypeError, "%s + %s not defined."%(self, other)
+        raise TypeError, "sum not defined"
 
     def __radd__(self, left):
         return self+left
@@ -34,12 +34,12 @@ class Infinity(InfinityElement):
     def __sub__(self, other):
         if isinstance(other, (RingElement, int, long)) and not isinstance(other, InfinityElement):
             return self
-        raise TypeError, "%s - %s not defined."%(self, other)
+        raise TypeError, "difference not defined"
 
     def __rsub__(self, other):
         if isinstance(other, (RingElement, int, long)) and not isinstance(other, InfinityElement):
             return self
-        raise TypeError, "%s - %s not defined."%(other, self)
+        raise TypeError
 
     def __mul__(self, other):
         if isinstance(other, Infinity):
@@ -48,7 +48,7 @@ class Infinity(InfinityElement):
             if other == 0:
                 return other
             return self
-        raise TypeError, "%s * %s not defined."%(self*other)
+        raise TypeError, "product not defined"
 
     def __rmul__(self, left):
         return self*left
@@ -57,7 +57,7 @@ class Infinity(InfinityElement):
         if isinstance(other, (RingElement, int, long)) and not isinstance(other, InfinityElement):
             if other != 0:
                 return self
-        raise TypeError, "%s * %s not defined."%(self*other)
+        raise TypeError, "product not defined"
 
     def __cmp__(self, other):
         if isinstance(other, InfinityElement):

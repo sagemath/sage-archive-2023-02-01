@@ -61,13 +61,15 @@ from sage.ext.ring import FiniteField as FiniteField_generic
 import sage.interfaces.gap
 
 #_objsFiniteField = {}
-def FiniteField(order, name='a'):
+def FiniteField(order, name='a', modulus=None):
     """
     Return a finite field of given order with generator labeled by the given name.
 
     INPUT:
         order -- int
         name -- string (default: 'a')
+        modulus -- defining polynomial for field, i.e., generator of the field will
+                   be a root of this polynomial.
 
     EXAMPLES:
         sage: k, a = GF(9).objgen()
@@ -88,7 +90,7 @@ def FiniteField(order, name='a'):
     if arith.is_prime(order):
         R = FiniteField_prime_modn(order, name)
     else:
-        R = FiniteField_ext_pari(order, name)
+        R = FiniteField_ext_pari(order, name, modulus)
     return R
     #_objsFiniteField[key] = weakref.ref(R)
     #return R
@@ -233,10 +235,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         q = integer.Integer(q)
         if q < 2:
-            raise ArithmeticError, "q (=%s) must be a prime power"%q
+            raise ArithmeticError, "q must be a prime power"
         F = q.factor()
         if len(F) > 1:
-            raise ArithmeticError, "q (=%s) must be a prime power"%q
+            raise ArithmeticError, "q must be a prime power"
         self.assign_names(name)
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
@@ -413,7 +415,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(x)
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of non-constant polynomial x into Finite Field in a of size 5^2 defined.
+            TypeError: no coercion defined
             sage: k(R(a))
             a
 
@@ -426,7 +428,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k(R(1/5))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1/5 into Finite Field in a of size 5^2.
+            TypeError: unable to coerce
 
 
         \note{Finite Fields are currently implemented using
@@ -478,13 +480,13 @@ class FiniteField_ext_pari(FiniteField_generic):
                 return x
             else:
                 # This is where we *would* do coercion from one finite field to another...
-                raise TypeError, "No coercion of %s into %s defined."%(x, self)
+                raise TypeError, "no coercion of defined"
 
         elif sage.interfaces.gap.is_GapElement(x):
             try:
                 return gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
-                raise TypeError, "error coercing %s into %s"%(x, self)
+                raise TypeError, "no coercion defined"
 
         if isinstance(x, (int, long, integer.Integer, rational.Rational,
                           pari.pari_gen)):
@@ -495,7 +497,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             if x.is_constant():
                 return self(x.constant_coefficient())
             else:
-                raise TypeError, "no coercion of non-constant polynomial %s into %s defined."%(x,self)
+                raise TypeError, "no coercion defined"
 
         elif isinstance(x, str):
             x = x.replace(self.variable_name(),'a')
@@ -518,7 +520,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         try:
             return finite_field_element.FiniteFieldElement(self, integer.Integer(x))
         except TypeError:
-            raise TypeError, "no coercion of %s into %s defined."%(x, self)
+            raise TypeError, "no coercion defined"
 
     def _coerce_(self, x):
         """
@@ -535,22 +537,21 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: GF(4)._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of 2/3 to Finite Field in a of size 2^2
+            TypeError: no canonical coercion defined
             sage: GF(8)._coerce_(GF(4).0)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of a to Finite Field in a of size 2^3
+            TypeError: no canonical coercion defined
             sage: GF(16)._coerce_(GF(4).0)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of a to Finite Field in a of size 2^4 defined; adding this is planned (see rings/finite_field.py to help!)
+            TypeError: no canonical coercion defined
             sage: k = GF(8)
             sage: k._coerce_(GF(7)(2))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of 2 to Finite Field in a of size 2^3
+            TypeError: no canonical coercion defined
         """
-
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
@@ -565,9 +566,9 @@ class FiniteField_ext_pari(FiniteField_generic):
                 if K.degree() == 1:
                     return self(int(x))
                 elif self.degree() % K.degree() == 0:
-                    # This is where we *would* do coercion from one nontrivial finite field to another...
-                    raise TypeError, 'no canonical coercion of %s to %s defined; adding this is planned (see rings/finite_field.py to help!)'%(x, self)
-        raise TypeError, 'no canonical coercion of %s to %s'%(x, self)
+                    # TODO: This is where we *would* do coercion from one nontrivial finite field to another...
+                    raise TypeError, 'no canonical coercion defined'
+        raise TypeError, 'no canonical coercion defined'
 
     def __len__(self):
         """
@@ -629,7 +630,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
     def __init__(self, p, name=None):
         p = integer.Integer(p)
         if not arith.is_prime(p):
-            raise ArithmeticError, "p (=%s) must be prime."%p
+            raise ArithmeticError, "p must be prime"
         integer_mod_ring.IntegerModRing_field.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
@@ -648,7 +649,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             K = x.parent()
             if K == self:
                 return x
-        raise TypeError, "Unable to coerce %s into %s"%(x, self)
+        raise TypeError, "unable to coerce x"
 
     def characteristic(self):
         return self.__char
@@ -741,15 +742,14 @@ def conway_polynomial(p, n):
         sage: conway_polynomial(97,101)
         Traceback (most recent call last):
         ...
-        RuntimeError: Conway polynomial over F_97 of degree 101 not in database.
+        RuntimeError: requested conway polynomial not in database.
     """
     (p,n)=(int(p),int(n))
     R = polynomial_ring.PolynomialRing(GF(p), 'x')
     try:
         return R(sage.databases.conway.ConwayPolynomials()[p][n])
     except KeyError:
-        raise RuntimeError, \
-              "Conway polynomial over F_%s of degree %s not in database."%(p,n)
+        raise RuntimeError, "requested conway polynomial not in database."
 
 def exists_conway_polynomial(p, n):
     """

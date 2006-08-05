@@ -126,7 +126,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def gen(self, n=0):
         if n != 0:
-            raise IndexError, "Generator %s not defined."%n
+            raise IndexError, "Generator n not defined."
         try:
             return self.__generator
         except AttributeError:

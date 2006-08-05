@@ -121,7 +121,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
             x^3 - 26/3*x^2 + 64/3*x - 32/3
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
-            raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+            raise TypeError, "Base ring must be a commutative ring."
         self.__base_ring = base_ring
         self.assign_names(name)
         self.__is_sparse = sparse
@@ -140,13 +140,13 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
             try:
                 return x.sage_poly(self)
             except:
-                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
+                raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
-                raise TypeError,"Unable to coerce string %s to %s"%(x,self)
+                raise TypeError,"Unable to coerce string"
         elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
@@ -282,7 +282,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         If this is R[x], return x.
         """
         if n != 0:
-            raise IndexError, "Generator %s not defined."%n
+            raise IndexError, "generator n not defined"
         return self.__generator
 
     def parameter(self):
@@ -428,13 +428,13 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
             try:
                 return x.sage_poly(self)
             except:
-                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
+                raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
-                raise TypeError,"Unable to coerce string %s to %s"%(x,self)
+                raise TypeError,"Unable to coerce string"
         return polynomial.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 

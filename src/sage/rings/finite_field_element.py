@@ -58,7 +58,7 @@ class FiniteFieldElement(field_element.FieldElement):
         field_element.FieldElement.__init__(self, parent)
         self.__parent = parent
         if isinstance(value, str):
-            raise TypeError, "value (=%s) must not be a string"%value
+            raise TypeError, "value must not be a string"
         try:
             if isinstance(value, pari_gen):
                 if value.type()[-3:] == "MOD" :
@@ -67,21 +67,21 @@ class FiniteFieldElement(field_element.FieldElement):
                     try:
                         self.__value = value.Mod(parent._pari_modulus())*parent._pari_one()
                     except RuntimeError:
-                        raise TypeError, "no coercion of %s to %s defined."%(value, parent)
+                        raise TypeError, "no possible coercion implemented"
                 return
             elif isinstance(value, FiniteFieldElement):
                 if parent != value.parent():
-                    raise TypeError, "No coercion of element %s into %s defined."%(value, parent)
+                    raise TypeError, "no coercion implemented"
                 else:
                     self.__value = value.__value
                     return
             try:
                 self.__value = pari(value).Mod(parent._pari_modulus())*parent._pari_one()
             except RuntimeError:
-                raise TypeError, "no coercion of %s to %s defined."%(value, parent)
+                raise TypeError, "no coercion implemented"
 
         except (AttributeError, TypeError):
-            raise TypeError, 'Unable to coerce %s into %s.'%(value, parent)
+            raise TypeError, "unable to coerce"
 
     def polynomial(self):
         """
@@ -146,7 +146,7 @@ class FiniteFieldElement(field_element.FieldElement):
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
             return -g[0][0]
-        raise ValueError, "self (=%s) is not a perfect square."%self
+        raise ValueError, "must be a perfect square."
 
     def sqrt(self):
         """
@@ -169,10 +169,10 @@ class FiniteFieldElement(field_element.FieldElement):
             2/3
         """
         if self.parent().degree() != 1:
-            raise ArithmeticError, "The finite field must be prime, but has degree %s"%self.parent().degree()
+            raise ArithmeticError, "finite field must be prime"
         t = arith.rational_reconstruction(int(self), self.parent().characteristic())
         if t == None or t[1] == 0:
-            raise ZeroDivisionError, "Unable to compute rational reconstruction."
+            raise ZeroDivisionError, "unable to compute rational reconstruction"
         return rational.Rational((t[0],t[1]))
 
     def multiplicative_order(self):
@@ -285,11 +285,11 @@ class FiniteFieldElement(field_element.FieldElement):
             sage: gap(a)
             Traceback (most recent call last):
             ...
-            TypeError: order (=1018081) must be at most 65536.
+            TypeError: order must be at most 65536
         """
         F = self.parent()
         if F.order() > 65536:
-            raise TypeError, "order (=%s) must be at most 65536."%F.order()
+            raise TypeError, "order must be at most 65536"
 
         if self == 0:
             return '0*Z(%s)'%F.order()
@@ -407,7 +407,7 @@ class FiniteFieldElement(field_element.FieldElement):
 
     def __compat(self, other):
         if self.parent() != other.parent():
-            raise TypeError, "Parents of finite field elements %s and %s must be equal."%(self, other)
+            raise TypeError, "Parents of finite field elements must be equal."
 
     def __add__(self, right):
         if not isinstance(right, FiniteFieldElement):
@@ -439,7 +439,7 @@ class FiniteFieldElement(field_element.FieldElement):
         try:
             return int(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "Cannot coerce %s to int"%self
+            raise TypeError, "cannot coerce to int"
 
     def _integer_(self):
         return self.lift()
@@ -448,13 +448,13 @@ class FiniteFieldElement(field_element.FieldElement):
         try:
             return long(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "Cannot coerce %s to int"%self
+            raise TypeError, "cannot coerce to long"
 
     def __float__(self):
         try:
             return float(self.__value.lift().lift())
         except ValueError:
-            raise TypeError, "Cannot coerce %s to float"%self
+            raise TypeError, "cannot coerce to float"
 
     def __rdiv__(self, left):
         return self.parent()(left)/self
@@ -474,7 +474,7 @@ class FiniteFieldElement(field_element.FieldElement):
         return self
 
     def __abs__(self):
-        raise ArithmeticError, "Absolute value of element (=%s) of %s not defined."%(self, self.parent())
+        raise ArithmeticError, "absolute value not defined"
 
     def __invert__(self):
         """

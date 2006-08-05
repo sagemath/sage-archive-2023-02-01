@@ -278,13 +278,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             try:
                 return finite_field.gap_to_sage(x, self)
             except (ValueError, IndexError, TypeError):
-                raise TypeError, "error coercing %s to finite field"%x
+                raise TypeError, "error coercing to finite field"
         return integer_mod.IntegerMod(self, x, construct=construct)
         try:
             return integer_mod.IntegerMod(self, x, construct=construct)
         except (RuntimeError, TypeError), msg:
-            raise TypeError, "no way to coerce %s of type %s into %s."%(
-                x, type(x), self)
+            raise TypeError, "no way to coerce x"
 
     def _coerce_(self, x):
         r"""
@@ -309,12 +308,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: R._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of 2/3 into Ring of integers modulo 17        """
+            TypeError: no canonical coercion of x
+        """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
-        if isinstance(x, integer_mod.IntegerMod) and x.parent().order() % self.modulus() == 0:
+        if isinstance(x, integer_mod.IntegerMod) and x.parent().order() % self.characteristic() == 0:
             return integer_mod.IntegerMod(self, x)
-        raise TypeError, "no canonical coercion of %s into %s"%(x, self)
+        raise TypeError, "no canonical coercion of x"
 
     def __cmp__(self, other):
         """

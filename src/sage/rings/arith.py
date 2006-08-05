@@ -196,7 +196,7 @@ def factorial(n, algorithm='gmp'):
         sage: factorial(-32)
         Traceback (most recent call last):
         ...
-        ValueError: factorial -- n = (-32) must be nonnegative
+        ValueError: factorial -- must be nonnegative
 
     PERFORMANCE:
     This discussion is valid as of April 2006.  All timings
@@ -224,14 +224,14 @@ def factorial(n, algorithm='gmp'):
 
     """
     if n < 0:
-        raise ValueError, "factorial -- n = (%s) must be nonnegative"%n
+        raise ValueError, "factorial -- must be nonnegative"
     Z = sage.rings.integer.Integer
     if algorithm == 'gmp':
         return Z(n).factorial()
     elif algorithm == 'pari':
         return Z(pari('%s!'%Z(n)))
     else:
-        raise ValueError, 'no algorithm %s'%algorithm
+        raise ValueError, 'unknown algorithm'
 
 def is_prime(n, flag=0):
     r"""
@@ -868,12 +868,12 @@ def generic_power(a, m, one=1):
         sage: generic_power(2,-3)
         Traceback (most recent call last):
         ...
-        ArithmeticError: 2 cannot be raised to the negative power -3
+        ArithmeticError: a cannot be raised to the negative power m
     """
     if a == one:
         return a
     if m < 0:
-        raise ArithmeticError, "%s cannot be raised to the negative power %s"%(a,m)
+        raise ArithmeticError, "a cannot be raised to the negative power m"
     if m == 0:
         return one
     power = one
@@ -1134,7 +1134,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
         try:
             return n.factor()
         except AttributeError:
-            raise TypeError, "unable to factor %s"%n
+            raise TypeError, "unable to factor n"
     #n = abs(n)
     n = Z(n)
     if n < 0:
@@ -1161,7 +1161,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
             F = [(Z(a), Z(b)) for a,b in F]
         return factorization.Factorization(F, unit)
     else:
-        raise ValueError, "No algorithm '%s' known"%algorithm
+        raise ValueError, "Algorithm is not known"
 
 
 def prime_divisors(n):
@@ -1205,7 +1205,7 @@ def prime_to_m_part(n,m):
         Integer
     """
     if n == 0:
-        raise ValueError, "n (=%s) must be nonzero."%n
+        raise ValueError, "n must be nonzero."
     if m == 0:
         return sage.rings.integer.Integer(1)
     n = sage.rings.integer.Integer(n); m = sage.rings.integer.Integer(m)
@@ -1319,9 +1319,7 @@ def crt(a,b=0,m=1,n=1):
         return CRT_list(a,b)
     g, alpha, beta = XGCD(m,n)
     if g != 1:
-        raise ValueError, \
-        "arguments a(=%s) and b(=%s) must be coprime"%(m,n) \
-        + " but they have gcd=%s"%g
+        raise ValueError, "arguments a and b must be coprime"
     return a+(b-a)*alpha*m
 
 CRT = crt
@@ -1368,7 +1366,7 @@ def CRT_vectors(X, moduli):
         return []
     n = len(X)
     if n != len(moduli):
-        raise ValueError, "number of moduli (=%s) must equal length of X (=%s)"%(len(moduli),n)
+        raise ValueError, "number of moduli must equal length of X"
     a = CRT_basis(moduli)
     modulus = misc.prod(moduli)
     return [sum([a[i]*X[i][j] for i in range(n)]) % modulus for j in range(len(X[0]))]
@@ -1402,7 +1400,7 @@ def binomial(x,m):
         1.8750000000000000
     """
     if not isinstance(m, (int, long, sage.rings.integer.Integer)):
-        raise TypeError, 'm (=%s) must be an integer'%m
+        raise TypeError, 'm must be an integer'
     if isinstance(x, (int, long, sage.rings.integer.Integer)):
         return sage.rings.integer.Integer(pari(x).binomial(m))
     if m < 0:
@@ -1470,7 +1468,7 @@ def primitive_root(n):
     try:
         return Z(pari(Z(n)).znprimroot())
     except RuntimeError:
-        raise ArithmeticError, "There is no primitive root modulo %s"%n
+        raise ArithmeticError, "There is no primitive root modulo n"
 
 def discrete_log_generic(b, a, ord=None):
     """
@@ -1503,12 +1501,12 @@ def discrete_log_generic(b, a, ord=None):
         sage: discrete_log_generic(b, a)
         Traceback (most recent call last):
         ...
-        ValueError: Log of 2 to the base 1 does not exist.
+        ValueError: Log of a to the base b does not exist.
         sage: b = Mod(1,997);  a = Mod(2,997)
         sage: discrete_log_generic(b, a)
         Traceback (most recent call last):
         ...
-        ValueError: Log of 2 to the base 1 does not exist.
+        ValueError: Log of a to the base b does not exist.
 
     AUTHOR: William Stein and David Joyner (2005-01-05)
     """
@@ -1518,12 +1516,12 @@ def discrete_log_generic(b, a, ord=None):
         if a == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+            raise ValueError, "Log of a to the base b does not exist."
     elif a == 0:
         if b == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+            raise ValueError, "Log of a to the base b does not exist."
 
     if ord is None:
         ord = b.multiplicative_order()
@@ -1534,7 +1532,7 @@ def discrete_log_generic(b, a, ord=None):
             if c == a:        # is b^i
                 return Z(i)
             c *= b
-        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
+        raise ValueError, "Log of a to the base b does not exist."
 
     m = ord.isqrt()
     g = [a]
@@ -1548,7 +1546,7 @@ def discrete_log_generic(b, a, ord=None):
         if y in S2:
             x = S2.index(y)
             return Z(m*(g.index(y)) + x)
-    raise ValueError, "Log of %s to the base %s does not exist."%(b, a)
+    raise ValueError, "Log does not exist."
 
 
 
@@ -1763,7 +1761,8 @@ def continued_fraction(x, partial_convergents=False):
         sage: continued_fraction(e)
         Traceback (most recent call last):
         ...
-        NotImplementedError: computation of continued fraction of e not implemented; try computing continued fraction of RR(e) instead
+        NotImplementedError: computation of continued fraction of x not implemented;
+        try computing continued fraction of RR(x) instead.
         sage: continued_fraction(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: print continued_fraction(RealField(200)(e))
@@ -1795,7 +1794,7 @@ def continued_fraction(x, partial_convergents=False):
                     return v
             x = 1/x
     except (AttributeError, NotImplementedError, TypeError):
-        raise NotImplementedError, "computation of continued fraction of %s not implemented; try computing continued fraction of RR(%s) instead"%(x_in, x_in)
+        raise NotImplementedError, "computation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."
 
 def convergent(v, n):
     """
@@ -1932,7 +1931,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
     p = Integer(p)
     if p != -1 and not p.is_prime():
-        raise ValueError, "p (=%s) must be prime or -1"%p
+        raise ValueError, "p must be prime or -1"
     a = Integer(a)
     b = Integer(b)
 

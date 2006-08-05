@@ -94,7 +94,7 @@ class GroebnerFan(SageObject):
             print "WARNING! Symmetry option not yet implemented!!"
         self.__verbose = verbose
         if not is_MPolynomialIdeal(I):
-            raise TypeError, "I (=%s) is a multivariate polynomial ideal"%I
+            raise TypeError, "I must be a multivariate polynomial ideal"
         S = I.ring()
         R = S.base_ring()
         if not R.is_field():
@@ -501,7 +501,7 @@ class GroebnerFan(SageObject):
             cmd += ' -h'
         if check:
             if I.dimension() != 1 + self.dimension_of_homogeneity_space():
-                raise ValueError, "The ideal %s does not define a tropical curve."%I
+                raise ValueError, "The ideal does not define a tropical curve."
 
         B = self.gfan(cmd)
         B = multiple_replace(self._gfan_vardict(), B)[1:-1]

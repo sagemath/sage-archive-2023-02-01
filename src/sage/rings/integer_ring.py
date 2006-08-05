@@ -173,7 +173,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             sage: k._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 2/3 into Finite Field of size 7
+            TypeError: unable to coerce x
             sage: k._coerce_(5)   # works since there's a natural hom ZZ --> GF(7).
             5
             sage: ZZ._coerce_(GF(7)(2))
@@ -231,16 +231,16 @@ v v v v v v v
             sage: ZZ/(3*QQ)
             Traceback (most recent call last):
             ...
-            TypeError: I (=Principal ideal (1) of Rational Field) must be an ideal of ZZ
+            TypeError: I must be an ideal of ZZ
         """
         if isinstance(I, sage.rings.integer.Integer):
             n = I
         elif sage.rings.ideal.is_Ideal(I):
             if not (I.ring() is self):
-                raise TypeError, "I (=%s) must be an ideal of ZZ"%I
+                raise TypeError, "I must be an ideal of ZZ"
             n = I.gens()[0]
         else:
-            raise TypeError, "I (=%s) must be an ideal of ZZ or an integer"%I
+            raise TypeError, "I must be an ideal of ZZ or an integer"
         if n == 0:
             return self
         return sage.rings.integer_mod_ring.IntegerModRing(n)
@@ -331,7 +331,7 @@ v v v v v v v
         elif n == 2:
             return sage.rings.integer.Integer(-1)
         else:
-            raise ValueError, "No %sth root of unity in integer ring"%n
+            raise ValueError, "no nth root of unity in integer ring"
 
 
     #################################

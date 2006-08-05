@@ -80,11 +80,11 @@ def Ideal(R, gens=[], coerce=True):
         try:
             S = R.parent()
         except AttributeError:
-            raise TypeError, "ring (=%s) must be a ring, list, or element."%R
+            raise TypeError, "ring must be a ring, list, or element."
         if isinstance(S, sage.rings.ring.Ring):
             return Ideal(S, [R])
         else:
-            raise TypeError, "ring (=%s) must be a ring, list, or element."%R
+            raise TypeError, "ring must be a ring, list, or element."
 
     if not commutative_ring.is_CommutativeRing(R):
         raise TypeError, "R must be a commutative ring"

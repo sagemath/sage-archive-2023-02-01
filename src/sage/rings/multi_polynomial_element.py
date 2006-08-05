@@ -94,7 +94,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             x = x[0]
         n = self.parent().ngens()
         if len(x) != n:
-            raise TypeError, "x (=%s) must be of length %s"%(x, n)
+            raise TypeError, "x must be of correct length"
         if n == 0:
             return self
         try:
@@ -177,14 +177,14 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
     def __pow__(self, n):
         if not isinstance(n, (int, long, integer.Integer)):
-            raise TypeError, "The exponent (n=%s) must be an integer."%n
+            raise TypeError, "The exponent must be an integer."
         if n < 0:
             return 1/(self**(-n))
         return self.parent()(self.__element**n)
 
     def __rpow__(self, n):
         if not isinstance(n, (int, long, integer.Integer)):
-            raise TypeError, "The exponent (n=%s) must be an integer."%n
+            raise TypeError, "The exponent must be an integer."
         return self.parent()(self.__element**n)
 
     def element(self):
@@ -250,7 +250,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         if x is None:
             return self.element().degree(None)
         if not (isinstance(x, MPolynomial) and x.parent() == self.parent() and x.is_monomial()):
-            raise TypeError, "x (=%s) must be one of the generators of the parent."%x
+            raise TypeError, "x must be one of the generators of the parent."
         return self.element().degree(x.element())
 
     def newton_polytope(self):
@@ -332,7 +332,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             0
         """
         if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
-            raise TypeError, "mon (=%s) must be a monomial in the parent of self."%mon
+            raise TypeError, "mon must be a monomial in the parent of self."
         R = self.parent().base_ring()
         return R(self.element().monomial_coefficient(mon.element().dict()))
 
@@ -405,7 +405,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         if mon == 1:
             return self.constant_coefficient()
         if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
-            raise TypeError, "mon (=%s) must be a monomial in the parent of self."%mon
+            raise TypeError, "mon must be a monomial in the parent of self."
         R = self.parent()
         return R(self.element().coefficient(mon.element().dict()))
 
@@ -642,7 +642,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
             ...
-            ValueError: polynomial (=5 - 2*y + 3*x^2 + 7*x^2*y^2) must involve at most one variable
+            ValueError: polynomial must involve at most one variable
             sage: g = f.fix({x:10}); g
             305 - 2*y + 700*y^2
             sage: g.univariate_polynomial ()
@@ -654,7 +654,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             700*w^2 - 2*w + 305
         """
         if not self.is_univariate():
-            raise ValueError, "polynomial (=%s) must involve at most one variable"%self
+            raise ValueError, "polynomial must involve at most one variable"
 
         #construct ring if none
         if R == None:
@@ -831,7 +831,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             x^2
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
-            raise TypeError, "self (=%s) and f (=%s) must have the same parent"%(self, f)
+            raise TypeError, "self and f must have the same parent"
         return self.parent()(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):

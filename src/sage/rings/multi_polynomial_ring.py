@@ -161,7 +161,7 @@ def MPolynomialRing(base_ring, n=1, names=None,
     #        return R
 
     if not isinstance(base_ring, commutative_ring.CommutativeRing):
-        raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+        raise TypeError, "Base ring must be a commutative ring."
 
     if macaulay2:
         if integral_domain.is_IntegralDomain(base_ring):
@@ -184,7 +184,7 @@ def is_MPolynomialRing(x):
 class MPolynomialRing_generic(commutative_ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
-            raise TypeError, "Base ring (=%s) must be a commutative ring."%base_ring
+            raise TypeError, "Base ring must be a commutative ring."
         self.__base_ring = base_ring
         n = int(n)
         if n < 0:
@@ -313,7 +313,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def gen(self, n=0):
         if n < 0 or n >= self.__ngens:
-            raise ValueError, "Generator %s not defined."%n
+            raise ValueError, "Generator not defined."
         return self._gens[int(n)]
 
     def gens(self):
@@ -423,19 +423,19 @@ class MPolynomialRing_polydict(MPolynomialRing_generic):
             if x.denominator() == 1:
                 return x.numerator()
             else:
-                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+                raise TypeError, "unable to coerce since the denominator is not 1"
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except:
-                raise TypeError, "Unable to coerce singular object %s to %s (string='%s')"%(x, self, str(x))
+                raise TypeError, "Unable to coerce singular object"
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
-                raise TypeError,"Unable to coerce string %s to %s"%(x,self)
+                raise TypeError,"Unable to coerce string"
         c = self.base_ring()(x)
         return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
 
@@ -482,7 +482,7 @@ class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
             elif isinstance(self.base_ring(), IntegerRing):
                 base_str = "ZZ"
             else:
-                raise TypeError, "no conversion of %s to a Macaulay2 ring defined"%self
+                raise TypeError, "no conversion of to a Macaulay2 ring defined"
             self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
                                               self.term_order().macaulay2_str())
         return self.__macaulay2
@@ -519,13 +519,13 @@ class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
                 # This took a while to figure out!
                 return self(eval(s, {}, self.gens_dict()))
             except (AttributeError, TypeError, NameError):
-                raise TypeError, "Unable to coerce macaulay2 object %s to %s (string='%s')"%(x, self, s)
+                raise TypeError, "Unable to coerce macaulay2 object"
             return multi_polynomial_element.MPolynomial_macaulay2_repr(self, x)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
                 return x.numerator()
             else:
-                raise TypeError, "unable to coerce in %s since the denominator is not 1"%x
+                raise TypeError, "unable to coerce since the denominator is not 1"
         c = self.base_ring()(x)
         return multi_polynomial_element.MPolynomial_macaulay2_repr(self, {self._zero_tuple:c})
 

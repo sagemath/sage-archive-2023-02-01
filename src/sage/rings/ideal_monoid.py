@@ -10,7 +10,7 @@ def IdealMonoid(R):
 class IdealMonoid_c(Monoid_class):
     def __init__(self, R):
         if not is_CommutativeRing(R):
-            raise TypeError, "R (=%s) must be a commutative ring"%R
+            raise TypeError, "R must be a commutative ring"
         self.__R = R
 
     def _repr_(self):

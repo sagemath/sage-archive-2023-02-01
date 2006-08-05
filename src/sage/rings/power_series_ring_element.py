@@ -236,7 +236,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             if self._prec > n:
                 return self.base_ring()(0)
             else:
-                raise IndexError, "Coefficient %s not known."%n
+                raise IndexError, "coefficient not known"
         return c[n]
 
     def __getslice__(self, i, j):
@@ -518,7 +518,7 @@ class PowerSeries_generic_dense(PowerSeries):
                 # __getslice__ isn't just called by default...
                 return self.__getslice__(slice[0],slice[1])
             else:
-                raise IndexError, "Coefficient %s not known."%n
+                raise IndexError, "coefficient not known"
         return self.__f[n]
 
     def __getslice__(self, i, j):

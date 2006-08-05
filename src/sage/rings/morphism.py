@@ -20,7 +20,7 @@ There is no homomorphism in the other direction:
     sage: H([1])
     Traceback (most recent call last):
     ...
-    TypeError: images (=[1]) do not define a valid homomorphism
+    TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Reduction to finite field.
     sage: H = Hom(ZZ, GF(9))
@@ -51,7 +51,7 @@ EXAMPLE: Identity map on the real numbers.
     sage: f = RR.hom( [2.0] )
     Traceback (most recent call last):
     ...
-    TypeError: images (=[2.0000000000000000]) do not define a valid homomorphism
+    TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Homomorphism from one precision of field to another.
 
@@ -189,7 +189,7 @@ Note that \sage verifies that the morphism is valid:
     sage: c = S.hom([1-sqrt2])    # this is not valid
     Traceback (most recent call last):
     ...
-    TypeError: images (=[-sqrt2 + 1]) do not define a valid homomorphism
+    TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Endomorphism of power series ring.
     sage: R, t = PowerSeriesRing(QQ, 't').objgen()
@@ -229,27 +229,27 @@ EXAMPLE: Homomorphism of Laurent series ring.
     sage: s = 2/t^2 + 1/(1 + t); s
     2*t^-2 + 1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)
-    2*t^-2 - 3 - t + 7*t^2 - 2*t^3 - 5*t^4 - 4*t^5 + 16*t^6 + O(t^7)
+    2*t^-2 - 3 - t + 7*t^2 - 2*t^3 - 5*t^4 - 4*t^5 + 16*t^6 - 9*t^7 + O(t^8)
     sage: f = R.hom([t^3]); f
     Ring endomorphism of Laurent Series Ring in t over Rational Field
       Defn: t |--> t^3
     sage: f(s)
-    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 + O(t^21)
+    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27
     sage: s = 2/t^2 + 1/(1 + t); s
     2*t^-2 + 1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)
-    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 + O(t^21)
+    2*t^-6 + 1 - t^3 + t^6 - t^9 + t^12 - t^15 + t^18 - t^21 + t^24 - t^27
 
 Note that the homomorphism must result in a converging Laurent series,
 so the valuation of the image of the generator must be positive:
     sage: R.hom([1/t])
     Traceback (most recent call last):
     ...
-    TypeError: images (=[t^-1]) do not define a valid homomorphism
+    TypeError: images do not define a valid homomorphism
     sage: R.hom([1])
     Traceback (most recent call last):
     ...
-    TypeError: images (=[1]) do not define a valid homomorphism
+    TypeError: images do not define a valid homomorphism
 
 
 EXAMPLE: Complex conjugation on cyclotomic fields.
@@ -340,7 +340,7 @@ class RingMap_lift(RingMap):
         try:
             S._coerce_(R(0).lift())
         except TypeError:
-            raise TypeError, "No natural lift map from %s to %s"%(R, S)
+            raise TypeError, "No natural lift map"
 
     def _repr_defn(self):
         return "Choice of lifting map"
@@ -354,7 +354,7 @@ class RingHomomorphism(RingMap):
     """
     def __init__(self, parent):
         if not homset.is_RingHomset(parent):
-            raise TypeError, "parent (=%s) must be a ring homset"%parent
+            raise TypeError, "parent must be a ring homset"
         RingMap.__init__(self, parent)
 
     def _repr_type(self):
@@ -362,11 +362,11 @@ class RingHomomorphism(RingMap):
 
     def _set_lift(self, lift):
         if not isinstance(lift, RingMap):
-            raise TypeError, "lift (=%s) must be a RingMap"%lift
+            raise TypeError, "lift must be a RingMap"
         if lift.domain() != self.codomain():
-            raise TypeError, "lift (=%s) must have domain %s"%(lift, self.codomain())
+            raise TypeError, "lift must have correct domain"
         if lift.codomain() != self.domain():
-            raise TypeError, "lift (=%s) must have codomain %s"%(lift, self.domain())
+            raise TypeError, "lift must have correct codomain"
         self.__lift = lift
 
     def inverse_image(self, I):
@@ -388,7 +388,7 @@ class RingHomomorphism(RingMap):
         try:
             return self.__lift
         except AttributeError:
-            raise ValueError, "No lift map of %s defined."%self.__lift
+            raise ValueError, "No lift map defined."
 
 
 from sage.categories.morphism import FormalCoercionMorphism
@@ -407,8 +407,7 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             im_gens = [im_gens]
         im_gens = sage.structure.all.Sequence(im_gens, parent.codomain())
         if len(im_gens) != parent.domain().ngens():
-            raise ValueError, "number of images (=%s) must equal number of generators (=%s) of %s"%(
-                len(im_gens), parent.domain().ngens(), parent)
+            raise ValueError, "number of images must equal number of generators"
         if check:
             t = parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens)
             if not t:
@@ -490,14 +489,14 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
         sage: S.hom([b^2, c^2, a^2])
         Traceback (most recent call last):
         ...
-        TypeError: images (=[b^2, c^2, a^2]) do not define a valid homomorphism
+        TypeError: images do not define a valid homomorphism
     """
     def __init__(self, parent, phi):
         RingHomomorphism.__init__(self, parent)
         R = parent.domain()
         pi = R.cover()  # the covering map
         if pi.domain() != phi.domain():
-            raise ValueError, "Domain of phi (=%s) must equal domain of covering (=%s)."%(phi.domain(), pi.domain())
+            raise ValueError, "Domain of phi must equal domain of covering."
         for x in pi.kernel().gens():
             if phi(x) != 0:
                 raise ValueError, "relations do not all (canonically) map to 0 under map determined by images of generators."

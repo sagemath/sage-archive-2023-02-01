@@ -41,12 +41,12 @@ class RingHomset_generic(Homset):
             sage: phi = H([])
             Traceback (most recent call last):
             ...
-            TypeError: images (=[]) do not define a valid homomorphism
+            TypeError: images do not define a valid homomorphism
         """
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)
         except (NotImplementedError, ValueError), err:
-            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+            raise TypeError, "images do not define a valid homomorphism"
 
     def natural_map(self):
         return morphism.RingHomomorphism_coercion(self)
@@ -74,6 +74,6 @@ class RingHomset_quo_ring(RingHomset_generic):
             phi = pi.domain().hom(im_gens, check=check)
             return morphism.RingHomomorphism_from_quotient(self, phi)
         except (NotImplementedError, ValueError), err:
-            raise TypeError, "images (=%s) do not define a valid homomorphism"%im_gens
+            raise TypeError, "images do not define a valid homomorphism"
 
 

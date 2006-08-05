@@ -262,7 +262,7 @@ class RationalField(_uniq, field.Field):
         elif n == 2:
             return sage.rings.rational.Rational(-1)
         else:
-            raise ValueError, "No %sth root of unity in rational field"%n
+            raise ValueError, "no n-th root of unity in rational field"
 
     #################################
     ## Coercions to interfaces

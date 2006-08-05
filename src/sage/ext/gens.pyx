@@ -339,7 +339,7 @@ cdef class Generators(sage_object.SageObject):
             sage: f = R.hom([5], GF(7))
             Traceback (most recent call last):
             ...
-            TypeError: images (=[5]) do not define a valid homomorphism
+            TypeError: images do not define a valid homomorphism
 
             sage: R, x = PolynomialRing(GF(7)).objgen()
             sage: f = R.hom([3], GF(49))

@@ -73,7 +73,7 @@ class ComplexNumber(ring_element.RingElement):
             self.__re = R(real)
             self.__im = R(imag)
         except TypeError:
-            raise TypeError, "unable to coerce (%s,%s) to a ComplexNumber"%(real,imag)
+            raise TypeError, "unable to coerce to a ComplexNumber"
         self.__repr = None
 
     def _repr_(self):
@@ -84,7 +84,7 @@ class ComplexNumber(ring_element.RingElement):
             return self.__re
         elif i == 1:
             return self.__im
-        raise IndexError, "i (=%s) must be between 0 and 1."%i
+        raise IndexError, "i must be between 0 and 1."
 
     def str(self, base=10):
         s = ""
@@ -286,7 +286,7 @@ class ComplexNumber(ring_element.RingElement):
             sage: w.multiplicative_order()
             Traceback (most recent call last):
             ...
-            NotImplementedError: order of 0.50000000000000000 + 0.86602540378443860*I not known
+            NotImplementedError: order of element not known
         """
         if self == 1:
             return integer.Integer(1)
@@ -300,7 +300,7 @@ class ComplexNumber(ring_element.RingElement):
             return self._multiplicative_order
         elif abs(abs(self) - 1) > 0.1:  # clearly not a root of unity
             return infinity.infinity
-        raise NotImplementedError, "order of %s not known"%self
+        raise NotImplementedError, "order of element not known"
 
 
     ########################################################################
@@ -439,7 +439,7 @@ class ComplexNumber(ring_element.RingElement):
             sage: z.eta()
             Traceback (most recent call last):
             ...
-            ValueError: 1.0000000000000000 must be in the upper half plane
+            ValueError: value must be in the upper half plane
 
         You can also use functional notation.
             sage: eta(1+I)
@@ -448,7 +448,7 @@ class ComplexNumber(ring_element.RingElement):
         try:
             return self.parent()(self._pari_().eta(not omit_frac))
         except pari.PariError:
-            raise ValueError, "%s must be in the upper half plane"%self
+            raise ValueError, "value must be in the upper half plane"
 
 
     def sin(self):

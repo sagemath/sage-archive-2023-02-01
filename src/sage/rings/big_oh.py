@@ -18,12 +18,12 @@ def O(x):
 
     elif isinstance(x, (int,long,integer.Integer)):  # p-adic number
         if x <= 1:
-            raise ArithmeticError, "%s must be a prime power >= 2"%x
+            raise ArithmeticError, "x must be a prime power >= 2"
         F = arith.factor(x)
         if len(F) != 1:
-            raise ArithmeticError, "%s must be prime power"%x
+            raise ArithmeticError, "x must be prime power"
         p, r = F[0]
         return padic_field.Qp(p)(0,r)
 
-    raise ArithmeticError, "O(%s) not defined"%x
+    raise ArithmeticError, "O(x) not defined"
 

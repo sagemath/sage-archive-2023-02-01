@@ -144,7 +144,7 @@ class PolynomialRing_singular_repr:
         Return a newly created Singular ring matching this ring.
         """
         if not self._can_convert_to_singular():
-            raise TypeError, "no conversion of %s to a Singular ring defined"%self
+            raise TypeError, "no conversion of to a Singular ring defined"
 
         if self.ngens()==1:
             _vars = str(self.gen())
@@ -179,7 +179,7 @@ class PolynomialRing_singular_repr:
 
             self.__singular = r
         else:
-            raise TypeError, "no conversion of %s to a Singular ring defined"%self
+            raise TypeError, "no conversion to a Singular ring defined"
         return self.__singular
 
     def _can_convert_to_singular(self):

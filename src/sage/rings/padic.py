@@ -126,7 +126,7 @@ class pAdic(field_element.FieldElement):
                 ordp = x.valuation(p)
                 unit = int(x/(p**ordp))
             else:
-                raise TypeError, "unable to compute ordp from x (=%s) of type %s"%(x, type(x))
+                raise TypeError, "unable to compute ordp"
         self.__unit = unit
         self.__ordp = ordp
         if big_oh is infinity and ordp is infinity:
@@ -181,7 +181,7 @@ class pAdic(field_element.FieldElement):
         try:
             return self.parent()(self._pari_().sqrt())
         except PariError:
-            raise ValueError, "square root of %s not a padic number"%self
+            raise ValueError, "square root not a padic number"
 
 
     def denominator(self):
@@ -438,18 +438,16 @@ class pAdic(field_element.FieldElement):
 
     def __mod__(self, right):
         if self.__ordp < 0:
-            raise ZeroDivisionError, \
-                  "Reduction of %s not defined (there is a denominator)."%(self)
+            raise ZeroDivisionError, "Reduction of not defined (there is a denominator)."
         if self.__ordp >= 0 and isinstance(right,(int,long)):
             n = arith.valuation(right,self.__p)
             if self.__p**n == right:  # i.e., right is a p-power
                 if n > self.__prec + self.__ordp:
-                    raise ArithmeticError, "%s not known to large enough precision "%self + \
-                                           " to reduce modulo %s^%s."%(self.__p, n)
+                    raise ArithmeticError, "number not known to large enough precision to reduce"
                 p = Mod(self.__p,right)
                 u = Mod(self.__unit, right)
                 return p**self.__ordp * u
-        raise ZeroDivisionError, "Reduction of %s mod %s not defined."%(self,right)
+        raise ZeroDivisionError, "Reduction not defined."
 
     def __pow__(self, right):
         """
@@ -510,7 +508,7 @@ class pAdic(field_element.FieldElement):
         else:
             prec = self.__prec
         if prec <= 0:
-            raise ZeroDivisionError, "Can not invert %s"%self
+            raise ZeroDivisionError, "Can not invert self"
         unit = arith.inverse_mod(self.__unit, self.__p**prec)
         big_oh = prec - self.__ordp
         return pAdic(self.__parent, unit, big_oh,  -self.__ordp)
@@ -673,7 +671,7 @@ class pAdic(field_element.FieldElement):
         m = p**self.__prec
         a, b = arith.rational_reconstruction(alpha, m)
         if b==0:
-            raise ValueError, "unable to rationally reconstruct %s"%self
+            raise ValueError, "unable to rationally reconstruct"
         return (frac(p,1)**self.__ordp)*frac(a, b)
 
     def log(self):

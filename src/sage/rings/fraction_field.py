@@ -116,7 +116,7 @@ class FractionField_generic(field.Field):
         try:
             return self(self.__R._coerce_(x))
         except TypeError:
-            raise TypeError, "no canonical coercion of x(=%s) into %s"%(x,self)
+            raise TypeError, "no canonical coercion"
 
     def __cmp__(self, other):
         if not isinstance(other, FractionField_generic):

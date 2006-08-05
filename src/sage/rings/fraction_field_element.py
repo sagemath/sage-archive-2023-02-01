@@ -174,7 +174,7 @@ class FractionFieldElement(field_element.FieldElement):
                 return self.__numerator._integer_()
             except AttributeError:
                 pass
-        raise TypeError, "no way to coerce %s to an integer."%self
+        raise TypeError, "no way to coerce to an integer."
 
     def _rational_(self):
         Z = integer_ring.IntegerRing()
@@ -182,7 +182,7 @@ class FractionFieldElement(field_element.FieldElement):
             return Z(self.__numerator) / Z(self.__denominator)
         except AttributeError:
             pass
-        raise TypeError, "coercion to rational not defined."
+        raise TypeError, "coercion to rational not defined"
 
     def __long__(self):
         if self.__denominator == 1:

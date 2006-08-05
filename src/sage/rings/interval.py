@@ -33,7 +33,7 @@ def _adapt(x):
     if isinstance(x, (int, long, float, integer.Integer,
                       rational.Rational, real_field.RealNumberClass)):
         return Interval(x)
-    raise TypeError, "cannot construct interval from %s"%x
+    raise TypeError, "cannot construct interval from x"
 
 _obj = {}
 class _uniq(object):
@@ -141,7 +141,7 @@ class Interval(ring_element.RingElement):
 
     def __invert__(self):
         if 0 in self:
-            raise ZeroDivisionError, "cannot invert interval %s"%self
+            raise ZeroDivisionError, "cannot invert interval"
         return Interval(1/self.__max, 1/self.__min)
 
     def __div__(self, other):
@@ -182,7 +182,7 @@ class Interval(ring_element.RingElement):
         x = math.ceil(self.__min)
         y = math.floor(self.__max)
         if x != y:
-            raise ValueError, "Cannot coerce to int because there is not a unique integer in the interval %s"%self
+            raise ValueError, "Cannot coerce to int because there is no unique integer in the interval"
         return int(x)
 
     def _integer_(self):
@@ -199,12 +199,12 @@ class Interval(ring_element.RingElement):
             sage: ZZ(a)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce to int because there is not a unique integer in the interval [2.1, 2.7]
+            ValueError: Cannot coerce to int because there is no unique integer in the interval
             sage: a = I(R('2.1'), R('5.7'))
             sage: ZZ(a)
             Traceback (most recent call last):
             ...
-            ValueError: Cannot coerce to int because there is not a unique integer in the interval [2.1, 5.7]
+            ValueError: Cannot coerce to int because there is no unique integer in the interval
         """
         return integer.Integer(int(self))
 

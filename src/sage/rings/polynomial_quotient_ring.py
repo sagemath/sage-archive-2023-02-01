@@ -120,7 +120,7 @@ def PolynomialQuotientRing(ring, polynomial, name=None):
         sage: S = R.quotient(3*x^4 + 2*x^3 + x + 2, 'a')
         Traceback (most recent call last):
         ...
-        TypeError: polynomial (=3*x^4 + 2*x^3 + x + 2) must have unit leading coefficient
+        TypeError: polynomial must have unit leading coefficient
 
     Another example:
         sage: R, x = PolynomialRing(IntegerRing()).objgen()
@@ -129,14 +129,14 @@ def PolynomialQuotientRing(ring, polynomial, name=None):
         Univariate Quotient Polynomial Ring in x over Integer Ring with modulus x^2 + 1
     """
     if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
-        raise TypeError, "ring (=%s) must be a polynomial ring"%ring
+        raise TypeError, "ring must be a polynomial ring"
     if not isinstance(polynomial, polynomial_element.Polynomial):
-        raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
+        raise TypeError, "must be a polynomial"
     if not polynomial.parent() == ring:
-        raise TypeError, "polynomial (=%s) must be in ring (=%s)%"%(polynomial,ring)
+        raise TypeError, "polynomial must be in ring"
     c = polynomial.leading_coefficient()
     if not c.is_unit():
-        raise TypeError, "polynomial (=%s) must have unit leading coefficient"%polynomial
+        raise TypeError, "polynomial must have unit leading coefficient"
     R = ring.base_ring()
     if isinstance(R, integral_domain.IntegralDomain):
         try:

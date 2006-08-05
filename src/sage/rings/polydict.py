@@ -79,7 +79,7 @@ class PolyDict:
                 remove_zero = False
                 pdict = v
             else:
-                raise TypeError, "pdict (=%s) must be a list."%pdict
+                raise TypeError, "pdict must be a list."
         if force_int_exponents:
             new_pdict = {}
             if remove_zero:
@@ -187,14 +187,14 @@ class PolyDict:
             return self.total_degree()
         L = x.__repn.keys()
         if len(L) != 1:
-            raise TypeError, "x (=%s) must be one of the generators of the parent."%x
+            raise TypeError, "x must be one of the generators of the parent."
         L = L[0]
         nonzero_positions = [i for i in range(len(L)) if L[i] != 0]
         if len(nonzero_positions) != 1:
-            raise TypeError, "x (=%s) must be one of the generators of the parent."%x
+            raise TypeError, "x must be one of the generators of the parent."
         i = nonzero_positions[0]
         if L[i] != 1:
-            raise TypeError, "x (=%s) must be one of the generators of the parent."%x
+            raise TypeError, "x must be one of the generators of the parent."
         return max([v[i] for v in self.__repn.keys()])
 
     def total_degree(self):
@@ -404,7 +404,7 @@ class PolyDict:
             PolyDict with representation {(2/3, 3, 5): 5, (1, 2, 1): 3, (2, 1, 1): 4}
         """
         if not isinstance(other, PolyDict):
-            raise TypeError, "other (=%s) must be a PolyDict."%other
+            raise TypeError, "other must be a PolyDict."
         zero = self.__zero
         D = copy.copy(self.__repn)
         R = other.__repn
@@ -439,7 +439,7 @@ class PolyDict:
             '6*a^(4/3)*b^(6)*c^(10) + 9*a^(5/3)*b^(5)*c^(6) + 12*a^(8/3)*b^(4)*c^(6)'
         """
         if not isinstance(right, PolyDict):
-            raise TypeError, "other (=%s) must be a PolyDict."%right
+            raise TypeError, "other must be a PolyDict."
         newpoly = {}
         k = self.__repn.keys()
         if len(k) == 0:   # product is zero anyways
@@ -479,7 +479,7 @@ class PolyDict:
 
         # TOOD: should refactor add, make abstract operator, so can do both +/-; or copy code.
         if not isinstance(other, PolyDict):
-            raise TypeError, "other (=%s) must be a PolyDict."%other
+            raise TypeError, "other must be a PolyDict."
         return self + other.scalar_mult(-1)
 
     def __one(self):
@@ -502,7 +502,7 @@ class PolyDict:
         """
         n = int(n)
         if n < 0:
-            raise ValueError, "n (=%s) must be nonnegative."%n
+            raise ValueError, "n must be nonnegative."
         if n == 0:
             return self.__one()
         return arith.generic_power(self, n, self.__one())

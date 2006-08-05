@@ -102,7 +102,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
     def gen(self, n=0):
         if n != 0:
-            raise IndexError, "Generator %s not defined."%n
+            raise IndexError, "generator n not defined"
         return self.__generator
 
     def ngens(self):

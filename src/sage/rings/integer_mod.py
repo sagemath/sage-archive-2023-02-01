@@ -95,7 +95,7 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         R = self.parent()
 
         if R.order() > 65536:
-            raise ValueError, "order (=%s) must be at most 65536."%R.order()
+            raise ValueError, "order must be at most 65536."
 
         if self == 0:
             return '0*Z(%s)'%R.order()
@@ -169,7 +169,7 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         try:
             return self.parent()(self.__value.sqrt(), construct=True)
         except PariError:
-            raise ValueError, "self (=%s) must be a square."%self
+            raise ValueError, "self must be a square."
 
     def _pari_(self):
         return self.__value
@@ -210,7 +210,7 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         Returns the additive order of self.
         """
         if not self.is_unit():
-            raise ArithmeticError, "self (=%s) must be a unit"%self
+            raise ArithmeticError, "self must be a unit"
         return integer.Integer(self.__value.order())  # pari's "order" is by default multiplicative
 
     def copy(self):
@@ -249,7 +249,7 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
     def __mod__(self, right):
         right = int(right)
         if self.modulus() % right != 0:
-            raise ZeroDivisionError, "Error - reduction mod %s not defined."%right
+            raise ZeroDivisionError, "Error - reduction modulo right not defined."
         return integer_mod_ring.IntegerModRing(right)(self)
 
     # commented out because PARI (used for .__value) prints

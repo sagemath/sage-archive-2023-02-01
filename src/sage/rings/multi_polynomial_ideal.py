@@ -354,7 +354,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         """
         R = self.ring()
         if not isinstance(other, MPolynomialIdeal_singular_repr) or other.ring() != R:
-            raise ValueError, "other (=%s) must be an ideal in the ring %s"%(other, R)
+            raise ValueError, "other must be an ideal in the ring of self, but it isn't."
         I = self._singular_()
         sing = I.parent()
         J = sing(other)

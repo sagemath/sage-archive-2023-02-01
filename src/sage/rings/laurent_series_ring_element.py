@@ -422,7 +422,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f.integral()
             Traceback (most recent call last):
             ...
-            ArithmeticError: Coefficients of integral of t^3 cannot be coerced into the base ring
+            ArithmeticError: Coefficients of integral cannot be coerced into the base ring
 
 
         The integral of 1/t is $\log(t)$, which is not given by a Laurent series:
@@ -432,13 +432,13 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f.integral()
             Traceback (most recent call last):
             ...
-            ArithmeticError: The integral of -t^-3 - 31*t^-1 + O(t^3) is not a Laurent series, since t^-1 has nonzero coefficient -31.
+            ArithmeticError: The integral of is not a Laurent series, since t^-1 has nonzero coefficient.
         """
         n = self.__n
         a = self.__u.list()
         if self[-1] != 0:
             raise ArithmeticError, \
-                  "The integral of %s is not a Laurent series, since t^-1 has nonzero coefficient %s."%(self,self[-1])
+                  "The integral of is not a Laurent series, since t^-1 has nonzero coefficient."
 
         if n < 0:
             v = [a[i]/(n+i+1) for i in range(-1-n)] + [0]
@@ -448,13 +448,13 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         try:
             u = self.parent().power_series_ring()(v, self.__u.prec())
         except TypeError:
-            raise ArithmeticError, "Coefficients of integral of %s cannot be coerced into the base ring"%self
+            raise ArithmeticError, "Coefficients of integral cannot be coerced into the base ring"
         return LaurentSeries(self.parent(), u, n+1)
 
 
     def power_series(self):
         if self.__n < 0:
-            raise ArithmeticError, "self (=%s) is a not a power series"%self
+            raise ArithmeticError, "self is a not a power series"
         u = self.__u
         t = u.parent().gen()
         return t**(self.__n) * u
@@ -473,8 +473,6 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f(1/3)
             82/9
         """
-        if x.parent() == self.parent():
-            x = x.add_bigoh(self.prec()*x.valuation())
         return self.__u(x) * (x**self.__n)
 
 

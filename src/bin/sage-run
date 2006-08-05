@@ -4,24 +4,24 @@ import os, sys
 
 os.chdir(sys.argv[1])
 
-args=sys.argv[2:]
-
-files = [x for x in args if len(x) > 0 and x[0] != '-']
-
-if len(files) == 0:
+if len(sys.argv) < 3:
+    print "You must give a file argument"
     sys.exit(1)
 
-opts  = ' '.join([x for x in args if len(x) > 0 and x[0] == '-'])
-if os.system('sage -preparse %s'%(' '.join(files))):
-    sys.exit(1)
+file    = sys.argv[2]
+options = ' '.join(sys.argv[3:])
 
-for file in files:
-    if file[-5:] == '.sage':
-        e = os.system('sage-python %s %s.py'%(opts, file[:-5]))
-    else:
-        e = os.system('sage-python %s %s'%(opts, file))
+
+if file[-5:] == '.sage':
+    if os.system('sage -preparse %s'%file):
+        sys.exit(1)
+    e = os.system('sage-python %s.py %s'%(file[:-5], options))
+    sys.exit(e)
+else:
+    e = os.system('sage-python %s %s'%(file, options))
     if e:
         print "sage: Error running %s using Python"%file
+    sys.exit(e)
 
 
 

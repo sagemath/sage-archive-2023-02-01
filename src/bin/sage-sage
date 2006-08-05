@@ -12,7 +12,7 @@ usage() {
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
-    echo "  file1.sage file2.sage file.py ... -- run given .sage or .py files"
+    echo "  file.[sage|py] [options] -- run given .sage or .py files"
     exit 1
 }
 

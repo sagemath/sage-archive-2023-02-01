@@ -81,6 +81,7 @@ SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
 SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
 LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
+GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 
 if [ "$DOT_SAGE" = "" ]; then
     DOT_SAGE="$HOME/.sage/"

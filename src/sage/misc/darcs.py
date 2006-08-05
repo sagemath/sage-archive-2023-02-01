@@ -131,15 +131,19 @@ class Darcs:
     def get(self):
         if self.__initialized:
             print "not getting -- already initialized"
-        D = self.__dir
-        i = D.rfind('/')
-        if i == -1:
-            D = ''
-        else:
-            D = D[:i]
-        s = 'cd "%s" && darcs get %s'%(D, self.__url)
+        D = self.__dir.rstrip('/')
+        D_head, D_tail = os.path.split(D)
+        s = 'cd "%s" && darcs get %s'%(D_head, self.__url)
         print s
         n = os.system(s)
+        p_head, p_tail = os.path.split(self.__url.rstrip('/'))
+        if p_tail != D_tail:
+            src = '%s/%s'%(os.path.abspath(D_head), p_tail)
+            target = '%s/%s'%(D_head, D_tail)
+            cmd = 'mv "%s/"* "%s"; rmdir "%s"'%(src, target, src)
+            print cmd
+            os.system(cmd)
+            os.system('cd "%s"; chmod +x sage-*'%target)
         if n:
             self.__initialized = True
 
@@ -225,8 +229,8 @@ class Darcs:
                 os.system('cd "%s/.." && ln -snf %s %s'%(D, n, self.__target))
             if os.path.exists('%s/install'%D):
                 # Darcs pull doesn't preserve permissions.
-                os.system('cd %s; chmod a+x */install'%D)
-            os.system('cd %s; chmod +x spkg-* rebuild mirror ref/update*'%D)
+                os.system('cd %s; chmod a+x */install 2>/dev/null'%D)
+            os.system('cd %s; chmod +x spkg-* rebuild mirror ref/update* 2>/dev/null'%D)
             self.__initialized = True
             if self.__target == 'sage':
                 print ""
@@ -323,5 +327,5 @@ darcs_doc = Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
 darcs_scripts = Darcs('%s/local/bin/'%os.environ['SAGE_ROOT'],
                   'SAGE scripts',
         url="http://modular.math.washington.edu/sage/dist/src/scripts-darcs",
-                  target='')
+                  target=None)
 

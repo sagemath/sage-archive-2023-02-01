@@ -234,7 +234,7 @@ class Magma(Expect):
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
         ans = Expect.eval(self, x).replace('\\\n','')
-        if ans.find("Runtime error") != -1:
+        if 'Runtime error' in ans or 'User error' in ans:
             raise RuntimeError, "Error evaluation Magma code.\nIN:%s\nOUT:%s"%(x, ans)
         return ans
 

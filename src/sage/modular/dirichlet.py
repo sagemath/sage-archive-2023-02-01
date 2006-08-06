@@ -57,7 +57,7 @@ def KroneckerCharacter(d):
 
     D = fundamental_discriminant(d)
     G = DirichletGroup(D, RationalField())
-    return G([kronecker(D,u) for u in D.unit_gens()])
+    return G([kronecker(D,u) for u in G.unit_gens()])
 
 
 ## Define the Upside-down Kronecker Character
@@ -66,7 +66,7 @@ def KroneckerCharacterUpsideDown(d):
     assert d in IntegerRing() and d > 0
 
     G = DirichletGroup(d, RationalField())
-    return G([kronecker(u,d) for u in d.unit_gens()])
+    return G([kronecker(u,d) for u in G.unit_gens()])
 
 
 def is_DirichletCharacter(x):

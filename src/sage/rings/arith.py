@@ -716,7 +716,7 @@ LCM = lcm
 
 def __LCM_list(v):
     if len(v) == 0:
-        return 1
+        return sage.rings.integer.Integer(1)
     x = v[0]
     for i in range(1,len(v)):
         x = LCM(x, v[i])

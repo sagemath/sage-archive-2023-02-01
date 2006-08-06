@@ -45,28 +45,49 @@ import sage.rings.number_field.number_field as number_field
 import sage.rings.coerce as coerce
 from sage.structure.all import MultiplicativeGroupElement, Sequence
 import sage.categories.all
+import sage.algebras.quaternion_algebra
 
-def TrivialCharacter(N, base_ring=rings.RationalField()):
+def trivial_character(N, base_ring=rings.RationalField()):
     return DirichletGroup(N, base_ring)(1)
 
+def kronecker_character(d):
+    """
+    Returns the quadratic Dirichlet character (d/.) of minimal conductor.
 
-## Define the Kronecker Character
-def KroneckerCharacter(d):
-    """ Returns the quadratic Dirichlet character (d/.) of minimal conductor."""
-    assert d in IntegerRing() and d!= 0
+    EXAMPLES:
+        sage: kronecker_character(97*389*997^2)
+        [-1, -1]
 
-    D = fundamental_discriminant(d)
-    G = DirichletGroup(D, RationalField())
-    return G([kronecker(D,u) for u in G.unit_gens()])
+    AUTHOR:
+        -- Jon Hanke (2006-08-06)
+
+    """
+    d = rings.Integer(d)
+    if d == 0:
+        raise ValueError, "d must be nonzero"
+
+    D = sage.algebras.quaternion_algebra.fundamental_discriminant(d)
+    G = DirichletGroup(abs(D), rings.RationalField())
+    return G([arith.kronecker(D,u) for u in G.unit_gens()])
 
 
-## Define the Upside-down Kronecker Character
-def KroneckerCharacterUpsideDown(d):
-    """ Returns the quadratic Dirichlet character (./d) of conductor d, for d>0."""
-    assert d in IntegerRing() and d > 0
+def kronecker_character_upside_down(d):
+    """
+    Returns the quadratic Dirichlet character (./d) of conductor d, for d>0.
 
-    G = DirichletGroup(d, RationalField())
-    return G([kronecker(u,d) for u in G.unit_gens()])
+    EXAMPLES:
+       sage: kronecker_character_upside_down(97*389*997^2)
+       [-1, -1, 1]
+
+    AUTHOR:
+        -- Jon Hanke (2006-08-06)
+    """
+    d = rings.Integer(d)
+    if d <= 0:
+        raise ValueError, "d must be positive"
+
+    G = DirichletGroup(d, rings.RationalField())
+    return G([arith.kronecker(u.lift(),d) for u in G.unit_gens()])
 
 
 def is_DirichletCharacter(x):

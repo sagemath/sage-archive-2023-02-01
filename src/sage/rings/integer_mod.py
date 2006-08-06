@@ -232,7 +232,18 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         return self.parent()(self.__value * right.__value, construct=True)
 
     def _div_(self, right):
-        return self.parent()(self.__value / right.__value, construct=True)
+        """
+        EXAMPLES:
+            sage: R = Integers(25)
+            sage: R(15)/5
+            3
+        """
+        try:
+            return self.parent()(self.__value / right.__value, construct=True)
+        except PariError:
+            P = self.parent()
+            t = (self.__value.lift() / right.__value.lift()).Mod(P.order())
+            return P(t, construct=True)
 
     def __int__(self):
         return int(self.__value.lift())

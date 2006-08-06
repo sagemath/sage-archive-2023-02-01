@@ -320,7 +320,8 @@ class Magma(Expect):
         procedures defined in the file are \emph{not} available.
         For only those, use \code{magma.load(filename)}.
         """
-        self.eval('Attach("%s")'%filename)
+        return self.eval('Attach("%s")'%filename)
+
     Attach = attach
 
     def attach_spec(self, filename):
@@ -330,7 +331,8 @@ class Magma(Expect):
         This attaches numerous files to the running MAGMA (see the
         MAGMA documentation for more details).
         """
-        self.eval('AttachSpec("%s")'%filename)
+        return self.eval('AttachSpec("%s")'%filename)
+
     AttachSpec = attach_spec
 
     def load(self, filename):
@@ -342,7 +344,7 @@ class Magma(Expect):
         in the file available. The file should not contain any
         intrinsics (or you'll get errors).
         """
-        self.eval('load "%s"'%filename)
+        return self.eval('load "%s"'%filename)
 
     def _next_var_name(self):
         if self.__seq == 0:

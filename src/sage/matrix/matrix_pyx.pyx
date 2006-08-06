@@ -1926,6 +1926,273 @@ cdef class Matrix(ModuleElement):
     def _lllgram(self):
         raise NotImplementedError
 
+
+
+    def strassen_invert(Matrix self, cutoff=80):
+        """
+        Generic Strassen matrix inversion multiplication method.
+
+        Raises a ZeroDivisionError if the matrix has zero determinant
+        Raises an ArithmeticError, if the inverse doesn't exist
+        because the matrix is nonsquare.
+
+        INPUT:
+            M -- matrix to invert
+            cutoff -- size at which standard matrix inversion/multiplication functions become more efficient
+
+        OUTPUT:
+            R -- inverse matrix such that M*R = R*M = I
+
+        EXAMPLES:
+
+            sage: M = Matrix(QQ, 2, 2, [3,5,7,11])
+            sage: M.strassen_invert(cutoff=1)
+            [-11/2   5/2]
+            [  7/2  -3/2]
+
+            sage: P.<t> = LaurentSeriesRing(GF(389), 't')
+            sage: M = Matrix(P, 4, 4, [i^7+1 for i in range(16)])
+            sage: M.strassen_invert(cutoff=1)
+            [301 141 239 226]
+            [241 273 219 184]
+            [142 316 278 208]
+            [312 180 173  12]
+
+            sage: M.strassen_invert(cutoff=2)
+            [301 141 239 226]
+            [241 273 219 184]
+            [142 316 278 208]
+            [312 180 173  12]
+
+
+        ALGORITHM:
+
+        To invert
+
+            [A B]
+            [C D]
+
+        compute
+
+            S  = A^-1
+            T1 = C * S      T2 = T1 * B       T3 = D - T2
+            U  = T3^-1
+
+            P1 = S  * B      P2 = C * S
+            R1 = P1 * U      R2 = U * P2       R3 = R1 * P2 = P1 * R2
+
+        The inverse is then given by
+
+            [ S + R3  ,  -R1 ]
+            [    -R2  ,    U ]
+
+
+        AUTHOR:
+            Robert Bradshaw (2007-08-05)
+
+        TODO: Right now calls generic submatrix multiply code, should call Strassen code for multiplies...
+        TODO: Random permutations for non-singular submatrices?
+
+        """
+
+
+
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+        if not self.determinant().is_unit():
+            raise ZeroDivisionError, "self is not invertible"
+
+
+        return self._strassen_invert_inner(0, 0, self.nrows(), cutoff)
+
+
+
+    def _strassen_invert_inner(Matrix self,
+                               int row, int col, int n, int cutoff):
+        """
+        For internal use, correct dimensions are assumed in this method.
+        All indices are zero-indexed
+
+        INPUT:
+            row -- row of upper left entry of submatrix
+            col -- column of upper left entry of submatrix
+            n -- width and height of submatrix, must be (2^k)m for m < cutoff
+            cutoff -- size at which to call standard inverse
+
+        OUTPUT:
+            inverted matrix
+
+        """
+
+        cdef int n_2
+        if (n <= cutoff):
+            return self._invert_submatrix(row, col, n)
+        else:
+            n_2 = n/2
+            S = self._strassen_invert_inner(row, col, n_2, cutoff)
+            T1 = self._mul_submatrices(S, row + n_2, col, n_2, n_2,
+                                          0, 0, n_2, n_2)
+            T2 = T1._mul_submatrices(self, 0, 0, n_2, n_2,
+                                           row, col + n_2, n_2, n_2)
+            T3 = self._sub_submatrices(T2, row + n_2, col + n_2, n_2, n_2,
+                                           0, 0)
+            U = T3._strassen_invert_inner(0, 0, n_2, cutoff)
+
+            P1 = S._mul_submatrices(self, 0, 0, n_2, n_2,
+                                          row, col + n_2, n_2, n_2)
+            P2 = self._mul_submatrices(S, row + n_2, col, n_2, n_2,
+                                          0, 0, n_2, n_2)
+
+            R1 = P1._mul_submatrices(U, 0, 0, n_2, n_2,
+                                        0, 0, n_2, n_2)
+            R2 = U._mul_submatrices(P2, 0, 0, n_2, n_2,
+                                        0, 0, n_2, n_2)
+            R3 = R1._mul_submatrices(P2, 0, 0, n_2, n_2,
+                                         0, 0, n_2, n_2)
+
+            W = S + R3
+            X = -R1
+            Y = -R2
+            Z = U
+
+            WX = W.augment(X)
+            YZ = Y.augment(Z)
+            return WX.stack(YZ)
+
+
+
+    def _mul_submatrices(self,
+                         Matrix other,
+                         int self_r, int self_c, int self_nrows, int self_ncols,
+                         int other_r, int other_c, int other_nrows, int other_ncols):
+        """
+        For internal use, correct types and dimensions are assumed in this method
+        Adds two submatrices
+
+        NOTE: self_ncols = other_nrows
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ, 10, 10, range(100))
+            sage: B = Matrix(ZZ, 20, 20, range(400))
+            sage: M = A._submatrix(1,2,3,4) * B._submatrix(11,12,4,5)
+            sage: N = A._mul_submatrices(B, 1, 2, 3, 4, 11, 12, 4, 5)
+            sage: M == N
+            True
+
+        """
+        M = self.new_matrix(self_nrows, other_ncols)
+        zero = self.base_ring()(0)
+        cdef int i, j, k
+        for i from 0 <= i < self_nrows:
+            for j from 0 <= j < other_ncols:
+                sum = zero
+                for k from 0 <= k < self_ncols:
+                    sum = sum + self.get((self_r + i,self_c + k))*other.get((other_r + k,other_c + j))
+                M.set((i,j), sum)
+        return M
+
+
+
+    def _add_submatrices(Matrix self, Matrix other,
+                         int self_r, int self_c, int nrows, int ncols,
+                         int other_r, int other_c):
+        """
+        For internal use, correct types and dimensions are assumed in this method
+        Adds two submatrices
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ, 10, 10, range(100))
+            sage: B = Matrix(ZZ, 20, 20, range(400))
+            sage: M = A._submatrix(1,2,3,4) + B._submatrix(11,12,3,4)
+            sage: N = A._add_submatrices(B, 1, 2, 3, 4, 11, 12)
+            sage: M == N
+            True
+
+        """
+        M = self.new_matrix(nrows, ncols)
+        cdef int i, j
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < ncols:
+                M.set((i,j), self.get((self_r + i,self_c + j)) + other.get((other_r + i, other_c + j)))
+        return M
+
+
+    def _sub_submatrices(Matrix self, Matrix other,
+                         int self_r, int self_c, int nrows, int ncols,
+                         int other_r, int other_c):
+        """
+        For internal use, correct types and dimensions are assumed in this method
+        Subtracts two submatrices
+
+        EXAMPLE:
+            sage: A = Matrix(ZZ, 10, 10, range(100))
+            sage: B = Matrix(ZZ, 20, 20, range(400))
+            sage: M = A._submatrix(1,2,3,4) - B._submatrix(11,12,3,4)
+            sage: N = A._sub_submatrices(B, 1, 2, 3, 4, 11, 12)
+            sage: M == N
+            True
+
+        """
+        M = self.new_matrix(nrows, ncols)
+        cdef int i, j
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < ncols:
+                M.set((i,j), self.get((self_r + i,self_c + j)) - other.get((other_r + i, other_c + j)))
+        return M
+
+
+    def _submatrix(Matrix self,
+                  int row, int col, int nrows, int ncols):
+        """
+        Creates a submatrix from this matrix, no bounds checking
+
+        INPUT:
+            M -- matrix
+            row -- row of upper left entry of submatrix
+            col -- column of upper left entry of submatrix
+            nrows -- number of rows in the submatrix
+            ncols -- number of columns in the submatrix
+
+        OUTPUT:
+            The nrows $\times$ ncols matrix with upper left entry M[row, col]
+
+        EXAMPLE:
+            sage: M = Matrix(ZZ, 3, 3, range(9))
+            sage: M
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+
+            sage: M._submatrix(1,1,2,2)
+            [4 5]
+            [7 8]
+
+            sage: Matrix(ZZ, 6, 6, range(36))._submatrix(1,2,3,4)
+            [ 8  9 10 11]
+            [14 15 16 17]
+            [20 21 22 23]
+
+        """
+        M = self.new_matrix(nrows, ncols)
+        cdef int i, j
+        for i from 0 <= i < nrows:
+            for j from 0 <= j < ncols:
+                M.set((i,j), self.get((row + i , col + j)))
+        return M
+
+
+    def _invert_submatrix(Matrix self,
+                          int self_r, int self_c, int n):
+        M = self._submatrix(self_r, self_c, n, n)
+        return ~M.matrix_over_field()
+
+
+
+
+
+############################# end class ####################
+
+
 def __reduce__Matrix_pyx(cls, attrs, parent, dict, determinant,
                          sparse_columns, sparse_rows,
                          mutability):
@@ -1934,3 +2201,5 @@ def __reduce__Matrix_pyx(cls, attrs, parent, dict, determinant,
             sparse_columns, sparse_rows,
             mutability)
     return M
+
+

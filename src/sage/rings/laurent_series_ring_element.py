@@ -61,6 +61,9 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         self.__n = n + f.valuation()
         self.__u = f.unit_part()
 
+    def is_unit(self):
+        return not self.is_zero()
+
     def is_zero(self):
         """
         EXAMPLES:

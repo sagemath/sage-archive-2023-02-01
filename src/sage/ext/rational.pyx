@@ -591,6 +591,68 @@ cdef class Rational(element.FieldElement):
         _sig_off
         return (n*d)%other
 
+    def norm(self):
+        """
+        Returns the norm from Q to Q of x (which is just x). This was
+        added for compatibility with NumberFields.
+
+        EXAMPLES:
+            sage: (1/3).norm()
+             1/3
+
+        AUTHOR:
+          -- Craig Citro
+        """
+        return self
+
+    def trace(self):
+        """
+        Returns the trace from Q to Q of x (which is just x). This was
+        added for compatibility with NumberFields.
+
+        EXAMPLES:
+            sage: (1/3).trace()
+             1/3
+
+        AUTHOR:
+          -- Craig Citro
+        """
+        return self
+
+    def charpoly(self):
+        """
+        Return the characteristic polynomial of this rational number.
+        This will always be just x - self; this is really here
+        so that code written for number fields won't crash when
+        applied to rational numbers.
+
+        EXAMPLES:
+            sage: (1/3).charpoly()
+             x - 1/3
+
+        AUTHOR:
+          -- Craig Citro
+        """
+        QQ = self.parent()
+        return QQ['x']([-self,1])
+
+    def minpoly(self):
+        """
+        Return the minimal polynomial of this rational number.
+        This will always be just x - self; this is really here
+        so that code written for number fields won't crash when
+        applied to rational numbers.
+
+        EXAMPLES:
+            sage: (1/3).minpoly()
+             x - 1/3
+
+        AUTHOR:
+          -- Craig Citro
+        """
+        QQ = self.parent()
+        return QQ['x']([-self,1])
+
     def numer(self):
         """
         Return the numerator of this rational number.

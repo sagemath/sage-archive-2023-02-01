@@ -23,6 +23,8 @@ AUTHORS:
 
 import operator
 
+import copy
+
 from sage.structure.element import Element, Element_cmp_
 import sage.rings.rational_field
 import sage.rings.integer_ring
@@ -1398,11 +1400,41 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             return False
         return True
 
+    def shift(self, n):
+        r"""
+        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
+        terms below $x^n$ will be discarded. Does not change this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(PolynomialRing(QQ))  # force generic dense poly
+            sage: p = x^2 + 2*x + 4
+            sage: p.shift(0)
+             x^2 + 2*x + 4
+            sage: p.shift(-1)
+             x + 2
+            sage: p.shift(-5)
+             0
+            sage: p.shift(2)
+             x^4 + 2*x^3 + 4*x^2
+
+        AUTHOR:
+            -- David Harvey (2006-08-06)
+        """
+        if n == 0:
+            return self.copy()
+        if n > 0:
+            output = [self.base_ring()(0)] * n
+            output.extend(self.coeffs())
+            return self.polynomial(output, check=False)
+        if n < 0:
+            if n > self.degree():
+                return self.polynomial([])
+            else:
+                return self.polynomial(self.coeffs()[-int(n):], check=False)
 
     def truncate(self, n):
         r"""
-        Replace this polynomial by $\sum a_m x^m$ where the sum is
-        over $m < n$.  The resulting polynomial is equivalent to self
+        Returns the polynomial of degree $ < n$ which is equivalent to self
         modulo $x^n$.
         """
         return self.parent()(self[:int(n)], check=False)
@@ -1515,6 +1547,38 @@ class Polynomial_generic_dense(Polynomial):
     def degree(self):
         return len(self.__coeffs) - 1
 
+    def shift(self, n):
+        r"""
+        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
+        terms below $x^n$ will be discarded. Does not change this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(PolynomialRing(QQ))
+            sage: p = x^2 + 2*x + 4
+            sage: type(p)
+            <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+            sage: p.shift(0)
+             x^2 + 2*x + 4
+            sage: p.shift(-1)
+             x + 2
+            sage: p.shift(2)
+             x^4 + 2*x^3 + 4*x^2
+
+        AUTHOR:
+            -- David Harvey (2006-08-06)
+        """
+        if n == 0:
+            return self.copy()
+        if n > 0:
+            output = [self.base_ring()(0)] * n
+            output.extend(self.__coeffs)
+            return self.polynomial(output, check=False)
+        if n < 0:
+            if n > self.degree():
+                return self.polynomial([])
+            else:
+                return self.polynomial(self.__coeffs[-int(n):], check=False)
+
 
 class Polynomial_generic_sparse(Polynomial):
     """
@@ -1564,6 +1628,40 @@ class Polynomial_generic_sparse(Polynomial):
         if check:
             self.__normalize()
 
+
+    def _repr(self, name=None):
+        r"""
+        AUTHOR:
+            -- David Harvey (2006-08-05), based on Polynomial._repr()
+        """
+        s = " "
+        m = self.degree() + 1
+        if name is None:
+            name = self.parent().variable_name()
+        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        coeffs = list(self.__coeffs.iteritems())
+        coeffs.sort()
+        for (n, x) in reversed(coeffs):
+            if x != 0:
+                if n != m-1:
+                    s += " + "
+                x = str(x)
+                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                    x = "(%s)"%x
+                if n > 1:
+                    var = "*%s^%s"%(name,n)
+                elif n==1:
+                    var = "*%s"%name
+                else:
+                    var = ""
+                s += "%s%s"%(x,var)
+        if atomic_repr:
+            s = s.replace(" + -", " - ")
+        s = s.replace(" 1*"," ")
+        s = s.replace(" -1*", " -")
+        if s==" ":
+            return "0"
+        return s[1:]
 
     def __normalize(self):
         x = self.__coeffs
@@ -1623,6 +1721,92 @@ class Polynomial_generic_sparse(Polynomial):
         if len(v) == 0:
             return -1
         return max(v)
+
+    def _add_(self, right):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: (x^100000 + 2*x^50000) + (4*x^75000 - 2*x^50000 + 3*x)
+             x^100000 + 4*x^75000 + 3*x
+
+        AUTHOR:
+            -- David Harvey (2006-08-05)
+        """
+        output = copy.copy(self.__coeffs)
+
+        for (index, coeff) in right.__coeffs.iteritems():
+            if index in output:
+                output[index] += coeff
+            else:
+                output[index] = coeff
+
+        output = self.polynomial(output, check=False)
+        output.__normalize()
+        return output
+
+    def _mul_(self, right):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: (x^100000 - x^50000) * (x^100000 + x^50000)
+             x^200000 - x^100000
+            sage: (x^100000 - x^50000) * R(0)
+             0
+
+        AUTHOR:
+            -- David Harvey (2006-08-05)
+        """
+        output = {}
+
+        for (index1, coeff1) in self.__coeffs.iteritems():
+            for (index2, coeff2) in right.__coeffs.iteritems():
+                product = coeff1 * coeff2
+                index = index1 + index2
+                if index in output:
+                    output[index] += product
+                else:
+                    output[index] = product
+
+        output = self.polynomial(output, check=False)
+        output.__normalize()
+        return output
+
+    def shift(self, n):
+        r"""
+        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
+        terms below $x^n$ will be discarded. Does not change this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: p = x^100000 + 2*x + 4
+            sage: type(p)
+            <class 'sage.rings.polynomial_element.Polynomial_generic_sparse'>
+            sage: p.shift(0)
+             x^100000 + 2*x + 4
+            sage: p.shift(-1)
+             x^99999 + 2
+            sage: p.shift(-100002)
+             0
+            sage: p.shift(2)
+             x^100002 + 2*x^3 + 4*x^2
+
+        AUTHOR:
+            -- David Harvey (2006-08-06)
+        """
+        n = int(n)
+        if n == 0:
+            return self.copy()
+        if n > 0:
+            output = {}
+            for (index, coeff) in self.__coeffs.iteritems():
+                output[index + n] = coeff
+            return self.polynomial(output, check=False)
+        if n < 0:
+            output = {}
+            for (index, coeff) in self.__coeffs.iteritems():
+                if index + n >= 0:
+                    output[index + n] = coeff
+            return self.polynomial(output, check=False)
 
 
 class Polynomial_generic_field(Polynomial,
@@ -2589,6 +2773,30 @@ class Polynomial_dense_mod_n(Polynomial):
             x^3 + 90*x^2 + 32*x + 68
         """
         return self.parent()(self.__poly * right.__poly, construct=True)
+
+    def shift(self, n):
+        r"""
+        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
+        terms below $x^n$ will be discarded. Does not change this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(Integers(12345678901234567890))
+            sage: p = x^2 + 2*x + 4
+            sage: p.shift(0)
+             x^2 + 2*x + 4
+            sage: p.shift(-1)
+             x + 2
+            sage: p.shift(-5)
+             0
+            sage: p.shift(2)
+             x^4 + 2*x^3 + 4*x^2
+
+        AUTHOR:
+            -- David Harvey (2006-08-06)
+        """
+        if n == 0:
+            return self.copy()
+        return self.parent()(self.__poly.left_shift(n), construct=True)
 
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)

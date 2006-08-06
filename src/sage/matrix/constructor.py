@@ -56,8 +56,8 @@ def Matrix(R, nrows, ncols=0, entries=0, sparse=False):
         [x3 x4 x5]
         [x6 x7 x8]
     """
-    if not rings.is_Ring(R):
-        return matrix_over_R(R,nrows)
+    if hasattr(nrows, '_matrix_'):
+        return nrows._matrix_(R)
     if isinstance(ncols, (list, tuple)):
         entries = ncols
         ncols = len(entries) / nrows
@@ -66,16 +66,7 @@ def Matrix(R, nrows, ncols=0, entries=0, sparse=False):
         entries = list(entries)
     return matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse)(entries)
 
-
 matrix = Matrix
 
 
-def matrix_over_R(x, R):
-    """
-    Return the \sage matrix over $R$ obtained from x, if possible.
-    """
-    try:
-        return x._matrix_(R)
-    except AttributeError:
-        raise TypeError, "No known way to create a matrix from %s"%x
 

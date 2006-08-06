@@ -676,27 +676,61 @@ def sigma(n, k=1):
     k = sage.rings.integer.Integer(k)
     return sum([d**k for d in divisors(n)])
 
-def gcd(a, b=0):
+def gcd(a, b=0, integer=False):
     """
     The greatest commond divisor of a and b.
+
+    INPUT:
+        a -- number
+        b -- number (optional)
+        integer -- (default: False); if True, do an integer GCD
+    or
+        v -- vector
+        integer -- (default: False); if True, do an integer GCD
+            NOTE -- this is *vastly* faster than doing the generic GCD
 
     EXAMPLES:
         sage: GCD(97,100)
         1
         sage: GCD(97*10^15, 19^20*97^2)
         97
+        sage: GCD(2/3, 4/3)
+        2/3
+        sage: GCD([2,4,6,8])
+        2
+        sage: GCD(srange(0,10000,10))  # fast  !!
+        10
     """
+    if integer:
+        if isinstance(a,list):
+            return sage.rings.integer.GCD_list(a)
+        else:
+            return sage.rings.integer.Integer(a).gcd(\
+                sage.rings.integer.Integer(b))
     if isinstance(a,list):
-        return sage.rings.integer.GCD_list(a)
+        return __GCD_list(a)
     if not isinstance(a, RingElement):
         a = sage.rings.integer.Integer(a)
     return a.gcd(b)
 
 GCD = gcd
 
-def lcm(a, b=None):
+def lcm(a, b=None, integer=False):
     """
-    The least common multiple of a and b.
+    The least common multiple of a and b, or if a is a list and b is
+    omitted the least common multiple of all elements of v.
+
+    NOTE: Use integer=True to make this vastly faster if you are
+    working with lists of integers.
+
+    INPUT:
+        a -- number
+        b -- number (optional)
+        integer -- (default: False); if True, do an integer LCM
+    or
+        v -- vector
+        integer -- (default: False); if True, do an integer LCM
+            NOTE -- this is *vastly* faster than doing the generic LCM
 
     EXAMPLES:
         sage: LCM(97,100)
@@ -705,15 +739,33 @@ def lcm(a, b=None):
         0
         sage: LCM(-3,-5)
         15
+        sage: LCM([1,2,3,4,5/3])
+        60
+        sage: v = LCM(range(1,10000),integer=True)   # *very* fast!
+        sage: len(str(v))
+        4349
     """
-    if isinstance(a,list):
-        return sage.rings.integer.LCM_list(a)
+    if integer:
+        if isinstance(a,list):
+            return sage.rings.integer.LCM_list(a)
+        else:
+            return sage.rings.integer.Integer(a).lcm(\
+                sage.rings.integer.Integer(b))
+    if isinstance(a, list):
+        return __LCM_list(a)
     if not isinstance(a, RingElement):
         a = sage.rings.integer.Integer(a)
     return a.lcm(b)
 
 LCM = lcm
 
+def __LCM_list(v):
+    if len(v) == 0:
+        return 1
+    x = v[0]
+    for i in range(1,len(v)):
+        x = LCM(x, v[i])
+    return x
 
 ## def GCD_python(a, b=0):
 ##     """This function should behave exactly the same as GCD,
@@ -733,15 +785,15 @@ LCM = lcm
 ##         a = b; b = c
 ##     return a
 
-## def __GCD_list(v):
-##     if len(v) == 0:
-##         return 1
-##     if len(v) == 1:
-##         return v[0]
-##     g = v[0]
-##     for i in range(1,len(v)):
-##         g = GCD(g, v[i])
-##     return g
+def __GCD_list(v):
+    if len(v) == 0:
+        return 1
+    if len(v) == 1:
+        return v[0]
+    g = v[0]
+    for i in range(1,len(v)):
+        g = GCD(g, v[i])
+    return g
 
 
 def xgcd(a, b):
@@ -1318,15 +1370,15 @@ def crt(a,b=0,m=1,n=1):
 
 CRT = crt
 
-## def CRT_list(v, moduli):
-##     if len(v) == 0:
-##         return 0
-##     x = v[0]
-##     m = moduli[0]
-##     for i in range(1,len(v)):
-##         x = CRT(x,v[i],m,moduli[i])
-##         m *= moduli[i]
-##     return x%m
+def CRT_list(v, moduli):
+    if len(v) == 0:
+        return 0
+    x = v[0]
+    m = moduli[0]
+    for i in range(1,len(v)):
+        x = CRT(x,v[i],m,moduli[i])
+        m *= moduli[i]
+    return x%m
 
 def CRT_basis(moduli):
     """

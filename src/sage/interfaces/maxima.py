@@ -180,7 +180,7 @@ is $i/j$, for $i,j=1,\ldots,4$.
     [[[0,4],[3,1]],[1,0,0, - 4],[0,1,0, - 2],[0,0,1, - 4/3],[1,2,3,4]]
 
 We can also compute the echelon form in \sage:
-    sage: B = matrix(A, QQ)
+    sage: B = matrix(QQ, A)
     sage: B.echelon_form()
     [  1 1/2 1/3 1/4]
     [  0   0   0   0]
@@ -1315,7 +1315,7 @@ class MaximaElement(ExpectElement):
 
         You can also use the \code{matrix} command (which is defined
         in \code{sage.misc.functional}):
-            sage: matrix(A, QQ)
+            sage: matrix(QQ, A)
             [  1 1/2 1/3 1/4]
             [  2   1 2/3 1/2]
             [  3 3/2   1 3/4]

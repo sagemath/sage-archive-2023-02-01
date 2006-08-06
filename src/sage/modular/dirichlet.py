@@ -50,6 +50,8 @@ import sage.algebras.quaternion_algebra
 def trivial_character(N, base_ring=rings.RationalField()):
     return DirichletGroup(N, base_ring)(1)
 
+TrivialCharacter = trivial_character
+
 def kronecker_character(d):
     """
     Returns the quadratic Dirichlet character (d/.) of minimal conductor.

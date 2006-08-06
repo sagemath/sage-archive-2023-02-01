@@ -87,6 +87,50 @@ cdef class ntl_ZZ:
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
         self.x = <ZZ*> y
 
+    cdef int get_as_int(ntl_ZZ self):
+        r"""
+        Returns value as C int.
+        Return value is only valid if the result fits into an int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        return ZZ_to_int(self.x)
+
+    def get_as_int_doctest(self):
+        r"""
+        This method exists solely for automated testing of get_as_int().
+
+        sage: x = ntl.ZZ(42)
+        sage: i = x.get_as_int_doctest()
+        sage: print i
+         42
+        sage: print type(i)
+         <type 'int'>
+        """
+        return self.get_as_int()
+
+    cdef void set_from_int(ntl_ZZ self, int value):
+        r"""
+        Sets the value from a C int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        ZZ_set_from_int(self.x, value)
+
+    def set_from_int_doctest(self, value):
+        r"""
+        This method exists solely for automated testing of set_from_int().
+
+        sage: x = ntl.ZZ()
+        sage: x.set_from_int_doctest(42)
+        sage: x
+         42
+        """
+        self.set_from_int(int(value))
+
+    # todo: add wrapper for int_to_ZZ in wrap.cc?
+
+
 cdef public make_ZZ(ZZ* x):
     cdef ntl_ZZ y
     _sig_off
@@ -230,10 +274,53 @@ cdef class ntl_ZZX:
         a = str(int(a))
         ZZX_setitem(self.x, i, a)
 
+    cdef void setitem_from_int(ntl_ZZX self, long i, int value):
+        r"""
+        Sets ith coefficient to value.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        ZZX_setitem_from_int(self.x, i, value)
+
+    def setitem_from_int_doctest(self, i, value):
+        r"""
+        This method exists solely for automated testing of setitem_from_int().
+
+        sage: x = ntl.ZZX([2, 3, 4])
+        sage: x.setitem_from_int_doctest(5, 42)
+        sage: x
+         [2 3 4 0 0 42]
+        """
+        self.setitem_from_int(int(i), int(value))
+
     def __getitem__(self, unsigned int i):
         cdef char* t
         t = ZZX_getitem(self.x,i)
         return int(string(t))
+
+    cdef int getitem_as_int(ntl_ZZX self, long i):
+        r"""
+        Returns ith coefficient as C int.
+        Return value is only valid if the result fits into an int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        return ZZX_getitem_as_int(self.x, i)
+
+    def getitem_as_int_doctest(self, i):
+        r"""
+        This method exists solely for automated testing of getitem_as_int().
+
+        sage: x = ntl.ZZX([2, 3, 5, -7, 11])
+        sage: i = x.getitem_as_int_doctest(3)
+        sage: print i
+         -7
+        sage: print type(i)
+         <type 'int'>
+        sage: print x.getitem_as_int_doctest(15)
+         0
+        """
+        return self.getitem_as_int(i)
 
     def __add__(ntl_ZZX self, ntl_ZZX other):
         """
@@ -995,7 +1082,7 @@ def make_new_ZZX(v=[]):
 
 ##############################################################################
 #
-# ZZ_p: integers module p
+# ZZ_p: integers modulo p
 #
 ##############################################################################
 cdef class ntl_ZZ_p:
@@ -1072,6 +1159,51 @@ cdef class ntl_ZZ_p:
 
     cdef set(self, void *y):  # only used internally for initialization; assumes self.x not set yet!
         self.x = <ZZ_p*> y
+
+    cdef int get_as_int(ntl_ZZ_p self):
+        r"""
+        Returns value as C int.
+        Return value is only valid if the result fits into an int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        return ZZ_p_to_int(self.x)
+
+    def get_as_int_doctest(self):
+        r"""
+        This method exists solely for automated testing of get_as_int().
+
+        sage: ntl.set_modulus(ntl.ZZ(20))
+        sage: x = ntl.ZZ_p(42)
+        sage: i = x.get_as_int_doctest()
+        sage: print i
+         2
+        sage: print type(i)
+         <type 'int'>
+        """
+        return self.get_as_int()
+
+    cdef void set_from_int(ntl_ZZ_p self, int value):
+        r"""
+        Sets the value from a C int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        ZZ_p_set_from_int(self.x, value)
+
+    def set_from_int_doctest(self, value):
+        r"""
+        This method exists solely for automated testing of set_from_int().
+
+        sage: ntl.set_modulus(ntl.ZZ(20))
+        sage: x = ntl.ZZ_p()
+        sage: x.set_from_int_doctest(42)
+        sage: x
+         2
+        """
+        self.set_from_int(int(value))
+
+    # todo: add wrapper for int_to_ZZ_p in wrap.cc?
 
 
 cdef public make_ZZ_p(ZZ_p* x):
@@ -1157,10 +1289,55 @@ cdef class ntl_ZZ_pX:
         a = str(int(a))
         ZZ_pX_setitem(self.x, i, a)
 
+    cdef void setitem_from_int(ntl_ZZ_pX self, long i, int value):
+        r"""
+        Sets ith coefficient to value.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        ZZ_pX_setitem_from_int(self.x, i, value)
+
+    def setitem_from_int_doctest(self, i, value):
+        r"""
+        This method exists solely for automated testing of setitem_from_int().
+
+        sage: ntl.set_modulus(ntl.ZZ(20))
+        sage: x = ntl.ZZ_pX([2, 3, 4])
+        sage: x.setitem_from_int_doctest(5, 42)
+        sage: x
+         [2 3 4 0 0 2]
+        """
+        self.setitem_from_int(int(i), int(value))
+
     def __getitem__(self, unsigned int i):
         cdef char* t
         t = ZZ_pX_getitem(self.x,i)
         return int(string(t))
+
+    cdef int getitem_as_int(ntl_ZZ_pX self, long i):
+        r"""
+        Returns ith coefficient as C int.
+        Return value is only valid if the result fits into an int.
+
+        AUTHOR: David Harvey (2006-08-05)
+        """
+        return ZZ_pX_getitem_as_int(self.x, i)
+
+    def getitem_as_int_doctest(self, i):
+        r"""
+        This method exists solely for automated testing of getitem_as_int().
+
+        sage: ntl.set_modulus(ntl.ZZ(20))
+        sage: x = ntl.ZZ_pX([2, 3, 5, -7, 11])
+        sage: i = x.getitem_as_int_doctest(3)
+        sage: print i
+         13
+        sage: print type(i)
+         <type 'int'>
+        sage: print x.getitem_as_int_doctest(15)
+         0
+        """
+        return self.getitem_as_int(i)
 
     def list(self):
         """

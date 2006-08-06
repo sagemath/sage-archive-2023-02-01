@@ -66,7 +66,7 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
 ntl = Extension('sage.libs.ntl.ntl',
-                 sources = ["sage/libs/ntl/ntl.pyx", "sage/libs/ntl/wrap.cc"],
+                 sources = ["sage/libs/ntl/ntl.pyx", "sage/libs/ntl/ntl_wrap.cc"],
                  libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
@@ -151,7 +151,8 @@ ext_modules = [ \
 
     Extension('sage.ext.bernoulli_mod_p',
               sources = ['sage/ext/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
-              libraries=['ntl']), \
+              libraries=['ntl'],
+              include_dirs=['sage/libs/ntl/']), \
 
     Extension('sage.ext.intmod_pyx',
               sources = ['sage/ext/intmod_pyx.pyx']), \

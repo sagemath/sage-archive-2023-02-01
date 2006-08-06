@@ -5,7 +5,7 @@ cdef extern from "Python.h":
 cdef extern from "stdlib.h":
     void free(void *ptr)
 
-cdef extern from "wrap.h":
+cdef extern from "ntl_wrap.h":
     #### ZZ
     struct ZZ
     ZZ* new_ZZ()

@@ -2,7 +2,7 @@
 #include <sstream>
 using namespace std;
 
-#include "wrap.h"
+#include "ntl_wrap.h"
 #include <NTL/mat_poly_ZZ.h>
 #include <NTL/LLL.h>
 
@@ -39,6 +39,28 @@ char* ZZ_to_str(const ZZ* x)
   return buf;
 }
 
+/* Return value is only valid if the result should fit into an int.
+   AUTHOR: David Harvey (2008-06-08) */
+int ZZ_to_int(const ZZ* x)
+{
+  return to_int(*x);
+}
+
+/* Returns a *new* ZZ object.
+   AUTHOR: David Harvey (2008-06-08) */
+struct ZZ* int_to_ZZ(int value)
+{
+  ZZ* output = new ZZ();
+  conv(*output, value);
+  return output;
+}
+
+/* Sets given ZZ to value
+   AUTHOR: David Harvey (2008-06-08) */
+void ZZ_set_from_int(ZZ* x, int value)
+{
+  conv(*x, value);
+}
 
 struct ZZ* ZZ_mul(const struct ZZ* x, const struct ZZ* y)
 {
@@ -142,6 +164,28 @@ char* ZZ_p_to_str(const ZZ_p* x)
   return buf;
 }
 
+/* Return value is only valid if the result should fit into an int.
+   AUTHOR: David Harvey (2008-06-08) */
+int ZZ_p_to_int(const ZZ_p* x)
+{
+  return ZZ_to_int(&rep(*x));
+}
+
+/* Returns a *new* ZZ_p object.
+   AUTHOR: David Harvey (2008-06-08) */
+struct ZZ_p* int_to_ZZ_p(int value)
+{
+  ZZ_p* output = new ZZ_p();
+  conv(*output, value);
+  return output;
+}
+
+/* Sets given ZZ_p to value
+   AUTHOR: David Harvey (2008-06-08) */
+void ZZ_p_set_from_int(ZZ_p* x, int value)
+{
+  conv(*x, value);
+}
 
 struct ZZ_p* ZZ_p_mul(const struct ZZ_p* x, const struct ZZ_p* y)
 {
@@ -255,10 +299,25 @@ void ZZX_setitem(struct ZZX* x, long i, const char* a)
   free(b);
 }
 
+/* Sets ith coefficient of x to value.
+   AUTHOR: David Harvey (2008-06-08) */
+void ZZX_setitem_from_int(struct ZZX* x, long i, int value)
+{
+  SetCoeff(*x, i, value);
+}
+
 char* ZZX_getitem(struct ZZX* x, long i)
 {
   ZZ c = coeff(*x, i);
   return ZZ_to_str(&c);
+}
+
+/* Returns ith coefficient of x.
+   Return value is only valid if the result should fit into an int.
+   AUTHOR: David Harvey (2008-06-08) */
+int ZZX_getitem_as_int(struct ZZX* x, long i)
+{
+  return ZZ_to_int(&coeff(*x, i));
 }
 
 struct ZZX* ZZX_add(struct ZZX* x, struct ZZX* y)
@@ -613,10 +672,25 @@ void ZZ_pX_setitem(struct ZZ_pX* x, long i, const char* a)
   free(b);
 }
 
+/* Sets ith coefficient of x to value.
+   AUTHOR: David Harvey (2008-06-08) */
+void ZZ_pX_setitem_from_int(struct ZZ_pX* x, long i, int value)
+{
+  SetCoeff(*x, i, value);
+}
+
 char* ZZ_pX_getitem(struct ZZ_pX* x, long i)
 {
   ZZ_p c = coeff(*x, i);
   return ZZ_p_to_str(&c);
+}
+
+/* Returns ith coefficient of x.
+   Return value is only valid if the result should fit into an int.
+   AUTHOR: David Harvey (2008-06-08) */
+int ZZ_pX_getitem_as_int(struct ZZ_pX* x, long i)
+{
+    return ZZ_to_int(&rep(coeff(*x, i)));
 }
 
 struct ZZ_pX* ZZ_pX_add(struct ZZ_pX* x, struct ZZ_pX* y)

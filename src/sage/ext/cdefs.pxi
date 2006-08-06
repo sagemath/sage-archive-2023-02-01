@@ -61,6 +61,7 @@ cdef extern from "gmp.h":
     unsigned long int mpz_get_ui (mpz_t op)
     char *mpz_get_str(char *str, int base, mpz_t op)
     void mpz_init(mpz_t integer)
+    void mpz_init_set(mpz_t rop, mpz_t op)
     void mpz_init_set_si(mpz_t integer, signed long int n)
     void mpz_init_set_ui(mpz_t integer, unsigned long int n)
     int mpz_invert (mpz_t rop, mpz_t op1, mpz_t op2)

@@ -1498,3 +1498,80 @@ def integer(x):
     return Integer(x)
 
 
+def LCM_list(v):
+    cdef int i, n
+    cdef mpz_t z
+    cdef Integer w
+
+    n = len(v)
+
+    if n == 0:
+        return Integer(1)
+
+    try:
+        w = v[0]
+        mpz_init_set(z, w.value)
+
+        _sig_on
+        for i from 1 <= i < n:
+            w = v[i]
+            mpz_lcm(z, z, w.value)
+        _sig_off
+    except TypeError:
+        w = Integer(v[0])
+        mpz_init_set(z, w.value)
+
+        _sig_on
+        for i from 1 <= i < n:
+            w = Integer(v[i])
+            mpz_lcm(z, z, w.value)
+        _sig_off
+
+
+    w = Integer()
+    mpz_set(w.value, z)
+    mpz_clear(z)
+    return w
+
+
+
+def GCD_list(v):
+    cdef int i, n
+    cdef mpz_t z
+    cdef Integer w
+
+    n = len(v)
+
+    if n == 0:
+        return Integer(1)
+
+    try:
+        w = v[0]
+        mpz_init_set(z, w.value)
+
+        _sig_on
+        for i from 1 <= i < n:
+            w = v[i]
+            mpz_gcd(z, z, w.value)
+            if mpz_cmp_si(z, 1) == 0:
+                _sig_off
+                return Integer(1)
+        _sig_off
+    except TypeError:
+        w = Integer(v[0])
+        mpz_init_set(z, w.value)
+
+        _sig_on
+        for i from 1 <= i < n:
+            w = Integer(v[i])
+            mpz_gcd(z, z, w.value)
+            if mpz_cmp_si(z, 1) == 0:
+                _sig_off
+                return Integer(1)
+        _sig_off
+
+
+    w = Integer()
+    mpz_set(w.value, z)
+    mpz_clear(z)
+    return w

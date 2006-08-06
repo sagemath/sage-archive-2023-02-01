@@ -687,7 +687,7 @@ def gcd(a, b=0):
         97
     """
     if isinstance(a,list):
-        return __GCD_list(a)
+        return sage.rings.integer.GCD_list(a)
     if not isinstance(a, RingElement):
         a = sage.rings.integer.Integer(a)
     return a.gcd(b)
@@ -707,20 +707,13 @@ def lcm(a, b=None):
         15
     """
     if isinstance(a,list):
-        return __LCM_list(a)
+        return sage.rings.integer.LCM_list(a)
     if not isinstance(a, RingElement):
         a = sage.rings.integer.Integer(a)
     return a.lcm(b)
 
 LCM = lcm
 
-def __LCM_list(v):
-    if len(v) == 0:
-        return sage.rings.integer.Integer(1)
-    x = v[0]
-    for i in range(1,len(v)):
-        x = LCM(x, v[i])
-    return x
 
 ## def GCD_python(a, b=0):
 ##     """This function should behave exactly the same as GCD,
@@ -740,15 +733,16 @@ def __LCM_list(v):
 ##         a = b; b = c
 ##     return a
 
-def __GCD_list(v):
-    if len(v) == 0:
-        return 1
-    if len(v) == 1:
-        return v[0]
-    g = v[0]
-    for i in range(1,len(v)):
-        g = GCD(g, v[i])
-    return g
+## def __GCD_list(v):
+##     if len(v) == 0:
+##         return 1
+##     if len(v) == 1:
+##         return v[0]
+##     g = v[0]
+##     for i in range(1,len(v)):
+##         g = GCD(g, v[i])
+##     return g
+
 
 def xgcd(a, b):
     """
@@ -1324,15 +1318,15 @@ def crt(a,b=0,m=1,n=1):
 
 CRT = crt
 
-def CRT_list(v, moduli):
-    if len(v) == 0:
-        return 0
-    x = v[0]
-    m = moduli[0]
-    for i in range(1,len(v)):
-        x = CRT(x,v[i],m,moduli[i])
-        m *= moduli[i]
-    return x%m
+## def CRT_list(v, moduli):
+##     if len(v) == 0:
+##         return 0
+##     x = v[0]
+##     m = moduli[0]
+##     for i in range(1,len(v)):
+##         x = CRT(x,v[i],m,moduli[i])
+##         m *= moduli[i]
+##     return x%m
 
 def CRT_basis(moduli):
     """

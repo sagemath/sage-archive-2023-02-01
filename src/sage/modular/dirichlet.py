@@ -53,7 +53,7 @@ def TrivialCharacter(N, base_ring=rings.RationalField()):
 ## Define the Kronecker Character
 def KroneckerCharacter(d):
     """ Returns the quadratic Dirichlet character (d/.) of minimal conductor."""
-    assert D in IntegerRing() and D!= 0
+    assert d in IntegerRing() and d!= 0
 
     D = fundamental_discriminant(d)
     G = DirichletGroup(D, RationalField())

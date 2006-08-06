@@ -49,6 +49,26 @@ import sage.categories.all
 def TrivialCharacter(N, base_ring=rings.RationalField()):
     return DirichletGroup(N, base_ring)(1)
 
+
+## Define the Kronecker Character
+def KroneckerCharacter(d):
+    """ Returns the quadratic Dirichlet character (d/.) of minimal conductor."""
+    assert D in IntegerRing() and D!= 0
+
+    D = fundamental_discriminant(d)
+    G = DirichletGroup(D, RationalField())
+    return G([kronecker(D,u) for u in D.unit_gens()])
+
+
+## Define the Upside-down Kronecker Character
+def KroneckerCharacterUpsideDown(d):
+    """ Returns the quadratic Dirichlet character (./d) of conductor d, for d>0."""
+    assert d in IntegerRing() and d > 0
+
+    G = DirichletGroup(d, RationalField())
+    return G([kronecker(u,d) for u in d.unit_gens()])
+
+
 def is_DirichletCharacter(x):
     return isinstance(x, DirichletCharacter)
 

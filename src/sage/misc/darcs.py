@@ -275,6 +275,13 @@ class Darcs:
 
     def send(self, filename, options='', url=None):
         """
+        Alias for save().
+        TODO: integrate python SMTP server?
+        """
+        self.save(filename, options, url)
+
+    def save(self, filename, options='', url=None):
+        """
         Create a darcs patch bundle with the given filename
         against the repository at the given url (which is
         by default the 'official' SAGE repository).

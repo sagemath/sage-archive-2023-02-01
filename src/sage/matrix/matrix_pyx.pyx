@@ -1929,7 +1929,7 @@ cdef class Matrix(ModuleElement):
 
 
     def strassen_invert(Matrix self, cutoff=80):
-        """
+        r"""
         Generic Strassen matrix inversion multiplication method.
 
         Raises a ZeroDivisionError if the matrix has zero determinant
@@ -1974,6 +1974,7 @@ cdef class Matrix(ModuleElement):
 
         compute
 
+        \begin{verbatim}
             S  = A^-1
             T1 = C * S      T2 = T1 * B       T3 = D - T2
             U  = T3^-1
@@ -1985,7 +1986,7 @@ cdef class Matrix(ModuleElement):
 
             [ S + R3  ,  -R1 ]
             [    -R2  ,    U ]
-
+        \end{verbatim}
 
         AUTHOR:
             Robert Bradshaw (2007-08-05)

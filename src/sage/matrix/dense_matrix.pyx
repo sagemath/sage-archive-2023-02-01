@@ -24,24 +24,28 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include "gmp.pxi"
-include "interrupt.pxi"
+
+include "../ext/gmp.pxi"
+include "../ext/interrupt.pxi"
 
 from sage.misc.misc import verbose, get_verbose
 
 
-cimport rational
-import  rational
 
-cimport arith
-import  arith
-cdef arith.arith_int ai
-ai = arith.arith_int()
+cimport sage.ext.rational
+cimport sage.ext.rational
+import  sage.ext.rational
+
+
+cimport sage.ext.arith
+import  sage.ext.arith
+cdef sage.ext.arith.arith_int ai
+ai = sage.ext.arith.arith_int()
 
 import sage.rings.arith
 
-cimport sage.matrix.matrix_pyx
-import sage.matrix.matrix_pyx
+cimport matrix_pyx
+import  matrix_pyx
 
 ##################################################################
 # Miscellaneous useful functions
@@ -82,6 +86,7 @@ LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
 ctypedef unsigned int uint
 
+#cdef class Matrix_modint(sage.matrix.matrix_pyx.Matrix):
 cdef class Matrix_modint:
     cdef uint **matrix
     cdef uint _nrows, _ncols, p
@@ -1117,7 +1122,7 @@ cdef class Matrix_rational:
                 base = 32
                 entries = entries.split(' ')
 
-        if isinstance(entries, rational.Rational):
+        if isinstance(entries, sage.ext.rational.Rational):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
             s = str(entries)
@@ -1233,8 +1238,8 @@ cdef class Matrix_rational:
         i, j = ij
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
-        cdef rational.Rational x
-        x = rational.Rational()
+        cdef sage.ext.rational.Rational x
+        x = sage.ext.rational.Rational()
         x.set_from_mpq(self.matrix[i][j])
         return x
 
@@ -1628,7 +1633,7 @@ cdef class Matrix_rational:
         cdef int i, j
         cdef mpq_t *r
         cdef object v
-        cdef rational.Rational x
+        cdef sage.ext.rational.Rational x
 
         v = []
         _sig_on
@@ -1787,7 +1792,8 @@ cdef class Matrix_rational:
 
         mpq_clear(prod); mpq_clear(x)
 
-    def set_row_to_multiple_of_row(self, int row_to, int row_from, rational.Rational multiple):
+    def set_row_to_multiple_of_row(self, int row_to, int row_from,
+                                   sage.ext.rational.Rational multiple):
         """
         Set row row_to equal to multiple times row row_from.
         """
@@ -1938,8 +1944,8 @@ cdef class Matrix_rational:
                 mpq_add(z, z, self.matrix[row][v[c]])
             mpq_mul(pr, pr, z)
 
-        cdef rational.Rational x
-        x = rational.Rational()
+        cdef sage.ext.rational.Rational x
+        x = sage.ext.rational.Rational()
         x.set_from_mpq(pr)
         mpq_clear(pr)
         mpq_clear(z)
@@ -1961,7 +1967,7 @@ cdef class Matrix_rational:
         self.mpz_denom(d)
         if mpz_cmp_si(d,1) == 0:
             mpz_clear(d)
-            return self, rational.Rational(1)
+            return self, sage.ext.rational.Rational(1)
         cdef Matrix_rational A
         A = self.copy()
         cdef mpq_t denom
@@ -1971,8 +1977,8 @@ cdef class Matrix_rational:
         mpz_clear(d)
         mpq_clear(denom)
 
-        cdef rational.Rational x
-        x = rational.Rational()
+        cdef sage.ext.rational.Rational x
+        x = sage.ext.rational.Rational()
         x.set_from_mpq(denom)
         return A, x
 

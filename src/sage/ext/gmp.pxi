@@ -23,7 +23,7 @@ cdef int mpz_print(mpz_t x) except -1:
     print mpz_to_str(x)
     return 0
 
-cdef int next_prime_int(int p) except -1:
+cdef int next_probab_prime_int(int p) except -1:
     """
     Use GMP to compute the next int prime after p.
     """
@@ -36,6 +36,27 @@ cdef int next_prime_int(int p) except -1:
     mpz_clear(p1)
     mpz_clear(p2)
     return p3
+
+cdef int previous_probab_prime_int(int p) except -1:
+    """
+    Use GMP to compute the next int prime after p.
+    """
+    p = p - 1
+    if p < 2:
+        raise RuntimeError, "no prime < 2"
+    if p == 2:
+        return 2
+    if p % 2 == 0:
+        p = p - 1
+
+    cdef mpz_t p1
+    mpz_init_set_si(p1, p)
+    while mpz_probab_prime_p(p1, 10) == 0:
+        mpz_sub_ui(p1, p1, 2)
+    cdef int p2
+    p2 = mpz_get_si(p1)
+    mpz_clear(p1)
+    return p2
 
 # these vars are all used in rational reconstruction; they're cached so we don't
 # have to recreate them with every call.

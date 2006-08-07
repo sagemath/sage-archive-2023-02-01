@@ -962,7 +962,7 @@ cdef int PQ_mul_modular_alg(PQ* prod, PQ f, PQ g) except -1:
 
         # Use another prime.
         mpz_mul(pr, pr, p)
-        mpz_set_si(p,next_prime_int(p_int))
+        mpz_set_si(p,next_probab_prime_int(p_int))
     #end while
 
     PQ_init(prod, degree)

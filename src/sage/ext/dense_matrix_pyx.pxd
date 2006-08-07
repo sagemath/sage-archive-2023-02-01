@@ -20,3 +20,4 @@ cdef class Matrix_rational:
     cdef swap_columns(self, int col1, int col2)
     cdef int mpz_denom(self, mpz_t d) except -1
     cdef int mpz_height(self, mpz_t height) except -1
+    cdef int _rescale(self, mpz_t a) except -1

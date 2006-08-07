@@ -122,6 +122,13 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         return self.eisenstein_submodule()
 
     def dimension_of_associated_cuspform_space(self):
+        """
+        Return the dimension of the corresponding space
+        of cusp forms.
+
+        The input space must be cuspidal, otherwise there
+        is no corresponding space of cusp forms.
+        """
         if not self.is_cuspidal():
             raise ArithmeticError, "space must be cuspidal"
         if self.sign() == 0:

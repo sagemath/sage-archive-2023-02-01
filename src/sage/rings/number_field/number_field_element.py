@@ -110,6 +110,12 @@ class NumberFieldElement(field_element.FieldElement):
         return str(x).replace(x.parent().variable_name(),self.parent().variable_name())
 
     def _im_gens_(self, codomain, im_gens):
+        # NOTE -- if you ever want to change this so relative number fields are
+        # in terms of a root of a poly.
+        # The issue is that elements of a relative number field are represented in terms
+        # of a generator for the absolute field.  However the morphism gives the image
+        # of gen, which need not be a generator for the absolute field.  The morphism
+        # has to be *over* the relative element.
         return codomain(self.__element(im_gens[0]))
 
     def _latex_(self):
@@ -286,16 +292,48 @@ class NumberFieldElement(field_element.FieldElement):
         #return self.matrix().determinant()
 
     def charpoly(self):
-        # formerly R = polynomial_ring.PolynomialRing(QQ) (for fields K/Q)
+        r"""
+        The characteristic polynomial of this element over $\Q$.
+
+        EXAMPLES:
+
+        We compute the charpoly of cube root of $3$.
+
+            sage: R.<x> = QQ['x']
+            sage: K.<a> = NumberField(x^3-2)
+            sage: a.charpoly()
+            x^3 - 2
+
+        We construct a relative extension and find the characteristic
+        polynomial over $\Q$.
+
+            sage: S.<X> = K['X']
+            sage: L.<b> = NumberField(X^3 + 17)
+            sage: L
+            Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2
+            sage: a = L.0; a
+            b
+            sage: a.charpoly()
+            x^9 + 57*x^6 + 165*x^3 + 6859
+        """
         R = self.parent().polynomial_ring()
         if not isinstance(self.parent(), number_field.NumberField_extension):
             return R(self._pari_().charpoly())
         else:
-            nf = self.parent()._pari_base_nf()
-            prp = self.parent().pari_relative_polynomial()
-            elt = str(self.polynomial()._pari_())
-            return R(nf.rnfcharpoly(prp, elt))
-        # return self.matrix().charpoly()
+            g = self.polynomial()  # in QQ[x]
+            f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
+            R = g.parent()
+            return R( (g._pari_().Mod(f)).charpoly() )
+
+## This might be useful for computing relative charpoly.
+## BUT -- currently I don't even know how to view elements
+## as being in terms of the right thing, i.e., this code
+## below as is lies.
+##             nf = self.parent()._pari_base_nf()
+##             prp = self.parent().pari_relative_polynomial()
+##             elt = str(self.polynomial()._pari_())
+##             return R(nf.rnfcharpoly(prp, elt))
+##         # return self.matrix().charpoly()
 
     def minpoly(self):
         # The minimal polynomial is square-free and

@@ -56,7 +56,6 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
         self.__value = pari(value).Mod(parent._pari_order())
         #self.__value = pari('Mod(%s,%s)'%(value, parent.order()))
 
-
     def __cmp__(self, right):
         if not isinstance(self, IntegerMod) or not isinstance(right, IntegerMod) \
                or right.parent() != self.parent():

@@ -189,6 +189,14 @@ ext_modules = [ \
                'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
+    Extension('sage.matrix.dense_matrix',
+              ['sage/matrix/dense_matrix.pyx',
+               'sage/ext/integer.pyx',
+               'sage/ext/rational.pyx',
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              libraries=['gmp']), \
+
     Extension('sage.ext.search',
               ['sage/ext/search.pyx']), \
 

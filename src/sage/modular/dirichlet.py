@@ -60,6 +60,11 @@ def kronecker_character(d):
         sage: kronecker_character(97*389*997^2)
         [-1, -1]
 
+        sage: a = kronecker_character(1)
+        sage: b = DirichletGroup(2401,QQ)(a)    # NOTE -- over QQ!
+        sage: b.modulus()
+        2401
+
     AUTHOR:
         -- Jon Hanke (2006-08-06)
 

@@ -28,6 +28,7 @@ from sage.interfaces.gp import Gp
 import sage.interfaces.all
 import sage.misc.preparser
 import sage.rings.arith
+import sage.rings.complex_field
 
 _gp = None
 def gp():
@@ -176,6 +177,23 @@ class NumberField_generic(field.Field):
         self.__polynomial = polynomial
         self.__pari_bnf_certified = False
         self.__absolute_field = self
+
+    def complex_embeddings(self, prec=53):
+        r"""
+        Return all homomorphisms of this ring into the approximate
+        complex field with precision prec.
+
+        EXAMPLES:
+            sage: f = x^5 + x + 17
+            sage: k = NumberField(f)
+            sage: v = k.complex_embeddings()
+            sage: [phi(k.0^2) for phi in v]
+            [2.9757207403766763, 0.92103906697304705 - 3.0755331188457795*I, 0.92103906697304705 + 3.0755331188457795*I, -2.4088994371613852 + 1.9025410530350531*I, -2.4088994371613852 - 1.9025410530350531*I]
+        """
+        CC = sage.rings.complex_field.ComplexField(prec)
+        f = self.defining_polynomial().base_extend(CC)
+        v = f.roots()
+        return [self.hom([a], check=False) for a in v]
 
     def latex_variable_name(self, name=None):
         if name is None:
@@ -745,7 +763,9 @@ class NumberField_extension(NumberField_generic):
         # Convert the polynomial defining the base field into a
         # polynomial in y to satisfy PARI's ordering requirements.
         # NOTE: This might not work properly if the base field is not
-        #       defined by a polynomial in one variable.
+        #       defined by a polynomial in one variable.  But currently
+        #       they are all defined in one variable, so no problem!
+
         Qx = base.polynomial().parent()
         Qy = (base.polynomial().base_ring())['y']
         phi = Qx.hom([Qy.gen()])
@@ -850,6 +870,36 @@ class NumberField_extension(NumberField_generic):
 
     def _pari_base_nf(self):
         return self.__base_nf
+
+    def gen(self, n=0):
+        if n != 0:
+            raise IndexError, "Only one generator."
+        try:
+            return self.__gen
+        except AttributeError:
+            X = rational_field.RationalField()['x'].gen()
+            self.__gen = number_field_element.NumberFieldElement(self, X)
+            return self.__gen
+
+    def gen_relative(self):
+        """
+        Return root of defining polynomial, which is a generator of
+        the relative number field over the base.
+        """
+        try:
+            return self.__gen_relative
+        except AttributeError:
+            rnf = self.pari_rnf()
+            f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
+            self.__gen_relative = number_field_element.NumberFieldElement(self, f)
+            return self.__gen_relative
+
+            if self.__polynomial != None:
+                X = self.__polynomial.parent().gen()
+            else:
+                X = PolynomialRing(rational_field.RationalField()).gen()
+            self.__gen_relative = number_field_element.NumberFieldElement(self, X)
+            return self.__gen_relative
 
     def pari_polynomial(self):
         """

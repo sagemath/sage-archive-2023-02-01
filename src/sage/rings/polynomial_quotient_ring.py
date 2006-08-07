@@ -33,6 +33,7 @@ import number_field.all
 import polynomial_element
 import polynomial_ring
 import rational_field
+import complex_field
 
 import commutative_ring
 import field
@@ -507,3 +508,21 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     def __reduce__(self):
         return PolynomialQuotientRing_field, (self.polynomial_ring(),
                                         self.modulus(), self.variable_names())
+
+    def complex_embeddings(self, prec=53):
+        r"""
+        Return all homomorphisms of this ring into the approximate
+        complex field with precision prec.
+
+        EXAMPLES:
+            sage: f = x^5 + x + 17
+            sage: k = QQ['x']/(f)
+            sage: v = k.complex_embeddings(100)
+            sage: [phi(k.0^2) for phi in v]
+            [2.9757207403766761469671194565393, 0.92103906697304693634806949137117 - 3.0755331188457794473265418086276*I, 0.92103906697304693634806949137117 + 3.0755331188457794473265418086276*I, -2.4088994371613850098316292196393 + 1.9025410530350528612407363802074*I, -2.4088994371613850098316292196393 - 1.9025410530350528612407363802074*I]
+        """
+        CC = complex_field.ComplexField(prec)
+        f = self.modulus().base_extend(CC)
+        v = f.roots()
+        return [self.hom([a], check=False) for a in v]
+

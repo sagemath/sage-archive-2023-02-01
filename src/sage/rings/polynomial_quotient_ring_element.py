@@ -242,6 +242,47 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         return PolynomialQuotientRingElement(self.parent(),
                                self.__polynomial - right.__polynomial, check=False)
 
+    def associated_field_extension(self):
+        """
+        Takes a polynomial defined in a quotient ring, and returns
+        a tuple with three elements: the NumberField defined by the
+        same polynomial, an isomorphism from its parent to the
+	NumberField sending the generators to one another, and the
+	inverse isomorphism.
+
+        EXAMPLES:
+          sage: R = PolynomialRing(Rationals()) ; x = R.gen()
+
+          sage: S = R.quotient(x^3-2, 'alpha') ; alpha = S.gen()
+
+          sage: [ F, f, g ] = alpha.associated_field_extension()
+
+          sage: F
+           Number Field in a with defining polynomial x^3 - 2
+
+          sage: a = F.gen()
+
+          sage: f(alpha)
+           a
+
+          sage: g(a)
+           alpha
+
+        AUTHOR:
+          -- Craig Citro 06 Aug 06
+        """
+
+        F = self.parent().modulus().root_field()
+	alpha = F.gen()
+	R = self.parent()
+	x = R.gen()
+
+	f = R.hom([alpha], F)
+	g = F.hom([x], R)
+
+        return [ F, f, g ]
+
+
     def charpoly(self):
         """
         The characteristic polynomial of this element, which is by

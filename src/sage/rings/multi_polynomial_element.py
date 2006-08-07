@@ -609,7 +609,8 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         except AttributeError:
             ring = self.parent()
             one = self.parent().base_ring()(1)
-            self.__monomials = [ring(polydict.PolyDict({m:one},force_int_exponents=False)) for m in self.exponents()]
+            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False ) ) \
+                                for m in self._MPolynomial__element._PolyDict__repn.keys() ]
             return self.__monomials
 
     def constant_coefficient(self):

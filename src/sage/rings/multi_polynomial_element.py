@@ -107,8 +107,47 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
         return y
 
     def _cmp_(self, right):
-        # MAJOR todo -- this should be relative to the term order, but isn't right now.
-        return self.__element.__cmp__(right.__element)
+        """
+        Compares right to self with respect to the term order of
+        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
+        accepted.
+
+        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
+        the left-most nonzero entry is positive.
+
+        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
+        the right-most nonzero entry is positive.
+
+        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
+        left-most nonzero entry of $a -b \in Z^n is positive.
+
+        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
+        right-most nonzero entry of $a -b \in Z^n$ is negative.
+
+        EXAMPLES:
+             sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')
+             sage: x^1*y^2 > y^3*z^4
+             True
+             sage: x^3*y^2*z^4 < x^3*y^2*z^1
+             False
+
+             sage: R.<x,y,z>=PolynomialRing(QQ,3,order='deglex')
+             sage: x^1*y^2*z^3 > x^3*y^2*z^0
+             True
+             sage: x^1*y^2*z^4 < x^1*y^1*z^5
+             False
+
+             sage: R.<x,y,z>=PolynomialRing(ZZ,3,order='degrevlex')
+             sage: x^1*y^5*z^2 > x^4*y^1*z^3
+             True
+             sage: x^4*y^7*z^1 < x^4*y^2*z^3
+             False
+
+        """
+        try:
+            return self.__element.__cmp__(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
+        except AttributeError:
+            return self.__element.__cmp__(right.__element)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -811,7 +850,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             return self.__lm
         except AttributeError:
             R = self.parent()
-            f = self._MPolynomial__element.lcmt(R.term_order())
+            f = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
             one = R.base_ring()(1)
             self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False))
             return self.__lm
@@ -826,7 +865,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         except AttributeError:
             R = self.parent()
             f = self._MPolynomial__element._PolyDict__repn
-            self.__lc = f[self._MPolynomial__element.lcmt(R.term_order())]
+            self.__lc = f[self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )]
             return self.__lc
 
     def lt(self):
@@ -838,10 +877,42 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         except AttributeError:
             R = self.parent()
             f = self._MPolynomial__element._PolyDict__repn
-            res = self._MPolynomial__element.lcmt(R.term_order())
+            res = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
             self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False))
             return self.__lt
 
+    def __eq__(self,right):
+        """
+        """
+        if not isinstance(right,MPolynomial_polydict):
+            # we want comparison with zero to be fast
+            if right == 0:
+                if self._MPolynomial__element._PolyDict__repn=={}:
+                    return True
+                else:
+                    return False
+            return NotImplemented
+        return self._MPolynomial__element._PolyDict__repn == right._MPolynomial__element._PolyDict__repn
+
+    def __ne__(self,right):
+        """
+        """
+        if not isinstance(right,MPolynomial_polydict):
+            # we want comparison with zero to be fast
+            if right == 0:
+                if self._MPolynomial__element._PolyDict__repn=={}:
+                    return False
+                else:
+                    return True
+            # maybe add constant elements as well
+            return NotImplemented
+        return self._MPolynomial__element._PolyDict__repn != right._MPolynomial__element._PolyDict__repn
+
+    def is_zero(self):
+        """
+        Returns True if self == 0
+        """
+        return self._MPolynomial__element._PolyDict__repn=={}
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>

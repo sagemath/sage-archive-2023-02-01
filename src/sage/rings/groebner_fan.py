@@ -86,7 +86,7 @@ class GroebnerFan(SageObject):
             sage: I = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y])
             sage: G = I.groebner_fan(); G
             Groebner fan of the ideal:
-            Ideal (-1*z + x^2*y, -1*y + x*z^2, y^2*z - x) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (y^2*z - x, -1*y + x*z^2, -1*z + x^2*y) of Polynomial Ring in x, y, z over Rational Field
         """
         self.__is_groebner_basis = is_groebner_basis
         self.__symmetry = symmetry
@@ -182,7 +182,7 @@ class GroebnerFan(SageObject):
         EXAMPLES:
             sage: R.<x,y,z> = PolynomialRing(QQ,3); G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
             sage: G._gfan_ideal()
-            '{-1*c + a^2*b, -1*b + a*c^2, b^2*c - a}'
+            '{-1*b + a*c^2, b^2*c - a, -1*c + a^2*b}'
         """
         try:
             return self.__gfan_ideal
@@ -234,7 +234,7 @@ class GroebnerFan(SageObject):
             sage: X[0]
             [-1*z + z^15, -1*z^11 + y, -1*z^9 + x]
             sage: X[0].ideal()
-            Ideal (-1*z + z^15, -1*z^9 + x, -1*z^11 + y) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (-1*z + z^15, -1*z^11 + y, -1*z^9 + x) of Polynomial Ring in x, y, z over Rational Field
             sage: X[:5]
             [[-1*z + z^15, -1*z^11 + y, -1*z^9 + x],
             [z^11 - y, -1*z + y*z^4, -1*z^8 + y^2, -1*z^9 + x],

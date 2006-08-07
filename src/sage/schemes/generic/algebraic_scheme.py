@@ -279,13 +279,10 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V = P.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
             [Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            x3,
-             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x4^3 + x0^2*x2,
-             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             x3^5 - 2*x2^3*x4^2,
-             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-             -1*x2^2 - x1^2 + x0^2]
+            x3, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+            -1*x2^2 - x1^2 + x0^2, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+            -1*x4^3 + x0^2*x2, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+            x3^5 - 2*x2^3*x4^2]
         """
         try:
             return self.__irreducible_components

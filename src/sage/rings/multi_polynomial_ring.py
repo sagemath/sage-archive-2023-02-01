@@ -584,12 +584,94 @@ class TermOrder(SageObject):
         else:
             self.__macaulay2_str = name
 
+    def __getattr__(self,name):
+        if name=='compare_tuples':
+            return getattr(self,'compare_tuples_'+self.__singular_str)
+        elif name=='greater_tuple':
+            return getattr(self,'greater_tuple_'+self.__singular_str)
+        else:
+            raise AttributeError,name
 
-    def _tuple_cmpfn(self):
+    def compare_tuples_lp(self,f,g):
         """
-        Returns tuple com function of self
+        Compares two exponent tuples with respect to the
+        lexicographical term order.
         """
-        return tuple_cmp[self.__singular_str]
+
+        if f>g:
+            return 1
+        elif f<g:
+            return -1
+        else:
+            return 0
+
+    def compare_tuples_rp(self,f,g):
+        """
+        Compares two exponent tuples with respect to the reversed
+        lexicographical term order.
+        """
+        rev = lambda x: tuple(reversed(x))
+        return (-1)*self.compare_tuples_lp(rev(f),rev(g))
+
+    def compare_tuples_Dp(self,f,g):
+        """
+        Compares two exponent tuples with respect to the
+        degree lexicographical term order.
+        """
+        sf = sum(f)
+        sg = sum(g)
+        if sf > sg:
+            return 1
+        elif sf<sg:
+            return -1
+        elif sf == sg:
+            return self.compare_tuples_lp(f,g)
+
+    def compare_tuples_dp(self,f,g):
+        """
+        Compares two exponent tuples with respect to the degree
+        reversed lexicographical term order.
+        """
+        rev = lambda x: tuple(reversed(x))
+
+        sf = sum(f)
+        sg = sum(g)
+        if sf > sg:
+            return 1
+        elif sf<sg:
+            return -1
+        elif sf == sg:
+            return (-1)*self.compare_tuples_lp(rev(f),rev(g))
+
+    def greater_tuple_lp(self,f,g):
+        """
+        Returns the greater exponent tuple with respect to the
+        lexicographical term order.
+        """
+        return f > g and f or g
+
+    def greater_tuple_rp(self,f,g):
+        """
+        Returns the greater exponent tuple with respect to the
+        reversed lexicographical term order.
+        """
+        rev = lambda x: tuple(reversed(x))
+        return rev(f) < rev(g)   and f or g
+
+    def greater_tuple_Dp(self,f,g):
+        """
+        Returns the greater exponent tuple with respect to the total
+        degree lexicographical term order.
+        """
+        return (sum(f)>sum(g) or (sum(f)==sum(g) and f  > g )) and f or g
+
+    def greater_tuple_dp(self,f,g):
+        """
+        Returns the greater exponent tuple with respect to the total
+        degree reversed lexicographical term order.
+        """
+        rev = lambda x: tuple(reversed(x))
+        return (sum(f)>sum(g) or (sum(f)==sum(g) and rev(f) < rev(g))) and f or g
 
     def _repr_(self):
         if self.__name == 'lex':
@@ -615,10 +697,4 @@ class TermOrder(SageObject):
         return cmp(self.__name, other.__name)
 
 
-rev = lambda x: tuple(reversed(x))
-tuple_cmp = {
-    "lp" : lambda f,g:                                           f  >     g    and f or g, \
-    "rp" : lambda f,g:                                       rev(f) < rev(g)   and f or g, \
-    "Dp" : lambda f,g: (sum(f)>sum(g) or (sum(f)==sum(g) and     f  >     g )) and f or g, \
-    "dp" : lambda f,g: (sum(f)>sum(g) or (sum(f)==sum(g) and rev(f) < rev(g))) and f or g
-}
+

@@ -127,7 +127,7 @@ class Divisor_curve(Divisor_generic):
         sage: E.divisor([P, P])
         2*(y, x)
         sage: E.divisor([(3,P), (-4,5*P)])
-        3*(y, x) - 4*(-1/4*z + x, 5/8*z + y)
+        3*(y, x) - 4*(5/8*z + y, -1/4*z + x)
     """
     def __init__(self, v, check=True, reduce=True, parent=None):
         """

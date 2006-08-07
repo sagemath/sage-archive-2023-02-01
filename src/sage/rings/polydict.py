@@ -98,11 +98,34 @@ class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __cmp__(self, other):
+    def __cmp__(self, other, fn=None):
         if not isinstance(other, PolyDict):
             return False
-        return cmp(self.__repn, other.__repn)
+        if fn == None:
+            return cmp(self.__repn, other.__repn)
 
+        left  = iter(sorted( self.__repn,fn,reverse=True)) #start with biggest
+        right = iter(sorted(other.__repn,fn,reverse=True))
+
+        for m in left:
+            if len(right):
+                n = right.next()
+            else:
+                return 1 # left has terms, right doesn't
+            ret =  fn(m,n)
+            if ret!=0:
+                return ret # we have a difference
+            ret = cmp(self.__repn[m],other.__repn[n]) #compare coefficents
+            if ret!=0:
+                return ret #if they differ use it
+            #try next pair
+
+        if len(right):
+            n = right.next()
+        else:
+            return 0 # both have no terms
+
+        return -1 # right has terms, left doesn't
 
     def list(self):
         """
@@ -507,7 +530,7 @@ class PolyDict:
             return self.__one()
         return arith.generic_power(self, n, self.__one())
 
-    def lcmt(self,T):
+    def lcmt(self,greater_tuple):
         """
         Provides functionality of lc, lm, and lt by calling the tuple
         compare function on the provided term order T.
@@ -516,7 +539,7 @@ class PolyDict:
             T -- a term order
         """
         try:
-            return tuple(reduce(T._tuple_cmpfn(),self.__repn.keys()))
+            return tuple(reduce(greater_tuple,self.__repn.keys()))
         except KeyError:
             raise ArithmeticError, "%s not supported",T
 

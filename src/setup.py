@@ -91,6 +91,17 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
+dense_matrix = Extension('sage.matrix.dense_matrix',
+              ['sage/matrix/dense_matrix.pyx',
+               'sage/ext/integer.pyx',
+               'sage/ext/rational.pyx',
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              libraries=['gmp'])
+
+matrix_domain = Extension('sage.matrix.matrix_domain',
+              ['sage/matrix/matrix_domain.pyx'])
+
 
 ext_modules = [ \
     ec, \
@@ -188,17 +199,6 @@ ext_modules = [ \
                'sage/ext/arith.pyx',
                'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
-
-    Extension('sage.matrix.dense_matrix',
-              ['sage/matrix/dense_matrix.pyx',
-               'sage/ext/integer.pyx',
-               'sage/ext/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
-
-    Extension('sage.matrix.matrix_domain',
-              ['sage/matrix/matrix_domain.pyx']), \
 
     Extension('sage.ext.search',
               ['sage/ext/search.pyx']), \

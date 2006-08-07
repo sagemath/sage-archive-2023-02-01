@@ -143,16 +143,16 @@ cdef class Variable:
 
         INPUT:
 
-	    name -- The level of the variable is specified to be the
-	    level of the variable which has name name. That means that
-	    the generated object can not only be a polynomial variable
-	    but also an algebraic or transcendental variable. In the
-	    case that there is no variable with name name the
-	    generated variable refers to the anonymous polynomial
-	    variable which has the lowest level. After the
-	    construction the name of the variable is set to name.
+            name -- The level of the variable is specified to be the
+            level of the variable which has name name. That means that
+            the generated object can not only be a polynomial variable
+            but also an algebraic or transcendental variable. In the
+            case that there is no variable with name name the
+            generated variable refers to the anonymous polynomial
+            variable which has the lowest level. After the
+            construction the name of the variable is set to name.
 
-	    If name is an integer it is interpreted as a level.
+            If name is an integer it is interpreted as a level.
 
             level -- The constructor generates an object of class
             Variable with level set to level.  level has to be a level
@@ -209,7 +209,7 @@ cdef class Variable:
         Returns the level of this variable.
         """
         #embed{ int Variable_level(void *obj)
-	return ((Variable *)obj)->level();
+        return ((Variable *)obj)->level();
         #}embed
 
         return Variable_level(self.thisptr)
@@ -220,7 +220,7 @@ cdef class Variable:
         via it's name() us it's level() instead.
         """
         #embed{ char Variable_name(void *obj)
-	return ((Variable *)obj)->name();
+        return ((Variable *)obj)->name();
         #}embed
 
         # this is slow, but I crashed the nativ way
@@ -249,12 +249,12 @@ cdef class Variable:
         Comparison is performed by comparing the levels.
         """
         #embed{ int Variable_cmp(void *obj,void *obj2)
-	if(*(Variable *)obj == *(Variable *)obj2) {
+        if(*(Variable *)obj == *(Variable *)obj2) {
            return 0;
-	} else if( *(Variable *)obj < *(Variable *)obj2) {
-	   return -1;
+        } else if( *(Variable *)obj < *(Variable *)obj2) {
+           return -1;
         } else if( *(Variable *)obj > *(Variable *)obj2) {
-	   return 1;
+           return 1;
         }
         #}embed
 
@@ -504,15 +504,12 @@ cdef class CanonicalForm:
         return new CanonicalForm((*(CanonicalForm*)l) + (*(CanonicalForm*)r));
         #}embed
 
-        cdef CanonicalForm cRight
-        cdef CanonicalForm cLeft
-        try:
-            cLeft = CanonicalForm(left)
-            cRight = CanonicalForm(right)
-        except TypeError:
-            raise ArithmeticError, "Cannot add %s and %s"%(left,right)
+        if not isinstance(left,CanonicalForm):
+            left,right = right,left
+        if not isinstance(right,CanonicalForm):
+            right = CanonicalForm(right)
         _sig_on
-        return make_CF(CF_add(cLeft.thisptr,cRight.thisptr))
+        return make_CF(CF_add((<CanonicalForm>left).thisptr,(<CanonicalForm>right).thisptr))
 
     def __sub__(left, right):
         #embed{ void *CF_sub(void *l, void *r)
@@ -648,12 +645,12 @@ cdef class CanonicalForm:
         release of the Factory library.
         """
         #embed{ int CF_cmp(void *obj,void *obj2)
-	if( *(CanonicalForm *)obj == *(CanonicalForm *)obj2 ) {
+        if( *(CanonicalForm *)obj == *(CanonicalForm *)obj2 ) {
            return 0;
-	} else if(*(CanonicalForm *)obj < *(CanonicalForm *)obj2) {
-	   return -1;
+        } else if(*(CanonicalForm *)obj < *(CanonicalForm *)obj2) {
+           return -1;
         } else if(*(CanonicalForm *)obj > *(CanonicalForm *)obj2) {
-	   return 1;
+           return 1;
         }
         #}embed
 
@@ -1328,6 +1325,17 @@ cdef class CanonicalForm:
                     else:
                         d[tuple(e2)]=r.base_ring()(cs)
             return r(polydict.PolyDict(d))
+
+    def lcm(CanonicalForm self,right):
+        #embed{ void *CF_lcm(void *l, void *r)
+        return new CanonicalForm(lcm(*(CanonicalForm*)l,(*(CanonicalForm*)r)));
+        #}embed
+
+        if not isinstance(right,CanonicalForm):
+            right = CanonicalForm(right)
+        _sig_on
+        return make_CF(CF_lcm(self.thisptr,(<CanonicalForm>right).thisptr))
+
 
 
 CF =  CanonicalForm

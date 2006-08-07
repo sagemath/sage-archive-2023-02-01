@@ -43,6 +43,8 @@ import rational
 import quotient_ring
 import ideal
 
+from sage.libs.all import pari, PariError
+
 import sage.interfaces.all
 
 _objsIntegerModRing = {}
@@ -270,6 +272,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def order(self):
         return self.__order
+
+    def _pari_order(self):
+        try:
+            return self.__pari_order
+        except AttributeError:
+            self.__pari_order = pari(self.order())
+            return self.__pari_order
 
     def __call__(self, x, construct=False):
         global TypeError

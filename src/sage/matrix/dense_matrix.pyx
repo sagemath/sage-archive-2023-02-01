@@ -30,12 +30,9 @@ include "../ext/interrupt.pxi"
 
 from sage.misc.misc import verbose, get_verbose
 
-
-
 cimport sage.ext.rational
 cimport sage.ext.rational
 import  sage.ext.rational
-
 
 cimport sage.ext.arith
 import  sage.ext.arith
@@ -46,6 +43,9 @@ import sage.rings.arith
 
 cimport matrix_pyx
 import  matrix_pyx
+
+cimport matrix_domain
+import  matrix_domain
 
 ##################################################################
 # Miscellaneous useful functions
@@ -86,8 +86,8 @@ LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
 ctypedef unsigned int uint
 
-#cdef class Matrix_modint(sage.matrix.matrix_pyx.Matrix):
-cdef class Matrix_modint:
+cdef class Matrix_modint(matrix_pyx.Matrix):
+#cdef class Matrix_modint:
     cdef uint **matrix
     cdef uint _nrows, _ncols, p
     cdef uint gather
@@ -1089,7 +1089,7 @@ cdef Matrix_rational_cmp(Matrix_rational self, Matrix_rational other):
     _sig_off
     return 0
 
-cdef class Matrix_rational:
+cdef class Matrix_rational(matrix_domain.Matrix_domain):
     """
     Matrix over the rational numbers.
     """
@@ -1109,6 +1109,10 @@ cdef class Matrix_rational:
                 raise MemoryError, "Error allocating matrix."
 
     def __init__(self, int nrows, int ncols, object entries=None, construct=False):
+        from matrix_space import MatrixSpace
+        from sage.rings.all import QQ
+        parent = MatrixSpace(QQ,nrows, ncols)
+        matrix_domain.Matrix_domain.__init__(self, parent)
         cdef int n, i, j, k, r, base
         cdef mpq_t *v
         self._nrows = nrows

@@ -197,6 +197,9 @@ ext_modules = [ \
                'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
+    Extension('sage.matrix.matrix_domain',
+              ['sage/matrix/matrix_domain.pyx']), \
+
     Extension('sage.ext.search',
               ['sage/ext/search.pyx']), \
 

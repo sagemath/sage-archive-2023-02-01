@@ -289,10 +289,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             except (ValueError, IndexError, TypeError):
                 raise TypeError, "error coercing to finite field"
         return integer_mod.IntegerMod(self, x, construct=construct)
-        try:
-            return integer_mod.IntegerMod(self, x, construct=construct)
-        except (RuntimeError, TypeError), msg:
-            raise TypeError, "no way to coerce x"
 
     def _coerce_(self, x):
         r"""

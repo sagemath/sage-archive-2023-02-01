@@ -674,12 +674,18 @@ class HeckeModule_free_module(HeckeModule_generic):
         if n <= 0:
             raise IndexError, "n must be a positive integer"
 
-        if n == 1:
-            a1 = self.base_ring()(1)
-            self.__eigenvalues[1] = a1
-            return a1
+        ## This was removed so that every element in
+        ## the return of system_of_eigenvalues had the same
+        ## parent. This was done below, so I just added the
+        ## n==1 case to the below if stmt.
+        ## -- Craig Citro, 07 Aug 06
+        ##
+##        if n == 1:
+##            a1 = self.base_ring()(1)
+##            self.__eigenvalues[1] = a1
+##            return a1
 
-        if arith.is_prime(n):
+        if (arith.is_prime(n) or n==1):
             Tn_e = self._eigen_nonzero_element(n)
             an = self._element_eigenvalue(Tn_e)
             self.__eigenvalues[n] = an

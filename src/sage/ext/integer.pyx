@@ -257,6 +257,20 @@ cdef class Integer(element.EuclideanDomainElement):
         set_mpz(z,self.value)
         return z
 
+
+    def list(self):
+        """
+        Return a list with the rational element in it, to be
+        compatible with the method for number fields.
+
+        EXAMPLES:
+        sage: m = 5
+        sage: m.list()
+        [5]
+        """
+        return [ self ]
+
+
     def  __dealloc__(self):
         mpz_clear(self.value)
 

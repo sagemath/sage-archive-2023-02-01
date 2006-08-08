@@ -185,6 +185,21 @@ cdef class Rational(element.FieldElement):
     cdef void set_from_mpq(Rational self, mpq_t value):
         mpq_set(self.value, value)
 
+
+    def list(self):
+        """
+        Return a list with the rational element in it, to be
+        compatible with the method for number fields.
+
+        EXAMPLES:
+        sage: m = 5/3
+        sage: m.list()
+        [5/3]
+        """
+        return [ self ]
+
+
+
     cdef cmp(Rational self, Rational x):
         cdef int i
         i = mpq_cmp(self.value, x.value)

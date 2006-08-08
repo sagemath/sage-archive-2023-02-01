@@ -462,6 +462,19 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             n += 1
         return n
 
+    def variable(self):
+        """
+        EXAMPLES:
+        sage: R.<x> = PowerSeriesRing(Rationals())
+        sage: f = x^2 + 3*x^4 + O(x^7)
+        sage: f.variable()
+         'x'
+
+        AUTHOR:
+            -- David Harvey (2006-08-08); copied from LaurentSeriesRingElement
+        """
+        return self.parent().variable_name()
+
     def degree(self):
         return len(self.list())-1
 

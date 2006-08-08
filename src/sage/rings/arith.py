@@ -9,7 +9,7 @@ Miscellaneous arithmetic functions
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import math
+import math, random
 
 import sage.misc.misc as misc
 import sage.misc.search
@@ -604,16 +604,31 @@ def random_prime(n):
     """
     Returns a random prime p satisfying between 2 and p (i.e. 2 <= p <= n).
 
+    INPUT:
+        n -- an integer >= 2.
+
     EXAMPLES:
+        sage: random_prime(100000)
+        54601
+        sage: random_prime(2)
+        2
+        sage: random_prime(-3)
+        Traceback (most recent call last):
+        ...
+        ValueError: n must be >= 2.
+
+    AUTHOR:
+        -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
     """
-    if n < 2 or not n in IntegerRing():
-        raise BadError
+    n = sage.rings.integer.Integer(n)
+    if n < 2:
+        raise ValueError, "n must be >= 2."
     elif n == 2:
         return sage.rings.integer.Integer(n)
     else:
-        previous_prime(randint(3,n))
+        previous_prime(random.randint(3,n))
 
-    return previous_prime(randint(3,n))
+    return previous_prime(random.randint(3,n))
 
 
 

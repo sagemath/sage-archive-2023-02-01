@@ -1268,6 +1268,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.kodaira_type(p)
             return self.__tamagawa_number[p]
 
+    def tamagawa_numbers(self):
+        return [self.tamagawa_number(p) for p in arith.prime_divisors(self.conductor())]
+
     def tamagawa_product(self):
         """
         Returns the product of the Tamagawa numbers.

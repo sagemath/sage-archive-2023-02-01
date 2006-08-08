@@ -69,7 +69,9 @@ AUTHOR:
     -- David Joyner (2006-08): hopeful latex fixes to documention, added list
        and __iter__ methods to LinearCode and examples, added hamming_weight
        function, fixed random method to return a vector, TrivialCode,
-       fixed subtle bug in dual_code, added galois_closure method
+       fixed subtle bug in dual_code, added galois_closure method,
+       fixed mysterious bug in permutation_automorphism_group (GAP
+       was over-using "G" somehow?)
 
 This file contains
 \begin{enumerate}
@@ -737,7 +739,7 @@ class LinearCode(module.Module):
         G = self.gen_mat()
         n = len(G.columns())
         k = len(G.rows())                                 ## G is always full rank
-        gap.eval("G:=SymmetricGroup(%s)"%n)               ## initializing G in gap
+        gap.eval("Gp:=SymmetricGroup(%s)"%n)               ## initializing G in gap
         Sn = SymmetricGroup(n)
         wts = self.spectrum()                                            ## bottleneck 1
         Gstr = str(gap(G))
@@ -752,13 +754,18 @@ class LinearCode(module.Module):
               break
           wt = nonzerowts[i]
           if mode=="verbose":
-              size = eval(gap.eval("Size(G)"))
+              size = eval(gap.eval("Size(Gp)"))
               print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
           gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   ## bottleneck 2 (repeated
           gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            ##        for each i until stop = 1)
-          gap.eval("A:=MatrixAutomorphisms(matCwt); GG:=Intersection2(G,A)")    ## bottleneck 3
-          print gap.eval("A; GG")
-          gap.eval("autgp_gens:=GeneratorsOfGroup(GG); G:=GG")
+          gap.eval("A:=MatrixAutomorphisms(matCwt); GG:=Intersection(Gp,A)")    ## bottleneck 3
+          #print i," = i \n",gap.eval("matCwt")," = matCwt\n"
+          #print gap.eval("A")," = A \n",gap.eval("GG")," = GG\n\n"
+          if eval(gap.eval("Size(GG)"))==0:
+              #print gap.eval("GG; Size(GG)")
+              #print "GG=0 ", gap.eval("A; Gp")
+              return PermutationGroup([()])
+          gap.eval("autgp_gens:=GeneratorsOfGroup(GG); Gp:=GG")
           #gap.eval("autgp_gens:=GeneratorsOfGroup(G)")
           N = eval(gap.eval("Length(autgp_gens)"))
           gens = [Sn(gap.eval("autgp_gens[%s]"%i).replace("\n","")) for i in range(1,N+1)]
@@ -1358,3 +1365,4 @@ def ToricCode(P,F):
 def TrivialCode(F,n):
     MS = MatrixSpace(F,1,n)
     return LinearCode(MS(0))
+

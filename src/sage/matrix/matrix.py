@@ -376,7 +376,7 @@ class Matrix_pid(Matrix_domain):
             sage: MS1 = MatrixSpace(ZZ,4)
             sage: MS2 = MatrixSpace(QQ,6)
             sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
-            sage: B = MS2.random_element()
+            sage: B = MS2(range(36))
             sage: B*11   # random output
             [-11  22 -11 -11 -11 -11]
             [ 11 -22 -11 -22  11  11]
@@ -387,7 +387,18 @@ class Matrix_pid(Matrix_domain):
             sage: decomposition(A)
             [(Ambient free module of rank 4 over the principal ideal domain Integer Ring, True)]
             sage: decomposition(B)
-            [(Vector space of dimension 6 over Rational Field, True)]
+            [(Vector space of degree 6 and dimension 4 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0 -5  4]
+            [ 0  1  0  0 -4  3]
+            [ 0  0  1  0 -3  2]
+            [ 0  0  0  1 -2  1],
+              False),
+             (Vector space of degree 6 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1 -2 -3 -4]
+            [ 0  1  2  3  4  5],
+              True)]
         """
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"

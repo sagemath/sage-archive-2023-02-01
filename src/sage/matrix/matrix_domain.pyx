@@ -1,6 +1,5 @@
 cimport matrix_pyx
-import  matrix_pyx
-
+import matrix_pyx
 
 cdef class Matrix_domain(matrix_pyx.Matrix):
     def __init__(self, parent):

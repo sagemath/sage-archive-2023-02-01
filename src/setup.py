@@ -102,6 +102,11 @@ dense_matrix = Extension('sage.matrix.dense_matrix',
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
+matrix_field = Extension('sage.matrix.matrix_field',
+              ['sage/matrix/matrix_field.pyx'])
+
+matrix_rational = Extension('sage.matrix.matrix_rational',
+              ['sage/matrix/matrix_rational.pyx'])
 
 ext_modules = [ \
     ec, \
@@ -235,6 +240,12 @@ extra_compile_args = [ ]
 
 if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
     extra_compile_args = ['-w']
+
+# For new linear algebra development...
+ext_modules.append(dense_matrix)
+ext_modules.append(matrix_domain)
+ext_modules.append(matrix_field)
+ext_modules.append(matrix_rational)
 
 if DEVEL:
     extra_compile_args.append('-ggdb')

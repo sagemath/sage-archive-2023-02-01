@@ -44,7 +44,7 @@ notebook = None
 
 import time
 
-SAVE_INTERVAL=30   # time in seconds between saves when notebook is in use.
+SAVE_INTERVAL=5   # time in seconds between saves when notebook is in use.
 last_save_time = time.time()
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):

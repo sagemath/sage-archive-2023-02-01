@@ -600,6 +600,23 @@ def previous_prime(n):
     return sage.rings.integer.Integer(n)
 
 
+def random_prime(n):
+    """
+    Returns a random prime p satisfying between 2 and p (i.e. 2 <= p <= n).
+
+    EXAMPLES:
+    """
+    if n < 2 or not n in IntegerRing():
+        raise BadError
+    elif n == 2:
+        return sage.rings.integer.Integer(n)
+    else:
+        previous_prime(randint(3,n))
+
+    return previous_prime(randint(3,n))
+
+
+
 def divisors(n):
     """
     Returns a list of all positive integer divisors

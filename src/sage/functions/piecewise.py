@@ -49,8 +49,7 @@ a new class of functions (for example, 'ElementaryFunctionRing') is
 needed. This a preliminary 'todo'.)
 
 AUTHOR: David Joyner (2006-04)
-             "       (2006-08) -- fixed bug in latex method reported by
-                                  Thomas Rike
+             "       (2006-08) -- fixed bugs in latex method reported by Thomas Rike
 
 """
 
@@ -111,7 +110,7 @@ class PiecewisePolynomial:
             sage: f2 = lambda x:1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.latex()
-            '\\left\\{  \\begin{array}{ll}1,& 0 < x < 1 ,\\-x + 1,& 1 < x < 2 ,\\end{array} \right\\.'
+            '\\left\\{  \\begin{array}{ll} 1,& 0 < x < 1 \\\\  -x + 1,& 1 < x < 2 \\end{array} \\right. '
             sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -120,26 +119,32 @@ class PiecewisePolynomial:
             sage: f
             Piecewise defined function with 4 parts, [[(0, 1), 1], [(1, 2), -x + 1], [(2, 3), 2*x], [(3, 10), -x^2 + 10*x]]
             sage: f.latex()
-            '\\left\\{  \\begin{array}{ll}1,& 0 < x < 1 ,\\-x + 1,& 1 < x < 2 ,\\2*x,& 2 < x < 3 ,\\-x^2 + 10*x,& 3 < x < 10 ,\\end{array} \right\\.'
+            '\\left\\{  \\begin{array}{ll} 1,& 0 < x < 1 \\\\  -x + 1,& 1 < x < 2 \\\\  2*x,& 2 < x < 3 \\\\  -x^2 + 10*x,& 3 < x < 10 \\end{array} \\right. '
+            sage: print f.latex()
+            \left\{  \begin{array}{ll} 1,& 0 < x < 1 \\  -x + 1,& 1 < x < 2 \\  2*x,& 2 < x < 3 \\  -x^2 + 10*x,& 3 < x < 10 \end{array} \right.
+
+        Type view(f.layex()) so see this in a previewer (if one is installed).
 	"""
         x = PolynomialRing(QQ).gen()
         intvls = self.intervals()
         fcn_list = [p[1] for p in self.list()]
-        tex = ["\left\\{ \\begin{array}{ll}"]
+        tex = [r"\left\{ \begin{array}{ll} "]
         for i in range(len(fcn_list)):
 	    f = fcn_list[i]
 	    a = intvls[i][0]
 	    b = intvls[i][1]
             tex.append(str(f(x)))
-	    tex.append(",& %s < x < %s ,\\"%(a,b))
-        tex.append("\end{array} \right\.")
-	ltex = ""
+	    tex.append(r",& %s < x < %s \\\ "%(a,b))
+        tex.append(r"\end{array} \right. ")
+	ltex = r""
         for i in range(len(tex)-1):
             ltex = ltex + tex[i]
         ltex = ltex + str(tex[len(tex)-1]).replace("%","")
-        ltex = ltex.replace("\\\right\\.","\\right.")
-        ltex = ltex.replace("\\left\\{","\\left\{ ")
-        ltex = ltex.replace("\\\\end{array}","\\end{array}")
+        ltex = ltex.replace("\\\\\\ \\end{array}","\\end{array}")
+        ltex = ltex.replace("\\\\\\","\\\ ")
+        ltex = ltex.replace("\\\right\\.","\right.")
+        ltex = ltex.replace("\\left\\{","\left\{ ")
+        ltex = ltex.replace("\\\\end{array}","\end{array}")
         return ltex
 
     def intervals(self):

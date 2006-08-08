@@ -10,6 +10,8 @@ from linear_code import (LinearCode,
                          ExtendedTernaryGolayCode,
                          RandomLinearCode,
                          ToricCode,
+                         TrivialCode,
+                         hamming_weight,
                          minimum_distance_lower_bound,
                          minimum_distance_upper_bound,
                          minimum_distance_why)

@@ -7,7 +7,7 @@ Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
 is called a {\it linear code} of length $ n$. If its
 dimension is denoted $k$ then we typically store a basis
-of $C$ as a $k\times n$ matrix (the rows are the basis vectors)
+of $C$ as a $k\\times  n$ matrix (the rows are the basis vectors)
 called the {\it generator matrix} of $C$.
 The rows of the {\it parity check matrix} of $C$ are a basis
 for the code,
@@ -55,7 +55,7 @@ the quadratic residue codes) are defined using properties of the
 zeros of $C$.
 
 The symmetric group $S_n$ acts on $F^n$ by permuting coordinates.
-If an element $p\in S_n$ sends a code $C$ of length $n$ to itself
+If an element $p\\in S_n$ sends a code $C$ of length $n$ to itself
 (in other words, every codeword of $C$ is sent to some other codeword
 of $C$) then $p$ is called a {\it permutation automorphism} of $C$.
 The (permutation) automorphism group is denoted $Aut(C)$.
@@ -66,7 +66,10 @@ AUTHOR:
     -- David Joyner (2006-01-30, 2006-04): small fixes
     -- David Joyner (2006-07): added documentation, group-theoretical methods,
        ExtendedQuadraticResidueCode, ToricCode
-
+    -- David Joyner (2006-08): hopeful latex fixes to documention, added list
+       and __iter__ methods to LinearCode and examples, added hamming_weight
+       function, fixed random method to return a vector, TrivialCode,
+       fixed subtle bug in dual_code, added galois_closure method
 
 This file contains
 \begin{enumerate}
@@ -75,12 +78,13 @@ This file contains
 \item
     The spectrum (weight distribution) and minimum distance
     programs (calling Steve Linton's C programs)
-\item interface with A. Brouwer's online tables
+\item
+    interface with A. Brouwer's online tables
 \item
     Hamming codes, "random" linear codes, Golay codes, binary Reed-Muller codes,
     binary quadratic and extended quadratic residue codes, ToricCode.
 \item
-    gen_mat, check_mat, decode, dual_code method for LinearCode,
+    gen_mat, list, check_mat, decode, dual_code methods for LinearCode,
 \item
     permutation methods:
     is_permutation_automorphism, permutation_automorphism_group,
@@ -145,10 +149,14 @@ from sage.rings.finite_field import *
 from sage.groups.perm_gps.permgroup import *
 from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod
+from sage.misc.functional import log
 
 VectorSpace = fm.VectorSpace
 
 ###################### coding theory functions ##############################
+
+def hamming_weight(v):
+    return len(v.nonzero_positions())
 
 def wtdist(Gmat, F):
     """
@@ -287,7 +295,7 @@ class LinearCode(module.Module):
     r"""
     A class for linear codes over a finite field or finite ring.
     Each instance is a linear code determined by a generator matrix $G$
-    (i.e., a $k\times n$ matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
+    (i.e., a $k\\times  n$ matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
 
     INPUT:
         G -- a generator matrix over $F$. (G can be defined over a finite ring but
@@ -330,7 +338,7 @@ class LinearCode(module.Module):
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
         self.__base_ring = gen_mat[0][0].parent()
-        self.__length = len(gen_mat[1])
+        self.__length = len(gen_mat[0])
         self.__dim = gen_mat.rank()
 
     def length(self):
@@ -344,6 +352,7 @@ class LinearCode(module.Module):
 
     def _repr_(self):
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
+
     def random(self):
         F = self.base_ring()
         q = F.order()
@@ -353,7 +362,8 @@ class LinearCode(module.Module):
         gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
         gap.eval("c:=Random( C )")
         ans = [gap_to_sage(gap.eval("c["+str(i)+"]"),F) for i in range(1,n+1)]
-        return ans
+        V = VectorSpace(F,n)
+        return V(ans)
 
     def gen_mat(self):
         return self.__gen_mat
@@ -363,6 +373,58 @@ class LinearCode(module.Module):
 
     def basis(self):
         return self.__gens
+
+    def list(self):
+        """
+        Return list of all elements of this linear code.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: Clist = C.list()
+            sage: Clist[5]; Clist[5] in C
+            (1, 0, 1, 0, 1, 0, 1)
+            True
+
+        """
+        n = self.length()
+        k = self.dimension()
+        F = self.base_ring()
+        Cs,p = self.standard_form()
+        Gs = Cs.gen_mat()
+        V = VectorSpace(F,k)
+        MS = MatrixSpace(F,n,n)
+        ans = []
+        perm_mat = MS(p.matrix().rows())**(-1)
+        for v in V:
+            ans.append((v*Gs)*perm_mat)
+        return ans
+
+    def __iter__(self):
+        """
+        Return an iterator over the elements of this linear code.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(2))
+            sage: [list(c) for c in C if hamming_weight(c) < 4]
+            [[0, 0, 0, 0, 0, 0, 0],
+             [1, 0, 0, 0, 0, 1, 1],
+             [0, 1, 0, 0, 1, 0, 1],
+             [0, 0, 1, 0, 1, 1, 0],
+             [1, 1, 1, 0, 0, 0, 0],
+             [1, 0, 0, 1, 1, 0, 0],
+             [0, 1, 0, 1, 0, 1, 0],
+             [0, 0, 1, 1, 0, 0, 1]]
+        """
+        n = self.length()
+        k = self.dimension()
+        F = self.base_ring()
+        Cs,p = self.standard_form()
+        Gs = Cs.gen_mat()
+        V = VectorSpace(F,k)
+        MS = MatrixSpace(F,n,n)
+        perm_mat = MS(p.matrix().rows())**(-1)
+        for v in V:
+            yield (v*Gs)*perm_mat
 
     def ambient_space(self):
         return VectorSpace(self.__base_ring,self.__length)
@@ -533,18 +595,26 @@ class LinearCode(module.Module):
         G = self.gen_mat()
         n = len(G.columns())
         k = len(G.rows())
+        if n==k:
+            return TrivialCode(F,n)
         Gstr = str(gap(G))
 	C = gap.GeneratorMatCode(Gstr, 'GF(%s)'%q)
-        H = C.CheckMat()
-        A = H._matrix_(GF(q))
-        return LinearCode(A)
-        ##  less pythonic way:
-        #gap.eval("C:=GeneratorMatCode("+Gstr+",GF("+str(q)+"))")
-        #Hmat = gap.eval("H:=CheckMat( C )")
-        #H = [[gap_to_sage(gap.eval("H["+str(i)+"]["+str(j)+"]"),F)
-        #      for j in range(1,n+1)] for i in range(1,n-k+1)]
-        #MS = MatrixSpace(F,n-k,n)
-        #return LinearCode(MS(H))
+        #H = C.CheckMat()
+        #A = H._matrix_(GF(q))
+        #return LinearCode(A)       ## This does not work when k = n-1 for a mysterious reason.
+        ##  less pythonic way 1:
+        gap.eval("C:=DualCode(GeneratorMatCode("+Gstr+",GF("+str(q)+")))")
+        gap.eval("G:=GeneratorMat(C)")
+        G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n+1)] for i in range(1,n-k+1)]
+        MS = MatrixSpace(F,n-k,n)
+        #print G, MS(G)
+        return LinearCode(MS(G))
+        ##  less pythonic way 2:
+        Hmat = gap.eval("H:=CheckMat( C )")
+        H = [[gap_to_sage(gap.eval("H["+str(i)+"]["+str(j)+"]"),F)
+              for j in range(1,n+1)] for i in range(1,n-k+1)]
+        MS = MatrixSpace(F,n-k,n)
+        return LinearCode(MS(H))
 
     def check_mat(self):
         """
@@ -577,6 +647,38 @@ class LinearCode(module.Module):
         """
         Cperp = self.dual_code()
         return Cperp.gen_mat()
+
+    def __eq__(self, right):
+        """
+        Checks if self == right.
+
+        EXAMPLES:
+
+        """
+        slength = self.length()
+        rlength = right.length()
+        sdim = self.dimension()
+        rdim = right.dimension()
+        sF = self.base_ring()
+        rF = right.base_ring()
+        if slength != rlength:
+            return 0
+        if sdim != rdim:
+            return 0
+        if sF != rF:
+            return 0
+        V = VectorSpace(sF,sdim)
+        sbasis = self.gens()
+        rbasis = right.gens()
+        scheck = self.check_mat()
+        rcheck = right.check_mat()
+        for c in sbasis:
+            if rcheck*c != V(0):
+                return 0
+        for c in rbasis:
+            if scheck*c != V(0):
+                return 0
+        return 1
 
     def is_permutation_automorphism(self,g):
         """
@@ -654,8 +756,10 @@ class LinearCode(module.Module):
               print "\n Using the %s codewords of weight %s \n Supergroup size: \n %s\n "%(wts[wt],wt,size)
           gap.eval("Cwt:=Filtered(eltsC,c->WeightCodeword(c)=%s)"%wt)   ## bottleneck 2 (repeated
           gap.eval("matCwt:=List(Cwt,c->VectorCodeword(c))")            ##        for each i until stop = 1)
-          gap.eval("G:=Intersection(G,MatrixAutomorphisms(matCwt))")    ## bottleneck 3
-          gap.eval("autgp_gens:=GeneratorsOfGroup(G)")
+          gap.eval("A:=MatrixAutomorphisms(matCwt); GG:=Intersection2(G,A)")    ## bottleneck 3
+          print gap.eval("A; GG")
+          gap.eval("autgp_gens:=GeneratorsOfGroup(GG); G:=GG")
+          #gap.eval("autgp_gens:=GeneratorsOfGroup(G)")
           N = eval(gap.eval("Length(autgp_gens)"))
           gens = [Sn(gap.eval("autgp_gens[%s]"%i).replace("\n","")) for i in range(1,N+1)]
           stop = 1                                        ## get ready to stop
@@ -794,6 +898,57 @@ class LinearCode(module.Module):
         gap.eval("M:=GModuleByMats("+mats_str+", GF("+str(q)+"))")
         print gap("MTX.CompositionFactors( M )")
 
+    def galois_closure(self, F0):
+        """
+        If self is a linear code defined over F and F0 is a subfield
+        with Galois group G = Gal(F/F0) then this returns the G-module
+        C^- containing C.
+
+        EXAMPLES:
+            sage: C = HammingCode(3,GF(4))
+            sage: C
+            Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
+            sage: Cc = C.galois_closure(GF(2))
+            sage: Cc
+            Linear code of length 21, dimension 20 over Finite Field in a of size 2^2
+            sage: c = C.random()
+            sage: c  ## random output
+            (1, 0, 1, 1, 1, a, 0, a, a + 1, a + 1, a + 1, a + 1, a, 1, a + 1, a + 1, 0, a + 1, 0, 1, 1)
+            sage: V = VectorSpace(GF(4),21)
+            sage: c2 = V([x^2 for x in c.list()])
+            sage: c2 in C
+            False
+            sage: c2 in Cc
+            True
+
+        """
+        G = self.gen_mat()
+        F = self.base_ring()
+        q = F.order()
+        q0 = F0.order()
+        a = log(q,q0)  ## test if F/F0 is a field extension
+        if not(a.integer_part() == a):
+            raise ValueError,"Base field must be an extension of given field %s"%F0
+        n = len(G.columns())
+        k = len(G.rows())
+        G0 = [[x**q0 for x in g.list()] for g in G.rows()]
+        G1 = [[x for x in g.list()] for g in G.rows()]
+        G2 = G0+G1
+        MS = MatrixSpace(F,2*k,n)
+        G3 = MS(G2)
+        r = G3.rank()
+        MS = MatrixSpace(F,r,n)
+        Grref = G3.echelon_form()
+        G = MS([Grref[i] for i in range(r)])
+        return LinearCode(G)
+
+    def is_galois_closed(self):
+        """
+        Checks if C is equal to its Galois closure.
+
+        """
+        return self == self.galois_closure()
+
 ######### defining the Codeword class by copying the FreeModuleElement class:
 Codeword = fme.FreeModuleElement
 Codeword.support = fme.FreeModuleElement.nonzero_positions
@@ -813,7 +968,7 @@ def HammingCode(r,F):
     code.
 
     INPUT:
-        r -- an integer > 1
+        r -- an integer > 2
         F -- a finite field.
 
     OUTPUT:
@@ -924,9 +1079,9 @@ def QuasiQuadraticResidueCode(p):
     """
     A (binary) quasi-quadratic residue code (or QQR code), as defined by
     Proposition 2.2 in [BM], has a generator matrix in the block form $G=(Q,N)$.
-    Here $Q$ is a $p\times p$ circulant matrix whose top row
+    Here $Q$ is a $p\\times  p$ circulant matrix whose top row
     is $(0,x_1,...,x_{p-1})$, where $x_i=1$ if and only if $i$
-    is a quadratic residue $\mod p$, and $N$ is a $p\times p$
+    is a quadratic residue $\mod p$, and $N$ is a $p\\times  p$
     circulant matrix whose top row is $(0,y_1,...,y_{p-1})$, where
     $x_i+y_i=1$ for all i.
 
@@ -1103,8 +1258,8 @@ def ExtendedTernaryGolayCode():
 
 def RandomLinearCode(n,k,F):
     """
-    The method used is to first construct a $k\times n$ matrix of the block form $(I,A)$,
-    where $I$ is a $k\times k$ identity matrix and $A$ is a $k\times (n-k)$ matrix
+    The method used is to first construct a $k\\times  n$ matrix of the block form $(I,A)$,
+    where $I$ is a $k\\times  k$ identity matrix and $A$ is a $k\\times  (n-k)$ matrix
     constructed using random elements of $F$. Then the columns are permuted
     using a randomly selected element of the symmetric group $S_n$.
 
@@ -1137,12 +1292,12 @@ def RandomLinearCode(n,k,F):
 def ToricCode(P,F):
     """
     Let $P$ denote a list of lattice points in $\Z^d$ and let $T$ denote the
-    set of all points in $(F^\times)^d$ (ordered in some fixed way). Put $n=|T|$
+    set of all points in $(F^\\times )^d$ (ordered in some fixed way). Put $n=|T|$
     and let $k$ denote the dimension of the vector space of functions
-    $V = Span \{x^e \ |\ e \in P\}$. The associated {\it toric code} $C$ is the
+    $V = Span \{x^e \ |\ e \\in P\}$. The associated {\it toric code} $C$ is the
     evaluation code which is the image of the evaluation map
     \[
-                 eval_T : V \rightarrow F^n,
+                 eval_T : V \\rightarrow F^n,
     \]
     where $x^e$ is the multi-index notation ($x=(x_1,...,x_d)$, $e=(e_1,...,e_d)$, and
     $x^e = x_1^{e_1}...x_d^{e_d}$), where $eval_T (f(x)) = (f(t_1),...,f(t_n))$, and
@@ -1200,5 +1355,6 @@ def ToricCode(P,F):
     MS = MatrixSpace(F,k,n)
     return LinearCode(MS(B))
 
-
-
+def TrivialCode(F,n):
+    MS = MatrixSpace(F,1,n)
+    return LinearCode(MS(0))

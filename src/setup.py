@@ -438,6 +438,8 @@ setup(name        = 'sage',
                      'sage.plot',
                      'sage.plot.mpl3d',
 
+                     'sage.quadratic_forms',
+
                      'sage.rings',
                      'sage.rings.number_field',
 

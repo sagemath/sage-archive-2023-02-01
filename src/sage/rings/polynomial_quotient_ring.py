@@ -489,6 +489,127 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
 
+    def field_extension(self):
+        r"""
+        Takes a polynomial defined in a quotient ring, and returns
+        a tuple with three elements: the NumberField defined by the
+        same polynomial, a homomorphism from its parent to the
+	NumberField sending the generators to one another, and the
+	inverse isomorphism.
+
+        For some reason, we first implemented this as a method
+        for an element, instead of for the quotient ring.
+
+        OUTPUT:
+            -- field
+            -- homomorphism from self to field
+            -- homomorphism from field to self
+
+        EXAMPLES:
+            sage: R = PolynomialRing(Rationals()) ; x = R.gen()
+            sage: S = R.quotient(x^3-2, 'alpha') ; alpha = S.gen()
+            sage: F, f, g = S.field_extension()
+            sage: F
+            Number Field in a with defining polynomial x^3 - 2
+            sage: a = F.gen()
+            sage: f(alpha)
+            a
+            sage: g(a)
+            alpha
+
+        We do another example over $\ZZ$.
+            sage: R.<x> = ZZ['x']
+            sage: S.<a> = R/(x^3 - 2)
+            sage: F, g, h = S.field_extension()
+            sage: h(F.0^2 + 3)
+            a^2 + 3
+            sage: g(x^2 + 2)
+            a^2 + 2
+
+        Note that the homomorphism is not defined on the entire
+        ''domain''.   (Allowing creation of such functions may be
+        disallowed in a future version of SAGE.):
+            sage: h(1/3)
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce rational (=1/3) to an Integer.
+
+        Note that the parent ring must be an integral domain:
+            sage: R.<x> = GF(25)['x']
+            sage: S.<a> = R/(x^3 - 2)
+            sage: F, g, h = S.field_extension()
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'PolynomialQuotientRing_generic' object has no attribute 'field_extension'
+
+
+        Over a finite field, the corresponding field extension is
+        not a number field:
+
+            sage: R.<x> = GF(25)['x']
+            sage: S.<a> = R/(x^3 + 2*x + 1)
+            sage: F, g, h = S.field_extension()
+            sage: h(F.0^2 + 3)
+            a^2 + 3
+            sage: g(x^2 + 2)
+            x^2 + 2
+
+        We do an example involving a relative number field, which
+        doesn't work since the relative extension generator doesn't
+        generate the absolute extension.
+            sage: R.<x> = QQ['x']
+            sage: K.<a> = NumberField(x^3-2)
+            sage: S.<X> = K['X']
+            sage: Q.<b> = S/(X^3 + 2*X + 1)
+            sage: F, g, h = Q.field_extension()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()
+
+
+        We slightly change the example above so it works.
+
+            sage: R.<x> = QQ['x']
+            sage: K.<a> = NumberField(x^3-2)
+            sage: S.<X> = K['X']
+            sage: f = (X+a)^3 + 2*(X+a) + 1
+            sage: f
+            X^3 + 3*a*X^2 + (3*a^2 + 2)*X + 2*a + 3
+            sage: Q.<z> = S/f
+            sage: F, g, h = Q.field_extension()
+            sage: F.<w> = F
+            sage: c = g(z)
+            sage: f(c)
+            0
+            sage: h(g(z))
+            z
+            sage: g(h(w))
+            w
+
+        AUTHOR:
+            -- Craig Citro 07 Aug 06
+            -- William Stein 06 Aug 06
+        """
+
+        F = self.modulus().root_field()
+        if isinstance(F, number_field.number_field.NumberField_extension):
+            if F.gen() != F.gen_relative():
+                # The issue is that there is no way to specify a homomorphism
+                # from the relative number to the poly ring quotient that
+                # is defined over Q.
+                raise NotImplementedError, "not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()"
+            alpha = F.gen_relative()
+        else:
+            alpha = F.gen()
+        x = self.gen()
+
+        f = self.hom([alpha], F, check=False)
+        g = F.hom([x], self, check=False)
+
+        return F, f, g
+
+
+
 
 class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     """
@@ -525,4 +646,5 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         f = self.modulus().base_extend(CC)
         v = f.roots()
         return [self.hom([a], check=False) for a in v]
+
 

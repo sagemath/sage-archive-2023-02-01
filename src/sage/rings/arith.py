@@ -9,7 +9,7 @@ Miscellaneous arithmetic functions
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
-import math, random
+import math
 
 import sage.misc.misc as misc
 import sage.misc.search
@@ -612,14 +612,13 @@ def random_prime(n):
         54601
         sage: random_prime(2)
         2
-        sage: random_prime(-3)
-        Traceback (most recent call last):
-        ...
-        ValueError: n must be >= 2.
+
 
     AUTHOR:
         -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
     """
+    import random    # since we don't want random to get
+                     # pulled when you say "from sage.arith import *".
     n = sage.rings.integer.Integer(n)
     if n < 2:
         raise ValueError, "n must be >= 2."

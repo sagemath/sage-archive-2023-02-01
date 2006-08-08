@@ -892,6 +892,15 @@ class HeckeModule_free_module(HeckeModule_generic):
             sage: b(63)
             63 [1, 1, 0, -1, 2]
             63 [1, alpha, 0, 1, -2*alpha]
+
+        This example illustrates finding field over which the
+        eigenvalues are defined:
+
+            sage: M = ModularSymbols(23,2,sign=1).cuspidal_submodule().new_submodule()
+            sage: v = M.system_of_eigenvalues(10); v
+            [1, alpha, -2*alpha - 1, -alpha - 1, 2*alpha, alpha - 2, 2*alpha + 2, -2*alpha - 1, 2, -2*alpha + 2]
+            sage: v[0].parent()
+            Univariate Quotient Polynomial Ring in alpha over Rational Field with modulus x^2 + x - 1
         """
         return [self.eigenvalue(m) for m in range(1,n+1)]
 

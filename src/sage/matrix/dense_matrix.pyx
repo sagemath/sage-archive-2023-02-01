@@ -522,7 +522,7 @@ cdef class Matrix_modint(matrix_pyx.Matrix):
         S3 = self._sub_submatrices(S1, a01_r, a01_c, m, m, 0, 0, m, m)
         T3 = other._sub_submatrices(T1, b10_r, b10_c, m, m, 0, 0, m, m)
 
-        # 7. (Potentially) Recursive Multiplications
+        # 7 (Potentially) Recursive Multiplications
         # P0 =  A00*B00
         # P1 =  A01*B10
         # P2 =  S0*T0

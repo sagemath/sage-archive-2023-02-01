@@ -324,11 +324,11 @@ class OctaveElement(ExpectElement):
 
         EXAMPLES:
             sage: A = octave('[1,2;3,4]')       # optional octave package
-            sage: matrix(A, ZZ)
+            sage: matrix(ZZ, A)
             [1 2]
             [3 4]
             sage: A = octave('[1,2;3,4.5]')     # optional octave package
-            sage: matrix(A, RR)
+            sage: matrix(RR, A)
             [1.0000000000000000 2.0000000000000000]
             [3.0000000000000000 4.5000000000000000]
         """

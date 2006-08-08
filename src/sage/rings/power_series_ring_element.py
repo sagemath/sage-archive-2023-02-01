@@ -35,6 +35,7 @@ import rational_field, integer_ring
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.structure.element import Element_cmp_
+from sage.libs.all import PariError
 
 
 Polynomial = polynomial.Polynomial_generic_dense
@@ -557,6 +558,18 @@ class PowerSeries_generic_dense(PowerSeries):
     def _mul_(self, right, prec):
         return PowerSeries_generic_dense(self.parent(),
                                          self.__f * right.__f, prec)
+
+    def __floordiv__(self, denom):
+        try:
+            return PowerSeries.__div__(self, denom)
+        except (PariError, ZeroDivisionError), e: # PariError to general?
+            if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self.parent().base_ring():
+                denom = denom[0]
+            elif not denom in self.parent().base_ring():
+                raise ZeroDivisionError, e
+            return PowerSeries_generic_dense(self.parent(),
+                                             self.__f // denom, self._prec)
+
 
 
     def copy(self):

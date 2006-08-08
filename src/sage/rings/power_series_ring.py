@@ -133,7 +133,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         return 0
 
     def __contains__(self, x):
-        if not isinstance(x, PowerSeries):
+        if not isinstance(x, power_series_ring_element.PowerSeries):
             return False
         return x.parent() == self
 

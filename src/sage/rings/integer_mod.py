@@ -299,6 +299,9 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
             t = (self.__value.lift() / right.__value.lift()).Mod(P.order())
             return P(t, construct=True)
 
+    def __floordiv__(self, right):
+        return self._div_(right)
+
     def __int__(self):
         return int(self.__value.lift())
 

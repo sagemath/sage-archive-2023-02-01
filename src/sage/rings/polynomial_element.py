@@ -1537,6 +1537,14 @@ class Polynomial_generic_dense(Polynomial):
                 self.__coeffs.append(zero)
             self.__coeffs.append(value)
 
+    def __floordiv__(self, right):
+        if (right in self.parent().base_ring()):
+            d = self.parent().base_ring(right)
+        else:
+            print "calling parent"
+            return Polynomial.__floordiv__(self, right)
+        return self.polynomial([c // d for c in self.__coeffs], check=false)
+
     def list(self):
         """
         Return a new copy of the list of the underlying
@@ -2460,6 +2468,15 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
 
+    def __floordiv__(self, right):
+        if is_Polynomial(right) and right.is_constant() and right[0] in ZZ:
+            d = ZZ(right[0])
+        elif (right in self.parent().base_ring()):
+            d = ZZ(right)
+        else:
+            return Polynomial.__floordiv__(self, right)
+        return self.parent()([c // d for c in self.list()], construct=True)
+
     def __setitem__(self, n, value):
         if self._is_gen:
             raise ValueError, "the generator cannot be changed"
@@ -2677,7 +2694,8 @@ class Polynomial_dense_mod_n(Polynomial):
                 self.__poly = x.__poly.copy()
                 return
             else:
-                x = [ZZ(a) for a in x.list()]
+                R = parent.base_ring()
+                x = [ZZ(R(a)) for a in x.list()]
                 check = False
 
         if isinstance(x, dict):
@@ -2706,7 +2724,8 @@ class Polynomial_dense_mod_n(Polynomial):
             x = [x]   # constant polynomials
 
         if check:
-            x = [ZZ(z) for z in x]
+            R = parent.base_ring()
+            x = [ZZ(R(a)) for a in x]
 
         parent._ntl_set_modulus()
         self.__poly = ZZ_pX(x)
@@ -2800,6 +2819,15 @@ class Polynomial_dense_mod_n(Polynomial):
 
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
+
+    def __floordiv__(self, right):
+        if is_Polynomial(right) and right.is_constant() and right[0] in self.parent().base_ring():
+            d = right[0]
+        elif (right in self.parent().base_ring()):
+            d = right
+        else:
+            return Polynomial.__floordiv__(self, right)
+        return self.parent()([c // d for c in self.list()], construct=True)
 
     def __setitem__(self, n, value):
         if self._is_gen:

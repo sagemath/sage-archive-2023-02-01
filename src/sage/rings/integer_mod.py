@@ -53,7 +53,10 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
             return
         if isinstance(value, rational.Rational):
             value = value % parent.order()
-        self.__value = pari(value).Mod(parent._pari_order())
+        try:
+            self.__value = pari(value).Mod(parent._pari_order())
+        except PariError, msg:
+            raise TypeError, "can't coerce element into pari."
         #self.__value = pari('Mod(%s,%s)'%(value, parent.order()))
 
     def __cmp__(self, right):

@@ -162,6 +162,57 @@ class IntegerMod(commutative_ring_element.CommutativeRingElement):
     def is_unit(self):
         return self.lift().gcd(self.modulus()) == 1
 
+    def charpoly(self):
+        """
+        Returns the characteristic polynomial of this element.
+
+        EXAMPLES:
+            sage: k = GF(3)
+            sage: a = k.gen()
+            sage: a.charpoly()
+            x + 2
+            sage: a.charpoly()(a)
+            0
+
+        AUTHOR:
+         -- Craig Citro
+        """
+        import polynomial_ring
+        R = polynomial_ring.PolynomialRing(self.parent())
+        return R([-self,1])
+
+    def norm(self):
+        """
+        Returns the norm of this element, which is itself. (This
+        is here for compatibility with higher order finite fields.)
+
+        EXAMPLES:
+            sage: k = GF(691)
+            sage: a = k(389)
+            sage: a.norm()
+            389
+
+        AUTHOR:
+         -- Craig Citro
+        """
+        return self
+
+    def trace(self):
+        """
+        Returns the trace of this element, which is itself. (This
+        is here for compatibility with higher order finite fields.)
+
+        EXAMPLES:
+            sage: k = GF(691)
+            sage: a = k(389)
+            sage: a.trace()
+            389
+
+        AUTHOR:
+         -- Craig Citro
+        """
+        return self
+
     def sqrt(self):
         """
         Same as self.square_root().

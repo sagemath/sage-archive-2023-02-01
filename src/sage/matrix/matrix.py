@@ -5,10 +5,27 @@ This section describes classes that implement matrices over special
 rings, such as the integers or rationals.  They derive from the
 generic \class{Matrix} class, but implement improved and additional
 functionality.
+
+Here the following methods are implemented for a square matrix:
+
+   * eigenspaces (also broken down into eigenvalues and eigenvectors)
+   * characteristic polynomials
+   * determinants
+   * inverses
+
+For more general matrices, the following methods are implemented:
+
+   * column manipulations (such as reading off a particular column or computing a
+     column span),
+   * row maniputations (including computing the row-reduced echelon form)
+   * kernel and image
+
+among others.
+
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -120,10 +137,10 @@ class Matrix_domain(Matrix):
             ])
             ]
 
-        Finally, we compute the eigenspaces of a $3\times 3$ matrix.
+        We compute the eigenspaces of a $3\times 3$ matrix.
 
             sage: A = Matrix(QQ,3,3,range(9))
-            sage: A.eigenspaces()
+            sage: eA = A.eigenspaces(); eA
             [
             (0, [
             (1, -2, 1)
@@ -132,6 +149,20 @@ class Matrix_domain(Matrix):
             (1, 1/15*a + 2/5, 2/15*a - 1/5)
             ])
             ]
+            sage: eA[1][0].parent()
+            Number Field in a with defining polynomial x^2 - 12*x - 18
+
+        This function also allows one to compute eigenvectors and eigenvalues of a
+        square matrix over a finite field:
+
+            sage: MS = MatrixSpace(GF(7),2,2)
+            sage: g = MS([[5, 1], [4, 1]])
+            sage: eig = g.eigenspaces()
+            sage: eigvecs = [eig[i][1][0] for i in range(2)]
+            sage: eigvals = [eig[i][0] for i in range(2)]
+            sage: eigvecs[0]*g == eigvals[0]*eigvecs[0]
+            True
+
         """
         try:
             return self.__eigenvectors
@@ -147,6 +178,29 @@ class Matrix_domain(Matrix):
         self.__eigenvectors = V
         return sage.structure.sequence.Sequence(V, cr=True)
 
+    def eigenvectors(self):
+        """
+        EXAMPLES:
+            sage: MS = MatrixSpace(GF(7),2,2)
+            sage: g = MS([[5, 1], [4, 1]])
+            sage: g.eigenvectors()
+            [(1, 5), (1, 1)]
+        """
+        eig = self.eigenspaces()
+        n = len(eig)
+        return [eig[i][1][0] for i in range(n)]
+
+    def eigenvalues(self):
+        """
+        EXAMPLES:
+            sage: MS = MatrixSpace(GF(7),2,2)
+            sage: g = MS([[5, 1], [4, 1]])
+            sage: g.eigenvalues()
+            [4, 2]
+        """
+        eig = self.eigenspaces()
+        n = len(eig)
+        return [eig[i][0] for i in range(n)]
 
     def charpoly(self, *args, **kwds):
         r"""

@@ -3,7 +3,8 @@ import permgroup as pg
 from permgroup import (PermutationGroup, PermutationGroupElement,
                        SymmetricGroup, AlternatingGroup,
                        DihedralGroup, CyclicPermutationGroup,
-                       TransitiveGroup, PGL, PSL, PSp,PSU,PGU)
+                       TransitiveGroup, PGL, PSL, PSp,PSU,PGU,
+                       MathieuGroup)
 
 from permgroup import  PermutationGroup, PermutationGroup_generic, PermutationGroup_subgroup, direct_product_permgroups
 

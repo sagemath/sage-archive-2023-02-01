@@ -1,7 +1,7 @@
 r"""
 Linear Codes
 
-VERSION: 0.4
+VERSION: 0.6
 
 Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
@@ -72,6 +72,8 @@ AUTHOR:
        fixed subtle bug in dual_code, added galois_closure method,
        fixed mysterious bug in permutation_automorphism_group (GAP
        was over-using "G" somehow?)
+    -- David Joyner (2006-08): hopeful latex fixes to documention,
+       added CyclicCode, best_known_linear_code, bounds_minimum_distance.
 
 This file contains
 \begin{enumerate}
@@ -81,10 +83,14 @@ This file contains
     The spectrum (weight distribution) and minimum distance
     programs (calling Steve Linton's C programs)
 \item
-    interface with A. Brouwer's online tables
+    interface with A. Brouwer's online tables, as well as
+    best_known_linear_code, bounds_minimum_distance which call tables
+    in GUAVA (updated May 2006) created by Cen Tjhai instead of the online
+    internet tables.
 \item
     Hamming codes, "random" linear codes, Golay codes, binary Reed-Muller codes,
-    binary quadratic and extended quadratic residue codes, ToricCode.
+    binary quadratic and extended quadratic residue codes, ToricCode,
+    TrivialCode, cyclic codes.
 \item
     gen_mat, list, check_mat, decode, dual_code methods for LinearCode,
 \item
@@ -115,10 +121,7 @@ This file contains
 
 To be added:
 \begin{enumerate}
-\item PermutedCode method (with PermutationGroupElement as argument).
 \item More wrappers
-\item automorphism group.
-\item cyclic codes
 \item GRS codes and special decoders.
 \item $P^1$ Goppa codes and group actions.
 \end{enumerate}
@@ -290,6 +293,46 @@ def minimum_distance_why(n,k,F):
     bounds = linear_code_bound(q,n,k)
     print bounds[2]
 
+def best_known_linear_code(n,k,F):
+    """
+    best_known_linear_code returns the best known (as of 11 May 2006) linear code of
+    length n, dimension k over field F. The function uses the tables described in bounds_minimum_distance
+    to construct this code.
+
+    This does not require an internet connection.
+
+    EXAMPLES:
+        sage: best_known_linear_code(10,5,GF(2))
+        'a linear [10,5,4]2..4 shortened code'
+
+    This means that best possible binary liear code of length 10 and dimension 5
+    is a code with minimum distance 4 and covering radius somewhere between 2 and 4.
+    Use "minimum_distance_why(10,5,GF(2))" or "print bounds_minimum_distance(10,5,GF(2))"
+    for further details.
+    """
+    q = F.order()
+    return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
+
+def bounds_minimum_distance(n,k,F):
+    """
+    The function bounds_minimum_distance calculates a lower and upper bound for the minimum
+    distance of an optimal linear code with word length n, dimension k over field F. The
+    function returns a record with the two bounds and an explanation for each bound. The
+    function Display can be used to show the explanations.
+
+    The values for the lower and upper bound are obtained from a table constructed by Cen Tjhai for GUAVA,
+    derived from the table of Brouwer. (See http://www.win.tue.nl/~aeb/voorlincod.html or use the SAGE function
+    minimum_distance_why for the most recent data.) These tables contain lower and upper bounds for
+    q=2 (n <= 257), 3 (n <= 243), 4 (n <= 256). (Current as of 11 May 2006.)
+    For codes over other fields and for larger word lengths, trivial bounds are used.
+
+    This does not require an internet connection. The format of the output is a
+    little non-intuitive. Try print bounds_minimum_distance(10,5,GF(2)) for example.
+    """
+    q = F.order()
+    gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
+    Ldata = gap.eval("Display(data)")
+    return Ldata
 
 ########################### linear codes python class #######################
 
@@ -297,7 +340,7 @@ class LinearCode(module.Module):
     r"""
     A class for linear codes over a finite field or finite ring.
     Each instance is a linear code determined by a generator matrix $G$
-    (i.e., a $k\\times  n$ matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
+    (i.e., a k x n matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
 
     INPUT:
         G -- a generator matrix over $F$. (G can be defined over a finite ring but
@@ -713,7 +756,6 @@ class LinearCode(module.Module):
                 aut = 0
         return aut
 
-
     def permutation_automorphism_group(self,mode=None):
         """
         If C is an [n,k,d] code over F this function computes the
@@ -732,6 +774,15 @@ class LinearCode(module.Module):
             sage: G = C.permutation_automorphism_group()
             sage: G.order()
             144
+
+        A less easy example involves showing that the permutation automorphism
+        group of the extended ternary Golay code is the Mathieu group $M_{11}$.
+
+            sage: C = ExtendedTernaryGolayCode()
+            sage: M11 = MathieuGroup(11)
+            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds
+            sage: G.is_isomorphic(M11)
+            True
 
         """
         F = self.base_ring()
@@ -1086,11 +1137,10 @@ def QuasiQuadraticResidueCode(p):
     """
     A (binary) quasi-quadratic residue code (or QQR code), as defined by
     Proposition 2.2 in [BM], has a generator matrix in the block form $G=(Q,N)$.
-    Here $Q$ is a $p\\times  p$ circulant matrix whose top row
+    Here $Q$ is a p x p circulant matrix whose top row
     is $(0,x_1,...,x_{p-1})$, where $x_i=1$ if and only if $i$
-    is a quadratic residue $\mod p$, and $N$ is a $p\\times  p$
-    circulant matrix whose top row is $(0,y_1,...,y_{p-1})$, where
-    $x_i+y_i=1$ for all i.
+    is a quadratic residue $\mod p$, and $N$ is a p x p circulant matrix whose top row
+    is $(0,y_1,...,y_{p-1})$, where $x_i+y_i=1$ for all i.
 
     INPUT:
         p -- a prime >2.
@@ -1265,8 +1315,8 @@ def ExtendedTernaryGolayCode():
 
 def RandomLinearCode(n,k,F):
     """
-    The method used is to first construct a $k\\times  n$ matrix of the block form $(I,A)$,
-    where $I$ is a $k\\times  k$ identity matrix and $A$ is a $k\\times  (n-k)$ matrix
+    The method used is to first construct a k x n matrix of the block form $(I,A)$,
+    where $I$ is a k x k identity matrix and $A$ is a k x (n-k) matrix
     constructed using random elements of $F$. Then the columns are permuted
     using a randomly selected element of the symmetric group $S_n$.
 
@@ -1299,20 +1349,20 @@ def RandomLinearCode(n,k,F):
 def ToricCode(P,F):
     """
     Let $P$ denote a list of lattice points in $\Z^d$ and let $T$ denote the
-    set of all points in $(F^\\times )^d$ (ordered in some fixed way). Put $n=|T|$
+    set of all points in $(F^x )^d$ (ordered in some fixed way). Put $n=|T|$
     and let $k$ denote the dimension of the vector space of functions
     $V = Span \{x^e \ |\ e \\in P\}$. The associated {\it toric code} $C$ is the
     evaluation code which is the image of the evaluation map
-    \[
-                 eval_T : V \\rightarrow F^n,
-    \]
+
+                        eval_T : V -----> F^n,
+
     where $x^e$ is the multi-index notation ($x=(x_1,...,x_d)$, $e=(e_1,...,e_d)$, and
     $x^e = x_1^{e_1}...x_d^{e_d}$), where $eval_T (f(x)) = (f(t_1),...,f(t_n))$, and
     where $T=\{t_1,...,t_n\}$. This function returns the toric codes discussed in [J].
 
     INPUT:
         P -- all the integer lattice points in a polytope defining the toric variety.
-        F -- a finite field.(at the moment F must be a *prime* field)
+        F -- a finite field.
 
     OUTPUT:
         Returns toric code with length n = , dimension k over field F.
@@ -1350,7 +1400,7 @@ def ToricCode(P,F):
     from sage.combinat.combinat import tuples
     mset = [x for x in F if x!=0]
     d = len(P[0])
-    pts = tuples(mset,d)  ## tuples does not allow for non-prime field elements yet
+    pts = tuples(mset,d)
     n = len(pts) ## (q-1)^d
     k = len(P)
     e = P[0]
@@ -1366,3 +1416,32 @@ def TrivialCode(F,n):
     MS = MatrixSpace(F,1,n)
     return LinearCode(MS(0))
 
+def CyclicCode(g,n,F):
+    """
+    Here g is a polynomial in F[x] which divides x^n-1. The
+    cyclic code C associated to (g,n,F) is isomorphic as a vector space)
+    to the principal ideal (g) in the ring R = F[x]/(x^n-1) generated by g.
+
+    If g does not divide x^n-1, instead of returning an error, a
+    code generated by gcd(x^n-1,g) is created.
+
+    EXAMPLES:
+        sage: x = PolynomialRing(GF(2),"x").gen()
+        sage: g = x^3+x+1
+        sage: C = CyclicCode(g,7,GF(2))
+        sage: C
+        Linear code of length 7, dimension 4 over Finite Field of size 2
+    """
+    q = F.order()
+    R = gap.PolynomialRing(F)
+    I = R.IndeterminatesOfPolynomialRing()
+    _ = gap.eval("x := %s[1];"%I.name())
+    gap_g = str(gap(str(g)))
+    gap.eval("x_1:=X(GF("+str(q)+"))")
+    gap.eval("C:=GeneratorPolCode("+gap_g+","+str(n)+", GF("+str(q)+"))")
+    gap.eval("G:=GeneratorMat(C)")
+    k = eval(gap.eval("Length(G)"))
+    n1 = eval(gap.eval("Length(G[1])"))
+    G = [[gap_to_sage(gap.eval("G["+str(i)+"]["+str(j)+"]"),F) for j in range(1,n1+1)] for i in range(1,k+1)]
+    MS = MatrixSpace(F,k,n1)
+    return LinearCode(MS(G))

@@ -32,6 +32,8 @@ You can construct the following permutation groups:
                       from the GAP tables of transitive groups (requires
                       the "optional" package database_gap)
 
+-- Mathieu groups, of degrees 9, 10, 11, 12, 21, 22, 23, or 24.
+
 -- PGL(n,q), projective general linear group of $n\times n$ matrices over
              the finite field GF(q)
 
@@ -68,12 +70,17 @@ AUTHOR:
                               added subgroup class+methods, PGL,PSL,PSp, PSU classes,
     - David Joyner (2006-06): added PGU, functionality to SymmetricGroup, AlternatingGroup,
                                     direct_product_permgroups
+    - David Joyner (2006-08): added degree, ramification_module_decomposition_modular_curve
+                              and ramification_module_decomposition_hurwitz_curve
+                              methods to PSL(2,q), MathieuGroup, is_isomorphic
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
     Wielandt, H., Finite Permutation Groups. New York: Academic Press, 1964.
     Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
 
+TODO:
+  Wrap Suzuki groups, Ree groups (using IsPermGroup filter)
 
 """
 
@@ -564,23 +571,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             [         3         -1          0          0]
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3)]])
             sage: CT = gap(G).CharacterTable()
-            sage: print gap.eval("Display(%s)"%CT.name())
-            CT1
-            <BLANKLINE>
-                2  2  2  .  .
-                3  1  .  1  1
-            <BLANKLINE>
-                   1a 2a 3a 3b
-                2P 1a 1a 3b 3a
-                3P 1a 2a 1a 1a
-            <BLANKLINE>
-            X.1     1  1  1  1
-            X.2     1  1  A /A
-            X.3     1  1 /A  A
-            X.4     3 -1  .  .
-            <BLANKLINE>
-            A = E(3)^2
-              = (-1-ER(-3))/2 = -1-b3
+
+        Type print gap.eval("Display(%s)"%CT.name()) to display this nicely.
 
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
             sage: G.order()
@@ -592,20 +584,8 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 1  1 -1 -1  1]
             [ 2  0  0  0 -2]
             sage: CT = gap(G).CharacterTable()
-            sage: print gap.eval("Display(%s)"%CT.name())
-            CT2
-            <BLANKLINE>
-             2  3  2  2  2  3
-            <BLANKLINE>
-               1a 2a 2b 4a 2c
-            2P 1a 1a 1a 2c 1a
-            3P 1a 2a 2b 4a 2c
-            <BLANKLINE>
-            X.1     1  1  1  1  1
-            X.2     1 -1 -1  1  1
-            X.3     1 -1  1 -1  1
-            X.4     1  1 -1 -1  1
-            X.5     2  .  .  . -2
+
+        Again, type print gap.eval("Display(%s)"%CT.name()) to display this.
 
             sage: SymmetricGroup(2).character_table()
             [ 1 -1]
@@ -696,6 +676,32 @@ class PermutationGroup_generic(group.FiniteGroup):
             True
         """
         return self.is_abelian()
+
+    def is_isomorphic(self,right,mode=None):
+        """
+        Return True if the groups are isomorphic. If mode="verbose" then
+        an isomorphism is printed.
+
+        EXAMPLES:
+            sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: H = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: G.is_isomorphic(H)
+            False
+
+        Now, if you type G.is_isomorphic(G,mode="verbose"), of course you will get
+        "True" but in addition an isomorphism (determined by a map of group generators)
+        is printed. The isomorphism is random, but in this case you will probably
+        get something like [ (2,3), (1,2)(3,4,5) ] -> [ (2,3), (1,2)(3,5,4) ],
+        which indicates that g1 = (2,3) and g2 = (1,2)(3,4,5) are generators of G and
+        the map found is the identity map.
+        """
+        G = self._gap_init_()
+        H = right._gap_init_()
+        gap.eval("x:=IsomorphismGroups( %s, %s )"%(G,H))
+        if mode=="verbose":
+            print gap.eval("x")
+            return not(gap.eval("x")=="fail")
+        return not(gap.eval("x")=="fail")
 
     def conjugacy_classes_representatives(self):
         """
@@ -950,6 +956,32 @@ class DihedralGroup(PermutationGroup_generic):
     def _repr_(self):
         return "Dihedral group of order %s as a permutation group"%self.order()
 
+class MathieuGroup(PermutationGroup_generic):
+    """
+    The Mathieu group of degree $n$.
+    """
+    def __init__(self, n):
+        """
+        INPUT:
+            n -- a positive integer in  {9, 10, 11, 12, 21, 22, 23, 24}.
+
+        OUTPUT:
+            -- the Mathieu group of degree n, as a permutation group
+
+        EXAMPLE:
+            sage: G = MathieuGroup(12)
+            sage: G
+            Mathieu group of degree 12 and order 95040 as a permutation group
+        """
+        n = Integer(n)
+        self._n = n
+        if not(n in [9, 10, 11, 12, 21, 22, 23, 24]):
+            raise ValueError,"argument must belong to {9, 10, 11, 12, 21, 22, 23, 24}."
+        id = 'MathieuGroup(%s)'%n
+        PermutationGroup_generic.__init__(self, id, from_group=True, check=False)
+
+    def _repr_(self):
+        return "Mathieu group of degree %s and order %s as a permutation group"%(self._n,self.order())
 
 class TransitiveGroup(PermutationGroup_generic):
     """
@@ -1061,11 +1093,103 @@ class PSL(PermutationGroup_generic):
         self._base_ring = GF(q)
         self._n = n
 
+    def matrix_degree(self):
+        return self._n
+
     def base_ring(self):
         return self._base_ring
 
     def __str__(self):
         return "The projective special linear group of degree %s over %s"%(self._n, self.base_ring())
+
+    def ramification_module_decomposition_hurwitz_curve(self):
+        """
+        Helps compute the decomposition of the ramification module
+        for the Hurwitz curves X (over CC say) with automorphism group
+        G = PSL(2,q), q a "Hurwitz prime" (ie, p is $\pm 1 \pmod 7$).
+        Using this computation and Borne's formula helps determine the
+        G-module structure of the RR spaces of equivariant
+        divisors can be determined explicitly.
+
+        The output is a list of integer multiplicities: [m1,...,mn],
+        where n = # conj classes of G=PSL(2,p) and mi is the
+        multiplicity of pi_i in the ramification module of a
+        Hurwitz curve with automorphism group G.
+        Here IrrRepns(G) = [pi_1,...,pi_n] (in the order listed in the
+        output of self.character_table()).
+
+        REFERENCE: David Joyner, Amy Ksir, Roger Vogeler,
+                   "Group representations on Riemann-Roch spaces of some
+                   Hurwitz curves," preprint, 2006.
+
+        EXAMPLES:
+            sage: G = PSL(2,13)
+            sage: G.ramification_module_decomposition_hurwitz_curve() #random
+            [0, 7, 7, 12, 12, 12, 13, 15, 14]
+
+        This means, for example, that the trivial representation does not
+        occur in the ramification module of a Hurwitz curve with automorphism
+        group PSL(2,13), since the trivial representation is listed first
+        and that entry has multiplicity 0. The "randomness" is due to the
+        fact that GAP randomly orders the conjugacy classes of the same order
+        in the list of all conjugacy classes. Similarly, there is some
+        randomness to the ordering of the characters.
+
+        If you try to use this function on a group PSL(2,q) where q is
+        not a (smallish) "Hurwitz prime", an error mesage will be printed.
+        """
+        if self.matrix_degree()!=2:
+            return ValueError, "Degree must be 2."
+        F = self.base_ring()
+        q = F.order()
+        from sage.misc.misc import SAGE_EXTCODE
+        gapcode = SAGE_EXTCODE + '/gap/joyner/hurwitz_crv_rr_sp.gap'
+        gap.eval('Read("'+gapcode+'")')
+        mults = gap.eval("ram_module_hurwitz("+str(q)+")")
+        return eval(mults)
+
+    def ramification_module_decomposition_modular_curve(self):
+        """
+        Helps compute the decomposition of the ramification module
+        for the modular curve X(p) (over CC say) with automorphism group G = PSL(2,q),
+        q a prime > 5. Using this computation and Borne's formula helps determine the
+        G-module structure of the RR spaces of equivariant
+        divisors can be determined explicitly.
+
+        The output is a list of integer multiplicities: [m1,...,mn],
+        where n = # conj classes of G=PSL(2,p) and mi is the
+        multiplicity of pi_i in the ramification module of a
+        modular curve with automorphism group G.
+        Here IrrRepns(G) = [pi_1,...,pi_n] (in the order listed in the
+        output of self.character_table()).
+
+        REFERENCE: D. Joyner and A. Ksir, "Modular representations
+                   on some Riemann-Roch spaces of modular curves
+                   $X(N)$, Computational Aspects of Algebraic Curves,
+                   (Editor: T. Shaska) Lecture Notes in Computing, WorldScientific,
+                   2005.)
+
+        EXAMPLES:
+            sage: G = PSL(2,7)
+            sage: G.ramification_module_decomposition_modular_curve() ## random
+            [0, 4, 3, 6, 7, 8]
+
+        This means, for example, that the trivial representation does not
+        occur in the ramification module of X(7), since the trivial representation
+        is listed first and that entry has multiplicity 0. The "randomness" is due to the
+        fact that GAP randomly orders the conjugacy classes of the same order
+        in the list of all conjugacy classes. Similarly, there is some
+        randomness to the ordering of the characters.
+        """
+        if self.matrix_degree()!=2:
+            return ValueError, "Degree must be 2."
+        F = self.base_ring()
+        q = F.order()
+        from sage.misc.misc import SAGE_EXTCODE
+        gapcode = SAGE_EXTCODE + '/gap/joyner/modular_crv_rr_sp.gap'
+        gap.eval('Read("'+gapcode+'")')
+        mults = gap.eval("ram_module_X("+str(q)+")")
+        return eval(mults)
 
 class PSp(PermutationGroup_generic):
     """
@@ -1190,6 +1314,8 @@ class PGU(PermutationGroup_generic):
 
     def __str__(self):
         return "The projective general unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+
+
 
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """

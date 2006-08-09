@@ -47,7 +47,6 @@ import sage_eval
 
 _have_dvipng = None
 def have_dvipng():
-    return False
     global _have_dvipng
     if _have_dvipng is None:
         _have_dvipng = not bool(os.system('which dvipng >/dev/null'))

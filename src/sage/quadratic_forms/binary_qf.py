@@ -182,7 +182,8 @@ class BinaryQF(SageObject):
             sage: Q.is_weakly_reduced()
             True
         """
-        assert self.discriminant() < 0  ## Only consider positive definite forms for now...
+        if self.discriminant() >= 0:
+            raise NotImplementedError, "only implemented for negative discriminant"
         return (self.a <= abs(self.b)) and (abs(self.b) <= self.c)
 
 
@@ -233,7 +234,8 @@ class BinaryQF(SageObject):
             sage: Q.complex_point()
             1.0000000000000000*I
         """
-        assert self.discriminant() < 0
+        if self.discriminant() >= 0:
+            raise NotImplementedError, "only implemented for negative discriminant"
         R = ZZ['x']
         x = R.gen()
         Q1 = R(self.polynomial()(x,1))

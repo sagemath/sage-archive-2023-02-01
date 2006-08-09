@@ -182,6 +182,9 @@ class NumberFieldElement(field_element.FieldElement):
     def _div_(self, other):
         return self * other.__invert__()
 
+    def __floordiv__(self, other):
+        return self / other
+
     def __neg__(self):
         return NumberFieldElement(self.parent(), -self.__element)
 

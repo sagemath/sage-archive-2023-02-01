@@ -1538,11 +1538,9 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs.append(value)
 
     def __floordiv__(self, right):
-        if (right in self.parent().base_ring()):
-            d = self.parent().base_ring(right)
-        else:
-            print "calling parent"
+        if right.parent() == self.parent():
             return Polynomial.__floordiv__(self, right)
+        d = self.parent().base_ring()(right)
         return self.polynomial([c // d for c in self.__coeffs], check=false)
 
     def list(self):

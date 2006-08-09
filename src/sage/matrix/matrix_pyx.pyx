@@ -100,6 +100,7 @@ Matrices
 import sage.modules.free_module_element
 import sage.modules.free_module
 import sage.misc.latex
+import sage.misc.functional
 import sage.ext.coerce
 from   sage.structure.sequence import _combinations
 from   sage.rings.integer_ring import IntegerRing
@@ -2004,7 +2005,11 @@ cdef class Matrix(ModuleElement):
         #if not self.determinant().is_unit():
         #    raise ZeroDivisionError, "self is not invertible"
 
-        return self._strassen_invert_inner(0, 0, self.nrows(), cutoff)
+        padded = self._pad_pow_2(cutoff)
+        for i in range(self.nrows(), padded.nrows()):
+            padded[i,i] = self.base_ring()(1)
+        inv_padded = self._strassen_invert_inner(0, 0, inv_padded.nrows(), cutoff)
+        return inv_padded._submatrix(0, 0, self.nrows(), self.ncols())
 
 
 
@@ -2267,56 +2272,23 @@ cdef class Matrix(ModuleElement):
         # P5 =  S3*B11
         # P6 =  A11*T3
 
-        if m <= cutoff:
-            # Don't do the multiplications recursively
-            # P0 = A00*B00
-            P0 = self._mul_submatrices(other, a00_r, a00_c, m, m, b00_r, b00_c, m, m)
-            # P1 = A01*B10
-            P1 = self._mul_submatrices(other, a01_r, a01_c, m, m, b10_r, b10_c, m, m)
-            # P2 =  S0*T0
-            P2 = S0 * T0
-            # P3 = S1*T1
-            P3 = S1 * T1
-            # P4 =  S2*T2
-            P4 = S2 * T2
-            # P5 =  S3*B11
-            P5 = S3._mul_submatrices(other, 0, 0, m, m, b11_r, b11_c, m, m)
-            # P6 =  A11*T3
-            P6 = self._mul_submatrices(T3, a11_r, a11_c, m, m, 0, 0, m, m)
 
-        else:
-            # Do the multiplications recursively
-            # Don't do the multiplications recursively
-            # P0 = A00*B00
-            P0 = self._mul_submatrices_strassen(other, a00_r, a00_c, m, b00_r, b00_c, cutoff)
-            # P1 = A01*B10
-            P1 = self._mul_submatrices_strassen(other, a01_r, a01_c, m, b10_r, b10_c, cutoff)
-            # P2 =  S0*T0
-            P2 = S0.strassen(T0, cutoff)
-            # P3 = S1*T1
-            P3 = S1.strassen(T1, cutoff)
-            # P4 =  S2*T2
-            P4 = S2.strassen(T2, cutoff)
-            # P5 =  S3*B11
-            P5 = S3._mul_submatrices_strassen(other, 0, 0, m, b11_r, b11_c, cutoff)
-            # P6 =  A11*T3
-            P6 = self._mul_submatrices_strassen(T3, a11_r, a11_c, m, 0, 0, cutoff)
 
-        # 7 Post Additions:
+            sage: Matrix(QQ, 3, 5, [i for i in range(15)])._pad_pow_2(2)
+            [ 0  1  2  3  4  0]
+            [ 5  6  7  8  9  0]
+            [10 11 12 13 14  0]
+            [ 0  0  0  0  0  0]
 
-        U0 = P0 + P1
-        U1 = P0 + P3
-        U2 = U1 + P4
-        U3 = U2 + P6
-        U4 = U2 + P2
-        U5 = U1 + P2
-        U6 = U5 + P5
-
-        return U0.block2_sum(U6, U3, U4)
-
-    def block2_sum(self, B, C, D):
-        raise NotImplementedError
-
+        """
+        # are there c functions I can call for log/ceil?
+        cdef int a, pow2
+        a = sage.misc.functional.ceil( sage.misc.functional.log(min(self.nrows(), self.ncols()) / (1.0*cutoff), 2) )
+        pow2 = 2**a
+        r = (self.nrows() + pow2 - 1) / pow2
+        s = (self.ncols() + pow2 - 1) / pow2
+        # print "2 ^", a, ", ", r, "x", s
+        return self.block_sum(self.new_matrix(pow2 * r - self.nrows(), pow2 * s - self.ncols()))
 
 
 ############################# end class ####################

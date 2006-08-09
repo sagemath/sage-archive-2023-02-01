@@ -1384,7 +1384,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         G = A
         V1 = R(0)
         V3 = B
-        while V3.is_nonzero():
+        while not V3.is_zero():
             Q, R = G.quo_rem(V3)
             T = U - V1*Q
             U = V1

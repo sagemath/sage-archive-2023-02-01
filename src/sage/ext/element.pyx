@@ -131,9 +131,8 @@ cdef class Element(sage_object.SageObject):
     #        raise TypeError, "right action of %s on %s not defined"%(right, self)
 
 
-
-
-
+    def is_zero(self):
+        return bool(self == self._parent(0))
 
 cdef class ModuleElement(Element):
     """
@@ -141,10 +140,10 @@ cdef class ModuleElement(Element):
     """
     ##################################################
     def is_zero(self):
-        return self == self.parent()(0)
+        return bool(self == self.parent()(0))
 
-    def is_nonzero(self):
-        return not self.is_zero()
+##     def is_nonzero(self):
+##         return not self.is_zero()
 
     def __add__(self, right):
         if not isinstance(self, Element) or \
@@ -324,10 +323,13 @@ cdef class MultiplicativeGroupElement(MonoidElement):
 cdef class RingElement(Element):
     ##################################################
     def is_zero(self):
-        return self == self.parent()(0)
+        return bool(self == self.parent()(0))
 
-    def is_nonzero(self):
-        return not self.is_zero()
+    def is_one(self):
+        return bool(self == self._parent(1))
+
+##     def is_nonzero(self):
+##         return not self.is_zero()
 
     def __add__(self, right):
         if not isinstance(self, Element) or \
@@ -566,7 +568,7 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         A = self
         B = other
-        while B.is_nonzero():
+        while not B.is_zero():
             Q, R = A.quo_rem(B)
             A = B
             B = R

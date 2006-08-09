@@ -912,6 +912,8 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
     def is_zero(self):
         """
         Returns True if self == 0
+
+        \note{This is much faster than actually writing self == 0}
         """
         return self._MPolynomial__element._PolyDict__repn=={}
 

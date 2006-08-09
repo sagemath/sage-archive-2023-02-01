@@ -226,7 +226,9 @@ class Darcs:
             D = self.__dir
             n = D.split('/')[-1]
             if not self.__target is None:
-                os.system('cd "%s/.." && ln -snf %s %s'%(D, n, self.__target))
+                e = os.system('cd "%s/.." && mv sage sage.old && ln -sn %s %s'%(D, n, self.__target))
+                if e:
+                    raise RuntimeError, "error setting up darcs repository location.  Consider deleting or moving %s/sage*"%D
             if os.path.exists('%s/install'%D):
                 # Darcs pull doesn't preserve permissions.
                 os.system('cd %s; chmod a+x */install 2>/dev/null'%D)

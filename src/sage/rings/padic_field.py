@@ -8,6 +8,8 @@ import field
 from infinity import infinity
 from integer_mod_ring import IntegerModRing
 import padic
+import integer
+import rational
 
 #padics = {}
 #def pAdicField(p):
@@ -107,6 +109,13 @@ class pAdicField_generic(field.Field):
 
     def __call__(self, x, prec=infinity):
         return padic.pAdic(self, x, prec)
+
+    def _coerce_(self, x):
+        if x.parent() is self:
+            return x
+        if isinstance(x, (integer.Integer, rational.Rational)):
+            return self(x)
+        raise TypeError
 
     def __cmp__(self, other):
         if not isinstance(other, pAdicField_generic):

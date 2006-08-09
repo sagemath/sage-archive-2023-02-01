@@ -110,6 +110,9 @@ cdef class Ring(gens.Generators):
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
+        #if x.parent() is self:
+        #    return x
+        #raise TypeError
         return self(x)
 
     def base_ring(self):

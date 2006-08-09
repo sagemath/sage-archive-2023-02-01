@@ -1,22 +1,42 @@
+"""
+Binary Quadratic Forms
 
-####################################################################################
-## Code to make binary quadratic forms (for use in computing Siegel modular forms)
-## Written by Jonathan Hanke on 8-1-2006 for Coding Sprint #1.
-##     Appended to add the reduced_representatives, dyadic_trace, is_reduced, and + on 8-3-2006 for Coding Sprint #2.
-##     Added Documentation and complex_point() method on 8-8-2006.
-##
-## Sent to: davidgru@maths.usyd.edu.au and nathan@cedar.math.ucla.edu and wstein@gmail.com
-####################################################################################
+AUTHORS:
+    -- Jon Hanke (2006-08-08):
+        * Appended to add the reduced_representatives, dyadic_trace,
+          is_reduced, and + on 8-3-2006 for Coding Sprint #2.
+        * Added Documentation and complex_point() method on 8-8-2006.
+
+NOTE: This code is mainly inspired by an application to computing
+Siegel modular forms.
+"""
+
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein and Jon Hanke
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
+from sage.ext.sage_object import SageObject
 
-
-class BinaryQF:
+class BinaryQF(SageObject):
 
     ## Initializes the form with a 3-element list
     def __init__(self, abc_triple):
         """
-        Creates a binary quadratic form ax^2 + bxy + cy^2 from the triple [a,b,c] over IntegerRing().
+        Creates a binary quadratic form ax^2 + bxy + cy^2 from the
+        triple [a,b,c] over IntegerRing().
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
@@ -30,14 +50,17 @@ class BinaryQF:
         self.c = ZZ(abc_triple[2])
 
 
-    ## Returns the sum of the two forms (componentwise)
     def __add__(self, Q):
+        """
+        Returns the sum of the two forms (componentwise).
+        """
         return BinaryQF([self.a + Q.a, self.b + Q.b, self.c + Q.c])
 
 
-    ## Displays the output
     def __repr__(self):
-
+        """
+        Display the quadratic form.
+        """
         ## Deal with the zero form
         if self.a==0 and self.b==0 and self.c==0:
             return "0"
@@ -78,11 +101,10 @@ class BinaryQF:
         return out_str
 
 
-
-    ## Returns the associated homogeneous quadratic polynomial
     def polynomial(self):
         """
-        Returns the binary quadratic form as a 2-variable polynomial.
+        Returns the binary quadratic form as a homogeneous 2-variable
+        polynomial.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
@@ -93,23 +115,25 @@ class BinaryQF:
         (x,y) = M.gens()
         return self.a * x**2  + self.b* x*y + self.c * y**2
 
-    ## Gives the dyadic trace
     def dyadic_trace(self):
         """
-        Returns the "dyadic trace" of a*c - b^2 of the binary form ax^2 + bxy + cy^2
+        Returns the"dyadic trace" of $ac - b^2$ of the
+        binary form $ax^2 + bxy + cy^2$.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.dyadic_trace()
             2
+
+        WARNING: Hopefully this is correct?!? =)
         """
-        return self.a + self.c - self.b    ## Hopefully this is correct?!? =)
+        return self.a + self.c - self.b
 
 
-    ## Gives the discriminant
     def discriminant(self):
         """
-        Returns the discriminant b^2 - 4ac of the binary form ax^2 + bxy + cy^2
+        Returns the discriminant $b^2 - 4ac$ of the binary
+        form $ax^2 + bxy + cy^2$.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
@@ -118,11 +142,11 @@ class BinaryQF:
         """
         return self.b**2 - 4 * self.a * self.c
 
-    ## Checks if the discriminant D is fundamental
     def has_fundamental_discriminant(self):
         """
-        Checks if the discriminant D of this form is a fundamantal discriminant
-        (i.e. D is the smallest element of its squareclass with  D = 0 or 1 mod 4).
+        Checks if the discriminant D of this form is a fundamantal
+        discriminant (i.e. D is the smallest element of its
+        squareclass with D = 0 or 1 mod 4).
 
         EXAMPLES:
             sage: Q = BinaryQF([1,0,1])
@@ -140,10 +164,10 @@ class BinaryQF:
         return is_fundamental_discriminant(self.discriminant())
 
 
-    ## Checks if the quadratic form is weakly reduced
     def is_weakly_reduced(self):
         """
-        Checks if the form ax^2 + bxy + cy^2  satisfies |b| <= a <= c.
+        Checks if the form $ax^2 + bxy + cy^2$  satisfies
+        $|b| \leq a \leq c$, i.e., is weakly reduced.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
@@ -162,11 +186,11 @@ class BinaryQF:
         return (self.a <= abs(self.b)) and (abs(self.b) <= self.c)
 
 
-    ## Checks if the quadratic form is reduced
     def is_reduced(self):
         """
-        Checks if the form ax^2 + bxy + cy^2  satisfies |b| <= a <= c,
-        and that b>=0  if  either a = b or a = c.
+        Checks if the quadratic form is reduced, i.e., if the form
+        $ax^2 + bxy + cy^2$ satisfies $|b|\leq a \leq c$, and
+        that $b\geq 0$ if either $a = b$ or $a = c$.
 
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
@@ -185,7 +209,8 @@ class BinaryQF:
             sage: Q.is_reduced()
             True
         """
-        assert self.discriminant() < 0  ## Only consider positive definite forms for now...
+        if self.discriminant() >= 0:
+            raise NotImplementedError, "discriminant must be negative (for now)"
 
         ## Check that the form is weakly reduced
         if self.is_weakly_reduced() == False:
@@ -198,15 +223,15 @@ class BinaryQF:
             return (self.a != abs(self.b)) and (self.c != abs(self.b))
 
 
-    ## Returns the associated point in the complex upper-halfplane.
     def complex_point(self):
         """
-        Returns the point in the complex upper half-plane associated to this (positive definite) quadratic form).
+        Returns the point in the complex upper half-plane associated
+        to this (positive definite) quadratic form).
 
         EXAMPLES:
             sage: Q = BinaryQF([1,0,1])
             sage: Q.complex_point()
-             1.0000000000000000*I
+            1.0000000000000000*I
         """
         assert self.discriminant() < 0
         R = ZZ['x']
@@ -215,12 +240,10 @@ class BinaryQF:
         return [z  for z in Q1.complex_roots()  if z.imag() > 0][0]
 
 
-
-## Find (inequivalent) reduced representatives for all classes of discriminant D
 def BinaryQF_reduced_representatives(D):
     """
-    Returns reduced representatives for the equivalence classes of
-    positive definite bianry forms of discriminant D.
+    Returns inequivalent reduced representatives for the equivalence
+    classes of positive definite binary forms of discriminant D.
 
     Note: These representatives are not necessarily primitive, unless
     the discriminant is fundamental!
@@ -238,7 +261,8 @@ def BinaryQF_reduced_representatives(D):
         sage: BinaryQF_reduced_representatives(-16)
         [x^2  + 4y^2 , 2x^2  + 2y^2 ]
     """
-    assert D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))  ## Check that our discriminant is allowed (and is for positive definite forms)
+    if not ( D < 0  and  D in ZZ  and ((D % ZZ(4) == 0) or (D % ZZ(4) == 1))):
+        raise ValueError, "discriminant is not valid and positive definite"
 
     ## Find the range of allowed b's
     bmax = (-D / ZZ(3)).sqrt().ceil()

@@ -357,7 +357,7 @@ function do_replacement(id, word,do_trim) {
         range.moveEnd('character', -after_cursor.length);
     } catch(e) {}
 
-    if(browser_op or browser_saf)
+    if(browser_op || browser_saf)
       focus(id,true);
 
     halt_introspection();

@@ -74,6 +74,7 @@ class FunctionRing_class(CommutativeRing):
             sage: _ = FunctionRing.set_precision(5)   # has no affect on gp(pi)
             sage: gp(pi)
             3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+            sage: _ = FunctionRing.set_precision(old_prec)
         """
         old_prec = self._default_precision
         prec = int(prec)

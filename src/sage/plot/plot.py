@@ -138,7 +138,7 @@ import os
 
 from sage.ext.sage_object import SageObject
 from colorsys import hsv_to_rgb #for the hue function
-from math import sin, cos, modf
+from math import sin, cos
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is
@@ -1535,10 +1535,10 @@ def to_mpl_color(c):
     c = list(c)
     for i in range(len(c)):
         s = float(c[i])
-        if s != 1:
-            s = modf(s)[0]
-            if s < 0:
-                s += 1
+        if s > 1:
+            s = 1
+        elif s < 0:
+            s = 0
         c[i] = s
     return tuple(c)
 
@@ -1568,18 +1568,18 @@ def hue(h, s=1, v=1):
 
     """
     h = float(h); s = float(s); v = float(v)
-    if h != 1:
-        h = modf(h)[0]
-        if h < 0:
-            h += 1
-    if s != 1:
-        s = modf(s)[0]
-        if s < 0:
-            s += 1
-    if v != 1:
-        v = modf(v)[0]
-        if v < 0:
-            v += 1
+    if h > 1:
+        h = 1
+    elif h < 0:
+        h = 0
+    if s > 1:
+        s = 1
+    elif s < 0:
+        s = 0
+    if v > 1:
+        v = 1
+    elif v < 0:
+        v = 0
     c = hsv_to_rgb(h, s, v)
     return (float(c[0]), float(c[1]), float(c[2]))
 

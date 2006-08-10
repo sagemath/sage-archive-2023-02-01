@@ -304,6 +304,8 @@ class Darcs:
         else:
             print 'Problem creating darcs patch bundle %s'%filename
 
+    save = send
+
     def what(self, options=''):
         """
         Show all changes between your local darcs repository and

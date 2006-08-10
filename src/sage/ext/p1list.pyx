@@ -356,6 +356,8 @@ cdef class P1List:
 	    sage: p.lift_to_sl2z(3)
 	     [0, -1, 1, 2]
 
+        AUTHOR:
+            -- Justin Walker
         """
         cdef int c, d, N
 
@@ -369,6 +371,8 @@ cdef class P1List:
             return lift_to_sl2z_int(c, d, self.__N)
         elif N <= 2147483647:
             return lift_to_sl2z_llong(c, d, self.__N)
+        else:
+            raise OverflowError, "N too large"
 
     def apply_I(self, int i):
         cdef int u, v, uu, vv, ss
@@ -495,6 +499,8 @@ def lift_to_sl2z_int(int c, int d, int N):
 	    [ 1  8]
 	    [ 2 17]
 
+        AUTHOR:
+            -- Justin Walker
         """
         cdef int z1, z2, g, m
 
@@ -548,6 +554,8 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
 	    [ 1  8]
 	    [ 2 17]
 
+        AUTHOR:
+            -- Justin Walker
         """
         cdef llong z1, z2, g, m
 
@@ -583,3 +591,24 @@ def lift_to_sl2z_llong(llong c, llong d, int N):
         g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
 #        assert g==1
         return [z2, -z1, c, d]
+
+def lift_to_sl2z(c, d, N):
+    """
+    Return a list of Python ints [a,b,c',d'] that are the entries of a
+    2x2 matrix with determinant 1 and lower two entries congruent to
+    c,d modulo N.
+
+    EXAMPLES:
+        sage: lift_to_sl2z(2,3,6)
+        [1, 1, 2, 3]
+        sage: lift_to_sl2z(15,6,24)
+        [-2, -17, 15, 126]
+        sage: lift_to_sl2z(15,6,2400000)
+        [-2L, -320001L, 15L, 2400006L]
+    """
+    if N <= 46340:
+        return lift_to_sl2z_int(c,d,N)
+    elif N <= 2147483647:
+        return lift_to_sl2z_llong(c,d,N)
+    else:
+        raise OverflowError, "N too large"

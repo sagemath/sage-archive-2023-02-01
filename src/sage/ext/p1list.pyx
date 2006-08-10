@@ -338,21 +338,53 @@ cdef class P1List:
     def __repr__(self):
         return "The projective line over the integers modulo %s"%self.__N
 
-    def apply_I(self, i):
+    def lift_to_sl2z(self, int i):
+        """
+        Lift an element of P1 to an element of SL(2,Z)
+
+        If the ith P1 element is (c,d), this function
+        computes and returns a list [a,b, c',d'] that defines a 2x2
+        matrix with determinant 1 and integer entries, such that
+        c=c'(mod N) and d=d'(mod N).
+
+        EXAMPLES
+	    sage: p=P1List(11)
+
+	    sage: p.list()[3]
+	     (1, 2)
+
+	    sage: p.lift_to_sl2z(3)
+	     [0, -1, 1, 2]
+
+        """
+        cdef int c, d, N
+
+        if self.__N == 1:
+            return [1,0,0,1]
+
+        c, d = self.__list[i]
+        N = self.__N
+        # No overflow: This was adjudicated during init...
+        if N <= 46340:
+            return lift_to_sl2z_int(c, d, self.__N)
+        elif N <= 2147483647:
+            return lift_to_sl2z_llong(c, d, self.__N)
+
+    def apply_I(self, int i):
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, -u, v, &uu, &vv, &ss, 0)
         _, j = search(self.__list, (uu,vv))
         return j
 
-    def apply_S(self, i):
+    def apply_S(self, int i):
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, -v, u, &uu, &vv, &ss, 0)
         _, j = search(self.__list, (uu,vv))
         return j
 
-    def apply_T(self, i):
+    def apply_T(self, int i):
         cdef int u, v, uu, vv, ss
         u,v = self.__list[i]
         self.__normalize(self.__N, v, -u-v, &uu, &vv, &ss, 0)
@@ -446,3 +478,108 @@ cdef class export:
                                   int compute_s) except -1:
         return c_p1_normalize_llong(N, u, v, uu, vv, ss, compute_s)
 
+def lift_to_sl2z_int(int c, int d, int N):
+        """
+        Lift a pair (c, d) to an element of SL(2, Z)
+
+        (c,d) is assumed to be an element of P1(Z/NZ).  This function
+        computes and returns a list [a, b, c', d'] that defines a 2x2
+        matrix, with determinant 1 and integer entries, such that
+        c=c'(mod N) and d=d'(mod N).
+
+        EXAMPLES
+	    sage: lift_to_sl2z_int(2,6,11)
+	    [1, 8, 2, 17]
+	    sage: m=Matrix(Integers(),2,2,lift_to_sl2z_int(2,6,11))
+	    sage: m
+	    [ 1  8]
+	    [ 2 17]
+
+        """
+        cdef int z1, z2, g, m
+
+        if c == 0 and d == 0:
+            raise AttributeError, "Element not in P1."
+        g = arith_int.c_xgcd_int(c, d, &z1, &z2)
+
+        # We're lucky: z1*c + z2*d = 1.
+        if g==1:
+            return [z2, -z1, c, d]
+
+        # Have to try harder.
+        if c == 0:
+            c = c + N;
+        if d == 0:
+            d = d + N;
+        m = c;
+
+        # compute prime-to-d part of m.
+        while True:
+            g = arith_int.c_gcd_int(m,d)
+            if g == 1:
+                break
+            m = m / g
+
+        # compute prime-to-N part of m.
+        while True:
+            g = arith_int.c_gcd_int(m,N)
+            if g == 1:
+                break
+            m = m / g
+        d = d + N*m
+        g = arith_int.c_xgcd_int(c, d, &z1, &z2)
+#        assert g==1
+        return [z2, -z1, c, d]
+
+def lift_to_sl2z_llong(llong c, llong d, int N):
+        """
+        Lift a pair (c, d) to an element of SL(2, Z)
+
+        (c,d) is assumed to be an element of P1(Z/NZ).  This function
+        computes and returns a list [a, b, c', d'] that defines a 2x2
+        matrix, with determinant 1 and integer entries, such that
+        c=c'(mod N) and d=d'(mod N).
+
+        EXAMPLES
+	    sage: lift_to_sl2z_llong(2,6,11)
+	    [1L, 8L, 2L, 17L]
+	    sage: m=Matrix(Integers(),2,2,lift_to_sl2z_llong(2,6,11))
+	    sage: m
+	    [ 1  8]
+	    [ 2 17]
+
+        """
+        cdef llong z1, z2, g, m
+
+        if c == 0 and d == 0:
+            raise AttributeError, "Element not in P1."
+        g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
+
+        # We're lucky: z1*c + z2*d = 1.
+        if g==1:
+            return [z2, -z1, c, d]
+
+        # Have to try harder.
+        if c == 0:
+            c = c + N;
+        if d == 0:
+            d = d + N;
+        m = c;
+
+        # compute prime-to-d part of m.
+        while True:
+            g = arith_llong.c_gcd_longlong(m,d)
+            if g == 1:
+                break
+            m = m / g
+
+        # compute prime-to-N part of m.
+        while True:
+            g = arith_llong.c_gcd_longlong(m,N)
+            if g == 1:
+                break
+            m = m / g
+        d = d + N*m
+        g = arith_llong.c_xgcd_longlong(c, d, &z1, &z2)
+#        assert g==1
+        return [z2, -z1, c, d]

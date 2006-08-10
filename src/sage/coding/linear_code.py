@@ -305,7 +305,7 @@ def best_known_linear_code(n,k,F):
         sage: best_known_linear_code(10,5,GF(2))
         'a linear [10,5,4]2..4 shortened code'
 
-    This means that best possible binary liear code of length 10 and dimension 5
+    This means that best possible binary linear code of length 10 and dimension 5
     is a code with minimum distance 4 and covering radius somewhere between 2 and 4.
     Use "minimum_distance_why(10,5,GF(2))" or "print bounds_minimum_distance(10,5,GF(2))"
     for further details.

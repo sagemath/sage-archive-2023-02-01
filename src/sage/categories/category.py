@@ -1011,7 +1011,7 @@ class VectorSpaces(Category_module):
 
     def __call__(self, x):
         try:
-            V = x.vector_space()
+            V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
         except TypeError, AttributeError:

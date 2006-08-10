@@ -1000,6 +1000,8 @@ class Matrix_field(Matrix_pid):
         (W, is_irred) where is_irred is True if the charpoly of self
         acting on the factor W is irreducible.
         """
+        if not sage.modules.free_module.is_FreeModule(M):
+            raise TypeError, "M must be a free module."
         if not self.is_square():
             raise ArithmeticError, "matrix must be square"
         if M.base_ring() != self.base_ring():

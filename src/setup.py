@@ -91,22 +91,34 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
-dense_matrix = Extension('sage.matrix.dense_matrix',
-              ['sage/matrix/dense_matrix.pyx',
-               'sage/ext/integer.pyx',
-               'sage/ext/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp'])
-
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
 matrix_field = Extension('sage.matrix.matrix_field',
               ['sage/matrix/matrix_field.pyx'])
 
-matrix_rational = Extension('sage.matrix.matrix_rational',
-              ['sage/matrix/matrix_rational.pyx'])
+matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
+              ['sage/matrix/matrix_integer_dense.pyx'])
+
+matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
+              ['sage/matrix/matrix_integer_sparse.pyx'])
+
+matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
+              ['sage/matrix/matrix_modn_dense.pyx'])
+
+matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
+              ['sage/matrix/matrix_modn_sparse.pyx'])
+
+
+matrix_pid = Extension('sage.matrix.matrix_pid',
+              ['sage/matrix/matrix_pid.pyx'])
+
+matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
+              ['sage/matrix/matrix_rational_dense.pyx'],
+              libraries = ['gmp'])
+
+matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
+              ['sage/matrix/matrix_rational_sparse.pyx'])
 
 ext_modules = [ \
     ec, \
@@ -118,6 +130,16 @@ ext_modules = [ \
     ntl, \
 
     cf, \
+
+    matrix_domain,
+    matrix_field,
+    matrix_integer_dense,
+    matrix_integer_sparse,
+    matrix_modn_dense,
+    matrix_modn_sparse,
+    matrix_pid,
+    matrix_rational_dense,
+    matrix_rational_sparse,
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
@@ -240,12 +262,6 @@ extra_compile_args = [ ]
 
 if NO_WARN and distutils.sysconfig.get_config_var('CC').startswith("gcc"):
     extra_compile_args = ['-w']
-
-# For new linear algebra development...
-ext_modules.append(dense_matrix)
-ext_modules.append(matrix_domain)
-ext_modules.append(matrix_field)
-ext_modules.append(matrix_rational)
 
 if DEVEL:
     extra_compile_args.append('-ggdb')

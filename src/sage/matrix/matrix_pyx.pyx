@@ -567,7 +567,7 @@ cdef class Matrix(ModuleElement):
 
     def add_multiple_of_row(self, i, j, s):
         """
-        Replace row i by s times row j.
+        Add s times row j to row i.
         """
         self._require_mutable()
         s = self.base_ring()(s)
@@ -576,7 +576,7 @@ cdef class Matrix(ModuleElement):
 
     def add_multiple_of_column(self, i, j, s):
         """
-        Replace column i by s times column j.
+        Add s times column j to column i.
         """
         self._require_mutable()
         s = self.base_ring()(s)
@@ -2188,6 +2188,134 @@ cdef class Matrix(ModuleElement):
         return ~M.matrix_over_field()
 
 
+
+    #####################################################################################
+    # Strassen Matrix Multiplication
+    #####################################################################################
+    def strassen(self, other, int cutoff=64):
+        # todo -- add something for nonsquare case
+
+        if self.parent() != other.parent():
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+
+        return self._mul_submatrices_strassen(other, 0, 0, self.nrows(), 0, 0, cutoff)
+
+
+    def _strassen_subdivide(self, int r, int c, int n):
+        cdef int m
+        m = n/2
+        return ((r,   c),
+                (r,   c + m)
+                (r+m, c)
+                (r+m, c+m))
+
+
+    def _mul_submatrices_strassen(self, other,
+                                  int a_r, int a_c, int n,
+                                  int b_r, int b_c,
+                                  int cutoff):
+
+        if n <= cutoff:
+            return self._mul_submatrices(other, a_r, a_c, n, n, b_r, b_c, n, n)
+
+        # 8 Pre-Additions:
+        #
+        # S0 = A10 + A11,  T0 = B01 - B00
+        # S1 = S0  - A00,  T1 = B11 - T0
+        # S2 = A00 - A10,  T2 = B11 - B01
+        # S3 = A01 - S1,   T3 = T1 - B10
+
+        cdef int m
+        m = n/2
+
+        cdef int a00_r, a00_c, a01_r, a01_c, a10_r, a10_c, a11_r, a11_c
+
+        a00_r = a_r; a00_c = a_c
+        a01_r = a_r; a01_c = a_c + m
+        a10_r = a_r + m; a10_c = a_c
+        a11_r = a_r + m; a11_c = a_c + m
+
+        cdef int b00_r, b00_c, b01_r, b01_c, b10_r, b10_c, b11_r, b11_c
+
+        b00_r = b_r; b00_c = b_c
+        b01_r = b_r; b01_c = b_c + m
+        b10_r = b_r + m; b10_c = b_c
+        b11_r = b_r + m; b11_c = b_c + m
+
+        # S0 = A10 + A11,  T0 = B01 - B00
+        S0 = self._add_submatrices(self, a10_r, a10_c, m, m, a11_r, a11_c, m, m)
+        T0 = other._sub_submatrices(other, b01_r, b01_c, m, m, b00_r, b00_c, m, m)
+
+        # S1 = S0 - A00,   T1 = B11 - T0
+        S1 = S0._sub_submatrices(self, 0, 0, m, m, a00_r, a00_c, m, m)
+        T1 = other._sub_submatrices(T0, b11_r, b11_c, m, m, 0, 0, m, m)
+
+        # S2 = A00 - A10,  T2 = B11 - B01
+        S2 = self._sub_submatrices(self, a00_r, a00_c, m, m, a10_r, a10_c, m, m)
+        T2 = other._sub_submatrices(other, b11_r, b11_c, m, m, b01_r, b01_c, m, m)
+
+        # S3 = A01 - S1,   T3 = B10 - T1
+        S3 = self._sub_submatrices(S1, a01_r, a01_c, m, m, 0, 0, m, m)
+        T3 = other._sub_submatrices(T1, b10_r, b10_c, m, m, 0, 0, m, m)
+
+        # 7. (Potentially) Recursive Multiplications
+        # P0 =  A00*B00
+        # P1 =  A01*B10
+        # P2 =  S0*T0
+        # P3 =  S1*T1
+        # P4 =  S2*T2
+        # P5 =  S3*B11
+        # P6 =  A11*T3
+
+        if m <= cutoff:
+            # Don't do the multiplications recursively
+            # P0 = A00*B00
+            P0 = self._mul_submatrices(other, a00_r, a00_c, m, m, b00_r, b00_c, m, m)
+            # P1 = A01*B10
+            P1 = self._mul_submatrices(other, a01_r, a01_c, m, m, b10_r, b10_c, m, m)
+            # P2 =  S0*T0
+            P2 = S0 * T0
+            # P3 = S1*T1
+            P3 = S1 * T1
+            # P4 =  S2*T2
+            P4 = S2 * T2
+            # P5 =  S3*B11
+            P5 = S3._mul_submatrices(other, 0, 0, m, m, b11_r, b11_c, m, m)
+            # P6 =  A11*T3
+            P6 = self._mul_submatrices(T3, a11_r, a11_c, m, m, 0, 0, m, m)
+
+        else:
+            # Do the multiplications recursively
+            # Don't do the multiplications recursively
+            # P0 = A00*B00
+            P0 = self._mul_submatrices_strassen(other, a00_r, a00_c, m, b00_r, b00_c, cutoff)
+            # P1 = A01*B10
+            P1 = self._mul_submatrices_strassen(other, a01_r, a01_c, m, b10_r, b10_c, cutoff)
+            # P2 =  S0*T0
+            P2 = S0.strassen(T0, cutoff)
+            # P3 = S1*T1
+            P3 = S1.strassen(T1, cutoff)
+            # P4 =  S2*T2
+            P4 = S2.strassen(T2, cutoff)
+            # P5 =  S3*B11
+            P5 = S3._mul_submatrices_strassen(other, 0, 0, m, b11_r, b11_c, cutoff)
+            # P6 =  A11*T3
+            P6 = self._mul_submatrices_strassen(T3, a11_r, a11_c, m, 0, 0, cutoff)
+
+        # 7 Post Additions:
+
+        U0 = P0 + P1
+        U1 = P0 + P3
+        U2 = U1 + P4
+        U3 = U2 + P6
+        U4 = U2 + P2
+        U5 = U1 + P2
+        U6 = U5 + P5
+
+        return U0.block2_sum(U6, U3, U4)
+
+    def block2_sum(self, B, C, D):
+        raise NotImplementedError
 
 
 

@@ -1,0 +1,832 @@
+"""nodoctest
+Generic matrices over the integers modulo n.
+"""
+
+cimport matrix_pyx
+import matrix_pyx
+
+include "../ext/interrupt.pxi"
+include "../ext/cdefs.pxi"
+
+from sage.misc.misc import verbose, get_verbose
+
+cimport sage.ext.arith
+import  sage.ext.arith
+cdef sage.ext.arith.arith_int ai
+ai = sage.ext.arith.arith_int()
+
+
+##################################################################
+# Matrix over integers modulo p, for p <= 46340
+##################################################################
+
+LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
+
+cdef class Matrix_modn_dense(matrix_pyx.Matrix):
+    def __new__(self, parent, int p, int nrows, int ncols, object entries=None):
+        cdef int i
+        if entries == "LEAVE UNINITIALIZED":
+            self.matrix = <uint **>0
+            return
+        self.matrix = <uint **> PyMem_Malloc(sizeof(uint*)*nrows)
+        if self.matrix == <uint**> 0:
+            raise MemoryError, "Error allocating memory"
+        for i from 0 <= i < nrows:
+            self.matrix[i] = <uint *> PyMem_Malloc(sizeof(uint)*ncols)
+            if self.matrix[i] == <uint*> 0:
+               raise MemoryError, "Error allocating matrix"
+
+    def __init__(self, parent, uint p, uint nrows, uint ncols, object entries=None):
+        matrix_pyx.Matrix.__init__(self, parent)
+
+        cdef uint n, i, j, k
+        cdef uint *v
+        if p >= 46340:
+            raise OverflowError, "p (=%s) must be < 46340"%p
+
+        self.p = p
+        self._nrows = nrows
+        self._ncols = ncols
+        self.gather = 2**32/(p*p)
+        self.__pivots = None
+        if entries == LEAVE_UNINITIALIZED:
+            return
+        if entries is None:
+            for i from 0 <= i < nrows:
+                v = self.matrix[i]
+                for j from 0 <= j < ncols:
+                    v[j] = 0
+            return
+        if len(entries) != nrows*ncols:
+            raise IndexError, "The vector of entries has the wrong length."
+        k = 0
+        for i from 0 <= i < nrows:
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            v = self.matrix[i]
+            for j from 0 <= j < ncols:
+                n = entries[k]
+                v[j] = n % p
+                if v[j] < 0:
+                    v[j] = v[j] + p
+                k = k + 1
+
+    cdef set_matrix(Matrix_modn_dense self, uint **m):
+        if self.matrix != <uint **>0:
+            raise RuntimeError, "Only set matrix of uninitialized matrix."
+        self.matrix = m
+
+    def __getitem__(self, t):
+        if not isinstance(t, tuple) or len(t) != 2:
+            raise IndexError, "Index of matrix item must be a row and a column."
+        cdef int i, j
+        i, j = t
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "Array index out of bounds."
+        return self.matrix[i][j]
+
+    def __setitem__(self, t, x):
+        if not isinstance(t, tuple) or len(t) != 2:
+            raise IndexError, "Index for setting matrix item must be a row and a column."
+        cdef int i, j
+        i, j = t
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "Array index out of bounds."
+        self.matrix[i][j] = int(x) % self.p
+
+    def get_entry(Matrix_modn_dense self, int i, int j):
+        if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
+            raise IndexError, "Array index (%s,%s) out of bounds."%(i,j)
+        return self.matrix[i][j]
+
+    def __call__(self, i, j):
+        return self.matrix[i][j]
+
+    def _cmp(self, Matrix_modn_dense other):
+        cdef uint i, j
+        if self.p != other.p or self._nrows != other._nrows \
+            or self._ncols != other._ncols:
+            return -1
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.matrix[i][j] != other.matrix[i][j]:
+                    _sig_off
+                    return -1
+        _sig_off
+        return 0
+
+    def __cmp__(self, other):
+        if not isinstance(other, Matrix_modn_dense):
+            return -1
+        return self._cmp(other)
+
+    cdef uint **get_matrix(Matrix_modn_dense self):
+        return self.matrix
+
+    def  __dealloc__(self):
+        if self.matrix == <uint **> 0:
+            return
+        cdef int i
+        for i from 0 <= i < self._nrows:
+            if self.matrix[i] != <uint *> 0:
+                PyMem_Free(self.matrix[i])
+        PyMem_Free(self.matrix)
+
+##     def _lift_to_Q(self):
+##         cdef Matrix_rational M
+##         M = Matrix_rational(self._nrows, self._ncols, LEAVE_UNINITIALIZED)
+
+##         cdef mpq_t **m
+##         m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*self._nrows)
+##         if m == <mpq_t**> 0:
+##             raise MemoryError, "Error allocating matrix"
+##         _sig_on
+##         cdef int i, j
+##         for i from 0 <= i < self._nrows:
+##             m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*self._ncols)
+##             if m[i] == <mpq_t*> 0:
+##                 _sig_off
+##                 raise MemoryError, "Error allocating matrix"
+##             for j from 0 <= j < self._ncols:
+##                 mpq_init(m[i][j])
+##                 mpq_set_ui(m[i][j], self.matrix[i][j], 1)
+##         _sig_off
+##         M.set_matrix(m)
+##         return M
+
+    def __mul__(Matrix_modn_dense self, Matrix_modn_dense other):
+        if self.gather >= 2:
+            return self._multiply_with_delayed_mod(other)
+        if self._ncols != other._nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self._nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, k, nr, nc, s, p
+        cdef uint *v
+        nr = self._nrows
+        nc = other._ncols
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            for j from 0 <= j < nc:
+                s = 0
+                v = self.matrix[i]
+                for k from 0 <= k < self._ncols:
+                    s = (s + (v[k] * other.matrix[k][j]))%p
+                m[i][j] = s
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def __add__(Matrix_modn_dense self, Matrix_modn_dense other):
+        if self._ncols != other._ncols:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self._nrows != other._nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.parent().matrix_space(self._nrows, self._ncols),
+                              self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self._nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, nr, nc, s, p, a
+        cdef uint *v, *w
+        nr = self._nrows
+        nc = other._ncols
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            v = self.matrix[i]
+            w = other.matrix[i]
+            for j from 0 <= j < nc:
+                a = v[j] + w[j]
+                if a >= p:
+                    m[i][j] = a - p
+                else:
+                    m[i][j] = a
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def __sub__(Matrix_modn_dense self, Matrix_modn_dense other):
+        if self._ncols != other._ncols:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self._nrows != other._nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self._nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, k, nr, nc, s, p, a
+        cdef uint *v, *w
+        nr = self._nrows
+        nc = self._ncols
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            v = self.matrix[i]
+            w = other.matrix[i]
+            for j from 0 <= j < nc:
+                a = v[j] + (p - <int> w[j])
+                if a >= p:
+                    m[i][j] = a - p
+                else:
+                    m[i][j] = a
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+
+##     def _invert_submatrices(Matrix_modn_dense self,
+##                             int self_r, int self_c, int n):
+##         """
+##         INPUT:
+##              self, other -- two matrices
+
+##         OUTPUT:
+##              inverse of submatrices
+##         """
+##         raise NotImplementedError
+
+
+    def _mul_submatrices(Matrix_modn_dense self,
+                         Matrix_modn_dense other,
+                         int self_r, int self_c, int self_nrows, int self_ncols,
+                         int other_r, int other_c, int other_nrows, int other_ncols):
+        """
+        INPUT:
+             self, other -- two matrices
+             self_, other_ -- positions
+
+        OUTPUT:
+             product of the submatrices, as a Matrix_modn_dense
+        """
+        if self.gather >= 2:
+            return self._mul_submatrices_with_delayed_mod(other,
+                                                          self_r, self_c, self_nrows, self_ncols,
+                                                          other_r, other_c, other_nrows, other_ncols)
+
+        if self_ncols != other_nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.p, self_nrows, other_ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self_nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, k, nr, nc, s, p
+        cdef uint *v
+        nr = self_nrows
+        nc = other_ncols
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            for j from 0 <= j < nc:
+                s = 0
+                v = self.matrix[i + self_r]
+                for k from 0 <= k < self_ncols:
+                    s = (s + (v[k + self_c] * other.matrix[k + other_r][j + other_c]))%p
+                m[i][j] = s
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def _mul_submatrices_with_delayed_mod(Matrix_modn_dense self,
+                                          Matrix_modn_dense other,
+                                          int self_r, int self_c, int self_nrows, int self_ncols,
+                                          int other_r, int other_c, int other_nrows, int other_ncols):
+        if self_ncols != other_nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.parent().matrix_space(self_nrows, self_ncols),
+                              self.p, self_nrows, other_ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(int*)*self_nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, k, nr, nc, snc, s, p, gather, w, groups, a, b
+        cdef uint *v
+        nr = self_nrows
+        nc = other_ncols
+        snc = self_ncols
+        gather = self.gather
+        p = self.p
+        groups = (self_ncols / gather) + 1
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            for j from 0 <= j < nc:
+                s = 0
+                v = self.matrix[i+self_r]
+                for w from 0 <= w < groups:
+                    a = w*gather
+                    b = (w+1)*gather
+                    if b > snc or b < a: b = snc
+                    for k from a <= k < b:
+                        s = s + v[k+self_c]*other.matrix[k+other_r][j+other_c]
+                    s = s % p
+                m[i][j] = s
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+
+    def block2_sum(self, Matrix_modn_dense B, Matrix_modn_dense C, Matrix_modn_dense D):
+        cdef Matrix_modn_dense M
+        cdef uint nr, nc, i, j, s, p, a
+
+        nr = self._nrows + C._nrows
+        nc = self._ncols + B._ncols
+
+        M = Matrix_modn_dense(self.parent().matrix_space(nr,nc), self.p, nr, nc, LEAVE_UNINITIALIZED)
+
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*nr)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                m[i][j] = self.matrix[i][j]
+                m[i][j+self._ncols] = B.matrix[i][j]
+                m[i+self._nrows][j] = C.matrix[i][j]
+                m[i+self._nrows][j+self._ncols] = D.matrix[i][j]
+
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def _add_submatrices(Matrix_modn_dense self, Matrix_modn_dense other,
+                         int self_r, int self_c, int self_nrows, int self_ncols,
+                         int other_r, int other_c, int other_nrows, int other_ncols):
+        """
+        INPUT:
+             self, other -- two matrices
+             self_, other_ -- positions
+
+        OUTPUT:
+             sum of the submatrices, as a Matrix_modn_dense
+
+        EXAMPLES:
+            sage: from sage.matrix.matrix_modn_dense import Matrix_modn_dense
+            sage: n = 4
+            sage: A = Matrix_modn_dense(389, n,n, range(n^2))
+            sage: B = Matrix_modn_dense(389, n,n, list(reversed(range(n^2))))
+            sage: A._add_submatrices(B, 0, 0, 2, 2,  0, 0, 2, 2)
+            [
+            15, 15,
+            15, 15
+            ]
+            sage: A._add_submatrices(B, 0, 0, 2, 2,  2, 2, 2, 2)
+            [
+            5, 5,
+            5, 5
+            ]
+            sage: A._add_submatrices(B, 2,0, 2, 2,  0, 2, 2, 2)
+            [
+            21, 21,
+            21, 21
+            ]
+            sage: A._add_submatrices(B, 0,0, 3, 3,  1, 1, 3, 3)
+            [
+            10, 10, 10,
+            10, 10, 10,
+            10, 10, 10
+            ]
+        """
+        cdef Matrix_modn_dense M
+        cdef uint i, j, s, p, a
+        cdef uint *v, *w
+
+        M = Matrix_modn_dense(self.parent().matrix_space(self_nrows, self_ncols),
+                              self.p,
+                              self_nrows, self_ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self_nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < self_nrows:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*self_ncols)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            v = self.matrix[i+self_r]
+            w = other.matrix[i+other_r]
+            for j from 0 <= j < self_ncols:
+                a = v[self_c+j] + w[other_c+j]
+                if a >= p:
+                    m[i][j] = a - p
+                else:
+                    m[i][j] = a
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def _sub_submatrices(Matrix_modn_dense self, Matrix_modn_dense other,
+                         int self_r, int self_c, int self_nrows, int self_ncols,
+                         int other_r, int other_c, int other_nrows, int other_ncols):
+        """
+        INPUT:
+             self, other -- two matrices
+             self_, other_ -- positions
+
+        OUTPUT:
+             sum of the submatrices, as a Matrix_modn_dense
+
+        EXAMPLES:
+            sage: from sage.matrix.matrix_modn_dense import Matrix_modn_dense
+            sage: n = 4
+            sage: A = Matrix_modn_dense(389, n,n, range(n^2))
+            sage: B = Matrix_modn_dense(389, n,n, list(reversed(range(n^2))))
+            sage: A._sub_submatrices(B, 0, 0, 2, 2,  0, 0, 2, 2)
+            [
+            374, 376,
+            382, 384
+            ]
+        """
+        cdef Matrix_modn_dense M
+        cdef uint i, j, s, p, a
+        cdef uint *v, *w
+
+        M = Matrix_modn_dense(self.parent().matrix_space(self_nrows, self_ncols), self.p,
+                              self_nrows, self_ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(uint*)*self_nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+        p = self.p
+
+        _sig_on
+        for i from 0 <= i < self_nrows:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*self_ncols)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            v = self.matrix[i+self_r]
+            w = other.matrix[i+other_r]
+            for j from 0 <= j < self_ncols:
+                a = v[self_c+j] + (p - <int> w[other_c+j])
+                if a >= p:
+                    m[i][j] = a - p
+                else:
+                    m[i][j] = a
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+
+    def _multiply_with_delayed_mod(Matrix_modn_dense self, Matrix_modn_dense other):
+        if self._ncols != other._nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+        if self.p != other.p:
+            raise ArithmeticError, "The base matrices must have the same modulus."
+
+        cdef Matrix_modn_dense M
+        M = Matrix_modn_dense(self.parent(), self.p, self._nrows, other._ncols, LEAVE_UNINITIALIZED)
+        cdef uint **m
+        m = <uint **> PyMem_Malloc(sizeof(int*)*self._nrows)
+        if m == <uint**> 0:
+            raise MemoryError, "Error allocating matrix"
+
+        cdef uint i, j, k, nr, nc, snc, s, p, gather, w, groups, a, b
+        cdef uint *v
+        nr = self._nrows
+        nc = other._ncols
+        snc = self._ncols
+        gather = self.gather
+        p = self.p
+        groups = (self._ncols / gather) + 1
+        _sig_on
+        for i from 0 <= i < nr:
+            m[i] = <uint *> PyMem_Malloc(sizeof(uint)*nc)
+            if m[i] == <uint*> 0:
+                _sig_off
+                raise MemoryError, "Error allocating matrix"
+            for j from 0 <= j < nc:
+                s = 0
+                v = self.matrix[i]
+                for w from 0 <= w < groups:
+                    a = w*gather
+                    b = (w+1)*gather
+                    if b > snc or b < a: b = snc
+                    for k from a <= k < b:
+                        s = s + v[k]*other.matrix[k][j]
+                    s = s % p
+                ##for k from 0 <= k < self._ncols:
+                ##    s = s  +  v[k] * other.matrix[k][j]
+                m[i][j] = s
+        _sig_off
+        M.set_matrix(m)
+        return M
+
+    def nrows(self):
+        return self._nrows
+
+    def ncols(self):
+        return self._ncols
+
+    def number_nonzero(self):
+        cdef uint i, j, n
+        cdef uint *v
+        n = 0
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            v = self.matrix[i]
+            for j from 0 <= j < self._ncols:
+                if v[j] != 0:
+                    n = n + 1
+        _sig_off
+        return n
+
+    def list(self):
+        cdef uint i, j
+        cdef uint *r
+        v = []
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            r = self.matrix[i]
+            for j from 0 <= j < self._ncols:
+                v.append(r[j])
+        _sig_off
+        return v
+
+    def echelon(self):
+        cdef uint p, start_row, c, r, nr, nc, a, a_inverse, b, i
+        cdef uint **m
+
+        start_row = 0
+        p = self.p
+        m = self.matrix
+        nr = self._nrows
+        nc = self._ncols
+        self.__pivots = []
+        for c from 0 <= c < nc:
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            for r from start_row <= r < nr:
+                a = m[r][c]
+                if a:
+                    self.__pivots.append(c)
+                    a_inverse = ai.c_inverse_mod_int(a, p)
+                    self.scale_row(r, a_inverse, c)
+                    self.swap_rows(r, start_row)
+                    for i from 0 <= i < nr:
+                        if i != start_row:
+                            b = m[i][c]
+                            if b != 0:
+                                self.add_multiple_of_row(start_row, p-b, i, c)
+                    start_row = start_row + 1
+                    break
+
+    def rank(self):
+        """
+        Return the rank found during the last echelon operation on self.
+        Of course if self is changed, then the rank could be incorrect.
+        """
+        if self.__pivots == None:
+            raise ArithmeticError, "Echelon form has not yet been computed."
+        return len(self.__pivots)
+
+    def pivots(self):
+        """
+        Return the pivots found during the last echelon operation on self.
+        Of course if self is changed, then the pivots could be incorrect.
+        """
+        if self.__pivots == None:
+            raise ArithmeticError, "Echelon form has not yet been computed."
+        return self.__pivots
+
+    def hessenberg_form(self):
+        """
+        Transforms self in place to its Hessenberg form.
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
+
+        cdef uint n
+        n = self._nrows
+
+        cdef uint **h
+        h = self.matrix
+
+        cdef uint p, r, t, t_inv, u
+        cdef int i, j, m
+        p = self.p
+
+        _sig_on
+        for m from 1 <= m < n-1:
+            # Search for a nonzero entry in column m-1
+            i = -1
+            for r from m+1 <= r < n:
+                if h[r][m-1]:
+                     i = r
+                     break
+
+            if i != -1:
+                 # Found a nonzero entry in column m-1 that is strictly
+                 # below row m.  Now set i to be the first nonzero position >=
+                 # m in column m-1.
+                 if h[m][m-1]:
+                     i = m
+                 t = h[i][m-1]
+                 t_inv = ai.c_inverse_mod_int(t,p)
+                 if i > m:
+                     self.swap_rows(i,m)
+                     self.swap_columns(i,m)
+
+                 # Now the nonzero entry in position (m,m-1) is t.
+                 # Use t to clear the entries in column m-1 below m.
+                 for j from m+1 <= j < n:
+                     if h[j][m-1]:
+                         u = (h[j][m-1] * t_inv) % p
+                         self.add_multiple_of_row(m, p - u, j, 0)  # h[j] -= u*h[m]
+                         # To maintain charpoly, do the corresponding
+                         # column operation, which doesn't mess up the
+                         # matrix, since it only changes column m, and
+                         # we're only worried about column m-1 right
+                         # now.  Add u*column_j to column_m.
+                         self.add_multiple_of_column(j, u, m, 0)
+                 # end for
+            # end if
+        # end for
+        _sig_off
+
+    def charpoly(self):
+        """
+        Transforms self in place to its Hessenberg form then computes
+        and returns the coefficients of the characteristic polynomial of
+        this matrix.
+
+        The characteristic polynomial is represented as a vector of
+        ints, where the constant term of the characteristic polynomial
+        is the 0th coefficient of the vector.
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "charpoly not defined for non-square matrix."
+
+        cdef uint i, m, n, p, t
+        n = self._nrows
+        p = self.p
+
+        # Replace self by its Hessenberg form, and set H to this form
+        # for notation below.
+        #time = verbose('start hessenberg')
+        self.hessenberg_form()
+        #verbose('done with hessenberg', time)
+        cdef Matrix_modn_dense H
+        H = self
+
+        # We represent the intermediate polynomials that come up in
+        # the calculations as rows of an (n+1)x(n+1) matrix, since
+        # we've implemented basic arithmetic with such a matrix.
+        # Please see the generic implementation of charpoly in
+        # matrix.py to see more clearly how the following algorithm
+        # actually works.  (The implementation is clearer if one uses
+        # polynomials to represent polynomials instead of using the
+        # rows of a matrix.)  Also see Cohen's first GTM, Algorithm
+        # 2.2.9.
+
+        cdef Matrix_modn_dense c
+        c = Matrix_modn_dense(self.parent().matrix_space(n+1,n+1), self.p, n+1, n+1)  # the 0 matrix
+        c.matrix[0][0] = 1
+        for m from 1 <= m <= n:
+            # Set the m-th row of c to (x - H[m-1,m-1])*c[m-1] = x*c[m-1] - H[m-1,m-1]*c[m-1]
+            # We do this by hand by setting the m-th row to c[m-1]
+            # shifted to the right by one.  We then add
+            # -H[m-1,m-1]*c[m-1] to the resulting m-th row.
+            for i from 1 <= i <= n:
+                c.matrix[m][i] = c.matrix[m-1][i-1]
+            # the p-.. below is to keep scalar normalized between 0 and p.
+            c.add_multiple_of_row(m-1, p - H.matrix[m-1][m-1], m, 0)
+            t = 1
+            for i from 1 <= i < m:
+                t = (t*H.matrix[m-i][m-i-1]) % p
+                # Set the m-th row of c to c[m] - t*H[m-i-1,m-1]*c[m-i-1]
+                c.add_multiple_of_row(m-i-1, p - (t*H.matrix[m-i-1][m-1])%p, m, 0)
+
+        # The answer is now the n-th row of c.
+        v = []
+        for i from 0 <= i <= n:
+            v.append(int(c.matrix[n][i]))
+        return v
+
+    def decompose(self):
+        raise NotImplementedError
+
+    def rational_reconstruction(self):
+        raise NotImplementedError
+
+    cdef uint entry(self, uint i, uint j):
+        return self.matrix[i][j]
+
+    cdef scale_row(self, uint row, uint multiple, uint start_col):
+        cdef uint r, p
+        cdef uint* v
+        r = row*self._ncols
+        p = self.p
+        v = self.matrix[row]
+        for i from start_col <= i < self._ncols:
+            v[i] = (v[i]*multiple) % p
+
+    cdef add_multiple_of_row(self, uint row_from, uint multiple,
+                            uint row_to, uint start_col):
+        cdef uint i, p, nc
+        cdef uint *v_from, *v_to
+        p = self.p
+        v_from = self.matrix[row_from]
+        v_to = self.matrix[row_to]
+        nc = self._ncols
+        for i from start_col <= i < nc:
+            v_to[i] = (multiple * v_from[i] +  v_to[i]) % p
+
+    cdef add_multiple_of_column(self, uint col_from, uint multiple,
+                               uint col_to, uint start_row):
+        cdef uint i, p, nr
+        cdef uint **m
+        m = self.matrix
+        p = self.p
+        nr = self._nrows
+        for i from start_row <= i < self._nrows:
+            m[i][col_to] = (m[i][col_to] + multiple * m[i][col_from]) %p
+
+
+    cdef swap_rows(self, uint row1, uint row2):
+        cdef uint* temp
+        temp = self.matrix[row1]
+        self.matrix[row1] = self.matrix[row2]
+        self.matrix[row2] = temp
+
+    cdef swap_columns(self, uint col1, uint col2):
+        cdef uint i, t, nr
+        cdef uint **m
+        m = self.matrix
+        nr = self._nrows
+        for i from 0 <= i < self._nrows:
+            t = m[i][col1]
+            m[i][col1] = m[i][col2]
+            m[i][col2] = t
+
+#cdef uint **Matrix_modn_dense_matrix(Matrix_modn_dense A):
+#    return A.matrix

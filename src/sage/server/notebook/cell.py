@@ -118,7 +118,7 @@ class Cell:
             msg = 'Traceback (most recent call last):'
             if self.__out[:len(msg)] == msg:
                 v = self.__out.split('\n')
-                w = [v[0], '...']
+                w = ['...']
                 for i in range(1,len(v)):
                     if not (len(v[i]) > 0 and v[i][0] == ' '):
                         w = w + v[i:]

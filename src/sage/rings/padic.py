@@ -138,6 +138,9 @@ class pAdic(field_element.FieldElement):
                 self.__prec = big_oh
         self.__order = None
 
+    def prec(self):
+        return self.__prec
+
     def _pari_init_(self):
         """
         PARI representation of a p-adic is the same as in SAGE.
@@ -434,7 +437,7 @@ class pAdic(field_element.FieldElement):
             sage: a/b
             7 + 6*19 + 6*19^2 + 6*19^3 + 6*19^4 + O(19^5)
         """
-        return self*right.__invert__()
+        return self * right.__invert__(self.prec())
 
     def __mod__(self, right):
         if self.__ordp < 0:
@@ -490,7 +493,7 @@ class pAdic(field_element.FieldElement):
     def __pos__(self):
         return self
 
-    def __invert__(self):
+    def __invert__(self, prec=infinity):
         """
         EXAMPLES:
             sage: K = Qp(19)
@@ -502,11 +505,22 @@ class pAdic(field_element.FieldElement):
             1 + 18*19 + 18*19^3 + O(19^5)
             sage: a*b
             1 + O(19^5)
+
+        One can pass an optional argument to __invert__ to
+        affect the precision, which is especially useful when
+        the input has infinite precision:
+            sage: K = pAdicField(5,10)
+            sage: 1/K(2)
+            3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+            sage: K(2).__invert__()
+            3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+            sage: K(2).__invert__(15)
+            3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + 2*5^10 + 2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + O(5^15)
         """
-        if self.__prec == infinity:
+        if prec is infinity:
             prec = self.parent().prec()
-        else:
-            prec = self.__prec
+        elif prec is None and self.__prec is infinity:
+            prec = self.parent().prec()
         if prec <= 0:
             raise ZeroDivisionError, "Can not invert self"
         unit = arith.inverse_mod(self.__unit, self.__p**prec)
@@ -676,7 +690,8 @@ class pAdic(field_element.FieldElement):
 
     def log(self):
         r"""
-        Compute the p-adic logarithm of a unit in $\Z_p$.
+        Compute the p-adic logarithm of any nonzero element of $\Q_p$.
+        (See below for normalization.)
 
         The usual power series for log with values in the additive
         group of $\Q_p$ only converges for 1-units (units congruent to
@@ -714,6 +729,22 @@ class pAdic(field_element.FieldElement):
             1 + 13 + O(13^Infinity)
             sage: a.log()
             13 + 6*13^2 + 2*13^3 + 5*13^4 + 10*13^6 + 13^7 + 11*13^8 + 8*13^9 + O(13^10)
+
+        The next few examples illustrate precision when computing $p$-adic logs.
+        First we create a field with {\em default} precision 10.
+            sage: K = pAdicField(5,10)
+            sage: e = K(389); e
+            4 + 2*5 + 3*5^3 + O(5^Infinity)
+
+        If the input has infinite precision, the output is computed to the
+        default precision of the parent field.
+            sage: e.log()
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+
+        In contrast, if the input has larger precision than the default, then
+        the output is also computed to larger precision.
+            sage: (e+O(5^30)).log()
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + 2*5^10 + 2*5^11 + 5^12 + 5^14 + 3*5^15 + 5^16 + 4*5^18 + 4*5^19 + 5^20 + 3*5^21 + 2*5^22 + 2*5^23 + 5^24 + 5^25 + 3*5^27 + 2*5^28 + 4*5^29 + O(5^30)
         """
 
         # Step 1 -- a unit?

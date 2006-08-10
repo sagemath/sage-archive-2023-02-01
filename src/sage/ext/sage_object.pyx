@@ -4,6 +4,9 @@ Abstract base class for \sage objects
 
 import cPickle
 import os
+import urllib
+import sage.misc.misc
+import sys
 
 # changeto import zlib to use zlib instead; but this
 # slows down loading any data stored in the other format
@@ -424,20 +427,71 @@ cdef class SageObject:
 ##################################################################
 
 
-def load(filename, compress=True):
+cur = 0
+def report_hook(block, size, total):
+     global cur
+     n = block*size*50/total
+     if n > cur:
+          cur = n
+          sys.stdout.write('.')
+          sys.stdout.flush()
+
+
+
+def load(filename, compress=True, verbose=True):
     """
     load(filename):
 
     Load \sage object from the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
+
+    This also loads a ".sobj" file over a network by specifying the full URL.
+    (Setting "verbose = False" suppresses the loading progress indicator.)
+
+    EXAMPLE:
+        sage: u = "http://sage.math.washington.edu/home/was/db/modsym/gamma0/"  # optional
+        sage: M = load(u + "2_48.sobj")                                         # optional
+        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/modsym/gamma0/2_48.sobj
+        Loading: [.....]
     """
-    filename = process(filename)
+
+    ## Check if filename starts with "http://" or "https://"
+    if filename.startswith("http://") or filename.startswith("https://"):
+        if verbose:
+            print "Attempting to load remote file: " + filename
+
+        temp_name = sage.misc.misc.tmp_filename()
+        try:
+            global cur
+            cur = 0
+            if verbose:
+                sys.stdout.write("Loading: [")
+                sys.stdout.flush()
+                urllib.urlretrieve(filename, temp_name, report_hook)
+                print "]"
+            else:
+                urllib.urlretrieve(filename, temp_name)
+            filename = temp_name
+            tmpfile_flag = True
+        except:
+            raise BadURLError, "Could not load URL: " + filename
+    else:
+        tmpfile_flag = False
+        filename = process(filename)
+
+    ## Load file by absolute filename
     X = loads(open(filename).read(), compress=compress)
     try:
         X._default_filename = os.path.abspath(filename)
     except AttributeError:
         pass
+
+    ## Delete the tempfile, if it exists
+    if tmpfile_flag == True:
+        os.unlink(temp_name)
+
     return X
+
 
 def save(obj, filename=None, compress=True):
     """

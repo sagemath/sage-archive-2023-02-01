@@ -2000,10 +2000,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         """
         return self.submodule_with_basis(gens, check=check, already_echelonized=already_echelonized)
 
-    def vector_space(self):
+    def vector_space(self, base_field=None):
         """
         Return the vector space associated to self.  Since self is a vector
-        space this function simply returns self.
+        space this function simply returns self, unless the base field
+        is different.
 
         EXAMPLES:
             sage: V = span(Rationals(), [[1,2,3]]); V
@@ -2015,7 +2016,9 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             Basis matrix:
             [1 2 3]
         """
-        return self
+        if base_field is None:
+            return self
+        return self.change_ring(base_field)
 
     def zero_submodule(self):
         """
@@ -2343,17 +2346,20 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         """
         return self.ambient_vector_space()(v)
 
-    def vector_space(self):
+    def vector_space(self, base_field=None):
         """
         Returns the vector space obtained from self by tensoring with
-        the fraction field of the base ring.
+        the fraction field of the base ring and extending to the field.
 
         EXAMPLES:
             sage: M = ZZ^3;  M.vector_space()
             Vector space of dimension 3 over Rational Field
         """
-        R = self.base_ring()
-        return self.change_ring(R.fraction_field())
+        if base_field is None:
+            R = self.base_ring()
+            return self.change_ring(R.fraction_field())
+        else:
+            return self.change_ring(base_field)
 
 ###############################################################################
 #
@@ -2720,7 +2726,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         return self.__user_to_echelon_matrix
 
 
-    def vector_space(self):
+    def vector_space(self, base_field=None):
         """
         Return the vector spaces associated to this free module via tensor product
         with the fraction field of the base ring.
@@ -2741,7 +2747,9 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1/3   2 3/7]
             [  4   5   6]
         """
-        return self.change_ring(self.base_ring().fraction_field())
+        if base_field is None:
+            return self.change_ring(self.base_ring().fraction_field())
+        return self.change_ring(base_field)
 
     def echelon_to_user_matrix(self):
         """

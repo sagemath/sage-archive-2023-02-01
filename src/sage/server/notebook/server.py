@@ -628,7 +628,15 @@ class NotebookServer:
     def __init__(self, notebook, port, address):
         self.__notebook = notebook
         self.__httpd = BaseHTTPServer.HTTPServer((address,int(port)), WebServer)
-        self.__httpd.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        try:
+            # this seems to be BSD specific
+            self.__httpd.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        except AttributeError:
+            try:
+                # on linux, this seems to do both addr and port.
+                self.__httpd.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            except AttributeError:
+                pass
         self.__address = address
         self.__port = port
 

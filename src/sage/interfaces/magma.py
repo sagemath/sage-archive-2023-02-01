@@ -727,7 +727,7 @@ class MagmaElement(ExpectElement):
 
         p-adic Numbers:
             sage: latex(magma('pAdicField(7,4)!9333294394/49'))              # optional
-            4\cdot{}7^{-2} + 5\cdot{}7^{-1} + 5\cdot{}+ 6\cdot{}7^{1} + O(7^{2})
+            4\cdot{}7^{-2} + 5\cdot{}7^{-1} + 5+ 6\cdot{}7^{1} + O(7^{2})
         """
         P = self._check_valid()
         s = str(P.eval('Latex(%s)'%self.name()))

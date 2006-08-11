@@ -39,25 +39,21 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     """
     Matrix over the rational numbers.
     """
-    def __new__(self, parent, object entries=None, construct=False):
-        cdef int i, nrows, ncols
+    def __init__(self, parent, object entries=None, construct=False, clear=True):
+        cdef int n, i, j, k, r, base, nrows, ncols
+        cdef mpq_t *v
+
         self.initialized = 0
-        if isinstance(entries, str) and entries == LEAVE_UNINITIALIZED:
-            self.matrix = <mpq_t **>0
-            return
         nrows = parent.nrows()
         ncols = parent.ncols()
         self.matrix = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nrows)
         if self.matrix == <mpq_t**> 0:
             raise MemoryError, "Error allocating matrix."
+
         for i from 0 <= i < nrows:
             self.matrix[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*ncols)
             if self.matrix[i] == <mpq_t *> 0:
                 raise MemoryError, "Error allocating matrix."
-
-    def __init__(self, parent, object entries=None, construct=False):
-        cdef int n, i, j, k, r, base, nrows, ncols
-        cdef mpq_t *v
 
         matrix_dense.Matrix_dense.__init__(self, parent)
 
@@ -68,9 +64,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.__pivots = None
         base = 10
         if isinstance(entries, str):
-            if entries == LEAVE_UNINITIALIZED:
-                return
-            elif construct:
+            if construct:
                 base = 32
                 entries = entries.split(' ')
 
@@ -101,26 +95,27 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             if entries != None and len(entries) != nrows*ncols:
                 raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
 
-        _sig_on
-        k = 0
-        for i from 0 <= i < nrows:
-            v = self.matrix[i]
-            for j from 0 <= j < ncols:
-                mpq_init(v[j])
-                if entries != None:
-                    # TODO: If entries[k] is a rational,
-                    # this should be WAY faster.  (Also see above)
-                    s = str(entries[k])
-                    r = mpq_set_str(v[j], s, base)
-                    if r == -1:
-                        _sig_off
-                        raise TypeError, "Invalid rational number"
-                    mpq_canonicalize(v[j])
-                    k = k + 1
-                else:
-                    mpq_set_si(v[j],0, 1)
-        _sig_off
-        self.initialized = 1
+        if clear:
+            _sig_on
+            k = 0
+            for i from 0 <= i < nrows:
+                v = self.matrix[i]
+                for j from 0 <= j < ncols:
+                    mpq_init(v[j])
+                    if entries != None:
+                        # TODO: If entries[k] is a rational,
+                        # this should be WAY faster.  (Also see above)
+                        s = str(entries[k])
+                        r = mpq_set_str(v[j], s, base)
+                        if r == -1:
+                            _sig_off
+                            raise TypeError, "Invalid rational number"
+                        mpq_canonicalize(v[j])
+                        k = k + 1
+                    else:
+                        mpq_set_si(v[j],0, 1)
+            _sig_off
+            self.initialized = 1
 
     def nrows(self):
         return self._nrows
@@ -225,22 +220,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         snc = self._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self.parent(), clear=False)
 
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         mpq_init(s); mpq_init(z)
 
         _sig_on
         for i from 0 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                mpq_clear(s); mpq_clear(z)
-                _sig_off
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_set_si(s,0,1)   # set s = 0
                 v = self.matrix[i]
@@ -250,7 +238,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], s)
         _sig_off
-        M.set_matrix(m)
         mpq_clear(s); mpq_clear(z)
         return M
 
@@ -265,24 +252,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         nc = other._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(nr, nc, LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(nr, nc, clear=False)
 
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         _sig_on
         for i from 0 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                _sig_off
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_init(m[i][j])
                 mpq_add(m[i][j], self.matrix[i][j], other.matrix[i][j])
         _sig_off
-        M.set_matrix(m)
         return M
 
     def transpose(self):
@@ -292,22 +272,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef int i, j
         cdef Matrix_rational_dense M
 
-        M = Matrix_rational_dense(self._ncols, self._nrows, entries=LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self._ncols, self._nrows, clear=False)
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*self._ncols)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         _sig_on
         for i from 0 <= i < self._ncols:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*self._nrows)
-            if m[i] == <mpq_t*> 0:
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < self._nrows:
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], self.matrix[j][i])
         _sig_off
-        M.set_matrix(m)
         return M
 
     def matrix_from_rows(self, rows):
@@ -336,22 +310,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if min(rows) < 0 or max(rows) >= self._nrows:
             raise IndexError, "invalid row indexes; rows don't exist"
 
-        M = Matrix_rational_dense(self.parent(), entries=LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self.parent(), clear=False)
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         for i from 0 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                raise MemoryError, "Error allocating matrix"
             k = rows[i]
             for j from 0 <= j < nc:
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], self.matrix[k][j])
 
-        M.set_matrix(m)
         return M
 
 
@@ -376,16 +344,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise ArithmeticError, "incompatible matrix vector multiple"
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self.parent(), clear=False)
 
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
-        m[0] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-        if m[0] == <mpq_t*> 0:
-            mpq_clear(s); mpq_clear(z)
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
+
         mpq_init(self.tmp)
         for j from 0 <= j < nc:
             string = str(v[j])
@@ -398,9 +361,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_init(s)
         mpq_init(z)
         for i from 1 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_set_si(s,0,1)  # set s = 0
                 for k from 0 <= k < self._nrows:
@@ -408,7 +368,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     mpq_add(s, s, z)
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], s)
-        M.set_matrix(m)
         mpq_clear(s); mpq_clear(z)
         return M
 
@@ -428,25 +387,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if r == -1:
             raise TypeError, "Invalid rational number"
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self.parent(), clear=False)
 
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         _sig_on
         for i from 0 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                mpq_clear(x)
-                _sig_off
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_init(m[i][j])
                 mpq_mul(m[i][j], self.matrix[i][j], x)
         _sig_off
-        M.set_matrix(m)
         mpq_clear(x)
         return M
 
@@ -455,21 +406,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         nr = self._nrows; nc = self._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), LEAVE_UNINITIALIZED)
+        M = Matrix_rational_dense(self.parent(), clear=False)
         cdef mpq_t **m
-        m = <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*nr)
-        if m == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix"
+        m = M.matrix
 
         for i from 0 <= i < nr:
-            m[i] = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*nc)
-            if m[i] == <mpq_t*> 0:
-                raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:
                 mpq_init(m[i][j])
                 mpq_set(m[i][j], self.matrix[i][j])
 
-        M.set_matrix(m)
         return M
 
     def number_nonzero(self):

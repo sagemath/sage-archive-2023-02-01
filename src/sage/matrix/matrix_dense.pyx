@@ -49,16 +49,17 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
         else:
             self._entries = [None]*(self._nrows*self._ncols)
 
-        self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * self._nrows)
+        self._init_row_indices()
 
+    def _init_row_indices(self):
+        self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * self._nrows)
         n = 0
         for i from 0 <= i < self._nrows:
             self._row_indices[i] = n
             n = n + self._ncols
 
     def  __dealloc__(self):
-        if self._row_indices != <int*> 0:
-            PyMem_Free(self._row_indices)
+        PyMem_Free(self._row_indices)
 
     def __getitem__(self, ij):
         """
@@ -106,7 +107,7 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
 
         R = self.base_ring()
         P = self.matrix_space(nr, nc)
-        A = Matrix_dense(P, nr, nc)
+        A = Matrix_dense(P)
         v = A._entries
         zero = R(0)
         r = 0
@@ -309,5 +310,5 @@ cdef class MatrixWindow:
                 self._matrix._entries[ self._row_indices[self_.row+i]+self._col+j ] = self._matrix._entries[ self._row_indices[self_.row+i]+self._col+j ] + sum
 
 
-    def new_empty_window(MatrixWindow self, int nrows, int ncols, clear=True):
-        return self._matrix.new_matrix(nrows,ncols, clear=clear).matrix_window()
+    def new_empty_window(MatrixWindow self, int nrows, int ncols, zero=True):
+        return self._matrix.new_matrix(nrows,ncols, zero=zero).matrix_window()

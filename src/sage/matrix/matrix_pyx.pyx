@@ -1625,25 +1625,25 @@ cdef class Matrix(ModuleElement):
             return sage.ext.coerce.cmp(self, right)
         return cmp(self._entries(), right._entries())
 
-    def __richcmp__(self,right,op):
-        res = 0
-        if not isinstance(right, Matrix) or right.parent() != self.parent():
-            res = sage.ext.coerce.cmp(self, right)
-        else:
-            res = cmp(self._entries(), right._entries())
+##     def __richcmp__(self,right,op):
+##         res = 0
+##         if not isinstance(right, Matrix) or right.parent() != self.parent():
+##             res = sage.ext.coerce.cmp(self, right)
+##         else:
+##             res = cmp(self._entries(), right._entries())
 
-        if op == 0:  #<
-            return bool(res  < 0)
-        if op == 2: #==
-            return bool(res == 0)
-        if op == 4: #>
-            return bool(res  > 0)
-        if op == 1: #<=
-            return bool(res <= 0)
-        if op == 3: #!=
-            return bool(res != 0)
-        if op == 5: #>=
-            return bool(res >= 0)
+##         if op == 0:  #<
+##             return bool(res  < 0)
+##         if op == 2: #==
+##             return bool(res == 0)
+##         if op == 4: #>
+##             return bool(res  > 0)
+##         if op == 1: #<=
+##             return bool(res <= 0)
+##         if op == 3: #!=
+##             return bool(res != 0)
+##         if op == 5: #>=
+##             return bool(res >= 0)
 
     def __nonzero__(self):
         """
@@ -1748,6 +1748,10 @@ cdef class Matrix(ModuleElement):
         if self.ncols() != right.nrows():
             raise ArithmeticError, "number of columns of self (=%s) must equal number of rows of right (=%s)."%(
                 self.ncols(), right.nrows())
+        try:
+            return self._mul_(right)
+        except (TypeError, AttributeError):
+            pass
         nr = self.nrows()
         snc = self.ncols()
         nc = right.ncols()
@@ -1926,146 +1930,6 @@ cdef class Matrix(ModuleElement):
 
     def _lllgram(self):
         raise NotImplementedError
-
-
-
-    def strassen_invert(Matrix self, cutoff=80):
-        r"""
-        Generic Strassen matrix inversion multiplication method.
-
-        Raises a ZeroDivisionError if the matrix has zero determinant
-        Raises an ArithmeticError, if the inverse doesn't exist
-        because the matrix is nonsquare.
-
-        INPUT:
-            M -- matrix to invert
-            cutoff -- size at which standard matrix inversion/multiplication functions become more efficient
-
-        OUTPUT:
-            R -- inverse matrix such that M*R = R*M = I
-
-        EXAMPLES:
-
-            sage: M = Matrix(QQ, 2, 2, [3,5,7,11])
-            sage: M.strassen_invert(cutoff=1)
-            [-11/2   5/2]
-            [  7/2  -3/2]
-
-            sage: P.<t> = LaurentSeriesRing(GF(389), 't')
-            sage: M = Matrix(P, 4, 4, [i^7+1 for i in range(16)])
-            sage: M.strassen_invert(cutoff=1)
-            [301 141 239 226]
-            [241 273 219 184]
-            [142 316 278 208]
-            [312 180 173  12]
-
-            sage: M.strassen_invert(cutoff=2)
-            [301 141 239 226]
-            [241 273 219 184]
-            [142 316 278 208]
-            [312 180 173  12]
-
-
-        ALGORITHM:
-
-        To invert
-
-            [A B]
-            [C D]
-
-        compute
-
-        \begin{verbatim}
-            S  = A^-1
-            T1 = C * S      T2 = T1 * B       T3 = D - T2
-            U  = T3^-1
-
-            P1 = S  * B      P2 = C * S
-            R1 = P1 * U      R2 = U * P2       R3 = R1 * P2 = P1 * R2
-
-        The inverse is then given by
-
-            [ S + R3  ,  -R1 ]
-            [    -R2  ,    U ]
-        \end{verbatim}
-
-        AUTHOR:
-           -- Robert Bradshaw (2007-08-05)
-
-        TODO: Right now calls generic submatrix multiply code, should
-              call Strassen code for multiplies...
-        TODO: Random permutations for non-singular submatrices?
-
-        """
-
-
-
-        if not self.is_square():
-            raise ArithmeticError, "self must be a square matrix"
-        #if not self.determinant().is_unit():
-        #    raise ZeroDivisionError, "self is not invertible"
-
-        padded = self._pad_pow_2(cutoff)
-        for i in range(self.nrows(), padded.nrows()):
-            padded[i,i] = self.base_ring()(1)
-        inv_padded = self._strassen_invert_inner(0, 0, inv_padded.nrows(), cutoff)
-        return inv_padded._submatrix(0, 0, self.nrows(), self.ncols())
-
-
-
-    def _strassen_invert_inner(Matrix self,
-                               int row, int col, int n, int cutoff):
-        """
-        For internal use, correct dimensions are assumed in this method.
-        All indices are zero-indexed
-
-        INPUT:
-            row -- row of upper left entry of submatrix
-            col -- column of upper left entry of submatrix
-            n -- width and height of submatrix, must be (2^k)m for m < cutoff
-            cutoff -- size at which to call standard inverse
-
-        OUTPUT:
-            inverted matrix
-
-        """
-
-        cdef int n_2
-        if (n <= cutoff):
-            return self._invert_submatrix(row, col, n)
-        else:
-            n_2 = n/2
-            S = self._strassen_invert_inner(row, col, n_2, cutoff)
-            T1 = self._mul_submatrices(S, row + n_2, col, n_2, n_2,
-                                          0, 0, n_2, n_2)
-            T2 = T1._mul_submatrices(self, 0, 0, n_2, n_2,
-                                           row, col + n_2, n_2, n_2)
-            T3 = self._sub_submatrices(T2, row + n_2, col + n_2, n_2, n_2,
-                                           0, 0)
-            U = T3._strassen_invert_inner(0, 0, n_2, cutoff)
-
-            P1 = S._mul_submatrices(self, 0, 0, n_2, n_2,
-                                          row, col + n_2, n_2, n_2)
-            P2 = self._mul_submatrices(S, row + n_2, col, n_2, n_2,
-                                          0, 0, n_2, n_2)
-
-            R1 = P1._mul_submatrices(U, 0, 0, n_2, n_2,
-                                        0, 0, n_2, n_2)
-            R2 = U._mul_submatrices(P2, 0, 0, n_2, n_2,
-                                        0, 0, n_2, n_2)
-            R3 = R1._mul_submatrices(P2, 0, 0, n_2, n_2,
-                                         0, 0, n_2, n_2)
-
-            W = S + R3
-            X = -R1
-            Y = -R2
-            Z = U
-
-            WX = W.augment(X)
-            YZ = Y.augment(Z)
-            return WX.stack(YZ)
-
-
 
     def _mul_submatrices(self,
                          Matrix other,

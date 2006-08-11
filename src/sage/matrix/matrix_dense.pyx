@@ -23,13 +23,13 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
     the base ring, and element access operations are implemented in
     this class.
     """
-    def __init__(self, parent, int nrows, int ncols,
+    def __init__(self, parent,
                  copy = True,
                  entries = None,
                  coerce_entries = True):
         matrix_pyx.Matrix.__init__(self, parent)
-        self._nrows = nrows
-        self._ncols = ncols
+        self._nrows = parent.nrows()
+        self._ncols = parent.ncols()
         cdef int i, n
         if entries:
             if not isinstance(entries, list):
@@ -37,7 +37,7 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
             if not (coerce_entries or copy):
                 self._entries = entries
             else:
-                self._entries = [None]*(nrows*ncols)
+                self._entries = [None]*(self._nrows*self._ncols)
                 n = len(entries)
                 if coerce_entries:
                     R = parent.base_ring()
@@ -47,14 +47,14 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
                     for i from 0 <= i < n:
                         self._entries[i] = entries[i]
         else:
-            self._entries = [None]*(nrows*ncols)
+            self._entries = [None]*(self._nrows*self._ncols)
 
-        self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * nrows)
+        self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * self._nrows)
 
         n = 0
-        for i from 0 <= i < nrows:
+        for i from 0 <= i < self._nrows:
             self._row_indices[i] = n
-            n = n + ncols
+            n = n + self._ncols
 
     def  __dealloc__(self):
         if self._row_indices != <int*> 0:

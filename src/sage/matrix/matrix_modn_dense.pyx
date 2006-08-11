@@ -23,11 +23,10 @@ ai = sage.ext.arith.arith_int()
 LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
 cdef class Matrix_modn_dense(matrix_pyx.Matrix):
-    def __new__(self, parent, int p, int nrows, int ncols, object entries=None):
+    def __init__(self, parent, uint p, uint nrows, uint ncols, object entries=None, clear=True):
+        matrix_pyx.Matrix.__init__(self, parent)
+
         cdef int i
-        if entries == LEAVE_UNINITIALIZED:
-            self.matrix = <uint **>0
-            return
         self.matrix = <uint **> PyMem_Malloc(sizeof(uint*)*nrows)
         if self.matrix == <uint**> 0:
             raise MemoryError, "Error allocating memory"
@@ -36,10 +35,7 @@ cdef class Matrix_modn_dense(matrix_pyx.Matrix):
             if self.matrix[i] == <uint*> 0:
                raise MemoryError, "Error allocating matrix"
 
-    def __init__(self, parent, uint p, uint nrows, uint ncols, object entries=None):
-        matrix_pyx.Matrix.__init__(self, parent)
-
-        cdef uint n, i, j, k
+        cdef uint n, j, k
         cdef uint *v
         if p >= 46340:
             raise OverflowError, "p (=%s) must be < 46340"%p
@@ -49,9 +45,7 @@ cdef class Matrix_modn_dense(matrix_pyx.Matrix):
         self._ncols = ncols
         self.gather = 2**32/(p*p)
         self.__pivots = None
-        if entries == LEAVE_UNINITIALIZED:
-            return
-        if entries is None:
+        if entries is None and clear:
             for i from 0 <= i < nrows:
                 v = self.matrix[i]
                 for j from 0 <= j < ncols:

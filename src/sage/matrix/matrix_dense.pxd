@@ -8,5 +8,9 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
     cdef int* _row_indices
 
 
-#cdef object multiply_items(object v, int i, object w, int j)
-
+cdef class MatrixWindow:
+    cdef Matrix_dense _matrix
+    cdef int _row
+    cdef int _col
+    cdef int _nrows
+    cdef int _ncols

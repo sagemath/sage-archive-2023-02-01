@@ -25,7 +25,7 @@ LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 cdef class Matrix_modn_dense(matrix_pyx.Matrix):
     def __new__(self, parent, int p, int nrows, int ncols, object entries=None):
         cdef int i
-        if entries == "LEAVE UNINITIALIZED":
+        if entries == LEAVE_UNINITIALIZED:
             self.matrix = <uint **>0
             return
         self.matrix = <uint **> PyMem_Malloc(sizeof(uint*)*nrows)

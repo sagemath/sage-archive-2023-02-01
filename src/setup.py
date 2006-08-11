@@ -123,9 +123,6 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
               ['sage/matrix/matrix_rational_sparse.pyx'])
 
-matrix_window = Extension('sage.matrix.MatrixWindow',
-              ['sage/matrix/matrix_window.pyx'])
-
 ext_modules = [ \
     ec, \
 
@@ -147,7 +144,6 @@ ext_modules = [ \
     matrix_pid,
     matrix_rational_dense,
     matrix_rational_sparse,
-    matrix_window,
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \

@@ -468,7 +468,8 @@ cdef class Matrix(ModuleElement):
         return self.parent().matrix_space(nrows, ncols, sparse=sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
-                coerce_entries=True, copy=True, sparse=None):
+                   coerce_entries=True, copy=True, sparse=None,
+                   clear = True):
         """
         Create a matrix in the parent of this space with the given
         number of rows, columns, etc.

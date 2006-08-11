@@ -1,7 +1,3 @@
-cimport matrix_dense
-import  matrix_dense
-
-
 
 cdef class MatrixWindow:
 

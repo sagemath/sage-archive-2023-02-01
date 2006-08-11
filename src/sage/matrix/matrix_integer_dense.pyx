@@ -33,7 +33,8 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
     Matrix over the integers.
     """
 
-    def __init__(self, parent, object entries=None, construct=False, zero=True):
+    def __init__(self, parent, object entries=None, construct=False, zero=True,
+                 coerce=True):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpz_t *v
 
@@ -44,20 +45,22 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         self._nrows = nrows
         self._ncols = ncols
 
-        self._matrix = <mpz_t **> PyMem_Malloc(sizeof(mpz_t*)*nrows)
+        self._entries = <mpz_t *>PyMem_Malloc(sizeof(mpz_t*) * (nrows * ncols))
 
-        self._entries = <mpz_t *>PyMem_Malloc(sizeof(mpz_t*) * nrows * ncols)
         if self._entries == <mpz_t*> 0:
             raise MemoryError, "Error allocating matrix."
+
+        for i from 0 <= i < (nrows * ncols):
+            mpz_init(self._entries[i])
 
         self._matrix = <mpz_t **> PyMem_Malloc(sizeof(mpz_t*)*nrows)
         if self._matrix == <mpz_t**> 0:
             raise MemoryError, "Error allocating matrix."
 
+        k = 0
         for i from 0 <= i < nrows:
-            self._matrix[i] = self._entries + i
-
-        self.initialized = 0
+            self._matrix[i] = self._entries + k
+            k = k + ncols
 
         self.__pivots = None
         base = 10
@@ -65,53 +68,48 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
             if construct:
                 base = 32
                 entries = entries.split(' ')
+                coerce = True
+                raise NotImplementedError, "need to deal with base below"
 
-        if isinstance(entries, sage.ext.rational.Rational):
+        cdef sage.ext.integer.Integer z
+
+        if isinstance(entries, sage.ext.integer.Integer):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
-            s = str(entries)
             mpz_init(self.tmp)
-            r = mpz_set_str(self.tmp, s, 0)
-            if r == -1:
-                raise TypeError, "Invalid rational number %s"%entries[k]
+            z = entries
+            mpz_set(self.tmp, z.value)
             _sig_on
             for i from 0 <= i < nrows:
                 v = self._matrix[i]
                 for j from 0 <= j < ncols:
-                    mpz_init(v[j])
                     if i == j:
                         mpz_set(v[j], self.tmp)
-                        k = k + 1
                     else:
                         mpz_set_si(v[j], 0)
             _sig_off
-            self.initialized = 1
             return
 
         if nrows*ncols != 0:
             if entries != None and len(entries) != nrows*ncols:
                 raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
 
-        if zero:
-            _sig_on
-            k = 0
-            for i from 0 <= i < nrows:
-                v = self._matrix[i]
-                for j from 0 <= j < ncols:
-                    mpz_init(v[j])
-                    if entries != None:
-                        # TODO: If entries[k] is a rational,
-                        # this should be WAY faster.  (Also see above)
-                        s = str(entries[k])
-                        r = mpz_set_str(v[j], s, base)
-                        if r == -1:
-                            _sig_off
-                            raise TypeError, "Invalid rational number %s"%entries[k]
-                        k = k + 1
-                    else:
-                        mpz_set_si(v[j],0)
-            _sig_off
-            self.initialized = 1
+        if entries is None:
+            if zero:
+                for i from 0 <= i < nrows * ncols:
+                    mpz_set_si(self._entries[i], 0)
+            return
+
+        k = 0
+
+        if coerce:
+            for i from 0 <= i < nrows*ncols:
+                z = sage.ext.integer.Integer(entries[i])
+                mpz_set(self._entries[i], z.value)
+        else:
+            for i from 0 <= i < nrows*ncols:
+                z = entries[i]
+                mpz_set(self._entries[i], z.value)
 
     def nrows(self):
         return self._nrows
@@ -187,14 +185,17 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         mpz_set(self._matrix[i][j], z.value)
 
     def __getitem__(self, ij):
-        i, j = ij
-        return 1
         cdef sage.ext.integer.Integer z
+        cdef int i, j
+
+        i, j = ij
+
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
-        mpz_set(z.value, self._matrix[i][j])
-        z = sage.ext.integer.Integer()
 
+        z = sage.ext.integer.Integer()
+        mpz_set(z.value, self._matrix[i][j])
+        return z
 
     def  __dealloc__(self):
         PyMem_Free(self._entries)
@@ -400,12 +401,12 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
 
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense(self.parent(), zero=False)
-        cdef mpz_t **m
-        e = M._entries
 
         for i from 0 <= i < nr * nc:
-            mpz_init(e[i])
-            mpz_set(e[i], self._entries[i])
+            mpz_set(M._entries[i], self._entries[i])
+
+        for i from 0 <= i < nc:
+            M._matrix[i] = self._matrix[i]
 
         return M
 
@@ -414,11 +415,9 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         cdef mpz_t *v
         n = 0
         _sig_on
-        for i from 0 <= i < self._nrows:
-            v = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                if mpz_sgn(v[j]):   # if nonzero
-                    n = n + 1
+        for i from 0 <= i < self._nrows * self._ncols:
+            if mpz_sgn(self._entries[i]):         # if nonzero
+                n = n + 1
         _sig_off
         return n
 

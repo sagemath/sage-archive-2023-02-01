@@ -58,6 +58,9 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             mpq_init(self._entries[i])
 
         self._matrix =  <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*ncols)
+        if self._matrix == <mpq_t**> 0:
+            raise MemoryError, "Error allocating matrix."
+
         k = 0
         for i from 0 <= i < nrows:
             self._matrix[i] = self._entries + k
@@ -73,6 +76,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             if construct:
                 base = 32
                 entries = entries.split(' ')
+                raise NotImplementedError, "need to deal with base below"
 
         if isinstance(entries, sage.ext.rational.Rational):
             if entries != 0 and nrows != ncols:
@@ -96,25 +100,25 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             return
 
         if nrows*ncols != 0:
-            if entries != None and len(entries) != nrows*ncols:
+            if not (entries is None) and len(entries) != nrows*ncols:
                 raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
 
-        if not entries is None:
-            _sig_on
-            k = 0
-            for i from 0 <= i < nrows:
-                v = self._matrix[i]
-                for j from 0 <= j < ncols:
-                    # TODO: If entries[k] is a rational,
-                    # this should be WAY faster.  (Also see above)
-                    s = str(entries[k])
-                    r = mpq_set_str(v[j], s, base)
-                    if r == -1:
-                        _sig_off
-                        raise TypeError, "Invalid rational number"
-                    mpq_canonicalize(v[j])
-                    k = k + 1
-            _sig_off
+        if entries is None:
+            if zero:
+                for i from 0 <= i < nrows * ncols:
+                    mpq_set_si(self._entries[i], 0, 1)
+            return
+
+        cdef sage.ext.rational.Rational z
+
+        if coerce:
+            for i from 0 <= i < nrows*ncols:
+                z = sage.ext.rational.Rational(entries[i])
+                mpq_set(self._entries[i], z.value)
+        else:
+            for i from 0 <= i < nrows*ncols:
+                z = entries[i]
+                mpq_set(self._entries[i], z.value)
 
 
     def nrows(self):
@@ -413,11 +417,9 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         cdef mpq_t *v
         n = 0
         _sig_on
-        for i from 0 <= i < self._nrows:
-            v = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                if mpq_sgn(v[j]):   # if nonzero
-                    n = n + 1
+        for i from 0 <= i < self._nrows * self._ncols:
+            if mpq_sgn(self._entries[i]):         # if nonzero
+                n = n + 1
         _sig_off
         return n
 

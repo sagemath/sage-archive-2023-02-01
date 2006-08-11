@@ -470,7 +470,7 @@ cdef class Matrix(ModuleElement):
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
                    coerce_entries=True, copy=True, sparse=None,
-                   clear = True):
+                   clear = True, zero=True):
         """
         Create a matrix in the parent of this space with the given
         number of rows, columns, etc.
@@ -478,6 +478,7 @@ cdef class Matrix(ModuleElement):
         WARNING: This function called with no arguments returns the 0
         matrix by default, not the matrix self.
         """
+        # TO IMPLEMENT: propigate the zero flag
         return self.matrix_space(nrows, ncols, sparse=sparse).matrix(
                 entries, coerce_entries, copy)
 

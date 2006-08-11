@@ -222,7 +222,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         snc = self._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense(self.new_matrix(self._nrows, other._ncols).parent(), zero=False) # clean up when MatrixSpace creates this class
 
         cdef mpq_t **m
         m = M._matrix
@@ -253,7 +253,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         nc = other._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(nr, nc, zero=False)
+        M = Matrix_rational_dense(self.parent(), zero=False)
 
         cdef mpq_t **m
         m = M._matrix
@@ -499,8 +499,8 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
     def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
         if nrows == -1:
-            nrows = self._nrows
-            ncols = self._ncols
+            nrows = self._nrows - row
+            ncols = self._ncols - col
         return MatrixWindow(self, row, col, nrows, ncols)
 
     def hessenberg_form(self):
@@ -941,7 +941,7 @@ cdef object mpz_to_long(mpz_t x):
 
 cdef class MatrixWindow:
 
-    def __init__(MatrixWindow self, matrix, int row, int col, int nrows, int ncols):
+    def __init__(MatrixWindow self, Matrix_rational_dense matrix, int row, int col, int nrows, int ncols):
         self._matrix = matrix
         self._row = row
         self._col = col
@@ -963,12 +963,12 @@ cdef class MatrixWindow:
         """
         Returns an actual matrix object representing this view.
         """
-        entries = self.list()
-        return self._matrix.new_matrix(self._nrows, self._ncols, entries=entries,
-                                       coerce_entries=False, copy=False)
+        a = self._matrix.new_matrix(self._nrows, self._ncols, zero=False)
+        a.matrix_window().set_to(self)
+        return a
 
 
-    def matrix_window(MatrixWindow self, int row, int col, int n_rows, int n_cols):
+    def matrix_window(MatrixWindow self, int row=0, int col=0, int n_rows=-1, int n_cols=-1):
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
@@ -983,94 +983,100 @@ cdef class MatrixWindow:
 
     def set_to(MatrixWindow self, MatrixWindow A):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = A._matrix._entries[A_ix]
-                A_ix = A_ix + 1
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            for j from 0 <= j < self._ncols:
+                mpq_set(s_row[j], A_row[j])
 
-
-    def set_to_zero(MatrixWindow self, MatrixWindow A):
+    def set_to_zero(MatrixWindow self):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
-        zero = self._matrix.base_ring(0)
+        cdef mpq_t* s_row
         for i from 0 <= i < self._nrows:
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = zero
-
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            for j from 0 <= j < self._ncols:
+                mpq_set_ui(s_row[j], 0, 1)
 
     def add(MatrixWindow self, MatrixWindow A):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = slef._matrix._entries[self_ix] + A._matrix._entries[A_ix]
-                A_ix = A_ix + 1
-
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            for j from 0 <= j < self._ncols:
+                mpq_add(s_row[j], s_row[j], A_row[j])
 
     def subtract(MatrixWindow self, MatrixWindow A):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = self._matrix._entries[self_ix] - A._matrix._entries[A_ix]
-                A_ix = A_ix + 1
-
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            for j from 0 <= j < self._ncols:
+                mpq_sub(s_row[j], s_row[j], A_row[j])
 
     def set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
+        cdef mpq_t* B_row
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            B_ix = self._matrix._row_indices[i+B._row] + b._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = A._matrix._entries[A_ix] + B._matrix._entries[B_ix]
-                A_ix = A_ix + 1
-                B_ix = B_ix + 1
-
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            B_row = B._matrix._matrix[B._row + i] + B._col
+            for j from 0 <= j < self._ncols:
+                mpq_add(s_row[j], A_row[j], B_row[j])
 
     def set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
+        cdef mpq_t* B_row
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            B_ix = self._matrix._row_indices[i+B._row] + b._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix._entries[self_ix] = A._matrix._entries[A_ix] - B._matrix._entries[B_ix]
-                A_ix = A_ix + 1
-                B_ix = B_ix + 1
-
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            B_row = B._matrix._matrix[B._row + i] + B._col
+            for j from 0 <= j < self._ncols:
+                mpq_sub(s_row[j], A_row[j], B_row[j])
 
     def set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef int i, j, k
-        cdef int start, self_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
+        cdef mpq_t sum, prod
+        mpq_init(sum)
+        mpq_init(prod)
         for i from 0 <= i < A._nrows:
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            s_row = self._matrix._matrix[self._row + i] + self._col
             for j from 0 <= j < B._ncols:
-                sum = A._matrix._entries[ A._row_indices[A._row+i]+A._col ] *B._matrix._entries[ B._row_indices[B._row]+B._col+j ]
+                mpq_mul(sum, A_row[0], B._matrix._matrix[B._row]+B._col+j)
                 for k from 1 <= k < A._ncols:
-                    sum = sum + A._matrix._entries[ A._row_indices[A._row+i]+A._col + k ] * B._matrix._entries[ B._row_indices[B._row+k]+B._col+j ]
-                self._matrix._entries[ self._row_indices[self_.row+i]+self._col+j ] = sum
-
+                    mpq_mul(prod, A_row[k], B._matrix._matrix[B._row+k]+B._col+j)
+                    mpq_add(sum, sum, prod)
+                mpq_set(s_row[j], sum)
 
     def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef int i, j, k
-        cdef int start, self_ix
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
+        cdef mpq_t sum, prod
+        mpq_init(sum)
+        mpq_init(prod)
         for i from 0 <= i < A._nrows:
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            s_row = self._matrix._matrix[self._row + i] + self._col
             for j from 0 <= j < B._ncols:
-                sum = A._matrix._entries[ A._row_indices[A._row+i]+A._col ] *B._matrix._entries[ B._row_indices[B._row]+B._col+j ]
+                mpq_mul(sum, A_row[0], B._matrix._matrix[B._row]+B._col+j)
                 for k from 1 <= k < A._ncols:
-                    sum = sum + A._matrix._entries[ A._row_indices[A._row+i]+A._col + k ] * B._matrix._entries[ B._row_indices[B._row+k]+B._col+j ]
-                self._matrix._entries[ self._row_indices[self_.row+i]+self._col+j ] = self._matrix._entries[ self._row_indices[self_.row+i]+self._col+j ] + sum
+                    mpq_mul(prod, A_row[k], B._matrix._matrix[B._row+k]+B._col+j)
+                    mpq_add(sum, sum, prod)
+                mpq_add(s_row[j], s_row[j], sum)
 
 
     def new_empty_window(MatrixWindow self, int nrows, int ncols, zero=True):
-        return self._matrix.new_matrix(nrows,ncols, zero=zero).matrix_window()
+        return self._matrix.new_matrix(nrows, ncols, zero=zero).matrix_window()

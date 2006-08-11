@@ -21,6 +21,6 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
     cdef int _rescale(self, mpq_t a) except -1
 
 
-
-
-
+cdef class MatrixWindow:
+    cdef Matrix_rational_dense _matrix
+    cdef int _row, _col, _nrows, _ncols

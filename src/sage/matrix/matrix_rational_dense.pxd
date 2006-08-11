@@ -1,11 +1,10 @@
 include "../ext/cdefs.pxi"
 
-cimport matrix_field
+cimport matrix_dense
 
-cdef class Matrix_rational_dense(matrix_field.Matrix_field):
+cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     cdef mpq_t **matrix
     cdef mpq_t tmp
-    cdef int _nrows, _ncols
     cdef object __pivots
     cdef int initialized
 

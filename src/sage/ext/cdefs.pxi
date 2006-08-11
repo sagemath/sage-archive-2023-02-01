@@ -25,6 +25,12 @@ cdef extern from "Python.h":
     char* PyString_AsString(object string)
     object PyString_InternFromString(char *v)
     int PyErr_CheckSignals()
+    #object PyList_GET_ITEM(object list, int i)
+    ctypedef void* PyObject
+    PyObject* PyList_GET_ITEM(object list, int i)
+    object PyList_New(int len)
+    #object PyNumber_Multiply(object o1, object o2)
+    object PyNumber_Multiply(PyObject* o1, PyObject* o2)
 
 cdef extern from "gmp.h":
     ctypedef void* mpq_t

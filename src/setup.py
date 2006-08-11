@@ -91,6 +91,9 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
+matrix_dense = Extension('sage.matrix.matrix_dense',
+              ['sage/matrix/matrix_dense.pyx'])
+
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
@@ -132,6 +135,7 @@ ext_modules = [ \
     cf, \
 
     matrix_domain,
+    matrix_dense,
     matrix_field,
     matrix_integer_dense,
     matrix_integer_sparse,

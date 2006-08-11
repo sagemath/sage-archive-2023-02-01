@@ -29,14 +29,13 @@ from sage.misc.misc import verbose, get_verbose
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"
 
-cimport matrix_field
-import matrix_field
+cimport matrix_dense
+import matrix_dense
 
 cimport sage.ext.rational
 import  sage.ext.rational
 
-
-cdef class Matrix_rational_dense(matrix_field.Matrix_field):
+cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     """
     Matrix over the rational numbers.
     """
@@ -60,7 +59,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpq_t *v
 
-        matrix_field.Matrix_field.__init__(self, parent)
+        matrix_dense.Matrix_dense.__init__(self, parent)
 
         nrows = parent.nrows()
         ncols = parent.ncols()

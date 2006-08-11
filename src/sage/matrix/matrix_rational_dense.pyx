@@ -82,7 +82,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             mpq_init(self.tmp)
             r = mpq_set_str(self.tmp, s, 0)
             if r == -1:
-                raise TypeError, "Invalid rational number %s"%entries[k]
+                raise TypeError, "Invalid rational number"
             mpq_canonicalize(self.tmp)
             _sig_on
             for i from 0 <= i < nrows:
@@ -115,7 +115,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                     r = mpq_set_str(v[j], s, base)
                     if r == -1:
                         _sig_off
-                        raise TypeError, "Invalid rational number %s"%entries[k]
+                        raise TypeError, "Invalid rational number"
                     mpq_canonicalize(v[j])
                     k = k + 1
                 else:
@@ -392,7 +392,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             string = str(v[j])
             r = mpq_set_str(self.tmp, string, 0)
             if r == -1:
-                raise TypeError, "Invalid rational number %s"%v[i]
+                raise TypeError, "Invalid rational number"
             mpq_init(m[0][j])
             mpq_set(m[0][j], self.tmp)
 
@@ -427,7 +427,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         s = str(d)
         r = mpq_set_str(x, s, 0)
         if r == -1:
-            raise TypeError, "Invalid rational number %s"%entries[k]
+            raise TypeError, "Invalid rational number"
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense(self.parent(), LEAVE_UNINITIALIZED)
 

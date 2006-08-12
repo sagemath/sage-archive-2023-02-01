@@ -78,7 +78,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
                 order = names
             names = sparse
         if order is None:
-            order = 'lex'
+            order = 'degrevlex'
         return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order, macaulay2=macaulay2)
 
     #global _objsPolynomialRing

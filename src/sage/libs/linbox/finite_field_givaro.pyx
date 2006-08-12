@@ -93,6 +93,11 @@ cdef extern from "linbox/field/givaro-gfq.h":
 cdef class GFq_element(SageObject) # forward declaration
 
 cdef class GFq(FiniteField):
+    """
+    Givaro Finite Field. These are implemented using Zech logs and
+    therefor the cardinality must be < 2^20.
+    """
+
     cdef GivaroGfq *objectptr
     cdef int repr
 

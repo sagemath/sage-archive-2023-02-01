@@ -210,6 +210,26 @@ class Tachyon(SageObject):
 	 self._objects.append(Triangle(vertex_1,vertex_2,vertex_3,texture))
 
     def plot(self,f,(xmin,xmax),(ymin,ymax),texture,max_var=.1,max_depth=5,initial_depth=3,num_colors=False):
+        """
+        General caveat, this code needs work, its was my proof of concept of a
+        way to construct a mesh with nonstandard sampling density that was a
+        true mesh without gaps. At high resolutions it becomes very
+        slow. pyrex may help but as me and Tom have discussed algorithmically
+        the complexity is bad. At some level of resolution it will be cheaper
+        to sample uniformly at a high resolution.
+
+        EXAMPLE:
+            sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
+            sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
+            sage: def f(x,y):
+            ...    return(float(math.sin(x*y)))
+            ...
+            sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1, \
+            ...    opacity=1.0, color=(1.0,0,0))
+            ...
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=5,num_colors=60)
+            sage.: t.show()
+        """
         Tachyplot(self,f,(xmin,ymin),xmax-xmin,ymax-ymin,texture,max_var = max_var, max_depth=max_depth, initial_depth=initial_depth,num_colors=num_colors)
 
     def collect(self, objects):
@@ -240,10 +260,10 @@ class Tachyplot:
              tachyon.collect(self.trilist)
          else:
              for i in range(num_colors):
-                 tachyon.texture('tri_col%d'%i,ambient=.1,diffuse = .9,specular = .3, opacity=1.0,color=hue(float(i/num_colors)))
+                 tachyon.texture('tri_col%d'%i,ambient=.1,diffuse = .9,specular = .3, opacity=1.0,color=hue(float(i)/float(num_colors)))
 
              i = 0
-             print('constructing color map')
+             #print('constructing color map')
 
              z_range = self.max - self.min
              if z_range != 0:
@@ -481,7 +501,7 @@ class Tachyplot:
     def refine(self,points,trilist):
         points.sort(lexi_sort)
         done = []
-#        print('number of triangles in mesh: %d '%len(self.trilist))
+        ##        print('number of triangles in mesh: %d '%len(self.trilist))
         for p in points:
             if p in done:
                 pass

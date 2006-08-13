@@ -141,6 +141,17 @@ ext_modules = [ \
 
     cf, \
 
+    matrix_domain,
+    matrix_dense,
+    matrix_field,
+    matrix_integer_dense,
+    matrix_integer_sparse,
+    matrix_modn_dense,
+    matrix_modn_sparse,
+    matrix_pid,
+    matrix_rational_dense,
+    matrix_rational_sparse,
+
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 

@@ -2987,7 +2987,10 @@ class Matrix_sparse_rational(Matrix_rational):
 
     def __cmp__(self, right):
         if not isinstance(right, Matrix_sparse_rational):
-            return Matrix.__cmp__(self, right)
+            try:
+                return Matrix.__cmp__(self, right)
+            except TypeError:   # temporary hack
+                return -1
         return self.__matrix.__cmp__(right.__matrix)
 
     def __getitem__(self, ij):

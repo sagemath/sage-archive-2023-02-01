@@ -93,7 +93,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             pow = int(p**r)
             if not self._hecke_matrices.has_key(pow):
                 self._hecke_matrices[pow] = self._compute_hecke_matrix(pow)
-            if prod == None:
+            if prod is None:
                 prod = self._hecke_matrices[pow]
             else:
                 prod *= self._hecke_matrices[pow]

@@ -647,9 +647,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             return [self.sign()]
         M = self.star_involution().matrix()
         R = self.base_ring()
-        if M == 1:
+        if M == R(1):
             self.__star_eigenvalues = [R(1)]
-        elif M == -1:
+        elif M == R(-1):
             self.__star_eigenvalues = [R(-1)]
         else:
             self.__star_eigenvalues = [R(1), R(-1)]

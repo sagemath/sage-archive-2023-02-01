@@ -261,6 +261,7 @@ cdef class Generators(sage_object.SageObject):
         return self.variable_name()
 
     def __getstate__(self):
+        d = []
         try:
             d = list(self.__dict__.copy().iteritems()) # so we can add elements
         except AttributeError:

@@ -60,21 +60,27 @@ class Profiler:
         -- David Harvey (August 2006)
     """
 
-    def __init__(self):
+    def __init__(self, systems=[]):
+        """
+        INPUT:
+            systems -- a list of interfaces to other system which implements a cputime
+                       method. The cputimes of all provided systems will be added
+                       to the cputime of SAGE itself.
+        """
+        systems = [e.cputime for e in systems]
+        self._cputime_functions = [cputime] + list(systems)
         self.clear()
-
 
     def clear(self):
         # _checkpoints is list of pairs (details, time), where time is a float
         # and details is a triple (line_number, context, message)
         self._checkpoints = []
         self._active_details = None   # details from the last __call__() call
-        self._last_cputime = None
-
+        self._last_cputime = [None]*len(self._cputime_functions)
 
     def __call__(self, message=None):
         """ Adds a checkpoint. """
-        entry_time = cputime()
+        entry_times = [fn() for fn in self._cputime_functions ]
 
         frame = inspect.currentframe().f_back
         try:
@@ -89,11 +95,12 @@ class Profiler:
             del frame
 
         if self._active_details is not None:
-            self._checkpoints.append((self._active_details, entry_time - self._last_cputime))
+            _time = sum([entry_times[i]-self._last_cputime[i] for i in range(len(entry_times))])
+            self._checkpoints.append((self._active_details, _time))
 
         self._active_details = (line_number, context, message)
 
-        self._last_cputime = cputime()
+        self._last_cputime = [fn() for fn in self._cputime_functions ]
 
 
     def __repr__(self):

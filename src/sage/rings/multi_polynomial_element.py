@@ -11,7 +11,8 @@ AUTHORS:
     -- William Stein (2006-04-19): added e.g., \code{f[1,3]} to get coeff of $xy^3$;
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
 
-    -- Martin Albrecht: improved singular coercions (restructed class hierarchy)
+    -- Martin Albrecht: improved singular coercions (restructed class hierarchy) and added
+                        ETuples
 """
 
 #*****************************************************************************
@@ -456,7 +457,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
            sage: R.<a,b,c> = PolynomialRing(QQ, 3)
            sage: f = a^3 + b + 2*b^2
            sage: f.exponents()
-           [(0, 2, 0), (3, 0, 0), (0, 1, 0)]
+           [(3, 0, 0), (0, 1, 0), (0, 2, 0)]
         """
         return self.element().exponents()
 
@@ -482,7 +483,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         if len(k) != 1:
             return False
         k = k[0]
-        if k != tuple([0]*self.parent().ngens()):
+        if k != polydict.ETuple([0]*self.parent().ngens()):
             return False
         return bool(d[k].is_unit())
 
@@ -492,7 +493,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         if len(k) != 1:
             raise ArithmeticError, "is not a unit"
         k = k[0]
-        if k != tuple([0]*self.parent().ngens()):
+        if k != polydict.ETuple([0]*self.parent().ngens()):
             raise ArithmeticError, "is not a unit"
         return ~d[k]
 
@@ -602,14 +603,14 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
-            [y, x^2, 1, x^2*y^2]
+            [y, x^2*y^2, 1, x^2]
         """
         try:
             return self.__monomials
         except AttributeError:
             ring = self.parent()
             one = self.parent().base_ring()(1)
-            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False ) ) \
+            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
                                 for m in self._MPolynomial__element._PolyDict__repn.keys() ]
             return self.__monomials
 
@@ -626,10 +627,10 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             sage: f.constant_coefficient()
             0
         """
-        v = (0,)*int(self.parent().ngens())
+        #v = (0,)*int(self.parent().ngens())
         d = self.element().dict()
         try:
-            return d[v]
+            return d[polydict.ETuple({},self.parent().ngens())]
         except KeyError:
             return self.parent().base_ring()(0)
 
@@ -658,8 +659,8 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
 
         found = -1
         for mon in mons:
-            for i in range(ngens):
-                if mon[i]!=0 and found != i:
+            for i in mon.nonzero_positions():
+                if found != i:
                     if found != -1:
                         return False
                     else:
@@ -711,7 +712,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         else:
             var_idx = 0; #constant
             if( len(monomial_coefficients.keys())==0 ):
-                return 0
+                return R(0)
 
         #construct list
         lookup = [int(0),]*len( monomial_coefficients.keys()[0] )
@@ -719,7 +720,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         for degree in range( 0 , max([ m[var_idx] for m in monomial_coefficients.keys() ])+1 ):
             lookup[var_idx]=int(degree);
             try:
-                coefficients.append( monomial_coefficients[ tuple(lookup) ] ) #if we find something, add the coefficient
+                coefficients.append( monomial_coefficients[ polydict.ETuple(lookup) ] ) #if we find something, add the coefficient
             except KeyError:
                 coefficients.append( 0 ) #else add zero
 
@@ -727,18 +728,13 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
         return R(coefficients)
 
     def _variable_indices_(self):
-        m_coefficients = self._MPolynomial__element.dict()
-        variable_dict = dict()
 
-        one = self.parent().base_ring()(1)
+        ETuples = self._MPolynomial__element._PolyDict__repn.keys()
 
-        #get variables
-        for exponents in m_coefficients.keys():
-            for idx in range( 0 , len(exponents) ):
-                if( exponents[idx] != 0 ):
-                    variable_dict[idx] = one
-
-        return variable_dict.keys()
+        idx = set()
+        for e in ETuples:
+            idx = idx.union(e.nonzero_positions())
+        return sorted(idx)
 
     def variables(self):
         """
@@ -853,7 +849,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             R = self.parent()
             f = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False))
+            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -879,7 +875,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             R = self.parent()
             f = self._MPolynomial__element._PolyDict__repn
             res = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False))
+            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):
@@ -940,7 +936,7 @@ class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
             2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
             sage: F = f.factor()
             sage: F
-            x * (2*y^2 + x^2) * (1 + x + x^2)
+            x * (1 + x + x^2) * (2*y^2 + x^2)
 
         Next we factor the same polynomial, but over the finite field
         of order $3$.

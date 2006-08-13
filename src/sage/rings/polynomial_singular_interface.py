@@ -104,14 +104,14 @@ class PolynomialRing_singular_repr:
             //   1 parameter    : I
             //   minpoly        : (I^2+1)
             //   number of vars : 2
-            //        block   1 : ordering lp
+            //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
             sage: R.<x,y> = PolynomialRing(RealField(100),2)
             sage: R._singular_()
             //   characteristic : 0 (real:29 digits, additional 0 digits)
             //   number of vars : 2
-            //        block   1 : ordering lp
+            //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
 

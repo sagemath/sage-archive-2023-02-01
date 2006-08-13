@@ -72,6 +72,8 @@ believed to be due to the clumsy way we deal with memory allocation
 which can be addresses. If we shuffle around alot of data between SAGE
 and Singular it's performance decreases alot as much IPC overhead is
 involved, while Factory beats the native implementation.}
+
+TODO: Refactor to avoid memory allocations.
 """
 
 #*****************************************************************************
@@ -113,13 +115,14 @@ include 'interrupt.pxi'
 include 'misc.pxi'
 
 cdef class Variable:
+
     """
-    The class Variable defines a programming
-    interface to the level system of Factory.  Each object of class
-    Variable refers to a level and thus to a variable (determined by
-    the level) of the polynomial ring. Objects of class Variable must
-    not only refer to variables of the polynomial ring, but also to so
-    called algebraic and transcendental variables.
+    The class Variable defines a programming interface to the level
+    system of Factory.  Each object of class Variable refers to a
+    level and thus to a variable (determined by the level) of the
+    polynomial ring. Objects of class Variable must not only refer to
+    variables of the polynomial ring, but also to so called algebraic
+    and transcendental variables.
 
     Arithmetic with Variables can be pretty weird, consider this:
 
@@ -144,19 +147,19 @@ cdef class Variable:
         INPUT:
 
             name -- The level of the variable is specified to be the
-            level of the variable which has name name. That means that
-            the generated object can not only be a polynomial variable
-            but also an algebraic or transcendental variable. In the
-            case that there is no variable with name name the
-            generated variable refers to the anonymous polynomial
-            variable which has the lowest level. After the
-            construction the name of the variable is set to name.
+                    level of the variable which has name name. That means that
+                    the generated object can not only be a polynomial variable
+                    but also an algebraic or transcendental variable. In the
+                    case that there is no variable with name name the
+                    generated variable refers to the anonymous polynomial
+                    variable which has the lowest level. After the
+                    construction the name of the variable is set to name.
 
             If name is an integer it is interpreted as a level.
 
             level -- The constructor generates an object of class
-            Variable with level set to level.  level has to be a level
-            of a polynomial variable or of a transcendental variable.
+                     Variable with level set to level.  level has to be a level
+                     of a polynomial variable or of a transcendental variable.
 
         The default constructor creates an object with level set to
         LEVEL_BASEDOMAIN. Such a variable evaluates into the unit
@@ -236,7 +239,8 @@ cdef class Variable:
     def next(self):
         """
         This method returns an object of class Variable which refers
-        to the variable which has the same level as self increased by one.
+        to the variable which has the same level as self increased by
+        one.
         """
         #embed{ void *Variable_next(void *obj)
             return new Variable(((Variable *)obj)->next());
@@ -370,9 +374,6 @@ cdef class CanonicalForm:
             52 + 59*x0*x1 + 98*x0^2
             sage: cf.CF(f)._sage_(R)==f
             True
-
-
-
         """
         #embed{ void *CF_init()
             return new CanonicalForm();
@@ -444,8 +445,8 @@ cdef class CanonicalForm:
                     t = t + kcache[c]
                 else:
                     t = t + CF(c,arg2)
-                for i from 1 <= i <= len(e):
-                    CF_mongen(t.thisptr,i,e[i-1])
+                for i in e.nonzero_positions():
+                    CF_mongen(t.thisptr,i+1,e[i])
                 poly = poly + t
             cPoly = poly
             self.thisptr = cPoly.thisptr
@@ -1235,50 +1236,52 @@ cdef class CanonicalForm:
     def __cflist__(self, f, e):
         level = f.level()-1
         if f.inCoeffDomain():
-            return []+[tuple([f,tuple(e)])]
+            return  [] + [tuple([f,e])]
         else:
             retval = []
             for c,e2 in f:
-                e[level]=e2
-                retval = retval + self.__cflist__(c,list(e))
+                new_e = e.copy()
+                if e2!=0:
+                   new_e[level]=e2
+                retval = retval + self.__cflist__(c,new_e)
             return retval
 
-    def _sage_(self, r, kcache=None):
+    def _sage_(self, R, kcache=None):
         """
-        Coerces self into r.
+        Coerces self into R.
 
         A very simple coercion strategy is used: The variable with
         level=1 is mapped to the first variable in the ring, the
         variable with level=2 to the second, etc. Elements of the
         coefficient domain are coerced via strings. So in that case
         variable names (e.g. of an algebraic variable) do matter in
-        contrast to the warning state earlier.
+        contrast to the warning stated earlier.
 
         INPUT:
-            r -- ring to coerce to
+            R      -- ring to coerce to
             kcache -- optional finite field cache
 
         EXAMPLES:
             sage: cf.setBaseDomain(GF(127))
-            sage: r=MPolynomialRing(GF(127),2,'x')
-            sage: f=cf.CF(r('3*x0+2'))
-            sage: f._sage_(r)
+            sage: R=MPolynomialRing(GF(127),2,'x')
+            sage: f=cf.CF(R('3*x0+2'))
+            sage: f._sage_(R)
             2 + 3*x0
             sage: k = GF(2**8)
             sage: v = cf.setBaseDomain(k)
-            sage: r=MPolynomialRing(k,2,'x')
-            sage: f=cf.CF(r('a^20*x0+a^10'),v);f
+            sage: R=MPolynomialRing(k,2,'x')
+            sage: f=cf.CF(R('a^20*x0+a^10'),v);f
             a_1^7*v_1+a_1^5*v_1+a_1^4*v_1+a_1^2*v_1+a_1^6+a_1^5+a_1^4+a_1^2
-            sage: f._sage_(r)
+            sage: f._sage_(R)
             a^6 + a^5 + a^4 + a^2 + (a^7 + a^5 + a^4 + a^2)*x0
         """
         from sage.rings.polynomial_ring import is_PolynomialRing
 
         self.mapinto(mapMe=True)
 
-        if is_PolynomialRing(r):
+        if is_PolynomialRing(R):
             l = [0]*(self.degree()+1)
-            base = r.base_ring()
+            base = R.base_ring()
             for c,e in self:
                 cs = str(c)
                 if kcache!=None:
@@ -1287,30 +1290,32 @@ cdef class CanonicalForm:
                     l[e]=kcache[cs]
                 else:
                     l[e]=base(cs)
-            return r(l)
+            return R(l)
         else:
             d={}
             level = self.level()-1
+            ngens = R.ngens()
 
-            from sage.rings.multi_polynomial_ring import polydict
+            from sage.rings.polydict import PolyDict,ETuple
 
-            kgen = str(r.base_ring().gen())
+            kgen = str(R.base_ring().gen())
 
             if self.is_zero():
                 # obey binary compatibility
-                return r(polydict.PolyDict({}))
+                return R(PolyDict({}))
 
             if self.inCoeffDomain():
                 # catch the constant case
                 cs = str(self)
                 if not self.inFF():
                     cs = cs.replace(str(self.mvar()),kgen)
-                d[tuple([int(0),]*r.ngens())]=r.base_ring()(cs)
-                return r(polydict.PolyDict(d))
+                d[ETuple({},ngens)]=R.base_ring()(cs)
+                return R(PolyDict(d,force_int_exponents=False,force_etuples=False))
 
             for c,e in self:
-                exp = [int(0),]*r.ngens()
-                exp[level]= e
+                exp = {}
+                if e!=0:
+                   exp[level]= e
                 l = self.__cflist__(c,exp)
                 for c2,e2 in l:
                     if c2.is_zero():
@@ -1320,11 +1325,11 @@ cdef class CanonicalForm:
                         cs = cs.replace(str(c2.mvar()),kgen)
                     if kcache!=None:
                         if not kcache.has_key(cs):
-                            kcache[cs]=r.base_ring()(cs)
-                        d[tuple(e2)]=kcache[cs]
+                            kcache[cs]=R.base_ring()(cs)
+                        d[ETuple(e2,ngens)]=kcache[cs]
                     else:
-                        d[tuple(e2)]=r.base_ring()(cs)
-            return r(polydict.PolyDict(d))
+                        d[ETuple(e2,ngens)]=R.base_ring()(cs)
+            return R(PolyDict(d,force_int_exponents=False,force_etuples=False))
 
     def lcm(CanonicalForm self,right):
         #embed{ void *CF_lcm(void *l, void *r)

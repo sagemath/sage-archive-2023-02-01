@@ -7,7 +7,7 @@ multivariate polynomial rings over a completely general base.  It does
 not do strong type checking or have parents, etc.  For more special
 bases, etc., one would implement something similar in Pyrex for speed.
 
-AUTHOR: William Stein and David Joyner
+AUTHOR: William Stein, David Joyner and Martin Albrecht (ETuple)
 """
 
 #*****************************************************************************
@@ -33,22 +33,29 @@ import sage.misc.latex as latex
 
 """
 SUMMARY:
-    The functions in this file use the "dictionary representation"
+    The functions in this file use the 'dictionary representation'
     of multivariate polynomials
 
         {(e1,...,er):c1,...} <-> c1*x1^e1*...*xr^er+...,
 
-    which we call a polydict.   This file implements arithmetic
-    functionality for polydicts.
+    which we call a polydict. The exponent tuple (e1,...,er) in this
+    representation is an instance of the class ETuple. This class
+    behaves like a normal Python tuple but also offers advanced access
+    methods for sparse monomials like positions of non-zero exponents
+    etc.
 
-AUTHORS:  William Stein
+    This file implements arithmetic functionality for polydicts.
+
+
+
+AUTHORS:  William Stein and Martin Albrecht (ETuples)
 """
 
 
 import sage.rings.ring_element as ring_element
 
 class PolyDict:
-    def __init__(self, pdict, zero=0, remove_zero=False, force_int_exponents=True):
+    def __init__(self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
         """
         INPUT:
             pdict -- list, which represents a multi-variable polynomial
@@ -59,13 +66,16 @@ class PolyDict:
             force_int_exponents -- bool (optional) arithmetic with int exponents is much
                       faster than some of the alternatives, so this is True by default.
 
+            force_etuples -- bool (optional) enforce that the exponent tuples are instances
+                             of ETuple class
+
         EXAMPLES:
             sage: from sage.rings.polydict import PolyDict
             sage: PolyDict({(2,3):2, (1,2):3, (2,1):4})
-            PolyDict with representation {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            PolyDict with representation  {(1, 2): 3, (2, 1): 4, (2, 3): 2}
 
             sage: PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1):4}, force_int_exponents=False)
-            PolyDict with representation {(2/3, 3, 5): 2, (1, 2, 1): 3, (2, 1): 4}
+            PolyDict with representation {(2, 1): 4, (1, 2, 1): 3, (2/3, 3, 5): 2}
 
             sage: PolyDict({(2,3):0, (1,2):3, (2,1):4}, remove_zero=True)
             PolyDict with representation {(1, 2): 3, (2, 1): 4}
@@ -75,20 +85,24 @@ class PolyDict:
                 v = {}
                 for w in pdict:
                     if w[0] != 0:
-                        v[tuple(w[1])] = w[0]
+                        v[ETuple(w[1])] = w[0]
                 remove_zero = False
                 pdict = v
             else:
                 raise TypeError, "pdict must be a list."
+
+        if isinstance(pdict,dict) and force_etuples==True:
+            pdict = dict([(ETuple(k),v) for k,v in pdict.iteritems()])
+
         if force_int_exponents:
             new_pdict = {}
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if c != zero:
-                        new_pdict[tuple([int(x) for x in k])] = c
+                        new_pdict[ETuple([int(x) for x in k])] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[tuple([int(x) for x in k])] = c
+                    new_pdict[ETuple([int(x) for x in k])] = c
             pdict = new_pdict
         else:
             if remove_zero:
@@ -135,7 +149,7 @@ class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.list()
-            [[3, [1, 2]], [2, [2, 3]], [4, [2, 1]]]
+            [[3, [1, 2]], [4, [2, 1]], [2, [2, 3]]]
         """
         return [[c,list(e)] for e, c in self.__repn.iteritems()]
 
@@ -148,7 +162,7 @@ class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.dict()
-            {(1, 2): 3, (2, 3): 2, (2, 1): 4}
+            {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
         return copy.copy(self.__repn)
 
@@ -160,7 +174,7 @@ class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.coefficients()
-            [3, 2, 4]
+            [3, 4, 2]
         """
         return self.__repn.values()
 
@@ -172,7 +186,7 @@ class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.exponents()
-            [(1, 2), (2, 3), (2, 1)]
+            [(1, 2), (2, 1), (2, 3)]
         """
         return self.__repn.keys()
 
@@ -200,7 +214,7 @@ class PolyDict:
             sage: f[(2,1)]
             4
         """
-        return self.__repn[e]
+        return self.__repn[ETuple(e)]
 
     def __repr__(self):
         return 'PolyDict with representation %s'%self.__repn
@@ -240,7 +254,7 @@ class PolyDict:
         sum is over terms T in f that are exactly divisible by mon.
         """
         K = mon.keys()[0]
-        nz = set([i for i in range(len(K)) if K[i] != 0])
+        nz = K.nonzero_positions() #set([i for i in range(len(K)) if K[i] != 0])
         ans = {}
         for S in self.__repn.keys():
             exactly_divides = True
@@ -252,8 +266,8 @@ class PolyDict:
                 t = list(S)
                 for m in nz:
                     t[m] = 0
-                ans[tuple(t)] = self.__repn[S]
-        return PolyDict(ans)
+                ans[ETuple(t)] = self.__repn[S]
+        return PolyDict(ans, force_etuples=False)
 
 
 
@@ -273,7 +287,7 @@ class PolyDict:
             i = deg - sum(e)
             f = e + (i,)
             H[f] = val
-        return PolyDict(H, zero=self.__zero)
+        return PolyDict(H, zero=self.__zero, force_etuples=False)
 
     def latex(self, vars, atomic_exponents=True, atomic_coefficients=True):
         """
@@ -307,11 +321,10 @@ class PolyDict:
                 sign_switch = False
                 # First determine the multinomial:
                 multi = ""
-                for j in range(n):
-                    if e[j] != 0:
-                        multi += vars[j]
-                        if e[j] != 1:
-                            multi += "^{%s}"%e[j]
+                for j in e.nonzero_positions(sort=True):
+                    multi += vars[j]
+                    if e[j] != 1:
+                        multi += "^{%s}"%e[j]
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = latex.latex(c)
@@ -371,16 +384,15 @@ class PolyDict:
                 sign_switch = False
                 # First determine the multinomial:
                 multi = ""
-                for j in range(n):
-                    if e[j] != 0:
-                        if len(multi) > 0:
-                            multi += "*"
-                        multi += vars[j]
-                        if e[j] != 1:
-                            if atomic_exponents:
-                                multi += "^%s"%e[j]
-                            else:
-                                multi += "^(%s)"%e[j]
+                for j in e.nonzero_positions(sort=True):
+                    if len(multi) > 0:
+                        multi += "*"
+                    multi += vars[j]
+                    if e[j] != 1:
+                        if atomic_exponents:
+                            multi += "^%s"%e[j]
+                        else:
+                            multi += "^(%s)"%e[j]
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = str(c)
@@ -418,13 +430,13 @@ class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f+g
-            PolyDict with representation {(1, 2): 3, (1, 5): -3, (1, 1): 3, (2, 1): 4}
+            PolyDict with representation  {(1, 1): 3, (1, 2): 3, (2, 1): 4, (1, 5): -3}
 
         Next we add two polynomials with fractional exponents in 3 variables:
             sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
             sage: f+g
-            PolyDict with representation {(2/3, 3, 5): 5, (1, 2, 1): 3, (2, 1, 1): 4}
+            PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 5, (2, 1, 1): 4}
         """
         if not isinstance(other, PolyDict):
             raise TypeError, "other must be a PolyDict."
@@ -436,7 +448,7 @@ class PolyDict:
                 D[e] += c
             else:
                 D[e] = c
-        F = PolyDict(D, zero=zero, remove_zero=True, force_int_exponents=False)
+        F = PolyDict(D, zero=zero, remove_zero=True, force_int_exponents=False,  force_etuples=False)
         return F
 
     def __mul__(self, right):
@@ -449,13 +461,13 @@ class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(1,5):-3, (2,3):-2, (1,1):3})
             sage: f*g
-            PolyDict with representation {(2, 7): -9, (3, 2): 12, (4, 6): -4, (4, 4): -8, (3, 8): -6, (2, 3): 9, (3, 6): -12, (3, 4): 6, (3, 5): -6}
+            PolyDict with representation {(3, 4): 6, (3, 5): -6, (4, 4): -8, (3, 2): 12, (4, 6): -4, (2, 3): 9, (2, 7): -9, (3, 8): -6, (3, 6): -12}
 
         Next we multiply two polynomials with fractional exponents in 3 variables:
             sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: g = PolyDict({(2/3,3,5):3}, force_int_exponents=False)
             sage: f*g
-            PolyDict with representation {(8/3, 4, 6): 12, (4/3, 6, 10): 6, (5/3, 5, 6): 9}
+            PolyDict with representation {(8/3, 4, 6): 12, (5/3, 5, 6): 9, (4/3, 6, 10): 6}
 
         Finally we print the result in a nice format.
             sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)
@@ -468,23 +480,25 @@ class PolyDict:
         if len(k) == 0:   # product is zero anyways
             return self
         n = len(self.__repn.keys()[0])
-        r = range(n)
+        #r = range(n)
         for e0, c0 in self.__repn.iteritems():
             for e1, c1 in right.__repn.iteritems():
-                e = tuple([e0[i] + e1[i] for i in r])
+                #r = e1.nonzero_positions().union(e2.nonzero_positions())
+                #e = etuple([(i,e0[i] + e1[i]) for i in r], n )
+                e = e0.eadd(e1)
                 c = c0*c1
                 if e in newpoly:
                     newpoly[e] += c
                 else:
                     newpoly[e] = c
-        F = PolyDict(newpoly, self.__zero, force_int_exponents=False, remove_zero=True)
+        F = PolyDict(newpoly, self.__zero, force_int_exponents=False, remove_zero=True, force_etuples=False)
         return F
 
     def scalar_mult(self, s):
         v = {}
         for e, c in self.__repn.iteritems():
             v[e] = c*s
-        return PolyDict(v, self.__zero, force_int_exponents=False)
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __sub__(self, other):
         """
@@ -495,9 +509,9 @@ class PolyDict:
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: g = PolyDict({(2,3):2, (1,1):-10})
             sage: f - g
-            PolyDict with representation {(1, 2): 3, (1, 1): 10, (2, 1): 4}
+            PolyDict with representation {(1, 1): 10, (1, 2): 3, (2, 1): 4}
             sage: g - f
-            PolyDict with representation {(1, 2): -3, (1, 1): -10, (2, 1): -4}
+            PolyDict with representation {(1, 1): -10, (1, 2): -3, (2, 1): -4}
         """
 
         # TOOD: should refactor add, make abstract operator, so can do both +/-; or copy code.
@@ -510,8 +524,8 @@ class PolyDict:
         if len(self.__repn.keys()) == 0:
             v = {(0):one}
         else:
-            v = {tuple([0]*len(self.__repn.keys()[0])):one}
-        return PolyDict(v, self.__zero, force_int_exponents=False)
+            v = {ETuple({},len(self.__repn.keys()[0])):one}
+        return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
     def __pow__(self, n):
         """
@@ -521,7 +535,7 @@ class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f**2
-            PolyDict with representation {(4, 6): 4, (4, 4): 16, (4, 2): 16, (3, 5): 12, (2, 4): 9, (3, 3): 24}
+            PolyDict with representation {(3, 3): 24, (3, 5): 12, (4, 4): 16, (4, 2): 16, (4, 6): 4, (2, 4): 9}
         """
         n = int(n)
         if n < 0:
@@ -530,7 +544,7 @@ class PolyDict:
             return self.__one()
         return arith.generic_power(self, n, self.__one())
 
-    def lcmt(self,greater_tuple):
+    def lcmt(self,greater_etuple):
         """
         Provides functionality of lc, lm, and lt by calling the tuple
         compare function on the provided term order T.
@@ -539,8 +553,316 @@ class PolyDict:
             T -- a term order
         """
         try:
-            return tuple(reduce(greater_tuple,self.__repn.keys()))
+            return ETuple(reduce(greater_etuple,self.__repn.keys()))
         except KeyError:
             raise ArithmeticError, "%s not supported",T
 
+
+class ETuple:
+    """
+    Representation of the exponents of a polydict monomial. If
+    (0,0,3,0,5) is the exponent tuple of x_2^3*x_4^5 then this class
+    only stores {2:3,4:5} instead of the full tuple. This sparse
+    information may be optained by provided methods.
+    """
+    def __init__(self, data, length=None):
+        """
+        ETuple() -> an empty ETuple
+        ETuple(sequence) -> ETuple initialized from sequence's items
+
+        If the argument is an ETuple, the return value is the same object.
+        """
+        if isinstance(data,ETuple):
+            self._data = data._data
+            self._length = data._length
+        elif isinstance(data,dict) and isinstance(length,int):
+            self._data = data
+            self._length = length
+        elif isinstance(data,(tuple,list)):
+            tpl = zip(range(len(data)),data)
+            self._data = dict( [ (i,v) for (i,v) in tpl if v!=0 ] )
+            self._length = len(data)
+        else:
+            raise TypeError
+
+    # methods to simulate tuple
+
+    def __add__(self,other):
+        """
+        x.__add__(n) <==> x+n
+
+        concatenates two ETuples
+        """
+        if not isinstance(other,ETuple):
+            other = ETuple(other)
+        data = self._data.copy()
+
+        for i,v in other._data.iteritems():
+            data[i+self._length]=v
+
+        return ETuple(data,self._length+other._length)
+
+    def __rmul__(self,factor):
+        """
+        x.__rmul__(n) <==> n*x
+        """
+        if factor <= 0:
+            return ETuple({},0)
+        d = {}
+        for k,v in self._data.iteritems():
+            for i in range(0,factor):
+                d[(i*self._length)+k]=v
+        return ETuple(d,int(self._length*factor))
+
+    def __mul__(self,factor):
+        """
+        x.__mul__(n) <==> x*n
+        """
+        if factor <= 0:
+            return ETuple({},0)
+        d = {}
+        for k,v in self._data.iteritems():
+            for i in range(0,factor):
+                d[(i*self._length)+k]=v
+        return ETuple(d,int(self._length*factor))
+
+    def __getitem__(self,i):
+        """
+        x.__getitem__(i) <==> x[i]
+        """
+        return self._data.get(i,0)
+
+    def __getslice__(self,i=None,j=None):
+        """
+        x.__getslice(i,j) <==> x[i:j]
+        """
+        if i==None:
+            i=0
+        elif i<0:
+            i = i % self._length
+        elif i>self._length:
+            i = self._length
+
+        if j==None:
+            j = self._length
+        elif j<0:
+            j = j % self._length
+        elif j>self._length:
+            j = self._length
+
+        d = {}
+        for k,v in self._data.iteritems():
+            if i<=k and k<j:
+                d[k-i]=v
+        return ETuple(d,j-i)
+
+    def __hash__(self):
+        """
+        x.__hash__() <==> hash(x)
+        """
+        return hash((tuple(self._data.iteritems()),self._length))
+
+    def __len__(self):
+        """
+        x.__len__() <==> len(x)
+        """
+        return self._length
+
+    def __contains__(self, elem):
+        """
+        x.__contains__(n) <==> n in x
+        """
+        if elem!=0:
+            return elem in self._data.values()
+        else:
+            return len(self._data)!=self._length
+
+    def __lt__(self,other):
+        """
+        x.__lt__(n) <==> x < n
+        """
+        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+            sk = self._data.get(k,0)
+            ok = other._data.get(k,0)
+            if sk > ok:
+                return False
+            elif sk < ok:
+                return True
+
+        if self._data==other._data:
+            return False
+        else:
+            return True
+
+    def __le__(self,other):
+        """
+        x.__le__(n) <==> x <= n
+        """
+
+        if self._data==other._data:
+            return True
+
+        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+            sk = self._data.get(k,0)
+            ok = other._data.get(k,0)
+            if sk > ok:
+                return False
+            elif sk < ok:
+                return True
+
+        return True # should never get here
+
+    def __eq__(self,other):
+        """
+        x.__eq__(n) <==> x == n
+        """
+        return self._data == other._data and self._length == other._length
+
+    def __ne__(self, other):
+        """
+        x.__ne__(n) <==> x != n
+        """
+        return self._data != other._data
+
+    def __ge__(self,other):
+        """
+        x.__ge__(n) <==> x >= n
+        """
+        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+            sk = self._data.get(k,0)
+            ok = other._data.get(k,0)
+            if sk<ok:
+                return False
+            elif sk>ok:
+                return True
+        return True
+
+    def __gt__(self,other):
+        """
+        x.__gt__(n) <==> x > n
+
+        """
+        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+            sk = self._data.get(k,0)
+            ok = other._data.get(k,0)
+            if sk<ok:
+                return False
+            elif sk>ok:
+                return True
+
+        if self._data==other._data:
+            return False
+        else:
+            return True
+
+    def __iter__(self):
+        """
+        x.__iter__() <==> iter(x)
+        """
+        for i in range(self._length):
+            yield self._data.get(i,0)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        res = [0,]*self._length
+        for i,v in self._data.iteritems():
+            res[i]=v
+        return str(tuple(res))
+
+    # additional methods
+
+    def eadd(self,other):
+        """
+        Vector addition of self with other.
+        """
+        if self._length!=other._length:
+            raise ArithmeticError
+
+        d = self._data.copy()
+        for k,v in other._data.iteritems():
+            if d.has_key(k):
+                d[k] += v
+            else:
+                d[k] = v
+        return ETuple(d,self._length)
+
+    def esub(self,other):
+        """
+        Vector subtraction of self with other.
+        """
+        if self._length!=other._length:
+            raise ArithmeticError
+
+        d = self._data.copy()
+        for k,v in other._data.iteritems():
+            if d.has_key(k):
+                if d[k] - v != 0:
+                    d[k] -= v
+                else:
+                    del d[k]
+            else:
+                d[k] = -v
+        return ETuple(d,self._length)
+
+    def emul(self,factor):
+        """
+        Scalar Vector multiplication of self.
+        """
+        d = {}
+        for k,v in self._data.iteritems():
+            d[k]=int(factor*v)
+        return ETuple(d,self._length)
+
+    def nonzero_positions(self,sort=False):
+        """
+        Returns the positions of non-zero exponents in the tuple.
+
+        INPUT:
+            sort -- if True a sorted list is returned. If False a an
+                    unsorted list is returned. (default: False)
+        """
+        if sort:
+            return sorted(self._data.iterkeys())
+        else:
+            return self._data.keys()
+
+    def common_nonzero_positions(self, other,sort=False):
+        res = set(self._data.iterkeys()).union(other._data.iterkeys())
+        if sort:
+            return sorted(res)
+        else:
+            return res
+
+    def nonzero_values(self, sort=True):
+        """
+        Returns the non-zero values of the tuple.
+
+        INPUT:
+            sort -- if True the values are sorted by their indices. Otherwise a
+                    the values are returned unsorted. (default: True)
+        """
+        if sort:
+            return [ self._data[e] for e in self.nonzero_positions(self,True) ]
+        else:
+            return self._data.values()
+
+    def reversed(self):
+        """
+        Returns the reversed ETuple of self.
+        """
+        data = {}
+        length = self._length-1
+        for k,v in self._data.iteritems():
+            data[length-k]=v
+        return ETuple(data,length+1)
+
+    def sparse_iter(self):
+        """
+        Iterator over the elements of self where the elements are
+        returned as $(i,e)$ where $i$ is the position of $e$ in the
+        tuple.
+        """
+        return self._data.iteritems()
 

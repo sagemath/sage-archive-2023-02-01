@@ -11,7 +11,7 @@ EXAMPLES:
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
     sage: B = I.groebner_basis()
     sage: len(B)
-    8
+    3
     sage: [f in I for f in I.gens()]
     [True, True]
 
@@ -33,7 +33,7 @@ benchmark and test ideal.
     sage: I = ideal(x + y + z + t + u + v, x*y + y*z + z*t + t*u + u*v + v*x, x*y*z + y*z*t + z*t*u + t*u*v + u*v*x + v*x*y, x*y*z*t + y*z*t*u + z*t*u*v + t*u*v*x + u*v*x*y + v*x*y*z, x*y*z*t*u + y*z*t*u*v + z*t*u*v*x + t*u*v*x*y + u*v*x*y*z + v*x*y*z*t, x*y*z*t*u*v - 1)
     sage: B = I.groebner_basis()
     sage: len(B)
-    17
+    45
 """
 
 #*****************************************************************************
@@ -75,12 +75,12 @@ class MPolynomialIdeal(Ideal_generic):
         Create an ideal in a multivariate polynomial ring.
 
         EXAMPLES:
-            sage: R = PolynomialRing(IntegerRing(), 2, ['x','y']); x,y = R.gens()
+            sage: R = PolynomialRing(IntegerRing(), 2, ['x','y'], order='lex'); x,y = R.gens()
             sage: R.ideal([x, y])
             Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
             sage: R = PolynomialRing(GF(3), 2); x = R.gens()
             sage: R.ideal([x[0]**2, x[1]**3])
-            Ideal (x1^3, x0^2) of Polynomial Ring in x0, x1 over Finite Field of size 3
+            Ideal (x0^2, x1^3) of Polynomial Ring in x0, x1 over Finite Field of size 3
         """
         Ideal_generic.__init__(self, ring, gens, coerce=coerce)
 
@@ -224,7 +224,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         ALGORITHM: Uses Singular.
 
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz', order='lex').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: pd = I.complete_primary_decomposition(); pd
@@ -255,7 +255,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
     def primary_decomposition(self, algorithm='sy'):
         """
         EXAMPLES:
-            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz').objgens()
+            sage: R, (x,y,z) = PolynomialRing(QQ, 3, 'xyz', order='lex').objgens()
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.primary_decomposition()   # this fails on some 64-bit machines sometimes during automated testing; I don't know why!
@@ -271,7 +271,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.associated_primes()
-            [Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 - y, 2 + y*z, 2*z + y^2) of Polynomial Ring in x, y, z over Rational Field]
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
@@ -337,7 +337,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         Return the intersection of the two ideals.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
+            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy', order='lex').objgens()
             sage: I = x*R
             sage: J = y*R
             sage: I.intersection(J)
@@ -373,7 +373,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (-1*z^2 + y, 2 + z^3) of Polynomial Ring in x, y, z over Rational Field, Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -396,13 +396,13 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
 
         That the radical is correct is clear from the Groebner basis.
             sage: I.groebner_basis()
-            [y^3, x^2]
+            [x^2, y^3]
 
         This is the example from the singular manual:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.radical()
-            Ideal (2 + 2*z^2 + z^3 + z^5, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (z^2 - y, 2 + 2*y + y*z + y^2*z) of Polynomial Ring in x, y, z over Rational Field
 
         \note{(From Singular manual) A combination of the algorithms
         of Krick/Logar and Kemper is used.  Works also in positive
@@ -412,7 +412,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y - z^2)*R
             sage: I.radical()
-            Ideal (2 + 2*z^2 + z^3 + z^5, 36*z^2 + y) of Polynomial Ring in x, y, z over Finite Field of size 37
+            Ideal (z^2 + 36*y, 2 + 2*y + y*z + y^2*z) of Polynomial Ring in x, y, z over Finite Field of size 37
         """
         S = self.ring()
         I = self._singular_()

@@ -610,16 +610,15 @@ class TermOrder(SageObject):
         Compares two exponent tuples with respect to the reversed
         lexicographical term order.
         """
-        rev = lambda x: tuple(reversed(x))
-        return (-1)*self.compare_tuples_lp(rev(f),rev(g))
+        return (-1)*self.compare_tuples_lp(f.reversed(),g.reversed())
 
     def compare_tuples_Dp(self,f,g):
         """
         Compares two exponent tuples with respect to the
         degree lexicographical term order.
         """
-        sf = sum(f)
-        sg = sum(g)
+        sf = sum(f.nonzero_values(sort=False))
+        sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
             return 1
         elif sf<sg:
@@ -632,16 +631,14 @@ class TermOrder(SageObject):
         Compares two exponent tuples with respect to the degree
         reversed lexicographical term order.
         """
-        rev = lambda x: tuple(reversed(x))
-
-        sf = sum(f)
-        sg = sum(g)
+        sf = sum(f.nonzero_values(sort=False))
+        sg = sum(g.nonzero_values(sort=False))
         if sf > sg:
             return 1
         elif sf<sg:
             return -1
         elif sf == sg:
-            return (-1)*self.compare_tuples_lp(rev(f),rev(g))
+            return (-1)*self.compare_tuples_lp(f.reversed(),g.reversed())
 
     def greater_tuple_lp(self,f,g):
         """
@@ -655,23 +652,23 @@ class TermOrder(SageObject):
         Returns the greater exponent tuple with respect to the
         reversed lexicographical term order.
         """
-        rev = lambda x: tuple(reversed(x))
-        return rev(f) < rev(g)   and f or g
+        return f.reversed() < g.reversed()   and f or g
 
     def greater_tuple_Dp(self,f,g):
         """
         Returns the greater exponent tuple with respect to the total
         degree lexicographical term order.
         """
-        return (sum(f)>sum(g) or (sum(f)==sum(g) and f  > g )) and f or g
+        return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
+                or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f  > g )) and f or g
 
     def greater_tuple_dp(self,f,g):
         """
         Returns the greater exponent tuple with respect to the total
         degree reversed lexicographical term order.
         """
-        rev = lambda x: tuple(reversed(x))
-        return (sum(f)>sum(g) or (sum(f)==sum(g) and rev(f) < rev(g))) and f or g
+        return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
+                or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f.reversed() < g.reversed())) and f or g
 
     def _repr_(self):
         if self.__name == 'lex':

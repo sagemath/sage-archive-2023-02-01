@@ -259,6 +259,7 @@ from sage.structure.element import RingElement
 
 import sage.misc.misc as misc
 
+
 class Singular(Expect):
     r"""
     Interface to the Singular interpreter.
@@ -805,20 +806,23 @@ class SingularElement(ExpectElement):
             1 - 1/9*XxZaa5 + XxZaa5*y^3
 
         AUTHOR: Martin Albrecht (2006-05-18)
+
+        \note{For very simple polynomials
+        eval(SingularElement.sage_polystring()) is faster than
+        SingularElement.sage_poly(R), maybe we should detect the
+        crossover point (in dependence of the string length) and
+        choose an appropriate conversion strategy}
         """
-        from sage.rings.polynomial_ring import is_PolynomialRing
+        # TODO: Refactor imports to move this to the top
         from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict
-        from sage.rings.polydict import PolyDict
-
-
-        r = R          # all code below uses lower case r, but
-                       # I (=W. Stein) want the input variable
-                       # to be called "R" for consistency.
+        from sage.rings.multi_polynomial_element import MPolynomial_polydict
+        from sage.rings.polynomial_ring import is_PolynomialRing
+        from sage.rings.polydict import PolyDict,ETuple
 
         sage_repr = {}
-        k = r.base_ring()
+        k = R.base_ring()
 
-        variable_str = "*".join(r.variable_names())
+        variable_str = "*".join(R.variable_names())
 
         # This returns a string which looks like a list where the first
         # half of the list is filled with monomials occuring in the
@@ -837,17 +841,19 @@ class SingularElement(ExpectElement):
                                    self.name(),variable_str)).split(",")
 
         if singular_poly_list == ['1','0'] :
-            return r(0)
+            return R(0)
 
         coeff_start = int(len(singular_poly_list)/2)
 
-        if isinstance(r,MPolynomialRing_polydict) and r._can_convert_to_singular():
+        if isinstance(R,MPolynomialRing_polydict) and R._can_convert_to_singular():
             # we need to lookup the index of a given variable represented
             # through a string
-            var_dict = dict(zip(r.variable_names(),range(r.ngens())))
+            var_dict = dict(zip(R.variable_names(),range(R.ngens())))
+
+            ngens = R.ngens()
 
             for i in range(coeff_start):
-                exp = [int(0)]*r.ngens()
+                exp = dict()
                 monomial = singular_poly_list[i]
 
                 if monomial!="1":
@@ -861,16 +867,16 @@ class SingularElement(ExpectElement):
                         exp[var_dict[var]]=power
 
                 if kcache==None:
-                    sage_repr[tuple(exp)]=k(singular_poly_list[coeff_start+i])
+                    sage_repr[ETuple(exp,ngens)]=k(singular_poly_list[coeff_start+i])
                 else:
                     elem = singular_poly_list[coeff_start+i]
                     if not kcache.has_key(elem):
                         kcache[elem] = k( elem )
-                    sage_repr[ tuple(exp) ]= kcache[elem]
+                    sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            return r(PolyDict(sage_repr))
+            return MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
 
-        elif is_PolynomialRing(r) and r._can_convert_to_singular():
+        elif is_PolynomialRing(R) and R._can_convert_to_singular():
 
             sage_repr = [0]*int(self.deg()+1)
 
@@ -893,7 +899,7 @@ class SingularElement(ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ exp ]= kcache[elem]
 
-            return r(sage_repr)
+            return R(sage_repr)
 
         else:
             raise TypeError, "Cannot coerce %s into %s"%(self,r)

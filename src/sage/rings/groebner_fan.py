@@ -82,7 +82,7 @@ class GroebnerFan(SageObject):
                         during computations
 
         EXAMPLES:
-            sage: R.<x,y,z> = PolynomialRing(QQ,3)
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order='lex')
             sage: I = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y])
             sage: G = I.groebner_fan(); G
             Groebner fan of the ideal:
@@ -227,7 +227,7 @@ class GroebnerFan(SageObject):
     def reduced_groebner_bases(self):
         """
         EXAMPLES:
-            sage: R.<x,y,z> = PolynomialRing(QQ,3); G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
+            sage: R.<x,y,z> = PolynomialRing(QQ,3,order='lex'); G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
             sage: X = G.reduced_groebner_bases()
             sage: len(X)
             33
@@ -482,7 +482,7 @@ class GroebnerFan(SageObject):
                      to 1 + the dimension of the homogeneity space is
                      not satisfied).
         EXAMPLES:
-            sage: R.<x,y,z> = PolynomialRing(QQ, 3); G = R.ideal([y^3-3*x^2, z^3-x-y-2*y^3+2*x^2]).groebner_fan()
+            sage: R.<x,y,z> = PolynomialRing(QQ, 3, order='lex'); G = R.ideal([y^3-3*x^2, z^3-x-y-2*y^3+2*x^2]).groebner_fan()
             sage: G
             Groebner fan of the ideal:
             Ideal (y^3 - 3*x^2, z^3 - y - 2*y^3 - x + 2*x^2) of Polynomial Ring in x, y, z over Rational Field

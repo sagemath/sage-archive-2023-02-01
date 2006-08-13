@@ -1112,7 +1112,7 @@ class PSL(PermutationGroup_generic):
         divisors can be determined explicitly.
 
         The output is a list of integer multiplicities: [m1,...,mn],
-        where n = # conj classes of G=PSL(2,p) and mi is the
+        where n is the number of conj classes of G=PSL(2,p) and mi is the
         multiplicity of pi_i in the ramification module of a
         Hurwitz curve with automorphism group G.
         Here IrrRepns(G) = [pi_1,...,pi_n] (in the order listed in the
@@ -1157,7 +1157,7 @@ class PSL(PermutationGroup_generic):
         divisors can be determined explicitly.
 
         The output is a list of integer multiplicities: [m1,...,mn],
-        where n = # conj classes of G=PSL(2,p) and mi is the
+        where n is the number of conj classes of G=PSL(2,p) and mi is the
         multiplicity of pi_i in the ramification module of a
         modular curve with automorphism group G.
         Here IrrRepns(G) = [pi_1,...,pi_n] (in the order listed in the

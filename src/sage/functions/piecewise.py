@@ -75,6 +75,7 @@ from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_field import RealField
 from sage.misc.sage_eval import sage_eval
+from sage.misc.latex import LatexExpr
 from sage.rings.all import QQ, RR, Integer, Rational
 
 class PiecewisePolynomial:
@@ -103,27 +104,27 @@ class PiecewisePolynomial:
         return 'Piecewise defined function with %s parts, %s'%(
             self.length(),self.list())
 
-    def latex(self):
-	"""
+    def _latex_(self):
+	r"""
 	EXAMPLES:
             sage: f1 = lambda x:1
             sage: f2 = lambda x:1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: f.latex()
-            '\\left\\{  \\begin{array}{ll} 1,& 0 < x < 1 \\\\  -x + 1,& 1 < x < 2 \\end{array} \\right. '
+
+            sage: latex(f)
+            \left\{  \begin{array}{ll} 1,& 0 < x < 1 \\  -x + 1,& 1 < x < 2 \end{array} \right.
+
             sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
             sage: f4 = 10*x-x^2
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
-            sage: f
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]]); f
             Piecewise defined function with 4 parts, [[(0, 1), 1], [(1, 2), -x + 1], [(2, 3), 2*x], [(3, 10), -x^2 + 10*x]]
-            sage: f.latex()
-            '\\left\\{  \\begin{array}{ll} 1,& 0 < x < 1 \\\\  -x + 1,& 1 < x < 2 \\\\  2*x,& 2 < x < 3 \\\\  -x^2 + 10*x,& 3 < x < 10 \\end{array} \\right. '
-            sage: print f.latex()
+
+            sage: latex(f)
             \left\{  \begin{array}{ll} 1,& 0 < x < 1 \\  -x + 1,& 1 < x < 2 \\  2*x,& 2 < x < 3 \\  -x^2 + 10*x,& 3 < x < 10 \end{array} \right.
 
-        Type view(f.layex()) so see this in a previewer (if one is installed).
+        Type view(f) so see $f$ nicely typeset.
 	"""
         x = PolynomialRing(QQ).gen()
         intvls = self.intervals()
@@ -145,7 +146,7 @@ class PiecewisePolynomial:
         ltex = ltex.replace("\\\right\\.","\right.")
         ltex = ltex.replace("\\left\\{","\left\{ ")
         ltex = ltex.replace("\\\\end{array}","\end{array}")
-        return ltex
+        return LatexExpr(ltex)
 
     def intervals(self):
         """

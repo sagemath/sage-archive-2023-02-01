@@ -53,7 +53,7 @@ We can put text in a graph:
     sage: x = text('x axis', (1.5,-0.2))
     sage: y = text('y axis', (0.4,0.9))
     sage: g = p+t+x+y
-    sage: g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
+    sage.: g.show(xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
@@ -70,7 +70,7 @@ Here is a pretty graph:
     ...                rgbcolor=hue(i/40+0.4), alpha=0.2)
     ...    g = g + p
     ...
-    sage: g.show(dpi=200, axes=False)
+    sage.: g.show(dpi=200, axes=False)
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
@@ -185,7 +185,7 @@ class Graphics(SageObject):
         sage: for x in srange(1,h+1):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
-        sage: G.save('sage.png',figsize=[5,5])
+        sage.: G.show(figsize=[5,5])
 
     """
 
@@ -559,12 +559,12 @@ class Graphics(SageObject):
 
         EXAMPLES:
             sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-            sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
+            sage.: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
             To correct the apect ratio of certain graphics, it is necessary
             to show with a 'figsize' of square dimensions.
 
-            sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+            sage.: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 	"""
         global do_verify
         do_verify = verify
@@ -1084,12 +1084,12 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
 
     EXAMPLES:
     sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage: c.save("sage.png", xmin=-1,xmax=3,ymin=-1,ymax=3)
+    sage.: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
     To correct the apect ratio of certain graphics, it is necessary
     to show with a 'figsize' of square dimensions.
 
-    sage: c.save("sage.png", figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+    sage.: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
 
     Here we make an more complicated plot with many circles of different colors
 
@@ -1101,7 +1101,7 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
     ...       rnext = (r+1)^2
     ...       ocur = (rnext-r)-ocur
     ...
-    sage: g.save("sage.png", xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
+    sage.: g.show(xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
     """
     def _reset(self):
         self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
@@ -1130,7 +1130,7 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
         sage: tl = disk((0.0,0.0),1,90,180,rgbcolor=(0,0,0))
         sage: br = disk((0.0,0.0),1,270,360,rgbcolor=(0,0,0))
         sage: P  = tl+tr+bl+br
-        sage: P.save("sage.png",figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
+        sage.: P.show(figsize=(4,4),xmin=-2,xmax=2,ymin=-2,ymax=2)
 
     """
     def _reset(self):

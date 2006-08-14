@@ -126,6 +126,10 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],
                                    libraries = ['gmp'])
 
+complex_number2 = Extension('sage.rings.complex_number2',
+			    ['sage/rings/complex_number2.pyx'],
+			    libraries = ['gmp'])
+
 ext_modules = [ \
     ec, \
 
@@ -136,6 +140,8 @@ ext_modules = [ \
     ntl, \
 
     cf, \
+
+    # complex_number2, \
 
     matrix_domain,
     matrix_dense,

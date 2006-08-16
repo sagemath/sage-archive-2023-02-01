@@ -384,7 +384,7 @@ class Maxima(Expect):
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = "maxima",
+                        command = "maxima --disable-readline",
                         maxread = 1,    # CRUCIAL to use less buffering for maxima (or get all kinds of hangs on OS X and 64-bit machines, etc!
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,

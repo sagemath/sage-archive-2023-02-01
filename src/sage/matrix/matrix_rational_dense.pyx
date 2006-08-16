@@ -32,6 +32,9 @@ include "../ext/interrupt.pxi"
 cimport matrix_field
 import matrix_field
 
+cimport matrix_dense
+import matrix_dense
+
 cimport sage.ext.rational
 import  sage.ext.rational
 
@@ -411,6 +414,13 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 mpq_set(m[i][j], self._matrix[i][j])
 
         return M
+
+    # TODO: this function should be removed when self.parent().matrix() returns this pyx class
+    def new_matrix(self, nrows=None, ncols=None, entries=0,
+                   coerce_entries=True, copy=True, sparse=None,
+                   clear = True, zero=True):
+      return Matrix_rational_dense(self.matrix_space(nrows, ncols))
+
 
     def number_nonzero(self):
         cdef int i, j, n
@@ -972,13 +982,13 @@ cdef class MatrixWindow:
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
-        return self._matrix.matrix_window(self._matrix, _row + row, _col + col, n_rows, n_cols)
+        return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
 
     def nrows(MatrixWindow self):
-        return _nrows
+        return self._nrows
 
     def ncols(MatrixWindow self):
-        return _ncols
+        return self._ncols
 
 
     def set_to(MatrixWindow self, MatrixWindow A):

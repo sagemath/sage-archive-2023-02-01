@@ -2184,8 +2184,260 @@ cdef class Matrix(ModuleElement):
 
         return U0.block2_sum(U6, U3, U4)
 
+    # strassen with windows
+    # todo: matrix windows only implemented for dense matrices, but no multiple inheritance for cdef class (?)
+
+    def strassen_multiply(self, other, cutoff):
+        if self.ncols() != other.nrows():
+            raise IndexError, "Number of columns of self must equal number of rows of other."
+
+        output = self.new_matrix(self.nrows(), other.ncols())
+
+        self_window = self.matrix_window()
+        other_window = other.matrix_window()
+        output_window = output.matrix_window()
+
+        strassen_window_multiply(output_window, self_window, other_window, cutoff)
+        return output
+
 
 ############################# end class ####################
+
+
+# TODO: need MatrixWindow hierarchy
+# def strassen_window_multiply(MatrixWindow C, MatrixWindow A, MatrixWindow B, int cutoff):
+def strassen_window_multiply(C, A, B, int cutoff):
+    """ Multiplies the submatrices specified by A and B, places result in C.
+    Assumes that A and B have compatible dimensions to be multiplied, and that C is
+    the correct size to receive the product, and that they are all defined over
+    the same ring.
+
+    Uses strassen multiplication at high levels and then uses MatrixWindow
+    methods at low levels.
+
+    todo: doc cutoff parameter as soon as I work out what it really means
+
+    EXAMPLES:
+        # The following matrix dimensions are chosen especially to exercise the
+        # eight possible parity combinations that ocould ccur while subdividing
+        # the matrix in the strassen recursion. The base case in both cases will
+        # be a (4x5) matrix times a (5x6) matrix.
+
+        sage: dim1 = 64; dim2 = 83; dim3 = 101
+        sage: R = MatrixSpace(QQ, dim1, dim2)
+        sage: S = MatrixSpace(QQ, dim2, dim3)
+        sage: T = MatrixSpace(QQ, dim1, dim3)
+
+        sage: A = R.random_element(range(-30, 30))
+        sage: B = S.random_element(range(-30, 30))
+        sage: C = T(0)
+        sage: D = T(0)
+
+        sage: A_window = A.window(0, 0, dim1, dim2)
+        sage: B_window = B.window(0, 0, dim2, dim3)
+        sage: C_window = C.window(0, 0, dim1, dim3)
+
+        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage: D.set_to_prod(A, B)                    # use naive method
+
+        sage: C == D
+         True
+
+        sage: dim1 = 79; dim2 = 83; dim3 = 101
+        sage: R = MatrixSpace(QQ, dim1, dim2)
+        sage: S = MatrixSpace(QQ, dim2, dim3)
+        sage: T = MatrixSpace(QQ, dim1, dim3)
+
+        sage: A = R.random_element(range(30))
+        sage: B = S.random_element(range(30))
+        sage: C = T(0)
+        sage: D = T(0)
+
+        sage: A_window = A.window(0, 0, dim1, dim2)
+        sage: B_window = B.window(0, 0, dim2, dim3)
+        sage: C_window = C.window(0, 0, dim1, dim3)
+
+        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage: D.set_to_prod(A, B)                    # use naive method
+
+        sage: C == D
+         True
+
+    AUTHOR: David Harvey
+
+    """
+
+    # todo -- I'm not sure how to interpret "cutoff". Should it be...
+    # (a) the minimum side length of the matrices (currently implemented below)
+    # (b) the maximum side length of the matrices
+    # (c) the total number of entries being multiplied
+    # (d) something else entirely?
+
+    cdef int A_nrows, A_ncols, B_ncols
+    A_nrows = A.nrows()
+    A_ncols = A.ncols()        # this should also be the number of rows of B
+    B_ncols = B.ncols()
+
+    if (A_nrows <= cutoff) or (A_ncols <= cutoff) or (B_ncols <= cutoff):
+        # note: this code is only reached if the TOP level is already beneath
+        # the cutoff. In a typical large multiplication, the base case is
+        # handled directly (see below).
+        C.set_to_prod(A, B)
+        return
+
+    # Construct windows for the four quadrants of each matrix.
+    # Note that if the side lengths are odd we're ignoring the
+    # final row/column for the moment.
+
+    cdef int A_sub_nrows, A_sub_ncols, B_sub_ncols
+    A_sub_nrows = A_nrows >> 1
+    A_sub_ncols = A_ncols >> 1     # this is also like B_sub_nrows
+    B_sub_ncols = B_ncols >> 1
+
+    A00 = A.matrix_window(0,           0,           A_sub_nrows, A_sub_ncols)
+    A01 = A.matrix_window(0,           A_sub_ncols, A_sub_nrows, A_sub_ncols)
+    A10 = A.matrix_window(A_sub_nrows, 0,           A_sub_nrows, A_sub_ncols)
+    A11 = A.matrix_window(A_sub_nrows, A_sub_ncols, A_sub_nrows, A_sub_ncols)
+    B00 = B.matrix_window(0,           0,           A_sub_ncols, B_sub_ncols)
+    B01 = B.matrix_window(0,           B_sub_ncols, A_sub_ncols, B_sub_ncols)
+    B10 = B.matrix_window(A_sub_ncols, 0,           A_sub_ncols, B_sub_ncols)
+    B11 = B.matrix_window(A_sub_ncols, B_sub_ncols, A_sub_ncols, B_sub_ncols)
+
+    # Allocate temp space.
+
+    # todo: can I cache the bound A.new_empty_window method?
+
+    S0 = A.new_empty_window(A_sub_nrows, A_sub_ncols, zero=False)
+    S1 = A.new_empty_window(A_sub_nrows, A_sub_ncols, zero=False)
+    S2 = A.new_empty_window(A_sub_nrows, A_sub_ncols, zero=False)
+    S3 = A.new_empty_window(A_sub_nrows, A_sub_ncols, zero=False)
+
+    T0 = A.new_empty_window(A_sub_ncols, B_sub_ncols, zero=False)
+    T1 = A.new_empty_window(A_sub_ncols, B_sub_ncols, zero=False)
+    T2 = A.new_empty_window(A_sub_ncols, B_sub_ncols, zero=False)
+    T3 = A.new_empty_window(A_sub_ncols, B_sub_ncols, zero=False)
+
+    Q0 = A.new_empty_window(A_sub_nrows, B_sub_ncols, zero=False)
+    Q1 = A.new_empty_window(A_sub_nrows, B_sub_ncols, zero=False)
+    Q2 = A.new_empty_window(A_sub_nrows, B_sub_ncols, zero=False)
+
+
+    # Preparatory matrix additions/subtractions.
+
+    # todo: we can probably save some memory in these
+    # operations by reusing some of the buffers, if we interleave
+    # these additions with the multiplications (below)
+
+    # (I believe we can save on one S buffer and one T buffer)
+
+    # S0 = A10 + A11,  T0 = B01 - B00
+    # S1 = S0 - A00,   T1 = B11 - T0
+    # S2 = A00 - A10,  T2 = B11 - B01
+    # S3 = A01 - S1,   T3 = B10 - T1
+
+    S0.set_to_sum(A10, A11)
+    S1.set_to_diff(S0, A00)
+    S2.set_to_diff(A00, A10)
+    S3.set_to_diff(A01, S1)
+
+    T0.set_to_diff(B01, B00)
+    T1.set_to_diff(B11, T0)
+    T2.set_to_diff(B11, B01)
+    T3.set_to_diff(B10, T1)
+
+
+    # The relations we need now are:
+
+    # P0 = A00*B00
+    # P1 = A01*B10
+    # P2 =  S0*T0
+    # P3 =  S1*T1
+    # P4 =  S2*T2
+    # P5 =  S3*B11
+    # P6 = A11*T3
+
+    # U0 = P0 + P1
+    # U1 = P0 + P3
+    # U2 = U1 + P4
+    # U3 = U2 + P6
+    # U4 = U2 + P2
+    # U5 = U1 + P2
+    # U6 = U5 + P5
+
+    # We place the final answer into the matrix:
+    # U0 U6
+    # U3 U4
+
+    U0 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
+    U6 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
+    U3 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
+    U4 = C.matrix_window(A_sub_nrows, B_sub_ncols, A_sub_nrows, B_sub_ncols)
+
+    if (A_sub_nrows <= cutoff) or (A_sub_ncols <= cutoff) or (B_sub_ncols <= cutoff):
+        # This is the base case, so we use MatrixWindow methods directly.
+
+        # This next chunk is arranged so that each output cell gets written
+        # to exactly once. This is important because the output blocks might
+        # be quite fragmented in memory, whereas our temporary buffers
+        # (Q0, Q1, Q2) will be quite localised, so we can afford to do a bit
+        # of arithmetic in them.
+
+        Q0.set_to_prod(A00, B00)         # now Q0 holds P0
+        Q1.set_to_prod(A01, B10)         # now Q1 holds P1
+        U0.set_to_sum(Q0, Q1)            # now U0 is correct
+        Q0.add_prod(S1, T1)              # now Q0 holds U1
+        Q1.set_to_prod(S2, T2)           # now Q1 holds P4
+        Q1.add(Q0)                       # now Q1 holds U2
+        Q2.set_to_prod(A11, T3)          # now Q2 holds P6
+        U3.set_to_sum(Q1, Q2)            # now U3 is correct
+        Q2.set_to_prod(S0, T0)           # now Q2 holds P2
+        U4.set_to_sum(Q2, Q1)            # now U4 is correct
+        Q0.add(Q2)                       # now Q0 holds U5
+        Q2.set_to_prod(S3, B11)          # now Q2 holds P5
+        U6.set_to_sum(Q0, Q2)            # now U6 is correct
+
+    else:
+        # Recurse into sub-products.
+
+        strassen_window_multiply(Q0, A00, B00, cutoff)   # now Q0 holds P0
+        strassen_window_multiply(Q1, A01, B10, cutoff)   # now Q1 holds P1
+        U0.set_to_sum(Q0, Q1)                            # now U0 is correct
+        strassen_window_multiply(Q1, S1, T1, cutoff)     # now Q1 holds P3
+        Q0.add(Q1)                                       # now Q0 holds U1
+        strassen_window_multiply(Q1, S2, T2, cutoff)     # now Q1 holds P4
+        Q1.add(Q0)                                       # now Q1 holds U2
+        strassen_window_multiply(Q2, A11, T3, cutoff)    # now Q2 holds P6
+        U3.set_to_sum(Q1, Q2)                            # now U3 is correct
+        strassen_window_multiply(Q2, S0, T0, cutoff)     # now Q2 holds P2
+        U4.set_to_sum(Q2, Q1)                            # now U4 is correct
+        Q0.add(Q2)                                       # now Q0 holds U5
+        strassen_window_multiply(Q2, S3, B11, cutoff)    # now Q2 holds P5
+        U6.set_to_sum(Q0, Q2)                            # now U6 is correct
+
+
+    # Now deal with the leftover row and/or column (if they exist).
+
+    if B_ncols & 1:
+        B_last_col = B.matrix_window(0, B_ncols-1, A_ncols, 1)
+        C_last_col = C.matrix_window(0, B_ncols-1, A_nrows, 1)
+        C_last_col.set_to_prod(A, B_last_col)
+
+    if A_nrows & 1:
+        A_last_row = A.matrix_window(A_nrows-1, 0, 1, A_ncols)
+        if B_ncols & 1:
+            B_bulk = B.matrix_window(0, 0, A_ncols, B_ncols-1)
+            C_last_row = C.matrix_window(A_nrows-1, 0, 1, B_ncols-1)
+        else:
+            B_bulk = B
+            C_last_row = C.matrix_window(A_nrows-1, 0, 1, B_ncols)
+        C_last_row.set_to_prod(A_last_row, B_bulk)
+
+    if A_ncols & 1:
+        A_last_col = A.matrix_window(0, A_ncols-1, A_sub_nrows << 1, 1)
+        B_last_row = B.matrix_window(A_ncols-1, 0, 1, B_sub_ncols << 1)
+        C_bulk = C.matrix_window(0, 0, A_sub_nrows << 1, B_sub_ncols << 1)
+        C_bulk.add_prod(A_last_col, B_last_row)
+
 
 
 def __reduce__Matrix_pyx(cls, attrs, parent, dict, determinant,

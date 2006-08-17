@@ -23,7 +23,7 @@ sigjmp_buf env;
    VERY VERY IMPORTANT:
        1. These *must* always come in pairs. E.g., if you have just
           a _sig_off without a corresponding _sig_on, then ctrl-c
-          later in the interpretter will sigfault!
+          later in the interpreter will sigfault!
 
        2. Do *not* put these in the __init__ method of a Pyrex extension
           class, or you'll get crashes.

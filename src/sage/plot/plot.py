@@ -1327,6 +1327,10 @@ class PlotFactory(GraphicPrimitiveFactory):
     We plot the sin function:
         sage: P = plot(sin, 0,10); P
         Graphics object consisting of 1 graphics primitive
+
+    Use show to see the plot:
+        sage.: P.show()     # alternative -- show(P)
+
         sage: len(P)     # number of graphics primitives
         1
         sage: len(P[0])  # how many points were computed

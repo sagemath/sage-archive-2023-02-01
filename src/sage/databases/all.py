@@ -73,6 +73,8 @@ from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
 from lincodes import linear_code_bound
 
+from odlyzko import zeta_zeros
+
 from db_modular_polynomials import \
      ClassicalModularPolynomialDatabase, \
      DedekindEtaModularPolynomialDatabase, \

@@ -296,7 +296,7 @@ cdef class gen:
         if typ(self.g) == t_SER:
             bound = valp(self.g) + lg(self.g) - 2
             if n >= bound:
-                raise IndexError, "index (%s) must be less than %s"%(n,bound)
+                raise IndexError, "index out of bounds"
             return self.polcoeff(n)
 
         if isinstance(n, tuple):
@@ -306,13 +306,13 @@ cdef class gen:
                 raise TypeError, "index must be an integer or a 2-tuple (i,j)"
             i, j = n[0], n[1]
             if i < 0 or i >= self.nrows():
-                raise IndexError, "row i(=%s) must be between 0 and %s"%(i,self.nrows())
+                raise IndexError, "row index out of bounds"
             if j < 0 or j >= self.ncols():
-                raise IndexError, "column j(=%s) must be between 0 and %s"%(j,self.ncols())
+                raise IndexError, "column index out of bounds"
             return P.new_ref(gmael(self.g,j+1,i+1), self)
 
         if n < 0 or n >= glength(self.g):
-            raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
+            raise IndexError, "index out of bounds"
         if typ(self.g) == t_LIST:
             return P.new_ref(gel(self.g,n+2), self)
         if typ(self.g) == t_STR:

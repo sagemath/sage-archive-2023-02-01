@@ -18,22 +18,19 @@ AUTHORS:
 import os
 
 from misc import SPYX_TMP, SAGE_ROOT
-from preparser import preparse_file
 
-include_dirs = ['%s/local/include'%SAGE_ROOT, '%s/local/include/python2.4'%SAGE_ROOT]
+include_dirs = ['%s/local/include'%SAGE_ROOT,  \
+                '%s/local/include/python2.4'%SAGE_ROOT, \
+                '%s/devel/sage/ext'%SAGE_ROOT]
+
 standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank']
 
 offset = 0
 
 def pyx_preparse(s):
-    t = """
-import sage.all
-sage = sage.all
-ZZ = sage.ZZ
-QQ = sage.QQ
-RR = sage.RR
-
+    t = """import sage.all; sage = sage.all
 include 'interrupt.pxi'
+include 'cdefs.pxi'
 """
     # TODO: the ZZ, QQ, etc. could be replaced by C-level constructors for efficiency?
     global offset
@@ -79,16 +76,16 @@ def pyrex(filename, verbose=False, compile_message=False):
         if not os.path.isdir(G):
             os.unlink(G)
 
-    os.system('cp %s/devel/sage/sage/ext/interrupt* %s/'%(SAGE_ROOT,
-                                                          build_dir))
+    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/"*.pxi .'%(build_dir,
+                   SAGE_ROOT))
+    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/interrupt.c" .'%(build_dir,
+                   SAGE_ROOT))
 
     if compile_message:
         print "Compiling %s..."%filename
 
     F = open(filename).read()
 
-    if F.find('__no_preparse__') == -1:
-        F = preparse_file(F)
     F, libs, includes = pyx_preparse(F)
 
     global sequence_number
@@ -112,7 +109,7 @@ setup(ext_modules = ext_modules,
       include_dirs = %s)
     """%(name, name, libs, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
-    cmd = 'cd %s; pyrexc %s.pyx 1>log 2>err'%(build_dir, name)
+    cmd = 'cd %s; pyrexc -I "%s/devel/sage" -I "%s/devel/sage/ext" %s.pyx 1>log 2>err'%(build_dir, SAGE_ROOT, SAGE_ROOT, name)
     if verbose:
         print cmd
     if os.system(cmd):

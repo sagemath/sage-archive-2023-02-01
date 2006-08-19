@@ -2,6 +2,7 @@ CRITICAL BUGS:
   no known critical bugs!!
 
 TODO/IDEAS:
+
    [] Undo:  The SAGE Notebook *is* a wiki, albeit with minimal hyperlinking
 (so far).   From moinmoin's help:
 "There are two main ways to devalue a wiki. One is through erasure and
@@ -484,3 +485,5 @@ indicating that it (sage) hasn't seen the "(".
       This is a critical bug.
    [x] Opera box size resize.
    [x] Control-c / Escape maybe broken.
+   [x] In system="python" mode tab completion doesn't work.  This is because
+      it tries to complete via python.trait_names().

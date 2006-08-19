@@ -655,7 +655,10 @@ class Worksheet:
     def _get_last_identifier(self, s):
         t = support.get_rightmost_identifier(s)
         S = self.system()
-        if S:
+        # If we are tab completing in a worksheet for another
+        # system, e.g., mathematica, this is like typing mathematica.[tab].
+        # However, for SAGE and Python, we want regular tab completion.
+        if S and not (S in ['sage', 'python']):
             t = S + '.' + t
         return t
 

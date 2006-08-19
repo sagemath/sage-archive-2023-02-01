@@ -2207,10 +2207,11 @@ cdef class Matrix(ModuleElement):
 # TODO: need MatrixWindow hierarchy
 # def strassen_window_multiply(MatrixWindow C, MatrixWindow A, MatrixWindow B, int cutoff):
 def strassen_window_multiply(C, A, B, int cutoff):
-    """ Multiplies the submatrices specified by A and B, places result in C.
-    Assumes that A and B have compatible dimensions to be multiplied, and that C is
-    the correct size to receive the product, and that they are all defined over
-    the same ring.
+    """
+    Multiplies the submatrices specified by A and B, places result in
+    C.  Assumes that A and B have compatible dimensions to be
+    multiplied, and that C is the correct size to receive the product,
+    and that they are all defined over the same ring.
 
     Uses strassen multiplication at high levels and then uses MatrixWindow
     methods at low levels.
@@ -2241,7 +2242,7 @@ def strassen_window_multiply(C, A, B, int cutoff):
         sage: D.set_to_prod(A, B)                    # use naive method
 
         sage: C == D
-         True
+        True
 
         sage: dim1 = 79; dim2 = 83; dim3 = 101
         sage: R = MatrixSpace(QQ, dim1, dim2)
@@ -2261,10 +2262,9 @@ def strassen_window_multiply(C, A, B, int cutoff):
         sage: D.set_to_prod(A, B)                    # use naive method
 
         sage: C == D
-         True
+        True
 
     AUTHOR: David Harvey
-
     """
 
     # todo -- I'm not sure how to interpret "cutoff". Should it be...

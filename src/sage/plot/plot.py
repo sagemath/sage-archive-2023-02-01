@@ -601,9 +601,14 @@ class Graphics(SageObject):
         # these parameters, but I can't think why one would want more
         # whitespace around the edges.
 
-        figure.subplots_adjust(left=0,  bottom=0,
-                               right=1, top=1,
-                               wspace=None, hspace=None)
+        if axes_label is None:
+            figure.subplots_adjust(left=0,  bottom=0,
+                                   right=1, top=1,
+                                   wspace=None, hspace=None)
+        else:
+            figure.subplots_adjust(left=0.05,  bottom=0.05,
+                                   right=0.95, top=0.95,
+                                   wspace=None, hspace=None)
 
         subplot = sub
         if not subplot:

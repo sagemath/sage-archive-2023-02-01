@@ -114,6 +114,12 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
+    def input_text(self):
+        """
+        Return text version of the input to the worksheet.
+        """
+        return '\n\n---\n\n'.join([C.input_text() for C in self.__cells])
+
     # The following setstate method is here
     # so that when this object is pickled and
     # unpickled, the self.__sage attribute

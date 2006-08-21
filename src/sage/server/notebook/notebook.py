@@ -637,6 +637,8 @@ class Notebook(SageObject):
         global JSMATH
         JSMATH = jsmath
         tries = 0
+        port = int(port)
+        max_tries = int(max_tries)
         while True:
             try:
                 notebook_server = server.NotebookServer(self,

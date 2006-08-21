@@ -10,12 +10,17 @@ The Victor Miller Basis
 #                  http://www.gnu.org/licenses/
 #########################################################################
 
+import math
+
 from sage.matrix.all import MatrixSpace
 from sage.modular.dims import dimension_cusp_forms_gamma0
-from sage.rings.all import QQ, Integer
+from sage.rings.all import QQ, ZZ, Integer, binomial
 from sage.structure.all import Sequence
+from sage.libs.all import ntl
+from sage.misc.all import verbose
 
 from eis_series import eisenstein_series_qexp
+
 
 
 def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
@@ -132,14 +137,64 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     return Sequence([R(list(v), prec) for v in E.rows()], cr=True)
 
 
+## def delta_qexp(prec=10, var='q'):
+##     """
+##     Return the q-expansion of Delta.
+##     """
+##     F4 = 240*eisenstein_series_qexp(4, prec=prec)
+##     F6 = -504*eisenstein_series_qexp(6, prec=prec)
+##     R = QQ[[var]]
+##     if var != 'q':
+##         F4 = R(F4)
+##         F6 = R(F6)
+##     return (F4**3 - F6**2)/R(1728, prec)
+
 def delta_qexp(prec=10, var='q'):
     """
-    Return the q-expansion of Delta.
+    Return the q-expansion of Delta as a power series with
+    coefficients in ZZ.
+
+    ALGORITHM:
+        Compute a simple very explicit modular form whose 8th power
+        is Delta.   Then compute the 8th power using NTL polynomial
+        arithmetic, which is VERY fast.   This function
+        computes a *million* terms of Delta in under a minute.
+
+    EXAMPLES:
+        sage: delta_qexp(7)
+        q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^7)
+        sage: delta_qexp(7,'z')
+        z - 24*z^2 + 252*z^3 - 1472*z^4 + 4830*z^5 - 6048*z^6 - 16744*z^7 + O(z^7)
+        sage: delta_qexp(-3)
+        Traceback (most recent call last):
+        ...
+        ValueError: prec must be positive
     """
-    F4 = 240*eisenstein_series_qexp(4, prec=prec)
-    F6 = -504*eisenstein_series_qexp(6, prec=prec)
-    R = QQ[[var]]
-    if var != 'q':
-        F4 = R(F4)
-        F6 = R(F6)
-    return (F4**3 - F6**2)/R(1728, prec)
+    if prec <= 0:
+        raise ValueError, "prec must be positive"
+    v = [0] * prec
+    stop = int((-1+math.sqrt(1+8*prec))/2.0)
+    for n in range(stop+1):
+        k = 2*n+1
+        if n % 2 != 0:
+            k = -k
+        try:
+            v[n*(n+1)//2] = k
+        except IndexError:
+            break
+
+    f = ntl.ZZX(v)
+    t = verbose('made series')
+    f = (f*f).truncate(prec)
+    t = verbose('squared (1 of 3)', t)
+    f = (f*f).truncate(prec)
+    t = verbose('squared (2 of 3)', t)
+    f = (f*f).truncate(prec)
+    t = verbose('squared (3 of 3)', t)
+    f = ntl.ZZX([0,1])*f
+    t = verbose('shifted', t)
+    R = ZZ[[var]]
+    f = R(f, prec, check=False)
+    t = verbose('coerced', t)
+    return f
+

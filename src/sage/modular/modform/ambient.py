@@ -221,13 +221,19 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             pass
         if not p is None:
             p = rings.Integer(p)
-        if not p.is_prime():
-            raise ValueError, "p (=%s) must be a prime or None."%p
+            if not p.is_prime():
+                raise ValueError, "p (=%s) must be a prime or None."%p
 
         if p is None:
-            self.__new_submodule[None] = self._full_new_submodule()
+            M = self._full_new_submodule()
+            self.__new_submodule[None] = M
+            return M
         else:
-            self.__new_submodule[p] = self._new_submodule(p)
+            M = self._new_submodule(p)
+            self.__new_submodule[p] = M
+            return M
+
+
 
     def _full_new_submodule(self):
         s = self._dim_new_cuspidal()

@@ -331,8 +331,8 @@ class EisensteinSeries(ModularFormElement):
         try:
             return self.__defining_params
         except AttributeError:
-            chi = self.__chi
-            psi = self.__psi
+            chi = self.__chi.primitive_character()
+            psi = self.__psi.primitive_character()
             k = self.weight()
             t = self.__t
             L = chi.conductor()
@@ -374,9 +374,10 @@ class EisensteinSeries(ModularFormElement):
             self.__character = self.__chi * (~self.__psi)
         return self.__character
 
-    def level_at_which_new(self):
+    def new_level(self):
         if self.__chi.is_trivial() and self.__psi.is_trivial() and self.weight() == 2:
             return factor(self.__t)[0][0]
         return self.L()*self.M()
+
 
 

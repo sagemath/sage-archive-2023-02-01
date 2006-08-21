@@ -23,6 +23,8 @@ import degenmap
 
 import module
 
+import submodule
+
 import sage.modules.all
 
 import sage.rings.all
@@ -523,7 +525,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
                 raise TypeError, "M must be a submodule of the free module associated to this module."
             if M == self.free_module():
                 return self
-        return HeckeSubmodule(self, M, Mdual, check=False)
+        return submodule.HeckeSubmodule(self, M, Mdual, check=False)
 
     def submodule_from_nonembedded_module(self, V, Vdual=None, check=True):
         """

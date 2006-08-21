@@ -59,6 +59,10 @@ def __common_minimal_basering(chi, psi):
     psi = psi.change_ring(K)
     return chi, psi
 
+#def prim(eps):
+#    print "making eps with modulus %s primitive"%eps.modulus()
+#    return eps.primitive_character()
+
 def __find_eisen_chars(character, k):
     N = character.modulus()
     if character.is_trivial():
@@ -139,7 +143,7 @@ def __find_eisen_chars_gamma1(N, k):
         for j in range(i,len(E)):
             if parity[i]*parity[j] == s and N % (E[i].conductor()*E[j].conductor()) == 0:
                 chi, psi = __common_minimal_basering(E[i], E[j])
-                pairs.append((chi,psi))
+                pairs.append((chi, psi))
                 if i!=j: pairs.append((psi,chi))
         #end fors
     #end if

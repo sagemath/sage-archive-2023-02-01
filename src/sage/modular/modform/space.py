@@ -831,8 +831,11 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__character
 
     def cuspidal_submodule(self):
-        if self.__is_cuspidal == True:
-            return self
+        try:
+            if self.__is_cuspidal == True:
+                return self
+        except AttributeError:
+            pass
         if self.__cuspidal_submodule != None:
             return self.__cuspidal_submodule
         if self.is_ambient():

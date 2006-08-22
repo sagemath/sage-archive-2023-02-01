@@ -22,6 +22,13 @@ def css(color='default'):
         <type 'str'>
     """
     s = r"""
+div.hidden {
+  display:none;
+}
+span.hidden{
+  display:none;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -142,13 +149,49 @@ div.top_control_bar a.hide:hover {
    cursor:pointer;
 }
 
-div.top_control_bar  a.help {
+div.top_control_bar a.help {
    padding:5;
    background-color:white;
    text-decoration:underline;
 }
 
-div.top_control_bar a.help:hover {
+div.top_control_bar a.help:hover{
+   background-color:#00bb00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar a.slide_mode {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.slide_mode:hover{
+   background-color:#00bb00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar a.cell_mode {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.cell_mode:hover{
+   background-color:#00bb00;
+   color:#FFFFFF;
+   cursor:pointer;
+}
+
+div.top_control_bar a.slide_arrow {
+   padding:5;
+   background-color:white;
+   text-decoration:underline;
+}
+
+div.top_control_bar a.slide_arrow:hover{
    background-color:#00bb00;
    color:#FFFFFF;
    cursor:pointer;
@@ -706,6 +749,22 @@ div.worksheet {
   padding-top: 0ex;
 }
 
+div.slideshow {
+  position:fixed;
+  overflow:auto;
+  z-index:1;
+  background-color: white;
+  border-top: 0px;
+  border-left: 10px solid <color1>;
+  top: 70px;
+  bottom: 0ex;
+  right: 0ex;
+  left: 0px;
+  padding-left: 0ex;
+  float: right;
+  padding-top: 0ex;
+}
+
 
 span.banner{
   background-color:white;
@@ -746,6 +805,10 @@ input.btn:hover {
 }
 
 /************ CELL INPUT **************************/
+
+div.cell_visible {
+    display:block;
+}
 
 div.cell_evaluated {
     border-left: 2px solid white;

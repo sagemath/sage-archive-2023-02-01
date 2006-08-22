@@ -329,7 +329,7 @@ class Cell:
         html_out = self.html_out(wrap, do_print=do_print)
         s = html_in  + introspect + html_out
         if div_wrap:
-            s = '\n\n<div id="cell_%s" class="%s">'%(self.id(), cls) + s + '</div>'
+            s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
         return s
 
     def html_in(self, do_print=False):

@@ -104,6 +104,8 @@ var cell_id_list; // this gets set in worksheet.py
 
 var input_keypress; //this gets set to a function when we set up the keyboards
 
+var in_slide_mode = false; //whether or not we're in slideshow mode
+
 ///////////////////////////////////////////////////////////////////
 //
 // Cross-Browser Stuff
@@ -182,6 +184,13 @@ function get_element(id) {
     return document.all[id];
   if(document.layers)
     return document.layers[id];
+}
+
+function set_class(id, cname) {
+  e = get_element(id);
+  if(e!=null) {
+      e.className = cname;
+  }
 }
 
 function get_event(e) {
@@ -653,6 +662,12 @@ function debug_blur() {
 //a little timeout.
 function focus(id, and_delay) {
     // make_cell_input_active(id);
+    if(in_slide_mode) {
+        slide_hide();
+        current_cell = id;
+        slide_show();
+    }
+
     var cell = get_cell(id);
     if (cell && cell.focus) {
         cell.focus();
@@ -724,20 +739,25 @@ function cell_input_minimize_all() {
 
 function cell_delete_callback(status, response_text) {
     if (status == "failure") {
-        cell = get_element('cell_' + id_to_delete);
+        cell = get_element('cell_outer_' + id_to_delete);
         var worksheet = get_element('worksheet_cell_list');
         worksheet.removeChild(cell);
+        jump_to_cell(id_to_delete,-1);
+        cell_id_list = delete_from_array(cell_id_list, id_to_delete);
+        id_to_delete = -1;
+        return;
     }
     var X = response_text.split(SEP);
     if (X[0] == 'ignore') {
+        id_to_delete = -1;
         return;   /* do not delete, for some reason */
     }
-    var cell = get_element('cell_' + X[1]);
+    var cell = get_element('cell_outer_' + id_to_delete);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
-    cell_id_list = eval(X[3]);
-    var id_before = X[2];
-    focus(eval(id_before), 0);
+    jump_to_cell(id_to_delete,-1);
+    cell_id_list = delete_from_array(cell_id_list, id_to_delete);
+    id_to_delete = -1;
 }
 
 function cell_delete(id) {
@@ -822,7 +842,7 @@ function cell_input_key_event(id, e) {
     cell_input_resize(cell_input);
 
     // Will need IE version... if possible.
-    if (key_up_arrow(e)) {
+    if (!in_slide_mode && key_up_arrow(e)) {
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
@@ -831,7 +851,7 @@ function cell_input_key_event(id, e) {
         } else {
             return true;
         }
-    } else if (key_down_arrow(e)) {
+    } else if (!in_slide_mode && key_down_arrow(e)) {
         var after = text_cursor_split(cell_input)[1];
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {
@@ -847,7 +867,6 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input_newcell(e)) {
       /* evaluate_cell(id, 1); */
        evaluate_cell(id, 1);
-       insert_new_cell_after(id);
        return false;
     } else if (key_request_introspections(e)) {
        // command introspection (tab completion, ?, ??)
@@ -857,10 +876,18 @@ function cell_input_key_event(id, e) {
        interrupt();
        return false;
     } else if (key_page_down(e)) {
-       jump_to_cell(id, 5);
+       if(in_slide_mode) {
+           jump_to_cell(id, 1);
+       } else {
+           jump_to_cell(id, 5);
+       }
        return false;
     } else if (key_page_up(e)) {
-       jump_to_cell(id, -5);
+       if(in_slide_mode) {
+           jump_to_cell(id, -1);
+       } else {
+           jump_to_cell(id, -5);
+       }
        return false;
     } else if (key_request_history(e)) {
        history_window();
@@ -940,10 +967,6 @@ function make_cell_input_inactive(id) {
 
 function jump_to_cell(id, delta) {
     var i = id_of_cell_delta(id, delta)
-    var j = id_of_cell_delta(i, -2);
-    if (j >= i) {
-        j = i;
-    }
     focus(i);
 }
 
@@ -988,10 +1011,12 @@ function evaluate_cell(id, action) {
        return;
     }
 
-    jump_to_cell(id,1);
+    if(!in_slide_mode) {
+        jump_to_cell(id,1);
+    }
     cell_set_running(id);
     var cell_input = get_cell(id);
-    var I = cell_input.value
+    var I = cell_input.value;
     var input = escape0(I);
 
     get_element('interrupt').className = 'interrupt';
@@ -1058,8 +1083,7 @@ function evaluate_cell_callback(status, response_text) {
         append_new_cell(X[0],X[2]);
     } else if (X[1] == 'insert_cell') {
         // insert a new cell after the one with id X[3]
-        do_insert_new_cell_after(X[3], X[2], X[0]);
-        // jump_to_cell(X[0], 0);
+        do_insert_new_cell_after(X[3], X[0], X[2]);
         focus(X[0]);
     }
     start_update_check();
@@ -1306,6 +1330,71 @@ function continue_update_check() {
     }
 }
 
+///////////////////////////////////////////////////////////////////
+//  Slideshow Functions
+///////////////////////////////////////////////////////////////////
+
+function slide_mode() {
+    in_slide_mode = true;
+    set_class('left_pane', 'hidden');
+    set_class('cell_controls', 'hidden');
+    set_class('slide_controls', 'control_commands');
+    set_class('worksheet', 'slideshow');
+
+    for(i = 0; i < cell_id_list.length ; i++) {
+        set_class('cell_outer_'+cell_id_list[i], 'hidden');
+    }
+    if(current_cell == -1 && cell_id_list.length>0)
+        current_cell = cell_id_list[0];
+    if(current_cell != -1)
+        set_class('cell_outer_'+current_cell, 'cell_visible');
+}
+
+function cell_mode() {
+    in_slide_mode = false;
+    set_class('left_pane', 'pane');
+    set_class('cell_controls', 'control_commands');
+    set_class('slide_controls', 'hidden');
+    set_class('worksheet', 'worksheet');
+
+    for(i = 0; i < cell_id_list.length ; i++) {
+        set_class('cell_outer_'+cell_id_list[i], 'cell_visible');
+    }
+}
+
+function slide_hide() {
+    set_class('cell_outer_' + current_cell, 'hidden');
+}
+function slide_show() {
+    set_class('cell_outer_' + current_cell, 'cell_visible');
+}
+
+function slide_first() {
+    slide_hide();
+    current_cell = cell_id_list[0];
+    slide_show();
+}
+
+function slide_last() {
+    slide_hide();
+    current_cell = cell_id_list[cell_id_list.length-1];
+    slide_show();
+}
+
+
+function slide_next() {
+    slide_hide();
+    current_cell =  id_of_cell_delta(current_cell, 1);
+    slide_show();
+}
+
+function slide_prev() {
+    slide_hide();
+    current_cell =  id_of_cell_delta(current_cell, -1);
+    slide_show();
+}
+
+
 
 ///////////////////////////////////////////////////////////////////
 //  Insert and move cells
@@ -1342,32 +1431,38 @@ function array_indexOf(v, x) {
          }
     }
     return -1;
-};
+}
 
-function do_insert_new_cell_before(id, new_html, new_id) {
+function make_new_cell(id, html) {
+    var new_cell = document.createElement("div");
+    var in_cell = document.createElement("div");
+    new_cell.appendChild(in_cell);
+    new_cell.id = 'cell_outer_' + id;
+    in_cell.id = 'cell_' + id;
+    in_cell.innerHTML = html;
+    return new_cell;
+}
+
+function do_insert_new_cell_before(id, new_id, new_html) {
   /* Insert a new cell with the given new_id and new_html
      before the cell with given id. */
-    var new_cell = document.createElement("div");
-    new_cell.id = 'cell_' + new_id;
-    new_cell.innerHTML = new_html;
-    var cell = get_element('cell_' + id);
+    var new_cell = make_new_cell(new_id, new_html);
+    var cell = get_element('cell_outer_' + id);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.insertBefore(new_cell, cell);
     var i = array_indexOf(cell_id_list, eval(id));
     cell_id_list = insert_into_array(cell_id_list, i, eval(new_id));
 }
 
-function do_insert_new_cell_after(id, new_html, new_id) {
+function do_insert_new_cell_after(id, new_id, new_html) {
   /* Insert a new cell with the given new_id and new_html
      after the cell with given id. */
-    var new_cell = document.createElement("div");
-    new_cell.id = 'cell_' + new_id;
-    new_cell.innerHTML = new_html;
-    var cell = get_element('cell_' + id);
-    var worksheet = get_element('worksheet_cell_list');
-    insertAfter(worksheet, new_cell, cell);
-    var i = array_indexOf(cell_id_list, eval(id));
-    cell_id_list = insert_into_array(cell_id_list, i+1, eval(new_id));
+    i = id_of_cell_delta(id,1);
+    if(i == id) {
+        append_new_cell(new_id,new_html);
+    } else {
+        do_insert_new_cell_before(i, new_id, new_html);
+    }
 }
 
 function insert_new_cell_before_callback(status, response_text) {
@@ -1380,8 +1475,8 @@ function insert_new_cell_before_callback(status, response_text) {
     var new_id = eval(X[0]);
     var new_html = X[1];
     var id = eval(X[2]);
-    do_insert_new_cell_before(id, new_html, new_id);
-    focus(new_id);
+    do_insert_new_cell_before(id, new_id, new_html);
+    jump_to_cell(new_id,0);
 }
 
 function insert_new_cell_before(id) {
@@ -1398,7 +1493,7 @@ function insert_new_cell_after_callback(status, response_text) {
     var new_id = eval(X[0]);
     var new_html = X[1];
     var id = eval(X[2]);
-    do_insert_new_cell_after(id, new_html, new_id);
+    do_insert_new_cell_after(id, new_id, new_html);
     jump_to_cell(new_id,0);
 }
 
@@ -1408,9 +1503,7 @@ function insert_new_cell_after(id) {
 }
 
 function append_new_cell(id, html) {
-    var new_cell = document.createElement("div");
-    new_cell.innerHTML = html;
-    new_cell.id = 'cell_' + id;
+    var new_cell = make_new_cell(id, html);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.appendChild(new_cell);
     cell_id_list = cell_id_list.concat([id]);

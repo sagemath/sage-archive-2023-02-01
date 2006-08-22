@@ -747,10 +747,10 @@ class Notebook(SageObject):
         body = ''
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a> %s</span>\n'%self.__dir
-        body += '  <span class="control_commands">\n'
-
+        body += '  <span class="control_commands" id="cell_controls">\n'
+        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>&nbsp;' + vbar
+        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
@@ -761,7 +761,14 @@ class Notebook(SageObject):
         body += '    <a class="download_sws" href="%s.sws">Download</a>'%worksheet.filename() + vbar
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
-        body += '  </span>'
+        body += '  </span>\n'
+        body += '  <span class="hidden" id="slide_controls">\n'
+        body += '    <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>'
+        body += '    <a class="slide_arrow" onClick="slide_prev()">&lt;</a>'
+        body += '    <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
+        body += '    <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
+        body += '    <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
+        body += '  </span>\n'
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n'
         if self.__show_debug or show_debug:
@@ -773,7 +780,7 @@ class Notebook(SageObject):
             body += "</div>"
         body += worksheet.html() + '\n</div>\n'
 
-        body += '<span class="pane"><table bgcolor="white"><tr><td>\n'
+        body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="worksheets_topbar">'
         body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">New</a> '
         body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '

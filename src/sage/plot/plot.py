@@ -506,7 +506,7 @@ class Graphics(SageObject):
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,axes_label=axes_label)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):

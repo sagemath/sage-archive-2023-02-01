@@ -283,7 +283,7 @@ cdef class Variable:
         ostringstream instore;
         instore << *(Variable*)x ;
         int n = strlen(instore.str().data());
-        char* buf = new char[n+1];
+        char* buf = (char*)malloc(n+1);
         strcpy(buf, instore.str().data());
         #}embed
 
@@ -489,7 +489,7 @@ cdef class CanonicalForm:
         ostringstream instore;
         instore << *(CanonicalForm*)x ;
         int n = strlen(instore.str().data());
-        char* buf = new char[n+1];
+        char* buf = (char*)malloc(n+1);
         strcpy(buf, instore.str().data());
         return buf;
         #}embed

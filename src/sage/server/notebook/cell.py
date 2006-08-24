@@ -191,6 +191,9 @@ class Cell:
     def input_text(self):
         return self.__in
 
+    def is_auto_cell(self):
+        return '%auto' in self.__in.split('\n')[0]
+
     def changed_input_text(self):
         try:
             t = self.__changed_input

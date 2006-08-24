@@ -631,6 +631,11 @@ class Graphics(SageObject):
                 canvas = FigureCanvasPS(figure)
 		if dpi is None:
 		    dpi = 72
+            elif ext == '.pdf':
+                from matplotlib.backends.backend_pdf import FigureCanvasPdf
+                canvas = FigureCanvasPdf(figure)
+		if dpi is None:
+		    dpi = 72
 	    elif ext == '.svg':
                 from matplotlib.backends.backend_svg import FigureCanvasSVG
 		if dpi is None:
@@ -1641,7 +1646,7 @@ class GraphicsArray(SageObject):
     def __append__(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None, **args):
+    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):
         r"""
         \code{render} loops over all graphics objects
         in the array and adds them to the subplot.
@@ -1653,7 +1658,7 @@ class GraphicsArray(SageObject):
         dims = self._dims
         #make a blank matplotlib Figure:
         from matplotlib.figure import Figure
-        figure = Figure()
+        figure = Figure(figsize)
         global do_verify
         do_verify = True
         for i,g in zip(range(1, dims+1), glist):
@@ -1662,23 +1667,23 @@ class GraphicsArray(SageObject):
                    sub=subplot, savenow = (i==dims), verify=do_verify,
                    **args)   # only save if i==dims.
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, **args):
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI, **args):
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
         r"""
         Show this graphics array using the default viewer.
         """
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, **args)
+            self.save(filename, dpi=dpi, figsize=figsize, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)

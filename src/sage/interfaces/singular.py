@@ -818,6 +818,7 @@ class SingularElement(ExpectElement):
         from sage.rings.multi_polynomial_element import MPolynomial_polydict
         from sage.rings.polynomial_ring import is_PolynomialRing
         from sage.rings.polydict import PolyDict,ETuple
+        from sage.rings.quotient_ring import QuotientRing_generic
 
         sage_repr = {}
         k = R.base_ring()
@@ -845,7 +846,7 @@ class SingularElement(ExpectElement):
 
         coeff_start = int(len(singular_poly_list)/2)
 
-        if isinstance(R,MPolynomialRing_polydict) and R._can_convert_to_singular():
+        if isinstance(R,(MPolynomialRing_polydict,QuotientRing_generic)) and R._can_convert_to_singular():
             # we need to lookup the index of a given variable represented
             # through a string
             var_dict = dict(zip(R.variable_names(),range(R.ngens())))
@@ -902,7 +903,7 @@ class SingularElement(ExpectElement):
             return R(sage_repr)
 
         else:
-            raise TypeError, "Cannot coerce %s into %s"%(self,r)
+            raise TypeError, "Cannot coerce %s into %s"%(self,R)
 
 
     def set_ring(self):

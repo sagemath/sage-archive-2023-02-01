@@ -26,6 +26,8 @@ import sage.rings.ring
 import sage.rings.principal_ideal_domain
 import commutative_ring
 from sage.structure.all import SageObject, MonoidElement
+from sage.interfaces.all import singular as singular_default, is_SingularElement
+from sage.rings.infinity import Infinity
 
 def Ideal(R, gens=[], coerce=True):
     r"""
@@ -313,3 +315,60 @@ class Ideal_fractional(Ideal_generic):
     def __repr__(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())
 
+
+
+# constructors for standard (benchmark) ideals, written uppercase as
+# these are constructors
+
+def Cyclic(R, n, singular=singular_default):
+    """
+    ideal of cyclic n-roots from 1-st n variables of R if R is
+    coercable to Singular.
+
+    INPUT:
+        R -- base ring to construct ideal for
+        n -- number of cyclic roots
+
+    \note{R will be set as the active ring in Singular}
+    """
+    if n > R.ngens():
+        raise ArithmeticError, "n must be <= R.ngens()"
+    singular.lib("poly")
+    R._singular_().set_ring()
+    I = singular.cyclic(n)
+    return R.ideal(I)
+
+
+def Katsura(R, n, singular=singular_default):
+    """
+    n-th katsura ideal of R if R is coercable to
+    Singular.
+
+    INPUT:
+        R -- base ring to construct ideal for
+        n -- which katsura ideal of R
+    """
+    if n > R.ngens():
+        raise ArithmeticError, "n must be <= R.ngens()"
+    singular.lib("poly")
+    R._singular_().set_ring()
+    I = singular.katsura(n)
+    return R.ideal(I)
+
+def FieldIdeal(R):
+    """
+    Let q = R.base_ring().order() and (x0,...,x_n) = R.gens() then if
+    q is finite this constructor returns
+
+    $\langle x_0^q + x_0, \dots , x_n^q + x_n \rangle.$
+
+    We call this ideal the field ideal and the generators the field
+    equations.
+    """
+
+    q = R.base_ring().order()
+
+    if q == Infinity:
+        raise TypeError, "Cannot construct field ideal for R.base_ring().order()==infinity"
+
+    return R.ideal([x**q+x for x in R.gens() ])

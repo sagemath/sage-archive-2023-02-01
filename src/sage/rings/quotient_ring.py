@@ -20,7 +20,9 @@ import quotient_ring_element
 import sage.misc.latex as latex
 import commutative_ring
 import ideal
+import multi_polynomial_ideal
 from sage.structure.all import Generators
+from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 def QuotientRing(R, I):
     if not isinstance(R, commutative_ring.CommutativeRing):
@@ -190,11 +192,35 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
     def cover_ring(self):
         return self.__R
 
+    def variable_names(self):
+        return self.__R.variable_names()
+
+    def base_ring(self):
+        return self.__R.base_ring()
+
+    def ideal(self, gens, coerce=False):
+        if not self.__R._has_singular:
+            # pass through
+            MPolynomialRing_generic.ideal(self,gens,coerce)
+        if is_SingularElement(gens):
+            gens = list(gens)
+            coerce = True
+        elif not isinstance(gens, (list, tuple)):
+            gens = [gens]
+        if coerce:
+            gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
+        return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
+
+    def _can_convert_to_singular(self):
+        return self.__R._can_convert_to_singular()
+
     def __call__(self, x, coerce=True):
         if isinstance(x, quotient_ring_element.QuotientRingElement):
             if x.parent() is self:
                 return x
             x = x.lift()
+        if is_SingularElement(x):
+            return x.sage_poly(self)
         if coerce:
             R = self.cover_ring()
             x = R(x)
@@ -217,4 +243,39 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
     def gen(self, i=0):
         return quotient_ring_element.QuotientRingElement(self, self.__R.gen(i))
 
+
+    def _singular_(self, singular=singular_default):
+        """
+        Returns the Singular quotient ring of self if the base ring is
+        coercable to Singular.
+
+        If a valid singular representation is found it is used
+        otherwise a new 'qring' is created.
+
+        INPUT:
+            singular -- Singular instance (default: the default Singular instance)
+
+        \note{This method also sets the current ring in Singular to self}
+        """
+
+        try:
+            Q = self.__singular
+            if not (Q.parent() is singular):
+                raise ValueError
+            Q._check_valid()
+            return Q
+        except (AttributeError, ValueError):
+            return self._singular_init_(singular)
+
+    def _singular_init_(self,singular=singular_default):
+        """
+        Returns a newly created Singular quotient ring matching self
+        if the base ring is coecable to Singular.
+
+        See self._singular_
+
+        """
+        self.__R._singular_().set_ring()
+        self.__singular = singular("%s"%self.__I._singular_().name(),"qring")
+        return self.__singular
 

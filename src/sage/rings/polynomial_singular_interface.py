@@ -147,6 +147,8 @@ class PolynomialRing_singular_repr:
 
         if self.ngens()==1:
             _vars = str(self.gen())
+            if "*" in _vars: # 1.000...000*x
+                _vars = _vars.split("*")[1]
             order = 'lp'
         else:
             _vars = str(self.gens())

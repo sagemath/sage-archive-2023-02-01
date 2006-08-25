@@ -905,6 +905,32 @@ class SingularElement(ExpectElement):
         else:
             raise TypeError, "Cannot coerce %s into %s"%(self,R)
 
+    def sage_matrix(self, R, sparse=True):
+        """
+        Returns SAGE matrix for self
+
+        """
+        from sage.matrix.constructor import Matrix
+        nrows, ncols = int(self.nrows()),int(self.ncols())
+
+        A = Matrix(R, nrows, ncols, sparse=sparse)
+        #this is slow
+        for x in range(nrows):
+            for y in range(ncols):
+                A[x,y]=R(self[x+1,y+1])
+
+        return A
+
+    def _sage_(self, R=None):
+        """
+        Coerces self to SAGE.
+        """
+        if self.type()=='poly':
+            return self.sage_poly(R)
+        if self.type() == 'module':
+            return self.sage_matrix(R,sparse=True)
+        if self.type() == 'matrix':
+            return self.sage_matrix(R,sparse=False)
 
     def set_ring(self):
         self.parent().set_ring(self)

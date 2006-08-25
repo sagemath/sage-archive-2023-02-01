@@ -239,6 +239,9 @@ cdef class GFq(FiniteField):
         """
         return bool(self.degree()==1)
 
+    def is_prime(GFq self):
+        return bool(self.degree()==1)
+
     def random_element(GFq self):
         """
         """

@@ -1,5 +1,5 @@
 /* emacs edit mode for this file is -*- C++ -*- */
-/* $Id: ftmpl_inst.cc,v 1.9 1998/06/30 16:25:47 schmidt Exp $ */
+/* $Id: ftmpl_inst.cc,v 1.10 2006/05/15 09:03:05 Singular Exp $ */
 
 //{{{ docu
 //
@@ -49,13 +49,13 @@ template class Array<REvaluation>;
 
 //{{{ explicit template function instantiations
 #ifndef NOSTREAMIO
-template ostream & operator << ( ostream &, const List<CanonicalForm> & );
-template ostream & operator << ( ostream &, const List<CFFactor> & );
-template ostream & operator << ( ostream &, const List<MapPair> & );
-template ostream & operator << ( ostream &, const Array<CanonicalForm> & );
-template ostream & operator << ( ostream &, const Factor<CanonicalForm> & );
-template ostream & operator << ( ostream &, const Matrix<CanonicalForm> & );
-template ostream & operator << ( ostream &, const Array<REvaluation> & );
+template OSTREAM & operator << ( OSTREAM &, const List<CanonicalForm> & );
+template OSTREAM & operator << ( OSTREAM &, const List<CFFactor> & );
+template OSTREAM & operator << ( OSTREAM &, const List<MapPair> & );
+template OSTREAM & operator << ( OSTREAM &, const Array<CanonicalForm> & );
+template OSTREAM & operator << ( OSTREAM &, const Factor<CanonicalForm> & );
+template OSTREAM & operator << ( OSTREAM &, const Matrix<CanonicalForm> & );
+template OSTREAM & operator << ( OSTREAM &, const Array<REvaluation> & );
 #endif /* NOSTREAMIO */
 
 template int operator == ( const Factor<CanonicalForm> &, const Factor<CanonicalForm> & );

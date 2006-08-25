@@ -117,7 +117,10 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
 
     def _cmp_(self, other):
-        # Groebner basis determine equality since ideals are in the same ring with same term order
+        # Groebner basis determine equality since ideals are in the
+        # same ring with same term order
+        # TODO: This is wrong, it has to be the reduced GB (malb)
+
         #c = cmp(self.gens(), other.gens())
         #if c == 0:
         #    return c

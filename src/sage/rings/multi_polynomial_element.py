@@ -231,8 +231,36 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
         return self.__element
 
 
+class MPolynomial_macaulay2_repr:
+    """
+    Multivariate polynomials that are representable in Macaulay2.
+    """
+    def _macaulay2_(self, macaulay2=macaulay2):
+        """
+        Return corresponding Macaulay2 polynomial.
 
-class MPolynomial_polydict(Polynomial_singular_repr,MPolynomial):
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(GF(7), 2, macaulay2=True)   # optional
+            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
+            2*x^7*y^14 + x^21
+            sage: h = f._macaulay2_(); h            # optional
+            x^21+2*x^7*y^14
+            sage: R(h)                              # optional
+            2*x^7*y^14 + x^21
+            sage: R(h^20) == f^20                   # optional
+            True
+        """
+        try:
+            if self.__macaulay2.parent() is macaulay2:
+                return self.__macaulay2
+        except AttributeError:
+            pass
+        self.parent()._macaulay2_(macaulay2)
+        self.__macaulay2 = macaulay2(str(self))
+        return self.__macaulay2
+
+
+class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr, MPolynomial):
     def __init__(self, parent, x):
         """
         EXAMPLES:
@@ -1055,35 +1083,4 @@ def degree_lowest_rational_function(r,x):
     lowdegg = min(degreesg)
     cg = M[M.keys()[degreesg.index(lowdegg)]] ## constant coeff of lowest degree term
     return (lowdegf-lowdegg,cf/cg)
-
-
-
-################################################
-class MPolynomial_macaulay2_repr(MPolynomial_polydict):
-    """
-    Multivariate polynomials that are representable in Macaulay2.
-    """
-    def _macaulay2_(self, macaulay2=macaulay2):
-        """
-        Return corresponding Macaulay2 polynomial.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(7), 2, macaulay2=True)   # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
-            2*x^7*y^14 + x^21
-            sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
-            sage: R(h)                              # optional
-            2*x^7*y^14 + x^21
-            sage: R(h^20) == f^20                   # optional
-            True
-        """
-        try:
-            if self.__macaulay2.parent() is macaulay2:
-                return self.__macaulay2
-        except AttributeError:
-            pass
-        self.parent()._macaulay2_(macaulay2)
-        self.__macaulay2 = macaulay2(str(self))
-        return self.__macaulay2
 

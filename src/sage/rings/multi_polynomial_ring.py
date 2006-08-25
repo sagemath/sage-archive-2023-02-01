@@ -74,7 +74,7 @@ import multi_polynomial_ideal
 #_cache = {}
 
 def MPolynomialRing(base_ring, n=1, names=None,
-                    order='degrevlex', macaulay2=False):
+                    order='degrevlex'):
     r"""
     Create a Multivariate polynomial ring over a commutative base ring.
 
@@ -93,11 +93,6 @@ def MPolynomialRing(base_ring, n=1, names=None,
                  'deglex' -- degree lexicographic
                  'wp(w1,...,wn)' -- weight reverse lexicographic
                  'Wp(w1,...,wn)' -- weight lexicographic
-
-        macaulay2 -- boolean (default: False); Use Macaulay2 for
-                     internal representations; provides some additional
-                     functionality. (Currently only supported when the
-                     base ring is ZZ or a prime field.)
 
     EXAMPLES:
         sage: R = MPolynomialRing(RationalField(), 3)
@@ -141,10 +136,6 @@ def MPolynomialRing(base_ring, n=1, names=None,
         sage: T
         Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19 over Polynomial Ring in a0, a1, a2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
 
-    We create a polynomial ring that uses the Macaualy2 interface.
-        sage: R, (x,y,z) = MPolynomialRing(ZZ, 3, 'xyz', macaulay2=True).objgens()     # optional
-        sage: type(R)                                                                  # optional
-        <class 'sage.rings.multi_polynomial_ring.MPolynomialRing_macaulay2_repr_domain'>
     """
     global _cache
     T = TermOrder(order)
@@ -163,16 +154,10 @@ def MPolynomialRing(base_ring, n=1, names=None,
     if not isinstance(base_ring, commutative_ring.CommutativeRing):
         raise TypeError, "Base ring must be a commutative ring."
 
-    if macaulay2:
-        if integral_domain.is_IntegralDomain(base_ring):
-            R = MPolynomialRing_macaulay2_repr_domain(base_ring, n, names, T)
-        else:
-            R = MPolynomialRing_macaulay2_repr(base_ring, n, names, T)
+    if integral_domain.is_IntegralDomain(base_ring):
+        R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
     else:
-        if integral_domain.is_IntegralDomain(base_ring):
-            R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
-        else:
-            R = MPolynomialRing_polydict(base_ring, n, names, T)
+        R = MPolynomialRing_polydict(base_ring, n, names, T)
 
     #_cache[key] = weakref.ref(R)
 
@@ -180,6 +165,32 @@ def MPolynomialRing(base_ring, n=1, names=None,
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
+
+class MPolynomialRing_macaulay2_repr:
+    """
+    """
+    def _macaulay2_(self, macaulay2=None):
+        if macaulay2 is None:
+            macaulay2 = macaulay2_default
+        try:
+            R = self.__macaulay2
+            if not (R.parent() is macaulay2):
+                raise ValueError
+            R._check_valid()
+            return R
+        except (AttributeError, ValueError):
+            if self.base_ring().is_prime_field():
+                if self.characteristic() == 0:
+                    base_str = "QQ"
+                else:
+                    base_str = "ZZ/" + str(self.characteristic())
+            elif isinstance(self.base_ring(), IntegerRing):
+                base_str = "ZZ"
+            else:
+                raise TypeError, "no conversion of to a Macaulay2 ring defined"
+            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
+                                              self.term_order().macaulay2_str())
+        return self.__macaulay2
 
 class MPolynomialRing_generic(commutative_ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
@@ -367,7 +378,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             pass
         commutative_ring.CommutativeRing.assign_names(self, names)
 
-class MPolynomialRing_polydict(MPolynomialRing_generic):
+class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """
     Multivariable polynomial ring.
 
@@ -415,6 +426,24 @@ class MPolynomialRing_polydict(MPolynomialRing_generic):
             sage: R(f)
             y^3 + x^3*y^2
         """
+    def __call__(self, x, check=True):
+        """
+        Coerce x into this multivariate polynomial ring.
+
+        EXAMPLES:
+        We create a Macaulay2 multivariate polynomial via ideal arithmetic,
+        then coerce it into R.
+            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()       # optional
+            sage: I = R.ideal([x^3 + y, y],macaulay2=True)                    # optional
+            sage: S = I._macaulay2_()                                         # optional
+            sage: T = S*S*S                                                   # optional
+            sage: U = T.gens().entries().flatten()                            # optional
+            sage: f = U[2]; f                                                 # optional
+            x^3*y^2+y^3
+            sage: R(f)                                                        # optional
+            y^3 + x^3*y^2
+        """
+
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict) and x.parent() == self:
             return x
         elif isinstance(x, polydict.PolyDict):
@@ -436,78 +465,6 @@ class MPolynomialRing_polydict(MPolynomialRing_generic):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        c = self.base_ring()(x)
-        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
-
-
-
-class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
-                                      PolynomialRing_singular_repr,
-                                      MPolynomialRing_polydict):
-    def __init__(self, base_ring, n, names, order):
-        MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
-        self._has_singular = self._can_convert_to_singular()
-
-    def ideal(self, gens, coerce=True):
-        """
-        """
-        if not self._has_singular:
-            # pass through
-            MPolynomialRing_generic.ideal(self,gens,coerce)
-        if is_SingularElement(gens):
-            gens = list(gens)
-            coerce = True
-        elif not isinstance(gens, (list, tuple)):
-            gens = [gens]
-        if coerce:
-            gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
-
-class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
-    def _macaulay2_(self, macaulay2=None):
-        if macaulay2 is None:
-            macaulay2 = macaulay2_default
-        try:
-            R = self.__macaulay2
-            if not (R.parent() is macaulay2):
-                raise ValueError
-            R._check_valid()
-            return R
-        except (AttributeError, ValueError):
-            if self.base_ring().is_prime_field():
-                if self.characteristic() == 0:
-                    base_str = "QQ"
-                else:
-                    base_str = "ZZ/" + str(self.characteristic())
-            elif isinstance(self.base_ring(), IntegerRing):
-                base_str = "ZZ"
-            else:
-                raise TypeError, "no conversion of to a Macaulay2 ring defined"
-            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
-                                              self.term_order().macaulay2_str())
-        return self.__macaulay2
-
-    def __call__(self, x, check=True):
-        """
-        Coerce x into this multivariate polynomial ring.
-
-        EXAMPLES:
-        We create a Macaulay2 multivariate polynomial via ideal arithmetic,
-        then coerce it into R.
-            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y'], macaulay2=True).objgens()       # optional
-            sage: I = R.ideal([x^3 + y, y])                                                   # optional
-            sage: S = I._macaulay2_()                                                         # optional
-            sage: T = S*S*S                                                                   # optional
-            sage: U = T.gens().entries().flatten()                                            # optional
-            sage: f = U[2]; f                                                                 # optional
-            x^3*y^2+y^3
-            sage: R(f)                                                                        # optional
-            y^3 + x^3*y^2
-        """
-        if isinstance(x, multi_polynomial_element.MPolynomial_macaulay2_repr) and x.parent() == self:
-            return x
-        elif isinstance(x, polydict.PolyDict):
-            return multi_polynomial_element.MPolynomial_macaulay2_repr(self, x)
         elif is_Macaulay2Element(x):
             try:
                 s = x.sage_polystring()
@@ -520,31 +477,44 @@ class MPolynomialRing_macaulay2_repr(MPolynomialRing_polydict):
                 return self(eval(s, {}, self.gens_dict()))
             except (AttributeError, TypeError, NameError):
                 raise TypeError, "Unable to coerce macaulay2 object"
-            return multi_polynomial_element.MPolynomial_macaulay2_repr(self, x)
-        elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
-            if x.denominator() == 1:
-                return x.numerator()
-            else:
-                raise TypeError, "unable to coerce since the denominator is not 1"
+            return multi_polynomial_element.MPolynomial_polydict(self, x)
         c = self.base_ring()(x)
-        return multi_polynomial_element.MPolynomial_macaulay2_repr(self, {self._zero_tuple:c})
+        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
 
-    def _poly_class(self):
-        return multi_polynomial_element.MPolynomial_macaulay2_repr
 
-    def ideal(self, gens, coerce=True):
+
+class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
+                                      PolynomialRing_singular_repr,
+                                      MPolynomialRing_polydict,
+                                      MPolynomialRing_macaulay2_repr):
+    def __init__(self, base_ring, n, names, order):
+        MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
+        self._has_singular = self._can_convert_to_singular()
+
+    def ideal(self, gens, coerce=True, macaulay2=False):
+        """
+        """
+        if not self._has_singular:
+            # pass through
+            MPolynomialRing_generic.ideal(self,gens,coerce)
+        if is_SingularElement(gens):
+            gens = list(gens)
+            coerce = True
         if is_Macaulay2Element(gens):
             gens = list(gens)
             coerce = True
         elif not isinstance(gens, (list, tuple)):
             gens = [gens]
         if coerce:
-            gens = [self(x) for x in gens]  # will this coerce from macaulay2 ideals correctly?
-        return multi_polynomial_ideal.MPolynomialIdeal_macaulay2_repr(self, gens, coerce=False)
+            gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
+        if macaulay2==True:
+            return multi_polynomial_ideal.MPolynomialIdeal_macaulay2_repr(self, gens, coerce=False)
+        else:
+            return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
 
 
-class MPolynomialRing_macaulay2_repr_domain(MPolynomialRing_macaulay2_repr, integral_domain.IntegralDomain):
-    pass
+#class MPolynomialRing_macaulay2_repr_domain(MPolynomialRing_macaulay2_repr, integral_domain.IntegralDomain):
+#    pass
 
 
 #######################

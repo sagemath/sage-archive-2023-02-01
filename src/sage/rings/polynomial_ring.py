@@ -4,6 +4,7 @@ Univariate Polynomial Rings
 AUTHOR:
    -- William Stein
    -- Kiran Kedlaya (2006-02-13): added macaulay2 option
+   -- Martin Albrecht (2006-08-25): removed it again as it isn't needed anymore
 """
 
 
@@ -43,7 +44,7 @@ from sage.rings.polynomial_singular_interface import PolynomialRing_singular_rep
 
 #_objsPolynomialRing = {}
 
-def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, macaulay2=False):
+def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
     """
     Return a univariate or multivariate polynomial ring.
 
@@ -54,7 +55,6 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
                   sparse methods; note that multivariate polynomials are always sparse
         names -- names of the generators (for multivariate poly)
         order -- term order of ring
-        macaulay2 (bool; default: False) -- whether or not to use Macaulay2 (multivariate only)
 
     EXAMPLES:
         sage: PolynomialRing(ZZ)
@@ -69,7 +69,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
         Sparse Univariate Polynomial Ring in abc over Rational Field
         sage: PolynomialRing(QQ, 3, sparse=True)
         Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: PolynomialRing(QQ, 3, macaulay2=True)
+        sage: PolynomialRing(QQ, 3)
         Polynomial Ring in x0, x1, x2 over Rational Field
     """
     if isinstance(name, (int,long,integer.Integer)):
@@ -79,7 +79,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None, m
             names = sparse
         if order is None:
             order = 'degrevlex'
-        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order, macaulay2=macaulay2)
+        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order)
 
     #global _objsPolynomialRing
     #key = (base_ring, name, sparse)

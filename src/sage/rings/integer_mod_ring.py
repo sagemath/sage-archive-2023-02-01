@@ -10,6 +10,7 @@ EXAMPLES:
 AUTHORS
     -- William Stein (initial code)
     -- David Joyner (2005-12-22): most examples
+    -- Robert Bradshaw (2006-08-24) Convert to pyrex
 """
 
 #*****************************************************************************

@@ -116,7 +116,7 @@ def EllipticCurve(x, y=None):
     if isinstance(x[0], (rings.Rational, rings.Integer, int, long)):
         return ell_rational_field.EllipticCurve_rational_field(x, y)
 
-    elif isinstance(x[0], (rings.FiniteFieldElement, rings.IntegerMod)):
+    elif isinstance(x[0], rings.FiniteFieldElement) or rings.is_IntegerMod(x[0]):
         return ell_finite_field.EllipticCurve_finite_field(x, y)
 
     else:

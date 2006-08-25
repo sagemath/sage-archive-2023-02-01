@@ -260,7 +260,7 @@ cdef class GFq(FiniteField):
         from sage.rings.polynomial_element import Polynomial
         from sage.modules.free_module_element import FreeModuleElement
         from sage.rings.finite_field_element import FiniteFieldElement
-        from sage.rings.integer_mod_pyx import IntegerMod
+        from sage.rings.integer_mod_pyx import is_IntegerMod
         from sage.rings.rational import Rational
         from sage.ext.integer import Integer
 
@@ -277,7 +277,7 @@ cdef class GFq(FiniteField):
 
         ########
 
-        if isinstance(e, (Integer,int,long,IntegerMod)):
+        if isinstance(e, (Integer,int,long)) or is_IntegerMod(e):
             res = self.objectptr.initi(res,int(e))
 
         elif isinstance(e,float):
@@ -335,14 +335,14 @@ cdef class GFq(FiniteField):
         #from finite_field.py
 
         from sage.rings.finite_field_element import FiniteFieldElement
-        from sage.rings.integer_mod_pyx import IntegerMod
+        from sage.rings.integer_mod_pyx import is_IntegerMod
         from sage.rings.integer_mod_ring import IntegerModRing_generic
         from sage.ext.integer import Integer
 
         if isinstance(x, (int, long, Integer)):
             return self(x)
 
-        if isinstance(x, (FiniteFieldElement,IntegerMod,GFq_element)):
+        if isinstance(x, (FiniteFieldElemen,GFq_element)) or is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x

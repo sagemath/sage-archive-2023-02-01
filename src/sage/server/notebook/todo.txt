@@ -1,7 +1,23 @@
 CRITICAL BUGS:
   no known critical bugs!!
 
+BUGS:
+   [] screen corruption and freezing on either Firefox or Safari under
+      OS X both intel and powerpc.   Resizing the window and/or refreshing
+      the browser is a temporary work around.
+         Things to try: * turn off input box rescaling and or use <pre> and
+                          see what happens.
+                        * maybe timing of ajax requests is relevant (?)
+
 TODO/IDEAS:
+   [] Make a pdflatex output for entire worksheets -- this would lead to nice
+      pdf, etc. printing of worksheets.   The output would have embedded graphics
+      using the pdf backend -- for vector graphics -- or the .png backend for
+      more graphical graphics.
+
+   [] %auto -- it's too slow -- all the code to eval should probably
+      get pushed in in one lump (?) Or maybe that breaks something.
+      Also the red line on left doesn't get removed for auto-run code.
 
    [] Undo:  The SAGE Notebook *is* a wiki, albeit with minimal hyperlinking
 (so far).   From moinmoin's help:
@@ -25,9 +41,6 @@ with the notification feature (to a fixed auditor) for new material
 submission."
       Is there any reason why sage worksheets shouldn't have a
       change log of the input, at least as an *option*?
-
-   [] Make a latex output for entire worksheets -- this would lead to nice
-      pdf, etc. printing of worksheets.
 
    [] clicking anywhere below the last cell should create a new cell at the end.
 

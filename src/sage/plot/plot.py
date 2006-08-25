@@ -194,7 +194,24 @@ class Graphics(SageObject):
         self.__xmax = 1
         self.__ymin = -1
         self.__ymax = 1
+        self.__fontsize = 6
         self.__objects = []
+
+    def range(self, xmin=None, xmax=None, ymin=None, ymax=None):
+        """
+        Set the ranges of the x and y axes.
+        """
+        self.xmin(xmin)
+        self.xmax(xmax)
+        self.ymin(ymin)
+        self.ymax(ymax)
+
+    def fontsize(self, s=None):
+        """
+        Set the font size of axes labels and tick marks.
+        """
+        if not s is None:
+            self.__fontsize = s
 
     def xmax(self, new=None):
         """
@@ -440,8 +457,9 @@ class Graphics(SageObject):
         for x in xtslmajor:
             if x == y_axis_xpos:
                 continue
-            subplot.text(x, xlabel, format(x), fontsize=5,
-                         horizontalalignment="center", verticalalignment="top")
+            if self.__fontsize > 0:
+                subplot.text(x, xlabel, format(x), fontsize=self.__fontsize,
+                             horizontalalignment="center", verticalalignment="top")
 
             subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
                         color='k',linewidth=0.6))
@@ -457,8 +475,9 @@ class Graphics(SageObject):
         for y in ytslmajor:
             if y == x_axis_ypos:
                 continue
-            subplot.text(ylabel, y, format(y), fontsize=5, verticalalignment="center",
-                    horizontalalignment="right")
+            if self.__fontsize > 0:
+                subplot.text(ylabel, y, format(y), fontsize=self.__fontsize, verticalalignment="center",
+                        horizontalalignment="right")
 
             subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
                     color='k', linewidth=0.6))
@@ -474,10 +493,12 @@ class Graphics(SageObject):
             if not isinstance(al, (list,tuple)) or len(al) != 2:
                 raise TypeError, "axes_label must be a list of two strings."
             #x-axis label
-            subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=6,
+            if self.__fontsize > 0:
+                subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=self.__fontsize+2,
                          horizontalalignment="center", verticalalignment="center")
             #y-axis label
-            subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=6,
+            if self.__fontsize > 0:
+                subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=self.__fontsize+2,
                          horizontalalignment="center", verticalalignment="center")
 
 
@@ -487,6 +508,7 @@ class Graphics(SageObject):
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI, axes=True, axes_label=None,
+             fontsize=None,
              **args):
         """
         Show this graphics image with the default image viewer.
@@ -502,11 +524,13 @@ class Graphics(SageObject):
         """
         if EMBEDDED_MODE:
             self.save(filename, xmin, xmax, ymin, ymax, figsize,
-                    dpi=dpi, axes=axes, axes_label=axes_label)
+                      dpi=dpi, axes=axes, axes_label=axes_label,
+                      fontsize=fontsize)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,axes_label=axes_label)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi,
+                  axes=axes,axes_label=axes_label, fontsize=fontsize)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
@@ -550,7 +574,7 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None, verify=True):
+             axes=True, axes_label=None, verify=True, fontsize=None):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -586,6 +610,7 @@ class Graphics(SageObject):
             return
 
         xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+        self.fontsize(fontsize)
 
         figure = fig
         if not figure:

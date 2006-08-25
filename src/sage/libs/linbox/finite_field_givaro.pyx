@@ -260,7 +260,7 @@ cdef class GFq(FiniteField):
         from sage.rings.polynomial_element import Polynomial
         from sage.modules.free_module_element import FreeModuleElement
         from sage.rings.finite_field_element import FiniteFieldElement
-        from sage.rings.integer_mod import IntegerMod
+        from sage.rings.integer_mod_pyx import IntegerMod
         from sage.rings.rational import Rational
         from sage.ext.integer import Integer
 
@@ -335,7 +335,7 @@ cdef class GFq(FiniteField):
         #from finite_field.py
 
         from sage.rings.finite_field_element import FiniteFieldElement
-        from sage.rings.integer_mod import IntegerMod
+        from sage.rings.integer_mod_pyx import IntegerMod
         from sage.rings.integer_mod_ring import IntegerModRing_generic
         from sage.ext.integer import Integer
 

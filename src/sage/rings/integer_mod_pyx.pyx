@@ -331,7 +331,7 @@ cdef class IntegerMod(sage.ext.element.CommutativeRingElement):
             sage: a.crt(b)
             125900000037
         AUTHOR:
-            Robert Bradshaw
+            -- Robert Bradshaw
         """
         if not isinstance(py_other, IntegerMod):
             raise TypeError, "other must be an integer mod"

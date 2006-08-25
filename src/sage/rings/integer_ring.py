@@ -54,7 +54,7 @@ import principal_ideal_domain
 import sage.rings.integer
 import sage.rings.infinity
 import sage.rings.rational
-import sage.rings.integer_mod
+import sage.rings.integer_mod_pyx
 import sage.rings.rational_field
 import sage.rings.ideal
 import sage.structure.factorization as factorization
@@ -150,7 +150,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
 
     def __call__(self, x, base=0):
-        if isinstance(x, sage.rings.integer_mod.IntegerMod):
+        if isinstance(x, sage.rings.integer_mod_pyx.IntegerMod):
             x = x.lift()
         return sage.rings.integer.Integer(x, base)
 

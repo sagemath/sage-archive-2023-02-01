@@ -35,7 +35,7 @@ from infinity import infinity
 import arith
 import coerce
 import integer
-import integer_mod
+import integer_mod_pyx
 import padic_field
 import sage.rings.arith
 import rational
@@ -289,7 +289,7 @@ class pAdic(field_element.FieldElement):
             prec = min(self.__prec, self.parent().prec())
         else:
             prec = self.__prec
-        return integer_mod.Mod(self.__unit, self.__p**prec).multiplicative_order()
+        return integer_mod_pyx.Mod(self.__unit, self.__p**prec).multiplicative_order()
 
     def copy(self):
         return pAdic(self.__parent, self.__unit, self.__prec, self.__ordp)

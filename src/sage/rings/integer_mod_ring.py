@@ -36,7 +36,7 @@ import weakref
 import arith
 import commutative_ring
 import field
-import integer_mod
+import integer_mod_pyx as integer_mod # TODO: either change the filenames or change every occurrence of integer_mod
 import integer
 import integer_ring
 import rational

@@ -30,7 +30,6 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_field import is_RealField
 import sage.misc.functional
-from multi_polynomial_element_pyx import *
 
 class PolynomialRing_singular_repr:
     """
@@ -264,7 +263,7 @@ class Polynomial_singular_repr:
             self.parent()._singular_(singular).set_ring() #this is expensive
 
         if hasattr(self,"element"):
-            self.__singular = singular(mpoly_repr_pyx(self))
+            self.__singular = singular(str(self))
         else:
             self.__singular = singular(str(self))
 

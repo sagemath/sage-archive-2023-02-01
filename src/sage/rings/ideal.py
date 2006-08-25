@@ -360,7 +360,7 @@ def FieldIdeal(R):
     Let q = R.base_ring().order() and (x0,...,x_n) = R.gens() then if
     q is finite this constructor returns
 
-    $\langle x_0^q + x_0, \dots , x_n^q + x_n \rangle.$
+    $\langle x_0^q - x_0, \dots , x_n^q - x_n \rangle.$
 
     We call this ideal the field ideal and the generators the field
     equations.
@@ -371,4 +371,4 @@ def FieldIdeal(R):
     if q == Infinity:
         raise TypeError, "Cannot construct field ideal for R.base_ring().order()==infinity"
 
-    return R.ideal([x**q+x for x in R.gens() ])
+    return R.ideal([x**q - x for x in R.gens() ])

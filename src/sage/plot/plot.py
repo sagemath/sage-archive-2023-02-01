@@ -922,7 +922,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
     Text graphics primitive.
     """
     def __init__(self, string, point, options):
-        self.string = string
+        self.string = str(string)
         self.x = point[0]
         self.y = point[1]
         GraphicPrimitive.__init__(self, options)

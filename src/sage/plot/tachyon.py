@@ -3,9 +3,9 @@ Interface to the Tachyon Ray Tracer
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com) -- wrote tachyon ray tracer
-    -- William Stein -- write interface
+    -- William Stein -- sage-tachyon interface
     -- Joshua Kantor -- 3d function plotting
-    -- Tom Boothby -- stuff
+    -- Tom Boothby -- 3d function plotting n'stuff
 
 TODO:
    -- currently only spheres, lights, and textures are wrapped.  need to add triangles, etc.
@@ -209,401 +209,30 @@ class Tachyon(SageObject):
     def triangle(self, vertex_1, vertex_2, vertex_3, texture):
 	 self._objects.append(Triangle(vertex_1,vertex_2,vertex_3,texture))
 
-    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,max_var=.1,max_depth=5,initial_depth=3,num_colors=False):
+    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,max_var=.1,max_depth=5,initial_depth=3):
         """
-        General caveat, this code needs work, its was my proof of concept of a
-        way to construct a mesh with nonstandard sampling density that was a
-        true mesh without gaps. At high resolutions it becomes very
-        slow. pyrex may help but as me and Tom have discussed algorithmically
-        the complexity is bad. At some level of resolution it will be cheaper
-        to sample uniformly at a high resolution.
+        Plots a function by constructing a mesh with nonstandard sampling density
+        without gaps. At very high resolutions (depths > 10) it becomes very
+        slow.  Pyrex may help.  Complexity is approx. O(2^{2*max_depth}).  This
+        algorithm has been optimized for speed, not memory -- values from f(x,y) are
+        recycled rather than calling the function multiple times.  At high recursion
+        depth, this may cause problems for some machines.
 
         EXAMPLE:
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return(float(math.sin(x*y)))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
-            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3,num_colors=60)  # change initial_dept to 5 for better picture
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6)  # increase min_depth for better picture
             sage.: t.show()
         """
-        Tachyplot(self,f,(xmin,ymin),xmax-xmin,ymax-ymin,texture,max_var = max_var, max_depth=max_depth, initial_depth=initial_depth,num_colors=num_colors)
+        TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var)
 
     def collect(self, objects):
         """Add a set of objects to the scene from a collection"""
         self._objects.extend(objects)
 
 
-
-
-class Tachyplot:
-    def __init__(self,tachyon,f,corner,x_side,y_side,texture,max_var=.1,max_depth=5,initial_depth=3,num_colors=False):
-         self.tachyon = tachyon
-         self.plot_texture=texture
-         self.max_depth=max_depth
-         self.max_var=.1
-         self.initial_depth=initial_depth
-         self.x_side=x_side
-         self.y_side=y_side
-         self.corner=corner
-         from sage.rings.rational_field import RationalField
-         self.f=f
-         self.mesh_point_list={}
-         self.trilist=[]
-         self.max=f(corner[0],corner[1])
-         self.min=self.max
-         self.trilist.extend(self.initialrefine(0,0,0)[1])
-         if num_colors==False:
-             tachyon.collect(self.trilist)
-         else:
-             for i in range(num_colors):
-                 tachyon.texture('tri_col%d'%i,ambient=.1,diffuse = .9,specular = .3, opacity=1.0,color=hue(float(i)/float(num_colors)))
-
-             i = 0
-             #print('constructing color map')
-
-             z_range = self.max - self.min
-             if z_range != 0:
-                 for t in self.trilist:
-                     ave = (.33333)*(t._vertex_1[2]+t._vertex_2[2]+t._vertex_3[2])
-                     t._texture = 'tri_col%d'%int(num_colors*(ave-self.min)/z_range)
-
-             tachyon.collect(self.trilist)
-
-
-#    def naive_non_recursive_refine(self,linear_density)
-#        l={}
-#        for i in range(linear_density):
-#            for j in range(linear_density):
-#
-#l[(i,j)]=self.mesh_refine_2(self.corner[0]+i*x_side*1.0/linear_density,self.corner[1]+j*x_side*1.0/linear_density,x_side*1.0/linear_density,y_side*1.0/linear_density,depth)
-#
-#        for i in range(linear_densityr):
-#            for j in range(linear_densityr):
-
-
-    def initialrefine(self,x,y,depth):
-
-        d = .5**depth
-        d1 = .5**(depth+1)
-
-
-        center=(float(self.corner[0]+float(x+d1)*self.x_side),\
-                float(self.corner[1]+float(y+d1)*self.y_side))
-
-
-        p1 = (float(self.corner[0]+float(x*self.x_side)),float(self.corner[1]+float(y*self.y_side)))
-
-        p2 = (float(self.corner[0]+float(x+d)*self.x_side),float(self.corner[1]+float(y*self.y_side)))
-
-        p3 = (float(self.corner[0]+x*self.x_side),float( self.corner[1]+float(y+d)*self.y_side))
-
-
-        p4 = (float(self.corner[0]+float(x+d)*self.x_side) ,\
-              float(self.corner[1]+float(y+d)*self.y_side))
-
-
-
-        if depth<self.initial_depth:
-            tri_list=[]
-            point_list=[]
-            list1 = self.initialrefine(x,y,depth+1)
-            list2 = self.initialrefine(x+d1,y,depth+1)
-            list3 = self.initialrefine(x,y+d1,depth+1)
-            list4 = self.initialrefine(x+d1,y+d1,depth+1)
-            tri_list.extend(list1[1])
-            tri_list.extend(list2[1])
-            tri_list.extend(list3[1])
-            tri_list.extend(list4[1])
-            point_list.extend(list1[0])
-            point_list.extend(list2[0])
-            point_list.extend(list3[0])
-            point_list.extend(list4[0])
-
-            self.refine(point_list,tri_list)
-            fast_cull_triangles_python(tri_list,self.trilist,p1[0],p2[0],p1[1],p3[1])
-            fast_cull_points_python(point_list,p1[0],p2[0],p1[1],p3[1])
-
-            return[point_list,tri_list]
-
-        else:
-            return self.meshrefine(x,y,depth)
-
-    def meshrefine_2(self,x,y,x_side,y_side,depth):
-        d =.5**depth
-        d1 = .5**(depth+1)
-
-        center=(x+.5*x_side,y+.5*y_side,float(self.f(x+.5*x_side,y+.5*y_side)))
-
-        p1 = (x,y, float(self.f(x,y)))
-
-        p2 = (x+x_side,y,self.f(x+x_side,y))
-
-        p3 = (x,y+y_side,self.f(x,y+y_side))
-
-        p4 = (x+x_side,y+y_side,self.f(x+x_side,y+y_side))
-
-        self.max = max(p1[2],p2[2],p3[2],p4[2],self.max)
-        self.min = min(p1[2],p2[2],p3[2],p4[2],self.min)
-
-        t1 = (.5*p1[0]+.5*center[0],.5*p1[1]+.5*center[1],.5*p1[2]+.5*center[2])
-        t2 = (.5*p2[0]+.5*center[0],.5*p2[1]+.5*center[1],.5*p2[2]+.5*center[2])
-        t3 = (.5*p3[0]+.5*center[0],.5*p3[1]+.5*center[1],.5*p3[2]+.5*center[2])
-        t4 = (.5*p4[0]+.5*center[0],.5*p4[1]+.5*center[1],.5*p4[2]+.5*center[2])
-
-#        t1 = self.Q('1/2')*(p4[2]-p1[2])
-#        t2 = self.Q('1/2')*(p3[2]-p2[2])
-        b1 = -self.max_var<t1[2]-self.f(t1[0],t1[1])<self.max_var
-        b2 = -self.max_var<t2[2]-self.f(t2[0],t2[1])<self.max_var
-        b3 = -self.max_var<t3[2]-self.f(t3[0],t3[1])<self.max_var
-        b4 = -self.max_var<t4[2]-self.f(t4[0],t4[1])<self.max_var
-
-#        if max(p1[2]-center[2],p2[2]-center[2],p3[2]-center[2],p4[2]-center[2])> self.max_var and depth<self.max_depth:
-        if b1 and b2 and b3 and b4 and depth<self.max_depth:
-            tri_list=[]
-            point_list=[]
-            list1 = self.meshrefine(x,y,depth+1)
-            list2 = self.meshrefine(x+d1,y,depth+1)
-            list3 = self.meshrefine(x,y+d1,depth+1)
-            list4 = self.meshrefine(x+d1,y+d1,depth+1)
-            tri_list.extend(list1[1])
-            tri_list.extend(list2[1])
-            tri_list.extend(list3[1])
-            tri_list.extend(list4[1])
-            point_list.extend(list1[0])
-            point_list.extend(list2[0])
-            point_list.extend(list3[0])
-            point_list.extend(list4[0])
-
-            self.refine(point_list,tri_list)
-            fast_cull_points_python(point_list,p1[0],p2[0],p1[1],p3[1])
-            fast_cull_triangles_python(tri_list,self.trilist,p1[0],p2[0],p1[1],p3[1])
-            tri_list1=[]
-            tri_list2=[]
-            tri_list3=[]
-            tri_list4=[]
-
-            for t in tri_list:
-                if (t._vertex_1[0] == p1[0] and t._vertex_2[0]==p1[0]) or (t._vertex_1[0]==p1[0] and t._vertex_3[0]==p1[0]) or (t._vertex_2[0]==p1[0] and t._vertex_3[0]==p1[0]):
-                    tri_list1.append(t)
-                elif (t._vertex_1[0] == p2[0] and t._vertex_2[0]==p2[0]) or (t._vertex_1[0]==p2[0] and t._vertex_3[0]==p2[0]) or (t._vertex_2[0]==p2[0] and t._vertex_3[0]==p2[0]):
-                    tri_list2.append(t)
-
-                elif (t._vertex_1[1] == p2[1] and t._vertex_2[1]==p2[1]) or (t._vertex_1[1]==p2[1] and t._vertex_3[1]==p2[1]) or (t._vertex_2[1]==p2[1] and t._vertex_3[1]==p2[1]):
-                    tri_list3.append(t)
-
-                elif (t._vertex_1[1] == p3[1] and t._vertex_2[1]==p3[1]) or (t._vertex_1[1]==p3[1] and t._vertex_3[1]==p3[1]) or (t._vertex_2[1]==p3[1] and t._vertex_3[1]==p3[1]):
-                    tri_list4.append(t)
-
-
-            return[point_list,[tri_list1,tri_list2,tri_list3,tri_list4]]
-
-
-        else:
-            point_list=[]
-            trilist=[]
-            mesh_list=[point_list,trilist]
-            mesh_list[1].append(Triangle(p1,center,p2,self.plot_texture))
-            mesh_list[1].append(Triangle(p1,center,p3,self.plot_texture))
-            mesh_list[1].append(Triangle(p2,center,p4,self.plot_texture))
-            mesh_list[1].append(Triangle(p3,center,p4,self.plot_texture))
-#            mesh_list[1].append(Triangle(p1,p2,p4,self.plot_texture))
-#            mesh_list[1].append(Triangle(p1,p3,p4,self.plot_texture))
-            mesh_list[0].append(p1)
-            mesh_list[0].append(p2)
-            mesh_list[0].append(p3)
-            mesh_list[0].append(p4)
-            return(mesh_list)
-
-
-    def meshrefine(self,x,y,depth):
-        d =.5**depth
-        d1 = .5**(depth+1)
-
-        center=(float(self.corner[0]+(x+d1)*self.x_side),\
-                float(self.corner[1]+(y+d1)*self.y_side),\
-                float(self.f(self.corner[0]+(x+d1)*self.x_side,\
-                self.corner[1]+(y+d1)*self.y_side)))
-
-        p1 = (float(self.corner[0]+float(x*self.x_side)),float(self.corner[1]+float(y*self.y_side)), \
-            float(self.f(self.corner[0]+float(x*self.x_side),self.corner[1]+float(y*self.y_side))))
-
-        p2 = (float(self.corner[0]+float(x+d)*self.x_side),float(self.corner[1]+float(y*self.y_side)),\
-              float(self.f(self.corner[0]+float(x+d)*self.x_side,self.corner[1]+float(y*self.y_side))))
-
-        p3 = (float(self.corner[0]+x*self.x_side),float( self.corner[1]+float(y+d)*self.y_side), \
-              float(self.f(self.corner[0]+x*self.x_side, self.corner[1]+float(y+d)*self.y_side)))
-
-
-        p4 = (float(self.corner[0]+float(x+d)*self.x_side) ,\
-              float(self.corner[1]+float(y+d)*self.y_side), \
-              float(self.f( self.corner[0]+float(x+d)*self.x_side ,\
-              self.corner[1]+float(y+d)*self.y_side )))
-
-
-        self.max = max(p1[2],p2[2],p3[2],p4[2],self.max)
-        self.min = min(p1[2],p2[2],p3[2],p4[2],self.min)
-
-        t1 = (.5*p1[0]+.5*center[0],.5*p1[1]+.5*center[1],.5*p1[2]+.5*center[2])
-        t2 = (.5*p2[0]+.5*center[0],.5*p2[1]+.5*center[1],.5*p2[2]+.5*center[2])
-        t3 = (.5*p3[0]+.5*center[0],.5*p3[1]+.5*center[1],.5*p3[2]+.5*center[2])
-        t4 = (.5*p4[0]+.5*center[0],.5*p4[1]+.5*center[1],.5*p4[2]+.5*center[2])
-
-#        t1 = self.Q('1/2')*(p4[2]-p1[2])
-#        t2 = self.Q('1/2')*(p3[2]-p2[2])
-        b1 = -self.max_var<t1[2]-self.f(t1[0],t1[1])<self.max_var
-        b2 = -self.max_var<t2[2]-self.f(t2[0],t2[1])<self.max_var
-        b3 = -self.max_var<t3[2]-self.f(t3[0],t3[1])<self.max_var
-        b4 = -self.max_var<t4[2]-self.f(t4[0],t4[1])<self.max_var
-
-#        if max(p1[2]-center[2],p2[2]-center[2],p3[2]-center[2],p4[2]-center[2])> self.max_var and depth<self.max_depth:
-        if b1 and b2 and b3 and b4 and depth<self.max_depth:
-            tri_list=[]
-            point_list=[]
-            list1 = self.meshrefine(x,y,depth+1)
-            list2 = self.meshrefine(x+d1,y,depth+1)
-            list3 = self.meshrefine(x,y+d1,depth+1)
-            list4 = self.meshrefine(x+d1,y+d1,depth+1)
-            tri_list.extend(list1[1])
-            tri_list.extend(list2[1])
-            tri_list.extend(list3[1])
-            tri_list.extend(list4[1])
-            point_list.extend(list1[0])
-            point_list.extend(list2[0])
-            point_list.extend(list3[0])
-            point_list.extend(list4[0])
-
-            self.refine(point_list,tri_list)
-            fast_cull_points_python(point_list,p1[0],p2[0],p1[1],p3[1])
-            fast_cull_triangles_python(tri_list,self.trilist,p1[0],p2[0],p1[1],p3[1])
-
-            return[point_list,tri_list]
-
-        else:
-            point_list=[]
-            trilist=[]
-            mesh_list=[point_list,trilist]
-            mesh_list[1].append(Triangle(p1,center,p2,self.plot_texture))
-            mesh_list[1].append(Triangle(p1,center,p3,self.plot_texture))
-            mesh_list[1].append(Triangle(p2,center,p4,self.plot_texture))
-            mesh_list[1].append(Triangle(p3,center,p4,self.plot_texture))
-#            mesh_list[1].append(Triangle(p1,p2,p4,self.plot_texture))
-#            mesh_list[1].append(Triangle(p1,p3,p4,self.plot_texture))
-            mesh_list[0].append(p1)
-            mesh_list[0].append(p2)
-            mesh_list[0].append(p3)
-            mesh_list[0].append(p4)
-            return(mesh_list)
-
-    def refine(self,points,trilist):
-        points.sort(lexi_sort)
-        done = []
-        ##        print('number of triangles in mesh: %d '%len(self.trilist))
-        for p in points:
-            if p in done:
-                pass
-            else:
-                for t in trilist:
-
-                    if p[0]==t._vertex_1[0] and p[0]==t._vertex_2[0] and (t._vertex_1[1]<p[1] and p[1]<t._vertex_2[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        trilist.append(Triangle(t._vertex_1,p,t._vertex_3,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_2,t._vertex_3,self.plot_texture))
-
-
-                        break
-
-
-                    elif p[0]==t._vertex_1[0] and p[0]==t._vertex_3[0] and (t._vertex_1[1]<p[1] and p[1]<t._vertex_3[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        trilist.append(Triangle(t._vertex_1,p,t._vertex_2,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_3,t._vertex_2,self.plot_texture))
-
-                        break
-
-                    elif p[0]==t._vertex_2[0] and p[0]==t._vertex_3[0] and (t._vertex_2[1]<p[1] and p[1]<t._vertex_3[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        trilist.append(Triangle(t._vertex_2,p,t._vertex_1,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_3,t._vertex_1,self.plot_texture))
-
-                        break
-
-                    elif p[1]==t._vertex_1[1] and p[1]==t._vertex_2[1] and (t._vertex_1[0]<p[0] and p[0]<t._vertex_2[0]):
-                        trilist.remove(t)
-
-                        done.append(p)
-                        self.trilist.append(Triangle(t._vertex_1,p,t._vertex_3,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_2,t._vertex_3,self.plot_texture))
-
-                        break
-
-                    elif p[1]==t._vertex_1[1] and p[1]==t._vertex_3[1] and (t._vertex_1[0]<p[0] and p[0]<t._vertex_3[0]):
-                        trilist.remove(t)
-                        done.append(p)
-
-                        self.trilist.append(Triangle(t._vertex_1,p,t._vertex_2,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_3,t._vertex_2,self.plot_texture))
-                        break
-
-                    elif p[1]==t._vertex_2[1] and p[1]==t._vertex_3[1] and (t._vertex_2[0]<p[0] and p[0]<t._vertex_3[0]):
-                        trilist.remove(t)
-                        done.append(p)
-                        self.trilist.append(Triangle(t._vertex_2,p,t._vertex_1,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_3,t._vertex_1,self.plot_texture))
-
-                        break
-
-                    elif p[0]==t._vertex_1[0] and p[0]==t._vertex_2[0] and (t._vertex_1[1]>p[1] and p[1]>t._vertex_2[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        self.trilist.append(Triangle(t._vertex_1,p,t._vertex_3,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_2,t._vertex_3,self.plot_texture))
-
-                        break
-
-                    elif p[0]==t._vertex_1[0] and p[0]==t._vertex_3[0] and (t._vertex_1[1]>p[1] and p[1]>t._vertex_3[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        self.trilist.append(Triangle(t._vertex_1,p,t._vertex_2,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_3,t._vertex_2,self.plot_texture))
-
-                        break
-
-                    elif p[0]==t._vertex_2[0] and p[0]==t._vertex_3[0] and (t._vertex_2[1]>p[1] and p[1]>t._vertex_3[1]):
-                        trilist.remove(t)
-                        done.append(p)
-                        self.trilist.append(Triangle(t._vertex_2,p,t._vertex_1,self.plot_texture))
-                        trilist.append(Triangle(p,t._vertex_3,t._vertex_1,self.plot_texture))
-
-                        break
-
-                    elif p[1]==t._vertex_1[1] and p[1]==t._vertex_2[1] and (t._vertex_1[0]>p[0] and p[0]>t._vertex_2[0]):
-                        trilist.remove(t)
-                        done.append(p)
-
-                        trilist.append(Triangle(t._vertex_1,p,t._vertex_3,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_2,t._vertex_3,self.plot_texture))
-
-                        break
-
-                    elif p[1]==t._vertex_1[1] and p[1]==t._vertex_3[1] and (t._vertex_1[0]>p[0] and p[0]>t._vertex_3[0]):
-                        trilist.remove(t)
-                        done.append(p)
-
-                        trilist.append(Triangle(t._vertex_1,p,t._vertex_2,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_3,t._vertex_2,self.plot_texture))
-                        break
-
-                    elif p[1]==t._vertex_2[1] and p[1]==t._vertex_3[1] and (t._vertex_2[0]>p[0] and p[0]>t._vertex_3[0]):
-                        trilist.remove(t)
-                        done.append(p)
-
-                        trilist.append(Triangle(t._vertex_2,p,t._vertex_1,self.plot_texture))
-                        self.trilist.append(Triangle(p,t._vertex_3,t._vertex_1,self.plot_texture))
-
-                        break
 
 
 
@@ -706,6 +335,203 @@ class Triangle:
 	  %s
 	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3), self._texture)
 
+
+
+
+class TachyonPlot:
+    #Recursively plots a function of two variables by building squares of 4 triangles, checking at
+    # every stage whether or not each square should be split into four more squares.  This way,
+    # more planar areas get fewer triangles, and areas with higher curvature get more trianges
+
+    def __init__(self, tachyon, f, (min_x, max_x), (min_y, max_y), tex, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
+        self._tachyon = tachyon
+        self._f = f
+        self._tex = tex
+        self._min_depth = min_depth
+        self._max_depth = max_depth
+        self._e_rel = e_rel
+        self._e_abs = e_abs
+        self._trianglist = []
+        self._eps = min(max_x - min_x, max_y - min_y)/(2**max_depth)
+
+        # generate the necessary data to kick-start the recursion
+        mid_x = (min_x + max_x)/2
+        mid_y = (min_y + max_y)/2
+        sw_z = f(min_x,min_y)
+        nw_z = f(min_x,max_y)
+        se_z = f(max_x,min_y)
+        ne_z = f(max_x,max_y)
+        mid_z = f(mid_x,mid_y)
+
+        # jump in and start building blocks
+        outer = self.plot_block(min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, 0)
+
+        # build the boundary triangles
+        self.triangulate(outer.left, outer.left_c)
+        self.triangulate(outer.top, outer.top_c)
+        self.triangulate(outer.right, outer.right_c)
+        self.triangulate(outer.bottom, outer.bottom_c)
+
+    def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
+
+        if depth < self._max_depth:
+            # recursion is still an option -- step in one last level if we're within tolerance
+            # and just keep going if we're not.
+            # assumption: it's cheap to build triangles, so we might as well use all the data
+            # we calculate
+
+            # big square boundary midpoints
+            mid_w_z = self._f(min_x, mid_y)
+            mid_n_z = self._f(mid_x, max_y)
+            mid_e_z = self._f(max_x, mid_y)
+            mid_s_z = self._f(mid_x, min_y)
+
+            # midpoints locations of sub_squares
+            qtr1_x = (min_x + mid_x)/2
+            qtr1_y = (min_y + mid_y)/2
+            qtr3_x = (mid_x + max_x)/2
+            qtr3_y = (mid_y + max_y)/2
+
+            # function evaluated at these midpoints
+            mid_sw_z = self._f(qtr1_x,qtr1_y)
+            mid_nw_z = self._f(qtr1_x,qtr3_y)
+            mid_se_z = self._f(qtr3_x,qtr1_y)
+            mid_ne_z = self._f(qtr3_x,qtr3_y)
+
+            # linearization estimates of midpoints
+            est_sw_z = (mid_z + sw_z)/2
+            est_nw_z = (mid_z + nw_z)/2
+            est_se_z = (mid_z + se_z)/2
+            est_ne_z = (mid_z + ne_z)/2
+
+            tol_check = [(est_sw_z, mid_sw_z), (est_nw_z, mid_nw_z), (est_se_z, mid_se_z), (est_ne_z, mid_ne_z)]
+
+            if depth < self._min_depth or not self.tol_list(tol_check):
+                next_depth = depth + 1
+            else:
+                #lie about the depth to halt recursion
+                next_depth = self._max_depth
+
+            # recurse into the sub-squares
+            sw = self.plot_block(min_x, qtr1_x, mid_x, min_y, qtr1_y, mid_y, sw_z, mid_w_z, mid_s_z, mid_z, mid_sw_z, next_depth)
+            nw = self.plot_block(min_x, qtr1_x, mid_x, mid_y, qtr3_y, max_y, mid_w_z, nw_z, mid_z, mid_n_z, mid_nw_z, next_depth)
+            se = self.plot_block(mid_x, qtr3_x, max_x, min_y, qtr1_y, mid_y, mid_s_z, mid_z, se_z, mid_e_z, mid_se_z, next_depth)
+            ne = self.plot_block(mid_x, qtr3_x, max_x, mid_y, qtr3_y, max_y, mid_z, mid_n_z, mid_e_z, ne_z, mid_ne_z, next_depth)
+
+            # join the sub-squares
+            self.interface(1, sw.right, sw.right_c, se.left, se.left_c)
+            self.interface(1, nw.right, nw.right_c, ne.left, ne.left_c)
+            self.interface(0, sw.top, sw.top_c, nw.bottom, nw.bottom_c)
+            self.interface(0, se.top, se.top_c, ne.bottom, ne.bottom_c)
+
+            #get the boundary information about the subsquares
+            left     = sw.left     + nw.left[1:]
+            left_c   = sw.left_c   + nw.left_c
+            right    = se.right    + ne.right[1:]
+            right_c  = se.right_c  + ne.right_c
+            top      = nw.top      + ne.top[1:]
+            top_c    = nw.top_c    + ne.top_c
+            bottom   = sw.bottom   + se.bottom[1:]
+            bottom_c = sw.bottom_c + se.bottom_c
+
+        else:
+            # just build the square we're in
+            sw = (min_x,min_y,sw_z)
+            nw = (min_x,max_y,nw_z)
+            se = (max_x,min_y,se_z)
+            ne = (max_x,max_y,ne_z)
+            c  = [(mid_x,mid_y,mid_z)]
+
+            left = [sw,nw]
+            left_c = c
+            top = [nw,ne]
+            top_c = c
+            right = [se,ne]
+            right_c = c
+            bottom = [sw,se]
+            bottom_c = c
+
+        return PlotBlock(left, left_c, top, top_c, right, right_c, bottom, bottom_c)
+
+    def tol(self, (est, val)):
+        # Check relative, then absolute tolerance.  If both fail, return False
+        # This is a zero-safe error checker
+
+        if abs(est - val) < self._e_rel*abs(val):
+            return True
+        if abs(est - val) < self._e_abs:
+            return True
+        return False
+
+    def tol_list(self, l):
+        # Pass in a list of pairs of numbers, (est, val) to be passed to self.tol
+        # returns False if any pair does not fall within tolerance level
+
+        for p in l:
+            if not self.tol(p):
+                return False
+        return True
+
+    def interface(self, n, p, p_c, q, q_c):
+        # Takes a pair of lists of points, and compares the (n)th coordinate, and
+        # "zips" the lists together into one.  The "centers", supplied in p_c and
+        # q_c are matched up such that the lists describe triangles whose sides
+        # are "perfectly" aligned.  This algorithm assumes that p and q start and
+        # end at the same point, and are sorted smallest to largest.
+
+        m   = [p[0]] # a sorted union of p and q
+        mpc = [p_c[0]] # centers from p_c corresponding to m
+        mqc = [q_c[0]] # centers from q_c corresponding to m
+
+        i = 1
+        j = 1
+
+        while i < len(p_c) or j < len(q_c):
+            if abs(p[i][n] - q[j][n]) < self._eps:
+                m.append(p[i])
+                mpc.append(p_c[i])
+                mqc.append(q_c[j])
+                i += 1
+                j += 1
+            elif p[i][n] < q[j][n]:
+                m.append(p[i])
+                mpc.append(p_c[i])
+                mqc.append(mqc[-1])
+                i += 1
+            else:
+                m.append(q[j])
+                mpc.append(mpc[-1])
+                mqc.append(q_c[j])
+                j += 1
+
+        m.append(p[-1])
+
+        self.triangulate(m, mpc)
+        self.triangulate(m, mqc)
+
+
+    def triangulate(self, p, c):
+        # Pass in a list of edge points (p) and center points (c).
+        # Triangles will be rendered between consecutive edge points and the
+        # center point with the same index number as the earlier edge point.
+
+        for i in range(0,len(p)-1):
+            self._tachyon.triangle(p[i], p[i+1], c[i], self._tex)
+
+
+class PlotBlock:
+   def __init__(self, left, left_c, top, top_c, right, right_c, bottom, bottom_c):
+       self.left = left
+       self.left_c = left_c
+       self.top = top
+       self.top_c = top_c
+       self.right = right
+       self.right_c = right_c
+       self.bottom = bottom
+       self.bottom_c = bottom_c
+
+
+
 def tostr(s):
     if isinstance(s, str):
         return s
@@ -753,72 +579,3 @@ def hue(h, s=1, v=1):
             v += 1
     c = hsv_to_rgb(h, s, v)
     return (float(c[0]), float(c[1]), float(c[2]))
-
-def lexi_sort(p,q):
-    if p[1]>q[1]:
-        return -1
-    elif p[1]<q[1]:
-        return 1
-    elif p[0]<q[0]:
-        return -1
-    elif p[0]>q[0]:
-        return 1
-    else:
-        return 0
-
-
-
-
-
-
-def fast_cull_triangles_python(trilist,final_list,x_min,x_max, y_min, y_max):
-
-	c_len=len(trilist)
-
-	list = []
-
-        for j in range(c_len):
-		vertex_1_x = trilist[j]._vertex_1[0]
-		vertex_1_y = trilist[j]._vertex_1[1]
-		vertex_2_x = trilist[j]._vertex_2[0]
-		vertex_2_y = trilist[j]._vertex_2[1]
-		vertex_3_x = trilist[j]._vertex_3[0]
-		vertex_3_y = trilist[j]._vertex_3[1]
-		Bool1 = x_min < vertex_1_x < x_max
-		Bool2 = y_min < vertex_1_y < y_max
-		Bool3 = x_min < vertex_2_x < x_max
-		Bool4 = y_min < vertex_2_y < y_max
-		Bool5 = x_min < vertex_3_x < x_max
-		Bool6 = y_min < vertex_3_y < y_max
-
-		if Bool1 and Bool2 and Bool3 and Bool4 and Bool5 and Bool6:
-			list.append(trilist[j])
-			final_list.append(trilist[j])
-
-	c_len = len(list)
-        for j in range(c_len):
-		trilist.remove(list[j])
-
-
-
-def fast_cull_points_python(pointlist,x_min, x_max, y_min, y_max):
-
-	c_len=len(pointlist)
-	list = []
-
-        for j in range(c_len):
-		vertex_1_x = pointlist[j][0]
-		vertex_1_y = pointlist[j][1]
-		Bool1 = x_min < vertex_1_x < x_max
-		Bool2 = y_min < vertex_1_y < y_max
-
-		if Bool1 and Bool2:
-			list.append(pointlist[j])
-
-	c_len = len(list)
-        for j in range(c_len):
-		pointlist.remove(list[j])
-
-
-
-

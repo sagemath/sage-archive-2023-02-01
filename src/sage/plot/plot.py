@@ -195,6 +195,7 @@ class Graphics(SageObject):
         self.__ymin = -1
         self.__ymax = 1
         self.__fontsize = 6
+        self.__show_axes = True
         self.__objects = []
 
     def range(self, xmin=None, xmax=None, ymin=None, ymax=None):
@@ -209,9 +210,30 @@ class Graphics(SageObject):
     def fontsize(self, s=None):
         """
         Set the font size of axes labels and tick marks.
+
+        If called with no input, return the current fontsize.
         """
-        if not s is None:
-            self.__fontsize = s
+        if s is None:
+            try:
+                return self.__fontsize
+            except AttributeError:
+                self.__fontsize = 6
+                return self.__fontsize
+        self.__fontsize = s
+
+    def axes(self, show=None):
+        """
+        Set whether or not the x and y axes are shown by default.
+
+        If called with no input, return the current axes setting.
+        """
+        if show is None:
+            try:
+                return self.__show_axes
+            except AttributeError:
+                self.__show_axes = True
+                return self.__show_axes
+        self.__show_axes = bool(show)
 
     def xmax(self, new=None):
         """
@@ -457,8 +479,8 @@ class Graphics(SageObject):
         for x in xtslmajor:
             if x == y_axis_xpos:
                 continue
-            if self.__fontsize > 0:
-                subplot.text(x, xlabel, format(x), fontsize=self.__fontsize,
+            if self.fontsize() > 0:
+                subplot.text(x, xlabel, format(x), fontsize=self.fontsize(),
                              horizontalalignment="center", verticalalignment="top")
 
             subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
@@ -475,8 +497,8 @@ class Graphics(SageObject):
         for y in ytslmajor:
             if y == x_axis_ypos:
                 continue
-            if self.__fontsize > 0:
-                subplot.text(ylabel, y, format(y), fontsize=self.__fontsize, verticalalignment="center",
+            if self.fontsize() > 0:
+                subplot.text(ylabel, y, format(y), fontsize=self.fontsize(), verticalalignment="center",
                         horizontalalignment="right")
 
             subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
@@ -493,12 +515,12 @@ class Graphics(SageObject):
             if not isinstance(al, (list,tuple)) or len(al) != 2:
                 raise TypeError, "axes_label must be a list of two strings."
             #x-axis label
-            if self.__fontsize > 0:
-                subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=self.__fontsize+2,
+            if self.fontsize() > 0:
+                subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=self.fontsize()+2,
                          horizontalalignment="center", verticalalignment="center")
             #y-axis label
-            if self.__fontsize > 0:
-                subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=self.__fontsize+2,
+            if self.fontsize() > 0:
+                subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=self.fontsize()+2,
                          horizontalalignment="center", verticalalignment="center")
 
 
@@ -507,7 +529,7 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None,
+             dpi=DEFAULT_DPI, axes=None, axes_label=None,
              fontsize=None,
              **args):
         """
@@ -574,7 +596,7 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None, verify=True, fontsize=None):
+             axes=None, axes_label=None, verify=True, fontsize=None):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -643,6 +665,8 @@ class Graphics(SageObject):
         subplot._frameon = False
         subplot.set_xlim(xmin, xmax)
         subplot.set_ylim(ymin, ymax)
+        if axes is None:
+            axes = self.axes()
         if axes:
             self._add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
 
@@ -1713,10 +1737,44 @@ class GraphicsArray(SageObject):
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
-def graphics_array(array):
+def reshape(v, n, m):
+    G = Graphics()
+    G.axes(False)
+    if len(v) == 0:
+        return [[G]*m]*n
+
+    if not isinstance(v[0], Graphics):
+        # a list of lists -- flatten it
+        v = sum([list(x) for x in v], [])
+
+    # Now v should be a single list.
+    # First, make it have the right length.
+    for i in xrange(n*m - len(v)):
+        v.append(G)
+
+    # Next, create a list of lists out of it.
+    L = []
+    k = 0
+    for i in range(n):
+        w = []
+        for j in range(m):
+            w.append(v[k])
+            k += 1
+        L.append(w)
+    return L
+
+
+def graphics_array(array, n=None, m=None):
     r"""
     \code{graphics_array} take a list of lists (or tuples)
     of graphics objects and plots them all on one canvas (single plot).
+
+    INPUT:
+         array -- a list of lists or tuples
+         n, m -- (optional) integers -- if n and m are given then
+                 the input array is flattened and turned into an
+                 n x m array, with blank graphics objects padded
+                 at the end, if necessary.
 
     EXAMPLE:
     Make some plots of $\sin$ functions:
@@ -1741,6 +1799,12 @@ def graphics_array(array):
         Graphics Array of size 1 x 2
 
     """
+    if not n is None:
+        # Flatten then reshape input
+        n = int(n)
+        m = int(m)
+        array = reshape(array, n, m)
+
     G = GraphicsArray(array)
     return G
 

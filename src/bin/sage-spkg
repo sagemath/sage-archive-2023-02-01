@@ -192,7 +192,7 @@ if [ $? -eq 0 ]; then
    echo "Successfully installed $PKG_NAME"
 else
    echo "sage: An error occured while installing $PKG_NAME"
-   echo "Please email William Stein <wstein@ucsd.edu> explaining the"
+   echo "Please email William Stein <wstein@gmail.com> explaining the"
    echo "problem and send him $SAGE_ROOT/install.log"
    echo "If you want to try to fix the problem, *don't* just cd to"
    echo "`pwd` and type 'make'."

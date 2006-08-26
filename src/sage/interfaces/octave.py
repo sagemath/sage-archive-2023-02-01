@@ -171,7 +171,14 @@ class Octave(Expect):
            * This website has links to binaries for OS X PowerPC
              and OS X Intel builds of the latest version of Octave:
                      http://hpc.sourceforge.net/
-           * Don't bother with fink.
+             Once you get the tarball from there, go to the / directory
+             and type
+                     tar zxvf octave-intel-bin.tar.gz
+             to extract it to usr/local/...   Make sure /usr/local/bin
+             is in your PATH.  Then type "octave" and verify that
+             octave starts up.
+           * Don't bother with fink -- if they have octave at all,
+             it's probably out of date.
            * Darwin ports has octave as well.
         """
 

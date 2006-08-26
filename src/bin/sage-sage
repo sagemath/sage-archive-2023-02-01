@@ -459,6 +459,13 @@ if [ $1 = '-preparse' ]; then
     exit $?
 fi
 
+if [ $1 = '-pyrex' ]; then
+    shift
+    cd "$CUR"
+    pyrexc $*
+    exit $?
+fi
+
 if [ $# -ge 1 ]; then
    # rewrite this to not use IPYTHON at all ?
    matplotlib_setup

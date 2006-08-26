@@ -51,6 +51,8 @@ def _absolute(cmd):
     c = cmd.split()
     s  = c[0]
     t = os.popen('which %s'%s).read().strip()
+    if len(t) == 0:
+        raise RuntimeError
     return ' '.join([t] + c[1:])
 
 
@@ -234,14 +236,20 @@ class Expect(SageObject):
         #sage: m = pexpect.spawn('magma')
         #sage: m.interact()  # -- boom!
 
-        cmd = _absolute(self.__command)
+        try:
+            cmd = _absolute(self.__command)
+        except RuntimeError:
+            failed_to_start.append(self.__name)
+            raise RuntimeError, "%s\nCommand %s not available."%(
+                 self._install_hints(), self.__name)
 
         if self.__verbose_start:
             print "Starting %s"%cmd.split()[0]
+
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
 
-        except (pexpect.ExceptionPexpect, pexpect.EOF):
+        except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)

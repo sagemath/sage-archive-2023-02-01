@@ -256,6 +256,36 @@ class Maple(Expect):
     def _quit_string(self):
         return 'quit'
 
+    def _install_hints(self):
+        """
+        Hints for installing mathematica on your computer.
+
+        AUTHOR:
+            -- William Stein and Justin Walker (2006-02-12).
+        """
+        return """
+In order to use the Maple interface you need to have Maple installed
+and have a script in your PATH called "maple" that runs the
+command-line version of Maple.
+
+  (1) You might have to buy Maple (list price: $1995.00 !!) at
+             http://webstore.maplesoft.com/
+
+  (2) * LINUX: The maple script comes standard with your Maple install.
+
+      * APPLE OS X:
+          (a) create a file called maple (in your PATH), with the following contents:
+             #!/bin/sh
+             /Library/Frameworks/Maple.framework/Versions/Current/bin/maple $@
+          (b) Save the file.
+          (c) Make the file executable.
+                chmod +x maple
+
+      * WINDOWS:
+        I have no idea (yet!), except of course you could install
+        Maple-for-Linux into the colinux machine.
+"""
+
     def expect(self):
         return self._expect
 

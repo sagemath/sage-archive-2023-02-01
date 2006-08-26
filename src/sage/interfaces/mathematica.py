@@ -273,10 +273,29 @@ command-line version of Mathematica.
 
   (2) * LINUX: The math script comes standard with your Mathematica install.
 
+
+      * APPLE OS X:
+          (a) create a file called math (in your PATH):
+              #!/bin/sh
+              /Applications/Mathematica\ 5.2.app/Contents/MacOS/MathKernel $@
+
+          Note that the 5.2 part will depend on the version of
+          Mathematica you have, and the above path could be different
+          if you installed mathematica elsewhere.
+
+          (b) Make the file executable.
+                chmod +x math
+
       * WINDOWS:
+        The following only works with SAGE for Cygwin (not colinux).
+        Note that SAGE colinux is the preferred way to run SAGE in Windows,
+        and I do not know how to use mathematica from colinux SAGE (unless
+        you install Mathematica-for-linux into the colinux machine, which
+        is possible).
+
         Create a file named "math", which you place in the SAGE root
         directory.  The file contained a single line, which was the
-        path to the mathematica math.exe file.  In my case, this was:
+        path to the mathematica math.exe file.  In my case, this might be:
 
         C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
 
@@ -290,19 +309,6 @@ command-line version of Mathematica.
            and probably surrounding everything in quotes
         3) this cygwin batch file must be on the path for SAGE (placing
            it in <SAGE_ROOT>/local/bin/ is an easy way to ensure this).
-
-      * APPLE OS X: Use following directions, based on those at
-      http://support.wolfram.com/applicationpacks/parallel/remoteosxpct2.html
-          (a) create a file called math (in your PATH)
-          (b) on the first line type the text #!/bin/sh
-          (c) On the second line, type the path to the Mathematica kernel
-              on Mac OS X, followed by $@. For example, if you installed
-              Mathematica 5.0 into your Applications directory on Mac OS X,
-              the second line would read as follows.
-                /Applications/Mathematica\ 5.0.app/Contents/MacOS/MathKernel $@
-          (d) Save the file.
-          (e) Make the file executable.
-                chmod +x math
 """
 
     def eval(self, code, strip=True):

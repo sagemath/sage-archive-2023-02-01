@@ -157,6 +157,24 @@ class Octave(Expect):
     def _quit_string(self):
         return 'quit;'
 
+    def _install_hints(self):
+        return """
+        You must get the program "octave" in order to use Octave
+        from SAGE.   You can read all about Octave at
+                http://www.gnu.org/software/octave/
+
+        LINUX / WINDOWS (colinux):
+           Do apt-get install octave as root on your machine
+           (or, in Windows, in the colinux console).
+
+        OS X:
+           * This website has links to binaries for OS X PowerPC
+             and OS X Intel builds of the latest version of Octave:
+                     http://hpc.sourceforge.net/
+           * Don't bother with fink.
+           * Darwin ports has octave as well.
+        """
+
     def quit(self, verbose=False):
         # Don't bother, since it just hangs in some cases, and it
         # isn't necessary, since octave behaves well with respect

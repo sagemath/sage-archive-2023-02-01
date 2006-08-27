@@ -203,6 +203,9 @@ class Tachyon(SageObject):
     def cylinder(self, center, axis, radius, texture):
         self._objects.append(Cylinder(center, axis, radius, texture))
 
+    def plane(self, center, normal, texture):
+        self._objects.append(Plane(center, normal, texture))
+
     def fcylinder(self, base, apex, radius, texture):
         self._objects.append(FCylinder(base, apex, radius, texture))
 
@@ -223,7 +226,7 @@ class Tachyon(SageObject):
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return(float(math.sin(x*y)))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
-            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6)  # increase min_depth for better picture
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6)  # increase max_depth for better picture
             sage.: t.show()
         """
         TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var)
@@ -305,6 +308,16 @@ class Cylinder:
         cylinder center %s axis %s rad %s %s
         """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
 
+class Plane:
+    def __init__(self, center, normal, texture):
+        self._center = center
+        self._normal = normal
+        self._texture = texture
+
+    def str(self):
+        return """
+        plane center %s normal %s %s
+        """%(tostr(self._center), tostr(self._normal), self._texture)
 
 class FCylinder:
     def __init__(self, base, apex, radius, texture):

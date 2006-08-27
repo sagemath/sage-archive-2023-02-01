@@ -25,7 +25,22 @@ from math import modf,fabs
 
 class Tachyon(SageObject):
     """
-    A scene the can be rendered using the Tachyon ray tracer.
+    Create a scene the can be rendered using the Tachyon ray tracer.
+
+    INPUT:
+                 xres=350, yres=350,
+                 zoom = 1.0,
+                 antialiasing = False,
+                 aspectratio = 1.0,
+                 raydepth = 12,
+                 camera_center = (-3, 0, 0),
+                 updir = (0, 0, 1),
+                 look_at = (0,0,0),
+                 viewdir = None,
+                 projection = 'PERSPECTIVE'
+
+    OUTPUT:
+        A Tachyon 3d scene.
 
     Note that the coordinates are by default such that z is up,
     positive y is to the *left* and x is toward you.  This is
@@ -55,6 +70,27 @@ class Tachyon(SageObject):
         ...    k += 1
         ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         ...
+        sage: t.save()
+
+    Another twisted cubic, but with a white background, got by putting
+    infinite planes around the scene.
+        sage: t = Tachyon(xres=512,yres=512, camera_center=(3,0.3,0), raydepth=8)
+        sage: t.light((4,3,2), 0.2, (1,1,1))
+        sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1.0,0,0))
+        sage: t.texture('t1', ambient=0.1, diffuse=0.9, specular=0.3, opacity=1.0, color=(0,1.0,0))
+        sage: t.texture('t2', ambient=0.2,diffuse=0.7, specular=0.5, opacity=0.7, color=(0,0,1.0))
+        sage: t.texture('white', color=(1,1,1))
+        sage: t.plane((0,0,-1), (0,0,1), 'white')
+        sage: t.plane((0,-20,0), (0,1,0), 'white')
+        sage: t.plane((-20,0,0), (1,0,0), 'white')
+        sage:
+        sage: k=0
+        sage: for i in srange(-1,1,0.05):
+        ...    k += 1
+        ...    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
+        ...    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
+        ...
+        sage:
         sage: t.save()
 
     Many random spheres:

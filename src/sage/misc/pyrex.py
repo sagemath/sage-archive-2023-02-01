@@ -25,7 +25,7 @@ include_dirs = ['%s/local/include'%SAGE_ROOT,  \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank']  # add gsl and gslcblas if they get included
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas']
 
 offset = 0
 
@@ -64,10 +64,6 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
-    #t = """import sage.all; sage = sage.all
-#include 'interrupt.pxi'
-#include 'cdefs.pxi'
-#"""
     v, s = parse_keywords('clib', s)
     libs = v + standard_libs
     v, s = parse_keywords('cinclude', s)

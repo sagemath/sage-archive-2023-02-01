@@ -150,7 +150,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
 
     def __call__(self, x, base=0):
-        if isinstance(x, sage.rings.integer_mod_pyx.IntegerMod):
+        if sage.rings.integer_mod_pyx.is_IntegerMod(x):
             x = x.lift()
         return sage.rings.integer.Integer(x, base)
 

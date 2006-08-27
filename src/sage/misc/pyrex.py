@@ -21,22 +21,58 @@ from misc import SPYX_TMP, SAGE_ROOT
 
 include_dirs = ['%s/local/include'%SAGE_ROOT,  \
                 '%s/local/include/python2.4'%SAGE_ROOT, \
-                '%s/devel/sage/ext'%SAGE_ROOT]
+                '%s/devel/sage/sage/ext'%SAGE_ROOT, \
+                '%s/devel/sage/'%SAGE_ROOT, \
+                '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank']  # add gsl and gslcblas if they get included
 
 offset = 0
 
+def parse_keywords(kwd, s):
+    j = 0
+    v = []
+    while True:
+        i = s[j:].find(kwd)
+        if i == -1: break
+        j = i + j
+        s = s[:j] + '#' + s[j:]
+        j += len(kwd) + 1
+        k = s[j:].find('\n')
+        if k == -1:
+            k = len(s)
+        for X in s[j:j+k].split():
+            if X[0] == '#':   # skip rest of line
+                break
+            v.append(X)
+    return v, s
+
+def environ_parse(s):
+    i = s.find('$')
+    if i == -1:
+        return s
+    j = s[i:].find('/')
+    if j == -1:
+        j = len(s)
+    else:
+        j = i + j
+    name = s[i+1:j]
+    if os.environ.has_key(name):
+        s = s[:i] + os.environ[name] + s[j:]
+    else:
+        return s
+    return environ_parse(s)
+
 def pyx_preparse(s):
-    t = """import sage.all; sage = sage.all
-include 'interrupt.pxi'
-include 'cdefs.pxi'
-"""
-    # TODO: the ZZ, QQ, etc. could be replaced by C-level constructors for efficiency?
-    global offset
-    offset = len(t.split('\n')) - 1
-    s = t + s
-    return s, standard_libs, include_dirs
+    #t = """import sage.all; sage = sage.all
+#include 'interrupt.pxi'
+#include 'cdefs.pxi'
+#"""
+    v, s = parse_keywords('clib', s)
+    libs = v + standard_libs
+    v, s = parse_keywords('cinclude', s)
+    inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
+    return s, libs, inc
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -109,7 +145,11 @@ setup(ext_modules = ext_modules,
       include_dirs = %s)
     """%(name, name, libs, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
-    cmd = 'cd %s; pyrexc -I "%s/devel/sage" -I "%s/devel/sage/ext" %s.pyx 1>log 2>err'%(build_dir, SAGE_ROOT, SAGE_ROOT, name)
+
+    pyrex_include = ' '.join(['-I %s'%x for x in includes])
+
+    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s/_%s.c '%(build_dir, pyrex_include, name,
+                                                                  name, os.path.abspath(os.curdir), base)
     if verbose:
         print cmd
     if os.system(cmd):
@@ -117,7 +157,7 @@ setup(ext_modules = ext_modules,
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
 
-    cmd = 'cd %s; python setup.py build 1>log 2>err'%build_dir
+    cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
     if verbose: print cmd
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()

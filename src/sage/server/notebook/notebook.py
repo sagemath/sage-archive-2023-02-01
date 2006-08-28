@@ -762,13 +762,24 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
         body += '  </span>\n'
+
+        #these divs appear in backwards order because they're float:right
         body += '  <span class="hidden" id="slide_controls">\n'
-        body += '    <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>'
-        body += '    <a class="slide_arrow" onClick="slide_prev()">&lt;</a>'
-        body += '    <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
-        body += '    <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
-        body += '    <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
+        body += '    <div class="slideshow_control">'
+        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
+        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
+        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
+        body += '    </div>'
+        body += '    <div class="slideshow_progress" id="slideshow_progress">'
+        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>'
+        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>'
+        body += '    </div>'
+        body += '    <div class="slideshow_control">'
+        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>'
+        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>'
+        body += '    </div>'
         body += '  </span>\n'
+
         body += '</div>'
         body += '\n<div class="worksheet" id="worksheet">\n'
         if self.__show_debug or show_debug:

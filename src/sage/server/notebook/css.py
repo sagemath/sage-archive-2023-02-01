@@ -188,7 +188,7 @@ div.top_control_bar a.cell_mode:hover{
 div.top_control_bar a.slide_arrow {
    padding:5;
    background-color:white;
-   text-decoration:underline;
+   text-decoration:none;
 }
 
 div.top_control_bar a.slide_arrow:hover{
@@ -244,6 +244,30 @@ div.top_control_bar a.download_sws:hover {
    background-color:#55bb22;
    color:#FFFFFF;
    cursor:pointer;
+}
+
+div.slideshow_control {
+  float:right;
+}
+
+div.slideshow_progress {
+  float:right;
+  background-color:white;
+  padding:1px;
+  border:1px solid <color2>;
+  width:20%;
+}
+div.slideshow_progress_bar{
+  z-index:1;
+  position:relative;
+  background-color: <color1>;
+}
+div.slideshow_progress_text{
+  position:absolute;
+  z-index:2;
+  top:2px;
+  text-align:center;
+  width:20%;
 }
 
 /************** Introspection ****************/

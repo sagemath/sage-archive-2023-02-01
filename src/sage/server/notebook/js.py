@@ -105,6 +105,7 @@ var cell_id_list; // this gets set in worksheet.py
 var input_keypress; //this gets set to a function when we set up the keyboards
 
 var in_slide_mode = false; //whether or not we're in slideshow mode
+var slide_hidden = false; //whether the current slide has the hidden input class
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -130,6 +131,16 @@ try{
   os_lin=(nua.indexOf('Linux')!=-1);
 
   get_keyboard();
+} catch(e){}
+
+try{
+  [].indexOf || (Array.prototype.indexOf = function(v,n){
+    n = (n==null)?0:n; m = this.length;
+    for(var i = n; i < m; i++)
+      if(this[i] == v)
+         return i;
+    return -1;
+  });
 } catch(e){}
 
 function get_keyboard() {
@@ -369,7 +380,7 @@ function do_replacement(id, word,do_trim) {
         word = trim(word);
 
     cell_input.value = before_replacing_word + word + after_cursor;
-    focus(id);  //reset the cursor (for explorer)
+    jump_to_cell(id,0);  //reset the cursor (for explorer)
 
     try{ //firefox, et. al.
         var pos = before_replacing_word.length + word.length;
@@ -383,7 +394,7 @@ function do_replacement(id, word,do_trim) {
     } catch(e) {}
 
     if(browser_op || browser_saf)
-      focus(id,true);
+      jump_to_cell_delay(id,0);
 
     halt_introspection();
 }
@@ -638,7 +649,7 @@ function cell_focus(id) {
     return true;
 }
 function cell_blur(id) {
-  /*  current_cell = -1; */
+    current_cell = -1;
     e = get_cell(id);
     if(e == null) return;
     e.className="cell_input";
@@ -664,23 +675,18 @@ function debug_blur() {
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.
-function focus(id, and_delay) {
+function focus(id) {
     // make_cell_input_active(id);
-    if(in_slide_mode) {
-        slide_hide();
-        current_cell = id;
-        slide_show();
-    }
-
     var cell = get_cell(id);
     if (cell && cell.focus) {
         cell.focus();
-        if(and_delay) {
-            setTimeout('focus('+id+',false)', 10);
-        }
     }
-
 }
+
+function focus_delay(id) {
+    setTimeout('focus('+id+',false)', 10);
+}
+
 
 function cell_input_resize(cell_input) {
     var rows = 2;
@@ -698,6 +704,11 @@ function cell_input_resize(cell_input) {
     try{
         cell_input.rows = rows;
     } catch(e) {}
+
+    if(slide_hidden) {
+        cell_input.className="cell_input_active";
+        slide_hidden = false;
+    }
 }
 
 function lstrip(s) {
@@ -804,7 +815,7 @@ function debug_input_key_event(e) {
         var after = text_cursor_split(debug_input)[1];
         var i = after.indexOf('\n');
         if (i == -1 || after == '') {
-            focus(cell_id_list[0])
+            jump_to_cell(cell_id_list[0],0)
             return false;
         } else {
             return true;
@@ -880,14 +891,14 @@ function cell_input_key_event(id, e) {
        return false;
     } else if (key_page_down(e)) {
        if(in_slide_mode) {
-           jump_to_cell(id, 1);
+           slide_next();
        } else {
            jump_to_cell(id, 5);
        }
        return false;
     } else if (key_page_up(e)) {
        if(in_slide_mode) {
-           jump_to_cell(id, -1);
+           slide_prev();
        } else {
            jump_to_cell(id, -5);
        }
@@ -905,7 +916,7 @@ function id_of_cell_delta(id, delta) {
         alert("bug -- no cells.");
         return;
     }
-    var i = array_indexOf(cell_id_list, eval(id));
+    var i = cell_id_list.indexOf(eval(id));
     var new_id;
     if (i == -1) {
         return(id);  /* Better not to move. */
@@ -969,8 +980,13 @@ function make_cell_input_inactive(id) {
 */
 
 function jump_to_cell(id, delta) {
-    var i = id_of_cell_delta(id, delta)
-    focus(i);
+    if(delta != 0)
+        id = id_of_cell_delta(id, delta)
+    if(in_slide_mode) {
+        jump_to_slide(id);
+    } else {
+        focus(id);
+    }
 }
 
 function escape0(input) {
@@ -1059,7 +1075,7 @@ function evaluate_cell_introspection(id, before, after) {
         sub_introspecting = true;
     }
     if(!replacing && browser_op)
-        focus(id,true);
+        focus_delay(id);
 
     update_introspection_text();
     var before_cursor_e = escape0(before);
@@ -1087,7 +1103,7 @@ function evaluate_cell_callback(status, response_text) {
     } else if (X[1] == 'insert_cell') {
         // insert a new cell after the one with id X[3]
         do_insert_new_cell_after(X[3], X[0], X[2]);
-        focus(X[0]);
+        jump_to_cell(X[0],0);
     }
     start_update_check();
 }
@@ -1217,7 +1233,7 @@ function set_input_text(id, text) {
     /* fill in input text */
     var cell_input = get_cell(id);
     cell_input.value = text;
-    focus(id)
+    jump_to_cell(id,0)
 
     try {
         pos = text.length - after_cursor.length;
@@ -1348,10 +1364,7 @@ function slide_mode() {
     for(i = 0; i < cell_id_list.length ; i++) {
         set_class('cell_outer_'+cell_id_list[i], 'hidden');
     }
-    if(current_cell == -1 && cell_id_list.length>0)
-        current_cell = cell_id_list[0];
-    if(current_cell != -1)
-        set_class('cell_outer_'+current_cell, 'cell_visible');
+    slide_show();
 }
 
 function cell_mode() {
@@ -1369,35 +1382,64 @@ function cell_mode() {
 function slide_hide() {
     set_class('cell_outer_' + current_cell, 'hidden');
 }
+
 function slide_show() {
-    set_class('cell_outer_' + current_cell, 'cell_visible');
+    if(current_cell != -1) {
+        set_class('cell_outer_' + current_cell, 'cell_visible');
+    } else {
+        if(cell_id_list.length>0)
+            current_cell = cell_id_list[0];
+        set_class('cell_outer_' + current_cell, 'cell_visible');
+    }
+    if(current_cell != -1) {
+        input = get_cell(current_cell);
+        if(input != null) {
+            s = lstrip(input.value).slice(0,5)
+            focus(current_cell);
+            if (s == '%hide') {
+                slide_hidden = true;
+                input.className = 'cell_input_hide';
+                input.style.height = '1.5em';
+            }
+        }
+    }
+    update_slideshow_progress();
 }
 
 function slide_first() {
-    slide_hide();
-    current_cell = cell_id_list[0];
-    slide_show();
+    jump_to_slide(cell_id_list[0]);
 }
 
 function slide_last() {
-    slide_hide();
-    current_cell = cell_id_list[cell_id_list.length-1];
-    slide_show();
+    jump_to_slide(cell_id_list[cell_id_list.length-1]);
 }
 
 
 function slide_next() {
-    slide_hide();
-    current_cell =  id_of_cell_delta(current_cell, 1);
-    slide_show();
+    jump_to_slide(id_of_cell_delta(current_cell, 1));
 }
 
 function slide_prev() {
+    jump_to_slide(id_of_cell_delta(current_cell, -1));
+}
+
+function jump_to_slide(id) {
     slide_hide();
-    current_cell =  id_of_cell_delta(current_cell, -1);
+    current_cell = id;
     slide_show();
 }
 
+
+function update_slideshow_progress() {
+    var i = cell_id_list.indexOf(current_cell) + 1;
+    var n = cell_id_list.length;
+    var bar = get_element("slideshow_progress_bar")
+    if(bar != null)
+        bar.style.width = "" + 100*i/n + "%";
+    text = get_element("slideshow_progress_text")
+    if(text != null)
+        text.innerHTML = i + " / " + n;
+}
 
 
 ///////////////////////////////////////////////////////////////////

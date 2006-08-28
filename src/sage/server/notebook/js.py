@@ -606,6 +606,10 @@ function process_delete_worksheet_menu_submit() {
     delete_worksheet(name);
 }
 
+
+// We decided not to implement the following, since normal user's
+// tabbed browsing (or multiple windows, depending on user taste!)
+// does the same thing much better and in a more flexible manner.
 function switch_to_worksheet(id) {
     /* 1. check to see if worksheet is already loaded into the DOM
        2. If not, load it into the dom.
@@ -634,7 +638,7 @@ function cell_focus(id) {
     return true;
 }
 function cell_blur(id) {
-    current_cell = -1;
+  /*  current_cell = -1; */
     e = get_cell(id);
     if(e == null) return;
     e.className="cell_input";
@@ -861,11 +865,10 @@ function cell_input_key_event(id, e) {
             return true;
         }
     } else if (key_send_input(e)) {
-           // User pressed shift-enter
+       // User pressed shift-enter (or whatever the submit key is)
        evaluate_cell(id, 0);
        return false;
     } else if (key_send_input_newcell(e)) {
-      /* evaluate_cell(id, 1); */
        evaluate_cell(id, 1);
        return false;
     } else if (key_request_introspections(e)) {
@@ -1334,6 +1337,7 @@ function continue_update_check() {
 //  Slideshow Functions
 ///////////////////////////////////////////////////////////////////
 
+/* Switch into slide mode. */
 function slide_mode() {
     in_slide_mode = true;
     set_class('left_pane', 'hidden');

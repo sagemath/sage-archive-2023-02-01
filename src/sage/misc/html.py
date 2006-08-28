@@ -22,7 +22,7 @@ class HTML:
             t += s[:i] + '<span class="math">%s</span>'%\
                      latex(sage_eval(s[6+i:j], locals=locals))
             s = s[j+7:]
-        print "<html>%s</html>"%t
+        print "<html><font color='black'>%s</font></html>"%t
         return ''
 
 html = HTML()

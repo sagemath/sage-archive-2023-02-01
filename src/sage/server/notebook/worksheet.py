@@ -241,6 +241,7 @@ class Worksheet:
         S = self.__sage
         self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
+        self.delete_cell_input_files()
         S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
         S.eval('from sage.all_notebook import *')
         S.eval('import sage.server.support as _support_')
@@ -324,6 +325,19 @@ class Worksheet:
         except AttributeError:
             return 0
 
+    def delete_cell_input_files(self):
+        """
+        Delete all the files code_%s.py and code_%s.spyx that are created
+        when evaluating cells.  We do this when we first start the notebook
+        to get rid of clutter.
+        """
+        D = self.directory() + '/code/'
+        if os.path.exists(D):
+            for X in os.listdir(D):
+                os.unlink('%s/%s'%(D,X))
+        else:
+            os.makedirs(D)
+
     def start_next_comp(self):
         if len(self.__queue) == 0:
             return
@@ -355,9 +369,12 @@ class Worksheet:
 
         S = self.sage()
 
-        #tmp = '%s/code.py'%self.directory()
-        tmp = '%s/cells/code-%s.py'%(self.directory(), self.next_block_id())
+        id = self.next_block_id()
+
+        #id = C.relative_id()
+        tmp = '%s/code/%s.py'%(self.directory(), id)
         input = 'os.chdir("%s")\n'%os.path.abspath(D)
+
         if C.time():
             input += '__SAGE_t__=cputime()\n__SAGE_w__=walltime()\n'
         if I[-1:] == '?':
@@ -854,6 +871,19 @@ class Worksheet:
         cmd = cmd.replace("'", "\\u0027")
         return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
 
+    def pyrex_import(self, cmd, C):
+        # Choice: Can use either C.relative_id() or self.next_block_id().
+        # C.relative_id() has the advantage that block evals are cached, i.e.,
+        # no need to recompile.  On the other hand tracebacks don't work if
+        # you change a cell and create a new function in it.  Caching is
+        # also annoying since the linked .c file disappears.
+        id = self.next_block_id()
+        # id = C.relative_id()
+        spyx = os.path.abspath('%s/code/%s.spyx'%(self.directory(), id))
+        if not (os.path.exists(spyx) and open(spyx).read() == cmd):
+            open(spyx,'w').write(cmd)
+        s  = '_support_.pyrex_import_all("%s", globals(), make_c_file_nice=True)'%spyx
+        return s
 
     def check_for_system_switching(self, s, C):
         z = s
@@ -873,12 +903,15 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        elif s[:12] == '%save_server':
+        if s[:12] == '%save_server':
             self.notebook().save()
             t = s[12:].lstrip()
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
+        if s[:6] == "%pyrex":  # a block of Pyrex code.
+            return True, self.pyrex_import(s[6:].lstrip(), C)
+
         i = s.find('\n')
         if i == -1:
             # nothing to evaluate

@@ -341,7 +341,7 @@ def do_prefilter_paste(line, continuation):
 def load_pyrex(name):
     cur = os.path.abspath(os.curdir)
     try:
-        mod, dir  = pyrex.pyrex(name, compile_message=True)
+        mod, dir  = pyrex.pyrex(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError), msg:
         print "Error compiling pyrex file:\n%s"%msg
         return ''

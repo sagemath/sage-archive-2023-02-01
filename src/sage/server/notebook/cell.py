@@ -387,7 +387,7 @@ class Cell:
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
             else:
-                files.append('<a href="%s/%s">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s/%s">%s</a>'%(dir, F, F))
         if len(images) == 0:
             images = ''
         else:

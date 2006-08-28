@@ -13,7 +13,7 @@ cdef extern from "math.h":
   double log10 (double x)
   double log2 (double x)
   double pow (double base, double power)
-  double sqrt(double x)
+  #double sqrt(double x)
   double sinh (double x)
   double cosh (double x)
   double tanh (double x)

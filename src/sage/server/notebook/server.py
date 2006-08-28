@@ -396,7 +396,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(200)
         if self.path[-4:] == '.png':
             self.send_header("Content-type", 'image/png')
-        if self.path[-4:] == '.bmp':
+        elif self.path[-2] == '.c':
+            self.send_header("Content-type", 'text/plain')
+        elif self.path[-4:] == '.bmp':
             self.send_header("Content-type", 'image/bmp')
         elif self.path[-3:] == '.js':
             self.send_header("Content-type", 'script/javascript')
@@ -475,6 +477,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.path[-4:] in ['.eps', '.pdf', '.png', '.bmp', '.svg', '.tex', \
                               '.dvi', '.log', \
                               '.txt', '.ico', '.sws'] or \
+               self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
                '/jsmath' in self.path:
@@ -585,6 +588,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif self.path[-4:] == '.svg':
             self.send_header("Content-type", 'image/svg+xml')
         elif self.path[-4:] == '.txt':
+            self.send_header("Content-type", 'text/plain')
+        elif self.path[-2:] == '.c':
             self.send_header("Content-type", 'text/plain')
         elif self.path[-5:] == '.sobj':
             self.send_header("Content-type", 'application/sobj')

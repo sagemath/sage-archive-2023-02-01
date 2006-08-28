@@ -68,6 +68,10 @@ def pyx_preparse(s):
     libs = v + standard_libs
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
+    s = """
+include "cdefs.pxi"
+include "interrupt.pxi"  # ctrl-c interrupt block support
+""" + s
     return s, libs, inc
 
 ################################################################
@@ -76,7 +80,7 @@ def pyx_preparse(s):
 #
 # PROBLEM: Python does not allow one to reload an .so extension module.
 # Solution, we create a different .so file and load that one,
-# overwriting the definitions of everythin in the original .so file.
+# overwriting the definitions of everything in the original .so file.
 #
 # HOW: By using a sequence_number for each .spyx file; we keep
 # these sequence numbers in a dict.
@@ -85,7 +89,8 @@ def pyx_preparse(s):
 
 sequence_number = {}
 
-def pyrex(filename, verbose=False, compile_message=False):
+def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False,
+          use_cache=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
 
@@ -95,12 +100,13 @@ def pyrex(filename, verbose=False, compile_message=False):
     if os.path.exists(build_dir):
         # There is already a module here.  Maybe we do not have to rebuild?
         # Find the name.
-        prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
-        if len(prev_so) > 0:
-            prev_so = prev_so[0]     # should have length 1 because of deletes below
-            if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
-                # We do not have to rebuild.
-                return prev_so[:-3], build_dir
+        if use_cache:
+            prev_so = [F for F in os.listdir(build_dir) if F[-3:] == '.so']
+            if len(prev_so) > 0:
+                prev_so = prev_so[0]     # should have length 1 because of deletes below
+                if os.path.getmtime(filename) <= os.path.getmtime('%s/%s'%(build_dir, prev_so)):
+                    # We do not have to rebuild.
+                    return prev_so[:-3], build_dir
     else:
         os.makedirs(build_dir)
     for F in os.listdir(build_dir):
@@ -108,10 +114,7 @@ def pyrex(filename, verbose=False, compile_message=False):
         if not os.path.isdir(G):
             os.unlink(G)
 
-    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/"*.pxi .'%(build_dir,
-                   SAGE_ROOT))
-    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/interrupt.c" .'%(build_dir,
-                   SAGE_ROOT))
+    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/interrupt.c" .'%(build_dir, SAGE_ROOT))
 
     if compile_message:
         print "Compiling %s..."%filename
@@ -144,14 +147,47 @@ setup(ext_modules = ext_modules,
 
     pyrex_include = ' '.join(['-I %s'%x for x in includes])
 
-    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s/_%s.c '%(build_dir, pyrex_include, name,
-                                                                  name, os.path.abspath(os.curdir), base)
+    target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
+    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s '%(build_dir, pyrex_include, name,
+                                                                  name, target_c)
     if verbose:
         print cmd
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
+
+    if make_c_file_nice and os.path.exists(target_c):
+        R = open(target_c).read()
+        R = "/* THIS IS A PARSED TO MAKE READABLE VERSION OF THE C FILE. */" + R
+
+        # 1. Get rid of the annoying __pyx_'s before variable names.
+        R = R.replace('__pyx_v_','').replace('__pyx','')
+        # 2. Replace the line number references by the actual code from the file,
+        #    since it is very painful to go back and forth, and the philosophy
+        #    of SAGE is that everything that can be very easy *is*.
+
+        pyx_file = os.path.abspath('%s/%s.pyx'%(build_dir,name))
+        S = '/* "%s":'%pyx_file
+        n = len(S)
+        last_i = -1
+        X = F.split('\n')
+        stars = '*'*80
+        while True:
+            i = R.find(S)
+            if i == -1 or i == last_i: break
+            last_i = i
+            j = R[i:].find('*/')
+            if j == -1: break
+            line_number = int(R[i+n: i+j])
+            try:
+                line = X[line_number-1]
+            except IndexError:
+                line = '(missing code)'
+            R = R[:i+2] + '%s\n\n Line %s: %s\n\n%s'%(stars, line_number, line, stars) + R[i+j:]
+
+        open(target_c,'w').write(R)
+
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
     if verbose: print cmd

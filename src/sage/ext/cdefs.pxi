@@ -7,7 +7,7 @@ cdef extern from "stdlib.h":
     char *strcpy(char *dest, char *src)
 
 cdef extern from "stdio.h":
-    ctypedef void* FILE
+    ctypedef struct FILE
     int printf(char *format, ...)
     int fprintf(FILE *stream, char *format, ...)
     int sprintf(char *str, char *format, ...)
@@ -15,7 +15,7 @@ cdef extern from "stdio.h":
 
 cdef extern from "math.h":
     double sqrt(double x)
-    float roundf(float x)
+    float roundf(float x)    # linux-ish and non-standard; avoid!
 
 cdef extern from "Python.h":
     void PyMem_Free(void *p)

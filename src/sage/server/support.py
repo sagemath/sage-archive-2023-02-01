@@ -132,7 +132,10 @@ def get_def(obj, obj_name=''):
     """
     try:
         s = str(inspect.formatargspec(*get_argspec(obj)))
-        s = s.strip('(').strip(')').strip().lstrip('self').lstrip(',').strip()
+        s = s.strip('(').strip(')').strip()
+        if s[:4] == 'self':
+            s = s[4:]
+        s = s.lstrip(',').strip()
         return obj_name + '(' + s + ')'
     except:
         return '%s( ... )'%obj_name
@@ -273,4 +276,52 @@ def syseval(system, cmd):
         return system.eval(cmd, locals = sage_globals)
     except TypeError:
         return system.eval(cmd)
+
+
+######################################################################
+# Pyrex
+######################################################################
+import sage.misc.pyrex
+import sys
+import __builtin__
+
+def pyrex_import(filename, verbose=False, compile_message=False,
+                 make_c_file_nice=False, use_cache=False):
+    """
+    INPUT:
+        filename -- name of a file that contains pyrex code
+
+    OUTPUT:
+        module -- the module that contains the compiled pyrex code.
+
+    Raises an ImportError exception if anything goes wrong.
+    """
+
+    name, build_dir = sage.misc.pyrex.pyrex(filename, verbose=verbose,
+                                            compile_message=compile_message,
+                                            make_c_file_nice=make_c_file_nice,
+                                            use_cache=use_cache)
+
+    sys.path.append(build_dir)
+    return __builtin__.__import__(name)
+
+
+def pyrex_import_all(filename, globals, verbose=False, compile_message=False,
+                     make_c_file_nice=False, use_cache=False):
+    """
+    INPUT:
+        filename -- name of a file that contains pyrex code
+
+    OUTPUT:
+        changes globals using the attributes of the Pyrex module
+        that do not begin with an underscore.
+
+    Raises an ImportError exception if anything goes wrong.
+    """
+    m = pyrex_import(filename, verbose=verbose, compile_message=compile_message,
+                     make_c_file_nice=make_c_file_nice,
+                     use_cache=use_cache)
+    for k, x in m.__dict__.iteritems():
+        if k[0] != '_':
+            globals[k] = x
 

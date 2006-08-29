@@ -5,6 +5,7 @@ AUTHOR:
     -- William Stein
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               some Singular features
+    -- Martin Albrecht (2006-08-28): reorganized class hierarchy
 
 EXAMPLES:
     sage: x,y,z = QQ['x,y,z'].gens()
@@ -29,8 +30,8 @@ EXAMPLES:
 We compute a Groebner basis for cyclic 6, which is a standard
 benchmark and test ideal.
 
-    sage: x,y,z,t,u,v = QQ['x,y,z,t,u,v'].gens()
-    sage: I = ideal(x + y + z + t + u + v, x*y + y*z + z*t + t*u + u*v + v*x, x*y*z + y*z*t + z*t*u + t*u*v + u*v*x + v*x*y, x*y*z*t + y*z*t*u + z*t*u*v + t*u*v*x + u*v*x*y + v*x*y*z, x*y*z*t*u + y*z*t*u*v + z*t*u*v*x + t*u*v*x*y + u*v*x*y*z + v*x*y*z*t, x*y*z*t*u*v - 1)
+    sage: R.<x,y,z,t,u,v> = QQ['x,y,z,t,u,v']
+    sage: I = sage.rings.ideal.Cyclic(R,6)
     sage: B = I.groebner_basis()
     sage: len(B)
     45
@@ -66,56 +67,12 @@ from sage.misc.sage_eval import sage_eval
 def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
 
-class MPolynomialIdeal(Ideal_generic):
-    """
-    An ideal of a multivariate polynomial ring.
-    """
-    def __init__(self, ring, gens, coerce=True):
-        """
-        Create an ideal in a multivariate polynomial ring.
 
-        EXAMPLES:
-            sage: R = PolynomialRing(IntegerRing(), 2, ['x','y'], order='lex'); x,y = R.gens()
-            sage: R.ideal([x, y])
-            Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
-            sage: R = PolynomialRing(GF(3), 2); x = R.gens()
-            sage: R.ideal([x[0]**2, x[1]**3])
-            Ideal (x0^2, x1^3) of Polynomial Ring in x0, x1 over Finite Field of size 3
-        """
-        Ideal_generic.__init__(self, ring, gens, coerce=coerce)
-
-    def groebner_fan(self, is_groebner_basis=False, symmetry=None, verbose=False):
-        r"""
-        Return the Groebner fan of this ideal.
-
-        The base ring must be $\Q$ or a finite field $\F_p$ of with
-        $p \leq 32749$.
-
-        INPUT:
-            is_groebner_basis -- bool (default False).  if True, then I.gens() must be
-                                 a Groebner basis with respect to the standard
-                                 degree lexicographic term order.
-            symmetry -- default: None; if not None, describes symmetries of the ideal
-            verbose -- default: False; if True, printout useful info during computations
-        """
-        import groebner_fan
-        return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
-                                        symmetry=symmetry, verbose=verbose)
-
-    #def is_homogeneous(self):
-    #    try:
-    #        return self.__is_homogeneous
-    #    except AttributeError:
-
-
-class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
+class MPolynomialIdeal_singular_repr:
     """
     An ideal in a multivariate polynomial ring, which has an
     underlying Singular ring associated to it.
     """
-    def __init__(self, ring, gens, coerce=True):
-        MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
-
     def _cmp_(self, other):
         # Groebner basis determine equality since ideals are in the
         # same ring with same term order
@@ -288,11 +245,22 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
             self.__dimension = Integer(self._singular_().std().dim())
         return self.__dimension
 
-    def groebner_basis(self):
+    def _singular_groebner_basis(self, algorithm="groebner"):
         """
-        Return a Groebner basis of this ideal.
+        Return a Groebner basis of this ideal. If a groebner basis for
+        this ideal has been calculated before the cached groebner
+        basis is returned regardless of the requested algorithm.
 
         ALGORITHM: Uses Singular.
+
+        INPUT:
+            algorithm -- 'groebner' - use Singular's groebner heuristic to choose
+                                      an algorithm (default)
+                         'std'      - Buchberger's algorithm
+                         'stdhilb'  - computes the standard basis of the homogeneous
+                                      ideal in the basering, via a Hilbert driven
+                                      standard basis computation.
+                         'slimgb'   - SlimGB algorithm
 
         EXAMPLES:
 
@@ -301,7 +269,7 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
 
             sage: R = PolynomialRing(RationalField(), 4, ['a','b','c','d'], 'lex')
             sage: a,b,c,d = R.gens()
-            sage: I = R.ideal([a+b+c+d, a*b+a*d+b*c+c*d, a*b*c + a*b*d + a*c*d + b*c*d, a*b*c*d-1])
+            sage: I = sage.rings.ideal.Cyclic(R,4)
             sage: I
             Ideal (d + c + b + a, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c, -1 + a*b*c*d) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I.groebner_basis()
@@ -316,7 +284,16 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
         try:
             return self.__groebner_basis
         except AttributeError:
-            S = self._singular_().groebner()
+            if algorithm=="groebner":
+                S = self._singular_().groebner()
+            elif algorithm=="std":
+                S = self._singular_().std()
+            elif algorithm=="slimgb":
+                S = self._singular_().slimgb()
+            elif algorithm=="stdhilb":
+                S = self._singular_().stdhilb()
+            else:
+                raise TypeError, "cannot understand groebner algorithm"
             R = self.ring()
             self.__groebner_basis = Sequence([R(S[i+1]) for i in range(len(S))], R,
                                              check=False, immutable=True)
@@ -458,19 +435,19 @@ class MPolynomialIdeal_singular_repr(MPolynomialIdeal):
 
             return f
 
-class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
+class MPolynomialIdeal_macaulay2_repr:
     """
     An ideal in a multivariate polynomial ring, which has an underlying
     Macaulay2 ring associated to it.
 
     EXAMPLES:
-        sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()  # optional
+        sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw').gens()  # optional
         sage: I = ideal(x*y-z^2, y^2-w^2)       # optional
         sage: I                                 # optional
         Ideal (-1*w^2 + y^2, -1*z^2 + x*y) of Polynomial Ring in x, y, z, w over Integer Ring
     """
-    def __init__(self, ring, gens, coerce=True):
-        MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
+    #def __init__(self, ring, gens, coerce=True):
+    #    MPolynomialIdeal.__init__(self, ring, gens, coerce=coerce)
 
     def _macaulay2_(self, macaulay2=None):
         """
@@ -492,14 +469,14 @@ class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
             self.__macaulay2 = macaulay2.ideal(gens)
         return self.__macaulay2
 
-    def groebner_basis(self):
+    def _macaulay2_groebner_basis(self):
         """
         Return the Groebner basis for this ideal.
 
         ALGORITHM: Computed using Macaulay2.
 
         EXAMPLE:
-            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw', macaulay2=True).gens()      # optional
+            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw').gens()      # optional
             sage: I = ideal(x*y-z^2, y^2-w^2)                                         # optional
             sage: I.groebner_basis()                                                  # optional
             [-1*w^2 + y^2, -1*z^2 + x*y, -1*y*z^2 + x*w^2]
@@ -519,4 +496,73 @@ class MPolynomialIdeal_macaulay2_repr(MPolynomialIdeal):
             return B
 
 
+
+class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaulay2_repr, Ideal_generic ):
+    """
+    An ideal of a multivariate polynomial ring.
+    """
+    def __init__(self, ring, gens, coerce=True):
+        """
+        Create an ideal in a multivariate polynomial ring.
+
+        EXAMPLES:
+            sage: R = PolynomialRing(IntegerRing(), 2, ['x','y'], order='lex'); x,y = R.gens()
+            sage: R.ideal([x, y])
+            Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
+            sage: R = PolynomialRing(GF(3), 2); x = R.gens()
+            sage: R.ideal([x[0]**2, x[1]**3])
+            Ideal (x0^2, x1^3) of Polynomial Ring in x0, x1 over Finite Field of size 3
+        """
+        Ideal_generic.__init__(self, ring, gens, coerce=coerce)
+
+    def groebner_fan(self, is_groebner_basis=False, symmetry=None, verbose=False):
+        r"""
+        Return the Groebner fan of this ideal.
+
+        The base ring must be $\Q$ or a finite field $\F_p$ of with
+        $p \leq 32749$.
+
+        INPUT:
+            is_groebner_basis -- bool (default False).  if True, then I.gens() must be
+                                 a Groebner basis with respect to the standard
+                                 degree lexicographic term order.
+            symmetry -- default: None; if not None, describes symmetries of the ideal
+            verbose -- default: False; if True, printout useful info during computations
+        """
+        import groebner_fan
+        return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
+                                        symmetry=symmetry, verbose=verbose)
+
+    def groebner_basis(self, algorithm="singular:groebner"):
+        """
+        Return a Groebner basis of this ideal.
+
+        INPUT:
+            algorithm -- determines the algorithm to use, available are:
+                         * None - autoselect (default)
+                         * 'singular:groebner' - Singular's groebner command
+                         * 'singular:std' - Singular's std command
+                         * 'singular:stdhilb' - Singular's stdhib command
+                         * 'singular:slimgb' - Singular's slimgb command
+                         * 'macaulay2:gb' (if available) - Macaulay2's gb command
+
+        ALGORITHM: Uses Singular or Macaulay2 (if available)
+
+        """
+        if algorithm.startswith('singular:'):
+            return self._singular_groebner_basis(algorithm[9:])
+        elif algorithm == 'macaulay2:gb':
+            return self._macaulay2_groebner_basis()
+        elif algorithm == None:
+            if self.ring() == ZZ:
+                return self._macaulay2_groebner_basis()
+            else:
+                return self._singular_groebner_basis()
+        else:
+            raise TypeError, "cannot understand groebner algorithm"
+
+    #def is_homogeneous(self):
+    #    try:
+    #        return self.__is_homogeneous
+    #    except AttributeError:
 

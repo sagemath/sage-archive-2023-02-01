@@ -433,14 +433,14 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_g
         EXAMPLES:
         We create a Macaulay2 multivariate polynomial via ideal arithmetic,
         then coerce it into R.
-            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()       # optional
-            sage: I = R.ideal([x^3 + y, y],macaulay2=True)                    # optional
-            sage: S = I._macaulay2_()                                         # optional
-            sage: T = S*S*S                                                   # optional
-            sage: U = T.gens().entries().flatten()                            # optional
-            sage: f = U[2]; f                                                 # optional
+            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()  # optional
+            sage: I = R.ideal([x^3 + y, y])                              # optional
+            sage: S = I._macaulay2_()                                    # optional
+            sage: T = S*S*S                                              # optional
+            sage: U = T.gens().entries().flatten()                       # optional
+            sage: f = U[2]; f                                            # optional
             x^3*y^2+y^3
-            sage: R(f)                                                        # optional
+            sage: R(f)                                                   # optional
             y^3 + x^3*y^2
         """
 
@@ -491,7 +491,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
         self._has_singular = self._can_convert_to_singular()
 
-    def ideal(self, gens, coerce=True, macaulay2=False):
+    def ideal(self, gens, coerce=True):
         """
         """
         if not self._has_singular:
@@ -507,10 +507,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        if macaulay2==True:
-            return multi_polynomial_ideal.MPolynomialIdeal_macaulay2_repr(self, gens, coerce=False)
-        else:
-            return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
+        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
 
 
 #class MPolynomialRing_macaulay2_repr_domain(MPolynomialRing_macaulay2_repr, integral_domain.IntegralDomain):

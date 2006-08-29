@@ -153,7 +153,7 @@ class MPolynomialPower(Benchmark):
         return cputime(t)
 
     def macaulay2(self):
-        R = PolynomialRing(self.base, self.nvars, macaulay2=True)
+        R = PolynomialRing(self.base, self.nvars)
         z = macaulay2(sum(R.gens()))
         t = walltime()
         w = z**self.exp
@@ -269,7 +269,7 @@ class MPolynomialMult(Benchmark):
             return cputime(t)
 
     def macaulay2(self):
-        R = PolynomialRing(self.base, self.nvars, macaulay2=True)
+        R = PolynomialRing(self.base, self.nvars)
         k = int(self.nvars/2)
         z0 = macaulay2(sum(R.gens()[:k]))
         z1 = macaulay2(sum(R.gens()[k:]))
@@ -338,7 +338,7 @@ class MPolynomialMult2(Benchmark):
         return False, walltime(w)
 
     def macaulay2(self):
-        R = PolynomialRing(self.base, self.nvars, macaulay2=True)
+        R = PolynomialRing(self.base, self.nvars)
         k = int(self.nvars/2)
         z0 = R(0)
         z1 = R(0)

@@ -240,7 +240,7 @@ class MPolynomial_macaulay2_repr:
         Return corresponding Macaulay2 polynomial.
 
         EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(GF(7), 2, macaulay2=True)   # optional
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
             sage: h = f._macaulay2_(); h            # optional

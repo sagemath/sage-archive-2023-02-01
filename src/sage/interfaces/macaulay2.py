@@ -279,19 +279,19 @@ class Macaulay2Element(ExpectElement):
         Quotient of division of self by other.  This is denoted //.
 
         EXAMPLE:
-            sage: R = PolynomialRing(GF(7), 2, 'xy', macaulay2=True)   # optional
-            sage: x, y = R.gens()                                      # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f                             # optional
+            sage: R = PolynomialRing(GF(7), 2, 'xy')   # optional
+            sage: x, y = R.gens()                      # optional
+            sage: f = (x^3 + 2*y^2*x)^7; f             # optional
             2*x^7*y^14 + x^21
-            sage: h = macaulay2(f); h                                  # optional
+            sage: h = macaulay2(f); h                  # optional
             x^21+2*x^7*y^14
-            sage: f1 = (x^2 + 2*y*x)                                   # optional
-            sage: h1 = macaulay2(f1)                                   # optional
-            sage: f2 = (x^3 + 2*y*x)                                   # optional
-            sage: h2 = macaulay2(f2)                                   # optional
-            sage: h % [h1,h2]                                          # optional
+            sage: f1 = (x^2 + 2*y*x)                   # optional
+            sage: h1 = macaulay2(f1)                   # optional
+            sage: f2 = (x^3 + 2*y*x)                   # optional
+            sage: h2 = macaulay2(f2)                   # optional
+            sage: h % [h1,h2]                          # optional
             -3*x*y
-            sage: u = h // [h1,h2]; u                                  # optional
+            sage: u = h // [h1,h2]; u                  # optional
             [x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17-3*x*y^16-2*x*y^15+x*y^14+3*x*y^13+2*x*y^12-x*y^11-3*x*y^10-2*x*y^9+x*y^8+3*x*y^7+2*x*y^6-x*y^5-3*x*y^4-2*x*y^3+x*y^2+3*x*y+2*x+2*y^18-y^17-3*y^16-2*y^15+y^14+3*y^13+2*y^12-y^11-3*y^10-2*y^9+y^8+3*y^7+2*y^6-y^5-3*y^4-2*y^3+y^2+3*y, -2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2]
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])               # optional
             True
@@ -308,20 +308,20 @@ class Macaulay2Element(ExpectElement):
         Remainder of division of self by other.  This is denoted %.
 
         EXAMPLE:
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'], macaulay2=True)   # optional
-            sage: x, y = R.gens()                                           # optional
-            sage: f = (x^3 + 2*y^2*x)^7; f                                  # optional
+            sage: R = PolynomialRing(GF(7), 2, ['x','y'])   # optional
+            sage: x, y = R.gens()                           # optional
+            sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
             2*x^7*y^14 + x^21
-            sage: h= f._macaulay2_(); h                                     # optional
+            sage: h= f._macaulay2_(); h                     # optional
             x^21+2*x^7*y^14
-            sage: f1 = (x^2 + 2*y*x)                                        # optional
-            sage: h1 = f1._macaulay2_()                                     # optional
-            sage: f2 = (x^3 + 2*y*x)                                        # optional
-            sage: h2 = f2._macaulay2_()                                     # optional
-            sage: h % [h1,h2]                                               # optional
+            sage: f1 = (x^2 + 2*y*x)                        # optional
+            sage: h1 = f1._macaulay2_()                     # optional
+            sage: f2 = (x^3 + 2*y*x)                        # optional
+            sage: h2 = f2._macaulay2_()                     # optional
+            sage: h % [h1,h2]                               # optional
             -3*x*y
-            sage: u = h // [h1,h2]                                          # optional
-            sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])                    # optional
+            sage: u = h // [h1,h2]                          # optional
+            sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])    # optional
             True
         """
         if isinstance(x, (list, tuple)):

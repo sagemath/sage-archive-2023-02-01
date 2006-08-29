@@ -209,7 +209,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal_singular_repr(self, gens, coerce=False)
+        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
 
     def _can_convert_to_singular(self):
         return self.__R._can_convert_to_singular()

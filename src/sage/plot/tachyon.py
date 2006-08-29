@@ -248,6 +248,9 @@ class Tachyon(SageObject):
     def light(self, center, radius, color):
         self._objects.append(Light(center, radius, color))
 
+    def texfunc(self, type=0, center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
+        return Texfunc(type,center,rotate,scale).str()
+
     def texture(self, name, ambient=0.2, diffuse=0.8,
                 specular=0.0, opacity=1.0,
                 color=(1.0,0.0, 0.5), texfunc=0, phong=0, phongsize=.5, phongtype="PLASTIC"):
@@ -270,7 +273,10 @@ class Tachyon(SageObject):
     def triangle(self, vertex_1, vertex_2, vertex_3, texture):
 	 self._objects.append(Triangle(vertex_1,vertex_2,vertex_3,texture))
 
-    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,max_var=.1,max_depth=5,initial_depth=3):
+    def smooth_triangle(self, vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture):
+         self._objects.append(SmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
+
+    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,max_var=.1,max_depth=5,initial_depth=3, num_colors=None):
         r"""
         Plots a function by constructing a mesh with nonstandard sampling density
         without gaps. At very high resolutions (depths > 10) it becomes very
@@ -280,15 +286,24 @@ class Tachyon(SageObject):
         recycled rather than calling the function multiple times.  At high recursion
         depth, this may cause problems for some machines.
 
-        EXAMPLE:
+        Flat Triangles:
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
-            sage: def f(x,y): return(float(math.sin(x*y)))
+            sage: def f(x,y): return float(sin(x*y)))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
-            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6)  # increase max_depth for better picture
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6, num_colors=60)  # increase min_depth for better picture
+            sage: t.show()
+
+        Plotting with Smooth Triangles (requires explicit gradient function):
+            sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
+            sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
+            sage: def f(x,y): return float(sin(x*y)))
+            sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
+            sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6)  # increase min_depth for better picture
             sage.: t.show()
         """
-        TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var)
+        TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, g = grad_f, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var, num_colors = num_colors)
 
     def collect(self, objects):
         """Add a set of objects to the scene from a collection"""
@@ -312,6 +327,21 @@ class Light:
         """%(tostr(self._center), float(self._radius),
              tostr(self._color))
 
+class Texfunc:
+    def __init__(self, type=0,center=(0,0,0), rotate=(0,0,0), scale=(1,1,1)):
+        self._type = type
+        self._center = center
+        self._rotate = rotate
+        self._scale = scale
+
+    def str(self):
+        if type == 0:
+            return "0"
+        return """%d center %s rotate %s scale %s"""%(self._type,
+                                                      tostr(self._center),
+                                                      tostr(self._rotate),
+                                                      tostr(self._scale))
+
 class Texture:
     def __init__(self, name, ambient=0.2, diffuse=0.8,
                  specular=0.0, opacity=1.0,
@@ -326,6 +356,10 @@ class Texture:
         self._phong = phong
         self._phongsize = phongsize
         self._phongtype = phongtype
+
+    def recolor(self, name, color):
+        return Texture(name, self._ambient, self._diffuse, self._specular, self._opacity,
+                             color, self._texfunc, self._phong, self._phongsize, self._phongtype)
 
     def str(self):
         return """
@@ -390,6 +424,7 @@ class FCylinder:
         fcylinder base %s apex %s rad %s %s
         """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
 
+
 class Triangle:
       def __init__(self,vertex_1,vertex_2,vertex_3,texture):
 	  self._vertex_1 = vertex_1
@@ -408,6 +443,31 @@ class Triangle:
 	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3), self._texture)
 
 
+class SmoothTriangle:
+      def __init__(self,vertex_1,vertex_2,vertex_3,normal_1,normal_2,normal_3,texture):
+	  self._vertex_1 = vertex_1
+	  self._vertex_2 = vertex_2
+	  self._vertex_3 = vertex_3
+	  self._normal_1 = normal_1
+	  self._normal_2 = normal_2
+	  self._normal_3 = normal_3
+	  self._texture = texture
+
+
+      def str(self):
+	  return """
+	  STRI
+	  V0 %s
+	  V1 %s
+	  V2 %s
+	  N0 %s
+	  N1 %s
+	  N2 %s
+	  %s
+	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3),
+               tostr(self._normal_1), tostr(self._normal_2),tostr(self._normal_3), self._texture)
+
+
 
 
 class TachyonPlot:
@@ -415,9 +475,11 @@ class TachyonPlot:
     # every stage whether or not each square should be split into four more squares.  This way,
     # more planar areas get fewer triangles, and areas with higher curvature get more trianges
 
-    def __init__(self, tachyon, f, (min_x, max_x), (min_y, max_y), tex, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
+    def __init__(self, tachyon, f, (min_x, max_x), (min_y, max_y), tex, g = None,
+                              min_depth=4, max_depth=8, e_rel = .01, e_abs = .01, num_colors = None):
         self._tachyon = tachyon
         self._f = f
+        self._g = g
         self._tex = tex
         self._min_depth = min_depth
         self._max_depth = max_depth
@@ -425,15 +487,29 @@ class TachyonPlot:
         self._e_abs = e_abs
         self._trianglist = []
         self._eps = min(max_x - min_x, max_y - min_y)/(2**max_depth)
+        self._num_colors = num_colors
+        if g is None:
+            def fcn(x,y):
+                return [self._f(x,y)]
+        else:
+            def fcn(x,y):
+                return [self._f(x,y), self._g(x,y)]
+
+
+        self._fcn = fcn
+
 
         # generate the necessary data to kick-start the recursion
         mid_x = (min_x + max_x)/2
         mid_y = (min_y + max_y)/2
-        sw_z = f(min_x,min_y)
-        nw_z = f(min_x,max_y)
-        se_z = f(max_x,min_y)
-        ne_z = f(max_x,max_y)
-        mid_z = f(mid_x,mid_y)
+        sw_z = fcn(min_x,min_y)
+        nw_z = fcn(min_x,max_y)
+        se_z = fcn(max_x,min_y)
+        ne_z = fcn(max_x,max_y)
+        mid_z = fcn(mid_x,mid_y)
+
+        self._min = min(sw_z[0], nw_z[0], se_z[0], ne_z[0], mid_z[0])
+        self._max = max(sw_z[0], nw_z[0], se_z[0], ne_z[0], mid_z[0])
 
         # jump in and start building blocks
         outer = self.plot_block(min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, 0)
@@ -444,6 +520,25 @@ class TachyonPlot:
         self.triangulate(outer.right, outer.right_c)
         self.triangulate(outer.bottom, outer.bottom_c)
 
+        if num_colors is not None:
+            ident = "t%d_"%len(tachyon._objects) #don't collide with other texture names
+            for o in tachyon._objects:
+                if isinstance(o, Texture) and o._name == tex:
+                    base_tex = o
+                    break
+
+            for i in range(num_colors):
+                tachyon._objects.append(base_tex.recolor("%s%d"%(ident,i), hue(float(i/num_colors))))
+
+            zrange = self._max - self._min
+            for t in self._trianglist:
+                avg_z = (t._vertex_1[2] + t._vertex_2[2] + t._vertex_3[2])/3
+                t._texture = "%s%d"%(ident, num_colors*(avg_z - self._min)/zrange)
+                tachyon._objects.append(t)
+        else:
+            tachyon.collect(self._trianglist)
+
+
     def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
 
         if depth < self._max_depth:
@@ -453,10 +548,10 @@ class TachyonPlot:
             # we calculate
 
             # big square boundary midpoints
-            mid_w_z = self._f(min_x, mid_y)
-            mid_n_z = self._f(mid_x, max_y)
-            mid_e_z = self._f(max_x, mid_y)
-            mid_s_z = self._f(mid_x, min_y)
+            mid_w_z = self._fcn(min_x, mid_y)
+            mid_n_z = self._fcn(mid_x, max_y)
+            mid_e_z = self._fcn(max_x, mid_y)
+            mid_s_z = self._fcn(mid_x, min_y)
 
             # midpoints locations of sub_squares
             qtr1_x = (min_x + mid_x)/2
@@ -465,18 +560,20 @@ class TachyonPlot:
             qtr3_y = (mid_y + max_y)/2
 
             # function evaluated at these midpoints
-            mid_sw_z = self._f(qtr1_x,qtr1_y)
-            mid_nw_z = self._f(qtr1_x,qtr3_y)
-            mid_se_z = self._f(qtr3_x,qtr1_y)
-            mid_ne_z = self._f(qtr3_x,qtr3_y)
+            mid_sw_z = self._fcn(qtr1_x,qtr1_y)
+            mid_nw_z = self._fcn(qtr1_x,qtr3_y)
+            mid_se_z = self._fcn(qtr3_x,qtr1_y)
+            mid_ne_z = self._fcn(qtr3_x,qtr3_y)
 
             # linearization estimates of midpoints
-            est_sw_z = (mid_z + sw_z)/2
-            est_nw_z = (mid_z + nw_z)/2
-            est_se_z = (mid_z + se_z)/2
-            est_ne_z = (mid_z + ne_z)/2
+            est_sw_z = (mid_z[0] + sw_z[0])/2
+            est_nw_z = (mid_z[0] + nw_z[0])/2
+            est_se_z = (mid_z[0] + se_z[0])/2
+            est_ne_z = (mid_z[0] + ne_z[0])/2
 
-            tol_check = [(est_sw_z, mid_sw_z), (est_nw_z, mid_nw_z), (est_se_z, mid_se_z), (est_ne_z, mid_ne_z)]
+            self.extrema([mid_w_z[0], mid_n_z[0], mid_e_z[0], mid_s_z[0], mid_sw_z[0], mid_se_z[0], mid_nw_z[0], mid_sw_z[0]])
+
+            tol_check = [(est_sw_z, mid_sw_z[0]), (est_nw_z, mid_nw_z[0]), (est_se_z, mid_se_z[0]), (est_ne_z, mid_ne_z[0])]
 
             if depth < self._min_depth or not self.tol_list(tol_check):
                 next_depth = depth + 1
@@ -508,11 +605,19 @@ class TachyonPlot:
 
         else:
             # just build the square we're in
-            sw = (min_x,min_y,sw_z)
-            nw = (min_x,max_y,nw_z)
-            se = (max_x,min_y,se_z)
-            ne = (max_x,max_y,ne_z)
-            c  = [(mid_x,mid_y,mid_z)]
+            if self._g is None:
+                sw = [(min_x,min_y,sw_z[0])]
+                nw = [(min_x,max_y,nw_z[0])]
+                se = [(max_x,min_y,se_z[0])]
+                ne = [(max_x,max_y,ne_z[0])]
+                c  = [[(mid_x,mid_y,mid_z[0])]]
+            else:
+                sw = [(min_x,min_y,sw_z[0]),sw_z[1]]
+                nw = [(min_x,max_y,nw_z[0]),nw_z[1]]
+                se = [(max_x,min_y,se_z[0]),se_z[1]]
+                ne = [(max_x,max_y,ne_z[0]),ne_z[1]]
+                c  = [[(mid_x,mid_y,mid_z[0]),mid_z[1]]]
+
 
             left = [sw,nw]
             left_c = c
@@ -559,13 +664,13 @@ class TachyonPlot:
         j = 1
 
         while i < len(p_c) or j < len(q_c):
-            if abs(p[i][n] - q[j][n]) < self._eps:
+            if abs(p[i][0][n] - q[j][0][n]) < self._eps:
                 m.append(p[i])
                 mpc.append(p_c[i])
                 mqc.append(q_c[j])
                 i += 1
                 j += 1
-            elif p[i][n] < q[j][n]:
+            elif p[i][0][n] < q[j][0][n]:
                 m.append(p[i])
                 mpc.append(p_c[i])
                 mqc.append(mqc[-1])
@@ -587,9 +692,18 @@ class TachyonPlot:
         # Triangles will be rendered between consecutive edge points and the
         # center point with the same index number as the earlier edge point.
 
-        for i in range(0,len(p)-1):
-            self._tachyon.triangle(p[i], p[i+1], c[i], self._tex)
+        if self._g is None:
+            for i in range(0,len(p)-1):
+                self._trianglist.append(Triangle(p[i][0], p[i+1][0], c[i][0], self._tex))
+        else:
+            for i in range(0,len(p)-1):
+                self._trianglist.append(SmoothTriangle(p[i][0], p[i+1][0], c[i][0],p[i][1], p[i+1][1], c[i][1], self._tex))
 
+
+    def extrema(self, list):
+        if self._num_colors is not None:
+            self._min = min(list+[self._min])
+            self._max = max(list+[self._max])
 
 class PlotBlock:
    def __init__(self, left, left_c, top, top_c, right, right_c, bottom, bottom_c):

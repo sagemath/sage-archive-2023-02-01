@@ -320,39 +320,58 @@ class Ideal_fractional(Ideal_generic):
 # constructors for standard (benchmark) ideals, written uppercase as
 # these are constructors
 
-def Cyclic(R, n, singular=singular_default):
+def Cyclic(R, n=None, homog=False, singular=singular_default):
     """
     ideal of cyclic n-roots from 1-st n variables of R if R is
-    coercable to Singular.
+    coercable to Singular. If n==None n is set to R.ngens()
 
     INPUT:
         R -- base ring to construct ideal for
-        n -- number of cyclic roots
+        n -- number of cyclic roots (default: None)
+        homog -- if True a homogenous ideal is returned using the last
+                 variable in the ideal (default: False)
+        singular -- singular instance to use
 
     \note{R will be set as the active ring in Singular}
     """
-    if n > R.ngens():
-        raise ArithmeticError, "n must be <= R.ngens()"
+    if n:
+        if n > R.ngens():
+            raise ArithmeticError, "n must be <= R.ngens()"
+    else:
+        n = R.ngens()
+
     singular.lib("poly")
     R._singular_().set_ring()
-    I = singular.cyclic(n)
+    if not homog:
+        I = singular.cyclic(n)
+    else:
+        I = singular.cyclic(n).homog(R.gen(n-1))
     return R.ideal(I)
 
 
-def Katsura(R, n, singular=singular_default):
+def Katsura(R, n=None, homog=False, singular=singular_default):
     """
-    n-th katsura ideal of R if R is coercable to
-    Singular.
+    n-th katsura ideal of R if R is coercable to Singular.  If n==None
+    n is set to R.ngens()
 
     INPUT:
         R -- base ring to construct ideal for
         n -- which katsura ideal of R
+        homog -- if True a homogenous ideal is returned using the last
+                 variable in the ideal (default: False)
+        singular -- singular instance to use
     """
-    if n > R.ngens():
-        raise ArithmeticError, "n must be <= R.ngens()"
+    if n:
+        if n > R.ngens():
+            raise ArithmeticError, "n must be <= R.ngens()"
+    else:
+        n = R.gens()
     singular.lib("poly")
     R._singular_().set_ring()
-    I = singular.katsura(n)
+    if not homog:
+        I = singular.katsura(n)
+    else:
+        I = singular.katsura(n).homog(R.gen(n-1))
     return R.ideal(I)
 
 def FieldIdeal(R):

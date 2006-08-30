@@ -2224,44 +2224,48 @@ def strassen_window_multiply(C, A, B, int cutoff):
         # the matrix in the strassen recursion. The base case in both cases will
         # be a (4x5) matrix times a (5x6) matrix.
 
-        sage: dim1 = 64; dim2 = 83; dim3 = 101
-        sage: R = MatrixSpace(QQ, dim1, dim2)
-        sage: S = MatrixSpace(QQ, dim2, dim3)
-        sage: T = MatrixSpace(QQ, dim1, dim3)
+        # TODO -- the doctests below are currently not
+        # tested/enabled/working -- enable them when linear algebra
+        # restructing gets going.
 
-        sage: A = R.random_element(range(-30, 30))
-        sage: B = S.random_element(range(-30, 30))
-        sage: C = T(0)
-        sage: D = T(0)
+        sage.:P dim1 = 64; dim2 = 83; dim3 = 101
+        sage.:P R = MatrixSpace(QQ, dim1, dim2)
+        sage.:P S = MatrixSpace(QQ, dim2, dim3)
+        sage.:P T = MatrixSpace(QQ, dim1, dim3)
 
-        sage: A_window = A.window(0, 0, dim1, dim2)
-        sage: B_window = B.window(0, 0, dim2, dim3)
-        sage: C_window = C.window(0, 0, dim1, dim3)
+        sage.:P A = R.random_element(range(-30, 30))
+        sage.:P B = S.random_element(range(-30, 30))
+        sage.:P C = T(0)
+        sage.:P D = T(0)
 
-        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage: D.set_to_prod(A, B)                    # use naive method
+        sage.:P A_window = A.window(0, 0, dim1, dim2)
+        sage.:P B_window = B.window(0, 0, dim2, dim3)
+        sage.:P C_window = C.window(0, 0, dim1, dim3)
 
-        sage: C == D
+        sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage.:P D.set_to_prod(A, B)                    # use naive method
+
+        sage.:P C == D
         True
 
-        sage: dim1 = 79; dim2 = 83; dim3 = 101
-        sage: R = MatrixSpace(QQ, dim1, dim2)
-        sage: S = MatrixSpace(QQ, dim2, dim3)
-        sage: T = MatrixSpace(QQ, dim1, dim3)
+        sage.:P dim1 = 79; dim2 = 83; dim3 = 101
+        sage.:P R = MatrixSpace(QQ, dim1, dim2)
+        sage.:P S = MatrixSpace(QQ, dim2, dim3)
+        sage.:P T = MatrixSpace(QQ, dim1, dim3)
 
-        sage: A = R.random_element(range(30))
-        sage: B = S.random_element(range(30))
-        sage: C = T(0)
-        sage: D = T(0)
+        sage.:P A = R.random_element(range(30))
+        sage.:P B = S.random_element(range(30))
+        sage.:P C = T(0)
+        sage.:P D = T(0)
 
-        sage: A_window = A.window(0, 0, dim1, dim2)
-        sage: B_window = B.window(0, 0, dim2, dim3)
-        sage: C_window = C.window(0, 0, dim1, dim3)
+        sage.:P A_window = A.window(0, 0, dim1, dim2)
+        sage.:P B_window = B.window(0, 0, dim2, dim3)
+        sage.:P C_window = C.window(0, 0, dim1, dim3)
 
-        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage: D.set_to_prod(A, B)                    # use naive method
+        sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage.:P D.set_to_prod(A, B)                    # use naive method
 
-        sage: C == D
+        sage.:P C == D
         True
 
     AUTHOR: David Harvey

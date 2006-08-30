@@ -125,13 +125,13 @@ class Octave(Expect):
         sage: octave.eval("b = [ 1; 3; 13]")                         # optional
         'b =\n\n 1\n 3\n 13\n\n'
         sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional
-        'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
+        'c =\n\n 1\n -0\n 0\n\n'
         sage: print octave.eval("c")                                 # optional
         c =
         <BLANKLINE>
          1
-         7.21645e-16
-         -7.21645e-16
+         -0
+         0
         <BLANKLINE>
         <BLANKLINE>
     """
@@ -257,7 +257,7 @@ class Octave(Expect):
             sage: V3  = VectorSpace(QQ,3)
             sage: b   = V3([1,2,3])
             sage: octave.solve_linear_system(A,b)    # requires optional octave
-            [-0.33333299999999999, 0.66666700000000001, -3.5236600000000002e-18]
+            [-0.33333299999999999, 0.66666700000000001, 0]
 
         AUTHOR: David Joyner and William Stein
         """
@@ -384,17 +384,16 @@ def octave_console():
 
     EXAMPLES:
         sage.: octave_console()
-        GNU Octave, version 2.1.71 (x86_64-suse-linux).
-        Copyright (C) 2005 John W. Eaton.
+        GNU Octave, version 2.1.73 (i386-apple-darwin8.5.3).
+        Copyright (C) 2006 John W. Eaton.
         ...
-        Additional information about Octave is available at http://www.octave.org.
-
         octave:1> 2+3
         ans = 5
         octave:2> [ctl-d]
 
-    ctl-d exits the octave console and returns you to SAGE.
-    octave, like SAGE, remembers its history from one session to another.
+    Pressing ctrl-d exits the octave console and returns you to SAGE.
+    octave, like SAGE, remembers its history from one session to
+    another.
     """
     os.system('octave')
 
@@ -404,8 +403,8 @@ def octave_version():
     Return the version of Octave installed.
 
     EXAMPLES:
-        sage: octave_version()    # optional octave package; random-ish output
-        '2.1.72'
+        sage: octave_version()    # optional octave package
+        '2.1.73'
     """
     return str(octave('version')).strip()
 

@@ -223,7 +223,7 @@ cdef class gen:
             sage: q[6]
             Traceback (most recent call last):
             ...
-            IndexError: index (6) must be less than 6
+            IndexError: index out of bounds
             sage: m = pari('[1,2;3,4]')
             sage: m[0]
             [1, 3]~
@@ -242,7 +242,7 @@ cdef class gen:
             sage: s[13]
             Traceback (most recent call last):
             ...
-            IndexError: index (13) must be between 0 and 12
+            IndexError: index out of bounds
             sage: v = pari('[1,2,3]')
             sage: v[0]
             1
@@ -339,7 +339,7 @@ cdef class gen:
             sage: v[-1]
             Traceback (most recent call last):
             ...
-            IndexError: index (-1) must be between 0 and 19
+            IndexError: index out of bounds
             sage: v[:-3]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
             sage: v[5:]

@@ -296,6 +296,7 @@ class MPolynomialIdeal_singular_repr:
             else:
                 raise TypeError, "algorithm '%s' unknown"%algorithm
             R = self.ring()
+            self.__singular_groebner_basis = S #remember this
             self.__groebner_basis = Sequence([R(S[i+1]) for i in range(len(S))], R,
                                              check=False, immutable=True)
         return self.__groebner_basis
@@ -425,16 +426,85 @@ class MPolynomialIdeal_singular_repr:
             y^4 - 2*x*y^2 + x^2
         """
         try:
+            try:
+                S = self.__singular_groebner_basis.parent()
+            except AttributeError:
+                self.groebner_basis()
+                S = self.__singular_groebner_basis.parent()
+
             f = self.ring()(f)
-            S = singular_default
-            I = self._singular_(S)
-            g = S(f)
-            h = g.reduce(I.std())
+            g = self.__singular_groebner_basis.parent()(f)
+            h = g.reduce(self.__singular_groebner_basis)
             return self.ring()(h)
 
         except TypeError:
 
             return f
+
+    def syzygy_module(self):
+        """
+        Computes the first syzygy (i.e., the module of relations of
+        the given generators) of the ideal.
+
+        ALGORITHM: Uses Singular's syz command
+
+        \note{The syz module is transposed before being returned}
+        """
+        return self._singular_().syz().transpose().sage_matrix(self.ring())
+
+    def reduced_basis(self):
+        r"""
+        returns $(g_1, \dots, g_s)$ such that:
+
+        * $(f_1,\dots,f_n) = (g_1,\dots,g_s)$
+        * $L(g_i)\neq L(g_j)$ for all $i\neq j$
+        * $L(g_i)$ does not divide m for all monomials m of
+          $\{g_1,\dots,g_{i-1},g_{i+1},\dots,g_s\}$
+
+        ALGORITHM: Uses Singular's interred command
+        """
+        R = self.ring()
+        return [ f.sage_poly(R) for f in self._singular_().interred() ]
+
+    def is_groebner(self):
+        """
+        Returns true if self.gens() form a Groebner Basis. This is done by
+        trying to lift Syz(LM(self)) to Syz(self) as self is a Groebner
+        Basis if and only if for every element S in Syz(LM(self)):
+        $$S \cdot G = \sum_{i=0}^{m} h_ig_i \rightarrow_G 0.$$.
+
+        ALGORITHM: Uses Singular
+
+        EXAMPLE:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,4)
+            sage: I.is_groebner()
+            False
+            sage: I2 = Ideal(I.groebner_basis())
+            sage: I2.is_groebner()
+            True
+
+        \note{From the Singular Manualf for the reduce function we use in
+        this method: 'The result may have no meaning if the second
+        argument (self, malb) is not a standard basis'. I (malb) believe
+        this refers to the mathematical fact that the results may have no
+        meaning if self is no standard basis, i.e., Singular doesn't 'add'
+        any additional 'nonsense' to the result. So we may acutally use
+        reduce to determine if self is a Groebner Basis.}
+        """
+        from sage.matrix.constructor import Matrix
+        singular = self._singular_().parent()
+        R = self.ring()
+
+        F = singular( self.gens(), "module" )
+        LMF = singular( [f.lm() for f in self.gens()] , "module" )
+
+        M = (F * LMF.syz()).reduce(self._singular_())
+
+        for i in range(M.nrows()):
+            if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
+                return False
+        return True
 
 class MPolynomialIdeal_macaulay2_repr:
     """

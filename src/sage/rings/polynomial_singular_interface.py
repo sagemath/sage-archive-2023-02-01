@@ -264,10 +264,7 @@ class Polynomial_singular_repr:
         if not have_ring:
             self.parent()._singular_(singular).set_ring() #this is expensive
 
-        if hasattr(self,"element"):
-            self.__singular = singular(str(self))
-        else:
-            self.__singular = singular(str(self))
+        self.__singular = singular(str(self))
 
         return self.__singular
 

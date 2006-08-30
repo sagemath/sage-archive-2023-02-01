@@ -68,6 +68,48 @@ import sage.rings.integer_ring
 def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
 
+class MPolynomialIdeal_magma_repr:
+    def _magma_(self, magma=None):
+        """
+        Returns a MAGMA ideal matching self if the base ring coercable to MAGMA
+        and MAGMA is available.
+
+        EXAMPLES:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,4)
+            sage: I._magma_() #optional MAGMA
+            Ideal of Polynomial ring of rank 10 over GF(127)
+            Graded Reverse Lexicographical Order
+            Variables: a, b, c, d, e, f, g, h, i, j
+            Basis:
+            [
+            a + b + c + d,
+            a*b + b*c + a*d + c*d,
+            a*b*c + a*b*d + a*c*d + b*c*d,
+            a*b*c*d + 126
+            ]
+        """
+        if magma == None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+        mlist = magma(self.gens())
+        return magma("ideal<%s|%s>"%(self.ring()._magma_().name(),mlist.name()))
+
+    def _magma_groebner_basis(self):
+        """
+        Computes a Groebner Basis for self using MAGMA if available.
+
+        EXAMPLES:
+            sage: R.<a,b,c,d,e,f,g,h,i,j> = PolynomialRing(GF(127),10)
+            sage: I = sage.rings.ideal.Cyclic(R,6)
+            sage: gb = I.groebner_basis("magma:GroebnerBasis") #optional MAGMA
+            sage: len(gb) #optional MAGMA
+            45
+        """
+        R = self.ring()
+        mgb = self._magma_().GroebnerBasis()
+        return [R(str(mgb[i+1])) for i in range(len(mgb))]
+
 
 class MPolynomialIdeal_singular_repr:
     """
@@ -580,7 +622,10 @@ class MPolynomialIdeal_macaulay2_repr:
 
 
 
-class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaulay2_repr, Ideal_generic ):
+class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
+                        MPolynomialIdeal_macaulay2_repr, \
+                        MPolynomialIdeal_magma_repr, \
+                        Ideal_generic ):
     """
     An ideal of a multivariate polynomial ring.
     """
@@ -628,8 +673,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaula
                          * 'singular:stdhilb' - Singular's stdhib command
                          * 'singular:slimgb' - Singular's slimgb command
                          * 'macaulay2:gb' (if available) - Macaulay2's gb command
+                         * 'magma:GroebnerBasis' (if available) - MAGMA's Groebnerbasis command
 
-        ALGORITHM: Uses Singular or Macaulay2 (if available)
+        ALGORITHM: Uses Singular, MAGMA, or Macaulay2 (if available)
 
         """
         if algorithm is None:
@@ -641,6 +687,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaula
             return self._singular_groebner_basis(algorithm[9:])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
+        elif algorithm == None:
+            if self.ring() == ZZ:
+                return self._macaulay2_groebner_basis()
+            else:
+                return self._singular_groebner_basis()
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 

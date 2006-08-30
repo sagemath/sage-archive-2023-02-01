@@ -1027,6 +1027,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         X = self._singular_().division(right._singular_())
         return R(X[1][1,1]), R(X[2][1])
 
+    def _magma_(self, magma=None):
+        """
+        Returns the MAGMA representation of self.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(GF(2),2)
+            sage: f = y*x^2 + x +1
+            sage: f._magma_() #optional
+            x^2*y + x + 1
+
+        """
+        if magma == None:
+            import sage.interfaces.magma
+            magma = sage.interfaces.magma.magma
+
+        try:
+            m = self.__magma
+            m._check_valid()
+            if not m.parent() is magma:
+                raise ValueError
+            return m
+        except (AttributeError,ValueError):
+            magma_gens = [e.name() for e in self.parent()._magma_().gens()]
+            f = self.element().poly_repr(magma_gens,atomic_coefficients=False)
+            self.__magma = magma(f)
+            return self.__magma
+
+
 
 ###############################################################
 # Useful for some geometry code.

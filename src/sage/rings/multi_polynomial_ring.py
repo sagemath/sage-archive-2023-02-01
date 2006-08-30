@@ -244,11 +244,9 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             return False
         return True
 
-    def _magma_(self, G):
+    def _magma_(self, magma=None):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
-
-        TODO/WARNING: The term order is not preserved yet!!
 
         EXAMPLES:
             sage: R.<y,z,w> = PolynomialRing(QQ,3)
@@ -272,13 +270,22 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             Lexicographical Order
             Variables: x0, x1, x2
         """
-        if G is None:
+        if magma == None:
             import sage.interfaces.magma
-            G = sage.interfaces.magma.magma
-        B = G(self.base_ring())
-        R = G('PolynomialRing(%s, %s)'%(B.name(), self.ngens()))
-        R.assign_names(self.variable_names())
-        return R
+            magma = sage.interfaces.magma.magma
+
+        try:
+          m = self.__magma
+          m._check_valid()
+          if not m.parent() is magma:
+              raise ValueError
+          return m
+        except (AttributeError,ValueError):
+            B = magma(self.base_ring())
+            R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
+            R.assign_names(self.variable_names())
+            self.__magma = R
+            return R
 
     def var_dict(self):
         """
@@ -516,7 +523,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
 #######################
 
-name_mapping = {'lex':'lp', \
+singular_name_mapping = {'lex':'lp', \
                 'revlex':'rp', \
                 'degrevlex':'dp', \
                 'deglex':'Dp'}
@@ -525,6 +532,11 @@ m2_name_mapping = {'lex':'Lex', \
                    'revlex':'RevLex', \
                    'degrevlex':'GRevLex', \
                    'deglex':'GLex'}
+
+magma_name_mapping = {'lex': '"lex"', \
+                      'revlex' : '"revlex"', \
+                      'deglex' : '"glex"', \
+                      'degrevlex' : '"grevlex"'}
 
 class TermOrder(SageObject):
     """
@@ -540,16 +552,25 @@ class TermOrder(SageObject):
             name = name.__name
         name = name.lower()
         self.__name = name
-        if name_mapping.has_key(name):
-            singular_name = name_mapping[name]
+
+        if singular_name_mapping.has_key(name):
+            singular_name = singular_name_mapping[name]
             self.__singular_str = singular_name
         else:
             self.__singular_str = name
+
         if m2_name_mapping.has_key(name):
             macaulay2_name = m2_name_mapping[name]
             self.__macaulay2_str = macaulay2_name
         else:
             self.__macaulay2_str = name
+
+        if magma_name_mapping.has_key(name):
+            magma_name = magma_name_mapping[name]
+            self.__magma_str = magma_name
+        else:
+            self.__magma_str = name
+
 
     def __getattr__(self,name):
         if name=='compare_tuples':
@@ -651,6 +672,9 @@ class TermOrder(SageObject):
 
     def macaulay2_str(self):
         return self.__macaulay2_str
+
+    def magma_str(self):
+        return self.__magma_str
 
     def __cmp__(self, other):
         if not isinstance(other, TermOrder):

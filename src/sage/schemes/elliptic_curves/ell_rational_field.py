@@ -1386,8 +1386,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: L = E.Lseries_dokchitser()
             sage: L(2)
             0.38157540826071124
-            sage: L = E.Lseries_dokchitser(algorithm='magma')         # optional
-            sage: L.Evaluate(2)                                       # optional
+            sage.: L = E.Lseries_dokchitser(algorithm='magma')         # optional  (not auto tested)
+            sage.: L.Evaluate(2)                                       # optional  (not auto tested)
             0.38157540826071121129371040958008663667709753398892116
         """
         if algorithm == 'magma':

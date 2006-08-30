@@ -1,5 +1,5 @@
 """
-
+Soya 3d plotting
 
 AUTHORS:
     -- William Stein
@@ -54,13 +54,13 @@ def plot3dsoya(f, p=(0,0), side=1.0, res = 8, fineness=25,
     EXAMPLES:
 
     A periodic surface:
-        sage: p = plot3dsoya(lambda x,y : sin(x)+cos(y), (0,0), 10)   # optional: requires soya3d
+        sage.: p = plot3dsoya(lambda x,y : sin(x)+cos(y), (0,0), 10)   # optional: requires soya3d
 
     Now use the show command to view the surface:
         sage.: p.show()
 
     The Riemann Zeta function
-        p = plot3dsoya(lambda x,y : abs(zeta(x + y*I)), (0.5,5), 10, res=4)
+        sage.: p = plot3dsoya(lambda x,y : abs(zeta(x + y*I)), (0.5,5), 10, res=4)
 
     """
     try:

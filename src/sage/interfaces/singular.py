@@ -430,6 +430,10 @@ class Singular(Expect):
                 (isinstance(x, ExpectElement) and x.hasattr('_singular_')):
             return getattr(x, '_singular_')(self)
 
+        # some convenient conversions
+        if type in ("module","list") and isinstance(x,(list,tuple)):
+            x = str(x)[1:-1]
+
         return SingularElement(self, type, x, False)
 
 

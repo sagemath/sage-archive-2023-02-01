@@ -58,50 +58,59 @@ def canonical_coercion(x, y):
     if xp is yp:
         return x, y
 
-    if x.__class__ in [int, long, float, complex]:
-        try:
-            x = yp(x)
-        except TypeError:
-            y = x.__class__(y)
-            return x, y
-    elif y.__class__ in [int, long, float, complex]:
-        try:
-            y = xp(y)
-        except TypeError:
-            x = y.__class__(x)
-            return x, y
-    else:
-        i = 0
-        try:
-            x = coerce(yp, x)
-        except TypeError, ValueError:
-            i = i + 1
-        try:
-            y = coerce(xp, y)
-        except TypeError, ValueError:
-            i = i + 1
-        if i == 0:
-            raise TypeError, "unable to find an unambiguous parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-        elif i == 2:
-            import  sage.ext.ring
-            if isinstance(x, sage.ext.ring.Ring) or isinstance(y, sage.ext.ring.Ring):
-                raise TypeError, "you cannot combine ring (=%s) with a number or another ring (=%s)!"%(x, y)
-            raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-    return x, y
+    try:
+        if x.__class__ in [int, long, float, complex]:
+            try:
+                x = yp(x)
+            except TypeError:
+                y = x.__class__(y)
+                return x, y
+        elif y.__class__ in [int, long, float, complex]:
+            try:
+                y = xp(y)
+            except TypeError:
+                x = y.__class__(x)
+                return x, y
+        else:
+            i = 0
+            try:
+                x = coerce(yp, x)
+            except TypeError, ValueError:
+                i = i + 1
+            try:
+                y = coerce(xp, y)
+            except TypeError, ValueError:
+                i = i + 1
+            if i == 0:
+                raise TypeError, "unable to find an unambiguous parent"
+                #raise TypeError, "unable to find an unambiguous parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
+            elif i == 2:
+                import  sage.ext.ring
+                if isinstance(x, sage.ext.ring.Ring) or isinstance(y, sage.ext.ring.Ring):
+                    #raise TypeError, "you cannot combine ring (=%s) with a number or another ring (=%s)!"%(x, y)
+                    raise TypeError, "you cannot combine ring with a number or another ring!"
+                #raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
+                raise TypeError, "unable to find a common parent"
+        return x, y
+    except AttributeError:
+        raise TypeError, "unable to find a common parent"
 
 def canonical_base_coercion(x, y):
     try:
         xb = x.base_ring()
     except AttributeError:
-        raise TypeError, "unable to find base ring for %s (parent: %s)"%(x,x.parent())
+        #raise TypeError, "unable to find base ring for %s (parent: %s)"%(x,x.parent())
+        raise TypeError, "unable to find base ring"
     try:
         yb = y.base_ring()
     except AttributeError:
-        raise TypeError, "unable to find base ring for %s (parent: %s)"%(y,y.parent())
+        raise TypeError, "unable to find base ring"
+        #raise TypeError, "unable to find base ring for %s (parent: %s)"%(y,y.parent())
     try:
         b = canonical_coercion(xb(0),yb(0))[0].parent()
     except TypeError:
-        raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
+        raise TypeError, "unable to find base ring"
+        #raise TypeError, "unable to find a common base ring for %s (base ring: %s) and %s (base ring %s)"%(x,xb,y,yb)
     return x.change_ring(b), y.change_ring(b)
 
 def bin_op(x, y, op):
@@ -123,13 +132,15 @@ def bin_op(x, y, op):
         except AttributeError:
             raise TypeError, mesg
         except TypeError:
-            raise TypeError, "No right action of %s on %s defined"%(y,x)
+            #raise TypeError, "No right action of %s on %s defined"%(y,x)
+            raise TypeError, "No right action defined"
         try:
             return x._l_action(y)
         except AttributeError:
             raise TypeError, mesg
         except TypeError:
-            raise TypeError, "No left action of %s on %s defined"%(x,y)
+            raise TypeError, "No left action defined"
+            #raise TypeError, "No left action of %s on %s defined"%(x,y)
 
     return op(x,y)
 

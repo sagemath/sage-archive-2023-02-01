@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Interface to the Factory library.
 
 AUTHORS:
@@ -396,10 +396,10 @@ cdef class CanonicalForm:
         #}embed
 
         #embed{ void *str_to_CF(char* s)
-        istringstream *in = new istringstream(s);
+        istringstream in;
+        in.str( s );
         CanonicalForm* y = new CanonicalForm();
-        *in >> *y;
-        delete in;
+        in >> *y;
         return y;
         #}embed
 

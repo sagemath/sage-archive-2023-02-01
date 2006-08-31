@@ -152,6 +152,11 @@ ext_modules = [ \
     matrix_rational_dense,
     matrix_rational_sparse,
 
+    # complex_number2, \
+
+    #Extension('sage.rings.multi_polynomial_element_pyx',
+    #          sources = ['sage/rings/multi_polynomial_element_pyx.pyx']), \
+
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 

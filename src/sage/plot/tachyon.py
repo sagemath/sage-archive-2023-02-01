@@ -249,10 +249,11 @@ class Tachyon(SageObject):
 	 self._objects.append(Triangle(vertex_1,vertex_2,vertex_3,texture))
 
     def plot(self,f,(xmin,xmax),(ymin,ymax),texture,max_var=.1,max_depth=5,initial_depth=3):
-        """
+        r"""
         Plots a function by constructing a mesh with nonstandard sampling density
         without gaps. At very high resolutions (depths > 10) it becomes very
-        slow.  Pyrex may help.  Complexity is approx. O(2^{2*max_depth}).  This
+        slow.  Pyrex may help.  Complexity is approx.
+        $O(2^{2*maxdepth})$.  This
         algorithm has been optimized for speed, not memory -- values from f(x,y) are
         recycled rather than calling the function multiple times.  At high recursion
         depth, this may cause problems for some machines.

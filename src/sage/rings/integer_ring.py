@@ -1,5 +1,5 @@
 r"""
-Ring $\Z$ of Integers
+\protect{Ring $\Z$ of Integers}
 
 The class \\class{IntegerRing} represents
 the ring $\\mathbf{Z}$ of (arbitrary precision) integers.  Each integer

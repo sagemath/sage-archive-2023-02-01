@@ -120,7 +120,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
         the right-most nonzero entry is positive.
 
         We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in Z^n is positive.
+        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
 
         We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
         right-most nonzero entry of $a -b \in Z^n$ is negative.
@@ -846,7 +846,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         the right-most nonzero entry is positive.
 
         We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in Z^n is positive.
+        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
 
         We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
         right-most nonzero entry of $a -b \in Z^n$ is negative.

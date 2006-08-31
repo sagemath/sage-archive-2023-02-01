@@ -29,7 +29,7 @@ def skip(F):
     if os.path.exists('%s/nodoctest.py'%G[:i]):
         print "%s (skipping) -- nodoctest.py file in directory"%abs(F)
         return True
-    if G == "all.py" or G == "__init__.py" \
+    if G == "all.py" or "__init__.py" in G \
           or G[0] == '.' or '/.' in G or \
           'doctest' in G or \
           'nodoctest' in open(G).readline():

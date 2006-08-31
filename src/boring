@@ -72,3 +72,4 @@
 ^sage/libs/pari/gen.c$
 ^sage/libs/pari/test.c$
 ^sage/libs/.*/interrupt\.(h|pxi)$
+^sage/.doctest/err

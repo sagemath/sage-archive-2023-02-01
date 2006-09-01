@@ -707,7 +707,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             else:
                 return self._singular_groebner_basis()
         else:
-            raise TypeError, "algorithm '%s' unknown"%algorithm
+            raise TypeError, "cannot understand groebner algorithm"
 
     #def is_homogeneous(self):
     #    try:

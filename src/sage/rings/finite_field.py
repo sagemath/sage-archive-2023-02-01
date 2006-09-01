@@ -555,8 +555,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
-        if isinstance(x, (finite_field_element.FiniteFieldElement,
-                          integer_mod_pyx.IntegerMod)):
+        if isinstance(x, (finite_field_element.FiniteFieldElement)) or integer_mod_pyx.is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x

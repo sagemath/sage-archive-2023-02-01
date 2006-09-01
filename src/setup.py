@@ -281,6 +281,14 @@ ext_modules = [ \
               ['sage/rings/integer_mod_pyx.pyx']
               ), \
 
+#    Extension('sage.rings.integer_mod_ring_pyx',
+#              ['sage/rings/integer_mod_ring_pyx.pyx']
+#              ), \
+
+#    Extension('sage.rings.quotient_ring.pyx',
+#              ['sage/rings/quotient_ring.pyx']
+#              ), \
+
     ]
 
 

@@ -321,7 +321,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
-        if isinstance(x, integer_mod.IntegerMod) and x.parent().order() % self.characteristic() == 0:
+        if integer_mod.is_IntegerMod(x) and x.parent().order() % self.characteristic() == 0:
             return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"
 

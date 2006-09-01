@@ -5,7 +5,8 @@ An element of the integers modulo $n$.
 """
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-
+#cdef extern from "../ext/mpz_pylong.h":
+#    cdef long mpz_pythonhash(mpz_t src)
 
 import operator
 
@@ -22,7 +23,7 @@ import sage.ext.element
 cimport sage.ext.element
 cimport sage.ext.integer
 
-import sage.rings.coerce as coerce
+from sage.rings.coerce import cmp as coerce_cmp
 
 def Mod(n, m):
     """
@@ -80,6 +81,20 @@ cdef class IntegerMod_abstract(sage.ext.element.CommutativeRingElement):
         elif not isinstance(value, sage.ext.integer.Integer):
             value = sage.rings.integer_ring.Z(value)
         self._set_from_Integer(value)
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = Mod(4,5); a
+            4
+            sage: loads(a.dumps()) == a
+            True
+            sage: a = Mod(-1,5^30)^25;
+            sage: loads(a.dumps()) == a
+            True
+        """
+        return sage.rings.integer_mod_pyx.mod, (self.lift(), self.modulus())
+
 
 
 
@@ -262,7 +277,7 @@ cdef class IntegerMod_abstract(sage.ext.element.CommutativeRingElement):
             sage: a.rational_reconstruction()
             2/3
         """
-        return lift().rational_reconstruction(self.modulus())
+        return self.lift().rational_reconstruction(self.modulus())
 
     def crt(self, other):
         if not isinstance(other, IntegerMod_abstract):
@@ -272,7 +287,9 @@ cdef class IntegerMod_abstract(sage.ext.element.CommutativeRingElement):
         if isinstance(self, IntegerMod_int) and isinstance(other, IntegerMod_int):
             self_i = self
             other_i = other
-            if self_i.imodulus * other_i.imodulus < INTEGER_MOD_INT_LIMIT:
+            if (self_i.imodulus * other_i.imodulus) < INTEGER_MOD_INT_LIMIT:
+                if other_i.imodulus == 1:
+                    return self
                 return self._crt(other)
 
         if (isinstance(self, IntegerMod_int)):
@@ -333,18 +350,40 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __dealloc__(self):
         mpz_clear(self.value)
 
-    def __cmp__(self, right):
+
+    def __cmp__(IntegerMod_gmp self, right):
+        if not isinstance(right, IntegerMod_gmp):
+            try:
+                return coerce_cmp(self, right)
+            except TypeError:
+                return -1
+        return self.cmp(right)
+
+    def cmp(IntegerMod_gmp self, IntegerMod_gmp right):
         """
         EXAMPLES:
-            sage: mod(5,13) == mod(-8,13)
+            sage: mod(5,13^20) == mod(5,13^20)
             True
+            sage: mod(5,13^20) == mod(-5,13^20)
+            False
+            sage: mod(5,13^20) == mod(-5,13)
+            False
         """
-        if not isinstance(self, IntegerMod) or not isinstance(right, IntegerMod) \
-               or right.parent() != self.parent():
-            return coerce_cmp(self, right)
-        cdef IntegerMod_gmp x
-        x = right
-        return mpz_cmp(self.value, x.value)
+        if right._parent != self._parent:
+            return -1
+        return mpz_cmp(self.value, right.value)
+
+    def __richcmp__(self, right, int op):
+        cdef int n
+        if not isinstance(right, IntegerMod_gmp):
+            try:
+                n = coerce_cmp(self, right)
+            except TypeError:
+                n = -1
+        else:
+            n = self.cmp(right)
+        return self._rich_to_bool(op, n)
+
 
     def _set_from_Integer(IntegerMod_gmp self, sage.ext.integer.Integer z):
         self.set_from_mpz(z.value)
@@ -399,10 +438,11 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         and to other.  The modulus of other must be coprime to the
         modulus of self.
         EXAMPLES:
-            sage: a = m.mod(37,10^8)
-            sage: b = m.mod(9,3^8)
+            sage: a = mod(37,10^8)
+            sage: b = mod(9,3^8)
             sage: a.crt(b)
             125900000037
+
         AUTHOR:
             -- Robert Bradshaw
         """
@@ -567,6 +607,11 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __float__(self):
         return float(self.lift())
 
+    def __hash__(self):
+#        return mpz_pythonhash(self.value)
+        return hash(self.lift())
+
+
 
 ######################################################################
 #      class IntegerMod_int
@@ -592,19 +637,44 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent, value)
 
     def __cmp__(IntegerMod_int self, right):
+        if not isinstance(right, IntegerMod_int):
+            try:
+                return coerce_cmp(self, right)
+            except TypeError:
+                return -1
+        return self.cmp(right)
+
+    def cmp(IntegerMod_int self, IntegerMod_int right):
         """
         EXAMPLES:
             sage: mod(5,13) == mod(-8,13)
             True
+            sage: mod(5,13) == mod(8,13)
+            False
+            sage: mod(5,13) == mod(5,24)
+            False
+            sage: mod(0, 13) == 0
+            True
+            sage: mod(0, 13) == int(0)
+            True
         """
-        if not isinstance(self, IntegerMod_int) or not isinstance(right, IntegerMod_int) \
-               or right.parent() != self.parent():
-            return coerce_cmp(self, right)
-        cdef IntegerMod_int x
-        x = right
-        if self.ivalue == x.ivalue: return 0
-        elif self.ivalue < x.ivalue: return -1
+        if right._parent != self._parent:
+            return -1
+        if self.ivalue == right.ivalue: return 0
+        elif self.ivalue < right.ivalue: return -1
         else: return 1
+
+    def __richcmp__(self, right, int op):
+        cdef int n
+        if not isinstance(right, IntegerMod_int):
+            try:
+                n = coerce_cmp(self, right)
+            except TypeError:
+                n = -1
+        else:
+            n = self.cmp(right)
+        return self._rich_to_bool(op, n)
+
 
     def _set_from_Integer(IntegerMod_int self, sage.ext.integer.Integer z):
         self.set_from_mpz(z.value)
@@ -665,6 +735,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: b = mod(2,7)
             sage: a.crt(b)
             23
+
         AUTHOR:
             -- Robert Bradshaw
         """
@@ -820,6 +891,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __float__(IntegerMod_int self):
         return float(self.ivalue)
+
+    def __hash__(self):
+        return hash(self.ivalue)
 
 
 

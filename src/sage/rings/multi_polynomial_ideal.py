@@ -508,9 +508,18 @@ class MPolynomialIdeal_singular_repr:
           $\{g_1,\dots,g_{i-1},g_{i+1},\dots,g_s\}$
 
         ALGORITHM: Uses Singular's interred command
+
+        \note{G. Pfister recommended setting option(redSB) before
+        using interred for this purpose. Though the manual doesn't
+        mention it.}
         """
+        s = self._singular_().parent()
+        o = s.option("get")
+        s.option("redSB")
         R = self.ring()
-        return [ f.sage_poly(R) for f in self._singular_().interred() ]
+        ret = [ f.sage_poly(R) for f in self._singular_().interred() ]
+        s.option("set",o)
+        return ret
 
     def is_groebner(self):
         """

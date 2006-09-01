@@ -1,5 +1,4 @@
 include "math.pxi"
-include "stdio.pxi"
 cdef enum:
   GSL_SUCCESS = 0
 

@@ -130,6 +130,10 @@ complex_number2 = Extension('sage.rings.complex_number2',
 			    ['sage/rings/complex_number2.pyx'],
 			    libraries = ['gmp'])
 
+fft = Extension('sage.gsl.fft',
+                ['sage/gsl/fft.pyx'],
+                libraries = ['gsl'])
+
 ext_modules = [ \
     ec, \
 
@@ -151,6 +155,8 @@ ext_modules = [ \
     matrix_pid,
     matrix_rational_dense,
     matrix_rational_sparse,
+
+    fft,
 
     # complex_number2, \
 

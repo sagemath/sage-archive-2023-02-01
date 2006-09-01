@@ -606,19 +606,19 @@ cdef class GFq(FiniteField):
 
     def _add(GFq self, int r, int l):
         cdef int res
-        return int(self.objectptr.add(res, r , l ))
+        return self.objectptr.add(res, r , l )
 
     def _mul(GFq self, int r, int l):
         cdef int res
-        return int(self.objectptr.mul(res, r , l ))
+        return self.objectptr.mul(res, r , l )
 
     def _div(GFq self, int r, int l):
         cdef int res
-        return int(self.objectptr.div(res, r , l ))
+        return self.objectptr.div(res, r , l )
 
     def _sub(GFq self, int r, int l):
         cdef int res
-        return int(self.objectptr.sub(res, r , l ))
+        return self.objectptr.sub(res, r , l )
 
 
 cdef class GFq_iterator:

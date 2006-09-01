@@ -8,7 +8,7 @@ AUTHORS:
 WARN=True
 
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2006 Iftikhar Burhanuddin <burhanud@usc.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)

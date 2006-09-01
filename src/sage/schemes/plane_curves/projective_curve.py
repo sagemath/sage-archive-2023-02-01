@@ -2,13 +2,13 @@
 Plane curves over a general ring
 
 AUTHORS:
-    -- 2005-11-13, William Stein <wstein@ucsd.edu>
+    -- 2005-11-13, William Stein <wstein@gmail.com>
     -- 2005-11-13, David Joyner
     -- 2006-01 David Kohel <kohel@maths.usyd.edu.au>
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

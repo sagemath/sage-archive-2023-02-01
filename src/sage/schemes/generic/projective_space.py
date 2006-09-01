@@ -40,7 +40,7 @@ For example, we use $x,y,z$ to define the intersection of two lines.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

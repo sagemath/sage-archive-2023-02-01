@@ -7,7 +7,7 @@ AUTHORS:
 """
 
 ##############################################################################
-#       Copyright (C) 2006 Josh Kantor and William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 Josh Kantor and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

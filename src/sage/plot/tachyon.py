@@ -70,7 +70,7 @@ class Tachyon(SageObject):
         ...    k += 1
         ...    t.sphere((i,i^2-0.5,i^3), 0.1, 't%s'%(k%3))
         ...
-        sage: t.save()
+        sage.: t.save()
 
     Another twisted cubic, but with a white background, got by putting
     infinite planes around the scene.
@@ -90,8 +90,7 @@ class Tachyon(SageObject):
         ...    t.sphere((i,i^2 - 0.5,i^3), 0.1, 't%s'%(k%3))
         ...    t.cylinder((0,0,0), (0,0,1), 0.05,'t1')
         ...
-        sage:
-        sage: t.save()
+        sage.: t.save()
 
     Many random spheres:
         sage: t = Tachyon(xres=512,yres=512, camera_center=(2,0.5,0.5), look_at=(0.5,0.5,0.5), raydepth=4)

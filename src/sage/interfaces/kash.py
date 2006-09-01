@@ -15,7 +15,7 @@ automatically (you don't have to do that).
 It is not enough to just have KASH installed on your computer.
 Note that the KASH \sage package is currently only
 available for Linux and OSX.  If you need Windows, support
-contact me (wstein@ucsd.edu).
+contact me (wstein@gmail.com).
 
 The KASH interface offers three pieces of functionality:
 \begin{enumerate}
@@ -353,7 +353,7 @@ unlike for the other interfaces.
 
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

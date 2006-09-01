@@ -75,7 +75,7 @@ TODO:
 #*****************************************************************************
 #       Copyright (C) 2006 Kiran S. Kedlaya <kedlaya@mit.edu>
 #                          David Roe <roed@mit.edu>
-#                          William Stein <wstein@ucsd.edu>
+#                          William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

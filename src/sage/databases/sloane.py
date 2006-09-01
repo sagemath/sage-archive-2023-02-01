@@ -92,7 +92,7 @@ AUTHOR:
 
 #*****************************************************************************
 #
-#      SAGE: Copyright (C) 2005-2006 William Stein <wstein@ucsd.edu>
+#      SAGE: Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #                               and  Steven Sivek  <ssivek@mit.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

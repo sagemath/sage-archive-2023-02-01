@@ -79,7 +79,7 @@ EXAMPLES:
 
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -972,7 +972,7 @@ cdef class Matrix(ModuleElement):
         AUTHOR:
             -- Jaap Spies (2006-02-16)
                 Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
-                Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+                Copyright (C) 2006 William Stein <wstein@gmail.com>
             -- Jaap Spies (2006-02-21): added definition of permanent
 
         NOTES:

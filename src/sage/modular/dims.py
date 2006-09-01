@@ -13,7 +13,7 @@ The formulas here are more complete than in HECKE or MAGMA.
 """
 
 ##########################################################################
-#       Copyright (C) 2004,2005,2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

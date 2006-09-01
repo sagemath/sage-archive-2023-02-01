@@ -20,7 +20,7 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 David Joyner and William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 David Joyner and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

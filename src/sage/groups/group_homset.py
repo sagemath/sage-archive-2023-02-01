@@ -4,7 +4,7 @@ Set of homomorphisms between two groups.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

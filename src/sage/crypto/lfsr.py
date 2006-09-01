@@ -121,7 +121,7 @@ Created 11-24-2005 by wdj. Last updated 12-02-2005.
 
 ###########################################################################
 #  Copyright (C) 2006 Timothy Brock
-#  and William Stein <wstein@ucsd.edu>
+#  and William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

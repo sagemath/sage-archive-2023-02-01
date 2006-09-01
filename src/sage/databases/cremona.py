@@ -21,7 +21,7 @@ Type "!sage -optional" to see the latest package names.
 
 #*****************************************************************************
 #
-#       SAGE: Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       SAGE: Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

@@ -1,12 +1,12 @@
 """
 Hypersurfaces in affine and projective space
 
-AUTHOR: 2005-12-08, William Stein <wstein@ucsd.edu>
+AUTHOR: 2005-12-08, William Stein <wstein@gmail.com>
                     David Kohel <kohel@maths.usyd.edu.au>
 """
 
 #*****************************************************************************
-#  Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#  Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

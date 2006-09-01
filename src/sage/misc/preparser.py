@@ -7,15 +7,29 @@ AUTHOR:
                                    * precision of real literals now determined
                                      by digits of input (like mathematica).
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
+
+EXAMPLES:
+These examples all illustrate input lines whose pre-parsing is subtle.
+
+    sage: preparse('2/3')
+    'Integer(2)/Integer(3)'
+    sage: preparse('2.5')
+    "RealNumber('2.5')"
+    sage: preparse('2^3')
+    'Integer(2)**Integer(3)'
+    sage: preparse('a^b')
+    'a**b'
+    sage: preparse('a**b')
+    'a**b'
+    sage: preparse('G.0')
+    'G.gen(0)'
+
 """
-#EXAMPLES:
-#These examples all illustrate input lines whose pre-parsing is subtle.
-# (todo)
 
 
 
 ###########################################################################
-#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -58,15 +72,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
         zz = line[num_start:i]
-        if is_real or '.' in zz:
-            # make real field with slightly less precision than
-            # number of digits of our number
-            #n = int(3.32192*(i-num_start-1))
-            # we may want to change to something like this:
-            #  add a few digits (how many)
-            #n = int(3.32192*(i-num_start-1)) + 5
+        if is_real or has_dot:
             O = "RealNumber('"; C="')"
-            #O = "RealField(max(%s,RR.precision()))('"%n; C = "')"
         else:
             O = "Integer("; C = ")"
         line = line[:num_start] + O + zz + C + line[i:]

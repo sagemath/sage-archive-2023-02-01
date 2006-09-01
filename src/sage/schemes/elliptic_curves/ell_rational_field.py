@@ -8,7 +8,7 @@ AUTHORS:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -730,7 +730,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (8, 8)
         """
         if self.torsion_order() % 2 == 0:
-            raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@ucsd.edu)."
+            raise ArithmeticError, "curve must not have rational 2-torsion\nThe *only* reason for this is that I haven't finished implementing the wrapper\nin this case.  It wouldn't be too difficult.\nPerhaps you could do it?!  Email me (wstein@gmail.com)."
         F = self.integral_weierstrass_model()
         a1,a2,a3,a4,a6 = F.a_invariants()
         t = simon_two_descent(a2,a4,a6, verbose=verbose, lim1=lim1, lim3=lim3, limtriv=limtriv,

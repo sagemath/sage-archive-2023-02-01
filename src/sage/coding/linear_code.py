@@ -135,7 +135,7 @@ REFERENCES:
 
 #*****************************************************************************
 #       Copyright (C) 2005 David Joyner <wdj@usna.edu>
-#                     2006 William Stein <wstein@ucsd.edu>
+#                     2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

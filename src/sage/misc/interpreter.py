@@ -90,14 +90,14 @@ so the w = [5] above would work right.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__author__ = 'William Stein <wstein@ucsd.edu>'
+__author__ = 'William Stein <wstein@gmail.com>'
 __version__= '1.3.4'
 __license__ = 'GPL'
 __date__   = 'July 2006'

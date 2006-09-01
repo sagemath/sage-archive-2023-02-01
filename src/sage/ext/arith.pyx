@@ -3,7 +3,7 @@ Basic arithmetic with c-integers.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

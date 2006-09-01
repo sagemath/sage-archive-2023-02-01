@@ -3,7 +3,7 @@ Miscellaneous arithmetic functions
 """
 
 ###########################################################################
-#       Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -2064,7 +2064,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 ##  By Jaap Spies
 ##
 ##       Copyright (C) 2006 Jaap Spies <j.spies@hccnet.nl>
-##      Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+##      Copyright (C) 2006 William Stein <wstein@gmail.com>
 ##
 ## Distributed under the terms of the GNU General Public License (GPL)
 ##                  http://www.gnu.org/licenses/

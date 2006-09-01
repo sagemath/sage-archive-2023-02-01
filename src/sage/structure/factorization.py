@@ -64,7 +64,7 @@ On the other hand, -1 is a unit in $\Z$, so it is included in the unit.
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/

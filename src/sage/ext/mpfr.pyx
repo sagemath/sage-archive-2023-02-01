@@ -2,7 +2,7 @@
 Real Numbers
 
 AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
-         William Stein <wstein@ucsd.edu>: bug fixes, examples, maintenance
+         William Stein <wstein@gmail.com>: bug fixes, examples, maintenance
          Didier Deshommes <dfdeshom@gmail.com> (2006-03-19): examples
 """
 
@@ -10,7 +10,7 @@ AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005-2006 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2005-2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

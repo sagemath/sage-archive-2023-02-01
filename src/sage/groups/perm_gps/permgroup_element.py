@@ -34,7 +34,7 @@ or so.
 """
 
 ###########################################################################
-#  Copyright (C) 2006 William Stein <wstein@ucsd.edu>
+#  Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Copyright (C) 2006 David Joyner
 #
 #  Distributed under the terms of the GNU General Public License (GPL)

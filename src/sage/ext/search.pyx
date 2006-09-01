@@ -9,7 +9,7 @@ extra comparison.   Also, the function names make more sense.
 #*****************************************************************************
 #       SAGE: System for Algebra and Geometry Computation (c) William Stein, 2004
 #
-#       Copyright (C) 2004 William Stein <wstein@ucsd.edu>
+#       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #

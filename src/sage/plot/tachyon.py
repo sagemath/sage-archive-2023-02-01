@@ -103,10 +103,10 @@ class Tachyon(SageObject):
         ...    k += 1
         ...    t.sphere((random(),random(), random()), random()/10, 't%s'%(k%3))
         ...
-        sage: t.save()         # long (several seconds)
+        sage.: t.save()
 
 
-    Points on an elliptic curve:
+    Points on an elliptic curve, their height indicated by their height above the axis:
         sage: t = Tachyon(camera_center=(5,2,2), look_at=(0,1,0))
         sage: t.light((10,3,2), 0.2, (1,1,1))
         sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.5, opacity=1.0, color=(1,0,0))
@@ -120,7 +120,30 @@ class Tachyon(SageObject):
         ...    Q = Q + P
         ...    t.sphere((Q[1], Q[0], ZZ(i)/n), 0.1, 't%s'%(i%3))
         ...
-        sage: t.save()
+        sage.: t.save()
+
+    A beautiful picture of rational points on a rank 1 elliptic curve.
+        sage: t = Tachyon(xres=1000, yres=800, camera_center=(2,7,4), look_at=(2,0,0), raydepth=4)
+        sage: t.light((10,3,2), 1, (1,1,1))
+        sage: t.light((10,-3,2), 1, (1,1,1))
+        sage: t.texture('black', color=(0,0,0))
+        sage: t.texture('red', color=(1,0,0))
+        sage: t.texture('grey', color=(.9,.9,.9))
+        sage: t.plane((0,0,0),(0,0,1),'grey')
+        sage: t.cylinder((0,0,0),(1,0,0),.01,'black')
+        sage: t.cylinder((0,0,0),(0,1,0),.01,'black')
+        sage: E = EllipticCurve('37a')
+        sage: P = E([0,0])
+        sage: Q = P
+        sage: n = 100
+        sage: for i in range(n):
+        ...    Q = Q + P
+        ...    c = i/n + .1
+        ...    t.texture('r%s'%i,color=(float(i/n),0,0))
+        ...    t.sphere((Q[0], -Q[1], .01), .04, 'r%s'%i)
+        ...
+        ...
+        sage.: t.save()    # 10-20 seconds
     """
     def __init__(self,
                  xres=350, yres=350,

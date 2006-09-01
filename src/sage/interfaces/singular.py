@@ -682,8 +682,50 @@ class Singular(Expect):
             raise AttributeError
         return SingularFunction(self, attrname)
 
+    def option(self, cmd=None, val=None):
+        """
+        Access to Singular's options as follows:
 
+        Syntax:
+            option()
+        Return Type:
+            string
+        Purpose:
+            lists all defined options.
 
+        Syntax:
+            option( 'option_name' )
+        Return Type:
+            none
+        Purpose:
+            sets an option.
+        Note:
+            To disable an option, use the prefix no.
+
+        Syntax:
+            option( 'get' )
+        Return Type:
+            intvec
+        Purpose:
+            dumps the state of all options to an intvec.
+
+        Syntax:
+            option( 'set', intvec_expression )
+        Type:
+            none
+        Purpose:
+            restores the state of all options from an intvec (produced by option(get)).
+        """
+        if cmd == None:
+            return SingularFunction(self,"option")()
+        elif cmd=="get":
+            return SingularFunction(self,"option")("\"get\"")
+        elif cmd=="set":
+            if not isinstance(val,SingularElement):
+                raise TypeError, "singular.option('set') needs SingularElement as second parameter"
+            SingularFunction(self,"option")("\"set\"",val)
+        else:
+            SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
 class SingularElement(ExpectElement):
     def __init__(self, parent, type, value, is_name=False):

@@ -72,7 +72,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
         zz = line[num_start:i]
-        if is_real or has_dot:
+        if is_real or '.' in zz:
             O = "RealNumber('"; C="')"
         else:
             O = "Integer("; C = ")"

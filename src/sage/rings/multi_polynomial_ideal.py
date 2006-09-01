@@ -303,11 +303,13 @@ class MPolynomialIdeal_singular_repr:
                          'stdhilb'  - computes the standard basis of the homogeneous
                                       ideal in the basering, via a Hilbert driven
                                       standard basis computation.
+                         'stdfglm'  - computes the standard basis of the ideal in the basering via fglm
+                                      (from the degrevlex ordering to the ordering of the basering).
                          'slimgb'   - SlimGB algorithm
 
         EXAMPLES:
 
-        We compute a Groebner basis of "cyclic 4" relative to
+        We compute a Groebner basis of 'cyclic 4' relative to
         lexicographic ordering.
 
             sage: R = PolynomialRing(RationalField(), 4, ['a','b','c','d'], 'lex')
@@ -335,6 +337,8 @@ class MPolynomialIdeal_singular_repr:
                 S = self._singular_().slimgb()
             elif algorithm=="stdhilb":
                 S = self._singular_().stdhilb()
+            elif algorithm=="stdfglm":
+                S = self._singular_().stdfglm()
             else:
                 raise TypeError, "algorithm '%s' unknown"%algorithm
             R = self.ring()
@@ -671,6 +675,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                          * 'singular:groebner' - Singular's groebner command
                          * 'singular:std' - Singular's std command
                          * 'singular:stdhilb' - Singular's stdhib command
+                         * 'singular:stdfglm' - Singular's stdfglm command
                          * 'singular:slimgb' - Singular's slimgb command
                          * 'macaulay2:gb' (if available) - Macaulay2's gb command
                          * 'magma:GroebnerBasis' (if available) - MAGMA's Groebnerbasis command

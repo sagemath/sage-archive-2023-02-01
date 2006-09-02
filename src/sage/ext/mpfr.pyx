@@ -1583,6 +1583,39 @@ cdef class RealNumber(element.RingElement):
         _sig_off
         return x
 
+    def algdep(self, n):
+        """
+        Returns a polynomial of degree at most $n$ which is approximately
+        satisfied by this number.  Note that the returned polynomial
+        need not be irreducible, and indeed usually won't be if this number
+        is a good approximation to an algebraic number of degree less than $n$.
+
+        ALGORITHM: Uses the PARI C-library algdep command.
+
+        EXAMPLE:
+             sage: r = sqrt(2); r
+             1.4142135623730951
+             sage: r.algdep(5)
+             x^2 - 2
+        """
+        return sage.rings.arith.algdep(self,n)
+
+    def algebraic_dependency(self, n):
+        """
+         Returns a polynomial of degree at most $n$ which is approximately
+         satisfied by this number.  Note that the returned polynomial
+         need not be irreducible, and indeed usually won't be if this number
+         is a good approximation to an algebraic number of degree less than $n$.
+
+         ALGORITHM: Uses the PARI C-library algdep command.
+
+         EXAMPLE:
+              sage: r = sqrt(2); r
+              1.4142135623730951
+              sage: r.algdep(5)
+              x^2 - 2
+        """
+        return sage.rings.arith.algdep(self,n)
 
 RR = RealField()
 

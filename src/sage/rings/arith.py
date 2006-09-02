@@ -35,13 +35,15 @@ import sage.rings.bernoulli
 
 def algdep(z, n):
     """
-    Return algebraic dependency of degree $n$ satisfied by the
-    number $z$.
+    Returns a polynomial of degree at most $n$ which is approximately
+    satisfied by the number $z$.  Note that the returned polynomial
+    need not be irreducible, and indeed usually won't be if $z$ is a good
+    approximation to an algebraic number of degree less than $n$.
 
     ALGORITHM: Uses the PARI C-library algdep command.
 
     INPUT:
-        z -- real or $p$-adic number
+        z -- real, complex, or $p$-adic number
         n -- an integer
 
     EXAMPLES:
@@ -52,13 +54,26 @@ def algdep(z, n):
         sage: algdep(sqrt(2),2)
         x^2 - 2
 
+    This example involves a complex number.
+        sage: C = ComplexField()
+        sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+        0.50000000000000000 + 0.86602540378443860*I
+        sage: p = algdep(z, 6); p
+        x^5 + x^2
+        sage: p.factor()
+        x^2 * (x + 1) * (x^2 - x + 1)
+        sage: z^2 - z + 1
+        0.00000000000000011102230246251565
+
     This example involves a $p$-adic number.
         sage: K = pAdicField(3)
         sage: a = K(7/19); a
-        1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
+        1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 +
+2*3^19 + O(3^20)
         sage: algdep(a, 1)
         19*x - 7
     """
+
     # TODO -- change to use PARI C library???
     import sage.rings.polynomial_ring
     x = sage.rings.polynomial_ring.PolynomialRing(

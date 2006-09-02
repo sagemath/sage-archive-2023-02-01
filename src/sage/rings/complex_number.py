@@ -24,8 +24,10 @@ import sage.misc.misc
 import sage.libs.pari.all as pari
 import sage.interfaces.gp as gp
 import sage.interfaces.all
+import sage.rings.arith
 import integer
 import infinity
+
 #from sage.databases.odlyzko import zeta_zeroes
 
 def is_ComplexNumber(x):
@@ -651,3 +653,26 @@ class ComplexNumber(ring_element.RingElement):
         """
         return self.parent()(self._pari_().zeta())
 
+    def algdep(self, n):
+        """
+        Returns a polynomial of degree at most $n$ which is approximately
+        satisfied by this complex number.  Note that the returned polynomial
+        need not be irreducible, and indeed usually won't be if $z$ is a good
+        approximation to an algebraic number of degree less than $n$.
+
+        ALGORITHM: Uses the PARI C-library algdep command.
+
+        EXAMPLE:
+            sage: C = ComplexField()
+            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+            0.50000000000000000 + 0.86602540378443860*I
+            sage: p = z.algdep(5); p
+            x^5 + x^2
+            sage: p.factor()
+            x^2 * (x + 1) * (x^2 - x + 1)
+            sage: z^2 - z + 1
+            0.00000000000000011102230246251565
+        """
+        return sage.rings.arith.algdep(self,n)
+
+ComplexNumber.algebraic_dependancy = ComplexNumber.algdep

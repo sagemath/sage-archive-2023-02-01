@@ -766,3 +766,24 @@ class pAdic(field_element.FieldElement):
             p = self.__p
             return (z**(p-1)).log()/(p-1)
 
+    def algdep(self, n):
+        """
+        Returns a polynomial of degree at most $n$ which is approximately
+        satisfied by this number.  Note that the returned polynomial
+        need not be irreducible, and indeed usually won't be if this number
+        is a good approximation to an algebraic number of degree less than $n$.
+
+        ALGORITHM: Uses the PARI C-library algdep command.
+
+        EXAMPLE:
+        sage: K = pAdicField(3)
+        sage: a = K(7/19); a
+        1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
+        sage: a.algdep(1)
+        19*x - 7
+        """
+        return sage.rings.arith.algdep(self, n)
+
+pAdic.algebraic_dependency = pAdic.algdep
+
+

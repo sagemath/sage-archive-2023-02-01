@@ -289,6 +289,14 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
     def _mul_(self, right, prec):
         raise NotImplementedError
 
+    def is_unit(self):
+        """ Returns whether this power series is invertible, which is
+        the case precisely when the constant term is invertible.
+
+        AUTHOR: David Harvey (2006-09-03)
+        """
+        return self[0].is_unit()
+
     def __invert__(self):
         """
         Inverse of the power series, which we assume to have nonzero

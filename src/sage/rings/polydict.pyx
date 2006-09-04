@@ -27,9 +27,9 @@ AUTHOR: William Stein, David Joyner and Martin Albrecht (ETuple)
 
 
 import copy
-import sage.rings.arith as arith
+from sage.rings.arith import generic_power
 from sage.misc.misc import cputime
-import sage.misc.latex as latex
+from sage.misc.latex import latex
 
 """
 SUMMARY:
@@ -54,8 +54,11 @@ AUTHORS:  William Stein and Martin Albrecht (ETuples)
 
 import sage.rings.ring_element as ring_element
 
-class PolyDict:
-    def __init__(self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
+cdef class PolyDict:
+    cdef object __repn
+    cdef object __zero
+
+    def __init__(PolyDict self, pdict, zero=0, remove_zero=False, force_int_exponents=True, force_etuples=True):
         """
         INPUT:
             pdict -- list, which represents a multi-variable polynomial
@@ -92,17 +95,21 @@ class PolyDict:
                 raise TypeError, "pdict must be a list."
 
         if isinstance(pdict,dict) and force_etuples==True:
-            pdict = dict([(ETuple(k),v) for k,v in pdict.iteritems()])
+            pdict2 = []
+            for k,v in pdict.iteritems():
+                pdict2.append((ETuple(k),v))
+
+            pdict = dict(pdict2)
 
         if force_int_exponents:
             new_pdict = {}
             if remove_zero:
                 for k, c in pdict.iteritems():
                     if c != zero:
-                        new_pdict[ETuple([int(x) for x in k])] = c
+                        new_pdict[ETuple(map(int,k))] = c
             else:
                 for k, c in pdict.iteritems():
-                    new_pdict[ETuple([int(x) for x in k])] = c
+                    new_pdict[ETuple(map(int,k))] = c
             pdict = new_pdict
         else:
             if remove_zero:
@@ -112,7 +119,12 @@ class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __cmp__(self, other, fn=None):
+    def __cmp__(PolyDict self, other):
+        if not isinstance(other, PolyDict):
+            return False
+        return cmp(self.__repn, (<PolyDict>other).__repn)
+
+    def _cmp_(PolyDict self, PolyDict other, fn=None):
         if not isinstance(other, PolyDict):
             return False
         if fn == None:
@@ -141,7 +153,7 @@ class PolyDict:
 
         return -1 # right has terms, left doesn't
 
-    def list(self):
+    def list(PolyDict self):
         """
         Return a list that defines self. It is safe to change this.
 
@@ -151,9 +163,12 @@ class PolyDict:
             sage: f.list()
             [[3, [1, 2]], [4, [2, 1]], [2, [2, 3]]]
         """
-        return [[c,list(e)] for e, c in self.__repn.iteritems()]
+        ret = []
+        for e,c in self.__repn.iteritems():
+            ret.append([c,list(e)])
+        return ret
 
-    def dict(self):
+    def dict(PolyDict self):
         """
         Return a copy of the dict that defines self.  It is
         safe to change this.  For a reference, use dictref.
@@ -166,7 +181,7 @@ class PolyDict:
         """
         return copy.copy(self.__repn)
 
-    def coefficients(self):
+    def coefficients(PolyDict self):
         """
         Return the coefficients of self.
 
@@ -178,7 +193,7 @@ class PolyDict:
         """
         return self.__repn.values()
 
-    def exponents(self):
+    def exponents(PolyDict self):
         """
         Return the exponents of self.
 
@@ -190,7 +205,7 @@ class PolyDict:
         """
         return self.__repn.keys()
 
-    def __len__(self):
+    def __len__(PolyDict self):
         """
         Return the number of terms of the polynomial.
 
@@ -202,7 +217,7 @@ class PolyDict:
         """
         return len(self.exponents())
 
-    def __getitem__(self, e):
+    def __getitem__(PolyDict self, e):
         """
         Return a coefficient of the polynomial.
 
@@ -216,34 +231,37 @@ class PolyDict:
         """
         return self.__repn[ETuple(e)]
 
-    def __repr__(self):
+    def __repr__(PolyDict self):
         return 'PolyDict with representation %s'%self.__repn
 
-    def degree(self, x=None):
+    def degree(PolyDict self, PolyDict x=None):
         if x is None:
             return self.total_degree()
         L = x.__repn.keys()
         if len(L) != 1:
             raise TypeError, "x must be one of the generators of the parent."
         L = L[0]
-        nonzero_positions = [i for i in range(len(L)) if L[i] != 0]
+        nonzero_positions = L.nonzero_positions()
         if len(nonzero_positions) != 1:
             raise TypeError, "x must be one of the generators of the parent."
         i = nonzero_positions[0]
         if L[i] != 1:
             raise TypeError, "x must be one of the generators of the parent."
-        return max([v[i] for v in self.__repn.keys()])
+        _max = []
+        for v in self.__repn.keys():
+            _max.append(v[i])
+        return max(_max)
 
-    def total_degree(self):
-        return max([-1] + [sum(e) for e in self.__repn.keys()])
+    def total_degree(PolyDict self):
+        return max([-1] + map(sum,self.__repn.keys()))
 
-    def monomial_coefficient(self, mon):
+    def monomial_coefficient(PolyDict self, mon):
         K = mon.keys()[0]
         if not self.__repn.has_key(K):
             return 0
         return self.__repn[K]
 
-    def coefficient(self, mon):
+    def coefficient(PolyDict self, mon):
         """
         Return a polydict that defines a polynomial in 1 less number
         of variables that gives the coefficient of mon in this
@@ -271,25 +289,25 @@ class PolyDict:
 
 
 
-    def is_homogeneous(self):
+    def is_homogeneous(PolyDict self):
         K = self.__repn.keys()
         if len(K) == 0:
             return True
         # A polynomial is homogeneous if the number of different
         # exponent sums is at most 1.
-        return len(set([sum(e) for e in K])) <= 1
+        return bool(len(set(map(sum,K))) <= 1)
 
-    def homogenize(self):
+    def homogenize(PolyDict self):
         R = self.__repn
         H = {}
         deg = self.degree()
         for e, val in R.iteritems():
             i = deg - sum(e)
-            f = e + (i,)
-            H[f] = val
+            f = tuple(e) + (i,)
+            H[ETuple(f)] = val
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
-    def latex(self, vars, atomic_exponents=True, atomic_coefficients=True):
+    def latex(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True):
         """
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -322,29 +340,29 @@ class PolyDict:
                 # First determine the multinomial:
                 multi = ""
                 for j in e.nonzero_positions(sort=True):
-                    multi += vars[j]
+                    multi = multi + vars[j]
                     if e[j] != 1:
-                        multi += "^{%s}"%e[j]
+                        multi =  multi +"^{%s}"%e[j]
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
-                    multi = latex.latex(c)
+                    multi = latex(c)
                 elif c != 1:
                     if not atomic_coefficients:
-                        c = latex.latex(c)
+                        c = latex(c)
                         if c.find("+") != -1 or c.find("-") != -1 or c.find(" ") != -1:
                             c = "(%s)"%c
                     if len(poly) > 0 and c == -1:
                         sign_switch = True
                     else:
-                        multi = "%s %s"%(latex.latex(c),multi)
+                        multi = "%s %s"%(latex(c),multi)
 
                 # Now add on coefficiented multinomials
                 if len(poly) > 0:
                     if sign_switch:
-                        poly += " - "
+                        poly = poly + " - "
                     else:
-                        poly += " + "
-                poly += multi
+                        poly = poly + " + "
+                poly = poly + multi
         poly = poly.lstrip().rstrip()
         poly = poly.replace("+ -","- ")
         if len(poly) == 0:
@@ -352,7 +370,7 @@ class PolyDict:
         return poly
 
 
-    def poly_repr(self, vars, atomic_exponents=True, atomic_coefficients=True):
+    def poly_repr(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -386,13 +404,13 @@ class PolyDict:
                 multi = ""
                 for j in e.nonzero_positions(sort=True):
                     if len(multi) > 0:
-                        multi += "*"
-                    multi += vars[j]
+                        multi = multi + "*"
+                    multi = multi + vars[j]
                     if e[j] != 1:
                         if atomic_exponents:
-                            multi += "^%s"%e[j]
+                            multi = multi + "^%s"%e[j]
                         else:
-                            multi += "^(%s)"%e[j]
+                            multi = multi + "^(%s)"%e[j]
                 # Next determine coefficient of multinomial
                 if len(multi) == 0:
                     multi = str(c)
@@ -409,10 +427,10 @@ class PolyDict:
                 # Now add on coefficiented multinomials
                 if len(poly) > 0:
                     if sign_switch:
-                        poly += " - "
+                        poly = poly + " - "
                     else:
-                        poly += " + "
-                poly += multi
+                        poly = poly + " + "
+                poly = poly + multi
         poly = poly.lstrip().rstrip()
         poly = poly.replace("+ -","- ")
         if len(poly) == 0:
@@ -420,7 +438,7 @@ class PolyDict:
         return poly
 
 
-    def __add__(self, other):
+    def __add__(PolyDict self,PolyDict other):
         """
         Add two PolyDict's in the same number of variables.
 
@@ -438,20 +456,18 @@ class PolyDict:
             sage: f+g
             PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 5, (2, 1, 1): 4}
         """
-        if not isinstance(other, PolyDict):
-            raise TypeError, "other must be a PolyDict."
         zero = self.__zero
         D = copy.copy(self.__repn)
         R = other.__repn
         for e,c in R.iteritems():
             if D.has_key(e):
-                D[e] += c
+                D[e] = D[e] + c
             else:
                 D[e] = c
         F = PolyDict(D, zero=zero, remove_zero=True, force_int_exponents=False,  force_etuples=False)
         return F
 
-    def __mul__(self, right):
+    def __mul__(PolyDict self,PolyDict  right):
         """
         Multiply two PolyDict's in the same number of variables.
 
@@ -473,8 +489,6 @@ class PolyDict:
             sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)
             '6*a^(4/3)*b^(6)*c^(10) + 9*a^(5/3)*b^(5)*c^(6) + 12*a^(8/3)*b^(4)*c^(6)'
         """
-        if not isinstance(right, PolyDict):
-            raise TypeError, "other must be a PolyDict."
         newpoly = {}
         k = self.__repn.keys()
         if len(k) == 0:   # product is zero anyways
@@ -488,19 +502,19 @@ class PolyDict:
                 e = e0.eadd(e1)
                 c = c0*c1
                 if e in newpoly:
-                    newpoly[e] += c
+                    newpoly[e] = newpoly[e] + c
                 else:
                     newpoly[e] = c
         F = PolyDict(newpoly, self.__zero, force_int_exponents=False, remove_zero=True, force_etuples=False)
         return F
 
-    def scalar_mult(self, s):
+    def scalar_mult(PolyDict self, s):
         v = {}
         for e, c in self.__repn.iteritems():
             v[e] = c*s
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
-    def __sub__(self, other):
+    def __sub__(PolyDict self,PolyDict  other):
         """
         Subtract two PolyDict's.
 
@@ -515,11 +529,9 @@ class PolyDict:
         """
 
         # TOOD: should refactor add, make abstract operator, so can do both +/-; or copy code.
-        if not isinstance(other, PolyDict):
-            raise TypeError, "other must be a PolyDict."
         return self + other.scalar_mult(-1)
 
-    def __one(self):
+    def __one(PolyDict self):
         one = self.__zero + 1
         if len(self.__repn.keys()) == 0:
             v = {(0):one}
@@ -527,7 +539,7 @@ class PolyDict:
             v = {ETuple({},len(self.__repn.keys()[0])):one}
         return PolyDict(v, self.__zero, force_int_exponents=False, force_etuples=False)
 
-    def __pow__(self, n):
+    def __pow__(PolyDict self, n, ignored):
         """
         Return the n-th nonnegative power of this PolyDict.
 
@@ -542,9 +554,9 @@ class PolyDict:
             raise ValueError, "n must be nonnegative."
         if n == 0:
             return self.__one()
-        return arith.generic_power(self, n, self.__one())
+        return generic_power(self, n, self.__one())
 
-    def lcmt(self,greater_etuple):
+    def lcmt(PolyDict self,greater_etuple):
         """
         Provides functionality of lc, lm, and lt by calling the tuple
         compare function on the provided term order T.
@@ -557,15 +569,40 @@ class PolyDict:
         except KeyError:
             raise ArithmeticError, "%s not supported",T
 
+    def __reduce__(PolyDict self):
+        return make_PolyDict,(self.__repn,)
 
-class ETuple:
+
+cdef class ETupleIter:
+    cdef int _i
+    cdef int _length
+    cdef object _data
+
+    def __init__(self, data, length):
+        self._data = data
+        self._length = length
+        self._i = -1
+
+    def __next__(self):
+        self._i = self._i + 1
+
+        if self._i == self._length:
+            self._i = -1
+            raise StopIteration
+
+        return self._data.get(self._i,0)
+
+cdef class ETuple:
     """
     Representation of the exponents of a polydict monomial. If
     (0,0,3,0,5) is the exponent tuple of x_2^3*x_4^5 then this class
     only stores {2:3,4:5} instead of the full tuple. This sparse
     information may be optained by provided methods.
     """
-    def __init__(self, data, length=None):
+    cdef object _data
+    cdef object _length
+
+    def __init__(ETuple self, data, length=None):
         """
         ETuple() -> an empty ETuple
         ETuple(sequence) -> ETuple initialized from sequence's items
@@ -573,28 +610,30 @@ class ETuple:
         If the argument is an ETuple, the return value is the same object.
         """
         if isinstance(data,ETuple):
-            self._data = data._data
-            self._length = data._length
+            self._data = (<ETuple>data)._data
+            self._length = (<ETuple>data)._length
         elif isinstance(data,dict) and isinstance(length,int):
             self._data = data
             self._length = length
         elif isinstance(data,(tuple,list)):
             tpl = zip(range(len(data)),data)
-            self._data = dict( [ (i,v) for (i,v) in tpl if v!=0 ] )
+            tmp = []
+            for (i,v) in tpl:
+                if v!=0:
+                    tmp.append((i,v))
+            self._data = dict( tmp )
             self._length = len(data)
         else:
             raise TypeError
 
     # methods to simulate tuple
 
-    def __add__(self,other):
+    def __add__(ETuple self,ETuple other):
         """
         x.__add__(n) <==> x+n
 
         concatenates two ETuples
         """
-        if not isinstance(other,ETuple):
-            other = ETuple(other)
         data = self._data.copy()
 
         for i,v in other._data.iteritems():
@@ -602,7 +641,7 @@ class ETuple:
 
         return ETuple(data,self._length+other._length)
 
-    def __rmul__(self,factor):
+    def __rmul__(ETuple self, factor):
         """
         x.__rmul__(n) <==> n*x
         """
@@ -614,7 +653,7 @@ class ETuple:
                 d[(i*self._length)+k]=v
         return ETuple(d,int(self._length*factor))
 
-    def __mul__(self,factor):
+    def __mul__(ETuple self,factor):
         """
         x.__mul__(n) <==> x*n
         """
@@ -626,26 +665,22 @@ class ETuple:
                 d[(i*self._length)+k]=v
         return ETuple(d,int(self._length*factor))
 
-    def __getitem__(self,i):
+    def __getitem__(ETuple self,int i):
         """
         x.__getitem__(i) <==> x[i]
         """
         return self._data.get(i,0)
 
-    def __getslice__(self,i=None,j=None):
+    def __getslice__(ETuple self,int i,int j):
         """
         x.__getslice(i,j) <==> x[i:j]
         """
-        if i==None:
-            i=0
-        elif i<0:
+        if i<0:
             i = i % self._length
         elif i>self._length:
             i = self._length
 
-        if j==None:
-            j = self._length
-        elif j<0:
+        if j<0:
             j = j % self._length
         elif j>self._length:
             j = self._length
@@ -656,19 +691,19 @@ class ETuple:
                 d[k-i]=v
         return ETuple(d,j-i)
 
-    def __hash__(self):
+    def __hash__(ETuple self):
         """
         x.__hash__() <==> hash(x)
         """
         return hash((tuple(self._data.iteritems()),self._length))
 
-    def __len__(self):
+    def __len__(ETuple self):
         """
         x.__len__() <==> len(x)
         """
         return self._length
 
-    def __contains__(self, elem):
+    def __contains__(ETuple self, elem):
         """
         x.__contains__(n) <==> n in x
         """
@@ -677,103 +712,94 @@ class ETuple:
         else:
             return len(self._data)!=self._length
 
-    def __lt__(self,other):
-        """
-        x.__lt__(n) <==> x < n
-        """
-        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
-            sk = self._data.get(k,0)
-            ok = other._data.get(k,0)
-            if sk > ok:
+    def __richcmp__(ETuple self, ETuple other, op):
+        if op == 0:  #<
+
+            for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+                sk = self._data.get(k,0)
+                ok = other._data.get(k,0)
+                if sk > ok:
+                    return False
+                elif sk < ok:
+                    return True
+
+            if self._data==other._data:
                 return False
-            elif sk < ok:
+            else:
                 return True
 
-        if self._data==other._data:
-            return False
-        else:
+        if op == 2: #==
+
+            return self._data == other._data and self._length == other._length
+
+        if op == 4: #>
+
+            for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+                sk = self._data.get(k,0)
+                ok = other._data.get(k,0)
+                if sk<ok:
+                    return False
+                elif sk>ok:
+                    return True
+
+            if self._data==other._data:
+                return False
+            else:
+                return True
+
+
+        if op == 1: #<=
+
+            if self._data==other._data:
+                return True
+
+            for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+                sk = self._data.get(k,0)
+                ok = other._data.get(k,0)
+                if sk > ok:
+                    return False
+                elif sk < ok:
+                    return True
+
+            return True # should never get here
+
+
+        if op == 3: #!=
+
+            return self._data != other._data
+
+        if op == 5: #>=
+
+            for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
+                sk = self._data.get(k,0)
+                ok = other._data.get(k,0)
+                if sk<ok:
+                    return False
+                elif sk>ok:
+                    return True
             return True
 
-    def __le__(self,other):
-        """
-        x.__le__(n) <==> x <= n
-        """
-
-        if self._data==other._data:
-            return True
-
-        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
-            sk = self._data.get(k,0)
-            ok = other._data.get(k,0)
-            if sk > ok:
-                return False
-            elif sk < ok:
-                return True
-
-        return True # should never get here
-
-    def __eq__(self,other):
-        """
-        x.__eq__(n) <==> x == n
-        """
-        return self._data == other._data and self._length == other._length
-
-    def __ne__(self, other):
-        """
-        x.__ne__(n) <==> x != n
-        """
-        return self._data != other._data
-
-    def __ge__(self,other):
-        """
-        x.__ge__(n) <==> x >= n
-        """
-        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
-            sk = self._data.get(k,0)
-            ok = other._data.get(k,0)
-            if sk<ok:
-                return False
-            elif sk>ok:
-                return True
-        return True
-
-    def __gt__(self,other):
-        """
-        x.__gt__(n) <==> x > n
-
-        """
-        for k in sorted(set(other._data.iterkeys()).union(self._data.iterkeys())):
-            sk = self._data.get(k,0)
-            ok = other._data.get(k,0)
-            if sk<ok:
-                return False
-            elif sk>ok:
-                return True
-
-        if self._data==other._data:
-            return False
-        else:
-            return True
-
-    def __iter__(self):
+    def __iter__(ETuple self):
         """
         x.__iter__() <==> iter(x)
         """
-        for i in range(self._length):
-            yield self._data.get(i,0)
+        return ETupleIter(self._data,self._length)
 
-    def __str__(self):
+    def __str__(ETuple self):
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(ETuple self):
         res = [0,]*self._length
         for i,v in self._data.iteritems():
             res[i]=v
         return str(tuple(res))
 
+    def __reduce__(ETuple self):
+        return make_ETuple,(self._data,self._length)
+
     # additional methods
 
-    def eadd(self,other):
+    def eadd(ETuple self,ETuple other):
         """
         Vector addition of self with other.
         """
@@ -783,12 +809,12 @@ class ETuple:
         d = self._data.copy()
         for k,v in other._data.iteritems():
             if d.has_key(k):
-                d[k] += v
+                d[k] = d[k] + v
             else:
                 d[k] = v
         return ETuple(d,self._length)
 
-    def esub(self,other):
+    def esub(ETuple self,ETuple other):
         """
         Vector subtraction of self with other.
         """
@@ -799,14 +825,14 @@ class ETuple:
         for k,v in other._data.iteritems():
             if d.has_key(k):
                 if d[k] - v != 0:
-                    d[k] -= v
+                    d[k] = d[k] - v
                 else:
                     del d[k]
             else:
                 d[k] = -v
         return ETuple(d,self._length)
 
-    def emul(self,factor):
+    def emul(ETuple self,factor):
         """
         Scalar Vector multiplication of self.
         """
@@ -815,7 +841,7 @@ class ETuple:
             d[k]=int(factor*v)
         return ETuple(d,self._length)
 
-    def nonzero_positions(self,sort=False):
+    def nonzero_positions(ETuple self,sort=False):
         """
         Returns the positions of non-zero exponents in the tuple.
 
@@ -828,14 +854,14 @@ class ETuple:
         else:
             return self._data.keys()
 
-    def common_nonzero_positions(self, other,sort=False):
+    def common_nonzero_positions(ETuple self, other,sort=False):
         res = set(self._data.iterkeys()).union(other._data.iterkeys())
         if sort:
             return sorted(res)
         else:
             return res
 
-    def nonzero_values(self, sort=True):
+    def nonzero_values(ETuple self, sort=True):
         """
         Returns the non-zero values of the tuple.
 
@@ -844,11 +870,14 @@ class ETuple:
                     the values are returned unsorted. (default: True)
         """
         if sort:
-            return [ self._data[e] for e in self.nonzero_positions(self,True) ]
+            tmp = []
+            for e in self.nonzero_positions(self,True):
+                tmp.append(self._data[e])
+            return tmp
         else:
             return self._data.values()
 
-    def reversed(self):
+    def reversed(ETuple self):
         """
         Returns the reversed ETuple of self.
         """
@@ -858,7 +887,7 @@ class ETuple:
             data[length-k]=v
         return ETuple(data,length+1)
 
-    def sparse_iter(self):
+    def sparse_iter(ETuple self):
         """
         Iterator over the elements of self where the elements are
         returned as $(i,e)$ where $i$ is the position of $e$ in the
@@ -866,3 +895,8 @@ class ETuple:
         """
         return self._data.iteritems()
 
+def make_PolyDict(data):
+    return PolyDict(data,remove_zero=False, force_int_exponents=False, force_etuples=False)
+
+def make_ETuple(data,length):
+    return ETuple(data,length)

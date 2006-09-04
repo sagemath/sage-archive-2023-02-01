@@ -146,7 +146,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
         """
         try:
-            return self.__element.__cmp__(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
+            return self.__element._cmp_(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
         except AttributeError:
             return self.__element.__cmp__(right.__element)
 
@@ -631,7 +631,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.monomials()
-            [y, x^2*y^2, 1, x^2]
+            [1, x^2*y^2, x^2, y]
         """
         try:
             return self.__monomials
@@ -639,7 +639,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             ring = self.parent()
             one = self.parent().base_ring()(1)
             self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
-                                for m in self._MPolynomial__element._PolyDict__repn.keys() ]
+                                for m in self._MPolynomial__element.dict().keys() ]
             return self.__monomials
 
     def constant_coefficient(self):
@@ -757,7 +757,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def _variable_indices_(self):
 
-        ETuples = self._MPolynomial__element._PolyDict__repn.keys()
+        ETuples = self._MPolynomial__element.dict().keys()
 
         idx = set()
         for e in ETuples:
@@ -831,7 +831,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
     def __hash__(self):
         #requires base field elements are hashable!
-        return hash(tuple(self._MPolynomial__element._PolyDict__repn.items()))
+        return hash(tuple(self._MPolynomial__element.dict().items()))
 
     def lm(self):
         """
@@ -889,7 +889,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             return self.__lc
         except AttributeError:
             R = self.parent()
-            f = self._MPolynomial__element._PolyDict__repn
+            f = self._MPolynomial__element.dict()
             self.__lc = f[self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )]
             return self.__lc
 
@@ -901,7 +901,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             return self.__lt
         except AttributeError:
             R = self.parent()
-            f = self._MPolynomial__element._PolyDict__repn
+            f = self._MPolynomial__element.dict()
             res = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
             self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False, force_etuples=False))
             return self.__lt
@@ -912,12 +912,12 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if not isinstance(right,MPolynomial_polydict):
             # we want comparison with zero to be fast
             if right == 0:
-                if self._MPolynomial__element._PolyDict__repn=={}:
+                if self._MPolynomial__element.dict()=={}:
                     return True
                 else:
                     return False
             return NotImplemented
-        return self._MPolynomial__element._PolyDict__repn == right._MPolynomial__element._PolyDict__repn
+        return self._MPolynomial__element == right._MPolynomial__element
 
     def __ne__(self,right):
         """
@@ -925,13 +925,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if not isinstance(right,MPolynomial_polydict):
             # we want comparison with zero to be fast
             if right == 0:
-                if self._MPolynomial__element._PolyDict__repn=={}:
+                if self._MPolynomial__element.dict()=={}:
                     return False
                 else:
                     return True
             # maybe add constant elements as well
             return NotImplemented
-        return self._MPolynomial__element._PolyDict__repn != right._MPolynomial__element._PolyDict__repn
+        return self._MPolynomial__element != right._MPolynomial__element
 
     def is_zero(self):
         """
@@ -939,7 +939,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         \note{This is much faster than actually writing self == 0}
         """
-        return self._MPolynomial__element._PolyDict__repn=={}
+        return self._MPolynomial__element.dict()=={}
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>

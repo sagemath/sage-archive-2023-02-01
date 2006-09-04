@@ -236,6 +236,9 @@ ext_modules = [ \
               sources = ['sage/ext/sparse_poly.pyx'],
               libraries=['gmp']), \
 
+    Extension('sage.rings.polydict',
+              sources = ['sage/rings/polydict.pyx']), \
+
     Extension('sage.ext.sparse_matrix_pyx',
               ['sage/ext/sparse_matrix_pyx.pyx',
                'sage/ext/integer.pyx',

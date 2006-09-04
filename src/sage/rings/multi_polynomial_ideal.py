@@ -517,7 +517,7 @@ class MPolynomialIdeal_singular_repr:
         o = s.option("get")
         s.option("redSB")
         R = self.ring()
-        ret = [ f.sage_poly(R) for f in self._singular_().interred() ]
+        ret = [ R(f) for f in self._singular_().interred() ]
         s.option("set",o)
         return ret
 

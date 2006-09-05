@@ -609,6 +609,13 @@ cdef class ETuple:
         ETuple(sequence) -> ETuple initialized from sequence's items
 
         If the argument is an ETuple, the return value is the same object.
+
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: ETuple([1,1,0])
+            (1, 1, 0)
+            sage: ETuple({int(1):int(2)},int(3))
+            (0, 2, 0)
         """
         if isinstance(data,ETuple):
             self._data = (<ETuple>data)._data
@@ -634,6 +641,12 @@ cdef class ETuple:
         x.__add__(n) <==> x+n
 
         concatenates two ETuples
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: ETuple([1,1,0]) + ETuple({int(1):int(2)},int(3))
+            (1, 1, 0, 0, 2, 0)
+
         """
         data = self._data.copy()
 
@@ -657,6 +670,11 @@ cdef class ETuple:
     def __mul__(ETuple self,factor):
         """
         x.__mul__(n) <==> x*n
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: ETuple([1,2,3])*2
+            (1, 2, 3, 1, 2, 3)
         """
         if factor <= 0:
             return ETuple({},0)
@@ -675,6 +693,15 @@ cdef class ETuple:
     def __getslice__(ETuple self,int i,int j):
         """
         x.__getslice(i,j) <==> x[i:j]
+
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: e=ETuple([1,2,3])
+            sage: e[1:]
+            (2, 3)
+            sage: e[:1]
+            (1,)
+
         """
         if i<0:
             i = i % self._length
@@ -707,6 +734,16 @@ cdef class ETuple:
     def __contains__(ETuple self, elem):
         """
         x.__contains__(n) <==> n in x
+
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple({int(1):int(2)},int(3)); e
+            (0, 2, 0)
+            sage: 1 in e
+            False
+            sage: 2 in e
+            True
         """
         if elem!=0:
             return elem in self._data.values()
@@ -803,6 +840,14 @@ cdef class ETuple:
     def eadd(ETuple self,ETuple other):
         """
         Vector addition of self with other.
+
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,1,1])
+            sage: e.eadd(f)
+            (1, 1, 3)
+
         """
         if self._length!=other._length:
             raise ArithmeticError
@@ -818,6 +863,13 @@ cdef class ETuple:
     def esub(ETuple self,ETuple other):
         """
         Vector subtraction of self with other.
+
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,1,1])
+            sage: e.esub(f)
+            (1, -1, 1)
         """
         if self._length!=other._length:
             raise ArithmeticError
@@ -833,9 +885,15 @@ cdef class ETuple:
                 d[k] = -v
         return ETuple(d,self._length)
 
-    def emul(ETuple self,factor):
+    def emul(ETuple self,int factor):
         """
         Scalar Vector multiplication of self.
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: e.emul(2)
+            (2, 0, 4)
         """
         d = {}
         for k,v in self._data.iteritems():
@@ -849,13 +907,35 @@ cdef class ETuple:
         INPUT:
             sort -- if True a sorted list is returned. If False a an
                     unsorted list is returned. (default: False)
+
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: e.nonzero_positions()
+            [0, 2]
         """
         if sort:
             return sorted(self._data.iterkeys())
         else:
             return self._data.keys()
 
-    def common_nonzero_positions(ETuple self, other,sort=False):
+    def common_nonzero_positions(ETuple self, ETuple other,sort=False):
+        """
+        Returns an optionally sorted list of non zero positions either
+        in self or other, i.e. the only positions that need to be
+        considered for any vector operation.
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,0,2])
+            sage: f = ETuple([0,0,1])
+            sage: e.common_nonzero_positions(f)
+            set([0, 2])
+            sage: e.common_nonzero_positions(f,sort=True)
+            [0, 2]
+        """
+
+
         res = set(self._data.iterkeys()).union(other._data.iterkeys())
         if sort:
             return sorted(res)
@@ -869,10 +949,19 @@ cdef class ETuple:
         INPUT:
             sort -- if True the values are sorted by their indices. Otherwise a
                     the values are returned unsorted. (default: True)
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([2,0,1])
+            sage: e.nonzero_values()
+            [2, 1]
+            sage: f = ETuple([0,-1,1])
+            sage: f.nonzero_values(sort=True)
+            [-1, 1]
         """
         if sort:
             tmp = []
-            for e in self.nonzero_positions(self,True):
+            for e in self.nonzero_positions(True):
                 tmp.append(self._data[e])
             return tmp
         else:
@@ -881,6 +970,12 @@ cdef class ETuple:
     def reversed(ETuple self):
         """
         Returns the reversed ETuple of self.
+
+        EXAMPLE:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,2,3])
+            sage: e.reversed()
+            (3, 2, 1)
         """
         data = {}
         length = self._length-1

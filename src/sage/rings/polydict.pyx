@@ -179,7 +179,7 @@ cdef class PolyDict:
             sage: f.dict()
             {(1, 2): 3, (2, 1): 4, (2, 3): 2}
         """
-        return copy.copy(self.__repn)
+        return self.__repn.copy()
 
     def coefficients(PolyDict self):
         """
@@ -215,7 +215,7 @@ cdef class PolyDict:
             sage: len(f)
             3
         """
-        return len(self.exponents())
+        return len(self.__repn)
 
     def __getitem__(PolyDict self, e):
         """
@@ -457,7 +457,8 @@ cdef class PolyDict:
             PolyDict with representation {(1, 2, 1): 3, (2/3, 3, 5): 5, (2, 1, 1): 4}
         """
         zero = self.__zero
-        D = copy.copy(self.__repn)
+        #D = copy.copy(self.__repn)
+        D = self.__repn.copy() #faster!
         R = other.__repn
         for e,c in R.iteritems():
             if D.has_key(e):
@@ -533,7 +534,7 @@ cdef class PolyDict:
 
     def __one(PolyDict self):
         one = self.__zero + 1
-        if len(self.__repn.keys()) == 0:
+        if len(self.__repn) == 0:
             v = {(0):one}
         else:
             v = {ETuple({},len(self.__repn.keys()[0])):one}

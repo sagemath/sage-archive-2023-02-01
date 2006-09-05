@@ -168,13 +168,16 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
 
     def _add_(self, right):
-        return self.parent()(self.__element + right.__element)
+        #return self.parent()(self.__element + right.__element)
+        return self.__class__(self.parent(),self.__element + right.__element)
 
     def _sub_(self, right):
-        return self.parent()(self.__element - right.__element)
+        # return self.parent()(self.__element - right.__element)
+        return self.__class__(self.parent(),self.__element - right.__element)
 
     def _mul_(self, right):
-        return self.parent()(self.__element * right.__element)
+        #return self.parent()(self.__element * right.__element)
+        return self.__class__(self.parent(),self.__element * right.__element)
 
     def __div__(self, right):
         r"""

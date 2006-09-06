@@ -56,7 +56,6 @@ from sage.rings.all import (
 import gp_cremona
 import padic_height
 import monsky_washnitzer
-from sage.misc.functional import log
 import sea
 
 from gp_simon import simon_two_descent
@@ -3329,7 +3328,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                                             prec)
 
     def padic_E2(self, p, prec=20, check=False):
-        """
+        r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
         where $\omega$ is the usual invariant differential $dx/2y$.
 
@@ -3348,43 +3347,46 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             p-adic number to precision prec
 
         AUTHOR:
-           -- David Harvey (2006-09-01): partly based on code written by
-              Robert Bradshaw at the MSRI 2006 modular forms workshop
+            -- David Harvey (2006-09-01): partly based on code written by
+               Robert Bradshaw at the MSRI 2006 modular forms workshop
+
+        ACKNOWLEDGMENT:
+           -- discussion with Eyal Goren that led to the trace trick.
 
         EXAMPLES:
-          Here is the example discussed in the paper ``Computation of p-adic
-          Heights and Log Convergence'' (Mazur, Stein, Tate):
+        Here is the example discussed in the paper ``Computation of p-adic
+        Heights and Log Convergence'' (Mazur, Stein, Tate):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + O(5^20)
+            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + O(5^20)
 
-          Let's try to higher precision (this is the same answer the MAGMA
-          implementation gives):
+        Let's try to higher precision (this is the same answer the MAGMA
+        implementation gives):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 100)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + 2*5^30 + 5^31 + 4*5^33 + 3*5^34 + 4*5^35 + 5^36 + 4*5^37 + 4*5^38 + 3*5^39 + 4*5^41 + 2*5^42 + 3*5^43 + 2*5^44 + 2*5^48 + 3*5^49 + 4*5^50 + 2*5^51 + 5^52 + 4*5^53 + 4*5^54 + 3*5^55 + 2*5^56 + 3*5^57 + 4*5^58 + 4*5^59 + 5^60 + 3*5^61 + 5^62 + 4*5^63 + 5^65 + 3*5^66 + 2*5^67 + 5^69 + 2*5^70 + 3*5^71 + 3*5^72 + 5^74 + 5^75 + 5^76 + 3*5^77 + 4*5^78 + 4*5^79 + 2*5^80 + 3*5^81 + 5^82 + 5^83 + 4*5^84 + 3*5^85 + 2*5^86 + 3*5^87 + 5^88 + 2*5^89 + 4*5^90 + 4*5^92 + 3*5^93 + 4*5^94 + 3*5^95 + 2*5^96 + 4*5^97 + 4*5^98 + 2*5^99 + O(5^100)
+            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + 2*5^30 + 5^31 + 4*5^33 + 3*5^34 + 4*5^35 + 5^36 + 4*5^37 + 4*5^38 + 3*5^39 + 4*5^41 + 2*5^42 + 3*5^43 + 2*5^44 + 2*5^48 + 3*5^49 + 4*5^50 + 2*5^51 + 5^52 + 4*5^53 + 4*5^54 + 3*5^55 + 2*5^56 + 3*5^57 + 4*5^58 + 4*5^59 + 5^60 + 3*5^61 + 5^62 + 4*5^63 + 5^65 + 3*5^66 + 2*5^67 + 5^69 + 2*5^70 + 3*5^71 + 3*5^72 + 5^74 + 5^75 + 5^76 + 3*5^77 + 4*5^78 + 4*5^79 + 2*5^80 + 3*5^81 + 5^82 + 5^83 + 4*5^84 + 3*5^85 + 2*5^86 + 3*5^87 + 5^88 + 2*5^89 + 4*5^90 + 4*5^92 + 3*5^93 + 4*5^94 + 3*5^95 + 2*5^96 + 4*5^97 + 4*5^98 + 2*5^99 + O(5^100)
 
-          Check it works at low precision too:
+        Check it works at low precision too:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
-             2 + O(5)
+            2 + O(5)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
-             2 + 4*5 + O(5^2)
+            2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
-             2 + 4*5 + O(5^3)
+            2 + 4*5 + O(5^3)
 
-          Check that it's a modular form of weight 2 :-)
+        Check that it's a modular form of weight 2 :-)
             sage: 7**2 * EllipticCurve([-1, 1/4]).padic_E2(11, 10)
-             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+            8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
             sage: EllipticCurve([-1*(7**4), 1/4*(7**6)]).padic_E2(11, 10)
-             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+            8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
 
-          Test check=True vs check=False:
+        Test check=True vs check=False:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=False)
-             2 + O(5)
+            2 + O(5)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=True)
-             2 + O(5)
+            2 + O(5)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=False)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
+            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=True)
-             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
+            2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
         """
         p = self.__check_padic_hypotheses(p)
@@ -3406,14 +3408,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # EllipticCurve([1, 0, 0, -1, 2]).padic_E2(5) )
         if self.a1() != 0 or self.a2() != 0 or self.a3() != 0:
             raise NotImplementedError, \
-                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b"
+                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b.  Use E.weierstrass_model() to put E in Weierstrass form."
 
         # todo: remove the following restriction:
         # (e.g. currently can't run EllipticCurve([1/5^4, 1/5^6]).padic_E2(5)
         # or EllipticCurve([5^4, 5^6]).padic_E2(5) )
         if self.discriminant().valuation(p) != 0:
             raise NotImplementedError, \
-                 "Elliptic curve equation must be in minimal form at p"
+                  "Elliptic curve equation must be minimal at p."
 
         # Need to increase precision a little to compensate for precision
         # losses during the computation. (See monsky_washnitzer.py

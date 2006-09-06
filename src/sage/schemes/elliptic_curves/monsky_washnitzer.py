@@ -59,58 +59,57 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
   TODO:
     -- Eventually we will want to run this in characteristic 3, so we need to:
        (a) Allow Q(x) to contain an x^2 term, and
-       (b) Remove the requirement that 3 be invertible. Currently this used
+       (b) Remove the requirement that 3 be invertible. Currently this is used
            in the Toom-Cook algorithm to speed multiplication.
 
   EXAMPLES:
       sage: B, t = PolynomialRing(Integers(125)).objgen()
       sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
       sage: R
-       SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
+      SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
 
     Get generators:
       sage: x, T = R.gens()
       sage: x
-       (0) + (1)*x + (0)*x^2
+      (0) + (1)*x + (0)*x^2
       sage: T
-       (T) + (0)*x + (0)*x^2
+      (T) + (0)*x + (0)*x^2
 
     Coercions:
       sage: R(7)
-       (7) + (0)*x + (0)*x^2
+      (7) + (0)*x + (0)*x^2
 
     Create elements directly from polynomials:
       sage: A, z = R.poly_ring().objgen()
       sage: A
-       Univariate Polynomial Ring in T over Ring of integers modulo 125
+      Univariate Polynomial Ring in T over Ring of integers modulo 125
       sage: R.create_element(z^2, z+1, 3)
-       (T^2) + (T + 1)*x + (3)*x^2
+      (T^2) + (T + 1)*x + (3)*x^2
 
     Some arithmetic:
       sage: x^3
-       (T + 31) + (1)*x + (0)*x^2
+      (T + 31) + (1)*x + (0)*x^2
       sage: 3 * x**15 * T**2 + x - T
-       (3*T^7 + 90*T^6 + 110*T^5 + 20*T^4 + 58*T^3 + 26*T^2 + 124*T) + (15*T^6 + 110*T^5 + 35*T^4 + 63*T^2 + 1)*x + (30*T^5 + 40*T^4 + 8*T^3 + 38*T^2)*x^2
+      (3*T^7 + 90*T^6 + 110*T^5 + 20*T^4 + 58*T^3 + 26*T^2 + 124*T) + (15*T^6 + 110*T^5 + 35*T^4 + 63*T^2 + 1)*x + (30*T^5 + 40*T^4 + 8*T^3 + 38*T^2)*x^2
 
     Retrieve coefficients (output is zero-padded):
       sage: x^10
-       (3*T^2 + 61*T + 8) + (T^3 + 93*T^2 + 12*T + 40)*x + (3*T^2 + 61*T + 9)*x^2
+      (3*T^2 + 61*T + 8) + (T^3 + 93*T^2 + 12*T + 40)*x + (3*T^2 + 61*T + 9)*x^2
       sage: (x^10).coeffs()
-       [[8, 61, 3, 0], [40, 12, 93, 1], [9, 61, 3, 0]]
+      [[8, 61, 3, 0], [40, 12, 93, 1], [9, 61, 3, 0]]
 
     TODO: write an example checking multiplication of these polynomials
     against SAGE's ordinary quotient ring arithmetic. I can't seem to get
     the quotient ring stuff happening right now...
-
   """
 
   def __init__(self, Q):
-    """ Constructor.
+    """
+    Constructor.
 
     INPUT:
         Q -- a polynomial of the form Q(x) = x^3 + ax + b, where a, b
              belong to a ring in which 2, 3 are invertible.
-
     """
     if not isinstance(Q, Polynomial):
       raise TypeError, "Q (=%s) must be a polynomial" % Q
@@ -660,7 +659,7 @@ def reduce_all(Q, p, coeffs, offset):
 def frobenius_expansion_by_newton(Q, p, M):
   """
   Computes the action of Frobenius on dx/y and on x dx/y, using
-  newton's method (as suggested in Kedlaya's paper).
+  Newton's method (as suggested in Kedlaya's paper).
 
   (This function does *not* yet use the cohomology relations
   -- that happens afterwards in the "reduction" step.)
@@ -681,7 +680,7 @@ def frobenius_expansion_by_newton(Q, p, M):
            whose coefficient ring is a Z/(p^M)Z-algebra
       p -- residue characteristic of the p-adic field
       M -- p-adic precision of the coefficient ring (this will be used
-           to determine the number of newton iterations)
+           to determine the number of Newton iterations)
 
   OUTPUT:
       F0, F1 -- elements of SpecialCubicQuotientRing(Q), as described above
@@ -807,12 +806,12 @@ def frobenius_expansion_by_newton(Q, p, M):
 
 
 def frobenius_expansion_by_series(Q, p, M):
-  """
+  r"""
   Computes the action of Frobenius on dx/y and on x dx/y, using
   a series expansion.
 
   (This function computes the same thing as frobenius_expansion_by_newton(),
-  using a different method. Theoretically the newton method should be
+  using a different method. Theoretically the Newton method should be
   asymptotically faster, when the precision gets large. However, in practice,
   this functions seems to be marginally faster for moderate precision, so I'm
   keeping it here until I figure out exactly why it's faster.)
@@ -821,25 +820,25 @@ def frobenius_expansion_by_series(Q, p, M):
   -- that happens afterwards in the "reduction" step.)
 
   More specifically, it finds F0 and F1 in the quotient ring
-  R[x, T]/(T - Q(x)), such that
-     F(  dx/y) = T^{-r} F0 dx/y,   and
-     F(x dx/y) = T^{-r} F1 dx/y
+  $R[x, T]/(T - Q(x))$, such that
+     $F(  dx/y) = T^{-r} F0 dx/y$,   and
+     $F(x dx/y) = T^{-r} F1 dx/y$
   where
-     r = ( (2M-3)p - 1 )/2.
-  (Here T is y^2 = z^{-2}, and R is the coefficient ring of Q.)
+     $r = ( (2M-3)p - 1 )/2$.
+  (Here T is $y^2 = z^{-2}$, and R is the coefficient ring of Q.)
 
   F0 and F1 are computed in the SpecialCubicQuotientRing associated
   to Q, so all powers of x^j for j >= 3 are reduced to powers of T.
 
   It uses the sum
-      F0 = \sum_{k=0}^{M-2} {-1/2 \choose k} p x^{p-1} E^k T^{(M-2-k)p}
+     $$ F0 = \sum_{k=0}^{M-2} {-1/2 \choose k} p x^{p-1} E^k T^{(M-2-k)p}$$
   and
-      F1 = x^p F0,
-  where E = Q(x^p) - Q(x)^p.
+     $$ F1 = x^p F0,$$
+  where $E = Q(x^p) - Q(x)^p$.
 
   INPUT:
-      Q -- cubic polynomial of the form Q(x) = x^3 + ax + b,
-           whose coefficient ring is a Z/(p^M)Z-algebra
+      Q -- cubic polynomial of the form $Q(x) = x^3 + ax + b$,
+           whose coefficient ring is a $\Z/(p^M)\Z$-algebra
       p -- residue characteristic of the p-adic field
       M -- p-adic precision of the coefficient ring (this will be used
            to determine the number of terms in the series)
@@ -893,7 +892,7 @@ def frobenius_expansion_by_series(Q, p, M):
 
 
 def adjusted_prec(p, prec):
-    """
+    r"""
     Computes how much precision is required in matrix_of_frobenius to get
     an answer correct to prec $p$-adic digits.
 

@@ -32,7 +32,7 @@ def skip(F):
     if G == "all.py" or "__init__.py" in G \
           or G[0] == '.' or '/.' in G or \
           'doctest' in G or \
-          'nodoctest' in open(G).readline():
+          'nodoctest' in open(G).read():
         if not ('doctest' in G):
             print "%s (skipping)"%abs(F)
         return True

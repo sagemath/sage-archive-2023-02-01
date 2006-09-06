@@ -10,7 +10,7 @@ t = time.localtime(time.time())
 file = open(fname).read()
 file = '%s\n------------------------\n'%time.asctime(t) + '\n'+ file
 open(fname,'w').write(file)
-os.system('emacs %s&'%fname)
+os.system('emacs %s'%fname)
 
 
 

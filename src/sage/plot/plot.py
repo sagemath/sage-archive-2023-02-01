@@ -1423,24 +1423,27 @@ class PlotFactory(GraphicPrimitiveFactory):
         return "plot; type plot? for help and examples."
 
     def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, show=None, **kwds):
+                 polar=False, show=None, call_plot_method=True, **kwds):
         if show is None:
             show = SHOW_DEFAULT
-        try:
-            G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
 
-        try:
-            G = funcs.plot(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
+        if call_plot_method:
+            try:
+                # TODO -- get rid of the _plot_ method; just use a plot method.
+                G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
+                if show:
+                    G.show(**kwds)
+                return G
+            except AttributeError:
+                pass
+
+            try:
+                G = funcs.plot(xmin=xmin, xmax=xmax, **kwds)
+                if show:
+                    G.show(**kwds)
+                return G
+            except AttributeError:
+                pass
 
         if xmin is None:
             xmin = -1

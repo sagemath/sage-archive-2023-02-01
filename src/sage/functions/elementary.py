@@ -318,20 +318,9 @@ class ElementaryFunction(ElementaryFunctionRing):
             self._var = list_of_fcns[0][0].parent().gen()
         else:
             F = list_of_fcns[0][0].base_ring()
-            var = self.variable()                        #### wrong -- FIX THIS
+            var = self.variable()                        #### TODO: wrong -- FIX THIS
             R = PolynomialRing(F,str(var))
             self._var = R.gen()
-
-    def plot(self,*args, **kwds):
-        """
-        EXAMPLES:
-            sage: x = PolynomialRing(QQ,"x").gen()
-            sage: g = ElementaryFunction([(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
-            sage: P = plot(g,-1,1)
-
-        Now type show(P) to view this.
-        """
-        return sage.plot.plot.plot(self, *args, **kwds)
 
     def list(self):
         return self._list

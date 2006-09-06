@@ -144,11 +144,6 @@ class Function(Element_cmp_, RingElement):
             R = RR
         return str(self._mpfr_(R))
 
-    def plot(self, n=50):
-        n = int(n)
-        import pylab
-        pylab.plot([float(self(i/n)) for i in range(n)])
-
     def integral(self):
         raise NotImplementedError, "computation of integral of %s not implemented"%self
 

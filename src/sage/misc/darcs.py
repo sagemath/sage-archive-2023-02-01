@@ -1,8 +1,7 @@
 """
 Darcs from SAGE.
 
-These functions make setup and use of darcs with SAGE
-easier.
+These functions make setup and use of darcs with SAGE easier.
 """
 
 import os, shutil
@@ -23,11 +22,14 @@ def darcs_install():
     if uname[:6] == 'CYGWIN':
         package.install_package('darcs_cygwin', force=True)
     elif uname == 'Darwin':
-        package.install_package('darcs_darwin')
+        if os.uname()[4] == 'i386':
+            package.install_package('darcs_mactel')
+        else:
+            package.install_package('darcs_darwin')
     elif uname == 'Linux':
         package.install_package('darcs_linux')
     else:
-        raise RuntimeError, "No SAGE darcs package available for your platform (this just means you need to get a darcs binary yourself and put it somewhere in your PATH)."
+        raise RuntimeError, "No SAGE darcs package available for your platform (this just means you need to get a darcs binary yourself and put it somewhere in your PATH).  See http://darcs.net/DarcsWiki/CategoryBinaries"
 
 known_installed = False
 def darcs_ensure_installed():

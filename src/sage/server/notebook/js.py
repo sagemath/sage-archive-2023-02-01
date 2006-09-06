@@ -586,7 +586,7 @@ function upload_worksheet_callback(status, response_text) {
             set_worksheet_list(response_text);
         }
     } else {
-        alert("Possible problem uploading file (file must be local).");
+        alert("Possible problem uploading file.");
     }
 }
 
@@ -1039,7 +1039,6 @@ function evaluate_cell(id, action) {
     var I = cell_input.value;
     var input = escape0(I);
 
-    get_element('interrupt').className = 'interrupt';
     async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
 }
@@ -1183,11 +1182,13 @@ function start_update_check() {
     if(updating) return;
     updating = true;
     check_for_cell_update();
+    set_class('interrupt', 'interrupt')
 }
 
 function cancel_update_check() {
     updating = false;
     clearTimeout(update_timeout);
+    set_class('interrupt', 'interrupt_grey')
 }
 
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {

@@ -287,6 +287,9 @@ class Worksheet:
     def queue(self):
         return self.__queue
 
+    def queue_id_list(self):
+        return [c.id() for c in self.__queue]
+
     def _enqueue_auto(self):
         for c in self.__cells:
             if c.is_auto_cell():

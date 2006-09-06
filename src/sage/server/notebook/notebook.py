@@ -719,10 +719,10 @@ class Notebook(SageObject):
 
     def _html_body(self, worksheet_id, show_debug=False):
         worksheet = self.get_worksheet_with_id(worksheet_id)
-        #if worksheet.computing():
-        interrupt_class = "interrupt"
-        #else:
-        #    interrupt_class = "interrupt_grey"
+        if worksheet.computing():
+            interrupt_class = "interrupt"
+        else:
+            interrupt_class = "interrupt_grey"
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -814,8 +814,10 @@ class Notebook(SageObject):
 
         if worksheet.computing():
             # Set the update checking back in motion.
-            body += '<script language=javascript> check_for_cell_output() </script>\n'
-
+            body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
+            body += 'for(var i = 0; i < active_cell_list.length; i++)'
+            body += '    cell_set_running(active_cell_list[i]); \n'
+            body += 'start_update_check(); </script>\n'
         return body
 
     def help_window(self):

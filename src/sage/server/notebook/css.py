@@ -94,6 +94,7 @@ div.top_control_bar a.restart_sage:hover {
    background-color:#ff0000;
    color:#FFFFFF;
    cursor:pointer;
+   text-decoration:none;
 }
 
 div.top_control_bar  a.restart_sage_in_progress {
@@ -122,12 +123,14 @@ div.top_control_bar a.interrupt:hover {
    background-color:#bb0000;
    color:#FFFFFF;
    cursor:pointer;
+   text-decoration:none;
 }
 
 div.top_control_bar  a.interrupt_grey {
    color:#888888;
    padding:5;
    background-color:white;
+   text-decoration:underline;
 }
 
 div.top_control_bar  a.interrupt_in_progress {

@@ -28,3 +28,5 @@ from ell_rational_field import cremona_curves, cremona_optimal_curves
 from cm import ( cm_j_invariants,
                  cm_j_invariants_and_orders,
                  hilbert_class_polynomial )
+
+import monsky_washnitzer

@@ -5,6 +5,7 @@ AUTHORS:
    -- William Stein (2005): first version
    -- William Stein (2006-02-26): fixed Lseries_extended which didn't work
             because of changes elsewhere in SAGE.
+   -- David Harvey (2006-09-01): Added padic_E2 method.
 """
 
 #*****************************************************************************
@@ -54,6 +55,8 @@ from sage.rings.all import (
 
 import gp_cremona
 import padic_height
+import monsky_washnitzer
+from sage.misc.functional import log
 import sea
 
 from gp_simon import simon_two_descent
@@ -3325,13 +3328,139 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                                             self.gens(),
                                             prec)
 
-    def padic_E2(self, p, prec=20):
+    def padic_E2(self, p, prec=20, check=False):
+        """
+        Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
+        where $\omega$ is the usual invariant differential $dx/2y$.
+
+        INPUT:
+            p -- prime (>= 5) for which $E$ is good and ordinary
+            prec -- p-adic precision (>= 1) for result
+            check -- boolean, whether to perform a consistency check.
+                 This will slow down the computation by a constant factor < 2.
+                 (The consistency check is to compute the whole matrix of
+                 frobenius on Monsky-Washnitzer cohomology, and verify that
+                 its trace is correct to the specified precision. Otherwise,
+                 the trace is used to compute one column from the other one
+                 (possibly after a change of basis).)
+
+        OUTPUT:
+            p-adic number to precision prec
+
+        AUTHOR:
+           -- David Harvey (2006-09-01): partly based on code written by
+              Robert Bradshaw at the MSRI 2006 modular forms workshop
+
+        EXAMPLES:
+          Here is the example discussed in the paper ``Computation of p-adic
+          Heights and Log Convergence'' (Mazur, Stein, Tate):
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + O(5^20)
+
+          Let's try to higher precision (this is the same answer the MAGMA
+          implementation gives):
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 100)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + 2*5^30 + 5^31 + 4*5^33 + 3*5^34 + 4*5^35 + 5^36 + 4*5^37 + 4*5^38 + 3*5^39 + 4*5^41 + 2*5^42 + 3*5^43 + 2*5^44 + 2*5^48 + 3*5^49 + 4*5^50 + 2*5^51 + 5^52 + 4*5^53 + 4*5^54 + 3*5^55 + 2*5^56 + 3*5^57 + 4*5^58 + 4*5^59 + 5^60 + 3*5^61 + 5^62 + 4*5^63 + 5^65 + 3*5^66 + 2*5^67 + 5^69 + 2*5^70 + 3*5^71 + 3*5^72 + 5^74 + 5^75 + 5^76 + 3*5^77 + 4*5^78 + 4*5^79 + 2*5^80 + 3*5^81 + 5^82 + 5^83 + 4*5^84 + 3*5^85 + 2*5^86 + 3*5^87 + 5^88 + 2*5^89 + 4*5^90 + 4*5^92 + 3*5^93 + 4*5^94 + 3*5^95 + 2*5^96 + 4*5^97 + 4*5^98 + 2*5^99 + O(5^100)
+
+          Check it works at low precision too:
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
+             2 + O(5)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
+             2 + 4*5 + O(5^2)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
+             2 + 4*5 + O(5^3)
+
+          Check that it's a modular form of weight 2 :-)
+            sage: 7**2 * EllipticCurve([-1, 1/4]).padic_E2(11, 10)
+             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+            sage: EllipticCurve([-1*(7**4), 1/4*(7**6)]).padic_E2(11, 10)
+             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+
+          Test check=True vs check=False:
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=False)
+             2 + O(5)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=True)
+             2 + O(5)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=False)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=True)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
+
+        """
+        p = self.__check_padic_hypotheses(p)
+
+        # todo: maybe it would be good if default prec was None, and then
+        # it selects an appropriate precision based on how large the prime
+        # is
+
+        # todo: implement the p == 3 case
+        if p < 5:
+            raise NotImplementedError, "p (=%s) must be at least 5" % p
+
+        prec = int(prec)
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be at least 1" % prec
+
+        # todo: remove the following restriction:
+        # (e.g. currently can't run
+        # EllipticCurve([1, 0, 0, -1, 2]).padic_E2(5) )
+        if self.a1() != 0 or self.a2() != 0 or self.a3() != 0:
+            raise NotImplementedError, \
+                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b"
+
+        # todo: remove the following restriction:
+        # (e.g. currently can't run EllipticCurve([1/5^4, 1/5^6]).padic_E2(5)
+        # or EllipticCurve([5^4, 5^6]).padic_E2(5) )
+        if self.discriminant().valuation(p) != 0:
+            raise NotImplementedError, \
+                 "Elliptic curve equation must be in minimal form at p"
+
+        # Need to increase precision a little to compensate for precision
+        # losses during the computation. (See monsky_washnitzer.py
+        # for more details.)
+        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+
+        if check:
+            trace = None
+        else:
+            trace = self.ap(p)
+
+        base_ring = rings.Integers(p**adjusted_prec)
+        output_ring = rings.pAdicField(p, prec)
+
+        R, x = rings.PolynomialRing(base_ring).objgen()
+        Q = x**3 + base_ring(self.a4()) * x + base_ring(self.a6())
+        frob_p = monsky_washnitzer.matrix_of_frobenius(
+                        Q, p, adjusted_prec, trace)
+
+        if check:
+            trace_of_frobenius = frob_p.trace().lift() % p**prec
+            correct_trace = self.ap(p) % p**prec
+            assert trace_of_frobenius == correct_trace, \
+                    "Consistency check failed! (correct = %s, actual = %s)" % \
+                    (correct_trace, trace_of_frobenius)
+
+        frob_p_n = frob_p**prec
+
+        # todo: write a coercion operator from integers mod p^n to the
+        # p-adic field (it doesn't seem to currently exist)
+
+        # todo: think about the sign of this. Is it correct?
+
+        return output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
+               + O(p**prec)
+
+
+    # This is the old version of padic_E2 that requires MAGMA:
+
+    def padic_E2_magma(self, p, prec=20):
         """
         Return the value of the $p$-adic.
         """
         p = self.__check_padic_hypotheses(p)
         c4, c6 = self.c_invariants()
         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
+
 
     # 	def	weierstrass_p(self):
     #         # TODO: add allowing negative valuations for power series

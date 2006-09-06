@@ -132,7 +132,7 @@ complex_number2 = Extension('sage.rings.complex_number2',
 
 fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
-                libraries = ['gsl'])
+                libraries = ['gsl', 'cblas'])
 
 ext_modules = [ \
     ec, \

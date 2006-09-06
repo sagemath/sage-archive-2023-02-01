@@ -281,7 +281,7 @@ def minimum_distance_why(n,k,F):
     via Steven Sivek's linear_code_bound.
 
     EXAMPLES:
-        sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
+        sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection, takes a long time)
         Lb(7,4) = 3 is found by truncation of:
         Lb(8,4) = 4 is found by the (u|u+v) construction
         applied to [4,3,2] and [4,1,4]-codes
@@ -302,7 +302,7 @@ def best_known_linear_code(n,k,F):
     This does not require an internet connection.
 
     EXAMPLES:
-        sage: best_known_linear_code(10,5,GF(2))
+        sage: best_known_linear_code(10,5,GF(2))           # long time
         'a linear [10,5,4]2..4 shortened code'
 
     This means that best possible binary linear code of length 10 and dimension 5
@@ -369,7 +369,7 @@ class LinearCode(module.Module):
         [1, 0, 0, 7, 7, 0, 0, 1]
         sage: C.weight_distribution()
         [1, 0, 0, 7, 7, 0, 0, 1]
-        sage: C.minimum_distance_why()     # optional (net connection)
+        sage: C.minimum_distance_why()     # optional (net connection, takes long time).
         Ub(7,4) = 3 follows by the Griesmer bound.
         sage: MS = MatrixSpace(IntegerModRing(5),4,7)
         sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
@@ -631,8 +631,8 @@ class LinearCode(module.Module):
             sage: C = HammingCode(3,GF(2))
             sage: C.dual_code()
             Linear code of length 7, dimension 3 over Finite Field of size 2
-            sage: C = HammingCode(3,GF(4))
-            sage: C.dual_code()
+            sage: C = HammingCode(3,GF(4))           # long time
+            sage: C.dual_code()                      # long time
             Linear code of length 21, dimension 3 over Finite Field in a of size 2^2
         """
         F = self.base_ring()
@@ -780,8 +780,8 @@ class LinearCode(module.Module):
 
             sage: C = ExtendedTernaryGolayCode()
             sage: M11 = MathieuGroup(11)
-            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds
-            sage: G.is_isomorphic(M11)
+            sage: G = C.permutation_automorphism_group()  # long time (< 15 seconds)
+            sage: G.is_isomorphic(M11)                    # long time
             True
 
         """
@@ -1049,8 +1049,8 @@ def HammingCode(r,F):
         [0 1 0 0 2 0 0 0 0 0 1 0 0]
         [2 1 0 0 2 0 0 0 0 0 0 1 0]
         [1 1 0 0 2 0 0 0 0 0 0 0 1]
-        sage: C = HammingCode(3,GF(4))
-        sage: C
+        sage: C = HammingCode(3,GF(4))             # long time (several seconds)
+        sage: C                                    # long time
         Linear code of length 21, dimension 18 over Finite Field in a of size 2^2
 
     AUTHOR: David Joyner (11-2005)
@@ -1215,7 +1215,7 @@ def BinaryReedMullerCode(r,k):
     return LinearCode(MS(G))
 
 def BinaryGolayCode():
-    """
+    r"""
     BinaryGolayCode() returns a binary Golay code. This is a perfect [23,12,7] code.
     It is also cyclic, and has generator polynomial $g(x)=1+x^2+x^4+x^5+x^6+x^{10}+x^{11}$.
     Extending it yields the extended Golay code (see ExtendedBinaryGolayCode).
@@ -1239,7 +1239,7 @@ def BinaryGolayCode():
     return LinearCode(MS(G))
 
 def ExtendedBinaryGolayCode():
-    """
+    r"""
     ExtendedBinaryGolayCode() returns the extended binary Golay code. This is a
     perfect [24,12,8] code. This code is self-dual.
 
@@ -1262,7 +1262,7 @@ def ExtendedBinaryGolayCode():
     return LinearCode(MS(G))
 
 def TernaryGolayCode():
-    """
+    r"""
     TernaryGolayCode returns a ternary Golay code. This is a perfect [11,6,5] code.
     It is also cyclic, and has generator polynomial $g(x)=2+x^2+2x^3+x^4+x^5$.
 
@@ -1285,7 +1285,7 @@ def TernaryGolayCode():
     return LinearCode(MS(G))
 
 def ExtendedTernaryGolayCode():
-    """
+    r"""
     ExtendedTernaryGolayCode returns a ternary Golay code. This is a self-dual perfect [12,6,6] code.
 
     EXAMPLES:
@@ -1314,7 +1314,7 @@ def ExtendedTernaryGolayCode():
     return LinearCode(MS(G))
 
 def RandomLinearCode(n,k,F):
-    """
+    r"""
     The method used is to first construct a k x n matrix of the block form $(I,A)$,
     where $I$ is a k x k identity matrix and $A$ is a k x (n-k) matrix
     constructed using random elements of $F$. Then the columns are permuted
@@ -1347,7 +1347,7 @@ def RandomLinearCode(n,k,F):
 
 
 def ToricCode(P,F):
-    """
+    r"""
     Let $P$ denote a list of lattice points in $\Z^d$ and let $T$ denote the
     set of all points in $(F^x )^d$ (ordered in some fixed way). Put $n=|T|$
     and let $k$ denote the dimension of the vector space of functions
@@ -1373,19 +1373,19 @@ def ToricCode(P,F):
         Linear code of length 36, dimension 5 over Finite Field of size 7
         sage: C.minimum_distance()
         24
-        sage: C.minimum_distance_upper_bound()  # optional (requires internet)
+        sage: C.minimum_distance_upper_bound()  # optional (requires internet, and takes long time)
         28
         sage: C = ToricCode([[-2,-2],[-1,-2],[-1,-1],[-1,0],[0,-1],[0,0],[0,1],[1,-1],[1,0]],GF(5))
         sage: C
         Linear code of length 16, dimension 9 over Finite Field of size 5
-        sage: C.minimum_distance()
+        sage: C.minimum_distance()    # long time (several seconds)
         6
-        sage: C.minimum_distance_upper_bound()   # optional -- uses internet
+        sage: C.minimum_distance_upper_bound()   # optional -- uses internet (potentially a long time)
         6
         sage: C = ToricCode([ [0,0],[1,1],[1,2],[1,3],[1,4],[2,1],[2,2],[2,3],[3,1],[3,2],[4,1]],GF(8))
         sage: C
         Linear code of length 49, dimension 11 over Finite Field in a of size 2^3
-        sage: C.minimum_distance()  ## long time -- very time consuming
+        sage: C.minimum_distance()  # long time -- very time consuming
         28
         sage: print linear_code_bound(8,49,11)[0]    # optional -- uses internet
         28

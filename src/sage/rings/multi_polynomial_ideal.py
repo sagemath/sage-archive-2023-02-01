@@ -63,6 +63,7 @@ singular = singular_default
 from integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
+import sage.rings.integer_ring
 
 def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
@@ -293,7 +294,7 @@ class MPolynomialIdeal_singular_repr:
             elif algorithm=="stdhilb":
                 S = self._singular_().stdhilb()
             else:
-                raise TypeError, "cannot understand groebner algorithm"
+                raise TypeError, "algorithm '%s' unknown"%algorithm
             R = self.ring()
             self.__groebner_basis = Sequence([R(S[i+1]) for i in range(len(S))], R,
                                              check=False, immutable=True)
@@ -470,16 +471,28 @@ class MPolynomialIdeal_macaulay2_repr:
         return self.__macaulay2
 
     def _macaulay2_groebner_basis(self):
-        """
-        Return the Groebner basis for this ideal.
+        r"""
+        Return the Groebner basis for this ideal, computed using Macaulay2.
 
-        ALGORITHM: Computed using Macaulay2.
+        ALGORITHM: Computed using Macaulay2.  A big advantage of
+        Macaulay2 is that it can compute Groebner basis of ideals in
+        polynomial rings over the integers.
 
         EXAMPLE:
-            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw').gens()      # optional
-            sage: I = ideal(x*y-z^2, y^2-w^2)                                         # optional
-            sage: I.groebner_basis()                                                  # optional
-            [-1*w^2 + y^2, -1*z^2 + x*y, -1*y*z^2 + x*w^2]
+            sage: x,y,z,w = PolynomialRing(ZZ, 4, 'xyzw').gens()
+            sage: I = ideal(x*y-z^2, y^2-w^2)
+            sage: I.groebner_basis()                                     # optional -- requires macaulay2
+            [-1*w^2 + y^2, -1*z^2 + x*y, y*z^2 - x*w^2, z^4 - x^2*w^2]
+
+        Groebner basis can be used to compute in $\Z/n\Z[x,\ldots]$.
+
+            sage: R.<x,y,z> = ZZ['x,y,z']
+            sage: I = ideal([y^2*z - x^3 - 19*x*z, y^2, 19^2])
+            sage: I.groebner_basis()                                     # optional -- requires macaulay2
+            [361, y^2, 19*x*z + x^3]
+            sage: I = ideal([y^2*z - x^3 - 19^2*x*z, y^2, 19^2])
+            sage: I.groebner_basis()                                     # optional -- requires macaulay2
+            [361, y^2, x^3]
         """
         try:
             return self.__groebner_basis
@@ -533,7 +546,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaula
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
-    def groebner_basis(self, algorithm="singular:groebner"):
+    def groebner_basis(self, algorithm=None):
         """
         Return a Groebner basis of this ideal.
 
@@ -549,17 +562,17 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, MPolynomialIdeal_macaula
         ALGORITHM: Uses Singular or Macaulay2 (if available)
 
         """
-        if algorithm.startswith('singular:'):
+        if algorithm is None:
+            if self.ring().base_ring() == sage.rings.integer_ring.ZZ:
+                return self._macaulay2_groebner_basis()
+            else:
+                return self._singular_groebner_basis("groebner")
+        elif algorithm.startswith('singular:'):
             return self._singular_groebner_basis(algorithm[9:])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
-        elif algorithm == None:
-            if self.ring() == ZZ:
-                return self._macaulay2_groebner_basis()
-            else:
-                return self._singular_groebner_basis()
         else:
-            raise TypeError, "cannot understand groebner algorithm"
+            raise TypeError, "algorithm '%s' unknown"%algorithm
 
     #def is_homogeneous(self):
     #    try:

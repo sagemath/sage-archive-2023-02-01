@@ -275,7 +275,7 @@ class Polymake:
             [[1, 0, 0, 3], [1, 1, 1, 1], [1, 3, 0, 0], [1, 0, 3, 0]]
             sage: n = polymake.convex_hull(a)       # optional: needs polymake
             sage: n                                 # optional
-            Convex hull of points [[1, 0, 3, 0], [1, 3, 0, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
+            Convex hull of points [[1, 0, 0, 3], [1, 0, 3, 0], [1, 1, 1, 1], [1, 3, 0, 0]]
             sage: n.facets()                        # optional
             [(0, 1, 0, 0), (3, -1, -1, 0), (0, 0, 1, 0)]
             sage: n.is_simple()                     # optional
@@ -284,6 +284,7 @@ class Polymake:
             'GRAPH\n{1 2}\n{0 2}\n{0 1}\n\n'
         """
         f = 'POINTS\n'
+        points.sort()
         for p in points:
             f += ' '.join(str(x) for x in p) + '\n'
         f += '\n'

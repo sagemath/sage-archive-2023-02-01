@@ -332,7 +332,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 1 + x*y + x^3 + y^3
             sage: P = f.newton_polytope()
             sage: P
-            Convex hull of points [[1, 3, 0], [1, 0, 3], [1, 0, 0], [1, 1, 1]]
+            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
             sage: P.facets()
             [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
             sage: P.is_simple()

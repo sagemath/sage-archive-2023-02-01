@@ -290,8 +290,16 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         raise NotImplementedError
 
     def is_unit(self):
-        """ Returns whether this power series is invertible, which is
-        the case precisely when the constant term is invertible.
+        """
+        Returns whether this power series is invertible, which is the
+        case precisely when the constant term is invertible.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: (-1 + t - t^5).is_unit()
+            True
+            sage: (3 + t - t^5).is_unit()
+            False
 
         AUTHOR: David Harvey (2006-09-03)
         """

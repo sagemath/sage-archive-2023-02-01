@@ -2,6 +2,9 @@
 DEVEL = False
 PYTHON_VERSION='2.4'
 
+# TODO: make the CBLAS choice intelligent based on the environment.
+CBLAS='gslcblas'  # slow but guaranteed to be available
+
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
@@ -132,7 +135,7 @@ complex_number2 = Extension('sage.rings.complex_number2',
 
 fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
-                libraries = ['gsl', 'cblas'])
+                libraries = ['gsl', CBLAS])
 
 ext_modules = [ \
     ec, \

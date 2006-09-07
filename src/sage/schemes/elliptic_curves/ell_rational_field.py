@@ -3330,7 +3330,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def padic_E2(self, p, prec=20, check=False):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
-        where $\omega$ is the usual invariant differential $dx/2y$.
+        where $\omega$ is the usual invariant differential
+        $dx/(2y + a_1 x + a_3)$.
 
         INPUT:
             p -- prime (>= 5) for which $E$ is good and ordinary
@@ -3345,6 +3346,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         OUTPUT:
             p-adic number to precision prec
+
+        NOTES:
+            -- If the discriminant of the curve has nonzero valuation at p,
+               then the result will not be returned mod p^prec, but it still
+               *will* have prec *digits* of precision.
 
         AUTHOR:
             -- David Harvey (2006-09-01): partly based on code written by
@@ -3372,11 +3378,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
             2 + 4*5 + O(5^3)
 
-        Check that it's a modular form of weight 2 :-)
+          Check that it's a modular form of weight 2 :-)
             sage: 7**2 * EllipticCurve([-1, 1/4]).padic_E2(11, 10)
-            8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
             sage: EllipticCurve([-1*(7**4), 1/4*(7**6)]).padic_E2(11, 10)
-            8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
 
         Test check=True vs check=False:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=False)
@@ -3403,19 +3409,37 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec < 1:
             raise ValueError, "prec (=%s) must be at least 1" % prec
 
+        # To run matrix_of_frobenius(), we need to have the equation in the
+        # form y^2 = x^3 + ax + b, whose discriminant is invertible mod p.
+        # When we change coordinates like this, we might scale the invariant
+        # differential, so we need to account for this. We do this by
+        # comparing discriminants: if the discrimimants differ by u^12,
+        # then the differentials differ by u. There's a sign ambiguity here,
+        # but it doesn't matter because E2 changes by u^2 :-)
+
+        # todo: the weierstrass_model() function is overkill here, because
+        # it finds a *minimal* model. I imagine it has to do some factoring
+        # to do this. We only need a model that's minimal at p.
+
+        # todo: In fact, there should be available a function that returns
+        # exactly *which* coordinate change was used. If I had that I could
+        # avoid the discriminant circus at the end.
+
+        # todo: The following strategy won't work at all for p = 2, 3.
+
         # todo: remove the following restriction:
         # (e.g. currently can't run
         # EllipticCurve([1, 0, 0, -1, 2]).padic_E2(5) )
         if self.a1() != 0 or self.a2() != 0 or self.a3() != 0:
             raise NotImplementedError, \
-                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b.  Use E.weierstrass_model() to put E in Weierstrass form."
+                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b"
 
         # todo: remove the following restriction:
         # (e.g. currently can't run EllipticCurve([1/5^4, 1/5^6]).padic_E2(5)
         # or EllipticCurve([5^4, 5^6]).padic_E2(5) )
         if self.discriminant().valuation(p) != 0:
             raise NotImplementedError, \
-                  "Elliptic curve equation must be minimal at p."
+                 "Elliptic curve equation must be in minimal form at p"
 
         # Need to increase precision a little to compensate for precision
         # losses during the computation. (See monsky_washnitzer.py
@@ -3431,7 +3455,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         output_ring = rings.pAdicField(p, prec)
 
         R, x = rings.PolynomialRing(base_ring).objgen()
-        Q = x**3 + base_ring(self.a4()) * x + base_ring(self.a6())
+        Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
         frob_p = monsky_washnitzer.matrix_of_frobenius(
                         Q, p, adjusted_prec, trace)
 
@@ -3449,8 +3473,57 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # todo: think about the sign of this. Is it correct?
 
-        return output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
-               + O(p**prec)
+        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
+                  + O(p**prec)
+
+        # Take into account the coordinate change.
+
+        # todo: arrrggghhh this is painful. I want to take the 6th root
+        # of a rational number which I know is an exact 6th power.
+        #
+        # This should be easy.
+        #
+        # Instead I need to coerce the numerator and denominator to real
+        # numbers, perform the root extraction there (after estimating an
+        # appropriate real precision), round and convert back. This should
+        # not be necessary!!!! Even for integers, we should be wrapping
+        # GMP's mpz_root function. Surely the _pow_ function on Integer
+        # and Rational should give exact answers when they make sense?
+        # Maybe that will break other interfaces... but at least there should
+        # be an exact_power method?
+
+        from sage.rings.real_field import RealNumber
+
+        def extract_painful_integer_root(x, n):
+            # extracts the nth root of x, assuming x is an integer
+            # which is an exact nth power
+
+            min_prec = log(x, 2) * 2 + 10     # to be sure, to be sure
+            # todo: Why on earth doesn't RealNumber accept an Integer
+            # as input? Why must it be a string??!!
+            x = RealNumber(str(x))
+            return (x ** (Integer(1)/Integer(n))).round().integer_part()
+
+        def extract_painful_rational_root(x, n):
+            # x should be a rational number which is an exact nth power,
+            # n a positive integer.
+
+            return extract_painful_integer_root(x.numerator(), n) / \
+                   extract_painful_integer_root(x.denominator(), n)
+
+        def extract_teeth():
+            assert True is False
+
+        # todo: here I should be able to write:
+        # (X.discriminant() / self.discriminant()) ** (Integer(1)/6)
+        # or maybe
+        # (X.discriminant() / self.discriminant()).nth_root(6)
+        # instead of this nonsense...
+        fudge_factor = extract_painful_rational_root(
+                          X.discriminant() / self.discriminant(), 6)
+
+        return E2_of_X / fudge_factor
+
 
 
     # This is the old version of padic_E2 that requires MAGMA:

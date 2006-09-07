@@ -701,13 +701,51 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return self._singular_groebner_basis(algorithm[9:])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
-        elif algorithm == None:
-            if self.ring() == ZZ:
-                return self._macaulay2_groebner_basis()
-            else:
-                return self._singular_groebner_basis()
         else:
-            raise TypeError, "cannot understand groebner algorithm"
+            raise TypeError, "algorithm '%s' unknown"%algorithm
+
+    def transformed_basis(self,algorithm="gwalk"):
+        """
+        Returns a lex Groebner Basis for a given ideal self which must
+        be represented through a Groebner Basis.
+
+        INPUT:
+           algorithm -- Options are:
+                        * fglm (default) - FGLM algorithm. The input ideal must be
+                                           a reduced Groebner Basis of a zero-
+                                           dimensional ideal
+                        * gwalk  - Groebner Walk algorithm
+                        * awalk1 - 'first alternative' algorithm
+                        * awalk2 - 'second alternative' algorithm
+                        * twalk  - Tran algorithm
+                        * fwalk  - Fractal Walk algorithm
+
+        ALGORITHM: Uses Singular
+        """
+        Is = self._singular_()
+        R = self.ring()
+
+        if algorithm in ("gwalk","awalk1","awalk2","twalk","fwalk"):
+            singular.LIB("grwalk")
+            gb = singular("%s(%s)"%(algorithm,Is.name()))
+            return [R(f) for f in gb]
+        elif algorithm == "fglm":
+            Rs = self.ring()._singular_()
+            Rs.set_ring()
+
+            # new ring
+            nRs = singular.ringlist(R)
+            nRs[3][1][1]="\"%s\""%TermOrder(order).singular_str() #replace term order
+            nRs = singular("ring(%s)"%nRs.name()) #new ring is set
+
+            nR = PolynomialRing(R.base_ring(),R.ngens(), names=R.variable_names(), order=order)
+            nIs = singular.fglm(Rs,Is)
+
+            return [nR(f) for f in nIs]
+
+        else:
+            raise TypeError, "Cannot convert basis with given algorithm"
+
 
     #def is_homogeneous(self):
     #    try:

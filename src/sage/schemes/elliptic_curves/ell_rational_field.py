@@ -3378,11 +3378,46 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
             2 + 4*5 + O(5^3)
 
-          Check that it's a modular form of weight 2 :-)
-            sage: 7**2 * EllipticCurve([-1, 1/4]).padic_E2(11, 10)
-             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
-            sage: EllipticCurve([-1*(7**4), 1/4*(7**6)]).padic_E2(11, 10)
-             8 + 7*11 + 8*11^4 + 4*11^5 + 6*11^6 + 2*11^7 + 3*11^8 + 11^9 + O(11^10)
+          Check it works for different models of the same curve (37a),
+          even when the discriminant changes by a power of p (note that
+          E2 depends on the differential too, which is why it gets scaled
+          in some of the examples below):
+
+            sage: X1 = EllipticCurve([-1, 1/4])
+            sage: X1.j_invariant(), X1.discriminant()
+             (110592/37, 37)
+            sage: X1.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
+
+            sage: X2 = EllipticCurve([0, 0, 1, -1, 0])
+            sage: X2.j_invariant(), X2.discriminant()
+             (110592/37, 37)
+            sage: X2.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
+
+            sage: X3 = EllipticCurve([-1*(2**4), 1/4*(2**6)])
+            sage: X3.j_invariant(), X3.discriminant() / 2**12
+             (110592/37, 37)
+            sage: 2**(-2) * X3.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
+
+            sage: X4 = EllipticCurve([-1*(7**4), 1/4*(7**6)])
+            sage: X4.j_invariant(), X4.discriminant() / 7**12
+             (110592/37, 37)
+            sage: 7**(-2) * X4.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
+
+            sage: X5 = EllipticCurve([-1*(5**4), 1/4*(5**6)])
+            sage: X5.j_invariant(), X5.discriminant() / 5**12
+             (110592/37, 37)
+            sage: 5**(-2) * X5.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
+
+            sage: X6 = EllipticCurve([-1/(5**4), 1/4/(5**6)])
+            sage: X6.j_invariant(), X6.discriminant() * 5**12
+             (110592/37, 37)
+            sage: 5**2 * X6.padic_E2(5, 10)
+             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + O(5^10)
 
         Test check=True vs check=False:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1, check=False)
@@ -3427,19 +3462,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # todo: The following strategy won't work at all for p = 2, 3.
 
-        # todo: remove the following restriction:
-        # (e.g. currently can't run
-        # EllipticCurve([1, 0, 0, -1, 2]).padic_E2(5) )
-        if self.a1() != 0 or self.a2() != 0 or self.a3() != 0:
-            raise NotImplementedError, \
-                 "Elliptic curve must be given in the form y^2 = x^3 + ax + b"
+        X = self.weierstrass_model()
 
-        # todo: remove the following restriction:
-        # (e.g. currently can't run EllipticCurve([1/5^4, 1/5^6]).padic_E2(5)
-        # or EllipticCurve([5^4, 5^6]).padic_E2(5) )
-        if self.discriminant().valuation(p) != 0:
-            raise NotImplementedError, \
-                 "Elliptic curve equation must be in minimal form at p"
+        assert X.discriminant().valuation(p) == 0, "Something's gone wrong. " \
+               "The discriminant of the weierstrass model should be a unit " \
+               " at p."
 
         # Need to increase precision a little to compensate for precision
         # losses during the computation. (See monsky_washnitzer.py
@@ -3493,6 +3520,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # be an exact_power method?
 
         from sage.rings.real_field import RealNumber
+        from sage.misc.functional import log
 
         def extract_painful_integer_root(x, n):
             # extracts the nth root of x, assuming x is an integer

@@ -21,8 +21,11 @@ all.py -- much of sage is imported into this module, so you don't
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, sys
+# Error message that matches the SAGE/IPython defaults
+quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
+exit = quit
 
+import os, sys
 
 if sys.version_info[:2] < (2, 4):
     print >>sys.stderr, "SAGE requires Python 2.4 or newer"
@@ -121,10 +124,6 @@ x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()
-
-# Error message that matches the SAGE/IPython defaults
-quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
-exit = quit
 
 from sage.misc.copying import license
 copying = license

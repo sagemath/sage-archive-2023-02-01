@@ -483,7 +483,7 @@ class Maxima(Expect):
         out1 = out[i+1:].strip()
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
-        i = out.find(';;')
+        i = out.rfind(';;')
         if i != -1:
             out = out[i+2:]
         out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=').replace('^ - ','^-')

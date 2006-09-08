@@ -282,7 +282,7 @@ When something new appears it fills that in.  This continues until all
 calculations are done. During this time, you can edit cells, create
 new cells, submit more computations, etc.  Note that output is
 updated as the computation proceeds, so you can verbosely watch
-a computation progressq.  For example, try the following from the SAGE
+a computation progress.  For example, try the following from the SAGE
 Notebook:
 
 \begin{verbatim}
@@ -746,7 +746,7 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a> %s</span>\n'%self.__dir
+        body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar

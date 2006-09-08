@@ -21,7 +21,7 @@ from sage.ext.sage_object import SageObject
 
 import os
 
-from math import modf,fabs
+from math import modf,fabs,sqrt
 
 class Tachyon(SageObject):
     """
@@ -258,6 +258,25 @@ class Tachyon(SageObject):
                                      specular, opacity, color, texfunc,
                                      phong,phongsize,phongtype))
 
+    def texture_recolor(self, name, colors):
+        base_tex = None
+        names = []
+        ident = "SAGETEX%d"%len(self._objects) #don't collide with other texture names
+
+        for o in self._objects:
+            if isinstance(o, Texture) and o._name == name:
+                base_tex = o
+                break
+        if base_tex is None:
+            base_tex = Texture(name)
+
+        for i in range(len(colors)):
+            n = "%s_%d"%(ident,i)
+            self._objects.append(base_tex.recolor(n, colors[i]))
+            names.append(n)
+
+        return names
+
     def sphere(self, center, radius, texture):
         self._objects.append(Sphere(center, radius, texture))
 
@@ -276,7 +295,8 @@ class Tachyon(SageObject):
     def smooth_triangle(self, vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture):
          self._objects.append(SmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
 
-    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,max_var=.1,max_depth=5,initial_depth=3, num_colors=None):
+    def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
+                  max_var=.1,max_depth=5,initial_depth=3, num_colors=None):
         r"""
         Plots a function by constructing a mesh with nonstandard sampling density
         without gaps. At very high resolutions (depths > 10) it becomes very
@@ -291,7 +311,7 @@ class Tachyon(SageObject):
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
             sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
-            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6, num_colors=60)  # increase min_depth for better picture
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, num_colors=60)  # increase min_depth for better picture
             sage.: t.show()
 
         Plotting with Smooth Triangles (requires explicit gradient function):
@@ -300,10 +320,33 @@ class Tachyon(SageObject):
             sage: def f(x,y): return float(sin(x*y))
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
-            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6, grad_f = g)  # increase min_depth for better picture
+            sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=5,initial_depth=3, grad_f = g)  # increase min_depth for better picture
             sage.: t.show()
+
+        Preconditions: f is a scalar function of two variables, grad_f is None or a triple-valued
+                       function of two variables, min_x != max_x, min_y != max_y
+            sage: f = lambda x,y: x*y
+            sage: t = Tachyon()
+            sage: t.plot(f,(2.,2.),(-2.,2.),'')
+            Traceback (most recent call last):
+            ...
+            ValueError: Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.
         """
-        TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, g = grad_f, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var, num_colors = num_colors)
+        self._objects.append(TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, g = grad_f,
+                                               min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var, num_colors = num_colors))
+
+    def parametric_plot(self, f, t_0, t_f, tex, r=.1, cylinders = True, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
+        """
+        Plots a space curve as a series of speheres and finite cylinders.
+        Example (twisted cubic) :
+            sage: f = lambda t: (t,t^2,t^3)
+            sage: t = Tachyon(camera_center=(5,0,4))
+            sage: t.texture('t')
+            sage: t.light((-20,-20,40), 0.2, (1,1,1))
+            sage: t.parametric_plot(f,-5,5,'t',min_depth=6)
+        """
+
+        self._objects.append(ParametricPlot(f, t_0, t_f, tex, r=r, cylinders=cylinders,min_depth=min_depth,max_depth=max_depth,e_rel=.01,e_abs=.01))
 
     def collect(self, objects):
         """Add a set of objects to the scene from a collection"""
@@ -435,11 +478,8 @@ class Triangle:
 
       def str(self):
 	  return """
-	  TRI
-	  V0 %s
-	  V1 %s
-	  V2 %s
-	  %s
+	  TRI V0 %s  V1 %s   V2 %s
+	      %s
 	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3), self._texture)
 
 
@@ -456,14 +496,9 @@ class SmoothTriangle:
 
       def str(self):
 	  return """
-	  STRI
-	  V0 %s
-	  V1 %s
-	  V2 %s
-	  N0 %s
-	  N1 %s
-	  N2 %s
-	  %s
+	  STRI V0 %s V1 %s  V2 %s
+	       N0 %s N1 %s  N2 %s
+	       %s
 	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3),
                tostr(self._normal_1), tostr(self._normal_2),tostr(self._normal_3), self._texture)
 
@@ -475,6 +510,9 @@ class TachyonPlot:
     # every stage whether or not each square should be split into four more squares.  This way,
     # more planar areas get fewer triangles, and areas with higher curvature get more trianges
 
+    def str(self):
+        return "".join([o.str() for o in self._objects])
+
     def __init__(self, tachyon, f, (min_x, max_x), (min_y, max_y), tex, g = None,
                               min_depth=4, max_depth=8, e_rel = .01, e_abs = .01, num_colors = None):
         self._tachyon = tachyon
@@ -485,8 +523,10 @@ class TachyonPlot:
         self._max_depth = max_depth
         self._e_rel = e_rel
         self._e_abs = e_abs
-        self._trianglist = []
+        self._objects = []
         self._eps = min(max_x - min_x, max_y - min_y)/(2**max_depth)
+        if self._eps == 0:
+            raise ValueError, 'Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.'
         self._num_colors = num_colors
         if g is None:
             def fcn(x,y):
@@ -494,7 +534,6 @@ class TachyonPlot:
         else:
             def fcn(x,y):
                 return [self._f(x,y), self._g(x,y)]
-
 
         self._fcn = fcn
 
@@ -520,24 +559,13 @@ class TachyonPlot:
         self.triangulate(outer.right, outer.right_c)
         self.triangulate(outer.bottom, outer.bottom_c)
 
-        if num_colors is not None:
-            ident = "t%d_"%len(tachyon._objects) #don't collide with other texture names
-            for o in tachyon._objects:
-                if isinstance(o, Texture) and o._name == tex:
-                    base_tex = o
-                    break
+        zrange = self._max - self._min
+        if num_colors is not None and zrange != 0:
+            colors = tachyon.texture_recolor(tex, [hue(float(i/num_colors)) for i in range(num_colors)])
 
-            for i in range(num_colors):
-                tachyon._objects.append(base_tex.recolor("%s%d"%(ident,i), hue(float(i/num_colors))))
-
-            zrange = self._max - self._min
-            for t in self._trianglist:
-                avg_z = (t._vertex_1[2] + t._vertex_2[2] + t._vertex_3[2])/3
-                t._texture = "%s%d"%(ident, num_colors*(avg_z - self._min)/zrange)
-                tachyon._objects.append(t)
-        else:
-            tachyon.collect(self._trianglist)
-
+            for o in self._objects:
+                avg_z = (o._vertex_1[2] + o._vertex_2[2] + o._vertex_3[2])/3
+                o._texture = colors[int(num_colors * (avg_z - self._min) / zrange)]
 
     def plot_block(self, min_x, mid_x, max_x, min_y, mid_y, max_y, sw_z, nw_z, se_z, ne_z, mid_z, depth):
 
@@ -694,10 +722,10 @@ class TachyonPlot:
 
         if self._g is None:
             for i in range(0,len(p)-1):
-                self._trianglist.append(Triangle(p[i][0], p[i+1][0], c[i][0], self._tex))
+                self._objects.append(Triangle(p[i][0], p[i+1][0], c[i][0], self._tex))
         else:
             for i in range(0,len(p)-1):
-                self._trianglist.append(SmoothTriangle(p[i][0], p[i+1][0], c[i][0],p[i][1], p[i+1][1], c[i][1], self._tex))
+                self._objects.append(SmoothTriangle(p[i][0], p[i+1][0], c[i][0],p[i][1], p[i+1][1], c[i][1], self._tex))
 
 
     def extrema(self, list):
@@ -717,13 +745,61 @@ class PlotBlock:
        self.bottom_c = bottom_c
 
 
+class ParametricPlot:
+    def str(self):
+        return "".join([o.str() for o in self._objects])
+
+    def __init__(self, f, t_0, t_f, tex, r=.1, cylinders = True, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
+        self._e_rel = e_rel
+        self._e_abs = e_abs
+        self._r = r
+        self._f = f
+        self._tex = tex
+        self._cylinders = cylinders
+        self._max_depth = max_depth
+        self._min_depth = min_depth
+
+        f_0 = f(t_0)
+        f_f = f(t_f)
+        self._objects = [Sphere(f_0, r, texture=tex) ]
+
+        self._plot_step(0, t_0, t_f, f_0, f_f)
+
+    def _plot_step(self, depth, t_0,t_f,f_0,f_f):
+        if depth < self._max_depth:
+            t_mid = (t_f + t_0)/2
+            f_mid = ((f_f[0] + f_0[0])/2, (f_f[1] + f_0[1])/2, (f_f[2] + f_0[2])/2)
+            f_val = self._f(t_mid)
+            if depth < self._min_depth or self.tol(f_mid, f_val):
+                new_depth = depth + 1
+            else:
+                new_depth = self._max_depth
+
+            self._plot_step(new_depth, t_0,t_mid, f_0, f_val)
+            self._plot_step(new_depth, t_mid,t_f, f_val, f_f)
+        else:
+            if self._cylinders:
+                self._objects.append(FCylinder(f_0,f_f,self._r,self._tex))
+            self._objects.append(Sphere(f_f,self._r,self._tex))
+
+
+    def tol(self, est, val):
+        # Check relative, then absolute tolerance.  If both fail, return False
+        # This is a zero-safe error checker
+        delta = sqrt((val[0]-est[0])**2 + (val[1]-est[1])**2 + (val[2]-val[2])**2)
+        if delta < self._e_abs:
+            return True
+
+        r = sqrt(val[0]**2+val[1]**2+val[2]**2)
+        if delta < self._e_rel*r:
+            return True
+
+        return False
 
 def tostr(s):
     if isinstance(s, str):
         return s
     return ' %s %s %s '%(float(s[0]), float(s[1]), float(s[2]))
-
-
 
 def hue(h, s=1, v=1):
     """
@@ -765,3 +841,4 @@ def hue(h, s=1, v=1):
             v += 1
     c = hsv_to_rgb(h, s, v)
     return (float(c[0]), float(c[1]), float(c[2]))
+

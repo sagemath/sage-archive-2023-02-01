@@ -306,7 +306,7 @@ class pAdic(field_element.FieldElement):
                                                   self.__unit, self.__p, latex(self.__prec))
             else:
                 return "%s^%s * (%s + O(%s^%s))"%(self.__p, self.__ordp, \
-                                                  self.__unit, self.__p, latex(self.__prec))
+                                                  self.__unit, self.__p, self.__prec)
         # series printing
         if self.__ordp == infinity:
             return "0"

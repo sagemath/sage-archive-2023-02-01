@@ -346,7 +346,7 @@ is much less robust, and is not recommended.}
 
 import os, re
 
-from expect import Expect, ExpectElement, tmp
+from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 
 from sage.misc.misc import verbose
 
@@ -356,6 +356,10 @@ SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
 cnt = 0
 seq = 0
+
+from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
+
+COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -395,6 +399,11 @@ class Maxima(Expect):
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._display2d = False
+
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return MaximaExpectFunction(self, attrname)
 
     def _start(self):
         # For some reason sending a single input line at startup avoids
@@ -436,8 +445,8 @@ class Maxima(Expect):
         seq += 1
         start = SAGE_START + str(seq)
         end = SAGE_END + str(seq)
-        line = '%s; %s; %s;'%(start, line, end)
-        #print line
+        #line = '%s; %s; %s;'%(start, line, end)
+        line = '%s;\n%s; %s;'%(start, line, end)
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -457,6 +466,9 @@ class Maxima(Expect):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 
+        if 'Incorrect syntax:' in out:
+            raise RuntimeError, out
+
         i = out.rfind(start)
         j = out.rfind(end)
         out = out[i+len(start):j]
@@ -465,24 +477,22 @@ class Maxima(Expect):
         if 'error' in out:
             return out
         out = out.lstrip()
-        #i = out.rfind('(')
-        #out = out[:i].strip()
         i = out.find('(%o')
         out0 = out[:i].strip()
         i += out[i:].find(')')
         out1 = out[i+1:].strip()
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
+        i = out.find(';;')
+        if i != -1:
+            out = out[i+2:]
         out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=').replace('^ - ','^-')
-        #out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
         if out[:3] == ' - ':
             out = '-' + out[3:]
         out = out.replace('E - ', 'E-')
         out = out.replace('%e - ', '%e-')
         i = out.rfind('(%o')
-        if i != -1:
-            out = out[:i]
-        return out
+        return out[:i]
 
 
     ###########################################
@@ -491,7 +501,8 @@ class Maxima(Expect):
 
     # This doesn't work because of how weird interaction is.
     # System call method below is much more robust.
-##     def help(self, s):
+    def help(self, s):
+        return "Help on Maxima commands currently not implemented (see %s/devel/sage/interfaces/maxima.py if you want to try to implement it)."%SAGE_ROOT
 ##         if self._expect is None:
 ##             self._start()
 ##         E = self._expect
@@ -508,8 +519,8 @@ class Maxima(Expect):
 ##         print E.before
 ##     # override the builtin describe command
 
-    def help(self, s):
-        os.system('maxima -r "describe(%s);"'%s)
+##     def help(self, s):
+##         os.system('maxima -r "describe(%s);"'%s)
 
     def example(self, s):
         os.system('maxima -r "example(%s);"'%s)
@@ -518,6 +529,44 @@ class Maxima(Expect):
 
     def demo(self, s):
         os.system('maxima -r "demo(%s);"'%s)
+
+    def completions(self, s):
+        """
+        Return all commands that complete the command starting with the
+        string s.   This is like typing s[tab] in the maple interpreter.
+        """
+        s = self.eval('apropos(%s)'%s).replace('\\ - ','-')
+        return [x for x in s[1:-1].split(',') if x[0] != '?']
+
+    def _commands(self):
+        """
+        Return list of all commands defined in Maxima.
+        """
+        try:
+            return self.__commands
+        except AttributeError:
+            self.__commands = sum([self.completions(chr(97+n)) for n in range(26)], [])
+        return self.__commands
+
+    def trait_names(self, verbose=True, use_disk_cache=True):
+        try:
+            return self.__trait_names
+        except AttributeError:
+            import sage.misc.persist
+            if use_disk_cache:
+                try:
+                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
+                    return self.__trait_names
+                except IOError:
+                    pass
+            if verbose:
+                print "\nBuilding Maxima command completion list (this takes"
+                print "a few seconds only the first time you do it)."
+                print "To force rebuild later, delete %s."%COMMANDS_CACHE
+            v = self._commands()
+            self.__trait_names = v
+            sage.misc.persist.save(v, COMMANDS_CACHE)
+            return v
 
     def _object_class(self):
         return MaximaElement
@@ -1094,6 +1143,9 @@ class MaximaElement(ExpectElement):
         P._eval_line('display2d : false', reformat=False)
         i = s.find('true')
         i += s[i:].find('\n')
+        s = s[i+1:]
+        i = s.find('true')
+        i += s[i:].find('\n')
         #j = s.rfind('(%o')
         #s = s[:j]
         j = s.rfind('(%o')
@@ -1245,6 +1297,11 @@ class MaximaElement(ExpectElement):
         self._check_valid()
         return int(self.parent().eval('length(%s)'%self.name()))
 
+    def __getattr__(self, attrname):
+        if attrname[:1] == "_":
+            raise AttributeError
+        return MaximaFunctionElement(self, attrname)
+
     def __getitem__(self, n):
         r"""
         Return the n-th element of this list.
@@ -1292,6 +1349,9 @@ class MaximaElement(ExpectElement):
                               '\\arccos ':'\\cos^{-1} ',
                               '\\arctan ':'\\tan^{-1} '}, s)
         return s
+
+    def trait_names(self):
+        return self.parent().trait_names()
 
     def _matrix_(self, R):
         r"""
@@ -1349,6 +1409,16 @@ class MaximaElement(ExpectElement):
                              2 (x - 1)   2 (x + 1)
         """
         return self.partfrac(var)
+
+
+class MaximaFunctionElement(FunctionElement):
+    def _sage_doc_(self):
+        return self._obj.parent().help(self._name)
+
+class MaximaExpectFunction(ExpectFunction):
+    def _sage_doc_(self):
+        M = self._parent
+        return M.help(self._name)
 
 
 class MaximaFunction(MaximaElement):

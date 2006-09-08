@@ -289,19 +289,19 @@ class Tachyon(SageObject):
         Flat Triangles:
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
-            sage: def f(x,y): return float(sin(x*y)))
+            sage: def f(x,y): return float(sin(x*y))
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6, num_colors=60)  # increase min_depth for better picture
-            sage: t.show()
+            sage.: t.show()
 
         Plotting with Smooth Triangles (requires explicit gradient function):
             sage: t = Tachyon(xres=512,yres=512, camera_center=(4,-4,3),viewdir=(-4,4,-3), raydepth=4)
             sage: t.light((4.4,-4.4,4.4), 0.2, (1,1,1))
-            sage: def f(x,y): return float(sin(x*y)))
+            sage: def f(x,y): return float(sin(x*y))
             sage: def g(x,y): return ( float(y*cos(x*y)), float(x*cos(x*y)), 1 )
             sage: t.texture('t0', ambient=0.1, diffuse=0.9, specular=0.1,  opacity=1.0, color=(1.0,0,0))
             sage: t.plot(f,(-4,4),(-4,4),"t0",max_depth=8,initial_depth=6, grad_f = g)  # increase min_depth for better picture
-            sage: t.show()
+            sage.: t.show()
         """
         TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, g = grad_f, min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var, num_colors = num_colors)
 

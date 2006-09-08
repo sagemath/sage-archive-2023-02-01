@@ -278,7 +278,8 @@ ext_modules = [ \
               ), \
 
     Extension('sage.rings.integer_mod_pyx',
-              ['sage/rings/integer_mod_pyx.pyx']
+              ['sage/rings/integer_mod_pyx.pyx'],
+              libraries = ['gmp']
               ), \
 
 #    Extension('sage.rings.integer_mod_ring_pyx',

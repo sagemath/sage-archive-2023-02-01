@@ -270,6 +270,7 @@ div.slideshow_progress_text{
   z-index:2;
   top:2px;
   text-align:center;
+  color:black;
   width:20%;
 }
 

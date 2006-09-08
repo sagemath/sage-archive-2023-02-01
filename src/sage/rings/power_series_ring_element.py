@@ -433,20 +433,119 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         return self.parent()(coeffs, prec)
 
     def exp(self, prec = infinity):
+        """
+        Returns exp of this power series to the indicated precision.
+
+        The coefficient ring must support division by the appropriate
+        denominators, or the function will fail.
+
+        AUTHORS:
+          -- David Harvey (2006-09-08): rewrote to use simplest possible
+             ``lazy'' algorithm. This gives running time $O(n^2)$, where $n$
+             is the precision (assuming that coefficient arithmetic takes
+             constant time, which is false). The previously implemented
+             algorithm, using series expansion, takes time $O(n M(n))$ where
+             $M(n)$ is the time for multiplying polynomials of length $n$,
+             which will generally be slower (a LOT slower when you don't have
+             good multiplication available for the given coefficient ring).
+
+        EXAMPLES:
+           sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
+
+         Check that exp(t) is, well, exp(t):
+           sage: (t + O(t^10)).exp()
+            1 + t + 1/2*t^2 + 1/6*t^3 + 1/24*t^4 + 1/120*t^5 + 1/720*t^6 + 1/5040*t^7 + 1/40320*t^8 + 1/362880*t^9 + O(t^10)
+
+         Check that exp(log(1+t)) is 1+t:
+           sage: (sum([-(-t)^n/n for n in range(1, 10)]) + O(t^10)).exp()
+            1 + t + O(t^10)
+
+         Check that exp(2t + t^2 - t^5) is whatever it is:
+           sage: (2*t + t^2 - t^5 + O(t^10)).exp()
+            1 + 2*t + 3*t^2 + 10/3*t^3 + 19/6*t^4 + 8/5*t^5 - 7/90*t^6 - 538/315*t^7 - 425/168*t^8 - 30629/11340*t^9 + O(t^10)
+
+         Check requesting lower precision:
+           sage: (t + t^2 - t^5 + O(t^10)).exp(5)
+            1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+
+         Check some boundary cases:
+           sage: (t + O(t^2)).exp(1)
+            1 + O(t)
+           sage: (t + O(t^2)).exp(0)
+            O(t^0)
+
+        TODO:
+          -- There are even faster ways to do this; for some coefficient
+             rings you can get $O(n^(1+\epsilon))$. Some references to
+             follow up:
+             (1) Brent-Kung composition should also get O(n^2) I think (?)
+             (2) Apparently the same paper where Brent/Kung give their
+                 composition algorithm, they also discuss methods for solving
+                 differential equations (which computing exp essentially is)
+             (3) There's a paper at
+                 http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
+                 This discusses more general lazy algorithms than the one
+                 implemented here, for example using Karatsuba multiplication.
+                 My guess is that the algorithms described in this paper will
+                 give us the best bang for our buck in the setting of a
+                 generic coefficient ring.
+
+          -- Currently this function seems to allow you to ask for exp to
+             *higher* precision than the series is currently stored at.
+             Does this even make sense?
+
+        """
         if prec == infinity:
             if self.prec() == infinity:
-                raise RuntimeError, "prec must be finite for exponentiation " + \
+                raise RuntimeError, "prec must be finite for exponentiation " \
                       "of infinite-precision power series"
             prec = self.prec()
         if self.valuation() <= 0:
             raise ArithmeticError, "valuation must be positive"
-        x = self.parent()(self.list(), prec)
-        ans = self.parent()(1)
-        k = self.parent().base_ring()
-        for n in range(1,prec):
-            ans += x * (k(1)/k(arith.factorial(n)))
-            x *= self
-        return self.parent()(ans, prec)
+
+        prec = int(prec)
+        if prec < 0:
+            raise ValueError, \
+                  "prec (=%s) must be a non-negative integer" % prec
+
+        # Use a "lazy" expansion strategy. i.e. we have
+        # d/dt exp(h(t)) = h'(t) exp(h(t)). Therefore we can find the
+        # nth coefficient of exp(h(t)) by a simple sum over the earlier
+        # coefficients and the coefficients of h'(t).
+
+        base_ring = self.parent().base_ring()
+        output = [base_ring(1)]
+
+        coeffs = self.list()[:prec]
+
+        # zero-pad coeffs up to prec
+        # todo: shouldn't PowerSeries.list() return something already
+        # zero-padded up to its current precision? Doesn't this make
+        # more sense? And what happened to PowerSeries.coeffs()?
+        while len(coeffs) < prec:
+            coeffs.append(base_ring(0))
+
+        # compute coefficients of derivative
+        for n in range(1, prec):
+            coeffs[n-1] = n * coeffs[n]
+
+        # lazy evaluation of exponential
+        for n in range(prec-1):
+            output.append(sum(
+                [output[i]*coeffs[n-i] for i in range(n+1)]) / (n+1))
+
+        return self.parent()(output, prec)
+
+        # This is the old version that uses exp(x) = \sum x^n/n!.
+        #
+        #x = self.parent()(self.list(), prec)
+        #ans = self.parent()(1)
+        #k = self.parent().base_ring()
+        #for n in range(1,prec):
+        #    ans += x * (k(1)/k(arith.factorial(n)))
+        #    x *= self
+        #return self.parent()(ans, prec)
+
 
     def copy(self):
         raise NotImplementedError

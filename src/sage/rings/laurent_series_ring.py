@@ -11,7 +11,20 @@ import integral_domain
 import field
 
 
-_objsLaurentSeriesRing = {}
+# Note: I commented out all the _objsLaurentSeriesRing stuff because
+# it was breaking a lot of things, and I'm not sure whether it's good
+# design. For example, the following would happen:
+#   sage: K = pAdicField(5, prec = 5)
+#   sage: L = pAdicField(5, prec = 200)
+#   sage: R.<x> = LaurentSeriesRing(K)
+#   sage: S.<y> = LaurentSeriesRing(L)
+#   sage: R is S
+#    True
+# Very very bad.
+#    -- David Harvey (2006-09-09)
+
+
+#_objsLaurentSeriesRing = {}
 def LaurentSeriesRing(base_ring, name=None):
     """
     EXAMPLES:
@@ -34,11 +47,11 @@ def LaurentSeriesRing(base_ring, name=None):
         sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
     """
-    global _objsLaurentSeriesRing
-    key = (base_ring, name)
-    if _objsLaurentSeriesRing.has_key(key):
-        x = _objsLaurentSeriesRing[key]()
-        if x != None: return x
+    #global _objsLaurentSeriesRing
+    #key = (base_ring, name)
+    #if _objsLaurentSeriesRing.has_key(key):
+    #    x = _objsLaurentSeriesRing[key]()
+    #    if x != None: return x
 
     if isinstance(base_ring, field.Field):
         R = LaurentSeriesRing_field(base_ring, name)
@@ -48,7 +61,7 @@ def LaurentSeriesRing(base_ring, name=None):
         R = LaurentSeriesRing_generic(base_ring, name)
     else:
         raise TypeError, "base_ring must be a commutative ring"
-    _objsLaurentSeriesRing[key] = weakref.ref(R)
+    #_objsLaurentSeriesRing[key] = weakref.ref(R)
     return R
 
 def is_LaurentSeriesRing(x):

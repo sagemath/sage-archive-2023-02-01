@@ -789,8 +789,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         INPUT:
             prec -- integer
+
         OUTPUT:
-            a power series
+            a power series with given precision
 
         DETAILS:
             Return the formal power series
@@ -801,54 +802,154 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             AEC1].  This is the formal expansion of $w = -1/y$ about the
             formal parameter $t = -x/y$ at $\\infty$.
 
-            We compute w using the recursive procedure (4.1) on page 18
-            of Bluher's ``A leisurely introduction to formal groups and
-            elliptic curves'', which I downloaded from
-                http://www.math.uiuc.edu/Algebraic-Number-Theory/0076/
+            The result is cached, and a cached version is returned if
+            possible.
+
+        WARNING:
+            The resulting power series will have precision prec, but its
+            parent PowerSeriesRing will have default precision 20 (or whatever
+            the default default is).
+
+        ALGORITHM:
+            Uses Newton's method to solve the elliptic curve equation
+            at the origin. Complexity is roughly $O(M(n) \log n)$ where
+            $n$ is the precision and $M(n)$ is the time required to multiply
+            polynomials of length $n$ over the coefficient ring of $E$.
+
+        AUTHOR:
+            -- David Harvey (2006-09-09): modified to use Newton's method
+            instead of a recurrence formula.
 
         EXAMPLES:
             sage: e = EllipticCurve([0, 0, 1, -1, 0])
             sage: e.formal_w(10)
-            t^3 + t^6 - t^7 + 2*t^9 + O(t^10)
+             t^3 + t^6 - t^7 + 2*t^9 + O(t^10)
+
+          Check that caching works:
+            sage: e = EllipticCurve([3, 2, -4, -2, 5])
+            sage: e.formal_w(20)
+             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + 101*t^7 + 237*t^8 + 312*t^9 - 949*t^10 - 10389*t^11 - 57087*t^12 - 244092*t^13 - 865333*t^14 - 2455206*t^15 - 4366196*t^16 + 6136610*t^17 + 109938783*t^18 + 688672497*t^19 + O(t^20)
+            sage: e.formal_w(7)
+             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + O(t^7)
+            sage: e.formal_w(35)
+             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + 101*t^7 + 237*t^8 + 312*t^9 - 949*t^10 - 10389*t^11 - 57087*t^12 - 244092*t^13 - 865333*t^14 - 2455206*t^15 - 4366196*t^16 + 6136610*t^17 + 109938783*t^18 + 688672497*t^19 + 3219525807*t^20 + 12337076504*t^21 + 38106669615*t^22 + 79452618700*t^23 - 33430470002*t^24 - 1522228110356*t^25 - 10561222329021*t^26 - 52449326572178*t^27 - 211701726058446*t^28 - 693522772940043*t^29 - 1613471639599050*t^30 - 421817906421378*t^31 + 23651687753515182*t^32 + 181817896829144595*t^33 + 950887648021211163*t^34 + O(t^35)
         """
+
         k = self.base_ring()
+
         try:
+            # Try cached version
             w = self.__formal_w
-            pr = len(w)
+            cached_prec = w.prec()
+            R = w.parent()
         except AttributeError:
-            pr = 4
-            w = [k(0), k(0), k(0), k(1)]
+            # No cached version available
+            R = rings.PowerSeriesRing(k, "t")
+            w = R([k(0), k(0), k(0), k(1)], 4)
+            cached_prec = 4
             self.__formal_w = w
 
-        R = rings.PowerSeriesRing(k, "t")
-        if prec <= pr:
+        if prec < cached_prec:
             return R(w, prec)
+
+        # We use the following iteration, which doubles the precision
+        # at each step:
+        #
+        #              z^3 - a_3 w^2 - a_4 z w^2 - 2 a_6 w^3
+        # w' = -----------------------------------------------------
+        #      1 - a_1 z - a_2 z^2 - 2 a_3 w - 2 a_4 z w - 3 a_6 w^2
+
         a1, a2, a3, a4, a6 = self.ainvs()
-        t0 = misc.cputime()
+        current_prec = cached_prec
+        w = w.truncate()   # work with polynomials instead of power series
 
-        for n in range(pr,prec):
-            w.append(a1*w[n-1] + \
-                     a2*w[n-2] + \
-                     a3*sum([w[i]*w[n-i] for i in range(3,n-2)]) + \
-                     a4*sum([w[i]*w[n-1-i] for i in range(3,n-3)])  + \
-                     a6*sum([w[i]*w[j]*w[n-i-j] for i in range(3,n-2) \
-                             for j in range(3,n-i-2)]))
+        numerator_const = w.parent()([0, 0, 0, 1])      # z^3
+        denominator_const = w.parent()([1, -a1, -a2])   # 1 - a_1 z - a_2 z^2
 
-        return R(w, prec)
+        last_prec = 0
+        for next_prec in misc.newton_method_sizes(prec):
+            if next_prec > current_prec:
+                if w.degree() - 1 > last_prec:
+                    # Here it's best to throw away some precision to get us
+                    # in sync with the sizes recommended by
+                    # newton_method_sizes(). This is especially counter-
+                    # intuitive when we throw away almost half of our
+                    # cached data!
+
+                    # todo: this might not actually be true, depending on
+                    # the overhead of truncate(), which is currently very
+                    # high e.g. for NTL based polynomials (but this is
+                    # slated to be fixed...)
+
+                    w = w.truncate(last_prec)
+
+                w_squared = w.square()
+                w_cubed = (w_squared * w).truncate(next_prec)
+
+                numerator = numerator_const                \
+                            -  a3 * w_squared              \
+                            -  a4 * w_squared.shift(1)     \
+                            -  (2*a6) * w_cubed
+
+                denominator = denominator_const           \
+                              - (2*a3) * w                \
+                              - (2*a4) * w.shift(1)       \
+                              - (3*a6) * w_squared
+
+                # todo: this is quite inefficient, because it gets
+                # converted to a power series, then the power series
+                # inversion works with polynomials again, and then
+                # it gets converted *back* to a power series, and
+                # then we convert it to a polynomial again! That's four
+                # useless conversions!!!
+
+                inverse = ~R(denominator, prec=next_prec)
+                inverse = inverse.truncate(next_prec)
+
+                w = (numerator * inverse).truncate(next_prec)
+
+            last_prec = next_prec
+
+        # convert back to power series
+        w = R(w, prec)
+        self.__formal_w = w
+        return w
 
 
-##         for n in range(4,prec):
-##             if n<pr:
-##                 w[n] = self.__formal_w[1][n]   # already know it
-##             else:
-##                 w[n] = a1*w[n-1] + \
-##                        a2*w[n-2] + \
-##                        a3*sum([w[i]*w[n-i] for i in range(3,n-2)]) + \
-##                        a4*sum([w[i]*w[n-1-i] for i in range(3,n-3)]) + \
-##                        a6*sum([w[i]*w[j]*w[n-i-j] for i in range(3,n-2) \
-##                                for j in range(3,n-2) if n-i-j >= 3])
-##         self.__formal_w = (prec, w)
-##         return w
+        # This is the old version that uses a recurrence, it requires
+        # O(n^3) scalar operations. According to the original docstring:
+        #
+        #    We compute w using the recursive procedure (4.1) on page 18
+        #    of Bluher's ``A leisurely introduction to formal groups and
+        #    elliptic curves'', which I downloaded from
+        #        http://www.math.uiuc.edu/Algebraic-Number-Theory/0076/
+
+        #k = self.base_ring()
+        #try:
+        #    w = self.__formal_w
+        #    pr = len(w)
+        #except AttributeError:
+        #    pr = 4
+        #    w = [k(0), k(0), k(0), k(1)]
+        #    self.__formal_w = w
+        #
+        #R = rings.PowerSeriesRing(k, "t")
+        #if prec <= pr:
+        #    return R(w, prec)
+        #a1, a2, a3, a4, a6 = self.ainvs()
+        #t0 = misc.cputime()
+        #
+        #for n in range(pr,prec):
+        #    w.append(a1*w[n-1] + \
+        #             a2*w[n-2] + \
+        #             a3*sum([w[i]*w[n-i] for i in range(3,n-2)]) + \
+        #             a4*sum([w[i]*w[n-1-i] for i in range(3,n-3)])  + \
+        #             a6*sum([w[i]*w[j]*w[n-i-j] for i in range(3,n-2) \
+        #                     for j in range(3,n-i-2)]))
+        #
+        #return R(w, prec)
+
+
 
     def formal_x(self, prec=20):
         """

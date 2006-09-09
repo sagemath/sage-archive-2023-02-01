@@ -509,6 +509,45 @@ def strunc(s, n = 60):
 
 
 
+def newton_method_sizes(N):
+    """
+    Returns a sequence of integers $1 = a_1 \leq a_2 \leq \cdots \leq a_n = N$
+    such that $a_j = \lceil a_{j+1} / 2 \rceil$ for all $j$.
+
+    This is useful for Newton-style algorithms that double the precision at
+    each stage. For example if you start at precision 1 and want an answer to
+    precision 17, then it's better to use the intermediate stages 1, 2, 3, 5,
+    9, 17 than to use 1, 2, 4, 8, 16, 17.
+
+    INPUT:
+        N -- positive integer
+
+    EXAMPLES:
+     sage: newton_method_sizes(17)
+      [1, 2, 3, 5, 9, 17]
+     sage: newton_method_sizes(16)
+      [1, 2, 4, 8, 16]
+     sage: newton_method_sizes(1)
+      [1]
+
+    AUTHOR:
+        -- David Harvey (2006-09-09)
+    """
+
+    N = int(N)
+    if N < 1:
+        raise ValueError, "N (=%s) must be a positive integer" % N
+
+    output = []
+    while N > 1:
+        output.append(N)
+        N = (N + 1) >> 1
+
+    output.append(1)
+    output.reverse()
+    return output
+
+
 #################################################################
 # Generally useful
 #################################################################

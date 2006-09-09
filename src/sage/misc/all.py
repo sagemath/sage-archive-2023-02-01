@@ -5,7 +5,7 @@ from misc import (alarm, srange, xsrange, sxrange, getitem,
                   random_sublist, mul, prod, walltime, generic_cmp,
                   repr_lincomb, tmp_dir, tmp_filename,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
-                  is_32_bit, is_64_bit)
+                  is_32_bit, is_64_bit, newton_method_sizes)
 
 from profiler import Profiler
 

@@ -701,6 +701,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return self._singular_groebner_basis(algorithm[9:])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
+        elif algorithm == 'magma:GroebnerBasis':
+            return self._magma_groebner_basis()
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 

@@ -150,9 +150,15 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
 
     def __call__(self, x, base=0):
-        if sage.rings.integer_mod_pyx.is_IntegerMod(x):
-            x = x.lift()
-        return sage.rings.integer.Integer(x, base)
+        try:
+            return sage.rings.integer.Integer(x, base)
+        except TypeError, msg:
+            try:
+                x = x.lift()
+                return sage.rings.integer.Integer(x, base)
+            except AttributeError:
+                pass
+        raise TypeError, msg
 
     def __iter__(self):
         """

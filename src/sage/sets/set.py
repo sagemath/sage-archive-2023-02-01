@@ -125,11 +125,11 @@ class Set_object(Set_generic):
     EXAMPLES:
         sage: K = GF(19)
         sage: Set(K)
-        {11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8}
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
         sage: S = Set(K)
 
         sage: latex(S)
-        \left\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\right\}
+        \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
         sage: loads(S.dumps()) == S
         True
 
@@ -231,13 +231,13 @@ class Set_object(Set_generic):
 
             sage: X = Set(GF(7))
             sage: X
-            {1, 0, 3, 2, 5, 4, 6}
+            {0, 1, 2, 3, 4, 5, 6}
             sage: 5/3 in X
             False
             sage: 5/3 in GF(7)
             True
             sage: Set(GF(7)).union(Set(GF(5)))
-            {1, 0, 3, 1, 0, 3, 2, 5, 4, 6, 2, 4}
+            {0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 0}
             sage: Set(GF(7)).intersection(Set(GF(5)))
             {}
         """
@@ -301,7 +301,7 @@ class Set_object(Set_generic):
             sage: GF(5)(2) in X
             False
             sage: Set(GF(7)) + Set(GF(3))
-            {1, 0, 1, 0, 3, 2, 5, 4, 6, 2}
+            {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
         if is_Set(X):
             if self == X:
@@ -317,9 +317,9 @@ class Set_object(Set_generic):
             sage: Set(RealField()) + Set(QQ^5)
             Set-theoretic union of Real Field with 53 bits of precision and Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
-            {1, 0, 2, 1, 0}
+            {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4))
-            {1, 0, a, a + 1}
+            {0, 1, 1, a, a + 1, 0}
             sage: Set(GF(8)) + Set(GF(4))
             {a, a^2 + 1, a + 1, a^2, a + 1, 1, 0, 1, a, a^2 + a, a^2 + a + 1}
         """
@@ -404,9 +404,9 @@ class Set_object_enumerated(Set_object):
         """
         EXAMPLES:
             sage: S = EnumeratedSet(GF(19)); S
-            {11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8}
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
             sage: print latex(S)
-            \left\{11, 10, 13, 12, 15, 14, 17, 16, 18, 1, 0, 3, 2, 5, 4, 7, 6, 9, 8\right\}
+            \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: loads(S.dumps()) == S
             True
         """
@@ -589,7 +589,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: latex(Set(ZZ).union(Set(GF(5))))
-            \mathbf{Z} \cup \left\{1, 0, 3, 2, 4\right\}
+            \mathbf{Z} \cup \left\{0, 1, 2, 3, 4\right\}
         """
         return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
@@ -599,7 +599,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: [x for x in Set(GF(3)).union(Set(GF(2)))]
-            [1, 0, 2, 1, 0]
+            [0, 1, 2, 0, 1]
         """
         for x in self.__X:
             yield x
@@ -630,7 +630,7 @@ class Set_object_union(Set_object):
         EXAMPLES:
             sage: X = Set(GF(3)).union(Set(GF(2)))
             sage: X
-            {1, 0, 2, 1, 0}
+            {0, 1, 2, 0, 1}
             sage: X.order()
             5
 

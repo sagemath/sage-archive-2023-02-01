@@ -273,6 +273,25 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             return self.polynomial(0)
         return self._mul_karatsuba(right)
 
+    def square(self):
+        """
+        Returns the square of this polynomial.
+
+        TODO:
+          -- This is just a placeholder; for now it just uses ordinary
+          multiplication. But generally speaking, squaring is faster than
+          ordinary multiplication, and it's frequently used, so subclasses
+          may choose to provide a specialised squaring routine.
+
+          -- Perhaps this even belongs at a lower level? ring_element
+          or something?
+
+        AUTHOR:
+          -- David Harvey (2006-09-09)
+
+        """
+        return self * self
+
     def __div__(self, right):
         """
         EXAMPLES:

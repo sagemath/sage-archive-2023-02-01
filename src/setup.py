@@ -517,6 +517,7 @@ setup(name        = 'sage',
                      'sage.server.server1',
                      'sage.server.notebook',
                      'sage.server.wiki',
+                     'sage.server.trac',
 
                      'sage.structure',
                      ],

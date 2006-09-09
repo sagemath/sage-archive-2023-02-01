@@ -23,6 +23,7 @@ AUTHOR:
 import operator
 
 from infinity import infinity
+from polynomial_ring import PolynomialRing
 import polynomial_element as polynomial
 import power_series_ring
 import sage.misc.misc as misc
@@ -36,7 +37,6 @@ import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.structure.element import Element_cmp_
 from sage.libs.all import PariError
-
 
 Polynomial = polynomial.Polynomial_generic_dense
 
@@ -312,6 +312,11 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         If the valuation of the series is positive, this function will return
         a Laurent series.
 
+        ALGORITHM:
+            Uses Newton's method. Complexity is around $O(M(n) \log n)$,
+            where $n$ is the precision and $M(n)$ is the time required to
+            multiply polynomials of length $n$.
+
         EXAMPLES:
             sage: R = PowerSeriesRing(RationalField(), 'q')
             sage: q = R.gen()
@@ -336,6 +341,9 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             sage: (1/g).parent()
              Laurent Series Ring in q over Rational Field
 
+            sage: 1/(2 + q)
+             1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
+
             sage: R.<q> = QQ[['q']]
             sage: R.set_default_prec(5)
             sage: f = 1 + q + q^2 + O(q^50)
@@ -343,6 +351,9 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             1/10 + 1/10*q + 1/10*q^2 + O(q^50)
             sage: f/(10+q)
             1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
+
+        AUTHORS:
+            -- David Harvey (2006-09-09): changed to use newton method
 
         """
         if self == 1:
@@ -354,22 +365,56 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             u = ~self.unit_part()    # inverse of unit part
             R = self.parent().laurent_series_ring()
             return R(u, -self.valuation())
-        a0 = self[0]
+
+        # Use Newton's method, i.e. start with single term approximation,
+        # and then iteratively compute $x' = 2x - Ax^2$, where $A$ is the
+        # series we're trying to invert.
+
         try:
-            b = [~a0]
+            first_coeff = ~self[0]
         except ValueError, ZeroDivisionError:
             raise ZeroDivisionError, "leading coefficient must be a unit"
 
-        #  By multiplying through we may assume that the leading coefficient
-        #  of f=self is 1.   If f = 1 + a_1*q + a_2*q^2 + ..., then we have
-        #  the following recursive formula for the coefficients b_n of the
-        #  expansion of f^(-1):
-        #        b_n = -b_0*(b_{n-1}*a_1 + b_{n-2}*a_2 + ... + b_0 a_n).
-        if self.degree() > 0:
-            a = self.list()
-            for n in range(1,prec):
-                b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
-        return self.parent()(b, prec=prec)
+        if prec is infinity:
+            return self.parent()(first_coeff, prec=prec)
+
+        A = self.truncate()
+        R = A.parent()     # R is the corresponding polynomial ring
+        current = R(first_coeff)
+
+        # todo: in the case that the underlying polynomial ring is
+        # implemented via NTL, the truncate() method should use NTL's
+        # methods. Currently it is very slow because it uses generic code
+        # that has to pull all the data in and out of the polynomials.
+
+        # todo: also, NTL has built-in series inversion. We should use
+        # that when available.
+
+        for next_prec in misc.newton_method_sizes(prec)[1:]:
+            z = current.square() * A.truncate(next_prec)
+            current = 2*current - z.truncate(next_prec)
+
+        return self.parent()(current, prec=prec)
+
+        # Here is the old code, which uses a simple recursion, and is
+        # asymptotically inferior:
+        #
+        #a0 = self[0]
+        #try:
+        #    b = [~a0]
+        #except ValueError, ZeroDivisionError:
+        #    raise ZeroDivisionError, "leading coefficient must be a unit"
+
+        ##  By multiplying through we may assume that the leading coefficient
+        ##  of f=self is 1.   If f = 1 + a_1*q + a_2*q^2 + ..., then we have
+        ##  the following recursive formula for the coefficients b_n of the
+        ##  expansion of f^(-1):
+        ##        b_n = -b_0*(b_{n-1}*a_1 + b_{n-2}*a_2 + ... + b_0 a_n).
+        #if self.degree() > 0:
+        #    a = self.list()
+        #    for n in range(1,prec):
+        #        b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
+        #return self.parent()(b, prec=prec)
 
     def unit_part(self):
         """

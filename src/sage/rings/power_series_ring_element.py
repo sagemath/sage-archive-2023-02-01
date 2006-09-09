@@ -307,8 +307,10 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
     def __invert__(self):
         """
-        Inverse of the power series, which we assume to have nonzero
-        constant term so that the inverse is again a power series.
+        Inverse of the power series (i.e. a series Y such that XY = 1).
+        The first nonzero coefficient must be a unit in the coefficient ring.
+        If the valuation of the series is positive, this function will return
+        a Laurent series.
 
         EXAMPLES:
             sage: R = PowerSeriesRing(RationalField(), 'q')
@@ -323,6 +325,17 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             sage: 1/(1+q)
             1 - q + q^2 - q^3 + q^4 + O(q^5)
 
+            sage: 1/(q + q^2)
+             q^-1 - 1 + q - q^2 + q^3 + O(q^4)
+            sage: g = 1/(q + q^2 + O(q^5))
+            sage: g; g.parent()
+             q^-1 - 1 + q - q^2 + O(q^3)
+             Laurent Series Ring in q over Rational Field
+            sage: 1/g
+             q + q^2 + O(q^5)
+            sage: (1/g).parent()
+             Laurent Series Ring in q over Rational Field
+
             sage: R.<q> = QQ[['q']]
             sage: R.set_default_prec(5)
             sage: f = 1 + q + q^2 + O(q^50)
@@ -330,6 +343,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             1/10 + 1/10*q + 1/10*q^2 + O(q^50)
             sage: f/(10+q)
             1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
+
         """
         if self == 1:
             return self

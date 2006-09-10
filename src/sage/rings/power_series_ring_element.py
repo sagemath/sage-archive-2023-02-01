@@ -496,17 +496,20 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         Returns exp of this power series to the indicated precision.
 
         The coefficient ring must support division by the appropriate
-        denominators, or the function will fail.
+        denominators, or the function will fail. (It may succeed if you're
+        lucky, in which case the answer is probably not unique.)
+
+        Time complexity is approximately $M(n) \log n$, where $M(n)$ is the
+        time required for a polynomial multiplication of length $n$.
+
+        ALGORITHM:
+            Described in the source code.
 
         AUTHORS:
           -- David Harvey (2006-09-08): rewrote to use simplest possible
-             ``lazy'' algorithm. This gives running time $O(n^2)$, where $n$
-             is the precision (assuming that coefficient arithmetic takes
-             constant time, which is false). The previously implemented
-             algorithm, using series expansion, takes time $O(n M(n))$ where
-             $M(n)$ is the time for multiplying polynomials of length $n$,
-             which will generally be slower (a LOT slower when you don't have
-             good multiplication available for the given coefficient ring).
+             ``lazy'' algorithm.
+          -- David Harvey (2006-09-10): rewrote to use divide-and-conquer
+             strategy.
 
         EXAMPLES:
            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
@@ -534,23 +537,20 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
            O(t^0)
 
         TODO:
-        \begin{itemize}
-         \item There are even faster ways to do this; for some coefficient
+          -- There are even faster ways to do this; for some coefficient
              rings you can get $O(n^(1+\epsilon))$. Some references to
              follow up:
-             \begin{enumerate}
-             \item Brent-Kung composition should also get $O(n^2)$ I think (?)
-             \item Apparently the same paper where Brent/Kung give their
+             (1) Brent-Kung composition should also get O(n^2) I think (?)
+             (2) Apparently the same paper where Brent/Kung give their
                  composition algorithm, they also discuss methods for solving
                  differential equations (which computing exp essentially is)
-             \item There's a paper at
+             (3) There's a paper at
                  http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
                  This discusses more general lazy algorithms than the one
                  implemented here, for example using Karatsuba multiplication.
                  My guess is that the algorithms described in this paper will
                  give us the best bang for our buck in the setting of a
                  generic coefficient ring.
-             \end{enumerate}
 
          \item Currently this function seems to allow you to ask for exp to
              *higher* precision than the series is currently stored at.
@@ -570,43 +570,108 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             raise ValueError, \
                   "prec (=%s) must be a non-negative integer" % prec
 
-        # Use a "lazy" expansion strategy. i.e. we have
-        # d/dt exp(h(t)) = h'(t) exp(h(t)). Therefore we can find the
-        # nth coefficient of exp(h(t)) by a simple sum over the earlier
-        # coefficients and the coefficients of h'(t).
+        if prec == 0:
+            return self.parent()(0, 0)
+
+        # The algorithm implemented here is inspired by the "fast lazy
+        # multiplication algorithm" described in the paper "Lazy multiplication
+        # of formal power series" by J van der Hoeven (1997 ISSAC conference).
+
+        # Our situation is a bit simpler than the one described there,
+        # because only one of the series being multiplied needs the lazy
+        # treatment; the other one is known fully in advance. I have
+        # reformulated the algorithm as an explicit divide-and-conquer
+        # recursion. Possibly it is slower than the one described by van der
+        # Hoeven, by a constant factor, but it seems easier to implement.
+        # Also, because we repeatedly split in half starting at the top level,
+        # instead of repeatedly doubling in size from the bottom level, it's
+        # easier to avoid problems with "overshooting" in the last iteration.
+
+        # Computing $\exp(A(t))$ is equivalent to solving the differential
+        # equation $f' = A' f$ with the initial condition $f_0 = 1$
+        # (where $f_0$ denotes the constant term of $f$).
+
+        # What we do is consider the following more general problem:
+
+        # Given power series $a(t)$ and $b(t)$ (considered to have effectively
+        # infinite precision), and integers $N \geq 0$ and $L \geq 1$, find
+        # a power series $f(t)$ modulo $t^L$ satisfying the equation
+        #   $$ (t^N f)'  =  a t^N f  +  t^{N-1} b $$
+        # modulo $t^{N+L-1}$. If $N = 0$, we want a solution with $f_0 = 1$,
+        # and if $N \geq 1$ we want one with $b_0 = N f_0$. Our original
+        # problem is an instance of this more general problem, with $N = 0$,
+        # $L$ equal to the precision we want for $\exp(A(t))$, $b = 0$, and
+        # $a = A'$.
+
+        # We can split this problem into two instances with $L$ about half
+        # the size. Take $L' = \ceil(L/2)$. First recursively find $g$
+        # modulo $t^{L'}$ such that
+        #   $$ (t^N g)'  =  a t^N g  +  t^{N-1} b $$
+        # modulo $t^{N+L'-1}$.
+
+        # Next we want to find $h$ modulo $t^{L-L'}$ such that
+        # $f = g + t^{L'} h$ is a solution of the original equation.
+        # We can find a suitable $h$ by recursively solving another
+        # differential equation of the same form, namely
+        #   $$ (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} $$
+        # modulo $t^{(N+L')+(L-L')-1$, where $c$ is determined by
+        #   $$ (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} $$
+        # (modulo $t^{N+L-1}$). Once $g$ is known, $c$ can be determined from
+        # this relation by computing the coefficients of $t^j$ of the product
+        # $a g$ for $j$ in the range $L'-1 \leq j < L-1$.
+
+        # At the bottom of the recursion we have $L = 1$, in which case
+        # the solution is simply given by $f_0 = b_0/N$.
+
+        # The algorithm has to do one multiplication of length $N$, two of
+        # length $N/2$, four of length $N/4$, etc, hence giving runtime
+        # $O(M(N) \log N)$.
 
         base_ring = self.parent().base_ring()
-        output = [base_ring(1)]
+        R = PolynomialRing(base_ring)
+        a = self.derivative().list()[:prec]
 
-        coeffs = self.list()[:prec]
+        def solve(N, L, b):
+            # Recursively solves the differential equation described above,
+            # where the coefficients of $a$ are in the list a.
+            #
+            # INPUT:
+            #   N -- integer >= 0
+            #   L -- integer >= 1
+            #   b -- list of coefficients of $b$, length at least $L$
+            #        (only first $L$ coefficients are used).
+            #
+            # OUTPUT:
+            #   List of coefficients of $f$ (length exactly $L$)
 
-        # zero-pad coeffs up to prec
-        # todo: shouldn't PowerSeries.list() return something already
-        # zero-padded up to its current precision? Doesn't this make
-        # more sense? And what happened to PowerSeries.coeffs()?
-        while len(coeffs) < prec:
-            coeffs.append(base_ring(0))
+            if L == 1:
+                # base case
+                if N == 0:
+                    return [base_ring(1)]
+                else:
+                    return [b[0] / N]
 
-        # compute coefficients of derivative
-        for n in range(1, prec):
-            coeffs[n-1] = n * coeffs[n]
+            L2 = (L + 1) >> 1    # ceil(L/2)
 
-        # lazy evaluation of exponential
-        for n in range(prec-1):
-            output.append(sum(
-                [output[i]*coeffs[n-i] for i in range(n+1)]) / (n+1))
+            g = solve(N, L2, b)
 
-        return self.parent()(output, prec)
+            term1 = R(g, check=False)
+            term2 = R(a[:L], check=False)
+            product = (term1 * term2).list()
 
-        # This is the old version that uses exp(x) = \sum x^n/n!.
-        #
-        #x = self.parent()(self.list(), prec)
-        #ans = self.parent()(1)
-        #k = self.parent().base_ring()
-        #for n in range(1,prec):
-        #    ans += x * (k(1)/k(arith.factorial(n)))
-        #    x *= self
-        #return self.parent()(ans, prec)
+            # todo: perhaps next loop could be made more efficient
+            c = b[L2:L]
+            for j in range(L2 - 1, min(L-1, len(product))):
+                c[j - (L2-1)] = c[j - (L2-1)] + product[j]
+
+            h = solve(N + L2, L - L2, c)
+
+            g.extend(h)
+            return g
+
+        # Start the recursion:
+        f = solve(0, prec, [base_ring(0) for n in range(prec)])
+        return self.parent()(f, prec)
 
 
     def copy(self):

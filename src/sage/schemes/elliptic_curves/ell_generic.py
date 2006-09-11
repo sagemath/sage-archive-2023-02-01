@@ -989,13 +989,51 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         self.__formal_y = (prec, y)
         return y
 
-    def formal_log(self, prec=20):
+    def formal_differential(self, prec=20):
+        """
+        Returns the power series $f(t) = 1 + \cdots$ such that $f(t) dt$ is
+        the usual invariant differential $dx/(2y + a_1 x + a_3)$.
+
+        INPUT:
+           prec -- nonnegative integer, answer will be returned O(t^prec)
+
+        EXAMPLES:
+           sage: EllipticCurve([-1, 1/4]).formal_differential(15)
+            1 - 2*t^4 + 3/4*t^6 + 6*t^8 - 5*t^10 - 305/16*t^12 + 105/4*t^14 + O(t^15)
+           sage: EllipticCurve(Integers(53), [-1, 1/4]).formal_differential(15)
+            1 + 51*t^4 + 14*t^6 + 6*t^8 + 48*t^10 + 24*t^12 + 13*t^14 + O(t^15)
+
+        AUTHOR:
+           -- David Harvey (2006-09-10): factored out of formal_log
+
+        """
         a = self.ainvs()
-        x = self.formal_x(prec)
-        y = self.formal_y(prec)
+        x = self.formal_x(prec+1)
+        y = self.formal_y(prec+1)
         xprime = x.derivative()
         g = xprime / (2*y + a[0]*x + a[2])
-        return g.integral().power_series().add_bigoh(prec)
+        return g.power_series().add_bigoh(prec)
+
+    def formal_log(self, prec=20):
+        """
+        Returns the power series $f(t) = t + \cdots$ which is an isomorphism
+        to the additive formal group.
+
+        Generally this only makes sense in characteristic zero, although the
+        terms before $t^p$ may work in characteristic $p$.
+
+        INPUT:
+           prec -- nonnegative integer, answer will be returned O(t^prec)
+
+        EXAMPLES:
+           sage: EllipticCurve([-1, 1/4]).formal_log(15)
+            t - 2/5*t^5 + 3/28*t^7 + 2/3*t^9 - 5/11*t^11 - 305/208*t^13 + O(t^15)
+
+        AUTHOR:
+           -- David Harvey (2006-09-10): rewrote to use formal_differential
+
+        """
+        return self.formal_differential(prec-1).integral()
 
     def formal_inverse(self, prec=20):
         prec = max(prec,0)

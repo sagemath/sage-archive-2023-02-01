@@ -37,6 +37,21 @@ def trac(directory='sage_trac',
         cmd = 'sleep 2 && %s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
         os.system(cmd)
 
+    passwd = '%s/conf/passwd'%directory
+    if not os.path.exists(passwd) or len(open(passwd).read()) < 2:
+        print "*"*80
+        print "*** To create new accounts use the htdigest command on the command line ***"
+        print "*** Note that htdigest is part of apache. ***"
+        print "To add a new user with name username, do this:"
+        print "  cd %s"%(os.path.abspath('%s/conf'%directory))
+        print "  htdigest -c passwd %s username"%address
+        print "Then restart the trac server."
+        print "*"*80
+        open(passwd,'w').close()
+
     print "Trac server started."
     print "Open your web browser to http://%s:%s"%(address, port)
-    os.system('tracd --port %s --hostname %s "%s" '%(port, address, directory))
+    cmd ='tracd --port %s --hostname %s --auth *,%s,%s "%s" '%(port, address,
+                                                passwd, address, directory)
+    print cmd
+    os.system(cmd)

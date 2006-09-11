@@ -42,16 +42,6 @@ def load_sage_object(cls, dic):   # not used
         X.__dict__ = dic
     return X
 
-def x_load_sage_element(parent, cls, dic):
-    X = cls.__new__(cls)
-    X._set_parent(parent)
-    X.__dict__ = dic
-    return X
-
-def xx_load_sage_element(X, parent):
-    X._set_parent(parent)
-    return X
-
 import cPickle
 def load_sage_element(cls, parent, dic_pic):
     X = cls.__new__(cls)
@@ -79,26 +69,4 @@ def db_save(x, name=None):
         x.db(name)
     except AttributeError:
         save(x, '%s/%s'%(SAGE_DB,name))
-
-## def reduce(X):
-##     print "Reducing X = ", X
-##     try:
-##         attrs = X.__getstate__()
-##     except AttributeError:
-##         attrs = X.__dict__
-##     return load_sage_object, (X.__class__, attrs)
-
-## def reduce_element(X):
-##     print "Reducing X = ", X
-##     try:
-##         attrs = X.__getstate__()
-##     except AttributeError:
-##         attrs = X.__dict__
-##     return load_sage_element, (X.parent(), X.__class__, X.__dict__)
-
-## copy_reg.pickle(Element, reduce_element)
-## copy_reg.pickle(SageObject, reduce)
-## copy_reg.constructor(load_sage_object)
-## copy_reg.constructor(load_sage_element)
-
 

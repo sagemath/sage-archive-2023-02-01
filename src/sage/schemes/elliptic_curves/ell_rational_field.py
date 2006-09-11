@@ -3349,7 +3349,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         NOTES:
             -- If the discriminant of the curve has nonzero valuation at p,
-               then the result will not be returned mod p^prec, but it still
+               then the result will not be returned mod $p^\text{prec}$, but it still
                *will* have prec *digits* of precision.
 
         AUTHOR:

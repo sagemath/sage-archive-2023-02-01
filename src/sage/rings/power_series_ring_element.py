@@ -492,7 +492,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         return self.parent()(coeffs, prec)
 
     def exp(self, prec = infinity):
-        """
+        r"""
         Returns exp of this power series to the indicated precision.
 
         The coefficient ring must support division by the appropriate
@@ -511,48 +511,51 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         EXAMPLES:
            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
 
-         Check that exp(t) is, well, exp(t):
+         Check that $\exp(t)$ is, well, $\exp(t)$:
            sage: (t + O(t^10)).exp()
-            1 + t + 1/2*t^2 + 1/6*t^3 + 1/24*t^4 + 1/120*t^5 + 1/720*t^6 + 1/5040*t^7 + 1/40320*t^8 + 1/362880*t^9 + O(t^10)
+           1 + t + 1/2*t^2 + 1/6*t^3 + 1/24*t^4 + 1/120*t^5 + 1/720*t^6 + 1/5040*t^7 + 1/40320*t^8 + 1/362880*t^9 + O(t^10)
 
-         Check that exp(log(1+t)) is 1+t:
+         Check that $\exp(\log(1+t))$ is $1+t$:
            sage: (sum([-(-t)^n/n for n in range(1, 10)]) + O(t^10)).exp()
-            1 + t + O(t^10)
+           1 + t + O(t^10)
 
-         Check that exp(2t + t^2 - t^5) is whatever it is:
+         Check that $\exp(2t + t^2 - t^5)$ is whatever it is:
            sage: (2*t + t^2 - t^5 + O(t^10)).exp()
-            1 + 2*t + 3*t^2 + 10/3*t^3 + 19/6*t^4 + 8/5*t^5 - 7/90*t^6 - 538/315*t^7 - 425/168*t^8 - 30629/11340*t^9 + O(t^10)
+           1 + 2*t + 3*t^2 + 10/3*t^3 + 19/6*t^4 + 8/5*t^5 - 7/90*t^6 - 538/315*t^7 - 425/168*t^8 - 30629/11340*t^9 + O(t^10)
 
          Check requesting lower precision:
            sage: (t + t^2 - t^5 + O(t^10)).exp(5)
-            1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+           1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
 
          Check some boundary cases:
            sage: (t + O(t^2)).exp(1)
-            1 + O(t)
+           1 + O(t)
            sage: (t + O(t^2)).exp(0)
-            O(t^0)
+           O(t^0)
 
         TODO:
-          -- There are even faster ways to do this; for some coefficient
+        \begin{itemize}
+         \item There are even faster ways to do this; for some coefficient
              rings you can get $O(n^(1+\epsilon))$. Some references to
              follow up:
-             (1) Brent-Kung composition should also get O(n^2) I think (?)
-             (2) Apparently the same paper where Brent/Kung give their
+             \begin{enumerate}
+             \item Brent-Kung composition should also get $O(n^2)$ I think (?)
+             \item Apparently the same paper where Brent/Kung give their
                  composition algorithm, they also discuss methods for solving
                  differential equations (which computing exp essentially is)
-             (3) There's a paper at
+             \item There's a paper at
                  http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
                  This discusses more general lazy algorithms than the one
                  implemented here, for example using Karatsuba multiplication.
                  My guess is that the algorithms described in this paper will
                  give us the best bang for our buck in the setting of a
                  generic coefficient ring.
+             \end{enumerate}
 
-          -- Currently this function seems to allow you to ask for exp to
+         \item Currently this function seems to allow you to ask for exp to
              *higher* precision than the series is currently stored at.
              Does this even make sense?
-
+        \end{itemize}
         """
         if prec == infinity:
             if self.prec() == infinity:

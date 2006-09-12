@@ -342,7 +342,7 @@ cdef class GFq(FiniteField):
         if isinstance(x, (int, long, Integer)):
             return self(x)
 
-        if isinstance(x, (FiniteFieldElemen,GFq_element)) or is_IntegerMod(x):
+        if isinstance(x, (FiniteFieldElement,GFq_element)) or is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x

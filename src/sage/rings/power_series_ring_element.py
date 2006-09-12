@@ -3,6 +3,7 @@ Power Series
 
 AUTHOR:
    -- William Stein
+   -- David Harvey (2006-09-11): added solve_linear_de() method
 """
 
 #*****************************************************************************
@@ -491,25 +492,121 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         coeffs = self[:prec]
         return self.parent()(coeffs, prec)
 
-    def exp(self, prec = infinity):
-        r"""
-        Returns exp of this power series to the indicated precision.
 
-        The coefficient ring must support division by the appropriate
-        denominators, or the function will fail. (It may succeed if you're
-        lucky, in which case the answer is probably not unique.)
+    def solve_linear_de(self, prec = infinity, b = None, f0 = None):
+        """
+        Obtains a power series solution to an inhomogeneous linear
+        differential equation of the form:
+           $$  f'(t) = a(t) f(t) + b(t). $$
 
-        Time complexity is approximately $M(n) \log n$, where $M(n)$ is the
-        time required for a polynomial multiplication of length $n$.
+        INPUT:
+            self -- the power series $a(t)$
+            b -- the power series $b(t)$ (default is zero)
+            f0 -- the constant term of $f$ (``initial condition'')
+                 (default is 1)
+            prec -- desired precision of result (this will be reduced if
+                    either a or b have less precision available)
+
+        OUTPUT:
+            the power series f, to indicated precision
 
         ALGORITHM:
-            Described in the source code.
+            A divide-and-conquer strategy; see the source code. Running time
+            is approximately $M(n) \log n$, where $M(n)$ is the time required
+            for a polynomial multiplication of length $n$ over the coefficient
+            ring. (If you're working over something like RationalField(),
+            running time analysis can be a little complicated because the
+            coefficients tend to explode.)
+
+        NOTES:
+            -- If the coefficient ring is a field of characteristic zero,
+               then the solution will exist and is unique.
+            -- For other coefficient rings, things are more complicated.
+               A solution may not exist, and if it does it may not be unique.
+               Generally, by the time the nth term has been computed, the
+               algorithm will have attempted divisions by $n!$ in the
+               coefficient ring. So if your coefficient ring has enough
+               ``precision'', and if your coefficient ring can perform
+               divisions even when the answer is not unique, and if you know
+               in advance that a solution exists, then this function will find
+               a solution (otherwise it will probably crash).
+
+        AUTHORS:
+          -- David Harvey (2006-09-11): factored functionality out from
+             exp() function, cleaned up precision tests a bit
+
+        EXAMPLES:
+           sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
+
+           sage: a = 2 - 3*t + 4*t^2 + O(t^10)
+           sage: b = 3 - 4*t^2 + O(t^7)
+           sage: f = a.solve_linear_de(prec=5, b=b, f0=3/5)
+           sage: f
+            3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
+           sage: f.derivative() - a*f - b
+            O(t^4)
+
+           sage: a = 2 - 3*t + 4*t^2
+           sage: b = b = 3 - 4*t^2
+           sage: f = a.solve_linear_de(b=b, f0=3/5)
+           Traceback (most recent call last):
+           ...
+           ValueError: cannot solve differential equation to infinite precision
+
+           sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
+            3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
+
+        r"""
+        if b is None:
+            b = self.parent()(0)
+
+        if f0 is None:
+            f0 = 1
+        f0 = self.base_ring()(f0)
+
+        # reduce precision to whatever is available from a and b
+        prec = min(prec, self.prec() + 1, b.prec() + 1)
+        if prec is infinity:
+            raise ValueError, \
+                 "cannot solve differential equation to infinite precision"
+        prec = int(prec)
+        if prec == 0:
+            return self.parent()(0, 0)
+        if prec < 0:
+            raise ValueError, \
+                  "prec (=%s) must be a non-negative integer" % prec
+
+        base_ring = self.parent().base_ring()
+        R = PolynomialRing(base_ring)
+
+        a_list = self.list()
+        b_list = [base_ring(0)]
+        b_list.extend(b.list())
+        while len(b_list) < prec:
+            b_list.append(base_ring(0))
+        f = _solve_linear_de(R, 0, prec, a_list, b_list, f0)
+        return self.parent()(f, prec)
+
+
+    def exp(self, prec = infinity):
+        """
+        Returns exp of this power series to the indicated precision.
+
+        ALGORITHM:
+            See PowerSeries.solve_linear_de().
+
+        NOTES:
+            -- Screwy things can happen if the coefficient ring is not
+               a field of characteristic zero.
+               See PowerSeries.solve_linear_de().
 
         AUTHORS:
           -- David Harvey (2006-09-08): rewrote to use simplest possible
              ``lazy'' algorithm.
           -- David Harvey (2006-09-10): rewrote to use divide-and-conquer
              strategy.
+          -- David Harvey (2006-09-11): factored functionality out to
+             solve_linear_de().
 
         EXAMPLES:
            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10)
@@ -528,37 +625,34 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
          Check requesting lower precision:
            sage: (t + t^2 - t^5 + O(t^10)).exp(5)
-           1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+            1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
 
          Check some boundary cases:
            sage: (t + O(t^2)).exp(1)
            1 + O(t)
            sage: (t + O(t^2)).exp(0)
-           O(t^0)
+            O(t^0)
 
         TODO:
-        \begin{itemize}
-         \item There are even faster ways to do this; for some coefficient
+          -- There are even faster ways to do this; for some coefficient
              rings you can get $O(n^(1+\epsilon))$. Some references to
              follow up:
-             \begin{enumerate}
-             \item Brent-Kung composition should also get $O(n^2)$ I think (?)
-             \item Apparently the same paper where Brent/Kung give their
+             (1) Brent-Kung composition should also get O(n^2) I think (?)
+             (2) Apparently the same paper where Brent/Kung give their
                  composition algorithm, they also discuss methods for solving
                  differential equations (which computing exp essentially is)
-             \item There's a paper at
+             (3) There's a paper at
                  http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
                  This discusses more general lazy algorithms than the one
                  implemented here, for example using Karatsuba multiplication.
                  My guess is that the algorithms described in this paper will
                  give us the best bang for our buck in the setting of a
                  generic coefficient ring.
-             \end{enumerate}
 
-         \item Currently this function seems to allow you to ask for exp to
+          -- Currently this function seems to allow you to ask for exp to
              *higher* precision than the series is currently stored at.
              Does this even make sense?
-        \end{itemize}
+
         """
         if prec == infinity:
             if self.prec() == infinity:
@@ -635,19 +729,18 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         a = self.derivative().list()[:prec]
 
         def solve(N, L, b):
-            """
-            Recursively solves the differential equation described above,
-            where the coefficients of $a$ are in the list a.
+            # Recursively solves the differential equation described above,
+            # where the coefficients of $a$ are in the list a.
+            #
+            # INPUT:
+            #   N -- integer >= 0
+            #   L -- integer >= 1
+            #   b -- list of coefficients of $b$, length at least $L$
+            #        (only first $L$ coefficients are used).
+            #
+            # OUTPUT:
+            #   List of coefficients of $f$ (length exactly $L$)
 
-            INPUT:
-               N -- integer >= 0
-               L -- integer >= 1
-               b -- list of coefficients of $b$, length at least $L$
-                    (only first $L$ coefficients are used).
-
-            OUTPUT:
-               List of coefficients of $f$ (length exactly $L$)
-            """
             if L == 1:
                 # base case
                 if N == 0:
@@ -884,4 +977,96 @@ class PowerSeries_generic_dense(PowerSeries):
             raise RuntimeError, "series precision must be finite for conversion to pari object."
         return pari.pari(str(self))
 
+
+
+def _solve_linear_de(R, N, L, a, b, f0):
+    """
+    Internal function used by PowerSeries.solve_linear_de().
+
+    INPUT:
+       R -- a PolynomialRing
+       N -- integer >= 0
+       L -- integer >= 1
+       a -- list of coefficients of $a$, any length, all coefficients should
+            belong to base ring of R.
+       b -- list of coefficients of $b$, length at least $L$
+            (only first $L$ coefficients are used), all coefficients
+            should belong to base ring of R.
+       f0 -- constant term of $f$ (only used if $N == 0$), should belong
+            to base ring of R.
+
+    OUTPUT:
+       List of coefficients of $f$ (length exactly $L$), where $f$ is a
+       solution to the linear inhomogeneous differential equation:
+          $$ (t^N f)'  =  a t^N f  +  t^{N-1} b  +  O(t^{N+L-1}).$$
+       The constant term of $f$ is taken to be f0 if $N == 0$, and otherwise
+       is determined by $N f_0 = b_0$.
+
+    ALGORITHM:
+        The algorithm implemented here is inspired by the ``fast lazy
+        multiplication algorithm'' described in the paper ``Lazy multiplication
+        of formal power series'' by J van der Hoeven (1997 ISSAC conference).
+
+        Our situation is a bit simpler than the one described there,
+        because only one of the series being multiplied needs the lazy
+        treatment; the other one is known fully in advance. I have
+        reformulated the algorithm as an explicit divide-and-conquer
+        recursion. Possibly it is slower than the one described by van der
+        Hoeven, by a constant factor, but it seems easier to implement.
+        Also, because we repeatedly split in half starting at the top level,
+        instead of repeatedly doubling in size from the bottom level, it's
+        easier to avoid problems with ``overshooting'' in the last iteration.
+
+        The idea is to split the problem into two instances with $L$ about
+        half the size. Take $L' = \ceil(L/2)$. First recursively find $g$
+        modulo $t^{L'}$ such that
+          $$ (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).$$
+
+        Next we want to find $h$ modulo $t^{L-L'}$ such that
+        $f = g + t^{L'} h$ is a solution of the original equation.
+        We can find a suitable $h$ by recursively solving another
+        differential equation of the same form, namely
+          $$ (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} + O(t^{N+L'-1}),$$
+        where $c$ is determined by
+          $$ (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} + O(t^{N+L-1}).$$
+        Once $g$ is known, $c$ can be recovered from this relation by computing
+        the coefficients of $t^j$ of the product $a g$ for $j$ in the range
+        $L'-1 \leq j < L-1$.
+
+        At the bottom of the recursion we have $L = 1$, in which case
+        the solution is simply given by $f_0 = b_0/N$ (or by the supplied
+        initial condition $f_0$ when $N == 0$).
+
+        The algorithm has to do one multiplication of length $N$, two of
+        length $N/2$, four of length $N/4$, etc, hence giving runtime
+        $O(M(N) \log N)$.
+
+    AUTHOR:
+        -- David Harvey (2006-09-11): factored out of PowerSeries.exp().
+
+    """
+    if L == 1:
+        # base case
+        if N == 0:
+            return [f0]
+        else:
+            return [b[0] / N]
+
+    L2 = (L + 1) >> 1    # ceil(L/2)
+
+    g = _solve_linear_de(R, N, L2, a, b, f0)
+
+    term1 = R(g, check=False)
+    term2 = R(a[:L], check=False)
+    product = (term1 * term2).list()
+
+    # todo: perhaps next loop could be made more efficient
+    c = b[L2 : L]
+    for j in range(L2 - 1, min(L-1, len(product))):
+        c[j - (L2-1)] = c[j - (L2-1)] + product[j]
+
+    h = _solve_linear_de(R, N + L2, L - L2, a, c, f0)
+
+    g.extend(h)
+    return g
 

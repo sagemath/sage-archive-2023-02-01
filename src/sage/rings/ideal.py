@@ -365,7 +365,7 @@ def Katsura(R, n=None, homog=False, singular=singular_default):
         if n > R.ngens():
             raise ArithmeticError, "n must be <= R.ngens()"
     else:
-        n = R.gens()
+        n = R.ngens()
     singular.lib("poly")
     R._singular_().set_ring()
     if not homog:

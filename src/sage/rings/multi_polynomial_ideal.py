@@ -65,6 +65,7 @@ from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
 import sage.rings.integer_ring
 
+
 def is_MPolynomialIdeal(x):
     return isinstance(x, MPolynomialIdeal)
 
@@ -318,7 +319,7 @@ class MPolynomialIdeal_singular_repr:
             sage: I
             Ideal (d + c + b + a, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c, -1 + a*b*c*d) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I.groebner_basis()
-             [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
+            [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -2*d^2 + c*d + c^2*d^4 - b*d + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
 
         \note{Some Groebner basis calculations crash on 64-bit
         opterons with \SAGE's singular build, but work fine with an
@@ -552,9 +553,9 @@ class MPolynomialIdeal_singular_repr:
         R = self.ring()
 
         F = singular( self.gens(), "module" )
-        LMF = singular( [f.lm() for f in self.gens()] , "module" )
+        LTF = singular( [f.lt() for f in self.gens()] , "module" )
 
-        M = (F * LMF.syz()).reduce(self._singular_())
+        M = (F * LTF.syz()).reduce(self._singular_())
 
         for i in range(M.nrows()):
             if int(singular.eval("%s[1][%s+1]!=0"%(M.name(),i))):
@@ -703,27 +704,55 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':
             return self._magma_groebner_basis()
+        elif algorithm == None:
+            if self.ring() == ZZ:
+                return self._macaulay2_groebner_basis()
+            else:
+                return self._singular_groebner_basis()
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 
-    def transformed_basis(self,algorithm="gwalk"):
+    def transformed_basis(self,algorithm="gwalk", other_ring=None):
         """
-        Returns a lex Groebner Basis for a given ideal self which must
-        be represented through a Groebner Basis.
+        Returns a lex or other_ring Groebner Basis for a given ideal
+        self which must be represented through a Groebner Basis.
 
         INPUT:
            algorithm -- Options are:
-                        * fglm (default) - FGLM algorithm. The input ideal must be
-                                           a reduced Groebner Basis of a zero-
-                                           dimensional ideal
-                        * gwalk  - Groebner Walk algorithm
+                        * fglm - FGLM algorithm. The input ideal must be
+                                 a reduced Groebner Basis of a zero-dimensional ideal
+                        * gwalk (default) - Groebner Walk algorithm
                         * awalk1 - 'first alternative' algorithm
                         * awalk2 - 'second alternative' algorithm
                         * twalk  - Tran algorithm
                         * fwalk  - Fractal Walk algorithm
+           other_ring  -- only valid for algorithm 'fglm', if provided conversion will
+                          be performed to this ring. Otherwise a lex Groebner basis will
+                          be returned.
+        EXAMPLES:
+           sage: # example from the Singular manual page of fglm
+           sage: R.<x,y,z> = PolynomialRing(QQ,3)
+           sage: I = Ideal([y^3+x^2,x^2*y+x^2, x^3-x^2, z^4-x^2-y])
+           sage: singular.option('redSB')
+           sage: I = Ideal(I.groebner_basis())
+           sage: singular.option('noredSB') #reset
+           sage: S.<z,x,y> = PolynomialRing(QQ,3,order='lex')
+           sage: J = Ideal(I.transformed_basis('fglm',S))
+           sage: J
+           Ideal (y^3 + y^4, -1*y^3 + x*y^3, y^3 + x^2, -1*y + y^3 + z^4) of Polynomial Ring in z, x, y over Rational Field
+           sage: # example from the Singular manual page of gwalk
+           sage: R.<z,y,x>=PolynomialRing(GF(32003),3,order='lex')
+           sage: I=Ideal([y^3+x*y*z+y^2*z+x*z^3,3+x*y+x^2*y+y^2*z])
+           sage: I.transformed_basis('gwalk')
+           [31976*x + 31976*y*x^2 + 31976*y*x^3 + 31994*y^2*x^3 + 31985*y^2*x^4 + 31994*y^2*x^5 + 32002*y^3*x^4 + 32000*y^3*x^5 + 32000*y^3*x^6 + 32002*y^3*x^7 + 32000*y^5*x + 32000*y^6 + 32002*y^6*x^2 + 32002*y^6*x^3 + 32002*y^7*x + 32002*y^7*x^2 + y^9,
+           x^3 + 2*x^4 + x^5 + 17780*y*x^4 + 21337*y*x^5 + 21337*y*x^6 + 17780*y*x^7 + 23706*y^2*x^5 + 30818*y^2*x^6 + 14224*y^2*x^7 + 30818*y^2*x^8 + 23706*y^2*x^9 + 21335*y^3*x + 21335*y^4 + 3556*y^4*x^2 + 3556*y^4*x^3 + 3556*y^5*x + 3556*y^5*x^2 + 23706*y^5*x^3 + 15409*y^5*x^4 + 23706*y^5*x^5 + 23706*y^6*x^2 + 15409*y^6*x^3 + 23706*y^6*x^4 + 3556*y^7 + 8297*y^8*x + 8297*y^8*x^2 + z*x,
+           3 + y*x + y*x^2 + z*y^2]
+
 
         ALGORITHM: Uses Singular
         """
+        from sage.rings.multi_polynomial_ring import *
+
         Is = self._singular_()
         R = self.ring()
 
@@ -733,21 +762,20 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return [R(f) for f in gb]
         elif algorithm == "fglm":
             Rs = self.ring()._singular_()
-            Rs.set_ring()
 
             # new ring
-            nRs = singular.ringlist(R)
-            nRs[3][1][1]="\"%s\""%TermOrder(order).singular_str() #replace term order
-            nRs = singular("ring(%s)"%nRs.name()) #new ring is set
+            if other_ring==None:
+                nR = MPolynomialRing(R.base_ring(),R.ngens(), names=R.variable_names(), order="lex")
+            else:
+                nR = other_ring
+            nR._singular_().set_ring()
 
-            nR = PolynomialRing(R.base_ring(),R.ngens(), names=R.variable_names(), order=order)
             nIs = singular.fglm(Rs,Is)
 
             return [nR(f) for f in nIs]
 
         else:
             raise TypeError, "Cannot convert basis with given algorithm"
-
 
     #def is_homogeneous(self):
     #    try:

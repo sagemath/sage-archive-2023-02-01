@@ -223,6 +223,27 @@ cdef class Integer(element.EuclideanDomainElement):
     #def __reduce__(self):
     #    return sage.rings.integer_ring.Z, (long(self),)
 
+    def _xor(Integer self, Integer other):
+        cdef Integer x
+        x = Integer()
+        mpz_xor(x.value, self.value, other.value)
+        return x
+
+    def __xor__(x, y):
+        """
+        Compute the exclusive or of x and y.
+
+        EXAMPLES:
+            sage: n = ZZ(2); m = ZZ(3)
+            sage: n.__xor__(m)
+            1
+        """
+        if isinstance(x, Integer) and isinstance(y, Integer):
+            return x._xor(y)
+        return sage.rings.coerce.bin_op(x, y, operator.xor)
+
+
+
     cdef int cmp(self, Integer x):
         cdef int i
         i = mpz_cmp(self.value, x.value)

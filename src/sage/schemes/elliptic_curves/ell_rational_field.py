@@ -5,7 +5,7 @@ AUTHORS:
    -- William Stein (2005): first version
    -- William Stein (2006-02-26): fixed Lseries_extended which didn't work
             because of changes elsewhere in SAGE.
-   -- David Harvey (2006-09-01): Added padic_E2 method.
+   -- David Harvey (2006-09): Added padic_E2, padic_sigma methods.
 """
 
 #*****************************************************************************
@@ -34,6 +34,7 @@ import sage.misc.misc as misc
 import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
+from sage.misc.functional import log
 
 import sage.matrix.all as matrix
 import sage.databases.cremona
@@ -3327,6 +3328,193 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                                             self.gens(),
                                             prec)
 
+
+    def padic_sigma(self, p, prec=20, check_E2=False, check_sigma=False, E2=None):
+        """
+        Computes the p-adic sigma function with respect to the standard
+        invariant differential $dx/(2y + a_1 x + a_3)$, as constructed by
+        Mazur and Tate, as a power series in the usual uniformiser $t$ at the
+        origin.
+
+        The equation of the curve must be minimal at $p$.
+
+        INPUT:
+            p -- prime >= 5 for which the curve has good ordinary reduction
+            prec -- integer >= 3, result will be returned O(t^prec)
+            E2 -- precomputed value of E2. If not supplied, this function will
+                 call padic_E2 to compute it. The value supplied must have
+                 at least prec p-adic digits of precision.
+            check_E2 -- boolean, whether to perform a consistency check on
+                 the computation of E2 (see method padic_E2() for details)
+            check_sigma -- boolean, whether to perform a consistency check
+                 on the sigma function (verify that it satisfies the right
+                 differential equation)
+
+        OUTPUT:
+            A power series $t + \cdots$. Note that the coefficients will not
+            all have the same p-adic precision; the precision will be lower for
+            the higher order terms, but all terms are guaranteed to be
+            correct up to the precision that they are returned at. Note that
+            the precision of the coefficients will always be sufficient to
+            evaluate the sigma function mod p^prec at any t divisible by p.
+
+        ALGORITHM:
+           Streamlined version of the algorithm described in ``Computation of
+           $p$-adic Heights and Log Convergence'' (Mazur, Stein, Tate).
+           Running time is $O(p^{1+\epsilon} M^{2+\epsilon})$ if $E_2$
+           needs to be computed, or only $O(p^{\epsilon} M^{2+\epsilon})$
+           if $E_2$ is supplied in advance.
+
+        AUTHOR:
+            -- David Harvey (2006-09-12)
+
+        EXAMPLES:
+            sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
+             (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + 5^9 + O(5^10))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + 4*5^9 + O(5^10))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^8))*t^7 + (1 + 2*5 + 3*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 5^6 + 2*5^7 + O(5^8))*t^9 + O(t^10)
+
+          Run it with a consistency check:
+            sage: EllipticCurve("37a").padic_sigma(5, 10, check_sigma=True)
+             (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + 5^9 + O(5^10))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + 4*5^9 + O(5^10))*t^5 + (2 + 3*5 + 5^4 + 2*5^6 + 4*5^7 + O(5^8))*t^6 + (4 + 3*5 + 2*5^2 + 2*5^5 + 2*5^6 + 5^7 + O(5^8))*t^7 + (2 + 3*5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^6 + 2*5^7 + O(5^8))*t^8 + (4*5 + 4*5^2 + 4*5^3 + 5^4 + 5^6 + 5^7 + O(5^8))*t^9 + O(t^10)
+
+          Check that sigma is ``weight 1'' (note that f loses some precision
+          when you do the substitution, but otherwise the results match up):
+            sage: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
+            sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
+            sage: t = f.parent().gen()
+            sage: f(2*t)/2
+             (1 + O(5^8))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + O(5^8))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + 5^7 + O(5^8))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + 4*5^7 + O(5^8))*t^9 + O(t^10)
+            sage: g
+             (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + 2*5^9 + O(5^10))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + 2*5^9 + O(5^10))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + 5^7 + O(5^8))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + 4*5^7 + O(5^8))*t^9 + O(t^10)
+
+          Test that it returns consistent results over a range of precision:
+            sage: max_prec = 30   # get up to at least p^2      # long time
+            sage: E = EllipticCurve([1, 1, 1, 1, 1])            # long time
+            sage: p = 5                                         # long time
+            sage: E2 = E.padic_E2(5, max_prec)                  # long time
+            sage: max_sigma = E.padic_sigma(p, max_prec, E2=E2) # long time
+            sage: for prec in range(3, max_prec):               # long time
+            ...      sigma = E.padic_sigma(p, prec, E2=E2)      # long time
+            ...      for n in range(prec):                      # long time
+            ...          assert sigma[n] == max_sigma[n]        # long time
+
+        """
+
+        p = self.__check_padic_hypotheses(p)
+
+        # todo: implement the p == 3 case
+        # NOTE: If we ever implement p == 3, it's necessary to check over
+        # the precision loss estimates (below) vey carefully; I think it
+        # may become necessary to compute E2 to an even higher precision.
+        if p < 5:
+            raise NotImplementedError, "p (=%s) must be at least 5" % p
+
+        prec = int(prec)
+        if prec < 3:
+            raise ValueError, "prec (=%s) must be at least 3" % prec
+
+        if self.discriminant().valuation(p) != 0:
+            raise NotImplementedError, "equation of curve must be minimal at p"
+
+        if E2 is None:
+            E2 = self.padic_E2(p, prec, check_E2)
+        elif E2.prec() + E2.ordp() < prec:
+            raise ValueError, "supplied E2 has insufficient precision"
+
+        R = rings.Integers(p**prec)
+        E2 = R(E2)
+
+        X = self.change_ring(R)
+
+        c = (X.a1()**2 + 4*X.a2() - E2) / 12
+
+        # We compute sigma by solving the differential equation
+        # $$ x(t) + c =
+        #   -\frac{d}{\omega}\left(\frac{1}{\sigma} \frac{d\sigma}{\omega}. $$
+        # We do this a little differently from the Mazur/Stein/Tate paper;
+        # in particular we reorganise things to skip the series reversions
+        # and compositions (which are inherently asymptotically slower
+        # than the other operations).
+
+        # todo: inefficient: the formal differential *includes*
+        # computation of formal_x
+        x = X.formal_x(prec)               # x = t^{-2} + ...
+        f = X.formal_differential(prec)    # f = 1 + ...
+
+        A = -f * ((x + c) * f).integral()
+
+        # The above integral has a constant of integration which we need to
+        # figure out. The constant is determined by the condition that sigma is
+        # an odd function. (Be careful: it is odd in the sense that
+        # $\sigma(i(t)) = -\sigma(t)$, where $i(t) = -t - a_1 t^2 + \cdots$ is
+        # the formal inverse series; this does not necessarily mean that the
+        # series expansion of $\sigma$ contains only odd index terms. This is
+        # glossed over in Mazur/Stein/Tate, because they work in terms of a
+        # different variable with respect to which it really does mean "only
+        # odd terms".) It turns out we need the constant term to be $a_1/2$:
+        A = A + (X.a1()/2 - A[0]) * f
+
+        # Remove $t^{-1}$ term
+        A[-1] = 0
+
+        # Now A should be $g'/g$, where $\sigma(t) = t g(t)$.
+        sigma = A.power_series().solve_linear_de(prec-1)
+        sigma = sigma * sigma.parent().gen()
+
+        # (Note: the very fact that the above differential equation gets
+        # solved without any "division by zero" errors is already a very good
+        # indication that we're doing something correctly!)
+
+        # Now we have sigma as a power series over $\Z/p^M\Z$. However, we
+        # lost some precision during the integration and in solve_linear_de().
+        # So now we need to account for that precision loss.
+
+        # The precision loss (measured in p-adic digits) for the $t^n$ term
+        # of $\int (x+c) f$ is at most $\log_p(n)$; similarly after we
+        # multiply by $f$. Then when we call solve_linear_de(), we lose another
+        # $v_p(n!) \leq (n-1)/(p-1)$ digits. Finally we multiply by $t$, so
+        # the total precision loss for the $t^n$ term of $\sigma$ is at most
+        # $\log_p(n-1) + (n-2)/(p-1)$.
+
+        K = rings.pAdicField(p, prec)
+        sigma = sigma.padded_list(prec)
+        for n in range(prec):
+            if n < 2:
+                loss = 0
+            else:
+                # todo: I'm slightly worried about real precision in the
+                # log here:
+                loss = int(log(n-1, p)) + int((n-2) / (p-1))
+            sigma[n] = K(sigma[n].lift(), prec - loss)
+
+        S = rings.PowerSeriesRing(K, "t", prec)
+        sigma = S(sigma, prec)
+
+        if check_sigma:
+            Y = self.change_ring(K)
+
+            # convert x and f to have coefficients over p-adics, so that
+            # SAGE keeps track of precision for us (this code is so damn
+            # ugly... todo: get some decent coercions written...)
+            x_coeffs = x.unit_part().list()
+            f_coeffs = f.list()
+            xK = S([K(r.lift()) for r in x_coeffs], prec - x.valuation())
+            xK = xK * S.gen()**(x.valuation())
+            xK = xK.add_bigoh(prec)
+            fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(prec)
+
+            fK_inverse = 1/fK
+            stuff = (sigma.derivative() * fK_inverse / sigma)
+            stuff = stuff.derivative() * fK_inverse
+            result = xK + K(c.lift()) + stuff
+
+            # result should be zero mod $t^{N-3}$
+            for n in range(prec-3):
+                assert result[n] == 0, "sigma correctness check failed!"
+
+        return sigma
+
+
+
     def padic_E2(self, p, prec=20, check=False):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
@@ -3569,18 +3757,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     #         # TODO: add allowing negative valuations for power series
     #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
     #                - (a4+a1*a3)*t**2  + O(t**3)
-
-
-    #def padic_sigma(self, p, prec=20):
-    #    """
-    #    Returns the p-adic sigma function of the elliptic curve
-    #    as a power series in t to precision prec.
-    #    """
-    #    R = rings.PowerSeriesRing(variable="t")
-    #    t = R.gen(0)
-    #    a1, a2, a3, a4, a6 = self.ainvs()
-    #   misc.todo("Implement genuine computation of sigma.")
-    #    return t + a1/2 * t**2 + (a1**2+a2)/3 * t**3 + (a1**3+2*a1*a2+2*a3)/4 * t**4 + O(t**5)
 
 
     def mod5family(self):

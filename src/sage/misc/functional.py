@@ -232,7 +232,7 @@ def decomposition(x):
 
 def denominator(x):
     """
-    Return the numerator of x.
+    Return the denominator of x.
 
     EXAMPLES:
         sage: denominator(17/11111)

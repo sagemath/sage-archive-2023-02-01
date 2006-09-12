@@ -97,10 +97,10 @@ so the w = [5] above would work right.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__author__ = 'William Stein <wstein@gmail.com>'
-__version__= '1.3.4'
+__author__ = 'William Stein <wstein@gmail.com> et al.'
 __license__ = 'GPL'
-__date__   = 'July 2006'
+#__version__= '1.3.7'
+#__date__   = 'July 2006'
 
 import os
 import log

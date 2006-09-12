@@ -44,7 +44,7 @@ def trac(directory='sage_trac',
         print "*** Note that htdigest is part of apache. ***"
         print "To add a new user with name username, do this:"
         print "  cd %s"%(os.path.abspath('%s/conf'%directory))
-        print "  htdigest -c passwd %s <username>"%address
+        print "  htdigest passwd %s <username>"%address
         print "Then restart the trac server."
         print "*"*80
         open(passwd,'w').close()

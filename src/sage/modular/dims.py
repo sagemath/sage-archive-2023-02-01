@@ -643,9 +643,11 @@ def dimension_eis(X, k=2):
         d = c1(X.level())
         if k==2: d -= 1
         return Z(d)
-    else:
-        raise NotImplementedError, "Computing of dimensions for congruence subgroups besides " + \
+    elif isinstance(congroup.CongruenceSubgroup):
+        raise NotImplementedError, "Computation of dimensions for congruence subgroups besides " + \
               "Gamma0 and Gamma1 is not yet implemented."
+    else:
+        raise TypeError
 
 
 def dimension_modular_forms(X, k=2):

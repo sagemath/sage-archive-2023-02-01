@@ -537,20 +537,23 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
            O(t^0)
 
         TODO:
-          -- There are even faster ways to do this; for some coefficient
+        \begin{itemize}
+         \item There are even faster ways to do this; for some coefficient
              rings you can get $O(n^(1+\epsilon))$. Some references to
              follow up:
-             (1) Brent-Kung composition should also get O(n^2) I think (?)
-             (2) Apparently the same paper where Brent/Kung give their
+             \begin{enumerate}
+             \item Brent-Kung composition should also get $O(n^2)$ I think (?)
+             \item Apparently the same paper where Brent/Kung give their
                  composition algorithm, they also discuss methods for solving
                  differential equations (which computing exp essentially is)
-             (3) There's a paper at
+             \item There's a paper at
                  http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
                  This discusses more general lazy algorithms than the one
                  implemented here, for example using Karatsuba multiplication.
                  My guess is that the algorithms described in this paper will
                  give us the best bang for our buck in the setting of a
                  generic coefficient ring.
+             \end{enumerate}
 
          \item Currently this function seems to allow you to ask for exp to
              *higher* precision than the series is currently stored at.
@@ -632,18 +635,19 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         a = self.derivative().list()[:prec]
 
         def solve(N, L, b):
-            # Recursively solves the differential equation described above,
-            # where the coefficients of $a$ are in the list a.
-            #
-            # INPUT:
-            #   N -- integer >= 0
-            #   L -- integer >= 1
-            #   b -- list of coefficients of $b$, length at least $L$
-            #        (only first $L$ coefficients are used).
-            #
-            # OUTPUT:
-            #   List of coefficients of $f$ (length exactly $L$)
+            """
+            Recursively solves the differential equation described above,
+            where the coefficients of $a$ are in the list a.
 
+            INPUT:
+               N -- integer >= 0
+               L -- integer >= 1
+               b -- list of coefficients of $b$, length at least $L$
+                    (only first $L$ coefficients are used).
+
+            OUTPUT:
+               List of coefficients of $f$ (length exactly $L$)
+            """
             if L == 1:
                 # base case
                 if N == 0:

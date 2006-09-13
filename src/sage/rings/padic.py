@@ -52,6 +52,36 @@ class pAdic(field_element.FieldElement):
         1 + 17 + 3*17^2 + O(17^3)
         sage: loads(a.dumps()) == a
         True
+
+      Coercion from rational field using the default precision of the
+      p-adic field:
+        sage: K = pAdicField(5, 4)
+        sage: K(3)         # has an exact representation
+          3 + O(5^Infinity)
+        sage: K(3/5)
+          3*5^-1 + O(5^Infinity)
+        sage: K(1/3)       # needs to be approximated; use default precision
+          2 + 3*5 + 5^2 + 3*5^3 + O(5^4)
+        sage: K(5/3)
+          2*5 + 3*5^2 + 5^3 + O(5^4)
+        sage: K(1/15)
+          2*5^-1 + 3 + 5 + 3*5^2 + 5^3 + O(5^4)
+
+      Coercion from rational field with explicitly selected precision:
+        sage: K = pAdicField(5, 4)
+        sage: K(3, infinity)
+          3 + O(5^Infinity)
+        sage: K(3, 8)
+          3 + O(5^8)
+        sage: K(3/5, 8)
+          3*5^-1 + O(5^8)
+        sage: K(1/3, 8)
+          2 + 3*5 + 5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + 3*5^7 + O(5^8)
+        sage: K(5/3, 8)
+          2*5 + 3*5^2 + 5^3 + 3*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^8)
+        sage: K(1/15, 8)
+          2*5^-1 + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^8)
+
     """
     def __init__(self, parent, x, big_oh=infinity, ordp=None, construct=False):
         r"""
@@ -108,7 +138,10 @@ class pAdic(field_element.FieldElement):
                 if x.denominator() == 1:
                     x = int(x)
                 else:
-                    pr = min(parent.prec(), big_oh - ordp)
+                    if big_oh is infinity:
+                        pr = parent.prec() - ordp
+                    else:
+                        pr = big_oh - ordp
                     x = int(x.numerator())*\
                         arith.inverse_mod(int(x.denominator()), self.__p**pr)
                     big_oh = pr + ordp

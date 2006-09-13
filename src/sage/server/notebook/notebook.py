@@ -789,7 +789,13 @@ class Notebook(SageObject):
             body += " onKeyPress='return debug_keypress(event);' "
             body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
             body += "</div>"
-        body += worksheet.html() + '\n</div>\n'
+        body += worksheet.html()
+
+        # The blank space given by '<br>'*15  is needed so the input doesn't get
+        # stuck at the bottom of the screen. This could be replaced by a region
+        # such that clicking on it creates a new cell at the bottom of the worksheet.
+        body += '<br>'*15
+        body += '\n</div>\n'
 
         body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
         body += '  <div class="worksheets_topbar">'

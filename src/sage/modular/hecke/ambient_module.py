@@ -164,6 +164,42 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: (d2*d1).matrix()
             [4 0]
             [0 4]
+
+            sage: M = ModularSymbols(3,12,sign=1)
+            sage: M.degeneracy_map(1)
+            Hecke module morphism degeneracy map corresponding to f(q) |--> f(q) defined by the matrix
+            [1 0]
+            [0 0]
+            [0 1]
+            [0 1]
+            [0 1]
+            Domain: Modular Symbols space of dimension 5 for Gamma_0(3) of weight ...
+            Codomain: Modular Symbols space of dimension 2 for Gamma_0(1) of weight ...
+
+            sage: S = M.cuspidal_submodule()
+            sage: S.degeneracy_map(1)
+            Hecke module morphism defined by the matrix
+            [1 0]
+            [0 0]
+            [0 0]
+            Domain: Modular Symbols subspace of dimension 3 of Modular Symbols space ...
+            Codomain: Modular Symbols space of dimension 2 for Gamma_0(1) of weight ...
+
+            sage: D = ModularSymbols(10,4).cuspidal_submodule().decomposition()
+            sage: D
+            [
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
+            ]
+
+            sage: D[0].degeneracy_map(5)
+            Hecke module morphism defined by the matrix
+            [   0    0   -1    1]
+            [   0  1/2  3/2   -2]
+            [   0   -1    1    0]
+            [   0 -3/4 -1/4    1]
+            Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+            Codomain: Modular Symbols space of dimension 4 for Gamma_0(5) of weight ...
         """
         level = int(level); t = int(t)
 

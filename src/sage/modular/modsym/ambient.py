@@ -63,6 +63,7 @@ import sage.rings.arith as arith
 import sage.structure.formal_sum as formal_sum
 import sage.categories.all as cat
 from sage.modular.cusps import Cusp
+import sage.structure.all
 
 import boundary
 import element
@@ -756,6 +757,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         modular symbols and self is isomorphic to the direct sum of
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(22,sign=1)
+            sage: M.factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 1 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2 *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field)
         """
         try:
             return self._factorization
@@ -789,6 +798,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 for A in N:
                     A._is_simple = True
                     D.append((A,n))
+        D = sage.structure.all.Factorization(D, cr=True)
         self._factorization = D
         return self._factorization
 

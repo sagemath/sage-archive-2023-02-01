@@ -133,6 +133,24 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         adjoin the star involution.
 
         ASSUMPTION: self is a module over the anemic Hecke algebra.
+
+        EXAMPLES:
+        Note that if the sign is 1 then the cuspidal factors occur twice, one with each star eigenvalue.
+            sage: M = ModularSymbols(11)
+            sage: D = M.factorization(); D
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field) *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field) *
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)
+            sage: [A.T(2).matrix() for A, _ in D]
+            [[3], [-2], [-2]]
+            sage: [A.star_eigenvalues() for A, _ in D]
+            [[1], [1], [-1]]
+
+        In this example there is one old factor squared.
+            sage: M = ModularSymbols(22,sign=1)
+            sage: S = M.cuspidal_submodule()
+            sage: S.factorization()
+            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2
         """
         try:
             return self._factorization
@@ -174,7 +192,7 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
 
         # check that dimensions add up
         assert self.rank() == sum([A.rank()*mult for A, mult in D]), "dimensions don't add up!"
-        self._factorization = sage.structure.factorization.Factorization(D)
+        self._factorization = sage.structure.factorization.Factorization(D, cr=True)
         return self._factorization
 
     def hecke_bound(self):

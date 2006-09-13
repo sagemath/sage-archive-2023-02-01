@@ -1377,6 +1377,22 @@ class FreeModule_generic_pid(FreeModule_generic):
         """
         return FreeModule_submodule_pid(self.ambient_module(),[], check=False)
 
+    def index_in_saturation(self):
+        r"""
+        Return the index of this module in its saturation, i.e., its
+        intersection with $R^n$.
+
+        EXAMPLES:
+            sage: W = span(ZZ,[[2,4,6]])
+            sage: W.index_in_saturation()
+            2
+            sage: W = span(ZZ,[[1/2,1/3]])
+            sage: W.index_in_saturation()
+            1/6
+        """
+        # TODO: There is probably a much faster algorithm in this case.
+        return self.saturation().index(self)
+
     def saturation(self):
         r"""
         Return the saturated submodule of $R^n$ that spans the same

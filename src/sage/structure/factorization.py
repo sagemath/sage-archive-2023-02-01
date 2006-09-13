@@ -90,7 +90,7 @@ class Factorization(SageObject, list):
 
 
     """
-    def __init__(self, x, unit=None):
+    def __init__(self, x, unit=None, cr=False):
         if not isinstance(x, list):
             raise TypeError, "x must be a list"
         if isinstance(x, Factorization):
@@ -112,6 +112,7 @@ class Factorization(SageObject, list):
                 unit = Integer(1)
         list.__init__(self, x)
         self.__unit = unit
+        self.__cr = cr
         self.sort()
 
     def __reduce__(self):
@@ -137,6 +138,10 @@ class Factorization(SageObject, list):
         return self.__unit
 
     def _repr_(self):
+        try:
+            cr = self.__cr
+        except AttributeError:
+            cr = False
         if len(self) == 0:
             return str(self.__unit)
         try:
@@ -145,22 +150,25 @@ class Factorization(SageObject, list):
         except AttributeError:
             atomic = False
         s = ''
+        mul =  ' * '
+        if cr:
+            mul += '\n'
         for i in range(len(self)):
             t = str(self[i][0])
-            if not atomic  and (t.find('+') != -1 or t.find('-') != -1):
+            if not atomic  and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
             n = self[i][1]
             if n != 1:
                 t += '^%s'%n
             s += t
             if i < len(self)-1:
-                s += ' * '
+                s += mul
         if self.__unit != 1:
             if atomic:
                 u = str(self.__unit)
             else:
                 u = '(%s)'%self.__unit
-            s =  u + ' * ' + s
+            s =  u + mul + s
         return s
 
     def _latex_(self):
@@ -174,7 +182,7 @@ class Factorization(SageObject, list):
         s = ''
         for i in range(len(self)):
             t = latex.latex(self[i][0])
-            if not atomic and (t.find('+') != -1 or t.find('-') != -1):
+            if not atomic and ('+' in t or '-' in t or ' ' in t):
                 t = '(%s)'%t
             n = self[i][1]
             if n != 1:

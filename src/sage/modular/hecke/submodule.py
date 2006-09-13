@@ -201,6 +201,28 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             A linear function from self to the space of modular symbols
             of given level with the same weight, character, sign,
             etc., as this space.
+
+        EXAMPLES:
+            sage: D = ModularSymbols(10,4).cuspidal_submodule().decomposition(); D
+            [
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
+            ]
+            sage: d = D[0].degeneracy_map(5); d
+            Hecke module morphism defined by the matrix
+            [   0    0   -1    1]
+            [   0  1/2  3/2   -2]
+            [   0   -1    1    0]
+            [   0 -3/4 -1/4    1]
+            Domain: Modular Symbols subspace of dimension 4 of Modular Symbols space ...
+            Codomain: Modular Symbols space of dimension 4 for Gamma_0(5) of weight ...
+
+            sage: d.rank()
+            2
+            sage: d.kernel()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
+            sage: d.image()
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(5) of weight 4 with sign 0 over Rational Field
         """
         d = self.ambient_hecke_module().degeneracy_map(level, t)
         return d.restrict_domain(self)

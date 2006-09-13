@@ -177,10 +177,24 @@ class MatrixMorphism(sage.categories.all.Morphism):
 
     def kernel(self):
         V = self.matrix().kernel()
+        D = self.domain()
+        if not D.is_ambient():
+            # Transform V to ambient space
+            # This is a matrix multiply:  we take the linear combinations of the basis for
+            # D given by the elements of the basis for V.
+            B = V.basis_matrix() * D.basis_matrix()
+            V = B.row_span()
         return self.domain().submodule(V)
 
     def image(self):
         V = self.matrix().image()
+        D = self.codomain()
+        if not D.is_ambient():
+            # Transform V to ambient space
+            # This is a matrix multiply:  we take the linear combinations of the basis for
+            # D given by the elements of the basis for V.
+            B = V.basis_matrix() * D.basis_matrix()
+            V = B.row_span()
         return self.codomain().submodule(V)
 
     def matrix(self):
@@ -203,7 +217,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
         ims= sum([(self(D(b)).coordinate_vector()).list() for b in B],[])
 
         MS = matrix.MatrixSpace(self.base_ring(), len(B), self.codomain().rank())
-        H = sage.categories.homset.Hom(sub, self.codomain(), self.category())
+        H = sub.Hom(self.codomain(), sub.category())
         return H(MS(ims))
 
     def restrict(self, sub):

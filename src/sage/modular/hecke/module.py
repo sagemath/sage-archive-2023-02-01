@@ -466,7 +466,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         time = misc.verbose("Decomposing %s"%self)
         T = self.ambient_hecke_module().hecke_algebra()
         if bound is None:
-            bound = self.hecke_bound()
+            bound = self.ambient_hecke_module().hecke_bound()
         D = Sequence([], cr=True)
         U = [self.free_module()]
         if compute_dual:

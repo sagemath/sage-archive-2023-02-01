@@ -191,6 +191,9 @@ class RationalField(_uniq, field.Field):
         else:
             raise IndexError, "n must be 0"
 
+    def degree(self):
+        return 1
+
     def ngens(self):
         return 1
 

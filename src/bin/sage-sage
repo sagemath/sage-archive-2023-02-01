@@ -104,7 +104,7 @@ fi
 
 matplotlib_setup() {
     MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
-    if [ ! -f "$MATPLOTLIBRC/" ]; then
+    if [ ! -f "$MATPLOTLIBRC/matplotlibrc" ]; then
         mkdir -p "$DOT_SAGE"
         cp "$SAGE_ROOT/matplotlibrc" "$DOT_SAGE/"
     fi

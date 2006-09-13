@@ -35,6 +35,7 @@ DESTINATION=`pwd`
 # NEW DOCUMENTATION PACKAGE
 if [ -d $SAGE_ROOT/devel/doc ]; then
    cd $SAGE_ROOT/devel/doc
+   chmod +x scripts/spkg-dist
    scripts/spkg-dist $SAGE_VERSION
    mv doc-$SAGE_VERSION.spkg $DESTINATION/
    touch $SPKG_INST/doc-$SAGE_VERSION
@@ -43,6 +44,7 @@ fi
 # NEW SAGE SOURCE PACKAGE
 if [ -d $SAGE_ROOT/devel/sage ]; then
    cd $SAGE_ROOT/devel/sage
+   chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
    mv dist/sage-$SAGE_VERSION.spkg $DESTINATION/
    touch $SPKG_INST/sage-$SAGE_VERSION
@@ -51,6 +53,7 @@ fi
 # NEW SAGE EXTERNAL CODE PACKAGE
 if [ -d $SAGE_ROOT/data/extcode ]; then
    cd $SAGE_ROOT/data/extcode
+   chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
    mv extcode-$SAGE_VERSION.spkg $DESTINATION/
    touch $SPKG_INST/extcode-$SAGE_VERSION

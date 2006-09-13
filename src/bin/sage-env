@@ -48,6 +48,8 @@ if [ "$SAGE_ROOT" = "" ]; then
     exit 1
 fi
 
+
+
 if [ "$1" != "-short" ]; then
     echo "The following enviroment variables can be set by the user"
     echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
@@ -88,7 +90,7 @@ if [ "$DOT_SAGE" = "" ]; then
     export DOT_SAGE
 fi
 
-
+MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
 
 if [ "$SAGE_STARTUP_FILE" = "" ]; then
     SAGE_STARTUP_FILE="$DOT_SAGE/init.sage"

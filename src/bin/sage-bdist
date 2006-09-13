@@ -6,6 +6,14 @@
 
 PKGDIR=spkg
 
+CUR=`pwd`
+
+if [ $UNAME = "Darwin" ]; then
+    OPT="PR"
+else
+    OPT="pr"
+fi
+
 if [ $# -ne 2 ]; then
    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
    exit 1
@@ -17,22 +25,26 @@ export SAGE_VERSION SAGE_ROOT
 
 TARGET=sage-"$SAGE_VERSION"-`uname -m`-`uname`
 TARGET=`echo $TARGET | sed -e 's/ //'`     #no blank spaces
-TMP="/tmp/$TARGET"
+TMP="$CUR/tmp/$TARGET"
 
-if [ -d $TMP ]; then
+if [ ! -d "$CUR/tmp" ]; then
+   mkdir "$CUR/tmp"
+fi
+
+if [ -d "$TMP" ]; then
    rm -rf "$TMP"
 fi
 
 mkdir $TMP
 
 cd $SAGE_ROOT
-cp -pr examples local makefile *.txt *.sage sage ipython matplotlibrc data $TMP/
-cp -prL doc $TMP/
+cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data $TMP/
+cp -L$OPT doc $TMP/
 if [ -d devel/sage ]; then
    cd devel/sage
    mkdir $TMP/devel/
    mkdir $TMP/devel/sage/
-   cp -pr MANIFEST.in README* install sage setup.py spkg-* $TMP/devel/sage/
+   cp -$OPT MANIFEST.in README* install sage setup.py spkg-* $TMP/devel/sage/
 fi
 
 cd $SAGE_ROOT
@@ -41,16 +53,16 @@ if [ -d $PKGDIR ]; then
    mkdir $TMP/$PKGDIR
    mkdir $TMP/$PKGDIR/build
    mkdir $TMP/$PKGDIR/optional
-   cp -pr installed $TMP/$PKGDIR/
-   cp -pr standard $TMP/$PKGDIR/
-   cp -p install README.txt gen_html $TMP/$PKGDIR/
+   cp -$OPT installed $TMP/$PKGDIR/
+   cp -$OPT standard $TMP/$PKGDIR/
+   cp  install README.txt gen_html $TMP/$PKGDIR/
    cd $TMP/$PKGDIR/standard/
    for F in `/bin/ls *.spkg`; do
        echo "Placeholder spkg file so this binary version of SAGE knows this package version used when installing SAGE." > $F
    done
 fi
 
-cd /tmp
+cd $CUR/tmp/
 tar zcvf $TARGET.tar.gz $TARGET
 
 if [ ! -d $SAGE_ROOT/dist ]; then

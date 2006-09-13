@@ -57,7 +57,7 @@ os.chdir("%s/standard/"%SPKG_ROOT)
 download_file("standard/list")
 download_file("standard/deps")
 download_file("standard/newest_version")
-os.system('chmod u+x newest_version')
+os.system('chmod +x newest_version')
 download_file("standard/README")
 
 packages = open("list").read().split('\n')

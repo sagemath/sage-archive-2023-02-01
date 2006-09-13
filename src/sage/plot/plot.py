@@ -1822,3 +1822,15 @@ def graphics_array(array, n=None, m=None):
 
 
 
+def arrowhead(x,y,angle=0,spread=0.1,length=0.05,**options):
+    """
+    Draw an arrowhead with tip at (x,y), rotated the given angle,
+    with given spread (in radians) and sides having the given length.
+
+    EXAMPLES:
+
+    """
+    s = spread/2; r = length
+    v = [(x - r*cos(angle-s), y-r*sin(angle-s)), (x,y), \
+         (x - r*cos(angle+s), y-r*sin(angle+s))]
+    return line(v, **options)

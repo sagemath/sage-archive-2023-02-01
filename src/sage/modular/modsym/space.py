@@ -400,23 +400,30 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
 
-    def q_expansion_module(self, prec):
+    def q_expansion_module(self, prec = None, R=None):
         r"""
+        Return a basis over R for the space spanned by the coefficient
+        vectors of the $q$-expansions corresponding to self.  If R is
+        not the base ring of self, returns the restriction of scalars
+        down to R (for this, self must have base ring $\QQ$ or a
+        number field).
 
-        """
+        INPUT:
+             self -- must be cuspidal
+             prec -- an integer (default: self.default_prec())
+             R -- either ZZ, QQ, or the base_ring of self (which is the default)
 
+        OUTPUT:
+             A free module over R.
 
-    def q_expansion_module_rational(self, prec):
-        r"""
-        Return a basis over $\QQ$ for the space spanned by the
-        coefficient vectors of the $q$-expansions corresponding to
-        self and its Galois conjugates.  The base ring of self must be
-        $\QQ$ or a number field, and self must be cuspidal.
+        TODO -- extend to more general R (though that is fairly easy
+        for the user to get by just doing base_extend or change_ring
+        on the output of this function).
 
         Note that the prec needed to distinguish elements of the
-        restricted-down-to-QQ basis may be bigger than
-        \code{self.hecke_bound()}, since one must use the Sturm
-        bound for modular forms on $\Gamma_H(N)$.
+        restricted-down-to-R basis may be bigger than
+        \code{self.hecke_bound()}, since one must use the Sturm bound
+        for modular forms on $\Gamma_H(N)$.
 
         INPUT:
             prec -- integer
@@ -424,27 +431,26 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         OUTPUT:
             A QQ-vector space
 
-        EXAMPLES:
 
-        TODO: Example with sign = 0:  (doesn't work yet!!)
+        EXAMPLES WITH SIGN 1 and R=QQ:
 
         Basic example with sign 1:
             sage: M = ModularSymbols(11, sign=1).cuspidal_submodule()
-            sage: M.q_expansion_module_rational(5)
+            sage: M.q_expansion_module(5, QQ)
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
             [ 0  1 -2 -1  2]
 
         Same example with sign -1:
             sage: M = ModularSymbols(11, sign=-1).cuspidal_submodule()
-            sage: M.q_expansion_module_rational(5)
+            sage: M.q_expansion_module(5, QQ)
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
             [ 0  1 -2 -1  2]
 
         An example involving old forms:
             sage: M = ModularSymbols(22, sign=1).cuspidal_submodule()
-            sage: M.q_expansion_module_rational(5)
+            sage: M.q_expansion_module(5, QQ)
             Vector space of degree 5 and dimension 2 over Rational Field
             Basis matrix:
             [ 0  1  0 -1 -2]
@@ -452,7 +458,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
 
         An example that (somewhat spuriously) is over a number field:
             sage: M = ModularSymbols(11, base_ring=NumberField(x^2+1), sign=1).cuspidal_submodule()
-            sage: M.q_expansion_module_rational(5)
+            sage: M.q_expansion_module(5, QQ)
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
             [ 0  1 -2 -1  2]
@@ -461,7 +467,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: M = ModularSymbols(23, sign=1).cuspidal_submodule()
             sage: M.q_eigenform(4)
             q + alpha*q^2 + (-2*alpha - 1)*q^3 + O(q^4)
-            sage: M.q_expansion_module_rational(11)
+            sage: M.q_expansion_module(11, QQ)
             Vector space of degree 11 and dimension 2 over Rational Field
             Basis matrix:
             [ 0  1  0 -1 -1  0 -2  2 -1  2  2]
@@ -473,9 +479,13 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 and level 11, weight 3, character [zeta10], sign 1, over Cyclotomic Field of order 10 and degree 4
             sage: M.q_eigenform(4)
             q + (-zeta10^3 + 2*zeta10^2 - 2*zeta10)*q^2 + (2*zeta10^3 - 3*zeta10^2 + 3*zeta10 - 2)*q^3 + O(q^4)
-            sage: M.q_expansion_module_rational(10)
-            ... totally wrong!!!
-
+            sage: M.q_expansion_module(7, QQ)
+            Vector space of degree 7 and dimension 4 over Rational Field
+            Basis matrix:
+            [  0   1   0   0   0 -40  64]
+            [  0   0   1   0   0 -24  41]
+            [  0   0   0   1   0 -12  21]
+            [  0   0   0   0   1  -4   4]
 
         An example involving an eigenform rational over the base, but the base is not QQ.
             sage: M = ModularSymbols(23, base_ring=NumberField(x^2-5), sign=1).cuspidal_submodule()
@@ -484,8 +494,11 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(23) of weight 2 with sign 1 over Number Field in a with defining polynomial x^2 - 5,
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(23) of weight 2 with sign 1 over Number Field in a with defining polynomial x^2 - 5
             ]
-            sage: M.q_expansion_module_rational(11)
-            ... totally wrong!!!
+            sage: M.q_expansion_module(8, QQ)
+            Vector space of degree 8 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 0  1  0 -1 -1  0 -2  2]
+            [ 0  0  1 -2 -1  2  1  2]
 
         An example involving an eigenform not rational over the base and for which the base is not QQ.
             sage: eps = DirichletGroup(25).0^2
@@ -497,7 +510,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             ]
             sage: D[0].q_eigenform(4)
             q + alpha*q^2 + ((zeta10^3 + zeta10 - 1)*alpha + zeta10^2 - 1)*q^3 + O(q^4)
-            sage: D[0].q_expansion_module_rational(11)
+            sage: D[0].q_expansion_module(11, QQ)
             Vector space of degree 11 and dimension 8 over Rational Field
             Basis matrix:
             [  0   1   0   0   0   0   0   0 -20  -3   0]
@@ -508,6 +521,120 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [  0   0   0   0   0   0   1   0  -3  -1   0]
             [  0   0   0   0   0   0   0   1  -2   0   0]
             [  0   0   0   0   0   0   0   0   0   0   1]
+            D[0].q_expansion_module(11)
+            Vector space of degree 11 and dimension 2 over Cyclotomic Field of order 10 and degree 4
+            Basis matrix:
+            [                                  0                                   1                                   0                        zeta10^2 - 1                       -zeta10^2 - 1                -zeta10^3 - zeta10^2                   zeta10^2 - zeta10           2*zeta10^3 + 2*zeta10 - 1    zeta10^3 - zeta10^2 - zeta10 + 1        zeta10^3 - zeta10^2 + zeta10   -2*zeta10^3 + 2*zeta10^2 - zeta10]
+            [                                  0                                   0                                   1               zeta10^3 + zeta10 - 1                         -zeta10 - 1                -zeta10^3 - zeta10^2 -2*zeta10^3 + zeta10^2 - zeta10 + 1                            zeta10^2                                   0                        zeta10^3 + 1  2*zeta10^3 - zeta10^2 + zeta10 - 1]
+
+        EXAMPLES WITH SIGN 0 and R=QQ:
+        ** TODO -- this doesn't work yet for some reason **
+            sage: M = ModularSymbols(11,2).cuspidal_submodule()
+            sage: M.q_expansion_module()
+            ... boom ...
+
+
+        EXAMPLES WITH SIGN 1 and R=ZZ (computes saturation):
+
+            sage: M = ModularSymbols(43,2, sign=1).cuspidal_submodule()
+            sage: M.q_expansion_module(8, QQ)
+            Vector space of degree 8 and dimension 3 over Rational Field
+            Basis matrix:
+            [   0    1    0    0    0    2   -2   -2]
+            [   0    0    1    0 -1/2    1 -3/2    0]
+            [   0    0    0    1 -1/2    2 -3/2   -1]
+            sage: M.q_expansion_module(8, ZZ)
+            Free module of degree 8 and rank 3 over Integer Ring
+            Echelon basis matrix:
+            [ 0  1  0  0  0  2 -2 -2]
+            [ 0  0  1  1 -1  3 -3 -1]
+            [ 0  0  0  2 -1  4 -3 -2]
+        """
+        if prec is None:
+            prec = self.default_prec()
+        if R == ZZ:
+            return self._q_expansion_module_integral(prec)
+        elif R == QQ:
+            return self._q_expansion_module_rational(prec)
+        elif R is None or R == self.base_ring():
+            return self._q_expansion_module(prec)
+        else:
+            raise NotImplementedError, "R must be ZZ, QQ, or the base ring of the modular symbols space."
+
+    def _q_eigenform_images(self, A, prec):
+        """
+        Return list of images in space corresponding to self of eigenform
+        corresponding to A under the degeneracy maps.  This is mainly a helper
+        function for other internal function.
+
+        INPUT:
+             self -- space of modular symbols
+             A    -- cuspidal simple space of level dividing the level of self
+                     and the same weight
+             prec -- a positive integer
+
+        EXAMPLES:
+            sage: M = ModularSymbols(33,2,sign=1)
+            sage: A = M.modular_symbols_of_level(11).cuspidal_submodule()
+            sage: M._q_eigenform_images(A, 10)
+            [q - 2*q^2 - q^3 + 2*q^4 + q^5 + 2*q^6 - 2*q^7 - 2*q^9 + O(q^10),
+             q^3 - 2*q^6 - q^9 + 2*q^12 + q^15 + 2*q^18 - 2*q^21 - 2*q^27 + O(q^30)]
+        """
+        f = A.q_eigenform(prec)
+        if A.level() == self.level():
+            return [f]
+        D = arith.divisors(self.level() // A.level())
+        q = f.parent().gen()
+        return [f] + [f(q**d) for d in D if d > 1]
+
+    def _q_expansion_module(self, prec, algorithm='hecke'):
+        """
+        Return module spanned by the $q$-expansions corresponding to
+        self.
+        """
+        if not self.is_cuspidal():
+            raise ValueError, "self must be cuspidal"
+        R = self.base_ring()
+        if not R.is_field():
+            if R == ZZ:
+                return self._q_expansion_module_integral(prec)
+            raise NotImplementedError, "base ring must be a field (or ZZ)."
+
+        if algorithm == 'hecke' or algorithm == 'default':
+            A = R ** prec
+            return A.span([f.padded_list(prec) for f in self.q_expansion_basis(prec, algorithm)])
+
+        if algorithm != 'eigen':
+            raise ValueError, "unknown algorithm '%s'"%algorithm
+
+        V = R ** prec
+        def q_eigen_gens(f):
+            X = f.padded_list(prec)
+            d = A.dimension()
+            if d == 1:
+                # X is just a list of elements of R
+                return [X]
+            else:
+                # X is a list of elements of a poly quotient ring
+                return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
+
+        if self.sign() == 0:
+            X = self.plus_submodule(compute_dual=True)
+        else:
+            X = self
+
+        B = [sum([q_eigen_gens(f) for f in self._q_eigenform_images(A, prec)], []) for A, _ in X.factorization()]
+
+        A = R ** prec
+        return A.span(sum(B, []))
+
+    def _q_expansion_module_rational(self, prec):
+        """
+        Return a free module over $\ZZ$ for the space spanned by the
+        $q$-expansions corresponding to self.  The base ring of self
+        must be $\QQ$ or a number field, and self must be cuspidal.
+        The returned space is a $\ZZ$-module, where the coordinates
+        are the coefficients of $q$-expansions.
         """
         if not self.is_cuspidal():
             raise ValueError, "self must be cuspidal"
@@ -515,73 +642,49 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if not (K == QQ or is_NumberField(K)):
             raise TypeError, "self must be over QQ or a number field."
         n = K.degree()
+        if n == 1:
+            return self._q_expansion_module(prec)
 
         # Construct the vector space over QQ of dimension equal to
         # the degree of the base field times the dimension over C
         # of the space of cusp forms corresponding to self.
-        def q_eigen_ims(A):
-            f = A.q_eigenform(prec)
-            if A.level() == self.level():
-                return [f]
-            D = arith.divisors(self.level() // A.level())
-            q = f.parent().gen()
-            return [f] + [f(q**d) for d in D if d > 1]
-
         V = QQ ** prec
         def q_eigen_gens(f):
             # Return restricted down to QQ gens for cusp space corresponding
             # to the simple factor A.
             X = f.padded_list(prec)
             d = A.dimension()
-            if n == 1:
-                if d == 1:
-                    # X is just a list of rational numbers
-                    return [X]
-                else:
-                    # X is a list of elements of a poly quotient ring or number field
-                    return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
+            if d == 1:
+                return [[X[i][j] for i in xrange(prec)] for j in xrange(n)]
             else:
-                if d == 1:
-                    return [[X[i][j] for i in xrange(prec)] for j in xrange(d)]
-                else:
-                    # This looks like it might be really slow -- though perhaps it's nothing compared to
-                    # the time taken by whatever computed this in the first place.
-                    return [[X[i][j][k] for i in xrange(prec)] for j in xrange(d) for k in range(n)]
+                # This looks like it might be really slow -- though perhaps it's nothing compared to
+                # the time taken by whatever computed this in the first place.
+                return [[X[i][j][k] for i in xrange(prec)] for j in xrange(d) for k in range(n)]
         if self.sign() == 0:
             X = self.plus_submodule(compute_dual=True)
         else:
             X = self
 
-        B = [sum([q_eigen_gens(f) for f in q_eigen_ims(A)], []) for A, _ in X.factorization()]
+        B = [sum([q_eigen_gens(f) for f in self._q_eigenform_images(A, prec)], []) for A, _ in X.factorization()]
 
         A = QQ**prec
         W = A.span(sum(B, []))
         return W
 
 
-    def q_expansion_module_integral(self, prec):
+    def _q_expansion_module_integral(self, prec):
         r"""
-        Return a basis over $\ZZ$ for the space spanned by the
+        Return module over $\ZZ$ for the space spanned by the
         $q$-expansions corresponding to self.  The base ring of self
         must be $\QQ$ or a number field, and self must be cuspidal.
-
         The returned space is a $\ZZ$-module, where the coordinates
         are the coefficients of $q$-expansions.
 
-        INPUT:
-            prec -- integer
-            algorithm -- string
-            The prec and algorithm inputs are passed along to q_expansion_basis;
-            see the documentation for that function.
-
-        OUTPUT:
-            A free ZZ-module.
-
         EXAMPLES:
-            sage: must have examples!!!
+            sage: todo
         """
-        V = self.q_expansion_module_over_rational_field(prec)
-        return span(ZZ, V).saturation()
+        V = self.q_expansion_module(prec, QQ)
+        return free_module.span(ZZ, V.basis()).saturation()
 
 
     def congruence_number(self, other, prec=None):
@@ -601,14 +704,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         """
         if not self.is_cuspidal():
             raise ValueError, "self must be cuspidal"
-        if not right.is_cuspidal():
+        if not other.is_cuspidal():
             raise ValueError, "right must be cuspidal"
         if prec is None:
             prec = max(self.hecke_bound(), other.hecke_bound())
         prec = int(prec)
 
-        V =  self.q_integral_module(prec)
-        W = other.q_integral_module(prec)
+        V =  self.q_expansion_module(prec, ZZ)
+        W = other.q_expansion_module(prec, ZZ)
         K = V+W
         return K.index_in_saturation()
 

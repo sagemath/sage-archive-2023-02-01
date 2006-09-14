@@ -239,6 +239,10 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         try:
             return self.__dual_free_module
         except AttributeError:
+            if self.dimension() == 0:
+                self.__dual_free_module = self.ambient_hecke_module().dual_free_module().zero_submodule()
+                return self.__dual_free_module
+
             # ALGORITHM: Compute the char poly of each Hecke operator on the
             # submodule, then use it to cut out a submodule of the dual.  If
             # the dimension cuts down to the dimension of self terminate
@@ -247,6 +251,9 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             misc.verbose("computing")
             N = self.level()
             A = self.ambient_hecke_module()
+            if A.dimension() == self.dimension():
+                self.__dual_free_module = A.free_module()
+                return self.__dual_free_module
             V = A.free_module()
             p = 2
             if bound is None:

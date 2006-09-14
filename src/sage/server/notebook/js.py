@@ -1690,18 +1690,18 @@ function history_window() {
 
 function worksheet_text_window(worksheet) {
     log = window.open (worksheet+"__plain__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600");
+      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1");
 }
 
 function doctest_window(worksheet) {
     log = window.open (worksheet+"__doc__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
 }
 
 
 function print_window(worksheet) {
     log = window.open (worksheet+"__print__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=0");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
 }
 
 //////////////////////////////////
@@ -1709,7 +1709,7 @@ function print_window(worksheet) {
 /////////////////////////////////
 function show_help_window(worksheet) {
     help = window.open ("__help__.html","",
-    "menubar=1,scrollbars=1,width=800,height=600,resizable=1");
+    "menubar=1,scrollbars=1,width=800,height=600,resizable=1, toolbar=1");
 }
 
 

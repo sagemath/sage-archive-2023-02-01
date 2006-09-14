@@ -625,150 +625,22 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
          Check requesting lower precision:
            sage: (t + t^2 - t^5 + O(t^10)).exp(5)
-            1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+           1 + t + 3/2*t^2 + 7/6*t^3 + 25/24*t^4 + O(t^5)
+
+         Can't get more precision than the input:
+           sage: (t + t^2 + O(t^3)).exp(10)
+           1 + t + 3/2*t^2 + O(t^3)
 
          Check some boundary cases:
            sage: (t + O(t^2)).exp(1)
            1 + O(t)
            sage: (t + O(t^2)).exp(0)
-            O(t^0)
-
-        TODO:
-          -- There are even faster ways to do this; for some coefficient
-             rings you can get $O(n^(1+\epsilon))$. Some references to
-             follow up:
-             (1) Brent-Kung composition should also get O(n^2) I think (?)
-             (2) Apparently the same paper where Brent/Kung give their
-                 composition algorithm, they also discuss methods for solving
-                 differential equations (which computing exp essentially is)
-             (3) There's a paper at
-                 http://www.math.u-psud.fr/~vdhoeven/Publs/1997/issac97.ps.gz
-                 This discusses more general lazy algorithms than the one
-                 implemented here, for example using Karatsuba multiplication.
-                 My guess is that the algorithms described in this paper will
-                 give us the best bang for our buck in the setting of a
-                 generic coefficient ring.
-
-          -- Currently this function seems to allow you to ask for exp to
-             *higher* precision than the series is currently stored at.
-             Does this even make sense?
+           O(t^0)
 
         """
-        if prec == infinity:
-            if self.prec() == infinity:
-                raise RuntimeError, "prec must be finite for exponentiation " \
-                      "of infinite-precision power series"
-            prec = self.prec()
-        if self.valuation() <= 0:
-            raise ArithmeticError, "valuation must be positive"
-
-        prec = int(prec)
-        if prec < 0:
-            raise ValueError, \
-                  "prec (=%s) must be a non-negative integer" % prec
-
-        if prec == 0:
-            return self.parent()(0, 0)
-
-        # The algorithm implemented here is inspired by the "fast lazy
-        # multiplication algorithm" described in the paper "Lazy multiplication
-        # of formal power series" by J van der Hoeven (1997 ISSAC conference).
-
-        # Our situation is a bit simpler than the one described there,
-        # because only one of the series being multiplied needs the lazy
-        # treatment; the other one is known fully in advance. I have
-        # reformulated the algorithm as an explicit divide-and-conquer
-        # recursion. Possibly it is slower than the one described by van der
-        # Hoeven, by a constant factor, but it seems easier to implement.
-        # Also, because we repeatedly split in half starting at the top level,
-        # instead of repeatedly doubling in size from the bottom level, it's
-        # easier to avoid problems with "overshooting" in the last iteration.
-
-        # Computing $\exp(A(t))$ is equivalent to solving the differential
-        # equation $f' = A' f$ with the initial condition $f_0 = 1$
-        # (where $f_0$ denotes the constant term of $f$).
-
-        # What we do is consider the following more general problem:
-
-        # Given power series $a(t)$ and $b(t)$ (considered to have effectively
-        # infinite precision), and integers $N \geq 0$ and $L \geq 1$, find
-        # a power series $f(t)$ modulo $t^L$ satisfying the equation
-        #   $$ (t^N f)'  =  a t^N f  +  t^{N-1} b $$
-        # modulo $t^{N+L-1}$. If $N = 0$, we want a solution with $f_0 = 1$,
-        # and if $N \geq 1$ we want one with $b_0 = N f_0$. Our original
-        # problem is an instance of this more general problem, with $N = 0$,
-        # $L$ equal to the precision we want for $\exp(A(t))$, $b = 0$, and
-        # $a = A'$.
-
-        # We can split this problem into two instances with $L$ about half
-        # the size. Take $L' = \ceil(L/2)$. First recursively find $g$
-        # modulo $t^{L'}$ such that
-        #   $$ (t^N g)'  =  a t^N g  +  t^{N-1} b $$
-        # modulo $t^{N+L'-1}$.
-
-        # Next we want to find $h$ modulo $t^{L-L'}$ such that
-        # $f = g + t^{L'} h$ is a solution of the original equation.
-        # We can find a suitable $h$ by recursively solving another
-        # differential equation of the same form, namely
-        #   $$ (t^{N+L'} h)'  =  a t^{N+L'} h  +  c t^{N+L'-1} $$
-        # modulo $t^{(N+L')+(L-L')-1$, where $c$ is determined by
-        #   $$ (t^N g)' - a t^N g - t^{N-1} b  =  -c t^{N+L'-1} $$
-        # (modulo $t^{N+L-1}$). Once $g$ is known, $c$ can be determined from
-        # this relation by computing the coefficients of $t^j$ of the product
-        # $a g$ for $j$ in the range $L'-1 \leq j < L-1$.
-
-        # At the bottom of the recursion we have $L = 1$, in which case
-        # the solution is simply given by $f_0 = b_0/N$.
-
-        # The algorithm has to do one multiplication of length $N$, two of
-        # length $N/2$, four of length $N/4$, etc, hence giving runtime
-        # $O(M(N) \log N)$.
-
-        base_ring = self.parent().base_ring()
-        R = PolynomialRing(base_ring)
-        a = self.derivative().list()[:prec]
-
-        def solve(N, L, b):
-            # Recursively solves the differential equation described above,
-            # where the coefficients of $a$ are in the list a.
-            #
-            # INPUT:
-            #   N -- integer >= 0
-            #   L -- integer >= 1
-            #   b -- list of coefficients of $b$, length at least $L$
-            #        (only first $L$ coefficients are used).
-            #
-            # OUTPUT:
-            #   List of coefficients of $f$ (length exactly $L$)
-
-            if L == 1:
-                # base case
-                if N == 0:
-                    return [base_ring(1)]
-                else:
-                    return [b[0] / N]
-
-            L2 = (L + 1) >> 1    # ceil(L/2)
-
-            g = solve(N, L2, b)
-
-            term1 = R(g, check=False)
-            term2 = R(a[:L], check=False)
-            product = (term1 * term2).list()
-
-            # todo: perhaps next loop could be made more efficient
-            c = b[L2:L]
-            for j in range(L2 - 1, min(L-1, len(product))):
-                c[j - (L2-1)] = c[j - (L2-1)] + product[j]
-
-            h = solve(N + L2, L - L2, c)
-
-            g.extend(h)
-            return g
-
-        # Start the recursion:
-        f = solve(0, prec, [base_ring(0) for n in range(prec)])
-        return self.parent()(f, prec)
+        if not self[0].is_zero():
+            raise ValueError, "constant term must to zero"
+        return self.derivative().solve_linear_de(prec)
 
 
     def copy(self):

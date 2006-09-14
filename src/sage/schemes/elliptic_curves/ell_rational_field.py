@@ -5,7 +5,8 @@ AUTHORS:
    -- William Stein (2005): first version
    -- William Stein (2006-02-26): fixed Lseries_extended which didn't work
             because of changes elsewhere in SAGE.
-   -- David Harvey (2006-09): Added padic_E2, padic_sigma methods.
+   -- David Harvey (2006-09): Added padic_E2, padic_sigma, padic_height,
+            padic_regulator methods.
 """
 
 #*****************************************************************************
@@ -3286,7 +3287,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise ArithmeticError, "p must be a good ordinary prime"
         return p
 
-    def padic_height(self, p, P, prec=20):
+
+    # This is the old version of padic_height that requires MAGMA:
+    def padic_height_magma(self, p, P, prec=20):
         """
         Return the cyclotomic $p$-adic height of $P$, in the sense
         of Mazur and Tate.
@@ -3307,7 +3310,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise ArithmeticError, "P = (%s) must be a point on this curve"%P
         return padic_height.padic_height(self.a_invariants(), p, P, prec)
 
-    def padic_regulator(self, p, prec=20):
+
+    # This is the old version of padic_regulator that requires MAGMA:
+    def padic_regulator_magma(self, p, prec=20):
         """
         Return the cyclotomic $p$-adic regulator of $P$, in the sense
         of Mazur and Tate.
@@ -3329,10 +3334,240 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                                             prec)
 
 
-    def padic_sigma(self, p, prec=20, check_E2=False, check_sigma=False, E2=None):
+    def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
+        """
+        Computes the cyclotomic p-adic regulator of this curve.
+
+        This curve must be in minimal weierstrass form.
+
+        INPUT:
+            p -- prime >= 5
+            prec -- answer will be returned modulo p^prec (unless p is
+                    anomalous; see below)
+            height -- precomputed height function. If not supplied, this
+                 function will call padic_height to compute it.
+            check_hypotheses -- boolean, whether to check that this is a
+                 curve for which the p-adic height makes sense
+
+        OUTPUT:
+            The p-adic cyclotomic regulator of this curve, to the requested
+            precision. HOWEVER, if $p$ is anomalous for this curve, then
+            there may be some precision loss (at most $2r$ p-adic digits,
+            where $r$ is the rank of the curve). This is caused by the fact
+            that the matrix of height pairings may contain some denominators
+            (even though each entry is computed to the correct precision).
+
+            If the rank is 0, we output 1.
+
+        TODO:
+            -- remove restriction that curve must be in minimal weierstrass
+            form. This is currently required for E.gens().
+
+        AUTHORS:
+            -- Liang Xiao, original implementation at the 2006 MSRI graduate
+            workshop on modular forms
+            -- David Harvey (2006-09-13), cleaned up and integrated into SAGE,
+            removed some redundant height computations
+
+        EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: E.padic_regulator(5, 10)
+             1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)
+
+          An anomalous case:
+            sage: E.padic_regulator(53, 10)
+             26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
+
+          An anomalous case where the precision drops slightly:
+            sage: E = EllipticCurve("5077a")
+            sage: E.padic_regulator(5, 10)
+             5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
+
+          Check that answers agree over a range of precisions:
+            sage: max_prec = 30    # make sure we get past p^2    # long time
+            sage: full = E.padic_regulator(5, max_prec)           # long time
+            sage: for prec in range(1, max_prec):                 # long time
+            ...       assert E.padic_regulator(5, prec) == full   # long time
+
+        """
+        if check_hypotheses:
+            p = self.__check_padic_hypotheses(p)
+
+        K = rings.pAdicField(p, prec=prec)
+
+        rank = self.rank()
+        if rank == 0:
+            return K(1)
+
+        basis = self.gens()
+
+        if height is None:
+            height = self.padic_height(p, prec, check_hypotheses=False)
+
+        # Use <P, Q> = h(P) + h(Q) - h(P + Q)
+
+        point_height = [height(P) for P in basis]
+        M = matrix.Matrix(K, rank, rank)
+        for i in range(rank):
+            for j in range(i, rank):
+                M[i, j] = M[j, i] = point_height[i] + point_height[j] \
+                                    - height(basis[i] + basis[j])
+
+        return M.determinant()
+
+
+    def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
+        """
+        Computes the cyclotomic p-adic height, as defined by Mazur and Tate.
+        The height is normalised to take values in $\Z_p$, unless $p$ is
+        anomalous in which case it takes values in $(1/p)\Z_p$.
+
+        The equation of the curve must be minimal at $p$.
+
+        INPUT:
+            p -- prime >= 5 for which the curve has good ordinary reduction
+            prec -- integer >= 1, desired precision of result
+            sigma -- precomputed value of sigma. If not supplied, this function
+                 will call padic_sigma to compute it.
+            check_hypotheses -- boolean, whether to check that this is a
+                 curve for which the p-adic height makes sense
+
+        OUTPUT:
+            A function that accepts two parameters:
+              * a Q-rational point on the curve whose height should be computed
+              * optional boolean flag "check": if False, it skips some
+                input checking,
+            and returns the p-adic height of that point to the desired
+            precision.
+
+        AUTHORS:
+            -- Jennifer Balakrishnan: original code developed at the 2006
+            MSRI graduate workshop on modular forms
+            -- David Harvey (2006-09-13): integrated into SAGE, optimised
+            to speed up repeated evaluations of the returned height function,
+            addressed some thorny precision questions
+
+        TODO:
+            -- The introductory docstring appears to be wrong: sometimes the
+               values actually have denominator divisible by p^2, not just p.
+               Ask William about this.
+
+        EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: P = E.gens()[0]
+            sage: h = E.padic_height(5, 10)
+            sage: h(P)
+             2 + 4*5 + 5^2 + 2*5^3 + 2*5^4 + 3*5^5 + 2*5^6 + 4*5^7 + 5^8 + 4*5^9 + O(5^10)
+
+          An anomalous case:
+            sage: h = E.padic_height(53, 10)
+            sage: h(P)
+             40*53^-2 + 37*53^-1 + 42 + 2*53 + 21*53^2 + 10*53^3 + 48*53^4 + 41*53^5 + 8*53^6 + 11*53^7 + 44*53^8 + 28*53^9 + O(53^10)
+
+          Boundary case:
+            sage: E.padic_height(5, 1)(P)
+             2 + O(5)
+
+          Check that answers agree over a range of precisions:
+            sage: max_prec = 30    # make sure we get past p^2    # long time
+            sage: full = E.padic_height(5, max_prec)(P)           # long time
+            sage: for prec in range(1, max_prec):                 # long time
+            ...       assert E.padic_height(5, prec)(P) == full   # long time
+
+        """
+        if check_hypotheses:
+            p = self.__check_padic_hypotheses(p)
+
+        prec = int(prec)
+        if prec < 1:
+            raise ValueError, "prec (=%s) must be at least 1" % prec
+
+        # Find an integer N such that for any point P, the multiple N*P
+        # reduces to the identity mod p and is in the connected component of
+        # the Neron model modulo all primes.
+        multiple = arith.LCM(self.tamagawa_numbers() +
+                             [self.change_ring(rings.GF(p)).cardinality()])
+
+        # Later, we will be computing $h(P) = h(NP)/N^2$. But if $N$ is
+        # divisible by a power of $p$, then this will affect the resulting
+        # p-adic precision. Also, we'll be dividing by p once at the end.
+        # So we take all of this into account right from the beginning.
+        extra_prec = 2 * arith.valuation(multiple, p) + 1
+
+        if sigma is None:
+            sigma = self.padic_sigma(p, prec + extra_prec,
+                                     check_hypotheses=False)
+
+        K = rings.pAdicField(p, prec)
+        E = self
+
+        def height(P, check=True):
+            if check:
+                assert P.curve() == E, "the point P must lie on the curve " \
+                       "from which the height function was created"
+
+            # Compute appropriate multiple of point (as described above).
+
+            # todo: I'm a bit concerned about this step. It's not totally
+            # clear how to get a good complexity bound on computing this
+            # multiple; the coefficients will get quite large.
+            # At some point, should think about whether it's worth trying
+            # to do the multiple in a p-adic field of finite precision,
+            # and work out how big that precision would need to be. I'm not
+            # sure if there's a good answer to that question, but it sounds
+            # like the kind of thing that people would have thought about.
+
+            # todo: maybe it would be good to reduce the point first and
+            # work its actual order in the reduced curve. Or maybe not.
+            P = multiple * P
+
+            # Compute t(P) = -x/y and d(P) = sqrt(denominator of x)
+            # Note that t and d have the same valuation at p. (Because
+            # the equation of the curve implies that v(x) = -2n and v(y)
+            # = -3n for some positive n.)
+            t = -P[0]/P[1]
+            val = arith.valuation(t, p)
+            d = P[0].denominator()
+            if check:
+                assert d.is_square(), "the denominator of the adjusted " \
+                       "point should have been a square, but it wasn't."
+            d = d.square_root()
+            if check:
+                assert val == arith.valuation(d, p), "d and t should have " \
+                       "the same p-adic valuation, but they don't."
+
+            # todo: the following line is RIDICULOUSLY, INSANELY SLOW,
+            # because some p-adic coercion code is broken somewhere
+            # (see trac #57)
+            t = K(t, prec + extra_prec + val)
+            d = K(d, prec + extra_prec + val)
+
+            # Evaluate sigma
+            # (todo: we can't just use "sigma(t)" because SAGE seems to have
+            # a bug where it only uses the lowest precision of the coefficients
+            # of sigma, which is not good enough; although I haven't looked
+            # into this carefully yet)
+            t_power = t
+            total = K(0)
+            for n in range(1, sigma.prec()):
+                total = total + t_power * sigma[n]
+                t_power = t_power * t
+
+            # Normalise and return
+            answer = (total / d).log() / (multiple * multiple * p)
+            if check:
+                assert answer.big_oh() >= prec, "we should have got an " \
+                       "answer with precision at least prec, but we didn't."
+            return answer
+
+        # (man... I love python's local function definitions...)
+        return height
+
+
+    def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
         """
         Computes the p-adic sigma function with respect to the standard
-        invariant differential $dx/(2y + a_1 x + a_3)$, as constructed by
+        invariant differential $dx/(2y + a_1 x + a_3)$, as defined by
         Mazur and Tate, as a power series in the usual uniformiser $t$ at the
         origin.
 
@@ -3340,23 +3575,30 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         INPUT:
             p -- prime >= 5 for which the curve has good ordinary reduction
-            prec -- integer >= 3, result will be returned O(t^prec)
+            N -- integer >= 1, indicates precision of result; see OUTPUT
+                 section for description
             E2 -- precomputed value of E2. If not supplied, this function will
-                 call padic_E2 to compute it. The value supplied must have
-                 at least prec p-adic digits of precision.
-            check_E2 -- boolean, whether to perform a consistency check on
-                 the computation of E2 (see method padic_E2() for details)
-            check_sigma -- boolean, whether to perform a consistency check
-                 on the sigma function (verify that it satisfies the right
-                 differential equation)
+                 call padic_E2 to compute it. The value supplied must be
+                 correct mod $p^{N-1}$.
+            check -- boolean, whether to perform a consistency check (verify
+                 that the computed sigma satisfies the defining differential
+                 equation)
+            check_hypotheses -- boolean, whether to check that this is a
+                 curve for which the p-adic sigma function makes sense
 
         OUTPUT:
-            A power series $t + \cdots$. Note that the coefficients will not
-            all have the same p-adic precision; the precision will be lower for
-            the higher order terms, but all terms are guaranteed to be
-            correct up to the precision that they are returned at. Note that
-            the precision of the coefficients will always be sufficient to
-            evaluate the sigma function mod p^prec at any t divisible by p.
+            A power series $t + \cdots$ with coefficients in $\Z_p$.
+
+            The output series will be truncated at $O(t^{N+1})$, and the
+            coefficient of $t^n$ for $n \geq 1$ will be correct to whatever
+            precision it is returned at, which will be at least as good as
+            $O(p^{N-n+1})$.
+
+            In practice this means the following. If $t_0 = p^k u$, where
+            $u$ is a $p$-adic unit with at least $N$ digits of precision,
+            and $k \geq 1$, then the returned series may be used to compute
+            $\sigma(t_0)$ correctly modulo $p^{N+k}$ (i.e. with $N$ correct
+            $p$-adic digits).
 
         ALGORITHM:
            Streamlined version of the algorithm described in ``Computation of
@@ -3370,11 +3612,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-             (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + 5^9 + O(5^10))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + 4*5^9 + O(5^10))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^8))*t^7 + (1 + 2*5 + 3*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 5^6 + 2*5^7 + O(5^8))*t^9 + O(t^10)
+             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + O(5^9))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + O(5^9))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^7))*t^7 + (1 + 2*5 + 3*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 
           Run it with a consistency check:
-            sage: EllipticCurve("37a").padic_sigma(5, 10, check_sigma=True)
-             (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + 5^9 + O(5^10))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + 4*5^9 + O(5^10))*t^5 + (2 + 3*5 + 5^4 + 2*5^6 + 4*5^7 + O(5^8))*t^6 + (4 + 3*5 + 2*5^2 + 2*5^5 + 2*5^6 + 5^7 + O(5^8))*t^7 + (2 + 3*5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^6 + 2*5^7 + O(5^8))*t^8 + (4*5 + 4*5^2 + 4*5^3 + 5^4 + 5^6 + 5^7 + O(5^8))*t^9 + O(t^10)
+            sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
+             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + O(5^9))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + O(5^9))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + O(5^9))*t^5 + (2 + 3*5 + 5^4 + 2*5^6 + O(5^7))*t^6 + (4 + 3*5 + 2*5^2 + 2*5^5 + 2*5^6 + O(5^7))*t^7 + (2 + 3*5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^6 + O(5^7))*t^8 + (4*5 + 4*5^2 + 4*5^3 + 5^4 + 5^6 + O(5^7))*t^9 + (1 + 2*5 + 5^2 + 4*5^3 + 5^4 + 4*5^5 + O(5^6))*t^10 + O(t^11)
+
+          Boundary cases:
+            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
+             t + O(t^2)
+            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
+             t + (3 + O(5))*t^2 + O(t^3)
 
           Check that sigma is ``weight 1'' (note that f loses some precision
           when you do the substitution, but otherwise the results match up):
@@ -3382,24 +3630,24 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
             sage: t = f.parent().gen()
             sage: f(2*t)/2
-             (1 + O(5^8))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + O(5^8))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + 5^7 + O(5^8))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + 4*5^7 + O(5^8))*t^9 + O(t^10)
+             (1 + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
             sage: g
-             (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + 2*5^9 + O(5^10))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + 2*5^9 + O(5^10))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + 5^7 + O(5^8))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + 4*5^7 + O(5^8))*t^9 + O(t^10)
+             t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 
           Test that it returns consistent results over a range of precision:
-            sage: max_prec = 30   # get up to at least p^2      # long time
+            sage: max_N = 30   # get up to at least p^2         # long time
             sage: E = EllipticCurve([1, 1, 1, 1, 1])            # long time
             sage: p = 5                                         # long time
-            sage: E2 = E.padic_E2(5, max_prec)                  # long time
-            sage: max_sigma = E.padic_sigma(p, max_prec, E2=E2) # long time
-            sage: for prec in range(3, max_prec):               # long time
-            ...      sigma = E.padic_sigma(p, prec, E2=E2)      # long time
-            ...      for n in range(prec):                      # long time
+            sage: E2 = E.padic_E2(5, max_N)                     # long time
+            sage: max_sigma = E.padic_sigma(p, max_N, E2=E2)    # long time
+            sage: for N in range(3, max_N):                     # long time
+            ...      sigma = E.padic_sigma(p, N, E2=E2)         # long time
+            ...      for n in range(sigma.prec()):              # long time
             ...          assert sigma[n] == max_sigma[n]        # long time
 
         """
-
-        p = self.__check_padic_hypotheses(p)
+        if check_hypotheses:
+            p = self.__check_padic_hypotheses(p)
 
         # todo: implement the p == 3 case
         # NOTE: If we ever implement p == 3, it's necessary to check over
@@ -3408,19 +3656,24 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if p < 5:
             raise NotImplementedError, "p (=%s) must be at least 5" % p
 
-        prec = int(prec)
-        if prec < 3:
-            raise ValueError, "prec (=%s) must be at least 3" % prec
+        N = int(N)
+        if N <= 1:
+            if N < 1:
+                raise ValueError, "N (=%s) must be at least 1" % prec
+
+            # return simply t
+            K = rings.pAdicField(p)
+            return PowerSeriesRing(K, "t")([K(0), K(1)], prec=2)
 
         if self.discriminant().valuation(p) != 0:
             raise NotImplementedError, "equation of curve must be minimal at p"
 
         if E2 is None:
-            E2 = self.padic_E2(p, prec, check_E2)
-        elif E2.prec() + E2.ordp() < prec:
+            E2 = self.padic_E2(p, N-1, check_hypotheses=False)
+        elif E2.big_oh() < N-1:
             raise ValueError, "supplied E2 has insufficient precision"
 
-        R = rings.Integers(p**prec)
+        R = rings.Integers(p**(N-1))
         E2 = R(E2)
 
         X = self.change_ring(R)
@@ -3437,8 +3690,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # todo: inefficient: the formal differential *includes*
         # computation of formal_x
-        x = X.formal_x(prec)               # x = t^{-2} + ...
-        f = X.formal_differential(prec)    # f = 1 + ...
+        x = X.formal_x(N+1)               # x = t^{-2} + ...
+        f = X.formal_differential(N+1)    # f = 1 + ...
 
         A = -f * ((x + c) * f).integral()
 
@@ -3457,7 +3710,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         A[-1] = 0
 
         # Now A should be $g'/g$, where $\sigma(t) = t g(t)$.
-        sigma = A.power_series().solve_linear_de(prec-1)
+        sigma = A.power_series().solve_linear_de(N)
         sigma = sigma * sigma.parent().gen()
 
         # (Note: the very fact that the above differential equation gets
@@ -3475,21 +3728,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # the total precision loss for the $t^n$ term of $\sigma$ is at most
         # $\log_p(n-1) + (n-2)/(p-1)$.
 
-        K = rings.pAdicField(p, prec)
-        sigma = sigma.padded_list(prec)
-        for n in range(prec):
-            if n < 2:
-                loss = 0
-            else:
-                # todo: I'm slightly worried about real precision in the
-                # log here:
-                loss = int(log(n-1, p)) + int((n-2) / (p-1))
-            sigma[n] = K(sigma[n].lift(), prec - loss)
+        K = rings.pAdicField(p)
+        sigma = sigma.padded_list(N+1)
+        sigma[0] = K(0)
+        sigma[1] = K(1)
+        for n in range(2, N+1):
+            # todo: I'm slightly worried about real precision in the
+            # log here: (see also trac ticket #54)
+            loss = int(log(n-1, p)) + int((n-2) / (p-1))
+            sigma[n] = K(sigma[n].lift(), (N-1) - loss)
 
-        S = rings.PowerSeriesRing(K, "t", prec)
-        sigma = S(sigma, prec)
+        S = rings.PowerSeriesRing(K, "t", N+1)
+        sigma = S(sigma, N+1)
 
-        if check_sigma:
+        if check:
             Y = self.change_ring(K)
 
             # convert x and f to have coefficients over p-adics, so that
@@ -3497,25 +3749,25 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             # ugly... todo: get some decent coercions written...)
             x_coeffs = x.unit_part().list()
             f_coeffs = f.list()
-            xK = S([K(r.lift()) for r in x_coeffs], prec - x.valuation())
+            xK = S([K(r.lift()) for r in x_coeffs], N+1 - x.valuation())
             xK = xK * S.gen()**(x.valuation())
-            xK = xK.add_bigoh(prec)
-            fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(prec)
+            xK = xK.add_bigoh(N+1)
+            fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(N+1)
 
             fK_inverse = 1/fK
             stuff = (sigma.derivative() * fK_inverse / sigma)
             stuff = stuff.derivative() * fK_inverse
             result = xK + K(c.lift()) + stuff
 
-            # result should be zero mod $t^{N-3}$
-            for n in range(prec-3):
+            # result should be zero mod $t^{N-2}$
+            for n in range(N-2):
                 assert result[n] == 0, "sigma correctness check failed!"
 
         return sigma
 
 
 
-    def padic_E2(self, p, prec=20, check=False):
+    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
         where $\omega$ is the usual invariant differential
@@ -3531,6 +3783,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                  its trace is correct to the specified precision. Otherwise,
                  the trace is used to compute one column from the other one
                  (possibly after a change of basis).)
+            check_hypotheses -- boolean, whether to check that this is a
+                 curve for which the p-adic sigma function makes sense
 
         OUTPUT:
             p-adic number to precision prec
@@ -3561,6 +3815,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Check it works at low precision too:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
             2 + O(5)
+            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+            0
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
             2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
@@ -3618,7 +3874,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
         """
-        p = self.__check_padic_hypotheses(p)
+        if check_hypotheses:
+            p = self.__check_padic_hypotheses(p)
 
         # todo: maybe it would be good if default prec was None, and then
         # it selects an appropriate precision based on how large the prime
@@ -3685,6 +3942,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # todo: write a coercion operator from integers mod p^n to the
         # p-adic field (it doesn't seem to currently exist)
+        # see trac #4
 
         # todo: think about the sign of this. Is it correct?
 
@@ -3707,6 +3965,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Maybe that will break other interfaces... but at least there should
         # be an exact_power method?
 
+        # see trac #8
+
         from sage.rings.real_field import RealNumber
         from sage.misc.functional import log
 
@@ -3716,7 +3976,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             min_prec = log(x, 2) * 2 + 10     # to be sure, to be sure
             # todo: Why on earth doesn't RealNumber accept an Integer
-            # as input? Why must it be a string??!!
+            # as input? Why must it be a string??!! see trac #55
             x = RealNumber(str(x))
             return (x ** (Integer(1)/Integer(n))).round().integer_part()
 
@@ -3738,12 +3998,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         fudge_factor = extract_painful_rational_root(
                           X.discriminant() / self.discriminant(), 6)
 
-        return E2_of_X / fudge_factor
-
+        # todo: here I should be able to write:
+        #  return E2_of_X / fudge_factor
+        # However, there is a bug in SAGE (#51 on trac) which makes this
+        # crash sometimes when prec == 1. For example,
+        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+        # makes it crash. I haven't figured out exactly what the bug
+        # is yet, but for now I use the following workaround:
+        fudge_factor_inverse = \
+                    rings.pAdicField(p, E2_of_X.prec() + 1)(1 / fudge_factor)
+        return E2_of_X * fudge_factor_inverse
 
 
     # This is the old version of padic_E2 that requires MAGMA:
-
     def padic_E2_magma(self, p, prec=20):
         """
         Return the value of the $p$-adic.

@@ -658,6 +658,7 @@ class Worksheet:
 
         alarm(2)
         try:
+            self.__sage._expect = None
             del self.__sage
         except AttributeError, msg:
             print "WARNING: %s"%msg

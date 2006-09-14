@@ -9,8 +9,8 @@ Binary operations on two elements of $\Q_p$ reduce the precision of
 the unit part of the argument with larger precision to that of the one
 with lesser precision.  This applies to all operations, including
 equality testing, so, e.g., the element $O(p)$ is equal to every
-$p$-adic integer, since comparison will truncate the other $p$-adic
-integer to precision $O(p)$.
+$p$-adic integer that is divisible by $p$, since comparison will truncate
+the other $p$-adic integer to precision $O(p)$.
 
 AUTHORS:
     - William Stein (2004): first version

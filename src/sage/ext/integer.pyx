@@ -166,10 +166,8 @@ cdef class Integer(element.EuclideanDomainElement):
         if not (x is None):
             if isinstance(x, Integer):
                 set_from_Integer(self, x)
-
             elif hasattr(x, "_integer_"):
                 set_from_Integer(self, x._integer_())
-
             elif isinstance(x, int):
                 mpz_set_si(self.value, x)
 

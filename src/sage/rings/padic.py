@@ -41,6 +41,7 @@ import sage.rings.arith
 import rational
 import field_element
 from rational_field import frac, QQ
+import sage.misc.functional
 
 class pAdic(field_element.FieldElement):
     r"""
@@ -772,25 +773,60 @@ class pAdic(field_element.FieldElement):
         If the input has infinite precision, the output is computed to the
         default precision of the parent field.
             sage: e.log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
 
         In contrast, if the input has larger precision than the default, then
         the output is also computed to larger precision.
             sage: (e+O(5^30)).log()
-            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + 2*5^10 + 2*5^11 + 5^12 + 5^14 + 3*5^15 + 5^16 + 4*5^18 + 4*5^19 + 5^20 + 3*5^21 + 2*5^22 + 2*5^23 + 5^24 + 5^25 + 3*5^27 + 2*5^28 + 4*5^29 + O(5^30)
+            2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 5^5 + 3*5^7 + 2*5^8 + 4*5^9 + 2*5^10 + 2*5^11 + 5^12 + 5^14 + 3*5^15 + 5^16 + 4*5^18 + 4*5^19 + 5^20 + 3*5^21 + 2*5^22 + 2*5^23 + 5^24 + 5^25 + 3*5^27 + 2*5^28 + 3*5^29 + O(5^30)
+
+        Check that results are consistent over a range of precision:
+            sage: max_prec = 40
+            sage: p = 3
+            sage: K = pAdicField(p, max_prec)
+            sage: full_log = (1 + p + O(p**max_prec)).log()
+            sage: for prec in range(2, max_prec):
+            ...       assert (1 + p + O(p**prec)).log() == full_log
+
+
+        AUTHORS:
+            -- David Harvey (2006-09-13): corrected subtle precision bug
+               (need to take denominators into account! -- see trac #53)
+
+        TODO:
+            -- Surely there must exist an $O(N^{1+\epsilon})$ time algorithm
+            for this? The current one is pretty much quadratic in the
+            precision.
+
         """
 
         # Step 1 -- a unit?
         if self.is_unit() and self.__unit % self.__p == 1:
-            # It's already a 1-unit, so just use the series (base case of "induction")
-            x = 1 - self
-            xpow = x
-            ans = self.parent()(0)
+            # It's already a 1-unit, so just use the series
+            # (base case of "induction")
+
             if self.__prec == infinity:
                 prec = self.parent().prec()
             else:
                 prec = self.__prec
-            for n in range(1,prec):
+
+            # Need extra precision to take into account powers of p
+            # in the denominators of the series. (Indeed, it's a
+            # not-entirely-trivial fact that if x is given mod p^n, that
+            # log(x) is well-defined mod p^n !) Specifically:
+            # we are only guaranteed that $x^j/j$ is zero mod $p^n$ if
+            # j >= floor(log_p(j)) + n.
+            # todo: worried about real precision of log here... see trac #54
+            extra_prec = 0
+            while extra_prec < sage.misc.functional.log(prec + extra_prec,
+                                                        self.__p):
+                extra_prec += 1
+
+            x = 1 - self
+            x = pAdic(self.__parent, x.lift(), prec + extra_prec)
+            xpow = x
+            ans = self.parent()(0)
+            for n in range(1, prec + extra_prec):
                 ans -= xpow/n
                 xpow *= x
             return pAdic(self.__parent, ans, prec)

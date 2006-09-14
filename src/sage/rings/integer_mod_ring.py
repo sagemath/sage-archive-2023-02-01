@@ -74,7 +74,7 @@ def IntegerModRing(order=0, check_prime=True):
         sage: type(R)
         <class 'sage.rings.integer_mod_ring.IntegerModRing_generic'>
 
-    Note that you can also user \code{Integers}, which is a synonym
+    Note that you can also use \code{Integers}, which is a synonym
     for \code{IntegerModRing}.
         sage: Integers(18)
         Ring of integers modulo 18
@@ -193,6 +193,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         if order <= 0:
             raise ZeroDivisionError, "order must be positive"
         self.__order = order
+        self._pyx_order = integer_mod.NativeIntStruct(order)
         self.__unit_group_exponent = None
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order))

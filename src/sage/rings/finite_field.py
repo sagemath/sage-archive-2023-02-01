@@ -648,7 +648,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             K = x.parent()
             if K == self:
                 return x
-        raise TypeError, "unable to coerce x"
+        raise TypeError, "no canonical coercion of x"
 
     def characteristic(self):
         return self.__char

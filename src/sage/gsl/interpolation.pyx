@@ -63,6 +63,8 @@ cdef class Spline:
         v = list(self.v)
         v.sort()
         n = len(v)
+        if n < 3:
+            raise RuntimeError, "must have at least 3 points in order to interpolate."
         self.x = <double*> PyMem_Malloc(n*sizeof(double))
         if self.x == <double*>0:
             raise MemoryError

@@ -3,3 +3,5 @@
 
 from fft import FastFourierTransform, FFT
 
+from interpolation import spline, Spline
+

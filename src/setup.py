@@ -133,9 +133,17 @@ complex_number2 = Extension('sage.rings.complex_number2',
 			    ['sage/rings/complex_number2.pyx'],
 			    libraries = ['gmp'])
 
-fft = Extension('sage.gsl.fft',
+################ GSL wrapping ######################
+
+gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
                 libraries = ['gsl', CBLAS])
+
+gsl_interpolation = Extension('sage.gsl.interpolation',
+                ['sage/gsl/interpolation.pyx'],
+                libraries = ['gsl', CBLAS])
+
+#####################################################
 
 ext_modules = [ \
     ec, \
@@ -159,7 +167,8 @@ ext_modules = [ \
     matrix_rational_dense,
     matrix_rational_sparse,
 
-    fft,
+    gsl_fft,
+    gsl_interpolation,
 
     # complex_number2, \
 

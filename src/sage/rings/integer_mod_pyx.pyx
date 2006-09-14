@@ -53,6 +53,8 @@ def IntegerMod(parent, value):
     modulus = parent.order()
     if mpz_cmp_si(modulus.value, INTEGER_MOD_INT32_LIMIT) < 0:
         return IntegerMod_int(parent, value)
+    elif mpz_cmp_si(modulus.value, INTEGER_MOD_INT64_LIMIT) < 0:
+        return IntegerMod_int64(parent, value)
     else:
         return IntegerMod_gmp(parent, value)
 
@@ -291,26 +293,48 @@ cdef class IntegerMod_abstract(sage.ext.element.CommutativeRingElement):
         """
         return self.lift().rational_reconstruction(self.modulus())
 
-    def crt(self, other_p):
-        if not isinstance(other_p, IntegerMod_abstract):
-            raise TypeError, "other must be an integer mod"
+    def crt(IntegerMod_abstract self, IntegerMod_abstract other):
+        """
+        Use the Chinese Remainder Theorem to find an element of the
+        integers modulo the product of the moduli that reduces to self
+        and to other.  The modulus of other must be coprime to the
+        modulus of self.
+        EXAMPLES:
+            sage: a = mod(3,5)
+            sage: b = mod(2,7)
+            sage: a.crt(b)
+            23
 
-        cdef IntegerMod_abstract other
-        other = other_p
+            sage: a = mod(37,10^8)
+            sage: b = mod(9,3^8)
+            sage: a.crt(b)
+            125900000037
 
-        if isinstance(self, IntegerMod_int) and isinstance(other, IntegerMod_int):
-            if (self.__modulus.int32 * other.__modulus.int32) < INTEGER_MOD_INT32_LIMIT:
-                if other.__modulus.int32 == 1:
-                    return self
-                return self._crt(other)
+        AUTHOR:
+            -- Robert Bradshaw
+        """
+        cdef int_fast64_t new_modulus
+        if not isinstance(self, IntegerMod_gmp) and not isinstance(other, IntegerMod_gmp):
 
-        if (isinstance(self, IntegerMod_int)):
+            if other.__modulus.int64 == 1: return self
+            new_modulus = self.__modulus.int64 * other.__modulus.int64
+            if new_modulus < INTEGER_MOD_INT32_LIMIT:
+                return self.__crt(other)
+
+            elif new_modulus < INTEGER_MOD_INT64_LIMIT:
+                if not isinstance(self, IntegerMod_int64):
+                    self = IntegerMod_int64(self._parent, self.lift())
+                if not isinstance(other, IntegerMod_int64):
+                    other = IntegerMod_int64(other._parent, other.lift())
+                return self.__crt(other)
+
+        if not isinstance(self, IntegerMod_gmp):
             self = IntegerMod_gmp(self._parent, self.lift())
 
-        if (isinstance(other, IntegerMod_int)):
+        if not isinstance(other, IntegerMod_gmp):
             other = IntegerMod_gmp(other._parent, other.lift())
 
-        return self._crt(other)
+        return self.__crt(other)
 
     def __floordiv__(self, right):
         """
@@ -463,37 +487,23 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def is_unit(self):
         return bool(self.lift().gcd(self.modulus()) == 1)
 
-    def _crt(IntegerMod_gmp self, IntegerMod_gmp other):
-        """
-        Use the Chinese Remainder Theorem to find an element of the
-        integers modulo the product of the moduli that reduces to self
-        and to other.  The modulus of other must be coprime to the
-        modulus of self.
-        EXAMPLES:
-            sage: a = mod(37,10^8)
-            sage: b = mod(9,3^8)
-            sage: a.crt(b)
-            125900000037
-
-        AUTHOR:
-            -- Robert Bradshaw
-        """
+    def __crt(IntegerMod_gmp self, IntegerMod_gmp other):
         cdef IntegerMod_gmp lift, x
         cdef sage.ext.integer.Integer modulus, other_modulus
 
         modulus = self.__modulus.sageInteger
-        other_modulus = self.__modulus.sageInteger
+        other_modulus = other.__modulus.sageInteger
         lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus, check_prime=False), None, empty=True)
         try:
-          if mpz_cmp(self.value, other.value) > 0:
-              x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
-              mpz_mul(lift.value, x.value, modulus.value)
-              mpz_add(lift.value, lift.value, self.value)
-          else:
-              x = (self - IntegerMod_gmp(self._parent, other.lift())) / IntegerMod_gmp(self._parent, other_modulus)
-              mpz_mul(lift.value, x.value, other_modulus.value)
-              mpz_add(lift.value, lift.value, other.value)
-          return lift
+            if mpz_cmp(self.value, other.value) > 0:
+                x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
+                mpz_mul(lift.value, x.value, modulus.value)
+                mpz_add(lift.value, lift.value, self.value)
+            else:
+                x = (self - IntegerMod_gmp(self._parent, other.lift())) / IntegerMod_gmp(self._parent, other_modulus)
+                mpz_mul(lift.value, x.value, other_modulus.value)
+                mpz_add(lift.value, lift.value, other.value)
+            return lift
         except ZeroDivisionError:
             raise ZeroDivisionError, "moduli must be coprime"
 
@@ -743,7 +753,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     def is_unit(IntegerMod_int self):
         return bool(gcd_int(self.ivalue, self.__modulus.int32) == 1)
 
-    def _crt(IntegerMod_int self, IntegerMod_int other):
+    def __crt(IntegerMod_int self, IntegerMod_int other):
         """
         Use the Chinese Remainder Theorem to find an element of the
         integers modulo the product of the moduli that reduces to self
@@ -907,6 +917,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     def __hash__(self):
         return hash(self.ivalue)
 
+### End of class
 
 
 cdef int_fast32_t gcd_int(int_fast32_t a, int_fast32_t b):

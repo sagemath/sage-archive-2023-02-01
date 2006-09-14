@@ -87,7 +87,7 @@ def IntegerModRing(order=0, check_prime=True):
         x = _objsIntegerModRing[order]()
         if x != None: return x
     if check_prime and arith.is_prime(order):
-        R = IntegerModRing_field(order)
+        R = sage.rings.finite_field.FiniteField_prime_modn(order)
     else:
         R = IntegerModRing_generic(order)
     _objsIntegerModRing[order] = weakref.ref(R)
@@ -517,10 +517,6 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Residue class ring of integers modulo 12345678900
         """
         return 'Integers(%s)'%self.order()
-
-class IntegerModRing_field(field.Field, IntegerModRing_generic):
-    def __init__(self, order):
-        IntegerModRing_generic.__init__(self, order)
 
 
 Zmod = IntegerModRing

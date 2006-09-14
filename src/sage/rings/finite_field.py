@@ -88,7 +88,8 @@ def FiniteField(order, name='a', modulus=None):
     #    if x != None and x.variable_name() == name:      # see example above for why this is necessary
     #        return x
     if arith.is_prime(order):
-        R = FiniteField_prime_modn(order, name)
+        R = integer_mod_ring.IntegerModRing(order) # there is a cannonical isomorphism between finite fields of prime order
+        R.assign_names(name) # does this do anything?
     else:
         R = FiniteField_ext_pari(order, name, modulus)
     return R
@@ -625,12 +626,12 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return hash((self.characteristic(),self.polynomial()))
 
-class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_field):
+class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
     def __init__(self, p, name=None):
         p = integer.Integer(p)
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        integer_mod_ring.IntegerModRing_field.__init__(self, p)
+        integer_mod_ring.IntegerModRing_generic.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
         self.assign_names(name)

@@ -3536,9 +3536,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 assert val == arith.valuation(d, p), "d and t should have " \
                        "the same p-adic valuation, but they don't."
 
-            # todo: the following line is RIDICULOUSLY, INSANELY SLOW,
-            # because some p-adic coercion code is broken somewhere
-            # (see trac #57)
             t = K(t, prec + extra_prec + val)
             d = K(d, prec + extra_prec + val)
 

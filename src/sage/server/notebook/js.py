@@ -74,7 +74,10 @@ var replacement_word = "";
 var replacing = false;
 var sub_introspecting = false;
 
-var worksheet_id=0;   // The current worksheet.  Where else does this get set?
+// Info about the current worksheet.  These get set in notebook.py
+var worksheet_id=0;
+var worksheet_filename='';
+var worksheet_name='';
 
 var id_to_delete=-1;
 
@@ -106,6 +109,8 @@ var input_keypress; //this gets set to a function when we set up the keyboards
 
 var in_slide_mode = false; //whether or not we're in slideshow mode
 var slide_hidden = false; //whether the current slide has the hidden input class
+
+var worksheet_locked;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -487,12 +492,12 @@ function click_on_object(name) {
 //
 ///////////////////////////////////////////////////////////////////
 
-function add_worksheet(name) {
+function add_worksheet(name,pass) {
     async_request('async_obj_add_worksheet', '/add_worksheet',
-                   add_worksheet_callback, 'name='+name)
+                   add_worksheet_callback, 'name='+name+'&passcode='+pass)
 }
 
-function add_worksheet_callback(status, response_text) {
+function add_worksheet_callback(status,response_text) {
     if (status == "success") {
         /* expect response_text to encode a pair consisting of
            the HTML for the updated worksheet list and the
@@ -605,8 +610,11 @@ function process_new_worksheet_menu_submit() {
     hide_add_new_worksheet_menu();
     var add_worksheet_box = get_element('new_worksheet_box');
     name = add_worksheet_box.value;
+    var add_worksheet_pass = get_element('new_worksheet_pass');
+    pass = add_worksheet_pass.value;
     add_worksheet_box.value = '';
-    add_worksheet(name);
+    add_worksheet_pass.value = '';
+    add_worksheet(name,pass);
 }
 
 function process_delete_worksheet_menu_submit() {
@@ -629,6 +637,37 @@ function switch_to_worksheet(id) {
   /*  alert('switch to worksheet ' + id);  */
 }
 
+function unlock_worksheet() {
+    lock = get_element("worksheet_lock");
+    lock.innerHTML = 'Enter Passcode: <input onKeyPress="return unlock_worksheet_submit(event,value);" id="lock_input">';
+    lock.innerHTML+= '<span id="unlock_error" class="red"></span>';
+    lock_input = get_element("lock_input");
+    lock_input.focus();
+}
+
+function unlock_worksheet_submit(e,passcode) {
+    if(is_submit(e)) {
+        document.cookie = "ws_"+worksheet_name+"_passcode="+passcode;
+        async_request('async_unlock', '/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
+        return false;
+    }
+    return true;
+}
+
+function unlock_worksheet_callback(status, response_text) {
+    if(status == 'success' && response_text == 'ok') {
+        lock = get_element("worksheet_lock");
+        lock.parentNode.removeChild(lock);
+        worksheet_locked = false;
+    } else {
+        lock_input = get_element("lock_input");
+        lock_input.value = "";
+        lock_input.focus();
+        txt = get_element('unlock_error');
+        if(txt)
+            txt.innerHTML = 'incorrect';
+    }
+}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -1024,6 +1063,11 @@ function text_cursor_split(input) {
 }
 
 function evaluate_cell(id, action) {
+    if(worksheet_locked) {
+        alert("This worksheet is locked.  Click on the word [locked] next to the worksheet name to unlock it.")
+        return;
+    }
+
     active_cell_list = active_cell_list.concat([id]);
 
     if(action == 2) { // Introspection

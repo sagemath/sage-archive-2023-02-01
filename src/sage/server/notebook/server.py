@@ -60,27 +60,31 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         typ = C['type'][0]
         W = notebook.get_worksheet_that_has_cell_with_id(id)
-        cell = W.get_cell_with_id(id)
-        cell.set_cell_output_type(typ)
+        if self.auth_worksheet(W):
+            cell = W.get_cell_with_id(id)
+            cell.set_cell_output_type(typ)
 
     def hide_all(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
         W = notebook.get_worksheet_with_id(id)
-        W.hide_all()
+        if self.auth_worksheet(W):
+            W.hide_all()
 
     def restart_sage(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
         W = notebook.get_worksheet_with_id(id)
-        W.restart_sage()
-        self.wfile.write('done')
+        if self.auth_worksheet(W):
+            W.restart_sage()
+            self.wfile.write('done')
 
     def show_all(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(id)
-        W.show_all()
+        if self.auth_worksheet(W):
+            W = notebook.get_worksheet_with_id(id)
+            W.show_all()
 
     def eval_cell(self, newcell=False, introspect=False):
         C = self.get_postvars()
@@ -89,6 +93,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         input_text = input_text.replace('__plus__','+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if not self.auth_worksheet(W):
+            return
+
         cell = W.get_cell_with_id(id)
         if not introspect:
             cell.set_input_text(input_text)
@@ -117,6 +124,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose('introspect -- %s: %s|%s'%(id, before_cursor, after_cursor))
 
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if not self.auth_worksheet(W):
+            return
+
         cell = W.get_cell_with_id(id)
         #TB: this tends to obliterate long cells -- if the user doesn't submit between
         #introspecting and closing the browser; there's a lot of potential to lose a
@@ -134,6 +144,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         verbose("Adding new cell before cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if not self.auth_worksheet(W):
+            return
+
         cell = W.new_cell_before(id)
         #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
@@ -144,6 +157,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         verbose("Adding new cell after cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if not self.auth_worksheet(W):
+            return
+
         cell = W.new_cell_after(id)
         #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
@@ -154,6 +170,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         verbose("Deleting cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if not self.auth_worksheet(W):
+            return
+
         if len(W) <= 1 or W.is_last_id_and_previous_is_nonempty(id):
             self.wfile.write('ignore')
         else:
@@ -218,8 +237,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def interrupt(self):
         C = self.get_postvars()
         worksheet_id = int(C['worksheet_id'][0])
-        worksheet = notebook.get_worksheet_with_id(worksheet_id)
-        t = worksheet.interrupt()
+        W = notebook.get_worksheet_with_id(worksheet_id)
+        if not self.auth_worksheet(W):
+            return
+
+        t = W.interrupt()
         if t:
             self.wfile.write('ok')
         else:
@@ -228,8 +250,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def add_worksheet(self):
         C = self.get_postvars()
         worksheet_name = C['name'][0]
+        passcode = C['passcode'][0]
         try:
-            W = notebook.create_new_worksheet(worksheet_name)
+            W = notebook.create_new_worksheet(worksheet_name, passcode)
         except ValueError, msg:
             print msg
             self.wfile.write(msg)
@@ -237,9 +260,29 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         new_worksheet_list = notebook.worksheet_list_html(W.name())
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
+    def auth_worksheet(self, W):
+        n = W.name()
+        passcode = ''
+        if self.cookie.has_key('ws_%s_passcode'%n):
+            passcode = self.cookie['ws_%s_passcode'%n].value
+        return W.auth(passcode)
+
+    def unlock_worksheet(self):
+        C = self.get_postvars()
+        worksheet_id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(worksheet_id)
+        if not self.auth_worksheet(W):
+            self.wfile.write('failed')
+        else:
+            self.wfile.write('ok')
+
     def delete_worksheet(self):
         C = self.get_postvars()
         worksheet_name = C['name'][0]
+        W = notebook.get_worksheet_with_name(worksheet_name)
+        if not self.auth_worksheet(W):
+            return
+
         try:
             W = notebook.delete_worksheet(worksheet_name)
         except KeyError, msg:
@@ -449,9 +492,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None,show_debug=False):
         self.send_head()
+        W = notebook.get_worksheet_with_id(worksheet_id)
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
                                        authorized=self.authorize(),
-                                       show_debug=show_debug))
+                                       show_debug=show_debug,
+                                       worksheet_authorized = self.auth_worksheet(W)))
 
 
     def file_not_found(self):
@@ -462,6 +507,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         verbose("GET: " + self.path)
+        self.get_cookie()
         # The question mark hack here is so that images will be reloaded when
         # the async request requests the output text for a computation.
         # This is a total hack, inspired by http://www.irt.org/script/416.htm/.
@@ -498,10 +544,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             self.file_not_found()
 
-    def authorize(self):
+    def get_cookie(self):
         self.cookie=Cookie.SimpleCookie()
         if self.headers.has_key('cookie'):
             self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+
+    def authorize(self):
         username = password = "";
         if self.cookie.has_key('username'):
             username = self.cookie['username'].value
@@ -510,6 +558,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         return notebook.authorize(username + ":" + password);
 
     def do_POST(self):
+        self.get_cookie()
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
         verbose("POST: %s"%post_dict)
         self.save_notebook_every_so_often()
@@ -566,6 +615,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.add_worksheet()
             elif self.path[-17:] == '/delete_worksheet':
                 self.delete_worksheet()
+            elif self.path[-17:] == '/unlock_worksheet':
+                self.unlock_worksheet()
 #            elif self.path == '/upload_worksheet':
 #                self.upload_worksheet_local_file()
         else:

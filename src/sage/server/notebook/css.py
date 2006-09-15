@@ -1127,6 +1127,11 @@ textarea.debug_input {
   width: 100%;
 }
 
+span.red{
+  color:red;
+}
+
+
 
 """
     if color == 'gmail':

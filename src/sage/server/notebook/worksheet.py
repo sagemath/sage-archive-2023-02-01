@@ -42,13 +42,14 @@ SAGE_ERROR='error' + SAGE_END
 SAGE_VARS='__SAGE_VARS__'
 
 class Worksheet:
-    def __init__(self, name, notebook, id, system=None):
+    def __init__(self, name, notebook, id, system=None, passcode = ''):
         name = ' '.join(name.split())
         self.__id = id
         self.__system = system
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
+        self.__passcode = passcode
         dir = list(name)
         for i in range(len(dir)):
             if not dir[i].isalnum() and dir[i] != '_':
@@ -80,6 +81,13 @@ class Worksheet:
         else:
             for C in self.__cells:
                 C.set_worksheet(self)
+
+    def passcode(self):
+        try:
+            return self.__passcode
+        except AttributeError:
+            self.__passcode = ''
+            return ''
 
     def filename(self):
         return self.__filename
@@ -536,9 +544,11 @@ class Worksheet:
             rows.append(row)
         return self.__notebook.format_completions_as_html(id, rows)
 
-
-
-
+    def auth(self, passcode):
+        if self.passcode() == '':
+            return True
+        else:
+            return self.passcode() == passcode
 
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN+str(self.synchro())
@@ -1050,7 +1060,7 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
-    def html(self, include_title=True, do_print=False):
+    def html(self, include_title=True, do_print=False, authorized=False):
         n = len(self.__cells)
         s = ''
 
@@ -1060,7 +1070,12 @@ class Worksheet:
                 system = ' (%s mode)'%S
             else:
                 system =''
-            s += '<div class="worksheet_title">Worksheet: %s%s</div>\n'%(self.name(),system)
+            if not authorized:
+                lock_text = '&nbsp;&nbsp;<span id="worksheet_lock" class="locked" onClick="unlock_worksheet()">[locked]</span>'
+            else:
+                lock_text = ''
+
+            s += '<div class="worksheet_title">Worksheet: %s%s%s</div>\n'%(self.name(),system,lock_text)
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'

@@ -2233,18 +2233,19 @@ def strassen_window_multiply(C, A, B, int cutoff):
         sage.:P S = MatrixSpace(QQ, dim2, dim3)
         sage.:P T = MatrixSpace(QQ, dim1, dim3)
 
+
         sage.:P A = R.random_element(range(-30, 30))
         sage.:P B = S.random_element(range(-30, 30))
         sage.:P C = T(0)
         sage.:P D = T(0)
 
-        sage.:P A_window = A.window(0, 0, dim1, dim2)
-        sage.:P B_window = B.window(0, 0, dim2, dim3)
-        sage.:P C_window = C.window(0, 0, dim1, dim3)
+        sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+        sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+        sage: C_window = C.matrix_window(0, 0, dim1, dim3)
+        sage: D_window = D.matrix_window(0, 0, dim1, dim3)
 
-        sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage.:P D.set_to_prod(A, B)                    # use naive method
-
+        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage: D_window.set_to_prod(A, B)             # use naive method
         sage.:P C == D
         True
 
@@ -2258,9 +2259,9 @@ def strassen_window_multiply(C, A, B, int cutoff):
         sage.:P C = T(0)
         sage.:P D = T(0)
 
-        sage.:P A_window = A.window(0, 0, dim1, dim2)
-        sage.:P B_window = B.window(0, 0, dim2, dim3)
-        sage.:P C_window = C.window(0, 0, dim1, dim3)
+        sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+        sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+        sage: C_window = C.matrix_window(0, 0, dim1, dim3)
 
         sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
         sage.:P D.set_to_prod(A, B)                    # use naive method

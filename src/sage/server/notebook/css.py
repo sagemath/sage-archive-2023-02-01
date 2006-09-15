@@ -53,6 +53,20 @@ span.control_commands {
 /*    text-decoration:underline; */
 }
 
+div.slide_control_commands {
+   float:right;
+   position: fixed;
+   width:500px;
+   top:1ex;
+   right:1ex;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
+   font-family:arial;
+   font-size:12px;
+/*    text-decoration:underline; */
+}
+
 span.vbar {
    height:1.5ex;
    border-left:1px solid black;

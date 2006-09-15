@@ -764,13 +764,13 @@ class Notebook(SageObject):
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
-        body += '  <span class="hidden" id="slide_controls">\n'
+        body += '  <div class="hidden" id="slide_controls">\n'
         body += '    <div class="slideshow_control">'
         body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
         body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
         body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
         body += '    </div>'
-        body += '    <div class="slideshow_progress" id="slideshow_progress">'
+        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">'
         body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>'
         body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>'
         body += '    </div>'

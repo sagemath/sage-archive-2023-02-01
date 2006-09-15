@@ -182,9 +182,9 @@ function get_keyboard() {
   async_request('keyboard', '__keyboard_'+b+o+'__.js', get_keyboard_callback, null);
 }
 
-function get_keyboard_callback(status, response) {
+function get_keyboard_callback(status, response_text) {
   if(status == 'success') {
-    eval(response);
+    eval(response_text);
   }
 }
 
@@ -1360,7 +1360,7 @@ function slide_mode() {
     in_slide_mode = true;
     set_class('left_pane', 'hidden');
     set_class('cell_controls', 'hidden');
-    set_class('slide_controls', 'control_commands');
+    set_class('slide_controls', 'slide_control_commands');
     set_class('worksheet', 'slideshow');
 
     for(i = 0; i < cell_id_list.length ; i++) {

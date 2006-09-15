@@ -143,8 +143,11 @@ class pAdic(field_element.FieldElement):
                         pr = parent.prec() - ordp
                     else:
                         pr = big_oh - ordp
-                    x = int(x.numerator())*\
-                        arith.inverse_mod(int(x.denominator()), self.__p**pr)
+
+                    modulus = self.__p**pr
+                    x = x.numerator() * \
+                          arith.inverse_mod(x.denominator(), modulus)
+                    # x = x % modulus
                     big_oh = pr + ordp
         if x==0:
             unit = 1

@@ -179,7 +179,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             sage: k._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce x
+            TypeError: no canonical coercion of x
             sage: k._coerce_(5)   # works since there's a natural hom ZZ --> GF(7).
             5
             sage: ZZ._coerce_(GF(7)(2))
@@ -228,12 +228,12 @@ v v v v v v v
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
 
         EXAMPLES:
-            sage: ZZ/(3*ZZ)
-            Ring of integers modulo 3
+            sage: ZZ/(6*ZZ)
+            Ring of integers modulo 6
             sage: ZZ/(0*ZZ)
             Integer Ring
             sage: ZZ/3
-            Ring of integers modulo 3
+            Finite Field of size 3
             sage: ZZ/(3*QQ)
             Traceback (most recent call last):
             ...

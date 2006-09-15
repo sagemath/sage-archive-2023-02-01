@@ -100,7 +100,7 @@ class pAdicField_generic(field.Field):
         EXAMPLES:
             sage: K = Qp(3)
             sage: K.residue_class_field()
-            Ring of integers modulo 3
+            Finite Field of size 3
         """
         return IntegerModRing(self.__p)
 

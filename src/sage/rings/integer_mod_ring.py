@@ -139,7 +139,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         First we compute with integers modulo $17$.
             sage: FF = IntegerModRing(17)
             sage: FF
-            Ring of integers modulo 17
+            Finite Field of size 17
             sage: FF.is_field()
             True
             sage: FF.characteristic()

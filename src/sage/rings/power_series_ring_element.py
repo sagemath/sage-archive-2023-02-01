@@ -494,7 +494,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
 
     def solve_linear_de(self, prec = infinity, b = None, f0 = None):
-        """
+        r"""
         Obtains a power series solution to an inhomogeneous linear
         differential equation of the form:
            $$  f'(t) = a(t) f(t) + b(t). $$
@@ -556,7 +556,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
            sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
 
-        r"""
+        """
         if b is None:
             b = self.parent()(0)
 
@@ -589,7 +589,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
 
     def exp(self, prec = infinity):
-        """
+        r"""
         Returns exp of this power series to the indicated precision.
 
         ALGORITHM:
@@ -852,7 +852,7 @@ class PowerSeries_generic_dense(PowerSeries):
 
 
 def _solve_linear_de(R, N, L, a, b, f0):
-    """
+    r"""
     Internal function used by PowerSeries.solve_linear_de().
 
     INPUT:

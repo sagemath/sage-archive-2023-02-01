@@ -3335,7 +3335,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
     def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
-        """
+        r"""
         Computes the cyclotomic p-adic regulator of this curve.
 
         This curve must be in minimal weierstrass form.
@@ -3417,7 +3417,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
     def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
-        """
+        r"""
         Computes the cyclotomic p-adic height, as defined by Mazur and Tate.
         The height is normalised to take values in $\Z_p$, unless $p$ is
         anomalous in which case it takes values in $(1/p)\Z_p$.
@@ -3562,7 +3562,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
     def padic_sigma(self, p, N=20, E2=None, check=False, check_hypotheses=True):
-        """
+        r"""
         Computes the p-adic sigma function with respect to the standard
         invariant differential $dx/(2y + a_1 x + a_3)$, as defined by
         Mazur and Tate, as a power series in the usual uniformiser $t$ at the
@@ -3788,8 +3788,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         NOTES:
             -- If the discriminant of the curve has nonzero valuation at p,
-               then the result will not be returned mod $p^\text{prec}$, but it still
-               *will* have prec *digits* of precision.
+               then the result will not be returned mod $p^\text{prec}$, but
+               it still *will* have prec *digits* of precision.
 
         AUTHOR:
             -- David Harvey (2006-09-01): partly based on code written by

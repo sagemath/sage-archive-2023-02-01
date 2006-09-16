@@ -819,10 +819,8 @@ class pAdic(field_element.FieldElement):
             # log(x) is well-defined mod p^n !) Specifically:
             # we are only guaranteed that $x^j/j$ is zero mod $p^n$ if
             # j >= floor(log_p(j)) + n.
-            # todo: worried about real precision of log here... see trac #54
             extra_prec = 0
-            while extra_prec < sage.misc.functional.log(prec + extra_prec,
-                                                        self.__p):
+            while extra_prec < (prec + extra_prec).exact_log(self.__p):
                 extra_prec += 1
 
             x = 1 - self

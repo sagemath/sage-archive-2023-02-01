@@ -656,7 +656,7 @@ cdef class Integer(element.EuclideanDomainElement):
 
     def nth_root(self, int n, int report_exact=0):
         r"""
-        Returns the floor of the nth root of self.
+        Returns the truncated nth root of self.
 
         INPUT:
             n -- integer >= 1 (must fit in C int type)
@@ -664,8 +664,8 @@ cdef class Integer(element.EuclideanDomainElement):
                           was exact
 
         OUTPUT:
-           If report_exact is 0 (default), then returns the floor of the nth
-           root of self.
+           If report_exact is 0 (default), then returns the truncation of the
+           nth root of self (i.e. rounded towards zero).
 
            If report_exact is 1, then returns the nth root and a boolean
            indicating whether the root extraction was exact.
@@ -677,14 +677,14 @@ cdef class Integer(element.EuclideanDomainElement):
           sage: Integer(125).nth_root(3)
           5
           sage: Integer(124).nth_root(3)
-          1
+          4
           sage: Integer(126).nth_root(3)
           5
 
           sage: Integer(-125).nth_root(3)
           -5
           sage: Integer(-124).nth_root(3)
-          -1
+          -4
           sage: Integer(-126).nth_root(3)
           -5
 

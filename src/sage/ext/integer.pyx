@@ -8,7 +8,7 @@ AUTHORS:
     -- William Stein (2006-03-31): changes to reflect GMP bug fixes
     -- William Stein (2006-04-14): added GMP factorial method (since it's
                                    now very fast).
-    -- David Harvey (2006-09-15): added nth_root
+    -- David Harvey (2006-09-15): added nth_root, exact_log
 """
 
 #*****************************************************************************
@@ -51,6 +51,7 @@ import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
 import mpfr
+import sage.misc.functional
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -719,6 +720,76 @@ cdef class Integer(element.EuclideanDomainElement):
             return x, bool(is_exact)
         else:
             return x
+
+    def exact_log(self, m):
+        r"""
+        Returns the largest integer $k$ such that $m^k \leq \text{self}$.
+
+        This is guaranteed to return the correct answer even when the usual
+        log function doesn't have sufficient precision.
+
+        INPUT:
+            m -- integer >= 2
+
+        AUTHOR:
+           -- David Harvey (2006-09-15)
+
+        TODO:
+           -- Currently this is extremely stupid code (although it should
+           always work). Someone needs to think about doing this properly
+           by estimating errors in the log function etc.
+
+        EXAMPLES:
+           sage: Integer(125).exact_log(5)
+           3
+           sage: Integer(124).exact_log(5)
+           2
+           sage: Integer(126).exact_log(5)
+           3
+           sage: Integer(3).exact_log(5)
+           0
+           sage: Integer(1).exact_log(5)
+           0
+
+        This is why you don't want to use log(n, m):
+           sage: x = 3**10000000
+           sage: log(x, 3)
+           9999999.9999999981
+           sage: log(x + 100000, 3)
+           9999999.9999999981
+
+           sage: x.exact_log(3)
+           10000000
+           sage: (x+1).exact_log(3)
+           10000000
+           sage: (x-1).exact_log(3)
+           9999999
+
+        """
+        if self <= 0:
+            raise ValueError, "self must be positive"
+        if m < 2:
+            raise ValueError, "m must be at least 2"
+
+        guess = int(sage.misc.functional.log(self, m))
+        power = m ** guess
+
+        while power > self:
+            power = power / m
+            guess = guess - 1
+
+        if power == self:
+            return guess
+
+        while power < self:
+            power = power * m
+            guess = guess + 1
+
+        if power == self:
+            return guess
+        else:
+            return guess - 1
+
 
     def __pos__(self):
         """

@@ -396,11 +396,11 @@ cdef class CanonicalForm:
         #}embed
 
         #embed{ void *str_to_CF(char* s)
-        istringstream in;
-        in.str( s );
-        CanonicalForm* y = new CanonicalForm();
-        in >> *y;
-        return y;
+            istringstream in;
+            in.str( s );
+            CanonicalForm* y = new CanonicalForm();
+            in >> *y;
+            return y;
         #}embed
 
         #embed{ void CF_polygen(void *ret, int c, int level, long e)

@@ -210,14 +210,15 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                   dimension of self.
         ALGORITHM:
            Call the dimension function.
+
         EXAMPLES:
-        sage: m = ModularSymbols(33)
-        sage: m.ngens()
-        9
-        sage: m.rank()
-        9
-        sage: ModularSymbols(100, weight=2, sign=1).ngens()
-        18
+            sage: m = ModularSymbols(33)
+            sage: m.ngens()
+            9
+            sage: m.rank()
+            9
+            sage: ModularSymbols(100, weight=2, sign=1).ngens()
+            18
         """
         return self.rank()
 
@@ -521,16 +522,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [  0   0   0   0   0   0   1   0  -3  -1   0]
             [  0   0   0   0   0   0   0   1  -2   0   0]
             [  0   0   0   0   0   0   0   0   0   0   1]
-            D[0].q_expansion_module(11)
+            sage: D[0].q_expansion_module(11)
             Vector space of degree 11 and dimension 2 over Cyclotomic Field of order 10 and degree 4
             Basis matrix:
             [                                  0                                   1                                   0                        zeta10^2 - 1                       -zeta10^2 - 1                -zeta10^3 - zeta10^2                   zeta10^2 - zeta10           2*zeta10^3 + 2*zeta10 - 1    zeta10^3 - zeta10^2 - zeta10 + 1        zeta10^3 - zeta10^2 + zeta10   -2*zeta10^3 + 2*zeta10^2 - zeta10]
             [                                  0                                   0                                   1               zeta10^3 + zeta10 - 1                         -zeta10 - 1                -zeta10^3 - zeta10^2 -2*zeta10^3 + zeta10^2 - zeta10 + 1                            zeta10^2                                   0                        zeta10^3 + 1  2*zeta10^3 - zeta10^2 + zeta10 - 1]
 
         EXAMPLES WITH SIGN 0 and R=QQ:
-        ** TODO -- this doesn't work yet for some reason **
-            sage: M = ModularSymbols(11,2).cuspidal_submodule()
-            sage: M.q_expansion_module()
+        ** TODO -- this doesn't work yet -- not implemented!! **
+             M = ModularSymbols(11,2).cuspidal_submodule()
+             M.q_expansion_module()
             ... boom ...
 
 
@@ -679,9 +680,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         must be $\QQ$ or a number field, and self must be cuspidal.
         The returned space is a $\ZZ$-module, where the coordinates
         are the coefficients of $q$-expansions.
-
-        EXAMPLES:
-            sage: todo
         """
         V = self.q_expansion_module(prec, QQ)
         return free_module.span(ZZ, V.basis()).saturation()

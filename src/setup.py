@@ -143,6 +143,10 @@ gsl_interpolation = Extension('sage.gsl.interpolation',
                 ['sage/gsl/interpolation.pyx'],
                 libraries = ['gsl', CBLAS])
 
+gsl_callback = Extension('sage.gsl.callback',
+                ['sage/gsl/callback.pyx'],
+                libraries = ['gsl', CBLAS])
+
 #####################################################
 
 ext_modules = [ \
@@ -169,6 +173,7 @@ ext_modules = [ \
 
     gsl_fft,
     gsl_interpolation,
+    gsl_callback,
 
     # complex_number2, \
 

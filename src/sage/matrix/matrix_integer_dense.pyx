@@ -401,14 +401,6 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
 
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense(self.parent(), zero=False)
-v v v v v v v
-*************
-v v v v v v v
-*************
-        cdef mpz_t *e
-        e = M._entries
-^ ^ ^ ^ ^ ^ ^
-^ ^ ^ ^ ^ ^ ^
 
         for i from 0 <= i < nr * nc:
             mpz_set(M._entries[i], self._entries[i])

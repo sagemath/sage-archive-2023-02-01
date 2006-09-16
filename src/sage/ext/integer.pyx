@@ -9,6 +9,7 @@ AUTHORS:
     -- William Stein (2006-04-14): added GMP factorial method (since it's
                                    now very fast).
     -- David Harvey (2006-09-15): added nth_root, exact_log
+    -- David Harvey (2006-09-16): attempt to optimise Integer constructor
 """
 
 #*****************************************************************************
@@ -41,6 +42,19 @@ cdef extern from "mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
     cdef int mpz_set_pylong(mpz_t dst, src) except -1
     cdef long mpz_pythonhash(mpz_t src)
+
+
+# todo: these declarations should probably be #included from somewhere else,
+# we'll probably use them elsewhere (maybe they're already being used?)
+cdef extern from "Python.h":
+    int PyObject_TypeCheck(object o, object t)
+    object PyObject_GetAttrString(object o, char *attr_name)
+    int PyObject_HasAttrString(object o, char *attr_name)
+    int PyInt_Check(object o)
+    int PyLong_Check(object o)
+    int PyString_Check(object o)
+
+from sage.libs.pari.gen cimport gen as pari_gen
 
 cdef class Integer(element.EuclideanDomainElement)
 
@@ -166,39 +180,66 @@ cdef class Integer(element.EuclideanDomainElement):
             '3b'
         """
         if not (x is None):
-            if isinstance(x, Integer):
+            # First do all the type-check versions; these are fast.
+            # PyObject_TypeCheck only works for *types* not for *classes*.
+
+            if PyObject_TypeCheck(x, Integer):
+                # todo: in this next line, Pyrex adds a call to its own
+                # function "__Pyx_TypeTest" to check that x is really an
+                # Integer. Pretty much all this function does is call
+                # PyObject_TypeCheck, which is what I've just done anyway.
+                # This is really annoying.
+                # Similarly with all the other conversions below.
                 set_from_Integer(self, x)
-            elif hasattr(x, "_integer_"):
-                set_from_Integer(self, x._integer_())
-            elif isinstance(x, int):
+
+            # todo: You would think you could just do:
+            #  elif PyObject_TypeCheck(x, int): [...]
+            # But if you do that, Pyrex writes in a *name lookup* for "int".
+            # That's really strange; it should just know the pointer
+            # to the unique int type object. This is why I'm using instead:
+            elif PyInt_Check(x):
                 mpz_set_si(self.value, x)
-
-            elif isinstance(x, long):
-                #_sig_on
+            # same comment as above:
+            elif PyLong_Check(x):
                 mpz_set_pylong(self.value, x)
-                #_sig_off
-                #s = "%x"%x
-                #mpz_set_str(self.value, s, 16)
-
-            elif isinstance(x, str):
+            # same comment as above:
+            elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
                 if mpz_set_str(self.value, x, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
-
-            elif isinstance(x, rational.Rational):
+            # todo: I want to skip the name lookup here (rational.Rational).
+            # I tried importing/cimporting Rational in various ways, but every
+            # way was broken for some mysterious reason. Perhaps a circular
+            # include somewhere?
+            elif PyObject_TypeCheck(x, rational.Rational):
                 if x.denominator() != 1:
                     raise TypeError, "Unable to coerce rational (=%s) to an Integer."%x
                 set_from_Integer(self, x.numer())
 
-
-            elif isinstance(x, sage.libs.pari.all.pari_gen):
+            # Similarly for "sage.libs.pari.all.pari_gen"
+            elif PyObject_TypeCheck(x, pari_gen):
                 if x.type() == 't_INTMOD':
                     x = x.lift()
                 # TODO: figure out how to convert to pari integer in base 16 ?
+
+                # todo: having this "s" variable around here is causing
+                # pyrex to play games with refcount for the None object, which
+                # seems really stupid.
+
                 s = hex(x)
                 if mpz_set_str(self.value, s, 16) != 0:
                     raise TypeError, "Unable to coerce PARI %s to an Integer."%x
+            elif PyObject_HasAttrString(x, "_integer_"):
+                # todo: Note that PyObject_GetAttrString returns NULL if
+                # the attribute was not found. If we could test for this,
+                # we could skip the double lookup. Unfortunately pyrex doesn't
+                # seem to let us do this; it flags an error if the function
+                # returns NULL, because it can't construct an "object" object
+                # out of the NULL pointer. This really sucks. Perhaps we could
+                # make the function prototype have return type void*, but
+                # then how do we make Pyrex handle the reference counting?
+                set_from_Integer(self, PyObject_GetAttrString(x, "_integer_")())
 
             else:
                 raise TypeError, "Unable to coerce %s (of type %s) to an Integer."%(x,type(x))

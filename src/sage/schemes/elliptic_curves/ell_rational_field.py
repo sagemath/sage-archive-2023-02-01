@@ -3947,53 +3947,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                   + O(p**prec)
 
         # Take into account the coordinate change.
-
-        # todo: arrrggghhh this is painful. I want to take the 6th root
-        # of a rational number which I know is an exact 6th power.
-        #
-        # This should be easy.
-        #
-        # Instead I need to coerce the numerator and denominator to real
-        # numbers, perform the root extraction there (after estimating an
-        # appropriate real precision), round and convert back. This should
-        # not be necessary!!!! Even for integers, we should be wrapping
-        # GMP's mpz_root function. Surely the _pow_ function on Integer
-        # and Rational should give exact answers when they make sense?
-        # Maybe that will break other interfaces... but at least there should
-        # be an exact_power method?
-
-        # see trac #8
-
-        from sage.rings.real_field import RealNumber
-        from sage.misc.functional import log
-
-        def extract_painful_integer_root(x, n):
-            # extracts the nth root of x, assuming x is an integer
-            # which is an exact nth power
-
-            min_prec = log(x, 2) * 2 + 10     # to be sure, to be sure
-            # todo: Why on earth doesn't RealNumber accept an Integer
-            # as input? Why must it be a string??!! see trac #55
-            x = RealNumber(str(x))
-            return (x ** (Integer(1)/Integer(n))).round().integer_part()
-
-        def extract_painful_rational_root(x, n):
-            # x should be a rational number which is an exact nth power,
-            # n a positive integer.
-
-            return extract_painful_integer_root(x.numerator(), n) / \
-                   extract_painful_integer_root(x.denominator(), n)
-
-        def extract_teeth():
-            assert True is False
-
-        # todo: here I should be able to write:
-        # (X.discriminant() / self.discriminant()) ** (Integer(1)/6)
-        # or maybe
-        # (X.discriminant() / self.discriminant()).nth_root(6)
-        # instead of this nonsense...
-        fudge_factor = extract_painful_rational_root(
-                          X.discriminant() / self.discriminant(), 6)
+        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
 
         # todo: here I should be able to write:
         #  return E2_of_X / fudge_factor

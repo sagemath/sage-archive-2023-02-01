@@ -8,6 +8,7 @@ AUTHORS:
                     python/GMP conversion; hashing
     -- William Stein and Naqi Jaffery (2006-03-06): height, sqrt examples,
           and improve behavior of sqrt.
+    -- David Harvey (2006-09-15): added nth_root
 """
 
 
@@ -389,6 +390,65 @@ cdef class Rational(element.FieldElement):
         """
         # TODO -- this could be quicker, by using GMP directly.
         return self.numerator().square_root() / self.denominator().square_root()
+
+    def nth_root(self, int n):
+        r"""
+        Computes the nth root of self, or raises a \exception{ValueError}
+        if self is not a perfect nth power.
+
+        INPUT:
+            n -- integer (must fit in C int type)
+
+        AUTHOR:
+           -- David Harvey (2006-09-15)
+
+        EXAMPLES:
+          sage: (25/4).nth_root(2)
+          5/2
+          sage: (125/8).nth_root(3)
+          5/2
+          sage: (-125/8).nth_root(3)
+          -5/2
+          sage: (25/4).nth_root(-2)
+          2/5
+
+          sage: (9/2).nth_root(2)
+          Traceback (most recent call last):
+          ...
+          ValueError: not a perfect nth power
+
+          sage: (-25/4).nth_root(2)
+          Traceback (most recent call last):
+          ...
+          ValueError: cannot take even root of negative number
+
+        """
+        # TODO -- this could be quicker, by using GMP directly.
+        cdef integer.Integer num
+        cdef integer.Integer den
+        cdef int negative
+
+        if n > 0:
+            negative = 0
+        elif n < 0:
+            n = -n
+            negative = 1
+        else:
+            raise ValueError, "n cannot be zero"
+
+        num, exact = self.numerator().nth_root(n, 1)
+        if not exact:
+            raise ValueError, "not a perfect nth power"
+
+        den, exact = self.denominator().nth_root(n, 1)
+        if not exact:
+            raise ValueError, "not a perfect nth power"
+
+        if negative:
+            return den / num
+        else:
+            return num / den
+
 
     def str(self, int base=10):
         if base < 2 or base > 36:

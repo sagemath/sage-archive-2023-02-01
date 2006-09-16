@@ -3730,9 +3730,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         sigma[0] = K(0)
         sigma[1] = K(1)
         for n in range(2, N+1):
-            # todo: I'm slightly worried about real precision in the
-            # log here: (see also trac ticket #54)
-            loss = int(log(n-1, p)) + int((n-2) / (p-1))
+            loss = Integer(n-1).exact_log(p) + int((n-2) / (p-1))
             sigma[n] = K(sigma[n].lift(), (N-1) - loss)
 
         S = rings.PowerSeriesRing(K, "t", N+1)

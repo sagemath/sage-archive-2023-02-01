@@ -8,6 +8,7 @@ AUTHORS:
     -- William Stein (2006-03-31): changes to reflect GMP bug fixes
     -- William Stein (2006-04-14): added GMP factorial method (since it's
                                    now very fast).
+    -- David Harvey (2006-09-15): added nth_root
 """
 
 #*****************************************************************************
@@ -652,6 +653,72 @@ cdef class Integer(element.EuclideanDomainElement):
         _sig_off
 
         return x
+
+    def nth_root(self, int n, int report_exact=0):
+        r"""
+        Returns the floor of the nth root of self.
+
+        INPUT:
+            n -- integer >= 1 (must fit in C int type)
+            report_exact -- boolean, whether to report if the root extraction
+                          was exact
+
+        OUTPUT:
+           If report_exact is 0 (default), then returns the floor of the nth
+           root of self.
+
+           If report_exact is 1, then returns the nth root and a boolean
+           indicating whether the root extraction was exact.
+
+        AUTHOR:
+           -- David Harvey (2006-09-15)
+
+        EXAMPLES:
+          sage: Integer(125).nth_root(3)
+          5
+          sage: Integer(124).nth_root(3)
+          1
+          sage: Integer(126).nth_root(3)
+          5
+
+          sage: Integer(-125).nth_root(3)
+          -5
+          sage: Integer(-124).nth_root(3)
+          -1
+          sage: Integer(-126).nth_root(3)
+          -5
+
+          sage: Integer(125).nth_root(2, True)
+          (11, False)
+          sage: Integer(125).nth_root(3, True)
+          (5, True)
+
+          sage: Integer(125).nth_root(-5)
+          Traceback (most recent call last):
+          ...
+          ValueError: n (=-5) must be positive
+
+          sage: Integer(-25).nth_root(2)
+          Traceback (most recent call last):
+          ...
+          ValueError: cannot take even root of negative number
+
+        """
+        if n < 1:
+            raise ValueError, "n (=%s) must be positive" % n
+        if (self < 0) and not (n & 1):
+            raise ValueError, "cannot take even root of negative number"
+        cdef Integer x
+        cdef int is_exact
+        x = Integer()
+        _sig_on
+        is_exact = mpz_root(x.value, self.value, n)
+        _sig_off
+
+        if report_exact:
+            return x, bool(is_exact)
+        else:
+            return x
 
     def __pos__(self):
         """

@@ -95,6 +95,7 @@ cdef extern from "gmp.h":
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_xor (mpz_t rop, mpz_t op1, mpz_t op2)
+    int mpz_root (mpz_t rop, mpz_t op, unsigned long int n)
 
     # The mpq type
     void mpq_abs (mpq_t rop, mpq_t op)

@@ -709,6 +709,9 @@ def frobenius_expansion_by_newton(Q, p, M):
   x_to_p_cubed = x_to_p.square() * x_to_p
   r = (base_ring(1) / base_ring(2)) * (x_to_p_cubed + Q[1]*x_to_p + S(Q[0]))
 
+  # todo: this next loop would be clearer if it used the newton_method_sizes()
+  # function
+
   # We will start with a hard-coded initial approximation, which we provide
   # up to precision 3. First work out what precision is best to start with.
   if M <= 3:

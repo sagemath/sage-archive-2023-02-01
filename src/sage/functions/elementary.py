@@ -24,7 +24,7 @@ Theorem: E is the algebra of all finite functions.
 
 Methods implemented:
     * addition
-    * multiplication
+    * multiplication (right scalar multiplication only)
     * positive integer powers
     * integration (definite -, returns a RR; indefinite -, usually
       returns a *string* but in simple cases returns an instance
@@ -39,7 +39,7 @@ Methods implemented:
     * print methods
     * parent method for ElementaryFunctions
     * unary - (ie, multiply by -1)
-    * solves a constant coefficient of the form
+    * desolve - solves a constant coefficient DE of the form
       Phi(D)y(x) = e(x), where Phi(D) is a
       constant coefficient polynomial in D and
       e(x) is an elementary function (using the method of
@@ -48,9 +48,12 @@ Methods implemented:
 TODO:
     * extend "integrate" so that it always returns a class instance
       instead of a string
+    * extend "desolve" so that it always returns a class instance
+      instead of a string
     * extend piecewise piecewise functions to allow ElementaryFunctions.
 
 AUTHOR: David Joyner (2006-06)
+        " (2006-09) - minor bug fixes
 
      REFERENCE:
         * Abramowitz and Stegun: Handbook of Mathematical Functions,
@@ -85,7 +88,7 @@ from sage.rings.all import QQ, RR, ZZ
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 from constants import e as E
-from functions import sin,cos
+from functions import sin,cos,expo
 
 from functions import *
 
@@ -157,7 +160,7 @@ def exponential(a,var):
         Elementary function (1/2)exp(2*t)
         sage: f.latex()
         '(1)e^{2t}\\cos(0t)'
-        sage: f(1)
+        sage: f(1)       ## somewhat randomish output
         7.3890560989306495
         sage: f.laplace_transform("s")
         '1/(s - 2)'
@@ -223,7 +226,7 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
             return ElementaryFunction([(x**0,0,0,1)])
         if z is cos:
             return ElementaryFunction([(x**0,0,1,0)])
-        if z is exp:
+        if z is expo:
             return ElementaryFunction([(x**0,1,0,0)])
         try:
             if z in RR:
@@ -318,9 +321,20 @@ class ElementaryFunction(ElementaryFunctionRing):
             self._var = list_of_fcns[0][0].parent().gen()
         else:
             F = list_of_fcns[0][0].base_ring()
-            var = self.variable()                        #### TODO: wrong -- FIX THIS
+            var = self.variable()                        #### wrong -- FIX THIS
             R = PolynomialRing(F,str(var))
             self._var = R.gen()
+
+    def plot(self,*args, **kwds):
+        """
+        EXAMPLES:
+            sage: x = PolynomialRing(QQ,"x").gen()
+            sage: g = ElementaryFunction([(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
+            sage: P = plot(g,-1,1)
+
+        Now type show(P) to view this.
+        """
+        return sage.plot.plot.plot(self, *args, **kwds)
 
     def list(self):
         return self._list
@@ -555,8 +569,10 @@ class ElementaryFunction(ElementaryFunctionRing):
         EXAMPLES:
             sage: x = PolynomialRing(QQ,"x").gen()
             sage: g = ElementaryFunction([(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
-            sage: g(1)
+            sage: g(1)       ## somewhat randomish output
             5.3629954705944760
+            sage: exp(3)*cos(5)-exp(-1)*sin(2)
+            5.3629954705944769
 
         """
         val = RR(0)
@@ -567,9 +583,9 @@ class ElementaryFunction(ElementaryFunctionRing):
             b = f[2] # the cosine coeff
             c = f[3] # the sine coeff
             if c!=0:
-                val = val + p(x)*RR(E)**a*cos(b*x)*sin(c*x)
+                val = val + p(x)*expo(a*x)*cos(b*x)*sin(c*x)
             else:
-                val = val + p(x)*RR(E)**a*cos(b*x)
+                val = val + p(x)*expo(a*x)*cos(b*x)
         return val
 
     def exact_value(self,a):
@@ -961,8 +977,7 @@ class ElementaryFunction(ElementaryFunctionRing):
 
         EXAMPLES:
             sage: DR = PolynomialRing(QQ,"D")
-            sage: D = DR.gen()
-            sage: Phi = D^2 - 1
+            sage: D = DR.gen(); Phi = D^2 - 1
             sage: R = ElementaryFunctionRing(QQ,"t")
             sage: t = R.polygen()
             sage: g = ElementaryFunction([(1*t^0,0,0,2)])

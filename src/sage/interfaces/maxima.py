@@ -18,6 +18,8 @@ AUTHORS OF THIS MODULE:
     - William Stein (2006-02-22): comparisons (following suggestion of David Joyner)
     - William Stein (2006-02-24): *greatly* improved robustness by adding
                                   sequence numbers to IO bracketing in _eval_line
+    - David Joyner (2006-09): fixed de_plot and added (in addition to gnuplot) a
+                              matplotlib (default) plotting option
 
 If the string "error" (case insensitive) occurs in the output of
 anything from maxima, a RuntimeError exception is raised.
@@ -292,7 +294,8 @@ Unfortunately maxima doesn't seem to have a non-interactive mode,
 which is needed for the \sage interface.  If any \sage call leads
 to maxima interactively answering questions, then the questions
 can't be answered and the maxima session may hang.
-See the discussion at \url{http://www.ma.utexas.edu/pipermail/maxima/2005/011061.html} for some ideas about how to fix this problem.  An
+See the discussion at \url{http://www.ma.utexas.edu/pipermail/maxima/2005/011061.html}
+for some ideas about how to fix this problem.  An
 example that illustrates this problem is
 \code{maxima.eval('integrate (exp(a*x), x, 0, inf)')}.
 
@@ -330,7 +333,7 @@ is much less robust, and is not recommended.}
 """
 
 #*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005 William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -346,20 +349,16 @@ is much less robust, and is not recommended.}
 
 import os, re
 
-from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from expect import Expect, ExpectElement, tmp
 
 from sage.misc.misc import verbose
-
+from sage.misc.sage_eval import sage_eval
 from sage.misc.multireplace import multiple_replace
 
 SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
 cnt = 0
 seq = 0
-
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
-
-COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
@@ -399,11 +398,6 @@ class Maxima(Expect):
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._display2d = False
-
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MaximaExpectFunction(self, attrname)
 
     def _start(self):
         # For some reason sending a single input line at startup avoids
@@ -445,8 +439,8 @@ class Maxima(Expect):
         seq += 1
         start = SAGE_START + str(seq)
         end = SAGE_END + str(seq)
-        #line = '%s; %s; %s;'%(start, line, end)
-        line = '%s;\n%s; %s;'%(start, line, end)
+        line = '%s; %s; %s;'%(start, line, end)
+        #print line
         if self._expect is None:
             self._start()
         if allow_use_file and self.__eval_using_file_cutoff and \
@@ -466,9 +460,6 @@ class Maxima(Expect):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 
-        if 'Incorrect syntax:' in out:
-            raise RuntimeError, out
-
         i = out.rfind(start)
         j = out.rfind(end)
         out = out[i+len(start):j]
@@ -477,22 +468,24 @@ class Maxima(Expect):
         if 'error' in out:
             return out
         out = out.lstrip()
+        #i = out.rfind('(')
+        #out = out[:i].strip()
         i = out.find('(%o')
         out0 = out[:i].strip()
         i += out[i:].find(')')
         out1 = out[i+1:].strip()
         out = out0 + out1
         out = ''.join(out.split())    # no whitespace
-        i = out.rfind(';;')
-        if i != -1:
-            out = out[i+2:]
         out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=').replace('^ - ','^-')
+        #out = out.replace('+',' + ').replace('=',' = ').replace(': =',' :=')
         if out[:3] == ' - ':
             out = '-' + out[3:]
         out = out.replace('E - ', 'E-')
         out = out.replace('%e - ', '%e-')
         i = out.rfind('(%o')
-        return out[:i]
+        if i != -1:
+            out = out[:i]
+        return out
 
 
     ###########################################
@@ -501,8 +494,7 @@ class Maxima(Expect):
 
     # This doesn't work because of how weird interaction is.
     # System call method below is much more robust.
-    def help(self, s):
-        return "Help on Maxima commands currently not implemented (see %s/devel/sage/interfaces/maxima.py if you want to try to implement it)."%SAGE_ROOT
+##     def help(self, s):
 ##         if self._expect is None:
 ##             self._start()
 ##         E = self._expect
@@ -519,8 +511,8 @@ class Maxima(Expect):
 ##         print E.before
 ##     # override the builtin describe command
 
-##     def help(self, s):
-##         os.system('maxima -r "describe(%s);"'%s)
+    def help(self, s):
+        os.system('maxima -r "describe(%s);"'%s)
 
     def example(self, s):
         os.system('maxima -r "example(%s);"'%s)
@@ -529,44 +521,6 @@ class Maxima(Expect):
 
     def demo(self, s):
         os.system('maxima -r "demo(%s);"'%s)
-
-    def completions(self, s):
-        """
-        Return all commands that complete the command starting with the
-        string s.   This is like typing s[tab] in the maple interpreter.
-        """
-        s = self.eval('apropos(%s)'%s).replace('\\ - ','-')
-        return [x for x in s[1:-1].split(',') if x[0] != '?']
-
-    def _commands(self):
-        """
-        Return list of all commands defined in Maxima.
-        """
-        try:
-            return self.__commands
-        except AttributeError:
-            self.__commands = sum([self.completions(chr(97+n)) for n in range(26)], [])
-        return self.__commands
-
-    def trait_names(self, verbose=True, use_disk_cache=True):
-        try:
-            return self.__trait_names
-        except AttributeError:
-            import sage.misc.persist
-            if use_disk_cache:
-                try:
-                    self.__trait_names = sage.misc.persist.load(COMMANDS_CACHE)
-                    return self.__trait_names
-                except IOError:
-                    pass
-            if verbose:
-                print "\nBuilding Maxima command completion list (this takes"
-                print "a few seconds only the first time you do it)."
-                print "To force rebuild later, delete %s."%COMMANDS_CACHE
-            v = self._commands()
-            self.__trait_names = v
-            sage.misc.persist.save(v, COMMANDS_CACHE)
-            return v
 
     def _object_class(self):
         return MaximaElement
@@ -697,6 +651,8 @@ class Maxima(Expect):
             sage.: maxima.plot2d('sin(x)','[x,-5,5]',opts)
 
         The eps file is saved in the current directory.
+
+        AUTHOR: William Stein and David Joyner
         """
         self('plot2d(%s)'%(','.join([str(x) for x in args])))
 
@@ -721,6 +677,8 @@ class Maxima(Expect):
 
         Here is another fun plot:
             sage.: maxima.plot2d_parametric(["sin(5*t)","cos(11*t)"], "t", [0,2*pi()], nticks=400)
+
+        AUTHOR: William Stein and David Joyner
         """
         tmin = trange[0]
         tmax = trange[1]
@@ -749,6 +707,8 @@ class Maxima(Expect):
             sage.: maxima.plot3d('sin(x+y)', '[x,-5,5]', '[y,-1,1]', opts)
 
         The eps file is saved in the current working directory.
+
+        AUTHOR: William Stein and David Joyner
         """
         self('plot3d(%s)'%(','.join([str(x) for x in args])))
 
@@ -785,6 +745,8 @@ class Maxima(Expect):
             sage.: y = "sin(u)*(3 + v*cos(u/2))"
             sage.: z = "v*sin(u/2)"
             sage.: maxima.plot3d_parametric([x,y,z],["u","v"],[-3.1,3.2],[-1/10,1/10])
+
+        AUTHOR: William Stein and David Joyner
         """
         umin = urange[0]
         umax = urange[1]
@@ -818,6 +780,8 @@ class Maxima(Expect):
             y = (%c - 3*( - x - 1)*%e^ - x)*%e^x
             sage.: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y =  - %e^ - 1*(5*%e^x - 3*%e*x - 3*%e)
+
+        AUTHOR: William Stein and David Joyner
         """
         if not isinstance(vars, str):
             str_vars = '%s, %s'%(vars[1], vars[0])
@@ -836,7 +800,8 @@ class Maxima(Expect):
 
     def de_solve_laplace(self, de, vars, ics=None):
         """
-        Solves an ordinary differential equation (ODE) using Laplace transforms.
+        Solves an ordinary differential equation (ODE) using Laplace transforms using
+        maxima.
 
         INPUT:
             de -- a string representing the ODE
@@ -868,6 +833,8 @@ class Maxima(Expect):
         $f'(0)$ in maxima, so subsequent ODEs involving these
         variables will have these initial conditions automatically
         imposed.}
+
+        AUTHOR: William Stein and David Joyner
         """
         if not (ics is None):
             d = len(ics)
@@ -897,48 +864,63 @@ class Maxima(Expect):
 ##         """
 ##         raise NotImplementedError
 
-##     def de_plot(self, de,vars,ic,xrange,yrange,options=None):
-##         r"""
-##         Plots solution to a 2nd order ODE.
+    def de_plot(self, de,vars,ic,xrange,yrange,mode="matplotlib",options=None):
+        r"""
+        Plots solution to a 2nd order ODE using gnuplot.
 
-##         INPUT:
-##         de is a string representing the ODE
-##                (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-##         vars is a list or two strings representing variables (such as vars = ["x","y"])
-##         ics is a list of numbers representing initial conditions,
-##                with symbols allowed which are represented by strings
-##                (eg, y(0)=1, y'(0)=2 is ic = [0,1,2])
-##         xrange = [xmin, xmax], yrange = [ymin, ymax] are lists ofnumbers with xmin<xmax, ymin<ymax
-##         options is an optional string representing plot2d options in gnuplot format
+        INPUT:
+        de is a string representing the ODE
+               (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
+        vars is a list or two strings representing variables (such as vars = ["x","y"])
+        ics is a list of numbers representing initial conditions,
+               with symbols allowed which are represented by strings
+               (eg, y(0)=1, y'(0)=2 is ic = [0,1,2])
+        xrange = [xmin, xmax], yrange = [ymin, ymax] are lists ofnumbers with xmin<xmax, ymin<ymax
+        options is an optional string representing plot2d options in gnuplot format
 
-##         EXAMPLES:
-##             sage.: de = "diff(y,x,2) = 2*(1+x)"
-##             sage.: de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10])
-##             sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "de_plot.eps"]'
-##             sage.: de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10],opts)
+        EXAMPLES:
+            sage.: de = "diff(y(x),x,2) = 2*(1+x)"
+            sage.: maxima.de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10])
+            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "de_plot.eps"]'
+            sage.: maxima.de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10],opts)
 
-##         The eps file is saved in the current working directory.
-##         """
-##         y = vars[1]
-##         x = vars[0]
-##         x0 = ic[0]
-##         y0 = ic[1]
-##         y1 = ic[2]
-##         xmin = xrange[0]
-##         xmax = xrange[1]
-##         ymin = yrange[0]
-##         ymax = yrange[1]
-##         cmd1 = "(soln:ode2('"+de+","+y+","+x+"), tmp:IC2(soln,"+x+"="+str(x0)+","+y+"="+str(y0)+",'diff("+y+","+x+")="+str(y1)+"));"
-##         #print cmd1
-##         print self(cmd1)
-##         if options==None:
-##             cmd2 = "plot2d(sublis(solve(tmp,"+y+"),"+y+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"]);"
-##             #print cmd2
-##             self(cmd2)
-##         if options!=None:
-##             cmd2 = "plot2d(sublis(solve(tmp,"+y+"),"+y+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"],"+options+");"
-##             #print cmd2
-##             self(cmd2)
+        The eps file is saved in the current working directory.
+
+        AUTHOR: William Stein and David Joyner
+        """
+        from sage.plot.plot import plot
+        y = vars[1]
+        x = vars[0]
+        x0 = ic[0]
+        y0 = ic[1]
+        y1 = ic[2]
+        xmin = xrange[0]
+        xmax = xrange[1]
+        ymin = yrange[0]
+        ymax = yrange[1]
+        cmd1 = "atvalue(%s(%s),%s=%s,%s)"%(y,x,x,x0,y0)
+        #cmd1 = "(soln:ode2('"+de+","+y+","+x+"), tmp:IC2(soln,"+x+"="+str(x0)+","+y+"="+str(y0)+",'diff("+y+","+x+")="+str(y1)+"));"
+        #print cmd1
+        self(cmd1)
+        cmd2 = "atvalue('diff(%s(%s),%s),%s=%s,%s)"%(y,x,x,x,x0,y1)
+        #print cmd2
+        self(cmd2)
+        cmd3 = "rhs(desolve(%s,%s(%s)))"%(de,y,x)
+        #print cmd3
+        #self("desolve(%s,%s(%s))"%(de,y,x))
+        #print "soln = ",cmd3,self(cmd3)
+        soln = sage_eval(self(cmd3))
+        if mode == "matplotlib":
+            p = plot(soln,xmin,xmax)
+            p.show()
+        if mode=="gnupplot" and options==None:
+            cmd4 = "plot2d(rhs("+cmd3+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"]);"
+            #print cmd4
+            self(cmd4)
+        if  mode=="gnupplot" and options!=None:
+            cmd5 = "plot2d(rhs("+cmd3+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"],"+options+");"
+            #print cmd5
+            self(cmd5)
 
     def solve_linear(self, eqns,vars):
         """
@@ -954,6 +936,8 @@ class Maxima(Expect):
             sage: vars = ["x","y","z"]
             sage: maxima.solve_linear(eqns, vars)
             [x = a + 1,y = 2*a,z = a - 1]
+
+        AUTHOR: William Stein and David Joyner
         """
         eqs = "["
         for i in range(len(eqns)):
@@ -1021,6 +1005,8 @@ class Maxima(Expect):
             sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy)
             sage.: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
             sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy, opts)
+
+        AUTHOR: William Stein and David Joyner
         """
         cmd = 'plot2d([discrete,%s, %s]'%(ptsx, ptsy)
         if options is None:
@@ -1054,6 +1040,8 @@ class Maxima(Expect):
             sage.: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])
             sage.: opts='[gnuplot_preamble, "set nokey"]'
             sage.: maxima.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]],opts)
+
+        AUTHOR: William Stein and David Joyner
         """
         n = len(pts_list)
         cmd = '['
@@ -1141,9 +1129,6 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
         P._eval_line('display2d : false', reformat=False)
-        i = s.find('true')
-        i += s[i:].find('\n')
-        s = s[i+1:]
         i = s.find('true')
         i += s[i:].find('\n')
         #j = s.rfind('(%o')
@@ -1297,11 +1282,6 @@ class MaximaElement(ExpectElement):
         self._check_valid()
         return int(self.parent().eval('length(%s)'%self.name()))
 
-    def __getattr__(self, attrname):
-        if attrname[:1] == "_":
-            raise AttributeError
-        return MaximaFunctionElement(self, attrname)
-
     def __getitem__(self, n):
         r"""
         Return the n-th element of this list.
@@ -1349,9 +1329,6 @@ class MaximaElement(ExpectElement):
                               '\\arccos ':'\\cos^{-1} ',
                               '\\arctan ':'\\tan^{-1} '}, s)
         return s
-
-    def trait_names(self):
-        return self.parent().trait_names()
 
     def _matrix_(self, R):
         r"""
@@ -1409,16 +1386,6 @@ class MaximaElement(ExpectElement):
                              2 (x - 1)   2 (x + 1)
         """
         return self.partfrac(var)
-
-
-class MaximaFunctionElement(FunctionElement):
-    def _sage_doc_(self):
-        return self._obj.parent().help(self._name)
-
-class MaximaExpectFunction(ExpectFunction):
-    def _sage_doc_(self):
-        M = self._parent
-        return M.help(self._name)
 
 
 class MaximaFunction(MaximaElement):

@@ -455,6 +455,7 @@ def reduce_negative(Q, p, coeffs, offset):
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[10, 15, 20], [1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 5, coeffs, 3)
         sage: coeffs[3]
          [103, 102, 9]
@@ -462,6 +463,7 @@ def reduce_negative(Q, p, coeffs, offset):
         sage: R.<x> = Integers(7^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[7, 14, 21], [1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 7, coeffs, 3)
         sage: coeffs[3]
          [245, 332, 9]
@@ -482,17 +484,19 @@ def reduce_negative(Q, p, coeffs, offset):
             j = 2*(i-offset)
             a = next_a
             next_a = coeffs[i+1]
-            j_plus_1 = base_ring(j+1)
 
-            if (p.divides(j+1)):
-                a[0] = a[0] // j_plus_1
-                a[1] = a[1] // j_plus_1
-                a[2] = a[2] // j_plus_1
-            else:
-                j_inverse = Integer(1)/j_plus_1
-                a[0] = a[0] * j_inverse
-                a[1] = a[1] * j_inverse
-                a[2] = a[2] * j_inverse
+            # todo: the following divisions will sometimes involve
+            # a division by (a power of) p. In all cases, we know (from
+            # Kedlaya's estimates) that the answer should be p-integral.
+            # However, since we're working over $Z/p^k Z$, we're not allowed
+            # to "divide by p". So currently we lift to Q, divide, and coerce
+            # back. Eventually, when pAdicInteger is implemented, and plays
+            # nicely with pAdicField, we should reimplement this stuff
+            # using pAdicInteger.
+
+            a[0] = base_ring(a[0].lift() / (j+1))
+            a[1] = base_ring(a[1].lift() / (j+1))
+            a[2] = base_ring(a[2].lift() / (j+1))
 
             c1 = m[3]*a[0] + m[4]*a[1] + m[5]*a[2]
             c2 = m[6]*a[0] + m[7]*a[1] + m[8]*a[2]
@@ -532,11 +536,13 @@ def reduce_positive(Q, coeffs, offset):
         sage: Q = x^3 - x + R(1/4)
 
         sage: coeffs = [[1, 2, 3], [10, 15, 20]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
         sage: coeffs[0]
          [16, 102, 88]
 
         sage: coeffs = [[9, 8, 7], [10, 15, 20]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
         sage: coeffs[0]
          [24, 108, 92]
@@ -559,10 +565,12 @@ def reduce_positive(Q, coeffs, offset):
 
         a[0] = a[0] - Qa*a[2]/3   # subtract d(y^j + 1)
 
+        # todo: see comments about pAdicInteger in reduceNegative()
+
         # subtract off c1 of d(x y^j + 1)
-        c1 = a[0]*base_ring(j+1) // base_ring(3*j+5)
+        c1 = base_ring(a[0].lift() * (j+1) / (3*j + 5))
         # subtract off c2 of d(x^2 y^j + 1)
-        c2 = a[1]*base_ring(j+1) // base_ring(3*j+7)
+        c2 = base_ring(a[1].lift() * (j+1) / (3*j + 7))
 
         next_a[0] = next_a[0] + B*c1
         next_a[1] = next_a[1] + A*c1 + B*c2
@@ -592,6 +600,7 @@ def reduce_zero(Q, coeffs, offset):
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_zero(Q, coeffs, 1)
         sage: coeffs[1]
          [6, 5, 0]
@@ -633,13 +642,9 @@ def reduce_all(Q, p, coeffs, offset):
         sage: R.<x> = Integers(5^3)['x']
         sage: Q = x^3 - x + R(1/4)
         sage: coeffs = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_all(Q, 5, coeffs, 1)
          (21, 106)
-
-    TODO:
-     -- I would like to revisit all the floordiv stuff etc in all the
-        reduce* functions once we have integers mod n pyrexification
-        completely working, check that everything is behaving efficiently.
 
     """
 

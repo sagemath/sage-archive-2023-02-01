@@ -3670,8 +3670,47 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         elif E2.big_oh() < N-1:
             raise ValueError, "supplied E2 has insufficient precision"
 
+
         R = rings.Integers(p**(N-1))
         E2 = R(E2)
+
+
+        # todo: This next function is borrowed from power_series_ring_element.
+        # I can't use the version there because it sometimes does divisions
+        # by p, and that's not allowed in $Z/p^N Z$. One day, when we have
+        # an efficient pAdicInteger type, then I can probably use the
+        # generic code, and I should come back and reimplement this. But
+        # for now I have to have specialised code here.
+
+        S = rings.PolynomialRing(R)
+
+        def _solve_linear_de(N, L, a, b, f0):
+            if L == 1:
+                # base case
+                if N == 0:
+                    return [f0]
+                else:
+                    # todo: here's where the division by p is a problem!
+                    return [R(b[0].lift() / N)]
+
+            L2 = (L + 1) >> 1    # ceil(L/2)
+
+            g = _solve_linear_de(N, L2, a, b, f0)
+
+            term1 = S(g, check=False)
+            term2 = S(a[:L], check=False)
+            product = (term1 * term2).list()
+
+            # todo: perhaps next loop could be made more efficient
+            c = b[L2 : L]
+            for j in range(L2 - 1, min(L-1, len(product))):
+                c[j - (L2-1)] = c[j - (L2-1)] + product[j]
+
+            h = _solve_linear_de(N + L2, L - L2, a, c, f0)
+
+            g.extend(h)
+            return g
+
 
         X = self.change_ring(R)
 
@@ -3690,7 +3729,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         x = X.formal_x(N+1)               # x = t^{-2} + ...
         f = X.formal_differential(N+1)    # f = 1 + ...
 
-        A = -f * ((x + c) * f).integral()
+        # todo: I would like to write:
+        #     A = -f * ((x + c) * f).integral()
+        # But I can't, because the integral() sometimes involves divisions by
+        # p. So we have to do it "manually". This needs to be reimplemented
+        # when we have a decent pAdicInteger ring available.
+        A  = (x + c) * f
+        integral_list = [A[i].lift() / (i+1) for i in range(N-1)]
+        A = A.parent()([-1, 0] + integral_list, -1)
+        A = -f * A
 
         # The above integral has a constant of integration which we need to
         # figure out. The constant is determined by the condition that sigma is
@@ -3707,7 +3754,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         A[-1] = 0
 
         # Now A should be $g'/g$, where $\sigma(t) = t g(t)$.
-        sigma = A.power_series().solve_linear_de(N)
+
+        # todo: here I want to write:
+        #     sigma = A.power_series().solve_linear_de(N)
+        # but I can't. See the local _solve_linear_de() method above.
+        a = A.power_series()
+        series_ring = a.parent()
+        b = [R(0) for i in range(N)]
+        sigma = series_ring(_solve_linear_de(0, N, a.list(), b, R(1)))
         sigma = sigma * sigma.parent().gen()
 
         # (Note: the very fact that the above differential equation gets

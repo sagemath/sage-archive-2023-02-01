@@ -23,8 +23,6 @@ MAX_OUTPUT = 65536
 
 
 
-c = 0
-
 import os, shutil
 
 from   sage.misc.misc import word_wrap
@@ -43,6 +41,7 @@ class Cell:
         self.__completions = False
         self.has_new_output = False
         self.__dir   = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        self.__version = 0
 
     def set_cell_output_type(self, typ='wrap'):
         self.__type = typ
@@ -186,6 +185,7 @@ class Cell:
         return self.__worksheet.notebook()
 
     def set_input_text(self, input):
+        self.__version = 1+self.version()
         self.__in = input
 
     def input_text(self):
@@ -290,7 +290,6 @@ class Cell:
         except AttributeError:
             return False
 
-
     def unset_introspect(self):
         self.__introspect = False
 
@@ -311,6 +310,13 @@ class Cell:
         dir = self.directory()
         for D in os.listdir(dir):
             os.unlink(dir + '/' + D)
+
+    def version(self):
+        try:
+            return self.__version
+        except AttributeError:
+            self.__version = 0
+            return self.__version
 
     def time(self):
         return self.__time
@@ -376,14 +382,13 @@ class Cell:
             return ''
         images = []
         files  = []
-        # The c and question mark hack here is so that images will be reloaded when
-        # the async request requests the output text for a computation.
-        # This is a total hack, inspired by http://www.irt.org/script/416.htm/.
-        global c
-        c += 1
+        ## The c and question mark hack here is so that images will be reloaded when
+        ## the async request requests the output text for a computation.
+        ## This is a total hack, inspired by http://www.irt.org/script/416.htm/.
+        # Global c replaced by cell version number -- TB
         for F in D:
             if F[-4:] in ['.png', '.bmp']:
-                images.append('<img src="%s/%s?%s">'%(dir,F,c))
+                images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
             else:

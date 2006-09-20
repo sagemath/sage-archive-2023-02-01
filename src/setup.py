@@ -328,7 +328,7 @@ if DEVEL:
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
 
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python']
+include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
 
 extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
 

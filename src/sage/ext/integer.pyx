@@ -44,16 +44,6 @@ cdef extern from "mpz_pylong.h":
     cdef long mpz_pythonhash(mpz_t src)
 
 
-# todo: these declarations should probably be #included from somewhere else,
-# we'll probably use them elsewhere (maybe they're already being used?)
-cdef extern from "Python.h":
-    int PyObject_TypeCheck(object o, object t)
-    object PyObject_GetAttrString(object o, char *attr_name)
-    int PyObject_HasAttrString(object o, char *attr_name)
-    int PyInt_Check(object o)
-    int PyLong_Check(object o)
-    int PyString_Check(object o)
-
 from sage.libs.pari.gen cimport gen as pari_gen
 
 cdef class Integer(element.EuclideanDomainElement)

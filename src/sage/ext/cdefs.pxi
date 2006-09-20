@@ -21,14 +21,31 @@ cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!
 
+
 cdef extern from "Python.h":
+    # Memory management
     void PyMem_Free(void *p)
     void* PyMem_Realloc(void *p, size_t n)
     void* PyMem_Malloc(size_t)
+
+    # Type conversions
     object PyString_FromString(char *v)
     char* PyString_AsString(object string)
     object PyString_InternFromString(char *v)
+
+    # Type checking
+    int PyObject_TypeCheck(object o, object t)
+    int PyInt_Check(object o)
+    int PyLong_Check(object o)
+    int PyString_Check(object o)
+
+    # Python attribute lookup functions
+    object PyObject_GetAttrString(object o, char *attr_name)
+    int PyObject_HasAttrString(object o, char *attr_name)
+
+    # Miscellaneous
     int PyErr_CheckSignals()
+
 
 
 cdef extern from "gmp.h":

@@ -1745,7 +1745,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.Lseries(1)
             0.00000000000000000
-            sage: E.Lseries('1.1')       # long (!)
+            sage: E.Lseries('1.1')       # long time (!)
             0.28549100767814833
 
         TODO: Planned massive improvement -- use Micheal Rubinstein's

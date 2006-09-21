@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+import os, sys, shutil
+
+SAGE_ROOT = os.environ['SAGE_ROOT']
+
+os.chdir(SAGE_ROOT + "/devel")
+
+def usage():
+    print "\n\n"
+    print "sage -clone <new_branch> [-r rev]"
+    sys.exit(1)
+
+if len(sys.argv) == 1:
+    usage()
+
+if sys.argv[1] == '-r':
+    if len(sys.argv) < 4:
+        usage()
+    sys.argv = [sys.argv[0], sys.argv[3], sys.argv[1], sys.argv[2]]
+
+branch = 'sage-%s'%sys.argv[1]
+
+if os.path.isdir(branch):
+    print "SAGE library branch %s already exists so I can't clone to it."%branch
+    sys.exit(1)
+
+if not os.path.isdir('sage'):
+    print "No SAGE branch currently selected.  Use 'sage -b [branch_name]'."
+    sys.exit(1)
+
+print "Now cloning the current SAGE library branch..."
+cmd = 'hg clone %s sage %s '%(' '.join(sys.argv[2:]), branch)
+print cmd
+if os.system(cmd):
+    print "Error cloning"
+    sys.exit(1)
+
+if len(sys.argv) == 2:
+    # Just a straight clone, so we can use all the
+    # auto-generated code and pre-built code, hence
+    # saving lots of time.
+
+    print "Copying over all Pyrex auto-generated .c and .h files..."
+    def cpdir(src, dest):
+        if not os.path.isdir(dest):
+            return
+        for F in os.listdir(src):
+            if os.path.isdir(src + '/' + F):
+                cpdir(src + '/' + F, dest + '/' + F)
+            else:
+                ext = os.path.splitext(F)[-1]
+                if ext in ['.h', '.c']:
+                    if 'Pyrex' in open(src + '/' + F).readline():
+                        shutil.copy(src + '/' + F, dest + '/' +F)
+
+    cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
+
+    print "Copying over build directory."
+    cmd = 'cp -r sage/build %s'%branch
+    print cmd
+    if os.system(cmd):
+        print "Error copying build directory"
+        sys.exit(1)
+
+    # Done copying over build cache.
+
+print "Building " + branch
+cmd = 'sage -b %s'%sys.argv[1]
+print cmd
+if os.system(cmd):
+    print "Error building SAGE"
+
+

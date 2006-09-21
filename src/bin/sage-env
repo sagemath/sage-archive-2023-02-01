@@ -50,7 +50,7 @@ fi
 
 
 
-if [ "$1" != "-short" ]; then
+if [ 1 = 2 ]; then
     echo "The following enviroment variables can be set by the user"
     echo "AR          The archiver (e.g. ar, /usr/ccs/bin/ar or /usr/bin/ar)"
     echo "AS          The assembler (e.g. as, /usr/ccs/bin/as or /usr/bin/as)"
@@ -84,6 +84,11 @@ SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
 LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
+
+if [ "$SAGE_SERVER" = "" ]; then
+    SAGE_SERVER="http://sage.math.washington.edu/sage/"
+    export SAGE_SERVER
+fi
 
 if [ "$DOT_SAGE" = "" ]; then
     DOT_SAGE="$HOME/.sage/"
@@ -251,6 +256,9 @@ export SHAREDFLAGS
 export UNAME
 export CC
 export CFLAGS
+
+
+if [ 1 = 2 ]; then
 echo "AR=$AR"
 echo "AS=$AS"
 echo "CC=$CC"
@@ -267,3 +275,4 @@ echo "SAGE64=$SAGE64"
 echo "SHAREDFLAGS=$SHAREDFLAGS"
 echo "If any of the above are wrong, or are not optimal, override"
 echo "them by setting the appropiate enviroment variable."
+fi

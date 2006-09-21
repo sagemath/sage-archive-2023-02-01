@@ -22,11 +22,12 @@ usage_advanced() {
     echo "-----------------------------------------------------------"
     echo "  no options below    -- start interactive session, passing options to ipython"
     echo "  filename.sage -- run the given file using SAGE"
-    echo "  -b            -- install any changed SAGE Python/Pyrex source code in devel/*"
-    echo "  -br           -- build and install any changes, then run SAGE"
+    echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
+    echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
     echo "  -clisp [...]  -- run Common Lisp"
+    echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
     echo "  -gdb          -- run SAGE under the control of gdb"
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
@@ -67,7 +68,8 @@ usage_advanced() {
     exit 1
 }
 
-. $SAGE_ROOT/local/bin/sage-env -quick  1>/dev/null
+. $SAGE_ROOT/local/bin/sage-env   1>/dev/null
+
 if [ $? -ne 0 ]; then
    echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact wstein@gmail.com."
 fi
@@ -95,12 +97,6 @@ fi
 LOGFILE="$SAGE_ROOT/sage.log"
 LOGOPT=""
 SAGE_EXE=sage.bin
-
-if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://modular.math.washington.edu/sage/packages"
-    export SAGE_SERVER
-    # echo "No server specified by SAGE_SERVER environment variable, so using $SAGE_SERVER"
-fi
 
 matplotlib_setup() {
     MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC
@@ -249,6 +245,13 @@ if [ $1 = '-darcs' ]; then
     exit $?
 fi
 
+if [ $1 = '-hg' ]; then
+    cd $CUR
+    shift
+    hg $*
+    exit $?
+fi
+
 #####################################################################
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################
@@ -287,12 +290,20 @@ if [ $1 = '-q' ]; then
 fi
 
 if [ $1 = '-b' ]; then
-   time sage-build
+   shift
+   time sage-build $*
    exit $?
 fi
 
 if [ $1 = '-br' ]; then
-   sage-build && sage
+   shift
+   sage-build $* && sage
+   exit $?
+fi
+
+if [ $1 = '-clone' ]; then
+   shift
+   time sage-clone $*
    exit $?
 fi
 

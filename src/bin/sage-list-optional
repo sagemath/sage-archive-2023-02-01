@@ -10,9 +10,11 @@ SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 if not os.environ.has_key("SAGE_SERVER"):
      print "The environment variable SAGE_SERVER must be set"
      sys.exit(1)
-SAGE_SERVER=os.environ['SAGE_SERVER']
-print "Using SAGE Server %s"%SAGE_SERVER
-url = "%s/optional/list"%SAGE_SERVER
+PKG_SERVER=os.environ['SAGE_SERVER'] + '/packages'
+
+print "Using SAGE Server %s"%PKG_SERVER
+url = "%s/optional/list"%PKG_SERVER
+
 file = "%s/tmp/list"%SAGE_ROOT
 if not os.path.exists("%s/tmp"%SAGE_ROOT):
      os.makedirs("%s/tmp"%SAGE_ROOT)

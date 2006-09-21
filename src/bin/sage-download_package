@@ -15,7 +15,7 @@ SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 if not os.environ.has_key("SAGE_SERVER"):
      print "The environment variable SAGE_SERVER must be set."
      sys.exit(1)
-SAGE_SERVER=os.environ['SAGE_SERVER']
+PKG_SERVER=os.environ['SAGE_SERVER'] + '/packages'
 
 if len(sys.argv) < 2:
      print "Usage: %s <package name> <package name> ..."%sys.argv[0]
@@ -35,7 +35,7 @@ def reporthook(block, size, total):
 def download_file(file):
      if file[-5:] != ".spkg":
           file += ".spkg"
-     url = "%s/%s"%(SAGE_SERVER, file)
+     url = "%s/%s"%(PKG_SERVER, file)
      i = url.rfind('/')
      file = url[i+1:]
      print url, "-->", file
@@ -55,5 +55,5 @@ for F in sys.argv[1:]:
                if not download_file("experimental/%s"%F):
                     if not download_file("archive/%s"%F):
                          print "Unable to download %s"%F
-                         print "Please see %s for a list of valid packages"%SAGE_SERVER
+                         print "Please see %s for a list of valid packages"%PKG_SERVER
 

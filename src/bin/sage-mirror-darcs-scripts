@@ -1,0 +1,5 @@
+cd _darcs/
+rsync -axLH --rsh=ssh --delete -r -v  * was@modular.math.washington.edu:www/sage/dist/src/scripts-darcs/_darcs/
+
+
+

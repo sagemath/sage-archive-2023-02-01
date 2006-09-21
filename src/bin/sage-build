@@ -16,9 +16,24 @@ build() {
 
 $SAGE_ROOT/local/bin/sage-env 1>/dev/null
 
-build sage
+if [ "$1" != "" ]; then
+    # make devel/sage point to devel/$1
+    cd "$SAGE_ROOT/devel/"
+    if [ ! -d "sage-$1" ]; then
+        # this will happen a lot because of people (=me) making typos.
+        echo "No such branch '$SAGE_ROOT/devel/sage-$1'"
+        exit 1
+    fi
+    ln -snf "sage-$1" sage
+fi
 
-build sage_user
+if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
+    echo "There is no directory '$SAGE_ROOT/devel/sage'"
+    exit 1
+fi
+
+build "sage"
+
 
 
 

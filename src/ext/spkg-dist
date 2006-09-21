@@ -13,8 +13,8 @@ cd $SAGE_ROOT/data/
 if [ -d $DIR ]; then
    rm -rf $DIR
 fi
-cp -pr $E $DIR
-cd $DIR
+cp -pr $E .hg .hg* "$DIR"/
+cd "$DIR"
 rm *.spkg
 rm -f gap/workspace
 rm -rf _darcs

@@ -5,4 +5,4 @@ if [ ! -d $DIR ]; then
    mkdir $DIR
 fi
 
-cp -pr * $DIR/
+cp -pr * .hg .hg* $DIR/

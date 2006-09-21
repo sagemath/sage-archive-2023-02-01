@@ -37,10 +37,10 @@ if [ -d "$DEVEL/sage-main" ]; then
         echo "Error building new version of SAGE."
     fi
     exit $?
-<fi
+fi
 
 mkdir "$DEVEL/sage-main"
-cp -pr * "$DEVEL/sage-main/"
+cp -pr * .hg* "$DEVEL/sage-main/"
 
 sage -b main
 

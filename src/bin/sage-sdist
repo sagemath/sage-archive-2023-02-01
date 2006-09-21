@@ -24,7 +24,7 @@ CUR=`pwd`
 # the banner produced below this if block is correct.
 if [ -d $SAGE_ROOT/devel/sage ]; then
    cd $SAGE_ROOT/devel/sage/sage
-   echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py
+   echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d'`'" > version.py
    cd $SAGE_ROOT/devel/sage
    python setup.py install
 fi

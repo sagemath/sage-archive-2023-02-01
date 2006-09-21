@@ -889,9 +889,9 @@ def _solve_linear_de(R, N, L, a, b, f0):
         instead of repeatedly doubling in size from the bottom level, it's
         easier to avoid problems with ``overshooting'' in the last iteration.
 
-        The idea is to split the problem into two instances with $L$ about
-        half the size. Take $L' = \ceil(L/2)$. First recursively find $g$
-        modulo $t^{L'}$ such that
+        The idea is to split the problem into two instances with $L$
+        about half the size. Take $L'$ to be the ceiling of
+        $(L/2)$. First recursively find $g$ modulo $t^{L'}$ such that
           $$ (t^N g)'  =  a t^N g  +  t^{N-1} b  +  O(t^{N+L'-1}).$$
 
         Next we want to find $h$ modulo $t^{L-L'}$ such that

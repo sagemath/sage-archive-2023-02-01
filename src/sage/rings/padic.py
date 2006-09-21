@@ -794,7 +794,7 @@ class pAdic(field_element.FieldElement):
 
         AUTHORS:
             -- David Harvey (2006-09-13): corrected subtle precision bug
-               (need to take denominators into account! -- see trac #53)
+               (need to take denominators into account! -- see trac \#53)
 
         TODO:
             -- Surely there must exist an $O(N^{1+\epsilon})$ time algorithm

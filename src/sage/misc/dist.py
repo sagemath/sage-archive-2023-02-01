@@ -9,7 +9,9 @@ def install_scripts(bin_directory=None):
     Run this command as \code{install_scripts(bin_directory)}
     to create scripts in the given bin directory
     that, independently of SAGE, run various software components
-    included with SAGE, e.g., Singular, GAP, etc.
+    included with SAGE:
+      ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash',
+              'mwrank', 'ipython', 'hg', 'hgmerge']
 
     This command:
     \begin{itemize}
@@ -49,7 +51,7 @@ def install_scripts(bin_directory=None):
         raise RuntimeError, "'%s' must exist and be a directory"%bin_directory
 
     for c in ['gap', 'gp', 'singular', 'maxima', 'M2', 'kash', \
-              'mwrank', 'ipython']:
+              'mwrank', 'ipython', 'hg', 'hgmerge']:
         print "\nChecking that SAGE has the command '%s' installed"%c
         if os.system('which %s > /dev/null'%c):
             print "The command '%s' is not available; not adding shortcut"%c

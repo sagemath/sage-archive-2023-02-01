@@ -458,7 +458,7 @@ def reduce_negative(Q, p, coeffs, offset):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 5, coeffs, 3)
         sage: coeffs[3]
-         [103, 102, 9]
+         [28, 52, 9]
 
         sage: R.<x> = Integers(7^3)['x']
         sage: Q = x^3 - x + R(1/4)

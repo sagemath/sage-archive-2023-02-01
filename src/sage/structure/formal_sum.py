@@ -1,5 +1,9 @@
 """
 Formal sums
+
+AUTHORS:
+   -- David Harvey (2006-09-20): changed FormalSum not to derive from
+      "list" anymore, because that breaks new Element interface
 """
 
 #*****************************************************************************
@@ -30,19 +34,38 @@ class FormalSums(AbelianGroup):
 
 formal_sums = FormalSums()
 
-class FormalSum(AdditiveGroupElement, list):
+class FormalSum(AdditiveGroupElement):
+    # NOTE: originally FormalSum also inherited from "list". But when
+    # we made Element (base type of AdditiveGroupElement) have a cdef'ed
+    # _parent attribute, it became impossible to multiply inherit.
+    # So I added a "_data" attribute to FormalSum which contains the
+    # list information. I also gave this class some iterator semantics.
+    # So currently this class is very inefficiently implemented, and
+    # also I think in the long run it would be better to require
+    # users to call a FormalSum.list() method explicitly to get the list.
+    # For now I'm trying to keep things from breaking with minimal effort.
+    # (David H, 2006-09-20)
     def __init__(self, x, parent=None, check=True, reduce=True):
         if x == 0:
             x = []
         if check:
-            for t in self:
+            for t in x:
                 if not (isinstance(t, tuple) and len(t) == 2):
                     raise TypeError, "Invalid formal sum"
-        list.__init__(self, x)
+        self._data = x
         if parent is None:
             parent = formal_sums
         AdditiveGroupElement.__init__(self, parent)
         self.reduce()
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __getitem__(self, n):
+        return self._data[n]
+
+    def __len__(self):
+        return len(self._data)
 
     def _repr_(self):
         symbols = [z[1] for z in self]
@@ -55,7 +78,7 @@ class FormalSum(AdditiveGroupElement, list):
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
 
     def _add_(self, other):
-        return self.__class__(list.__add__(self,other), parent=self.parent())
+        return self.__class__(self._data + other._data, parent=self.parent())
 
     def __mul__(self, s):
         return self.__class__([(c*s, x) for c,x in self], check=False, parent=self.parent())
@@ -80,6 +103,4 @@ class FormalSum(AdditiveGroupElement, list):
                 last = x
                 coeff = c
         w.append((coeff,last))
-        list.__init__(self, w)
-
-
+        self._data = w

@@ -81,12 +81,6 @@ from sage.quadratic_forms.all import *
 from sage.gsl.all import *
 
 
-try:
-    from sage_user.all import *
-except ImportError, msg:
-    print msg
-    pass
-
 ###################################################################
 
 # maximize memory resources

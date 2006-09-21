@@ -375,7 +375,7 @@ class LinearCode(module.Module):
         sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
         sage: C  = LinearCode(G)
         sage: C
-        Linear code of length 7, dimension 4 over Ring of integers modulo 5
+        Linear code of length 7, dimension 4 over Finite Field of size 5
 
     AUTHOR: David Joyner (11-2005)
     """

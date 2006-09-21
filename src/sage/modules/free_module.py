@@ -138,7 +138,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         sage: FreeModule(FiniteField(5),10)
         Vector space of dimension 10 over Finite Field of size 5
         sage: FreeModule(Integers(7),10)
-        Vector space of dimension 10 over Ring of integers modulo 7
+        Vector space of dimension 10 over Finite Field of size 7
         sage: FreeModule(PolynomialRing(RationalField()),5)
         Ambient free module of rank 5 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
         sage: FreeModule(PolynomialRing(IntegerRing()),5)

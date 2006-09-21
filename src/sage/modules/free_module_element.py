@@ -120,7 +120,7 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: V.Mod(7)
             (5, 2, 6, 1)
             sage: parent(V.Mod(7))
-            Vector space of dimension 4 over Ring of integers modulo 7
+            Vector space of dimension 4 over Finite Field of size 7
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
 

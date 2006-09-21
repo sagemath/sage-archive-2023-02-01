@@ -12,4 +12,5 @@ hg commit
 
 hg tag $1
 
-./mirror
+./sage-push
+

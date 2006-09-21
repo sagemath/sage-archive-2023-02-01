@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 DEVEL = False
-PYTHON_VERSION='2.4'
-
-# TODO: make the CBLAS choice intelligent based on the environment.
-CBLAS='gslcblas'  # slow but guaranteed to be available
 
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
+
+
+if os.environ.has_key('SAGE_CBLAS'):
+    CBLAS=os.environ['SAGE_CBLAS']
+else:
+    CBLAS='gslcblas'  # possibly (?) slow but *guaranteed* to be available
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
@@ -19,18 +21,26 @@ if not os.environ.has_key('SAGE_ROOT'):
     print "    ERROR: The environment variable SAGE_ROOT must be defined."
     sys.exit(1)
 else:
-    SAGE_LOCAL = os.environ['SAGE_ROOT'] + '/local/'
+    SAGE_ROOT  = os.environ['SAGE_ROOT']
+    SAGE_LOCAL = SAGE_ROOT + '/local/'
+
 
 if not os.environ.has_key('SAGE_VERSION'):
     SAGE_VERSION=0
 else:
     SAGE_VERSION = os.environ['SAGE_VERSION']
 
-SITE_PACKAGES = '%s/lib/python%s/site-packages/'%(SAGE_LOCAL,PYTHON_VERSION)
-
+SITE_PACKAGES = '%s/lib/python/site-packages/'%SAGE_LOCAL
 if not os.path.exists(SITE_PACKAGES):
-    SITE_PACKAGES=None
-    #raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
+    raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
+else:
+    sage_link = SITE_PACKAGES + 'sage'
+    if not os.path.islink(sage_link):
+        if os.path.exists(sage_link):
+            os.rename(sage_link, sage_link + '.old')
+        os.symlink('%s/devel/sage/build/sage'%SAGE_ROOT, sage_link)
+
+#####################################################
 
 ec =    Extension('sage.libs.ec.ec',
               sources = ["sage/libs/ec/ec.pyx"] +  \
@@ -318,8 +328,7 @@ if DEVEL:
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
 
-include_dirs = ['%s/include'%SAGE_LOCAL,
-                '%s/include/python%s'%(SAGE_LOCAL, PYTHON_VERSION)]
+include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
 
 extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
 
@@ -370,11 +379,10 @@ def process_pyrexembed_file(f, m):
 
 def process_pyrex_file(f, m):
     # This is a pyrex file, so process accordingly.
-    if SITE_PACKAGES:
-        pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-        if need_to_create(f, pyx_inst_file):
-            print "%s --> %s"%(f, pyx_inst_file)
-            os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
+    pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
+    if need_to_create(f, pyx_inst_file):
+        print "%s --> %s"%(f, pyx_inst_file)
+        os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
     out_file = f[:-4] + ".c"
     if m.language == 'c++':
         out_file += 'pp'

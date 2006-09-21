@@ -25,57 +25,26 @@ if [ ! -d "$DEVEL/old" ]; then
     mkdir "$DEVEL/old"
 fi
 
-if [ -d "$DEVEL/sage-darcs" ]; then
-    cd "$DEVEL/sage-darcs"
-    darcs pull http://modular.math.washington.edu/sage/dist/src/sage-darcs
+if [ -d "$DEVEL/sage-main" ]; then
+    cd "$DEVEL/sage-main"
+    hg pull "$SAGE_SERVER"/hg/sage-main
     if [ $? -ne 0 ]; then
-        echo "Error upgrading SAGE source code using darcs."
+        echo "Error pulling in new SAGE source code using hg."
         exit 1
     fi
-    "$SAGE_ROOT/sage" -b
+    "$SAGE_ROOT/sage" -b main
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."
     fi
     exit $?
-fi
+<fi
 
+mkdir "$DEVEL/sage-main"
+cp -pr * "$DEVEL/sage-main/"
 
-mv "$DEVEL/sage-"* "$DEVEL/old/"
-
-if [ ! -d "$DEVEL/$E" ]; then
-    mkdir "$DEVEL/$E"
-    cp -pr * "$DEVEL/$E"
-    if [ $? -ne 0 ]; then
-       exit 1
-    fi
-else   # this should never happen since old version gets moved into old
-    echo "NOT overwriting $SAGE_ROOT/devel/$E with new version."
-    echo "If you want to put the new version there, copy it from `pwd`"
-fi
-
-cd "$SAGE_ROOT/devel"
-rm -f sage
-ln -sf "$E" sage
-
-# I'm scared to do this, since it could render a sage install temporarily
-# un-usable...
-
-#echo "Moving old $SAGE_LOCAL/lib/python2.4/site-packages/sage to $DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
-#mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" "$DEVEL/old/site-packages-sage-`date +'%Y-%m-%d-%m'`"
-
-# this file must be removed...
-if  [ -f "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py" ]; then
-    rm "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.py"
-    rm "$SAGE_LOCAL/lib/python2.4/site-packages/sage/plot/matplotlib.pyc"
-fi
-
-cd "$E"
-mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" ./old_install 2>/dev/null
-python setup.py install
+sage -b main
 
 if [ $? -ne 0 ]; then
-    mv "$SAGE_LOCAL/lib/python2.4/site-packages/sage" ./broken_install 2>/dev/null
-    mv old_install "$SAGE_LOCAL/lib/python2.4/site-packages/sage"
     echo "ERROR installing SAGE"
     exit 1
 fi

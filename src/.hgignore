@@ -1,4 +1,5 @@
 # Boring file regexps:
+PKG-INFO
 \.h$
 \.hi$
 \.o$

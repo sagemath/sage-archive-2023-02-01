@@ -21,7 +21,7 @@ fi
 
 CUR=`pwd`
 rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest
-cp -prv MANIFEST.in README* install sage setup.py spkg-* tmp/
+cp -prv MANIFEST.in README* install sage setup.py spkg-* .hg .hgignore tmp/
 
 #cd tmp/sage
 #echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py

@@ -320,10 +320,34 @@ class Darcs:
 # Create the default SAGE darcs repositories.
 #############################################################
 
-darcs_src = Darcs('%s/devel/sage-darcs'%os.environ['SAGE_ROOT'],
-                  'SAGE source code',
-        url="http://modular.math.washington.edu/sage/dist/src/sage-darcs",
-                  target='sage')
+#darcs_src = Darcs('%s/devel/sage-darcs'%os.environ['SAGE_ROOT'],
+#                  'SAGE source code',
+#        url="http://modular.math.washington.edu/sage/dist/src/sage-darcs",
+#                  target='sage')
+
+class Deprecated:
+    def __init__(self, newcmd):
+        self.newcmd = newcmd
+    def __repr__(self):
+        return "Use of darcs in SAGE is deprecated.  Use %s instead."%self.newcmd
+    def pull(self, **args):
+        return str(self)
+    get = pull
+    apply = pull
+    add = pull
+    remove = pull
+    changes = pull
+    diff = pull
+    dir = pull
+    url = pull
+    help = pull
+    initialize = pull
+    record = pull
+    unrecord = pull
+    send = pull
+    what = pull
+
+darcs_src = Deprecated('hg_sage')
 
 darcs_doc = Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
                   'SAGE documentation',

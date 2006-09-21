@@ -1,0 +1,8 @@
+#!/bin/sh
+
+DIR=$SAGE_ROOT/data/extcode
+if [ ! -d $DIR ]; then
+   mkdir $DIR
+fi
+
+cp -pr * $DIR/

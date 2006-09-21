@@ -1,0 +1,47 @@
+----------
+illiam Stein wrote:
+> John,
+>
+> I'm upgrading SAGE to PARI-2.2.13-beta.  Your script bgc.gp
+> doesn't load in the new version of PARI:
+>
+> I get this error:
+>
+> ? \rbgc
+>   *** polcoeff: non existent component in truecoeff.
+>
+> This is from the third line of this:
+>
+> ellld_ll = -Euler*ellld_s + sum(n=2,30,(-1)^n * zeta(n) / n * ellld_s^n);
+> ellld_mm = exp(ellld_ll);
+> ellld_pn_coeffs=vector(25,i,polcoeff(ellld_mm,i-1));
+>                       ^^^^
+>
+> If I print ellld_mm it has precision 17.  If i change the 25
+> above to 17, then the file loads fine, and on a (very small)
+> bunch of test curves it gives the right answer.
+>
+> Thoughts?
+>
+> William
+>
+
+Date: Thu, 18 May 2006 13:34:16 +0100
+From: "Prof. J. E. Cremona" <John.Cremona@nottingham.ac.uk>
+To: wstein@gmail.com
+Subject: Re: bgc.gp
+
+I had noticed that too but I did not realise that SAGE was using these
+scripts.  I have not worked on this for over a year, since all my
+Heegner-point computations shifted to Magma where the huge improvements
+by Delaunay and Mark W make mine seem very bad.  It would be good to
+improve my gp scripts some time, but there's not time!
+
+Your suggested change is fine.  This parameter is in effect an uppoer
+bound for the ranks which can be dealt with;  but curves of rank greater
+than (say) 10 have such a huge conductor that these series will not
+converge sufficiently, so reducing from 25 to 17 will not cause any
+problems.
+
+John
+----------

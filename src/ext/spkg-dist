@@ -1,0 +1,27 @@
+if [ $# -ne 2 ]; then
+    echo "Usage: $0 <SAGE_VERSION> <SAGE_ROOT>"
+    echo "Build SAGE scripts package."
+    exit 0
+fi
+
+E=extcode
+SAGE_VERSION=$1
+SAGE_ROOT=$2
+DIR=$E-$SAGE_VERSION
+
+cd $SAGE_ROOT/data/
+if [ -d $DIR ]; then
+   rm -rf $DIR
+fi
+cp -pr $E $DIR
+cd $DIR
+rm *.spkg
+rm -f gap/workspace
+rm -rf _darcs
+rm -f magma/*.dat magma/*.sig magma/*/*.dat magma/*/*.sig magma/*/*/*.dat magma/*/*/*.sig
+rm -rf octave/user/tmp
+
+cd ..
+$SAGE_ROOT/sage -pkg $DIR
+rm -rf $DIR
+mv $DIR.spkg extcode

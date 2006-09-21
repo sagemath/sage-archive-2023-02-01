@@ -20,7 +20,7 @@ if [ ! -d dist ]; then
 fi
 
 CUR=`pwd`
-rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest
+rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
 
 cp -prv MANIFEST.in README* install sage pull setup.py spkg-* .hg .hgignore tmp/
 

@@ -1,5 +1,7 @@
 # Boring file regexps:
 PKG-INFO
+push
+pull
 \.h$
 \.hi$
 \.o$
@@ -15,6 +17,8 @@ PKG-INFO
 (^|/)_darcs($|/)
 \.bak$
 \.BAK$
+\.fig$
+\.png$
 \.c$
 \.orig$
 (^|/)vssver\.scc$

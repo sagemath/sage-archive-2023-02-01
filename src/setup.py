@@ -30,6 +30,10 @@ if not os.environ.has_key('SAGE_VERSION'):
 else:
     SAGE_VERSION = os.environ['SAGE_VERSION']
 
+build_dir = '%s/devel/sage/build/sage'%SAGE_ROOT
+if not os.path.exists(build_dir):
+    os.makedirs(build_dir)
+
 SITE_PACKAGES = '%s/lib/python/site-packages/'%SAGE_LOCAL
 if not os.path.exists(SITE_PACKAGES):
     SITE_PACKAGES = '%s/lib/python2.5/site-packages/'%SAGE_LOCAL
@@ -37,12 +41,12 @@ if not os.path.exists(SITE_PACKAGES):
         SITE_PACKAGES = '%s/lib/python2.4/site-packages/'%SAGE_LOCAL
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
-else:
-    sage_link = SITE_PACKAGES + 'sage'
-    if not os.path.islink(sage_link):
-        if os.path.exists(sage_link):
-            os.rename(sage_link, sage_link + '.old')
-        os.symlink('%s/devel/sage/build/sage'%SAGE_ROOT, sage_link)
+
+sage_link = SITE_PACKAGES + 'sage'
+if not os.path.islink(sage_link):
+    if os.path.exists(sage_link):
+        os.rename(sage_link, sage_link + '.old')
+    os.symlink(build_dir, sage_link)
 
 #####################################################
 

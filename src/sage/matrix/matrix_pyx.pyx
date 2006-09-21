@@ -1695,7 +1695,7 @@ cdef class Matrix(ModuleElement):
             [5 2]
             [6 1]
             sage: parent(M.Mod(7))
-            Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 7
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
 

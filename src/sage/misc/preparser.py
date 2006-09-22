@@ -305,10 +305,10 @@ def preparse_file(contents, attached={}, magic=True,
             L = 'load ' + L[7:]
 
         if magic and L[:5] == "load ":
-            #try:
-            name_load = str(eval(L[5:]))
-            #except:
-            #    name_load = L[5:].strip()
+            try:
+                name_load = str(eval(L[5:]))
+            except:
+                name_load = L[5:].strip()
             if name_load in loaded_files:
                 i += 1
                 continue
@@ -326,9 +326,13 @@ def preparse_file(contents, attached={}, magic=True,
                 else:
                     A = A[:i] + G.readlines() + A[i+1:]
                     continue
-            else:
+            elif name_load[-5:] == '.spyx':
                 import interpreter
                 L = interpreter.load_pyrex(name_load)
+            else:
+                print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
+                L = ''
+                continue
         M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
         F.append(M)
         i += 1

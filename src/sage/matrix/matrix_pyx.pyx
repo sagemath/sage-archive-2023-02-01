@@ -2479,7 +2479,7 @@ def strassen_echelon(A, cutoff):
     print "top", top
     print "bottom", bottom
 
-    cdef int top_h, cut, bottom_h, bottom_start, bottom_cut
+    cdef int top_h, bottom_cut, bottom_h, bottom_start, top_cut
     cdef int prev_pivot_count
 
     top_pivots = strassen_echelon(top, cutoff)
@@ -2491,40 +2491,40 @@ def strassen_echelon(A, cutoff):
         bottom_pivots = strassen_echelon(bottom, cutoff)
 
     else:
-        cut = max(top_pivots) + 1
-        print "top_pivots", top_pivots, "top_h =", top_h, "cut =", cut
+        bottom_cut = max(top_pivots) + 1
+        print "top_pivots", top_pivots, "top_h =", top_h, "bottom_cut =", bottom_cut
 
-        bottom_left = bottom.matrix_window(0, 0, nrows-split, cut)
-        bottom_right = bottom.matrix_window(0, cut, nrows-split, ncols-cut)
+        bottom_left = bottom.matrix_window(0, 0, nrows-split, bottom_cut)
+        bottom_right = bottom.matrix_window(0, bottom_cut, nrows-split, ncols-bottom_cut)
         print "bottom_left", bottom_left
         print "bottom_right", bottom_right
-        if cut == top_h:
+        if bottom_cut == top_h:
             clear = bottom_left
         else:
             clear = bottom_left.to_matrix().matrix_from_cols(top_pivots).matrix_window() # TODO: read only, can I do this faster? Also below
         print "bottom clear", clear
-        to_sub = bottom_right.new_empty_window(nrows-split, ncols-cut) # no zero?
+        to_sub = bottom_right.new_empty_window(nrows-split, ncols-bottom_cut) # no zero?
         # this step is where we hope to gain asymptotically...
-        #print "multiply clear by ", top.matrix_window(0, cut, top_h, ncols-cut)
-        to_sub.set_to_prod(clear, top.matrix_window(0, cut, top_h, ncols-cut)) # strassen_window_multiply(clear, top.matrix_window(0, cut, top_h, ncols-cut), to_sub, cutoff) # TODO: same cutoff? Also below
+        #print "multiply clear by ", top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut)
+        to_sub.set_to_prod(clear, top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut)) # strassen_window_multiply(clear, top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut), to_sub, cutoff) # TODO: same cutoff? Also below
         #print "subtract", to_sub
         bottom_right.subtract(to_sub)
         print "subtracted top", A
 
         # subtract off from the bottom_right (pivots -> 0)
-        if cut == top_h:
+        if bottom_cut == top_h:
             bottom_left.set_to_zero()
-            bottom_start = cut
+            bottom_start = bottom_cut
 
         else:
             for cols in top_pivot_intervals:
                 bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).set_to_zero()
             prev_non_pivot_count = 0
-            non_pivots = int_intervals(0, cut) - top_pivot_intervals
+            non_pivots = int_intervals(0, bottom_cut) - top_pivot_intervals
             for cols in non_pivots:
                 print "non_pivots =", cols
                 if cols[0] == 0: continue
-                prev_pivot_count = len(top_pivot_intervals - int_intervals(cols[0]+cols[1], cut - cols[0]+cols[1]))
+                prev_pivot_count = len(top_pivot_intervals - int_intervals(cols[0]+cols[1], bottom_cut - cols[0]+cols[1]))
                 print "bottom result coords", 0, cols[0], nrows-split, cols[1]
                 print bottom_left.to_matrix(), "bottom_left"
                 print bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).to_matrix(), "bottom result"
@@ -2549,14 +2549,14 @@ def strassen_echelon(A, cutoff):
         bottom_h = len(bottom_pivots)
 
         if bottom_h > 0:
-            bottom_cut = max(max(bottom_pivots) + 1, cut)
-            print "bottom_pivots", bottom_pivots, "bottom_h =", bottom_h, "bottom_cut =", bottom_cut
+            top_cut = max(max(bottom_pivots) + 1, bottom_cut)
+            print "bottom_pivots", bottom_pivots, "bottom_h =", bottom_h, "top_cut =", top_cut
 
-            top_left = top.matrix_window(0, bottom_start, top_h, bottom_cut - bottom_start)
+            top_left = top.matrix_window(0, bottom_start, top_h, top_cut - bottom_start)
             print "top_left", top_left
 
-            if bottom_cut < ncols or bottom_cut - bottom_start > bottom_h:
-                if bottom_cut - bottom_start == bottom_h:
+            if top_cut < ncols or top_cut - bottom_start > bottom_h:
+                if top_cut - bottom_start == bottom_h:
                     clear = top_left
                 else:
                     print top_left.to_matrix()
@@ -2564,16 +2564,16 @@ def strassen_echelon(A, cutoff):
                     clear = top_left.to_matrix().matrix_from_cols(bottom_pivots_rel).matrix_window()
                 print "top clear", clear
 
-            if bottom_cut < ncols:
-                top_right = top.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut)
+            if top_cut < ncols:
+                top_right = top.matrix_window(0, top_cut, top_h, ncols - top_cut)
                 print "top_right", top_right
-                to_sub = top_right.new_empty_window(top_h, ncols - bottom_cut)
-                to_sub.set_to_prod(clear, bottom.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut)) # strassen_window_multiply(clear, bottom.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut), to_sub, cutoff)
+                to_sub = top_right.new_empty_window(top_h, ncols - top_cut)
+                to_sub.set_to_prod(clear, bottom.matrix_window(0, top_cut, top_h, ncols - top_cut)) # strassen_window_multiply(clear, bottom.matrix_window(0, top_cut, top_h, ncols - top_cut), to_sub, cutoff)
 #                print "subtract", to_sub
                 top_right.subtract(to_sub)
                 print "subtracted bottom", A
 
-            if bottom_cut - bottom_start == bottom_h:
+            if top_cut - bottom_start == bottom_h:
                 top_left.set_to_zero()
 
             else:
@@ -2581,11 +2581,13 @@ def strassen_echelon(A, cutoff):
                 for cols in bottom_pivot_intervals:
                     top.matrix_window(0, cols[0], split, cols[1]).set_to_zero()
                 prev_non_pivot_count = 0
-                non_pivots = int_intervals(cut, bottom_cut-cut) - bottom_pivot_intervals - top_pivot_intervals
+                print int_intervals(bottom_start, top_cut - bottom_start), "-", bottom_pivot_intervals, "-", top_pivot_intervals
+                non_pivots = int_intervals(bottom_start, top_cut - bottom_start) - bottom_pivot_intervals - top_pivot_intervals
+                print "all non_pivots", non_pivots
                 for cols in non_pivots:
                     print "non_pivots", cols
                     if cols[0] == 0: continue
-                    prev_pivot_count = len(bottom_pivot_intervals - int_intervals(cols[0]+cols[1], bottom_cut - cols[0]+cols[1]))
+                    prev_pivot_count = len(bottom_pivot_intervals - int_intervals(cols[0]+cols[1], top_cut - cols[0]+cols[1]))
                     print "prev_pivot_count", prev_pivot_count
                     print top.matrix_window(0, cols[0], split, cols[1]).to_matrix(), "top result"
                     print clear.matrix_window(0, 0, split, prev_pivot_count).to_matrix(), "clear"

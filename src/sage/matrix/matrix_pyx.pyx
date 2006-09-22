@@ -2200,6 +2200,12 @@ cdef class Matrix(ModuleElement):
         strassen_window_multiply(output_window, self_window, other_window, cutoff)
         return output
 
+    def echelon_strassen(self, cutoff):
+        pivots = strassen_echelon(self.matrix_window(), cutoff)
+        print "pivots", pivots
+        self._set_pivots(pivots)
+        return self
+
 
 ############################# end class ####################
 
@@ -2443,7 +2449,248 @@ def strassen_window_multiply(C, A, B, int cutoff):
         C_bulk = C.matrix_window(0, 0, A_sub_nrows << 1, B_sub_ncols << 1)
         C_bulk.add_prod(A_last_col, B_last_row)
 
+# TODO: make cdef
+def subtract_strassen_product(result, A, B, int cutoff):
+    cutoff = 1000000 # for testing
+    if (result.ncols() < cutoff or result.nrows() < cutoff):
+        result.subtract_prod(A, B)
+    else:
+        to_sub = strassen_window_multiply(A, B, cutoff)
+        result.subtract(to_sub)
 
+
+def strassen_echelon(A, cutoff):
+    """
+    Compute echelon form, in place
+    Return list of pivot columns
+    """
+    cdef int _nrows, _ncols
+    nrows = A.nrows()
+    ncols = A.ncols()
+
+    if (nrows < cutoff or ncols < cutoff or ncols < nrows): #TODO: remove the ncols < nrows requirement
+        return A.echelon_in_place()
+
+    cdef int split
+    split = nrows / 2
+
+    top = A.matrix_window(0, 0, split, ncols)
+    bottom = A.matrix_window(split, 0, nrows-split, ncols)
+    print "top", top
+    print "bottom", bottom
+
+    cdef int top_h, cut, bottom_h, bottom_start, bottom_cut
+    cdef int prev_pivot_count
+
+    top_pivots = strassen_echelon(top, cutoff)
+    top_pivot_intervals = int_intervals(top_pivots)
+    top_h = len(top_pivots)
+
+    if top_h == 0:
+        # the whole top is a zero matrix, run echelon on the bottom and sort
+        bottom_pivots = strassen_echelon(bottom, cutoff)
+
+    else:
+        cut = max(top_pivots) + 1
+        print "top_pivots", top_pivots, "top_h =", top_h, "cut =", cut
+
+        bottom_left = bottom.matrix_window(0, 0, nrows-split, cut)
+        bottom_right = bottom.matrix_window(0, cut, nrows-split, ncols-cut)
+        print "bottom_left", bottom_left
+        print "bottom_right", bottom_right
+        if cut == top_h:
+            clear = bottom_left
+        else:
+            clear = bottom_left.to_matrix().matrix_from_cols(top_pivots).matrix_window() # TODO: read only, can I do this faster? Also below
+        print "bottom clear", clear
+        to_sub = bottom_right.new_empty_window(nrows-split, ncols-cut) # no zero?
+        # this step is where we hope to gain asymptotically...
+        #print "multiply clear by ", top.matrix_window(0, cut, top_h, ncols-cut)
+        to_sub.set_to_prod(clear, top.matrix_window(0, cut, top_h, ncols-cut)) # strassen_window_multiply(clear, top.matrix_window(0, cut, top_h, ncols-cut), to_sub, cutoff) # TODO: same cutoff? Also below
+        #print "subtract", to_sub
+        bottom_right.subtract(to_sub)
+        print "subtracted top", A
+
+        # subtract off from the bottom_right (pivots -> 0)
+        if cut == top_h:
+            bottom_left.set_to_zero()
+            bottom_start = cut
+
+        else:
+            for cols in top_pivot_intervals:
+                bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).set_to_zero()
+            prev_non_pivot_count = 0
+            non_pivots = int_intervals(0, cut) - top_pivot_intervals
+            for cols in non_pivots:
+                print "non_pivots =", cols
+                if cols[0] == 0: continue
+                prev_pivot_count = len(top_pivot_intervals - int_intervals(cols[0]+cols[1], cut - cols[0]+cols[1]))
+                print "bottom result coords", 0, cols[0], nrows-split, cols[1]
+                print bottom_left.to_matrix(), "bottom_left"
+                print bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).to_matrix(), "bottom result"
+                print clear.matrix_window(0, 0, nrows-split, prev_pivot_count).to_matrix(), "clear"
+                print top.matrix_window(0, cols[0], prev_pivot_count, cols[1]).to_matrix(), "top"
+                subtract_strassen_product(bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]),
+                                          clear.matrix_window(0, 0, nrows-split, prev_pivot_count),
+                                          top.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
+                                          cutoff)
+            bottom_start = non_pivots._intervals[0][0]
+
+        print "zeroed out pivots", A
+        print "bottom_start", bottom_start
+
+        bottom_pivots_rel = strassen_echelon(bottom.matrix_window(0, bottom_start, nrows-split, ncols-bottom_start), cutoff)
+        bottom_pivots = []
+        for pivot in bottom_pivots_rel:
+            bottom_pivots.append(pivot + bottom_start)
+        print "reduced bottom"
+        print A
+
+        bottom_h = len(bottom_pivots)
+
+        if bottom_h > 0:
+            bottom_cut = max(max(bottom_pivots) + 1, cut)
+            print "bottom_pivots", bottom_pivots, "bottom_h =", bottom_h, "bottom_cut =", bottom_cut
+
+            top_left = top.matrix_window(0, bottom_start, top_h, bottom_cut - bottom_start)
+            print "top_left", top_left
+
+            if bottom_cut < ncols or bottom_cut - bottom_start > bottom_h:
+                if bottom_cut - bottom_start == bottom_h:
+                    clear = top_left
+                else:
+                    print top_left.to_matrix()
+                    print top_left.to_matrix().matrix_from_cols(bottom_pivots_rel)
+                    clear = top_left.to_matrix().matrix_from_cols(bottom_pivots_rel).matrix_window()
+                print "top clear", clear
+
+            if bottom_cut < ncols:
+                top_right = top.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut)
+                print "top_right", top_right
+                to_sub = top_right.new_empty_window(top_h, ncols - bottom_cut)
+                to_sub.set_to_prod(clear, bottom.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut)) # strassen_window_multiply(clear, bottom.matrix_window(0, bottom_cut, top_h, ncols - bottom_cut), to_sub, cutoff)
+#                print "subtract", to_sub
+                top_right.subtract(to_sub)
+                print "subtracted bottom", A
+
+            if bottom_cut - bottom_start == bottom_h:
+                top_left.set_to_zero()
+
+            else:
+                bottom_pivot_intervals = int_intervals(bottom_pivots)
+                for cols in bottom_pivot_intervals:
+                    top.matrix_window(0, cols[0], split, cols[1]).set_to_zero()
+                prev_non_pivot_count = 0
+                non_pivots = int_intervals(cut, bottom_cut-cut) - bottom_pivot_intervals - top_pivot_intervals
+                for cols in non_pivots:
+                    print "non_pivots", cols
+                    if cols[0] == 0: continue
+                    prev_pivot_count = len(bottom_pivot_intervals - int_intervals(cols[0]+cols[1], bottom_cut - cols[0]+cols[1]))
+                    print "prev_pivot_count", prev_pivot_count
+                    print top.matrix_window(0, cols[0], split, cols[1]).to_matrix(), "top result"
+                    print clear.matrix_window(0, 0, split, prev_pivot_count).to_matrix(), "clear"
+                    print bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]).to_matrix(), "bottom"
+                    subtract_strassen_product(top.matrix_window(0, cols[0], split, cols[1]),
+                                              clear.matrix_window(0, 0, split, prev_pivot_count),
+                                              bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
+                                              cutoff)
+            print A
+
+    # subrows already sorted...maybe I could do this more efficiently in cases with few pivot columns (e.g. merge sort)
+
+    print "bottom_start", bottom_start
+    pivots = top_pivots
+    for pivot in bottom_pivots_rel:
+        pivots.append(pivot + bottom_start)
+    pivots.sort()
+    print "pivots", pivots
+
+    print "sorting..."
+    cdef int i, cur_row
+    for cur_row from 0 <= cur_row < len(pivots):
+        pivot = pivots[cur_row]
+        for i from cur_row <= i < nrows:
+            if not A.element_is_zero(i, pivot):
+                break
+        if i > cur_row:
+            print "swapping", i, cur_row
+            A.swap_rows(i, cur_row)
+    print "printing"
+    print A
+    print "done"
+
+    return pivots
+
+################################
+
+# lots of room for optimization....
+# maybe store as start, len?
+class int_intervals:
+    r"""
+    Useful class for dealing with pivots in the strassen echelon
+    AUTHORS:
+      -- Robert Bradshaw
+    """
+    def __init__(self, indices=None, range=None):
+        if indices is None:
+            self._intervals = []
+            return
+        elif not range is None:
+            self._intervals = [(int(indices), int(range))]
+        else:
+            self._intervals = []
+            if len(indices) == 0:
+                return
+            indices.sort()
+            start = None
+            last = None
+            for ix in indices:
+                if last is None:
+                    start = ix
+                elif ix-last > 1:
+                    self._intervals.append((start, last-start+1))
+                    start = ix
+                last = ix
+            self._intervals.append((start, last-start+1))
+
+    def __repr__(self):
+        return str(self._intervals)
+
+    def intervals(self):
+        return self._intervals
+
+    def to_list(self):
+        all = []
+        for iv in self._intervals:
+            for i in range(iv[0], iv[0]+iv[1]):
+                all.append(i)
+        return all
+
+    def __iter__(self):
+        return self._intervals.__iter__()
+
+    def __len__(self):
+        len = 0
+        for iv in self._intervals:
+            len = len + iv[1]
+        return len
+
+    # Yes, these two could be a lot faster...
+    # Basically, this class is for abstracting away what I was trying to do by hand in several places
+    def __add__(self, other):
+        all = self.to_list()
+        for i in other.to_list():
+            all.append(i)
+        return int_intervals(all)
+
+    def __sub__(self, other):
+        all = self.to_list()
+        for i in other.to_list():
+            if i in all:
+                all.remove(i)
+        return int_intervals(all)
+
+#######################
 
 def __reduce__Matrix_pyx(cls, attrs, parent, dict, determinant,
                          sparse_columns, sparse_rows,

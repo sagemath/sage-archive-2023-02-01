@@ -140,12 +140,29 @@ class FiniteFieldElement(field_element.FieldElement):
         """
         Return a square root of this finite field element in its
         finite field, if there is one.  Otherwise, raise a ValueError.
+
+        EXAMPLES:
+          sage: F = GF(7^2)
+          sage: F(2).square_root()
+          3
+          sage: F(3).square_root()
+          2*a + 6
+          sage: F(3).square_root()**2
+          3
+          sage: F(4).square_root()
+          2
+          sage: K = GF(7^3)
+          sage: K(3).square_root()
+          Traceback (most recent call last):
+          ...
+          ValueError: must be a perfect square.
+
         """
         R = polynomial_ring.PolynomialRing(self.parent())
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
-            return -g[0][0]
+            return -g[0][0][0]
         raise ValueError, "must be a perfect square."
 
     def sqrt(self):

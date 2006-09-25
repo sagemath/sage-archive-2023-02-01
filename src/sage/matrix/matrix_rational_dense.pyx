@@ -831,6 +831,10 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             A = self.copy()
             A.echelon_gauss()
             return A
+        elif alg=="block":
+            A = self.copy()
+            A.echelon_strassen()
+            return A
         else:
             raise ValueError, "%s is not one of the allowed algorithms (modular, gauss)"%alg
 

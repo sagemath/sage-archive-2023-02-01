@@ -30,6 +30,8 @@ P = pari_instance   # shorthand notation
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
+# keep track of the stack
+cdef pari_sp stack_avma
 
 # real precision
 cdef unsigned long prec
@@ -2916,7 +2918,7 @@ cdef class gen:
 
     def eta(gen x, flag=0):
         r"""
-        x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$,
+        x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$;
         otherwise $\eta$ of the complex number $x$ in the upper half plane
         intelligently computed using $\SL(2,\Z)$ transformations.
 
@@ -5108,7 +5110,7 @@ cdef class PariInstance:
     def new_with_bits_prec(self, s, long precision=0):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with precision \emph{bits} of precision.
+        with (at most) precision \emph{bits} of precision.
         """
         global prec
 

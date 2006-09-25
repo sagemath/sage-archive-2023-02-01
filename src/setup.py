@@ -165,7 +165,7 @@ gsl_callback = Extension('sage.gsl.callback',
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', CBLAS])
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
 #####################################################
 

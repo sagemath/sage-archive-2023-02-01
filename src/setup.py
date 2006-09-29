@@ -169,7 +169,7 @@ real_double = Extension('sage.rings.real_double',
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', CBLAS])
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
 #####################################################
 

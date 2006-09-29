@@ -7,6 +7,7 @@ AUTHORS:
              things; the precision behavior of PARI changes
              from any version to the next!).
     -- William Stein (2006-03-06): added newtonpoly
+
 """
 
 import math

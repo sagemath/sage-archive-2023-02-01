@@ -2,8 +2,6 @@
 
 rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
 
-echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d'`'" > sage/version.py
-
 hg diff
 
 hg status

@@ -14,6 +14,7 @@ AUTHOR:
 #*****************************************************************************
 
 import complex_number
+import complex_double
 import field
 import real_field
 import integer_ring
@@ -135,13 +136,16 @@ class ComplexField_class(field.Field):
             sage: CC(2,3)
             2.0000000000000000 + 3.0000000000000000*I
         """
-        if isinstance(x, complex_number.ComplexNumber) and x.parent() == self:
-            return x
-        if isinstance(x, str) and im==None:
-            # TODO: this is probably not the best and most
-            # efficient way to do this.  -- Martin Albrecht
-            return complex_number.ComplexNumber(self,
-                        sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+        if im is None:
+            if isinstance(x, complex_number.ComplexNumber) and x.parent() is self:
+                return x
+            elif isinstance(x, complex_double.ComplexDoubleElement):
+                return complex_number.ComplexNumber(self, x.real(), x.imag())
+            elif isinstance(x, str):
+                # TODO: this is probably not the best and most
+                # efficient way to do this.  -- Martin Albrecht
+                return complex_number.ComplexNumber(self,
+                            sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
     def _repr_(self):

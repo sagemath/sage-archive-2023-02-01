@@ -79,10 +79,14 @@ from padic import pAdic
 from real_field import RealField, is_RealField, is_RealNumber, RR, RealNumber
 Reals = RealField
 
+from real_double import RealDoubleField, RDF, RealDoubleElement
+
 # Complex numbers
 from complex_field import ComplexField, is_ComplexField, CC
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
+
+from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 # Univariate Polynomial Rings
 from polynomial_ring import PolynomialRing, polygen, is_PolynomialRing

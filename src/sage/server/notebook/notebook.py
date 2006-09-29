@@ -329,6 +329,7 @@ the "save" command), and get back to where you were quickly.
 import os
 import shutil
 import socket
+import re           # regular expressions
 
 # SAGE libraries
 from   sage.ext.sage_object import SageObject, load
@@ -453,8 +454,25 @@ class Notebook(SageObject):
         print cmd
         os.system(cmd)
         D = os.listdir(tmp)[0]
-        print D
         worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
+        names = self.worksheet_names()
+        if D in names:
+            m = re.match('.*?([0-9]+)$',D)
+            if m is None:
+                n = 0
+            else:
+                n = int(m.groups()[0])
+            while "%s%d"%(D,n) in names:
+                n += 1
+            cmd = 'mv %s/%s/%s.sobj %s/%s/%s%d.sobj'%(tmp,D,D,tmp,D,D,n)
+            print cmd
+            os.system(cmd)
+            cmd = 'mv %s/%s %s/%s%d'%(tmp,D,tmp,D,n)
+            print cmd
+            os.system(cmd)
+            D = "%s%d"%(D,n)
+            worksheet.set_name(D)
+        print D
         S = self.__worksheet_dir
         cmd = 'rm -rf "%s/%s"'%(S,D)
         print cmd
@@ -1054,7 +1072,8 @@ def notebook(dir         ='sage_notebook',
              system      = None,
              jsmath      = True,
              show_debug  = False,
-             warn        = True):
+             warn        = True,
+             ignore_lock = False):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1129,6 +1148,23 @@ def notebook(dir         ='sage_notebook',
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
+        if os.path.exists('%s/pid'%dir) and not ignore_lock:
+            f = file('%s/pid'%dir)
+            p = f.read()
+            f.close()
+            try:
+                #This is a hack to check whether or not the process is running.
+                os.kill(int(p),0)
+                print "\n".join([" This notebook appears to be running with PID %s.  If it is"%p,
+                                 " not responding, you will need to kill that process to continue.",
+                                 " If another (non-sage) process is running with that PID, call",
+                                 " notebook(..., ignore_lock = True, ...). " ])
+                return
+            except OSError:
+                pass
+        f = file('%s/pid'%dir, 'w')
+        f.write("%d"%os.getpid())
+        f.close()
         try:
             nb = load('%s/nb.sobj'%dir, compress=False)
         except:
@@ -1166,6 +1202,7 @@ def notebook(dir         ='sage_notebook',
     expect_quitall(verbose=False)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
+    os.remove('%s/pid'%dir)
     return nb
 
 

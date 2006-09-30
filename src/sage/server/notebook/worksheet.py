@@ -101,7 +101,7 @@ class Worksheet:
                 self.__passcrypt = True
             return self.__passcode
         except AttributeError:
-            self.__passcode = crypt.crypt(self.__passcode, self.salt())
+            self.__passcode = crypt.crypt('', self.salt())
             self.__passcrypt = True
             return self.__passcode
 
@@ -561,7 +561,7 @@ class Worksheet:
         return self.__notebook.format_completions_as_html(id, rows)
 
     def auth(self, passcode):
-        return self.passcode() == crypt.crypt(passcode, self.__salt)
+        return self.passcode() == crypt.crypt(passcode, self.salt())
 
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN+str(self.synchro())

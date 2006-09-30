@@ -1,7 +1,7 @@
-try:
-    import sage.libs.cf.cf as cf
-except ImportError:
-    pass
+#try:
+#    import sage.libs.cf.cf as cf
+#except ImportError:
+#    pass
 
 from sage.ext.integer import pmem_malloc
 

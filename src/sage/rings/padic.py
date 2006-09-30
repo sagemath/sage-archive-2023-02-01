@@ -112,7 +112,7 @@ class pAdic(field_element.FieldElement):
                     self.__prec = min(x.__prec, big_oh)
             return
 
-        self.__p = integer.Integer(parent.residue_characteristic())
+        self.__p = int(parent.residue_characteristic())
         self.__parent = parent
 
         if isinstance(x, pari_gen) and x.type() == "t_PADIC":
@@ -534,8 +534,21 @@ class pAdic(field_element.FieldElement):
         return pAdic(self.__parent, unit, prec + ordp, ordp)
 
     def __neg__(self):
+        """
+        EXAMPLES:
+           sage: K = Qp(5)
+           sage: K.prec(3)
+           sage: K(1)
+           1
+           sage: -K(1)
+           4 + 4*5 + 4*5^2 + O(5^3)
+        """
         u = - self.__unit
-        return pAdic(self.__parent, u, self.__prec+self.__ordp, self.__ordp)
+        if self.__prec is infinity:
+            prec = self.__parent.prec()
+        else:
+            prec = self.__prec
+        return pAdic(self.__parent, u, prec + self.__ordp, self.__ordp)
 
     def __pos__(self):
         return self
@@ -743,7 +756,7 @@ class pAdic(field_element.FieldElement):
         if self.__prec == infinity:
             return frac(p,1)**self.__ordp * frac(self.__unit,1)
         alpha = self.__unit
-        m = p**self.__prec
+        m = integer.Integer(p**self.__prec)
         r = arith.rational_reconstruction(alpha, m)
         return (frac(p,1)**self.__ordp)*r
 

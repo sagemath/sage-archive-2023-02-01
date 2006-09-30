@@ -418,7 +418,7 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: print hex(Integer(16938402384092843092843098243))
             36bb1e3929d1a8fe2802f083
             sage: print hex(long(16938402384092843092843098243))
-            0x36BB1E3929D1A8FE2802F083L
+            0x36bb1e3929d1a8fe2802f083L
         """
         return self.str(16)
 

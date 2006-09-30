@@ -27,3 +27,6 @@ echo "official SAGE branch to have all the functionality in this"
 echo "branch of SAGE."
 
 hg bundle $FILE $SERVER
+
+echo "The bundle $FILE has now been created.   You can now email it"
+echo "to people."

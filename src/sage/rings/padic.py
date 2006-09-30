@@ -112,7 +112,7 @@ class pAdic(field_element.FieldElement):
                     self.__prec = min(x.__prec, big_oh)
             return
 
-        self.__p = int(parent.residue_characteristic())
+        self.__p = integer.Integer(parent.residue_characteristic())
         self.__parent = parent
 
         if isinstance(x, pari_gen) and x.type() == "t_PADIC":
@@ -126,19 +126,29 @@ class pAdic(field_element.FieldElement):
             # we then use code below (so don't make the next line elif)
 
         if isinstance(x, integer.Integer):
+            if x >= 0:
+                # Can represent the integer exactly
+                x = int(x)
+            else:
+                # Need to approximate.
+                # todo: I'm being lazy here, just use the rational
+                # code for the moment.... all this will get rewritten
+                # anyway....
+                x = rational.Rational(x)
 
-            x = int(x)
-
-        elif isinstance(x, rational.Rational):
+        if isinstance(x, rational.Rational):
             if x == 0:
                 x=0
             else:
                 ordp = x.valuation(self.__p)
                 ppow = rational.Rational(self.__p)**ordp
                 x = x/ppow
-                if x.denominator() == 1:
+                if x.denominator() == 1 and x.numerator() >= 0:
+                    # Can represent the rational exactly
                     x = int(x)
                 else:
+                    # Need to approximate, using either default precision,
+                    # or requested precision
                     if big_oh is infinity:
                         pr = parent.prec() - ordp
                     else:
@@ -397,7 +407,7 @@ class pAdic(field_element.FieldElement):
         EXAMPLES:
             sage: K = Qp(11); K.prec(10); K.print_prec(5)
             sage: a = K(-1); a
-            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + O(11^Infinity)
+            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + O(11^10)
             sage: b = K(1); b
             1
             sage: a+b
@@ -433,7 +443,7 @@ class pAdic(field_element.FieldElement):
             sage: K = Qp(19)
             sage: K.prec(5)
             sage: zero(K) - one(K)
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^Infinity)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
         """
         #if not isinstance(right, pAdic):
         #    return coerce.bin_op(self, right, operator.sub)
@@ -447,7 +457,7 @@ class pAdic(field_element.FieldElement):
             sage: K = Qp(19)
             sage: K.prec(5)
             sage: (-1)*one(K)
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^Infinity)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a = K(2/19); a
             2*19^-1 + O(19^Infinity)
             sage: b = K(3/19); b
@@ -495,11 +505,11 @@ class pAdic(field_element.FieldElement):
             sage: K = Qp(19)
             sage: K.prec(5)
             sage: a = K(-1); a
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^Infinity)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a^2
-            1
+            1 + O(19^5)
             sage: a^3
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^Infinity)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: K(5)^30
             11 + 14*19 + 19^2 + 7*19^3 + O(19^Infinity)
         """
@@ -553,13 +563,27 @@ class pAdic(field_element.FieldElement):
             3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
             sage: K(2).__invert__(15)
             3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + 2*5^10 + 2*5^11 + 2*5^12 + 2*5^13 + 2*5^14 + O(5^15)
+
+        Check we don't add extra precision:
+            sage: 1/(1+O(5^2))
+             1 + O(5^2)
+
+        AUTHORS:
+            -- David Harvey (2006-09-27): fixed precision bug (trac #89)
         """
-        if prec is infinity:
-            prec = self.parent().prec()
-        elif prec is None and self.__prec is infinity:
-            prec = self.parent().prec()
+        if self.__prec is infinity:
+            # If we have infinite precision, approximate the answer to the
+            # requested precision (or use the parent's default).
+            if prec is infinity:
+                prec = self.parent().prec()
+        else:
+            # Otherwise, use our current precision, or honour a request
+            # for lower precision.
+            prec = min(self.__prec, prec)
+
         if prec <= 0:
             raise ZeroDivisionError, "Can not invert self"
+
         unit = arith.inverse_mod(self.__unit, self.__p**prec)
         big_oh = prec - self.__ordp
         return pAdic(self.__parent, unit, big_oh,  -self.__ordp)
@@ -579,7 +603,7 @@ class pAdic(field_element.FieldElement):
             sage: K.prec(5)
 
             sage: a = K(-1); a
-            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^Infinity)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a.lift()
             -1
 
@@ -700,12 +724,12 @@ class pAdic(field_element.FieldElement):
         reconstruction, try to find the unique rational number a/b
         such that a/b is congruent to u modulo $p^n$, and abs(a),
         abs(b) are both at most $\sqrt{p/2}$.  If such $a/b$ exists,
-        return $p^r \cdot (a/b)$.
+        return $p^r \cdot (a/b)$, otherwise raises ValueError.
 
         EXAMPLES:
             sage: K = Qp(11); K.prec(10); K.print_prec(10)
             sage: a = K(-1); a
-            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + 10*11^6 + 10*11^7 + 10*11^8 + 10*11^9 + O(11^Infinity)
+            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + 10*11^6 + 10*11^7 + 10*11^8 + 10*11^9 + O(11^10)
             sage: a.rational_reconstruction()
             -1
             sage: a = K(2); a
@@ -720,10 +744,8 @@ class pAdic(field_element.FieldElement):
             return frac(p,1)**self.__ordp * frac(self.__unit,1)
         alpha = self.__unit
         m = p**self.__prec
-        a, b = arith.rational_reconstruction(alpha, m)
-        if b==0:
-            raise ValueError, "unable to rationally reconstruct"
-        return (frac(p,1)**self.__ordp)*frac(a, b)
+        r = arith.rational_reconstruction(alpha, m)
+        return (frac(p,1)**self.__ordp)*r
 
     def log(self):
         r"""

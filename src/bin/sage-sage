@@ -68,7 +68,7 @@ usage_advanced() {
     exit 1
 }
 
-. $SAGE_ROOT/local/bin/sage-env   1>/dev/null
+. $SAGE_ROOT/local/bin/sage-env   1>/dev/null 2>/dev/null
 
 if [ $? -ne 0 ]; then
    echo "Error setting environment variables by running $SAGE_ROOT/local/bin/sage-env; possibly contact wstein@gmail.com."

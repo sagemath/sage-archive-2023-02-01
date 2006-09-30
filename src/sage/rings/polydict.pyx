@@ -134,9 +134,9 @@ cdef class PolyDict:
         right = iter(sorted(other.__repn,fn,reverse=True))
 
         for m in left:
-            if len(other.__repn):
+            try:
                 n = right.next()
-            else:
+            except StopIteration:
                 return 1 # left has terms, right doesn't
             ret =  fn(m,n)
             if ret!=0:
@@ -146,9 +146,9 @@ cdef class PolyDict:
                 return ret #if they differ use it
             #try next pair
 
-        if len(right):
+        try:
             n = right.next()
-        else:
+        except StopIteration:
             return 0 # both have no terms
 
         return -1 # right has terms, left doesn't

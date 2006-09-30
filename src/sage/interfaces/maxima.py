@@ -361,6 +361,8 @@ from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
 
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
+import sage.server.support
+
 # The Maxima "apropos" command, e.g., apropos(det) gives a list
 # of all identifiers that begin in a certain way.  This could
 # maybe be useful somehow... (?)  Also maxima has a lot for getting
@@ -424,7 +426,9 @@ class Maxima(Expect):
         F.close()
         if self._expect is None:
             self._start()
-        self._expect.sendline('batchload("%s");'%tmp)
+        # For some reason turning debugmode on and off when doing a file load
+        # keeps certain random freezes from occuring.  Do not remove this.
+        self._expect.sendline('debugmode(true); batchload("%s"); debugmode(false);\n'%tmp)
         self._expect.expect(self._prompt)
         return ''
 
@@ -445,7 +449,6 @@ class Maxima(Expect):
         seq += 1
         start = SAGE_START + str(seq)
         end = SAGE_END + str(seq)
-        #line = '%s; %s; %s;'%(start, line, end)
         line = '%s;\n%s; %s;'%(start, line, end)
         if self._expect is None:
             self._start()
@@ -501,8 +504,8 @@ class Maxima(Expect):
 
     # This doesn't work because of how weird interaction is.
     # System call method below is much more robust.
-    def help(self, s):
-        return "Help on Maxima commands currently not implemented (see %s/devel/sage/interfaces/maxima.py if you want to try to implement it)."%SAGE_ROOT
+    #def help(self, s):
+    #    return "Help on Maxima commands currently not implemented (see %s/devel/sage/interfaces/maxima.py if you want to try to implement it)."%SAGE_ROOT
 ##         if self._expect is None:
 ##             self._start()
 ##         E = self._expect
@@ -519,16 +522,25 @@ class Maxima(Expect):
 ##         print E.before
 ##     # override the builtin describe command
 
-##     def help(self, s):
-##         os.system('maxima -r "describe(%s);"'%s)
+    def help(self, s):
+        if sage.server.support.EMBEDDED_MODE:
+            os.system('maxima -r "describe(%s); "< /dev/null'%s)
+        else:
+            os.system('maxima -r "describe(%s);"'%s)
 
     def example(self, s):
-        os.system('maxima -r "example(%s);"'%s)
+        if sage.server.support.EMBEDDED_MODE:
+            os.system('maxima -r "example(%s);" < /dev/null'%s)
+        else:
+            os.system('maxima -r "example(%s);"'%s)
 
     describe = help
 
     def demo(self, s):
-        os.system('maxima -r "demo(%s);"'%s)
+        if sage.server.support.EMBEDDED_MODE:
+            os.system('maxima -r "demo(%s);" < /dev/null'%s)
+        else:
+            os.system('maxima -r "demo(%s);"'%s)
 
     def completions(self, s):
         """
@@ -876,69 +888,6 @@ class Maxima(Expect):
                     vars[1], vars[0], vars[0], i, vars[0], ics[0], ics[1+i])
                 maxima.eval(ic)
         return maxima('desolve(%s, %s(%s))'%(de, vars[1], vars[0]))
-
-##     def de_solve_laplace_plot(self, de,vars,ics,xrange,yrange,options=None):
-##         """
-##         Plots the solution to an ODE using laplace transforms.
-##         INPUT: de is a string representing the ODE
-##                (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-##         vars is a list of strings representing the variables
-##                (eg, vars = ["x","f"])
-##         ics is a list of numbers representing initial conditions,
-##                with symbols allowed which are represented by strings
-##                (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
-
-##         EXAMPLES:
-##             sage: self.de_solve_laplace_plot("diff(f(x),x,2)=2*diff(f(x),x)-f(x)",["x","f"],[0,1,2],[-1,1],[-5,5])
-
-##         Warning: The second equation sets the values of f(0) and f'(0) in maxima, so
-##         subsequent ODEs involving these variables will have these initial conditions
-##         automatically imposed.
-##         """
-##         raise NotImplementedError
-
-##     def de_plot(self, de,vars,ic,xrange,yrange,options=None):
-##         r"""
-##         Plots solution to a 2nd order ODE.
-
-##         INPUT:
-##         de is a string representing the ODE
-##                (eg, de = "diff(f(x),x,2)=diff(f(x),x)+sin(x)")
-##         vars is a list or two strings representing variables (such as vars = ["x","y"])
-##         ics is a list of numbers representing initial conditions,
-##                with symbols allowed which are represented by strings
-##                (eg, y(0)=1, y'(0)=2 is ic = [0,1,2])
-##         xrange = [xmin, xmax], yrange = [ymin, ymax] are lists ofnumbers with xmin<xmax, ymin<ymax
-##         options is an optional string representing plot2d options in gnuplot format
-
-##         EXAMPLES:
-##             sage.: de = "diff(y,x,2) = 2*(1+x)"
-##             sage.: de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10])
-##             sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "de_plot.eps"]'
-##             sage.: de_plot(de,["x","y"],[1,2,3],[-4,4],[-10,10],opts)
-
-##         The eps file is saved in the current working directory.
-##         """
-##         y = vars[1]
-##         x = vars[0]
-##         x0 = ic[0]
-##         y0 = ic[1]
-##         y1 = ic[2]
-##         xmin = xrange[0]
-##         xmax = xrange[1]
-##         ymin = yrange[0]
-##         ymax = yrange[1]
-##         cmd1 = "(soln:ode2('"+de+","+y+","+x+"), tmp:IC2(soln,"+x+"="+str(x0)+","+y+"="+str(y0)+",'diff("+y+","+x+")="+str(y1)+"));"
-##         #print cmd1
-##         print self(cmd1)
-##         if options==None:
-##             cmd2 = "plot2d(sublis(solve(tmp,"+y+"),"+y+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"]);"
-##             #print cmd2
-##             self(cmd2)
-##         if options!=None:
-##             cmd2 = "plot2d(sublis(solve(tmp,"+y+"),"+y+"),["+x+","+str(xmin)+","+str(xmax)+"],["+y+","+str(ymin)+","+str(ymax)+"],"+options+");"
-##             #print cmd2
-##             self(cmd2)
 
     def solve_linear(self, eqns,vars):
         """

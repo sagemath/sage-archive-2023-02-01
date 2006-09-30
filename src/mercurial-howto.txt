@@ -10,6 +10,25 @@ username = William Stein <wstein@gmail.com>
 
 WARNING: Mercurial is much much different than darcs.
 
+-----------------------------------------------------
+
+QUICKSTART: How to get the latest version of the repository.
+
+change to the direcotry <SAGE_ROOT>/devel/sage/ then type
+
+   sage -hg pull http://sage.math.washington.edu/sage/hg/sage-main
+   sage -hg update
+   sage -hg merge    # if necessary
+   sage -hg commit   # if it says you need to...
+
+to update your mercurial repository.  If you're wary of messing
+things up, do
+    sage -clone test  # e.g., where test can be anything.
+    sage -b test
+
+then do the above.  To switch back to your old repository, you can do
+    sage -b main
+
 You have to work with mercurial differently than with darcs.  It's
 crucial to create branches -- don't do everything in one place. With
 darcs that was possible, since darcs is so powerful, but with

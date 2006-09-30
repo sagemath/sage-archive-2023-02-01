@@ -103,7 +103,7 @@ if [ -d $SAGE_ROOT/examples ]; then
    ./sage-push
    cd ..
    rm -rf examples-$SAGE_VERSION
-   cp -pr examples examples-$SAGE_VERSION
+   cp -pr examples .hg* examples-$SAGE_VERSION
    sage -pkg examples-$SAGE_VERSION
    if [ $? -ne 0 ]; then
        echo "Error building examples package"
@@ -136,7 +136,7 @@ fi
 
 rm -rf $SCRIPTS
 mkdir $SCRIPTS
-cp -pr sage-* $SCRIPTS/
+cp -pr sage-* .hg* $SCRIPTS/
 #cp -p $SAGE_ROOT/sage $SCRIPTS/
 cp -p $SAGE_ROOT/sage-python $SCRIPTS/
 cp -p $SAGE_ROOT/*.txt $SCRIPTS/

@@ -111,6 +111,23 @@ cdef class Rational(element.FieldElement):
     def __reduce__(self):
         return sage.rings.rational.make_rational, (self.str(32),)
 
+    def __index__(self):
+        """
+        Needed so integers can be used as list indices.
+
+        EXAMPLES:
+            sage: v = [1,2,3,4,5]
+            sage: v[3/1]
+            4
+            sage: v[3/2]
+            Traceback (most recent call last):
+            ...
+            <type 'exceptions.TypeError'>: rational is not an integer.
+        """
+        if self.denominator() == 1:
+            return int(self)
+        raise TypeError, "rational is not an integer."
+
     def _reduce_set(self, s):
         mpq_set_str(self.value, s, 32)
 

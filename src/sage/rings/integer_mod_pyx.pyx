@@ -580,6 +580,17 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __int__(self):
         return int(self.lift())
 
+    def __index__(self):
+        """
+        Needed so integers can be used as list indices.
+
+        EXAMPLES:
+            sage: v = [1,2,3,4,5]
+            sage: v[Mod(3,10^20)]
+            4
+        """
+        return int(self)
+
     def __long__(self):
         return long(self.lift())
 
@@ -859,6 +870,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return x;
 
     def __int__(IntegerMod_int self):
+        return self.ivalue
+
+    def __index__(self):
+        """
+        Needed so integers can be used as list indices.
+
+        EXAMPLES:
+            sage: v = [1,2,3,4,5]
+            sage: v[Mod(10,7)]
+            4
+        """
         return self.ivalue
 
     def __long__(IntegerMod_int self):

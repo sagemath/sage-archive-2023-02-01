@@ -460,7 +460,7 @@ def load(filename, compress=True, verbose=True):
         sage: M = load(u + "48_2.sobj")                                         # optional
         Attempting to load remote file: http://sage.math.washington.edu/home/was/db/modsym/gamma0/48_2.sobj
         Loading: [..]
-        sage: M
+        sage: M                  # optional
         Modular Symbols space of dimension 5 for Gamma_0(48) of weight 2 with sign -1 over Rational Field
     """
 

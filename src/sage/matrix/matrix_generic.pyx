@@ -155,7 +155,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def _init(self, attrs, parent, dict, determinant,
               sparse_columns, sparse_rows,
               mutability):
-        ModuleElement.__init__(self, parent)
+        sage.structure.element.ModuleElement.__init__(self, parent)
         self.__dict__ = attrs
         self.__dict = dict
         self.__determinant = determinant
@@ -2444,8 +2444,8 @@ def strassen_window_multiply(C, A, B, int cutoff):
 
 
 def __reduce__Matrix_generic(cls, attrs, parent, dict, determinant,
-                         sparse_columns, sparse_rows,
-                         mutability):
+                             sparse_columns, sparse_rows,
+                             mutability):
     M = cls.__new__(cls)
     M._init(attrs, parent, dict, determinant,
             sparse_columns, sparse_rows,

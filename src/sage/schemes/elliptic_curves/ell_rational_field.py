@@ -3378,10 +3378,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(53, 10)
             26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
 
-          An anomalous case where the precision drops a huge amount:
+          An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)
-            5^-2 + 5^-1 + 4 + 2*5 + O(5^2)
+            5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
 
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

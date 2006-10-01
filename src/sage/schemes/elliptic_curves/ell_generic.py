@@ -777,7 +777,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
           sage: n/d
           310
           sage: 11*P
-          (310 : 5458 : 1)
+          (310 : -5458 : 1)
 
         """
         if cache is None:

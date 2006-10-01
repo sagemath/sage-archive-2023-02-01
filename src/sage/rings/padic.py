@@ -554,7 +554,7 @@ class pAdic(field_element.FieldElement):
         return self
 
     def __invert__(self, prec=infinity):
-        """
+        r"""
         EXAMPLES:
             sage: K = Qp(19)
             sage: K.prec(5)
@@ -582,7 +582,7 @@ class pAdic(field_element.FieldElement):
              1 + O(5^2)
 
         AUTHORS:
-            -- David Harvey (2006-09-27): fixed precision bug (trac #89)
+            -- David Harvey (2006-09-27): fixed precision bug (trac \#89)
         """
         if self.__prec is infinity:
             # If we have infinite precision, approximate the answer to the

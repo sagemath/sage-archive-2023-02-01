@@ -1,4 +1,6 @@
 """
+Field of Arbitrary Precision Real Numbers
+
 PYREX: sage.rings.mpfr
 """
 

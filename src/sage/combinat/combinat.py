@@ -53,8 +53,8 @@ repetition of k objects from a multiset S.
   repetitions of S and is represented by a sorted list of length k
   containing elements from S.
 
-\item Permutations of a multiset, \code{permutations, \code{permutations_iterator},
-\code{number_of_permutations. A permutation is a list that contains exactly the same elements but
+\item Permutations of a multiset, \code{permutations}, \code{permutations_iterator},
+\code{number_of_permutations}. A permutation is a list that contains exactly the same elements but
 possibly in different order.
 \end{itemize}
 

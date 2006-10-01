@@ -1,6 +1,8 @@
 r"""
 Double Precision Complex Numbers
 
+PYREX: sage.rings.complex_double
+
 SAGE supports arithmetic using double-precision complex numbers.  A
 double-precision complex number is a complex number x + I*y with x, y
 64-bit (8 byte) floating point numbers (double precision).
@@ -502,7 +504,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         This function returns the natural logarithm of the magnitude of the complex
         number $z$, $\log|z|$.
 
-        This allows for an accurate evaluation of $\log|z| when $|z|$
+        This allows for an accurate evaluation of $\log|z|$ when $|z|$
         is close to $1$.  The direct evaluation of \code{log(abs(z))}
         would lead to a loss of precision in this case.
 
@@ -729,7 +731,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def cos(self):
         r"""
         This function returns the complex cosine of the complex number z,
-        \cos(z) = (\exp(iz) + \exp(-iz))/2.
+        $\cos(z) = (\exp(iz) + \exp(-iz))/2$.
 
         EXAMPLES:
             sage: CDF(1,1).cos()
@@ -740,7 +742,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def tan(self):
         r"""
         This function returns the complex tangent of the complex number z,
-        \tan(z) = \sin(z)/\cos(z).
+        $\tan(z) = \sin(z)/\cos(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).tan()
@@ -750,8 +752,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 
     def sec(self):
         r"""
-        This function returns the complex secant of the complex number z,
-        \sec(z) = 1/\cos(z).
+        This function returns the complex secant of the complex number $z$,
+        ${\rm sec}(z) = 1/\cos(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).sec()
@@ -762,7 +764,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def csc(self):
         r"""
         This function returns the complex cosecant of the complex number
-        z, \csc(z) = 1/\sin(z).
+        $z$, $\csc(z) = 1/\sin(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).csc()
@@ -773,7 +775,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def cot(self):
         r"""
         This function returns the complex cotangent of the complex number
-        z, \cot(z) = 1/\tan(z).
+        $z$, $\cot(z) = 1/\tan(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).cot()
@@ -787,7 +789,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arcsin(self):
         r"""
         This function returns the complex arcsine of the complex
-        number $z$, $\arcsin(z)$. The branch cuts are on the real axis,
+        number $z$, ${\rm arcsin}(z)$. The branch cuts are on the real axis,
         less than -1 and greater than 1.
 
         EXAMPLES:
@@ -799,7 +801,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccos(self):
         r"""
         This function returns the complex arccosine of the complex
-        number $z$, $\arccos(z)$. The branch cuts are on the real
+        number $z$, ${\rm arccos}(z)$. The branch cuts are on the real
         axis, less than -1 and greater than 1.
 
         EXAMPLES:
@@ -811,7 +813,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arctan(self):
         r"""
         This function returns the complex arctangent of the complex
-        number $z$, $\arctan(z)$. The branch cuts are on the imaginary
+        number $z$, ${\rm arctan}(z)$. The branch cuts are on the imaginary
         axis, below $-i$ and above $i$.
 
         EXAMPLES:
@@ -823,7 +825,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccsc(self):
         r"""
         This function returns the complex arccosecant of the complex
-        number $z$, $\arccsc(z) = \arcsin(1/z)$.
+        number $z$, ${\rm arccsc}(z) = {\rm arcsin}(1/z)$.
 
         EXAMPLES:
             sage: CDF(1,1).arccsc()
@@ -834,7 +836,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccot(self):
         r"""
         This function returns the complex arccotangent of the complex
-        number $z$, $\arccot(z) = \arctan(1/z).$
+        number $z$, ${\rm arccot}(z) = {\rm arctan}(1/z).$
 
         EXAMPLES:
             sage: CDF(1,1).arccot()
@@ -883,7 +885,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def sech(self):
         r"""
         This function returns the complex hyperbolic secant of the complex
-        number $z$, $\sech(z) = 1/\cosh(z)$.
+        number $z$, ${\rm sech}(z) = 1/{\rm cosh}(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).sech()
@@ -894,7 +896,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def csch(self):
         r"""
         This function returns the complex hyperbolic cosecant of the
-        complex number $z$, $\csch(z) = 1/\sinh(z)$.
+        complex number $z$, ${\rm csch}(z) = 1/{\rm sinh}(z)$.
 
         EXAMPLES:
             sage: CDF(1,1).csch()
@@ -919,7 +921,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arcsinh(self):
         r"""
         This function returns the complex hyperbolic arcsine of the
-        complex number $z$, $\arcsinh(z)$. The branch cuts are on the
+        complex number $z$, ${\rm arcsinh}(z)$. The branch cuts are on the
         imaginary axis, below -i and above i.
 
         EXAMPLES:
@@ -931,7 +933,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccosh(self):
         r"""
         This function returns the complex hyperbolic arccosine of the
-        complex number $z$, $\arccosh(z)$. The branch cut is on the real
+        complex number $z$, ${\rm arccosh}(z)$. The branch cut is on the real
         axis, less than 1.
 
         EXAMPLES:
@@ -943,7 +945,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arctanh(self):
         r"""
         This function returns the complex hyperbolic arctangent of the
-        complex number $z$, $\arctanh(z)$. The branch cuts are on the real
+        complex number $z$, ${\rm arctanh} (z)$. The branch cuts are on the real
         axis, less than -1 and greater than 1.
 
         EXAMPLES:
@@ -955,7 +957,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arcsech(self):
         r"""
         This function returns the complex hyperbolic arcsecant of the
-        complex number $z$, $\arcsech(z) = \arccosh(1/z)$.
+        complex number $z$, ${\rm arcsech}(z) = {\rm arccosh}(1/z)$.
 
         EXAMPLES:
             sage: CDF(1,1).arcsech()
@@ -966,7 +968,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccsch(self):
         r"""
         This function returns the complex hyperbolic arccosecant of the
-        complex number $z$, $\arccsch(z) = \arcsin(1/z)$.
+        complex number $z$, ${\rm arccsch}(z) = {\rm arcsin}(1/z)$.
 
         EXAMPLES:
             sage: CDF(1,1).arccsch()
@@ -977,7 +979,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def arccoth(self):
         r"""
         This function returns the complex hyperbolic arccotangent of the
-        complex number $z$, $\arccoth(z) = \arctanh(1/z)$.
+        complex number $z$, ${\rm arccoth}(z) = {\rm arctanh(1/z)}$.
 
         EXAMPLES:
             sage: CDF(1,1).arccoth()

@@ -1,6 +1,8 @@
 r"""
 Matrices over an arbitrary ring
 
+PYREX: sage.matrix.matrix_generic
+
 AUTHORS:
     -- William Stein
     -- Martin Albrecht: conversion to Pyrex
@@ -2203,7 +2205,7 @@ cdef class Matrix(ModuleElement):
 # TODO: need MatrixWindow hierarchy
 # def strassen_window_multiply(MatrixWindow C, MatrixWindow A, MatrixWindow B, int cutoff):
 def strassen_window_multiply(C, A, B, int cutoff):
-    """
+    r"""
     Multiplies the submatrices specified by A and B, places result in
     C.  Assumes that A and B have compatible dimensions to be
     multiplied, and that C is the correct size to receive the product,
@@ -2215,14 +2217,14 @@ def strassen_window_multiply(C, A, B, int cutoff):
     todo: doc cutoff parameter as soon as I work out what it really means
 
     EXAMPLES:
-        # The following matrix dimensions are chosen especially to exercise the
-        # eight possible parity combinations that ocould ccur while subdividing
-        # the matrix in the strassen recursion. The base case in both cases will
-        # be a (4x5) matrix times a (5x6) matrix.
+        The following matrix dimensions are chosen especially to exercise the
+        eight possible parity combinations that ocould ccur while subdividing
+        the matrix in the strassen recursion. The base case in both cases will
+        be a (4x5) matrix times a (5x6) matrix.
 
-        # TODO -- the doctests below are currently not
-        # tested/enabled/working -- enable them when linear algebra
-        # restructing gets going.
+        TODO -- the doctests below are currently not
+        tested/enabled/working -- enable them when linear algebra
+        restructing gets going.
 
         sage.:P dim1 = 64; dim2 = 83; dim3 = 101
         sage.:P R = MatrixSpace(QQ, dim1, dim2)

@@ -1,5 +1,5 @@
 r"""
-Field $\C$ of Complex Numbers
+Field $\CC$ of Complex Numbers
 
 AUTHOR:
     -- William Stein (2006-01-26): complete rewrite

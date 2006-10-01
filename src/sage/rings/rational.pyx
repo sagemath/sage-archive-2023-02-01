@@ -1,6 +1,8 @@
 """
 Rational Numbers
 
+PYREX: sage.rings.rational
+
 AUTHORS:
     -- William Stein (2005): first version
     -- William Stein (2006-02-22): floor and ceil (pure fast GMP versions).

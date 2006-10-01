@@ -114,7 +114,7 @@ To be added:
 \begin{enumerate}
 \item More wrappers
 \item GRS codes and special decoders.
-\item $P^1$ Goppa codes and group actions on P^1 RR space codes.
+\item $P^1$ Goppa codes and group actions on $P^1$ RR space codes.
 \end{enumerate}
 
 REFERENCES:
@@ -707,11 +707,13 @@ class LinearCode(module.Module):
         return LinearCode(MS(H))
 
     def extended_code(self):
-        """
-        If self is a linear code of length n defined over F then this returns the code
-        of length n+1 where the last digit c_n satisfies the check condition
-        c_0+...+c_n=0. If self is an [n,k,d] *binary* code then the extended code C^ is an
-        [n+1,k,d^] code, where d^=d (if d is even) and d^=d+1 (if d is odd).
+        r"""
+        If self is a linear code of length n defined over F then this
+        returns the code of length n+1 where the last digit $c_n$
+        satisfies the check condition $c_0+...+c_n=0$. If self is an
+        $[n,k,d]$ binary code then the extended code $C^{\vee}$ is an
+        $[n+1,k,d^{\vee}]$ code, where $d^=d$ (if d is even) and $d^{\vee}=d+1$ (if
+        $d$ is odd).
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(4))
@@ -1086,13 +1088,15 @@ class LinearCode(module.Module):
         return self == self.galois_closure(GF(p))
 
     def assmus_mattson_designs(self,t,mode=None):
-        """
+        r"""
         Assmus and Mattson Theorem (section 8.4, page 303 of [HP]): Let A0, A1, ..., An
         be the weights of the codewords in a binary linear [n , k, d] code C, and let
         A0*, A1*, ..., An* be the weights of the codewords in its dual [n, n-k, d*] code C*.
-        Fix a t, 0<t<d, and let s = |{ i | Ai* \not= 0, 0<i\leq n-t}|. Assume s\leq d-t.
-        (1) If Ai\not= 0 and d\leq i\leq n then Ci = { c in C | wt(c) = i} holds a simple t-design.
-        (2) If Ai*\not= 0 and d*\leq i\leq n-t then Ci* = { c in C* | wt(c) = i} holds a simple t-design.
+        Fix a t, 0<t<d, and let $s = |{ i | Ai* \not= 0, 0<i\leq n-t}|$. Assume $s\leq d-t$.
+        (1) If $Ai\not= 0$ and $d\leq i\leq n then Ci = { c in C | wt(c) = i}$
+            holds a simple t-design.
+        (2) If $Ai*\not= 0$ and $d*\leq i\leq n-t then Ci* = { c in C* | wt(c) = i}$
+            holds a simple t-design.
 
         A {\bf block design} is a pair (X,B), where X is a non-empty finite set of v>0 elements called
         {\bf points}, and B is a non-empty finite multiset of size b whose elements are called {\bf blocks}, such
@@ -1186,12 +1190,12 @@ class LinearCode(module.Module):
         """
         Returns the Duursma zeta function of the code.
 
-        #mode = "dual" computes both the zeta function of C and that of C*
-        mode = "normalized" computes the normalized zeta function of C, zeta_C(T)*T(1-genus(C))
+        mode = "dual" computes both the zeta function of $C$ and that of $C*$
+        mode = "normalized" computes the normalized zeta function of $C$, $zeta_C(T)*T(1-genus(C))$
                (NOTE: if xi(T,C) denotes the normalized zeta function then
-                xi(T,C*) = xi(1/(qT),C) is equivalent to
-                zeta_{C*}(T) = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2), where
-                gamma = gamma(C) and gamma* = gamma(C*).)
+                $xi(T,C*) = xi(1/(qT),C)$ is equivalent to
+                $zeta_{C*}(T) = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2)$, where
+                $gamma = gamma(C)$ and $gamma* = gamma(C*)$.)
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -1392,7 +1396,7 @@ def ExtendedQuadraticResidueCode(n,F):
     return LinearCode(MS(G))
 
 def QuasiQuadraticResidueCode(p):
-    """
+    r"""
     A (binary) quasi-quadratic residue code (or QQR code), as defined by
     Proposition 2.2 in [BM], has a generator matrix in the block form $G=(Q,N)$.
     Here $Q$ is a $p \\times p$ circulant matrix whose top row
@@ -1412,7 +1416,7 @@ def QuasiQuadraticResidueCode(p):
         Linear code of length 22, dimension 11 over Finite Field of size 2
 
     REFERENCES:
-        [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions, (preprint
+        [BM] Bazzi and Mitter, {\it Some constructions of codes from group actions}, (preprint
              March 2003, available on Mitter's MIT website).
         [J]  D. Joyner, {\it On quadratic residue codes and hyperelliptic curves}, (preprint 2006)
 

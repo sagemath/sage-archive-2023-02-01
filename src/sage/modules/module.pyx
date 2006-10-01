@@ -1,5 +1,7 @@
 """
 Abstract base class for modules
+
+PYREX: sage.modules.module
 """
 
 #*****************************************************************************

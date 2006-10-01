@@ -640,8 +640,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
            (5) * (x^2 + 5) * (x^2 + 2*x + 5) * (x^2 + 5*x + 7) * (x^2 + 7*x + 7) * (x^2 + 9*x + 5) * (x^2 + 10*x + 7)
 
           This indicates that the x-coordinates of all the 5-torsion points
-          of E are in GF(11^2), and therefore the y-coordinates are in
-          GF(11^4).
+          of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
+          $GF(11^4)$.
+
            sage: K = GF(11^4)
            sage: X = E.change_ring(K)
            sage: f = X.pseudo_torsion_polynomial(5)

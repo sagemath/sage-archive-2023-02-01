@@ -10,6 +10,8 @@ AUTHORS:
                                    now very fast).
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
+
+PYREX: sage.rings.integer
 """
 
 #*****************************************************************************

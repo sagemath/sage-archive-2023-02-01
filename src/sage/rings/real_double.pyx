@@ -1,3 +1,9 @@
+"""
+Field of Double-Precision Real Numbers
+
+PYREX: sage.rings.real_double
+"""
+
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
@@ -633,7 +639,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
 
     def nth_root(self, int n):
         """
-        Returns the n^{th} root of self.
+        Returns the $n^{th}$ root of self.
         EXAMPLES:
             sage: r = RDF(-125.0); r.nth_root(3)
             -5.0

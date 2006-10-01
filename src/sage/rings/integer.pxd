@@ -1,8 +1,8 @@
-include "cdefs.pxi"
-cimport _element
-import _element
+include "../ext/cdefs.pxi"
+cimport sage.structure.element
+import  sage.structure.element
 
-cdef class Integer(_element.EuclideanDomainElement):
+cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t value
     cdef int cmp(self, Integer x)
     cdef void set_from_mpz(Integer self, mpz_t value)

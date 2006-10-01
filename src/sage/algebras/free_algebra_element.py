@@ -21,7 +21,7 @@ AUTHOR: David Kohel, 2005-09
 
 import operator
 from sage.misc.misc import repr_lincomb
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.algebra_element import AlgebraElement

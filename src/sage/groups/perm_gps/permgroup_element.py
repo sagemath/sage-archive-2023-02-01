@@ -51,12 +51,12 @@ from sage.rings.all      import RationalField, Integer, MPolynomial, MPolynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
-import sage.ext.coerce as coerce
+import sage.structure.coerce as coerce
 
 import operator
 
-from sage.ext.integer import Integer
-from sage.ext.element import MonoidElement
+from sage.rings.integer import Integer
+from sage.structure.element import MonoidElement
 from sage.rings.arith import *
 
 import permgroup

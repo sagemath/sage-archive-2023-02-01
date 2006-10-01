@@ -2554,7 +2554,7 @@ def make_new_GF2X(x=[]):
     from sage.rings.finite_field_element import FiniteFieldElement
     from sage.rings.finite_field import FiniteField_ext_pari
     from sage.rings.polynomial_element import Polynomial_dense_mod_p
-    from sage.ext.integer import Integer
+    from sage.rings.integer import Integer
 
     if isinstance(x, Integer):
         #binary repr, reversed, and "["..."]" added
@@ -3077,7 +3077,7 @@ cdef class ntl_mat_GF2E:
             x = make_new_GF2E(x)
         y = x
 
-        from sage.ext.integer import Integer
+        from sage.rings.integer import Integer
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
         elif self.ncols()==1 and (isinstance(ij, Integer) or type(ij)==int):
@@ -3093,7 +3093,7 @@ cdef class ntl_mat_GF2E:
 
     def __getitem__(self, ij):
         cdef int i, j
-        from sage.ext.integer import Integer
+        from sage.rings.integer import Integer
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
         elif self.ncols()==1 and (isinstance(ij, Integer) or type(ij)==int):

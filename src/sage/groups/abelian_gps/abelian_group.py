@@ -122,7 +122,7 @@ REFERENCES:
 import weakref
 import copy
 
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 
 # TODO: get rid of the import *'s -- figure out exactly
 # what you use below and include only that.

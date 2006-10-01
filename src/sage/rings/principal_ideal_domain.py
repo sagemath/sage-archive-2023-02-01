@@ -17,7 +17,7 @@ Abstract base class for principal ideal domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import PrincipalIdealDomain
+from sage.rings.ring import PrincipalIdealDomain
 
 def is_PrincipalIdealDomain(R):
     return isinstance(R, PrincipalIdealDomain)

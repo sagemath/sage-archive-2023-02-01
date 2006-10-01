@@ -35,8 +35,8 @@ import matrix_field
 cimport matrix_dense
 import matrix_dense
 
-cimport sage.ext.rational
-import  sage.ext.rational
+cimport sage.rings.rational
+import  sage.rings.rational
 
 cdef class Matrix_rational_dense(matrix_field.Matrix_field):
     """
@@ -81,7 +81,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 entries = entries.split(' ')
                 raise NotImplementedError, "need to deal with base below"
 
-        if isinstance(entries, sage.ext.rational.Rational):
+        if isinstance(entries, sage.rings.rational.Rational):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
             s = str(entries)
@@ -112,11 +112,11 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                     mpq_set_si(self._entries[i], 0, 1)
             return
 
-        cdef sage.ext.rational.Rational z
+        cdef sage.rings.rational.Rational z
 
         if coerce:
             for i from 0 <= i < nrows*ncols:
-                z = sage.ext.rational.Rational(entries[i])
+                z = sage.rings.rational.Rational(entries[i])
                 mpq_set(self._entries[i], z.value)
         else:
             for i from 0 <= i < nrows*ncols:
@@ -192,19 +192,19 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         i, j = ij
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
-        cdef sage.ext.rational.Rational y
+        cdef sage.rings.rational.Rational y
         try:
             y = x
         except TypeError:
-            y = sage.ext.rational.Rational(x)
+            y = sage.rings.rational.Rational(x)
         mpq_set(self._matrix[i][j], y.value)
 
     def __getitem__(self, ij):
         i, j = ij
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
-        cdef sage.ext.rational.Rational x
-        x = sage.ext.rational.Rational()
+        cdef sage.rings.rational.Rational x
+        x = sage.rings.rational.Rational()
         x.set_from_mpq(self._matrix[i][j])
         return x
 
@@ -437,14 +437,14 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         cdef int i, j
         cdef mpq_t *r
         cdef object v
-        cdef sage.ext.rational.Rational x
+        cdef sage.rings.rational.Rational x
 
         v = []
         _sig_on
         for i from 0 <= i < self._nrows:
             r = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                x = sage.ext.rational.Rational()
+                x = sage.rings.rational.Rational()
                 x.set_from_mpq(r[j])
                 v.append(x)
         _sig_off
@@ -598,7 +598,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
         mpq_clear(prod); mpq_clear(x)
 
-    def set_row_to_multiple_of_row(self, int row_to, int row_from, sage.ext.rational.Rational multiple):
+    def set_row_to_multiple_of_row(self, int row_to, int row_from, sage.rings.rational.Rational multiple):
         """
         Set row row_to equal to multiple times row row_from.
         """
@@ -733,8 +733,8 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 mpq_add(z, z, self._matrix[row][v[c]])
             mpq_mul(pr, pr, z)
 
-        cdef sage.ext.rational.Rational x
-        x = sage.ext.rational.Rational()
+        cdef sage.rings.rational.Rational x
+        x = sage.rings.rational.Rational()
         x.set_from_mpq(pr)
         mpq_clear(pr)
         mpq_clear(z)
@@ -756,7 +756,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         self.mpz_denom(d)
         if mpz_cmp_si(d,1) == 0:
             mpz_clear(d)
-            return self, sage.ext.rational.Rational(1)
+            return self, sage.rings.rational.Rational(1)
         cdef Matrix_rational_dense A
         A = self.copy()
         cdef mpq_t denom
@@ -766,8 +766,8 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         mpz_clear(d)
         mpq_clear(denom)
 
-        cdef sage.ext.rational.Rational x
-        x = sage.ext.rational.Rational()
+        cdef sage.rings.rational.Rational x
+        x = sage.rings.rational.Rational()
         x.set_from_mpq(denom)
         return A, x
 

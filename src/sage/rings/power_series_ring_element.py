@@ -32,7 +32,7 @@ import ring_element
 import arith
 import sage.misc.latex as latex
 from coerce import bin_op
-import sage.ext.coerce
+import sage.structure.coerce
 import rational_field, integer_ring
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex

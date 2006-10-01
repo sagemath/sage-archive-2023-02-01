@@ -17,7 +17,7 @@ Base class for algebra elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import AlgebraElement
+from sage.structure.element import AlgebraElement
 
 def is_AlgebraElement(x):
     return isinstance(x, AlgebraElement)

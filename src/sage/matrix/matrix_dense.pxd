@@ -1,8 +1,8 @@
 include "../ext/cdefs.pxi"
 
-cimport matrix_pyx
+cimport matrix_generic
 
-cdef class Matrix_dense(matrix_pyx.Matrix):
+cdef class Matrix_dense(matrix_generic.Matrix):
     cdef int _nrows, _ncols
     cdef object _entries
     cdef int* _row_indices

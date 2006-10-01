@@ -6,17 +6,17 @@ import operator
 
 from sage.misc.sage_eval import sage_eval
 
-cimport sage.ext.element
-import sage.ext.element
+cimport sage.structure.element
+import  sage.structure.element
 
-cimport sage.ext.ring
-import sage.ext.ring
+cimport sage.rings.ring
+import  sage.rings.ring
 
 import sage.misc.functional
 #import real_number
 
 
-cdef class RealDoubleField_class(sage.ext.ring.Field):
+cdef class RealDoubleField_class(sage.rings.ring.Field):
     """
     The field of real double precision numbers.
 
@@ -71,7 +71,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
             sage: a = RealField(200)(2).sqrt(); a
             1.4142135623730950488016887242096980785696718753769480731766796
             sage: b = RDF(a); b
-            1.41421353817
+            1.41421356237
             sage: a.parent()(b)
             1.4142135623700000000000000000000000000000000000000000000000002
         """
@@ -81,14 +81,14 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
         """
         Return the generator of the real double field.
         EXAMPLES:
-            sage: CDF.0
+            sage: RDF.0
             1.0
-            sage: CDF.gens()
+            sage: RDF.gens()
             (1.0,)
         """
         if n != 0:
             raise ValueError, "only 1 generator"
-        return 1.0
+        return RealDoubleElement(1)
 
     def ngens(self):
         return 1
@@ -100,7 +100,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
         coefficients of polynomials.
 
         EXAMPLES:
-            sage: RealDoubleField().is_atomic_repr()
+            sage: RealDoubleField.is_atomic_repr()
             True
         """
         return True
@@ -111,7 +111,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
         Technical note:  There exists an upper bound on the double representation.
 
         EXAMPLES:
-            sage: RealDoubleField().is_finite()
+            sage: RealDoubleField.is_finite()
             False
         """
         return False
@@ -121,7 +121,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
         Returns 0, since the field of real numbers has characteristic 0.
 
         EXAMPLES:
-            sage: RealField(0).characteristic()
+            sage: RealDoubleField.characteristic()
             0
         """
         return 0
@@ -130,7 +130,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
         return "RealDoubleField"
 
     def __hash__(self):
-        return hash(self.name())
+        return 1455926870 #return hash(self.name())
 
     def pi(self):
         """
@@ -141,7 +141,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
             sage: RDF.pi()
             3.14159265359
             sage: RDF.pi().sqrt()/2
-            0.88622692545275801364908374167063
+            0.886226925453
         """
         return self(M_PI)
 
@@ -189,7 +189,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
             -1.0
             sage: RDF.zeta(1)
             1.0
-            sage: R.zeta(5)
+            sage: RDF.zeta(5)
             Traceback (most recent call last):
             ...
             ValueError: No 5th root of unity in self
@@ -204,7 +204,7 @@ cdef class RealDoubleField_class(sage.ext.ring.Field):
 
 
 
-cdef class RealDoubleElement(sage.ext.element.FieldElement):
+cdef class RealDoubleElement(sage.structure.element.FieldElement):
     cdef double _value
     def __init__(self, x):
         self._value = float(x)
@@ -229,7 +229,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: a.imag()
             0.0
         """
-        return 0
+        return RealDoubleElement(0)
 
     def __complex__(self):
         """
@@ -247,7 +247,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Return the real double field, which is the parent of self.
 
         EXAMPLES:
-            sage: a = RDF(2,3)
+            sage: a = RDF(2.3)
             sage: a.parent()
             Real Double Field
             sage: parent(a)
@@ -310,7 +310,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Add two real numbers with the same parent.
 
         EXAMPLES:
-            sage: R = RealDoubleField()
+            sage: R = RealDoubleField
             sage: R(-1.5) + R(2.5)
             1.0
         """
@@ -332,7 +332,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Subtract two real numbers with the same parent.
 
         EXAMPLES:
-            sage: R = RealDoubleField()
+            sage: R = RealDoubleField
             sage: R(-1.5) - R(2.5)
             -4.0
         """
@@ -343,7 +343,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Multiply two real numbers with the same parent.
 
         EXAMPLES:
-            sage: R = RealDoubleField()
+            sage: R = RealDoubleField
             sage: R(-1.5) * R(2.5)
             -3.75
         """
@@ -357,7 +357,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
     def __div__(x, y):
         """
         EXAMPLES:
-            sage: R = RealDoubleField()
+            sage: R = RealDoubleField
             sage: R(-1.5) / R(2.5)
             -0.6
         """
@@ -443,7 +443,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: RDF(-5/2).floor()
             -3
         """
-        return RealDoubleElement(sage.misc.functional.floor(self._value))
+        return sage.misc.functional.floor(self._value)
 
     def ceil(self):
         """
@@ -454,13 +454,13 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
 
         EXAMPLES:
             sage: RDF(2.99).ceil()
-            3.0
+            3
             sage: RDF(2.00).ceil()
-            2.0
+            2
             sage: RDF(-5/2).ceil()
-            -3.0
+            -2
         """
-        return RealDoubleElement(sage.misc.functional.ceil(self._value))
+        return sage.misc.functional.ceil(self._value)
 
     def ceiling(self):
         return self.ceil()
@@ -532,7 +532,11 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         return bool(gsl_isnan(self._value))
 
     cdef int cmp(RealDoubleElement self, RealDoubleElement x):
-        return cmp(self._value, x._value)
+        if self._value < x._value:
+            return -1
+        elif self._value > x._value:
+            return 1
+        return 0
 
     def __cmp__(RealDoubleElement self, RealDoubleElement x):
         return self.cmp(x)
@@ -621,8 +625,8 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: r = RDF(125.0); r.cube_root()
             5.0
             sage: r = RDF(-119.0)
-            sage: r.cube_root()^3 - r       # illustrates precision loss
-            -0.000000000000014210854715202004
+            sage: r.cube_root()^3 - r
+            0.0
         """
         return self.nth_root(3)
 
@@ -680,9 +684,9 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         EXAMPLES:
             sage: a = RDF('1.23456')
             sage: a^20
-            67.646297455
+            67.6462977039
             sage: a^a
-            1.2971114814
+            1.29711148178
         """
         cdef RealDoubleElement x
         if isinstance(self, RealDoubleElement):
@@ -732,7 +736,7 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         elif base == 10:
             return self.log10()
         else:
-            if isinstance(base, RealDouble):
+            if isinstance(base, RealDoubleElement):
                 return self.__log_(base.__log_(1))
             else:
                 return self.__log_(gsl_sf_log(float(base)))
@@ -758,11 +762,11 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Returns log to the base 10 of self
 
         EXAMPLES:
-            sage: r = RDF(16.0); r.log10()
+            sage: r = RDF('16.0'); r.log10()
             1.20411998266
             sage: r.log() / log(10)
             1.20411998266
-            sage: r = 39.9; r.log10()
+            sage: r = RDF('39.9'); r.log10()
             1.60097289569
         """
         return RealDoubleElement(gsl_sf_log(self._value) / M_LN10)
@@ -772,12 +776,12 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         Returns log to the base pi of self
 
         EXAMPLES:
-            sage: r = 16.0; r.logpi()
-            1.20411998266
+            sage: r = RDF(16); r.logpi()
+            2.42204624559
             sage: r.log() / log(pi)
-            1.20411998266
-            sage: r = 39.9; r.logpi()
-            1.60097289569
+            2.42204624559
+            sage: r = RDF('39.9'); r.logpi()
+            3.22030233461
         """
         return RealDoubleElement(gsl_sf_log(self._value) / M_LNPI)
 
@@ -790,13 +794,13 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: r.exp()
             1.0
 
-            sage: r = RDF(32.3)
+            sage: r = RDF('32.3')
             sage: a = r.exp(); a
             1.06588847275e+14
             sage: a.log()
             32.3
 
-            sage: r = RDF(-32.3)
+            sage: r = RDF('-32.3')
             sage: r.exp()
             9.3818445885e-15
         """
@@ -995,8 +999,8 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.tanh() ; i
             0.917152335667
-            sage: i.atanh() == q
-            True
+            sage: i.atanh() - q
+            -4.4408920985e-16
         """
         return RealDoubleElement(gsl_atanh(self._value))
 
@@ -1046,27 +1050,12 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
             sage: RDF.pi()^2/6
             1.64493406685
             sage: RDF(-2).zeta()
-            0.0
+            -2.37378795339e-18
             sage: RDF(1).zeta()
             inf
-
-        Computing zeta using PARI is much more efficient in difficult cases.
-        Here's how to compute zeta with at least a given precision:
-
-             sage: z = pari.new_with_bits_prec(2, 53).zeta(); z
-             1.644934066848226436472415167              # 32-bit
-             1.6449340668482264364724151666460251892    # 64-bit
-
-        Note that the number of bits of precision in the constructor only
-        effects the internel precision of the pari number, not the number
-        of digits that gets displayed.  To increase that you must
-        use \code{pari.set_real_precision}.
-
-             sage: type(z)
-             <type 'gen.gen'>
-             sage: R(z)
-             1.6449340668482264
         """
+        if self._value == 1:
+            return RealDoubleElement(1)/RealDoubleElement(0)
         return RealDoubleElement(gsl_sf_zeta(self._value))
 
     def algdep(self, n):
@@ -1079,27 +1068,27 @@ cdef class RealDoubleElement(sage.ext.element.FieldElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-             sage: r = RDF(2).sqrt(); r
-             1.41421356237
-             sage: r.algdep(5)
-             x^4 - 2*x^2
+            sage: r = RDF(2).sqrt(); r
+            1.41421356237
+            sage: r.algdep(5)
+            x^4 - 2*x^2
         """
         return sage.rings.arith.algdep(self,n)
 
     def algebraic_dependency(self, n):
         """
-         Returns a polynomial of degree at most $n$ which is approximately
-         satisfied by this number.  Note that the returned polynomial
-         need not be irreducible, and indeed usually won't be if this number
-         is a good approximation to an algebraic number of degree less than $n$.
+        Returns a polynomial of degree at most $n$ which is approximately
+        satisfied by this number.  Note that the returned polynomial
+        need not be irreducible, and indeed usually won't be if this number
+        is a good approximation to an algebraic number of degree less than $n$.
 
-         ALGORITHM: Uses the PARI C-library algdep command.
+        ALGORITHM: Uses the PARI C-library algdep command.
 
-         EXAMPLE:
-              sage: r = sqrt(2); r
-              1.41421356237
-              sage: r.algdep(5)
-              x^4 - 2*x^2
+        EXAMPLE:
+            sage: r = sqrt(RDF(2)); r
+            1.41421356237
+            sage: r.algdep(5)
+            x^4 - 2*x^2
         """
         return sage.rings.arith.algdep(self,n)
 

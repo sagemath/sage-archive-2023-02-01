@@ -17,7 +17,7 @@ Base class for field elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import FieldElement
+from sage.structure.element import FieldElement
 
 def is_FieldElement(x):
     return isinstance(x, FieldElement)

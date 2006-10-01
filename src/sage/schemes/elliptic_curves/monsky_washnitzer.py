@@ -35,8 +35,8 @@ AUTHORS:
 
 from sage.rings.all import Integers, Integer, PolynomialRing, Polynomial
 from sage.matrix.all import Matrix
-from sage.ext.ring import CommutativeAlgebra
-from sage.ext.element import CommutativeAlgebraElement
+from sage.rings.ring import CommutativeAlgebra
+from sage.structure.element import CommutativeAlgebraElement
 
 from sage.rings.arith import binomial
 from sage.misc.functional import log, ceil

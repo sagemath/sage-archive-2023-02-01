@@ -23,17 +23,12 @@ AUTHORS: Initial version -- William Stein
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import (RealField, ComplexField,
-                            PolynomialRing, RationalField, Ideal,
-                            IntegerRing, Integer, QQ, RR, CC)
+import math
 
-import sage.rings.integer_ring
+import sage.rings.all
 import sage.categories.all
-
 import sage.misc.latex
-
 import sage.server.support
-
 import sage.interfaces.expect
 
 ##############################################################################
@@ -60,7 +55,7 @@ def arg(x):
         2.0000000000000000
     """
     try: return x.arg()
-    except AttributeError: return CC(x).arg()
+    except AttributeError: return sage.rings.all.CC(x).arg()
 
 def base_ring(x):
     """
@@ -112,8 +107,14 @@ def ceil(x):
     """
     Return the ceiling of x.
     """
-    try: return x.ceil()
-    except AttributeError: return RR(x).ceil()
+    try:
+        return sage.rings.all.Integer(x.ceil())
+    except AttributeError:
+        try:
+            return sage.rings.all.Integer(int(math.ceil(float(x))))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%x
 
 ceiling = ceil
 
@@ -174,7 +175,7 @@ def acos(x):
         0.90455689430238140 - 1.0612750619050357*I
     """
     try: return x.acos()
-    except AttributeError: return RR(x).acos()
+    except AttributeError: return sage.rings.all.RR(x).acos()
 
 def asin(x):
     """
@@ -187,7 +188,7 @@ def asin(x):
         0.66623943249251527 + 1.0612750619050357*I
     """
     try: return x.asin()
-    except AttributeError: return RR(x).asin()
+    except AttributeError: return sage.rings.all.RR(x).asin()
 
 def atan(x):
     """
@@ -200,7 +201,7 @@ def atan(x):
         1.0172219678978514 + 0.40235947810852507*I
     """
     try: return x.atan()
-    except AttributeError: return RR(x).atan()
+    except AttributeError: return sage.rings.all.RR(x).atan()
 
 ## def cuspidal_submodule(x):
 ##     return x.cuspidal_submodule()
@@ -222,7 +223,8 @@ def cyclotomic_polynomial(n):
         sage: cyclotomic_polynomial(11)
         x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
     """
-    return PolynomialRing(RationalField()).cyclotomic_polynomial(n)
+    return sage.rings.all.PolynomialRing(\
+                  sage.rings.all.QQ).cyclotomic_polynomial(n)
 
 def decomposition(x):
     """
@@ -324,14 +326,14 @@ def eta(x):
         0.74204877583656470 + 0.19883137022991071*I
     """
     try: return x.eta()
-    except AttributeError: return CC(x).eta()
+    except AttributeError: return sage.rings.all.CC(x).eta()
 
 def exp(x):
     """
     Return the value of the exponentation function at x.
     """
     try: return x.exp()
-    except AttributeError: return RR(x).exp()
+    except AttributeError: return sage.rings.all.RR(x).exp()
 
 def factor(x, *args, **kwds):
     """
@@ -346,7 +348,7 @@ def factor(x, *args, **kwds):
         1000003
     """
     try: return x.factor(*args, **kwds)
-    except AttributeError: return sage.rings.integer_ring.factor(x, *args, **kwds)
+    except AttributeError: return sage.rings.all.factor(x, *args, **kwds)
 
 factorization = factor
 factorisation = factor
@@ -382,12 +384,16 @@ def floor(x):
         5
         sage: floor(float(5.4))
         5
+        sage: floor(-5/2)
+        -3
+        sage: floor(RDF(-5/2))
+        -3
     """
     try:
-        return Integer(x.floor())
+        return sage.rings.all.Integer(x.floor())
     except AttributeError:
         try:
-            return Integer(int(x))
+            return sage.rings.all.Integer(int(math.floor(float(x))))
         except TypeError:
             pass
     raise NotImplementedError, "computation of floor of %s not implemented"%x
@@ -428,13 +434,13 @@ def ideal(*x):
         Principal ideal (x - 1) of Univariate Polynomial Ring in x over Rational Field
     """
     if isinstance(x[0], (list, tuple)):
-        return Ideal(x[0])
+        return sage.rings.all.Ideal(x[0])
     if len(x) == 1:
         try:
             return x[0].ideal()
         except AttributeError:
             pass
-    return Ideal(x)
+    return sage.rings.all.Ideal(x)
 
 def image(x):
     """
@@ -456,7 +462,7 @@ def imag(x):
     Return the imaginary part of x.
     """
     try: return x.imag()
-    except AttributeError: return CC(x).imag()
+    except AttributeError: return sage.rings.all.CC(x).imag()
 
 def imaginary(x):
     """
@@ -640,7 +646,7 @@ def log(x,b=None):
     if b is None:
         try: return x.log()
         except AttributeError:
-            return RR(x).log()
+            return sage.rings.all.RR(x).log()
     else:
         try: return x.log(b)
         except AttributeError:
@@ -778,7 +784,7 @@ def real(x):
         1.0000000000000000
     """
     try: return x.real()
-    except AttributeError: return CC(x).real()
+    except AttributeError: return sage.rings.all.CC(x).real()
 
 def regulator(x):
     """
@@ -823,7 +829,7 @@ def sqrt(x):
         3
     """
     try: return x.sqrt()
-    except (AttributeError, ValueError): return ComplexField()(x).sqrt()
+    except (AttributeError, ValueError): return sage.rings.all.CC(x).sqrt()
 
 def isqrt(x):
     """
@@ -837,13 +843,6 @@ def isqrt(x):
     try: return x.isqrt()
     except AttributeError:
         raise NotImplementedError
-
-#def sin(x):
-#    """
-#    Return the sin of x.
-#    """
-#    try: return x.sin()
-#    except AttributeError: return RR(x).sin()
 
 def square_free_part(x):
     """
@@ -911,7 +910,7 @@ def tan(x):
         0.99995367427815629
     """
     try: return x.tan()
-    except AttributeError: return RR(x).tan()
+    except AttributeError: return sage.rings.all.RR(x).tan()
 
 def transpose(x):
     """

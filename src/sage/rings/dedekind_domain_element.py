@@ -17,7 +17,7 @@ Base class for Dedekind domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import DedekindDomainElement
+from sage.structure.element import DedekindDomainElement
 
 def is_DedekindDomainElement(x):
     return isinstance(x, DedekindDomainElement)

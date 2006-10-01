@@ -17,7 +17,7 @@ Abstract base class for commutative algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import CommutativeAlgebra
+from sage.rings.ring import CommutativeAlgebra
 
 def is_CommutativeAlgebra(x):
     return isinstance(x, CommutativeAlgebra)

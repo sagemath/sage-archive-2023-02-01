@@ -3,7 +3,7 @@
 #except ImportError:
 #    pass
 
-from sage.ext.integer import pmem_malloc
+from sage.rings.integer import pmem_malloc
 
 pmem_malloc()
 

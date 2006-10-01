@@ -18,12 +18,12 @@ Matrices over a domain
 ########################################################################
 
 
-cimport matrix_pyx
-import matrix_pyx
+cimport matrix_generic
+import matrix_generic
 
-cdef class Matrix_domain(matrix_pyx.Matrix):
+cdef class Matrix_domain(matrix_generic.Matrix):
     def __init__(self, parent):
-        matrix_pyx.Matrix.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
 
     def eigenspaces(self):
         """

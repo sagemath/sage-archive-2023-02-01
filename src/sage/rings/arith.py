@@ -21,11 +21,12 @@ import sage.rings.rational
 import sage.rings.real_field
 import sage.rings.complex_field
 import sage.rings.complex_number
-import sage.ext.mpfr
+import sage.rings.mpfr
 import sage.structure.factorization as factorization
 from sage.rings.coerce import canonical_coercion, bin_op
 from sage.structure.element import RingElement
-from sage.interfaces.all import gp, gap, kash
+
+import sage.interfaces.all
 
 import sage.rings.bernoulli
 
@@ -93,7 +94,7 @@ def algdep(z, n):
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 
-    if misc.is_64_bit and isinstance(z, (sage.ext.mpfr.RealNumber, sage.rings.complex_number.ComplexNumber)):
+    if misc.is_64_bit and isinstance(z, (sage.rings.mpfr.RealNumber, sage.rings.complex_number.ComplexNumber)):
         bits = int(float(z.prec()/3))
         if bits == 0:
             bits = 1
@@ -106,8 +107,6 @@ def algdep(z, n):
 
 
 algebraic_dependency = algdep
-
-from sage.ext.bernoulli_mod_p import bernoulli_mod_p
 
 def bernoulli(n, algorithm='pari'):
     r"""
@@ -147,10 +146,10 @@ def bernoulli(n, algorithm='pari'):
         x = pari(n).bernfrac()
         return sage.rings.rational.Rational(x)
     elif algorithm == 'gap':
-        x = gap('Bernoulli(%s)'%n)
+        x = sage.interfaces.all.gap('Bernoulli(%s)'%n)
         return sage.rings.rational.Rational(x)
     elif algorithm == 'gp':
-        x = gp('bernfrac(%s)'%n)
+        x = sage.interfaces.all.gp('bernfrac(%s)'%n)
         return sage.rings.rational.Rational(x)
     elif algorithm == 'sage':
         return sage.rings.bernoulli.bernoulli_python(n)

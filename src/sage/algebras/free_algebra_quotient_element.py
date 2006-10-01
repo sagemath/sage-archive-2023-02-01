@@ -24,7 +24,7 @@ from sage.rings.coerce import bin_op
 from sage.misc.misc import repr_lincomb
 from sage.rings.ring import Ring
 from sage.rings.ring_element import RingElement
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 from sage.algebras.algebra_element import AlgebraElement
 from sage.modules.free_module import FreeModule
 from sage.modules.free_module_element import FreeModuleElement

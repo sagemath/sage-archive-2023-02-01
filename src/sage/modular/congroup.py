@@ -342,9 +342,9 @@ class GammaH(CongruenceSubgroup):
 
 
 
-import sage.ext.congroup_pyx
-degeneracy_coset_representatives_gamma0 = sage.ext.congroup_pyx.degeneracy_coset_representatives_gamma0
-degeneracy_coset_representatives_gamma1 = sage.ext.congroup_pyx.degeneracy_coset_representatives_gamma1
+import congroup_pyx
+degeneracy_coset_representatives_gamma0 = congroup_pyx.degeneracy_coset_representatives_gamma0
+degeneracy_coset_representatives_gamma1 = congroup_pyx.degeneracy_coset_representatives_gamma1
 
 
 

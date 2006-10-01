@@ -12,10 +12,10 @@ def _convert_dense_entries_to_list(entries):
 
 include "../ext/interrupt.pxi"
 
-cimport matrix_pyx
-import matrix_pyx
+cimport matrix_generic
+import matrix_generic
 
-cdef class Matrix_dense(matrix_pyx.Matrix):
+cdef class Matrix_dense(matrix_generic.Matrix):
     """
     The \\class{Matrix_dense} class derives from
     \\class{Matrix}, and defines functionality for dense matrices over
@@ -27,7 +27,7 @@ cdef class Matrix_dense(matrix_pyx.Matrix):
                  copy = True,
                  entries = None,
                  coerce_entries = True):
-        matrix_pyx.Matrix.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         cdef int i, n

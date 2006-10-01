@@ -18,7 +18,7 @@ import re
 import string
 import traceback
 import time
-
+import crypt
 import pexpect
 
 from sage.ext.sage_object  import load, save
@@ -49,7 +49,8 @@ class Worksheet:
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
-        self.__passcode = passcode
+        self.__passcode = crypt.crypt(passcode, self.__salt)
+        self.__passcrypt= True
         dir = list(name)
         for i in range(len(dir)):
             if not dir[i].isalnum() and dir[i] != '_':
@@ -82,12 +83,27 @@ class Worksheet:
             for C in self.__cells:
                 C.set_worksheet(self)
 
+    def salt(self):
+        try:
+            return self.__salt
+        except AttributeError:
+            self.__salt = "%f"%time.time()
+            return self.__salt
+
     def passcode(self):
         try:
+            c = self.__passcrypt
+        except AttributeError:
+            self.__passcrypt = False
+        try:
+            if not self.__passcrypt:
+                self.__passcode = crypt.crypt(self.__passcode, self.salt())
+                self.__passcrypt = True
             return self.__passcode
         except AttributeError:
-            self.__passcode = ''
-            return ''
+            self.__passcode = crypt.crypt('', self.salt())
+            self.__passcrypt = True
+            return self.__passcode
 
     def filename(self):
         return self.__filename
@@ -545,10 +561,7 @@ class Worksheet:
         return self.__notebook.format_completions_as_html(id, rows)
 
     def auth(self, passcode):
-        if self.passcode() == '':
-            return True
-        else:
-            return self.passcode() == passcode
+        return self.passcode() == crypt.crypt(passcode, self.salt())
 
     def _strip_synchro_from_start_of_output(self, s):
         z = SAGE_BEGIN+str(self.synchro())
@@ -1009,6 +1022,9 @@ class Worksheet:
 
     def name(self):
         return self.__name
+
+    def set_name(self, name):
+        self.__name = name
 
     def append(self, L):
         self.__cells.append(L)

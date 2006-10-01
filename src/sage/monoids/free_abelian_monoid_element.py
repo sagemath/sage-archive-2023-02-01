@@ -34,8 +34,8 @@ of an element of the list changes the object.
 
 import operator
 
-from sage.ext.integer import Integer
-from sage.ext.element import MonoidElement
+from sage.rings.integer import Integer
+from sage.structure.element import MonoidElement
 
 def is_FreeAbelianMonoidElement(x):
     return isinstance(x, FreeAbelianMonoidElement)

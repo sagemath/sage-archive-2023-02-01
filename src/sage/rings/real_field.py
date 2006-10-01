@@ -1,10 +1,10 @@
 """
-PYREX: sage.ext.mpfr
+PYREX: sage.rings.mpfr
 """
 
-from sage.ext.mpfr import (RealField, RR, RealNumber as RealNumberClass,
-                           mpfr_prec_min, mpfr_prec_max, create_RealNumber as RealNumber)
-import sage.rings.arith
+from sage.rings.mpfr import (RealField, RR, RealNumber as RealNumberClass,
+                             mpfr_prec_min, mpfr_prec_max,
+                             create_RealNumber as RealNumber)
 
 def is_RealField(x):
     return isinstance(x, RealField)

@@ -54,7 +54,6 @@ import principal_ideal_domain
 import sage.rings.integer
 import sage.rings.infinity
 import sage.rings.rational
-import sage.rings.integer_mod_pyx
 import sage.rings.rational_field
 import sage.rings.ideal
 import sage.structure.factorization as factorization

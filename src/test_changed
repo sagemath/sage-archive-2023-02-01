@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+echo "This script tests all files that have changed in the repository since the"
+echo "last time you commited a patch."
+
+import os
+
+v = os.popen('sage -hg status').read()
+print v
+for X in v.split('\n'):
+    try:
+        c, filename = X.split()
+    except:
+        break
+    if c == 'M':
+        os.system('sage -t %s'%filename)
+

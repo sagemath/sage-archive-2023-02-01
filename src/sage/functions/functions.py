@@ -15,6 +15,9 @@ EXAMPLES:
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR)
+import sage.rings.rational
+import sage.rings.integer
+
 import sage.rings.all
 from sage.structure.all import RingElement, Element_cmp_
 import operator
@@ -100,9 +103,8 @@ class FunctionRing_class(CommutativeRing):
             return x
         elif is_Polynomial(x):
             return Function_polynomial(x)
-        #elif isinstance(x, sage.ext.element.Element):
-        elif isinstance(x, (sage.ext.integer.Integer,
-                            sage.ext.rational.Rational,
+        elif isinstance(x, (sage.rings.integer.Integer,
+                            sage.rings.rational.Rational,
                             int,long,float,complex)):
             return Constant_gen(x)
         raise TypeError

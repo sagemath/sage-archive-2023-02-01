@@ -323,10 +323,7 @@ Computation of class groups and unit groups:
       ext1 := Mapping from: grp^abl: sage34 to ord^num: sage30
 
     sage: kash.Apply('x->%s.ext1(x)'%U.name(), U.Generators().List())
-       [ [1, -1, 0, 0, 0]
-            ,
-          [1, 1, 0, 0, 0],
-          [-1, 0, 0, 0, 0] ]
+    [ [1, -1, 0, 0, 0], [1, 1, 0, 0, 0], [-1, 0, 0, 0, 0] ]
 
 \subsubsection{Function Fields}
     sage: k = kash.FiniteField(25)

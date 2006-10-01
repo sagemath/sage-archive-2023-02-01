@@ -5,74 +5,72 @@ AUTHORS:
         -- David Joyner (2006-07), initial implementation.
         -- William Stein (2006-07), editing of docs and code; many optimizations,
                       refinements, and bug fixes in corner cases
-        -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
-                      combinations_iterator from Python Cookbook, edited docs.
 
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant docstrings.
 
 Sequences:
 \begin{itemize}
-\item Bell numbers, \code{bell_number}
+\item Bell numbers, bell_number
 
-\item Bernoulli numbers, \code{bernoulli_number} (though PARI's bernoulli is
+\item Bernoulli numbers, bernoulli_number (though PARI's bernoulli is
   better)
 
-\item Catalan numbers, \code{catalan_number} (not to be confused with the
+\item Catalan numbers, catalan_number (not to be confused with the
   Catalan constant)
 
 \item Eulerian/Euler numbers, \code{euler_number} (Maxima)
 
-\item Fibonacci numbers, \code{fibonacci} (PARI) and \code{fibonacci_number} (GAP)
+\item Fibonacci numbers, fibonacci (PARI) and \code{fibonacci_number} (GAP)
   The PARI version is better.
 
-\item Lucas numbers, \code{lucas_number1}, \code{lucas_number2}.
+\item Lucas numbers, lucas_number1, lucas_number2.
 
-\item Stirling numbers, \code{stirling_number1}, \code{stirling_number2}.
+\item Stirling numbers, stirling_number1, stirling_number2.
 \end{itemize}
 
 Set-theoretic constructions:
 \begin{itemize}
-\item Combinations of a multiset, \code{combinations}, \code{combinations_iterator},
-and \code{number_of_combinations}. These are unordered selections without
-repetition of k objects from a multiset S.
+\item Combinations of a multiset, combination and \code{number_of_combination}
+  These are unordered selections without repetition of k objects from a
+  multiset S.
 
-\item Arrangements of a multiset, \code{arrangements} and \code{number_of_arrangements}
+\item Arrangements of a multiset, arrangement and \code{number_of_arrangement}
   These are ordered selections without repetition of k objects from a
   multiset S.
 
-\item Derangements of a multiset, \code{derangements} and \code{number_of_derangements}.
+\item Derangements of a multiset, derangement and number_of_derangement
 
-\item Tuples of a multiset, \code{tuples} and \code{number_of_tuples}.
+\item Tuples of a multiset, tuples and number_of_tuples
   An ordered tuple of length k of set S is a ordered selection with
   repetitions of S and is represented by a sorted list of length k
   containing elements from S.
 
-\item Unordered tuples of a set, \code{unordered_tuple} and \code{number_of_unordered_tuples}.
+\item Unordered tuples of a set, unordered_tuple and number_of_unordered_tuples
   An unordered tuple of length k of set S is a unordered selection with
   repetitions of S and is represented by a sorted list of length k
   containing elements from S.
 
-\item Permutations of a multiset, \code{permutations, \code{permutations_iterator},
-\code{number_of_permutations. A permutation is a list that contains exactly the same elements but
-possibly in different order.
+\item Permutations of a multiset, permutations, number_of_permutations.
+  A permutation is a list that contains exactly the same elements but
+  possibly in different order.
 \end{itemize}
 
 Partitions:
 \begin{itemize}
-\item Partitions of a set, \code{partitions_set}, \code{number_of_partitions_set}.
+\item Partitions of a set, partitions_set, number_of_partitions_set.
   An unordered partition of set S is a set of pairwise disjoint
   nonempty sets with union S and is represented by a sorted list of
   such sets.
 
-\item Partitions of an integer, \code{partitions_list}, \code{number_of_partitions_list}.
+\item Partitions of an integer, partitions_list, number_of_partitions_list.
   An unordered partition of n is an unordered sum
   $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is represented by
   the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
   $p1\geq p_2 ...\geq p_k$.
 
-\item Ordered partitions of an integer, \code{ordered_partitions},
-  \code{number_of_ordered_partitions}.
+\item Ordered partitions of an integer, ordered_partitions,
+  number_of_ordered_partitions.
   An ordered partition of n is an ordered sum $n = p_1+p_2 +\ldots+ p_k$
   of positive integers and is represented by
   the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
@@ -108,7 +106,7 @@ Partitions:
   partition of the partition pi which is obtained by transposing the
   corresponding Ferrers diagram.
 
-\item Ferrers diagram, \code{ferrers_diagram}.
+\item Ferrers diagram, ferrers_diagram
   Analogous to the Young diagram of an irredicible representation
   of $S_n$.
   \end{itemize}
@@ -116,7 +114,7 @@ Partitions:
 Related functions:
 
 \begin{itemize}
-\item Bernoulli polynomials, \code{bernoulli_polynomial}
+\item Bernoulli polynomials, bernoulli_polynomial
 \end{itemize}
 
 Implemented in other modules (listed for completeness):
@@ -525,45 +523,9 @@ def combinations(mset,k):
          sage: mset = ["d","a","v","i","d"]
          sage: combinations(mset,3)
          ['add', 'adi', 'adv', 'aiv', 'ddi', 'ddv', 'div']
-
-    NOTE: For large lists, this raises a string error.
     """
-    ans=gap.eval("Combinations(%s,%s)"%(mset,ZZ(k))).replace("\n","")
+    ans=gap.eval("Combinations(%s,%s)"%(mset,ZZ(k)))
     return eval(ans)
-
-def combinations_iterator(mset,n=None):
-    """
-    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
-
-    Much faster than combinations.
-
-    EXAMPLES:
-        sage: X = combinations_iterator([1,2,3,4,5],3)
-        sage: [x for x in X]
-        [[1, 2, 3],
-         [1, 2, 4],
-         [1, 2, 5],
-         [1, 3, 4],
-         [1, 3, 5],
-         [1, 4, 5],
-         [2, 3, 4],
-         [2, 3, 5],
-         [2, 4, 5],
-         [3, 4, 5]]
-    """
-    items = mset
-    if n is None:
-        n = len(items)
-    for i in range(len(items)):
-        v = items[i:i+1]
-        if n == 1:
-            yield v
-        else:
-            rest = items[i+1:]
-            for c in combinations_iterator(rest, n-1):
-                yield v + c
-
 
 def number_of_combinations(mset,k):
     """
@@ -718,7 +680,6 @@ def tuples(S,k):
          [a, a + 1],
          [a + 1, a + 1]]
 
-    AUTHOR: Jon Hanke (2006-08?)
     """
     import copy
     if k<=0:
@@ -829,28 +790,6 @@ def permutations(mset):
     """
     ans=gap.eval("PermutationsList(%s)"%mset)
     return eval(ans)
-
-def permutations_iterator(mset,n=None):
-    """
-    Posted by Raymond Hettinger, 2006/03/23, to the Python Cookbook:
-    http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/474124
-
-    EXAMPLES:
-        sage: X = permutations_iterator(range(3),2)
-        sage: [x for x in X]
-        [[0, 1], [0, 2], [1, 0], [1, 2], [2, 0], [2, 1]]
-    """
-    items = mset
-    if n is None:
-        n = len(items)
-    for i in range(len(items)):
-        v = items[i:i+1]
-        if n == 1:
-            yield v
-        else:
-            rest = items[:i] + items[i+1:]
-            for p in permutations_iterator(rest, n-1):
-                yield v + p
 
 def number_of_permutations(mset):
     """

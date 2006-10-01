@@ -8,7 +8,7 @@ SAGE_VERSION=$1
 SAGE_ROOT=$2
 PATH=$SAGE_ROOT/local/bin/:$PATH
 
-export PATH SAGE_VERSION SAGE_ROOT
+./export PATH SAGE_VERSION SAGE_ROOT
 
 if [ -e tmp ]; then
    rm -rf tmp
@@ -20,12 +20,9 @@ if [ ! -d dist ]; then
 fi
 
 CUR=`pwd`
-rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest
-cp -prv MANIFEST.in README* install sage setup.py spkg-* tmp/
+rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
 
-#cd tmp/sage
-#echo "version='"$SAGE_VERSION"'; date='`date '+%Y-%m-%d-%H%M'`'" > version.py
-#cp version.py $CUR/sage/
+cp -prv MANIFEST.in README* install sage pull setup.py spkg-* .hg .hgignore tmp/
 
 cd tmp
 python setup.py sdist

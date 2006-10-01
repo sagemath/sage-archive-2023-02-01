@@ -17,7 +17,7 @@ Base class for integral domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import IntegralDomainElement
+from sage.structure.element import IntegralDomainElement
 
 def is_IntegralDomainElement(x):
     return isinstance(x, IntegralDomainElement)

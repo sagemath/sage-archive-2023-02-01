@@ -27,7 +27,7 @@ strings using the optional \code{names} argument to the
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 from sage.structure.gens import Generators
 from free_monoid_element import FreeMonoidElement
 

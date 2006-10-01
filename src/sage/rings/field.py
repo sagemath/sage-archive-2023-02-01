@@ -17,7 +17,7 @@ Abstract base class for fields
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import Field, is_Field
+from sage.rings.ring import Field, is_Field
 
 def is_PrimeField(R):
     from finite_field import is_FiniteField

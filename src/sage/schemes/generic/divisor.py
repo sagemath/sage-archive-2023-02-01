@@ -41,7 +41,7 @@ from morphism import is_SchemeMorphism
 
 import divisor_group
 
-from sage.ext.search import search
+from sage.misc.search import search
 
 
 def CurvePointToIdeal(C,P):

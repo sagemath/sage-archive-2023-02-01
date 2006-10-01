@@ -17,7 +17,7 @@ Abstract base class for integral domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import IntegralDomain
+from sage.rings.ring import IntegralDomain
 
 def is_IntegralDomain(R):
     return isinstance(R, IntegralDomain)

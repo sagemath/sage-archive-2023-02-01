@@ -35,8 +35,8 @@ AUTHORS:
 
 from sage.rings.all import Integers, Integer, PolynomialRing, Polynomial
 from sage.matrix.all import Matrix
-from sage.ext.ring import CommutativeAlgebra
-from sage.ext.element import CommutativeAlgebraElement
+from sage.rings.ring import CommutativeAlgebra
+from sage.structure.element import CommutativeAlgebraElement
 
 from sage.rings.arith import binomial
 from sage.misc.functional import log, ceil
@@ -458,7 +458,7 @@ def reduce_negative(Q, p, coeffs, offset):
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
         sage: monsky_washnitzer.reduce_negative(Q, 5, coeffs, 3)
         sage: coeffs[3]
-         [103, 102, 9]
+         [28, 52, 9]
 
         sage: R.<x> = Integers(7^3)['x']
         sage: Q = x^3 - x + R(1/4)

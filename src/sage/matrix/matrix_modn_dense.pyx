@@ -2,8 +2,8 @@
 Generic matrices over the integers modulo n.
 """
 
-cimport matrix_pyx
-import matrix_pyx
+cimport matrix_generic
+import matrix_generic
 
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
@@ -22,9 +22,9 @@ ai = sage.ext.arith.arith_int()
 
 LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
-cdef class Matrix_modn_dense(matrix_pyx.Matrix):
+cdef class Matrix_modn_dense(matrix_generic.Matrix):
     def __init__(self, parent, uint p, uint nrows, uint ncols, object entries=None, clear=True):
-        matrix_pyx.Matrix.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
 
         cdef int i
         self.matrix = <uint **> PyMem_Malloc(sizeof(uint*)*nrows)

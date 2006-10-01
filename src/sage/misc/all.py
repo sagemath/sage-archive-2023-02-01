@@ -7,6 +7,8 @@ from misc import (alarm, srange, xsrange, sxrange, getitem,
                   DOT_SAGE, SAGE_ROOT, SAGE_URL, SAGE_DB, SAGE_TMP,
                   is_32_bit, is_64_bit, newton_method_sizes)
 
+from attach import attach
+
 from profiler import Profiler
 
 from mrange import xmrange, mrange
@@ -16,6 +18,9 @@ from bug import bug
 from dist import install_scripts
 
 from darcs import darcs_src, darcs_doc, darcs_scripts
+
+from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
+
 from package import install_package, optional_packages, upgrade
 
 from pager import pager

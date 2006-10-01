@@ -17,7 +17,7 @@ Base class for Dedekind domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import DedekindDomain
+from sage.rings.ring import DedekindDomain
 
 def is_DedekindDomain(R):
     return isinstance(R, DedekindDomain)

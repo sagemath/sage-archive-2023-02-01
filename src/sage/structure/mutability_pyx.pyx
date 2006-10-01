@@ -20,7 +20,7 @@ cdef class Mutability:
 
     def _require_mutable(self):
         if self._is_immutable:
-            raise ValueError, "object is immutable; please change a copy instead."%self
+            raise ValueError, "object is immutable; please change a copy instead."
 
     def set_immutable(self):
         """

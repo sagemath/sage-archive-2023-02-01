@@ -744,52 +744,56 @@ def jacobi(sym,x,m):
         return eval(maxima.eval("jacobi_ns(%s,%s)"%(RR(x),RR(m))))
     return 1
 
-def inverse_jacobi(sym,x,m):
-    """
-    Here sym = "pq", where p,q in {c,d,n,s}. This returns the
-    value of the inverse Jacobi function $pq^{-1}(x,m)$. There are a
-    total of 12 functions described by this.
 
-    EXAMPLES:
-        sage: jacobi("sn",1/2,1/2)
-        0.4707504736556572
-        sage: inverse_jacobi("sn",0.47,1/2)
-        0.4990982313222197
-        sage: inverse_jacobi("sn",0.4707504,1/2)
-        0.49999991146655459
-        sage: ijsn = lambda x: inverse_jacobi("sn",x,1/2)
-        sage: P= plot(ijsn,0,1)
+# This doesn't work -- commented out until it does.
+#    -- William
 
-    Now to view this, just type show(P).
+## def inverse_jacobi(sym,x,m):
+##     """
+##     Here sym = "pq", where p,q in {c,d,n,s}. This returns the
+##     value of the inverse Jacobi function $pq^{-1}(x,m)$. There are a
+##     total of 12 functions described by this.
 
-    """
-    #R = x.parent()
-    #y = R.gen()
-    if sym=="dc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="nc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="sc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="cd":
-        return eval(maxima.eval("inverse_jacobi_cd(%s,%s)"%(RR(x),RR(m))))
-    if sym=="nd":
-        return eval(maxima.eval("inverse_jacobi_nd(%s,%s)"%(RR(x),RR(m))))
-    if sym=="sd":
-        return eval(maxima.eval("inverse_jacobi_sd(%s,%s)"%(RR(x),RR(m))))
-    if sym=="cn":
-        return eval(maxima.eval("inverse_jacobi_cn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="dn":
-        return eval(maxima.eval("inverse_jacobi_dn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="sn":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
-    if sym=="cs":
-        return eval(maxima.eval("inverse_jacobi_cs(%s,%s)"%(RR(x),RR(m))))
-    if sym=="ds":
-        return eval(maxima.eval("inverse_jacobi_ds(%s,%s)"%(RR(x),RR(m))))
-    if sym=="ns":
-        return eval(maxima.eval("inverse_jacobi_ns(%s,%s)"%(RR(x),RR(m))))
-    return 1
+##     EXAMPLES:
+##         sage: jacobi("sn",1/2,1/2)
+##         0.4707504736556572
+##         sage: inverse_jacobi("sn",0.47,1/2)
+##         0.4990982313222197
+##         sage: inverse_jacobi("sn",0.4707504,1/2)
+##         0.49999991146655459
+##         sage: ijsn = lambda x: inverse_jacobi("sn",x,1/2)
+##         sage: P= plot(ijsn,0,1)
+
+##     Now to view this, just type show(P).
+
+##     """
+##     #R = x.parent()
+##     #y = R.gen()
+##     if sym=="dc":
+##         return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="nc":
+##         return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="sc":
+## n        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="cd":
+##         return eval(maxima.eval("inverse_jacobi_cd(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="nd":
+##         return eval(maxima.eval("inverse_jacobi_nd(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="sd":
+##         return eval(maxima.eval("inverse_jacobi_sd(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="cn":
+##         return eval(maxima.eval("inverse_jacobi_cn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="dn":
+##         return eval(maxima.eval("inverse_jacobi_dn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="sn":
+##         return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="cs":
+##         return eval(maxima.eval("inverse_jacobi_cs(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="ds":
+##         return eval(maxima.eval("inverse_jacobi_ds(%s,%s)"%(RR(x),RR(m))))
+##     if sym=="ns":
+##         return eval(maxima.eval("inverse_jacobi_ns(%s,%s)"%(RR(x),RR(m))))
+##     return 1
 
 #### elliptic integrals
 

@@ -1,4 +1,5 @@
 #ifdef __cplusplus
+/* The order here is very important. */
 #include "mwrank/curve.h"
 #include "mwrank/egr.h"
 #include "mwrank/descent.h"
@@ -44,8 +45,8 @@ struct Curvedata;
 #endif
 
 EXTERN struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2,
-				const struct bigint* a3, const struct bigint* a4,
-				const struct bigint* a6, int min_on_init);
+				       const struct bigint* a3, const struct bigint* a4,
+				       const struct bigint* a6, int min_on_init);
 
 EXTERN void Curvedata_del(struct Curvedata* curve);
 

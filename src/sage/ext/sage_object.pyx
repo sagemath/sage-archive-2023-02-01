@@ -445,6 +445,13 @@ def load(filename, compress=True, verbose=True):
     Load \sage object from the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
 
+    NOTE: There is also a special SAGE command (that is not
+    available in Python) called load that you use by typing
+                sage.: load filename.sage
+    The documentation below is not for that command.  The documentation
+    for load is almost identical to that for attach.  Type attach? for
+    help on attach.
+
     This also loads a ".sobj" file over a network by specifying the full URL.
     (Setting "verbose = False" suppresses the loading progress indicator.)
 

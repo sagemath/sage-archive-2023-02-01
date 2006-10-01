@@ -40,21 +40,6 @@ import os
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
 
-def last_bracket_is_after_identifier(line, i):
-    """
-    Return True if and only if the previous bracket before line[i]
-    is after a valid identifier followed possibly by some space.
-    """
-    line = line[:i]
-    j = line.rfind("[")
-    if j == -1:
-        return False
-    line = line[:j].rstrip()
-    if len(line) == 0:
-        return False
-    c = line[len(line)-1]
-    return c == "]" or c == ")" or isalphadigit_(c)
-
 
 in_single_quote = False
 in_double_quote = False
@@ -81,8 +66,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     i = 0
     num_start = -1
-    bracket_depth = 0
-    seen_comma = False
     in_number = False
     is_real = False
     if reset:
@@ -109,9 +92,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     line = line.lstrip()
 
     while i < len(line):
-        if bracket_depth > 0 and line[i] == ",":
-            seen_comma = True
-
         # Decide if we should wrap a particular integer or real literal
         if in_number:
             if line[i] == ".": # and not (i+1 < len(line) and line[i+1].isalpha()):
@@ -126,8 +106,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     if i < len(line) and line[i] == '-':
                         i += 2
                     continue
-                elif bracket_depth == 0 or (bracket_depth > 0 and \
-                                          not last_bracket_is_after_identifier(line, i)):
+                else:
                     line, n = wrap_num(i, line, is_real, num_start)
                     i += n
                 in_number = False
@@ -204,15 +183,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 j += 1
             line = line[:i] + ".gen(" + line[i+1:j] + ")" + line[j:]
             i = j+4
-
-        # Update bracket depth
-        if line[i] == "[" and not in_quote():
-            bracket_depth += 1
-
-        elif line[i] == "]" and not in_quote():
-            bracket_depth -= 1
-            if bracket_depth == 0:
-                seen_comma = False
 
         # Update quote parsing
         if line[i] == "'":
@@ -305,10 +275,10 @@ def preparse_file(contents, attached={}, magic=True,
             L = 'load ' + L[7:]
 
         if magic and L[:5] == "load ":
-            #try:
-            name_load = str(eval(L[5:]))
-            #except:
-            #    name_load = L[5:].strip()
+            try:
+                name_load = str(eval(L[5:]))
+            except:
+                name_load = L[5:].strip()
             if name_load in loaded_files:
                 i += 1
                 continue
@@ -326,9 +296,13 @@ def preparse_file(contents, attached={}, magic=True,
                 else:
                     A = A[:i] + G.readlines() + A[i+1:]
                     continue
-            else:
+            elif name_load[-5:] == '.spyx':
                 import interpreter
                 L = interpreter.load_pyrex(name_load)
+            else:
+                print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name_load
+                L = ''
+                continue
         M = preparse(L, reset=(i==0), do_time=do_time, ignore_prompts=ignore_prompts)
         F.append(M)
         i += 1

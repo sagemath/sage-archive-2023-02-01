@@ -101,7 +101,9 @@ def algdep(z, n):
     else:
         y = pari(z)
         f = y.algdep(n)
-    return eval(str(f).replace('^','**'))
+
+    return x.parent()(list(reversed(eval(str(f.Vec())))))
+
 
 algebraic_dependency = algdep
 

@@ -81,6 +81,10 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     """
     Polynomial base class.
     """
+    def __new__(cls, *args, **kwds):
+        return ring_element.RingElement.__new__(*args, **kwds)
+    __new__ = classmethod(__new__)
+
     def __init__(self, parent, is_gen = False, construct=False):
         """
         The following examples illustrate creation of elements of

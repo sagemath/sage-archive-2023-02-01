@@ -199,6 +199,9 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
+    def _real_double_(self):
+        return sage.rings.all.RD.pi()
+
     def __abs__(self):
         if self.str()[0] != '-':
             return self
@@ -259,6 +262,9 @@ class E(Constant):
     def floor(self):
         return Integer(2)
 
+    def _real_double_(self):
+        return sage.rings.all.RD.e()
+
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
     #def _singular_(self, singular):
@@ -283,6 +289,9 @@ class NotANumber(Constant):
 
     def _mpfr_(self,R):
         return R('NaN') #??? nan in mpfr: void mpfr_set_nan (mpfr_t x)
+
+    def _real_double_(self):
+        return sage.rings.all.RD.nan()
 
 NaN = NotANumber()
 
@@ -318,6 +327,14 @@ class GoldenRatio(Constant):
     def __float__(self):
         return float(0.5)*(float(1.0)+math.sqrt(float(5.0)))
 
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(golden_ratio)
+            1.61803398874989484820458
+        """
+        return sage.rings.all.RDF(1.61803398874989484820458)
+
     def _mpfr_(self,R):  #is this OK for _mpfr_ ?
 	return (R(1)+R(5).sqrt())*R(0.5)
 
@@ -345,7 +362,7 @@ class Log2(Constant):
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
-        .6931471805599453
+        0.6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
         0.69314718055994530941723212145817656808   # 64-bit
@@ -366,6 +383,14 @@ class Log2(Constant):
 
     def __float__(self):
         return math.log(2)
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(log2)
+            0.69314718055994530941723212145817656808   # 64-bit
+        """
+        return sage.rings.all.RD.log2()
 
     def _mpfr_(self,R):
         return R.log2()
@@ -406,6 +431,14 @@ class EulerGamma(Constant):
     def _mpfr_(self,R):
         return R.euler_constant()
 
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(euler_gamma)
+            0.57721566490153287
+        """
+        return sage.rings.all.RD.euler()
+
     def floor(self):
         return Integer(0)
 
@@ -431,6 +464,22 @@ class Catalan(Constant):
 
     def _mpfr_(self, R):
         return R.catalan_constant()
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(catalan)
+            0.91596559417721901
+        """
+        return sage.rings.all.RDF(0.91596559417721901505460351493252)
+
+    def __float__(self):
+        """
+        EXAMPLES:
+            sage: float(catalan)
+            0.91596559417721901
+        """
+        return 0.91596559417721901505460351493252
 
     def floor(self):
         return Integer(0)
@@ -468,6 +517,15 @@ class Khinchin(Constant):
         if R.precision() <= self.__bits:
             return R(self.__value)
         raise NotImplementedError, "Khinchin's constant only available up to %s bits"%self.__bits
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(khinchin)
+            2.6854520010653064453
+        """
+	return sage.rings.all.RDF(2.685452001065306445309714835481795693820)
+
 
     def __float__(self):
         return 2.685452001065306445309714835481795693820
@@ -510,6 +568,14 @@ class TwinPrime(Constant):
         if R.precision() <= self.__bits:
             return R(self.__value)
         raise NotImplementedError, "Twin Prime constant only available up to %s bits"%self.__bits
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(twinprime)
+            0.66016181584686962
+        """
+	return sage.rings.all.RDF(0.660161815846869573927812110014555778432)
 
     def __float__(self):
         """
@@ -563,6 +629,14 @@ class Merten(Constant):
         if R.precision() <= self.__bits:
             return R(self.__value)
         raise NotImplementedError, "Merten's constant only available up to %s bits"%self.__bits
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(merten)
+            0.261497212847642783755426838608695859051
+        """
+        return sage.rings.all.RDF(0.261497212847642783755426838608695859051)
 
     def __float__(self):
         """
@@ -618,6 +692,14 @@ class Brun(Constant):
         if R.precision() <= self.__bits:
             return R(self.__value)
         raise NotImplementedError, "Brun's constant only available up to %s bits"%self.__bits
+
+    def _real_double_(self):
+        """
+        EXAMPLES:
+            sage: RealDoubleField()(brun)
+            1.9021605831040
+        """
+        return sage.rings.all.RDF(1.9021605831040)
 
     def __float__(self):
         """

@@ -146,6 +146,9 @@ static int __sig__n, __sig_str__n;
 
 #define _sig_check _sig_on _sig_off
 
+
+
+
 #endif /* FOO_H */
 
 

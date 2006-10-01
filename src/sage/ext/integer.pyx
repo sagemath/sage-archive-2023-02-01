@@ -248,6 +248,19 @@ cdef class Integer(element.EuclideanDomainElement):
     def _reduce_set(self, s):
         mpz_set_str(self.value, s, 32)
 
+    def __index__(self):
+        """
+        Needed so integers can be used as list indices.
+
+        EXAMPLES:
+            sage: v = [1,2,3,4,5]
+            sage: v[Integer(3)]
+            4
+            sage: v[Integer(2):Integer(4)]
+            [3, 4]
+        """
+        return int(mpz_get_pylong(self.value))
+
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
 
@@ -418,7 +431,7 @@ cdef class Integer(element.EuclideanDomainElement):
             sage: print hex(Integer(16938402384092843092843098243))
             36bb1e3929d1a8fe2802f083
             sage: print hex(long(16938402384092843092843098243))
-            0x36BB1E3929D1A8FE2802F083L
+            0x36bb1e3929d1a8fe2802f083L
         """
         return self.str(16)
 

@@ -8,11 +8,10 @@ MWRANK.  For most purposes it is not necessary to directly use these
 classes; instead, one can create an \class{EllipticCurve} and call
 methods that are implemented using this module.
 
-\note{This interface is a direct library-level interface to mwrank
-that is implemented via SWIG.}
+\note{This interface is a direct library-level interface to mwrank.}
 """
 
-from sage.structure.all import SageObject
+from sage.ext.sage_object import SageObject
 
 def set_precision(n):
     """
@@ -21,6 +20,8 @@ def set_precision(n):
     but it might have to be increased if a computation fails.  In this
     case, one must recreate the mwrank curve from scratch after
     resetting this precision.
+
+    NOTE -- this change is global and affects all of SAGE.
 
     INPUT:
         n -- long
@@ -72,7 +73,7 @@ class mwrank_EllipticCurve(SageObject):
             sage: e = mwrank_EllipticCurve([0, 0])
             Traceback (most recent call last):
             ...
-            TypeError: not all arguments converted during string formatting
+            ArithmeticError: Invariants (= [0, 0, 0, 0, 0]) do not describe an elliptic curve.
         """
         # import here to save time during startup (mwrank takes a while to init)
         from sage.libs.mwrank.mwrank import _Curvedata
@@ -87,7 +88,7 @@ class mwrank_EllipticCurve(SageObject):
         # Convert each entry to an int
         try:
             a_int = [int(x) for x in ainvs]
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             raise TypeError, "ainvs must be a list of integers."
         self.__ainvs = a_int
         self.__curve = _Curvedata(a_int[0], a_int[1], a_int[2],

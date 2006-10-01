@@ -178,10 +178,13 @@ def do_prefilter_paste(line, continuation):
                         ipmagic('run -i "%s"'%F)
                     elif F[-5:] == '.sage':
                         ipmagic('run -i "%s"'%process_file(F))
-                    else:
+                    elif F[-5:] == '.spyx':
                         X = load_pyrex(F)
                         __IPYTHON__.push(X)
-
+                    else:
+                        print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%F
+                        line = ''
+                        raise IOError
                     t = os.path.getmtime(F)
                     attached[F] = t
                 except IOError:
@@ -255,7 +258,9 @@ def do_prefilter_paste(line, continuation):
         except:
             name = line[5:].strip()
         if isinstance(name, str):
-            if name[-3:] == '.py':
+            if not os.path.exists(name):
+                raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .spyx extension)"%name
+            elif name[-3:] == '.py':
                 try:
                     line = '%run -i "' + name + '"'
                 except IOError, s:
@@ -271,13 +276,8 @@ def do_prefilter_paste(line, continuation):
             elif name[-5:] == '.spyx':
                 line = load_pyrex(name)
             else:
-                try:
-                    line = '%run -i "' + name + '"'
-                except IOError, s:
-                    print s
-                    raise ImportError, "Maybe file '%s' does not exist"%name
-                    line = ""
-
+                raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
+                line = ''
 
     elif line[:13] == 'save_session(':
         line = 'save_session(locals(), %s'%line[13:]
@@ -312,7 +312,7 @@ def do_prefilter_paste(line, continuation):
             name = line[7:].strip()
         name = os.path.abspath(name)
         if not os.path.exists(name):
-            raise ImportError, "File '%s' not found."%name
+            raise ImportError, "File '%s' not found  (be sure to give .sage, .py, or .spyx extension)."%name
         elif name[-3:] == '.py':
             try:
                 line = '%run -i "' + name + '"'
@@ -333,7 +333,7 @@ def do_prefilter_paste(line, continuation):
                 raise ImportError, "File '%s' not found."%name
                 line = ''
         else:
-            raise ImportError, "load: file (=%s) must have extension .py, .sage or .spyx"%name
+            raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
     if len(line) > 0:
         line = preparser_ipython.preparse_ipython(line)
     return line

@@ -7,6 +7,7 @@ AUTHORS:
              things; the precision behavior of PARI changes
              from any version to the next!).
     -- William Stein (2006-03-06): added newtonpoly
+
 """
 
 import math
@@ -30,6 +31,8 @@ P = pari_instance   # shorthand notation
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
 
+# keep track of the stack
+cdef pari_sp stack_avma
 
 # real precision
 cdef unsigned long prec
@@ -548,7 +551,7 @@ cdef class gen:
             sage: print hex(pari(16938402384092843092843098243))
             36bb1e3929d1a8fe2802f083
             sage: print hex(long(16938402384092843092843098243))
-            0x36BB1E3929D1A8FE2802F083L
+            0x36bb1e3929d1a8fe2802f083L
             sage: print hex(pari(-16938402384092843092843098243))
             -36bb1e3929d1a8fe2802f083
         """
@@ -2916,7 +2919,7 @@ cdef class gen:
 
     def eta(gen x, flag=0):
         r"""
-        x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$,
+        x.eta({flag=0}): if flag=0, $\eta$ function without the $q^{1/24}$;
         otherwise $\eta$ of the complex number $x$ in the upper half plane
         intelligently computed using $\SL(2,\Z)$ transformations.
 
@@ -5108,7 +5111,7 @@ cdef class PariInstance:
     def new_with_bits_prec(self, s, long precision=0):
         r"""
         pari.new_with_bits_prec(self, s, precision) creates s as a PARI gen
-        with precision \emph{bits} of precision.
+        with (at most) precision \emph{bits} of precision.
         """
         global prec
 

@@ -3372,16 +3372,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve("37a")
             sage: E.padic_regulator(5, 10)
-             1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)
+            1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)
 
           An anomalous case:
             sage: E.padic_regulator(53, 10)
-             26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
+            26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
 
-          An anomalous case where the precision drops slightly:
+          An anomalous case where the precision drops a huge amount:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)
-             5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
+            5^-2 + 5^-1 + 4 + 2*5 + O(5^2)
 
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
@@ -3420,7 +3420,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         r"""
         Computes the cyclotomic p-adic height, as defined by Mazur and Tate.
         The height is normalised to take values in $\Z_p$, unless $p$ is
-        anomalous in which case it takes values in $(1/p)\Z_p$.
+        anomalous in which case it takes values in $(1/p^2)\Z_p$.
 
         The equation of the curve must be minimal at $p$.
 
@@ -3446,11 +3446,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             -- David Harvey (2006-09-13): integrated into SAGE, optimised
             to speed up repeated evaluations of the returned height function,
             addressed some thorny precision questions
+            -- David Harvey (2006-09-30): rewrote to use division polynomials
+            for computing denominator of $nP$.
 
         TODO:
-            -- The introductory docstring appears to be wrong: sometimes the
-               values actually have denominator divisible by $p^2$, not just $p$.
-               Ask William about this.
+            -- Probably this code is broken when P is a torsion point.
 
         EXAMPLES:
             sage: E = EllipticCurve("37a")
@@ -3468,6 +3468,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_height(5, 1)(P)
              2 + O(5)
 
+          A case that works the division polynomial code a little harder:
+            sage: E.padic_height(5, 10)(5*P)
+             2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
             sage: full = E.padic_height(5, max_prec)(P)           # long time
@@ -3482,22 +3486,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec < 1:
             raise ValueError, "prec (=%s) must be at least 1" % prec
 
-        # Find an integer N such that for any point P, the multiple N*P
-        # reduces to the identity mod p and is in the connected component of
-        # the Neron model modulo all primes.
-        multiple = arith.LCM(self.tamagawa_numbers() +
-                             [self.change_ring(rings.GF(p)).cardinality()])
+        # Find an integer A such that for any point P, the multiple A*P
+        # is in the connected component of the Neron model modulo all primes.
+        # This is one of the conditions in Mazur/Stein/Tate; additionally
+        # it is required to apply Proposition IV.2 from Christian Wuthrich's
+        # thesis.
+        A = arith.LCM(self.tamagawa_numbers())
 
-        # Later, we will be computing $h(P) = h(NP)/N^2$. But if $N$ is
+        # Find an integer B such that A*B*P reduces to the identity mod p.
+        # This is necessary to be able to evaluate sigma(A*B*P) by substituting
+        # into the series for sigma.
+        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) / A
+
+        # Later, we will be computing $h(P) = h(AB*P)/(AB)^2$. But if $AB$ is
         # divisible by a power of $p$, then this will affect the resulting
         # p-adic precision. Also, we'll be dividing by p once at the end.
         # So we take all of this into account right from the beginning.
-        extra_prec = 2 * arith.valuation(multiple, p) + 1
+        extra_prec = 2 * arith.valuation(A*B, p) + 1
 
         if sigma is None:
             sigma = self.padic_sigma(p, prec + extra_prec,
                                      check_hypotheses=False)
 
+        # K is the field for the final result
         K = rings.pAdicField(p, prec)
         E = self
 
@@ -3506,56 +3517,87 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 assert P.curve() == E, "the point P must lie on the curve " \
                        "from which the height function was created"
 
-            # Compute appropriate multiple of point (as described above).
+            # Adjust P to satisfy conditions for Wuthrich's Proposition IV.2
+            Q = A * P
 
-            # todo: I'm a bit concerned about this step. It's not totally
-            # clear how to get a good complexity bound on computing this
-            # multiple; the coefficients will get quite large.
-            # At some point, should think about whether it's worth trying
-            # to do the multiple in a p-adic field of finite precision,
-            # and work out how big that precision would need to be. I'm not
-            # sure if there's a good answer to that question, but it sounds
-            # like the kind of thing that people would have thought about.
+            # In this next section we compute R = B * Q (which will reduce to
+            # zero in E(GF(p))), working to some finite p-adic precision.
+            # This avoids the coefficients spiralling out of control.
 
-            # todo: maybe it would be good to reduce the point first and
-            # work its actual order in the reduced curve. Or maybe not.
-            P = multiple * P
+            # The precision will generally *drop* during the computation of
+            # B*Q, so we need to start with somewhat higher precision than
+            # our target precision. Unfortunately, I am unable to prove any
+            # a priori bound on how much precision will be lost. Some simple
+            # heuristics suggest that the precision loss is usually very
+            # small, so small in fact that the runtime is about
+            # $O((\log p)^3)$. But I can't rule out the possibility that the
+            # precision loss will be very large, implying a runtime as high
+            # as $O(p^2)$. (This happens for example when the denominator
+            # of the x-coordinate of $B*Q$ is almost purely a power of $p$.
+            # I've never seen this happen, but I don't know how to rule it
+            # out.)
 
-            # Compute t(P) = -x/y and d(P) = sqrt(denominator of x)
-            # Note that t and d have the same valuation at p. (Because
-            # the equation of the curve implies that v(x) = -2n and v(y)
-            # = -3n for some positive n.)
-            t = -P[0]/P[1]
-            val = arith.valuation(t, p)
-            d = P[0].denominator()
+            # So the strategy is as follows. Start with fairly low precision
+            # and see what happens. If the answer doesn't have enough
+            # precision, try again with twice the initial precision. Repeat
+            # until we get enough precision in the result.
+
+            # todo: some bug in SAGE (trac #86) prevents me from creating
+            # points on an elliptic curve over a p-adic field. So in order to
+            # use the generic point-multiplication routine, I have to resort
+            # to extremely ugly and nasty trickery. See below.
+
+            start_prec = prec + extra_prec + 1   # todo: too optimistic?
+            enough = False
+            while not enough:
+                M = rings.pAdicField(p, start_prec)
+                R = E(Q[0], Q[1], Q[2])
+                R._coords = [M(a, M.prec()) for a in R._coords]
+                # arrrggghhh!!!! gross....
+                # So now R is Q "coerced" to the p-adic field....
+
+                BR = B * R
+                t = -BR[0]/BR[1]
+                if t.prec() >= prec + extra_prec:
+                    enough = True
+                else:
+                    start_prec = 2 * start_prec
+
+            # Let d = denominator of x coordinate of B*R. We know (from the
+            # equation of the curve) that v_p(d^2) = 2 v_p(t), so we can read
+            # off the valuation of d. This tells us how much extra precision
+            # we need to actually compute d.
+            M = rings.pAdicField(p, prec + extra_prec + 2*t.ordp())
+
+            # Compute the denominator of the x-coordinate of B*R, using
+            # Wuthrich's equation IV.3. (Actually we're computing d^2.)
+            d_sqr = E.multiple_x_denominator(B, M(Q[0], M.prec())) * \
+                    M(Q[0].denominator(), M.prec()) ** (B**2)
+
             if check:
-                assert d.is_square(), "the denominator of the adjusted " \
-                       "point should have been a square, but it wasn't."
-            d = d.square_root()
-            if check:
-                assert val == arith.valuation(d, p), "d and t should have " \
-                       "the same p-adic valuation, but they don't."
+                assert d_sqr.prec() >= prec + extra_prec
 
-            t = K(t, prec + extra_prec + val)
-            d = K(d, prec + extra_prec + val)
-
-            # Evaluate sigma
+            # Evaluate sigma.
             # (todo: we can't just use "sigma(t)" because SAGE seems to have
             # a bug where it only uses the lowest precision of the coefficients
             # of sigma, which is not good enough; although I haven't looked
             # into this carefully yet)
             t_power = t
-            total = K(0)
+            L = rings.pAdicField(p, prec + extra_prec)
+            total = L(0)
             for n in range(1, sigma.prec()):
                 total = total + t_power * sigma[n]
                 t_power = t_power * t
 
+            if check:
+                assert total.prec() >= prec + extra_prec
+
             # Normalise and return
-            answer = (total / d).log() / (multiple * multiple * p)
+            answer = (total**2 / d_sqr).log() / (2 * (A*B)**2 * p)
             if check:
                 assert answer.big_oh() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
-            return answer
+            return K(answer.lift(), prec)
 
         # (man... I love python's local function definitions...)
         return height

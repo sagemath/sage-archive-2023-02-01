@@ -17,4 +17,4 @@ Base class for infinity elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import InfinityElement
+from sage.structure.element import InfinityElement

@@ -399,7 +399,7 @@ class ComplexNumber(ring_element.RingElement):
 
         INPUT:
             self -- element of the upper half plane (if not,
-                    a raises a ValueError).
+                    raises a ValueError).
             omit_frac -- (bool, default: False), if True, omit
                     the e^(pi i z / 12) factor.
 
@@ -583,11 +583,6 @@ class ComplexNumber(ring_element.RingElement):
             sage: gamma_inc(2, 5)
             0.040427681994512805
         """
-        # unfortunately we have to use GP for computation of
-        # incomplete gamma because of problem in implemenentation of
-        # it via the PARI C library.
-        #t = self.parent()(t)._gp_()
-        #return self.parent()(self._gp_().incgam(t))
         return self.parent()(self._pari_().incgam(t))
 
     def log(self):
@@ -603,12 +598,18 @@ class ComplexNumber(ring_element.RingElement):
         rho = abs(self)
         return ComplexNumber(self.parent(), rho.log(), theta)
 
-    def order(self):
-        if self.__re == 1 and self.__im == 0:
+    def additive_order(self):
+        """
+        EXAMPLES:
+            sage: CC(0).additive_order()
+            1
+            sage: CC.gen().additive_order()
+            Infinity
+        """
+        if self == 0:
             return 1
-        if self.__re == -1 and self.__im == 0:
-            return 2
-        raise NotImplementedError, "general multiplicative order over complex field not implemented."
+        else:
+            return infinity.infinity
 
     def sqrt(self):
         """

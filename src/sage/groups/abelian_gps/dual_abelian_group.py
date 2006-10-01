@@ -36,7 +36,7 @@ argument to the \code{DualAbelianGroup} function.
 import weakref
 import copy
 
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 
 from sage.rings.infinity import Infinity
 from sage.rings.arith import factor,is_prime_power

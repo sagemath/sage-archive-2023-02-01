@@ -30,7 +30,7 @@ import copy_reg
 from sage.ext.sage_object import save, load, \
      loads, dumps, SageObject
 
-from sage.ext.element import Element
+from sage.structure.element import Element
 
 from misc import SAGE_DB
 

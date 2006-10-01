@@ -52,7 +52,7 @@ import weakref
 
 from sage.structure.gens import Generators
 from free_abelian_monoid_element import FreeAbelianMonoidElement
-from sage.ext.integer import Integer
+from sage.rings.integer import Integer
 
 _cache = {}
 def FreeAbelianMonoid(n, names=None):

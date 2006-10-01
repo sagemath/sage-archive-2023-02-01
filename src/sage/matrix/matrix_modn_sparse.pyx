@@ -43,8 +43,8 @@ import sage.misc.all
 import sage.rings.finite_field
 import sage.rings.arith
 
-cimport matrix_pyx
-import matrix_pyx
+cimport matrix_generic
+import matrix_generic
 
 cimport sage.ext.arith
 import sage.ext.arith
@@ -480,7 +480,7 @@ cdef class Vector_modint:
         for i from 0 <= i < sparcity:
             self[random.randrange(self.v.degree)] = random.randrange(1,bound)
 
-cdef class Matrix_modn_sparse(matrix_pyx.Matrix):
+cdef class Matrix_modn_sparse(matrix_generic.Matrix):
     cdef c_vector_modint* rows
     cdef public int nr, nc, p
     cdef object __pivots
@@ -507,7 +507,7 @@ cdef class Matrix_modn_sparse(matrix_pyx.Matrix):
         """
         cdef int y, z
 
-        matrix_pyx.Matrix.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
 
         self.p = p
         self.nr = nrows

@@ -17,7 +17,7 @@ Base class for Euclidean domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import EuclideanDomainElement
+from sage.structure.element import EuclideanDomainElement
 
 def is_EuclideanDomainElement(x):
     return isinstance(x, EuclideanDomainElement)

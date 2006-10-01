@@ -17,7 +17,7 @@ Abstract base class for commutative rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import CommutativeRing
+from sage.rings.ring import CommutativeRing
 
 def is_CommutativeRing(R):
     return isinstance(R, CommutativeRing)

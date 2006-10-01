@@ -456,10 +456,12 @@ def load(filename, compress=True, verbose=True):
     (Setting "verbose = False" suppresses the loading progress indicator.)
 
     EXAMPLE:
-        sage: u = "http://sage.math.washington.edu/home/was/db/modsym/gamma0/"  # optional
-        sage: M = load(u + "2_48.sobj")                                         # optional
-        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/modsym/gamma0/2_48.sobj
-        Loading: [.....]
+        sage: u = 'http://sage.math.washington.edu/home/was/db/modsym/gamma0/'  # optional
+        sage: M = load(u + "48_2.sobj")                                         # optional
+        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/modsym/gamma0/48_2.sobj
+        Loading: [..]
+        sage: M
+        Modular Symbols space of dimension 5 for Gamma_0(48) of weight 2 with sign -1 over Rational Field
     """
 
     ## Check if filename starts with "http://" or "https://"

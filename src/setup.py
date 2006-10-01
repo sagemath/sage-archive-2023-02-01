@@ -163,9 +163,13 @@ gsl_callback = Extension('sage.gsl.callback',
                 ['sage/gsl/callback.pyx'],
                 libraries = ['gsl', CBLAS])
 
+real_double = Extension('sage.rings.real_double',
+                ['sage/rings/real_double.pyx'],
+                libraries = ['gsl', CBLAS])
+
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', CBLAS])
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
 #####################################################
 
@@ -178,7 +182,7 @@ ext_modules = [ \
 
     ntl, \
 
-    cf, \
+    #cf, \
 
     matrix_domain,
     matrix_dense,
@@ -194,6 +198,7 @@ ext_modules = [ \
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
+    real_double,
     complex_double,
 
     # complex_number2, \
@@ -208,99 +213,91 @@ ext_modules = [ \
               sources = ['sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.coerce',
-              sources = ['sage/ext/coerce.pyx']), \
+    Extension('sage.structure.coerce',
+              sources = ['sage/structure/coerce.pyx']), \
 
-    Extension('sage.ext.congroup_pyx',
-              sources = ['sage/ext/congroup_pyx.pyx', \
+    Extension('sage.modular.congroup_pyx',
+              sources = ['sage/modular/congroup_pyx.pyx', \
                          'sage/ext/arith.pyx']), \
 
-    Extension('sage.ext.element',
-              sources = ['sage/ext/element.pyx']), \
+    Extension('sage.structure.element',
+              sources = ['sage/structure/element.pyx']), \
 
-    Extension('sage.ext.module',
-              sources = ['sage/ext/module.pyx']), \
+    Extension('sage.modules.module',
+              sources = ['sage/modules/module.pyx']), \
 
-    Extension('sage.ext.ring',
-              sources = ['sage/ext/ring.pyx']), \
+    Extension('sage.rings.ring',
+              sources = ['sage/rings/ring.pyx']), \
 
-    Extension('sage.ext.group',
-              sources = ['sage/ext/group.pyx']), \
+    Extension('sage.groups.group',
+              sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.ext.sage_object',
               sources = ['sage/ext/sage_object.pyx']), \
 
-    Extension('sage.ext.gens',
-              sources = ['sage/ext/gens.pyx']), \
+    Extension('sage.structure.gens',
+              sources = ['sage/structure/gens.pyx']), \
 
-    # this is twice, that correct?
-    Extension('sage.ext.mpfr',
-              sources = ['sage/ext/mpfr.pyx', 'sage/ext/ring.pyx'],
+    Extension('sage.rings.mpfr',
+              sources = ['sage/rings/mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
 
-    Extension('sage.ext.mpfr',
-              sources = ['sage/ext/mpfr.pyx', 'sage/ext/ring.pyx'],
-              libraries = ['mpfr', 'gmp']), \
-
-    Extension('sage.ext.integer',
-              sources = ['sage/ext/arith.pyx', 'sage/ext/integer.pyx', \
+    Extension('sage.rings.integer',
+              sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.bernoulli_mod_p',
-              sources = ['sage/ext/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
+    Extension('sage.rings.bernoulli_mod_p',
+              sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
 
-    Extension('sage.ext.intmod_pyx',
-              sources = ['sage/ext/intmod_pyx.pyx']), \
-
-    Extension('sage.ext.polynomial_pyx',
-              sources = ['sage/ext/polynomial_pyx.pyx',
+    Extension('sage.rings.polynomial_pyx',
+              sources = ['sage/rings/polynomial_pyx.pyx',
                          'sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.rational',
-              sources = ['sage/ext/rational.pyx',
+    Extension('sage.rings.rational',
+              sources = ['sage/rings/rational.pyx',
                          'sage/ext/arith.pyx', \
-                         'sage/ext/integer.pyx', \
+                         'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.sparse_poly',
-              sources = ['sage/ext/sparse_poly.pyx'],
+    Extension('sage.rings.sparse_poly',
+              sources = ['sage/rings/sparse_poly.pyx'],
               libraries=['gmp']), \
 
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
 
-    Extension('sage.ext.sparse_matrix_pyx',
-              ['sage/ext/sparse_matrix_pyx.pyx',
-               'sage/ext/integer.pyx',
-               'sage/ext/rational.pyx',
+    Extension('sage.matrix.sparse_matrix_pyx',
+              ['sage/matrix/sparse_matrix_pyx.pyx',
+               'sage/rings/integer.pyx',
+               'sage/rings/rational.pyx',
                'sage/ext/arith.pyx',
                'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.dense_matrix_pyx',
-              ['sage/ext/dense_matrix_pyx.pyx',
-               'sage/ext/integer.pyx',
-               'sage/ext/rational.pyx',
+    Extension('sage.matrix.dense_matrix_pyx',
+              ['sage/matrix/dense_matrix_pyx.pyx',
+               'sage/rings/integer.pyx',
+               'sage/rings/rational.pyx',
                'sage/ext/arith.pyx',
                'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
-    Extension('sage.ext.search',
-              ['sage/ext/search.pyx']), \
+    Extension('sage.misc.search',
+              ['sage/misc/search.pyx']), \
 
-    Extension('sage.ext.heilbronn',
-              ['sage/ext/heilbronn.pyx',
-               'sage/ext/p1list.pyx',
+    Extension('sage.modular.modsym.heilbronn',
+              ['sage/modular/modsym/heilbronn.pyx',
+               'sage/modular/modsym/p1list.pyx',
                'sage/ext/arith.pyx'],
               libraries = ['gmp', 'm']), \
 
-    Extension('sage.ext.p1list',
-              ['sage/ext/p1list.pyx',
+    Extension('sage.modular.modsym.p1list',
+              ['sage/modular/modsym/p1list.pyx',
                'sage/ext/arith.pyx'],
               libraries = ['gmp']), \
 
@@ -308,21 +305,21 @@ ext_modules = [ \
               ['sage/structure/mutability_pyx.pyx']
               ), \
 
-    Extension('sage.matrix.matrix_pyx',
-              ['sage/matrix/matrix_pyx.pyx']
+    Extension('sage.matrix.matrix_generic',
+              ['sage/matrix/matrix_generic.pyx']
               ), \
 
-    Extension('sage.rings.integer_mod_pyx',
-              ['sage/rings/integer_mod_pyx.pyx'],
+    Extension('sage.rings.integer_mod',
+              ['sage/rings/integer_mod.pyx'],
               libraries = ['gmp']
               ), \
 
     ]
 
 
-mpc = Extension('sage.ext.mpc',
-              sources = ['sage/ext/mpc.pyx', 'sage/ext/ring.pyx'],
-              libraries = ['mpc', 'mpfr', 'gmp'])
+#mpc = Extension('sage.rings.mpc',
+#              sources = ['sage/rings/mpc.pyx', 'sage/rings/ring.pyx'],
+#              libraries = ['mpc', 'mpfr', 'gmp'])
 
 
 extra_compile_args = [ ]

@@ -2,7 +2,7 @@
 Element of a congruence subgroup.
 """
 
-from sage.ext.element import MultiplicativeGroupElement
+from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.all import IntegerRing
 from sage.matrix.matrix_space import MatrixSpace
 

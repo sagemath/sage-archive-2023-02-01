@@ -53,10 +53,10 @@ import sage.libs.pari.all as pari
 
 import finite_field_element
 import integer_mod_ring
-import integer_mod_pyx
+import integer_mod
 
 from sage.structure.element import RingElement
-from sage.ext.ring import FiniteField as FiniteField_generic
+from sage.rings.ring import FiniteField as FiniteField_generic
 
 import sage.interfaces.gap
 
@@ -556,7 +556,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
-        if isinstance(x, (finite_field_element.FiniteFieldElement)) or integer_mod_pyx.is_IntegerMod(x):
+        if isinstance(x, (finite_field_element.FiniteFieldElement)) or integer_mod.is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x

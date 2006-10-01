@@ -21,9 +21,9 @@ Coercion helper functions
 import __builtin__
 import operator
 
-import sage.ext.element
-import sage.ext.module
-import sage.ext.ring
+import sage.structure.element
+import sage.modules.module
+import sage.rings.ring
 
 def parent(x):
     try:
@@ -60,7 +60,7 @@ def canonical_coercion(x, y):
         if i == 0:
             raise TypeError, "unable to find an unambiguous parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
         elif i == 2:
-            if isinstance(x, sage.ext.ring.Ring) or isinstance(y, sage.ext.ring.Ring):
+            if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
                 raise TypeError, "you cannot add ring to a number or to another ring!"
             raise TypeError, "unable to find any common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
     return x, y
@@ -68,11 +68,11 @@ def canonical_coercion(x, y):
 def bin_op(x, y, op):
     if op == operator.mul and \
            isinstance(y, (\
-                      sage.ext.element.ModuleElement,
-                      sage.ext.element.AlgebraElement,
-                      sage.ext.module.Module,
-                      sage.ext.element.InfinityElement)) and \
-       isinstance(x, (sage.ext.element.RingElement, int, long, float)):
+                      sage.structure.element.ModuleElement,
+                      sage.structure.element.AlgebraElement,
+                      sage.modules.module.Module,
+                      sage.structure.element.InfinityElement)) and \
+       isinstance(x, (sage.structure.element.RingElement, int, long, float)):
         return op(y,x)
     x, y = canonical_coercion(x, y)
     return op(x,y)
@@ -83,7 +83,7 @@ def cmp(x, y):
         return -1
     elif type(x) != type(None) and type(y) == type(None):
         return -1
-    elif isinstance(y, sage.ext.element.InfinityElement):
+    elif isinstance(y, sage.structure.element.InfinityElement):
         return -y.__cmp__(x)
     x, y = canonical_coercion(x, y)
     return x.__cmp__(y)

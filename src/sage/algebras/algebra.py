@@ -17,7 +17,7 @@ Abstract base class for algebras
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import Algebra
+from sage.rings.ring import Algebra
 
 def is_Algebra(x):
     return isinstance(x, Algebra)

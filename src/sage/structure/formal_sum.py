@@ -25,8 +25,8 @@ import sage.misc.misc
 import element
 import sage.misc.latex
 
-from sage.ext.element import AdditiveGroupElement
-from sage.ext.group import AbelianGroup
+from sage.structure.element import AdditiveGroupElement
+from sage.groups.group import AbelianGroup
 
 class FormalSums(AbelianGroup):
     def _repr_(self):

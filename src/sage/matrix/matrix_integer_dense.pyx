@@ -22,8 +22,8 @@ from sage.misc.misc import verbose, get_verbose
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"
 
-cimport sage.ext.integer
-import  sage.ext.integer
+cimport sage.rings.integer
+import  sage.rings.integer
 
 cimport matrix_pid
 import matrix_pid
@@ -71,9 +71,9 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
                 coerce = True
                 raise NotImplementedError, "need to deal with base below"
 
-        cdef sage.ext.integer.Integer z
+        cdef sage.rings.integer.Integer z
 
-        if isinstance(entries, sage.ext.integer.Integer):
+        if isinstance(entries, sage.rings.integer.Integer):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
             mpz_init(self.tmp)
@@ -104,7 +104,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
 
         if coerce:
             for i from 0 <= i < nrows*ncols:
-                z = sage.ext.integer.Integer(entries[i])
+                z = sage.rings.integer.Integer(entries[i])
                 mpz_set(self._entries[i], z.value)
         else:
             for i from 0 <= i < nrows*ncols:
@@ -175,17 +175,17 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
 
     def __setitem__(self, ij, x):
         i, j = ij
-        cdef sage.ext.integer.Integer z
+        cdef sage.rings.integer.Integer z
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
         try:
             z = x
         except (TypeError):
-            z = sage.ext.integer.Integer(x)
+            z = sage.rings.integer.Integer(x)
         mpz_set(self._matrix[i][j], z.value)
 
     def __getitem__(self, ij):
-        cdef sage.ext.integer.Integer z
+        cdef sage.rings.integer.Integer z
         cdef int i, j
 
         i, j = ij
@@ -193,7 +193,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
 
-        z = sage.ext.integer.Integer()
+        z = sage.rings.integer.Integer()
         mpz_set(z.value, self._matrix[i][j])
         return z
 
@@ -369,7 +369,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         Return the product self*d, as a new matrix.
         """
         cdef int i, j, nr, nc
-        cdef sage.ext.integer.Integer z
+        cdef sage.rings.integer.Integer z
         nr = self._nrows
         nc = self._ncols
 
@@ -377,7 +377,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         try:
             z = d
         except (TypeError):
-            z = sage.ext.integer.Integer(d)
+            z = sage.rings.integer.Integer(d)
         mpz_init(x)
         mpz_set(x, z.value)
 
@@ -425,14 +425,14 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         cdef int i, j
         cdef mpz_t* r
         cdef object v
-        cdef sage.ext.integer.Integer x
+        cdef sage.rings.integer.Integer x
 
         v = []
         _sig_on
         for i from 0 <= i < self._nrows:
             r = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                x = sage.ext.integer.Integer()
+                x = sage.rings.integer.Integer()
                 x.set_from_mpz(r[j])
                 v.append(x)
         _sig_off

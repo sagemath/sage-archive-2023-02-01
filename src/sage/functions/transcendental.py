@@ -130,9 +130,10 @@ def zeta(s):
         sage: zeta(RR(2))
         1.6449340668482264364724151666460251892189499012067984377355578
     """
-    if not (is_ComplexNumber(s) or is_RealNumber(s)):
-        s = RealField()(s)
-    return s.zeta()
+    try:
+        return s.zeta()
+    except AttributeError:
+        return RealField()(s).zeta()
 
 ##     prec = s.prec()
 ##     s = pari.new_with_prec(s, prec)

@@ -21,7 +21,7 @@ import random
 
 from ell_field import EllipticCurve_field
 import sage.rings.ring as ring
-from sage.rings.all import Integer
+from sage.rings.all import Integer, PolynomialRing
 import gp_cremona
 import sea
 from sage.groups.all import AbelianGroup
@@ -126,30 +126,87 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
 
     def __points_over_arbitrary_field(self):
-        # TODO -- rewrite this insanely stupid implementation!!
-        print "WARNING: Using very very stupid algorithm for finding points over"
-        print "non-prime finite field.  Please rewrite.  See the file ell_finite.field.py."
-        # The best way to rewrite is to extend Cremona's code (either gp or mwrank) so
-        # it works over non-prime fields (should be easy), then generate up the group.
+        # todo: This function used to have the following comment:
+
+        ### TODO -- rewrite this insanely stupid implementation!!
+        ### print "WARNING: Using very very stupid algorithm for finding points over"
+        ### print "non-prime finite field.  Please rewrite.  See the file ell_finite.field.py."
+        ### The best way to rewrite is to extend Cremona's code (either gp or mwrank) so
+        ### it works over non-prime fields (should be easy), then generate up the group.
+
+        # I changed the algorithm so that it's not as naive as it used to be.
+        # But it's still surely far from optimal; I don't know anything about
+        # point enumeration algorithms. -- David Harvey (2006-09-24)
+
         points = [self(0)]
+        R = PolynomialRing(self.base_ring())
+        a1, a2, a3, a4, a6 = self.ainvs()
         for x in self.base_field():
-            for y in self.base_field():
-                try:
-                    points.append(self([x,y]))
-                except TypeError:
-                    pass
+            f = R([-(x**3 + a2*x**2 + a4*x + a6), (a1*x + a3), 1])
+            factors = f.factor()
+            if len(factors) == 2 or factors[0][1] == 2:
+                for factor in factors:
+                    points.append(self([x, -factor[0][0]]))
         return points
 
     def points(self):
         r"""
         All the points on this elliptic curve.
 
-        If the base field is another other than $\FF_p$, this function currently
-        uses a VERY VERY naive algorithm.   The problem is that Cremona's gp
-        script \code{ell_zp.gp} currently only treats the case of prime fields.
-        If you need more general functionality, please volunteer to implement
-        it, either by extending \code{ell_zp.gp} (if you know PARI/GP well) or
-        by writing new \sage code.
+        EXAMPLES:
+          sage: p = 5
+          sage: F = GF(p)
+          sage: E = EllipticCurve(F, [1, 3])
+          sage: a_sub_p = E.change_ring(QQ).ap(p); a_sub_p
+          2
+
+          sage: len(E.points())
+          4
+          sage: p + 1 - a_sub_p
+          4
+          sage: E.points()
+          [(0 : 1 : 0), (4 : 1 : 1), (1 : 0 : 1), (4 : 4 : 1)]
+
+          sage: K = GF(p**2)
+          sage: E = E.change_ring(K)
+          sage: len(E.points())
+          32
+          sage: (p + 1)**2 - a_sub_p**2
+          32
+          sage: E.points()
+          [(0 : 1 : 0),
+           (0 : 2*a + 4 : 1),
+           (0 : 3*a + 1 : 1),
+           (1 : 0 : 1),
+           (2 : 2*a + 4 : 1),
+           (2 : 3*a + 1 : 1),
+           (3 : 2*a + 4 : 1),
+           (3 : 3*a + 1 : 1),
+           (4 : 1 : 1),
+           (4 : 4 : 1),
+           (a : 1 : 1),
+           (a : 4 : 1),
+           (a + 2 : a + 1 : 1),
+           (a + 2 : 4*a + 4 : 1),
+           (a + 3 : a : 1),
+           (a + 3 : 4*a : 1),
+           (a + 4 : 0 : 1),
+           (2*a : 2*a : 1),
+           (2*a : 3*a : 1),
+           (2*a + 4 : a + 1 : 1),
+           (2*a + 4 : 4*a + 4 : 1),
+           (3*a + 1 : a + 3 : 1),
+           (3*a + 1 : 4*a + 2 : 1),
+           (3*a + 2 : 2*a + 3 : 1),
+           (3*a + 2 : 3*a + 2 : 1),
+           (4*a : 0 : 1),
+           (4*a + 1 : 1 : 1),
+           (4*a + 1 : 4 : 1),
+           (4*a + 3 : a + 3 : 1),
+           (4*a + 3 : 4*a + 2 : 1),
+           (4*a + 4 : a + 4 : 1),
+           (4*a + 4 : 4*a + 1 : 1)]
+
         """
         try:
             return self.__points
@@ -190,14 +247,15 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         q = self.base_field().order()
         return q + 1 - self.cardinality()
 
-    def cardinality(self, algorithm='heuristic', early_abort=False):
+    def cardinality(self, algorithm='heuristic', early_abort=False, disable_warning=False):
         r"""
         Return the number of points on this elliptic curve over this
         finite field.
 
         \note{If the cardinality of the base field is not prime, this
-        function currently uses a very very naive enumeration of all
-        points.  It's so stupid, that it prints a warning.}
+        function literally enumerates the points and counts them. It's so
+        stupid, it prints a warning. You can disable the warning with the
+        disable_warning flag.}
 
         INPUT:
             algorithm -- string (default: 'heuristic')
@@ -220,12 +278,14 @@ class EllipticCurve_finite_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve(GF(4),[1,2,3,4,5]).cardinality()
-            WARNING: Using very very stupid algorithm for finding points over
-            non-prime finite field.  Please rewrite.  See the file ell_finite.field.py.
+            WARNING: Using very very stupid algorithm for counting
+            points over non-prime finite field. Please rewrite.
+            See the file ell_finite_field.py.
             8
             sage: EllipticCurve(GF(9),[1,2,3,4,5]).cardinality()
-            WARNING: Using very very stupid algorithm for finding points over
-            non-prime finite field.  Please rewrite.  See the file ell_finite.field.py.
+            WARNING: Using very very stupid algorithm for counting
+            points over non-prime finite field. Please rewrite.
+            See the file ell_finite_field.py.
             16
             sage: EllipticCurve(GF(10007),[1,2,3,4,5]).cardinality()
             10076
@@ -259,6 +319,10 @@ class EllipticCurve_finite_field(EllipticCurve_field):
                     raise RuntimeError, "BUG! Cardinality with bsgs=%s but with sea=%s"%(N1, N2)
 
         if N == 0:
+            if not disable_warning:
+                print "WARNING: Using very very stupid algorithm for counting "
+                print "points over non-prime finite field. Please rewrite."
+                print "See the file ell_finite_field.py."
             N = len(self.points())
         self.__cardinality = Integer(N)
         return N

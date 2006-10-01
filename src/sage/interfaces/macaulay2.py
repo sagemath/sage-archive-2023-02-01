@@ -203,13 +203,13 @@ class Macaulay2(Expect):
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
             ideal (- x  + y , x - y)
             <BLANKLINE>
-            o23 : Ideal of sage0
+            o36 : Ideal of sage7
             sage: J = I^3; J.gb()                                    # optional
             GroebnerBasis[status: done; S-pairs encountered up to degree 9]
             <BLANKLINE>
-            o27 : GroebnerBasis
+            o40 : GroebnerBasis
             sage: J.gb().generators()                                # optional
-            map(sage0^{{0}}, sage0^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
+            map(sage7^{{0}}, sage7^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -359,8 +359,7 @@ class Macaulay2Element(ExpectElement):
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional
             sage: X = R.Proj()                                  # optional
             sage: X.structure_sheaf()                           # optional
-            new SheafOfRings from {symbol ring => (QQ [a, b, c, d])/(a^3+b^3+c^3+d^3),
-                 symbol variety => sage0}
+            new SheafOfRings from {symbol ring => (QQ [a, b, c, d])/(a^3+b^3+c^3+d^3), symbol variety => sage5}
         """
         return self.parent()('OO_%s'%self.name())
 

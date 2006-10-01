@@ -1029,17 +1029,21 @@ def word_wrap(s, ncols=85):
 
 def getitem(v, n):
     r"""
-    Variant of getitem that coerces to an int if a typeerror is raised.
+    Variant of getitem that coerces to an int if a TypeError is raised.
+
+    (This is not needed anymore -- classes should define an __index__ method.)
 
     Thus, e.g., \code{getitem(v,n)} will work even if $v$ is a Python
     list and $n$ is a SAGE integer.
 
     EXAMPLES:
         sage: v = [1,2,3]
+
+    The following use to fail in SAGE <= 1.3.7.  Now it works fine:
         sage: v[ZZ(1)]
-        Traceback (most recent call last):
-        ...
-        TypeError: list indices must be integers
+        2
+
+    This always worked.
         sage: getitem(v, ZZ(1))
         2
     """

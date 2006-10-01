@@ -17,7 +17,7 @@ Abstract base class for Euclidean domains
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import EuclideanDomain
+from sage.rings.ring import EuclideanDomain
 
 def is_EuclideanDomain(R):
     return isinstance(R, EuclideanDomain)

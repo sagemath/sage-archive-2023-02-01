@@ -1,4 +1,4 @@
-cimport matrix_pyx
+cimport matrix_generic
 
-cdef class Matrix_modn(matrix_pyx.Matrix):
+cdef class Matrix_modn(matrix_generic.Matrix):
     pass

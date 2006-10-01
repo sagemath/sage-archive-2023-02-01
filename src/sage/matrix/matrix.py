@@ -68,14 +68,14 @@ from sage.structure.mutability import Mutability
 
 import sage.structure.sequence
 
-import sage.ext.dense_matrix_pyx
+import sage.matrix.dense_matrix_pyx
 
 from sage.interfaces.all import singular as singular_default
 
 from sage.libs.ntl.all import mat_ZZ
 cputime = misc.cputime
 
-from sage.matrix.matrix_pyx import Matrix, __reduce__Matrix_pyx
+from sage.matrix.matrix_generic import Matrix, __reduce__Matrix_generic
 
 def is_Matrix(x):
     return isinstance(x, Matrix)
@@ -1122,7 +1122,7 @@ class Matrix_field(Matrix_pid):
         if (   (is_FiniteField(R) and R.is_prime_field()) or \
                is_IntegerModRing(R)  ) and R.characteristic() < 46340:
             p = R.characteristic()
-            S = sage.ext.dense_matrix_pyx.Matrix_modint(p, self.nrows(), self.ncols(), self.list())
+            S = sage.matrix.dense_matrix_pyx.Matrix_modint(p, self.nrows(), self.ncols(), self.list())
             S.echelon()
             A = self.parent()(S.list())    # most of time is spent here!?
             pivot_positions = S.pivots()
@@ -1755,10 +1755,10 @@ class Matrix_generic_dense(Matrix):
             A[i, j] -- the i,j of A, and
             A[i]    -- the i-th row of A.
         """
-        if isinstance(ij, int):
-            return self.row(ij)
+        if hasattr(ij, '__index__'):
+            return self.row(ij.__index__())
         if not isinstance(ij, tuple) or len(ij) != 2:
-            raise TypeError, "index must be a 2-tuple (i,j)"
+            raise TypeError, "index must be a 2-tuple (i,j) or an integer"
         i,j = ij
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i
@@ -1773,7 +1773,8 @@ class Matrix_generic_dense(Matrix):
             A[i] = value    -- set the ith row of A
         """
         self._require_mutable()
-        if isinstance(ij, int):
+        if hasattr(ij, '__index__'):
+            ij = ij.__index__()
             # Set the whole row.
             if ij < 0 or ij >= self.__nrows:
                 raise IndexError, "row index (=%s) is out of range"%ij
@@ -1781,7 +1782,7 @@ class Matrix_generic_dense(Matrix):
                 self[ij,j] = value[j]
             return
         if not isinstance(ij, tuple) or len(ij) != 2:
-            raise TypeError, "index must be a 2-tuple (i,j)"
+            raise TypeError, "index must be a 2-tuple (i,j) or an integer"
         i,j=ij
         if i < 0 or i >= self.__nrows:
             raise IndexError, "row index (i=%s) is out of range"%i

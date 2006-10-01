@@ -27,17 +27,17 @@ import sage.interfaces.all
 import integer
 import infinity
 
-import sage.ext.element
-cimport sage.ext.element
+import sage.structure.element
+cimport sage.structure.element
 
-import sage.ext.mpfr
-cimport sage.ext.mpfr
+import sage.rings.mpfr
+cimport sage.rings.mpfr
 
 
 def is_ComplexNumber(x):
     return isinstance(x, ComplexNumber)
 
-cdef class ComplexNumber(sage.ext.element.RingElement):
+cdef class ComplexNumber(sage.structure.element.RingElement):
     """
     A complex number.
 
@@ -53,7 +53,7 @@ cdef class ComplexNumber(sage.ext.element.RingElement):
     #    cdef complex_field.ComplexField _parent
 
     def __init__(self, parent, real, imag=None):
-        #sage.ext.element.RingElement.__init__(self, parent)
+        #sage.structure.element.RingElement.__init__(self, parent)
         self._parent = parent
         if imag is None:
             if isinstance(real, ComplexNumber):
@@ -179,7 +179,7 @@ cdef class ComplexNumber(sage.ext.element.RingElement):
             1.4553471 + 0.34356070*I
         """
         if isinstance(right, (int, long, integer.Integer)):
-            return sage.ext.element.RingElement.__pow__(self, right)
+            return sage.structure.element.RingElement.__pow__(self, right)
         z = self._pari_()
         P = self.parent()
         w = P(right)._pari_()

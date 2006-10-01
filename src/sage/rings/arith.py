@@ -1246,6 +1246,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
         return factorization.Factorization(__factor_using_pari(n,
                                    int_=int_, debug_level=verbose), unit)
     elif algorithm == 'kash':
+        from sage.interfaces.all import kash
         F = kash.eval('Factorization(%s)'%n)
         i = F.rfind(']') + 1
         F = F[:i]

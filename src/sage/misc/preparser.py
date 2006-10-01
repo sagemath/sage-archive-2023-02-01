@@ -99,8 +99,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             elif not line[i].isdigit():
                 # end of a number
                 # Do we wrap?
-                if i < len(line) and line[i] in 'eE':
-                    # Yes, in scientific notation, so will wrap
+                if in_quote():
+                    # do not wrap
+                    print "hi"
+                    pass
+                elif i < len(line) and line[i] in 'eE':
+                    # Yes, in scientific notation, so will wrap later
                     is_real = True
                     i += 1
                     if i < len(line) and line[i] == '-':

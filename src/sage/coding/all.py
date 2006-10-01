@@ -1,4 +1,5 @@
 from linear_code import (LinearCode,
+                         LinearCode_from_vectorspace,
                          HammingCode,
                          QuadraticResidueCode,
                          ExtendedQuadraticResidueCode,

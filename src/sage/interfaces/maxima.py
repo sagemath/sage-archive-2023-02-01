@@ -426,9 +426,10 @@ class Maxima(Expect):
         F.close()
         if self._expect is None:
             self._start()
-        # For some reason turning debugmode on and off when doing a file load
+        # For some reason this trivial comp
         # keeps certain random freezes from occuring.  Do not remove this.
-        self._expect.sendline('debugmode(true); batchload("%s"); debugmode(false);\n'%tmp)
+        # The space before the \n is also important.
+        self._expect.sendline('0;batchload("%s"); \n'%tmp)
         self._expect.expect(self._prompt)
         return ''
 

@@ -1,7 +1,7 @@
-from sage.structure.element cimport ModuleElement
-from sage.structure.mutability_pyx cimport Mutability
+import  sage.structure.element
+cimport sage.structure.element
 
-cdef class Matrix(ModuleElement):
+cdef class Matrix(sage.structure.element.ModuleElement):
     cdef object _mutability
     cdef public object _parent
     cdef object __nrows

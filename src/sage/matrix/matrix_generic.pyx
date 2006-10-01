@@ -107,8 +107,9 @@ import sage.structure.coerce
 from   sage.structure.sequence import _combinations
 from   sage.rings.integer_ring import IntegerRing
 
+from sage.structure.mutability_pyx import Mutability
 
-cdef class Matrix(ModuleElement):
+cdef class Matrix(sage.structure.element.ModuleElement):
     r"""
     The \class{Matrix} class is the base class for all matrix
     classes.  To create a \class{Matrix}, first create a
@@ -124,7 +125,7 @@ cdef class Matrix(ModuleElement):
             sage: type(A)
             <type 'matrix_generic.Matrix'>
         """
-        ModuleElement.__init__(self, parent)
+        sage.structure.element.ModuleElement.__init__(self, parent)
         self.__nrows = parent.nrows()
         self.__ncols = parent.ncols()
         self._mutability = Mutability(False)

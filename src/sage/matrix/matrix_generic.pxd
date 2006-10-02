@@ -3,7 +3,6 @@ cimport sage.structure.element
 
 cdef class Matrix(sage.structure.element.ModuleElement):
     cdef object _mutability
-    cdef public object _parent
     cdef object __nrows
     cdef object __ncols
     cdef object __dict

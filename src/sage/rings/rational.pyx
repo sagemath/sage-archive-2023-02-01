@@ -98,17 +98,19 @@ cdef Rational_sub_(Rational self, Rational other):
 
     return x
 
+cdef object the_rational_ring
+the_rational_ring = sage.rings.rational_field.Q
+
 cdef class Rational(sage.structure.element.FieldElement):
 
     def __new__(self, x=None, int base=0):
+        global the_rational_ring
         mpq_init(self.value)
+        self._parent = the_rational_ring
 
     def __init__(self, x=None, int base=0):
         if not (x is None):
             self.__set_value(x, base)
-
-    def parent(self):
-        return sage.rings.rational_field.Q
 
     def __reduce__(self):
         return sage.rings.rational.make_rational, (self.str(32),)

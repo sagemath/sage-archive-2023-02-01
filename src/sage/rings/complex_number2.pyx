@@ -48,9 +48,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         sage: loads(b.dumps()) == b
         True
     """
-    cdef object _parent
     cdef object __re, __im
-    #    cdef complex_field.ComplexField _parent
 
     def __init__(self, parent, real, imag=None):
         #sage.structure.element.RingElement.__init__(self, parent)

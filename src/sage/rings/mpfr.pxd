@@ -129,8 +129,8 @@ cdef class RealField(sage.rings.ring.Field):
 
 cdef class RealNumber(sage.structure.element.RingElement):
     cdef mpfr_t value
-    cdef RealField _parent
     cdef char init
 
     cdef RealNumber abs(RealNumber self)
     cdef int cmp(RealNumber self, RealNumber x)
+    cdef RealField c_parent(RealNumber self)

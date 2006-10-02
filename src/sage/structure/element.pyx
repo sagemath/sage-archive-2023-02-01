@@ -19,19 +19,50 @@ from   sage.structure.coerce import gcd, lcm, xgcd
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
 
+
+def make_element(_class, _dict, parent):
+    """
+    Used for unpickling Element objects (and subclasses).
+
+    This should work for any Python class deriving from Element, as long
+    as it doesn't implement some screwy __new__() method.
+
+    See also Element.__reduce__().
+    """
+    new_object = _class.__new__(_class)
+    new_object._set_parent(parent)
+    new_object.__dict__ = _dict
+    return new_object
+
+
 cdef class Element(sage.ext.sage_object.SageObject):
     """
-    Generic element base class, so all this functionality must
-    be defined by any ring element.
+    Generic element of a structure. All other types of elements
+    (RingElement, ModuleElement, etc) derive from this type.
+
+    Subtypes must either call __init__() to set _parent, or may
+    set _parent themselves if that would be more efficient.
     """
     def __init__(self, parent):
+        r"""
+        INPUT:
+            parent -- a SageObject
+        """
         self._parent = parent
 
     def _set_parent(self, parent):
+        r"""
+        INPUT:
+            parent -- a SageObject
+        """
         self._parent = parent
 
+
     def _repr_(self):
-        return "Generic element of a ring"
+        return "Generic element of a structure"
+
+    def __reduce__(self):
+        return make_element, (self.__class__, self.__dict__, self._parent)
 
     def __hash__(self):
         return hash(str(self))
@@ -46,20 +77,24 @@ cdef class Element(sage.ext.sage_object.SageObject):
 
 
     def base_ring(self):
-        return self.parent().base_ring()
+        """
+        Returns the base ring of this element's parent (if that makes sense).
+        """
+        return self._parent.base_ring()
 
     def category(self):
         from sage.categories.category import Elements
-        return Elements(self.parent())
+        return Elements(self._parent)
 
     def parent(self, x=None):
-        try:
-            if x==None:
-                return self._parent
-            else:
-                return self._parent(x)
-        except AttributeError:
-            return type(self)
+        """
+        Returns parent of this element; or, if the optional argument x is
+        supplied, the result of coercing x into the parent of this element.
+        """
+        if x is None:
+            return self._parent
+        else:
+            return self._parent(x)
 
     def __xor__(self, right):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
@@ -85,7 +120,7 @@ cdef class Element(sage.ext.sage_object.SageObject):
             return "\\left(%s\\right)"%s
 
     def _is_atomic(self):
-        if self.parent().is_atomic_repr():
+        if self._parent.is_atomic_repr():
             return True
         s = str(self)
         return bool(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
@@ -142,7 +177,7 @@ cdef class ModuleElement(Element):
     """
     ##################################################
     def is_zero(self):
-        return bool(self == self.parent()(0))
+        return bool(self == self._parent(0))
 
 ##     def is_nonzero(self):
 ##         return not self.is_zero()
@@ -328,7 +363,7 @@ cdef class RingElement(Element):
         return bool(self == self.parent()(0))
 
     def is_one(self):
-        return bool(self == self._parent(1))
+        return bool(self == self.parent()(1))
 
 ##     def is_nonzero(self):
 ##         return not self.is_zero()

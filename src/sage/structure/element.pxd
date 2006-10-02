@@ -2,7 +2,7 @@ import  sage.ext.sage_object
 cimport sage.ext.sage_object
 
 cdef class Element(sage.ext.sage_object.SageObject):
-    pass
+    cdef sage.ext.sage_object.SageObject _parent
 
 cdef class ModuleElement(Element):
     pass

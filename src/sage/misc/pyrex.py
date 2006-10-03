@@ -20,12 +20,12 @@ import os
 from misc import SPYX_TMP, SAGE_ROOT
 
 include_dirs = ['%s/local/include'%SAGE_ROOT,  \
-                '%s/local/include/python2.4'%SAGE_ROOT, \
+                '%s/local/include/python'%SAGE_ROOT, \
                 '%s/devel/sage/sage/ext'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl']
 
 offset = 0
 
@@ -134,11 +134,24 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
     pyx = '%s/%s.pyx'%(build_dir, name)
     open(pyx,'w').write(F)
     setup="""
+# Build using 'python setup.py'
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
-ext_modules = [Extension('%s', sources=['%s.c', 'interrupt.c'], libraries=%s,
-                     extra_compile_args = ['-w'])]
+if not os.environ.has_key('SAGE_ROOT'):
+    print "    ERROR: The environment variable SAGE_ROOT must be defined."
+    sys.exit(1)
+else:
+    SAGE_ROOT  = os.environ['SAGE_ROOT']
+    SAGE_LOCAL = SAGE_ROOT + '/local/'
+
+extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
+extra_compile_args = ['-w']
+
+ext_modules = [Extension('%s', sources=['%s.c', 'interrupt.c'],
+                     libraries=%s,
+                     extra_compile_args = extra_compile_args,
+                     extra_link_args = extra_link_args)]
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
@@ -162,7 +175,7 @@ setup(ext_modules = ext_modules,
         R = "/* THIS IS A PARSED TO MAKE READABLE VERSION OF THE C FILE. */" + R
 
         # 1. Get rid of the annoying __pyx_'s before variable names.
-        R = R.replace('__pyx_v_','').replace('__pyx','')
+        # R = R.replace('__pyx_v_','').replace('__pyx','')
         # 2. Replace the line number references by the actual code from the file,
         #    since it is very painful to go back and forth, and the philosophy
         #    of SAGE is that everything that can be very easy *is*.

@@ -906,7 +906,7 @@ class Worksheet:
         # also annoying since the linked .c file disappears.
         id = self.next_block_id()
         # id = C.relative_id()
-        spyx = os.path.abspath('%s/code/%s.spyx'%(self.directory(), id))
+        spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
         s  = '_support_.pyrex_import_all("%s", globals(), make_c_file_nice=True)'%spyx

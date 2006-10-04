@@ -344,10 +344,6 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         if nc == 0:
             return Matrix_rational_dense(self._nrows, 0)
         nr = self._nrows
-#        v = []
-#        for i in rows:
-#            v.append(int(i))
-#        rows = v
         if min(cols) < 0 or max(cols) >= self._ncols:
             raise IndexError, "invalid cols indexes; cols don't exist"
 
@@ -1055,7 +1051,7 @@ cdef class MatrixWindow:
         """
         Returns an actual matrix object representing this view.
         """
-        a = self._matrix.new_matrix(self._nrows, self._ncols, zero=False)
+        a = self._matrix.new_matrix(self._nrows, self._ncols) # zero=False
         a.matrix_window().set_to(self)
         return a
 

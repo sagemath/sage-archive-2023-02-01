@@ -2474,7 +2474,7 @@ def strassen_echelon(A, cutoff):
     EXAMPLE:
         sage: import sage.matrix.matrix_rational_dense as m
         sage: parent = MatrixSpace(QQ, 5, 30)
-        sage: data = parent.random_element(range(18), prob=.2).list()
+        sage: data = parent.random_element(range(18), prob=.2).list() # test lots of non-pivots
         sage: A = m.Matrix_rational_dense(parent, data)
         sage: T = A.echelon(alg="gauss")
         sage: A.echelon_strassen(4)
@@ -2492,7 +2492,7 @@ def strassen_echelon(A, cutoff):
     # top_left, top_right, bottom_left, and bottom_right loosely correspond to A, B, C, and D respectively,
     # however, the "cut" between the top and bottom rows need not be the same.
 
-    cdef int _nrows, _ncols
+    cdef int nrows, ncols
     nrows = A.nrows()
     ncols = A.ncols()
 
@@ -2552,7 +2552,6 @@ def strassen_echelon(A, cutoff):
             else:
                 for cols in top_pivot_intervals:
                     bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).set_to_zero()
-                prev_non_pivot_count = 0
                 non_pivots = int_range(0, bottom_cut) - top_pivot_intervals
                 for cols in non_pivots:
                     if cols[0] == 0: continue
@@ -2614,7 +2613,6 @@ def strassen_echelon(A, cutoff):
                     bottom_pivot_intervals = int_range(bottom_pivots)
                     for cols in bottom_pivot_intervals:
                         top.matrix_window(0, cols[0], split, cols[1]).set_to_zero()
-                    prev_non_pivot_count = 0
                     non_pivots = int_range(bottom_start, top_cut - bottom_start) - bottom_pivot_intervals - top_pivot_intervals
                     for cols in non_pivots:
                         if cols[0] == 0: continue

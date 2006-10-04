@@ -147,6 +147,7 @@ from math import sin, cos, modf,pi #for hue and polar_plot
 ###############
 
 import matplotlib.patches as patches
+import matplotlib.cm
 from axes import find_axes
 
 def is_Graphics(x):
@@ -977,20 +978,24 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
-        #color map for contour plots:
-        # where/should these be imported???
-        from matplotlib.cm import (autumn, bone, cool, copper,
-                                   gray, hot, hsv, jet, pink,
-                                   prism, spring, summer, winter)
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
+        try:
+            cmap = matplotlib.cm.__dict__[cmap]
+        except KeyError:
+            from matplotlib.colors import LinearSegmentedColormap as C
+            possibilities = ', '.join([str(x) for x in matplotlib.cm.__dict__.keys() if \
+                                       isinstance(matplotlib.cm.__dict__[x], C)])
+            print "The possible color maps include: %s"%possibilities
+            raise RuntimeError, "Color map %s not known"%cmap
+
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
         if fill:
-            subplot.contourf(self.xy_data_array, cmap=eval(cmap), extent=(x0,x1,y0,y1))
+            subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
         else:
-            subplot.contour(self.xy_data_array, cmap=eval(cmap), extent=(x0,x1,y0,y1))
+            subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """

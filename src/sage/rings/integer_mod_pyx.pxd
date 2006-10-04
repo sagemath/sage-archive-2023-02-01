@@ -22,6 +22,7 @@ cdef class NativeIntStruct:
 cdef class IntegerMod_abstract(sage.ext.element.CommutativeRingElement):
     cdef public object _parent
     cdef NativeIntStruct __modulus
+    cdef void _init_(IntegerMod_abstract self, object parent)
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value

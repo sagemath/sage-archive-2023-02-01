@@ -14,7 +14,6 @@ import operator
 import sage.structure.element_py
 
 import sage.structure.coerce
-from   sage.structure.coerce import gcd, lcm, xgcd
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -43,6 +42,7 @@ cdef class Element(sage.ext.sage_object.SageObject):
     Subtypes must either call __init__() to set _parent, or may
     set _parent themselves if that would be more efficient.
     """
+
     def __init__(self, parent):
         r"""
         INPUT:

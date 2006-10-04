@@ -32,7 +32,7 @@ import weakref
 import time
 
 from sage.ext.sage_object import SageObject
-from sage.structure.element import Element_cmp_
+import  sage.structure.element
 
 import sage.misc.sage_eval
 
@@ -627,7 +627,7 @@ class FunctionElement(SageObject):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-class ExpectElement(Element_cmp_, RingElement):
+class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
     """
     Expect element.
     """

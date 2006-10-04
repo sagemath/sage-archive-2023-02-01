@@ -20,7 +20,6 @@ Coercion helper functions
 import __builtin__
 import operator
 
-cimport sage.structure.element
 import  sage.structure.element
 
 cimport sage.modules.module

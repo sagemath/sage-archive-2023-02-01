@@ -632,7 +632,8 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             5.0
             sage: r = RDF(-119.0)
             sage: r.cube_root()^3 - r
-            0.0
+            0.0                               # 32-bit
+            -1.42108547152e-14                # 64-bit
         """
         return self.nth_root(3)
 

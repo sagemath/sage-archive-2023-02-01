@@ -363,7 +363,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         if prec is infinity and self.degree() > 0:
             prec = self.parent().default_prec()
         if self.valuation() > 0:
-            u = ~self.unit_part()    # inverse of unit part
+            u = 1/self.unit_part()    # inverse of unit part
             R = self.parent().laurent_series_ring()
             return R(u, -self.valuation())
 

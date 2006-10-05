@@ -638,7 +638,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: a = CDF(-1)^(1/3); a
             0.5 + 0.866025388241*I
             sage: a^3
-            -1.0 + 1.22460635382e-16*I
+            -1.0 + 1.22460635382e-16*I    # 32-bit
+            -1.0 + 1.22464685259e-16*I    # 64-bit
         """
         try:
             return z._pow_(a)
@@ -1025,7 +1026,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: CDF(0,10^15).eta()
             0
             sage: CDF(10^15,0.1).eta()
-            -0.121339721991 - 0.19619461894*I
+            -0.121339721991 - 0.19619461894*I     # 32-bit
+            -0.121339788118 - 0.196194574237*I    # 64-bit
 
         We compute a few values of eta, but with the fractional power of e omited.
             sage: CDF(0,1).eta(True)
@@ -1043,7 +1045,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: z.eta(omit_frac=True)
             0.998129069926
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.998129069926 + 4.5908467128e-19*I
+            0.998129069926 + 4.5908467128e-19*I     # 32-bit
+            0.998129069926 + 4.59099870724e-19*I    # 64-bit
 
         We illustrate what happens when $z$ is not in the
         upper half plane.
@@ -1221,11 +1224,9 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: z = (1/2)*(1 + sqrt(3) *CDF.0); z
             0.5 + 0.866025388241*I
             sage: p = z.algdep(5); p
-            x^5 + x^2                           # 32-bit
-            x^5 - x^4 + x^3 + x^2 - x + 1       # 64-bit
+            x^5 + x^2
             sage: p.factor()
-            x^2 * (x + 1) * (x^2 - x + 1)       # 32-bit
-            (x + 1) * (x^2 - x + 1)^2           # 64-bit
+            x^2 * (x + 1) * (x^2 - x + 1)
             sage: z^2 - z + 1
             2.22044604925e-16 + 1.11022302463e-16*I
 

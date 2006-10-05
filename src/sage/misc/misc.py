@@ -586,6 +586,7 @@ def srange(a,b=None,step=1, include_endpoint=False):
         a -- number
         b -- number (default: None)
         step -- number (default: 1)
+        include_endpoint -- whether or not to include the endpoint (default: False)
 
     OUTPUT:
         list
@@ -611,6 +612,12 @@ def srange(a,b=None,step=1, include_endpoint=False):
         sage: srange(1, 10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+        sage: srange(10, 1, -1)
+        [10, 9, 8, 7, 6, 5, 4, 3, 2]
+
+        sage: srange(10,1,-1, include_endpoint=True)
+        [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+
         sage: Q = RationalField()
         sage: srange(1,10,Q('1/2'))
         [1, 3/2, 2, 5/2, 3, 7/2, 4, 9/2, 5, 11/2, 6, 13/2, 7, 15/2, 8, 17/2, 9, 19/2]
@@ -628,17 +635,29 @@ def srange(a,b=None,step=1, include_endpoint=False):
         except AttributeError:
             a = type(b)(0)
 
-    if step <= 0:
-        raise ValueError, "step (=%s) must be positive"%step
+    if step == 0:
+        raise ValueError, "step size must be nonzero"
     num_steps = int(float((b-a)/step)) + 1
+    if num_steps <= 0:
+        return []
     v = [a] + [a + k*step for k in range(1,num_steps)]
-    if v[num_steps-1] >= b:
-        if include_endpoint:
-            return v[:-1] + [b]
+
+    if step > 0:
+        if v[num_steps-1] >= b:
+            if include_endpoint:
+                return v[:-1] + [b]
+            else:
+                return v[:-1]
         else:
-            return v[:-1]
-    else:
-        return v
+            return v
+    elif step < 0:
+        if v[num_steps-1] <= b:
+            if include_endpoint:
+                return v[:-1] + [b]
+            else:
+                return v[:-1]
+        else:
+            return v
 
 class xsrange:
     """
@@ -673,10 +692,20 @@ class xsrange:
         [1, 1.5000000000000000, 2.0000000000000000, 2.5000000000000000, 3.0000000000000000, 3.5000000000000000, 4.0000000000000000, 4.5000000000000000]
         sage: list(xsrange(0, 1, R('0.4')))
         [0, 0.40000000000000002, 0.80000000000000004]
+
+    Negative ranges are also allowed:
+        sage: list(xrange(4,1,-1))
+        [4, 3, 2]
+        sage: list(sxrange(4,1,-1))
+        [4, 3, 2]
+        sage: list(sxrange(4,1,-1/2))
+        [4, 7/2, 3, 5/2, 2, 3/2]
     """
     def __init__(self, a, b=None, step=1):
         self.__a = a
         self.__b = b
+        if step == 0:
+            raise ValueError, 'sxrange() arg 3 must not be zero'
         self.__step = step
 
     def __repr__(self):
@@ -685,7 +714,10 @@ class xsrange:
     def __len__(self):
         if self.__b is None:
             return int(self.__a / self.__step)
-        return int((self.__b - self.__a) / self.__step)
+        n = int((self.__b - self.__a) / self.__step)
+        if n < 0:
+            return 0
+        return n
 
     def __iter__(self):
         return _xsrange(self.__a, self.__b, self.__step)
@@ -701,9 +733,14 @@ def _xsrange(a,b=None,step=1):
         except AttributeError:
             a = type(b)(0)
     cur = a
-    while cur < b:
-        yield cur
-        cur += step
+    if step > 0:
+        while cur < b:
+            yield cur
+            cur += step
+    elif step < 0:
+        while cur > b:
+            yield cur
+            cur += step
     return
 
 def random_sublist(X, s):

@@ -62,7 +62,6 @@ if len(sys.argv) == 2:
     if os.system(cmd):
         print "Error copying build directory"
         sys.exit(1)
-
     # Done copying over build cache.
 
 print "Building " + branch
@@ -70,5 +69,12 @@ cmd = 'sage -b %s'%sys.argv[1]
 print cmd
 if os.system(cmd):
     print "Error building SAGE"
+
+
+print "** WARNING **"
+print "If you are cloning a previous revision or have uncommited changes to"
+print "pyrex files you may have to touch all the relevant .pyx files, then"
+print "rebuild, which will take 5-10 minutes.  Otherwise SAGE will build"
+print "using the wrong .c files."
 
 

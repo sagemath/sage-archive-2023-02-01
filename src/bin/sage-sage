@@ -125,7 +125,15 @@ sage_setup() {
 # It is very important in the following assignments
 # that there is no whitespace after the backslashes.
 
+########################################################
+# Regarding printing the branch below:
+#   If the current branch is not the default main one, then
+#   print this out in the startup.  Otherwise people get
+#   very confused about what branch they are using.
+########################################################
+
 SAGE_STARTUP_COMMAND="
+import sage.misc.misc; print sage.misc.misc.branch_current_hg(); \
 from sage.all import *;\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\

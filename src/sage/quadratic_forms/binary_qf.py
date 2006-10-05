@@ -28,7 +28,7 @@ Siegel modular forms.
 
 
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class BinaryQF(SageObject):
 

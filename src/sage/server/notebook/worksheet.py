@@ -21,7 +21,7 @@ import time
 import crypt
 import pexpect
 
-from sage.ext.sage_object  import load, save
+from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
@@ -49,7 +49,7 @@ class Worksheet:
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
-        self.__passcode = crypt.crypt(passcode, self.__salt)
+        self.__passcode = crypt.crypt(passcode, self.salt())
         self.__passcrypt= True
         dir = list(name)
         for i in range(len(dir)):

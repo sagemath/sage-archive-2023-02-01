@@ -338,18 +338,6 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         return self.__crt(other)
 
-    def __floordiv__(self, right):
-        """
-        EXAMPLES:
-            sage: R = Integers(25)
-            sage: R(15)//5
-            3
-        """
-
-        try:
-            return self / right
-        except ZeroDivisionError:
-            return IntegerMod(self._parent, self.lift() / sage.rings.integer_ring.Z(right) )
 
     def order(self):
         """

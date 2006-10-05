@@ -59,7 +59,7 @@ import weakref
 import sage.rings.all
 import sage.algebras.all
 from sage.misc.latex import latex
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 
 class Category(SageObject):

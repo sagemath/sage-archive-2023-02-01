@@ -332,7 +332,7 @@ import socket
 import re           # regular expressions
 
 # SAGE libraries
-from   sage.ext.sage_object import SageObject, load
+from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
 from   sage.misc.misc       import alarm
 
@@ -1202,7 +1202,8 @@ def notebook(dir         ='sage_notebook',
     expect_quitall(verbose=False)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
-    os.remove('%s/pid'%dir)
+    if os.path.exists('%s/pid'%dir):
+        os.remove('%s/pid'%dir)
     return nb
 
 

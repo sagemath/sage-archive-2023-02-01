@@ -25,7 +25,7 @@ except ImportError:
     # Functionality just won't be available
     pass
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Gnuplot(SageObject):
     """

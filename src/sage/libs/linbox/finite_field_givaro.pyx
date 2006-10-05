@@ -26,7 +26,7 @@ r"""nodoctest
 
 from sage.rings.ring cimport FiniteField
 from sage.rings.coerce import bin_op
-from sage.ext.sage_object cimport SageObject
+from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
 

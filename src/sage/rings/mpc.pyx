@@ -360,6 +360,16 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             s = str(x)
             raise NotImplementedError
 
+    cdef ComplexField c_parent(ComplexNumber self):
+        """
+        Returns the parent of self as a ComplexField.
+
+        TODO: we *really* need to work out a way to make this insanely
+        fast. This is called extremely frequently. All this overhead is
+        probably already unacceptable.
+        """
+        return <ComplexField> self._parent
+
     def  __dealloc__(self):
         if self.init:
             mpc_clear(self.value)

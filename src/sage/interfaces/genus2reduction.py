@@ -29,7 +29,7 @@ ACKNOWLEDGMENT:
 
 import os, weakref
 from expect import Expect
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Genus2reduction_expect(Expect):
     def __init__(self, server=None, logfile=None):

@@ -10,7 +10,7 @@ import os
 import string
 
 import sage.plot.plot
-import sage.ext.sage_object
+import sage.structure.sage_object
 import sage.misc.latex
 import sage.all
 import sage.misc.pager
@@ -42,7 +42,7 @@ def init(object_directory=None, globs={}):
     # Set this to true and plots are shown by default.
     #sage.plot.plot.SHOW_DEFAULT = True
     if object_directory:
-        sage.ext.sage_object.base=object_directory
+        sage.structure.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
     sage.misc.pager.EMBEDDED_MODE = True
 
@@ -223,25 +223,25 @@ def save_session(filename):
     for k in v:
         x = sage_globals[k]
         try:
-            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+            _ = sage.structure.sage_object.loads(sage.structure.sage_object.dumps(x))
         except (IOError, TypeError):
             print "Unable to save %s"%k
         else:
             D[k] = x
     print "Saving variables to object %s.sobj"%filename
-    sage.ext.sage_object.save(D, filename)
+    sage.structure.sage_object.save(D, filename)
 
 def load_session(v, filename, state):
     D = {}
     for k, x in v.iteritems():
         try:
-            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+            _ = sage.structure.sage_object.loads(sage.structure.sage_object.dumps(x))
         except (IOError, TypeError):
             print "Unable to save %s"%k
         else:
             D[k] = x
     print "Saving variables to %s"%filename
-    sage.ext.sage_object.save(D, filename)
+    sage.structure.sage_object.save(D, filename)
 
 def _is_new_var(x, v):
     if x[:2] == '__':

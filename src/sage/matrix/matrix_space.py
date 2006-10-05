@@ -166,32 +166,25 @@ class MatrixSpace_generic(gens.Generators):
 
     def _coerce_(self, x):
         """
-        ERROR:
-    	sage: MS1 = MatrixSpace(QQ,3)
-    	sage: MS2 = MatrixSpace(ZZ,4,5,true)
-    	sage: A = MS1.random_element()
-    	sage: D = MS2.random_element()
-
-    	sage: coerce(MS1,A)
-        Traceback (most recent call last):
-        ...
-      	TypeError: number coercion failed
-    	sage: coerce(MS2,D)
-        Traceback (most recent call last):
-        ...
-      	TypeError: number coercion failed
-    	sage: coerce(MS2,1)
-        Traceback (most recent call last):
-        ...
-      	TypeError: number coercion failed
-    	sage: coerce(D,1)
-        Traceback (most recent call last):
-        ...
-      	TypeError: number coercion failed
+        EXAMPLES:
+            sage: MS1 = MatrixSpace(QQ,3)
+            sage: MS2 = MatrixSpace(ZZ,4,5,true)
+            sage: A = MS1(range(9))
+            sage: D = MS2(range(20))
+            sage: MS1._coerce_(A)
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: MS2._coerce_(D)
+            [ 0  1  2  3  4]
+            [ 5  6  7  8  9]
+            [10 11 12 13 14]
+            [15 16 17 18 19]
         """
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
                 raise TypeError, "cannot coerce sparse matrix into dense space for arithmetic"
+        # todo: this is *way* too permissive and must be fixed!
         return self(x)
 
     def __cmp__(self, other):

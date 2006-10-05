@@ -56,7 +56,7 @@ import sage.rings.infinity
 import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
-import mpfr
+import real_mpfr
 import sage.misc.functional
 
 cdef mpz_t mpz_tmp
@@ -112,6 +112,9 @@ def pmem_malloc():
 
 pmem_malloc()
 
+cdef object the_integer_ring
+the_integer_ring = sage.rings.integer_ring.Z
+
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     """
     The \\class{Integer} class represents arbitrary precision
@@ -124,7 +127,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     \\end{notice}
     """
     def __new__(self, x=None, unsigned int base=0):
+        global the_integer_ring
         mpz_init(self.value)
+        self._parent = the_integer_ring
 
     def __pyxdoc__init__(self):
         """
@@ -1381,12 +1386,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def _interface_init_(self):
         return str(self)
 
-    def parent(self):
-        """
-        Return the ring $\\Z$ of integers.
-        """
-        return sage.rings.integer_ring.Z
-
     def isqrt(self):
         """
         Returns the integer floor of the square root of self, or raises
@@ -1469,7 +1468,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
-            R = mpfr.RealField(bits)
+            R = real_mpfr.RealField(bits)
             return self._mpfr_(R).sqrt()
 
     def square_root(self):

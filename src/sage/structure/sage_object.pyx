@@ -1,5 +1,7 @@
 r"""
 Abstract base class for \sage objects
+
+PYREX: sage.structure.sage_object
 """
 
 import cPickle
@@ -56,7 +58,7 @@ cdef class SageObject:
         Real numbers are not Python classes, so rename is not supported:
             sage: a = 3.14
             sage: type(a)
-            <type 'mpfr.RealNumber'>
+            <type 'real_mpfr.RealNumber'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...

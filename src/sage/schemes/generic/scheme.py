@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 from sage.categories.all import Schemes
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
                             ZZ, is_RingHomomorphism)

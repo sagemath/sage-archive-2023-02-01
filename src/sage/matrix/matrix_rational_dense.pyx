@@ -325,6 +325,42 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         return M
 
 
+    def matrix_from_cols(self, cols):
+        """
+        Return the submatrix formed from the given columns.
+
+        INPUT:
+            cols -- list of int's
+
+        OUTPUT:
+            matrix created from the columns with given indexes
+        """
+        cdef int i, j, k, nc, nr
+        cdef Matrix_rational_dense M
+
+        if not isinstance(cols, list):
+            raise TypeError, "cols (=%s) must be a list"%cols
+        nc = len(cols)
+        if nc == 0:
+            return Matrix_rational_dense(self._nrows, 0)
+        nr = self._nrows
+        if min(cols) < 0 or max(cols) >= self._ncols:
+            raise IndexError, "invalid cols indexes; cols don't exist"
+
+        M = self.new_matrix(nrows=nr, ncols=nc, zero=False) #Matrix_rational_dense(self.parent(), zero=False)
+        cdef mpq_t **m
+        m = M._matrix
+
+        for j from 0 <= j < nc:
+            k = int(cols[j])
+            for i from 0 <= i < nr:
+                mpq_init(m[i][j])
+                mpq_set(m[i][j], self._matrix[i][k])
+
+        return M
+
+
+
 
     def iterates(self, v, int n):
         """
@@ -631,7 +667,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             mpq_set(m[i][col_to], x)
         mpq_clear(prod); mpq_clear(x)
 
-    cdef swap_rows(self, int row1, int row2):
+    cdef swap_rows(Matrix_rational_dense self, int row1, int row2):
         cdef mpq_t* temp
         temp = self._matrix[row1]
         self._matrix[row1] = self._matrix[row2]
@@ -779,7 +815,6 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 mpq_mul(self._matrix[i][j], self._matrix[i][j], a)
         _sig_off
 
-
     def echelon(self, alg="modular", height_guess=None):
         """
         echelon(self, alg="modular", height_guess=None):
@@ -792,8 +827,51 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             A = self.copy()
             A.echelon_gauss()
             return A
+        elif alg=="block":
+            A = self.copy()
+            A.echelon_strassen()
+            return A
         else:
             raise ValueError, "%s is not one of the allowed algorithms (modular, gauss)"%alg
+
+    def echelon_gauss(self):
+        """
+        Returns echelon form of self using gaussian elimination, modifying self.
+        """
+        pivots = []
+        cdef int row, col, i, j
+        cdef mpq_t recip, front, tmp
+        mpq_init(recip)
+        mpq_init(front)
+        mpq_init(tmp)
+        row = 0
+        for col from 0 <= col < self._ncols:
+            if mpq_sgn(self._matrix[row][col]) == 0:
+                for i from row < i < self._nrows:
+                    if mpq_sgn(self._matrix[i][col]) != 0:
+                        self.swap_rows(i, row)
+                        break
+                if i == self._nrows:
+                    continue
+            pivots.append(col)
+            mpq_inv(recip, self._matrix[row][col])
+            mpq_set_si(self._matrix[row][col], 1, 1)
+            for j from col < j < self._ncols:
+                mpq_mul(self._matrix[row][j], self._matrix[row][j], recip)
+            for i from 0 <= i < self._nrows:
+                if i == row: continue
+                if mpq_sgn(self._matrix[i][col]) == 0: continue
+                mpq_set(front, self._matrix[i][col])
+                mpq_set_si(self._matrix[i][col], 0, 1)
+                for j from col < j < self._ncols:
+                    mpq_mul(tmp, front, self._matrix[row][j])
+                    mpq_sub(self._matrix[i][j], self._matrix[i][j], tmp)
+            row = row+1
+            if row == self._nrows:
+                break
+        self._set_pivots(pivots)
+
+
 
     def echelon_modular(self, height_guess=None):
         """
@@ -973,7 +1051,7 @@ cdef class MatrixWindow:
         """
         Returns an actual matrix object representing this view.
         """
-        a = self._matrix.new_matrix(self._nrows, self._ncols, zero=False)
+        a = self._matrix.new_matrix(self._nrows, self._ncols) # zero=False
         a.matrix_window().set_to(self)
         return a
 
@@ -982,6 +1060,8 @@ cdef class MatrixWindow:
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
+        if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
+            return self
         return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
 
     def nrows(MatrixWindow self):
@@ -989,7 +1069,6 @@ cdef class MatrixWindow:
 
     def ncols(MatrixWindow self):
         return self._ncols
-
 
     def set_to(MatrixWindow self, MatrixWindow A):
         cdef int i, j
@@ -1086,6 +1165,39 @@ cdef class MatrixWindow:
                     mpq_mul(prod, A_row[k], B._matrix._matrix[B._row+k]+B._col+j)
                     mpq_add(sum, sum, prod)
                 mpq_add(s_row[j], s_row[j], sum)
+
+    def subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j, k
+        cdef mpq_t* s_row
+        cdef mpq_t* A_row
+        cdef mpq_t sum, prod
+        mpq_init(sum)
+        mpq_init(prod)
+        for i from 0 <= i < A._nrows:
+            A_row = A._matrix._matrix[A._row + i] + A._col
+            s_row = self._matrix._matrix[self._row + i] + self._col
+            for j from 0 <= j < B._ncols:
+                mpq_mul(sum, A_row[0], B._matrix._matrix[B._row]+B._col+j)
+                for k from 1 <= k < A._ncols:
+                    mpq_mul(prod, A_row[k], B._matrix._matrix[B._row+k]+B._col+j)
+                    mpq_add(sum, sum, prod)
+                mpq_sub(s_row[j], s_row[j], sum)
+
+
+    def swap_rows(MatrixWindow self, int a, int b):
+        self._matrix.swap_rows(self._row + a, self._row + b)
+
+
+    def echelon_in_place(MatrixWindow self):
+        """
+        calculate the echelon form of this matrix, returning the list of pivot columns
+        """
+        echelon = self.to_matrix().echelon(alg="gauss") # TODO: read only, only need to copy pointers
+        self.set_to(echelon.matrix_window())
+        return echelon.pivots()
+
+    def element_is_zero(MatrixWindow self, int i, int j):
+        return mpq_sgn(self._matrix._matrix[i+self._row][j+self._col]) == 0
 
 
     def new_empty_window(MatrixWindow self, int nrows, int ncols, zero=True):

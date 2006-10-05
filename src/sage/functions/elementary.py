@@ -593,7 +593,7 @@ class ElementaryFunction(ElementaryFunctionRing):
         Returns symbolic value (as string) if a is not in RR
 
         """
-        if type(axs)==mpfr.RealNumber:
+        if type(axs)==real_mpfr.RealNumber:
             return self(a)
         maxima = sage.interfaces.all.maxima
         fcn = self.__str__()

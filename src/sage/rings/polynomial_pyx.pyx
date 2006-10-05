@@ -29,10 +29,10 @@ include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 
 cimport sage.structure.element
-import sage.structure.element
+import  sage.structure.element
 
 cimport sage.ext.arith_gmp
-import sage.ext.arith_gmp
+import  sage.ext.arith_gmp
 cdef sage.ext.arith_gmp.functions ag
 ag = sage.ext.arith_gmp.functions()
 

@@ -11,27 +11,55 @@ PYREX: sage.structure.element
 
 import operator
 
-import sage.structure.element_py
-
-import sage.structure.coerce
-from   sage.structure.coerce import gcd, lcm, xgcd
+import coerce
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
 
-cdef class Element(sage.ext.sage_object.SageObject):
+def make_element(_class, _dict, parent):
     """
-    Generic element base class, so all this functionality must
-    be defined by any ring element.
+    Used for unpickling Element objects (and subclasses).
+
+    This should work for any Python class deriving from Element, as long
+    as it doesn't implement some screwy __new__() method.
+
+    See also Element.__reduce__().
     """
+    new_object = _class.__new__(_class)
+    new_object._set_parent(parent)
+    new_object.__dict__ = _dict
+    return new_object
+
+
+cdef class Element(sage_object.SageObject):
+    """
+    Generic element of a structure. All other types of elements
+    (RingElement, ModuleElement, etc) derive from this type.
+
+    Subtypes must either call __init__() to set _parent, or may
+    set _parent themselves if that would be more efficient.
+    """
+
     def __init__(self, parent):
+        r"""
+        INPUT:
+            parent -- a SageObject
+        """
         self._parent = parent
 
     def _set_parent(self, parent):
+        r"""
+        INPUT:
+            parent -- a SageObject
+        """
         self._parent = parent
 
+
     def _repr_(self):
-        return "Generic element of a ring"
+        return "Generic element of a structure"
+
+    def __reduce__(self):
+        return make_element, (self.__class__, self.__dict__, self._parent)
 
     def __hash__(self):
         return hash(str(self))
@@ -46,20 +74,24 @@ cdef class Element(sage.ext.sage_object.SageObject):
 
 
     def base_ring(self):
-        return self.parent().base_ring()
+        """
+        Returns the base ring of this element's parent (if that makes sense).
+        """
+        return self._parent.base_ring()
 
     def category(self):
         from sage.categories.category import Elements
-        return Elements(self.parent())
+        return Elements(self._parent)
 
     def parent(self, x=None):
-        try:
-            if x==None:
-                return self._parent
-            else:
-                return self._parent(x)
-        except AttributeError:
-            return type(self)
+        """
+        Returns parent of this element; or, if the optional argument x is
+        supplied, the result of coercing x into the parent of this element.
+        """
+        if x is None:
+            return self._parent
+        else:
+            return self._parent(x)
 
     def __xor__(self, right):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
@@ -85,7 +117,7 @@ cdef class Element(sage.ext.sage_object.SageObject):
             return "\\left(%s\\right)"%s
 
     def _is_atomic(self):
-        if self.parent().is_atomic_repr():
+        if self._parent.is_atomic_repr():
             return True
         s = str(self)
         return bool(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
@@ -115,7 +147,7 @@ cdef class Element(sage.ext.sage_object.SageObject):
     #    cdef int n
     #    if not isinstance(right, Element) or right.parent() != self.parent():
     #        try:
-    #            n = sage.structure.coerce.cmp(self, right)
+    #            n = coerce.cmp(self, right)
     #        except TypeError:
     #            n = -1
     #    else:
@@ -142,7 +174,7 @@ cdef class ModuleElement(Element):
     """
     ##################################################
     def is_zero(self):
-        return bool(self == self.parent()(0))
+        return bool(self == self._parent(0))
 
 ##     def is_nonzero(self):
 ##         return not self.is_zero()
@@ -150,7 +182,7 @@ cdef class ModuleElement(Element):
     def __add__(self, right):
         if not isinstance(self, Element) or \
                not isinstance(right, Element) or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.add)
+            return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
 
     def _add_(self, right):
@@ -159,14 +191,14 @@ cdef class ModuleElement(Element):
     def __sub__(self, right):
         if not isinstance(self, Element) or \
                not isinstance(right, Element) or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.sub)
+            return coerce.bin_op(self, right, operator.sub)
         return self._sub_(right)
 
     def _sub_(self, right):
         return self + (-right)
 
     def __neg__(self):
-        return sage.structure.coerce.bin_op(-1, self, operator.mul)
+        return coerce.bin_op(-1, self, operator.mul)
 
     def __pos__(self):
         return self
@@ -220,7 +252,7 @@ cdef class MonoidElement(Element):
     def __mul__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.mul)
+            return coerce.bin_op(self, right, operator.mul)
         return self._mul_(right)
 
     def _mul_(self, right):
@@ -306,13 +338,13 @@ cdef class MultiplicativeGroupElement(MonoidElement):
 
     def __truediv__(self, right):
         if not isinstance(self, Element):
-            return sage.structure.coerce.bin_op(self, right, operator.div)
+            return coerce.bin_op(self, right, operator.div)
         return self.__div__(right) # in sage all divs are true
 
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.div)
+            return coerce.bin_op(self, right, operator.div)
         return self._div_(right)
 
     def _div_(self, right):
@@ -328,7 +360,7 @@ cdef class RingElement(Element):
         return bool(self == self.parent()(0))
 
     def is_one(self):
-        return bool(self == self._parent(1))
+        return bool(self == self.parent()(1))
 
 ##     def is_nonzero(self):
 ##         return not self.is_zero()
@@ -336,7 +368,7 @@ cdef class RingElement(Element):
     def __add__(self, right):
         if not isinstance(self, Element) or \
                not isinstance(right, Element) or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.add)
+            return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
 
     def _add_(self, right):
@@ -345,7 +377,7 @@ cdef class RingElement(Element):
     def __sub__(self, right):
         if not isinstance(self, Element) or \
                not isinstance(right, Element) or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.sub)
+            return coerce.bin_op(self, right, operator.sub)
         return self._sub_(right)
 
     def _sub_(self, right):
@@ -354,7 +386,7 @@ cdef class RingElement(Element):
     def __mul__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.mul)
+            return coerce.bin_op(self, right, operator.mul)
         return self._mul_(right)
 
     def _mul_(self, right):
@@ -362,20 +394,20 @@ cdef class RingElement(Element):
 
     def __truediv__(self, right):
         if not isinstance(self, Element):
-            return sage.structure.coerce.bin_op(self, right, operator.div)
+            return coerce.bin_op(self, right, operator.div)
         return self.__div__(right) # in sage all divs are true
 
     def __div__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, operator.div)
+            return coerce.bin_op(self, right, operator.div)
         return self._div_(right)
 
     def _div_(self, right):
         return self.parent().fraction_field()(self, right)
 
     def __neg__(self):
-        return sage.structure.coerce.bin_op(-1, self, operator.mul)
+        return coerce.bin_op(-1, self, operator.mul)
 
     def __pos__(self):
         return self
@@ -533,7 +565,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         """
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, lcm)
+            return coerce.bin_op(self, right, coerce.lcm)
         return self._lcm(right)
 
     def gcd(self, right):
@@ -542,7 +574,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         """
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, gcd)
+            return coerce.bin_op(self, right, coerce.gcd)
         return self._gcd(right)
 
     def xgcd(self, right):
@@ -554,7 +586,7 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
         """
         if not isinstance(self, Element) or not isinstance(right, Element) \
                or right.parent() != self.parent():
-            return sage.structure.coerce.bin_op(self, right, xgcd)
+            return coerce.bin_op(self, right, coerce.xgcd)
         return self._xgcd(right)
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
@@ -661,9 +693,9 @@ class Element_cmp_:
     def __cmp__(self, right):
         try:
             if right.parent() != self.parent():
-                return sage.structure.coerce.cmp(self, right)
+                return coerce.cmp(self, right)
         except AttributeError:
-            return sage.structure.coerce.cmp(self, right)
+            return coerce.cmp(self, right)
         return self._cmp_(right)
 
     def _cmp_(self, right):

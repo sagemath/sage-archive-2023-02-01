@@ -11,7 +11,7 @@ methods that are implemented using this module.
 \note{This interface is a direct library-level interface to mwrank.}
 """
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 def set_precision(n):
     """

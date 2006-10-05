@@ -72,10 +72,10 @@ specifying the universe of the sequence:
 
 
 import sage.misc.latex as latex
-import sage.ext.sage_object
+import sage.structure.sage_object
 #from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
-class Sequence(sage.ext.sage_object.SageObject, list):
+class Sequence(sage.structure.sage_object.SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.

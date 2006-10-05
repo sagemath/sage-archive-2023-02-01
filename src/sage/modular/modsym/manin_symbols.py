@@ -32,7 +32,7 @@ import sage.rings.arith as arith
 import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.all as rings
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 import sage.rings.polynomial_pyx as poly
 X = poly.Polynomial_rational(); X[1]=1
@@ -47,6 +47,11 @@ class ManinSymbolList(SageObject):
     def __init__(self, weight, list):
         self._weight = weight
         self._list = list
+
+    def __cmp__(self, right):
+        if not isinstance(right, ManinSymbolList):
+            return -1
+        return cmp([self._weight, self._list], [right._weight, right._list])
 
     def __getitem__(self, n):
         return self._list[n]
@@ -133,7 +138,7 @@ class ManinSymbolList_gamma0(ManinSymbolList):
         # The list returned from P1List is guaranteed to be sorted.
         # Thus each list constructed below is also sorted.  This is
         # important since the index function assumes the list is sorted.
-        L = [(i, u, v) for i in range(weight-2+1) \
+        L = [(i, u, v) for i in range(weight - 2 + 1) \
                             for u, v in self.__P1.list()]
         ManinSymbolList.__init__(self, weight, L)
 

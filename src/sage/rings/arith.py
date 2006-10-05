@@ -21,7 +21,7 @@ import sage.rings.rational
 import sage.rings.real_field
 import sage.rings.complex_field
 import sage.rings.complex_number
-import sage.rings.mpfr
+import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.rings.coerce import canonical_coercion, bin_op
 from sage.structure.element import RingElement
@@ -94,7 +94,8 @@ def algdep(z, n):
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 
-    if misc.is_64_bit and isinstance(z, (sage.rings.mpfr.RealNumber, sage.rings.complex_number.ComplexNumber)):
+    if misc.is_64_bit and isinstance(z, (sage.rings.real_mpfr.RealNumber,
+                                         sage.rings.complex_number.ComplexNumber)):
         bits = int(float(z.prec()/3))
         if bits == 0:
             bits = 1

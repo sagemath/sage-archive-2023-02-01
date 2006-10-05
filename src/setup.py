@@ -232,14 +232,14 @@ ext_modules = [ \
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
 
-    Extension('sage.ext.sage_object',
-              sources = ['sage/ext/sage_object.pyx']), \
+    Extension('sage.structure.sage_object',
+              sources = ['sage/structure/sage_object.pyx']), \
 
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
 
-    Extension('sage.rings.mpfr',
-              sources = ['sage/rings/mpfr.pyx', 'sage/rings/ring.pyx'],
+    Extension('sage.rings.real_mpfr',
+              sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
 
     Extension('sage.rings.integer',
@@ -343,10 +343,14 @@ extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
 def need_to_create(file1, file2):
     """
     Return True if either file2 does not exist or is older than file1.
+
+    If file1 does not exist, always return False.
     """
+    if not os.path.exists(file1):
+        return False
     if not os.path.exists(file2):
         return True
-    if os.path.getctime(file2) <= os.path.getctime(file1):
+    if os.path.getctime(file2) < os.path.getctime(file1):
         return True
     return False
 
@@ -387,6 +391,7 @@ def process_pyrexembed_file(f, m):
 
 def process_pyrex_file(f, m):
     # This is a pyrex file, so process accordingly.
+    g = os.path.splitext(f)[0]
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
     if need_to_create(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
@@ -394,7 +399,7 @@ def process_pyrex_file(f, m):
     out_file = f[:-4] + ".c"
     if m.language == 'c++':
         out_file += 'pp'
-    if need_to_create(f, out_file):
+    if need_to_create(f, out_file) or need_to_create(g + '.pxd', out_file):
         cmd = "pyrexc -I%s %s"%(os.getcwd(),f)
         print cmd
         ret = os.system(cmd)

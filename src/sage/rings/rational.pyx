@@ -35,7 +35,7 @@ import sage.libs.pari.all
 cimport integer
 import integer
 
-import sage.rings.mpfr
+import sage.rings.real_mpfr
 
 cimport sage.ext.arith
 import  sage.ext.arith
@@ -98,17 +98,19 @@ cdef Rational_sub_(Rational self, Rational other):
 
     return x
 
+cdef object the_rational_ring
+the_rational_ring = sage.rings.rational_field.Q
+
 cdef class Rational(sage.structure.element.FieldElement):
 
     def __new__(self, x=None, int base=0):
+        global the_rational_ring
         mpq_init(self.value)
+        self._parent = the_rational_ring
 
     def __init__(self, x=None, int base=0):
         if not (x is None):
             self.__set_value(x, base)
-
-    def parent(self):
-        return sage.rings.rational_field.Q
 
     def __reduce__(self):
         return sage.rings.rational.make_rational, (self.str(32),)
@@ -151,7 +153,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         elif isinstance(x, integer.Integer):
             set_from_Integer(self, x)
 
-        elif isinstance(x, sage.rings.mpfr.RealNumber):
+        elif isinstance(x, sage.rings.real_mpfr.RealNumber):
             if x == 0:
                 mpq_set_si(self.value, 0, 1)
                 return
@@ -380,7 +382,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
-            R = sage.rings.mpfr.RealField(bits)
+            R = sage.rings.real_mpfr.RealField(bits)
             return self._mpfr_(R).sqrt()
 
     def square_root(self):

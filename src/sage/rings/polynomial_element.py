@@ -355,7 +355,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             z = self.parent()(0)
             z[right] = 1
             return z
-        return arith.generic_power(self, right)
+        return arith.generic_power(self, right, self.parent()(1))
 
     def _repr(self, name=None):
         s = " "

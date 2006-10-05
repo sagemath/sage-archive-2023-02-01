@@ -174,12 +174,15 @@ class Matrix_domain(Matrix):
         V = []
         for h, e in G:
             F = h.root_field()
-            A = self.change_ring(F).copy()
-            x = F.gen(0)
-            for i in range(A.nrows()):
-                A[i,i] -= x
+            if F.degree() > 1:
+                x = F.gen(0)
+            else:
+                x = -h[0]
+            A = self.change_ring(F) - x
             W = A.kernel()
-            V.append((F.gen(0), W.basis()))
+            if W.dimension() == 0:
+                raise RuntimeError, "bug in eigenspaces (dimension of kernel must be nonzero!)"
+            V.append((x, W.basis()))
         self.__eigenvectors = V
         return sage.structure.sequence.Sequence(V, cr=True)
 

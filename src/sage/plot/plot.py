@@ -620,11 +620,11 @@ class Graphics(SageObject):
 
         You can either turn off the drawing of the axes:
 
-            sage: show(plot(sin,-4,4), axes=False)
+            sage.: show(plot(sin,-4,4), axes=False)
 
         Or you can turn on the drawing of a frame around the plots:
 
-            sage: show(plot(sin,-4,4), frame=True)
+            sage.: show(plot(sin,-4,4), frame=True)
 
         """
         if EMBEDDED_MODE:

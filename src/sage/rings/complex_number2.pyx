@@ -30,8 +30,8 @@ import infinity
 import sage.structure.element
 cimport sage.structure.element
 
-import sage.rings.mpfr
-cimport sage.rings.mpfr
+import sage.rings.real_mpfr
+cimport sage.rings.real_mpfr
 
 
 def is_ComplexNumber(x):

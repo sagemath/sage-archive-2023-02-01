@@ -63,7 +63,7 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.macaulay2 import is_Macaulay2Element
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 from sage.rings.integer_ring import IntegerRing
 

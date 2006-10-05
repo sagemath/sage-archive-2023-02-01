@@ -31,7 +31,7 @@ from sage.misc.misc import (alarm, cancel_alarm,
                             verbose, word_wrap, SAGE_EXTCODE)
 
 import sage.misc.preparser
-from   sage.ext.sage_object import load, SageObject
+from   sage.structure.sage_object import load, SageObject
 
 SEP = '___S_A_G_E___'
 

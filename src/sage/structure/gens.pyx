@@ -78,7 +78,7 @@ import gens_py
 # if they define gens() to return all gens, but this
 # is not necessary.
 
-cdef class Generators(sage.ext.sage_object.SageObject):
+cdef class Generators(sage_object.SageObject):
     # Derived class *must* define ngens method.
     def ngens(self):
         raise NotImplementedError, "Number of generators not known."

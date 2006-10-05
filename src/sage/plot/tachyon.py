@@ -15,7 +15,7 @@ from colorsys import hsv_to_rgb
 
 from sage.interfaces.tachyon import tachyon_rt
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 #from sage.ext import fast_tachyon_routines
 

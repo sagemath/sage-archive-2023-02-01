@@ -20,7 +20,7 @@ import cPickle, os
 from expect import Expect, ExpectElement, FunctionElement, tmp
 import sage.misc.preparser
 
-from sage.ext.sage_object import dumps, loads, load
+from sage.structure.sage_object import dumps, loads, load
 
 
 class Sage(Expect):

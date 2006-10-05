@@ -23,7 +23,7 @@ TODO:
 
 import copy
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 from sage.rings.all import ComplexField, RealField, Integer
 

@@ -4,9 +4,9 @@ Field of Arbitrary Precision Real Numbers
 PYREX: sage.rings.mpfr
 """
 
-from sage.rings.mpfr import (RealField, RR, RealNumber as RealNumberClass,
-                             mpfr_prec_min, mpfr_prec_max,
-                             create_RealNumber as RealNumber)
+from sage.rings.real_mpfr import (RealField, RR, RealNumber as RealNumberClass,
+                                  mpfr_prec_min, mpfr_prec_max,
+                                  create_RealNumber as RealNumber)
 
 def is_RealField(x):
     return isinstance(x, RealField)

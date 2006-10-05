@@ -20,7 +20,7 @@ Coercion helper functions
 import __builtin__
 import operator
 
-import  sage.structure.element
+import  element
 
 cimport sage.modules.module
 import  sage.modules.module
@@ -114,14 +114,14 @@ def canonical_base_coercion(x, y):
 
 def bin_op(x, y, op):
     #print "bin_op(%s,%s,%s)"%(x,y,op)   # debug
-    if isinstance(y, sage.structure.element.InfinityElement):
+    if isinstance(y, element.InfinityElement):
         return op(y,x)
     if op == operator.mul and \
            isinstance(y, (\
-                      sage.structure.element.ModuleElement,
-                      sage.structure.element.AlgebraElement,
+                      element.ModuleElement,
+                      element.AlgebraElement,
                       sage.modules.module.Module)) and \
-           isinstance(x, (sage.structure.element.RingElement, int, long, float)):
+           isinstance(x, (element.RingElement, int, long, float)):
         return op(y,x)
     try:
         x, y = canonical_coercion(x, y)
@@ -150,7 +150,7 @@ def cmp(x, y):
     tx = type(x); ty = type(y)
     if (tx == N and ty != N) or (tx != N and ty == N):
         return -1
-    elif isinstance(y, sage.structure.element.InfinityElement):
+    elif isinstance(y, element.InfinityElement):
         return -y.__cmp__(x)
 
     xp = parent(x)

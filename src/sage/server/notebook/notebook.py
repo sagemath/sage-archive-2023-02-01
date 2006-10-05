@@ -332,7 +332,7 @@ import socket
 import re           # regular expressions
 
 # SAGE libraries
-from   sage.ext.sage_object import SageObject, load
+from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
 from   sage.misc.misc       import alarm
 

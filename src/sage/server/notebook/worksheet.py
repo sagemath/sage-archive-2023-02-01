@@ -21,7 +21,7 @@ import time
 import crypt
 import pexpect
 
-from sage.ext.sage_object  import load, save
+from sage.structure.sage_object  import load, save
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE

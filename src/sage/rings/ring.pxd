@@ -1,4 +1,4 @@
-import sage.structure.gens
+import  sage.structure.gens
 cimport sage.structure.gens
 
 cdef class Ring(sage.structure.gens.Generators):

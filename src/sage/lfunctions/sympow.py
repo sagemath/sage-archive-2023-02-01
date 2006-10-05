@@ -44,7 +44,7 @@ datafiles).
 
 import os, weakref
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 from sage.misc.all import pager, verbose
 import sage.rings.all
 

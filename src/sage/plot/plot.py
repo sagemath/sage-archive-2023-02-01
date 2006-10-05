@@ -128,7 +128,7 @@ SHOW_DEFAULT = False
 
 do_verify = True
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 import sage.misc.viewer
 import sage.misc.misc
 verbose = sage.misc.misc.verbose

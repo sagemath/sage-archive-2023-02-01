@@ -56,7 +56,7 @@ import sage.rings.infinity
 import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
-import mpfr
+import real_mpfr
 import sage.misc.functional
 
 cdef mpz_t mpz_tmp
@@ -1468,7 +1468,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
-            R = mpfr.RealField(bits)
+            R = real_mpfr.RealField(bits)
             return self._mpfr_(R).sqrt()
 
     def square_root(self):

@@ -827,7 +827,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: f.denominator()
             Traceback (most recent call last):
             ...
-            AttributeError: 'mpfr.RealNumber' object has no attribute 'denominator'
+            AttributeError: 'real_mpfr.RealNumber' object has no attribute 'denominator'
         """
         if self.degree() == -1:
             return 1

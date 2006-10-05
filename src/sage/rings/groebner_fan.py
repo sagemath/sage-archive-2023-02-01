@@ -50,7 +50,7 @@ import pexpect
 from sage.misc.multireplace import multiple_replace
 from sage.misc.misc import forall
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
 from multi_polynomial_ideal import is_MPolynomialIdeal
 from multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing

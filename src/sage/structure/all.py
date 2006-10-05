@@ -2,7 +2,7 @@ from sage.structure.factorization import Factorization
 
 from sage.structure.sequence import Sequence, seq
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 from element import *    # a whole bunch of classes
 

@@ -71,7 +71,7 @@ On the other hand, -1 is a unit in $\Z$, so it is included in the unit.
 #*****************************************************************************
 
 import sage.misc.latex as latex
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Factorization(SageObject, list):
     """

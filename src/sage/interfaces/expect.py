@@ -31,7 +31,7 @@ import pexpect
 import weakref
 import time
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 import  sage.structure.element
 
 import sage.misc.sage_eval

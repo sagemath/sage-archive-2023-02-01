@@ -1,8 +1,16 @@
-import  sage.ext.sage_object
-cimport sage.ext.sage_object
 
-cdef class Element(sage.ext.sage_object.SageObject):
-    cdef sage.ext.sage_object.SageObject _parent
+# It is important to keep this line here, basically to trick Pyrex.
+# If you remove this line then other modules that cimport element
+# from other directories will fail.
+
+cimport sage.structure.sage_object
+
+
+cimport sage_object
+import  sage_object
+
+cdef class Element(sage_object.SageObject):
+    cdef sage_object.SageObject _parent
 
 cdef class ModuleElement(Element):
     pass

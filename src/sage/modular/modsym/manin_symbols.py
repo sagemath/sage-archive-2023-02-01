@@ -32,7 +32,7 @@ import sage.rings.arith as arith
 import sage.rings.polynomial_ring as polynomial_ring
 import sage.rings.all as rings
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 import sage.rings.polynomial_pyx as poly
 X = poly.Polynomial_rational(); X[1]=1

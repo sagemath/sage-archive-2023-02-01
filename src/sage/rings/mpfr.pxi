@@ -1,7 +1,3 @@
-cdef extern from "stdlib.h":
-    ctypedef int size_t
-    void free(void *ptr)
-
 cdef extern from "mpfr.h":
     ctypedef struct __mpfr_struct:
         pass
@@ -121,16 +117,3 @@ cdef extern from "mpfr.h":
     # int mpfr_eq (mpfr_srcptr rop, mpfr_srcptr op, unsigned long i)
     # int mpfr_less_p (mpfr_t op1, mpfr_t op2)
     int mpfr_cmp (mpfr_t op1, mpfr_t op2)
-
-cdef class RealField(sage.rings.ring.Field):
-    cdef int __prec, sci_not
-    cdef mp_rnd_t rnd
-    cdef object rnd_str
-
-cdef class RealNumber(sage.structure.element.RingElement):
-    cdef mpfr_t value
-    cdef char init
-
-    cdef RealNumber abs(RealNumber self)
-    cdef int cmp(RealNumber self, RealNumber x)
-    cdef RealField c_parent(RealNumber self)

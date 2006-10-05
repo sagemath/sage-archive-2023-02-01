@@ -14,7 +14,7 @@ import os
 
 import sage.misc.viewer
 import sage.misc.misc
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 from plot import to_float_list, to_mpl_color
 import plot

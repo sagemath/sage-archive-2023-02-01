@@ -462,7 +462,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             2.2360679774997898
             sage: abs(CDF(1,0))
             1.0
-            sage: abs(CDF(-2,3))
+            sage: abs(CDF(-2,3))   # slightly random-ish arch dependent output
             3.6055512754639891
         """
         return gsl_complex_abs(self._complex)
@@ -472,7 +472,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         This function returns the magnitude of the complex number $z$, $|z|$.
 
         EXAMPLES:
-            sage: CDF(2,3).abs()
+            sage: CDF(2,3).abs()   # slightly random-ish arch dependent output
             3.6055512754639891
         """
         return gsl_complex_abs(self._complex)
@@ -637,9 +637,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         We compute the cube root of $-1$ then cube it and observe a rounding error:
             sage: a = CDF(-1)^(1/3); a
             0.5 + 0.866025388241*I
-            sage: a^3
-            -1.0 + 1.22460635382e-16*I    # 32-bit
-            -1.0 + 1.22464685259e-16*I    # 64-bit
+            sage: a^3                  # slightly random-ish arch dependent output
+            -1.0 + 1.22460635382e-16*I
         """
         try:
             return z._pow_(a)
@@ -1025,9 +1024,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         Eta works even if the inputs are large.
             sage: CDF(0,10^15).eta()
             0
-            sage: CDF(10^15,0.1).eta()
-            -0.121339721991 - 0.19619461894*I     # 32-bit
-            -0.121339788118 - 0.196194574237*I    # 64-bit
+            sage: CDF(10^15,0.1).eta()     # slightly random-ish arch dependent output
+            -0.121339721991 - 0.19619461894*I
 
         We compute a few values of eta, but with the fractional power of e omited.
             sage: CDF(0,1).eta(True)
@@ -1044,9 +1042,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: z = CDF(1,1)
             sage: z.eta(omit_frac=True)
             0.998129069926
-            sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.998129069926 + 4.5908467128e-19*I     # 32-bit
-            0.998129069926 + 4.59099870724e-19*I    # 64-bit
+            sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])      # slightly random-ish arch dependent output
+            0.998129069926 + 4.5908467128e-19*I
 
         We illustrate what happens when $z$ is not in the
         upper half plane.

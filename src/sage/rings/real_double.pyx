@@ -1055,7 +1055,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             1.64493406685
             sage: RDF.pi()^2/6
             1.64493406685
-            sage: RDF(-2).zeta()
+            sage: RDF(-2).zeta()       # slightly random-ish arch dependent output
             -2.37378795339e-18
             sage: RDF(1).zeta()
             inf

@@ -1540,7 +1540,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long
+            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time
             [(0.50000000000, 0), (0.40000000002 + 4.0000000000*I, 3.3192024464 - 2.6002805391*I), (0.30000000005 + 8.0000000000*I, -0.88634118531 - 0.42264033738*I), (0.20000000001 + 12.000000000*I, -3.5055893594 - 0.10853169035*I), (0.10000000001 + 16.000000000*I, -3.8704328826 - 1.8804941061*I)]
         """
         from sage.lfunctions.lcalc import lcalc
@@ -1566,7 +1566,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries_twist_values(1, -12, -4)
+            sage: E.Lseries_twist_values(1, -12, -4)    # slightly random output depending on architecture
             [(-11, 1.4782434171), (-8, 0), (-7, 1.8530761916), (-4, 2.4513893817)]
             sage: F = E.quadratic_twist(-8)
             sage: F.rank()

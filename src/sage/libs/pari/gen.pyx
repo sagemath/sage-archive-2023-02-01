@@ -1301,9 +1301,8 @@ cdef class gen:
 
     def Str(self):
         """
-        Str(self): Concatenate the entries of the vector self into a
-        single string.  If self is not a t_VEC its print
-        representation is returned.
+        Str(self): Return the print representation of self as a PARI
+        object is returned.
 
         INPUT:
             self -- gen
@@ -1311,13 +1310,10 @@ cdef class gen:
             gen -- a PARI gen of type t_STR, i.e., a PARI string
         EXAMPLES:
             sage: pari([1,2,['abc',1]]).Str()
-            12[abc, 1]
+            [1, 2, [abc, 1]]
             sage: pari('[1,1, 1.54]').Str()
-            111.540000000000000000000000000              # 32-bit
-            111.5400000000000000000000000000000000000    # 64-bit
-            sage: pari('[1, 1.54, 1]').Str()
-            11.5400000000000000000000000001              # 32-bit
-            11.54000000000000000000000000000000000001    # 64-bit
+            [1, 1, 1.540000000000000000000000000]        # 32-bit
+            [1, 1, 1.5400000000000000000000000000000000000]        # 64-bit
             sage: pari(1).Str()       # 1 is automatically converted to string rep
             1
             sage: x = pari('x')       # PARI variable "x"
@@ -1327,15 +1323,12 @@ cdef class gen:
             't_STR'
         """
         cdef char* c
-        if typ(self.g) != t_VEC:
-            _sig_on
-            c = GENtostr(self.g)
-            v = self.new_gen(strtoGENstr(c))
-            free(c)
-            return v
-        else:
-            _sig_on
-            return self.new_gen(Str(self.g))
+        _sig_on
+        c = GENtostr(self.g)
+        v = self.new_gen(strtoGENstr(c))
+        free(c)
+        return v
+
 
     def Strchr(gen x):
         """

@@ -472,7 +472,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             v = [0 for _ in range(right)]
             v.append(self[1]**right)
             return self.parent()(v, prec=self.prec()+right-1)
-        return arith.generic_power(self, right)
+        return arith.generic_power(self, right, self.parent()(1))
 
     def __mod__(self, other):
         if isinstance(other,(int,Integer,long)):

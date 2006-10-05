@@ -1202,7 +1202,8 @@ def notebook(dir         ='sage_notebook',
     expect_quitall(verbose=False)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
-    os.remove('%s/pid'%dir)
+    if os.path.exists('%s/pid'%dir):
+        os.remove('%s/pid'%dir)
     return nb
 
 

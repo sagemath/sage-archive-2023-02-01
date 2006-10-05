@@ -8,6 +8,10 @@ import matrix_generic
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
+cdef extern from "string.h":
+    void *memset(void *dest, int c, size_t n)
+    void *memcpy(void *dest, void *src, size_t n)
+
 from sage.misc.misc import verbose, get_verbose
 
 cimport sage.ext.arith
@@ -51,6 +55,8 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
                 for j from 0 <= j < ncols:
                     v[j] = 0
             return
+        if not clear:
+            return
         if len(entries) != nrows*ncols:
             raise IndexError, "The vector of entries has the wrong length."
         k = 0
@@ -60,9 +66,25 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
             for j from 0 <= j < ncols:
                 n = entries[k]
                 v[j] = n % p
-                if v[j] < 0:
+                if v[j] < 0:  # WARNING uint!
                     v[j] = v[j] + p
                 k = k + 1
+
+    def new_matrix(Matrix_modn_dense self, uint nrows=-1, uint ncols=-1, clear=True):
+      if nrows == -1:
+          nrows = self._nrows
+      if ncols == -1:
+          ncols = self._ncols
+      return Matrix_modn_dense(self.matrix_space(nrows, ncols), self.p, nrows, ncols, clear=clear)
+
+    def copy(Matrix_modn_dense self):
+        cdef Matrix_modn_dense other
+        other = self.new_matrix(clear=False)
+        cdef int i, len
+        len = self._ncols * sizeof(uint)
+        for i from 0 <= i < self._nrows:
+            memcpy(other.matrix[i], self.matrix[i], len)
+        return other
 
     cdef set_matrix(Matrix_modn_dense self, uint **m):
         if self.matrix != <uint **>0:
@@ -94,6 +116,7 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
 
     def __call__(self, i, j):
         return self.matrix[i][j]
+
 
     def _cmp(self, Matrix_modn_dense other):
         cdef uint i, j
@@ -576,6 +599,7 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
         M.set_matrix(m)
         return M
 
+
     def nrows(self):
         return self._nrows
 
@@ -651,6 +675,9 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
         if self.__pivots == None:
             raise ArithmeticError, "Echelon form has not yet been computed."
         return self.__pivots
+
+    def _set_pivots(self, pivots):
+        self.__pivots = pivots
 
     def hessenberg_form(self):
         """
@@ -822,5 +849,244 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
             m[i][col1] = m[i][col2]
             m[i][col2] = t
 
+    def matrix_from_cols(Matrix_modn_dense self, cols):
+        """
+        Return the submatrix formed from the given columns.
+
+        INPUT:
+            cols -- list of int's
+
+        OUTPUT:
+            matrix created from the columns with given indexes
+        """
+        cdef int i, j, k, nc, nr
+        cdef Matrix_modn_dense M
+
+        if not isinstance(cols, list):
+            raise TypeError, "cols (=%s) must be a list"%cols
+        nc = len(cols)
+        if nc == 0:
+            return Matrix_rational_dense(self._nrows, 0)
+        nr = self._nrows
+        if min(cols) < 0 or max(cols) >= self._ncols:
+            raise IndexError, "invalid cols indexes; cols don't exist"
+
+        M = self.new_matrix(nrows=nr, ncols=nc, clear=False)
+        cdef uint **m
+        m = M.matrix
+
+        for j from 0 <= j < nc:
+            k = int(cols[j])
+            for i from 0 <= i < nr:
+                m[i][j] = self.matrix[i][k]
+
+        return M
+
+
+    def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
+        if nrows == -1:
+            nrows = self._nrows - row
+            ncols = self._ncols - col
+        return MatrixWindow(self, row, col, nrows, ncols)
+
+
 #cdef uint **Matrix_modn_dense_matrix(Matrix_modn_dense A):
 #    return A.matrix
+
+
+
+cdef class MatrixWindow:
+
+    def __init__(MatrixWindow self, Matrix_modn_dense matrix, int row, int col, int nrows, int ncols):
+        self._matrix = matrix
+        self._row = row
+        self._col = col
+        self._nrows = nrows
+        self._ncols = ncols
+
+    def __repr__(self):
+        return "Matrix window of size %s x %s at (%s,%s):\n%s"%(
+            self._nrows, self._ncols, self._row, self._col, self._matrix)
+
+    def matrix(MatrixWindow self):
+        """
+        Returns the underlying matrix that this window is a view of.
+        """
+        return self._matrix
+
+
+    def to_matrix(MatrixWindow self):
+        """
+        Returns an actual matrix object representing this view.
+        """
+        a = self._matrix.new_matrix(self._nrows, self._ncols, clear=False)
+        a.matrix_window().set_to(self)
+        return a
+
+
+    def matrix_window(MatrixWindow self, int row=0, int col=0, int n_rows=-1, int n_cols=-1):
+        """
+        Returns a matrix window relative to this window of the underlying matrix.
+        """
+        if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
+            return self
+        return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
+
+    def nrows(MatrixWindow self):
+        return self._nrows
+
+    def ncols(MatrixWindow self):
+        return self._ncols
+
+    def set_to(MatrixWindow self, MatrixWindow A):
+        cdef int i, j
+        cdef uint* s_row
+        cdef uint* A_row
+        for i from 0 <= i < self._nrows:
+            memcpy(self._matrix.matrix[self._row + i] + self._col, A._matrix.matrix[A._row + i] + A._col, self._ncols * sizeof(uint))
+
+    def set_to_zero(MatrixWindow self):
+        cdef int i, j
+        cdef uint* s_row
+        for i from 0 <= i < self._nrows:
+            memset(self._matrix.matrix[self._row + i] + self._col, 0, self._ncols * sizeof(uint))
+
+    def add(MatrixWindow self, MatrixWindow A):
+        cdef int i, j
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        p = self._matrix.p
+        for i from 0 <= i < self._nrows:
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            for j from 0 <= j < self._ncols:
+                s_row[j] = s_row[j] + A_row[j]
+                if s_row[j] >= p:
+                    s_row[j] = s_row[j] - p
+
+    def subtract(MatrixWindow self, MatrixWindow A):
+        cdef int i, j
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        p = self._matrix.p
+        for i from 0 <= i < self._nrows:
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            for j from 0 <= j < self._ncols:
+                s_row[j] = s_row[j] + (p - A_row[j])
+                if s_row[j] >= p:
+                    s_row[j] = s_row[j] - p
+
+    def set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        cdef uint* B_row
+        p = self._matrix.p
+        for i from 0 <= i < self._nrows:
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            B_row = B._matrix.matrix[B._row + i] + B._col
+            for j from 0 <= j < self._ncols:
+                s_row[j] = A_row[j] + B_row[j]
+                if s_row[j] >= p:
+                    s_row[j] = s_row[j] - p
+
+    def set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        cdef uint* B_row
+        p = self._matrix.p
+        for i from 0 <= i < self._nrows:
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            B_row = B._matrix.matrix[B._row + i] + B._col
+            for j from 0 <= j < self._ncols:
+                s_row[j] = A_row[j] + (p - B_row[j])
+                if s_row[j] >= p:
+                    s_row[j] = s_row[j] - p
+
+    def set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j, k
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        cdef uint sum, limit
+        limit = (1 << (sizeof(uint)-1)) - p*p
+        p = self._matrix.p
+        for i from 0 <= i < A._nrows:
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            for j from 0 <= j < B._ncols:
+                sum = A_row[0] * B._matrix.matrix[B._row][B._col+j]
+                for k from 1 <= k < A._ncols:
+                    sum = sum + A_row[k] * B._matrix.matrix[B._row+k][B._col+j]
+                    if sum > limit:
+                        sum = sum % p
+                s_row[j] = sum % p
+
+    def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j, k
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        cdef uint sum, limit
+        limit = (1 << (sizeof(uint)-1)) - p*p
+        p = self._matrix.p
+        for i from 0 <= i < A._nrows:
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            for j from 0 <= j < B._ncols:
+                sum = s_row[j]
+                for k from 0 <= k < A._ncols:
+                    sum = sum + A_row[k] * B._matrix.matrix[B._row+k][B._col+j]
+                    if sum > limit:
+                        sum = sum % p
+                s_row[j] = sum % p
+
+    def subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+        cdef int i, j, k
+        cdef uint p
+        cdef uint* s_row
+        cdef uint* A_row
+        cdef uint sum, limit
+        limit = (1 << (sizeof(uint)-1)) - p*p
+        p = self._matrix.p
+        for i from 0 <= i < A._nrows:
+            A_row = A._matrix.matrix[A._row + i] + A._col
+            s_row = self._matrix.matrix[self._row + i] + self._col
+            for j from 0 <= j < B._ncols:
+                sum = A_row[0] * B._matrix.matrix[B._row][B._col+j]
+                for k from 1 <= k < A._ncols:
+                    sum = sum + A_row[k] * B._matrix.matrix[B._row+k][B._col+j]
+                    if sum > limit:
+                        sum = sum % p
+                s_row[j] = s_row[j] + (p - sum % p)
+                if s_row[j] >= p:
+                    s_row[j] = s_row[j] - p
+
+
+    def swap_rows(MatrixWindow self, int a, int b):
+        self._matrix.swap_rows(self._row + a, self._row + b)
+
+
+    def echelon_in_place(MatrixWindow self):
+        """
+        calculate the echelon form of this matrix, returning the list of pivot columns
+        """
+        echelon = self.to_matrix()
+        echelon.echelon() # TODO: read only, only need to copy pointers
+        self.set_to(echelon.matrix_window())
+        return echelon.pivots()
+
+    def element_is_zero(MatrixWindow self, int i, int j):
+        return self._matrix.matrix[i+self._row][j+self._col] == 0
+
+
+    def new_empty_window(MatrixWindow self, int nrows, int ncols, zero=True):
+        return self._matrix.new_matrix(nrows, ncols, clear=zero).matrix_window()

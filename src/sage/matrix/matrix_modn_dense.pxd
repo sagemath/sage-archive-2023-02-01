@@ -21,7 +21,6 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
 
 
 
-
-
-
-
+cdef class MatrixWindow:
+    cdef Matrix_modn_dense _matrix
+    cdef int _row, _col, _nrows, _ncols

@@ -1,8 +1,6 @@
 r"""
 Matrices over an arbitrary ring
 
-PYREX: sage.matrix.matrix_generic
-
 AUTHORS:
     -- William Stein
     -- Martin Albrecht: conversion to Pyrex
@@ -107,7 +105,7 @@ import sage.structure.coerce
 from   sage.structure.sequence import _combinations
 from   sage.rings.integer_ring import IntegerRing
 
-from sage.structure.mutability_pyx import Mutability
+from sage.structure.mutability_pyx cimport Mutability
 
 cdef class Matrix(sage.structure.element.ModuleElement):
     r"""
@@ -430,6 +428,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             [   3    4]
             sage: A[0,0] = 5; A
             [5 2]
+            [3 4]
+            sage: A[0] = [2,3]
+            sage: A
+            [2 3]
             [3 4]
             sage: A.set_immutable()
             sage: A[0,0] = 7
@@ -1628,7 +1630,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 ##     def __richcmp__(self,right,op):
 ##         res = 0
 ##         if not isinstance(right, Matrix) or right.parent() != self.parent():
-##             res = sage.structure.coerce.cmp(self, right)
+##             res = sage.ext.coerce.cmp(self, right)
 ##         else:
 ##             res = cmp(self._entries(), right._entries())
 
@@ -2199,6 +2201,11 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         strassen_window_multiply(output_window, self_window, other_window, cutoff)
         return output
 
+    def echelon_strassen(self, cutoff):
+        pivots = strassen_echelon(self.matrix_window(), cutoff)
+        self._set_pivots(pivots)
+        return self
+
 
 ############################# end class ####################
 
@@ -2206,7 +2213,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 # TODO: need MatrixWindow hierarchy
 # def strassen_window_multiply(MatrixWindow C, MatrixWindow A, MatrixWindow B, int cutoff):
 def strassen_window_multiply(C, A, B, int cutoff):
-    r"""
+    """
     Multiplies the submatrices specified by A and B, places result in
     C.  Assumes that A and B have compatible dimensions to be
     multiplied, and that C is the correct size to receive the product,
@@ -2218,32 +2225,33 @@ def strassen_window_multiply(C, A, B, int cutoff):
     todo: doc cutoff parameter as soon as I work out what it really means
 
     EXAMPLES:
-        The following matrix dimensions are chosen especially to exercise the
-        eight possible parity combinations that ocould ccur while subdividing
-        the matrix in the strassen recursion. The base case in both cases will
-        be a (4x5) matrix times a (5x6) matrix.
+        # The following matrix dimensions are chosen especially to exercise the
+        # eight possible parity combinations that ocould ccur while subdividing
+        # the matrix in the strassen recursion. The base case in both cases will
+        # be a (4x5) matrix times a (5x6) matrix.
 
-        TODO -- the doctests below are currently not
-        tested/enabled/working -- enable them when linear algebra
-        restructing gets going.
+        # TODO -- the doctests below are currently not
+        # tested/enabled/working -- enable them when linear algebra
+        # restructing gets going.
 
         sage.:P dim1 = 64; dim2 = 83; dim3 = 101
         sage.:P R = MatrixSpace(QQ, dim1, dim2)
         sage.:P S = MatrixSpace(QQ, dim2, dim3)
         sage.:P T = MatrixSpace(QQ, dim1, dim3)
 
+
         sage.:P A = R.random_element(range(-30, 30))
         sage.:P B = S.random_element(range(-30, 30))
         sage.:P C = T(0)
         sage.:P D = T(0)
 
-        sage.:P A_window = A.window(0, 0, dim1, dim2)
-        sage.:P B_window = B.window(0, 0, dim2, dim3)
-        sage.:P C_window = C.window(0, 0, dim1, dim3)
+        sage.: A_window = A.matrix_window(0, 0, dim1, dim2)
+        sage.: B_window = B.matrix_window(0, 0, dim2, dim3)
+        sage.: C_window = C.matrix_window(0, 0, dim1, dim3)
+        sage.: D_window = D.matrix_window(0, 0, dim1, dim3)
 
-        sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage.:P D.set_to_prod(A, B)                    # use naive method
-
+        sage.: strassen_window_multiply(C, A, B, 2)   # use strassen method
+        sage.: D_window.set_to_prod(A, B)             # use naive method
         sage.:P C == D
         True
 
@@ -2257,9 +2265,9 @@ def strassen_window_multiply(C, A, B, int cutoff):
         sage.:P C = T(0)
         sage.:P D = T(0)
 
-        sage.:P A_window = A.window(0, 0, dim1, dim2)
-        sage.:P B_window = B.window(0, 0, dim2, dim3)
-        sage.:P C_window = C.window(0, 0, dim1, dim3)
+        sage.: A_window = A.matrix_window(0, 0, dim1, dim2)
+        sage.: B_window = B.matrix_window(0, 0, dim2, dim3)
+        sage.: C_window = C.matrix_window(0, 0, dim1, dim3)
 
         sage.:P strassen_window_multiply(C, A, B, 2)   # use strassen method
         sage.:P D.set_to_prod(A, B)                    # use naive method
@@ -2441,11 +2449,286 @@ def strassen_window_multiply(C, A, B, int cutoff):
         C_bulk = C.matrix_window(0, 0, A_sub_nrows << 1, B_sub_ncols << 1)
         C_bulk.add_prod(A_last_col, B_last_row)
 
+# TODO: make cdef
+def subtract_strassen_product(result, A, B, int cutoff):
+    cutoff = 1000000 # for testing
+    if (result.ncols() < cutoff or result.nrows() < cutoff):
+        result.subtract_prod(A, B)
+    else:
+        to_sub = strassen_window_multiply(A, B, cutoff)
+        result.subtract(to_sub)
 
+
+def strassen_echelon(A, cutoff):
+    """
+    Compute echelon form, in place.
+    Internal function, call with M.echelon(alg="block")
+    Based on work of Robert Bradshaw and David Harvey at MSRI workshop in 2006.
+
+    INPUT:
+        A -- matrix window
+        cutoff -- size at which algorithm reverts to naive gaussian elemination and multiplication
+
+    OUTPUT:
+        The list of pivot columns
+
+    EXAMPLE:
+        sage: import sage.matrix.matrix_rational_dense as m
+        sage: parent = MatrixSpace(QQ, 5, 30)
+        sage: data = parent.random_element(range(18), prob=.2).list() # test lots of non-pivots
+        sage: A = m.Matrix_rational_dense(parent, data)
+        sage: T = A.echelon(alg="gauss")
+        sage: E = A.echelon_strassen(4)
+        sage: A.copy() == T.copy()  # fix when parents are changed
+        True
+
+    AUTHORS:
+        -- Robert Bradshaw
+    """
+    # The following notation will be used in the comments below, which should be understood to give
+    # the general idea of what's going on, as if there were no inconvenient non-pivot columns.
+    # The original matrix is given by [ A B ]
+    #                                 [ C D ]
+    # For compactness, let A' denote the inverse of A
+    # top_left, top_right, bottom_left, and bottom_right loosely correspond to A, B, C, and D respectively,
+    # however, the "cut" between the top and bottom rows need not be the same.
+
+    cdef int nrows, ncols
+    nrows = A.nrows()
+    ncols = A.ncols()
+
+    if (nrows < cutoff or ncols < cutoff):
+        return A.echelon_in_place()
+
+    cdef int top_h, bottom_cut, bottom_h, bottom_start, top_cut
+    cdef int prev_pivot_count
+    cdef int split
+    split = nrows / 2
+
+    top = A.matrix_window(0, 0, split, ncols)
+    bottom = A.matrix_window(split, 0, nrows-split, ncols)
+
+    top_pivots = strassen_echelon(top, cutoff)
+    # effectively "multiplied" top row by A^{-1}
+    #     [  I  A'B ]
+    #     [  C   D  ]
+
+    top_pivot_intervals = int_range(top_pivots)
+    top_h = len(top_pivots)
+
+    if top_h == 0:
+        #                                 [ 0 0 ]
+        # the whole top is a zero matrix, [ C D ]. Run echelon on the bottom
+        bottom_pivots = strassen_echelon(bottom, cutoff)
+        #             [  0   0  ]
+        # we now have [  I  C'D ], proceed to sorting
+
+    else:
+        bottom_cut = max(top_pivots) + 1
+        bottom_left = bottom.matrix_window(0, 0, nrows-split, bottom_cut)
+
+        if top_h == ncols:
+            bottom.set_to_zero()
+            # [ I ]
+            # [ 0 ]
+            # proceed to sorting
+
+        else:
+            if bottom_cut == top_h:
+                clear = bottom_left
+            else:
+                clear = bottom_left.to_matrix().matrix_from_cols(top_pivots).matrix_window() # TODO: read only, can I do this faster? Also below
+            # Subtract off C time top from the bottom_right
+            if bottom_cut < ncols:
+                bottom_right = bottom.matrix_window(0, bottom_cut, nrows-split, ncols-bottom_cut)
+                subtract_strassen_product(bottom_right, clear, top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut), cutoff);
+            # [  I      A'B   ]
+            # [  *   D - CA'B ]
+
+            # Now subtract off C times the top from the bottom_left (pivots -> 0)
+            if bottom_cut == top_h:
+                bottom_left.set_to_zero()
+                bottom_start = bottom_cut
+
+            else:
+                for cols in top_pivot_intervals:
+                    bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]).set_to_zero()
+                non_pivots = int_range(0, bottom_cut) - top_pivot_intervals
+                for cols in non_pivots:
+                    if cols[0] == 0: continue
+                    prev_pivot_count = len(top_pivot_intervals - int_range(cols[0]+cols[1], bottom_cut - cols[0]+cols[1]))
+                    subtract_strassen_product(bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]),
+                                              clear.matrix_window(0, 0, nrows-split, prev_pivot_count),
+                                              top.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
+                                              cutoff)
+                bottom_start = non_pivots._intervals[0][0]
+            # [  I      A'B   ]
+            # [  0   D - CA'B ]
+
+            # Now recursively do echelon form on the bottom
+            bottom_pivots_rel = strassen_echelon(bottom.matrix_window(0, bottom_start, nrows-split, ncols-bottom_start), cutoff)
+            # [  I  A'B ]
+            # [  0  I F ]
+            bottom_pivots = []
+            for pivot in bottom_pivots_rel:
+                bottom_pivots.append(pivot + bottom_start)
+            bottom_h = len(bottom_pivots)
+
+            if bottom_h + top_h == ncols:
+                top.matrix_window(0, bottom_cut, split, ncols-bottom_cut).set_to_zero()
+                # [ I 0 ]
+                # [ 0 I ]
+                # proceed to sorting
+
+            elif bottom_h == 0:
+                pass
+                # [  I  A'B ]
+                # [  0   0  ]
+                # proceed to sorting
+
+            else:
+                #     [  I  A'B ]  =  [  I  E  G  ]
+                # let [  0  I F ]  =  [  0  I  F  ]
+                top_cut = max(max(bottom_pivots) + 1, bottom_cut)
+
+                # Note: left with respect to leftmost non-zero column of bottom
+                top_left = top.matrix_window(0, bottom_start, top_h, top_cut - bottom_start)
+
+                if top_cut - bottom_start == bottom_h:
+                    clear = top_left
+                else:
+                    clear = top_left.to_matrix().matrix_from_cols(bottom_pivots_rel).matrix_window()
+
+                # subtract off E times bottom from top right
+                if top_cut < ncols:
+                    top_right = top.matrix_window(0, top_cut, top_h, ncols - top_cut)
+                    subtract_strassen_product(top_right, clear, bottom.matrix_window(0, top_cut, top_h, ncols - top_cut), cutoff);
+                # [  I  *  G - EF ]
+                # [  0  I     F   ]
+
+                # Now subtract of E times bottom from top left
+                if top_cut - bottom_start == bottom_h:
+                    top_left.set_to_zero()
+
+                else:
+                    bottom_pivot_intervals = int_range(bottom_pivots)
+                    for cols in bottom_pivot_intervals:
+                        top.matrix_window(0, cols[0], split, cols[1]).set_to_zero()
+                    non_pivots = int_range(bottom_start, top_cut - bottom_start) - bottom_pivot_intervals - top_pivot_intervals
+                    for cols in non_pivots:
+                        if cols[0] == 0: continue
+                        prev_pivot_count = len(bottom_pivot_intervals - int_range(cols[0]+cols[1], top_cut - cols[0]+cols[1]))
+                        subtract_strassen_product(top.matrix_window(0, cols[0], split, cols[1]),
+                                                  clear.matrix_window(0, 0, split, prev_pivot_count),
+                                                  bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
+                                                  cutoff)
+                # [  I  0  G - EF ]
+                # [  0  I     F   ]
+                # proceed to sorting
+
+    # subrows already sorted...maybe I could do this more efficiently in cases with few pivot columns (e.g. merge sort)
+
+    pivots = top_pivots
+    pivots.extend(bottom_pivots)
+    pivots.sort()
+
+    cdef int i, cur_row
+    for cur_row from 0 <= cur_row < len(pivots):
+        pivot = pivots[cur_row]
+        for i from cur_row <= i < nrows:
+            if not A.element_is_zero(i, pivot):
+                break
+        if i > cur_row:
+            A.swap_rows(i, cur_row)
+
+    return pivots
+
+################################
+
+# lots of room for optimization....
+# eventually, should I just pass these around rather than lists of ints for pivots?
+# would need new from_cols
+class int_range:
+    r"""
+    Useful class for dealing with pivots in the strassen echelon, could have much more general application
+    AUTHORS:
+      -- Robert Bradshaw
+    """
+    def __init__(self, indices=None, range=None):
+        if indices is None:
+            self._intervals = []
+            return
+        elif not range is None:
+            self._intervals = [(int(indices), int(range))]
+        else:
+            self._intervals = []
+            if len(indices) == 0:
+                return
+            indices.sort()
+            start = None
+            last = None
+            for ix in indices:
+                if last is None:
+                    start = ix
+                elif ix-last > 1:
+                    self._intervals.append((start, last-start+1))
+                    start = ix
+                last = ix
+            self._intervals.append((start, last-start+1))
+
+    def __repr__(self):
+        return str(self._intervals)
+
+    def intervals(self):
+        return self._intervals
+
+    def to_list(self):
+        all = []
+        for iv in self._intervals:
+            for i in range(iv[0], iv[0]+iv[1]):
+                all.append(i)
+        return all
+
+    def __iter__(self):
+        return self._intervals.__iter__()
+
+    def __len__(self):
+        len = 0
+        for iv in self._intervals:
+            len = len + iv[1]
+        return len
+
+    # Yes, these two could be a lot faster...
+    # Basically, this class is for abstracting away what I was trying to do by hand in several places
+    def __add__(self, other):
+        all = self.to_list()
+        for i in other.to_list():
+            all.append(i)
+        return int_range(all)
+
+    def __sub__(self, other):
+        all = self.to_list()
+        for i in other.to_list():
+            if i in all:
+                all.remove(i)
+        return int_range(all)
+
+    def __mul__(self, other):
+        """
+        In the boolean sense, i.e. intersection
+        """
+        intersection = []
+        all = self.to_list()
+        for i in other.to_list():
+            if i in all:
+                intersection.append(i)
+        return int_range(intersection)
+
+#######################
 
 def __reduce__Matrix_generic(cls, attrs, parent, dict, determinant,
-                             sparse_columns, sparse_rows,
-                             mutability):
+                         sparse_columns, sparse_rows,
+                         mutability):
     M = cls.__new__(cls)
     M._init(attrs, parent, dict, determinant,
             sparse_columns, sparse_rows,

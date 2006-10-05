@@ -877,6 +877,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             return self.__lm
         except AttributeError:
+            if self.is_zero():
+                return self
             R = self.parent()
             f = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )
             one = R.base_ring()(1)
@@ -891,6 +893,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             return self.__lc
         except AttributeError:
+            if self.is_zero():
+                return self
             R = self.parent()
             f = self._MPolynomial__element.dict()
             self.__lc = f[self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )]
@@ -903,6 +907,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         try:
             return self.__lt
         except AttributeError:
+            if self.is_zero():
+                return self
             R = self.parent()
             f = self._MPolynomial__element.dict()
             res = self._MPolynomial__element.lcmt( R._MPolynomialRing_generic__term_order.greater_tuple )

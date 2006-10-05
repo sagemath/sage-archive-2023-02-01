@@ -162,18 +162,23 @@ class Matrix_domain(Matrix):
             sage: eigvals = [eig[i][0] for i in range(2)]
             sage: eigvecs[0]*g == eigvals[0]*eigvecs[0]
             True
-
         """
         try:
             return self.__eigenvectors
         except AttributeError:
             pass
+        if not self.is_square():
+            raise ValueError, "matrix must be square"
         f = self.charpoly()
         G = f.factor()
         V = []
         for h, e in G:
             F = h.root_field()
-            W = (self.change_ring(F) - F.gen(0)).kernel()
+            A = self.change_ring(F).copy()
+            x = F.gen(0)
+            for i in range(A.nrows()):
+                A[i,i] -= x
+            W = A.kernel()
             V.append((F.gen(0), W.basis()))
         self.__eigenvectors = V
         return sage.structure.sequence.Sequence(V, cr=True)
@@ -186,6 +191,8 @@ class Matrix_domain(Matrix):
             sage: g.eigenvectors()
             [(1, 5), (1, 1)]
         """
+        if not self.is_square():
+            raise ValueError, "matrix must be square"
         eig = self.eigenspaces()
         n = len(eig)
         return [eig[i][1][0] for i in range(n)]
@@ -198,6 +205,8 @@ class Matrix_domain(Matrix):
             sage: g.eigenvalues()
             [4, 2]
         """
+        if not self.is_square():
+            raise ValueError, "matrix must be square"
         eig = self.eigenspaces()
         n = len(eig)
         return [eig[i][0] for i in range(n)]
@@ -260,6 +269,8 @@ class Matrix_domain(Matrix):
             sage: A.charpoly()
             x^10 - 495000*x^9 - 8250000000*x^8
         """
+        if not self.is_square():
+            raise ValueError, "matrix must be square"
         f = self.matrix_over_field().charpoly(*args, **kwds)
         return f.base_extend(self.base_ring())
 
@@ -280,9 +291,8 @@ class Matrix_domain(Matrix):
             sage: A.determinant()
             x0*x1^2 - x0^2*x1
         """
-        if self.nrows() != self.ncols():
-            raise ArithmeticError, "Matrix must be square, but is %sx%s"%(
-                self.nrows(), self.ncols())
+        if not self.is_square():
+            raise ValueError, "matrix must be square"
         # Use stupid slow but completely general method.
         d = (-1)**self.nrows() * self.charpoly()[0]
         return self.base_ring()(d)

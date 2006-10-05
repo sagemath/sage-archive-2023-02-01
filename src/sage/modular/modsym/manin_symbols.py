@@ -248,15 +248,21 @@ class ManinSymbolList_character(ManinSymbolList):
     """
     def __init__(self, character, weight):
         self.__level = character.modulus()
-        self.__character = character
         self.__P1 = p1list.P1List(self.level())
+
+        # We make a copy of the character *only* to program around what seems
+        # to be a bug in the cPickle module in some obscure case.
+        # If we don't due this, then this doctest fails.
+        #    sage: M = ModularSymbols(DirichletGroup(5).0)
+        #    sage: loads(dumps(M)) == M
+
+        self.__character = character.__copy__()
+
         # The list returned from P1List is guaranteed to be sorted.
         # Thus each list constructed below is also sorted.  This is
         # important since the index function assumes the list is sorted.
         L = [(i, u, v) for i in range(weight-2+1) \
                             for u, v in self.__P1.list()]
-##        if character(-1) != (-1)**weight:
-##            L = []
         self.__list = L
         ManinSymbolList.__init__(self, weight, L)
 

@@ -1053,3 +1053,19 @@ def getitem(v, n):
         return v[int(n)]
 
 
+def branch_current_hg():
+    """
+    Return the current hg Mercurial branch.
+    """
+    s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
+    if 'No such file or directory' in s:
+        raise RuntimeError, "unable to determine branch?!"
+    i = s.rfind('->')
+    if i == -1:
+        raise RuntimeError, "unable to determine branch?!"
+    s = s[i+2:]
+    i = s.find('-')
+    if i == -1:
+        return ''
+    return s[i+1:]
+

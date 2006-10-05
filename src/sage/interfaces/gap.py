@@ -240,7 +240,7 @@ class Gap(Expect):
         If loading fails, raise a RuntimeError exception.
         """
         if verbose:
-            "Loading GAP package %s"%pkg
+            print "Loading GAP package %s"%pkg
         x = self.eval('LoadPackage("%s")'%pkg)
         if x == 'fail':
             raise RuntimeError, 'Error loading Gap package %s'%pkg
@@ -509,7 +509,8 @@ def gap_reset_workspace(max_workspace_size=None):
                 'toric', 'laguna']:
         try:
             g.load_package(pkg, verbose=True)
-        except RuntimeError:
+        except RuntimeError, msg:
+            print msg
             pass
     # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)

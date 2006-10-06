@@ -112,6 +112,8 @@ var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
+var async_count = 0;
+
 ///////////////////////////////////////////////////////////////////
 //
 // Cross-Browser Stuff
@@ -184,7 +186,7 @@ function get_keyboard() {
     alert("Your browser / OS combination is not supported.  \nPlease use Firefox or Opera under linux, windows, or mac OSX, or Safari.")
   }
 
-  async_request('keyboard', '__keyboard_'+b+o+'__.js', get_keyboard_callback, null);
+  async_request('__keyboard_'+b+o+'__.js', get_keyboard_callback, null);
 }
 
 function get_keyboard_callback(status, response_text) {
@@ -280,8 +282,10 @@ function asyncCallbackHandler(name, callback) {
     return f;
 }
 
-function async_request(name, url, callback, postvars) {
-  f = asyncCallbackHandler(name, callback);
+function async_request(url, callback, postvars) {
+  async_count++;
+  var name = "async_object_no_" + async_count;
+  var f = asyncCallbackHandler(name, callback);
   asyncObj = getAsyncObject(f);
   eval(name + '=asyncObj;');
 
@@ -493,8 +497,7 @@ function click_on_object(name) {
 ///////////////////////////////////////////////////////////////////
 
 function add_worksheet(name,pass) {
-    async_request('async_obj_add_worksheet', '/add_worksheet',
-                   add_worksheet_callback, 'name='+name+'&passcode='+pass)
+    async_request('/add_worksheet', add_worksheet_callback, 'name='+name+'&passcode='+pass)
 }
 
 function add_worksheet_callback(status,response_text) {
@@ -515,8 +518,7 @@ function add_worksheet_callback(status,response_text) {
 }
 
 function delete_worksheet(name) {
-    async_request('async_obj_delete_worksheet', '/delete_worksheet',
-                   delete_worksheet_callback, 'name='+name)
+    async_request('/delete_worksheet', delete_worksheet_callback, 'name='+name)
 }
 
 function delete_worksheet_callback(status, response_text) {
@@ -579,8 +581,7 @@ function process_upload_worksheet_menu_submit() {
 }
 
 function upload_worksheet(filename) {
-   async_request('async_upload', '/upload_worksheet',
-       upload_worksheet_callback, 'filename='+filename)
+   async_request('/upload_worksheet', upload_worksheet_callback, 'filename='+filename)
 }
 
 function upload_worksheet_callback(status, response_text) {
@@ -648,7 +649,7 @@ function unlock_worksheet() {
 function unlock_worksheet_submit(e,passcode) {
     if(is_submit(e)) {
         document.cookie = "ws_"+worksheet_name+"_passcode="+passcode;
-        async_request('async_unlock', '/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
+        async_request('/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
         return false;
     }
     return true;
@@ -793,7 +794,9 @@ function cell_input_minimize_all() {
 }
 
 function cell_delete_callback(status, response_text) {
+debug_append('in callback')
     if (status == "failure") {
+debug_append('failure')
         cell = get_element('cell_outer_' + id_to_delete);
         var worksheet = get_element('worksheet_cell_list');
         worksheet.removeChild(cell);
@@ -802,8 +805,10 @@ function cell_delete_callback(status, response_text) {
         id_to_delete = -1;
         return;
     }
+debug_append('not failure')
     var X = response_text.split(SEP);
     if (X[0] == 'ignore') {
+debug_append('ignored')
         id_to_delete = -1;
         return;   /* do not delete, for some reason */
     }
@@ -816,8 +821,9 @@ function cell_delete_callback(status, response_text) {
 }
 
 function cell_delete(id) {
+   debug_append('deleting ' + id)
    id_to_delete=id;
-   async_request('async_obj_cell_delete', '/delete_cell', cell_delete_callback, 'id='+id)
+   async_request('/delete_cell', cell_delete_callback, 'id='+id)
 }
 
 function key_listen_ie() {
@@ -886,7 +892,7 @@ function cell_input_key_event(id, e) {
         return false;
     }
 
-    if(introspect_id && introspection_loaded && replacing) {
+    if((introspect_id == id) && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e)) {
             if(browser_op) focus(id,true);
             return false;  //otherwise, keep going
@@ -1083,7 +1089,7 @@ function evaluate_cell(id, action) {
     var I = cell_input.value;
     var input = escape0(I);
 
-    async_request('async_obj_evaluate', '/eval' + action, evaluate_cell_callback,
+    async_request('/eval' + action, evaluate_cell_callback,
             'id=' + id + '&input='+input)
 }
 
@@ -1125,7 +1131,7 @@ function evaluate_cell_introspection(id, before, after) {
     var before_cursor_e = escape0(before);
     var after_cursor_e = escape0(after);
     cell_set_running(id);
-    async_request('async_obj_evaluate', '/introspect', evaluate_cell_callback,
+    async_request('/introspect', evaluate_cell_callback,
           'id=' + id + '&before_cursor='+before_cursor_e + '&after_cursor='+after_cursor_e);
 }
 
@@ -1164,7 +1170,7 @@ function cell_output_set_type(id, typ) {
     cell_output_html.className   ='cell_output_html_' + typ;
 
     /* Do async request back to the server */
-    async_request('async_obj_check', '/cell_output_set',
+    async_request('/cell_output_set',
                     generic_callback, 'id='+id+'&type=' + typ)
 }
 
@@ -1217,7 +1223,7 @@ function check_for_cell_update() {
     }
     var cell_id = active_cell_list[0];
     update_time = time_now();
-    async_request('async_obj_cell_update', '/cell_update',
+    async_request('/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
 }
@@ -1572,8 +1578,7 @@ function insert_new_cell_before_callback(status, response_text) {
 }
 
 function insert_new_cell_before(id) {
-    async_request('async_obj_add_new_cell', '/new_cell',
-                   insert_new_cell_before_callback, 'id='+id);
+    async_request('/new_cell', insert_new_cell_before_callback, 'id='+id);
 }
 
 function insert_new_cell_after_callback(status, response_text) {
@@ -1590,8 +1595,7 @@ function insert_new_cell_after_callback(status, response_text) {
 }
 
 function insert_new_cell_after(id) {
-    async_request('async_obj_add_new_cell', '/new_cell_after',
-                   insert_new_cell_after_callback, 'id='+id);
+    async_request('/new_cell_after', insert_new_cell_after_callback, 'id='+id);
 }
 
 function append_new_cell(id, html) {
@@ -1629,8 +1633,7 @@ function interrupt() {
     }
     link.className = "interrupt_in_progress";
     link.innerHTML = "Interrupt"
-    async_request('async_obj_interrupt', '/interrupt',
-                  interrupt_callback, 'worksheet_id='+worksheet_id);
+    async_request('/interrupt', interrupt_callback, 'worksheet_id='+worksheet_id);
 }
 
 
@@ -1656,8 +1659,7 @@ function hide_all() {
     for(i=0; i<n; i++) {
         cell_output_set_type(v[i],'hidden');
     }
-    async_request('async_obj_hide_all', '/hide_all',
-                      hide_all_callback, 'worksheet_id='+worksheet_id);
+    async_request('/hide_all', hide_all_callback, 'worksheet_id='+worksheet_id);
 }
 
 function show_all_callback() {
@@ -1670,8 +1672,7 @@ function show_all() {
     for(i=0; i<n; i++) {
         cell_output_set_type(v[i],'wrap');
     }
-    async_request('async_obj_hide_all', '/show_all',
-                      show_all_callback, 'worksheet_id='+worksheet_id);
+    async_request('/show_all', show_all_callback, 'worksheet_id='+worksheet_id);
 }
 
 function halt_active_cells() {
@@ -1694,8 +1695,7 @@ function restart_sage() {
     var link = get_element("restart_sage");
     link.className = "restart_sage_in_progress";
     link.innerHTML = "Restart";
-    async_request('async_obj_restart_sage', '/restart_sage',
-                      restart_sage_callback, 'worksheet_id='+worksheet_id);
+    async_request('/restart_sage', restart_sage_callback, 'worksheet_id='+worksheet_id);
 }
 
 function login(username,password) {

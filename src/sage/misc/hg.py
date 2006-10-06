@@ -64,6 +64,10 @@ class HG:
         self.__cloneable = cloneable
 
     def __repr__(self):
+        self.status()
+        return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
+
+    def status(self):
         print("Status of modified or unknown files:")
         self('status')
         print "\n---\n"
@@ -71,7 +75,7 @@ class HG:
             b = branch_current_hg()
             if b == '': b='main'
             print("Branch: %s"%b)
-        return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
+
 
     def __call__(self, cmd, check_initialized=True):
         """
@@ -120,7 +124,11 @@ class HG:
     def add(self, files, options=''):
         """
         Add the given list of files (or file) or directories
-        to your HG repository.
+        to your HG repository.  They must exist already.
+
+        To see a list of files that haven't been added to the
+        repository do self.status().  They will appear with an
+        explanation point next them.
 
         Add needs to be called whenever you add a new file or
         directory to your project.  Of course, it also needs to be
@@ -288,6 +296,16 @@ class HG:
 
         Use \code{hg_sage.switch('branch_name')} to switch to a different branch.
         You must restart SAGE after switching.
+
+        INPUT:
+            name -- string
+            rev -- integer or None (default)
+
+        If rev is None, clones the latest recorded version of the repository.
+        This is very fast, e.g., about 30-60 seconds (including any build).
+        If a specific revision is specified, cloning may take much longer
+        (e.g., 5 minutes), since all Pyrex code has to be regenerated and
+        compiled.
 
         EXAMPLES:
 

@@ -92,6 +92,9 @@ class RationalField(_uniq, field.Field):
     def _latex_(self):
         return "\\mathbf{Q}"
 
+    def __len__(self):
+        raise TypeError, 'len() of unsized object'
+
     def __call__(self, x, base=0):
         """
         Coerce x into the field of rational numbers.

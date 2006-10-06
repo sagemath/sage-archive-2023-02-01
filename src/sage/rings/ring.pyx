@@ -35,6 +35,11 @@ cdef class Ring(sage.structure.gens.Generators):
     def __iter__(self):
         raise NotImplementedError, "object does not support iteration"
 
+    def __len__(self):
+        if self.is_finite():
+            return self.cardinality()
+        raise TypeError, 'len() of unsized object'
+
     def __getitem__(self, x):
         """
         Create a polynomial or power series ring over self.

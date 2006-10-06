@@ -1,7 +1,9 @@
 #!/bin/sh
 ########################################################
-# Build SAGE source distribution
-# This script should be called by the SAGE script
+# Build SAGE *binary* distribution
+# This script should be called by the sage-sage script
+#
+# Released under the GNU GPL -- (c) William Stein
 ########################################################
 
 PKGDIR=spkg
@@ -40,11 +42,18 @@ mkdir $TMP
 cd $SAGE_ROOT
 cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data $TMP/
 cp -L$OPT doc $TMP/
+
 if [ -d devel/sage ]; then
-   cd devel/sage
    mkdir $TMP/devel/
-   mkdir $TMP/devel/sage/
-   cp -$OPT MANIFEST.in README* install sage setup.py spkg-* $TMP/devel/sage/
+   cp -$OPT devel/sage-main $TMP/devel/
+   cd $TMP/devel
+   ln -s sage-main sage
+   cd sage
+   rm -rf build/lib.*
+   rm -rf build/temp.*
+   cd $TMP/local/lib/python/site-packages
+   rm -rf sage
+   ln -sf ../../../../devel/sage/build/sage .
 fi
 
 cd $SAGE_ROOT

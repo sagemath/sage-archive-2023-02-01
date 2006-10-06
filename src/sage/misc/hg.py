@@ -104,6 +104,8 @@ class HG:
             os.system('source %s &'%(os.path.abspath(t)))
         self('serve --port %s'%port)
 
+    browse = serve
+
     def unbundle(self, bundle, update=True):
         """
         Apply patches from a hg patch to the repository.
@@ -308,6 +310,57 @@ class HG:
                  -f --force   force a merge with outstanding changes
         """
         self('merge %s'%options)
+
+    def update(self, options=''):
+        """
+        update or merge working directory
+
+        Update the working directory to the specified revision.
+
+        If there are no outstanding changes in the working directory and
+        there is a linear relationship between the current version and the
+        requested version, the result is the requested version.
+
+        To merge the working directory with another revision, use the
+        merge command.
+
+        By default, update will refuse to run if doing so would require
+        merging or discarding local changes.
+
+        aliases: up, checkout, co
+
+        INPUT:
+            options -- string (default: '')
+             -b --branch  checkout the head of a specific branch
+             -C --clean   overwrite locally modified files
+             -f --force   force a merge with outstanding changes
+        """
+        self('merge %s'%options)
+
+    up = update
+    checkout = update
+    co = update
+
+    def head(self, options=''):
+        """
+        show current repository heads
+
+        Show all repository head changesets.
+
+        Repository "heads" are changesets that don't have children
+        changesets. They are where development generally takes place and
+        are the usual targets for update and merge operations.
+
+        INPUT:
+            options -- string (default: '')
+             -b --branches  show branches
+                --style     display using template map file
+             -r --rev       show only heads which are descendants of rev
+                --template  display with template
+        """
+        self('head %s'%options)
+
+    heads = head
 
     def switch(self, name=None):
         r"""

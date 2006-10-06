@@ -9,6 +9,13 @@ import weakref
 # SAGE imports
 import sage.structure.gens as gens
 import matrix
+
+import matrix_dense
+import matrix_integer_dense
+import matrix_integer_sparse
+import matrix_rational_dense
+import matrix_rational_sparse
+
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
@@ -334,8 +341,8 @@ class MatrixSpace_generic(gens.Generators):
 
     def is_sparse(self):
         """
-        Returns true if self is sparse
-        Returns false if self is dense
+        Returns True if self is sparse
+        Returns False if self is dense
         """
         return self.__is_sparse
 
@@ -368,8 +375,11 @@ class MatrixSpace_generic(gens.Generators):
             if x.parent() == self:
                 return x.copy()
             x = x.list()
-        if isinstance(x, list) and len(x) > 0 and isinstance(x[0], list):
-            x = sum(x,[])
+        if isinstance(x, list) and len(x) > 0:
+            if isinstance(x[0], list):
+                x = sum(x,[])
+            elif isinstance(x[0], tuple):
+                x = list(sum(x,()))
         return self.__matrix_class(self, x, coerce_entries, copy)
 
     def matrix_space(self, nrows, ncols, sparse=False):
@@ -441,6 +451,7 @@ class MatrixSpace_pid(MatrixSpace_domain):
     def _get_matrix_class(self):
         if self.is_dense():
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
+#                return matrix_integer_dense.Matrix_integer_dense
                 return matrix.Matrix_dense_integer
             return matrix.Matrix_generic_dense_pid
         else:
@@ -466,7 +477,7 @@ class MatrixSpace_field(MatrixSpace_pid):
         K = self.base_ring()
         if self.is_dense():
             if isinstance(K, rational_field.RationalField):
-                return matrix.Matrix_dense_rational
+                return matrix_rational_dense.Matrix_rational_dense
             else:
                 return matrix.Matrix_generic_dense_field
         else:

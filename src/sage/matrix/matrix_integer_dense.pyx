@@ -22,13 +22,13 @@ from sage.misc.misc import verbose, get_verbose
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"
 
-cimport sage.rings.integer
 import  sage.rings.integer
+cimport sage.rings.integer
 
-cimport matrix_pid
-import matrix_pid
+import matrix_integer
+cimport matrix_integer
 
-cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
+cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     """
     Matrix over the integers.
     """
@@ -38,7 +38,14 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpz_t *v
 
-        matrix_pid.Matrix_pid.__init__(self, parent)
+        matrix_integer.Matrix_integer.__init__(self, parent)
+
+        if not isinstance(entries, list) and not entries is None:
+            entries = sage.rings.integer.Integer(entries)
+
+        if isinstance(entries, sage.rings.integer.Integer):
+            if entries != 0 and nrows != ncols:
+                raise TypeError, "scalar matrix must be square"
 
         nrows = parent.nrows()
         ncols = parent.ncols()
@@ -50,12 +57,12 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         if self._entries == <mpz_t*> 0:
             raise MemoryError, "Error allocating matrix."
 
-        for i from 0 <= i < (nrows * ncols):
-            mpz_init(self._entries[i])
-
         self._matrix = <mpz_t **> PyMem_Malloc(sizeof(mpz_t*)*nrows)
         if self._matrix == <mpz_t**> 0:
             raise MemoryError, "Error allocating matrix."
+
+        for i from 0 <= i < (nrows * ncols):
+            mpz_init(self._entries[i])
 
         k = 0
         for i from 0 <= i < nrows:
@@ -198,6 +205,9 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         return z
 
     def  __dealloc__(self):
+#        cdef i
+#        for i from 0 <= i < (self._nrows * self._ncols):
+#            mpz_clear(self._entries[i])
         PyMem_Free(self._entries)
         PyMem_Free(self._matrix)
 
@@ -213,7 +223,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         snc = self._ncols
 
         cdef Matrix_integer_dense M
-        M = Matrix_integer_dense(self.parent(), zero=False)
+        M = self.new_matrix(nr, nc, zero=False)
 
         cdef mpz_t **m
         m = M._matrix
@@ -243,7 +253,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         cdef int i, j
 
         cdef Matrix_integer_dense M
-        M = Matrix_integer_dense(nr, nc, zero=False)
+        M = self.new_matrix(zero=False)
 
         cdef mpz_t **m
         m = M._matrix
@@ -262,7 +272,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         cdef int i, j
         cdef Matrix_integer_dense M
 
-        M = Matrix_integer_dense(self._ncols, self._nrows, zero=False)
+        M = self.new_matrix(self._ncols, self._nrows, zero=False)
         cdef mpz_t **m
         m = M._matrix
 
@@ -291,7 +301,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
             raise TypeError, "rows (=%s) must be a list"%rows
         nr = len(rows)
         if nr == 0:
-            return Matrix_integer_dense(0, self._ncols)
+            return new_matrix(0, self._ncols)
         nc = self._ncols
         v = []
         for i in rows:
@@ -300,7 +310,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         if min(rows) < 0 or max(rows) >= self._nrows:
             raise IndexError, "invalid row indexes; rows don't exist"
 
-        M = Matrix_integer_dense(self.parent(), zero=False)
+        M = new_matrix(zero=False)
         cdef mpz_t **m
         m = M._matrix
 
@@ -334,7 +344,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
             raise ArithmeticError, "incompatible matrix vector multiple"
 
         cdef Matrix_integer_dense M
-        M = Matrix_integer_dense(self.parent(), zero=False)
+        M = new_matrix(zero=False)
 
         cdef mpz_t **m
         m = M._matrix
@@ -382,7 +392,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         mpz_set(x, z.value)
 
         cdef Matrix_integer_dense M
-        M = Matrix_integer_dense(self.parent(), zero=False)
+        M = new_matrix(zero=False)
 
         cdef mpz_t *e
         e = M._entries
@@ -400,7 +410,7 @@ cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
         nr = self._nrows; nc = self._ncols
 
         cdef Matrix_integer_dense M
-        M = Matrix_integer_dense(self.parent(), zero=False)
+        M = new_matrix(zero=False)
 
         for i from 0 <= i < nr * nc:
             mpz_set(M._entries[i], self._entries[i])

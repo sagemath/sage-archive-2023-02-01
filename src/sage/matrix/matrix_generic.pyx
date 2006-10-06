@@ -479,7 +479,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         WARNING: This function called with no arguments returns the 0
         matrix by default, not the matrix self.
         """
-        # TO IMPLEMENT: propigate the zero flag
+        # TODO: propigate the zero flag
         return self.matrix_space(nrows, ncols, sparse=sparse).matrix(
                 entries, coerce_entries, copy)
 
@@ -659,13 +659,16 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         bottom = other.new_matrix(ncols=self.ncols()).augment(other)
         return top.stack(bottom)
 
-    def change_ring(self, ring):
+    def change_ring(self, ring, copy=False):
         """
         Return the matrix obtained by coercing the entries of this
         matrix into the given ring.
         """
         if ring == self.base_ring():
-            return self
+            if copy:
+                return self.copy()
+            else:
+                return self
         M = sage.matrix.matrix_space.MatrixSpace(ring, self.__nrows, self.__ncols)
         return M(self.list())
 
@@ -1153,7 +1156,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             sage: A.determinant()
             -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
         """
-        if self.__determinant != None:
+        if self.__determinant is not None:
             return self.__determinant
         if not self.is_square():
             raise ValueError, "self must be square but is %s x %s"%(

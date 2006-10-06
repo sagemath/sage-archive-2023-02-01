@@ -1,4 +1,4 @@
-cimport matrix_pid
+cimport matrix_integer
 
-cdef class Matrix_integer_sparse(matrix_pid.Matrix_pid):
+cdef class Matrix_integer_sparse(matrix_integer.Matrix_integer):
     pass

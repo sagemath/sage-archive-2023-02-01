@@ -24,10 +24,18 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+# TODO: re-implement multi-modular Hessenberg form algorithm for charpoly (see matrix.py).
+
 from sage.misc.misc import verbose, get_verbose
 
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"
+#include "../ext/cdefs.pxi"
+
+cimport sage.ext.arith
+import  sage.ext.arith
+cdef sage.ext.arith.arith_int ai
+ai = sage.ext.arith.arith_int()
 
 cimport matrix_field
 import matrix_field
@@ -35,8 +43,17 @@ import matrix_field
 cimport matrix_dense
 import matrix_dense
 
+cimport matrix_modn_dense
+import matrix_modn_dense
+
 cimport sage.rings.rational
 import  sage.rings.rational
+
+import matrix_space
+from sage.rings.finite_field import GF
+
+START_PRIME = 20011  # used for multi-modular algorithms
+
 
 cdef class Matrix_rational_dense(matrix_field.Matrix_field):
     """
@@ -81,6 +98,9 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 entries = entries.split(' ')
                 raise NotImplementedError, "need to deal with base below"
 
+        elif not isinstance(entries, list) and not entries is None:
+            entries = sage.rings.rational.Rational(entries)
+
         if isinstance(entries, sage.rings.rational.Rational):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
@@ -103,8 +123,14 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             return
 
         if nrows*ncols != 0:
-            if not (entries is None) and len(entries) != nrows*ncols:
+            if isinstance(entries, list) and len(entries) != nrows*ncols:
                 raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
+
+        cdef sage.rings.rational.Rational z
+
+        if entries == 0:
+            entries = None
+            zero = True
 
         if entries is None:
             if zero:
@@ -112,16 +138,23 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                     mpq_set_si(self._entries[i], 0, 1)
             return
 
-        cdef sage.rings.rational.Rational z
+        elif isinstance(entries, list):
 
-        if coerce:
-            for i from 0 <= i < nrows*ncols:
-                z = sage.rings.rational.Rational(entries[i])
-                mpq_set(self._entries[i], z.value)
+            if coerce:
+                for i from 0 <= i < nrows*ncols:
+                    z = sage.rings.rational.Rational(entries[i])
+                    mpq_set(self._entries[i], z.value)
+            else:
+                for i from 0 <= i < nrows*ncols:
+                    z = entries[i]
+                    mpq_set(self._entries[i], z.value)
+
         else:
-            for i from 0 <= i < nrows*ncols:
-                z = entries[i]
-                mpq_set(self._entries[i], z.value)
+            z = entries
+            for i from 0 <= i < nrows * ncols:
+                mpq_set_si(self._entries[i], 0, 1)
+            for i from 0 <= i < nrows:
+                mpq_set(self._entries[i+nrows*i], z.value)
 
 
     def nrows(self):
@@ -129,6 +162,30 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
     def ncols(self):
         return self._ncols
+
+    def _adjoint(self):
+        """assumes self is a square matrix (checked in adjoint)"""
+        return self.parent()(self._pari_().matadjoint().python())
+
+    def _lllgram(self):
+        """assumes self is a square matrix (checked in lllgram)"""
+        Z = integer_ring.IntegerRing()
+        n = self.nrows()
+        # pari does not like negative definite forms
+        if n > 0 and self[0,0] < 0:
+            self = -self
+        # maybe should be /unimodular/ matrices ?
+        MS = matrix_space.MatrixSpace(Z,n,n)
+        try:
+            U = MS(self._pari_().lllgram().python())
+        except (RuntimeError, ArithmeticError):
+            raise ValueError, "not a definite matrix"
+        # Fix last column so that det = +1
+        if U.det() == -1:
+            for i in range(n):
+                U[i,n-1] = - U[i,n-1]
+        return U
+
 
     def __reduce__(self):
         import sage._matrix.reduce
@@ -270,7 +327,14 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
     def transpose(self):
         """
-        Returns the transpose of self.
+        Return the transpose of this matrix.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ,3)(range(9))
+            sage: A.transpose()
+            [0 3 6]
+            [1 4 7]
+            [2 5 8]
         """
         cdef int i, j
         cdef Matrix_rational_dense M
@@ -455,7 +519,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
     def new_matrix(self, nrows=None, ncols=None, entries=0,
                    coerce_entries=True, copy=True, sparse=None,
                    clear = True, zero=True):
-      return Matrix_rational_dense(self.matrix_space(nrows, ncols))
+      return Matrix_rational_dense(self.matrix_space(nrows, ncols), zero=zero)
 
 
     def number_nonzero(self):
@@ -485,6 +549,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 v.append(x)
         _sig_off
         return v
+
 
     def echelon_gauss_in_place(self):
         """
@@ -549,8 +614,9 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             ncols = self._ncols - col
         return MatrixWindow(self, row, col, nrows, ncols)
 
+
     def hessenberg_form(self):
-        if not self.is_immutable():
+        if self.is_immutable():
             raise ValueError, "matrix must be mutable, since hessenberg form changes it"
         if self._nrows != self._ncols:
             raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
@@ -608,6 +674,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         mpq_clear(t_inv)
         mpq_clear(u)
         mpq_clear(neg_u)
+        return self
 
     cdef scale_row(self, int row, mpq_t multiple, int start_col):
         cdef int r
@@ -815,7 +882,22 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 mpq_mul(self._matrix[i][j], self._matrix[i][j], a)
         _sig_off
 
-    def echelon(self, alg="modular", height_guess=None):
+    def echelon_form(self, height_guess=None, include_zero_rows=True):
+        """
+        Return the echelon form of this matrix over the rational
+        numbers, computed using a multi-modular algorithm.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ, 3)(range(9))
+            sage: A.echelon_form()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+        """
+        # TODO: choose one of these functions and stick with it
+        return self.echelon(height_guess=height_guess)
+
+    def echelon(self, alg="gauss", height_guess=None):
         """
         echelon(self, alg="modular", height_guess=None):
 
@@ -925,7 +1007,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
             If so, no nded to do rational recon.  This should be the case
             for most a after a while, and should save substantial time!!!!)
         """
-        B, _ = self._clear_denom()
+        B, _ = self._clear_denom() # maybe this should be a matrix over Z for efficiency since we are reducing lots of times
         hA = B.height()
         if height_guess is None:
             height_guess = (2*hA)**(self._ncols/2+1)
@@ -942,7 +1024,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                 A.echelon()
                 if self._nrows == self._ncols and len(A.pivots()) == self._ncols:
                     # special case -- the echelon form must be the identity matrix.
-                    return Matrix_rational_identity(self._nrows)
+                    return Matrix_rational_dense(self.parent(), 1)
 
                 c = cmp_pivots(best_pivots, A.pivots())
                 if c <= 0:
@@ -1022,8 +1104,53 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         verbose("finished CRT", t)
         return C
 
+
+    def matrix_modint(Matrix_rational_dense self, int p):
+        cdef matrix_modn_dense.Matrix_modn_dense M_modp
+        cdef int i, j
+        cdef unsigned int *v
+        cdef mpq_t *w
+        cdef mpz_t r
+        cdef int denom
+
+        M_modp = matrix_modn_dense.Matrix_modn_dense(matrix_space.MatrixSpace(GF(p), self._nrows, self._ncols), p, self._nrows, self._ncols, clear=False) # Do we need a parent?
+        for i from 0 <= i < self._nrows:
+            w = self._matrix[i]
+            v = M_modp.matrix[i]
+            for j from 0 <= j < self._ncols:
+                v[j] = v[j] = mpz_fdiv_ui(mpq_numref(w[j]), p)
+                if not mpz_cmp_si(mpq_denref(w[j]), 1) == 0:
+                    denom = mpz_fdiv_ui(mpq_denref(w[j]), p)
+                    v[j] = (v[j] * ai.c_inverse_mod_int(denom, p)) % p
+
+        return M_modp
+
+
+
 cdef object mpz_to_long(mpz_t x):
     return long(mpz_to_str(x))
+
+def cmp_pivots(x,y):
+    """
+    Compare two sequences of pivot columns.
+    If x is short than y, return -1, i.e., x < y, "not as good".
+    If x is longer than y, x > y, "better"
+    If the length is the same then x is better, i.e., x > y
+        if the entries of x are correspondingly >= those of y with
+        one being greater.
+    I
+    """
+    if len(x) < len(y):
+        return -1
+    if len(x) > len(y):
+        return 1
+    if x < y:
+        return 1
+    elif x == y:
+        return 0
+    else:
+        return -1
+
 
 
 

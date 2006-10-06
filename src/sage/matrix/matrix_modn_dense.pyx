@@ -35,7 +35,7 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
         if self.matrix == <uint**> 0:
             raise MemoryError, "Error allocating memory"
         for i from 0 <= i < nrows:
-            self.matrix[i] = <uint *> PyMem_Malloc(sizeof(uint)*ncols)
+            self.matrix[i] = <uint *> PyMem_Malloc(sizeof(uint)*ncols)  # TODO: consolidate malloc
             if self.matrix[i] == <uint*> 0:
                raise MemoryError, "Error allocating matrix"
 
@@ -605,6 +605,9 @@ cdef class Matrix_modn_dense(matrix_generic.Matrix):
 
     def ncols(self):
         return self._ncols
+
+    def prime(self):
+        return self.p
 
     def number_nonzero(self):
         cdef uint i, j, n

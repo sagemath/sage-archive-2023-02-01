@@ -2,12 +2,18 @@
 Generic matrices over a field
 """
 
-cimport matrix_domain
-import matrix_domain
+cimport matrix_pid
+import matrix_pid
 
-cdef class Matrix_field(matrix_domain.Matrix_domain):
+import matrix_space
+import sage.rings.polynomial_ring
+import sage.rings.number_field.number_field
+import sage.misc.misc
+
+
+cdef class Matrix_field(matrix_pid.Matrix_pid):
     def __init__(self, parent):
-        matrix_domain.Matrix_domain.__init__(self, parent)
+        matrix_pid.Matrix_pid.__init__(self, parent)
 
     def __invert__(self):
         """
@@ -54,13 +60,13 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
         if self.nrows() != self.ncols():
             raise ArithmeticError, "charpoly of non-square matrix not defined."
 
-        R = polynomial_ring.PolynomialRing(self.base_ring())
+        R = sage.rings.polynomial_ring.PolynomialRing(self.base_ring())
         zero = R(0)
         if self.nrows() == 0:
             self.__charpoly = zero
             return self.__charpoly
-        time = misc.verbose(t=0)
-        H = self.hessenberg_form()
+        time = sage.misc.misc.verbose(t=0)
+        H = self.copy().hessenberg_form()
         n = self.nrows()
         c = [zero]*(n+1)
         c[0] = R(1)
@@ -71,7 +77,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
             for i in range(1,m):
                 t = t*H[m-i, m-i-1]
                 c[m] = c[m] - R(t*H[m-i-1,m-1])*c[m-i-1]
-        misc.verbose('computed characteristic polynomial of %sx%s matrix'%
+        sage.misc.misc.verbose('computed characteristic polynomial of %sx%s matrix'%
                      (self.nrows(), self.ncols()), time)
         f = c[n]
         if self.is_immutable():
@@ -119,11 +125,11 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
             raise ArithmeticError, \
                "M must be a subspace of an %s-dimensional space"%self.ncols()
 
-        time = misc.verbose(t=0)
+        time = sage.misc.misc.verbose(t=0)
 
         # 1. Restrict
         B = self.restrict(M)
-        time0 = misc.verbose("restrict -- ", time)
+        time0 = sage.misc.misc.verbose("restrict -- ", time)
 
         # 2. Decompose restriction
         D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
@@ -140,7 +146,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
         # of the basis of W, and these linear combinations define the
         # corresponding subspaces of the ambient space M.
 
-        misc.verbose("decomposition -- ", time0)
+        sage.misc.misc.verbose("decomposition -- ", time0)
         C = M.basis_matrix()
         Z = M.ambient_vector_space()
 
@@ -151,7 +157,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
                 tmp.append(x*C)
             D.append((Z.subspace(tmp), is_irred))
 
-        misc.verbose(t=time)
+        sage.misc.misc.verbose(t=time)
         return D
 
     def denominator(self):
@@ -247,7 +253,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
 
         else:
 
-            t = misc.verbose("Generic echelon...")
+            t = sage.misc.misc.verbose("Generic echelon...")
             pivot_positions = []
             start_row = 0
             A = self.copy()
@@ -255,7 +261,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
             ncols = A.ncols()
             cleared_a_column = False
             for c in range(ncols):
-                misc.verbose("column %s of %s"%(c, ncols),t, level=2)
+                sage.misc.misc.verbose("column %s of %s"%(c, ncols),t, level=2)
                 for r in range(start_row, nrows):
                     if A.get((r,c)) != 0:
                         pivot_positions.append(c)
@@ -280,7 +286,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
                         cleared_a_column = False
                         break
             # end for
-            misc.verbose("Finished generic echelon.",t)
+            sage.misc.misc.verbose("Finished generic echelon.",t)
         #end if
 
         if not include_zero_rows:
@@ -335,7 +341,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
         if not self.is_square():
             raise ArithmeticError, "self must be square"
         n = self.nrows()
-        tm = misc.verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
+        tm = sage.misc.misc.verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
         h = self.copy()
         for m in range(1,n-1):
             # Search for a non-zero entry in column m-1
@@ -367,7 +373,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
                         # column m, and we're only worried about column m-1 right now.
                         # Add u*column_j to column_m.
                         h.add_multiple_of_column(m, j, u)
-        misc.verbose("Finished Hessenberg Normal Form of %sx%s matrix"%(n,n),tm)
+        sage.misc.misc.verbose("Finished Hessenberg Normal Form of %sx%s matrix"%(n,n),tm)
         return h
 
     def kernel(self, *args, **kwds):
@@ -458,7 +464,7 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
         elif self.ncols() == 0:  # to a 0 space
             return sage.modules.free_module.VectorSpace(R, self.nrows())
 
-        if isinstance(R, number_field.NumberField_generic):
+        if isinstance(R, sage.rings.number_field.number_field.NumberField_generic):
             A = self._pari_().mattranspose()
             B = A.matker()
             n = self.nrows()
@@ -605,9 +611,9 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
             return P
 
     def rank(self):
-        try:
+        if self.__rank is not None:
             return self.__rank
-        except AttributeError:
+        else:
             rank = self.echelon_form().rank()
             if self.is_immutable():
                 self.__rank = rank
@@ -801,9 +807,9 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
             raise ArithmeticError, "matrix must be square."
         n = self.nrows()
         v = sage.modules.free_module.VectorSpace(self.base_ring(), n).gen(i)
-        tm = misc.verbose('computing iterates...')
+        tm = sage.misc.misc.verbose('computing iterates...')
         cols = self.iterates(v, 2*n).columns()
-        tm = misc.verbose('computed iterates', tm)
+        tm = sage.misc.misc.verbose('computed iterates', tm)
         f = None
         # Compute the minimal polynomial of the linear recurrence
         # sequence corresponding to the 0-th entries of the iterates,
@@ -813,9 +819,9 @@ cdef class Matrix_field(matrix_domain.Matrix_domain):
         else:
             R = [t]
         for i in R:
-            tm = misc.verbose('applying berlekamp-massey')
+            tm = sage.misc.misc.verbose('applying berlekamp-massey')
             g = berlekamp_massey.berlekamp_massey(cols[i].list())
-            misc.verbose('berlekamp-massey done', tm)
+            sage.misc.misc.verbose('berlekamp-massey done', tm)
             if f is None:
                 f = g
             else:

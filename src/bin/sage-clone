@@ -71,10 +71,10 @@ if os.system(cmd):
     print "Error building SAGE"
 
 
-print "** WARNING **"
-print "If you are cloning a previous revision or have uncommited changes to"
-print "pyrex files you may have to touch all the relevant .pyx files, then"
-print "rebuild, which will take 5-10 minutes.  Otherwise SAGE will build"
-print "using the wrong .c files."
+#print "** WARNING **"
+#print "If you are cloning a previous revision or have uncommited changes to"
+#print "pyrex files you may have to touch all the relevant .pyx files, then"
+#print "rebuild, which will take 5-10 minutes.  Otherwise SAGE will build"
+#print "using the wrong .c files."
 
 

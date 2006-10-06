@@ -145,7 +145,7 @@ cp -pr $SAGE_ROOT/matplotlibrc $SCRIPTS/
 cp -p $SAGE_ROOT/spkg/install $SCRIPTS/
 
 echo "#!/bin/sh"                         > $SCRIPTS/spkg-install
-echo "cp sage-* \$SAGE_ROOT/local/bin/"  >> $SCRIPTS/spkg-install
+echo "cp sage-* .hg* \$SAGE_ROOT/local/bin/"  >> $SCRIPTS/spkg-install
 echo "cp sage-python \$SAGE_ROOT/"       >> $SCRIPTS/spkg-install
 echo "cp install \$SAGE_ROOT/spkg/"      >> $SCRIPTS/spkg-install
 echo "cp *.txt \$SAGE_ROOT/"             >> $SCRIPTS/spkg-install

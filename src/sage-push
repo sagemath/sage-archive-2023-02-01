@@ -4,4 +4,4 @@ hg status
 hg diff
 hg commit
 
-#hg push -f ssh://was@sage.math.washington.edu/www/sage/hg/sage-main
+hg push -f ssh://was@sage.math.washington.edu/www/sage/hg/sage-main

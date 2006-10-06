@@ -116,7 +116,13 @@ def preparse_ipython(line, reset=True):
         #print t
         #__IPYTHON__.output_hist[len(__IPYTHON__.input_hist_raw)] = t
 
-    return 'logstr(r"""%s""")'%t
+    # TODO: this is a very lazy temporary bug fix.
+    # Nobody uses this logging stuff anymore, anyways, because
+    # of the SAGE notebook.
+    try:
+        return 'logstr(r"""%s""")'%t
+    except UnboundLocalError:
+        return 'logstr("")'
 
 
 _v_ = None

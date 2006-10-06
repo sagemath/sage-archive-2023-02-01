@@ -8,7 +8,8 @@ from sage.rings.arith import lcm
 
 from sage.rings.coerce import bin_op, cmp as coerce_cmp
 
-import module_element
+cimport sage.structure.element
+import  sage.structure.element
 
 import sage.matrix.matrix
 
@@ -31,12 +32,15 @@ def Vector(R, elts):
     """
     return (R**len(elts))(elts)
 
-class FreeModuleElement(module_element.ModuleElement):
+cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     """
     An element of a generic free module.
     """
+    cdef object __entries
+    cdef object __zero
+
     def __init__(self, parent):
-        module_element.ModuleElement.__init__(self, parent)
+        sage.structure.element.ModuleElement.__init__(self, parent)
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -68,7 +72,9 @@ class FreeModuleElement(module_element.ModuleElement):
             V = self.parent().ambient_vector_space()
         else:
             raise TypeError, "self and right must have compatible parents"
-        X = [self[i] + right[i] for i in xrange(self.degree())]
+        #X = [self[i] + right[i] for i in xrange(self.degree())]
+        X = eval('[self[i] + right[i] for i in xrange(self.degree())]',
+                 {'self':self, 'right':right})
         return V(X, coerce_entries=False, copy=False, check_element=False)
 
     def __cmp__(self, right):
@@ -110,8 +116,9 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: parent(V % 7)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
-        return self.parent()([x % p for x in self.list()], \
-                    copy=False, coerce_entries=False, check_element=False)
+        return eval('self.parent()([x % p for x in self.list()], \
+                     copy=False, coerce_entries=False, check_element=False)',
+                    {'self':self, 'p':p})
 
     def Mod(self, p):
         """
@@ -173,14 +180,14 @@ class FreeModuleElement(module_element.ModuleElement):
     def __pos__(self):
         return self
 
-    def __pow__(self, n):
+    def __pow__(self, n, dummy):
         raise NotImplementedError
 
     def _repr_(self):
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = [str(x) for x in self.list()]
+        S = eval('[str(x) for x in self.list()]', {'self':self})
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):
@@ -191,7 +198,7 @@ class FreeModuleElement(module_element.ModuleElement):
             entry = S[i]
             #if i > 0:
             #    entry = " "*(width-len(entry)) + entry
-            s += entry + sep
+            s = s + entry + sep
         s = s + ")"
         return s
 
@@ -204,7 +211,8 @@ class FreeModuleElement(module_element.ModuleElement):
             right = V(right)
         else:
             V = self.parent()
-        X = [self[i] - right[i] for i in xrange(self.degree())]
+        X = eval('[self[i] - right[i] for i in xrange(self.degree())]',
+                 {'self':self, 'right':right})
         return V(X, coerce_entries=False, copy=False, check_element=False)
 
     def _matrix_multiply(self, A):
@@ -230,8 +238,9 @@ class FreeModuleElement(module_element.ModuleElement):
         return the product s*self.
         """
         s = self.base_ring()(s)
-        return self.parent()([x*s for x in self.list()], \
-                    copy=False, coerce_entries=False, check_element=False)
+        return eval('self.parent()([x*s for x in self.list()], \
+                     copy=False, coerce_entries=False, check_element=False)',
+                    {'self':self, 's':s})
 
     def copy(self):
         return self.parent()(self.entries(), \
@@ -293,7 +302,7 @@ class FreeModuleElement(module_element.ModuleElement):
         if len(r) != len(l):
             raise ArithmeticError, "degrees must be the same"%(len(l),len(r))
         zero = self.parent().base_ring()(0)
-        return sum([l[i]*r[i] for i in xrange(len(l))], zero)
+        return sum(eval('[l[i]*r[i] for i in xrange(len(l))]', {'l':l,'r':r}), zero)
 
     def element(self):
         return self
@@ -307,10 +316,11 @@ class FreeModuleElement(module_element.ModuleElement):
         return self[i]
 
     def list(self):
-        return [self[i] for i in range(self.degree())]
+        return eval('[self[i] for i in range(self.degree())]', {'self':self})
 
     def additive_order(self):
-        return lcm([self[i].order() for i in range(self.degree())])
+        return eval('lcm([self[i].order() for i in range(self.degree())])',
+                    {'self':self})
 
     def set(self, i, x):
         """
@@ -362,7 +372,8 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         z = self.base_ring()(0)
         v = self.list()
-        return [i for i in xrange(self.degree()) if v[i] != z]
+        return eval('[i for i in xrange(self.degree()) if v[i] != z]',
+                    {'self':self, 'z':z, 'v':v})
 
     def _latex_(self):
         """
@@ -372,7 +383,7 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         s = '\\left('
         for a in self.list():
-            s += latex.latex(a) + ','
+            s = s + latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
@@ -388,7 +399,7 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
         R = self.parent().base_ring()
         if entries == 0:
             zero = R(0)
-            entries = [zero for _ in xrange(self.degree())]
+            entries = [zero]*self.degree()
         else:
             if not isinstance(entries, (list, tuple)):
 
@@ -399,7 +410,7 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
                             self.degree()
             if coerce_entries:
                 try:
-                    entries = [R(x) for x in entries]
+                    entries = eval('[R(x) for x in entries]',{'R':R, 'entries':entries})
                 except TypeError:
                     raise TypeError, "Unable to coerce entries (=%s) to %s"%(entries, R)
             elif copy:
@@ -448,7 +459,7 @@ def _sparse_dot_product(v, w):
     v and w are dictionaries with integer keys.
     """
     x = set(v.keys()).intersection(set(w.keys()))
-    return sum([v[k]*w[k] for k in x])
+    return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
 
 class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
@@ -558,4 +569,6 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         K.sort()
         return K
 
+    def support(self):
+        return self.nonzero_positions()
 

@@ -5,7 +5,8 @@ These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
-This system should all be fully usable from the SAGE notebook.
+This system should all be fully usable from the SAGE notebook (except
+for merging, currently).
 """
 
 ########################################################################
@@ -286,6 +287,27 @@ class HG:
             print "Now building the new SAGE libraries"
             os.system('sage -b')
             print "You *MUST* restart SAGE in order for the changes to take effect!"
+
+        print "If it says use 'hg merge' above, then you should"
+        print "type hg_sage.merge(), where hg_sage is the name"
+        print "of the repository you are using.  This might not"
+        print "work with the notebook yet."
+
+    def merge(self, options=''):
+        """
+        Merge working directory with another revision
+
+        Merge the contents of the current working directory and the
+        requested revision. Files that changed between either parent are
+        marked as changed for the next commit and a commit must be
+        performed before any further updates are allowed.
+
+        INPUT:
+            options -- default: ''
+                 -b --branch  merge with head of a specific branch
+                 -f --force   force a merge with outstanding changes
+        """
+        self('merge %s'%options)
 
     def switch(self, name=None):
         r"""

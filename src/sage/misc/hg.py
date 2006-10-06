@@ -234,20 +234,52 @@ class HG:
         Return help about the given command, or if cmd is omitted
         a list of commands.
 
-        If this hg object is called hg_src, then you
+        If this hg object is called hg_sage, then you
         call a command using
-             \code{hg_src('usual hg command line notation')}
+             \code{hg_sage('usual hg command line notation')}
         """
         self('%s --help | %s'%(cmd, pager()))
 
-    def pull(self, options='', url=None):
+    def pull(self, url=None, options='-u'):
         """
         Pull all new patches from the repository at the given url,
         or use the default 'official' repository if no url is
         specified.
+
+        INPUT:
+            url:  default: self.url() -- the official repository
+                   * http://[user@]host[:port]/[path]
+                   * https://[user@]host[:port]/[path]
+                   * ssh://[user@]host[:port]/[path]
+                   * local directory (starting with a /)
+                   * name of a branch (for hg_sage); no /'s
+            options: (default: '-u')
+                 -u --update     update the working directory to tip after pull
+                 -e --ssh        specify ssh command to use
+                 -f --force      run even when remote repository is unrelated
+                 -r --rev        a specific revision you would like to pull
+                 --remotecmd  specify hg command to run on the remote side
+
+        Some notes about using SSH with Mercurial:
+        - SSH requires an accessible shell account on the destination machine
+          and a copy of hg in the remote path or specified with as remotecmd.
+        - path is relative to the remote user's home directory by default.
+          Use an extra slash at the start of a path to specify an absolute path:
+            ssh://example.com//tmp/repository
+        - Mercurial doesn't use its own compression via SSH; the right thing
+          to do is to configure it in your ~/.ssh/ssh_config, e.g.:
+            Host *.mylocalnetwork.example.com
+              Compression off
+            Host *
+              Compression on
+          Alternatively specify "ssh -C" as your ssh command in your hgrc or
+          with the --ssh command line option.
         """
         if url is None:
             url = self.__url
+        if not '/' in url:
+            url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
+
         self('pull %s %s'%(options, url))
         if self.__target == 'sage':
             print ""

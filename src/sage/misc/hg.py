@@ -74,11 +74,22 @@ class HG:
             print("Branch: %s"%b)
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
 
+    def _warning(self):
+        if not os.path.exists(os.environ['HOME'] + '/.hgrc'):
+            print "\nWARNING:"
+            print "Make sure to create a ~/.hgrc file:"
+            print "-"*70
+            print "[ui]"
+            print "username = William Stein <wstein@gmail.com>"
+            print "-"*70
+            print "\n"
+
     def __call__(self, cmd, check_initialized=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
         """
+        self._warning()
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
         return os.system(s)

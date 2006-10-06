@@ -746,8 +746,8 @@ class Notebook(SageObject):
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
              Name: <input id="new_worksheet_box" class="add_new_worksheet_menu"
-                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input>
-             Pass: <input id="new_worksheet_pass" class="add_new_worksheet_menu"
+                    onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input><br>
+             Password: <input id="new_worksheet_pass" class="add_new_worksheet_menu"
                     onKeyPress="if(is_submit(event)) process_new_worksheet_menu_submit();"></input>
 
              <button class="add_new_worksheet_menu"  onClick="process_new_worksheet_menu_submit();">add</button>

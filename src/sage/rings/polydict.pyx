@@ -690,7 +690,7 @@ cdef class ETuple:
         """
         return self._data.get(i,0)
 
-    def __getslice__(ETuple self,int i,int j):
+    def __getslice__(ETuple self, Py_ssize_t i, Py_ssize_t j):
         """
         x.__getslice(i,j) <==> x[i:j]
 

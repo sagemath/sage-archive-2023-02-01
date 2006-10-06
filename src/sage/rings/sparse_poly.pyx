@@ -57,7 +57,7 @@ cdef class Polynomial:
     def __setitem__(self, n, x):
         raise NotImplementedError
 
-    def __getslice__(self, i, j):
+    def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
         raise NotImplementedError
 
     def __call__(self, x):

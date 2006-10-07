@@ -59,7 +59,7 @@ cdef class Element(sage_object.SageObject):
         return "Generic element of a structure"
 
     def __reduce__(self):
-        return (make_element, (self.__class__, self.__dict__, self._parent))
+        return make_element, (self.__class__, self.__dict__, self._parent)
 
     def __hash__(self):
         return hash(str(self))

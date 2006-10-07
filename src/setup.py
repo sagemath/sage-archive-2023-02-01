@@ -151,7 +151,6 @@ complex_number2 = Extension('sage.rings.complex_number2',
 free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
-
 ################ GSL wrapping ######################
 
 gsl_fft = Extension('sage.gsl.fft',
@@ -180,7 +179,6 @@ ext_modules = [ \
     free_module_element, \
 
     ec, \
-
     pari, \
 
     mwrank, \

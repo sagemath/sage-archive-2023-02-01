@@ -25,6 +25,13 @@ cdef process(s):
     else:
         return s
 
+
+cdef extern from "../ext/stdsage.h":
+    void init_global_empty_tuple()
+
+init_global_empty_tuple()
+
+
 cdef class SageObject:
 
     #############################################################################

@@ -1,11 +1,14 @@
 include "../ext/cdefs.pxi"
-cimport sage.structure.element
-import  sage.structure.element
 
-cdef class Integer(sage.structure.element.EuclideanDomainElement):
+import sage.structure.element
+cimport sage.structure.element
+from sage.structure.element cimport EuclideanDomainElement, RingElement
+
+cdef class Integer(EuclideanDomainElement):
     cdef mpz_t value
+
     cdef int cmp(self, Integer x)
-    cdef void set_from_mpz(Integer self, mpz_t value)
+    cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
     cdef object _pari
-
+    cdef RingElement _add_sibling_cdef(self, RingElement right)

@@ -25,7 +25,7 @@ cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(Element):
-    pass
+    cdef RingElement _add_sibling_cdef(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass

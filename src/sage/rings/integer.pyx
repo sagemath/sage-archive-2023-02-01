@@ -115,6 +115,9 @@ pmem_malloc()
 cdef object the_integer_ring
 the_integer_ring = sage.rings.integer_ring.Z
 
+from sage.structure.sage_object cimport SageObject
+from sage.structure.element cimport EuclideanDomainElement, RingElement
+
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     """
     The \\class{Integer} class represents arbitrary precision
@@ -126,10 +129,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     of the GMP \\code{mpz_t} integer type.
     \\end{notice}
     """
+
+    # todo: It would be really nice if we could avoid the __new__ call.
+    # It has python calling conventions, and our timing tests indicate the
+    # overhead can be significant. The difficulty is that then we can't
+    # guarantee that the initialised will be performed exactly once.
+
     def __new__(self, x=None, unsigned int base=0):
-        global the_integer_ring
         mpz_init(self.value)
-        self._parent = the_integer_ring
+        self._parent = <SageObject>the_integer_ring
+
 
     def __pyxdoc__init__(self):
         """
@@ -178,28 +187,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if not (x is None):
             # First do all the type-check versions; these are fast.
-            # PyObject_TypeCheck only works for *types* not for *classes*.
 
-            if PyObject_TypeCheck(x, Integer):
-                # todo: in this next line, Pyrex adds a call to its own
-                # function "__Pyx_TypeTest" to check that x is really an
-                # Integer. Pretty much all this function does is call
-                # PyObject_TypeCheck, which is what I've just done anyway.
-                # This is really annoying.
-                # Similarly with all the other conversions below.
-                set_from_Integer(self, x)
+            if PY_TYPE_CHECK(x, Integer):
+                set_from_Integer(self, <Integer>x)
 
-            # todo: You would think you could just do:
-            #  elif PyObject_TypeCheck(x, int): [...]
-            # But if you do that, Pyrex writes in a *name lookup* for "int".
-            # That's really strange; it should just know the pointer
-            # to the unique int type object. This is why I'm using instead:
             elif PyInt_Check(x):
                 mpz_set_si(self.value, x)
-            # same comment as above:
+
             elif PyLong_Check(x):
                 mpz_set_pylong(self.value, x)
-            # same comment as above:
+
             elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
@@ -209,20 +206,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # I tried importing/cimporting Rational in various ways, but every
             # way was broken for some mysterious reason. Perhaps a circular
             # include somewhere?
-            elif PyObject_TypeCheck(x, rational.Rational):
+            elif PY_TYPE_CHECK(x, rational.Rational):
                 if x.denominator() != 1:
                     raise TypeError, "Unable to coerce rational (=%s) to an Integer."%x
                 set_from_Integer(self, x.numer())
 
             # Similarly for "sage.libs.pari.all.pari_gen"
-            elif PyObject_TypeCheck(x, pari_gen):
+            elif PY_TYPE_CHECK(x, pari_gen):
                 if x.type() == 't_INTMOD':
                     x = x.lift()
                 # TODO: figure out how to convert to pari integer in base 16 ?
-
-                # todo: having this "s" variable around here is causing
-                # pyrex to play games with refcount for the None object, which
-                # seems really stupid.
 
                 s = hex(x)
                 if mpz_set_str(self.value, s, 16) != 0:
@@ -528,36 +521,39 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    def __add_(Integer self, Integer other):
+    cdef RingElement _add_sibling_cdef(self, RingElement right):
+        # self and right are guaranteed to be Integers
         cdef Integer x
-        x = Integer()
-        mpz_add(x.value, self.value, other.value)
+        x = <Integer> PY_NEW(Integer)
+        mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __add__(x, y):
-        """
-        EXAMPLES:
-        Add 2 integers:
-            sage: a = Integer(3) ; b = Integer(4)
-            sage: a + b == 7
-            True
-
-        Add an integer and a real number:
-            sage: a + 4.0
-            7.0000000000000000
-
-        Add an integer and a rational number:
-            sage: a + Rational(2)/5
-            17/5
-
-        Add an integer and a complex number:
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a+b).dumps()) == a+b
-            True
-        """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__add_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.add)
+#    todo: move the doctests here into the new addition routines
+#
+#    def __add__(x, y):
+#        """
+#        EXAMPLES:
+#        Add 2 integers:
+#            sage: a = Integer(3) ; b = Integer(4)
+#            sage: a + b == 7
+#            True
+#
+#        Add an integer and a real number:
+#            sage: a + 4.0
+#            7.0000000000000000
+#
+#        Add an integer and a rational number:
+#            sage: a + Rational(2)/5
+#            17/5
+#
+#        Add an integer and a complex number:
+#            sage: b = ComplexField().0 + 1.5
+#            sage: loads((a+b).dumps()) == a+b
+#            True
+#        """
+#        if isinstance(x, Integer) and isinstance(y, Integer):
+#            return x.__add_(y)
+#        return sage.rings.coerce.bin_op(x, y, operator.add)
 
     def __sub_(Integer self, Integer other):
         cdef Integer x

@@ -23,6 +23,7 @@ if not os.environ.has_key('SAGE_ROOT'):
 else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local/'
+    SAGE_DEVEL = SAGE_ROOT + '/devel/'
 
 
 if not os.environ.has_key('SAGE_VERSION'):
@@ -38,6 +39,8 @@ if not os.path.exists(SITE_PACKAGES):
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
+SITE_PACKAGES_REL=SITE_PACKAGES[len(SAGE_LOCAL)+5:]
+
 if not os.path.exists('build/sage'):
     os.makedirs('build/sage')
 
@@ -45,6 +48,36 @@ sage_link = SITE_PACKAGES + '/sage'
 if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('rm -rf "%s"'%sage_link)
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
+
+
+include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
+                '%s/sage/sage/ext'%SAGE_DEVEL]
+
+############# Prebuild stdsage.so ###################
+
+stdsage = Extension('sage.ext.stdsage',
+              sources = ['sage/ext/stdsage.c'],
+              include_dirs = include_dirs )
+
+setup(name        = 'sage',
+
+      version     =  SAGE_VERSION,
+
+      description = 'SAGE: System for Algebra and Geometry Experimentation',
+
+      license     = 'GNU Public License (GPL)',
+
+      author      = 'William Stein',
+
+      author_email= 'wstein@gmail.com',
+
+      url         = 'http://modular.math.washington.edu/sage',
+
+      packages    = ['sage.ext'],
+      ext_modules = [stdsage],
+      include_dirs = include_dirs)
+
+os.system('cd %s/lib; ln -sf %s/sage/ext/stdsage.so libstdsage.so' % (SAGE_LOCAL,SITE_PACKAGES_REL))
 
 #####################################################
 
@@ -335,10 +368,10 @@ if DEVEL:
 
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
+    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
+    m.libraries += ['stdsage']
 
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
-
-extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
+#extra_link_args =  ['-L%s/lib -L%s/sage/ext -lstdsage'%(SAGE_LOCAL, SITE_PACKAGES)]
 
 def need_to_create(file1, file2):
     """
@@ -417,7 +450,7 @@ def process_pyrex_file(f, m):
 def pyrex(ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
-        m.extra_link_args += extra_link_args
+#        m.extra_link_args += extra_link_args
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]

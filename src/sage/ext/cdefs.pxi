@@ -22,6 +22,13 @@ cdef extern from "math.h":
     float roundf(float x)    # linux-ish and non-standard; avoid!
 
 
+cdef extern from "stdsage.h":
+    object PY_NEW(object t)
+    void* PY_TYPE(object o)
+    int PY_TYPE_CHECK(object o, object t)
+    void PY_SET_TP_NEW(object t1, object t2)
+
+
 cdef extern from "Python.h":
     # Memory management
     void PyMem_Free(void *p)
@@ -34,7 +41,7 @@ cdef extern from "Python.h":
     object PyString_InternFromString(char *v)
 
     # Type checking
-    int PyObject_TypeCheck(object o, object t)
+    # int PyObject_TypeCheck(object o, object t)   # doesn't work in C++
     int PyInt_Check(object o)
     int PyLong_Check(object o)
     int PyString_Check(object o)

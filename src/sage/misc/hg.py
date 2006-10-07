@@ -127,6 +127,10 @@ class HG:
         """
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle
+        if update:
+            options = '-u'
+        else:
+            options = ''
         self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle

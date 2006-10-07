@@ -82,8 +82,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def show_all(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(id)
         if self.auth_worksheet(W):
-            W = notebook.get_worksheet_with_id(id)
             W.show_all()
 
     def eval_cell(self, newcell=False, introspect=False):

@@ -638,7 +638,7 @@ function switch_to_worksheet(id) {
 
 function unlock_worksheet() {
     lock = get_element("worksheet_lock");
-    lock.innerHTML = 'Enter Passcode: <input onKeyPress="return unlock_worksheet_submit(event,value);" id="lock_input">';
+    lock.innerHTML = 'Enter Passcode: <input onKeyPress="return unlock_worksheet_submit(event,value);" id="lock_input" type="password">';
     lock.innerHTML+= '<span id="unlock_error" class="red"></span>';
     lock_input = get_element("lock_input");
     lock_input.focus();

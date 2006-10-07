@@ -170,8 +170,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         verbose("Deleting cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
-        print (W.name())
-        print "deleting", id
 
         if not self.auth_worksheet(W):
             return

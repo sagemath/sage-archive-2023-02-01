@@ -79,8 +79,6 @@ var worksheet_id=0;
 var worksheet_filename='';
 var worksheet_name='';
 
-var id_to_delete=-1;
-
 //regular expressions used to peek into the cell input for introspection
 var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a variable name
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
@@ -794,35 +792,27 @@ function cell_input_minimize_all() {
 }
 
 function cell_delete_callback(status, response_text) {
-debug_append('in callback')
     if (status == "failure") {
-debug_append('failure')
-        cell = get_element('cell_outer_' + id_to_delete);
-        var worksheet = get_element('worksheet_cell_list');
-        worksheet.removeChild(cell);
-        jump_to_cell(id_to_delete,-1);
-        cell_id_list = delete_from_array(cell_id_list, id_to_delete);
-        id_to_delete = -1;
+//        cell = get_element('cell_outer_' + id_to_delete);
+//        var worksheet = get_element('worksheet_cell_list');
+//        worksheet.removeChild(cell);
+//        jump_to_cell(id_to_delete,-1);
+//        cell_id_list = delete_from_array(cell_id_list, id_to_delete);
+//        id_to_delete = -1;
         return;
     }
-debug_append('not failure')
     var X = response_text.split(SEP);
     if (X[0] == 'ignore') {
-debug_append('ignored')
-        id_to_delete = -1;
         return;   /* do not delete, for some reason */
     }
-    var cell = get_element('cell_outer_' + id_to_delete);
+    var cell = get_element('cell_outer_' + X[1]);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.removeChild(cell);
-    jump_to_cell(id_to_delete,-1);
-    cell_id_list = delete_from_array(cell_id_list, id_to_delete);
-    id_to_delete = -1;
+    jump_to_cell(X[1],-1);
+    cell_id_list = delete_from_array(cell_id_list, X[1]);
 }
 
 function cell_delete(id) {
-   debug_append('deleting ' + id)
-   id_to_delete=id;
    async_request('/delete_cell', cell_delete_callback, 'id='+id)
 }
 
@@ -884,8 +874,6 @@ function cell_input_key_event(id, e) {
     cell_input = get_cell(id);
     e = new key_event(e);
     if (e==null) return;
-
-    //alert (e.keyCode);
 
     if (key_delete_cell(e) && cell_input.value == '') {
         cell_delete(id);
@@ -986,7 +974,7 @@ function debug_clear() {
 function debug_append(txt) {
     output = get_element("debug_output");
     if(output == null) return;
-    output.value = txt + "\n" + output.value;
+    output.innerHTML = txt + "\n" + output.innerHTML;
 }
 
 /*
@@ -1602,7 +1590,7 @@ function append_new_cell(id, html) {
     var new_cell = make_new_cell(id, html);
     var worksheet = get_element('worksheet_cell_list');
     worksheet.appendChild(new_cell);
-    cell_id_list = cell_id_list.concat([id]);
+    cell_id_list = cell_id_list.concat([eval(id)]);
     jump_to_cell(id, 0);
 }
 

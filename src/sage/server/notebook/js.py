@@ -1591,7 +1591,12 @@ function append_new_cell(id, html) {
     var worksheet = get_element('worksheet_cell_list');
     worksheet.appendChild(new_cell);
     cell_id_list = cell_id_list.concat([eval(id)]);
-    jump_to_cell(id, 0);
+    if(in_slide_mode) {
+        set_class('cell_outer_'+id, 'hidden');
+        update_slideshow_progress();
+    }else {
+        jump_to_cell(id, 0);
+    }
 }
 
 

@@ -64,6 +64,8 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
+    lang = "c" # default value
+    lang = parse_keywords('clang', s)[0][0]
     v, s = parse_keywords('clib', s)
     libs = v + standard_libs
     v, s = parse_keywords('cinclude', s)
@@ -72,7 +74,7 @@ def pyx_preparse(s):
 include "cdefs.pxi"
 include "interrupt.pxi"  # ctrl-c interrupt block support
 """ + s
-    return s, libs, inc
+    return s, libs, inc, lang
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -121,7 +123,7 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
 
     F = open(filename).read()
 
-    F, libs, includes = pyx_preparse(F)
+    F, libs, includes, language = pyx_preparse(F)
 
     global sequence_number
     if not sequence_number.has_key(base):
@@ -151,11 +153,12 @@ extra_compile_args = ['-w']
 ext_modules = [Extension('%s', sources=['%s.c', 'interrupt.c'],
                      libraries=%s,
                      extra_compile_args = extra_compile_args,
-                     extra_link_args = extra_link_args)]
+                     extra_link_args = extra_link_args,
+                     language = '%s' )]
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
-    """%(name, name, libs, includes)
+    """%(name, name, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
     pyrex_include = ' '.join(['-I %s'%x for x in includes])

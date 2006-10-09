@@ -77,7 +77,8 @@ import weakref
 
 # SAGE imports
 import sage.modules.free_module_element
-import module
+
+import  module
 
 import sage.matrix.matrix_space
 import sage.matrix.matrix
@@ -158,12 +159,12 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         sage: M.is_sparse()
         True
         sage: type(M.gen(0))
-        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'free_module_element.FreeModuleElement_generic_sparse'>
 
     The default is dense.
         sage: M = ZZ^200
         sage: type(M.gen(0))
-        <class 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+        <class 'free_module_element.FreeModuleElement_generic_dense'>
 
 
     Note that matrices associated in some way to sparse free modules

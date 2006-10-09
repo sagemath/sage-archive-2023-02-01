@@ -14,7 +14,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 import os
 
 from misc import SPYX_TMP, SAGE_ROOT
@@ -64,8 +63,11 @@ def environ_parse(s):
     return environ_parse(s)
 
 def pyx_preparse(s):
-    lang = "c" # default value
-    lang = parse_keywords('clang', s)[0][0]
+    lang = parse_keywords('clang', s)
+    if lang[0]:
+        lang = lang[0][0]
+    else:
+        lang = "c"
     v, s = parse_keywords('clib', s)
     libs = v + standard_libs
     v, s = parse_keywords('cinclude', s)
@@ -125,6 +127,11 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
 
     F, libs, includes, language = pyx_preparse(F)
 
+    if language == 'c++':
+        extension = "cpp"
+    else:
+        extension = "c"
+
     global sequence_number
     if not sequence_number.has_key(base):
         sequence_number[base] = 0
@@ -150,7 +157,7 @@ else:
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = ['-w']
 
-ext_modules = [Extension('%s', sources=['%s.c', 'interrupt.c'],
+ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c'],
                      libraries=%s,
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
@@ -158,20 +165,28 @@ ext_modules = [Extension('%s', sources=['%s.c', 'interrupt.c'],
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
-    """%(name, name, libs, language, includes)
+    """%(name, name, extension, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
     pyrex_include = ' '.join(['-I %s'%x for x in includes])
 
     target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
-    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s '%(build_dir, pyrex_include, name,
+
+    if language == 'c++':
+        target_c = target_c + "pp"
+
+    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
                                                                   name, target_c)
+
     if verbose:
         print cmd
     if os.system(cmd):
         log = open('%s/log'%build_dir).read()
         err = subtract_from_line_numbers(open('%s/err'%build_dir).read(), offset)
         raise RuntimeError, "Error converting %s to C:\n%s\n%s"%(filename, log, err)
+
+    if language=='c++':
+        os.system("cd %s && mv %s.c %s.cpp"%(build_dir,name,name))
 
     if make_c_file_nice and os.path.exists(target_c):
         R = open(target_c).read()

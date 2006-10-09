@@ -68,15 +68,19 @@ def pyx_preparse(s):
         lang = lang[0][0]
     else:
         lang = "c"
+
     v, s = parse_keywords('clib', s)
     libs = v + standard_libs
+
+    additional_source_files, s = parse_keywords('cfile', s)
+
     v, s = parse_keywords('cinclude', s)
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
     s = """
 include "cdefs.pxi"
 include "interrupt.pxi"  # ctrl-c interrupt block support
 """ + s
-    return s, libs, inc, lang
+    return s, libs, inc, lang, additional_source_files
 
 ################################################################
 # If the user attaches a .spyx file and changes it, we have
@@ -125,7 +129,7 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
 
     F = open(filename).read()
 
-    F, libs, includes, language = pyx_preparse(F)
+    F, libs, includes, language, additional_source_files = pyx_preparse(F)
 
     if language == 'c++':
         extension = "cpp"
@@ -139,6 +143,9 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
 
     # increment the sequence number so will use a different one next time.
     sequence_number[base] += 1
+
+    additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+filename+"'" \
+                                        for filename in additional_source_files])
 
     pyx = '%s/%s.pyx'%(build_dir, name)
     open(pyx,'w').write(F)
@@ -157,7 +164,7 @@ else:
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = ['-w']
 
-ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c'],
+ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c', %s],
                      libraries=%s,
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
@@ -165,7 +172,7 @@ ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c'],
 
 setup(ext_modules = ext_modules,
       include_dirs = %s)
-    """%(name, name, extension, libs, language, includes)
+    """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
     pyrex_include = ' '.join(['-I %s'%x for x in includes])
@@ -174,6 +181,8 @@ setup(ext_modules = ext_modules,
 
     if language == 'c++':
         target_c = target_c + "pp"
+
+
 
     cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
                                                                   name, target_c)

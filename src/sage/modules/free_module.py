@@ -208,21 +208,20 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         [1 2]
         [3 4]
     """
-    #global _cache
+    global _cache
     rank = int(rank)
     if not (inner_product_matrix is None):
         inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
 
     # Caching disabled since inner product matrix can be changed at any time.
     # Enabling caching saves little and might lead to difficult to understand bugs.
+    key = (base_ring, rank, sparse, inner_product_matrix)
+    if _cache.has_key(key):
+        M = _cache[key]()
+        if not (M is None):
+            return M
 
-    #key = (base_ring, rank, sparse, inner_product_matrix)
-    #if _cache.has_key(key):
-    #    M = _cache[key]()
-    #    if not (M is None):
-    #        return M
-
-    if not isinstance(base_ring, commutative_ring.CommutativeRing):
+    if not base_ring.is_commutative():
         raise TypeError, "base_ring must be a commutative ring"
 
     if isinstance(base_ring, field.Field):
@@ -239,7 +238,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         M = FreeModule_ambient(base_ring, rank,
                                   sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    #_cache[key] = weakref.ref(M)
+    _cache[key] = weakref.ref(M)
     return M
 
 

@@ -11,7 +11,18 @@ from sage.rings.coerce import bin_op, cmp as coerce_cmp
 cimport sage.structure.element
 import  sage.structure.element
 
+import  sage.structure.coerce
+
 import sage.matrix.matrix
+
+import operator
+
+cimport sage.matrix.matrix_generic
+cimport sage.structure.element
+cimport sage.rings.ring
+
+cdef extern from "Python.h":
+    int PyObject_TypeCheck(object o, object t)
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -54,7 +65,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __abs__(self):
         return self.norm()
 
-    def __add__(self, right):
+    def __add__(left, right):
         """
         EXAMPLES:
             sage: V = QQ^5
@@ -64,18 +75,10 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             sage: V.0 + W.0
             (1, 1, 0, 0, 0)
         """
-        if not isinstance(right, FreeModuleElement):
-            right = self.parent()(right)
-        if self.parent() is right.parent():
-            V = self.parent()
-        elif self.parent().ambient_vector_space() == right.parent().ambient_vector_space():
-            V = self.parent().ambient_vector_space()
-        else:
-            raise TypeError, "self and right must have compatible parents"
-        #X = [self[i] + right[i] for i in xrange(self.degree())]
-        X = eval('[self[i] + right[i] for i in xrange(self.degree())]',
-                 {'self':self, 'right':right})
-        return V(X, coerce_entries=False, copy=False, check_element=False)
+        try:
+            return _add_(left, right)
+        except TypeError:
+            return sage.rings.coerce.bin_op(left, right, operator.add)
 
     def __cmp__(self, right):
         if not isinstance(right, FreeModuleElement) or \
@@ -143,29 +146,48 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def __mul__(self, right):
-        if isinstance(right, FreeModuleElement):
-            # vector x vector -> dot product
-            return self.dot_product(right)
-        if isinstance(right, sage.matrix.matrix.Matrix):
-            # vector x matrix multiply
-            return self._matrix_multiply(right)
-
-        global TypeError    # it's weird that this is necessary!
-        try:
-            right = self.base_ring()(right)
-        except TypeError:
-            try:
-                right = self.parent().base_field()(right)
-            except AttributeError, TypeError:
-                raise TypeError, "unable to multiply %s by %s"%(self, right)
+    def __mul__(left, right):
+        if PyObject_TypeCheck(left, FreeModuleElement):
+            # left is a free module element, and we are multiplying
+            # it be either a scalar or a matrix (or its an error).
+            if PyObject_TypeCheck(right, sage.matrix.matrix_generic.Matrix):
+                return (<FreeModuleElement>left)._matrix_multiply(right)
             else:
-                return self.parent().ambient_vector_space()(self)._scalar_multiply(right)
+                return (<FreeModuleElement>left)._scalar_multiply_coerce(right)
+        else:
+            return (<FreeModuleElement>right)._scalar_multiply_coerce(left)
 
-        return self._scalar_multiply(right)
+    cdef FreeModuleElement _scalar_multiply_coerce(self, scalar):
+        # right is a free module element, and we are multiplying
+        # it by a scalar (or its an error).
+        #
+        # todo: currently the calls to base ring here are a killer;
+        # we need to optimize by making the parent a pyrex class
+        # and making base_ring just a c function, e.g.,
+        # self._parent._base_ring.
+        cdef FreeModuleElement v
+        cdef object P
 
-    def __div__(self, right):
-        return self * ~(self.parent().base_ring()(right))
+        #(<sage.structure.element.Element>scalar)._parent._coerce_(self._parent.base_ring()(1))
+
+        if not PyObject_TypeCheck(scalar, sage.structure.element.Element) \
+              or not ( (<sage.structure.element.Element>scalar)._parent is \
+                             self._parent.base_ring()):
+            try:
+                scalar = self._parent.base_ring()._coerce_(scalar)
+            except TypeError, msg:
+                if PyObject_TypeCheck(scalar, sage.structure.element.Element):
+                    P = (<sage.structure.element.Element>scalar)._parent
+                    if P.has_natural_map_from(self._parent.base_ring()):
+                        v = self.change_ring(P)
+                    return v._scalar_multiply(scalar)
+                else:
+                    raise TypeError, msg
+
+        return self._scalar_multiply(scalar)
+
+    def __div__(left, right):
+        return left * ~(left.parent().base_ring()(right))
 
     def __neg__(self):
         """
@@ -205,17 +227,22 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __setitem__(self, i, x):
         raise NotImplementedError
 
-    def __sub__(self, right):
-        if not isinstance(right, FreeModuleElement) or not self.parent() is right.parent():
-            V = self.parent().ambient_vector_space()
-            right = V(right)
-        else:
-            V = self.parent()
-        X = eval('[self[i] - right[i] for i in xrange(self.degree())]',
-                 {'self':self, 'right':right})
-        return V(X, coerce_entries=False, copy=False, check_element=False)
+    def __sub__(left, right):
+        """
+        EXAMPLES:
+            sage: V = QQ^5
+            sage: W = V.span([V.1, V.2])
+            sage: W.0 - V.0
+            ?
+            sage: V.0 - W.0
+            ?
+        """
+        try:
+            return _sub_(left, right)
+        except TypeError:
+            return sage.rings.coerce.bin_op(left, right, operator.sub)
 
-    def _matrix_multiply(self, A):
+    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix_generic.Matrix A):
         """
         Return the product self*A.
 
@@ -233,7 +260,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         return A.vector_matrix_multiply(self)
 
-    def _scalar_multiply(self, s):
+    cdef FreeModuleElement _scalar_multiply(self, s):
         """
         return the product s*self.
         """
@@ -350,7 +377,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return A.linear_combination_of_rows(self).dot_product(right)
+            return M(A.linear_combination_of_rows(self)).dot_product(right)
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)
@@ -572,3 +599,26 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
     def support(self):
         return self.nonzero_positions()
 
+cdef _add_(FreeModuleElement left, FreeModuleElement right):
+    """
+    Add self and right.
+
+    EXAMPLES:
+        sage: CDF(2,-3)._add_(CDF(1,-2))
+        3.0 - 5.0*I
+    """
+    if not (left.parent() is right.parent()):
+        return sage.rings.coerce.bin_op(left, right, operator.add)
+    X = eval('[left[i] + right[i] for i in xrange(left.degree())]',
+             {'left':left, 'right':right})
+    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)
+
+cdef _sub_(FreeModuleElement left, FreeModuleElement right):
+    """
+    Add self and right.
+    """
+    if not (left.parent() is right.parent()):
+        return sage.rings.coerce.bin_op(left, right, operator.add)
+    X = eval('[left[i] - right[i] for i in xrange(left.degree())]',
+             {'left':left, 'right':right})
+    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)

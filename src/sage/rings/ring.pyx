@@ -109,10 +109,25 @@ cdef class Ring(sage.structure.gens.Generators):
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
-        #if x.parent() is self:
-        #    return x
-        #raise TypeError
+        # TODO: Should uncommment this line and *do the work* to implement _coerce_
+        # everywhere else.
+        # raise NotImplementedError
         return self(x)
+
+    def has_natural_map_from(self, S):
+        """
+        Return True if there is a natural map from S to self.
+        Otherwise, return False.
+        """
+        # TODO This generic behavior is stupid and slow -- but is
+        # doing exactly what we want.  Moreover, again, as in _coerce_
+        # above, this should be "raise NotImplementedError", and all
+        # rings must define this.
+        try:
+            self(S(0))
+        except TypeError:
+            return False
+        return True
 
     def base_ring(self):
         import sage.rings.integer_ring

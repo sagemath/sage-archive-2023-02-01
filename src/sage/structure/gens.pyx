@@ -88,9 +88,9 @@ cdef class Generators(sage_object.SageObject):
         raise NotImplementedError, "i-th generator not known."
 
     def __getitem__(self, n):
-        return self.list()[int(n)]
+        return self.list()[n]
 
-    def __getslice__(self, n, m):
+    def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
         return self.list()[int(n):int(m)]
 
     def __len__(self):

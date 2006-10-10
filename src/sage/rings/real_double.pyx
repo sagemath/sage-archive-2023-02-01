@@ -631,7 +631,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             sage: r = RDF(125.0); r.cube_root()
             5.0
             sage: r = RDF(-119.0)
-            sage: r.cube_root()^3 - r
+            sage: r.cube_root()^3 - r         # output is random, depending on arch.
             0.0
         """
         return self.nth_root(3)
@@ -1005,7 +1005,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.tanh() ; i
             0.917152335667
-            sage: i.atanh() - q
+            sage: i.atanh() - q      # output is random, depending on arch.
             -4.4408920985e-16
         """
         return RealDoubleElement(gsl_atanh(self._value))
@@ -1055,7 +1055,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             1.64493406685
             sage: RDF.pi()^2/6
             1.64493406685
-            sage: RDF(-2).zeta()
+            sage: RDF(-2).zeta()       # slightly random-ish arch dependent output
             -2.37378795339e-18
             sage: RDF(1).zeta()
             inf

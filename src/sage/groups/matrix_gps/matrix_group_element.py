@@ -272,7 +272,7 @@ class MatrixGroupElement(element.Element_cmp_,
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: g = G.random()
-            sage: g.list()
+            sage.: g.list()   # random output
             [[1, 1], [0, 1]]
 
         """

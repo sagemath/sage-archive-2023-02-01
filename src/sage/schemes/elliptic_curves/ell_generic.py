@@ -769,7 +769,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         An example where cancellation occurs:
           sage: E = EllipticCurve("88a1")
-          sage: P = E.gens()[0]
+          sage: P = E([2,2])   # fixed choice of generator
           sage: n = E.multiple_x_numerator(11, P[0]); n
           442446784738847563128068650529343492278651453440
           sage: d = E.multiple_x_denominator(11, P[0]); d
@@ -777,7 +777,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
           sage: n/d
           310
           sage: 11*P
-          (310 : 5458 : 1)
+          (310 : -5458 : 1)
 
         """
         if cache is None:

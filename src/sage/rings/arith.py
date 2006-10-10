@@ -1499,9 +1499,13 @@ def binomial(x,m):
         raise TypeError, 'm must be an integer'
     if isinstance(x, (int, long, sage.rings.integer.Integer)):
         return sage.rings.integer.Integer(pari(x).binomial(m))
-    if m < 0:
-        return sage.rings.integer.Integer(0)
-    return misc.prod([x-i for i in xrange(m)]) / factorial(m)
+    try:
+        P = x.parent()
+    except AttributeError:
+        P = type(x)
+    if m <= 0:
+        return P(0)
+    return misc.prod([x-i for i in xrange(m)]) / P(factorial(m))
 
 def gaussian_binomial(n,k,q):
     r"""

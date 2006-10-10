@@ -363,7 +363,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         if prec is infinity and self.degree() > 0:
             prec = self.parent().default_prec()
         if self.valuation() > 0:
-            u = ~self.unit_part()    # inverse of unit part
+            u = 1/self.unit_part()    # inverse of unit part
             R = self.parent().laurent_series_ring()
             return R(u, -self.valuation())
 
@@ -472,7 +472,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             v = [0 for _ in range(right)]
             v.append(self[1]**right)
             return self.parent()(v, prec=self.prec()+right-1)
-        return arith.generic_power(self, right)
+        return arith.generic_power(self, right, self.parent()(1))
 
     def __mod__(self, other):
         if isinstance(other,(int,Integer,long)):

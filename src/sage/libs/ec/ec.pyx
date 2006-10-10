@@ -70,14 +70,14 @@ def ec(ainvs):
         {'conductor': '10351', 'Modular degree': '464', 'Curve1': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'minimal equation': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0NUM': '1', 'lratio': '1.2653937917645377009', 'analytic rank': '1', 'X0CURVE': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0CURVE moddeg': '464'} # 32-bit
         Traceback (most recent call last):                       # 64-bit
         ...                                                      # 64-bit
-        RuntimeError: ec does not work on 64-bit platforms       # 64-bit
+        OSError: ec does not work on 64-bit platforms            # 64-bit
     """
     if not isinstance(ainvs, list) or len(ainvs) != 5:
         raise TypeError, "ainvs must be a list of length 5"
 
     import sage.misc.all
     if sage.misc.all.is_64_bit:
-        raise RuntimeError, "ec does not work on 64-bit platforms"
+        raise OSError, "ec does not work on 64-bit platforms"
 
     if (not precdl):
         pari_init(10000000, 1000000)

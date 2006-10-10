@@ -1,5 +1,11 @@
 """
 Number Field Elements
+
+TODO / QUESTION: Shouldn't all the number field arithmetic below be directly
+wrapping PARI number field objects?  I'm confused why they don't.  I.e.,
+shouldn't __element by a Mod object in PARI?  Why do we avoid that below?
+Doing that would likely be much faster, easier, and make adding rings
+of integers, etc., easier.
 """
 
 #*****************************************************************************

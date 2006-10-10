@@ -86,6 +86,8 @@ from sage.quadratic_forms.all import *
 
 from sage.gsl.all import *
 
+from copy import copy
+
 
 ###################################################################
 

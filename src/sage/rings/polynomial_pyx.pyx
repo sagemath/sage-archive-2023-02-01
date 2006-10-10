@@ -1124,8 +1124,8 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
             return '0'
         return mpq_to_str(self.pq.v[n])
 
-    def __getslice__(self, int i, int j):
-        cdef int k
+    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
+        cdef Py_ssize_t k
         z = []
         for k in i <= k < j:
             z.append(mpq_to_str(self.pq.v[k]))

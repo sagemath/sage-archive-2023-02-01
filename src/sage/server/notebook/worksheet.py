@@ -49,7 +49,7 @@ class Worksheet:
         self.__next_id = (_notebook.MAX_WORKSHEETS) * id
         self.__name = name
         self.__notebook = notebook
-        self.__passcode = crypt.crypt(passcode, self.__salt)
+        self.__passcode = crypt.crypt(passcode, self.salt())
         self.__passcrypt= True
         dir = list(name)
         for i in range(len(dir)):
@@ -906,7 +906,7 @@ class Worksheet:
         # also annoying since the linked .c file disappears.
         id = self.next_block_id()
         # id = C.relative_id()
-        spyx = os.path.abspath('%s/code/%s.spyx'%(self.directory(), id))
+        spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
         s  = '_support_.pyrex_import_all("%s", globals(), make_c_file_nice=True)'%spyx

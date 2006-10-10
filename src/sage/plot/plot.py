@@ -147,6 +147,7 @@ from math import sin, cos, modf,pi #for hue and polar_plot
 ###############
 
 import matplotlib.patches as patches
+import matplotlib.cm
 from axes import find_axes
 
 def is_Graphics(x):
@@ -192,7 +193,46 @@ class Graphics(SageObject):
         self.__xmax = 1
         self.__ymin = -1
         self.__ymax = 1
+        self.__fontsize = 6
+        self.__show_axes = True
         self.__objects = []
+
+    def range(self, xmin=None, xmax=None, ymin=None, ymax=None):
+        """
+        Set the ranges of the x and y axes.
+        """
+        self.xmin(xmin)
+        self.xmax(xmax)
+        self.ymin(ymin)
+        self.ymax(ymax)
+
+    def fontsize(self, s=None):
+        """
+        Set the font size of axes labels and tick marks.
+
+        If called with no input, return the current fontsize.
+        """
+        if s is None:
+            try:
+                return self.__fontsize
+            except AttributeError:
+                self.__fontsize = 6
+                return self.__fontsize
+        self.__fontsize = s
+
+    def axes(self, show=None):
+        """
+        Set whether or not the x and y axes are shown by default.
+
+        If called with no input, return the current axes setting.
+        """
+        if show is None:
+            try:
+                return self.__show_axes
+            except AttributeError:
+                self.__show_axes = True
+                return self.__show_axes
+        self.__show_axes = bool(show)
 
     def xmax(self, new=None):
         """
@@ -465,9 +505,9 @@ class Graphics(SageObject):
         for x in xtslmajor:
             if x == y_axis_xpos:
                 continue
-            subplot.text(x, xlabel, format(x), fontsize=5,
-                         horizontalalignment="center", verticalalignment="top")
-
+            if self.fontsize() > 0:
+                subplot.text(x, xlabel, format(x), fontsize=self.fontsize(),
+                             horizontalalignment="center", verticalalignment="top")
             subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
                         color='k',linewidth=0.6))
 
@@ -482,9 +522,9 @@ class Graphics(SageObject):
         for y in ytslmajor:
             if y == x_axis_ypos:
                 continue
-            subplot.text(ylabel, y, format(y), fontsize=5, verticalalignment="center",
-                    horizontalalignment="right")
-
+            if self.fontsize() > 0:
+                subplot.text(ylabel, y, format(y), fontsize=self.fontsize(), verticalalignment="center",
+                        horizontalalignment="right")
             subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
                     color='k', linewidth=0.6))
 
@@ -605,6 +645,7 @@ class Graphics(SageObject):
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
              dpi=DEFAULT_DPI, axes=True, axes_label=None,frame=False,
+             fontsize=None,
              **args):
         """
         Show this graphics image with the default image viewer.
@@ -633,7 +674,7 @@ class Graphics(SageObject):
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,frame=frame)
+        self.save(filename, xmin, xmax, ymin, ymax, figsize, dpi=dpi, axes=axes,frame=frame, fontsize=fontsize)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
 
     def _prepare_axes(self, xmin, xmax, ymin, ymax):
@@ -677,7 +718,8 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None, frame=False, verify=True):
+             axes=True, axes_label=None, fontsize=None,
+             frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
         depending on the file extension you give the filename.
@@ -711,6 +753,8 @@ class Graphics(SageObject):
         if ext == '' or ext == '.sobj':
             SageObject.save(self, filename)
             return
+
+        self.fontsize(fontsize)
 
         figure = fig
         if not figure:
@@ -934,20 +978,24 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
 
     def _render_on_subplot(self, subplot):
-        #color map for contour plots:
-        # where/should these be imported???
-        from matplotlib.cm import (autumn, bone, cool, copper,
-                                   gray, hot, hsv, jet, pink,
-                                   prism, spring, summer, winter)
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
+        try:
+            cmap = matplotlib.cm.__dict__[cmap]
+        except KeyError:
+            from matplotlib.colors import LinearSegmentedColormap as C
+            possibilities = ', '.join([str(x) for x in matplotlib.cm.__dict__.keys() if \
+                                       isinstance(matplotlib.cm.__dict__[x], C)])
+            print "The possible color maps include: %s"%possibilities
+            raise RuntimeError, "Color map %s not known"%cmap
+
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
         if fill:
-            subplot.contourf(self.xy_data_array, cmap=eval(cmap), extent=(x0,x1,y0,y1))
+            subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
         else:
-            subplot.contour(self.xy_data_array, cmap=eval(cmap), extent=(x0,x1,y0,y1))
+            subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """
@@ -1873,7 +1921,7 @@ class GraphicsArray(SageObject):
     def __append__(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None, **args):
+    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):
         r"""
         \code{render} loops over all graphics objects
         in the array and adds them to the subplot.
@@ -1885,7 +1933,7 @@ class GraphicsArray(SageObject):
         dims = self._dims
         #make a blank matplotlib Figure:
         from matplotlib.figure import Figure
-        figure = Figure()
+        figure = Figure(figsize)
         global do_verify
         do_verify = True
         for i,g in zip(range(1, dims+1), glist):
@@ -1894,31 +1942,66 @@ class GraphicsArray(SageObject):
                    sub=subplot, savenow = (i==dims), verify=do_verify,
                    **args)   # only save if i==dims.
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, **args):
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI, **args):
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
         r"""
         Show this graphics array using the default viewer.
         """
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, **args)
+            self.save(filename, dpi=dpi, figsize=figsize, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
         #os.system('gqview %s >/dev/null&'%filename)
 
-def graphics_array(array):
+
+def reshape(v, n, m):
+    G = Graphics()
+    G.axes(False)
+    if len(v) == 0:
+        return [[G]*m]*n
+
+    if not isinstance(v[0], Graphics):
+        # a list of lists -- flatten it
+        v = sum([list(x) for x in v], [])
+
+    # Now v should be a single list.
+    # First, make it have the right length.
+    for i in xrange(n*m - len(v)):
+        v.append(G)
+
+    # Next, create a list of lists out of it.
+    L = []
+    k = 0
+    for i in range(n):
+        w = []
+        for j in range(m):
+            w.append(v[k])
+            k += 1
+        L.append(w)
+
+    return L
+
+def graphics_array(array, n=None, m=None):
     r"""
     \code{graphics_array} take a list of lists (or tuples)
     of graphics objects and plots them all on one canvas (single plot).
+
+    INPUT:
+         array -- a list of lists or tuples
+         n, m -- (optional) integers -- if n and m are given then
+                 the input array is flattened and turned into an
+                 n x m array, with blank graphics objects padded
+                 at the end, if necessary.
 
     EXAMPLE:
     Make some plots of $\sin$ functions:
@@ -1943,8 +2026,26 @@ def graphics_array(array):
         Graphics Array of size 1 x 2
 
     """
+    if not n is None:
+        # Flatten then reshape input
+        n = int(n)
+        m = int(m)
+        array = reshape(array, n, m)
+
     G = GraphicsArray(array)
     return G
 
 
 
+def arrowhead(x,y,angle=0,spread=0.1,length=0.05,**options):
+    """
+    Draw an arrowhead with tip at (x,y), rotated the given angle,
+    with given spread (in radians) and sides having the given length.
+
+    EXAMPLES:
+
+    """
+    s = spread/2; r = length
+    v = [(x - r*cos(angle-s), y-r*sin(angle-s)), (x,y), \
+         (x - r*cos(angle+s), y-r*sin(angle+s))]
+    return line(v, **options)

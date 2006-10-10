@@ -106,6 +106,7 @@ class Morphism(Element, Element_cmp_):
     def __pow__(self, n):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
+        # todo -- what about the case n=0 -- need to specify the identity map somehow.
         return arith.generic_power(self, n)
 
 class FormalCoercionMorphism(Morphism):

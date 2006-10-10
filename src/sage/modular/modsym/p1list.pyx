@@ -301,6 +301,17 @@ def p1_normalize(int N, int u, int v):
         raise OverflowError
 
 cdef class P1List:
+    """
+    EXAMPLES:
+        sage: P = P1List(12); P
+        The projective line over the integers modulo 12
+        sage: list(P)
+        [(0, 1), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (2, 1), (2, 3), (2, 5), (3, 1), (3, 2), (3, 4), (3, 7), (4, 1), (4, 3), (4, 5), (6, 1)]
+
+    Saving and loading works.
+        sage: loads(dumps(P)) == P
+        True
+    """
     cdef int __N
     # Here we use a pointer to a function, so the if logic
     # for normalizing an element does not need to be used
@@ -322,6 +333,17 @@ cdef class P1List:
             raise OverflowError, "p1list not defined for such large N."
         self.__list.sort()
 
+    def __cmp__(self, other):
+        if not isinstance(other, P1List):
+            return -1
+        cdef P1List O
+        O = other
+        if self.__N < O.__N:
+            return -1
+        elif self.__N > O.__N:
+            return 1
+        return 0
+
     def __reduce__(self):
         import sage.modular.modsym.p1list
         return sage.modular.modsym.p1list._make_p1list, (self.__N, )
@@ -329,7 +351,7 @@ cdef class P1List:
     def __getitem__(self, n):
         return self.__list[n]
 
-    def __getslice__(self, n, m):
+    def __getslice__(self,  Py_ssize_t n,  Py_ssize_t m):
         return self.__list[n:m]
 
     def __len__(self):

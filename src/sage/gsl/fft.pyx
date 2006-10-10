@@ -56,7 +56,7 @@ cdef class FastFourierTransform_radix2_complex(FastFourierTransform_base):
         j = 2*i
         return self.data[2*i], self.data[2*i+1]
 
-    def __getslice__(self, i, j):
+    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
         # Todo -- make this actually fast.
         return list(self)[i:j]
 

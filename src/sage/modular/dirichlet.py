@@ -285,6 +285,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
                           for i in range(len(self.__values_on_gens))]
         return DirichletCharacter(self.parent(), values_on_gens)
 
+    def __copy__(self):
+        """
+        Return a copy of this Dirichlet character.
+        """
+        return DirichletCharacter(self.parent(), self.__values_on_gens)
+
     def __pow__(self, n):
         """
         Return self raised to the power of n
@@ -989,9 +995,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return self.__values_on_gens
 
-# This is so there is only one DirichletGroup with given parameters
-# at a time.
-_objsDirichletGroup = {}
 def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
     r"""
     The group of Dirichlet characters modulo~$N$ with values in
@@ -1010,12 +1013,6 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
 
     OUTPUT:
         DirichletGroup -- a group of Dirichlet characters.
-
-    NOTES:
-        Uniqueness -- If a group is created with the same parameters
-        as another DirichletGroup still in memory, then the same group
-        is returned instead of a new group defined by the same
-        parameters.
 
     EXAMPLES:
         The default base ring is a cyclotomic field of order the exponent
@@ -1072,13 +1069,14 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
         sage: loads(G.dumps()) == G
         True
     """
-    key = (base_ring, modulus, zeta, zeta_order)
-    if _objsDirichletGroup.has_key(key):
-        x = _objsDirichletGroup[key]()
-        if x != None: return x
-    R = DirichletGroup_class(modulus, base_ring, zeta, zeta_order)
-    _objsDirichletGroup[key] = weakref.ref(R)
-    return R
+    return DirichletGroup_class(modulus, base_ring, zeta, zeta_order)
+    #key = (base_ring, modulus, zeta, zeta_order)
+    #if _objsDirichletGroup.has_key(key):
+    #    x = _objsDirichletGroup[key]()
+    #    if x != None: return x
+    #R = DirichletGroup_class(modulus, base_ring, zeta, zeta_order)
+    #_objsDirichletGroup[key] = weakref.ref(R)
+    #return R
 
 def is_DirichletGroup(x):
     """

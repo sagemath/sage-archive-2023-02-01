@@ -181,7 +181,8 @@ class Pi(Constant):
     """
     def __init__(self):
         Constant.__init__(self,
-            {'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
+            {'axiom':'%pi',
+             'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
              'matlab':'pi','maple':'Pi','octave':'pi','pari':'Pi'})
 
     def _repr_(self):

@@ -167,6 +167,12 @@ class Function(Element_cmp_, RingElement):
         except KeyError:
             return self.str()
 
+    def _axiom_init_(self):
+        try:
+            return self._conversions['axiom']
+        except KeyError:
+            return self.str()
+
     def _maxima_init_(self):
         try:
             return self._conversions['maxima']
@@ -423,6 +429,14 @@ class Function_arith(Function):
             %pi + %e
         """
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
+
+    def _axiom_(self, axiom):
+        """
+        EXAMPLES:
+            sage: axiom(e + pi)
+            %pi + %e
+        """
+        return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
 
     def _octave_(self, octave):
         """

@@ -342,6 +342,15 @@ cdef class SageObject:
     def _kash_init_(self):
         return self._interface_init_()
 
+    def _axiom_(self, G=None):
+        if G is None:
+            import sage.interfaces.axiom
+            G = sage.interfaces.axiom.axiom
+        return self._interface_(G)
+
+    def _axiom_init_(self):
+        return self._interface_init_()
+
     def _maxima_(self, G=None):
         if G is None:
             import sage.interfaces.maxima

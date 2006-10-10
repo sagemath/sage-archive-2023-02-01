@@ -378,6 +378,12 @@ class MatrixSpace_generic(gens.Generators):
         if isinstance(x, list) and len(x) > 0:
             if isinstance(x[0], list):
                 x = sum(x,[])
+            elif hasattr(x[0], "is_vector"): # TODO: is this the best way to test that?
+                e = []
+                for v in x:
+                    e = e + v.list()
+                copy = False # deep copy?
+                x = e
             elif isinstance(x[0], tuple):
                 x = list(sum(x,()))
         return self.__matrix_class(self, x, coerce_entries, copy)

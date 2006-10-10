@@ -3029,9 +3029,7 @@ class Matrix_sparse_rational(Matrix_rational):
         except AttributeError:
             pass
         P = self.matrix_space(sparse=False)
-        A = Matrix_dense_rational(P,
-                                  entries=self.__matrix.dense_matrix(),
-                                  copy = False)
+        A = P.matrix(self, coerce_entries=False, copy = False) # room for improvement, don't need to create whole list of Rationals
         if self.is_immutable():
             self.__dense_matrix = A
             A.set_immutable()

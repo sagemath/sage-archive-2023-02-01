@@ -328,6 +328,67 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         R = self.base_ring()
         return self([R.random_element(bound) for _ in xrange(degree+1)])
 
+    def _monics_degree( self, of_degree ):
+        base = self.base_ring()
+        x = self.gen()
+        for lt1 in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
+            yield sum([x**i*lt1[of_degree-i] for i in range(len(lt1))])
+
+    def _monics_max( self, max_degree ):
+        for degree in xrange(max_degree + 1):
+            for m in self._monics_degree( degree ):
+                yield m
+
+    def monics( self, of_degree = None, max_degree = None ):
+        """
+        Return an iterator over the monic polynomials of specified degree.
+
+        INPUT:
+            Pass exactly one of:
+            max_degree -- an int; the iterator will generate all monic polynomials which have degree less than or equal to max_degree
+            of_degree -- an int; the iterator will generate all monic polynomials which have degree of_degree
+
+        OUTPUT:
+            an iterator
+
+        EXAMPLES:
+            sage: P = PolynomialRing(GF(4),'y')
+            sage: for p in P.monics( of_degree = 2 ): print p
+            y^2
+            y^2 + 1
+            y^2 + a
+            y^2 + a + 1
+            y^2 + y
+            y^2 + y + 1
+            y^2 + y + a
+            y^2 + y + a + 1
+            y^2 + a*y
+            y^2 + a*y + 1
+            y^2 + a*y + a
+            y^2 + a*y + a + 1
+            y^2 + (a + 1)*y
+            y^2 + (a + 1)*y + 1
+            y^2 + (a + 1)*y + a
+            y^2 + (a + 1)*y + a + 1
+            sage: for p in P.monics( max_degree = 1 ): print p
+            1
+            y
+            y + 1
+            y + a
+            y + a + 1
+            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
+            Traceback (most recent call last):
+            ...
+            ValueError
+        """
+
+        if self.base_ring().order() is sage.rings.infinity.Infinity:
+            raise NotImplementedError
+        if of_degree is not None and max_degree is None:
+            return self._monics_degree( of_degree )
+        if max_degree is not None and of_degree is None:
+            return self._monics_max( max_degree )
+        raise ValueError # You should pass exactly one of of_degree and max_degree
 
 class PolynomialRing_integral_domain(PolynomialRing_generic, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):

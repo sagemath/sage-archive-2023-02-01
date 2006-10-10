@@ -82,8 +82,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def show_all(self):
         C = self.get_postvars()
         id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(id)
         if self.auth_worksheet(W):
-            W = notebook.get_worksheet_with_id(id)
             W.show_all()
 
     def eval_cell(self, newcell=False, introspect=False):
@@ -170,10 +170,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         verbose("Deleting cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
+
         if not self.auth_worksheet(W):
             return
 
-        if len(W) <= 1 or W.is_last_id_and_previous_is_nonempty(id):
+        if len(W) <= 1:
             self.wfile.write('ignore')
         else:
             prev_id = W.delete_cell_with_id(id)
@@ -581,44 +582,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-type", 'text/plain')
             self.end_headers()
-            if self.path[-8:]   == '/refresh':
-                self.show_page(worksheet_id=None, body_only=True)
-            elif self.path[-6:] == '/eval0':
-                self.eval_cell(newcell=False)
-            elif self.path[-6:] == '/eval1':
-                self.eval_cell(newcell=True)
-            elif self.path[-16:] == '/cell_output_set':
-                self.cell_output_set()
-            elif self.path[-9:]  == '/hide_all':
-                self.hide_all()
-            elif self.path[-13:] == '/restart_sage':
-                self.restart_sage()
-            elif self.path[-9:]  == '/show_all':
-                self.show_all()
-            elif self.path[-11:] == '/introspect':
-                self.introspect()
-            elif self.path[-9:]  == '/new_cell':
-                self.new_cell()
-            elif self.path[-15:] == '/new_cell_after':
-                self.new_cell_after()
-            elif self.path[-12:] == '/delete_cell':
-                self.delete_cell()
-            elif self.path[-12:] == '/cell_update':
-                self.cell_update()
-            #elif self.path[-13:] == '/update_cells':
-            #    self.update_cells()
-            elif self.path[-10:] == '/interrupt':
-                self.interrupt()
-            elif self.path[-13:] == '/cell_id_list':
-                self.cell_id_list()
-            elif self.path[-14:] == '/add_worksheet':
-                self.add_worksheet()
-            elif self.path[-17:] == '/delete_worksheet':
-                self.delete_worksheet()
-            elif self.path[-17:] == '/unlock_worksheet':
-                self.unlock_worksheet()
-#            elif self.path == '/upload_worksheet':
-#                self.upload_worksheet_local_file()
+
+            method = self.path[self.path.rfind('/')+1:]
+            if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
+                          'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
+                          'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet' ]:
+                eval("self.%s()"%method)
+            else:
+                if self.path[-8:]   == '/refresh':
+                    self.show_page(worksheet_id=None, body_only=True)
+                elif self.path[-6:] == '/eval0':
+                    self.eval_cell(newcell=False)
+                elif self.path[-6:] == '/eval1':
+                    self.eval_cell(newcell=True)
+
         else:
             self.body = {}                   # Unknown content-type
 

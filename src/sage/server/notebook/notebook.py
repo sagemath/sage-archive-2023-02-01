@@ -806,7 +806,7 @@ class Notebook(SageObject):
         body += '\n<div class="worksheet" id="worksheet">\n'
         if self.__show_debug or show_debug:
             body += "<div class='debug_window'>"
-            body += "<textarea rows=10 id='debug_output' class='debug_output' onKeyPress='return false;'></textarea>"
+            body += "<div class='debug_output'><pre id='debug_output'></pre></div>"
             body += "<textarea rows=5 id='debug_input' class='debug_input' "
             body += " onKeyPress='return debug_keypress(event);' "
             body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"

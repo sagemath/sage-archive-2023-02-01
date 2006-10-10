@@ -109,8 +109,9 @@ def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
     """
-    x = str(x).replace(' ','')
-    return x.replace('),(',')(').replace('[','').replace(']','')
+    if isinstance(x,str): return x
+    x = str(tuple(x)).replace(' ','')
+    return x.replace('),(',')(').replace(',)',')')
 
 def PermutationGroup(x, from_group=False, check=True):
     """
@@ -920,6 +921,23 @@ class CyclicPermutationGroup(PermutationGroup_generic):
     def is_abelian(self):
         return True
 
+class KleinFourGroup(PermutationGroup_generic):
+    """
+    The Klein 4 Group of order $n$
+    """
+    def __init__(self):
+        """
+        OUTPUT:
+            -- the Klein 4 group of order 4, as a permutation group
+        EXAMPLE:
+        """
+        gens = ((1,2),(3,4))
+        PermutationGroup_generic.__init__(self, gens, from_group=True)
+
+    def _repr_(self):
+        return 'The Klein 4 group of order %n, as a permutation group'%self.order()
+
+
 class DihedralGroup(PermutationGroup_generic):
     """
     The Dihedral group of degree $n$ and order $2n$.
@@ -935,23 +953,38 @@ class DihedralGroup(PermutationGroup_generic):
         EXAMPLE:
             sage: G = DihedralGroup(6)
             sage: G.order()
-            12
+                12
             sage: G = DihedralGroup(5)
             sage: G.order()
-            10
+                10
             sage: G
-            Dihedral group of order 10 as a permutation group
+                Dihedral group of order 10 as a permutation group
             sage: loads(G.dumps()) == G
-            True
+                True
+            sage: G.gens()
+                ((1,2,3,4,5), (1,5)(2,4))
         """
         n = Integer(n)
-        n0 = n//2
-        m = 2*n0 + 1
-        if n % 2 != 0:
-            m += 1
-        gen0 = tuple(range(1,m))
-        gen1 = tuple([(i,m-i) for i in range(1,n0+1)])
-        PermutationGroup_generic.__init__(self, [gen0, gen1], from_group = True)
+
+        # the first generator generates the cyclic subgroup of D_n, <(1...n)> in
+        # cycle notation
+        gen0 = range(1,n+1)
+
+        if n < 1:
+            raise ValueError, "n (=%s) must be >= 1"%n
+
+        # D_1 is a subgroup of S_2, we need the cyclic group of order 2
+        if n == 1:
+            gens = CyclicPermutationGroup(2).gens()
+        # D_2 is a subgroup of S_3
+        elif n == 2:
+            gens = KleinFourGroup().gens()
+        else:
+            #gens = tuple(gen0.append([(i, n+1-i) for i in range(1, n//2 + 1)]))
+            gen1 = [(i, n-i+1) for i in range(1, n//2 +1)]
+            gens = tuple([tuple(gen0),tuple(gen1)])
+        # send this off to the parent's class __init__()
+        PermutationGroup_generic.__init__(self, gens, from_group = True)
 
     def _repr_(self):
         return "Dihedral group of order %s as a permutation group"%self.order()

@@ -127,13 +127,15 @@ sage_setup() {
 
 ########################################################
 # Regarding printing the branch below:
-#   If the current branch is not the default main one, then
-#   print this out in the startup.  Otherwise people get
+#   We print a message with the library branch that
+#   SAGE is currently being run from. If they are using
+#   main branch, we print nothing, otherwise users get
 #   very confused about what branch they are using.
 ########################################################
 
 SAGE_STARTUP_COMMAND="
-import sage.misc.misc; print sage.misc.misc.branch_current_hg(); \
+import sage.misc.misc; print \
+sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
 from sage.all import *;\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\

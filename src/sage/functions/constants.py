@@ -245,8 +245,14 @@ class E(Constant):
     """
     def __init__(self):
         Constant.__init__(self,
-            {'maxima':'%e','gp':'exp(1)','kash':'E','pari':'exp(1)',
-             'mathematica':'E','maple':'exp(1)','octave':'e'})
+            {'axiom':'%e',
+             'maxima':'%e',
+             'gp':'exp(1)',
+             'kash':'E',
+             'pari':'exp(1)',
+             'mathematica':'E',
+             'maple':'exp(1)',
+             'octave':'e'})
 
     def _repr_(self):
         return 'e'

@@ -319,6 +319,7 @@ is much less robust, and is not recommended.}
 import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from pexpect import EOF
 
 from sage.misc.misc import verbose
 
@@ -360,11 +361,11 @@ class Axiom(Expect):
                         name = 'axiom',
                         prompt = '\([0-9]+\) -> ',
                         command = "axiom -nox -noclef",
-                        maxread = 1,  # CRUCIAL to use less buffering for Axiom!
+                        maxread = 10,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
-                        init_code = [],
+                        init_code = [')lisp (si::readline-off)'],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
@@ -376,7 +377,9 @@ class Axiom(Expect):
     def _start(self):
         # For some reason sending a single input line at startup avoids
         # lots of weird timing issues when doing doctests.
-        Expect._start(self)
+        Expect._start(self) # Must disable readline!!
+        #out = self._eval_line(')lisp (si::readline-off)',
+        #   wait_for_prompt=False, reformat=False)
         out = self._eval_line(')set functions compile on', reformat=False)
         out = self._eval_line(')set output length 245', reformat=False)
         out = self._eval_line(')set message autoload off', reformat=False)
@@ -424,13 +427,15 @@ class Axiom(Expect):
         try:
             E = self._expect
             # debug
-            # print "in = '%s'"%line
+            verbose("in = '%s'"%line,level=3)
             E.sendline(line)
             self._expect.expect(self._prompt)
             out = self._expect.before
             # debug
-            # print "out = '%s'"%out
-
+            verbose("out = '%s'"%out,level=3)
+        except EOF:
+          if self._quit_string() in line:
+             return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 

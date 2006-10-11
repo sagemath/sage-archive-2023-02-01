@@ -347,6 +347,7 @@ is much less robust, and is not recommended.}
 import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from pexpect import EOF
 
 from sage.misc.misc import verbose
 
@@ -466,7 +467,9 @@ class Maxima(Expect):
             #print "out = '%s'"%out
             self._expect.expect(self._prompt)
             out += self._expect.before
-
+        except EOF:
+          if self._quit_string() in line:
+             return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
 

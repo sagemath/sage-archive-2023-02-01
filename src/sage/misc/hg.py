@@ -5,7 +5,8 @@ These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
-This system should all be fully usable from the SAGE notebook.
+This system should all be fully usable from the SAGE notebook (except
+for merging, currently).
 """
 
 ########################################################################
@@ -77,16 +78,27 @@ class HG:
             print("Branch: %s"%b)
 
 
+    def _warning(self):
+        if not os.path.exists(os.environ['HOME'] + '/.hgrc'):
+            print "\nWARNING:"
+            print "Make sure to create a ~/.hgrc file:"
+            print "-"*70
+            print "[ui]"
+            print "username = William Stein <wstein@gmail.com>"
+            print "-"*70
+            print "\n"
+
     def __call__(self, cmd, check_initialized=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
         """
+        self._warning()
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
         return os.system(s)
 
-    def serve(self, port=8200, open_viewer=True):
+    def serve(self, port=8200, open_viewer=False):
         """
         Start a web server for this repository.
 
@@ -107,19 +119,113 @@ class HG:
             os.system('source %s &'%(os.path.abspath(t)))
         self('serve --port %s'%port)
 
-    def unbundle(self, bundle, update=True):
+    browse = serve
+
+    def unbundle(self, bundle, update=True, options=''):
         """
         Apply patches from a hg patch to the repository.
+
+        If the bundle is a .patch file, instead call the import_patch method.
 
         INPUT:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        if bundle[-6:] == '.patch':
+            self.import_patch(bundle, options)
+            return
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle
-        self('unbundle %s "%s"'%(options, bundle))
+        if update:
+            options = '-u'
+        else:
+            options = ''
+        self('unbundle %s %s "%s"'%(options, options, bundle))
 
     apply = unbundle
+
+    def export(self, revs, filename='%R.patch', text=False, options=''):
+        r"""
+        Export patches with the changeset header and diffs for one or
+        more revisions.
+
+        If multiple revisions are given, one plain text unified diff
+        file is generated for each one.  These files should be applied
+        using import_patch in order from smallest to largest revision
+        number.  The information shown in the changeset header is:
+        author, changeset hash, parent and commit comment.
+
+        \note{If you are sending a patch to somebody using export and
+        it depends on previous patches, make sure to include those
+        revisions too!  Alternatively, use the bundle() method, which
+        includes enough information to patch against the default
+        repository (but is an annoying and mysterious binary file).}
+
+        INPUT:
+             revs -- integer or list of integers (revision numbers); use the log()
+                     method to see these numbers.
+             filename -- (default: '%s-%H.export') The name of the file is given using a format
+                 string.  The formatting rules are as follows:
+                    %%   literal "%" character
+                    %H   changeset hash (40 bytes of hexadecimal)
+                    %N   number of patches being generated
+                    %R   changeset revision number
+                    %b   basename of the exporting repository
+                    %h   short-form changeset hash (12 bytes of hexadecimal)
+                    %n   zero-padded sequence number, starting at 1
+             options -- string (default: '')
+                     -a --text           treat all files as text
+                        --switch-parent  diff against the second parent
+                    * Without the -a option, export will avoid
+                      generating diffs of files it detects as
+                      binary. With -a, export will generate a diff
+                      anyway, probably with undesirable results.
+                    * With the --switch-parent option, the diff will
+                      be against the second parent. It can be useful
+                      to review a merge.
+        """
+        if not isinstance(revs, list):
+            revs = [int(revs)]
+        if not isinstance(filename, str):
+            raise TypeError, 'filename must be a string'
+        if filename[-6:] != '.patch':
+            filename += '.patch'
+        options += ' -o "%s"'%(os.path.abspath(filename))
+        if filename == '%R.patch':
+            print "Output will be written to revision numbered file."%revs
+        else:
+            print "Output will be written to '%s'"%filename
+        if text:
+            options += ' -a'
+        self('export %s %s'%(options, ' '.join([str(x) for x in revs])))
+
+    def import_patch(self, filename, options):
+        """
+        Import an ordered set of patches from patch file, i.e., a plain
+        text file created using the export command.
+
+        If there are outstanding changes in the working directory, import
+        will abort unless given the -f flag.
+
+        You can import a patch straight from a mail message.  Even patches
+        as attachments work (body part must be type text/plain or
+        text/x-patch to be used).  From and Subject headers of email
+        message are used as default committer and commit message.  All
+        text/plain body parts before first diff are added to commit
+        message.
+
+        If imported patch was generated by the export command, user
+        and description from patch override values from message
+        headers and body.  Values given as options with -m and -u
+        override these.
+
+        options:  [-p NUM] [-b BASE] [-m MESSAGE] [-f] PATCH...
+         -p --strip    directory strip option for patch. This has the same
+                       meaning as the corresponding patch option (default: 1)
+         -m --message  use <text> as commit message
+         -b --base     base path
+         -f --force    skip check for outstanding uncommitted changes
+        """
 
     def add(self, files, options=''):
         """
@@ -242,26 +348,130 @@ class HG:
         Return help about the given command, or if cmd is omitted
         a list of commands.
 
-        If this hg object is called hg_src, then you
+        If this hg object is called hg_sage, then you
         call a command using
-             \code{hg_src('usual hg command line notation')}
+             \code{hg_sage('usual hg command line notation')}
         """
         self('%s --help | %s'%(cmd, pager()))
 
-    def pull(self, options='', url=None):
+    def pull(self, url=None, options='-u'):
         """
         Pull all new patches from the repository at the given url,
         or use the default 'official' repository if no url is
         specified.
+
+        INPUT:
+            url:  default: self.url() -- the official repository
+                   * http://[user@]host[:port]/[path]
+                   * https://[user@]host[:port]/[path]
+                   * ssh://[user@]host[:port]/[path]
+                   * local directory (starting with a /)
+                   * name of a branch (for hg_sage); no /'s
+            options: (default: '-u')
+                 -u --update     update the working directory to tip after pull
+                 -e --ssh        specify ssh command to use
+                 -f --force      run even when remote repository is unrelated
+                 -r --rev        a specific revision you would like to pull
+                 --remotecmd  specify hg command to run on the remote side
+
+        Some notes about using SSH with Mercurial:
+        - SSH requires an accessible shell account on the destination machine
+          and a copy of hg in the remote path or specified with as remotecmd.
+        - path is relative to the remote user's home directory by default.
+          Use an extra slash at the start of a path to specify an absolute path:
+            ssh://example.com//tmp/repository
+        - Mercurial doesn't use its own compression via SSH; the right thing
+          to do is to configure it in your ~/.ssh/ssh_config, e.g.:
+            Host *.mylocalnetwork.example.com
+              Compression off
+            Host *
+              Compression on
+          Alternatively specify "ssh -C" as your ssh command in your hgrc or
+          with the --ssh command line option.
         """
         if url is None:
             url = self.__url
+        if not '/' in url:
+            url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
+
         self('pull %s %s'%(options, url))
         if self.__target == 'sage':
             print ""
             print "Now building the new SAGE libraries"
             os.system('sage -b')
             print "You *MUST* restart SAGE in order for the changes to take effect!"
+
+        print "If it says use 'hg merge' above, then you should"
+        print "type hg_sage.merge(), where hg_sage is the name"
+        print "of the repository you are using.  This might not"
+        print "work with the notebook yet."
+
+    def merge(self, options='-f'):
+        """
+        Merge working directory with another revision
+
+        Merge the contents of the current working directory and the
+        requested revision. Files that changed between either parent are
+        marked as changed for the next commit and a commit must be
+        performed before any further updates are allowed.
+
+        INPUT:
+            options -- default: '-f'
+                 -b --branch  merge with head of a specific branch
+                 -f --force   force a merge with outstanding changes
+        """
+        self('merge %s'%options)
+
+    def update(self, options='-f'):
+        """
+        update or merge working directory
+
+        Update the working directory to the specified revision.
+
+        If there are no outstanding changes in the working directory and
+        there is a linear relationship between the current version and the
+        requested version, the result is the requested version.
+
+        To merge the working directory with another revision, use the
+        merge command.
+
+        By default, update will refuse to run if doing so would require
+        merging or discarding local changes.
+
+        aliases: up, checkout, co
+
+        INPUT:
+            options -- string (default: '-f')
+             -b --branch  checkout the head of a specific branch
+             -C --clean   overwrite locally modified files
+             -f --force   force a merge with outstanding changes
+        """
+        self('merge %s'%options)
+
+    up = update
+    checkout = update
+    co = update
+
+    def head(self, options=''):
+        """
+        show current repository heads
+
+        Show all repository head changesets.
+
+        Repository "heads" are changesets that don't have children
+        changesets. They are where development generally takes place and
+        are the usual targets for update and merge operations.
+
+        INPUT:
+            options -- string (default: '')
+             -b --branches  show branches
+                --style     display using template map file
+             -r --rev       show only heads which are descendants of rev
+                --template  display with template
+        """
+        self('head %s'%options)
+
+    heads = head
 
     def switch(self, name=None):
         r"""
@@ -411,20 +621,25 @@ class HG:
 import misc
 
 SAGE_ROOT = misc.SAGE_ROOT
+try:
+    SAGE_SERVER = os.environ['SAGE_SERVER'] + '/hg/'
+except KeyError:
+    print "Falling back to a hard coded sage server in misc/hg.py"
+    SAGE_SERVER = "http://sage.math.washington.edu/sage/hg/"
 
 hg_sage    = HG('%s/devel/sage'%SAGE_ROOT,
                 'SAGE Library Source Code',
-                url='http://modular.math.washington.edu/sage/hg/sage-main',
+                url='%s/sage-main'%SAGE_SERVER,
                 cloneable=True)
 
 hg_doc     = HG('%s/devel/doc'%SAGE_ROOT,
                 'SAGE Documentation',
-                url='http://modular.math.washington.edu/sage/hg/doc-main')
+                url='%s/doc-main'%SAGE_SERVER)
 
 hg_scripts = HG('%s/local/bin/'%SAGE_ROOT,
                 'SAGE Scripts',
-                url='http://modular.math.washington.edu/sage/hg/scripts-main')
+                url='%s/scripts-main'%SAGE_SERVER)
 
 hg_extcode = HG('%s/data/extcode'%SAGE_ROOT,
                 'SAGE External System Code (e.g., PARI, MAGMA, etc.)',
-                url='http://modular.math.washington.edu/sage/hg/extcode-main')
+                url='%s/extcode-main'%SAGE_SERVER)

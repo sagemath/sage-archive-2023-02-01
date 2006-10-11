@@ -173,11 +173,15 @@ complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
+RealDoubleVectors = Extension('sage.modules.RealDoubleVectors',['sage/modules/RealDoubleVectors.pyx'],
+                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')])
+
 #####################################################
 
 ext_modules = [ \
     free_module_element, \
 
+    RealDoubleVectors,\
     ec, \
     pari, \
 

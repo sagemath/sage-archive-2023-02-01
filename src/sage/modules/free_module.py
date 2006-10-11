@@ -94,7 +94,7 @@ import sage.rings.integer_ring
 import sage.rings.infinity
 import sage.rings.integer as integer
 import sage.structure.gens as gens
-
+#import sage.modules.RealDoubleVectors
 from sage.structure.sequence import Sequence
 
 
@@ -223,6 +223,8 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
 
     if not base_ring.is_commutative():
         raise TypeError, "base_ring must be a commutative ring"
+#    if isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+#        M = sage.modules.RealDoubleVectorSpace_class(n)
 
     if isinstance(base_ring, field.Field):
         M = FreeModule_ambient_field(base_ring, rank,
@@ -231,9 +233,12 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
         M = FreeModule_ambient_pid(base_ring, rank,
                                    sparse=sparse, inner_product_matrix=inner_product_matrix)
+
     elif isinstance(base_ring, integral_domain.IntegralDomain):
         M = FreeModule_ambient_domain(base_ring, rank,
                                          sparse=sparse, inner_product_matrix=inner_product_matrix)
+
+
     else:
         M = FreeModule_ambient(base_ring, rank,
                                   sparse=sparse, inner_product_matrix=inner_product_matrix)

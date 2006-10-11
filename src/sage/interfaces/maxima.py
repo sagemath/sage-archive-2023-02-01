@@ -1172,7 +1172,7 @@ class MaximaElement(ExpectElement):
 
         EXAMPLES:
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 4.1633141378838445E-11, 231, 0)
+            (.5284822353142306, 4.163314137883845E-11, 231, 0)
 
         Note that GP also does numerical integration, and can do
         so to very high precision very quickly:
@@ -1217,7 +1217,7 @@ class MaximaElement(ExpectElement):
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
             -sqrt(%pi)*%i*erf(%i)/2
             sage: f.numer()         # I wonder how to get a real number (~1.463)??
-            -0.8862269254527579*%i*erf(%i)
+            -.8862269254527579*%i*erf(%i)
         """
         I = ExpectElement.__getattr__(self, 'integrate')
         if min is None:

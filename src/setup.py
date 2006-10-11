@@ -133,7 +133,6 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
 
-
 matrix_pid = Extension('sage.matrix.matrix_pid',
                        ['sage/matrix/matrix_pid.pyx'])
 
@@ -148,6 +147,9 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 complex_number2 = Extension('sage.rings.complex_number2',
 			    ['sage/rings/complex_number2.pyx'],
 			    libraries = ['gmp'])
+
+free_module_element = Extension('sage.modules.free_module_element',
+                                ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
 
@@ -174,8 +176,9 @@ complex_double = Extension('sage.rings.complex_double',
 #####################################################
 
 ext_modules = [ \
-    ec, \
+    free_module_element, \
 
+    ec, \
     pari, \
 
     mwrank, \

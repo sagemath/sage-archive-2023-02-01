@@ -539,7 +539,12 @@ class GapElement(ExpectElement):
         return s
 
     def __len__(self):
-        return int(self.Length())
+        if (self == "true"):
+            return 1
+        elif (self == "false"):
+            return 0
+        else:
+            return int(self.Length())
 
     def _latex_(self):
         self._check_valid()

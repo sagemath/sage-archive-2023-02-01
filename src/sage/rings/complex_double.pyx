@@ -456,6 +456,17 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         """
         return new_element(gsl_complex_conjugate(self._complex))
 
+    def conj(self):
+        r"""
+        This function returns the complex conjugate of the complex number $z$,
+        $\overline{z} = x - i y$.
+
+        EXAMPLES:
+            sage: z = CDF(2,3); z.conj()
+            2.0 - 3.0*I
+        """
+        return new_element(gsl_complex_conjugate(self._complex))
+
     #######################################################################
     # Properties of Complex Numbers
     #######################################################################

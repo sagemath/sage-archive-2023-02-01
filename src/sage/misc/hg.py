@@ -222,7 +222,7 @@ class HG:
                  -b --base     base path
                  -f --force    skip check for outstanding uncommitted changes
         """
-        self('import "%s" %s'%(filename,options))
+        self('import "%s" %s'%(os.path.abspath(filename),options))
 
     def add(self, files, options=''):
         """

@@ -51,6 +51,8 @@ from mathml import mathml
 
 from trace import *
 
+from cachefunc import CachedFunction
+
 ##########################################################################
 def benchmark(n=-1):
     """

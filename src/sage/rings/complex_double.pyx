@@ -692,6 +692,12 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: CDF(1,1).exp()
             1.46869393992 + 2.28735518456*I
+
+        We numerically verify a famous identity to the precision of a double.
+            sage: z = CDF(0, 2*pi); z
+            6.28318548203*I
+            sage: exp(z)
+            1.0 - 2.44921270764e-16*I
         """
         return new_element(gsl_complex_exp(self._complex))
 

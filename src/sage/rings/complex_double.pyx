@@ -246,6 +246,30 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         return self.cmp(x)
 
 
+    def __getitem__(self, n):
+        """
+        Returns the real or imaginary part of self.
+
+        INPUT:
+            n -- integer (either 0 or 1)
+
+        Raises an IndexError if n < 0 or n > 1.
+
+        EXAMPLES:
+            sage: P = CDF(2,3)
+            sage: P[0]
+            2.0
+            sage: P[1]
+            3.0
+            sage: P[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: index n must be 0 or 1
+        """
+        if n >= 0 and n <= 1:
+            return self._complex.dat[n]
+        raise IndexError, "index n must be 0 or 1"
+
     #######################################################################
     # Coercions
     #######################################################################

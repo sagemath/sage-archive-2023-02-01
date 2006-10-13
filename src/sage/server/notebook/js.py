@@ -687,8 +687,8 @@ function cell_focus(id) {
     return true;
 }
 function cell_blur(id) {
-    if(!in_slide_mode)
-        current_cell = -1;
+   /* if(!in_slide_mode)
+        current_cell = -1; */
     e = get_cell(id);
     if(e == null) return;
     e.className="cell_input";

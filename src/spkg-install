@@ -29,14 +29,15 @@ if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
     hg pull "$SAGE_SERVER"/hg/sage-main
     if [ $? -ne 0 ]; then
-        echo "Error pulling in new SAGE source code."
-        exit 1
-    fi
-    # Make the pulled in changes take effect.
-    hg update
-    if [ $? -ne 0 ]; then
-        echo "Error applying pulled in changes to new SAGE source code."
-        exit 1
+        echo "WARNING -- Unable to pull in *latest* SAGE source code."
+        echo "Building what you downloaded."
+    else
+        # Make the pulled in changes take effect.
+        hg update
+        if [ $? -ne 0 ]; then
+            echo "Error applying pulled in changes to new SAGE source code."
+            exit 1
+        fi
     fi
 
     "$SAGE_ROOT/sage" -b main

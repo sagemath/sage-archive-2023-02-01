@@ -11,6 +11,11 @@ if len(sys.argv) < 3:
 file    = sys.argv[2]
 options = ' '.join(sys.argv[3:])
 
+if file[0] == '-':
+    print "Unknown option: %s"%file
+    print "usage: sage [options]"
+    print "Try 'sage -h' for more information."
+    sys.exit(1)
 
 if file[-5:] == '.sage':
     if os.system('sage -preparse %s'%file):

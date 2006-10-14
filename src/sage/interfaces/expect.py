@@ -318,8 +318,7 @@ class Expect(SageObject):
             os.killpg(self._expect.pid, 9)
             os.kill(self._expect.pid, 9)
         except OSError, msg:
-            print "WARNING:"
-            print msg
+            pass
         self._expect = None
 
     def _quit_string(self):

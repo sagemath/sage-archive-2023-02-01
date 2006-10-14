@@ -22,6 +22,7 @@ if [ "$1" != "" ]; then
     if [ ! -d "sage-$1" ]; then
         # this will happen a lot because of people (=me) making typos.
         echo "No such branch '$SAGE_ROOT/devel/sage-$1'"
+	echo "Use 'sage -clone' to create a new branch."
         exit 1
     fi
     ln -snf "sage-$1" sage

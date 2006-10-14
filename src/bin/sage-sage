@@ -5,8 +5,9 @@ usage() {
     echo "| SAGE: Software for Algebra and Geometry Experimentation |"
     echo "-----------------------------------------------------------"
     echo " Optional arguments:"
-    echo "  -h, -?        -- print help message"
-    echo "  -notebook     -- start the SAGE notebook"
+    echo "  -h            -- print this help message"
+    echo "  -notebook [options] -- start the SAGE notebook (options are"
+    echo "                   the same as to the notebook command in SAGE)"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "  -optional     -- list all optional packages that can be downloaded"
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
@@ -53,8 +54,6 @@ usage_advanced() {
     echo "  -python       -- run the python interpreter (use 'from sage.all import *')"
     echo "  -q            -- quiet; start with no banner"
     echo "  -sdist VER    -- build a source distribution of SAGE"
-    echo "  -server1 [name]-- run SAGE as a web server (on localhost), logging "
-    echo "                    to the given filename"
     echo "  -singular <..>-- run SAGE's singular with given arguments"
     echo "  -t [-optional] [-long] <files|dir> -- test examples in .py, .pyx, .sage or .tex files"
     echo "                           -optional -- include examples with 'optional' and 'package'"
@@ -64,6 +63,8 @@ usage_advanced() {
     echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
     echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
+    echo ""
+    echo "You can also use -- before a long option, e.g., 'sage --optional'."
     echo ""
     exit 1
 }
@@ -85,10 +86,10 @@ if [ $# -eq 3 ]; then
 fi
 
 if [ $# -gt 0 ]; then
-  if [ $1 = "-h" -o $1 = "--help" -o $1 = "-?" ]; then
+if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 == '-help' ]; then
      usage
   fi
-  if [ $1 = "-advanced" ]; then
+  if [ $1 = "-advanced" -o $1 = "--advanced" ]; then
      usage_advanced
   fi
 fi
@@ -162,7 +163,7 @@ if [ $# -eq 0 ]; then
     exit $?
 fi
 
-if [ $1 = '-cleantmp' ]; then
+if [ $1 = '-cleantmp' -o $1 = '--cleantmp' ]; then
     sage-cleantmp
     exit $?
 fi
@@ -171,91 +172,91 @@ fi
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
-if [ $1 = '-gap' ]; then
+if [ $1 = '-gap' -o $1 = '--gap' ]; then
     cd $CUR
     shift
     gap $*
     exit $?
 fi
 
-if [ $1 = '-gp' ]; then
+if [ $1 = '-gp'  -o $1 = '--gp' ]; then
     cd $CUR
     shift
     gp $*
     exit $?
 fi
 
-if [ $1 = '-singular' ]; then
+if [ $1 = '-singular'  -o $1 = '--singular' ]; then
     cd $CUR
     shift
     singular $*
     exit $?
 fi
 
-if [ $1 = '-clisp' ]; then
+if [ $1 = '-clisp'  -o $1 = '--clisp' ]; then
     cd $CUR
     shift
     clisp $*
     exit $?
 fi
 
-if [ $1 = '-lisp' ]; then
+if [ $1 = '-lisp'  -o $1 = '--lisp' ]; then
     cd $CUR
     shift
     lisp $*
     exit $?
 fi
 
-if [ $1 = '-kash' ]; then
+if [ $1 = '-kash'  -o $1 = '--kash' ]; then
     cd $CUR
     shift
     kash $*
     exit $?
 fi
 
-if [ $1 = '-maxima' ]; then
+if [ $1 = '-maxima'  -o $1 = '--maxima' ]; then
     cd $CUR
     shift
     maxima $*
     exit $?
 fi
 
-if [ $1 = '-mwrank' ]; then
+if [ $1 = '-mwrank'  -o $1 = '--mwrank' ]; then
     cd $CUR
     shift
     mwrank $*
     exit $?
 fi
 
-if [ $1 = '-M2' ]; then
+if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     cd $CUR
     shift
     M2 $*
     exit $?
 fi
 
-if [ $1 = '-python' ]; then
+if [ $1 = '-python'  -o $1 = '--python' ]; then
     cd $CUR
     shift
     python $*
     exit $?
 fi
 
-if [ $1 = '-ipython' ]; then
+if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd $CUR
     shift
     ipython $*
     exit $?
 fi
 
-if [ $1 = '-darcs' ]; then
+if [ $1 = '-darcs'  -o $1 = '--darcs' ]; then
     cd $CUR
     shift
     darcs $*
     exit $?
 fi
 
-if [ $1 = '-hg' ]; then
+if [ $1 = '-hg'  -o $1 = '--hg' ]; then
     cd $CUR
     shift
     hg $*
@@ -266,26 +267,26 @@ fi
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
-if [ $1 = "-server1" -o $1 = "-server" ]; then
+if [ $1 = "-server1" -o $1 = "-server" -o $1 = "--server" ]; then
    cd $CUR
    shift
    sage-server $*
    exit $?
 fi
 
-if [ $1 = "-notebook" ]; then
+if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    cd $CUR
    shift
    sage-notebook $*
    exit $?
 fi
 
-if [ $1 = "-log" ]; then
+if [ $1 = "-log" -o $1 = "--log" ]; then
    sage-log
    exit 0
 fi
 
-if [ $1 = '-grep' ]; then
+if [ $1 = '-grep' -o $1 = "--grep" ]; then
    sage_setup
    shift
    ./sage-grep $*
@@ -305,13 +306,13 @@ if [ $1 = '-b' ]; then
    exit $?
 fi
 
-if [ $1 = '-br' ]; then
+if [ $1 = '-br' -o $1 = "--br" ]; then
    shift
    sage-build $* && sage
    exit $?
 fi
 
-if [ $1 = '-clone' ]; then
+if [ $1 = '-clone' -o $1 = "--clone" ]; then
    shift
    time sage-clone $*
    exit $?
@@ -324,14 +325,14 @@ if [ $1 = '-t' ]; then
    exit $?
 fi
 
-if [ $1 = '-tsage' ]; then
+if [ $1 = '-tsage' -o $1 = "--tsage" ]; then
    cd "$CUR"
    shift
    sage-test -sage $*
    exit $?
 fi
 
-if [ $1 = '-testall' ]; then
+if [ $1 = '-testall' -o $1 = "--testall" ]; then
    shift
    sage-testall $*
    exit $?
@@ -358,7 +359,7 @@ install() {
    exit $?
 }
 
-if [ $1 = '-optional' ]; then
+if [ $1 = '-optional' -o $1 = "--optional" ]; then
    sage-list-optional
    exit 0
 fi
@@ -375,7 +376,7 @@ if [ $1 = '-f' ]; then
    install -f $*
 fi
 
-if [ "$1" = '-pkg' -o "$1" = '-spkg' ]; then
+if [ "$1" = '-pkg' -o "$1" = '-spkg' -o $1 = "--pkg" -o $1 = "--spkg" ]; then
    cd "$CUR"
    shift
    for PKG in $*
@@ -389,7 +390,7 @@ if [ "$1" = '-pkg' -o "$1" = '-spkg' ]; then
    exit $?
 fi
 
-if [ $1 = '-pkg_nc' ]; then
+if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
    cd "$CUR"
    shift
    for PKG in $*
@@ -403,7 +404,7 @@ if [ $1 = '-pkg_nc' ]; then
    exit $?
 fi
 
-if [ $1 = '-mpl' ]; then
+if [ $1 = '-mpl' -o $1 = "--mpl" ]; then
    sage_setup
    shift
    ipython  $LOGOPT -pylab -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND;"
@@ -413,7 +414,7 @@ fi
 
 
 
-if [ $1 = '-sdist' ]; then
+if [ $1 = '-sdist' -o $1 = "--sdist" ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -421,7 +422,7 @@ if [ $1 = '-sdist' ]; then
    exit $?
 fi
 
-if [ $1 = '-ldist' ]; then
+if [ $1 = '-ldist' -o $1 = "--ldist" ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -439,7 +440,7 @@ if [ $1 = '-ldist' ]; then
    exit $?
 fi
 
-if [ $1 = '-bdist' ]; then
+if [ $1 = '-bdist' -o $1 = "--bdist" ]; then
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi
@@ -452,13 +453,13 @@ if [ $1 = '-update' ]; then
     exit $?
 fi
 
-if [ $1 = '-update-build' ]; then
+if [ $1 = '-update-build' -o $1 = "--update-build" ]; then
     sage-update-build
     sage-update-build
     exit $?
 fi
 
-if [ $1 = '-upgrade' ]; then
+if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
     # Do it twice since when installing sage-scripts and a running
     # script changes, it gets confused and exits with an error.
     # Running again (with the script replaced) then fixes the problem.
@@ -467,20 +468,20 @@ if [ $1 = '-upgrade' ]; then
     exit $?
 fi
 
-if [ $1 = '-gdb' ]; then
+if [ $1 = '-gdb' -o $1 = "--gdb" ]; then
     sage_setup
     sage-gdb
     exit $?
 fi
 
-if [ $1 = '-preparse' ]; then
+if [ $1 = '-preparse' -o $1 = "--preparse" ]; then
     shift
     cd "$SAGE_LOCAL/bin/"
     sage-preparse "$CUR" $*
     exit $?
 fi
 
-if [ $1 = '-pyrex' ]; then
+if [ $1 = '-pyrex' -o $1 = "--pyrex" ]; then
     shift
     cd "$CUR"
     pyrexc $*
@@ -497,9 +498,8 @@ if [ $# -ge 1 ]; then
    fi
    cd "$SAGE_LOCAL/bin/"
    sage-run "$CUR" $*
-   if [ $? -eq 0 ]; then
-       exit 0
-   fi
+   exit $?
 fi
 
-usage
+
+

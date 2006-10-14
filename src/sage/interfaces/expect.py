@@ -314,6 +314,7 @@ class Expect(SageObject):
         if verbose:
             print "Exiting spawned %s process."%self
         try:
+            self._eval_line(self._quit_string(), wait_for_prompt=pexpect.EOF)
             os.killpg(self._expect.pid, 9)
             os.kill(self._expect.pid, 9)
         except OSError, msg:
@@ -331,7 +332,12 @@ class Expect(SageObject):
         F = open(tmp, 'w')
         F.write(line+'\n')
         F.close()
-        s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+        try:
+            s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+        except pexpect.EOF, msg:
+            if self._quit_string() in line:
+                # we expect to get an EOF if we're quitting.
+                return ''
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -363,18 +369,11 @@ class Expect(SageObject):
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
+                    if self._read_in_file_command(tmp) in line:
+                        raise pexpect.EOF, msg
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    #print "** %s crashed or quit executing '%s' **"%(self, line)
-                    #print "Restarting %s and trying again"%self
-                    self._start()
-                    #if line != '':
-                    #    return self._eval_line(line,
-                    #                           allow_use_file  = allow_use_file,
-                    #                           wait_for_prompt = wait_for_prompt)
-                    #else:
-                    #    return ''
                     raise RuntimeError, "%s crashed executing %s"%(self, line)
                 out = E.before
             else:

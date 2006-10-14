@@ -1,5 +1,8 @@
 # interfaces to other interpreters
 
+
+from axiom import Axiom, axiom
+
 from ecm import ECM
 from expect import is_ExpectElement
 from gap import gap, gap_reset_workspace, gap_console, gap_version, is_GapElement, Gap

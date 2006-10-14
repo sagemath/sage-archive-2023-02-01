@@ -57,6 +57,9 @@ mymkdir installed
 cd "$BUILD"
 mymkdir old
 
+# the following three options are mutually exclusive -- i.e., you
+# can give only one.
+
 INFO=0
 if [ $1 = '-info' ]; then
     INFO=1
@@ -66,6 +69,14 @@ fi
 FORCE=0
 if [ $1 = '-f' ]; then
    FORCE=1
+   shift
+fi
+
+# Install then delete the temporary build directory
+# -- this is used during the initial make build.
+DELETE_TMP=0
+if [ $1 = '-m' ]; then
+   DELETE_TMP=1
    shift
 fi
 
@@ -113,11 +124,21 @@ if [ -f "$INSTALLED/$PKG_NAME" -a $FORCE -eq 0 ]; then
 fi
 
 cd "$SAGE_PACKAGES/build"
-echo "Moving directories from past builds of previous/current versions of $PKG_NAME to build/old"
-mv -f "$PKG_BASE-"* old/  2>/dev/null
 
-#echo "Removing directories from past builds of previous/current versions of $PKG_NAME"
-#rm -rf "$PKG_BASE-"*
+if [ $DELETE_TMP -eq 1 ]; then
+    echo "Deleting directories from past builds of previous/current versions of $PKG_NAME"
+    # Make triply sure that we are in the build directory before doing
+    # a scarry "rm -rf".
+    cd "$SAGE_PACKAGES/build"
+    if [ $? -ne 0 ]; then
+         echo "Unable to find build directory."
+    else
+        rm -rf "$PKG_BASE-"*
+    fi
+else
+    echo "Moving directories from past builds of previous/current versions of $PKG_NAME to build/old"
+    mv -f "$PKG_BASE-"* old/  2>/dev/null
+fi
 
 if [ ! -f "$PKG_SRC" ]; then
 
@@ -185,12 +206,31 @@ fi
 
 if [ $? -eq 0 ]; then
    cd $INSTALLED
-   # Remove all old packages with the same name up to the first "-":
-   rm -f $PKG_BASE-*
-   # Mark that new package has been installed.
-   touch "$PKG_NAME"
+   # TURNED OFF: Remove all old packages with the same name up to the first "-":
+   # rm -f $PKG_BASE-*
+
+   # Mark that the new package has been installed.
+   # This file will eventually be a certificate like in OS X.
+   echo "PACKAGE NAME: $PKG_NAME" > "$PKG_NAME"
+   echo "INSTALL DATE: `date`" >> "$PKG_NAME"
+   echo "UNAME: `uname -a`" >> "$PKG_NAME"
+   echo "SAGE VERSION: `grep SAGE $SAGE_LOCAL/bin/sage-banner`" >> "$PKG_NAME"
    echo "Successfully installed $PKG_NAME"
+
+   # Delete the temporary build directory if required.
+   if [ $DELETE_TMP -eq 1 ]; then
+       echo "Now cleaning up tmp files."
+       if [ -d "$SAGE_PACKAGES/build/$PKG_NAME" ]; then
+           # the if is there only to avoid the possibility of a weird bug.
+           rm -rf "$SAGE_PACKAGES/build/$PKG_NAME"
+       fi
+   else
+       echo "You can safely delete the temporary build directory"
+       echo "$SAGE_PACKAGES/build/$PKG_NAME"
+   fi
+
 else
+
    echo "sage: An error occured while installing $PKG_NAME"
    echo "Please email William Stein <wstein@gmail.com> explaining the"
    echo "problem and send him $SAGE_ROOT/install.log"

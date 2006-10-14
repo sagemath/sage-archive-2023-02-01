@@ -213,10 +213,10 @@ We illustrate Laplace transforms:
               (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
 
     sage: maxima("laplace(diff(x(t),t),t,s)")
-    s*laplace(x(t),t,s) - x(0)
+    s*?%laplace(x(t),t,s) - x(0)
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -at('diff(x(t),t,1),t = 0) + s^2*laplace(x(t),t,s) - x(0)*s
+    -?%at('diff(x(t),t,1),t = 0) + s^2*?%laplace(x(t),t,s) - x(0)*s
 
 It is difficult to read some of these without the 2d representation:
     sage.: maxima("laplace(diff(x(t),t,2),t,s)").display2d()
@@ -607,10 +607,10 @@ class Maxima(Expect):
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
             sage: f(3.2)
-            -0.058374143427580086
+            -.05837414342758009
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
-            sin(2) - 0.9364566872907963
+            sin(2) - .9364566872907963
             sage: f
             sin(x)+cos(y)
 

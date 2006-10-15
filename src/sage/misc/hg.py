@@ -224,8 +224,12 @@ class HG:
                  -m --message  use <text> as commit message
                  -b --base     base path
                  -f --force    skip check for outstanding uncommitted changes
+
+        ALIASES: patch
         """
         self('import "%s" %s'%(os.path.abspath(filename),options))
+
+    patch = import_patch
 
     def add(self, files, options=''):
         """

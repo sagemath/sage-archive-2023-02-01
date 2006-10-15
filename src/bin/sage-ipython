@@ -1,4 +1,4 @@
-#!sage.bin
+#!sage.bin -O
 # -*- coding: utf-8 -*-
 """IPython -- An enhanced Interactive Python
 

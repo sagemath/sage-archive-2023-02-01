@@ -352,15 +352,8 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
         Pops up xdvi with the objects displayed.
     """
     if EMBEDDED_MODE:
-        return typeset(objects)
-        #if sage.plot.all.is_Graphics(objects):
-        #    objects.show(**kwds)
-        #    return
-        #i = 0
-        #while os.path.exists('sage%s.png'%i):
-        #    i += 1
-        #png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
-        #return
+        print typeset(objects)
+        return
 
     if isinstance(objects, LatexExpr):
         s = str(objects)

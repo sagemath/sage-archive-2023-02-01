@@ -11,202 +11,205 @@ For many links to Axiom documentation see
          \url{http://wiki.axiom-developer.org}.
 
 AUTHORS OF THIS MODULE:
-    - William Stein (2006-10): Initial version based on Maxima interface
-    - Bill Page (2006-10): Axiom version
+    -- Bill Page (2006-10): Created this (based on maxima interfac)
+       NOTE: Bill Page put a huge amount of effort into the SAGE Axiom interface
+             over several days during the SAGE Days 2 coding sprint.  This is
+             contribution is greatly appreciated.
+    -- William Stein (2006-10): misc touchup.
 
 If the string "error" (case insensitive) occurs in the output of
 anything from axiom, a RuntimeError exception is raised.
 
 EXAMPLES:
 We evaluate a very simple expression in axiom.
-    sage: axiom('3 * 5')
+    sage: axiom('3 * 5')                     # optional
     15
                                           Type: PositiveInteger
 
 We factor $x^5 - y^5$ in Axiom in several different ways.
 The first way yields a Axiom object.
-    sage: F = axiom.factor('x^5 - y^5')
-    sage: type(F)
+    sage: F = axiom.factor('x^5 - y^5')      # optional
+    sage: type(F)                            # optional
     <class 'axiom.interfaces.axiom.AxiomElement'>
 
 Note that Axiom objects are normally displayed using ``ASCII art'';
 to see a normal linear representation of any Axiom object x,
 use \code{str(x)}.
-    sage: F
+    sage: F                                  # optional
                                4      3    2  2    3      4
                    - (y - x) (y  + x y  + x  y  + x  y + x )
 
 You can always use \code{x.str()} to obtain the linear representation
 of an object, even without changing the display2d flag.  This can
 be useful for moving axiom data to other systems.
-    sage: F.str()
+    sage: F.str()                            # optional
     '-(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)'
 
-    sage: axiom.display2d(False)
-    sage: F
+    sage: axiom.display2d(False)             # optional
+    sage: F                                  # optional
     -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
 
 
 The \code{axiom.eval} command evaluates an expression in axiom
 and returns the result as a string.
 
-    sage: print axiom.eval('factor(x^5 - y^5)')
+    sage: print axiom.eval('factor(x^5 - y^5)')   # optional
     -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
 
 We can create the polynomial $f$ as a Axiom polynomial, then call
 the factor method on it.  Notice that the notation \code{f.factor()}
 is consistent with how the rest of \sage works.
-    sage: f = axiom('x^5 - y^5')
-    sage: f^2
+    sage: f = axiom('x^5 - y^5')                  # optional
+    sage: f^2                                     # optional
     (x^5 - y^5)^2
-    sage: f.factor()
+    sage: f.factor()                              # optional
     -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
 
 Control-C interruption works well with the axiom interface,
 because of the excellent implementation of axiom.  For example,
 try the following sum but with a much bigger range, and hit
 control-C.
-    sage: axiom('sum(1/x^2, x, 1, 10)')
+    sage: axiom('sum(1/x^2, x, 1, 10)')           # optional
     1968329/1270080
 
 \subsection{Tutorial}
 We follow the tutorial at
 \url{http://wiki.axiom-developer.org/AxiomTutorial}.
 
-    sage: axiom('1/100 + 1/101')
+    sage: axiom('1/100 + 1/101')                  # optional
     201/10100
 
-    sage: a = axiom('(1 + sqrt(2))^5'); a
+    sage: a = axiom('(1 + sqrt(2))^5'); a         # optional
     (sqrt(2) + 1)^5
-    sage: a.expand()
+    sage: a.expand()                              # optional
     29*sqrt(2) + 41
 
-    sage: a = axiom('(1 + sqrt(2))^5')
-    sage: float(a)
+    sage: a = axiom('(1 + sqrt(2))^5')            # optional
+    sage: float(a)                                # optional
     82.012193308819747
-    sage: a.numer()
+    sage: a.numer()                               # optional
     82.01219330881975
 
-    sage: axiom.eval('fpprec : 100')
+    sage: axiom.eval('fpprec : 100')              # optional
     '100'
-    sage: a.bfloat()
+    sage: a.bfloat()                              # optional
     8.20121933088197564152489730020812442785204843859314941221237124017312418754011041266612384955016056b1
 
-    sage: axiom('100!')
+    sage: axiom('100!')                           # optional
     93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
 
-    sage: f = axiom('(x + 3*y + x^2*y)^3')
-    sage: f.expand()
+    sage: f = axiom('(x + 3*y + x^2*y)^3')        # optional
+    sage: f.expand()                              # optional
     x^6*y^3 + 9*x^4*y^3 + 27*x^2*y^3 + 27*y^3 + 3*x^5*y^2 + 18*x^3*y^2 + 27*x*y^2 + 3*x^4*y + 9*x^2*y + x^3
-    sage: f.subst('x=5/z')
+    sage: f.subst('x=5/z')                        # optional
     (5/z + 25*y/z^2 + 3*y)^3
-    sage: g = f.subst('x=5/z')
-    sage: h = g.ratsimp(); h
+    sage: g = f.subst('x=5/z')                    # optional
+    sage: h = g.ratsimp(); h                      # optional
     (27*y^3*z^6 + 135*y^2*z^5 + (675*y^3 + 225*y)*z^4 + (2250*y^2 + 125)*z^3 + (5625*y^3 + 1875*y)*z^2 + 9375*y^2*z + 15625*y^3)/z^6
-    sage: h.factor()
+    sage: h.factor()                              # optional
     (3*y*z^2 + 5*z + 25*y)^3/z^6
 
-    sage: eqn = axiom(['a+b*c=1', 'b-a*c=0', 'a+b=5'])
-    sage: s = eqn.solve('[a,b,c]'); s
+    sage: eqn = axiom(['a+b*c=1', 'b-a*c=0', 'a+b=5'])  # optional
+    sage: s = eqn.solve('[a,b,c]'); s                   # optional
     [[a = (25*sqrt(79)*%i + 25)/(6*sqrt(79)*%i - 34),b = (5*sqrt(79)*%i + 5)/(sqrt(79)*%i + 11),c = (sqrt(79)*%i + 1)/10],[a = (25*sqrt(79)*%i - 25)/(6*sqrt(79)*%i + 34),b = (5*sqrt(79)*%i - 5)/(sqrt(79)*%i - 11),c =  - (sqrt(79)*%i - 1)/10]]
 
 Here is an example of solving an algebraic equation:
-    sage: axiom('x^2+y^2=1').solve('y')
+    sage: axiom('x^2+y^2=1').solve('y')                 # optional
     [y =  - sqrt(1 - x^2),y = sqrt(1 - x^2)]
-    sage: axiom('x^2 + y^2 = (x^2 - y^2)/sqrt(x^2 + y^2)').solve('y')
+    sage: axiom('x^2 + y^2 = (x^2 - y^2)/sqrt(x^2 + y^2)').solve('y')    # optional
     [y =  - sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2),y = sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2)]
 
 You can even nicely typeset the solution in latex:
-    sage: latex(s)
+    sage: latex(s)                                      # optional
     \left[ \left[ a=\frac{25 \sqrt{79} i+25}{6 \sqrt{79} i-34} , b=  \frac{5 \sqrt{79} i+5}{\sqrt{79} i+11} , c=\frac{\sqrt{79} i+1}{10}   \right]  , \left[ a=\frac{25 \sqrt{79} i-25}{6 \sqrt{79} i+34} , b=  \frac{5 \sqrt{79} i-5}{\sqrt{79} i-11} , c=-\frac{\sqrt{79} i-1}{10}   \right]  \right]
 
 To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
 (TODO: For OS X should create pdf output and use preview instead?)
 
-    sage: e = axiom('sin(u + v) * cos(u)^3'); e
+    sage: e = axiom('sin(u + v) * cos(u)^3'); e                    # optional
     cos(u)^3*sin(v + u)
-    sage: f = e.trigexpand(); f
+    sage: f = e.trigexpand(); f                                    # optional
     cos(u)^3*(cos(u)*sin(v) + sin(u)*cos(v))
-    sage: f.trigreduce()
+    sage: f.trigreduce()                                           # optional
     (sin(v + 4*u) + sin(v - 2*u))/8 + (3*sin(v + 2*u) + 3*sin(v))/8
-    sage: w = axiom('3 + k*%i')
-    sage: f = w^2 + axiom('%e')^w
-    sage: f.realpart()
+    sage: w = axiom('3 + k*%i')                                    # optional
+    sage: f = w^2 + axiom('%e')^w                                  # optional
+    sage: f.realpart()                                             # optional
     %e^3*cos(k) - k^2 + 9
 
-    sage: f = axiom('x^3 * %e^(k*x) * sin(w*x)'); f
+    sage: f = axiom('x^3 * %e^(k*x) * sin(w*x)'); f                # optional
     x^3*%e^(k*x)*sin(w*x)
-    sage: f.diff('x')
+    sage: f.diff('x')                                              # optional
     k*x^3*%e^(k*x)*sin(w*x) + 3*x^2*%e^(k*x)*sin(w*x) + w*x^3*%e^(k*x)*cos(w*x)
-    sage: f.integrate('x')
+    sage: f.integrate('x')                                         # optional
     (((k*w^6 + 3*k^3*w^4 + 3*k^5*w^2 + k^7)*x^3 + (3*w^6 + 3*k^2*w^4 - 3*k^4*w^2 - 3*k^6)*x^2 + ( - 18*k*w^4 - 12*k^3*w^2 + 6*k^5)*x - 6*w^4 + 36*k^2*w^2 - 6*k^4)*%e^(k*x)*sin(w*x) + (( - w^7 - 3*k^2*w^5 - 3*k^4*w^3 - k^6*w)*x^3 + (6*k*w^5 + 12*k^3*w^3 + 6*k^5*w)*x^2 + (6*w^5 - 12*k^2*w^3 - 18*k^4*w)*x - 24*k*w^3 + 24*k^3*w)*%e^(k*x)*cos(w*x))/(w^8 + 4*k^2*w^6 + 6*k^4*w^4 + 4*k^6*w^2 + k^8)
 
-    sage: f = axiom('1/x^2')
-    sage: f.integrate('x', 1, 'inf')
+    sage: f = axiom('1/x^2')                                       # optional
+    sage: f.integrate('x', 1, 'inf')                               # optional
     1
-    sage: g = axiom('f/sinh(k*x)^4')
-    sage: g.taylor('x', 0, 3)
+    sage: g = axiom('f/sinh(k*x)^4')                               # optional
+    sage: g.taylor('x', 0, 3)                                      # optional
     f/(k^4*x^4) - 2*f/(3*k^2*x^2) + 11*f/45 - 62*k^2*f*x^2/945
 
-    sage: axiom.taylor('asin(x)','x',0, 10)
+    sage: axiom.taylor('asin(x)','x',0, 10)                        # optional
     x + x^3/6 + 3*x^5/40 + 5*x^7/112 + 35*x^9/1152
 
 \subsection{Examples involving matrices}
 We illustrate computing with the matrix whose $i,j$ entry
 is $i/j$, for $i,j=1,\ldots,4$.
 
-    sage: f = axiom.eval('f[i,j] := i/j')
-    sage: A = axiom('genmatrix(f,4,4)'); A
+    sage: f = axiom.eval('f[i,j] := i/j')                          # optional
+    sage: A = axiom('genmatrix(f,4,4)'); A                         # optional
     matrix([1,1/2,1/3,1/4],[2,1,2/3,1/2],[3,3/2,1,3/4],[4,2,4/3,1])
-    sage: A.determinant()
+    sage: A.determinant()                                          # optional
     0
-    sage: A.echelon()
+    sage: A.echelon()                                              # optional
     matrix([1,1/2,1/3,1/4],[0,0,0,0],[0,0,0,0],[0,0,0,0])
-    sage: A.eigenvalues()
+    sage: A.eigenvalues()                                          # optional
     [[0,4],[3,1]]
-    sage: A.eigenvectors()
+    sage: A.eigenvectors()                                         # optional
     [[[0,4],[3,1]],[1,0,0, - 4],[0,1,0, - 2],[0,0,1, - 4/3],[1,2,3,4]]
 
 We can also compute the echelon form in \sage:
-    sage: B = matrix(QQ, A)
-    sage: B.echelon_form()
+    sage: B = matrix(QQ, A)                                        # optional
+    sage: B.echelon_form()                                         # optional
     [  1 1/2 1/3 1/4]
     [  0   0   0   0]
     [  0   0   0   0]
     [  0   0   0   0]
-    sage: B.charpoly().factor()
+    sage: B.charpoly().factor()                                    # optional
     (x - 4) * x^3
 
 \subsection{Laplace Transforms}
 We illustrate Laplace transforms:
-    sage: _ = axiom.eval("f(t) := t*sin(t)")
-    sage: axiom("laplace(f(t),t,s)")
+    sage: _ = axiom.eval("f(t) := t*sin(t)")                       # optional
+    sage: axiom("laplace(f(t),t,s)")                               # optional
     2*s/(s^2 + 1)^2
 
-    sage: axiom("laplace(delta(t-3),t,s)") #Dirac delta function
+    sage: axiom("laplace(delta(t-3),t,s)") #Dirac delta function   # optional
     %e^-(3*s)
 
-    sage: _ = axiom.eval("f(t) == exp(t)*sin(t)")
-    sage: axiom("laplace(f(t),t,s)")
+    sage: _ = axiom.eval("f(t) == exp(t)*sin(t)")                  # optional
+    sage: axiom("laplace(f(t),t,s)")                               # optional
     1/(s^2 - 2*s + 2)
 
-    sage: _ = axiom.eval("f(t) := t^5*exp(t)*sin(t)")
-    sage: axiom("laplace(f(t),t,s)")
+    sage: _ = axiom.eval("f(t) := t^5*exp(t)*sin(t)")              # optional
+    sage: axiom("laplace(f(t),t,s)")                               # optional
     360*(2*s - 2)/(s^2 - 2*s + 2)^4 - 480*(2*s - 2)^3/(s^2 - 2*s + 2)^5 + 120*(2*s - 2)^5/(s^2 - 2*s + 2)^6
-    sage: axiom("laplace(f(t),t,s)")
+    sage: axiom("laplace(f(t),t,s)")                               # optional
                                              3                 5
                360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
               --------------- - --------------- + ---------------
                 2           4     2           5     2           6
               (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
 
-    sage: axiom("laplace(diff(x(t),t),t,s)")
+    sage: axiom("laplace(diff(x(t),t),t,s)")                       # optional
     s*laplace(x(t),t,s) - x(0)
 
-    sage: axiom("laplace(diff(x(t),t,2),t,s)")
+    sage: axiom("laplace(diff(x(t),t,2),t,s)")                     # optional
     -at('diff(x(t),t,1),t = 0) + s^2*laplace(x(t),t,s) - x(0)*s
 
-    sage.: axiom("laplace(diff(x(t),t,2),t,s)")
+    sage: axiom("laplace(diff(x(t),t,2),t,s)")                    # optional
                          !
                 d        !         2
               - -- (x(t))!      + s  laplace(x(t), t, s) - x(0) s
@@ -225,20 +228,20 @@ or GAP.
 We compute the gcd of $2x^{n+4} - x^{n+2}$ and $4x^{n+1} + 3x^n$
 for arbitrary $n$.
 
-    sage: f = axiom('2*x^(n+4) - x^(n+2)')
-    sage: g = axiom('4*x^(n+1) + 3*x^n')
-    sage: f.gcd(g)
+    sage: f = axiom('2*x^(n+4) - x^(n+2)')                           # optional
+    sage: g = axiom('4*x^(n+1) + 3*x^n')                             # optional
+    sage: f.gcd(g)                                                   # optional
     x^n
 
 You can plot 3d graphs (via gnuplot):
 
-    sage.: axiom('plot3d(x^2-y^2, [x,-2,2], [y,-2,2], [grid,12,12])')
+    sage: axiom('plot3d(x^2-y^2, [x,-2,2], [y,-2,2], [grid,12,12])')   # optional
     [displays a 3 dimensional graph]
 
 You can formally evaluate sums (note the \code{nusum} command):
 
-    sage: S = axiom('sum(exp(1+2*i/n),i=1..n)')
-    sage.: S
+    sage: S = axiom('sum(exp(1+2*i/n),i=1..n)')                         # optional
+    sage: S                                                             # optional
                             2/n + 3                   2/n + 1
                           %e                        %e
                    ----------------------- - -----------------------
@@ -247,21 +250,21 @@ You can formally evaluate sums (note the \code{nusum} command):
 
 We formally compute the limit as $n\to\infty$ of $2S/n$ as follows:
 
-    sage: T = S*axiom('2/n')
-    sage: T.tlimit('n','inf')
+    sage: T = S*axiom('2/n')                              # optional
+    sage: T.tlimit('n','inf')                             # optional
     %e^3 - %e
 
 \subsection{Miscellaneous}
 Obtaining digits of $\pi$:
-    sage: axiom.eval('fpprec : 100')
+    sage: axiom.eval('fpprec : 100')                      # optional
     '100'
-    sage: axiom(pi).bfloat()
+    sage: axiom(pi).bfloat()                              # optional
     3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068b0
 
 Defining functions in axiom:
-    sage: axiom.eval('fun(a) == a^2')
+    sage: axiom.eval('fun(a) == a^2')                     # optional
     'fun[a] := a^2'
-    sage: axiom('fun(10)')
+    sage: axiom('fun(10)')                                # optional
     100
 
 \subsection{Interactivity}
@@ -271,14 +274,14 @@ Axiom has a non-interactive mode that is initiated via the command
 \subsection{Latex Output}
 The latex output of Axiom is not perfect.  E.g.,
 
-    sage: axiom.eval('tex(sin(u) + sinh(v^2))')
+    sage: axiom.eval('tex(sin(u) + sinh(v^2))')           # optional
     '$$\\sinhv^2 + \\sinu$$false'
 
 Notice the lack of space after the sin macro, which is a latex syntax
 error.  In \sage this is automatically fixed via a substition for
 trig functions, which may have potentially bad side effects:
 
-    sage: latex(axiom('sin(u) + sinh(v^2)'))
+    sage: latex(axiom('sin(u) + sinh(v^2)'))              # optional
     \sinh v^2+\sin u
 
 It would be nice if somebody would fix this problem.  One way would
@@ -287,8 +290,8 @@ to the Axiom people.
 
 Here's another example:
 
-    sage: g = axiom('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
-    sage: latex(g)
+    sage: g = axiom('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')    # optional
+    sage: latex(g)                                                  # optional
      -\frac{i e^{3 i x}}{6}-\frac{i e^{i x}}{2}+c
 
 \subsection{Long Input}
@@ -297,24 +300,18 @@ robust manner, as long as you are creating a new object.
 \note{Using \code{axiom.eval} for long input
 is much less robust, and is not recommended.}
 
-    sage: t = '"%s"'%10^10000   # ten thousand character string.
-    sage: a = axiom(t)
+    sage: t = '"%s"'%10^10000   # ten thousand character string.    (optional)
+    sage: a = axiom(t)                                              # optional
 """
 
-#*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+###########################################################################
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+###########################################################################
 
 import os, re
 
@@ -548,30 +545,30 @@ class Axiom(Expect):
             repr -- an optional string; if given, this is how the function will print.
 
         EXAMPLES:
-            sage: f = axiom.function('x', 'sin(x)')
-            sage: f(3.2)
+            sage: f = axiom.function('x', 'sin(x)')      # optional
+            sage: f(3.2)                                 # optional
             -0.058374143427580086
-            sage: f = axiom.function('x,y', 'sin(x)+cos(y)')
-            sage: f(2,3.5)
+            sage: f = axiom.function('x,y', 'sin(x)+cos(y)')    # optional
+            sage: f(2,3.5)                               # optional
             sin(2) - 0.9364566872907963
-            sage: f
+            sage: f                                      # optional
             sin(x)+cos(y)
 
-            sage: g = f.integrate('z'); g
+            sage: g = f.integrate('z'); g                # optional
             (cos(y) + sin(x))*z
-            sage: g(1,2,3)
+            sage: g(1,2,3)                               # optional
             3*(cos(2) + sin(1))
 
         The function definition can be an axiom object:
-            sage: an_expr = axiom('sin(x)*gamma(x)')
-            sage: t = axiom.function('x', an_expr)
-            sage: t
+            sage: an_expr = axiom('sin(x)*gamma(x)')     # optional
+            sage: t = axiom.function('x', an_expr)       # optional
+            sage: t                                      # optional
             gamma(x)*sin(x)
-            sage: t(2)
+            sage: t(2)                                   # optional
             sin(2)
-            sage: float(t(2))
+            sage: float(t(2))                            # optional
             0.90929742682568171
-            sage: loads(t.dumps())
+            sage: loads(t.dumps())                       # optional
             gamma(x)*sin(x)
         """
         name = self._next_var_name()
@@ -625,9 +622,9 @@ class Axiom(Expect):
             options -- an optional string representing plot2d options in gnuplot format
 
         EXAMPLES:
-            sage.: axiom.plot2d('sin(x)','[x,-5,5]')
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
-            sage.: axiom.plot2d('sin(x)','[x,-5,5]',opts)
+            sage: axiom.plot2d('sin(x)','[x,-5,5]')            # optional
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
+            sage: axiom.plot2d('sin(x)','[x,-5,5]',opts)       # optional
 
         The eps file is saved in the current directory.
         """
@@ -645,15 +642,15 @@ class Axiom(Expect):
             options -- an optional string representing plot2d options in gnuplot format
 
         EXAMPLES:
-            sage.: axiom.plot2d_parametric(["sin(t)","cos(t)"], "t",[-3.1,3.1])
+            sage: axiom.plot2d_parametric(["sin(t)","cos(t)"], "t",[-3.1,3.1])    # optional
 
-            sage.: opts = '[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "circle-plot.eps"]'
-            sage.: axiom.plot2d_parametric(["sin(t)","cos(t)"], "t", [-3.1,3.1], options=opts)
+            sage: opts = '[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "circle-plot.eps"]'
+            sage: axiom.plot2d_parametric(["sin(t)","cos(t)"], "t", [-3.1,3.1], options=opts)    # optional
 
         The eps file is saved to the current working directory.
 
         Here is another fun plot:
-            sage.: axiom.plot2d_parametric(["sin(5*t)","cos(11*t)"], "t", [0,2*pi()], nticks=400)
+            sage: axiom.plot2d_parametric(["sin(5*t)","cos(11*t)"], "t", [0,2*pi()], nticks=400)    # optional
         """
         tmin = trange[0]
         tmax = trange[1]
@@ -676,10 +673,10 @@ class Axiom(Expect):
             [var, min, max]
 
         EXAMPLES:
-            sage.: axiom.plot3d('1 + x^3 - y^2', '[x,-2,2]', '[y,-2,2]', '[grid,12,12]')
-            sage.: axiom.plot3d('sin(x)*cos(y)', '[x,-2,2]', '[y,-2,2]', '[grid,30,30]')
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
-            sage.: axiom.plot3d('sin(x+y)', '[x,-5,5]', '[y,-1,1]', opts)
+            sage: axiom.plot3d('1 + x^3 - y^2', '[x,-2,2]', '[y,-2,2]', '[grid,12,12]')    # optional
+            sage: axiom.plot3d('sin(x)*cos(y)', '[x,-2,2]', '[y,-2,2]', '[grid,30,30]')    # optional
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-plot.eps"]'
+            sage: axiom.plot3d('sin(x+y)', '[x,-5,5]', '[y,-1,1]', opts)                   # optional
 
         The eps file is saved in the current working directory.
         """
@@ -702,22 +699,22 @@ class Axiom(Expect):
             displays a plot on screen or saves to a file
 
         EXAMPLES:
-            sage.: axiom.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3])
-            sage.: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-cos-plot.eps"]'
-            sage.: axiom.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3],opts)
+            sage: axiom.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3])    # optional
+            sage: opts = '[gnuplot_term, ps], [gnuplot_out_file, "sin-cos-plot.eps"]'                 # optional
+            sage: axiom.plot3d_parametric(["v*sin(u)","v*cos(u)","v"], ["u","v"],[-3.2,3.2],[0,3],opts)   # optional
 
         The eps file is saved in the current working directory.
 
         Here is a torus:
 
-            sage.: _ = axiom.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
-            sage.: axiom.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])
+            sage: _ = axiom.eval("expr_1: cos(y)*(10.0+6*cos(x)); expr_2: sin(y)*(10.0+6*cos(x)); expr_3: -6*sin(x);")  # optional
+            sage: axiom.plot3d_parametric(["expr_1","expr_2","expr_3"], ["x","y"],[0,6],[0,6])         # optional
 
         Here is a Mobius strip:
-            sage.: x = "cos(u)*(3 + v*cos(u/2))"
-            sage.: y = "sin(u)*(3 + v*cos(u/2))"
-            sage.: z = "v*sin(u/2)"
-            sage.: axiom.plot3d_parametric([x,y,z],["u","v"],[-3.1,3.2],[-1/10,1/10])
+            sage: x = "cos(u)*(3 + v*cos(u/2))"
+            sage: y = "sin(u)*(3 + v*cos(u/2))"
+            sage: z = "v*sin(u/2)"
+            sage: axiom.plot3d_parametric([x,y,z],["u","v"],[-3.1,3.2],[-1/10,1/10])                   # optional
         """
         umin = urange[0]
         umax = urange[1]
@@ -743,13 +740,13 @@ class Axiom(Expect):
                    y(a)=b1, y'(a)=b2
 
         EXAMPLES:
-            sage.: axiom.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
+            sage: axiom.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])            # optional
             y = 3*x - 2*%e^(x - 1)
-            sage.: axiom.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
+            sage: axiom.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])                     # optional
             y = %k1*%e^x + %k2*%e^ - x + 3*x
-            sage.: axiom.de_solve('diff(y,x) + 3*x = y', ['x','y'])
+            sage: axiom.de_solve('diff(y,x) + 3*x = y', ['x','y'])                       # optional
             y = (%c - 3*( - x - 1)*%e^ - x)*%e^x
-            sage.: axiom.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
+            sage: axiom.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])                 # optional
             y =  - %e^ - 1*(5*%e^x - 3*%e*x - 3*%e)
         """
         if not isinstance(vars, str):
@@ -781,13 +778,13 @@ class Axiom(Expect):
                    (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
 
         EXAMPLES:
-            sage.: axiom.clear('x'); axiom.clear('f')
-            sage.: axiom.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"], [0,1,2])
+            sage: axiom.clear('x'); axiom.clear('f')                     # optional
+            sage: axiom.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"], [0,1,2])       # optional
             f(x) = x*%e^x + %e^x
 
-            sage.: axiom.clear('x'); axiom.clear('f')
-            sage.: f = axiom.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
-            sage.: f
+            sage: axiom.clear('x'); axiom.clear('f')                     # optional
+            sage: f = axiom.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])            # optional
+            sage: f                                                                                        # optional
                                                !
                                    x  d        !                  x          x
                         f(x) = x %e  (-- (f(x))!     ) - f(0) x %e  + f(0) %e
@@ -820,7 +817,7 @@ class Axiom(Expect):
         EXAMPLES:
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
-            sage: axiom.solve_linear(eqns, vars)
+            sage: axiom.solve_linear(eqns, vars)        # optional
             [x = a + 1,y = 2*a,z = a - 1]
         """
         eqs = "["
@@ -843,15 +840,15 @@ class Axiom(Expect):
         field $\Q(\sqrt{n})$, $n>1$, using the qunit axiom command.
 
         EXAMPLE:
-            sage: u = axiom.unit_quadratic_integer(101)
-            sage: u.parent()
+            sage: u = axiom.unit_quadratic_integer(101)        # optional
+            sage: u.parent()                                   # optional
             Number Field in a with defining polynomial x^2 - 101
-            sage: u
+            sage: u                                            # optional
             a + 10
-            sage: u = axiom.unit_quadratic_integer(13)
-            sage: u
+            sage: u = axiom.unit_quadratic_integer(13)         # optional
+            sage: u                                            # optional
             5*a + 18
-            sage: u.parent()
+            sage: u.parent()                                   # optional
             Number Field in a with defining polynomial x^2 - 13
         """
         from sage.rings.all import QuadraticField, Integer
@@ -879,11 +876,11 @@ class Axiom(Expect):
         The points are (x1,y1), (x2,y2), etc.
 
         EXAMPLES:
-            sage.: zeta_ptsx = [ (pari(1/2 + i*I/10).zeta().real()).precision(1) for i in range (70,150)]
-            sage.: zeta_ptsy = [ (pari(1/2 + i*I/10).zeta().imag()).precision(1) for i in range (70,150)]
-            sage.: axiom.plot_list(zeta_ptsx, zeta_ptsy)
-            sage.: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
-            sage.: axiom.plot_list(zeta_ptsx, zeta_ptsy, opts)
+            sage: zeta_ptsx = [ (pari(1/2 + i*I/10).zeta().real()).precision(1) for i in range (70,150)]
+            sage: zeta_ptsy = [ (pari(1/2 + i*I/10).zeta().imag()).precision(1) for i in range (70,150)]
+            sage: axiom.plot_list(zeta_ptsx, zeta_ptsy)                   # optional
+            sage: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
+            sage: axiom.plot_list(zeta_ptsx, zeta_ptsy, opts)             # optional
         """
         cmd = 'plot2d([discrete,%s, %s]'%(ptsx, ptsy)
         if options is None:
@@ -900,18 +897,18 @@ class Axiom(Expect):
         options is a string representing axiom plot2d options.
 
         EXAMPLES:
-            sage.: xx = [ i/10.0 for i in range (-10,10)]
-            sage.: yy = [ i/10.0 for i in range (-10,10)]
-            sage.: x0 = [ 0 for i in range (-10,10)]
-            sage.: y0 = [ 0 for i in range (-10,10)]
-            sage.: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10)]
-            sage.: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10)]
-            sage.: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])
-            sage.: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10,150)]
-            sage.: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10,150)]
-            sage.: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])
-            sage.: opts='[gnuplot_preamble, "set nokey"]'
-            sage.: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]],opts)
+            sage: xx = [ i/10.0 for i in range (-10,10)]
+            sage: yy = [ i/10.0 for i in range (-10,10)]
+            sage: x0 = [ 0 for i in range (-10,10)]
+            sage: y0 = [ 0 for i in range (-10,10)]
+            sage: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10)]
+            sage: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10)]
+            sage: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])    # optional
+            sage: zeta_ptsx1 = [ (pari(1/2+i*I/10).zeta().real()).precision(1) for i in range (10,150)]
+            sage: zeta_ptsy1 = [ (pari(1/2+i*I/10).zeta().imag()).precision(1) for i in range (10,150)]
+            sage: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]])     # optional
+            sage: opts='[gnuplot_preamble, "set nokey"]'
+            sage: axiom.plot_multilist([[zeta_ptsx1,zeta_ptsy1],[xx,y0],[x0,yy]],opts)    # optional
         """
         n = len(pts_list)
         cmd = '['
@@ -937,21 +934,21 @@ class AxiomElement(ExpectElement):
     def _cmp_(self, other):
         """
         EXAMPLES:
-            sage: a = axiom(1); b = axiom(2)
-            sage: a == b
+            sage: a = axiom(1); b = axiom(2)                  # optional
+            sage: a == b                                      # optional
             False
-            sage: a < b
+            sage: a < b                                       # optional
             True
-            sage: a > b
+            sage: a > b                                       # optional
             False
-            sage: b < a
+            sage: b < a                                       # optional
             False
-            sage: b > a
+            sage: b > a                                       # optional
             True
 
         We can also compare more complicated object such as functions:
-            sage: f = axiom('sin(x)'); g = axiom('cos(x)')
-            sage: -f == g.diff('x')
+            sage: f = axiom('sin(x)'); g = axiom('cos(x)')    # optional
+            sage: -f == g.diff('x')                           # optional
             True
         """
 
@@ -1007,20 +1004,20 @@ class AxiomElement(ExpectElement):
             n-th derivative of self with respect to the variable var
 
         EXAMPLES:
-            sage: f = axiom('x^2')
-            sage: f.diff()
+            sage: f = axiom('x^2')                          # optional
+            sage: f.diff()                                  # optional
             2*x
-            sage: f.diff('x')
+            sage: f.diff('x')                               # optional
             2*x
-            sage: f.diff('x', 2)
+            sage: f.diff('x', 2)                            # optional
             2
-            sage: axiom('sin(x^2)').diff('x',4)
-            16*x^4*sin(x^2) - 12*sin(x^2) - 48*x^2*cos(x^2)
+            sage: axiom('sin(x^2)').diff('x',4)             # optional
+            16*x^4*sin(x^2) - 12*sin(x^2) - 48*x^2*cos(x^2) # optional
 
-            sage: f = axiom('x^2 + 17*y^2')
-            sage: f.diff('x')
+            sage: f = axiom('x^2 + 17*y^2')                 # optional
+            sage: f.diff('x')                               # optional
             2*x
-            sage: f.diff('y')
+            sage: f.diff('y')                               # optional
             34*y
         """
         return ExpectElement.__getattr__(self, 'differentiate')(var, n)
@@ -1057,11 +1054,11 @@ class AxiomElement(ExpectElement):
                   6 -- the input is invalid
 
         EXAMPLES:
-            sage: axiom('exp(-sqrt(x))').nintegral('x',0,1)
+            sage: axiom('exp(-sqrt(x))').nintegral('x',0,1)                   # optional
             (0.5284822353142306, 4.1633141378838445E-11, 231, 0)
 
         Note that GP also does numerical integration, and can do
-        so to very high precision very quickly:
+        so to very high precision quickly:
             sage: gp('intnum(x=0,1,exp(-sqrt(x)))')
             0.5284822353142307136179049194             # 32-bit
             0.52848223531423071361790491935415653021   # 64-bit
@@ -1087,22 +1084,22 @@ class AxiomElement(ExpectElement):
         otherwise returns an indefinite integral.
 
         EXAMPLES:
-            sage: axiom('x^2+1').integral()
+            sage: axiom('x^2+1').integral()                                        # optional
             x^3/3 + x
-            sage: axiom('x^2+ 1 + y^2').integral('y')
+            sage: axiom('x^2+ 1 + y^2').integral('y')                              # optional
             y^3/3 + x^2*y + y
-            sage: axiom('x / (x^2+1)').integral()
+            sage: axiom('x / (x^2+1)').integral()                                  # optional
             log(x^2 + 1)/2
-            sage: axiom('1/(x^2+1)').integral()
+            sage: axiom('1/(x^2+1)').integral()                                    # optional
             atan(x)
-            sage.: axiom('1/(x^2+1)').integral('x', 0, infinity)
+            sage: axiom('1/(x^2+1)').integral('x', 0, infinity)                    # optional
             %pi/2
-            sage: axiom('x/(x^2+1)').integral('x', -1, 1)
+            sage: axiom('x/(x^2+1)').integral('x', -1, 1)                          # optional
             0
 
-            sage: f = axiom('exp(x^2)').integral('x',0,1); f
+            sage: f = axiom('exp(x^2)').integral('x',0,1); f                       # optional
             -sqrt(%pi)*%i*erf(%i)/2
-            sage: f.numer()         # I wonder how to get a real number (~1.463)??
+            sage: f.numer()         # I wonder how to get a real number (~1.463)??   # optional
             -0.8862269254527579*%i*erf(%i)
         """
         I = ExpectElement.__getattr__(self, 'integrate')
@@ -1123,8 +1120,8 @@ class AxiomElement(ExpectElement):
         Return the length of a list.
 
         EXAMPLES:
-            sage: v = axiom('[x^i for i in 0..5]')
-            sage: len(v)
+            sage: v = axiom('[x^i for i in 0..5]')            # optional
+            sage: len(v)                                      # optional
             6
         """
         self._check_valid()
@@ -1143,13 +1140,13 @@ class AxiomElement(ExpectElement):
         not 1-based as they are in the Axiom interpreter.}
 
         EXAMPLES:
-            sage: v = axiom('[i*x^i for i in 0..5]'); v
+            sage: v = axiom('[i*x^i for i in 0..5]'); v          # optional
             [0,x,2*x^2,3*x^3,4*x^4,5*x^5]
-            sage: v[3]
+            sage: v[3]                                           # optional
             3*x^3
-            sage: v[0]
+            sage: v[0]                                           # optional
             0
-            sage: v[10]
+            sage: v[10]                                          # optional
             Traceback (most recent call last):
             ...
             IndexError: n = (10) must be between 0 and 5
@@ -1199,10 +1196,10 @@ class AxiomElement(ExpectElement):
         of $R$.
 
         EXAMPLES:
-            sage: _ = axiom.eval("f[i,j] := i/j")
-            sage: A = axiom('genmatrix(f,4,4)'); A
+            sage: _ = axiom.eval("f[i,j] := i/j")              # optional
+            sage: A = axiom('genmatrix(f,4,4)'); A             # optional
             matrix([1,1/2,1/3,1/4],[2,1,2/3,1/2],[3,3/2,1,3/4],[4,2,4/3,1])
-            sage: A._matrix_(QQ)
+            sage: A._matrix_(QQ)                               # optional
             [  1 1/2 1/3 1/4]
             [  2   1 2/3 1/2]
             [  3 3/2   1 3/4]
@@ -1210,7 +1207,7 @@ class AxiomElement(ExpectElement):
 
         You can also use the \code{matrix} command (which is defined
         in \code{sage.misc.functional}):
-            sage: matrix(QQ, A)
+            sage: matrix(QQ, A)                                # optional
             [  1 1/2 1/3 1/4]
             [  2   1 2/3 1/2]
             [  3 3/2   1 3/4]
@@ -1235,8 +1232,8 @@ class AxiomElement(ExpectElement):
         the variable var.
 
         EXAMPLES:
-            sage: f = axiom('1/((1+x)*(x-1))')
-            sage: f.partial_fraction_decomposition('x')
+            sage: f = axiom('1/((1+x)*(x-1))')              # optional
+            sage: f.partial_fraction_decomposition('x')     # optional
                                  1           1
                              --------- - ---------
                              2 (x - 1)   2 (x + 1)

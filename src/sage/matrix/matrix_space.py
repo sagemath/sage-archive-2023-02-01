@@ -242,7 +242,7 @@ class MatrixSpace_generic(gens.Generators):
         sage: MS1 = MatrixSpace(QQ,4)
         sage: MS2 = MatrixSpace(ZZ,4,5,true)
         sage: MS1._get_matrix_class()
-        <class 'sage.matrix.matrix.Matrix_dense_rational'>
+        <type 'matrix_rational_dense.Matrix_rational_dense'>
         sage: MS2._get_matrix_class()
         <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
@@ -352,7 +352,7 @@ class MatrixSpace_generic(gens.Generators):
     def ngens(self):
         return self.dimension()
 
-    def matrix(self, x=0, coerce_entries=True, copy=True):
+    def matrix(self, x=0, coerce_entries=True, copy=True, zero=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -367,6 +367,7 @@ class MatrixSpace_generic(gens.Generators):
             [ 1  0]
             [ 0 -1]
         """
+        # TODO: implement/propagate the zero/clear flag
         if isinstance(x, (xrange,xsrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
@@ -378,11 +379,21 @@ class MatrixSpace_generic(gens.Generators):
         if isinstance(x, list) and len(x) > 0:
             if isinstance(x[0], list):
                 x = sum(x,[])
+            elif hasattr(x[0], "is_vector"): # TODO: is this the best way to test that?
+                e = []
+                for v in x:
+                    e = e + v.list()
+                copy = False # deep copy?
+                x = e
             elif isinstance(x[0], tuple):
                 x = list(sum(x,()))
         return self.__matrix_class(self, x, coerce_entries, copy)
 
     def matrix_space(self, nrows, ncols, sparse=False):
+        if nrows is None:
+            nrows = self.__nrows
+        if ncols is None:
+            ncols = self.__ncols
         return MatrixSpace(self.__base_ring, nrows, ncols,
                         sparse=sparse)
 

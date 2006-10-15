@@ -51,6 +51,7 @@ import  sage.rings.rational
 
 import matrix_space
 from sage.rings.finite_field import GF
+from sage.rings.integer_ring import IntegerRing
 
 START_PRIME = 20011  # used for multi-modular algorithms
 
@@ -169,7 +170,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
     def _lllgram(self):
         """assumes self is a square matrix (checked in lllgram)"""
-        Z = integer_ring.IntegerRing()
+        Z = IntegerRing()
         n = self.nrows()
         # pari does not like negative definite forms
         if n > 0 and self[0,0] < 0:
@@ -519,7 +520,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
     def new_matrix(self, nrows=None, ncols=None, entries=0,
                    coerce_entries=True, copy=True, sparse=None,
                    clear = True, zero=True):
-      return Matrix_rational_dense(self.matrix_space(nrows, ncols), zero=zero)
+      return self.parent().matrix_space(nrows, ncols).matrix(entries, zero=zero)
 
 
     def number_nonzero(self):
@@ -584,6 +585,10 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
                     break
         mpq_clear(a_inverse)
         mpq_clear(minus_b)
+
+    def charpoly(self, bound=None):
+        # TODO: use (and cache with respect to) bound when multi-modular methods are implemented
+        return matrix_field.Matrix_field.charpoly(self)
 
     def rank(self):
         """

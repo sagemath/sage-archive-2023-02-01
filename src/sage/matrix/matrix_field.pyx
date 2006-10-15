@@ -53,10 +53,8 @@ cdef class Matrix_field(matrix_pid.Matrix_pid):
         """
         cdef int i
 
-        try:
+        if self.__charpoly is not None:
             return self.__charpoly
-        except AttributeError:
-            pass
         if self.nrows() != self.ncols():
             raise ArithmeticError, "charpoly of non-square matrix not defined."
 

@@ -88,7 +88,8 @@ def test_file(F):
         ld = os.listdir(F)
         if not ('__nodoctest__' in ld):
             for L in ld:
-                return test_file('%s/%s'%(F,L))
+                k = test_file('%s/%s'%(F,L))
+    return 0
 
 files = argv[1:]
 if len(files) == 0:

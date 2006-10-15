@@ -73,7 +73,7 @@ SAGE_DATA = '%s/data'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT
 
 def delete_tmpfiles():
-    #print "deleting temp files from %s"%SAGE_TMP
+    # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!
     import shutil
     try:
         shutil.rmtree(SAGE_TMP)

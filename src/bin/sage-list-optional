@@ -25,7 +25,22 @@ except OSError:
      installed = set([])
 
 print url, "-->", file
-urllib.urlretrieve(url, file)
+try:
+    urllib.urlretrieve(url, file)
+except (OSError, IOError), msg:
+    print msg
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    print "Error contacting %s. Try using an alternative server."%url
+    print "For example, from the bash prompt try typing\n"
+    print "   export SAGE_SERVER=http://sage.scipy.org/sage/\n"
+    print "then try again."
+    print "\n\n"
+    print "*"*80
+    print "\n\n"
+    sys.exit(1)
+
 if os.path.getsize(file) < 1000 and open(file).read().find("404 Not Found") != -1:
      print "Error downloading optional package list"
 else:

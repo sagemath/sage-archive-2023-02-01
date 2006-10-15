@@ -36,7 +36,10 @@ PKG=$DESTINATION
 # NEW DOCUMENTATION PACKAGE
 if [ -d $SAGE_ROOT/devel/doc-main ]; then
    cd $SAGE_ROOT/devel/doc-main
-   ./sage-push
+   hg diff
+   hg status
+   hg commit
+   # ./sage-push
    if [ $? -ne 0 ]; then
        echo "Documenation push cancelled."
        exit 1
@@ -60,7 +63,10 @@ fi
 # NEW SAGE SOURCE PACKAGE
 if [ -d $SAGE_ROOT/devel/sage ]; then
    cd $SAGE_ROOT/devel/sage
-   ./sage-push
+   hg diff
+   hg status
+   hg commit
+   #./sage-push
    chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
    if [ $? -ne 0 ]; then
@@ -79,7 +85,10 @@ fi
 # NEW SAGE EXTERNAL CODE PACKAGE
 if [ -d $SAGE_ROOT/data/extcode ]; then
    cd $SAGE_ROOT/data/extcode
-   ./sage-push
+   hg diff
+   hg status
+   hg commit
+   #./sage-push
    chmod +x spkg-dist
    ./spkg-dist $SAGE_VERSION $SAGE_ROOT
    if [ $? -ne 0 ]; then
@@ -100,7 +109,10 @@ fi
 # NEW SAGE EXAMPLE CODE PACKAGE
 if [ -d $SAGE_ROOT/examples ]; then
    cd $SAGE_ROOT/examples
-   ./sage-push
+   hg diff
+   hg status
+   hg commit
+   #./sage-push
    cd ..
    rm -rf examples-$SAGE_VERSION
    cp -r examples examples-$SAGE_VERSION
@@ -127,7 +139,10 @@ fi
 SCRIPTS=sage_scripts-$SAGE_VERSION
 cd $SAGE_ROOT/local/bin/
 
-./sage-push
+#./sage-push
+hg diff
+hg status
+hg commit
 
 if [ $? -ne 0 ]; then
     echo "Error pushing scripts repository."

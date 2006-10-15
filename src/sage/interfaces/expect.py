@@ -296,7 +296,7 @@ class Expect(SageObject):
             except AttributeError:
                 pass
         except RuntimeError, msg:
-            print msg
+            pass
 
     def cputime(self):
         """
@@ -314,7 +314,8 @@ class Expect(SageObject):
         if verbose:
             print "Exiting spawned %s process."%self
         try:
-            self._eval_line(self._quit_string(), wait_for_prompt=pexpect.EOF)
+            self._expect.sendline(self._quit_string())
+            self._so_far(wait=0.25)
             os.killpg(self._expect.pid, 9)
             os.kill(self._expect.pid, 9)
         except OSError, msg:

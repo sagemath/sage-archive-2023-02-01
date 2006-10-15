@@ -47,7 +47,7 @@ fi
 mkdir $TMP
 
 cd $SAGE_ROOT
-cp -LRp makefile *.txt *.sage sage ipythonrc .hg* $TMP/
+cp -LRp makefile *.txt *.sage sage ipythonrc $TMP/
 STD=standard
 mkdir $TMP/$PKGDIR
 mkdir $TMP/$PKGDIR/$STD

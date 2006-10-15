@@ -35,11 +35,34 @@ from sage.misc.sage_eval import sage_eval
 
 #_objsPowerSeriesRing = {}
 def PowerSeriesRing(base_ring, name=None, default_prec=20):
+    """
+    EXAMPLES:
+        sage: R = PowerSeriesRing(QQ); R
+        Power Series Ring in x over Rational Field
+
+        sage: S = PowerSeriesRing(QQ, 'y'); S
+        Power Series Ring in y over Rational Field
+
+        sage: R = PowerSeriesRing(QQ, 10)
+        Traceback (most recent call last):
+        ...
+        TypeError: variable name must be a string or None
+
+        sage: S = PowerSeriesRing(QQ, default_prec = 15); S
+        Power Series Ring in x over Rational Field
+        sage: S.default_prec()
+        15
+    """
     #global _objsPowerSeriesRing
     #key = (base_ring, name, default_prec)
     #if _objsPowerSeriesRing.has_key(key):
     #    x = _objsPowerSeriesRing[key]()
     #    if x != None: return x
+
+    if not (name is None or isinstance(name, str)):
+        raise TypeError, "variable name must be a string or None"
+
+
     if isinstance(base_ring, field.Field):
         R = PowerSeriesRing_over_field(base_ring, name, default_prec)
     elif isinstance(base_ring, integral_domain.IntegralDomain):

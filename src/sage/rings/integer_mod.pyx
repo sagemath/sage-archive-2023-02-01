@@ -417,6 +417,24 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t* get_value(IntegerMod_gmp self):
         return &self.value
 
+    def __lshift__(self, right):
+        if  isinstance(right,(int,long, sage.rings.integer.Integer)):
+            return self._lshift_(right)
+        raise TypeError, "Argument 1 must be integer, not %s" % type(right)
+
+    def _lshift_(IntegerMod_gmp self, right):
+        """
+        EXAMPLES:
+            sage: R=Integers(10^10) ; e=R(19)
+            sage: e<<102
+            9443608576
+
+        """
+        cdef IntegerMod_gmp x
+        x = IntegerMod_gmp(self._parent, None, empty=True)
+        mpz_mul_2exp(x.value, self.value, right)
+        mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
+        return x
 
     def __cmp__(IntegerMod_gmp self, right):
         if not isinstance(right, IntegerMod_gmp):
@@ -608,6 +626,23 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         _sig_on
         mpz_powm(x.value, self.value, exp.value, self.__modulus.sageInteger.value)
         _sig_off
+        return x
+
+    def __rshift__(self, right):
+        if  isinstance(right,(int,long, sage.rings.integer.Integer)):
+            return self._rshift_(right)
+        raise TypeError, "Argument 1 must be integer, not %s" % type(right)
+
+    def _rshift_(IntegerMod_gmp self, right):
+        """
+        EXAMPLES:
+            sage: R=Integers(2^32-1) ; e=R(1000001)
+            sage: e>>5
+            31250
+        """
+        cdef IntegerMod_gmp x
+        x = IntegerMod_gmp(self._parent, None, empty=True)
+        mpz_fdiv_q_2exp(x.value, self.value, right)
         return x
 
     def __neg__(IntegerMod_gmp self):
@@ -943,6 +978,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __hash__(self):
         return hash(self.ivalue)
+
+    def __abs__(self):
+        raise ArithmeticError, "Absolute value not defined, use lift() instead"
 
 ### End of class
 
@@ -1290,6 +1328,22 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             mpz_clear(x_mpz)
         return x
 
+    def __lshift__(self, right):
+        if  isinstance(right,(int,long, sage.rings.integer.Integer)):
+            return self._lshift_(right)
+        raise TypeError, "Argument 1 must be integer, not %s"%type(right)
+
+    def _lshift_(IntegerMod_int self, right):
+        """
+        EXAMPLES:
+            sage: R=Integers((1<<31)-1) ; e=R(5)
+            sage: e<<32
+             10
+        """
+        cdef IntegerMod_int64 x
+        x = IntegerMod_int64(self._parent, None, empty=True)
+        x.ivalue = (self.ivalue << right) % self.__modulus.int64
+        return x
 
     def __neg__(IntegerMod_int64 self):
         """

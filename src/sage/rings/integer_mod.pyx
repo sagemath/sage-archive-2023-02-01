@@ -81,9 +81,6 @@ def is_IntegerMod(x):
     """
     return isinstance(x, IntegerMod_abstract)
 
-def makeNativeIntStruct(sage.rings.integer.Integer z):
-    return NativeIntStruct(z)
-
 
 cdef class NativeIntStruct:
 
@@ -93,9 +90,6 @@ cdef class NativeIntStruct:
             self.int64 = mpz_get_si(z.value)
             if self.int64 < INTEGER_MOD_INT32_LIMIT:
                 self.int32 = self.int64
-
-    def __reduce__(NativeIntStruct self):
-        return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
 
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
@@ -114,7 +108,17 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         self.__modulus = parent._pyx_order
 
     def __abs__(self):
-        raise ArithmeticError, "Absolute value not defined, use lift() instead"
+        """
+        Raise an error message, since abs(x) makes no sense when x is an
+        integer modulo n.
+
+        EXAMPLES:
+            sage: abs(Mod(2,3))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: absolute valued not defined on integers modulo n.
+        """
+        raise ArithmeticError, "absolute valued not defined on integers modulo n."
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -669,10 +673,14 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __invert__(IntegerMod_gmp self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
-            sage: ~mod(3,10^10)
-            6666666667
-            sage: ~mod(2,10^10)
+            sage: a = mod(3,10^100); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: ~a
+            6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667
+            sage: ~mod(2,10^100)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
@@ -688,6 +696,17 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             raise ZeroDivisionError, "Inverse does not exist."
 
     def lift(IntegerMod_gmp self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^70); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: lift(a)
+            8943
+            sage: a.lift()
+            8943
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         z.set_from_mpz(self.value)
@@ -1001,6 +1020,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __invert__(IntegerMod_int self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
             sage: ~mod(7,100)
             43
@@ -1011,6 +1032,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return x
 
     def lift(IntegerMod_int self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^10); type(a)
+            <type 'integer_mod.IntegerMod_int'>
+            sage: lift(a)
+            751
+            sage: a.lift()
+            751
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         mpz_set_si(z.value, self.ivalue)
@@ -1411,9 +1443,15 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __invert__(IntegerMod_int64 self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
-            sage: ~mod(7,10^5)
-            57143
+            sage: a = mod(7,2^40); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: ~a
+            471219269047
+            sage: a
+            7
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
@@ -1421,15 +1459,44 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return x
 
     def lift(IntegerMod_int64 self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^25); type(a)
+            <type 'integer_mod.IntegerMod_int64'>
+            sage: lift(a)
+            8943
+            sage: a.lift()
+            8943
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         mpz_set_si(z.value, self.ivalue)
         return z
 
     def __float__(IntegerMod_int64 self):
+        """
+        Coerce self to a float.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^35)
+            sage: float(a)
+            8943.0
+        """
         return float(self.ivalue)
 
     def __hash__(self):
+        """
+        Compute hash of self.   This is the hash of the underlying integer, which
+        is just that integer.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^35)
+            sage: hash(a)
+            8943
+        """
+
         return hash(self.ivalue)
 
 ### End of class

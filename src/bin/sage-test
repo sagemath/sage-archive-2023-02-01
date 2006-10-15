@@ -50,8 +50,7 @@ if not os.path.exists(TMP):
 def test(F, cmd):
     t = time.time()
     if skip(F):
-        return
-
+        return 0
     try:
         s = "%s/local/bin/sage-%s %s"%(SAGE_ROOT, cmd, F)
         err = os.system(s)
@@ -72,7 +71,7 @@ def test_file(F):
         if F[:6] != "__test":
             print "ERROR: File %s/%s is missing"%(os.curdir,F)
             failed.append('%s/%s'%(os.curdir,F))
-        return
+        return 1
     if os.path.isfile(F):
         dir, file = os.path.split(F)
         if dir != '':
@@ -81,22 +80,24 @@ def test_file(F):
 
     base, ext = os.path.splitext(F)
     if use_sage_only or ext in ['.sage']:
-        test(F, 'doctest_tex')
+        return test(F, 'doctest_tex')
     elif ext in ['.py', '.pyx', '.tex']:
-        test(F, 'doctest '+opts)
+        return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \
             and not '#' in F and not '/notes' in F:
         ld = os.listdir(F)
         if not ('__nodoctest__' in ld):
             for L in ld:
-                test_file('%s/%s'%(F,L))
+                return test_file('%s/%s'%(F,L))
 
 files = argv[1:]
 if len(files) == 0:
     files = os.listdir('.')
 
 for F in files:
-    test_file(F)
+    e = test_file(F)
+    if e:
+        sys.exit(1)
 
 print " "
 print "-"*int(70)

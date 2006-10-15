@@ -2,12 +2,31 @@
 
 TIMEOUT = 180
 
-import os, re, sys, signal, time
+import os, re, sys, signal, time, shutil
+
+optional = False
+long_time = False
+verbose = False
 
 argv = sys.argv
 
 import sage.misc.preparser
-import sage.misc.misc
+
+######################################################
+# This code is copied from sage.misc.misc for speed:
+######################################################
+def is_64bit():
+    return sys.maxint == 9223372036854775807
+
+DOT_SAGE = os.environ['DOT_SAGE']
+SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
+def delete_tmpfiles():
+    try:
+        shutil.rmtree(SAGE_TMP)
+    except OSError:
+        pass
+
+######################################################
 
 
 SAGE_ROOT=os.environ["SAGE_ROOT"]
@@ -17,13 +36,15 @@ os.environ["PYTHONPATH"]=SAGE_ROOT + "/local/lib/python/site-packages"
 
 PYTHON = SAGE_ROOT + "/local/bin/python"
 
-TEST_CODE= """
+def test_code():
+    return """
 if __name__ ==  '__main__':
     import doctest, sys
     s = doctest.testmod(sys.modules[__name__],
-                   optionflags=doctest.NORMALIZE_WHITESPACE)
+                   optionflags=doctest.NORMALIZE_WHITESPACE,
+                   verbose=%s)
     quit_sage(verbose=False)
-"""
+"""%verbose
 
 ALARM = """
 import signal
@@ -131,14 +152,14 @@ def extract_doc(file_name, module):
     # lines that contain "# 32-bit".  This makes it possible to have
     # different output in the doctests for different bit machines.
 
-    if sage.misc.misc.is_64bit():
+    if is_64bit():
         exclude_string = "# 32-bit"
     else:
         exclude_string = "# 64-bit"
 
     F = '\n'.join([L for L in v if not exclude_string in L])
 
-    if sage.misc.misc.is_64bit():
+    if is_64bit():
         F = F.replace('# 64-bit','')
     else:
         F = F.replace('# 32-bit','')
@@ -150,8 +171,8 @@ def extract_doc(file_name, module):
 
     n = 0
     i = 0
-    s = ALARM
-    s +=  "from sage.all import *\n"
+    #s = ALARM
+    s =  "from sage.all import *\n"
 
     while True:
         i = F.find('"""')
@@ -166,10 +187,10 @@ def extract_doc(file_name, module):
     i = F.find('def __doctest_cleanup')
     if i != -1:
         s += F[i:] + '\n'
-        s += TEST_CODE
+        s += test_code()
         s += '    __doctest_cleanup()\n'
     else:
-        s += TEST_CODE
+        s += test_code()
     s += '    sys.exit(s[0])'
 
 
@@ -263,12 +284,20 @@ def test_file(file):
         #n = os.system(cmd)
         tm = time.time()
         try:
-            os.system("%s 1>.doctest/out 2>.doctest/err"%cmd)
+            if verbose:
+                e = os.system(cmd)
+            else:
+                e = os.system("%s 1>.doctest/out 2>.doctest/err"%cmd)
             out = open('.doctest/out').read()
             err = open('.doctest/err').read()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"
+            sys.exit(1)
+
+        if not verbose and 'raise KeyboardInterrupt' in err:
+            print "\n" + "*"*80 + "\nControl-C pressed -- interrupting doctests.\n" + "*"*80
+            sys.exit(1)
 
         if time.time() - tm >= TIMEOUT:
             err = "*** *** Error: TIMED OUT! *** ***"
@@ -277,39 +306,52 @@ def test_file(file):
         s = post_process(out)  + err
         print s
         if 'Failed' in s or 'Error' in s:
-            sage.misc.misc.delete_tmpfiles()
+            delete_tmpfiles()
             sys.exit(1)
         else:
-            sage.misc.misc.delete_tmpfiles()
+            delete_tmpfiles()
             sys.exit(0)
     else:
         print "Error running %s, since file %s does not exist."%(
             argv[0], argv[1])
-        sage.misc.misc.delete_tmpfiles()
+        delete_tmpfiles()
         sys.exit(1)
 
 
 def has_opt(opt):
-    try:
-        i = argv.index(opt)
+    if '-' + opt in argv:
+        i = argv.index('-' + opt)
         del argv[i]
         return True
-    except ValueError:
-        return False
+    elif '--' + opt in argv:
+        i = argv.index('--' + opt)
+        del argv[i]
+        return True
+    return False
 
-
+def usage():
+    print "\n\nUsage: sage -t [-optional] [-long] [-verbose] <filename.py | filename.pyx>"
+    print "If -optional is present include examples that uses optional packages."
+    print "If -long is present include examples that take a long time to run,"
+    print 'which is defined by the input line containing the phrase "long time".'
+    sys.exit(1)
 
 if __name__ ==  '__main__':
     import os, sys
     if len(argv) == 1:
-        print "Usage: %s [-optional] [-long] <filename.py | filename.pyx>"%(argv[0])
-        print "If -optional is present include examples that uses optional packages."
-        print "If -long is present include examples that take a long time to run,"
-        print 'which is defined by the input line containing the phrase "long time".'
-
+        usage()
     else:
-        optional = has_opt('-optional')
-        long_time = has_opt('-long')
-        test_file(argv[1])
+        if has_opt('help') or has_opt('h') or has_opt('?'):
+            usage()
+        optional = has_opt('optional')
+        long_time = has_opt('long')
+        verbose = has_opt('verbose')
+        if argv[1][0] == '-':
+            usage()
+        try:
+            test_file(argv[1])
+        except KeyboardInterrupt:
+            sys.exit(1)
+
 
 

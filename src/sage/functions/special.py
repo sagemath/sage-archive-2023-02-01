@@ -415,10 +415,7 @@ def bessel_I(nu,z,alg = "pari",prec=53):
         pari.set_real_precision(a)
         return b
     else:
-        if nu==0:
-            return eval(maxima.eval("i0 (%s)"%z))
-        else:
-            return eval(maxima.eval("bessel_i(%s,%s)"%(RR(nu),RR(z))))
+        return eval(maxima.eval("bessel_i(%s,%s)"%(RR(nu),RR(z))))
 
 def bessel_J(nu,z,alg="pari",prec=53):
     r"""

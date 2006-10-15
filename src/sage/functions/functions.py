@@ -436,7 +436,7 @@ class Function_arith(Function):
     def _axiom_(self, axiom):
         """
         EXAMPLES:
-            sage: axiom(e + pi)
+            sage: axiom(e + pi)                      # optional
             %pi + %e
         """
         return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))

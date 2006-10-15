@@ -12,10 +12,10 @@ your PATH.  It's not necessary to install any special
 \sage packages.
 
 EXAMPLES:
-    sage: matlab.eval('2+2')
+    sage: matlab.eval('2+2')                 # optional
     'ans = 4'
 
-    sage: a = matlab(10)
+    sage: a = matlab(10)                     # optional
     sage: a**10
     1e+10
 
@@ -24,90 +24,90 @@ AUTHORS:
 
 \subsection{Tutorial}
 EXAMPLES:
-    sage: matlab('4+10')
+    sage: matlab('4+10')                     # optional
     14
-    sage: matlab('date')
+    sage: matlab('date')                     # optional
     11-Oct-2006
-    sage: matlab('5*10 + 6')
+    sage: matlab('5*10 + 6')                 # optional
     56
-    sage: matlab('(6+6)/3')
+    sage: matlab('(6+6)/3')                  # optional
     4
-    sage: matlab('9')^2
+    sage: matlab('9')^2                      # optional
     81
-    sage: a = matlab(10); b = matlab(20); c = matlab(30)
-    sage: avg = (a+b+c)/3
-    sage: avg
+    sage: a = matlab(10); b = matlab(20); c = matlab(30)    # optional
+    sage: avg = (a+b+c)/3                    # optional
+    sage: avg                                # optional
     20
-    sage: parent(avg)
+    sage: parent(avg)                        # optional
     Matlab
 
-    sage: my_scalar = matlab('3.1415')
-    sage: my_scalar
+    sage: my_scalar = matlab('3.1415')       # optional
+    sage: my_scalar                          # optional
     3.1415
-    sage: my_vector1 = matlab('[1,5,7]')
-    sage: my_vector1
+    sage: my_vector1 = matlab('[1,5,7]')     # optional
+    sage: my_vector1                         # optional
     1     5     7
-    sage: my_vector2 = matlab('[1;5;7]')
-    sage: my_vector2
+    sage: my_vector2 = matlab('[1;5;7]')     # optional
+    sage: my_vector2                         # optional
     1
     5
     7
-    sage: my_vector1 * my_vector2
+    sage: my_vector1 * my_vector2            # optional
     75
 
-    sage: row_vector1 = matlab('[1 2 3]')
-    sage: row_vector2 = matlab('[3 2 1]')
-    sage: matrix_from_row_vec = matlab('[%s; %s]'%(row_vector1.name(), row_vector2.name()))
-    sage: matrix_from_row_vec
+    sage: row_vector1 = matlab('[1 2 3]')             # optional
+    sage: row_vector2 = matlab('[3 2 1]')             # optional
+    sage: matrix_from_row_vec = matlab('[%s; %s]'%(row_vector1.name(), row_vector2.name()))     # optional
+    sage: matrix_from_row_vec                            # optional
     1     2     3
     3     2     1
 
-    sage: column_vector1 = matlab('[1;3]')
-    sage: column_vector2 = matlab('[2;8]')
-    sage: matrix_from_col_vec = matlab('[%s %s]'%(column_vector1.name(), column_vector2.name()))
-    sage: matrix_from_col_vec
+    sage: column_vector1 = matlab('[1;3]')               # optional
+    sage: column_vector2 = matlab('[2;8]')               # optional
+    sage: matrix_from_col_vec = matlab('[%s %s]'%(column_vector1.name(), column_vector2.name()))                                    # optional
+    sage: matrix_from_col_vec                            # optional
     1     2
     3     8
 
-    sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')
-    sage: my_matrix
+    sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
+    sage: my_matrix                                      # optional
 
      8    12    19
      7     3     2
     12     4    23
      8     1     1
 
-    sage: combined_matrix = matlab('[%s, %s]'%(my_matrix.name(), my_matrix.name()))
-    sage: combined_matrix
+    sage: combined_matrix = matlab('[%s, %s]'%(my_matrix.name(), my_matrix.name()))                                        # optional
+    sage: combined_matrix                               # optional
      8    12    19     8    12    19
      7     3     2     7     3     2
     12     4    23    12     4    23
      8     1     1     8     1     1
 
-    sage: tm = matlab('0.5:2:10')
-    sage: tm
+    sage: tm = matlab('0.5:2:10')                       # optional
+    sage: tm                                            # optional
     0.5000    2.5000    4.5000    6.5000    8.5000
 
-    sage: my_vector1 = matlab('[1,5,7]')
-    sage: my_vector1(1)
+    sage: my_vector1 = matlab('[1,5,7]')                # optional
+    sage: my_vector1(1)                                 # optional
     1
-    sage: my_vector1(2)
+    sage: my_vector1(2)                                 # optional
     5
-    sage: my_vector1(3)
+    sage: my_vector1(3)                                 # optional
     7
 
 Matrix indexing works as follows:
-    sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')
-    sage: my_matrix(3,2)
+    sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')     # optional
+    sage: my_matrix(3,2)                                # optional
     4
 
 
 Setting using paranthesis cannot work (because of how the Python language
 works).  Use square brackets or the set function:
 
-sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')
-sage: my_matrix.set(2,3, 1999)
-sage: my_matrix
+sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
+sage: my_matrix.set(2,3, 1999)                          # optional
+sage: my_matrix                                         # optional
            8          12          19
            7           3        1999
           12           4          23
@@ -258,11 +258,11 @@ class MatlabElement(ExpectElement):
 
         EXAMPLES:
             sage: A = matlab('[1,2;3,4]')       # optional matlab package
-            sage: matrix(ZZ, A)
+            sage: matrix(ZZ, A)                 # optional
             [1 2]
             [3 4]
             sage: A = matlab('[1,2;3,4.5]')     # optional matlab package
-            sage: matrix(RR, A)
+            sage: matrix(RR, A)                 # optional
             [1.0000000000000000 2.0000000000000000]
             [3.0000000000000000 4.5000000000000000]
         """
@@ -296,7 +296,7 @@ def matlab_console():
     your PATH, but no optional \sage packages need be installed.
 
     EXAMPLES:
-        sage.: matlab_console()
+        sage.: matlab_console()                               # optional
                                        < M A T L A B >
                            Copyright 1984-2006 The MathWorks, Inc.
         ...

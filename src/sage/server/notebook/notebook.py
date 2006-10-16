@@ -334,7 +334,7 @@ import re           # regular expressions
 # SAGE libraries
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
-from   sage.misc.misc       import alarm
+from   sage.misc.misc       import alarm, cancel_alarm
 
 # SAGE Notebook
 import css          # style
@@ -1204,6 +1204,7 @@ def notebook(dir         ='sage_notebook',
     delete_tmpfiles()
     if os.path.exists('%s/pid'%dir):
         os.remove('%s/pid'%dir)
+    cancel_alarm()
     return nb
 
 

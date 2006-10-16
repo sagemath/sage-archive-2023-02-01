@@ -481,7 +481,7 @@ class Gap(Expect):
 
 ############
 
-def gap_reset_workspace(max_workspace_size=None):
+def gap_reset_workspace(max_workspace_size=None, verbose=False):
     r"""
     Call this to completely reset the GAP workspace, which
     is used by default when SAGE first starts GAP.
@@ -510,7 +510,8 @@ def gap_reset_workspace(max_workspace_size=None):
         try:
             g.load_package(pkg, verbose=True)
         except RuntimeError, msg:
-            print msg
+            if verbose:
+                print msg
             pass
     # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)

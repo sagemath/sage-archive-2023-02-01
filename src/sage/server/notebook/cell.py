@@ -34,8 +34,8 @@ import worksheet
 class Cell:
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
-        self.__in    = str(input)
-        self.__out   = str(out)
+        self.__in    = str(input).replace('\r','')
+        self.__out   = str(out).replace('\r','')
         self.__worksheet = worksheet
         self.__interrupted = False
         self.__completions = False
@@ -211,8 +211,8 @@ class Cell:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output
-        self.__out_html = html
+        self.__out = output.replace('\r','')
+        self.__out_html = html.replace('\r','')
         self.__sage = sage
 
     def sage(self):

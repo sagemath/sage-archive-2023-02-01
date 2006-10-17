@@ -678,8 +678,9 @@ class Worksheet:
             # no sage running anyways!
             return
 
-        alarm(2)
+        alarm(3)
         try:
+            self.__sage.quit()
             self.__sage._expect = None
             del self.__sage
         except AttributeError, msg:
@@ -697,7 +698,7 @@ class Worksheet:
     def postprocess_output(self, out, C):
         i = out.find('\r\n')
         out = out[i+2:]
-        out = out.rstrip()
+        #out = out.rstrip()
         if C.introspect():
             return out
         # the python error message for list indices is not good enough.
@@ -991,8 +992,6 @@ class Worksheet:
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
 
-                #input = [x for x in input.split('\n') if len(x.split()) > 0 and \
-                #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
                 input = input.split('\n')
 
                 i = len(input)-1

@@ -1,5 +1,9 @@
 """
 Abstract base class for rings
+
+AUTHORS:
+    -- David Harvey (2006-10-16): changed CommutativeAlgebra to derive from
+    CommutativeRing instead of from Algebra
 """
 
 #*****************************************************************************
@@ -850,6 +854,8 @@ cdef class Algebra(Ring):
     Generic algebra
     """
     def __init__(self, base_ring):
+        if not isinstance(base_ring, Ring):
+            raise TypeError, "base ring must be a ring"
         self.__base_ring = base_ring
 
     def base_ring(self):
@@ -867,18 +873,27 @@ cdef class Algebra(Ring):
         return self.base_ring().characteristic()
 
 
-cdef class CommutativeAlgebra(Algebra):
+cdef class CommutativeAlgebra(CommutativeRing):
     """
-    Generic algebra
+    Generic commutative algebra
     """
     def __init__(self, base_ring):
-        Algebra.__init__(self, base_ring)
+        if not isinstance(base_ring, CommutativeRing):
+            raise TypeError, "base ring must be a commutative ring"
+        self.__base_ring = base_ring
 
     def base_ring(self):
         """
         Return the base ring of this commutative algebra.
         """
         return self.__base_ring
+
+    def characteristic(self):
+        """
+        Return the characteristic of this algebra, which is the same
+        as the characteristic of its base ring.
+        """
+        return self.base_ring().characteristic()
 
     def is_commutative(self):
         """

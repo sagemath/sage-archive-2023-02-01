@@ -2,6 +2,10 @@
 Elements
 
 PYREX: sage.structure.element
+
+AUTHORS:
+   -- David Harvey (2006-10-16): changed CommutativeAlgebraElement to derive
+   from CommutativeRingElement instead of AlgebraElement
 """
 
 ##################################################################
@@ -678,7 +682,7 @@ cdef class FieldElement(CommutativeRingElement):
 cdef class AlgebraElement(RingElement):
     pass
 
-cdef class CommutativeAlgebraElement(AlgebraElement):
+cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
 
 cdef class InfinityElement(RingElement):

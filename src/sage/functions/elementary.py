@@ -46,14 +46,14 @@ Methods implemented:
       Laplace transforms). Note: returns a *string*.
 
 TODO:
-    * extend "integrate" so that it always returns a class instance
+    * extend 'integrate' so that it always returns a class instance
       instead of a string
-    * extend "desolve" so that it always returns a class instance
+    * extend 'desolve' so that it always returns a class instance
       instead of a string
     * extend piecewise piecewise functions to allow ElementaryFunctions.
 
 AUTHOR: David Joyner (2006-06)
-        " (2006-09) - minor bug fixes
+         -- (2006-09) minor bug fixes
 
      REFERENCE:
         * Abramowitz and Stegun: Handbook of Mathematical Functions,

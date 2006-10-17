@@ -91,6 +91,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = int(C['id'][0])
         input_text = C['input'][0]
         input_text = input_text.replace('__plus__','+')
+        input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):

@@ -19,7 +19,11 @@ SPKG_ROOT="%s/spkg/"%os.environ["SAGE_ROOT"]
 if not os.environ.has_key("SAGE_SERVER"):
      print "The environment variable SAGE_SERVER must be set"
      sys.exit(1)
-PKG_SERVER=os.environ['SAGE_SERVER']+ '/packages'
+
+PKG_SERVER=os.environ['SAGE_SERVER']
+
+if PKG_SERVER[-9:] != '/packages':
+     PKG_SERVER += '/packages'
 
 print "Using SAGE Server %s"%PKG_SERVER
 

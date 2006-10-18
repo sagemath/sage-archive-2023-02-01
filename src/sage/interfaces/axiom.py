@@ -15,7 +15,7 @@ AUTHORS OF THIS MODULE:
        NOTE: Bill Page put a huge amount of effort into the SAGE Axiom interface
              over several days during the SAGE Days 2 coding sprint.  This is
              contribution is greatly appreciated.
-    -- William Stein (2006-10): misc touchup.
+    -- William Stein (2006-10): lots of refinement and improvement (make robust and usable).
 
 If the string "error" (case insensitive) occurs in the output of
 anything from axiom, a RuntimeError exception is raised.

@@ -24,7 +24,6 @@ EXAMPLES:
 We evaluate a very simple expression in axiom.
     sage: axiom('3 * 5')                     # optional
     15
-                                          Type: PositiveInteger
 
 We factor $x^5 - y^5$ in Axiom in several different ways.
 The first way yields a Axiom object.

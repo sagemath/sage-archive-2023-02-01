@@ -9,11 +9,20 @@ import weakref
 # SAGE imports
 import sage.structure.gens as gens
 import matrix
+
+import matrix_dense
+import matrix_integer_dense
+import matrix_integer_sparse
+import matrix_rational_dense
+import matrix_rational_sparse
+import matrix_modn_dense
+
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
 import sage.rings.field as field
+import sage.rings.finite_field as finite_field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
@@ -235,7 +244,7 @@ class MatrixSpace_generic(gens.Generators):
         sage: MS1 = MatrixSpace(QQ,4)
         sage: MS2 = MatrixSpace(ZZ,4,5,true)
         sage: MS1._get_matrix_class()
-        <class 'sage.matrix.matrix.Matrix_dense_rational'>
+        <type 'matrix_rational_dense.Matrix_rational_dense'>
         sage: MS2._get_matrix_class()
         <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
@@ -334,8 +343,8 @@ class MatrixSpace_generic(gens.Generators):
 
     def is_sparse(self):
         """
-        Returns true if self is sparse
-        Returns false if self is dense
+        Returns True if self is sparse
+        Returns False if self is dense
         """
         return self.__is_sparse
 
@@ -345,7 +354,7 @@ class MatrixSpace_generic(gens.Generators):
     def ngens(self):
         return self.dimension()
 
-    def matrix(self, x=0, coerce_entries=True, copy=True):
+    def matrix(self, x=0, coerce_entries=True, copy=True, zero=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -360,6 +369,7 @@ class MatrixSpace_generic(gens.Generators):
             [ 1  0]
             [ 0 -1]
         """
+        # TODO: implement/propagate the zero/clear flag
         if isinstance(x, (xrange,xsrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
@@ -368,11 +378,24 @@ class MatrixSpace_generic(gens.Generators):
             if x.parent() == self:
                 return x.copy()
             x = x.list()
-        if isinstance(x, list) and len(x) > 0 and isinstance(x[0], list):
-            x = sum(x,[])
+        if isinstance(x, list) and len(x) > 0:
+            if isinstance(x[0], list):
+                x = sum(x,[])
+            elif hasattr(x[0], "is_vector"): # TODO: is this the best way to test that?
+                e = []
+                for v in x:
+                    e = e + v.list()
+                copy = False # deep copy?
+                x = e
+            elif isinstance(x[0], tuple):
+                x = list(sum(x,()))
         return self.__matrix_class(self, x, coerce_entries, copy)
 
     def matrix_space(self, nrows, ncols, sparse=False):
+        if nrows is None:
+            nrows = self.__nrows
+        if ncols is None:
+            ncols = self.__ncols
         return MatrixSpace(self.__base_ring, nrows, ncols,
                         sparse=sparse)
 
@@ -441,6 +464,7 @@ class MatrixSpace_pid(MatrixSpace_domain):
     def _get_matrix_class(self):
         if self.is_dense():
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
+#                return matrix_integer_dense.Matrix_integer_dense
                 return matrix.Matrix_dense_integer
             return matrix.Matrix_generic_dense_pid
         else:
@@ -466,7 +490,9 @@ class MatrixSpace_field(MatrixSpace_pid):
         K = self.base_ring()
         if self.is_dense():
             if isinstance(K, rational_field.RationalField):
-                return matrix.Matrix_dense_rational
+                return matrix_rational_dense.Matrix_rational_dense
+            if isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
+                return matrix_modn_dense.Matrix_modn_dense
             else:
                 return matrix.Matrix_generic_dense_field
         else:

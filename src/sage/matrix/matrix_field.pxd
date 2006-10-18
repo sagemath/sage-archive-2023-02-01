@@ -1,4 +1,5 @@
-cimport matrix_domain
+import matrix_pid
+cimport matrix_pid
 
-cdef class Matrix_field(matrix_domain.Matrix_domain):
+cdef class Matrix_field(matrix_pid.Matrix_pid):
     pass

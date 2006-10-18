@@ -52,8 +52,10 @@ def download_file(file):
           return False
      return True
 
-os.chdir("%s/standard/"%SPKG_ROOT)
+os.chdir(SPKG_ROOT)
+download_file("install")
 
+os.chdir("%s/standard/"%SPKG_ROOT)
 download_file("standard/list")
 download_file("standard/deps")
 download_file("standard/newest_version")

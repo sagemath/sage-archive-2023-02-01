@@ -74,9 +74,9 @@ fi
 
 # Install then delete the temporary build directory
 # -- this is used during the initial make build.
-DELETE_TMP=0
-if [ $1 = '-m' ]; then
-   DELETE_TMP=1
+DELETE_TMP=1
+if [ $1 = '-s' -o $1 = '-m' ]; then
+   DELETE_TMP=0
    shift
 fi
 

@@ -147,7 +147,7 @@ class HG:
 
     apply = unbundle
 
-    def export(self, revs, filename='%R.patch', text=False, options=''):
+    def export(self, revs, filename=None, text=False, options=''):
         r"""
         Export patches with the changeset header and diffs for one or
         more revisions.
@@ -167,7 +167,7 @@ class HG:
         INPUT:
              revs -- integer or list of integers (revision numbers); use the log()
                      method to see these numbers.
-             filename -- (default: '%s-%H.export') The name of the file is given using a format
+             filename -- (default: '%R.patch') The name of the file is given using a format
                  string.  The formatting rules are as follows:
                     %%   literal "%" character
                     %H   changeset hash (40 bytes of hexadecimal)
@@ -187,6 +187,8 @@ class HG:
                       be against the second parent. It can be useful
                       to review a merge.
         """
+        if filename is None:
+            filename = '%R.patch'
         if not isinstance(revs, list):
             revs = [int(revs)]
         if not isinstance(filename, str):

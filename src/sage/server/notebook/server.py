@@ -14,6 +14,8 @@ Web Server Component of SAGE Notebook
 import BaseHTTPServer
 import socket
 import cgi
+import mimetypes
+
 import os, sys
 import select
 from   StringIO import StringIO
@@ -439,38 +441,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             print 'file not found', msg
             return self.file_not_found()
         self.send_response(200)
-        if self.path[-4:] == '.png':
-            self.send_header("Content-type", 'image/png')
-        elif self.path[-2] == '.c':
-            self.send_header("Content-type", 'text/plain')
-        elif self.path[-4:] == '.bmp':
-            self.send_header("Content-type", 'image/bmp')
-        elif self.path[-3:] == '.js':
-            self.send_header("Content-type", 'script/javascript')
-        elif self.path[-3:] == '.ps':
-            self.send_header("Content-type", 'application/postscript')
-        elif self.path[-4:] == '.tex':
-            self.send_header("Content-type", 'application/latex')
-        elif self.path[-4:] == '.dvi':
-            self.send_header("Content-type", 'application/x-dvi')
-        elif self.path[-4:] == '.log':
-            self.send_header("Content-type", 'text/plain')
-        elif self.path[-4:] == '.eps':
-            self.send_header("Content-type", 'image/x-eps')
-        elif self.path[-4:] == '.pdf':
-            self.send_header("Content-type", 'image/x-pdf')
-        elif self.path[-4:] == '.ico':
-            self.send_header("Content-type", 'image/x-icon')
-        elif self.path[-4:] == '.svg':
-            self.send_header("Content-type", 'image/svg+xml')
-        elif self.path[-4:] == '.txt':
-            self.send_header("Content-type", 'text/plain')
-        elif self.path[-5:] == '.sobj':
-            self.send_header("Content-type", 'application/sage')
-        elif self.path[-5:] == '.html':
-            self.send_header("Content-type", 'text/html')
-        elif self.path[-5:] == '.js':
-            self.send_header("Content-type", 'text/js')
+
+        mime_type = mimetypes.guess_type(self.path)[0]
+        if mime_type is None:
+            mime_type = "text/plain"
+        self.send_header("Content-type", mime_type)
+
         self.end_headers()
 
         f = StringIO()

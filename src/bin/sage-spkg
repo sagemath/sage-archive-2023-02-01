@@ -175,34 +175,44 @@ bunzip2 -c "$PKG_SRC" 2>/dev/null | tar fixv -  2>/dev/null
 if [ ! -d "$PKG_NAME" ]; then
     tar fixv "$PKG_SRC"
 fi
-
 echo "Finished extraction"
 
-if [ -d "$PKG_NAME" ]; then
-   cd "$PKG_NAME"
-   if [ ! -f spkg-install ]; then
-      echo "#!/bin/sh" > spkg-install
-      echo "" >> spkg-install
-      if [ -f setup.py ]; then
-          echo "python setup.py install" >> spkg-install
-      else
-          if [ -f configure ]; then
-             echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
-             echo "make" >> spkg-install
-             echo "make install" >> spkg-install
-          else
-             echo "There is no spkg-install script, no setup.py, and no configure script,"
-             echo "so I do not know how to install $PKG_SRC."
-             exit 1
-          fi
-      fi
-   fi
-   chmod +x spkg-install
-   time ./spkg-install
-else
+if [ ! -d "$PKG_NAME" ]; then
    echo "sage: After decompressing the directory $PKG_NAME does not exist"
-   exit 1
+   echo "This means that the corresponding .spkg needs to be downloaded"
+   echo "again."
+   sage-download_package "$PKG_NAME"
+   echo `pwd`
+   bunzip2 -c "$PKG_NAME.spkg"  | tar fixv -
+   if [ ! -d "$PKG_NAME.spkg" ]; then
+       tar fixv "$PKG_NAME.spkg"
+   fi
+   if [ ! -d "$PKG_NAME" ]; then
+       echo "Second download resulted in a corrupted package."
+       exit 1
+   fi
 fi
+
+cd "$PKG_NAME"
+if [ ! -f spkg-install ]; then
+  echo "#!/bin/sh" > spkg-install
+  echo "" >> spkg-install
+  if [ -f setup.py ]; then
+      echo "python setup.py install" >> spkg-install
+  else
+      if [ -f configure ]; then
+         echo "./configure --prefix=\$SAGE_ROOT/local/" >> spkg-install
+         echo "make" >> spkg-install
+         echo "make install" >> spkg-install
+      else
+         echo "There is no spkg-install script, no setup.py, and no configure script,"
+         echo "so I do not know how to install $PKG_SRC."
+         exit 1
+      fi
+  fi
+fi
+chmod +x spkg-install
+time ./spkg-install
 
 if [ $? -eq 0 ]; then
    cd $INSTALLED

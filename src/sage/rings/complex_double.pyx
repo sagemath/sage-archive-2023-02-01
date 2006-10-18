@@ -697,7 +697,8 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: z = CDF(0, 2*pi); z
             6.28318548203*I
             sage: exp(z)
-            1.0 - 2.44921270764e-16*I
+            1.0 - 2.44921270764e-16*I        # 32-bit
+            1.0 - 2.44929370517e-16*I        # 64-bit
         """
         return new_element(gsl_complex_exp(self._complex))
 

@@ -1,4 +1,4 @@
-r"""nodoctest
+r"""
 Interface to Maxima
 
 Maxima is a free GPL'd general purpose computer algebra system whose

@@ -140,7 +140,7 @@ class Expect(SageObject):
                 self.__so_far = new
             return False, self.__so_far, new
         except AttributeError:   # no __so_far
-            raise RuntimeError, "nothing being evaluated right now."
+            raise RuntimeError
 
     def is_remote(self):
         return self.__is_remote

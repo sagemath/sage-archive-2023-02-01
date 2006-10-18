@@ -59,6 +59,10 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20):
     #    x = _objsPowerSeriesRing[key]()
     #    if x != None: return x
 
+    if isinstance(name, (tuple, list)):
+        assert len(name) == 1
+        name = name[0]
+
     if not (name is None or isinstance(name, str)):
         raise TypeError, "variable name must be a string or None"
 

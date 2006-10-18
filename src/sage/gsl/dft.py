@@ -8,8 +8,8 @@ of a permutation group or the conjugacy classes of a matrix group.
 This file implements:
 
 *  __eq__
-*  __rmul__ (for right multiplication by a scalar)
-*  plotting (plot, plot_histogram)
+*  __mul__ (for right multiplication by a scalar)
+*  plotting, printing - plot, plot_histogram, _repr_, __str__
 *  dft  -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
@@ -18,6 +18,9 @@ This file implements:
              the conjugacy classes of a finite permutation group
            * a sequnce (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite matrix group
+*  idft -  computes the discrete Fourier transform for the
+           following cases:
+           * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
 *  dct, dst  (for discrete Fourier/Cosine/Sine transform)
 *  convolution (in convolution and convolution_periodic)
 *  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
@@ -29,6 +32,8 @@ This file implements:
 
 TODO:
  - "filtered" DFTs.
+ - more idfts
+ - more examples for probability, stats, theory of FTs
 
 AUTHOR: David Joyner (10-2006)
 
@@ -44,11 +49,26 @@ AUTHOR: David Joyner (10-2006)
 
 from sage.rings.number_field.number_field import CyclotomicField
 from sage.plot.plot import PolygonFactory
+from sage.plot.plot import (Graphics, polygon)
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
+from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup import PermutationGroup
+from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.groups.matrix_gps.matrix_group import MatrixGroup
 from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer import Integer
+from sage.rings.arith import factor
+from sage.rings.rational_field import RationalField
+from sage.rings.real_field import RealField
 ZZ = IntegerRing()
+QQ = RationalField()
+RR = RealField()
+from math import sin
+from math import cos
+from sage.functions.constants import Pi
+pi = Pi()
+from sage.gsl.fft import FastFourierTransform
+from sage.gsl.dwt import WaveletTransform
 
 class Collection:
     def __init__(self, list, indexset):
@@ -58,7 +78,9 @@ class Collection:
         list of elements taken from a field.
 
         EXAMPLES:
-            sage: s = Collection(A,I)
+            sage: J = range(10)
+            sage: A = [1/10 for j in J]
+            sage: s = Collection(A,J)
             sage: s.dict()
 
             {0: 1/10,
@@ -135,7 +157,7 @@ class Collection:
         or from a finite field, with a real indexing set I coercible into RR.
 
         EXAMPLES:
-            sage: J = GF(3)
+            sage: J = range(3)
             sage: A = [ZZ(i^2)+1 for i in J]
             sage: s = Collection(A,J)
             sage: P = s.plot_histogram()
@@ -155,7 +177,7 @@ class Collection:
         or from a finite field, with a real indexing set I = range(len(self)).
 
         EXAMPLES:
-            sage: I = GF(3).list()
+            sage: I = range(3).list()
             sage: A = [ZZ(i^2)+1 for i in I]
             sage: s = Collection(A,I)
             sage: P = s.plot()
@@ -175,35 +197,38 @@ class Collection:
         N-th roots of unity.
 
         EXAMPLES:
-            sage: J = range(5)
+            sage: J = range(6)
             sage: A = [ZZ(1) for i in J]
             sage: s = Collection(A,J)
+            sage: s.dft(lambda x:x^2)
+            Collection of elements [6, 0, 0, 6, 0, 0]
+             indexed by [0, 1, 2, 3, 4, 5]
             sage: s.dft()
-            Collection of elements [5, 0, 0, 0, 0]
-              indexed by [0, 1, 2, 3, 4]
+            Collection of elements [6, 0, 0, 0, 0, 0]
+             indexed by [0, 1, 2, 3, 4, 5]
             sage: G = SymmetricGroup(3)
             sage: J = G.conjugacy_classes_representatives()
-            sage: J
-            [(), (1,2), (1,2,3)]
-            sage: s = Collection([1,2,3],J)
-            sage: s.dft()
+            sage: s = Collection([1,2,3],J) # 1,2,3 are the values of a class fcn on G
+            sage: s.dft()   # the "scalar-valued Fourier transform" of this class fcn
             Collection of elements [8, 2, 2]
              indexed by [(), (1,2), (1,2,3)]
-            sage: F = AbelianGroup(2,[2,3],names='ab')
-            sage: s = Collection([1,2,3,4,5,6],F)
+            sage: J = AbelianGroup(2,[2,3],names='ab')
+            sage: s = Collection([1,2,3,4,5,6],J)
             sage: s.dft()
             Collection of elements [21.000000000000000,-3.0000000000000027 - 1.7320508075688741*I,-2.9999999999999964 + 1.7320508075688821*I,-9.0000000000000000 + 0.0000000000000020751629580000000*I,0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I,-0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
              indexed by Multiplicative Abelian Group isomorphic to C2 x C3
+            sage: J = CyclicPermutationGroup(6)
+            sage: s = Collection([1,2,3,4,5,6],J)
+            sage: s.dft()
+            Collection of elements [21.000000000000000, -3.0000000000000027 - 1.7320508075688741*I, -2.9999999999999964 + 1.7320508075688821*I, -9.0000000000000000 + 0.0000000000000020751629580000000*I, 0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I, -0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
+             indexed by Cyclic group of order 6 as a permutation group
             sage: p = 7; J = range(p); A = [kronecker_symbol(j,p) for j in J]
-            sage: s = Collection(A,J); s
-            Collection of elements [0, 1, 1, -1, 1, -1, -1]
-             indexed by [0, 1, 2, 3, 4, 5, 6]
-            sage: Fs = s.dft().list()
-            sage: s.list()
-            [0, 1, 1, -1, 1, -1, -1]
+            sage: s = Collection(A,J)
+            sage: Fs = s.dft()
+            sage: c = Fs.list()[1]; [x/c for x in Fs.list()]; s.list()
 
         The DFT of the values of the quadratic residue symbol is itself, up to
-        a constant factor.
+        a constant factor (denoted c on the last line above).
 
         TODO: Read the parent of the elements of S; if QQ or CC leave as
         is; if AbelianGroup, use abelian_group_dual; if some other
@@ -214,18 +239,26 @@ class Collection:
         N = len(J)
         S = self.list()
         F = self.base_ring()   ## elements must be coercible into QQ(zeta_N)
-        if J[0] in ZZ and F.is_field() and F.base_ring()==QQ:
+        if not(J[0] in ZZ):
+            G = J[0].parent() ## if J is not a range it is a group G
+        if J[0] in ZZ and F.base_ring().fraction_field()==QQ:
             ## assumes J is range(N)
             zeta = CyclotomicField(N).gen()
             FT = [sum([S[i]*chi(zeta**(i*j)) for i in J]) for j in J]
-        elif (J[0].parent()).is_abelian() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
+        elif not(J[0] in ZZ) and G.is_abelian() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
+            if is_PermutationGroupElement(J[0]):
+                ## J is a CyclicPermGp
+                n = G.order()
+                a = list(factor(n))
+                invs = [x[0]**x[1] for x in a]
+                G = AbelianGroup(len(a),invs)
             ## assumes J is AbelianGroup(...)
-            G = (J[0].parent()).dual_group()
-            FT = [sum([S[i]*chi(J[i]) for i in range(N)]) for chi in G]
-        elif (J[0].parent()).is_finite() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
+            Gd = G.dual_group()
+            FT = [sum([S[i]*chi(G.list()[i]) for i in range(N)]) for chi in Gd]
+        elif not(J[0] in ZZ) and G.is_finite() and F == ZZ or (F.is_field() and F.base_ring()==QQ):
             ## assumes J is the list of conj class represetatives of a
             ## PermuationGroup(...) or Matrixgroup(...)
-            chi = (J[0].parent()).character_table()
+            chi = G.character_table()
             FT = [sum([S[i]*chi[i][j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError,"list elements must be in QQ(zeta_"+str(N)+")"
@@ -233,7 +266,7 @@ class Collection:
 
     def idft(self):
         """
-        Implements a discrete Fourier transform
+        Implements a discrete inverse Fourier transform. Only works over QQ.
 
         EXAMPLES:
             sage: J = range(5)
@@ -248,7 +281,9 @@ class Collection:
         N = len(J)
         S = self.list()
         zeta = CyclotomicField(N).gen()
-        iFT = [sum([S[i]*zeta^(-i*j) for i in J]) for j in J]
+        iFT = [sum([S[i]*zeta**(-i*j) for i in J]) for j in J]
+        if not(J[0] in ZZ) or F.base_ring().fraction_field()!=QQ:
+            raise NotImplementedError, "Sorry this type of idft is not implemented yet."
         return Collection(iFT,J)*(1/N)
 
     def dct(self):
@@ -312,11 +347,11 @@ class Collection:
             self*other -- the Dirichlet convolution
 
         EXAMPLES:
-            sage: I = range(5)
-            sage: A = [ZZ(1) for i in I]
-            sage: B = [ZZ(1) for i in I]
-            sage: s = Collection(A,I)
-            sage: t = Collection(B,I)
+            sage: J = range(5)
+            sage: A = [ZZ(1) for i in J]
+            sage: B = [ZZ(1) for i in J]
+            sage: s = Collection(A,J)
+            sage: t = Collection(B,J)
             sage: s.convolution(t)
             [1, 2, 3, 4, 5, 4, 3, 2, 1]
 
@@ -399,7 +434,7 @@ class Collection:
         c = [sum([a[i]*b[(j-i)%N] for i in range(N)]) for j in range(2*N-1)]
         return c
 
-    def __rmul__(self,other):
+    def __mul__(self,other):
         """
         Implements scalar multiplication (on the right).
 
@@ -407,6 +442,8 @@ class Collection:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
             sage: s = Collection(A,J)
+            sage: s.base_ring()
+             Integer Ring
             sage: t = s*(1/3); t; t.base_ring()
             Collection of elements [1/3, 1/3, 1/3, 1/3, 1/3]
              indexed by [0, 1, 2, 3, 4]
@@ -414,12 +451,12 @@ class Collection:
 
         """
         S = self.list()
-        J = self.index_set()
+        J = range(len(self.index_set()))
         F = self.base_ring()
         #if not(other in F):
         #    raise TypeError,"The base rings must be consistent"
         S1 = [S[i]*other for i in J]
-        return Collection(S1,J)
+        return Collection(S1,self.index_set())
 
     def __eq__(self,other):
         """
@@ -442,7 +479,7 @@ class Collection:
         if I!=J:
             return 0
         for i in I:
-            if abs(S[i]-T[i])> 10^(-8):  ## tests if they differ as reals
+            if S[i]!=T[i] or abs(S[i]-T[i])> 10^(-8):  ## tests if they differ as reals
                 return 0
         #if F!=E:               ## omitted this test since it
         #    return 0           ## doesn't take into account coercions
@@ -544,17 +581,17 @@ class Collection:
         N = len(J)             ## must be 1 minus a power of 2
         S = self.list()
         if other=="haar" or other=="haar_centered":
-            if k in [2]:
+            if wavelet_k in [2]:
                 a = WaveletTransform(N,other,wavelet_k)
             else:
                 raise ValueError,"wavelet_k must be = 2"
         if other=="debauchies" or other=="debauchies_centered":
-            if k in [4,6,8,10,12,14,16,18,20]:
+            if wavelet_k in [4,6,8,10,12,14,16,18,20]:
                 a = WaveletTransform(N,other,wavelet_k)
             else:
                 raise ValueError,"wavelet_k must be in {4,6,8,10,12,14,16,18,20}"
         if other=="bspline" or other=="bspline_centered":
-            if k in [103,105,202,204,206,208,301,305,307,309]:
+            if wavelet_k in [103,105,202,204,206,208,301,305,307,309]:
                 a = WaveletTransform(N,other,103)
             else:
                 raise ValueError,"wavelet_k must be in {103,105,202,204,206,208,301,305,307,309}"

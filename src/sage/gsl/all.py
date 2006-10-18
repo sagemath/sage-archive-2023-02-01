@@ -6,3 +6,4 @@ from fft import FastFourierTransform, FFT
 from interpolation import spline, Spline
 from dwt import WaveletTransform,DWT
 
+from dft import Collection

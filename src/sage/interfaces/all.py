@@ -1,7 +1,7 @@
 # interfaces to other interpreters
 
 
-from axiom import Axiom, axiom
+from axiom import Axiom, axiom, axiom_console
 
 from ecm import ECM
 from expect import is_ExpectElement

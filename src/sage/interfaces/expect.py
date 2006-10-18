@@ -541,12 +541,8 @@ class Expect(SageObject):
 
     def _create(self, value):
         name = self._next_var_name()
-        #self._last_name = name
         self.set(name, value)
         return name
-
-    #def _last_created_varname(self):
-    #    return self._last_name
 
     def _object_class(self):
         return ExpectElement
@@ -728,14 +724,14 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
     def __del__(self):
         try:
             self._check_valid()
-        except ValueError:
+        except:
             return
         try:
             if hasattr(self,'_name'):
                 P = self.parent()
                 if not (P is None):
                     P.clear(self._name)
-        except RuntimeError, msg:    # needed to avoid infinite loops in some rare cases
+        except Exception, msg:    # needed to avoid infinite loops in some rare cases
             #print msg
             pass
 

@@ -13,6 +13,9 @@ AUTHORS:
    -- Stein (2006-04-10): Fixed problems with ideal constructor
    -- Martin Albrecht (2006-05-18): added sage_poly.
 
+
+\subsection{Introduction}
+
 This interface is extremely flexible, since it's exactly like typing
 into the Singular interpreter, and anything that works there should
 work here.

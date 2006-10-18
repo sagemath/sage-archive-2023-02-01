@@ -267,6 +267,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         return x
 
     def  __dealloc__(self):
+        # TODO: should I be calling mpz_clear on all my entries?
         PyMem_Free(self._entries)
         PyMem_Free(self._matrix)
 
@@ -1118,7 +1119,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         cdef mpz_t r
         cdef int denom
 
-        M_modp = matrix_modn_dense.Matrix_modn_dense(matrix_space.MatrixSpace(GF(p), self._nrows, self._ncols), p, self._nrows, self._ncols, clear=False) # Do we need a parent?
+        M_modp = matrix_modn_dense.Matrix_modn_dense(matrix_space.MatrixSpace(GF(p), self._nrows, self._ncols), clear=False) # Do we need to construct a parent?
         for i from 0 <= i < self._nrows:
             w = self._matrix[i]
             v = M_modp.matrix[i]

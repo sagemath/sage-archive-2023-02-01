@@ -15,12 +15,14 @@ import matrix_integer_dense
 import matrix_integer_sparse
 import matrix_rational_dense
 import matrix_rational_sparse
+import matrix_modn_dense
 
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
 import sage.rings.field as field
+import sage.rings.finite_field as finite_field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
@@ -489,6 +491,8 @@ class MatrixSpace_field(MatrixSpace_pid):
         if self.is_dense():
             if isinstance(K, rational_field.RationalField):
                 return matrix_rational_dense.Matrix_rational_dense
+            if isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
+                return matrix_modn_dense.Matrix_modn_dense
             else:
                 return matrix.Matrix_generic_dense_field
         else:

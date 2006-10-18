@@ -184,6 +184,15 @@ class Macaulay2(Expect):
     def _equality_symbol(self):
         return '=='
 
+    def cputime(self, t=None):
+        _t = float(self.eval('elapsedTime()'))
+        if t:
+            return _t - t
+        else:
+            return _t
+
+    def version(self):
+        return self("version")
 
 ### Constructors
 
@@ -246,6 +255,7 @@ class Macaulay2(Expect):
         varstr = str(vars)[1:-1]
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(
             base_ring, varstr, order))
+
 
 class Macaulay2Element(ExpectElement):
 

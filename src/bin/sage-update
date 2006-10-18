@@ -54,6 +54,7 @@ def download_file(file):
 
 os.chdir(SPKG_ROOT)
 download_file("install")
+os.system('chmod +x install')
 
 os.chdir("%s/standard/"%SPKG_ROOT)
 download_file("standard/list")

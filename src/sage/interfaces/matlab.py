@@ -13,11 +13,11 @@ your PATH.  It's not necessary to install any special
 
 EXAMPLES:
     sage: matlab.eval('2+2')                 # optional
-    'ans = 4'
+    '\nans =\n\n     4\n'
 
     sage: a = matlab(10)                     # optional
     sage: a**10
-    1e+10
+       1.0000e+10
 
 AUTHORS:
    -- William Stein (2006-10-11)
@@ -26,8 +26,8 @@ AUTHORS:
 EXAMPLES:
     sage: matlab('4+10')                     # optional
     14
-    sage: matlab('date')                     # optional
-    11-Oct-2006
+    sage: matlab('date')                     # optional -- random output
+    18-Oct-2006
     sage: matlab('5*10 + 6')                 # optional
     56
     sage: matlab('(6+6)/3')                  # optional
@@ -71,11 +71,10 @@ EXAMPLES:
 
     sage: my_matrix = matlab('[8, 12, 19; 7, 3, 2; 12, 4, 23; 8, 1, 1]')    # optional
     sage: my_matrix                                      # optional
-
-     8    12    19
-     7     3     2
-    12     4    23
-     8     1     1
+         8    12    19
+         7     3     2
+        12     4    23
+         8     1     1
 
     sage: combined_matrix = matlab('[%s, %s]'%(my_matrix.name(), my_matrix.name()))                                        # optional
     sage: combined_matrix                               # optional
@@ -148,6 +147,9 @@ class Matlab(Expect):
         sage: b = matlab('[ 1; 3; 13]')                         # optional
         sage: c = a * b                                         # optional
         sage: print c                                           # optional
+            30
+           122
+           505
     """
     def __init__(self, maxread=100, script_subdirectory="",
                  logfile=None, server=None):
@@ -321,7 +323,7 @@ def matlab_version():
 
     EXAMPLES:
         sage: matlab_version()    # optional matlab package
-        '2.1.73'
+        '7.2.0.283 (R2006a)'
     """
     return str(matlab('version')).strip()
 

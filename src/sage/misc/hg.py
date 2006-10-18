@@ -127,6 +127,10 @@ class HG:
         """
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle
+        if update:
+            options = '-u'
+        else:
+            options = ''
         self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle
@@ -306,7 +310,7 @@ class HG:
         print "of the repository you are using.  This might not"
         print "work with the notebook yet."
 
-    def merge(self, options=''):
+    def merge(self, options='-f'):
         """
         Merge working directory with another revision
 
@@ -316,13 +320,13 @@ class HG:
         performed before any further updates are allowed.
 
         INPUT:
-            options -- default: ''
+            options -- default: '-f'
                  -b --branch  merge with head of a specific branch
                  -f --force   force a merge with outstanding changes
         """
         self('merge %s'%options)
 
-    def update(self, options=''):
+    def update(self, options='-f'):
         """
         update or merge working directory
 
@@ -341,7 +345,7 @@ class HG:
         aliases: up, checkout, co
 
         INPUT:
-            options -- string (default: '')
+            options -- string (default: '-f')
              -b --branch  checkout the head of a specific branch
              -C --clean   overwrite locally modified files
              -f --force   force a merge with outstanding changes

@@ -1093,11 +1093,12 @@ def getitem(v, n):
 def branch_current_hg():
     """
     Return the current hg Mercurial branch name.  If the branch
-    is 'main' the default branch, then just '' is returned.
+    is 'main', which is the default branch, then just '' is returned.
     """
     s = os.popen('ls -l %s/devel/sage'%os.environ['SAGE_ROOT']).read()
     if 'No such file or directory' in s:
         raise RuntimeError, "unable to determine branch?!"
+    # do ls -l and look for a symlink, which `ls` represents by a '->'
     i = s.rfind('->')
     if i == -1:
         raise RuntimeError, "unable to determine branch?!"
@@ -1106,7 +1107,23 @@ def branch_current_hg():
     if i == -1:
         return ''
     br = s[i+1:].strip()
-    if br == 'main':
-        return ''
     return br
 
+def branch_current_hg_notice(branch):
+    r"""
+    Return a string describing the current branch and that the library is
+    being loaded.  This is called by the \code{<SAGE_ROOT>/local/bin/sage-sage}
+    script.
+
+    INPUT:
+        string -- a representation of the name of the SAGE library branch.
+
+    OUTPUT:
+        string
+
+    NOTE: If the branch is main, then return an empty string.
+    """
+    if branch == 'main':
+        return ''
+    notice = 'Loading SAGE library. Current Mercurial branch is: '
+    return notice + branch

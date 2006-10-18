@@ -1099,6 +1099,7 @@ class Worksheet:
             cell = self.__cells[i]
             s += cell.html(ncols,do_print=do_print) + '\n'
         s += '\n</div>\n'
+        s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
         if not do_print:
             s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()

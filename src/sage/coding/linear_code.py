@@ -1269,12 +1269,6 @@ class LinearCode(module.Module):
             #    print "det = ",Mmm.determinant(),"   m = ",m
         return "fails"
 
-######### defining the Codeword class by copying the FreeModuleElement class:
-Codeword = fme.FreeModuleElement
-Codeword.support = fme.FreeModuleElement.nonzero_positions
-is_Codeword = fme.is_FreeModuleElement
-
-
 ##################### wrapped GUAVA functions ############################
 
 def HammingCode(r,F):

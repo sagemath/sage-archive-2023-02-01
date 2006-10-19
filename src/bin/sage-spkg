@@ -211,7 +211,27 @@ if [ ! -f spkg-install ]; then
       fi
   fi
 fi
+
 chmod +x spkg-install
+
+echo "****************************************************"
+echo "Host system"
+echo "uname -a:"
+uname -a
+if [ $? -ne 0 ]; then
+   echo "Unable to determine host system information."
+fi
+echo "****************************************************"
+
+echo "****************************************************"
+echo "GCC Version"
+echo "gcc -v"
+gcc -v
+if [ $? -ne 0 ]; then
+   echo "Unable to determine gcc version."
+fi
+echo "****************************************************"
+
 time ./spkg-install
 
 if [ $? -eq 0 ]; then

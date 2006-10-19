@@ -20,6 +20,7 @@ import random
 import weakref
 
 import commutative_ring
+import commutative_algebra
 import ring
 import ring_element
 import field
@@ -107,7 +108,7 @@ def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
 def is_PolynomialRing(x):
     return isinstance(x, PolynomialRing_generic)
 
-class PolynomialRing_generic(commutative_ring.CommutativeRing):
+class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
     """
     Univariate polynomial ring over a commutative ring.
     """
@@ -122,7 +123,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
-        self.__base_ring = base_ring
+        commutative_algebra.CommutativeAlgebra.__init__(self, base_ring)
         self.assign_names(name)
         self.__is_sparse = sparse
         ring.Ring.__init__(self)
@@ -155,7 +156,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def __reduce__(self):
         return sage.rings.polynomial_ring.PolynomialRing, \
-               (self.__base_ring, self.variable_name(), self.__is_sparse)
+               (self.base_ring(), self.variable_name(), self.__is_sparse)
 
     def _magma_(self, G=None):
         """
@@ -207,7 +208,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         if not isinstance(other, PolynomialRing_generic):
             return -1
         if self.variable_name() == other.variable_name() and \
-               self.__base_ring == other.__base_ring:
+               self.base_ring() == other.base_ring():
             return 0
         elif self.variable_name() < other.variable_name():
             return -1
@@ -215,7 +216,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def __repr__(self):
         s = "Univariate Polynomial Ring in %s over %s"%(
-                self.variable_name(), self.__base_ring)
+                self.variable_name(), self.base_ring())
         if self.is_sparse():
             s = "Sparse " + s
         return s
@@ -241,14 +242,11 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         else:
             self.__polynomial_class = polynomial.Polynomial_generic_dense
 
-    def base_ring(self):
-        return self.__base_ring
-
     def base_extend(self, R):
         return PolynomialRing(R, name=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):
-        return self.__base_ring.characteristic()
+        return self.base_ring().characteristic()
 
     def cyclotomic_polynomial(self, n):
         """

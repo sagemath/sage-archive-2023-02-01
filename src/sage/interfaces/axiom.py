@@ -61,14 +61,14 @@ Note that Axiom objects are normally displayed using ``ASCII art''.
 In some cases you can see a normal linear representation of any Axiom
 object x, using \code{str(x)}.  This can be useful for moving axiom
 data to other systems.
-    sage: a = axiom('2/3');a
+    sage: a = axiom('2/3'); a          # optional
     2
     -
     3
-    sage: str(a)
+    sage: str(a)                       # optional
     '2/3'
-    sage: a = axiom('x^2 + 3/7')
-    sage: str(a)
+    sage: a = axiom('x^2 + 3/7')       # optional
+    sage: str(a)                       # optional
     'x*x+3/7'
 
 The \code{axiom.eval} command evaluates an expression in axiom and

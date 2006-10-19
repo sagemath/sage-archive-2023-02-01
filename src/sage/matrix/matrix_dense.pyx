@@ -1,5 +1,5 @@
 #############################################
-## Generic *DENSE* matrices over any ring
+## Generic *DENSE* matrices over any commutative ring
 #############################################
 
 def _convert_dense_entries_to_list(entries):

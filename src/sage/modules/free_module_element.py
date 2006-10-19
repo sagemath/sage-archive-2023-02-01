@@ -4,9 +4,8 @@ Elements of free modules
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
-from sage.rings.arith import lcm
 
-from sage.rings.coerce import bin_op, cmp as coerce_cmp
+import sage.rings.coerce
 
 import module_element
 
@@ -74,7 +73,7 @@ class FreeModuleElement(module_element.ModuleElement):
     def __cmp__(self, right):
         if not isinstance(right, FreeModuleElement) or \
                   not (self.parent().ambient_vector_space() == right.parent().ambient_vector_space()):
-            return coerce_cmp(self, right)
+            return sage.rings.coerce.cmp(self, right)
         for i in xrange(self.degree()):
             c = cmp(self[i], right[i])
             if c: return c
@@ -90,7 +89,7 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: bool(V)
             True
         """
-        return coerce_cmp(self, 0)
+        return sage.rings.coerce.cmp(self, 0)
 
     def __getitem__(self, i):
         raise NotImplementedError
@@ -310,7 +309,8 @@ class FreeModuleElement(module_element.ModuleElement):
         return [self[i] for i in range(self.degree())]
 
     def additive_order(self):
-        return lcm([self[i].order() for i in range(self.degree())])
+        import sage.rings.arith
+        return sage.rings.arith.lcm([self[i].order() for i in range(self.degree())])
 
     def set(self, i, x):
         """

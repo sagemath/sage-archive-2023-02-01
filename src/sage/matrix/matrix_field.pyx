@@ -3,7 +3,7 @@ Generic matrices over a field
 """
 
 cimport matrix_pid
-import matrix_pid
+import  matrix_pid
 
 import matrix_space
 import sage.rings.polynomial_ring

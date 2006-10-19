@@ -1,5 +1,5 @@
-import  sage.structure.element
 cimport sage.structure.element
+import  sage.structure.element
 
 cdef class Matrix(sage.structure.element.ModuleElement):
     cdef object _mutability

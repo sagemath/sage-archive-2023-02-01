@@ -296,8 +296,8 @@ cdef class SageObject:
             try:
                 s = self._interface_init_()
             except AttributeError, msg1:
-                raise NotImplementedError, "coercion of %s (of type %s) to %s not implemented:\n%s\n%s"%\
-                      (self, type(self), I, msg0, msg1)
+                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
+                      (I, msg0, msg1)
         X = I(s)
         if c:
             try:

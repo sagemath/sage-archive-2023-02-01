@@ -128,7 +128,6 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     self._a = Q[1]
     self._b = Q[0]
     self._poly_ring = PolynomialRing(base_ring, 'T')    # R[T]
-    self._base_ring = base_ring
     self._poly_generator = self._poly_ring.gen(0)    # the generator T
 
     # Precompute a matrix that is used in the Toom-Cook multiplication.
@@ -153,12 +152,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
   def __repr__(self):
     return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
-           (self._base_ring, PolynomialRing(self._base_ring)(
+           (self.base_ring(), PolynomialRing(self.base_ring())(
                                                 [self._b, self._a, 0, 1]))
-
-  def base_ring(self):
-    """ Return the underlying base ring. """
-    return self._base_ring
 
   def poly_ring(self):
     """ Return the underlying polynomial ring in T. """
@@ -195,23 +190,25 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
   # called, and exactly how they should operate
 
   def __call__(self, value):
+    return self._coerce_(value)
+
+
+  def _coerce_(self, value):
     # todo: I don't understand why the direct _poly_ring.__call__()
     # doesn't work....
 
     # try coercing to base ring
     try:
-      value = self._base_ring(value)
-      value = self._poly_ring(value)
+      value = self.base_ring()._coerce_(value)
+      value = self._poly_ring._coerce_(value)
+
     except TypeError:
       # try coercing to underlying polynomial ring
-      value = self._poly_ring(value)
+      value = self._poly_ring._coerce_(value)
 
     return SpecialCubicQuotientRingElement(self,
                  value, self._poly_ring(0), self._poly_ring(0), check=False)
 
-  def _coerce_(self, value):
-    # todo: is this right??
-    raise TypeError
 
 
 class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):

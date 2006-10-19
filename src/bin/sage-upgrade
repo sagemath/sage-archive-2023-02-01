@@ -8,7 +8,6 @@ if [ $? -ne 0 ]; then
 fi
 
 cd $SAGE_ROOT
-make clean
 
 cd $SAGE_ROOT/spkg/
 
@@ -21,13 +20,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo ""
-echo " ***************************************************"
-echo "The upgrade appears to have succeeded!"
-echo "Now running 'make clean' to delete temporary build files "
-echo "that were created during the ugprade."
-echo " ***************************************************"
-echo ""
-
 cd $SAGE_ROOT
-make clean

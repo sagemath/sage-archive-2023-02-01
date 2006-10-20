@@ -464,8 +464,7 @@ class MatrixSpace_pid(MatrixSpace_domain):
     def _get_matrix_class(self):
         if self.is_dense():
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
-#                return matrix_integer_dense.Matrix_integer_dense
-                return matrix.Matrix_dense_integer
+                return matrix_integer_dense.Matrix_integer_dense
             return matrix.Matrix_generic_dense_pid
         else:
             if isinstance(self.base_ring(), integer_ring.IntegerRing):

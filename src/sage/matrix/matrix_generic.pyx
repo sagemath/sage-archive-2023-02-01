@@ -106,6 +106,9 @@ from   sage.structure.sequence import _combinations
 
 from sage.structure.mutability_pyx cimport Mutability
 
+def is_Matrix(x):
+    return isinstance(x, Matrix)
+
 cdef class Matrix(sage.structure.element.ModuleElement):
     r"""
     The \class{Matrix} class is the base class for all matrix

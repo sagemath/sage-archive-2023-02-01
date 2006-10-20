@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Dense matrices over the integers.
 """
 
@@ -20,18 +20,29 @@ Dense matrices over the integers.
 from sage.misc.misc import verbose, get_verbose
 
 include "../ext/gmp.pxi"
-include "../ext/interrupt.pxi"
 
-import  sage.rings.integer
 cimport sage.rings.integer
+import  sage.rings.integer
 
-import matrix_integer
 cimport matrix_integer
+import matrix_integer
 
 cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     """
     Matrix over the integers.
     """
+
+    def __new__(self, parent):
+        nrows = parent.nrows()
+        ncols = parent.ncols()
+        self._nrows = nrows
+        self._ncols = ncols
+
+        self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t*) * (nrows * ncols))
+
+        if self._entries == <mpz_t*> 0:
+            raise MemoryError, "Error allocating matrix."
+
 
     def __init__(self, parent, object entries=None, construct=False, zero=True,
                  coerce=True):
@@ -47,17 +58,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             if entries != 0 and nrows != ncols:
                 raise TypeError, "scalar matrix must be square"
 
-        nrows = parent.nrows()
-        ncols = parent.ncols()
-        self._nrows = nrows
-        self._ncols = ncols
-
-        self._entries = <mpz_t *>PyMem_Malloc(sizeof(mpz_t*) * (nrows * ncols))
-
-        if self._entries == <mpz_t*> 0:
-            raise MemoryError, "Error allocating matrix."
-
-        self._matrix = <mpz_t **> PyMem_Malloc(sizeof(mpz_t*)*nrows)
+        self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*nrows)
         if self._matrix == <mpz_t**> 0:
             raise MemoryError, "Error allocating matrix."
 
@@ -135,7 +136,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             entries = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> PyMem_Malloc(n * sizeof(char))
+            s = <char*> sage_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -146,9 +147,9 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> PyMem_Malloc(n * sizeof(char))
+                        tmp = <char*> sage_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        PyMem_Free(s)
+                        sage_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -208,8 +209,8 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
 #        cdef i
 #        for i from 0 <= i < (self._nrows * self._ncols):
 #            mpz_clear(self._entries[i])
-        PyMem_Free(self._entries)
-        PyMem_Free(self._matrix)
+        sage_free(self._entries)
+        sage_free(self._matrix)
 
     def _mul_(Matrix_integer_dense self, Matrix_integer_dense other):
         if self._ncols != other._nrows:
@@ -360,7 +361,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         mpz_init(s)
         mpz_init(z)
         for i from 1 <= i < nr:
-            m[i] = <mpz_t *> PyMem_Malloc(sizeof(mpz_t)*nc)
+            m[i] = <mpz_t *> sage_malloc(sizeof(mpz_t)*nc)
             if m[i] == <mpz_t*> 0:
                 raise MemoryError, "Error allocating matrix"
             for j from 0 <= j < nc:

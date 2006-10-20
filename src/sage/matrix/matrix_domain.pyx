@@ -18,16 +18,17 @@ Matrices over a domain
 ########################################################################
 
 
-cimport matrix_generic
-import matrix_generic
+cimport matrix_dense
+import matrix_dense
 
 import sage.structure.sequence
 
 
 
-cdef class Matrix_domain(matrix_generic.Matrix):
-    def __init__(self, parent):
+cdef class Matrix_domain(matrix_dense.Matrix_dense):
+    def __init__(self, parent, coerce_entries=False, copy=True):
         matrix_generic.Matrix.__init__(self, parent)
+
 
     def eigenspaces(self):
         """
@@ -268,6 +269,21 @@ cdef class Matrix_domain(matrix_generic.Matrix):
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         """
         return self.change_ring(self.base_ring().fraction_field(), copy=copy)
+
+    def _singular_(self, singular=None):
+        """
+        Tries to coerce this matrix to a singular matrix.
+        """
+        if singular is None:
+            from sage.interfaces.all import singular as singular_default
+            singular = singular_default
+        try:
+            self.base_ring()._singular_(singular)
+        except (NotImplementedError, AttributeError):
+            raise TypeError, "Cannot coerce to Singular"
+
+        return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
+
 
     def numeric_array(self, typecode=None):
         """

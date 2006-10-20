@@ -536,6 +536,25 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         return n
 
     def list(self, int base=0):
+        """
+        Return a list of all the elements of this matrix.
+
+        The elements of the list are the rows concatenated together.
+
+        EXAMPLES:
+             sage: A = MatrixSpace(QQ,3)(range(9))
+             sage: v = A.list(); v
+             [0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+        The returned list is a copy, and can be safely modified
+        without changing self.
+            sage: v[0] = 9999
+            sage: A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+        """
+
         cdef int i, j
         cdef mpq_t *r
         cdef object v
@@ -588,7 +607,42 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
         mpq_clear(minus_b)
 
     def charpoly(self, bound=None):
-        # TODO: use (and cache with respect to) bound when multi-modular methods are implemented
+        # TODO: implement and use (and cache with respect to) bound when multi-modular methods are implemented (see old matrix_dense_rational source)
+        """
+        Return the characteristic polynomial of this matrix.
+
+        INPUT:
+            bound -- integer
+
+        ALGORITHM: Use a multi-modular Hessenberg form algorithm.
+        This multimodular algorithm works by first computing a bound
+        B, then computing the characteristic polynomial (using
+        Hessenberg form mod p) modulo enough primes so that their
+        product is bigger than B.  We then uses the Chinese Remainder
+        Theorem to recover the characteristic polynomial.  If the
+        optional bound is specified, that bound is used for B instead
+        of a potentially much worse general bound.
+
+        EXAMPLES:
+            sage: A = Matrix(QQ, 4, 4, [0, 1, -1, 0, 0, 1, -1, 1, -1, 2, -2, 1, -1, 1, 0, -1])
+            sage: f = A.charpoly(); f
+            x^4 + 2*x^3 - x^2 - 2*x + 1
+            sage: f.factor()
+            (x^2 + x - 1)^2
+
+        Next we compute a charpoly using too low of a bound, and get an
+        incorrect answer.
+            sage: A = 100*Matrix(QQ, 3, 3, range(9))
+            sage: A.charpoly(10)
+            x^3 - 1200*x^2 + 5348*x
+
+        Note that the incorrect answer is cached, but only with that bound:
+            sage: A.charpoly()         # gives correct answer
+            x^3 - 1200*x^2 - 180000*x
+            sage: A.charpoly(10)       # cached incorrect answer
+            x^3 - 1200*x^2 + 5348*x
+        """
+
         return matrix_field.Matrix_field.charpoly(self)
 
     def rank(self):
@@ -622,6 +676,21 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
 
     def hessenberg_form(self):
+        """
+        Return the Hessenberg form of this matrix.
+
+        EXAMPLES:
+            sage: A = Matrix(QQ, 3, 3, range(9))
+            sage: A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.hessenberg_form()
+            [ 0  5  2]
+            [ 3 14  5]
+            [ 0 -5 -2]
+        """
+
         if self.is_immutable():
             raise ValueError, "matrix must be mutable, since hessenberg form changes it"
         if self._nrows != self._ncols:

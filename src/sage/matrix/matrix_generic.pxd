@@ -12,4 +12,5 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef object __sparse_rows
     cdef object __eigenvectors
     cdef object __rank
+    cdef object __echelon_form
 

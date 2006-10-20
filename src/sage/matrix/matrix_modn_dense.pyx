@@ -2,8 +2,8 @@
 Generic matrices over the integers modulo n.
 """
 
-cimport matrix_generic
-import matrix_generic
+cimport matrix_dense
+import matrix_dense
 
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
@@ -28,7 +28,7 @@ LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
 MAX_MODULUS = 46340
 
-cdef class Matrix_modn_dense(matrix_generic.Matrix):
+cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __init__(self, parent, object entries=None, coerce_entries=True, copy=True, clear=True):
         matrix_generic.Matrix.__init__(self, parent)
 

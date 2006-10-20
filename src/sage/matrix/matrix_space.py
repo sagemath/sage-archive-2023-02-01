@@ -11,6 +11,8 @@ import sage.structure.gens as gens
 import matrix
 
 import matrix_dense
+import matrix_domain
+import matrix_pid
 import matrix_integer_dense
 import matrix_integer_sparse
 import matrix_rational_dense
@@ -250,9 +252,9 @@ class MatrixSpace_generic(gens.Generators):
         """
 
         if self.is_dense():
-            return matrix.Matrix_generic_dense
+            return matrix_dense.Matrix_dense
         else:
-            return matrix.Matrix_generic_sparse
+            return matrix_sparse.Matrix_sparse
 
     def base_ring(self):
         """
@@ -443,9 +445,9 @@ class MatrixSpace_domain(MatrixSpace_generic):
 
     def _get_matrix_class(self):
         if self.is_dense():
-            return matrix.Matrix_generic_dense_domain
+            return matrix_domain.Matrix_domain
         else:
-            return matrix.Matrix_generic_sparse_domain
+            return matrix_sparse.Matrix_domain_sparse
 
 
 class MatrixSpace_pid(MatrixSpace_domain):
@@ -466,11 +468,11 @@ class MatrixSpace_pid(MatrixSpace_domain):
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
 #                return matrix_integer_dense.Matrix_integer_dense
                 return matrix.Matrix_dense_integer
-            return matrix.Matrix_generic_dense_pid
+            return matrix_pid.Matrix_pid
         else:
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
                 return matrix.Matrix_sparse_integer
-            return matrix.Matrix_generic_sparse_pid
+            return matrix_sparse.Matrix_pid_sparse
 
 
 class MatrixSpace_field(MatrixSpace_pid):
@@ -494,14 +496,14 @@ class MatrixSpace_field(MatrixSpace_pid):
             if isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_dense.Matrix_modn_dense
             else:
-                return matrix.Matrix_generic_dense_field
+                return matrix_field.Matrix_field
         else:
             if isinstance(K, rational_field.RationalField):
                 #return matrix.Matrix_sparse_rational
-                return matrix.Matrix_sparse_rational
+                return matrix_rational_sparse.Matrix_rational_sparse
             elif sage.rings.number_field.all.is_CyclotomicField(K):
-                return matrix.Matrix_sparse_cyclotomic
-            return matrix.Matrix_generic_sparse_field
+                return matrix.Matrix_sparse_cyclotomic # TODO: last of the old matrices
+            return matrix_field.Matrix_field_sparse
 
     def base_field(self):
         return self.base_ring()

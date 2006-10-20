@@ -9,3 +9,4 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(self)
     cdef object _pari
 
+

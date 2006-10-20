@@ -2,7 +2,6 @@
 Dense matrices over the integers.
 """
 
-
 ######################################################################
 #       Copyright (C) 2006 William Stein
 #
@@ -23,7 +22,7 @@ from sage.misc.misc import verbose, get_verbose
 include "../ext/gmp.pxi"
 
 cimport sage.rings.integer
-import  sage.rings.integer
+import sage.rings.integer
 
 cimport matrix_integer
 cimport matrix_generic
@@ -37,7 +36,16 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     $2^{64}-1$ rows or columns.
 
     EXAMPLES:
-
+        sage: a = MatrixSpace(ZZ,3)(2); a
+        [2 0 0]
+        [0 2 0]
+        [0 0 2]
+        sage: a = matrix(ZZ,1,3, [1,2,-3]); a
+        [ 1  2 -3]
+        sage: a = MatrixSpace(ZZ,2,4)(2); a
+        Traceback (most recent call last):
+        ...
+        TypeError: nonzero scalar matrix must be square
     """
     def __new__(self, parent, entries, coerce, copy):
         """
@@ -52,6 +60,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None
+        matrix_generic.Matrix.__init__(self, parent)
 
         # Allocate an array where all the entries of the matrix are stored.
         self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))
@@ -79,11 +88,10 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             entries -- list - create the matrix with those entries along the rows.
                        other -- a scalar; entries is coerced to an integer and the diagonal
                                 entries of this matrix are set to that integer.
-            coerce -- whether to coerce entries to the integers
+            coerce -- whether need to coerce entries to the integers (program may crash
+                      if you get this wrong)
             copy -- ignored (since integers are immutable)
         """
-        matrix_generic.Matrix.__init__(self, parent)
-
         cdef size_t i, j
         cdef sage.rings.integer.Integer x
 
@@ -94,7 +102,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
-                    #x = sage.rings.integer.Integer(entries[i])   # todo -- see integer.pyx and the TODO there; perhaps this could be
+                    x = sage.rings.integer.Integer(entries[i])   # todo -- see integer.pyx and the TODO there; perhaps this could be
                                      # sped up by creating a mpz_init_set_sage function.
                     mpz_init_set(self._entries[i], x.value)
             else:
@@ -115,20 +123,22 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
 
             # the matrix must be square:
             if self._nrows != self._ncols:
+                sage_free(self._entries)
+                sage_free(self._matrix)
+                self._entries = NULL
                 raise TypeError, "nonzero scalar matrix must be square"
 
             # Now we set all the diagonal entries to x and all other entries to 0.
-            for i from 0 <= i < self._nrows * self._ncols:
-                mpz_init_set_si(self._entries[i], 0)
+            self._zero_out_matrix()
             j = 0
             for i from 0 <= i < self._nrows:
                 mpz_init_set(self._entries[j], x.value)
-                j = j + self._nrows
-
+                j = j + self._nrows + 1
 
     cdef void _zero_out_matrix(self):
         """
         Set this matrix to be the zero matrix.
+        This is only for internal use.
         """
         # TODO: This is about 6-10 slower than MAGMA doing what seems to be the same thing.
         # Moreover, NTL can also do this quickly.  Why?
@@ -142,13 +152,40 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     def nrows(self):
         """
         Return the number of rows of this matrix.
+
+        EXAMPLES:
+            sage: a = MatrixSpace(ZZ,2,4)(range(8,16)); a
+            [ 8  9 10 11]
+            [12 13 14 15]
+            sage: a.nrows()
+            2
         """
-        return self._nrows
+        return sage.rings.integer.Integer(self._nrows)
 
     def ncols(self):
-        return self._ncols
+        """
+        Return the number of columns of this matrix.
+
+        EXAMPLES:
+            sage: a = MatrixSpace(ZZ,2,7)(range(1,15)); a
+            [ 1  2  3  4  5  6  7]
+            [ 8  9 10 11 12 13 14]
+            sage: a.nrows()
+            2
+            sage: a.ncols()
+            7
+        """
+        return sage.rings.integer.Integer(self._ncols)
 
     def __reduce__(self):
+        """
+        Save this matrix to a binary stream.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 2,2, [1,2,3,4])
+            sage: loads(dumps(a)) == a
+            True
+        """
         # TODO: redo this to use the "mpz to bytes" stuff.
         import sage.matrix.reduce
 
@@ -193,7 +230,12 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
 
 
     def __cmp__(self, other):
-        cdef int i
+        """
+        Compare self to other.
+
+        TODO -- this is dumb -- compares wrong if other isn't also a Matrix_integer_dense.
+        """
+        cdef size_t i
         cdef Matrix_integer_dense c_other
         # TODO: make this _cmp_siblings_ instead.  Definitely don't want to return -1 here -- ...
         if not isinstance(other, Matrix_integer_dense):
@@ -207,37 +249,88 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         return 0
 
     def __setitem__(self, ij, x):
-        i, j = ij   # TODO: optimize by using that ij is a 2-tuple (this could go in a base clase?)
-        cdef sage.rings.integer.Integer z
-        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
-            raise IndexError, "Invalid index."
+        """
+        Set position i,j of this matrix to x.
 
-        # Instead use Python/C api here.
-        try:
-            z = x
-        except TypeError:
-            z = sage.rings.integer.Integer(x)
-        mpz_set(self._matrix[i][j], z.value)
+        EXAMPLES:
+        """
+        cdef sage.rings.integer.Integer z
+        cdef size_t i, j
+
+        if not PyTuple_Check(ij):
+            # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
+            if PyTuple_Size(ij) != 2:
+                raise IndexError, "index must be an integer or pair of integers"
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
+            if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
+                raise IndexError, "index out of bounds"
+            # TODO: Use direct call to sage_to_mpz_t -- no need to make an Integer object.
+            try:
+                z = x
+            except TypeError:
+                z = sage.rings.integer.Integer(x)
+            mpz_set(self._matrix[i][j], z.value)
+        else:
+            # If ij is not a tuple, coerce to an integer and set the row.
+            i = ij
+            for j from 0 <= j < self._ncols:
+                # TODO: Use direct call to sage_to_mpz_t -- no need to make an Integer object.
+                try:
+                    z = x[j]
+                except TypeError:
+                    z = sage.rings.integer.Integer(x[j])
+                mpz_set(self._matrix[i][j], z.value)
 
     def __getitem__(self, ij):
+        """
+        EXAMPLES:
+            sage: a = MatrixSpace(ZZ,3)(range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a[1,2]
+            5
+            sage: a[0]
+            (0, 1, 2)
+            sage: a[4,7]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of bounds
+            sage: a[-1,0]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of bounds
+        """
         cdef sage.rings.integer.Integer z
-        cdef int i, j
+        cdef size_t i, j
+        cdef object x
 
-        i, j = ij
+        if PyTuple_Check(ij):
+            # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
+            if PyTuple_Size(ij) != 2:
+                raise IndexError, "index must be an integer or pair of integers"
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
+            if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
+                raise IndexError, "index out of bounds"
+            z = sage.rings.integer.Integer()
+            mpz_init_set(z.value, self._matrix[i][j])
+            return z
+        else:
+            # If ij is not a tuple, coerce to an integer and get the row.
+            i = ij
+            return self.row(i)
 
-        if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
-            raise IndexError, "Invalid index."
-
-        z = sage.rings.integer.Integer()
-        mpz_set(z.value, self._matrix[i][j])
-        return z
 
     def  __dealloc__(self):
+        if self._entries == NULL: return
         cdef size_t i
         for i from 0 <= i < (self._nrows * self._ncols):
-            my_mpz_clear(self._entries[i])
+            mpz_clear(self._entries[i])
         sage_free(self._entries)
         sage_free(self._matrix)
+
 
     def _mul_(Matrix_integer_dense self, Matrix_integer_dense other):
         if self._ncols != other._nrows:
@@ -296,19 +389,31 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     def transpose(self):
         """
         Returns the transpose of self.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,2,3, range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.transpose()
+            [0 3]
+            [1 4]
+            [2 5]
+            sage: a
+            [0 1 2]
+            [3 4 5]
+            sage: a.transpose().transpose()
+            [0 1 2]
+            [3 4 5]
         """
-        cdef int i, j
+        cdef size_t i, j
         cdef Matrix_integer_dense M
 
-        M = self.new_matrix(self._ncols, self._nrows, zero=False)
-        cdef mpz_t **m
-        m = M._matrix
-
+        P = self._parent.matrix_space(self._ncols, self._nrows)
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
         _sig_on
         for i from 0 <= i < self._ncols:
             for j from 0 <= j < self._nrows:
-                mpz_init(m[i][j])
-                mpz_set(m[i][j], self._matrix[j][i])
+                mpz_init_set(M._matrix[i][j], self._matrix[j][i])
         _sig_off
         return M
 
@@ -318,9 +423,11 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
 
         INPUT:
             rows -- list of int's
-
         OUTPUT:
             matrix created from the rows with given indexes
+
+        EXAMPLES:
+
         """
         cdef int i, j, k, nc, nr
         cdef Matrix_integer_dense M

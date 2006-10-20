@@ -6,6 +6,9 @@ cdef extern from "stdlib.h":
     size_t strlen(char *s)
     char *strcpy(char *dest, char *src)
 
+cdef extern from "string.h":
+    void *memcpy(void *s1, void *s2, size_t n)
+
 cdef extern from "stdio.h":
     ctypedef struct FILE
     int printf(char *format, ...)

@@ -2,6 +2,7 @@
 Dense matrices over the integers.
 """
 
+
 ######################################################################
 #       Copyright (C) 2006 William Stein
 #
@@ -129,6 +130,8 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         """
         Set this matrix to be the zero matrix.
         """
+        # TODO: This is about 6-10 slower than MAGMA doing what seems to be the same thing.
+        # Moreover, NTL can also do this quickly.  Why?
         _sig_on
         cdef size_t i
         for i from 0 <= i < self._nrows * self._ncols:
@@ -137,12 +140,16 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
 
 
     def nrows(self):
+        """
+        Return the number of rows of this matrix.
+        """
         return self._nrows
 
     def ncols(self):
         return self._ncols
 
     def __reduce__(self):
+        # TODO: redo this to use the "mpz to bytes" stuff.
         import sage.matrix.reduce
 
         cdef int i, j, len_so_far, m, n
@@ -188,6 +195,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     def __cmp__(self, other):
         cdef int i
         cdef Matrix_integer_dense c_other
+        # TODO: make this _cmp_siblings_ instead.  Definitely don't want to return -1 here -- ...
         if not isinstance(other, Matrix_integer_dense):
             return -1
         c_other = other
@@ -199,13 +207,15 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         return 0
 
     def __setitem__(self, ij, x):
-        i, j = ij
+        i, j = ij   # TODO: optimize by using that ij is a 2-tuple (this could go in a base clase?)
         cdef sage.rings.integer.Integer z
         if i < 0 or i >= self._nrows or j < 0 or j >= self._ncols:
             raise IndexError, "Invalid index."
+
+        # Instead use Python/C api here.
         try:
             z = x
-        except (TypeError):
+        except TypeError:
             z = sage.rings.integer.Integer(x)
         mpz_set(self._matrix[i][j], z.value)
 
@@ -225,7 +235,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     def  __dealloc__(self):
         cdef size_t i
         for i from 0 <= i < (self._nrows * self._ncols):
-            mpz_clear(self._entries[i])
+            my_mpz_clear(self._entries[i])
         sage_free(self._entries)
         sage_free(self._matrix)
 

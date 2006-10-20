@@ -56,6 +56,8 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
                                 entries of this matrix are set to that integer.
             coerce -- whether to coerce entries to the integers
             copy -- ignored (since integers are immutable)
+
+        EXAMPLES:
         """
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
@@ -91,6 +93,9 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             coerce -- whether need to coerce entries to the integers (program may crash
                       if you get this wrong)
             copy -- ignored (since integers are immutable)
+
+        EXAMPLES:
+
         """
         cdef size_t i, j
         cdef sage.rings.integer.Integer x
@@ -160,6 +165,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             sage: a.nrows()
             2
         """
+
         return sage.rings.integer.Integer(self._nrows)
 
     def ncols(self):
@@ -234,6 +240,8 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         Compare self to other.
 
         TODO -- this is dumb -- compares wrong if other isn't also a Matrix_integer_dense.
+
+        EXAMPLES:
         """
         cdef size_t i
         cdef Matrix_integer_dense c_other
@@ -344,6 +352,10 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     def _mul_(Matrix_integer_dense self, Matrix_integer_dense other):
         """
         EXAMPLE:
+            sage: n = 3
+            sage: a = MatrixSpace(ZZ,n,n)(range(n^2))
+            sage: a*a - a + a
+            ...?
         """
         if self._ncols != other._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of other."
@@ -619,12 +631,17 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         Return the pivots found during the last echelon operation on self.
         Of course if self is changed, and the echelon form of self is not
         recomputed, then the pivots could be incorrect.
+
+        EXAMPLES:
         """
         if self._pivots == None:
             raise ArithmeticError, "Echelon form has not yet been computed."
         return self._pivots
 
     cdef int mpz_height(self, mpz_t height) except -1:
+        """
+        EXAMPLES:
+        """
         cdef mpz_t x, h
         mpz_init(x)
         mpz_init_set_si(h, 0)
@@ -662,6 +679,8 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         """
         Multiply this matrix by right using a multimodular algorithm
         and return the result.
+
+        EXAMPLES:
         """
         raise NotImplementedError
 

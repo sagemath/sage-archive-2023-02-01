@@ -38,7 +38,16 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
     EXAMPLES:
 
     """
-    def __new__(self, parent, object entries=None, int coerce_entries=0, int copy=1, int clear=1):
+    def __new__(self, parent, entries, coerce, copy):
+        """
+        INPUT:
+            parent -- a matrix space
+            entries -- list - create the matrix with those entries along the rows.
+                       other -- a scalar; entries is coerced to an integer and the diagonal
+                                entries of this matrix are set to that integer.
+            coerce -- whether to coerce entries to the integers
+            copy -- ignored (since integers are immutable)
+        """
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None
@@ -46,13 +55,13 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         # Allocate an array where all the entries of the matrix are stored.
         self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))
         if self._entries == NULL:
-            raise MemoryError, "Error allocating matrix."
+            raise MemoryError, "out of memory allocating a matrix"
 
         # Allocate an array of pointers to the rows.
         self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
-            raise MemoryError, "Error allocating matrix."
+            raise MemoryError, "out of memory allocating a matrix"
 
         # Set each of the pointers in the array self._matrix to point at the memory for
         # the corresponding row.
@@ -62,16 +71,15 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
             self._matrix[i] = self._entries + k
             k = k + self._ncols
 
-    def __init__(self, parent, object entries=None, int coerce_entries=1, int copy=1, int clear=1):
+    def __init__(self, parent, entries, coerce, copy):
         """
         INPUT:
             parent -- a matrix space
             entries -- list - create the matrix with those entries along the rows.
                        other -- a scalar; entries is coerced to an integer and the diagonal
                                 entries of this matrix are set to that integer.
-            coerce_entries -- whether or not the elements of list are all of type Integer.
-            copy --  not used
-            clear -- not used
+            coerce -- whether to coerce entries to the integers
+            copy -- ignored (since integers are immutable)
         """
         matrix_generic.Matrix.__init__(self, parent)
 
@@ -79,20 +87,25 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         cdef sage.rings.integer.Integer x
 
         if isinstance(entries, list):  # todo -- change to PyObject_TypeCheck???
-
             # Create the matrix whose entries are in the given entry list.
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError, "entries has the wrong length"
-            for i from 0 <= i < self._nrows * self._ncols:
-                # TODO: Should use an unsafe un-bounds-checked array access here.
-                x = entries[i]   # todo -- see integer.pyx and the TODO there; perhaps this could be
-                                 # sped up by creating a mpz_init_set_sage function.
-                mpz_init_set(self._entries[i], x.value)
+            if coerce:
+                for i from 0 <= i < self._nrows * self._ncols:
+                    # TODO: Should use an unsafe un-bounds-checked array access here.
+                    #x = sage.rings.integer.Integer(entries[i])   # todo -- see integer.pyx and the TODO there; perhaps this could be
+                                     # sped up by creating a mpz_init_set_sage function.
+                    mpz_init_set(self._entries[i], x.value)
+            else:
+                for i from 0 <= i < self._nrows * self._ncols:
+                    # TODO: Should use an unsafe un-bounds-checked array access here.
+                    x = entries[i]
+                    mpz_init_set(self._entries[i], x.value)
 
         else:
 
             # Try to coerce entries to a scalar (an integer)
-            x = entries
+            x = sage.rings.integer.Integer(entries)
 
             # If x is zero, make the zero matrix and be done.
             if mpz_cmp_si(x.value, 0) == 0:
@@ -116,11 +129,11 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         """
         Set this matrix to be the zero matrix.
         """
+        _sig_on
         cdef size_t i
-        print self._nrows
-        print self._ncols
         for i from 0 <= i < self._nrows * self._ncols:
-            mpz_init_set_si(self._entries[i], 0)
+            mpz_init(self._entries[i])
+        _sig_off
 
 
     def nrows(self):
@@ -210,9 +223,9 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         return z
 
     def  __dealloc__(self):
-#        cdef i
-#        for i from 0 <= i < (self._nrows * self._ncols):
-#            mpz_clear(self._entries[i])
+        cdef size_t i
+        for i from 0 <= i < (self._nrows * self._ncols):
+            mpz_clear(self._entries[i])
         sage_free(self._entries)
         sage_free(self._matrix)
 

@@ -518,7 +518,7 @@ cdef class Matrix_rational_dense(matrix_field.Matrix_field):
 
     # TODO: this function should be removed when self.parent().matrix() returns this pyx class
     def new_matrix(self, nrows=None, ncols=None, entries=0,
-                   coerce_entries=True, copy=True, sparse=None,
+                   coerce=True, copy=True, sparse=None,
                    clear = True, zero=True):
       return self.parent().matrix_space(nrows, ncols).matrix(entries, zero=zero)
 

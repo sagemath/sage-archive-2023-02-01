@@ -472,7 +472,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self.parent().matrix_space(nrows, ncols, sparse=sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
-                   coerce_entries=True, copy=True, sparse=None,
+                   coerce=True, copy=True, sparse=None,
                    clear = True, zero=True):
         """
         Create a matrix in the parent of this space with the given
@@ -483,7 +483,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         # TODO: propigate the zero flag
         return self.matrix_space(nrows, ncols, sparse=sparse).matrix(
-                entries, coerce_entries, copy)
+                entries, coerce, copy)
 
     ###################################################
     ## Properties
@@ -709,7 +709,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
         """
-        return self.new_matrix(entries=self._entries(), coerce_entries=False)
+        return self.new_matrix(entries=self._entries(), coerce=False)
 
     def dense_matrix(self):
         """

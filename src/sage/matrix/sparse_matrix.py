@@ -162,7 +162,7 @@ class SparseVector:
         V = sage.modules.free_module.VectorSpace(self.__base_ring,
                                         self.degree(), sparse=False)
         return V(entries = self.dense_list(),
-                 coerce_entries=False)
+                 coerce=False)
 
     def degree(self):
         return self.__degree

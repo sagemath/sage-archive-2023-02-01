@@ -88,9 +88,9 @@ cdef class Matrix_integer(matrix_pid.Matrix_pid):
         rank = nr - num_missing_rows
         if include_zero_rows:
             H = H + ['0']*(num_missing_rows*nc)
-            H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce_entries=True)
+            H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
         else:
-            H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce_entries=True)
+            H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
         H_m.__rank = rank
         H_m.set_immutable()
         return H_m

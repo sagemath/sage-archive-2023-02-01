@@ -29,7 +29,7 @@ LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 MAX_MODULUS = 46340
 
 cdef class Matrix_modn_dense(matrix_generic.Matrix):
-    def __init__(self, parent, object entries=None, coerce_entries=True, copy=True, clear=True):
+    def __init__(self, parent, object entries=None, coerce=True, copy=True, clear=True):
         matrix_generic.Matrix.__init__(self, parent)
 
         cdef int i, p, nrows, ncols

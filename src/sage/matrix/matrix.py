@@ -661,9 +661,9 @@ class Matrix_integer(Matrix_pid):
         rank = nr - num_missing_rows
         if include_zero_rows:
             H += ['0']*(num_missing_rows*nc)
-            H = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce_entries=True)
+            H = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
         else:
-            H = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce_entries=True)
+            H = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
         H.__rank = rank
         H.set_immutable()
         return H
@@ -1723,7 +1723,7 @@ class Matrix_generic_dense(Matrix):
     this class.
     """
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
         Matrix.__init__(self, parent)
         self.__nrows = parent.nrows()
@@ -1750,7 +1750,7 @@ class Matrix_generic_dense(Matrix):
             if len(entries) != self.nrows() * self.ncols():
                 raise ArithmeticError, "entries must be a list of length %s"%\
                        (self.nrows()*self.ncols())
-        if coerce_entries:
+        if coerce:
             try:
                 entries = [R(x) for x in entries]
             except TypeError:
@@ -1841,7 +1841,7 @@ class Matrix_generic_dense(Matrix):
             for i in reversed(xrange(nr)):
                 f.append(e[i*nc + j])
         return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False, coerce_entries=False)
+                               entries = f, copy=False, coerce=False)
 
     def transpose(self):
         """
@@ -1867,7 +1867,7 @@ class Matrix_generic_dense(Matrix):
             for i in xrange(nr):
                 f.append(e[i*nc + j])
         return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False, coerce_entries=False)
+                               entries = f, copy=False, coerce=False)
 
 
 #############################################
@@ -1898,7 +1898,7 @@ class Matrix_generic_sparse(Matrix):
     ##    0 <= i < nrows,  0 <= j < ncols.
     def __init__(self, parent,
                  entries=0,
-                 coerce_entries=True,
+                 coerce=True,
                  copy=True):
         Matrix.__init__(self, parent)
         R = self.base_ring()
@@ -1934,7 +1934,7 @@ class Matrix_generic_sparse(Matrix):
 
         if not isinstance(entries, dict):
             raise TypeError, "entries must be a dict"
-        if coerce_entries:
+        if coerce:
             try:
                 for k, x in entries.iteritems():
                     entries[k] = R(x)
@@ -2109,7 +2109,7 @@ class Matrix_generic_sparse(Matrix):
             for j in range(nc):
                 x = _sparse_dot_product(row, cols[j])
                 if x != 0: E[(i,j)] = x
-        return self.new_matrix(nr, nc, entries = E, coerce_entries=False, copy=False)
+        return self.new_matrix(nr, nc, entries = E, coerce=False, copy=False)
 
     def hessenberg_form(self):
         """
@@ -2146,7 +2146,7 @@ class Matrix_generic_sparse(Matrix):
         X = {}
         for ij, x in self._entries().iteritems():
             X[ij] = left*x
-        return self.new_matrix(entries=X, copy=False, coerce_entries=False)
+        return self.new_matrix(entries=X, copy=False, coerce=False)
 
     def denominator(self):
         R = self.base_ring()
@@ -2216,7 +2216,7 @@ class Matrix_generic_sparse(Matrix):
                 entries[(i,X[j])] = E[ij]
 
         return self.new_matrix(ncols = len(columns), entries = entries,
-                    copy=False, coerce_entries=False)
+                    copy=False, coerce=False)
 
     def matrix_from_rows(self, rows):
         """
@@ -2266,7 +2266,7 @@ class Matrix_generic_sparse(Matrix):
         return self.new_matrix(
                     nrows = len(rows),
                     entries = entries,
-                    copy=False, coerce_entries=False)
+                    copy=False, coerce=False)
 
     def swap_rows(self, r1, r2):
         """
@@ -2303,7 +2303,7 @@ class Matrix_generic_sparse(Matrix):
         for ij, x in self.__entries.iteritems():
             X[(ij[1],ij[0])] = x
         return self.new_matrix(nrows = self.ncols(), ncols = self.nrows(),
-                           entries = X, copy=False, coerce_entries=False)
+                           entries = X, copy=False, coerce=False)
 
 
 ############################################################
@@ -2312,9 +2312,9 @@ class Matrix_generic_sparse(Matrix):
 
 class Matrix_generic_dense_domain(Matrix_domain, Matrix_generic_dense):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_dense.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_dense.__init__(self, parent, entries, coerce, copy)
 
 
     def _singular_(self, singular=singular_default):
@@ -2331,9 +2331,9 @@ class Matrix_generic_dense_domain(Matrix_domain, Matrix_generic_dense):
 
 class Matrix_generic_sparse_domain(Matrix_domain, Matrix_generic_sparse):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce, copy)
 
     def _singular_(self, singular=singular_default):
         """
@@ -2356,31 +2356,31 @@ class Matrix_generic_sparse_domain(Matrix_domain, Matrix_generic_sparse):
 
 class Matrix_generic_dense_pid(Matrix_pid, Matrix_generic_dense):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_dense.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_dense.__init__(self, parent, entries, coerce, copy)
 
 class Matrix_generic_sparse_pid(Matrix_pid, Matrix_generic_sparse):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce, copy)
 
 
 class Matrix_generic_dense_field(Matrix_field, Matrix_generic_dense):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_dense.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_dense.__init__(self, parent, entries, coerce, copy)
 
 
 
 
 class Matrix_generic_sparse_field(Matrix_field, Matrix_generic_sparse):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce, copy)
 
 
 
@@ -2395,9 +2395,9 @@ class Matrix_dense_integer(Matrix_integer, Matrix_generic_dense):
     hence not very optimized.
     """
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_dense.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_dense.__init__(self, parent, entries, coerce, copy)
 
 
 #############################################
@@ -2405,9 +2405,9 @@ class Matrix_dense_integer(Matrix_integer, Matrix_generic_dense):
 #############################################
 class Matrix_sparse_integer(Matrix_integer, Matrix_generic_sparse):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce, copy)
 
 
 #############################################
@@ -2415,9 +2415,9 @@ class Matrix_sparse_integer(Matrix_integer, Matrix_generic_sparse):
 #############################################
 class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
     def __init__(self, parent, entries=0,
-                       coerce_entries=True,
+                       coerce=True,
                        copy=True):
-        Matrix_generic_sparse.__init__(self, parent, entries, coerce_entries, copy)
+        Matrix_generic_sparse.__init__(self, parent, entries, coerce, copy)
 
     def height(self, prec=53):
         """
@@ -2633,7 +2633,7 @@ class Matrix_dense_rational(Matrix_rational):
     def __init__(self,
                     parent,
                     entries=0,
-                    coerce_entries=True,
+                    coerce=True,
                     copy=True):
         Matrix.__init__(self, parent)
 
@@ -2973,7 +2973,7 @@ class Matrix_sparse_rational(Matrix_rational):
     def __init__(self,
                  parent,
                  entries = 0,
-                 coerce_entries=True,
+                 coerce=True,
                  copy = True):
 
         Matrix.__init__(self, parent)
@@ -2995,7 +2995,7 @@ class Matrix_sparse_rational(Matrix_rational):
                             parent.nrows(),
                             parent.ncols(),
                             entries,
-                            coerce=coerce_entries)
+                            coerce=coerce)
 
     def _sparse_matrix_mpq_(self):
         return self.__matrix
@@ -3029,7 +3029,7 @@ class Matrix_sparse_rational(Matrix_rational):
         if isinstance(B, Matrix_sparse_rational):
             P = self.matrix_space(self.nrows(), B.ncols())
             return Matrix_sparse_rational(P, self.__matrix.matrix_multiply(B.__matrix),
-                                          coerce_entries = False, copy=False)
+                                          coerce = False, copy=False)
         else:
             return Matrix.__mul__(self, B)
 
@@ -3110,7 +3110,7 @@ class Matrix_sparse_rational(Matrix_rational):
             else:
                 nr = self.nrows()
             E = Matrix_sparse_rational(self.matrix_space(nrows=nr), X,
-                                       coerce_entries=False, copy=False)
+                                       coerce=False, copy=False)
             E._set_pivots(pivots)
             E._set_rank(r)
 
@@ -3158,7 +3158,7 @@ class Matrix_sparse_rational(Matrix_rational):
         return self.dense_matrix().transpose().sparse_matrix()
         #P = self.matrix_space(self.ncols(), self.nrows())
         #return Matrix_sparse_rational(P, self.__matrix.transpose(),
-        #                              coerce_entries = False, copy=False)
+        #                              coerce = False, copy=False)
 
     def set_row_to_multiple_of_row(self, i, j, s):
         self._require_mutable()

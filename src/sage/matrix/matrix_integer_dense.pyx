@@ -25,99 +25,103 @@ cimport sage.rings.integer
 import  sage.rings.integer
 
 cimport matrix_integer
-import matrix_integer
+cimport matrix_generic
 
 cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
-    """
+    r"""
     Matrix over the integers.
+
+    On a 32-bit machine, they can have at most $2^{32}-1$ rows or
+    columns.  On a 64-bit machine, matrices can have at most
+    $2^{64}-1$ rows or columns.
+
+    EXAMPLES:
+
     """
+    def __new__(self, parent, object entries=None, int coerce_entries=0, int copy=1, int clear=1):
+        self._nrows = parent.nrows()
+        self._ncols = parent.ncols()
+        self._pivots = None
 
-    def __new__(self, parent):
-        nrows = parent.nrows()
-        ncols = parent.ncols()
-        self._nrows = nrows
-        self._ncols = ncols
-
-        self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t*) * (nrows * ncols))
-
-        if self._entries == <mpz_t*> 0:
+        # Allocate an array where all the entries of the matrix are stored.
+        self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))
+        if self._entries == NULL:
             raise MemoryError, "Error allocating matrix."
 
-
-    def __init__(self, parent, object entries=None, construct=False, zero=True,
-                 coerce=True):
-        cdef int n, i, j, k, r, base, nrows, ncols
-        cdef mpz_t *v
-
-        matrix_integer.Matrix_integer.__init__(self, parent)
-
-        if not isinstance(entries, list) and not entries is None:
-            entries = sage.rings.integer.Integer(entries)
-
-        if isinstance(entries, sage.rings.integer.Integer):
-            if entries != 0 and nrows != ncols:
-                raise TypeError, "scalar matrix must be square"
-
-        self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*nrows)
-        if self._matrix == <mpz_t**> 0:
+        # Allocate an array of pointers to the rows.
+        self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
+        if self._matrix == NULL:
+            sage_free(self._entries)
             raise MemoryError, "Error allocating matrix."
 
-        for i from 0 <= i < (nrows * ncols):
-            mpz_init(self._entries[i])
-
+        # Set each of the pointers in the array self._matrix to point at the memory for
+        # the corresponding row.
+        cdef size_t i, k
         k = 0
-        for i from 0 <= i < nrows:
+        for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
-            k = k + ncols
+            k = k + self._ncols
 
-        self.__pivots = None
-        base = 10
-        if isinstance(entries, str):
-            if construct:
-                base = 32
-                entries = entries.split(' ')
-                coerce = True
-                raise NotImplementedError, "need to deal with base below"
+    def __init__(self, parent, object entries=None, int coerce_entries=1, int copy=1, int clear=1):
+        """
+        INPUT:
+            parent -- a matrix space
+            entries -- list - create the matrix with those entries along the rows.
+                       other -- a scalar; entries is coerced to an integer and the diagonal
+                                entries of this matrix are set to that integer.
+            coerce_entries -- whether or not the elements of list are all of type Integer.
+            copy --  not used
+            clear -- not used
+        """
+        matrix_generic.Matrix.__init__(self, parent)
 
-        cdef sage.rings.integer.Integer z
+        cdef size_t i, j
+        cdef sage.rings.integer.Integer x
 
-        if isinstance(entries, sage.rings.integer.Integer):
-            if entries != 0 and nrows != ncols:
-                raise TypeError, "scalar matrix must be square"
-            mpz_init(self.tmp)
-            z = entries
-            mpz_set(self.tmp, z.value)
-            _sig_on
-            for i from 0 <= i < nrows:
-                v = self._matrix[i]
-                for j from 0 <= j < ncols:
-                    if i == j:
-                        mpz_set(v[j], self.tmp)
-                    else:
-                        mpz_set_si(v[j], 0)
-            _sig_off
-            return
+        if isinstance(entries, list):  # todo -- change to PyObject_TypeCheck???
 
-        if nrows*ncols != 0:
-            if entries != None and len(entries) != nrows*ncols:
-                raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
+            # Create the matrix whose entries are in the given entry list.
+            if len(entries) != self._nrows * self._ncols:
+                raise TypeError, "entries has the wrong length"
+            for i from 0 <= i < self._nrows * self._ncols:
+                # TODO: Should use an unsafe un-bounds-checked array access here.
+                x = entries[i]   # todo -- see integer.pyx and the TODO there; perhaps this could be
+                                 # sped up by creating a mpz_init_set_sage function.
+                mpz_init_set(self._entries[i], x.value)
 
-        if entries is None:
-            if zero:
-                for i from 0 <= i < nrows * ncols:
-                    mpz_set_si(self._entries[i], 0)
-            return
-
-        k = 0
-
-        if coerce:
-            for i from 0 <= i < nrows*ncols:
-                z = sage.rings.integer.Integer(entries[i])
-                mpz_set(self._entries[i], z.value)
         else:
-            for i from 0 <= i < nrows*ncols:
-                z = entries[i]
-                mpz_set(self._entries[i], z.value)
+
+            # Try to coerce entries to a scalar (an integer)
+            x = entries
+
+            # If x is zero, make the zero matrix and be done.
+            if mpz_cmp_si(x.value, 0) == 0:
+                self._zero_out_matrix()
+                return
+
+            # the matrix must be square:
+            if self._nrows != self._ncols:
+                raise TypeError, "nonzero scalar matrix must be square"
+
+            # Now we set all the diagonal entries to x and all other entries to 0.
+            for i from 0 <= i < self._nrows * self._ncols:
+                mpz_init_set_si(self._entries[i], 0)
+            j = 0
+            for i from 0 <= i < self._nrows:
+                mpz_init_set(self._entries[j], x.value)
+                j = j + self._nrows
+
+
+    cdef void _zero_out_matrix(self):
+        """
+        Set this matrix to be the zero matrix.
+        """
+        cdef size_t i
+        print self._nrows
+        print self._ncols
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpz_init_set_si(self._entries[i], 0)
+
 
     def nrows(self):
         return self._nrows
@@ -455,9 +459,9 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         Of course if self is changed, and the echelon form of self is not
         recomputed, then the rank could be incorrect.
         """
-        if self.__pivots == None:
+        if self._pivots == None:
             raise ArithmeticError, "Echelon form has not yet been computed."
-        return len(self.__pivots)
+        return len(self._pivots)
 
     def pivots(self):
         """
@@ -465,9 +469,9 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         Of course if self is changed, and the echelon form of self is not
         recomputed, then the pivots could be incorrect.
         """
-        if self.__pivots == None:
+        if self._pivots == None:
             raise ArithmeticError, "Echelon form has not yet been computed."
-        return self.__pivots
+        return self._pivots
 
     cdef int mpz_height(self, mpz_t height) except -1:
         cdef mpz_t x, h

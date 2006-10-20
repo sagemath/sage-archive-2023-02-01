@@ -175,6 +175,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('0x3b').str(16)
             '3b'
         """
+
+        # TODO: All the code below should somehow be in an external
+        # cdef'd function.  Then e.g., if a matrix or vector or
+        # polynomial is getting filled by mpz_t's, it can use the
+        # rules below to do the fill construction of mpz_t's, but
+        # without the overhead of creating any Python objects at all.
+        # The cdef's function should be of the form
+        #     mpz_init_set_sage(mpz_t y, object x)
+        # Then this function becomes the one liner:
+        #     mpz_init_set_sage(self.value, x)
+
+
+
         if not (x is None):
             # First do all the type-check versions; these are fast.
             # PyObject_TypeCheck only works for *types* not for *classes*.

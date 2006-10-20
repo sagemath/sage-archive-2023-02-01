@@ -752,6 +752,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         ALGORITHM: Uses Singular
         """
         from sage.rings.multi_polynomial_ring import TermOrder,MPolynomialRing
+        from sage.rings.quotient_ring import is_QuotientRing
 
         Is = self._singular_()
         R = self.ring()

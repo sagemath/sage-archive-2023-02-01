@@ -5634,7 +5634,8 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
-        raise RuntimeError, "The PARI stack overflowed.  Use pari.allocatemem() to double the stack."
+        P.allocatemem()
+        raise RuntimeError, "The PARI stack overflowed.  It has automaticallyed been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
 
         #print "Stack overflow! (%d retries so far)"%retries
         #print " enlarge the stack."

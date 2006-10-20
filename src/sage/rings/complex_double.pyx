@@ -246,6 +246,30 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         return self.cmp(x)
 
 
+    def __getitem__(self, n):
+        """
+        Returns the real or imaginary part of self.
+
+        INPUT:
+            n -- integer (either 0 or 1)
+
+        Raises an IndexError if n < 0 or n > 1.
+
+        EXAMPLES:
+            sage: P = CDF(2,3)
+            sage: P[0]
+            2.0
+            sage: P[1]
+            3.0
+            sage: P[3]
+            Traceback (most recent call last):
+            ...
+            IndexError: index n must be 0 or 1
+        """
+        if n >= 0 and n <= 1:
+            return self._complex.dat[n]
+        raise IndexError, "index n must be 0 or 1"
+
     #######################################################################
     # Coercions
     #######################################################################
@@ -428,6 +452,17 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: z = CDF(2,3); z.conjugate()
+            2.0 - 3.0*I
+        """
+        return new_element(gsl_complex_conjugate(self._complex))
+
+    def conj(self):
+        r"""
+        This function returns the complex conjugate of the complex number $z$,
+        $\overline{z} = x - i y$.
+
+        EXAMPLES:
+            sage: z = CDF(2,3); z.conj()
             2.0 - 3.0*I
         """
         return new_element(gsl_complex_conjugate(self._complex))
@@ -657,6 +692,12 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: CDF(1,1).exp()
             1.46869393992 + 2.28735518456*I
+
+        We numerically verify a famous identity to the precision of a double.
+            sage: z = CDF(0, 2*pi); z
+            6.28318548203*I
+            sage: exp(z)         # somewhat random-ish output depending on platform
+            1.0 - 2.44921270764e-16*I
         """
         return new_element(gsl_complex_exp(self._complex))
 

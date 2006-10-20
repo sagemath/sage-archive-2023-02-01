@@ -616,6 +616,26 @@ def kernel(x):
 def krull_dimension(x):
     return x.krull_dimension()
 
+def lift(x):
+    """
+    Lift an object of a quotient ring $R/I$ to $R$.
+
+    EXAMPLES:
+    We lift an integer modulo $3$.
+        sage: Mod(2,3).lift()
+        2
+
+    We lift an element of a quotient polynomial ring.
+        sage: R.<x> = QQ['x']
+        sage: S.<xmod> = R/(x^2 + 1)
+        sage: lift(xmod-7)
+        x - 7
+    """
+    try:
+        return x.lift()
+    except AttributeError:
+        raise ArithmeticError, "no lift defined."
+
 lcm = sage.rings.arith.lcm
 
 def log(x,b=None):

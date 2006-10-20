@@ -440,8 +440,7 @@ class Worksheet:
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
         if not C.introspect():
-            input += 'print "%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
-
+            input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
         input = self.synchronize(input)
         open(tmp,'w').write(input)

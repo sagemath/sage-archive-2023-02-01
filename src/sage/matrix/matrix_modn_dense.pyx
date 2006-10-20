@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Generic matrices over the integers modulo n.
 """
 

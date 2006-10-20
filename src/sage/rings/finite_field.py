@@ -57,6 +57,7 @@ import integer_mod
 
 from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
+from sage.rings.finite_field_givaro import FiniteField_givaro
 
 import sage.interfaces.gap
 
@@ -91,7 +92,10 @@ def FiniteField(order, name='a', modulus=None):
         R = integer_mod_ring.IntegerModRing(order) # there is a cannonical isomorphism between finite fields of prime order
         R.assign_names(name) # does this do anything?
     else:
-        R = FiniteField_ext_pari(order, name, modulus)
+        if order < 2**16:
+            R = FiniteField_givaro(order, name, modulus)
+        else:
+            R = FiniteField_ext_pari(order, name, modulus)
     return R
     #_objsFiniteField[key] = weakref.ref(R)
     #return R
@@ -267,7 +271,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__modulus = modulus
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
-        self.__gen = finite_field_element.FiniteFieldElement(self, pari.pari('a'))
+        self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
 
 
     def __cmp__(self, other):
@@ -339,7 +343,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             nothing
 
         OUTPUT:
-            FiniteFieldElement -- field generator of finite field
+            FiniteField_ext_pariElement -- field generator of finite field
 
         EXAMPLES:
             sage: FiniteField(2**4, "b").gen()
@@ -392,7 +396,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             x -- object
 
         OUTPUT:
-            FiniteFieldElement -- if possible, makes a finite field element from x.
+            FiniteField_ext_pariElement -- if possible, makes a finite field element from x.
 
         EXAMPLES:
             sage: k = GF(3^4)
@@ -469,14 +473,14 @@ class FiniteField_ext_pari(FiniteField_generic):
             a^4 + a^3 + a^2
 
         This is especially useful for fast conversions from Singular etc. to
-        FiniteFieldElements.
+        FiniteField_ext_pariElements.
 
         AUTHOR:
             -- David Joyner (2005-11)
             -- Martin Albrecht (2006-01-23)
             -- Martin Albrecth (2006-03-06): added coercion from string
         """
-        if isinstance(x, finite_field_element.FiniteFieldElement):
+        if isinstance(x, finite_field_element.FiniteField_ext_pariElement):
             if x.parent() == self:
                 return x
             else:
@@ -492,7 +496,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer, rational.Rational,
                           pari.pari_gen)):
 
-            return finite_field_element.FiniteFieldElement(self, x)
+            return finite_field_element.FiniteField_ext_pariElement(self, x)
 
         elif isinstance(x, (multi_polynomial_element.MPolynomial, polynomial_element.Polynomial)):
             if x.is_constant():
@@ -515,11 +519,11 @@ class FiniteField_ext_pari(FiniteField_generic):
         try:
             if x.parent() == self.vector_space():
                 x = pari.pari('+'.join(['%s*a^%s'%(x[i], i) for i in range(self.degree())]))
-                return finite_field_element.FiniteFieldElement(self, x)
+                return finite_field_element.FiniteField_ext_pariElement(self, x)
         except AttributeError:
             pass
         try:
-            return finite_field_element.FiniteFieldElement(self, integer.Integer(x))
+            return finite_field_element.FiniteField_ext_pariElement(self, integer.Integer(x))
         except TypeError:
             raise TypeError, "no coercion defined"
 
@@ -556,7 +560,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
-        if isinstance(x, (finite_field_element.FiniteFieldElement)) or integer_mod.is_IntegerMod(x):
+        if isinstance(x, (finite_field_element.FiniteField_ext_pariElement)) or integer_mod.is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x

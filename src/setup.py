@@ -461,13 +461,9 @@ def pyrex(ext_modules):
 
 
 #############################################
-# Update interrupt.h and interrupt.pxi files
-for D in os.listdir("sage/libs/"):
-    if os.path.isdir('sage/libs/%s'%D):
-        os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
-        os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-        os.system("cp sage/ext/interrupt.pxi sage/libs/%s/"%D)
-
+# Update interrupt.h and stdsage.h files
+os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 ##########################################
 

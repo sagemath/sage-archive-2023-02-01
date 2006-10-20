@@ -106,7 +106,7 @@ cf = Extension('sage.libs.cf.cf',
 
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
-                       libraries = ['gmp', 'gmpxx', 'm', 'stdc++', 'givaro', 'linbox'],
+                       libraries = ['gmp', 'gmpxx', 'm', 'stdc++', 'givaro'],
                        language='c++'
                        )
 
@@ -333,7 +333,6 @@ if DEVEL:
     extra_compile_args.append('-ggdb')
     ext_modules.append(hanke)
     #ext_modules.append(mpc)
-    ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']

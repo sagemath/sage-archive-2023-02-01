@@ -21,10 +21,13 @@ import rational
 import polynomial_ring
 from sage.libs.all import pari, pari_gen
 from sage.rings.coerce import bin_op
+from sage.structure.element import FiniteFieldElement
 import field_element
 
+def is_FiniteFieldElement(x):
+    return isinstance(x,FiniteFieldElement)
 
-class FiniteFieldElement(field_element.FieldElement):
+class FiniteField_ext_pariElement(FiniteFieldElement):
     """
     An element of a finite field.
 
@@ -69,7 +72,7 @@ class FiniteFieldElement(field_element.FieldElement):
                     except RuntimeError:
                         raise TypeError, "no possible coercion implemented"
                 return
-            elif isinstance(value, FiniteFieldElement):
+            elif isinstance(value, FiniteField_ext_pariElement):
                 if parent != value.parent():
                     raise TypeError, "no coercion implemented"
                 else:
@@ -239,7 +242,7 @@ class FiniteFieldElement(field_element.FieldElement):
             sage: a is a
             True
         """
-        return FiniteFieldElement(self.__parent, self.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value)
 
     def _pari_(self):
         """
@@ -427,30 +430,30 @@ class FiniteFieldElement(field_element.FieldElement):
             raise TypeError, "Parents of finite field elements must be equal."
 
     def __add__(self, right):
-        if not isinstance(right, FiniteFieldElement):
+        if not isinstance(right, FiniteField_ext_pariElement):
             return bin_op(self, right, operator.add)
         self.__compat(right)
-        return FiniteFieldElement(self.__parent, self.__value + right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value + right.__value)
 
     def __sub__(self, right):
-        if not isinstance(right, FiniteFieldElement):
+        if not isinstance(right, FiniteField_ext_pariElement):
             return bin_op(self, right, operator.sub)
         self.__compat(right)
-        return FiniteFieldElement(self.__parent, self.__value - right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value - right.__value)
 
     def __mul__(self, right):
-        if not isinstance(right, FiniteFieldElement):
+        if not isinstance(right, FiniteField_ext_pariElement):
             return bin_op(self, right, operator.mul)
         self.__compat(right)
-        return FiniteFieldElement(self.__parent, self.__value * right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value * right.__value)
 
     def __div__(self, right):
-        if not isinstance(right, FiniteFieldElement):
+        if not isinstance(right, FiniteField_ext_pariElement):
             return bin_op(self, right, operator.div)
         self.__compat(right)
         if right.__value == 0:
             raise ZeroDivisionError
-        return FiniteFieldElement(self.__parent, self.__value / right.__value)
+        return FiniteField_ext_pariElement(self.__parent, self.__value / right.__value)
 
     def __int__(self):
         try:
@@ -482,10 +485,10 @@ class FiniteFieldElement(field_element.FieldElement):
     # (Commenting out causes this to use a generic algorithm)
     #def __pow__(self, right):
     #    right = int(right)
-    #    return FiniteFieldElement(self.__parent, self.__value**right)
+    #    return FiniteField_ext_pariElement(self.__parent, self.__value**right)
 
     def __neg__(self):
-        return FiniteFieldElement(self.__parent, -self.__value)
+        return FiniteField_ext_pariElement(self.__parent, -self.__value)
 
     def __pos__(self):
         return self
@@ -505,7 +508,7 @@ class FiniteFieldElement(field_element.FieldElement):
 
         if self.__value == 0:
             raise ZeroDivisionError, "Cannot invert 0"
-        return FiniteFieldElement(self.__parent, ~self.__value)
+        return FiniteField_ext_pariElement(self.__parent, ~self.__value)
 
     def lift(self):
         """
@@ -544,7 +547,7 @@ class FiniteFieldElement(field_element.FieldElement):
             False
         """
         if self is other: return 0
-        if not isinstance(other, FiniteFieldElement):
+        if not isinstance(other, FiniteField_ext_pariElement):
             try:
                 other = self.parent()(other)
             except TypeError:

@@ -54,30 +54,29 @@ include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
                 '%s/sage/sage/ext'%SAGE_DEVEL]
 
 ############# Prebuild stdsage.so ###################
-
-stdsage = Extension('sage.ext.stdsage',
-              sources = ['sage/ext/stdsage.c'],
-              include_dirs = include_dirs )
-
-setup(name        = 'sage',
-
-      version     =  SAGE_VERSION,
-
-      description = 'SAGE: System for Algebra and Geometry Experimentation',
-
-      license     = 'GNU Public License (GPL)',
-
-      author      = 'William Stein',
-
-      author_email= 'wstein@gmail.com',
-
-      url         = 'http://modular.math.washington.edu/sage',
-
-      packages    = ['sage.ext'],
-      ext_modules = [stdsage],
-      include_dirs = include_dirs)
-
-os.system('cd %s/lib; ln -sf %s/sage/ext/stdsage.so libstdsage.so' % (SAGE_LOCAL,SITE_PACKAGES_REL))
+# AUTHOR:
+#     -- Joel B. Mohler (first version)
+# This does *not* work except on linux by accident: see
+#    http://mail.python.org/pipermail/pythonmac-sig/2005-December/015583.html
+#####################################################
+## stdsage = Extension('sage.ext.stdsage',
+##               sources = ['sage/ext/stdsage.c'],
+##               include_dirs = include_dirs )
+## # This command builds the stdsage module if it has changed.
+## setup(name        = 'sage-stdsage',
+##       version     =  SAGE_VERSION,
+##       description = 'SAGE: System for Algebra and Geometry Experimentation',
+##       license     = 'GNU Public License (GPL)',
+##       author      = 'William Stein',
+##       author_email= 'wstein@gmail.com',
+##       url         = 'http://sage.math.washington.edu/sage',
+##       packages    = ['sage.ext'],
+##       ext_modules = [stdsage],
+##       include_dirs = include_dirs)
+## cmd = 'cd %s/lib; ln -sf %s/sage/ext/stdsage.so libstdsage.so' % (SAGE_LOCAL,SITE_PACKAGES_REL)
+## print cmd
+## print "-"*80
+## os.system(cmd)
 
 #####################################################
 
@@ -254,7 +253,7 @@ ext_modules = [ \
                          'sage/ext/arith.pyx']), \
 
     Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx']), \
+              sources = ['sage/structure/element.pyx', 'sage/ext/stdsage.c']), \
 
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']), \
@@ -266,7 +265,7 @@ ext_modules = [ \
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx']), \
+              sources = ['sage/structure/sage_object.pyx', 'sage/ext/stdsage.c']), \
 
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
@@ -369,9 +368,6 @@ if DEVEL:
 for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
-    m.libraries += ['stdsage']
-
-#extra_link_args =  ['-L%s/lib -L%s/sage/ext -lstdsage'%(SAGE_LOCAL, SITE_PACKAGES)]
 
 def need_to_create(file1, file2):
     """

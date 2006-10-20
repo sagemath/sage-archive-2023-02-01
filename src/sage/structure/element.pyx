@@ -14,6 +14,7 @@ AUTHORS:
 ##################################################################
 
 include "../ext/cdefs.pxi"
+include '../ext/stdsage.pxi'
 
 import operator
 

@@ -1,6 +1,6 @@
 /*
 
-Some global C stuff that gets imports into pyrex modules.
+Some global C stuff that gets imported into pyrex modules.
 
 */
 
@@ -18,7 +18,7 @@ Some global C stuff that gets imports into pyrex modules.
 #include "Python.h"
 
 /* A global empty python tuple object. This is used to speed up some python
-   API calls where we want to avoid constructing a tuple every time */
+   API calls where we want to avoid constructing a tuple every time. */
 PyObject* global_empty_tuple;
 
 /* This is called exactly once at startup from sage_object.pyx */

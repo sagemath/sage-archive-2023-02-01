@@ -26,11 +26,7 @@ cdef process(s):
         return s
 
 
-cdef extern from "../ext/stdsage.h":
-    void init_global_empty_tuple()
-
-init_global_empty_tuple()
-
+include '../ext/stdsage.pxi'
 
 cdef class SageObject:
 

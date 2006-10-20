@@ -381,8 +381,8 @@ def process_pyrexembed_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexembed."
-            sys.exit(ret)
+            print "sage: Error running pyrexembed."
+            sys.exit(1)
         process_pyrex_file(pyx_embed_file, m)
         cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
         print cmd
@@ -404,8 +404,8 @@ def process_pyrex_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexc."
-            sys.exit(ret)
+            print "sage: Error running pyrexc."
+            sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
         # (I don't know how to tell Pyrex to do this automatically.)

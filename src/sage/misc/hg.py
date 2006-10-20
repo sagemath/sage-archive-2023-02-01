@@ -495,7 +495,7 @@ class HG:
              -C --clean   overwrite locally modified files
              -f --force   force a merge with outstanding changes
         """
-        self('merge %s'%options)
+        self('update %s'%options)
 
     up = update
     checkout = update

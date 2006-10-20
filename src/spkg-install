@@ -33,7 +33,7 @@ if [ -d "$DEVEL/sage-main" ]; then
         echo "Building what you downloaded."
     else
         # Make the pulled in changes take effect.
-        hg update
+        hg update -f
         if [ $? -ne 0 ]; then
             echo "Error applying pulled in changes to new SAGE source code."
             exit 1

@@ -906,7 +906,7 @@ class Maxima(Expect):
         EXAMPLES:
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
-            sage: maxima.solve_linear(eqns, vars)
+            sage.: maxima.solve_linear(eqns, vars)
             [x = a + 1,y = 2*a,z = a - 1]
         """
         eqs = "["

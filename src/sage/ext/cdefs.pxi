@@ -154,3 +154,8 @@ cdef extern from "gmp.h":
     void mpf_neg (mpf_t rop, mpf_t op)
     void mpf_abs (mpf_t rop, mpf_t op)
 
+##########################################################################
+# stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
+##########################################################################
+
+include "stdsage.pxi"

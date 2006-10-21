@@ -5,8 +5,6 @@
 # This script should be called by the SAGE script
 ########################################################
 
-PKGDIR=spkg
-
 if [ $# -ne 2 -a $# -ne 3 ]; then
    echo "Usage: $0 <VERSION> <SAGE_ROOT> [DESTINATION_DIR]"
    echo "If DESTINATION_DIR is omitted, put the results in spkg/standard."

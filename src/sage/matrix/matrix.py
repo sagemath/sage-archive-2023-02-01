@@ -42,7 +42,6 @@ among others.
 import copy
 import operator
 
-import sage.rings.arith
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 import sage.matrix.dense_matrix_pyx as dense_matrix_pyx
@@ -2828,6 +2827,8 @@ class Matrix_dense_rational(Matrix_rational):
         prod = 1
         X = []
         primes = []
+        import sage.rings.arith
+
         while prod < bound:
             time = misc.verbose("using p = %s"%p)
             B = A.__matrix.matrix_modint_nodenom(p)

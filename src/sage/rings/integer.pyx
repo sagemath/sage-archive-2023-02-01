@@ -57,7 +57,6 @@ import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
 import real_mpfr
-import sage.misc.functional
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -818,7 +817,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if m < 2:
             raise ValueError, "m must be at least 2"
 
-        guess = int(sage.misc.functional.log(self, m))
+        guess = self.log(m)
         power = m ** guess
 
         while power > self:

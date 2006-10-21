@@ -24,7 +24,6 @@ AUTHOR:
 import random
 
 import sage.misc.all
-import sage.matrix.sparse_matrix_pyx
 import sage.rings.integer_ring
 import sage.rings.finite_field
 import sage.rings.arith
@@ -39,11 +38,11 @@ cimport dense_matrix_pyx
 import  dense_matrix_pyx
 
 cimport sage.ext.arith
-import sage.ext.arith
+import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-cimport sage.matrix.matrix_generic
+cimport matrix_generic
 
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
@@ -495,7 +494,7 @@ cdef class Vector_modint:
 
 
 
-cdef class Matrix_modint(sage.matrix.matrix_generic.Matrix):
+cdef class Matrix_modint(matrix_generic.Matrix):
     cdef c_vector_modint* rows
     cdef public int nr, nc, p
     cdef object __pivots

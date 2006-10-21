@@ -103,7 +103,6 @@ import sage.misc.latex
 import sage.misc.functional
 import sage.structure.coerce
 from   sage.structure.sequence import _combinations
-from   sage.rings.integer_ring import IntegerRing
 
 from sage.structure.mutability_pyx cimport Mutability
 

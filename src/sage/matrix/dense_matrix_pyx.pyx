@@ -37,7 +37,6 @@ import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-import sage.rings.arith
 
 ##################################################################
 # Miscellaneous useful functions
@@ -2175,6 +2174,7 @@ def Matrix_rational_CRT(X):
             raise TypeError, "All matrices in the input must have the same dimensions"
         moduli.append(X[i].prime())
 
+    import sage.rings.arith
     v = sage.rings.arith.CRT_basis(moduli)
     A = X[0]._lift_to_Q().scalar_multiple(v[0])
     for i from 1 <= i < n:

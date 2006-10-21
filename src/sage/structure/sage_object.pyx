@@ -142,7 +142,7 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps(compress))
+        open(filename, 'wb').write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -530,7 +530,7 @@ def save(obj, filename=None, compress=True):
         s = cPickle.dumps(obj, protocol=2)
         if compress:
             s = comp.compress(s)
-        open(process(filename), 'w').write(s)
+        open(process(filename), 'wb').write(s)
 
 def dumps(obj, compress=True):
     """

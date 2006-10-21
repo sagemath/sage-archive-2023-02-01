@@ -137,7 +137,7 @@ class Worksheet:
         s += "# Worksheet: %s"%self.name() + '\n'
         s += "#"*80+ '\n\n'
         for C in self.__cells:
-            t = C.plain_text(prompts=prompts).strip()
+            t = C.plain_text(prompts=prompts).strip('\n')
             if t != '':
                 s += '\n\n' + t
         return s

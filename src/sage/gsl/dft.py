@@ -1,4 +1,6 @@
-""" 10-15-2006
+r"""
+Discrete Fourier Transforms
+
 This file contains functions useful for computing discrete Fourier
 transforms and probability distribution functions for discrete random
 variables for sequences of elements from QQ or CC, indexed by
@@ -6,11 +8,11 @@ a range(..) or ZZ/NZZ or an AbelianGroup or the conjugacy classes
 of a permutation group or the conjugacy classes of a matrix group.
 
 This file implements:
-
-*  __eq__
-*  __mul__ (for right multiplication by a scalar)
-*  plotting, printing - plot, plot_histogram, _repr_, __str__
-*  dft  -  computes the discrete Fourier transform for the
+\begin{itemize}
+\item  __eq__
+\item  __mul__ (for right multiplication by a scalar)
+\item  plotting, printing - plot, plot_histogram, _repr_, __str__
+item  dft  -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
            * a sequence (as above) indexed by a finite AbelianGroup
@@ -18,24 +20,26 @@ This file implements:
              the conjugacy classes of a finite permutation group
            * a sequnce (as above) indexed by a complete set of representatives of
              the conjugacy classes of a finite matrix group
-*  idft -  computes the discrete Fourier transform for the
+\item  idft -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
-*  dct, dst  (for discrete Fourier/Cosine/Sine transform)
-*  convolution (in convolution and convolution_periodic)
-*  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
+\item dct, dst  (for discrete Fourier/Cosine/Sine transform)
+\itemconvolution (in convolution and convolution_periodic)
+\item  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
          using William Stein's FastFourierTransform class
-*  dwt, idwt - (fast wavelet transforms) wrapping GSL's gsl_dwt_forward, gsl_dwt_backward
+\item  dwt, idwt - (fast wavelet transforms) wrapping GSL's gsl_dwt_forward, gsl_dwt_backward
          using Joshua Kantor's WaveletTransform class. Allows for waveltes of
          type: "haar", "daubechies", "daubechies_centered",
           "haar_centered", "bspline", "bspline_centered".
+\end{itemize}
 
 TODO:
  - "filtered" DFTs.
  - more idfts
  - more examples for probability, stats, theory of FTs
 
-AUTHOR: David Joyner (10-2006)
+AUTHOR:
+    -- David Joyner (2006-10)
 
 """
 

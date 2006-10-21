@@ -50,8 +50,8 @@ AUTHOR:
 import operator
 
 include '../ext/interrupt.pxi'
-include '../gsl/gsl_complex.pxi'
-include '../libs/pari/decl.pxi'
+#include '../gsl/gsl_complex.pxi'
+#include '../libs/pari/decl.pxi'
 
 cdef extern from "math.h":
     double modf (double value, double *integer_part)
@@ -65,16 +65,16 @@ cdef extern from "../ext/stdsage.h":
 
 from sage.misc.sage_eval import sage_eval
 
-cimport sage.structure.element
-cimport sage.rings.ring
-cimport sage.libs.pari.gen
+#cimport sage.structure.element
+#cimport sage.rings.ring
+#cimport sage.libs.pari.gen
 
-import  sage.structure.coerce
+#import  sage.structure.coerce
 import  complex_number
 
-import  integer_ring
+#import  integer_ring
 
-import infinity
+#import infinity
 
 
 
@@ -197,7 +197,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
 
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
-    cdef gsl_complex _complex
+#    cdef gsl_complex _complex
     def __init__(self, real, imag):
         self._complex = gsl_complex_rect(real, imag)
         global the_complex_double_field

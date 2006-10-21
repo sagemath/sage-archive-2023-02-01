@@ -1,13 +1,10 @@
-cimport sage.modules.free_module_element
-import sage.modules.free_module_element
-#ctypedef int size_t
+cimport free_module_element
+import  free_module_element
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
-#include '../gsl/gsl.pxi'
+include '../gsl/gsl.pxi'
 
 
-cdef class RealDoubleVectorSpace_element(sage.modules.free_module_element.FreeModuleElement):
-	cdef double* vec
-	cdef size_t n
-	cdef size_t stride
-#	ddef void __dealloc__(self)
+cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
+	cdef gsl_vector * v
+	cdef _add_(RealDoubleVectorSpace_element left, RealDoubleVectorSpace_element right)

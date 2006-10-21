@@ -14,3 +14,4 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
 
 	cdef FreeModuleElement _matrix_multiply(self,sage.matrix.matrix_generic.Matrix A)
 
+#cdef _add_(FreeModuleElement left, FreeModuleElement right)

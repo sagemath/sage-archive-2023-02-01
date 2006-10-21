@@ -185,7 +185,7 @@ cdef class Variable:
         cdef char *cNameStr
         cdef char cName
 
-        from sage.ext.integer import Integer
+        from sage.rings.integer import Integer
 
         if isinstance(name,int) or isinstance(name,Integer):
             level=name

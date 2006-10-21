@@ -36,6 +36,7 @@ import sage.rings.polynomial_ring
 from sage.rings.coerce import bin_op, cmp as coerce_cmp
 import arith
 import sage.rings.ring_element as ring_element
+import sage.rings.commutative_algebra_element as commutative_algebra_element
 import sage.rings.euclidean_domain_element as euclidean_domain_element
 import sage.rings.integral_domain_element as integral_domain_element
 import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
@@ -77,12 +78,12 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(Element_cmp_, ring_element.RingElement):
+class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraElement):
     """
     Polynomial base class.
     """
     def __new__(cls, *args, **kwds):
-        return ring_element.RingElement.__new__(*args, **kwds)
+        return commutative_algebra_element.CommutativeAlgebraElement.__new__(*args, **kwds)
     __new__ = classmethod(__new__)
 
     def __init__(self, parent, is_gen = False, construct=False):
@@ -115,7 +116,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: y^3 - 2*y
             y^3 - 2*y
         """
-        ring_element.RingElement.__init__(self, parent)
+        commutative_algebra_element.CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
     def _add_(self, right):

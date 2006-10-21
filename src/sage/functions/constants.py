@@ -181,7 +181,8 @@ class Pi(Constant):
     """
     def __init__(self):
         Constant.__init__(self,
-            {'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
+            {'axiom':'%pi',
+             'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
              'matlab':'pi','maple':'Pi','octave':'pi','pari':'Pi'})
 
     def _repr_(self):
@@ -244,8 +245,14 @@ class E(Constant):
     """
     def __init__(self):
         Constant.__init__(self,
-            {'maxima':'%e','gp':'exp(1)','kash':'E','pari':'exp(1)',
-             'mathematica':'E','maple':'exp(1)','octave':'e'})
+            {'axiom':'%e',
+             'maxima':'%e',
+             'gp':'exp(1)',
+             'kash':'E',
+             'pari':'exp(1)',
+             'mathematica':'E',
+             'maple':'exp(1)',
+             'octave':'e'})
 
     def _repr_(self):
         return 'e'
@@ -362,7 +369,7 @@ class Log2(Constant):
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
-        0.6931471805599453
+        .6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
         0.69314718055994530941723212145817656808   # 64-bit

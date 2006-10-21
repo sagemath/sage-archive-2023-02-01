@@ -213,10 +213,10 @@ We illustrate Laplace transforms:
               (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
 
     sage: maxima("laplace(diff(x(t),t),t,s)")
-    s*laplace(x(t),t,s) - x(0)
+    s*?%laplace(x(t),t,s) - x(0)
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -at('diff(x(t),t,1),t = 0) + s^2*laplace(x(t),t,s) - x(0)*s
+    -?%at('diff(x(t),t,1),t = 0) + s^2*?%laplace(x(t),t,s) - x(0)*s
 
 It is difficult to read some of these without the 2d representation:
     sage.: maxima("laplace(diff(x(t),t,2),t,s)").display2d()
@@ -347,6 +347,7 @@ is much less robust, and is not recommended.}
 import os, re
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from pexpect import EOF
 
 from sage.misc.misc import verbose
 
@@ -466,9 +467,12 @@ class Maxima(Expect):
             #print "out = '%s'"%out
             self._expect.expect(self._prompt)
             out += self._expect.before
-
+        except EOF:
+          if self._quit_string() in line:
+             return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
+            return ''
 
         if 'Incorrect syntax:' in out:
             raise RuntimeError, out
@@ -604,10 +608,10 @@ class Maxima(Expect):
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
             sage: f(3.2)
-            -0.058374143427580086
+            -.05837414342758009
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
-            sin(2) - 0.9364566872907963
+            sin(2) - .9364566872907963
             sage: f
             sin(x)+cos(y)
 
@@ -902,7 +906,7 @@ class Maxima(Expect):
         EXAMPLES:
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
-            sage: maxima.solve_linear(eqns, vars)
+            sage.: maxima.solve_linear(eqns, vars)
             [x = a + 1,y = 2*a,z = a - 1]
         """
         eqs = "["
@@ -1172,7 +1176,7 @@ class MaximaElement(ExpectElement):
 
         EXAMPLES:
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 4.1633141378838445E-11, 231, 0)
+            (.5284822353142306, 4.163314137883845E-11, 231, 0)
 
         Note that GP also does numerical integration, and can do
         so to very high precision very quickly:
@@ -1217,7 +1221,7 @@ class MaximaElement(ExpectElement):
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
             -sqrt(%pi)*%i*erf(%i)/2
             sage: f.numer()         # I wonder how to get a real number (~1.463)??
-            -0.8862269254527579*%i*erf(%i)
+            -.8862269254527579*%i*erf(%i)
         """
         I = ExpectElement.__getattr__(self, 'integrate')
         if min is None:

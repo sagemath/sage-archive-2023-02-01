@@ -982,11 +982,12 @@ class ElementaryFunction(ElementaryFunctionRing):
             sage: t = R.polygen()
             sage: g = ElementaryFunction([(1*t^0,0,0,2)])
             sage: g.desolve(Phi,"x")
-            "x(t) = e^t*(5*x'(0)) + 5*x(0) + 2)/10 - e^-t*(5*x'(0)) - 5*x(0) + 2)/10 - sin(2*t)/5"
+            "x(t) = e^t*(5*(?at('diff(x(t),t,1),t = 0)) + 5*x(0) + 2)/10 - e^-t*(5*(?at('diff(x(t),t,1),t = 0)) - 5*x(0) + 2)/10 - sin(2*t)/5"
+
             sage: Phi = D^4
             sage: g = ElementaryFunction([(1*t^0,0,0,2)])
             sage: g.desolve(Phi,"x")
-            "x(t) = t^3*x^(3)(0))/6 + t^2*x''(0))/2 + t*(8*x'(0)) - 1)/12 + t*x'(0))/3 + sin(2*t)/16 + t^3/12 - t/24 + x(0)"
+            "x(t) = t^3*(?at('diff(x(t),t,3),t = 0))/6 + t^2*(?at('diff(x(t),t,2),t = 0))/2 + t*(8*(?at('diff(x(t),t,1),t = 0)) - 1)/12 + t*(?at('diff(x(t),t,1),t = 0))/3 + sin(2*t)/16 + t^3/12 - t/24 + x(0)"
             sage: Phi = D^4 - 1
             sage: g.desolve(Phi,"x",[0,1,1,1,1])
             'x(t) = sin(2*t)/15 - sin(t)/3 + 11*e^t/10 - e^-t/10'

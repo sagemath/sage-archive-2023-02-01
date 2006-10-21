@@ -11,7 +11,7 @@ from attach import attach
 
 from profiler import Profiler
 
-from mrange import xmrange, mrange
+from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
 from bug import bug
 
@@ -50,6 +50,8 @@ from latex import latex, view, lprint
 from mathml import mathml
 
 from trace import *
+
+from cachefunc import CachedFunction
 
 ##########################################################################
 def benchmark(n=-1):

@@ -32,5 +32,5 @@ cdef class FiniteField(Field):
 cdef class Algebra(Ring):
     pass
 
-cdef class CommutativeAlgebra(Algebra):
+cdef class CommutativeAlgebra(CommutativeRing):
     pass

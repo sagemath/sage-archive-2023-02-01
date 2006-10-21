@@ -120,12 +120,13 @@ class MPolynomialIdeal_singular_repr:
     def _cmp_(self, other):
         # Groebner basis determine equality since ideals are in the
         # same ring with same term order
-        # TODO: This is wrong, it has to be the reduced GB (malb)
 
         #c = cmp(self.gens(), other.gens())
         #if c == 0:
         #    return c
-        return cmp(self.groebner_basis(), other.groebner_basis())
+        l = MPolynomialIdeal(self.ring(), self.groebner_basis()).reduced_basis()
+        r = MPolynomialIdeal(self.ring(),other.groebner_basis()).reduced_basis()
+        return cmp(r,l)
 
     def _singular_(self, singular=None):
         """
@@ -752,6 +753,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         ALGORITHM: Uses Singular
         """
         from sage.rings.multi_polynomial_ring import TermOrder,MPolynomialRing
+        from sage.rings.quotient_ring import is_QuotientRing
 
         Is = self._singular_()
         R = self.ring()

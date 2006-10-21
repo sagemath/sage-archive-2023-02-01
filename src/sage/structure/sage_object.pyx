@@ -25,6 +25,9 @@ cdef process(s):
     else:
         return s
 
+
+include '../ext/stdsage.pxi'
+
 cdef class SageObject:
 
     #############################################################################
@@ -296,8 +299,8 @@ cdef class SageObject:
             try:
                 s = self._interface_init_()
             except AttributeError, msg1:
-                raise NotImplementedError, "coercion of %s (of type %s) to %s not implemented:\n%s\n%s"%\
-                      (self, type(self), I, msg0, msg1)
+                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
+                      (I, msg0, msg1)
         X = I(s)
         if c:
             try:
@@ -340,6 +343,15 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _kash_init_(self):
+        return self._interface_init_()
+
+    def _axiom_(self, G=None):
+        if G is None:
+            import sage.interfaces.axiom
+            G = sage.interfaces.axiom.axiom
+        return self._interface_(G)
+
+    def _axiom_init_(self):
         return self._interface_init_()
 
     def _maxima_(self, G=None):

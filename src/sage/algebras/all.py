@@ -19,11 +19,10 @@ Algebras
 
 # Algebra base classes
 from algebra import Algebra, is_Algebra
-from commutative_algebra import CommutativeAlgebra, is_CommutativeAlgebra
 
 # Ring element base classes
 from algebra_element import AlgebraElement, is_AlgebraElement
-from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+
 
 from free_algebra import FreeAlgebra
 from free_algebra_quotient import FreeAlgebraQuotient

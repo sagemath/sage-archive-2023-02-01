@@ -23,6 +23,7 @@ if not os.environ.has_key('SAGE_ROOT'):
 else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local/'
+    SAGE_DEVEL = SAGE_ROOT + '/devel/'
 
 
 if not os.environ.has_key('SAGE_VERSION'):
@@ -38,6 +39,8 @@ if not os.path.exists(SITE_PACKAGES):
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
+SITE_PACKAGES_REL=SITE_PACKAGES[len(SAGE_LOCAL)+5:]
+
 if not os.path.exists('build/sage'):
     os.makedirs('build/sage')
 
@@ -45,6 +48,35 @@ sage_link = SITE_PACKAGES + '/sage'
 if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('rm -rf "%s"'%sage_link)
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
+
+
+include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
+                '%s/sage/sage/ext'%SAGE_DEVEL]
+
+############# Prebuild stdsage.so ###################
+# AUTHOR:
+#     -- Joel B. Mohler (first version)
+# This does *not* work except on linux by accident: see
+#    http://mail.python.org/pipermail/pythonmac-sig/2005-December/015583.html
+#####################################################
+## stdsage = Extension('sage.ext.stdsage',
+##               sources = ['sage/ext/stdsage.c'],
+##               include_dirs = include_dirs )
+## # This command builds the stdsage module if it has changed.
+## setup(name        = 'sage-stdsage',
+##       version     =  SAGE_VERSION,
+##       description = 'SAGE: System for Algebra and Geometry Experimentation',
+##       license     = 'GNU Public License (GPL)',
+##       author      = 'William Stein',
+##       author_email= 'wstein@gmail.com',
+##       url         = 'http://sage.math.washington.edu/sage',
+##       packages    = ['sage.ext'],
+##       ext_modules = [stdsage],
+##       include_dirs = include_dirs)
+## cmd = 'cd %s/lib; ln -sf %s/sage/ext/stdsage.so libstdsage.so' % (SAGE_LOCAL,SITE_PACKAGES_REL)
+## print cmd
+## print "-"*80
+## os.system(cmd)
 
 #####################################################
 
@@ -354,11 +386,8 @@ if DEVEL:
     ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c']
-
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
-
-extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
+    m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
+    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 def need_to_create(file1, file2):
     """
@@ -401,8 +430,8 @@ def process_pyrexembed_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexembed."
-            sys.exit(ret)
+            print "sage: Error running pyrexembed."
+            sys.exit(1)
         process_pyrex_file(pyx_embed_file, m)
         cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
         print cmd
@@ -424,8 +453,8 @@ def process_pyrex_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexc."
-            sys.exit(ret)
+            print "sage: Error running pyrexc."
+            sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
         # (I don't know how to tell Pyrex to do this automatically.)
@@ -437,7 +466,7 @@ def process_pyrex_file(f, m):
 def pyrex(ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
-        m.extra_link_args += extra_link_args
+#        m.extra_link_args += extra_link_args
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
@@ -452,13 +481,9 @@ def pyrex(ext_modules):
 
 
 #############################################
-# Update interrupt.h and interrupt.pxi files
-for D in os.listdir("sage/libs/"):
-    if os.path.isdir('sage/libs/%s'%D):
-        os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
-        os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-        os.system("cp sage/ext/interrupt.pxi sage/libs/%s/"%D)
-
+# Update interrupt.h and stdsage.h files
+os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 ##########################################
 

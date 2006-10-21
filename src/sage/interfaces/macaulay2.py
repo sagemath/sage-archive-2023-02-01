@@ -184,6 +184,15 @@ class Macaulay2(Expect):
     def _equality_symbol(self):
         return '=='
 
+    def cputime(self, t=None):
+        _t = float(self.eval('elapsedTime()'))
+        if t:
+            return _t - t
+        else:
+            return _t
+
+    def version(self):
+        return self("version")
 
 ### Constructors
 
@@ -201,13 +210,11 @@ class Macaulay2(Expect):
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional
             QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
-            ideal (- x  + y , x - y)
-            <BLANKLINE>
-            o36 : Ideal of sage7
+            ideal (-x^3+y^2,x-y)
             sage: J = I^3; J.gb()                                    # optional
             GroebnerBasis[status: done; S-pairs encountered up to degree 9]
             <BLANKLINE>
-            o40 : GroebnerBasis
+            o39 : GroebnerBasis
             sage: J.gb().generators()                                # optional
             map(sage7^{{0}}, sage7^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
         """
@@ -237,7 +244,7 @@ class Macaulay2(Expect):
         This is a ring in variables named a through d over the finite field
         of order 7, with graded reverse lex ordering:
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex'); R1  # optional
-            ZZ/7 [a, b, c, d, MonomialSize => 16]
+            ZZ/7 [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: R1.char()                                             # optional
             7
 
@@ -248,6 +255,7 @@ class Macaulay2(Expect):
         varstr = str(vars)[1:-1]
         return self.new('%s[%s, MonomialSize=>16, MonomialOrder=>%s]'%(
             base_ring, varstr, order))
+
 
 class Macaulay2Element(ExpectElement):
 
@@ -359,7 +367,7 @@ class Macaulay2Element(ExpectElement):
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional
             sage: X = R.Proj()                                  # optional
             sage: X.structure_sheaf()                           # optional
-            new SheafOfRings from {symbol ring => (QQ [a, b, c, d])/(a^3+b^3+c^3+d^3), symbol variety => sage5}
+            new SheafOfRings from {symbol variety => sage5, symbol ring => (QQ [a, b, c, d])/(a^3+b^3+c^3+d^3)}
         """
         return self.parent()('OO_%s'%self.name())
 

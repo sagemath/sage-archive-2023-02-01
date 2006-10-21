@@ -15,7 +15,7 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle, os
+import cPickle, os, time
 
 from expect import Expect, ExpectElement, FunctionElement, tmp
 import sage.misc.preparser
@@ -119,9 +119,20 @@ class Sage(Expect):
         if not self._expect is None:
             if verbose:
                 print "Exiting spawned %s process."%self
-            for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
-                self._eval_line('quit_sage(verbose=%s)'%verbose)
-        #Expect.quit(self)
+            try:
+                for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
+                    self._expect.sendline(chr(3))  # send ctrl-c
+                    self._expect.sendline('quit_sage(verbose=%s)'%verbose)
+                    self._so_far(wait=0.2)
+                os.killpg(self._expect.pid, 9)
+                os.kill(self._expect.pid, 9)
+            except (RuntimeError, OSError):
+                pass
+            try:
+                os.killpg(self._expect.pid, 9)
+                os.kill(self._expect.pid, 9)
+            except OSError:
+                pass
 
     def _remote_tmpfile(self):
         try:

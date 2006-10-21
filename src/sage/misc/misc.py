@@ -35,7 +35,7 @@ if not os.path.exists(SAGE_ROOT):
 try:
     SAGE_URL = os.environ["SAGE_URL"]
 except KeyError:
-    SAGE_URL = "http://modular.math.washington.edu/sage/"     # default server
+    SAGE_URL = "http://sage.math.washington.edu/sage/"     # default server
 
 LOGFILE = "%s/log/sage_log"%SAGE_ROOT
 
@@ -67,16 +67,21 @@ SPYX_TMP = '%s/spyx'%DOT_SAGE
 
 SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
 if not os.path.exists(SAGE_TMP):
-    os.makedirs(SAGE_TMP)
+    try:
+        os.makedirs(SAGE_TMP)
+    except OSError, msg:
+        print msg
+        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
 SAGE_DATA = '%s/data'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT
 
 def delete_tmpfiles():
-    #print "deleting temp files from %s"%SAGE_TMP
+    # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!
     import shutil
     try:
-        shutil.rmtree(SAGE_TMP)
+        if os.path.exists(SAGE_TMP):
+            shutil.rmtree(SAGE_TMP)
     except OSError, msg:
         print msg
         pass
@@ -1123,6 +1128,8 @@ def branch_current_hg_notice(branch):
 
     NOTE: If the branch is main, then return an empty string.
     """
+    if branch[-1] == '/':
+        branch = branch[:-1]
     if branch == 'main':
         return ''
     notice = 'Loading SAGE library. Current Mercurial branch is: '

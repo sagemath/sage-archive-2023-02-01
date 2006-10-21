@@ -4,9 +4,14 @@ build() {
    if [ -d $SAGE_ROOT/devel/$1/ ]; then
       cd $SAGE_ROOT/devel/$1/
       chmod +x ./install
-      time ./install $SAGE_ROOT
+      echo ""
+      echo "----------------------------------------------------------"
+      echo "sage: Building and installing modified SAGE library files."
+      echo ""
+      ./install $SAGE_ROOT
       if [ $? -ne 0 ]; then
-         echo "Error building $1"
+         echo "sage: There was an error installing modified $1 library code."
+         echo ""
          exit 1
       fi
    #else

@@ -57,7 +57,7 @@ mymkdir installed
 cd "$BUILD"
 mymkdir old
 
-# the following three options are mutually exclusive -- i.e., you
+# the following two options are mutually exclusive -- i.e., you
 # can give only one.
 
 INFO=0
@@ -72,8 +72,6 @@ if [ $1 = '-f' ]; then
    shift
 fi
 
-# Install then delete the temporary build directory
-# -- this is used during the initial make build.
 DELETE_TMP=1
 if [ $1 = '-s' -o $1 = '-m' ]; then
    DELETE_TMP=0

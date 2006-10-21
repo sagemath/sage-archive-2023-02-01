@@ -353,6 +353,10 @@ install() {
    fi
    OPT="$1"
    shift
+   if [ $1 = '-m' -o $1 = '-s' ]; then
+       OPT=$OPT" "$1
+       shift
+   fi
    for PKG in $*
    do
        echo "Calling sage-spkg on $PKG"

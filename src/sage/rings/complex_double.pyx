@@ -68,6 +68,7 @@ from sage.misc.sage_eval import sage_eval
 cimport sage.structure.element
 cimport sage.rings.ring
 cimport sage.libs.pari.gen
+import integer
 
 import  sage.structure.coerce
 import  complex_number
@@ -94,6 +95,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def characteristic(self):
+        return integer.Integer(0)
 
     def __cmp__(self, other):
         """

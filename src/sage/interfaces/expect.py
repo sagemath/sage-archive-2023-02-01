@@ -140,7 +140,7 @@ class Expect(SageObject):
                 self.__so_far = new
             return False, self.__so_far, new
         except AttributeError:   # no __so_far
-            raise RuntimeError, "nothing being evaluated right now."
+            raise RuntimeError
 
     def is_remote(self):
         return self.__is_remote
@@ -296,7 +296,7 @@ class Expect(SageObject):
             except AttributeError:
                 pass
         except RuntimeError, msg:
-            print msg
+            pass
 
     def cputime(self):
         """
@@ -314,10 +314,12 @@ class Expect(SageObject):
         if verbose:
             print "Exiting spawned %s process."%self
         try:
+            self._expect.sendline(self._quit_string())
+            self._so_far(wait=0.25)
             os.killpg(self._expect.pid, 9)
+            os.kill(self._expect.pid, 9)
         except OSError, msg:
-            print "WARNING:"
-            print msg
+            pass
         self._expect = None
 
     def _quit_string(self):
@@ -330,7 +332,12 @@ class Expect(SageObject):
         F = open(tmp, 'w')
         F.write(line+'\n')
         F.close()
-        s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+        try:
+            s = self._eval_line(self._read_in_file_command(tmp), allow_use_file=False)
+        except pexpect.EOF, msg:
+            if self._quit_string() in line:
+                # we expect to get an EOF if we're quitting.
+                return ''
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -362,18 +369,11 @@ class Expect(SageObject):
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
+                    if self._read_in_file_command(tmp) in line:
+                        raise pexpect.EOF, msg
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    #print "** %s crashed or quit executing '%s' **"%(self, line)
-                    #print "Restarting %s and trying again"%self
-                    self._start()
-                    #if line != '':
-                    #    return self._eval_line(line,
-                    #                           allow_use_file  = allow_use_file,
-                    #                           wait_for_prompt = wait_for_prompt)
-                    #else:
-                    #    return ''
                     raise RuntimeError, "%s crashed executing %s"%(self, line)
                 out = E.before
             else:
@@ -617,6 +617,7 @@ class FunctionElement(SageObject):
 
     def __call__(self, *args):
         return self._obj.parent().function_call(self._name, [self._obj] + list(args))
+
     def help(self):
         print self._sage_doc_()
 
@@ -718,8 +719,7 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         return P
 
     def __contains__(self, x):
-        self._check_valid()
-        P = self.parent()
+        P = self._check_valid()
         if not isinstance(x, ExpectElement) or x.parent() != self.parent():
             x = P.new(x)
         t = P._contains(x.name(), self.name())
@@ -774,11 +774,11 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
 
 
     def __getitem__(self, n):
-        self._check_valid()
+        P = self._check_valid()
         if not isinstance(n, tuple):
-            return self.parent().new('%s[%s]'%(self._name, n))
+            return P.new('%s[%s]'%(self._name, n))
         else:
-            return self.parent().new('%s[%s]'%(self._name, str(n)[1:-1]))
+            return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
 
     def __int__(self):
         return int(str(self))
@@ -807,31 +807,31 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         return self._name
 
     def gen(self, n):
-        self._check_valid()
-        return self.parent().new('%s.%s'%(self._name, int(n)))
+        P = self._check_valid()
+        return P.new('%s.%s'%(self._name, int(n)))
 
     def _add_(self, right):
-        self._check_valid()
-        return self.parent().new('%s + %s'%(self._name, right._name))
+        P = self._check_valid()
+        return P.new('%s + %s'%(self._name, right._name))
 
     def _sub_(self, right):
-        self._check_valid()
-        return self.parent().new('%s - %s'%(self._name, right._name))
+        P = self._check_valid()
+        return P.new('%s - %s'%(self._name, right._name))
 
     def _mul_(self, right):
-        self._check_valid()
-        return self.parent().new('%s * %s'%(self._name, right._name))
+        P = self._check_valid()
+        return P.new('%s * %s'%(self._name, right._name))
 
     def _div_(self, right):
-        self._check_valid()
-        return self.parent().new('%s / %s'%(self._name, right._name))
+        P = self._check_valid()
+        return P.new('%s / %s'%(self._name, right._name))
 
     def __pow__(self, n):
-        self._check_valid()
+        P = self._check_valid()
         if isinstance(n, ExpectElement):
-            return self.parent().new('%s ^ %s'%(self._name,n._name))
+            return P.new('%s ^ %s'%(self._name,n._name))
         else:
-            return self.parent().new('%s ^ %s'%(self._name,n))
+            return P.new('%s ^ %s'%(self._name,n))
 
 
 def reduce_load(parent, x):

@@ -110,14 +110,28 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
+sparse_matrix_pyx =   Extension('sage.matrix.sparse_matrix_pyx',
+              ['sage/matrix/sparse_matrix_pyx.pyx',
+               'sage/rings/integer.pyx',
+               'sage/rings/rational.pyx',
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              libraries=['gmp'])
+
 matrix_dense = Extension('sage.matrix.matrix_dense',
               ['sage/matrix/matrix_dense.pyx'])
+
+matrix_sparse = Extension('sage.matrix.matrix_sparse',
+              ['sage/matrix/matrix_sparse.pyx'])
 
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
-matrix_field = Extension('sage.matrix.matrix_field',
-              ['sage/matrix/matrix_field.pyx'])
+matrix_pid = Extension('sage.matrix.matrix_pid',
+                       ['sage/matrix/matrix_pid.pyx'])
+
+matrix_integer = Extension('sage.matrix.matrix_integer',
+                           ['sage/matrix/matrix_integer.pyx'])
 
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
@@ -133,11 +147,15 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
 
-matrix_pid = Extension('sage.matrix.matrix_pid',
-                       ['sage/matrix/matrix_pid.pyx'])
+matrix_field = Extension('sage.matrix.matrix_field',
+                         ['sage/matrix/matrix_field.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx'],
+                                  ['sage/matrix/matrix_rational_dense.pyx',
+                                   'sage/rings/integer.pyx',
+                                   'sage/rings/rational.pyx',
+                                   'sage/ext/arith.pyx',
+                                   'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
                                   libraries = ['gmp'])
 
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
@@ -196,14 +214,17 @@ ext_modules = [ \
 
     matrix_domain,
     matrix_dense,
+    matrix_sparse,
     matrix_field,
     matrix_integer_dense,
     matrix_integer_sparse,
     matrix_modn_dense,
     matrix_modn_sparse,
     matrix_pid,
+    matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
+    sparse_matrix_pyx,  # todo -- delete
 
     gsl_fft,
     gsl_interpolation,
@@ -280,14 +301,6 @@ ext_modules = [ \
 
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
-
-    Extension('sage.matrix.sparse_matrix_pyx',
-              ['sage/matrix/sparse_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
 
     Extension('sage.matrix.dense_matrix_pyx',
               ['sage/matrix/dense_matrix_pyx.pyx',

@@ -134,6 +134,18 @@ class Ideal_generic(MonoidElement):
         if coerce:
             gens = [ring(x) for x in gens]
         gens = list(set(gens))
+
+        # Regarding the "important" comment below: Otherwise the
+        # generators will be in a completely random order, given the
+        # code that comes before that line.  A basic design choice in
+        # SAGE is that as much as possible lists of objects (e.g.,
+        # list(R), where R is finite), should not be in a random
+        # order.  Feel free to add this as a comment.  It would be
+        # fine to replace the sort by something else, if it yields the
+        # same answer.  However, I don't think randomizing the orders
+        # of things, e.g., lists of generators, for no reason, is a
+        # good idea in SAGE.  This is another "rule of thumb" for the
+        # programmer's guide.
         gens.sort()    # important!
         self.__gens = tuple(gens)
         MonoidElement.__init__(self, ring.ideal_monoid())

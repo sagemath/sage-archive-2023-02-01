@@ -2,11 +2,14 @@ r"""
 Elements of $\Z/n\Z$
 
 An element of the integers modulo $n$.
+
+AUTHORS:
+    -- Robert Bradshaw (most of the work)
+    -- Didier Deshommes (bit shifting)
+    -- William Stein (editing and polishing)
 """
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-#cdef extern from "../ext/mpz_pylong.h":
-#    cdef long mpz_pythonhash(mpz_t src)
 
 import operator
 
@@ -29,8 +32,8 @@ from sage.rings.coerce import cmp as coerce_cmp
 
 def Mod(n, m):
     """
-    Return the equivalence class of n modulo m
-    as an element of $\Z/m\Z$.
+    Return the equivalence class of n modulo m as an element of
+    $\Z/m\Z$.
 
     EXAMPLES:
         sage: x = Mod(12345678, 32098203845329048)
@@ -45,12 +48,17 @@ def Mod(n, m):
     """
 
 
-    return IntegerMod(integer_mod_ring.IntegerModRing(m),n)
+    return IntegerMod(integer_mod_ring.IntegerModRing(m), n)
 
 mod = Mod
 
 
 def IntegerMod(parent, value):
+    """
+    Create an integer modulo $n$ with the given parent.
+
+    This is mainly for internal use.
+    """
     cdef sage.rings.integer.Integer modulus
     modulus = parent.order()
     if mpz_cmp_si(modulus.value, INTEGER_MOD_INT32_LIMIT) < 0:
@@ -62,12 +70,19 @@ def IntegerMod(parent, value):
 
 
 def is_IntegerMod(x):
-    return isinstance(x, IntegerMod_abstract)
+    """
+    Return try if and only if x is an integer modulo n.
 
+    EXAMPLES:
+        sage: is_IntegerMod(5)
+        False
+        sage: is_IntegerMod(Mod(5,10))
+        True
+    """
+    return isinstance(x, IntegerMod_abstract)
 
 def makeNativeIntStruct(sage.rings.integer.Integer z):
     return NativeIntStruct(z)
-
 
 cdef class NativeIntStruct:
 
@@ -80,7 +95,6 @@ cdef class NativeIntStruct:
 
     def __reduce__(NativeIntStruct self):
         return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
-
 
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
@@ -97,6 +111,19 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             raise NotImplementedError, "Can't instantiate abstract IntegerMod"
         commutative_ring_element.CommutativeRingElement.__init__(self, parent)
         self.__modulus = parent._pyx_order
+
+    def __abs__(self):
+        """
+        Raise an error message, since abs(x) makes no sense when x is an
+        integer modulo n.
+
+        EXAMPLES:
+            sage: abs(Mod(2,3))
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: absolute valued not defined on integers modulo n.
+        """
+        raise ArithmeticError, "absolute valued not defined on integers modulo n."
 
     def __reduce__(IntegerMod_abstract self):
         """
@@ -417,6 +444,20 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t* get_value(IntegerMod_gmp self):
         return &self.value
 
+    def __lshift__(IntegerMod_gmp self, int right):
+        r"""
+        Multiply self by $2^\text{right}$ very quickly via bit shifting.
+
+        EXAMPLES:
+            sage: e = Mod(19, 10^10)
+            sage: e << 102
+            9443608576
+        """
+        cdef IntegerMod_gmp x
+        x = IntegerMod_gmp(self._parent, None, empty=True)
+        mpz_mul_2exp(x.value, self.value, right)
+        mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
+        return x
 
     def __cmp__(IntegerMod_gmp self, right):
         if not isinstance(right, IntegerMod_gmp):
@@ -610,6 +651,20 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         _sig_off
         return x
 
+    def __rshift__(IntegerMod_gmp self, int right):
+        r"""
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+
+        EXAMPLES:
+            sage: e = Mod(1000001, 2^32-1)
+            sage: e >> 5
+            31250
+        """
+        cdef IntegerMod_gmp x
+        x = IntegerMod_gmp(self._parent, None, empty=True)
+        mpz_fdiv_q_2exp(x.value, self.value, right)
+        return x
+
     def __neg__(IntegerMod_gmp self):
         """
         EXAMPLES:
@@ -623,10 +678,14 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __invert__(IntegerMod_gmp self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
-            sage: ~mod(3,10^10)
-            6666666667
-            sage: ~mod(2,10^10)
+            sage: a = mod(3,10^100); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: ~a
+            6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667
+            sage: ~mod(2,10^100)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: Inverse does not exist.
@@ -642,6 +701,17 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             raise ZeroDivisionError, "Inverse does not exist."
 
     def lift(IntegerMod_gmp self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^70); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: lift(a)
+            8943
+            sage: a.lift()
+            8943
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         z.set_from_mpz(self.value)
@@ -879,8 +949,40 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     def __mod__(IntegerMod_int self, right):
         right = int(right)
         if self.__modulus.int32 % right != 0:
-            raise ZeroDivisionError, "Error - reduction modulo right not defined."
+            raise ZeroDivisionError, "reduction modulo right not defined."
         return integer_mod_ring.IntegerModRing(right)(self)
+
+    def __lshift__(IntegerMod_int self, int right):
+        r"""
+        Multiply self by $2^\text{right}$ very quickly via bit shifting.
+
+        EXAMPLES:
+            sage: e = Mod(5, 2^10 - 1)
+            sage: e<<5
+            160
+            sage: e*2^5
+            160
+        """
+        cdef IntegerMod_int x
+        x = IntegerMod_int(self._parent, None, empty=True)
+        x.ivalue = (self.ivalue << right) % self.__modulus.int32
+        return x
+
+    def __rshift__(IntegerMod_int self, int right):
+        """
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+
+        EXAMPLES:
+            sage: e = Mod(8, 2^5 - 1)
+            sage: e >> 3
+            1
+            sage: int(e)/int(2^3)
+            1
+        """
+        cdef IntegerMod_int x
+        x = IntegerMod_int(self._parent, None, empty=True)
+        x.ivalue = (self.ivalue >> right) % self.__modulus.int32
+        return x
 
     def __pow__(IntegerMod_int self, right, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -923,6 +1025,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __invert__(IntegerMod_int self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
             sage: ~mod(7,100)
             43
@@ -933,6 +1037,17 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return x
 
     def lift(IntegerMod_int self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^10); type(a)
+            <type 'integer_mod.IntegerMod_int'>
+            sage: lift(a)
+            751
+            sage: a.lift()
+            751
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         mpz_set_si(z.value, self.ivalue)
@@ -1290,6 +1405,35 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             mpz_clear(x_mpz)
         return x
 
+    def __lshift__(IntegerMod_int64 self, int right):
+        r"""
+        EXAMPLES:
+            sage: e = Mod(5, 2^31 - 1)
+            sage: e<<32
+            10
+            sage: e*2^32
+            10
+        """
+        cdef IntegerMod_int64 x
+        x = IntegerMod_int64(self._parent, None, empty=True)
+        x.ivalue = (self.ivalue << right) % self.__modulus.int64
+        return x
+
+    def __rshift__(IntegerMod_int64 self, int right):
+        """
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+
+        EXAMPLES:
+            sage: e = Mod(8, 2^31 - 1)
+            sage: e >> 3
+            1
+            sage: int(e)/int(2^3)
+            1
+        """
+        cdef IntegerMod_int64 x
+        x = IntegerMod_int64(self._parent, None, empty=True)
+        x.ivalue = (self.ivalue >> right) % self.__modulus.int64
+        return x
 
     def __neg__(IntegerMod_int64 self):
         """
@@ -1304,9 +1448,15 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __invert__(IntegerMod_int64 self):
         """
+        Return the multiplicative inverse of self.
+
         EXAMPLES:
-            sage: ~mod(7,10^5)
-            57143
+            sage: a = mod(7,2^40); type(a)
+            <type 'integer_mod.IntegerMod_gmp'>
+            sage: ~a
+            471219269047
+            sage: a
+            7
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
@@ -1314,15 +1464,44 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return x
 
     def lift(IntegerMod_int64 self):
+        """
+        Lift an integer modulo $n$ to the integers.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^25); type(a)
+            <type 'integer_mod.IntegerMod_int64'>
+            sage: lift(a)
+            8943
+            sage: a.lift()
+            8943
+        """
         cdef sage.rings.integer.Integer z
         z = sage.rings.integer.Integer()
         mpz_set_si(z.value, self.ivalue)
         return z
 
     def __float__(IntegerMod_int64 self):
+        """
+        Coerce self to a float.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^35)
+            sage: float(a)
+            8943.0
+        """
         return float(self.ivalue)
 
     def __hash__(self):
+        """
+        Compute hash of self.   This is the hash of the underlying integer, which
+        is just that integer.
+
+        EXAMPLES:
+            sage: a = Mod(8943, 2^35)
+            sage: hash(a)
+            8943
+        """
+
         return hash(self.ivalue)
 
 ### End of class

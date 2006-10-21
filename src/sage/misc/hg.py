@@ -23,8 +23,11 @@ import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 
+def embedded():
+    return sage.server.support.EMBEDDED_MODE
+
 def pager():
-    if sage.server.support.EMBEDDED_MODE:
+    if embedded():
         return 'cat'
     else:
         return 'more'
@@ -139,8 +142,7 @@ class HG:
 
     apply = unbundle
 
-
-    def export(self, revs, filename='%R.patch', text=False, options=''):
+    def export(self, revs, filename=None, text=False, options=''):
         r"""
         Export patches with the changeset header and diffs for one or
         more revisions.
@@ -160,7 +162,7 @@ class HG:
         INPUT:
              revs -- integer or list of integers (revision numbers); use the log()
                      method to see these numbers.
-             filename -- (default: '%s-%H.export') The name of the file is given using a format
+             filename -- (default: '%R.patch') The name of the file is given using a format
                  string.  The formatting rules are as follows:
                     %%   literal "%" character
                     %H   changeset hash (40 bytes of hexadecimal)
@@ -180,6 +182,8 @@ class HG:
                       be against the second parent. It can be useful
                       to review a merge.
         """
+        if filename is None:
+            filename = '%R.patch'
         if not isinstance(revs, list):
             revs = [int(revs)]
         if not isinstance(filename, str):
@@ -217,8 +221,12 @@ class HG:
                  -m --message  use <text> as commit message
                  -b --base     base path
                  -f --force    skip check for outstanding uncommitted changes
+
+        ALIASES: patch
         """
-        self('import "%s" %s'%(filename,options))
+        self('import "%s" %s'%(os.path.abspath(filename),options))
+
+    patch = import_patch
 
 
     def add(self, files, options=''):
@@ -242,7 +250,6 @@ class HG:
         if isinstance(files, str):
             files = [files]
         for file in files:
-            file = os.path.abspath(file)
             print "Adding file %s"%file
             self('add %s "%s"'%(options, file))
 
@@ -258,7 +265,6 @@ class HG:
         if isinstance(files, str):
             files = [files]
         for file in files:
-            file = os.path.abspath(file)
             print "Removing file %s"%file
             self('rm %s "%s"'%(options, file))
 
@@ -280,22 +286,67 @@ class HG:
         if isinstance(files, str):
             files = [files]
         for file in files:
-            file = os.path.abspath(file)
             print "Moving %s --> %s"%file
             self('mv %s "%s"'%(options, file))
 
     move = rename
     mv = rename
 
-    def log(self, options=''):
+    def log(self, branches=None, keyword=None, limit=None,
+                  rev=None, merges=False, only_merges=False,
+                  patch=None, template=False, include=None,
+                  exclude=None, verbose=False):
         """
         Display the change log for this repository.  This is a list of
-        all changesets ordered by revision number.
+        changesets ordered by revision number.
+
+        By default this command outputs: changeset id and hash, tags,
+        non-trivial parents, user, date and time, and a summary for each
+        commit.
+
+        INPUT:
+            branches -- (string, default: None) show given branches
+            keyword  -- (string, default: None) search for a keyword
+            limit    -- (integer, default: None, or 20 in notebook mdoe)
+                        limit number of changes displayed
+            rev      -- (integer) show the specified revision
+            merges   -- (bool, default: False) whether or not to show merges
+            only_merges -- (bool, default: False) if true, show only merges
+            patch    -- (string, default: None) show given patch
+            template -- (string, default: None) display with template
+            include  -- (string, default: None) include names matching the given patterns
+            exclude  -- (string, default: None) exclude names matching the given patterns
+            verbose  -- (bool, default: False) If true, the list of changed
+                        files and full commit message is shown.
         """
+        if embedded() and limit is None:
+            limit = 20
+        options = ''
+        if branches:
+            options += '-b %s '%branches
+        if keyword:
+            options += '-k "%s" '%keyword
+        if limit:
+            options += '-l %s '%limit
+        if rev:
+            options += '-r %s '%rev
+        if not merges:
+            options += '--no-merges '
+        if only_merges:
+            options += '-m '
+        if patch:
+            options += '-p "%s"'%patch
+        if include:
+            options += '-I "%s"'%include
+        if exclude:
+            options += '-X "%s"'%exclude
+        if verbose:
+            options = '-v ' + options
+
         self('log %s | %s'%(options, pager()))
 
     changes = log
-
+    history = log
 
     def diff(self, files='', rev=None):
         """

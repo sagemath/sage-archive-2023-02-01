@@ -35,7 +35,7 @@ if not os.path.exists(SAGE_ROOT):
 try:
     SAGE_URL = os.environ["SAGE_URL"]
 except KeyError:
-    SAGE_URL = "http://modular.math.washington.edu/sage/"     # default server
+    SAGE_URL = "http://sage.math.washington.edu/sage/"     # default server
 
 LOGFILE = "%s/log/sage_log"%SAGE_ROOT
 
@@ -73,10 +73,11 @@ SAGE_DATA = '%s/data'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT
 
 def delete_tmpfiles():
-    #print "deleting temp files from %s"%SAGE_TMP
+    # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!
     import shutil
     try:
-        shutil.rmtree(SAGE_TMP)
+        if os.path.exists(SAGE_TMP):
+            shutil.rmtree(SAGE_TMP)
     except OSError, msg:
         print msg
         pass

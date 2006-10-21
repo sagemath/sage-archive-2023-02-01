@@ -4,12 +4,24 @@ Elements of free modules
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
+from sage.rings.arith import lcm
 
-import sage.rings.coerce
+from sage.rings.coerce import bin_op, cmp as coerce_cmp
 
-import module_element
+cimport sage.structure.element
+import  sage.structure.element
+
+import  sage.structure.coerce
 
 import sage.matrix.matrix
+
+import operator
+
+cimport sage.matrix.matrix_generic
+cimport sage.structure.element
+cimport sage.rings.ring
+
+
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -30,12 +42,15 @@ def Vector(R, elts):
     """
     return (R**len(elts))(elts)
 
-class FreeModuleElement(module_element.ModuleElement):
+cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     """
     An element of a generic free module.
     """
+#    cdef object __entries
+#    cdef object __zero
+
     def __init__(self, parent):
-        module_element.ModuleElement.__init__(self, parent)
+        sage.structure.element.ModuleElement.__init__(self, parent)
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -49,7 +64,7 @@ class FreeModuleElement(module_element.ModuleElement):
     def __abs__(self):
         return self.norm()
 
-    def __add__(self, right):
+    def __add__(left, right):
         """
         EXAMPLES:
             sage: V = QQ^5
@@ -59,21 +74,15 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: V.0 + W.0
             (1, 1, 0, 0, 0)
         """
-        if not isinstance(right, FreeModuleElement):
-            right = self.parent()(right)
-        if self.parent() is right.parent():
-            V = self.parent()
-        elif self.parent().ambient_vector_space() == right.parent().ambient_vector_space():
-            V = self.parent().ambient_vector_space()
-        else:
-            raise TypeError, "self and right must have compatible parents"
-        X = [self[i] + right[i] for i in xrange(self.degree())]
-        return V(X, coerce_entries=False, copy=False, check_element=False)
+        try:
+            return _add_(left, right)
+        except TypeError:
+            return sage.rings.coerce.bin_op(left, right, operator.add)
 
     def __cmp__(self, right):
         if not isinstance(right, FreeModuleElement) or \
                   not (self.parent().ambient_vector_space() == right.parent().ambient_vector_space()):
-            return sage.rings.coerce.cmp(self, right)
+            return coerce_cmp(self, right)
         for i in xrange(self.degree()):
             c = cmp(self[i], right[i])
             if c: return c
@@ -89,7 +98,7 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: bool(V)
             True
         """
-        return sage.rings.coerce.cmp(self, 0)
+        return coerce_cmp(self, 0)
 
     def __getitem__(self, i):
         raise NotImplementedError
@@ -109,8 +118,9 @@ class FreeModuleElement(module_element.ModuleElement):
             sage: parent(V % 7)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
-        return self.parent()([x % p for x in self.list()], \
-                    copy=False, coerce_entries=False, check_element=False)
+        return eval('self.parent()([x % p for x in self.list()], \
+                     copy=False, coerce_entries=False, check_element=False)',
+                    {'self':self, 'p':p})
 
     def Mod(self, p):
         """
@@ -135,29 +145,48 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def __mul__(self, right):
-        if isinstance(right, FreeModuleElement):
-            # vector x vector -> dot product
-            return self.dot_product(right)
-        if isinstance(right, sage.matrix.matrix.Matrix):
-            # vector x matrix multiply
-            return self._matrix_multiply(right)
-
-        global TypeError    # it's weird that this is necessary!
-        try:
-            right = self.base_ring()(right)
-        except TypeError:
-            try:
-                right = self.parent().base_field()(right)
-            except AttributeError, TypeError:
-                raise TypeError, "unable to multiply %s by %s"%(self, right)
+    def __mul__(left, right):
+        if PyObject_TypeCheck(left, FreeModuleElement):
+            # left is a free module element, and we are multiplying
+            # it be either a scalar or a matrix (or its an error).
+            if PyObject_TypeCheck(right, sage.matrix.matrix_generic.Matrix):
+                return (<FreeModuleElement>left)._matrix_multiply(right)
             else:
-                return self.parent().ambient_vector_space()(self)._scalar_multiply(right)
+                return (<FreeModuleElement>left)._scalar_multiply_coerce(right)
+        else:
+            return (<FreeModuleElement>right)._scalar_multiply_coerce(left)
 
-        return self._scalar_multiply(right)
+    cdef FreeModuleElement _scalar_multiply_coerce(self, scalar):
+        # right is a free module element, and we are multiplying
+        # it by a scalar (or its an error).
+        #
+        # todo: currently the calls to base ring here are a killer;
+        # we need to optimize by making the parent a pyrex class
+        # and making base_ring just a c function, e.g.,
+        # self._parent._base_ring.
+        cdef FreeModuleElement v
+        cdef object P
 
-    def __div__(self, right):
-        return self * ~(self.parent().base_ring()(right))
+        #(<sage.structure.element.Element>scalar)._parent._coerce_(self._parent.base_ring()(1))
+
+        if not PyObject_TypeCheck(scalar, sage.structure.element.Element) \
+              or not ( (<sage.structure.element.Element>scalar)._parent is \
+                             self._parent.base_ring()):
+            try:
+                scalar = self._parent.base_ring()._coerce_(scalar)
+            except TypeError, msg:
+                if PyObject_TypeCheck(scalar, sage.structure.element.Element):
+                    P = (<sage.structure.element.Element>scalar)._parent
+                    if P.has_natural_map_from(self._parent.base_ring()):
+                        v = self.change_ring(P)
+                    return v._scalar_multiply(scalar)
+                else:
+                    raise TypeError, msg
+
+        return self._scalar_multiply(scalar)
+
+    def __div__(left, right):
+        return left * ~(left.parent().base_ring()(right))
 
     def __neg__(self):
         """
@@ -172,14 +201,14 @@ class FreeModuleElement(module_element.ModuleElement):
     def __pos__(self):
         return self
 
-    def __pow__(self, n):
+    def __pow__(self, n, dummy):
         raise NotImplementedError
 
     def _repr_(self):
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = [str(x) for x in self.list()]
+        S = eval('[str(x) for x in self.list()]', {'self':self})
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):
@@ -190,23 +219,29 @@ class FreeModuleElement(module_element.ModuleElement):
             entry = S[i]
             #if i > 0:
             #    entry = " "*(width-len(entry)) + entry
-            s += entry + sep
+            s = s + entry + sep
         s = s + ")"
         return s
 
     def __setitem__(self, i, x):
         raise NotImplementedError
 
-    def __sub__(self, right):
-        if not isinstance(right, FreeModuleElement) or not self.parent() is right.parent():
-            V = self.parent().ambient_vector_space()
-            right = V(right)
-        else:
-            V = self.parent()
-        X = [self[i] - right[i] for i in xrange(self.degree())]
-        return V(X, coerce_entries=False, copy=False, check_element=False)
+    def __sub__(left, right):
+        """
+        EXAMPLES:
+            sage: V = QQ^5
+            sage: W = V.span([V.1, V.2])
+            sage: W.0 - V.0
+            ?
+            sage: V.0 - W.0
+            ?
+        """
+        try:
+            return _sub_(left, right)
+        except TypeError:
+            return sage.rings.coerce.bin_op(left, right, operator.sub)
 
-    def _matrix_multiply(self, A):
+    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix_generic.Matrix A):
         """
         Return the product self*A.
 
@@ -224,13 +259,14 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         return A.vector_matrix_multiply(self)
 
-    def _scalar_multiply(self, s):
+    cdef FreeModuleElement _scalar_multiply(self, s):
         """
         return the product s*self.
         """
         s = self.base_ring()(s)
-        return self.parent()([x*s for x in self.list()], \
-                    copy=False, coerce_entries=False, check_element=False)
+        return eval('self.parent()([x*s for x in self.list()], \
+                     copy=False, coerce_entries=False, check_element=False)',
+                    {'self':self, 's':s})
 
     def copy(self):
         return self.parent()(self.entries(), \
@@ -292,7 +328,7 @@ class FreeModuleElement(module_element.ModuleElement):
         if len(r) != len(l):
             raise ArithmeticError, "degrees must be the same"%(len(l),len(r))
         zero = self.parent().base_ring()(0)
-        return sum([l[i]*r[i] for i in xrange(len(l))], zero)
+        return sum(eval('[l[i]*r[i] for i in xrange(len(l))]', {'l':l,'r':r}), zero)
 
     def element(self):
         return self
@@ -306,11 +342,11 @@ class FreeModuleElement(module_element.ModuleElement):
         return self[i]
 
     def list(self):
-        return [self[i] for i in range(self.degree())]
+        return eval('[self[i] for i in range(self.degree())]', {'self':self})
 
     def additive_order(self):
-        import sage.rings.arith
-        return sage.rings.arith.lcm([self[i].order() for i in range(self.degree())])
+        return eval('lcm([self[i].order() for i in range(self.degree())])',
+                    {'self':self})
 
     def set(self, i, x):
         """
@@ -340,7 +376,7 @@ class FreeModuleElement(module_element.ModuleElement):
         M = self.parent()
         if M.is_ambient() or M.uses_ambient_inner_product():
             A = M.ambient_module().inner_product_matrix()
-            return A.linear_combination_of_rows(self).dot_product(right)
+            return M(A.linear_combination_of_rows(self)).dot_product(right)
         else:
             A = M.inner_product_matrix()
             v = M.coordinate_vector(self)
@@ -362,7 +398,8 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         z = self.base_ring()(0)
         v = self.list()
-        return [i for i in xrange(self.degree()) if v[i] != z]
+        return eval('[i for i in xrange(self.degree()) if v[i] != z]',
+                    {'self':self, 'z':z, 'v':v})
 
     def _latex_(self):
         """
@@ -372,7 +409,7 @@ class FreeModuleElement(module_element.ModuleElement):
         """
         s = '\\left('
         for a in self.list():
-            s += latex.latex(a) + ','
+            s = s + latex.latex(a) + ','
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
@@ -388,7 +425,7 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
         R = self.parent().base_ring()
         if entries == 0:
             zero = R(0)
-            entries = [zero for _ in xrange(self.degree())]
+            entries = [zero]*self.degree()
         else:
             if not isinstance(entries, (list, tuple)):
 
@@ -399,7 +436,7 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
                             self.degree()
             if coerce_entries:
                 try:
-                    entries = [R(x) for x in entries]
+                    entries = eval('[R(x) for x in entries]',{'R':R, 'entries':entries})
                 except TypeError:
                     raise TypeError, "Unable to coerce entries (=%s) to %s"%(entries, R)
             elif copy:
@@ -448,7 +485,7 @@ def _sparse_dot_product(v, w):
     v and w are dictionaries with integer keys.
     """
     x = set(v.keys()).intersection(set(w.keys()))
-    return sum([v[k]*w[k] for k in x])
+    return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
 
 class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
@@ -558,4 +595,29 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         K.sort()
         return K
 
+    def support(self):
+        return self.nonzero_positions()
 
+cdef _add_(FreeModuleElement left, FreeModuleElement right):
+    """
+    Add self and right.
+
+    EXAMPLES:
+        sage: CDF(2,-3)._add_(CDF(1,-2))
+        3.0 - 5.0*I
+    """
+    if not (left.parent() is right.parent()):
+        return sage.rings.coerce.bin_op(left, right, operator.add)
+    X = eval('[left[i] + right[i] for i in xrange(left.degree())]',
+             {'left':left, 'right':right})
+    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)
+
+cdef _sub_(FreeModuleElement left, FreeModuleElement right):
+    """
+    Add self and right.
+    """
+    if not (left.parent() is right.parent()):
+        return sage.rings.coerce.bin_op(left, right, operator.add)
+    X = eval('[left[i] - right[i] for i in xrange(left.degree())]',
+             {'left':left, 'right':right})
+    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)

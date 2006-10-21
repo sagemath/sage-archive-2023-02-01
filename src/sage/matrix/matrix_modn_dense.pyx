@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Generic matrices over the integers modulo n.
 """
 
@@ -8,9 +8,6 @@ import matrix_dense
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
-cdef extern from "string.h":
-    void *memset(void *dest, int c, size_t n)
-    void *memcpy(void *dest, void *src, size_t n)
 
 from sage.misc.misc import verbose, get_verbose
 

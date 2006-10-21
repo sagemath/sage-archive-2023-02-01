@@ -18,8 +18,8 @@ Matrices over a domain
 ########################################################################
 
 
-cimport matrix_dense
-import matrix_dense
+cimport matrix_generic
+import  matrix_generic
 
 import sage.structure.sequence
 

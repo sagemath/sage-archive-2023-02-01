@@ -91,7 +91,7 @@ import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.infinity
-import sage.rings.integer as integer
+import sage.rings.integer
 import sage.structure.gens as gens
 
 from sage.structure.sequence import Sequence
@@ -317,10 +317,10 @@ class FreeModule_generic(module.Module):
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
-        rank = integer.Integer(rank)
+        rank = sage.rings.integer.Integer(rank)
         if rank < 0:
             raise ValueError, "rank (=%s) must be nonnegative"%rank
-        degree = integer.Integer(degree)
+        degree = sage.rings.integer.Integer(degree)
         if degree < 0:
             raise ValueError, "degree (=%s) must be nonnegative"%degree
 
@@ -337,7 +337,7 @@ class FreeModule_generic(module.Module):
         self._element_class = sage.modules.free_module_element.FreeModuleElement_generic_dense
 
     def __call__(self, x, coerce_entries=True, copy=True, check_element=True):
-        if isinstance(x, (int, long, integer.Integer)) and x==0:
+        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         elif isinstance(x, sage.modules.free_module_element.FreeModuleElement):
             if x.parent() is self:
@@ -736,7 +736,7 @@ class FreeModule_generic(module.Module):
             return self._inner_product_is_dot_product_cache
         except AttributeError:
             if self.is_ambient():
-                if self._inner_product_matrix is None or self._inner_product_matrix == integer.Integer(1):
+                if self._inner_product_matrix is None or self._inner_product_matrix == sage.rings.integer.Integer(1):
                     self._inner_product_is_dot_product_cache = True
                 else:
                     self._inner_product_is_dot_product_cache = False
@@ -1231,7 +1231,7 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         if self.base_ring().is_field():
             if self == other:
-                return integer.Integer(1)
+                return sage.rings.integer.Integer(1)
             else:
                 if other.is_subspace(self):
                     return sage.rings.infinity.infinity

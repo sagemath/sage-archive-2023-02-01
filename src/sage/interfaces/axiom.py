@@ -317,18 +317,14 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
 cnt = 0
 seq = 0
 
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
-
 COMMANDS_CACHE = '%s/axiom_commandlist_cache.sobj'%DOT_SAGE
-
-import sage.server.support
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -466,12 +462,14 @@ class Axiom(Expect):
     ###########################################
 
     def help(self, s):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             os.system('asq -op "%s"< /dev/null'%s)
         else:
             os.system('asq -op "%s"'%s)
 
     def example(self, s):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             os.system('asq -doc "%s" < /dev/null'%s)
         else:
@@ -480,6 +478,7 @@ class Axiom(Expect):
     describe = help
 
     def demo(self):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             os.system('axiom -ht < /dev/null')
         else:

@@ -145,6 +145,14 @@ class MatrixSpace_generic(gens.Generators):
     """
     The space of all nrows x ncols matrices over base_ring.
 
+    EXAMPLES:
+        sage: MatrixSpace(ZZ,10,5)
+        Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+        sage: MatrixSpace(ZZ,10,2^33)
+        Traceback (most recent call last):                                   # 32-bit
+        ...                                                                  # 32-bit
+        ValueError: number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)    # 32-bit
+        Full MatrixSpace of 10 by 8589934592 dense matrices over Integer Ring   # 64-bit
     """
     def __init__(self,  base_ring,
                         nrows,
@@ -163,6 +171,14 @@ class MatrixSpace_generic(gens.Generators):
             raise ArithmeticError, "nrows must be nonnegative"
         if ncols < 0:
             raise ArithmeticError, "ncols must be nonnegative"
+
+        if sage.misc.misc.is_64bit():
+            if nrows >= 2**64 or ncols >= 2**64:
+                raise ValueError, "number of rows and columns must be less than 2^64"
+        else:
+            if nrows >= 2**32 or ncols >= 2**32:
+                raise ValueError, "number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)"
+
         self.__base_ring = base_ring
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -172,8 +188,8 @@ class MatrixSpace_generic(gens.Generators):
             self.__ncols = ncols
         self.__matrix_class = self._get_matrix_class()
 
-    def __call__(self, entries=0, coerce_entries=True, copy=True):
-        return self.matrix(entries, coerce_entries, copy)
+    def __call__(self, entries=0, copy=True):
+        return self.matrix(entries, True, copy)
 
     def _coerce_(self, x):
         """
@@ -356,7 +372,7 @@ class MatrixSpace_generic(gens.Generators):
     def ngens(self):
         return self.dimension()
 
-    def matrix(self, x=0, coerce_entries=True, copy=True, zero=True):
+    def matrix(self, x=0, coerce=True, copy=True, zero=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -391,7 +407,7 @@ class MatrixSpace_generic(gens.Generators):
                 x = e
             elif isinstance(x[0], tuple):
                 x = list(sum(x,()))
-        return self.__matrix_class(self, x, coerce_entries, copy)
+        return self.__matrix_class(self, x, coerce, copy)
 
     def matrix_space(self, nrows, ncols, sparse=False):
         if nrows is None:
@@ -426,7 +442,7 @@ class MatrixSpace_generic(gens.Generators):
             else:
                 return zero
         v = [f() for _ in xrange(self.nrows()*self.ncols())]
-        return self(v, coerce_entries=False, copy=False)
+        return self(v, coerce=False, copy=False)
 
 _random = 1
 

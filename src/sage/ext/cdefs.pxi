@@ -1,10 +1,14 @@
 cdef extern from "stdlib.h":
-    ctypedef int size_t
+    ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
     void *realloc(void *ptr, size_t size)
     size_t strlen(char *s)
     char *strcpy(char *dest, char *src)
+
+cdef extern from "string.h":
+    void *memset(void *dest, int c, size_t n)
+    void *memcpy(void *dest, void *src, size_t n)
 
 cdef extern from "stdio.h":
     ctypedef struct FILE
@@ -39,6 +43,23 @@ cdef extern from "Python.h":
     int PyLong_Check(object o)
     int PyString_Check(object o)
 
+    int PyTuple_Check(object o)
+    #   Return true if p is a tuple object or an instance of a subtype
+    #   of the tuple type.
+
+
+    void* PyTuple_GetItem(object o, Py_ssize_t pos)
+    #   Return value: Borrowed reference.  Return the object at
+    #   position pos in the tuple pointed to by p. If pos is out of
+    #   bounds, return NULL and sets an IndexError exception.
+
+    void* PyTuple_GET_ITEM(object o, Py_ssize_t pos)
+    #   Return value: Borrowed reference.
+    #   Like PyTuple_GetItem(), but does no checking of its arguments.
+
+    int PyTuple_Size(object o)
+    #   Take a pointer to a tuple object, and return the size of that tuple.
+
     # Python attribute lookup functions
     object PyObject_GetAttrString(object o, char *attr_name)
     int PyObject_HasAttrString(object o, char *attr_name)
@@ -46,6 +67,14 @@ cdef extern from "Python.h":
     # Miscellaneous
     int PyErr_CheckSignals()
 
+    # Sequences
+    object PySequence_Fast(object,char *)
+    int PySequence_Size(object)
+    object PySequence_Fast_GET_ITEM(object, int)
+    void** PySequence_Fast_ITEMS(object o)
+
+    # Reference counting
+    void Py_INCREF(object)
 
 
 cdef extern from "gmp.h":
@@ -154,3 +183,8 @@ cdef extern from "gmp.h":
     void mpf_neg (mpf_t rop, mpf_t op)
     void mpf_abs (mpf_t rop, mpf_t op)
 
+##########################################################################
+# stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
+##########################################################################
+
+include "stdsage.pxi"

@@ -57,7 +57,6 @@ import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
 import real_mpfr
-import sage.misc.functional
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -116,19 +115,17 @@ cdef object the_integer_ring
 the_integer_ring = sage.rings.integer_ring.Z
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
-    """
-    The \\class{Integer} class represents arbitrary precision
-    integers.  It derives from the \\class{Element} class, so
+    r"""
+    The \class{Integer} class represents arbitrary precision
+    integers.  It derives from the \class{Element} class, so
     integers can be used as ring elements anywhere in SAGE.
 
-    \\begin{notice}
-    The class \\class{Integer} is implemented in Pyrex, as a wrapper
-    of the GMP \\code{mpz_t} integer type.
-    \\end{notice}
+    \begin{notice}
+    The class \class{Integer} is implemented in Pyrex, as a wrapper
+    of the GMP \code{mpz_t} integer type.
+    \end{notice}
     """
     def __new__(self, x=None, unsigned int base=0):
-        global the_integer_ring
-        mpz_init(self.value)
         self._parent = the_integer_ring
 
     def __pyxdoc__init__(self):
@@ -176,6 +173,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('0x3b').str(16)
             '3b'
         """
+
+        # TODO: All the code below should somehow be in an external
+        # cdef'd function.  Then e.g., if a matrix or vector or
+        # polynomial is getting filled by mpz_t's, it can use the
+        # rules below to do the fill construction of mpz_t's, but
+        # without the overhead of creating any Python objects at all.
+        # The cdef's function should be of the form
+        #     mpz_init_set_sage(mpz_t y, object x)
+        # Then this function becomes the one liner:
+        #     mpz_init_set_sage(self.value, x)
+
+
+        mpz_init(self.value)
+
         if not (x is None):
             # First do all the type-check versions; these are fast.
             # PyObject_TypeCheck only works for *types* not for *classes*.
@@ -356,8 +367,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return '<mn>%s</mn>'%self
 
     def __str_malloc(self, int base=10):
-        """
-        Return the string representation of \\code{self} in the given
+        r"""
+        Return the string representation of \code{self} in the given
         base.  (Uses malloc then PyMem.  This is actually slightly
         faster than self.str() below, but it is unpythonic to use
         malloc.)  However, self.str() below is nice because we know
@@ -822,7 +833,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if m < 2:
             raise ValueError, "m must be at least 2"
 
-        guess = int(sage.misc.functional.log(self, m))
+        guess = self.log(m)
         power = m ** guess
 
         while power > self:
@@ -1183,9 +1194,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self
 
     def factorial(self):
-        """
-        Return the factorial $n!=1 \\cdot 2 \\cdot 3 \\cdots n$.
-        Self must fit in an \\code{unsigned long int}.
+        r"""
+        Return the factorial $n!=1 cdot 2 cdot 3 cdots n$.
+        Self must fit in an code{unsigned long int}.
 
         EXAMPLES:
         """
@@ -1219,8 +1230,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self
 
     def is_one(self):
-        """
-        Returns \\code{True} if the integers is $1$, otherwise \\code{False}.
+        r"""
+        Returns \code{True} if the integers is $1$, otherwise \code{False}.
 
         EXAMPLES:
             sage: Integer(1).is_one()
@@ -1231,8 +1242,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_cmp_si(self.value, 1) == 0)
 
     def is_zero(self):
-        """
-        Returns \\code{True} if the integers is $0$, otherwise \\code{False}.
+        r"""
+        Returns \code{True} if the integers is $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: Integer(1).is_zero()
@@ -1243,8 +1254,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_cmp_si(self.value, 0) == 0)
 
     def is_unit(self):
-        """
-        Returns \\code{true} if this integer is a unit, i.e., 1 or $-1$.
+        r"""
+        Returns \code{true} if this integer is a unit, i.e., 1 or $-1$.
         """
         return bool(mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0)
 
@@ -1387,9 +1398,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return str(self)
 
     def isqrt(self):
-        """
+        r"""
         Returns the integer floor of the square root of self, or raises
-        an \\exception{ValueError} if self is negative.
+        an \exception{ValueError} if self is negative.
 
         EXAMPLE:
             sage: a = Integer(5)
@@ -1491,10 +1502,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
     def _xgcd(self, Integer n):
-        """
-        Return a triple $g, s, t \\in\\Z$ such that
+        r"""
+        Return a triple $g, s, t \in\Z$ such that
         $$
-           g = s \\cdot \\mbox{\\rm self} + t \\cdot n.
+           g = s \cdot \mbox{\rm self} + t \cdot n.
         $$
         """
         cdef mpz_t g, s, t

@@ -1,5 +1,5 @@
 #############################################
-## Generic *DENSE* matrices over any ring
+## Generic *DENSE* matrices over any commutative ring
 #############################################
 
 def _convert_dense_entries_to_list(entries):
@@ -26,7 +26,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
     def __init__(self, parent,
                  copy = True,
                  entries = None,
-                 coerce_entries = True):
+                 coerce = True):
         matrix_generic.Matrix.__init__(self, parent)
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
@@ -34,12 +34,12 @@ cdef class Matrix_dense(matrix_generic.Matrix):
         if entries:
             if not isinstance(entries, list):
                 raise TypeError
-            if not (coerce_entries or copy):
+            if not (coerce or copy):
                 self.__entries = entries
             else:
                 self.__entries = [None]*(self._nrows*self._ncols)
                 n = len(entries)
-                if coerce_entries:
+                if coerce:
                     R = parent.base_ring()
                     for i from 0 <= i < n:
                         self.__entries[i] = R(entries[i])
@@ -135,7 +135,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             for i in reversed(xrange(nr)):
                 f.append(e[i*nc + j])
         return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False, coerce_entries=False)
+                               entries = f, copy=False, coerce=False)
 
     def transpose(self):
         """
@@ -162,7 +162,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
                 f.append(e[i*nc + j])
         return self.new_matrix(nrows = nc, ncols = nr,
                                entries = f, copy=False,
-                               coerce_entries=False)
+                               coerce=False)
 
 
 
@@ -195,7 +195,7 @@ cdef class MatrixWindow:
         """
         entries = self.list()
         return self._matrix.new_matrix(self._nrows, self._ncols, entries=entries,
-                                       coerce_entries=False, copy=False)
+                                       coerce=False, copy=False)
 
     def list(MatrixWindow self):
         v = self._matrix.__entries

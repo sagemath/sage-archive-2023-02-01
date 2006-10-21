@@ -116,6 +116,14 @@ matrix_dense = Extension('sage.matrix.matrix_dense',
 matrix_sparse = Extension('sage.matrix.matrix_sparse',
               ['sage/matrix/matrix_sparse.pyx'])
 
+todo_delete_this =   Extension('sage.matrix.sparse_matrix_pyx',
+              ['sage/matrix/sparse_matrix_pyx.pyx',
+               'sage/rings/integer.pyx',
+               'sage/rings/rational.pyx',
+               'sage/ext/arith.pyx',
+               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              libraries=['gmp'])
+
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
@@ -205,6 +213,7 @@ ext_modules = [ \
     matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
+    todo_delete_this,
 
     gsl_fft,
     gsl_interpolation,
@@ -384,8 +393,8 @@ def process_pyrexembed_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexembed."
-            sys.exit(ret)
+            print "sage: Error running pyrexembed."
+            sys.exit(1)
         process_pyrex_file(pyx_embed_file, m)
         cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
         print cmd
@@ -407,8 +416,8 @@ def process_pyrex_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexc."
-            sys.exit(ret)
+            print "sage: Error running pyrexc."
+            sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
         # (I don't know how to tell Pyrex to do this automatically.)
@@ -435,13 +444,9 @@ def pyrex(ext_modules):
 
 
 #############################################
-# Update interrupt.h and interrupt.pxi files
-for D in os.listdir("sage/libs/"):
-    if os.path.isdir('sage/libs/%s'%D):
-        os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
-        os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-        os.system("cp sage/ext/interrupt.pxi sage/libs/%s/"%D)
-
+# Update interrupt.h and stdsage.h files
+os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 ##########################################
 

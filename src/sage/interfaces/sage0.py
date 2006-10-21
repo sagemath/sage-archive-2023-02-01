@@ -133,8 +133,6 @@ class Sage(Expect):
                 os.kill(self._expect.pid, 9)
             except OSError:
                 pass
-            raise OSError
-
 
     def _remote_tmpfile(self):
         try:

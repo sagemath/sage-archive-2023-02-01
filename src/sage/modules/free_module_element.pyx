@@ -1,12 +1,16 @@
 """
 Elements of free modules
+
+AUTHOR:
+    -- William Stein
+    -- Josh Kantor
 """
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 from sage.rings.arith import lcm
 
-from sage.rings.coerce import bin_op, cmp as coerce_cmp
+import sage.rings.coerce
 
 cimport sage.structure.element
 import  sage.structure.element
@@ -15,6 +19,9 @@ import sage.matrix.matrix
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
+
+def unpickle(cls, args):
+    return cls(*args)
 
 def Vector(R, elts):
     """
@@ -41,6 +48,10 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
 
     def __init__(self, parent):
         sage.structure.element.ModuleElement.__init__(self, parent)
+
+    #def __reduce__(self):
+    #    return (sage.modules.free_module_element.unpickle,
+    #           (self.__class__, self.parent(), self.__entries, False, False))
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -80,7 +91,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __cmp__(self, right):
         if not isinstance(right, FreeModuleElement) or \
                   not (self.parent().ambient_vector_space() == right.parent().ambient_vector_space()):
-            return coerce_cmp(self, right)
+            return sage.rings.coerce.coerce(self, right)
         for i in xrange(self.degree()):
             c = cmp(self[i], right[i])
             if c: return c
@@ -417,7 +428,6 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
                 # Make a copy
                 entries = list(entries)
         self.__entries = entries
-
 
     def __getitem__(self, i):
         """

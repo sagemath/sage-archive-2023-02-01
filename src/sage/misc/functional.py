@@ -104,20 +104,10 @@ def category(x):
         return sage.categories.all.Objects()
 
 def ceil(x):
-    """
-    Return the ceiling of x.
-    """
     try:
-        return sage.rings.all.Integer(x.ceil())
+        return x.ceil()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.ceil(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
-
-ceiling = ceil
-
+        return sage.rings.all.ceil(x)
 
 def charpoly(x):
     """
@@ -369,35 +359,12 @@ def fcp(x):
 
 gcd = sage.rings.arith.gcd
 
+
 def floor(x):
-    r"""
-    Return the largest integer $\leq x$.
-
-    INPUT:
-        x -- an object that has a floor method or is coercible to int
-
-    OUTPUT:
-        an Integer
-
-    EXAMPLES:
-        sage: floor(5.4)
-        5
-        sage: floor(float(5.4))
-        5
-        sage: floor(-5/2)
-        -3
-        sage: floor(RDF(-5/2))
-        -3
-    """
     try:
-        return sage.rings.all.Integer(x.floor())
+        return x.floor()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.floor(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
-
+        return sage.rings.all.floor(x)
 
 def gen(x):
     """

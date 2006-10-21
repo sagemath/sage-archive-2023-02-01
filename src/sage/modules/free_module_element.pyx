@@ -8,7 +8,6 @@ AUTHOR:
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
-from sage.rings.arith import lcm
 
 import sage.rings.coerce
 
@@ -330,7 +329,8 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         return eval('[self[i] for i in range(self.degree())]', {'self':self})
 
     def additive_order(self):
-        return eval('lcm([self[i].order() for i in range(self.degree())])',
+        import sage.rings.arith as arith
+        return eval('arith.lcm([self[i].order() for i in range(self.degree())])',
                     {'self':self})
 
     def set(self, i, x):

@@ -3456,6 +3456,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         rank = self.rank()
         if rank == 0:
+
+
             return K(1)
 
         basis = self.gens()
@@ -3546,7 +3548,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # Find an integer A such that for any point P, the multiple A*P
         # is in the connected component of the Neron model modulo all primes.
-        # This is one of the conditions in Mazur/Stein/Tate; additionally
+        # This is one of the conditions in Mazur/Stein/Tate; additionally,
         # it is required to apply Proposition IV.2 from Christian Wuthrich's
         # thesis.
         A = arith.LCM(self.tamagawa_numbers())

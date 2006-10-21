@@ -366,7 +366,7 @@ if DEVEL:
     ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c']
+    m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 def need_to_create(file1, file2):

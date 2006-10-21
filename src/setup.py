@@ -110,14 +110,6 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
-sparse_matrix_pyx =   Extension('sage.matrix.sparse_matrix_pyx',
-              ['sage/matrix/sparse_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp'])
-
 matrix_dense = Extension('sage.matrix.matrix_dense',
               ['sage/matrix/matrix_dense.pyx'])
 
@@ -224,7 +216,6 @@ ext_modules = [ \
     matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
-    sparse_matrix_pyx,  # todo -- delete
 
     gsl_fft,
     gsl_interpolation,

@@ -25,10 +25,10 @@ include "../ext/interrupt.pxi"
 import  sage.rings.integer
 cimport sage.rings.integer
 
-import matrix_integer
-cimport matrix_integer
+import matrix_pid
+cimport matrix_pid
 
-cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
+cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
     """
     Matrix over the integers.
     """
@@ -38,7 +38,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpz_t *v
 
-        matrix_integer.Matrix_integer.__init__(self, parent)
+        matrix_pid.Matrix_pid.__init__(self, parent)
 
         if not isinstance(entries, list) and not entries is None:
             entries = sage.rings.integer.Integer(entries)

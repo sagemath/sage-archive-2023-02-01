@@ -194,4 +194,3 @@ cdef extern from "gmp.h":
 # stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
 ##########################################################################
 
-include "stdsage.pxi"

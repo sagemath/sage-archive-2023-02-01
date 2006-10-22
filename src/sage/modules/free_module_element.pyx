@@ -16,8 +16,6 @@ import  sage.structure.element
 
 import sage.matrix.matrix
 
-import sage.modules.unpickle
-
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 

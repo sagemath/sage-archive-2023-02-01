@@ -16,12 +16,13 @@ Some global C stuff that gets imported into pyrex modules.
 ******************************************************************************/
 
 #include "Python.h"
+#include "stdsage.h"
 
 /* A global empty python tuple object. This is used to speed up some python
    API calls where we want to avoid constructing a tuple every time. */
-PyObject* global_empty_tuple;
+// PyObject* global_empty_tuple;
 
-/* This is called exactly once at startup from sage_object.pyx */
+/* Call this exactly once. */
 void init_global_empty_tuple(void)
 {
   global_empty_tuple = PyTuple_New(0);

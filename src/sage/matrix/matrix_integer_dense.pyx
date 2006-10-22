@@ -21,8 +21,10 @@ from sage.misc.misc import verbose, get_verbose
 
 include "../ext/gmp.pxi"
 
+include "../ext/stdsage.pxi"
+
 cimport sage.rings.integer
-import sage.rings.integer
+import  sage.rings.integer
 
 cimport matrix_integer
 cimport matrix_generic

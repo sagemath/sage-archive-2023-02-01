@@ -1,3 +1,7 @@
+"""
+Standard SAGE Pyrex Helper Code
+"""
+
 ################################################################################
 # stdsage.pxi
 #   Standard useful stuff for SAGE modules to include:
@@ -17,12 +21,19 @@
 ###############################################################################
 
 cdef extern from "stdsage.h":
+    # Global tuple -- useful optimization
     void init_global_empty_tuple()
 
+# Initialize the global tuple.
 init_global_empty_tuple()
+
+# Memory management
+cdef extern from "stdlib.h":
+    ctypedef unsigned long size_t
 cdef extern from "stdsage.h":
-    # Memory management
     void  sage_free(void *p)
     void* sage_realloc(void *p, size_t n)
     void* sage_malloc(size_t)
+
+
 

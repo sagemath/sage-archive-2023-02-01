@@ -179,6 +179,9 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
 
+matrix_field = Extension('sage.matrix.matrix_field',
+                       ['sage/matrix/matrix_field.pyx'])
+
 matrix_pid = Extension('sage.matrix.matrix_pid',
                        ['sage/matrix/matrix_pid.pyx'])
 

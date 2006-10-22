@@ -20,6 +20,9 @@ These are mostly things that can't be done in Pyrex.
 
 ******************************************************************************/
 
+#ifndef STDSAGE_H
+#define STDSAGE_H
+
 
 /*****************************************
           For PARI
@@ -46,6 +49,9 @@ These are mostly things that can't be done in Pyrex.
 
 /* Constructs a new object of type zzz_type by calling tp_new directly,
    with no arguments. */
+/* #define PY_NEW(zzz_type) \
+    (((PyTypeObject*)(zzz_type))->tp_new((zzz_type), global_empty_tuple, NULL)) */
+
 #define PY_NEW(zzz_type) \
     (((PyTypeObject*)(zzz_type))->tp_new((zzz_type), global_empty_tuple, NULL))
 
@@ -55,4 +61,18 @@ These are mostly things that can't be done in Pyrex.
 #define PY_SET_TP_NEW(zzz_type1, zzz_type2) \
     (((PyTypeObject*)zzz_type1)->tp_new = ((PyTypeObject*)zzz_type2)->tp_new)
 
-extern PyObject* global_empty_tuple;    /* from stdsage.c */
+
+PyObject* global_empty_tuple;
+
+/*****************************************
+          Memory management
+
+ *****************************************/
+
+#define sage_malloc  malloc
+#define sage_free    free
+#define sage_realloc realloc
+
+
+
+#endif

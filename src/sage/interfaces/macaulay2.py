@@ -117,7 +117,7 @@ class Macaulay2(Expect):
                         server = server,
                         script_subdirectory = script_subdirectory,
                         verbose_start = False,
-                        logfile = None,
+                        logfile = logfile,
                         eval_using_file_cutoff=500)
 
     # Macaulay2 provides no "clear" function. However, Macaulay2 does provide

@@ -26,8 +26,6 @@ import sage.structure.factorization as factorization
 from sage.rings.coerce import canonical_coercion, bin_op
 from sage.structure.element import RingElement
 
-import sage.rings.bernoulli
-
 ##################################################################
 # Elementary Arithmetic
 ##################################################################
@@ -61,7 +59,7 @@ def algdep(z, n):
         x^5 + x^2                    # 32-bit
         x^6 + 2*x^3 + 1              # 64-bit
         sage: p.factor()
-        x^2 * (x + 1) * (x^2 - x + 1) # 32-bit
+        x^2 * (x^2 - x + 1) * (x + 1) # 32-bit
         (x + 1)^2 * (x^2 - x + 1)^2   # 64-bit
         sage: z^2 - z + 1
         0.00000000000000011102230246251565
@@ -118,6 +116,7 @@ def bernoulli(n, algorithm='pari'):
                       by *far* the fastest.
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
+            'magma' -- use MAGMA (optional)
             'python' -- use pure Python implementation
 
     EXAMPLES:
@@ -126,11 +125,16 @@ def bernoulli(n, algorithm='pari'):
         sage: bernoulli(50)
         495057205241079648212477525/66
 
-    We illustrate use of some of the alternative algorithms.
-
+    We use of each of the alternative algorithms:
         sage: bernoulli(12, algorithm='gap')
         -691/2730
         sage: bernoulli(12, algorithm='gp')
+        -691/2730
+        sage: bernoulli(12, algorithm='magma')           # optional
+        -691/2730
+        sage: bernoulli(12, algorithm='pari')
+        -691/2730
+        sage: bernoulli(12, algorithm='python')
         -691/2730
 
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
@@ -139,20 +143,27 @@ def bernoulli(n, algorithm='pari'):
 
     AUTHOR: David Joyner and William Stein
     """
+    from sage.rings.all import Integer, Rational
+    n = Integer(n)
     if n > 50000 and algorithm == 'pari':
         algorithm = 'gp'
     if algorithm == 'pari':
-        x = pari(n).bernfrac()
-        return sage.rings.rational.Rational(x)
+        x = pari(n).bernfrac()         # Use the PARI C library
+        return Rational(x)
     elif algorithm == 'gap':
-        import sage.interfaces.all
-        x = sage.interfaces.all.gap('Bernoulli(%s)'%n)
-        return sage.rings.rational.Rational(x)
+        import sage.interfaces.gap
+        x = sage.interfaces.gap.gap('Bernoulli(%s)'%n)
+        return Rational(x)
+    elif algorithm == 'magma':
+        import sage.interfaces.magma
+        x = sage.interfaces.magma.magma('Bernoulli(%s)'%n)
+        return Rational(x)
     elif algorithm == 'gp':
-        import sage.interfaces.all
-        x = sage.interfaces.all.gp('bernfrac(%s)'%n)
-        return sage.rings.rational.Rational(x)
-    elif algorithm == 'sage':
+        import sage.interfaces.gp
+        x = sage.interfaces.gp.gp('bernfrac(%s)'%n)
+        return Rational(x)
+    elif algorithm == 'python':
+        import sage.rings.bernoulli
         return sage.rings.bernoulli.bernoulli_python(n)
     else:
         raise ValueError, "invalid choice of algorithm"

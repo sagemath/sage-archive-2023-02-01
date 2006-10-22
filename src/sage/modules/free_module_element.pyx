@@ -16,11 +16,11 @@ import  sage.structure.element
 
 import sage.matrix.matrix
 
+import sage.modules.unpickle
+
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def unpickle(cls, args):
-    return cls(*args)
 
 def Vector(R, elts):
     """
@@ -42,15 +42,8 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     """
     An element of a generic free module.
     """
-    cdef object __entries
-    cdef object __zero
-
     def __init__(self, parent):
         sage.structure.element.ModuleElement.__init__(self, parent)
-
-    #def __reduce__(self):
-    #    return (sage.modules.free_module_element.unpickle,
-    #           (self.__class__, self.parent(), self.__entries, False, False))
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -89,7 +82,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
 
     def __cmp__(self, right):
         if not isinstance(right, FreeModuleElement) or \
-                  not (self.parent().ambient_vector_space() == right.parent().ambient_vector_space()):
+                  not (self.parent().ambient_module() == right.parent().ambient_module()):
             return sage.rings.coerce.coerce(self, right)
         for i in xrange(self.degree()):
             c = cmp(self[i], right[i])
@@ -404,6 +397,12 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
 #############################################
 # Generic dense element
 #############################################
+def make_FreeModuleElement_generic_dense(parent, D):
+    v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
+    v.__dict__ = D
+    FreeModuleElement.__init__(v, parent)
+    return v
+
 class FreeModuleElement_generic_dense(FreeModuleElement):
     def __init__(self, parent, entries, coerce_entries=True, copy=True):
         FreeModuleElement.__init__(self, parent)
@@ -428,6 +427,23 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
                 # Make a copy
                 entries = list(entries)
         self.__entries = entries
+
+    def __reduce__(self):
+        """
+        This is called implicitly when you pickle this vector.
+
+        EXAMPLES:
+            sage: v = (ZZ^3).0
+            sage: loads(dumps(v)) == v
+            True
+            sage: v = (QQ['x']^3).0
+            sage: loads(dumps(v)) == v
+            True
+        """
+        # Pyrex types can't be pickled.  Thus writing
+        #      return (FreeModuleElement_generic_dense, (...))
+        # will not work, since the first element of the tuple must be pickle-able.
+        return make_FreeModuleElement_generic_dense, (self.parent(), self.__dict__)
 
     def __getitem__(self, i):
         """
@@ -471,6 +487,12 @@ def _sparse_dot_product(v, w):
     x = set(v.keys()).intersection(set(w.keys()))
     return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
 
+def make_FreeModuleElement_generic_sparse(parent, D):
+    v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
+    v.__dict__ = D
+    FreeModuleElement.__init__(v, parent)
+    return v
+
 class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
     A generic_sparse is a dictionary with keys ints i and entries in
@@ -510,6 +532,22 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         self.__entries = entries
         self.__zero = R(0)
 
+    def __reduce__(self):
+        """
+        This is called implicitly when you pickle this vector.
+
+        EXAMPLES:
+            sage: v = FreeModule(ZZ, 3, sparse=True).0
+            sage: loads(dumps(v)) == v
+            True
+            sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
+            sage: loads(dumps(v)) == v
+            True
+        """
+        # Pyrex types can't be pickled.  Thus writing
+        #      return (FreeModuleElement_generic_sparse, (...))
+        # will not work, since the first element of the tuple must be pickle-able.
+        return  (make_FreeModuleElement_generic_sparse, (self.parent(), self.__dict__))
 
     def __getitem__(self, i):
         #if not isinstance(i, int):

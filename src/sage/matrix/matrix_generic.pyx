@@ -100,7 +100,6 @@ Matrices
 import sage.modules.free_module_element
 import sage.modules.free_module
 import sage.misc.latex
-import sage.misc.functional
 import sage.structure.coerce
 from   sage.structure.sequence import _combinations
 

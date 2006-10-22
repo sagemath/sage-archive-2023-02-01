@@ -23,7 +23,7 @@ AUTHOR:
 
 import random
 
-import sage.misc.all
+import sage.misc.misc
 import sage.rings.integer_ring
 import sage.rings.finite_field
 import sage.rings.arith
@@ -678,16 +678,16 @@ cdef class Matrix_modint(matrix_generic.Matrix):
         start_row = 0
         self.__pivots = []
         fifth = self.nc / 5 + 1
-        tm = sage.misc.all.verbose(caller_name = 'sparse_matrix_pyx matrix_modint echelon')
+        tm = sage.misc.misc.verbose(caller_name = 'sparse_matrix_pyx matrix_modint echelon')
         for c from 0 <= c < self.nc:
             if c % fifth == 0:
-                if sage.misc.all.get_verbose() >= 3:
+                if sage.misc.misc.get_verbose() >= 3:
                     if c > 0:
                         estimate = ' (est. %.2fs remains)'%(
-                            sage.misc.all.cputime(tm) * (5 - c / fifth))
+                            sage.misc.misc.cputime(tm) * (5 - c / fifth))
                     else:
                         estimate = ''
-                    tm = sage.misc.all.verbose(
+                    tm = sage.misc.misc.verbose(
                            'on column %s of %s%s'%(
                                       c, self.nc, estimate),
                              level = 3,
@@ -1804,8 +1804,8 @@ cdef class Matrix_mpq:
         A = Matrix_mpq(self.nr, B.nc)
 
         for i from 0 <= i < self.nr:
-            if sage.misc.all.get_verbose()>=3 and i%50 == 0:
-                sage.misc.all.verbose('row %s of %s'%(i, self.nr), level=3)
+            if sage.misc.misc.get_verbose()>=3 and i%50 == 0:
+                sage.misc.misc.verbose('row %s of %s'%(i, self.nr), level=3)
             for j from 0 <= j < B.nc:
                 # dot of i-th row with j-th column
                 mpq_set_si(x, 0, 1)
@@ -2123,7 +2123,7 @@ cdef class Matrix_mpq:
         hA = long(self.height())
         if height_guess is None:
             height_guess = 100000*hA**4
-        tm = sage.misc.all.verbose("height_guess = %s"%height_guess, level=2)
+        tm = sage.misc.misc.verbose("height_guess = %s"%height_guess, level=2)
 
         if proof:
             M = self.nc * height_guess * hA  +  1
@@ -2139,15 +2139,15 @@ cdef class Matrix_mpq:
             while prod < M:
                 problem = problem + 1
                 if problem > 50:
-                    sage.misc.all.verbose("sparse_matrix multi-modular reduce not converging?")
-                t = sage.misc.all.verbose("echelon modulo p=%s (%.2f%% done)"%(
+                    sage.misc.misc.verbose("sparse_matrix multi-modular reduce not converging?")
+                t = sage.misc.misc.verbose("echelon modulo p=%s (%.2f%% done)"%(
                            p, 100*float(len(str(prod))) / len(str(M))), level=2)
 
                 # We use denoms=False, since we made self integral by calling clear_denom above.
                 A = self.matrix_modint(p, denoms=False)
-                t = sage.misc.all.verbose("time to reduce matrix mod p:",t, level=2)
+                t = sage.misc.misc.verbose("time to reduce matrix mod p:",t, level=2)
                 A.echelon()
-                t = sage.misc.all.verbose("time to put reduced matrix in echelon form:",t, level=2)
+                t = sage.misc.misc.verbose("time to put reduced matrix in echelon form:",t, level=2)
                 c = dense_matrix_pyx.cmp_pivots(best_pivots, A.pivots())
                 if c <= 0:
                     best_pivots = A.pivots()
@@ -2155,10 +2155,10 @@ cdef class Matrix_mpq:
                     prod = prod * p
                 else:
                     # do not save A since it is bad.
-                    if sage.misc.all.LEVEL > 1:
-                        sage.misc.all.verbose("Excluding this prime (bad pivots).")
+                    if sage.misc.misc.LEVEL > 1:
+                        sage.misc.misc.verbose("Excluding this prime (bad pivots).")
                 p = sage.rings.arith.next_prime(p)
-                t = sage.misc.all.verbose("time for pivot compare", t, level=2)
+                t = sage.misc.misc.verbose("time for pivot compare", t, level=2)
             # Find set of best matrices.
             Y = []
             # recompute product, since may drop bad matrices
@@ -2169,19 +2169,19 @@ cdef class Matrix_mpq:
                     Y.append(X[i])
                     prod = prod * X[i].prime()
             try:
-                t = sage.misc.all.verbose("start crt and rr", level=2)
+                t = sage.misc.misc.verbose("start crt and rr", level=2)
                 E = lift_matrices_modint(Y)
                 #print "E = ", E    # debug
-                sage.misc.all.verbose("crt and rr time is",t, level=2)
+                sage.misc.misc.verbose("crt and rr time is",t, level=2)
             except ValueError, msg:
                 #print msg # debug
-                sage.misc.all.verbose("Redoing with several more primes", level=2)
+                sage.misc.misc.verbose("Redoing with several more primes", level=2)
                 for i in range(3):
                     M = M * START_PRIME
                 continue
 
             if not proof:
-                sage.misc.all.verbose("Not checking validity of result (since proof=False).", level=2)
+                sage.misc.misc.verbose("Not checking validity of result (since proof=False).", level=2)
                 break
             d   = E.denom()
             hdE = long(E.height(d))
@@ -2190,7 +2190,7 @@ cdef class Matrix_mpq:
             for i in range(3):
                 M = M * START_PRIME
         #end while
-        sage.misc.all.verbose("total time",tm, level=2)
+        sage.misc.misc.verbose("total time",tm, level=2)
         self.__pivots = best_pivots
         E.__pivots = best_pivots
         self.divide_by(dd)
@@ -2223,7 +2223,7 @@ cdef class Matrix_mpq:
         for c from 0 <= c < self.nc:
             _sig_check
             if c % 10 == 0:
-                sage.misc.all.verbose('clearing column %s of %s'%(c,self.nc),
+                sage.misc.misc.verbose('clearing column %s of %s'%(c,self.nc),
                                       caller_name = 'sparse_matrix_pyx echelon')
             min = self.nc + 1
             min_row = -1

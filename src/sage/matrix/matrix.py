@@ -61,7 +61,8 @@ import sage.rings.rational_field as rational_field
 import sage.rings.rational as rational
 import sage.rings.number_field.number_field as number_field
 import sage.rings.coerce as coerce
-from sage.rings.all import is_FiniteField, is_IntegerModRing, FiniteField
+import sage.rings.finite_field
+import sage.rings.integer_mod_ring
 
 from sage.structure.mutability import Mutability
 
@@ -1131,8 +1132,9 @@ class Matrix_field(Matrix_pid):
         R = self.base_ring()
         # Fix to work with finite fields and Z/nZ, which was
         # suggested by Dan Christensen <jdc@uwo.ca>.
-        if (   (is_FiniteField(R) and R.is_prime_field()) or \
-               is_IntegerModRing(R)  ) and R.characteristic() < 46340:
+        if (   (R.is_finite() and R.is_prime_field()) or \
+               sage.rings.integer_mod_ring.is_IntegerModRing(R)) \
+                   and R.characteristic() < 46340:
             p = R.characteristic()
             S = sage.matrix.dense_matrix_pyx.Matrix_modint(p, self.nrows(), self.ncols(), self.list())
             S.echelon()
@@ -2447,7 +2449,7 @@ class Matrix_sparse_cyclotomic(Matrix_generic_sparse_field):
             got by reducing this matrix modulo all primes over p, or []
             if best_pivots are better than any pivots of one of these matrices.
         """
-        Fp = FiniteField(p)
+        Fp = sage.rings.finite_field.FiniteField(p)
         print 'p = ',p
         f_mod_p = f.base_extend(Fp)
         roots = f_mod_p.roots(multiplicities=False)

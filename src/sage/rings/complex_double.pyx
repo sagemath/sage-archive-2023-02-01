@@ -57,11 +57,8 @@ cdef extern from "math.h":
     double modf (double value, double *integer_part)
     double M_PI_4
 
-cdef extern from "../ext/stdsage.h":
+cdef extern from "../libs/pari/misc.h":
     void set_gel(GEN x, long n, GEN z)
-
-
-
 
 from sage.misc.sage_eval import sage_eval
 

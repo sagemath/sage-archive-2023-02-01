@@ -1,6 +1,12 @@
 /*
 General C (.h) code this is useful to include in any pyrex module.
 
+Put
+
+include 'relative/path/to/stdsage.pxi'
+
+at the top of your Pyrex file.
+
 These are mostly things that can't be done in Pyrex.
 */
 
@@ -17,6 +23,8 @@ These are mostly things that can't be done in Pyrex.
 
 /*****************************************
           For PARI
+          Memory management
+
  *****************************************/
 
 #define set_gel(x, n, z)  gel(x,n)=z;

@@ -1,11 +1,12 @@
-cimport matrix_generic
+cimport matrix_dense
 
 ctypedef unsigned int uint
 
 
-cdef class Matrix_modn_dense(matrix_generic.Matrix):
+cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef uint **matrix
-    cdef uint _nrows, _ncols, p
+    cdef uint *_entries
+    cdef uint p
     cdef uint gather
     cdef object __pivots
     cdef set_matrix(Matrix_modn_dense self, uint **m)

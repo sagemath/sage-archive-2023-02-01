@@ -10,7 +10,8 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    cdef sage_object.SageObject _parent
+    #cdef sage_object.SageObject _parent
+    cdef object _parent
 
 cdef class ModuleElement(Element):
     pass

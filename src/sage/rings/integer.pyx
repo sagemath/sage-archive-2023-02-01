@@ -788,7 +788,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def exact_log(self, m):
         r"""
-        Returns the largest integer $k$ such that $m^k \leq \text{self}$.
+        Returns the largest integer $k$ such that $m^k \leq \text{self}$, i.e.,
+        the floor of $\log_m(\text{self})$.
 
         This is guaranteed to return the correct answer even when the usual
         log function doesn't have sufficient precision.
@@ -836,7 +837,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if m < 2:
             raise ValueError, "m must be at least 2"
 
-        guess = self.log(m)
+        bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
+        R = real_mpfr.RealField(bits)
+        guess = self._mpfr_(R).log().floor()
         power = m ** guess
 
         while power > self:

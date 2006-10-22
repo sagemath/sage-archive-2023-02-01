@@ -6,19 +6,19 @@ AUTHOR:
     -- Josh Kantor
 """
 
+include '../ext/cdefs.pxi'
+
 import sage.misc.misc as misc
 import sage.misc.latex as latex
-
-import sage.rings.coerce
-
-cimport sage.structure.element
-import  sage.structure.element
-
+cimport sage.structure.coerce
 import sage.matrix.matrix
+cimport sage.structure.element
+
+cdef sage.structure.coerce.Coerce coerce
+coerce = sage.structure.coerce.Coerce()
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
-
 
 def Vector(R, elts):
     """
@@ -79,10 +79,27 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         return V(X, coerce_entries=False, copy=False, check_element=False)
 
     def __cmp__(self, right):
+        """
+        EXAMPLES:
+            sage: v = (QQ['x']^4)(0)
+            sage: v == 0
+            True
+            sage: v == 1
+            False
+            sage: v == v
+            True
+            sage: w = v.parent()([-1,0,0,0])
+            sage: w < v
+            True
+            sage: w > v
+            False
+        """
         if not isinstance(right, FreeModuleElement) or \
                   not (self.parent().ambient_module() == right.parent().ambient_module()):
-            return sage.rings.coerce.coerce(self, right)
-        for i in xrange(self.degree()):
+            return coerce.cmp_cdef(self, right)
+        cdef size_t i
+        cdef int c
+        for i from 0 <= i < self.degree():
             c = cmp(self[i], right[i])
             if c: return c
         return 0
@@ -97,7 +114,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             sage: bool(V)
             True
         """
-        return coerce_cmp(self, 0)
+        return self == 0
 
     def __getitem__(self, i):
         raise NotImplementedError
@@ -152,14 +169,13 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             # vector x matrix multiply
             return self._matrix_multiply(right)
 
-        global TypeError    # it's weird that this is necessary!
         try:
             right = self.base_ring()(right)
         except TypeError:
             try:
                 right = self.parent().base_field()(right)
-            except AttributeError, TypeError:
-                raise TypeError, "unable to multiply %s by %s"%(self, right)
+            except (AttributeError, TypeError):
+                raise TypeError, "unable to multiply self by right"
             else:
                 return self.parent().ambient_vector_space()(self)._scalar_multiply(right)
 
@@ -395,13 +411,23 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
 #############################################
 # Generic dense element
 #############################################
-def make_FreeModuleElement_generic_dense(parent, D):
+def make_FreeModuleElement_generic_dense(parent, entries):
+    cdef FreeModuleElement_generic_dense v
     v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
-    v.__dict__ = D
-    FreeModuleElement.__init__(v, parent)
+    v._entries = entries
+    v._parent = parent
     return v
 
-class FreeModuleElement_generic_dense(FreeModuleElement):
+cdef class FreeModuleElement_generic_dense(FreeModuleElement):
+    """
+        EXAMPLES:
+            sage: v = (ZZ^3).0
+            sage: loads(dumps(v)) == v
+            True
+            sage: v = (QQ['x']^3).0
+            sage: loads(dumps(v)) == v
+            True
+    """
     def __init__(self, parent, entries, coerce_entries=True, copy=True):
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
@@ -424,24 +450,10 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
             elif copy:
                 # Make a copy
                 entries = list(entries)
-        self.__entries = entries
+        self._entries = entries
 
     def __reduce__(self):
-        """
-        This is called implicitly when you pickle this vector.
-
-        EXAMPLES:
-            sage: v = (ZZ^3).0
-            sage: loads(dumps(v)) == v
-            True
-            sage: v = (QQ['x']^3).0
-            sage: loads(dumps(v)) == v
-            True
-        """
-        # Pyrex types can't be pickled.  Thus writing
-        #      return (FreeModuleElement_generic_dense, (...))
-        # will not work, since the first element of the tuple must be pickle-able.
-        return make_FreeModuleElement_generic_dense, (self.parent(), self.__dict__)
+        return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
 
     def __getitem__(self, i):
         """
@@ -454,7 +466,7 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
         if i < 0 or i >= self.degree():
             raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
                             self.degree()-1)
-        return self.__entries[i]
+        return self._entries[i]
 
     def __setitem__(self, i, value):
         """
@@ -466,13 +478,13 @@ class FreeModuleElement_generic_dense(FreeModuleElement):
         if i < 0 or i >= self.degree():
             raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
                             self.degree()-1)
-        self.__entries[i] = self.base_ring()(value)
+        self._entries[i] = self.base_ring()(value)
 
     def entries(self):
-        return self.__entries
+        return self._entries
 
     def list(self):
-        return self.__entries
+        return self._entries
 
 
 #############################################
@@ -485,16 +497,27 @@ def _sparse_dot_product(v, w):
     x = set(v.keys()).intersection(set(w.keys()))
     return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
 
-def make_FreeModuleElement_generic_sparse(parent, D):
+def make_FreeModuleElement_generic_sparse(parent, entries):
+    cdef FreeModuleElement_generic_sparse v
     v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
-    v.__dict__ = D
-    FreeModuleElement.__init__(v, parent)
+    v._entries = entries
+    v._parent = parent
     return v
 
-class FreeModuleElement_generic_sparse(FreeModuleElement):
+cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
     A generic_sparse is a dictionary with keys ints i and entries in
     the base ring.
+
+    This is called implicitly when you pickle this vector.
+
+    EXAMPLES:
+        sage: v = FreeModule(ZZ, 3, sparse=True).0
+        sage: loads(dumps(v)) == v
+        True
+        sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
+        sage: loads(dumps(v)) == v
+        True
     """
     def __init__(self, parent,
                  entries=0,
@@ -527,25 +550,10 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
             elif copy:
                 # Make a copy
                 entries = dict(entries)
-        self.__entries = entries
-        self.__zero = R(0)
+        self._entries = entries
 
     def __reduce__(self):
-        """
-        This is called implicitly when you pickle this vector.
-
-        EXAMPLES:
-            sage: v = FreeModule(ZZ, 3, sparse=True).0
-            sage: loads(dumps(v)) == v
-            True
-            sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
-            sage: loads(dumps(v)) == v
-            True
-        """
-        # Pyrex types can't be pickled.  Thus writing
-        #      return (FreeModuleElement_generic_sparse, (...))
-        # will not work, since the first element of the tuple must be pickle-able.
-        return  (make_FreeModuleElement_generic_sparse, (self.parent(), self.__dict__))
+        return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries))
 
     def __getitem__(self, i):
         #if not isinstance(i, int):
@@ -554,9 +562,9 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         if i < 0 or i >= self.degree():
             raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
                             self.degree()-1)
-        if self.__entries.has_key(i):
-            return self.__entries[i]
-        return self.__zero
+        if self._entries.has_key(i):
+            return self._entries[i]
+        return self.base_ring()(0)  # optimize this somehow
 
     def get(self, i):
         """
@@ -564,9 +572,10 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         Returns 0 if access is out of bounds.
         """
         i = int(i)
-        if self.__entries.has_key(i):
-            return self.__entries[i]
-        return self.__zero
+        if self._entries.has_key(i):
+            return self._entries[i]
+        return self.base_ring()(0)  # optimize this somehow
+
 
     def set(self, i, x):
         """
@@ -574,10 +583,10 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         i = int(i)
         if x == 0:
-            if self.__entries.has_key(i):
-                del self.__entries[i]
+            if self._entries.has_key(i):
+                del self._entries[i]
             return
-        self.__entries[i] = x
+        self._entries[i] = x
 
     def __setitem__(self, i, value):
         """
@@ -602,16 +611,16 @@ class FreeModuleElement_generic_sparse(FreeModuleElement):
         return d
 
     def entries(self):
-        return self.__entries
+        return self._entries
 
     def dict(self):
-        return self.__entries
+        return self._entries
 
     def nonzero_positions(self):
         """
         Returns the set of pairs (i,j) such that self[i,j] != 0.
         """
-        K = self.__entries.keys()
+        K = self._entries.keys()
         K.sort()
         return K
 

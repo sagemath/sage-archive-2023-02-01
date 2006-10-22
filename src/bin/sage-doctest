@@ -88,13 +88,6 @@ def doc_preparse(s):
                sl.find('package') != -1 and sl.find('installed'):
         return ''
 
-    # This messes up the tex backslashes, so we don't do it.
-    #i = s.find('\\')
-    #while i != -1:
-    #    j = s[i:].find('\n')
-    #    s = s[:i] + s[i+j+1:]
-    #    i = s.find('\\')
-
     # Deal with code whose output should be ignored.
     s = s.replace("sage.:", "\nsage.:")
     t = []

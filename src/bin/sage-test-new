@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+import os
+
+
+print "Testing all files that have changed in the repository"
+print "that have not yet been commited using 'hg_sage.commit()'."
+
+os.chdir('%s/devel/sage'%os.environ['SAGE_ROOT'])
+
+v = os.popen('sage -hg status').read()
+print v
+F = []
+for X in v.split('\n'):
+    try:
+        c, filename = X.split()
+    except:
+        break
+    if c == 'M':
+        F.append(filename)
+
+if len(F) == 0:
+    print "No files to test."
+else:
+    cmd = 'sage -t %s'%(' '.join([str(x) for x in F]))
+    print cmd
+    os.system(cmd)
+

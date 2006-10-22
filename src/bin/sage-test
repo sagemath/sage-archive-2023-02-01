@@ -53,10 +53,11 @@ def test(F, cmd):
         return 0
     try:
         s = "%s/local/bin/sage-%s %s"%(SAGE_ROOT, cmd, F)
-        err = os.system(s)
+        err = os.system(s)   # need to catch control c by writing to a file and looking at it??
     except KeyboardInterrupt:
-        print "Keyboard interrupt"
-        err = 1
+        print "Keyboard Interrupt"
+        print "Aborting further tests."
+        sys.exit(1)
     if err != 0:
         failed.append(abs(F))
     os.system("mv -f __test* %s 2>/dev/null"%(TMP))
@@ -98,7 +99,8 @@ if len(files) == 0:
 for F in files:
     e = test_file(F)
     if e:
-        sys.exit(1)
+        print "exit code: %s"%e
+    #    sys.exit(1)
 
 print " "
 print "-"*int(70)

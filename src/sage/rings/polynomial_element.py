@@ -171,25 +171,26 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
 
     def _cmp_(self, other):
         """
+        Compare the two polynomials self and other.
+
+        We order polynomials in dictionary order starting with the *linear* coefficients.
+
         EXAMPLES:
-            sage: x = QQ['x'].0
+            sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
-            True
-            sage: f = x^2 - 2*x + 1; g= x^2 - 1
-            sage: f < g
-            True
-            sage: f > g
             False
-            sage: g < f
+            sage: x^2 - 2*x - 1 < x^2 - 1
+            True
+            sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: g > f
+            sage: R(-1) < R(0)
             True
         """
-        #if not isinstance(other, Polynomial) or other.parent() != self.parent():
-        #    return coerce_cmp(self, other)
-        c = cmp(self.degree(), other.degree())
-        if c: return c
-        return cmp(list(reversed(self.list())), list(reversed(other.list())))
+        m = max(self.degree(), other.degree())
+        for i in xrange(m):
+            c = cmp(self[i], other[i])
+            if c: return c
+        return 0
 
     def __nonzero__(self):
         """

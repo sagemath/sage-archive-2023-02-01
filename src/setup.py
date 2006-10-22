@@ -455,6 +455,11 @@ def process_pyrexembed_file(f, m):
     return [cpp_file, c_file]
 
 def process_pyrex_file(f, m):
+    """
+    INPUT:
+        f -- file name
+        m -- Extension module description (i.e., object of type Extension).
+    """
     # This is a pyrex file, so process accordingly.
     g = os.path.splitext(f)[0]
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
@@ -465,7 +470,7 @@ def process_pyrex_file(f, m):
     if m.language == 'c++':
         out_file += 'pp'
     if need_to_create(f, out_file) or need_to_create(g + '.pxd', out_file):
-        cmd = "pyrexc -I%s %s"%(os.getcwd(),f)
+        cmd = "pyrexc -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:

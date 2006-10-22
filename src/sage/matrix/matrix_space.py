@@ -188,8 +188,8 @@ class MatrixSpace_generic(gens.Generators):
             self.__ncols = ncols
         self.__matrix_class = self._get_matrix_class()
 
-    def __call__(self, entries=0, copy=True):
-        return self.matrix(entries, True, copy)
+    def __call__(self, entries=0, coerce=True, copy=True):
+        return self.matrix(entries, coerce=coerce, copy=copy)
 
     def _coerce_(self, x):
         """

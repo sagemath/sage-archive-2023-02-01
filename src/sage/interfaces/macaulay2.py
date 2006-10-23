@@ -100,8 +100,9 @@ from sage.misc.misc import verbose
 def clean_output(s):
     i = s.find('= ')
     if i == -1:
-        return ''
-    return s[i+2:-1]
+        return s
+    j = s[:i].rfind('\n')
+    return (s[:j] + ' '*(i+1) + s[i+2:-1]).strip()
 
 class Macaulay2(Expect):
     """
@@ -128,7 +129,7 @@ class Macaulay2(Expect):
     def _read_in_file_command(self, filename):
         return 'value get "%s"'%filename
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=False):
         """
         Send the code x to the Macaulay2 interpreter and return the output
         as a string suitable for input back into Macaulay2, if possible.
@@ -137,22 +138,19 @@ class Macaulay2(Expect):
             code -- str
             strip -- ignored
         """
-        if strip:
-            code = code.strip()
+        code = code.strip()
         # TODO: in some cases change toExternalString to toString??
-        ans = Expect.eval(self, 'toExternalString(%s)'%code, strip=strip)
-        if ans.find("stdio:") != -1:
-            if 'cannot be converted to external string' in ans:
-                return clean_output(Expect.eval(self, '%s'%code))
-            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, ans)
-        return clean_output(ans)
+        ans = Expect.eval(self, code, strip=strip)
+        if strip:
+            ans = clean_output(ans)
+        return ans
 
 
     def get(self, var):
         """
         Get the value of the variable var.
         """
-        return self.eval("%s"%var)
+        return self.eval("describe %s"%var, strip=False)
 
     def set(self, var, value):
         """
@@ -262,6 +260,20 @@ class Macaulay2Element(ExpectElement):
     def __iter__(self):
         for i in range(len(self)):  # zero-indexed!
             yield self[i]
+
+    def __repr__(self):
+        P = self._check_valid()
+        return P.get(self.name())
+
+    def str(self):
+        P = self._check_valid()
+        X = P.eval('toExternalString(%s)'%self.name(), strip=True)
+        if 'stdio:' in X:
+            if 'cannot be converted to external string' in ans:
+                return clean_output(P.eval(self, '%s'%code))
+            raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, ans)
+        return X
+
 
     def __len__(self):
         self._check_valid()

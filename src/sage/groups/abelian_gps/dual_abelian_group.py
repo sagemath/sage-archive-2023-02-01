@@ -3,6 +3,7 @@ Basic functionality for dual groups of finite multiplicative Abelian groups
 
 AUTHOR:
     -- David Joyner (2006-08) (based on abelian_groups)
+    -- David Joyner (2006-10) modifications suggested by William Stein
 
 TODO:
    * additive abelian groups should also be supported.
@@ -39,15 +40,20 @@ import copy
 from sage.rings.integer import Integer
 
 from sage.rings.infinity import Infinity
-from sage.rings.arith import factor,is_prime_power
+from sage.rings.arith import factor,is_prime_power,LCM
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from sage.misc.misc import add, prod
 import sage.groups.group as group
 from abelian_group import AbelianGroup
 from dual_abelian_group_element import DualAbelianGroupElement,is_DualAbelianGroupElement
 from sage.misc.mrange import mrange
+from sage.rings.integer_ring import IntegerRing
+ZZ = IntegerRing()
+from sage.rings.complex_field import ComplexField
+CC = ComplexField()
+from sage.rings.number_field.number_field import CyclotomicField
 
-def DualAbelianGroup(G, names="X"):
+def DualAbelianGroup(G, names="X", base_ring=CC):
     r"""
     Create the dual group of the multiplicative abelian group $G$.
 
@@ -77,7 +83,7 @@ def DualAbelianGroup(G, names="X"):
     #infac = G.invariants()
     #n = G.ngens()
     #namesG = [G.gen(i) for i in range(n)]
-    M = DualAbelianGroup_class(G, names)
+    M = DualAbelianGroup_class(G, names, base_ring)
     return M
 
 def is_DualAbelianGroup(x):
@@ -107,18 +113,31 @@ class DualAbelianGroup_class(group.AbelianGroup):
     EXAMPLES:
         sage: F = AbelianGroup(5,[3,5,7,8,9],names = list("abcde"))
         sage: DualAbelianGroup(F)
-        Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z
+        Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
         sage: F = AbelianGroup(4,[15,7,8,9],names = list("abcd"))
         sage: DualAbelianGroup(F)
-        Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z
+        Dual of Abelian Group isomorphic to Z/3Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
 
     """
-    def __init__(self, G, names="X"):
+    def __init__(self, G, names="X", bse_ring=None):
+        """
+        If G has invariants invs = [n1,...,nk] then
+        the default base_ring is CyclotoomicField(N), where
+        N = LCM(n1,...,nk).
+        """
+        if bse_ring == None:
+            base_ring = CyclotomicField(LCM(G.invariants()))
+        else:
+            base_ring = bse_ring
         self.__group = G
         self.assign_names(names)
+        self._base_ring = base_ring
 
     def group(self):
         return self.__group
+
+    def base_ring(self):
+        return self._base_ring
 
     def __str__(self):
         """
@@ -135,6 +154,16 @@ class DualAbelianGroup_class(group.AbelianGroup):
         return s
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: F = AbelianGroup(5, [2,5,7,8,9], names='abcde')
+            sage: Fd = DualAbelianGroup(F,names='ABCDE',base_ring = CyclotomicField(2*5*7*8*9))
+            sage: Fd
+            Dual of Abelian Group isomorphic to Z/2Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Cyclotomic Field of order 5040 and degree 1152
+            sage: Fd = DualAbelianGroup(F,names='ABCDE')
+            sage: Fd
+            Dual of Abelian Group isomorphic to Z/2Z x Z/5Z x Z/7Z x Z/8Z x Z/9Z  over Complex Field with 53 bits of precision
+        """
         G = self.group()
         eldv = G.elementary_divisors()
         gp = ""
@@ -144,7 +173,7 @@ class DualAbelianGroup_class(group.AbelianGroup):
             if x==0:
                 gp = gp + "Z x "
         gp = gp[:-2]
-        s = "Dual of Abelian Group isomorphic to "+gp
+        s = "Dual of Abelian Group isomorphic to "+gp+" over %s"%self.base_ring()
         return s
 
     def _latex_(self):

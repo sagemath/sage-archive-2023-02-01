@@ -1,11 +1,5 @@
 """
 Dense matrices over the rational field.
-
-This is a compiled implementation of dense matrix algebra over the
-rational numbers, which is used mainly internally by other classes.
-
-TODO:
-    -- do one big allocation instead of lots of small ones.
 """
 
 #*****************************************************************************

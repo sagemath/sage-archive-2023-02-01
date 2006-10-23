@@ -216,10 +216,10 @@ cdef class MatrixWindow:
         return self._matrix.matrix_window(self._matrix, _row + row, _col + col, n_rows, n_cols)
 
     def nrows(MatrixWindow self):
-        return _nrows
+        return self._nrows
 
     def ncols(MatrixWindow self):
-        return _ncols
+        return self._ncols
 
 
     def set_to(MatrixWindow self, MatrixWindow A):

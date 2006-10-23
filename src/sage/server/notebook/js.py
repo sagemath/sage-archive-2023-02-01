@@ -646,7 +646,7 @@ function unlock_worksheet() {
 
 function unlock_worksheet_submit(e,passcode) {
     if(is_submit(e)) {
-        document.cookie = "ws_"+worksheet_name+"_passcode="+passcode;
+        document.cookie = "ws_"+worksheet_filename+"_passcode="+passcode;
         async_request('/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
         return false;
     }

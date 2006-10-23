@@ -265,7 +265,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
     def auth_worksheet(self, W):
-        n = W.name()
+        n = W.filename()
         passcode = ''
         if self.cookie.has_key('ws_%s_passcode'%n):
             passcode = self.cookie['ws_%s_passcode'%n].value
@@ -525,7 +525,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_cookie(self):
         self.cookie=Cookie.SimpleCookie()
         if self.headers.has_key('cookie'):
-            self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+            try:
+                self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+            except Cookie.CookieError, msg:
+                print msg
+                pass
 
     def authorize(self):
         username = password = "";

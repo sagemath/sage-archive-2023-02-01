@@ -2,10 +2,10 @@
 Sparse matrices over the integers.
 """
 
-cimport matrix_integer
-import matrix_integer
+cimport matrix_sparse
+import matrix_sparse
 
-cdef class Matrix_integer_sparse(matrix_integer.Matrix_integer):
+cdef class Matrix_integer_sparse(matrix_sparse.Matrix_pid_sparse):
 
-    def __init__(self, parent, coerce=None, copy=True):
-        matrix_integer.Matrix_integer.__init__(self, parent)
+    def __init__(self, parent, coerce_entries=None, copy=True):
+        matrix_sparse.Matrix_pid_sparse.__init__(self, parent)

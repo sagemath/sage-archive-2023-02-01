@@ -2,9 +2,9 @@ include "../ext/cdefs.pxi"
 include "../ext/interrupt.pxi"
 
 
-cimport matrix_integer
+cimport matrix_pid
 
-cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
+cdef class Matrix_integer_dense(matrix_pid.Matrix_pid):
     cdef mpz_t *_entries
     cdef mpz_t **_matrix
     cdef mpz_t tmp

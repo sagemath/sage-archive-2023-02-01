@@ -94,7 +94,8 @@ import sage.rings.integer_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.gens as gens
-
+import sage.modules.RealDoubleVectors
+import sage.modules.ComplexDoubleVectors
 from sage.structure.sequence import Sequence
 
 
@@ -208,38 +209,44 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         [1 2]
         [3 4]
     """
-    #global _cache
+    global _cache
     rank = int(rank)
     if not (inner_product_matrix is None):
         inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
 
     # Caching disabled since inner product matrix can be changed at any time.
     # Enabling caching saves little and might lead to difficult to understand bugs.
+    key = (base_ring, rank, sparse, inner_product_matrix)
+    if _cache.has_key(key):
+        M = _cache[key]()
+        if not (M is None):
+            return M
 
-    #key = (base_ring, rank, sparse, inner_product_matrix)
-    #if _cache.has_key(key):
-    #    M = _cache[key]()
-    #    if not (M is None):
-    #        return M
-
-    if not isinstance(base_ring, commutative_ring.CommutativeRing):
+    if not base_ring.is_commutative():
         raise TypeError, "base_ring must be a commutative ring"
+    if isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+        M = RealDoubleVectorSpace_class(rank)
+    elif isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+        M=ComplexDoubleVectorSpace_class(rank)
 
-    if isinstance(base_ring, field.Field):
+    elif isinstance(base_ring, field.Field):
         M = FreeModule_ambient_field(base_ring, rank,
                                         sparse=sparse, inner_product_matrix=inner_product_matrix)
 
     elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
         M = FreeModule_ambient_pid(base_ring, rank,
                                    sparse=sparse, inner_product_matrix=inner_product_matrix)
+
     elif isinstance(base_ring, integral_domain.IntegralDomain):
         M = FreeModule_ambient_domain(base_ring, rank,
                                          sparse=sparse, inner_product_matrix=inner_product_matrix)
+
+
     else:
         M = FreeModule_ambient(base_ring, rank,
                                   sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    #_cache[key] = weakref.ref(M)
+    _cache[key] = weakref.ref(M)
     return M
 
 
@@ -3255,3 +3262,32 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
 
 def basis_seq(V, w):
     return Sequence(w, universe=V, check = False, immutable=True, cr=True)
+
+
+
+
+
+#class FreeModule_real_double(sage.modules.free_module.FreeModule_ambient_field):
+
+
+
+class RealDoubleVectorSpace_class(FreeModule_ambient_field):
+    def __init__(self,n):
+        FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
+        self._element_class = sage.modules.RealDoubleVectors.RealDoubleVectorSpace_element
+
+#    def __call__(self,x,coerce_entries=True,copy=True,check_elements=True):
+
+#        return sage.modules.RealDoubleVectors.RealDoubleVectorSpace_element(self.rank(),x)
+
+    def coordinates(self,v):
+        return v
+
+class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
+    def __init__(self,n):
+        FreeModule_ambient_field.__init__(self,sage.rings.complex_double.CDF,n)
+        self._element_class = sage.modules.ComplexDoubleVectors.ComplexDoubleVectorSpace_element
+
+
+    def coordinates(self,v):
+        return v

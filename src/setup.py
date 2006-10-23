@@ -148,14 +148,6 @@ matrix_dense = Extension('sage.matrix.matrix_dense',
 matrix_sparse = Extension('sage.matrix.matrix_sparse',
               ['sage/matrix/matrix_sparse.pyx'])
 
-todo_delete_this =   Extension('sage.matrix.sparse_matrix_pyx',
-              ['sage/matrix/sparse_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp'])
-
 matrix_domain = Extension('sage.matrix.matrix_domain',
               ['sage/matrix/matrix_domain.pyx'])
 
@@ -226,6 +218,13 @@ real_double = Extension('sage.rings.real_double',
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'])
+
+RealDoubleVectors = Extension('sage.modules.RealDoubleVectors',['sage/modules/RealDoubleVectors.pyx'],
+                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')])
+
+ComplexDoubleVectors = Extension('sage.modules.ComplexDoubleVectors',['sage/modules/ComplexDoubleVectors.pyx'],libraries = ['gsl',CBLAS,'pari','gmp'],
+                                define_macros= [('GSL_DISABLE_DEPRECATED','1')])
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 
@@ -244,7 +243,8 @@ dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
 
 ext_modules = [ \
     free_module_element, \
-
+    ComplexDoubleVectors,\
+    RealDoubleVectors,\
     ec, \
     pari, \
 
@@ -266,6 +266,7 @@ ext_modules = [ \
     matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
+
     todo_delete_this,
 
     dwt,

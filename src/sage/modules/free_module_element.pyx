@@ -11,11 +11,13 @@ include '../ext/cdefs.pxi'
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 cimport sage.structure.coerce
-import sage.matrix.matrix
 cimport sage.structure.element
+
+cimport sage.matrix.matrix_generic
 
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
+
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -157,9 +159,9 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         if isinstance(right, FreeModuleElement):
             # vector x vector -> dot product
             return self.dot_product(right)
-        if isinstance(right, sage.matrix.matrix.Matrix):
+        if isinstance(right, sage.matrix.matrix_generic.Matrix):
             # vector x matrix multiply
-            return self._matrix_multiply(right)
+            return (<FreeModuleElement>self)._matrix_multiply(right)
 
         try:
             right = self.base_ring()(right)
@@ -169,9 +171,10 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             except (AttributeError, TypeError):
                 raise TypeError, "unable to multiply self by right"
             else:
-                return self.parent().ambient_vector_space()(self)._scalar_multiply(right)
+                v = self.parent().ambient_vector_space()(self)
+                return (<FreeModuleElement>v)._scalar_multiply(right)
 
-        return self._scalar_multiply(scalar)
+        return (<FreeModuleElement>self)._scalar_multiply(right)
 
     def __div__(left, right):
         return left * ~(left.parent().base_ring()(right))

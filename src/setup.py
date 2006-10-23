@@ -223,8 +223,7 @@ complex_double = Extension('sage.rings.complex_double',
 RealDoubleVectors = Extension('sage.modules.RealDoubleVectors',['sage/modules/RealDoubleVectors.pyx'],
                               libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')])
 
-ComplexDoubleVectors = Extension('sage.modules.ComplexDoubleVectors',['sage/modules/ComplexDoubleVectors.pyx'],libraries = ['gsl',CBLAS,'pari','gmp'],
-                                define_macros= [('GSL_DISABLE_DEPRECATED','1')])
+ComplexDoubleVectors = Extension('sage.modules.ComplexDoubleVectors',['sage/modules/ComplexDoubleVectors.pyx'],
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 
@@ -266,8 +265,6 @@ ext_modules = [ \
     matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
-
-    todo_delete_this,
 
     dwt,
     gsl_array,

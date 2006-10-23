@@ -81,7 +81,8 @@ import free_module_element
 import module
 
 import sage.matrix.matrix_space
-import sage.matrix.matrix
+
+import sage.matrix.matrix_generic
 
 import sage.misc.latex as latex
 
@@ -789,7 +790,7 @@ class FreeModule_generic(module.Module):
             sage: v.inner_product(v)
             2
         """
-        if not isinstance(A, sage.matrix.matrix.Matrix):
+        if not isinstance(A, sage.matrix.matrix_generic.Matrix):
             A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.rank())(A)
         else:
             if A.nrows() != self.rank():

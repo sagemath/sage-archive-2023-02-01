@@ -1095,8 +1095,9 @@ def notebook(dir         ='sage_notebook',
                     'gmail'
                     'grey'
                     ('#ff0000', '#0000ff')
-        system -- default computer algebra system to use for new
-                  worksheets.
+        system -- (string) default computer algebra system to use for new
+                  worksheets, e.g., 'maxima', 'gp', 'axiom', 'mathematica', 'macaulay2',
+                  'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
         jsmath -- whether not to enable javascript typset output for math.
 
         debug -- whether or not to show a javascript debugging window

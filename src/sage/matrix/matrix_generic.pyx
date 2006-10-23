@@ -703,7 +703,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         return self*other - other*self
 
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
@@ -1626,30 +1626,35 @@ cdef class Matrix(sage.structure.element.ModuleElement):
                 A[i,j] = self[i,j] + right[i,j]
         return A
 
-    def __cmp__(self, right):
-        if not isinstance(right, Matrix) or right.parent() != self.parent():
+    #def __cmp__(self, right):
+    #    if not isinstance(right, Matrix) or right.parent() != self.parent():
+    #        return sage.structure.coerce.cmp(self, right)
+    #    return cmp(self._entries(), right._entries())
+
+    def __richcmp__(self, right, int op):
+        if not isinstance(right, Matrix) or not (right._parent is self._parent):
+            # todo: can make faster using the cdef interface to coerce
             return sage.structure.coerce.cmp(self, right)
-        return cmp(self._entries(), right._entries())
 
-##     def __richcmp__(self,right,op):
-##         res = 0
-##         if not isinstance(right, Matrix) or right.parent() != self.parent():
-##             res = sage.ext.coerce.cmp(self, right)
-##         else:
-##             res = cmp(self._entries(), right._entries())
+        cdef int r
+        r = self._cmp_sibling_cdef(right)
 
-##         if op == 0:  #<
-##             return bool(res  < 0)
-##         if op == 2: #==
-##             return bool(res == 0)
-##         if op == 4: #>
-##             return bool(res  > 0)
-##         if op == 1: #<=
-##             return bool(res <= 0)
-##         if op == 3: #!=
-##             return bool(res != 0)
-##         if op == 5: #>=
-##             return bool(res >= 0)
+        if op == 0:  #<
+            return bool(res  < 0)
+        elif op == 2: #==
+            return bool(res == 0)
+        elif op == 4: #>
+            return bool(res  > 0)
+        elif op == 1: #<=
+            return bool(res <= 0)
+        elif op == 3: #!=
+            return bool(res != 0)
+        elif op == 5: #>=
+            return bool(res >= 0)
+
+#    cdef _cmp_sibling_cdef(self, Matrix right):
+#        return cmp(self._entries(), right._entries())
+
 
     def __nonzero__(self):
         """

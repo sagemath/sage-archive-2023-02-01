@@ -68,4 +68,6 @@ include "gsl_roots.pxi"
 include "gsl_min.pxi"
 include "gsl_fit.pxi"
 include "gsl_errno.pxi"
-include "gsl_wavelet.pxi"
+
+# this conflicts with gsl_fft.pxi, at least if GSL_DISABLE_DEPRECATED is set.
+# include "gsl_wavelet.pxi"

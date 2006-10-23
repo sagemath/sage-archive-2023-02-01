@@ -304,12 +304,16 @@ cdef class AdditiveGroupElement(ModuleElement):
         """
         return self.additive_order()
 
-    #def _mul_(self, x):
-    #    raise ArithmeticError, "multiplication not defined in an additive group"
-
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
+    #def _mul_(self, x):
+    #    raise ArithmeticError, "multiplication not defined in an additive group"
+
+
+    # TODO: -- what the hell?  Why is _mul_ defined for an *additive* group element!?
+    # Fix this.   This is really annoying.   It should be like above, and this
+    # should be _add_.
     def _mul_(self, m):
         m = int(m)
         if m<0:
@@ -387,7 +391,6 @@ cdef class RingElement(Element):
         if (PY_TYPE(self) is PY_TYPE(right)) or \
                    (PY_TYPE_CHECK(right, RingElement) and \
                     PY_TYPE_CHECK(self, RingElement)):
-        #if (PY_TYPE(self) is PY_TYPE(right)):
             # If parents agree, then we can use _add_sibling_cdef.
             if (<RingElement>right)._parent is (<RingElement>self)._parent:
                 return (<RingElement>self)._add_sibling_cdef(
@@ -403,7 +406,6 @@ cdef class RingElement(Element):
                   or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
-
 
     cdef RingElement _add_sibling_cdef(RingElement self, RingElement right):
         """

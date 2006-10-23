@@ -8,8 +8,8 @@ import weakref
 
 # SAGE imports
 import sage.structure.gens as gens
-import matrix
 
+import matrix_generic
 import matrix_dense
 import matrix_domain
 import matrix_pid
@@ -392,7 +392,7 @@ class MatrixSpace_generic(gens.Generators):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()
-        if isinstance(x, matrix.Matrix):
+        if matrix_generic.is_Matrix(x):
             if x.parent() == self:
                 return x.copy()
             x = x.list()
@@ -482,12 +482,11 @@ class MatrixSpace_pid(MatrixSpace_domain):
     def _get_matrix_class(self):
         if self.is_dense():
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
-#                return matrix_integer_dense.Matrix_integer_dense
-                return matrix.Matrix_dense_integer
+                return matrix_integer_dense.Matrix_integer_dense
             return matrix_pid.Matrix_pid
         else:
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
-                return matrix.Matrix_sparse_integer
+                return matrix_integer_sparse.Matrix_sparse_integer
             return matrix_sparse.Matrix_pid_sparse
 
 

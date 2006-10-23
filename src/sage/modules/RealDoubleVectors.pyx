@@ -1,21 +1,10 @@
 #Modify free_module.py to check if base_ring is RealDoubleField and if so call this constructor#
 
-#include '../gsl/gsl.pxi'
-#ctypedef int size_t
-
 cimport free_module_element
 import  free_module_element
 
 cimport ComplexDoubleVectors
 import  ComplexDoubleVectors
-
-
-#import sage.modules.free_module
-#cdef extern from "Python.h":
-#    int PyObject_TypeCheck(object o,object t)
-
-#cdef extern from "free_module_element.h":
-#    object _add_(sage.modules.free_module_element.FreeModuleElement o, sage.modules.free_module_element.FreeModuleElement t)
 
 
 import sage.rings.complex_double
@@ -25,11 +14,6 @@ import sage.rings.complex_double
 
 
 cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
-#    cdef double* vec
-#    cdef size_t n
-#    cdef size_t stride
-
-
 
     def __init__(self,parent,x,coerce_entries=True,copy=True):
         free_module_element.FreeModuleElement.__init__(self,sage.rings.real_double.RDF)

@@ -192,9 +192,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     def ngens(self):
         return 1
 
-    def characteristic(self):
-        return 0
-
 
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 #    cdef gsl_complex _complex

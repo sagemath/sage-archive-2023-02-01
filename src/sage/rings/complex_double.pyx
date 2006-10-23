@@ -198,6 +198,9 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     def __init__(self, real, imag):
         self._complex = gsl_complex_rect(real, imag)
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __richcmp__(ComplexDoubleElement self, right, int op):
         """
         We order the complex numbers in dictionary order by real

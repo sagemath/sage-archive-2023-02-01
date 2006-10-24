@@ -25,6 +25,9 @@ cdef process(s):
     else:
         return s
 
+
+include '../ext/stdsage.pxi'
+
 cdef class SageObject:
 
     #############################################################################
@@ -139,7 +142,7 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps(compress))
+        open(filename, 'wb').write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -296,8 +299,8 @@ cdef class SageObject:
             try:
                 s = self._interface_init_()
             except AttributeError, msg1:
-                raise NotImplementedError, "coercion of %s (of type %s) to %s not implemented:\n%s\n%s"%\
-                      (self, type(self), I, msg0, msg1)
+                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
+                      (I, msg0, msg1)
         X = I(s)
         if c:
             try:
@@ -527,7 +530,7 @@ def save(obj, filename=None, compress=True):
         s = cPickle.dumps(obj, protocol=2)
         if compress:
             s = comp.compress(s)
-        open(process(filename), 'w').write(s)
+        open(process(filename), 'wb').write(s)
 
 def dumps(obj, compress=True):
     """

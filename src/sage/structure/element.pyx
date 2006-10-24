@@ -2,12 +2,19 @@
 Elements
 
 PYREX: sage.structure.element
+
+AUTHORS:
+   -- David Harvey (2006-10-16): changed CommutativeAlgebraElement to derive
+   from CommutativeRingElement instead of AlgebraElement
 """
 
 ##################################################################
 # Generic element, so all this functionality must be defined
 # by any element.  Derived class must call __init__
 ##################################################################
+
+include "../ext/cdefs.pxi"
+include "../ext/stdsage.pxi"
 
 import operator
 
@@ -297,12 +304,16 @@ cdef class AdditiveGroupElement(ModuleElement):
         """
         return self.additive_order()
 
-    #def _mul_(self, x):
-    #    raise ArithmeticError, "multiplication not defined in an additive group"
-
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
+    #def _mul_(self, x):
+    #    raise ArithmeticError, "multiplication not defined in an additive group"
+
+
+    # TODO: -- what the hell?  Why is _mul_ defined for an *additive* group element!?
+    # Fix this.   This is really annoying.   It should be like above, and this
+    # should be _add_.
     def _mul_(self, m):
         m = int(m)
         if m<0:
@@ -366,13 +377,79 @@ cdef class RingElement(Element):
 ##         return not self.is_zero()
 
     def __add__(self, right):
-        if not isinstance(self, Element) or \
-               not isinstance(right, Element) or right.parent() != self.parent():
+        """
+        Addition for RingElements.
+
+        This method tries to call _add_sibling_cdef or _add_sibling. If the
+        parents disagree, it tries canonical coercion to make the parents
+        agree.
+        """
+        # We know at least one of the arguments is a RingElement. So if their
+        # types are *equal* (fast to check) then they are both RingElements.
+        # Otherwise use the slower test via PY_TYPE_CHECK.
+
+        if (PY_TYPE(self) is PY_TYPE(right)) or \
+                   (PY_TYPE_CHECK(right, RingElement) and \
+                    PY_TYPE_CHECK(self, RingElement)):
+            # If parents agree, then we can use _add_sibling_cdef.
+            if (<RingElement>right)._parent is (<RingElement>self)._parent:
+                return (<RingElement>self)._add_sibling_cdef(
+                                                     <RingElement>right)
+
+        # Fast pathway didn't work. Fall back on the old coercion code.
+        # todo:
+        # (1) optimise this too
+        # (2) change "parent != parent" to "parent is not parent" and see
+        #     what breaks
+        if not PY_TYPE_CHECK(self, RingElement) or \
+                  not PY_TYPE_CHECK(right, RingElement) \
+                  or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
 
-    def _add_(self, right):
-        raise NotImplementedError
+    cdef RingElement _add_sibling_cdef(RingElement self, RingElement right):
+        """
+        Adds two RingElements. They are assumed to belong to the SAME parent.
+        The return value MUST belong to the SAME parent.
+        """
+        # This default implementation tries to dispatch to a Python version
+        # (in case cdef version not available)
+        if self.__class__._add_sibling is RingElement._add_sibling:
+            # This is to prevent an infinite loop between _add_sibling_cdef
+            # and _add_sibling:
+            # raise NotImplementedError
+
+            # Actually, we can't do that right now, because most objects
+            # don't have _add_sibling yet. So we need to look up _add_
+            # as well:
+            if self.__class__._add_ is RingElement._add_:
+                raise NotImplementedError
+            else:
+                return self._add_(right)
+
+        else:
+            return self._add_sibling(right)
+
+
+    def _add_sibling(RingElement self, RingElement right):
+        """
+        Adds two RingElements. They are assumed to belong to the SAME parent.
+        The return value MUST belong to the SAME parent.
+        """
+        # This is the default Python implementation, which dispatches to any
+        # available cdef version.
+        return self._add_sibling_cdef(right)
+
+
+    def _add_(RingElement self, RingElement right):
+        """
+        See docstring for _add_sibling.
+
+        NOTE: The plan is to replace all '_add_' methods in SAGE by
+        '_add_sibling'. Eventually this method will be removed.
+        """
+        self._add_sibling_cdef(right)
+
 
     def __sub__(self, right):
         if not isinstance(self, Element) or \
@@ -589,6 +666,12 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
             return coerce.bin_op(self, right, coerce.xgcd)
         return self._xgcd(right)
 
+
+# This is pretty nasty low level stuff. The idea is to speed up construction
+# of EuclideanDomainElements (in particular Integers) by skipping some tp_new
+# calls up the inheritance tree.
+PY_SET_TP_NEW(EuclideanDomainElement, Element)
+
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
     def degree(self):
@@ -678,7 +761,7 @@ cdef class FieldElement(CommutativeRingElement):
 cdef class AlgebraElement(RingElement):
     pass
 
-cdef class CommutativeAlgebraElement(AlgebraElement):
+cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
 
 cdef class InfinityElement(RingElement):

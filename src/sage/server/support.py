@@ -12,7 +12,6 @@ import string
 import sage.plot.plot
 import sage.structure.sage_object
 import sage.misc.latex
-import sage.all
 import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc

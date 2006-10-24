@@ -36,6 +36,7 @@ import sage.rings.polynomial_ring
 from sage.rings.coerce import bin_op, cmp as coerce_cmp
 import arith
 import sage.rings.ring_element as ring_element
+import sage.rings.commutative_algebra_element as commutative_algebra_element
 import sage.rings.euclidean_domain_element as euclidean_domain_element
 import sage.rings.integral_domain_element as integral_domain_element
 import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
@@ -77,12 +78,12 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(Element_cmp_, ring_element.RingElement):
+class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraElement):
     """
     Polynomial base class.
     """
     def __new__(cls, *args, **kwds):
-        return ring_element.RingElement.__new__(*args, **kwds)
+        return commutative_algebra_element.CommutativeAlgebraElement.__new__(*args, **kwds)
     __new__ = classmethod(__new__)
 
     def __init__(self, parent, is_gen = False, construct=False):
@@ -115,7 +116,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: y^3 - 2*y
             y^3 - 2*y
         """
-        ring_element.RingElement.__init__(self, parent)
+        commutative_algebra_element.CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
     def _add_(self, right):
@@ -170,25 +171,26 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
     def _cmp_(self, other):
         """
+        Compare the two polynomials self and other.
+
+        We order polynomials in dictionary order starting with the *linear* coefficients.
+
         EXAMPLES:
-            sage: x = QQ['x'].0
+            sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
-            True
-            sage: f = x^2 - 2*x + 1; g= x^2 - 1
-            sage: f < g
-            True
-            sage: f > g
             False
-            sage: g < f
+            sage: x^2 - 2*x - 1 < x^2 - 1
+            True
+            sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: g > f
+            sage: R(-1) < R(0)
             True
         """
-        #if not isinstance(other, Polynomial) or other.parent() != self.parent():
-        #    return coerce_cmp(self, other)
-        c = cmp(self.degree(), other.degree())
-        if c: return c
-        return cmp(list(reversed(self.list())), list(reversed(other.list())))
+        m = max(self.degree(), other.degree())
+        for i in xrange(m):
+            c = cmp(self[i], other[i])
+            if c: return c
+        return 0
 
     def __nonzero__(self):
         """

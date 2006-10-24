@@ -55,6 +55,12 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
         """
         return "Real Double Field"
 
+##########Josh's Modification#################
+    def __pow__(self,n,_):
+        return sage.ring.RealDoubleVectors.RealDoubleVectorSpace_class(n)
+
+###########################################
+
     def __call__(self, x):
         """
         Create a real double using x.

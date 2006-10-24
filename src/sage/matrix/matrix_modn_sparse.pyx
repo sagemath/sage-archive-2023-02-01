@@ -42,6 +42,7 @@ import random
 import sage.misc.all
 import sage.rings.finite_field
 import sage.rings.arith
+import sage.rings.integer
 
 cimport matrix_generic
 import matrix_generic
@@ -53,13 +54,6 @@ ai = sage.ext.arith.arith_int()
 
 include "../ext/cdefs.pxi"
 include '../ext/interrupt.pxi'
-
-cdef struct c_vector_modint:
-    int *entries
-    int *positions
-    int p
-    int degree
-    int num_nonzero
 
 cdef int allocate_c_vector_modint(c_vector_modint* v, int num_nonzero) except -1:
     """
@@ -480,10 +474,7 @@ cdef class Vector_modint:
         for i from 0 <= i < sparcity:
             self[random.randrange(self.v.degree)] = random.randrange(1,bound)
 
-cdef class Matrix_modn_sparse(matrix_generic.Matrix):
-    cdef c_vector_modint* rows
-    cdef public int nr, nc, p
-    cdef object __pivots
+cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     def __new__(self, parent, int p, int nrows, int ncols, object entries=[]):
         # allocate memory
@@ -517,7 +508,6 @@ cdef class Matrix_modn_sparse(matrix_generic.Matrix):
         if len(entries) == 0:
             return
 
-        print entries
         _sig_on
         for i, j, x in entries:
             y = x
@@ -544,7 +534,7 @@ cdef class Matrix_modn_sparse(matrix_generic.Matrix):
         X = {}
         for j from 0 <= j < self.rows[i].num_nonzero:
             n = self.rows[i].positions[j]
-            x = integer.Integer()
+            x = sage.rings.integer.Integer()
             x.set_si(self.rows[i].entries[j])
             X[n] = x
         return X
@@ -562,7 +552,7 @@ cdef class Matrix_modn_sparse(matrix_generic.Matrix):
         for i from 0 <= i < self.nr:
             for j from 0 <= j < self.rows[i].num_nonzero:
                 n = self.rows[i].positions[j]
-                x = integer.Integer()
+                x = sage.rings.integer.Integer()
                 x.set_si(self.rows[i].entries[j])
                 X[(i,n)] = x
         return X
@@ -587,6 +577,17 @@ cdef class Matrix_modn_sparse(matrix_generic.Matrix):
             for j from 0 <= j <= r:
                 self[i, random.randrange(0,self.nc)] = \
                         random.randrange(1,self.p)
+
+    def __repr__(self):
+        cdef int i, j
+        s = "[\n"
+        for i from 0 <= i < self.nr:
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            for j from 0 <= j < self.nc:
+                s = s + str(get_entry(&self.rows[i],j)) + ", "
+            s = s + "\n"
+        s = s[:-3] + "\n]"
+        return s
 
     def list(self):
         """
@@ -703,7 +704,7 @@ cdef class Matrix_modn_sparse(matrix_generic.Matrix):
         Return the rank found during the last echelon operation on self.
         Of course if self is changed, then the rank could be incorrect.
         """
-        if self.__pivots == None:
+        if self.__pivots is None:
             raise ArithmeticError, "Echelon form has not yet been computed."
         return len(self.__pivots)
 

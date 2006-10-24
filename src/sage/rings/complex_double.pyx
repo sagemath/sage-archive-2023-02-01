@@ -50,31 +50,29 @@ AUTHOR:
 import operator
 
 include '../ext/interrupt.pxi'
-include '../gsl/gsl_complex.pxi'
-include '../libs/pari/decl.pxi'
+#include '../gsl/gsl_complex.pxi'
+#include '../libs/pari/decl.pxi'
 
 cdef extern from "math.h":
     double modf (double value, double *integer_part)
     double M_PI_4
 
-cdef extern from "../ext/stdsage.h":
+cdef extern from "../libs/pari/misc.h":
     void set_gel(GEN x, long n, GEN z)
-
-
-
 
 from sage.misc.sage_eval import sage_eval
 
 cimport sage.structure.element
 cimport sage.rings.ring
 cimport sage.libs.pari.gen
+import integer
 
-import  sage.structure.coerce
+#import  sage.structure.coerce
 import  complex_number
 
-import  integer_ring
+#import  integer_ring
 
-import infinity
+#import infinity
 
 
 
@@ -94,6 +92,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+
+    def __hash__(self):
+        return 561162115
+    def characteristic(self):
+        return integer.Integer(0)
 
     def __cmp__(self, other):
         """
@@ -191,9 +194,14 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
 
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
-    cdef gsl_complex _complex
+#    cdef gsl_complex _complex
     def __init__(self, real, imag):
         self._complex = gsl_complex_rect(real, imag)
+        global the_complex_double_field
+        self._parent = the_complex_double_field
+
+    def __hash__(self):
+        return hash(str(self))
 
     def __richcmp__(ComplexDoubleElement self, right, int op):
         """
@@ -353,20 +361,11 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
     #######################################################################
     # Arithmetic
     #######################################################################
-    def _add_(ComplexDoubleElement self, ComplexDoubleElement right):
-        """
-        Add self and right.
-
-        EXAMPLES:
-            sage: CDF(2,-3)._add_(CDF(1,-2))
-            3.0 - 5.0*I
-        """
-        return new_element(gsl_complex_add(self._complex, right._complex))
 
     def __add__(x, y):
         try:
-            return x._add_(y)
-        except (TypeError, AttributeError):
+            return _add_(x, y)
+        except TypeError:
             return sage.rings.coerce.bin_op(x, y, operator.add)
 
     def _sub_(ComplexDoubleElement self, ComplexDoubleElement right):
@@ -1326,11 +1325,28 @@ cdef GEN complex_gen(x):
     return z._gen()
 
 
+cdef _add_(ComplexDoubleElement self, ComplexDoubleElement right):
+    """
+    Add self and right.
+
+    EXAMPLES:
+        sage: CDF(2,-3)._add_(CDF(1,-2))
+        3.0 - 5.0*I
+    """
+    return new_element(gsl_complex_add(self._complex, right._complex))
+
+
+
 #####################################################
 # unique objects
 #####################################################
-ComplexDoubleField = ComplexDoubleField_class()
-CDF = ComplexDoubleField
+cdef object the_complex_double_field
+the_complex_double_field = ComplexDoubleField_class()
+
+def ComplexDoubleField():
+    return the_complex_double_field
+
+CDF = ComplexDoubleField()
 I = ComplexDoubleElement(0,1)
 
 #####

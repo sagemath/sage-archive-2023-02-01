@@ -100,12 +100,13 @@ Matrices
 import sage.modules.free_module_element
 import sage.modules.free_module
 import sage.misc.latex
-import sage.misc.functional
 import sage.structure.coerce
 from   sage.structure.sequence import _combinations
-from   sage.rings.integer_ring import IntegerRing
 
 from sage.structure.mutability_pyx cimport Mutability
+
+def is_Matrix(x):
+    return isinstance(x, Matrix)
 
 cdef class Matrix(sage.structure.element.ModuleElement):
     r"""
@@ -470,7 +471,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self.parent().matrix_space(nrows, ncols, sparse=sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
-                   coerce_entries=True, copy=True, sparse=None,
+                   coerce=True, copy=True, sparse=None,
                    clear = True, zero=True):
         """
         Create a matrix in the parent of this space with the given
@@ -479,9 +480,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         WARNING: This function called with no arguments returns the 0
         matrix by default, not the matrix self.
         """
-        # TO IMPLEMENT: propigate the zero flag
+        # TODO: propigate the zero flag
         return self.matrix_space(nrows, ncols, sparse=sparse).matrix(
-                entries, coerce_entries, copy)
+                entries, coerce, copy)
 
     ###################################################
     ## Properties
@@ -659,13 +660,16 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         bottom = other.new_matrix(ncols=self.ncols()).augment(other)
         return top.stack(bottom)
 
-    def change_ring(self, ring):
+    def change_ring(self, ring, copy=False):
         """
         Return the matrix obtained by coercing the entries of this
         matrix into the given ring.
         """
         if ring == self.base_ring():
-            return self
+            if copy:
+                return self.copy()
+            else:
+                return self
         M = sage.matrix.matrix_space.MatrixSpace(ring, self.__nrows, self.__ncols)
         return M(self.list())
 
@@ -699,12 +703,12 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         return self*other - other*self
 
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
         """
-        return self.new_matrix(entries=self._entries(), coerce_entries=False)
+        return self.new_matrix(entries=self._entries(), coerce=False)
 
     def dense_matrix(self):
         """
@@ -1153,7 +1157,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             sage: A.determinant()
             -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
         """
-        if self.__determinant != None:
+        if self.__determinant is not None:
             return self.__determinant
         if not self.is_square():
             raise ValueError, "self must be square but is %s x %s"%(
@@ -1622,30 +1626,35 @@ cdef class Matrix(sage.structure.element.ModuleElement):
                 A[i,j] = self[i,j] + right[i,j]
         return A
 
-    def __cmp__(self, right):
-        if not isinstance(right, Matrix) or right.parent() != self.parent():
+    #def __cmp__(self, right):
+    #    if not isinstance(right, Matrix) or right.parent() != self.parent():
+    #        return sage.structure.coerce.cmp(self, right)
+    #    return cmp(self._entries(), right._entries())
+
+    def __richcmp__(self, right, int op):
+        if not isinstance(right, Matrix) or not (right._parent is self._parent):
+            # todo: can make faster using the cdef interface to coerce
             return sage.structure.coerce.cmp(self, right)
-        return cmp(self._entries(), right._entries())
 
-##     def __richcmp__(self,right,op):
-##         res = 0
-##         if not isinstance(right, Matrix) or right.parent() != self.parent():
-##             res = sage.ext.coerce.cmp(self, right)
-##         else:
-##             res = cmp(self._entries(), right._entries())
+        cdef int r
+        r = self._cmp_sibling_cdef(right)
 
-##         if op == 0:  #<
-##             return bool(res  < 0)
-##         if op == 2: #==
-##             return bool(res == 0)
-##         if op == 4: #>
-##             return bool(res  > 0)
-##         if op == 1: #<=
-##             return bool(res <= 0)
-##         if op == 3: #!=
-##             return bool(res != 0)
-##         if op == 5: #>=
-##             return bool(res >= 0)
+        if op == 0:  #<
+            return bool(res  < 0)
+        elif op == 2: #==
+            return bool(res == 0)
+        elif op == 4: #>
+            return bool(res  > 0)
+        elif op == 1: #<=
+            return bool(res <= 0)
+        elif op == 3: #!=
+            return bool(res != 0)
+        elif op == 5: #>=
+            return bool(res >= 0)
+
+#    cdef _cmp_sibling_cdef(self, Matrix right):
+#        return cmp(self._entries(), right._entries())
+
 
     def __nonzero__(self):
         """

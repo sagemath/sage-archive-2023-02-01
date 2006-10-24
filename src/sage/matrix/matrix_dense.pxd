@@ -3,8 +3,7 @@ include "../ext/cdefs.pxi"
 cimport matrix_generic
 
 cdef class Matrix_dense(matrix_generic.Matrix):
-    cdef int _nrows, _ncols
-    cdef object _entries
+    cdef object __entries
     cdef int* _row_indices
 
 

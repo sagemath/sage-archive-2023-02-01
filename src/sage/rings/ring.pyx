@@ -1,5 +1,9 @@
 """
 Abstract base class for rings
+
+AUTHORS:
+    -- David Harvey (2006-10-16): changed CommutativeAlgebra to derive from
+    CommutativeRing instead of from Algebra
 """
 
 #*****************************************************************************
@@ -109,10 +113,25 @@ cdef class Ring(sage.structure.gens.Generators):
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
-        #if x.parent() is self:
-        #    return x
-        #raise TypeError
+        # TODO: Should uncommment this line and *do the work* to implement _coerce_
+        # everywhere else.
+        # raise NotImplementedError
         return self(x)
+
+    def has_natural_map_from(self, S):
+        """
+        Return True if there is a natural map from S to self.
+        Otherwise, return False.
+        """
+        # TODO This generic behavior is stupid and slow -- but is
+        # doing exactly what we want.  Moreover, again, as in _coerce_
+        # above, this should be "raise NotImplementedError", and all
+        # rings must define this.
+        try:
+            self(S(0))
+        except TypeError:
+            return False
+        return True
 
     def base_ring(self):
         import sage.rings.integer_ring
@@ -850,6 +869,8 @@ cdef class Algebra(Ring):
     Generic algebra
     """
     def __init__(self, base_ring):
+        if not isinstance(base_ring, Ring):
+            raise TypeError, "base ring must be a ring"
         self.__base_ring = base_ring
 
     def base_ring(self):
@@ -867,18 +888,27 @@ cdef class Algebra(Ring):
         return self.base_ring().characteristic()
 
 
-cdef class CommutativeAlgebra(Algebra):
+cdef class CommutativeAlgebra(CommutativeRing):
     """
-    Generic algebra
+    Generic commutative algebra
     """
     def __init__(self, base_ring):
-        Algebra.__init__(self, base_ring)
+        if not isinstance(base_ring, CommutativeRing):
+            raise TypeError, "base ring must be a commutative ring"
+        self.__base_ring = base_ring
 
     def base_ring(self):
         """
         Return the base ring of this commutative algebra.
         """
         return self.__base_ring
+
+    def characteristic(self):
+        """
+        Return the characteristic of this algebra, which is the same
+        as the characteristic of its base ring.
+        """
+        return self.base_ring().characteristic()
 
     def is_commutative(self):
         """

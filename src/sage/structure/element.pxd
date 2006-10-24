@@ -10,7 +10,8 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    cdef sage_object.SageObject _parent
+    #cdef sage_object.SageObject _parent
+    cdef object _parent
 
 cdef class ModuleElement(Element):
     pass
@@ -25,7 +26,7 @@ cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(Element):
-    pass
+    cdef RingElement _add_sibling_cdef(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass

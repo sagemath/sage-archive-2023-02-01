@@ -61,7 +61,7 @@ We solve an equation and a system of two equations:
 
     sage: eqn = mathematica('3x + 5 == 14')
     sage: eqn
-    5 + 3*x == 14
+             5 + 3 x == 14
     sage: eqn.Solve('x')
     {{x -> 3}}
     sage: sys = mathematica('{x^2 - 3y == 3, 2x - y == 1}')
@@ -78,9 +78,9 @@ this does not affect the $c$ in Mathematica.
 
     sage: c = m(5)
     sage: m('b + c x')
-    b + c*x
+                 b + c x
     sage: m('b') + c*m('x')
-    b + 5*x
+             b + 5 x
 
 The SAGE interfaces changes SAGE lists into Mathematica lists:
     sage: m = mathematica
@@ -107,7 +107,7 @@ interpreter.
 We find the $x$ such that $e^x - 3x = 0$.
     sage: e = mathematica('Exp[x] - 3x == 0')
     sage: e.FindRoot(['x', 2])
-    {x -> 1.512134551657842}
+             {x -> 1.51213}
 
 Note that this agrees with what the PARI interpreter gp produces:
     sage: gp('solve(x=1,2,exp(x)-3*x)')
@@ -117,11 +117,11 @@ Note that this agrees with what the PARI interpreter gp produces:
 Next we find the minimimum of a polynomial using the two
 different ways of accessing Mathematica:
 
-    sage: mathematica.eval('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')
-    '{0.6151, {x -> 2.57735}}'
+    sage: mathematica('FindMinimum[x^3 - 6x^2 + 11x - 5, {x,3}]')
+    {0.6151, {x -> 2.57735}}
     sage: f = mathematica('x^3 - 6x^2 + 11x - 5')
     sage: f.FindMinimum(['x', 3])
-    {0.6150998205402516, {x -> 2.5773502699629733}}
+    {0.6151, {x -> 2.57735}}
 
 
 \subsubsection{Polynomial and Integer Factorization}
@@ -134,14 +134,19 @@ We factor a polynomial of degree 200 over the integers.
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100
     sage: g = mathematica(str(f))
     sage: g
-    100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200
+                               2       100       101    200
+             100 + 315 x - 85 x  + 25 x    + 12 x    + x
+    sage: str(g)
+    '100 + 315*x - 85*x^2 + 25*x^100 + 12*x^101 + x^200'
     sage: g.Factor()
-    (20 - 5*x + x^100)*(5 + 17*x + x^100)
+                          100               100
+             (20 - 5 x + x   ) (5 + 17 x + x   )
 
 We can also factor a multivariate polynomial:
     sage: f = mathematica('x^6 + (-y - 2)*x^5 + (y^3 + 2*y)*x^4 - y^4*x^3')
     sage: f.Factor()
-    x^3*(x - y)*(-2*x + x^2 + y^3)
+              3                  2    3
+             x  (x - y) (-2 x + x  + y )
 
 We factor an integer:
     sage: n = mathematica(2434500)
@@ -177,13 +182,14 @@ examples test saving and loading to strings.
 
     sage: x = mathematica(pi/2)
     sage: x
-    Pi/2
+             Pi
+             --
+             2
     sage: loads(dumps(x)) == x
     True
     sage: n = x.N(50)
     sage: n
-    1.5707963267948966192313216916397514420985846996875529104874722962622    # 32-bit
-    1.57079632679489661923132169163975144209858469968755291048747229615390817334735   # 64-bit
+                  1.5707963267948966192313216916397514420985846996876
     sage: loads(dumps(n)) == n
     True
 
@@ -224,9 +230,9 @@ def clean_output(s):
         return ''
     i = s.find('Out[')
     j = i + s[i:].find('=')
-    s = s[:i] + s[j+1:]
+    s = s[:i] + ' '*(j+1-i) + s[j+1:]
     s = s.replace('\\\n','')
-    return s.strip()
+    return s.strip('\n')
 
 class Mathematica(Expect):
     """
@@ -337,7 +343,7 @@ command-line version of Mathematica.
         if len(out) > 8:
             raise TypeError, "Error executing code in Mathematica\nCODE:\n\t%s\nMathematica ERROR:\n\t%s"%(cmd, out)
 
-    def get(self, var):
+    def get(self, var, ascii_art=False):
         """
         Get the value of the variable var.
 
@@ -345,7 +351,10 @@ command-line version of Mathematica.
            -- William Stein
            -- Kiran Kedlaya (2006-02-04): suggested using InputForm
         """
-        return self.eval('InputForm[%s, NumberMarks->False]'%var, strip=True)
+        if ascii_art:
+            return self.eval(var, strip=True)
+        else:
+            return self.eval('InputForm[%s, NumberMarks->False]'%var, strip=True)
 
     #def clear(self, var):
     #    """
@@ -373,10 +382,10 @@ command-line version of Mathematica.
         return "}"
 
     def _true_symbol(self):
-        return 'True'
+        return '         True'
 
     def _false_symbol(self):
-        return 'False'
+        return '         False'
 
     def _equality_symbol(self):
         return '=='
@@ -429,6 +438,30 @@ class MathematicaElement(ExpectElement):
         i = z.find('=')
         return z[i+1:]
 
+    def __repr__(self):
+        P = self._check_valid()
+        return P.get(self._name, ascii_art=True)
+
+    def __str__(self):
+        P = self._check_valid()
+        return P.get(self._name, ascii_art=False).strip()
+
+    def str(self):
+        return str(self)
+
+    def _cmp_(self, other):
+        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
+        #    return coerce.cmp(self, other)
+        P = self.parent()
+        if P.eval("%s < %s"%(self.name(), other.name())).strip() == 'True':
+            return -1
+        elif P.eval("%s > %s"%(self.name(), other.name())).strip() == 'True':
+            return 1
+        elif P.eval("%s == %s"%(self.name(), other.name())).strip() == 'True':
+            return 0
+        else:
+            return -1  # everything is supposed to be comparable in Python, so we define
+                       # the comparison thus when no comparable in interfaced system.
 
 class MathematicaFunction(ExpectFunction):
     def _sage_doc_(self):

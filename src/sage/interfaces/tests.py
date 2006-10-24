@@ -1,5 +1,5 @@
 from all import *
-from sage.misc.all import cputime, walltime
+from sage.misc.misc import cputime, walltime
 import sys
 
 def manyvars(s, num=70000, inlen=1, step=2000):

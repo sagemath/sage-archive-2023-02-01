@@ -22,7 +22,7 @@ Manin symbols
 
 from sage.misc.search import search
 
-import sage.matrix.matrix
+import sage.matrix.all
 import sage.modular.congroup as congroup
 import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
@@ -561,7 +561,7 @@ class ManinSymbol(SageObject):
     def __mul__(self, matrix):
         if self.weight > 2:
             raise NotImplementedError
-        if isinstance(matrix, sage.matrix.matrix.Matrix):
+        if sage.matrix.all.is_Matrix(matrix):
             assert matrix.nrows() == 2 and matrix.ncols()==2, "matrix must be 2x2"
             matrix = matrix.list()
         return ManinSymbol(self.weight, \

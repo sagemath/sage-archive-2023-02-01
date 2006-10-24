@@ -19,11 +19,16 @@ Matrices over a domain
 
 
 cimport matrix_generic
-import matrix_generic
+import  matrix_generic
 
-cdef class Matrix_domain(matrix_generic.Matrix):
-    def __init__(self, parent):
+import sage.structure.sequence
+
+
+
+cdef class Matrix_domain(matrix_dense.Matrix_dense):
+    def __init__(self, parent, coerce_entries=False, copy=True):
         matrix_generic.Matrix.__init__(self, parent)
+
 
     def eigenspaces(self):
         """
@@ -87,10 +92,8 @@ cdef class Matrix_domain(matrix_generic.Matrix):
             ])
             ]
         """
-        try:
+        if self.__eigenvectors is not None:
             return self.__eigenvectors
-        except AttributeError:
-            pass
         f = self.charpoly()
         G = f.factor()
         V = []
@@ -160,7 +163,7 @@ cdef class Matrix_domain(matrix_generic.Matrix):
             sage: A.charpoly()
             x^10 - 495000*x^9 - 8250000000*x^8
         """
-        f = self.matrix_over_field().charpoly(*args, **kwds)
+        f = self.matrix_over_field(copy=True).charpoly(*args, **kwds)
         return f.base_extend(self.base_ring())
 
     def determinant(self):
@@ -251,7 +254,7 @@ cdef class Matrix_domain(matrix_generic.Matrix):
         return ~self.matrix_over_field()
 
 
-    def matrix_over_field(self):
+    def matrix_over_field(self, copy=False):
         """
         Return this matrix, but with entries viewed as elements
         of the fraction field of the base ring.
@@ -265,7 +268,22 @@ cdef class Matrix_domain(matrix_generic.Matrix):
             sage: B.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         """
-        return self.change_ring(self.base_ring().fraction_field())
+        return self.change_ring(self.base_ring().fraction_field(), copy=copy)
+
+    def _singular_(self, singular=None):
+        """
+        Tries to coerce this matrix to a singular matrix.
+        """
+        if singular is None:
+            from sage.interfaces.all import singular as singular_default
+            singular = singular_default
+        try:
+            self.base_ring()._singular_(singular)
+        except (NotImplementedError, AttributeError):
+            raise TypeError, "Cannot coerce to Singular"
+
+        return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
+
 
     def numeric_array(self, typecode=None):
         """

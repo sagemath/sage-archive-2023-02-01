@@ -25,7 +25,7 @@ AUTHORS:
 # number field calculations that use the interpreter.
 from sage.interfaces.gp import Gp
 
-import sage.interfaces.all
+import sage.interfaces.gap
 import sage.misc.preparser
 import sage.rings.arith
 import sage.rings.complex_field
@@ -1148,7 +1148,7 @@ class NumberField_cyclotomic(NumberField_generic):
                 raise TypeError, "Cannot coerce %s into %s"%(x,self)
             return number_field_element.NumberFieldElement(self, g)
 
-        elif sage.interfaces.all.is_GapElement(x):
+        elif sage.interfaces.gap.is_GapElement(x):
             s = str(x)
             i = s.find('E(')
             if i == -1:

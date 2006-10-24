@@ -26,6 +26,8 @@ from principal_ideal_domain import PrincipalIdealDomain, is_PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain, is_EuclideanDomain
 from field import Field, is_Field, is_PrimeField
 
+from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+
 # Ring element base classes
 from ring_element import RingElement, is_RingElement
 from commutative_ring_element import CommutativeRingElement, is_CommutativeRingElement

@@ -8,12 +8,23 @@ import weakref
 
 # SAGE imports
 import sage.structure.gens as gens
-import matrix
+
+import matrix_generic
+import matrix_dense
+import matrix_domain
+import matrix_pid
+import matrix_integer_dense
+import matrix_integer_sparse
+import matrix_rational_dense
+import matrix_rational_sparse
+import matrix_modn_dense
+
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer as integer
 import sage.rings.field as field
+import sage.rings.finite_field as finite_field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
@@ -134,6 +145,14 @@ class MatrixSpace_generic(gens.Generators):
     """
     The space of all nrows x ncols matrices over base_ring.
 
+    EXAMPLES:
+        sage: MatrixSpace(ZZ,10,5)
+        Full MatrixSpace of 10 by 5 dense matrices over Integer Ring
+        sage: MatrixSpace(ZZ,10,2^33)
+        Traceback (most recent call last):                                   # 32-bit
+        ...                                                                  # 32-bit
+        ValueError: number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)    # 32-bit
+        Full MatrixSpace of 10 by 8589934592 dense matrices over Integer Ring   # 64-bit
     """
     def __init__(self,  base_ring,
                         nrows,
@@ -152,6 +171,14 @@ class MatrixSpace_generic(gens.Generators):
             raise ArithmeticError, "nrows must be nonnegative"
         if ncols < 0:
             raise ArithmeticError, "ncols must be nonnegative"
+
+        if sage.misc.misc.is_64bit():
+            if nrows >= 2**64 or ncols >= 2**64:
+                raise ValueError, "number of rows and columns must be less than 2^64"
+        else:
+            if nrows >= 2**32 or ncols >= 2**32:
+                raise ValueError, "number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)"
+
         self.__base_ring = base_ring
         self.__nrows = nrows
         self.__is_sparse = sparse
@@ -161,8 +188,8 @@ class MatrixSpace_generic(gens.Generators):
             self.__ncols = ncols
         self.__matrix_class = self._get_matrix_class()
 
-    def __call__(self, entries=0, coerce_entries=True, copy=True):
-        return self.matrix(entries, coerce_entries, copy)
+    def __call__(self, entries=0, coerce=True, copy=True):
+        return self.matrix(entries, coerce=coerce, copy=copy)
 
     def _coerce_(self, x):
         """
@@ -235,15 +262,15 @@ class MatrixSpace_generic(gens.Generators):
         sage: MS1 = MatrixSpace(QQ,4)
         sage: MS2 = MatrixSpace(ZZ,4,5,true)
         sage: MS1._get_matrix_class()
-        <class 'sage.matrix.matrix.Matrix_dense_rational'>
+        <type 'matrix_rational_dense.Matrix_rational_dense'>
         sage: MS2._get_matrix_class()
         <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
 
         if self.is_dense():
-            return matrix.Matrix_generic_dense
+            return matrix_dense.Matrix_dense
         else:
-            return matrix.Matrix_generic_sparse
+            return matrix_sparse.Matrix_sparse
 
     def base_ring(self):
         """
@@ -334,8 +361,8 @@ class MatrixSpace_generic(gens.Generators):
 
     def is_sparse(self):
         """
-        Returns true if self is sparse
-        Returns false if self is dense
+        Returns True if self is sparse
+        Returns False if self is dense
         """
         return self.__is_sparse
 
@@ -345,7 +372,7 @@ class MatrixSpace_generic(gens.Generators):
     def ngens(self):
         return self.dimension()
 
-    def matrix(self, x=0, coerce_entries=True, copy=True):
+    def matrix(self, x=0, coerce=True, copy=True, zero=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -360,19 +387,33 @@ class MatrixSpace_generic(gens.Generators):
             [ 1  0]
             [ 0 -1]
         """
+        # TODO: implement/propagate the zero/clear flag
         if isinstance(x, (xrange,xsrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()
-        if isinstance(x, matrix.Matrix):
+        if matrix_generic.is_Matrix(x):
             if x.parent() == self:
                 return x.copy()
             x = x.list()
-        if isinstance(x, list) and len(x) > 0 and isinstance(x[0], list):
-            x = sum(x,[])
-        return self.__matrix_class(self, x, coerce_entries, copy)
+        if isinstance(x, list) and len(x) > 0:
+            if isinstance(x[0], list):
+                x = sum(x,[])
+            elif hasattr(x[0], "is_vector"): # TODO: is this the best way to test that?
+                e = []
+                for v in x:
+                    e = e + v.list()
+                copy = False # deep copy?
+                x = e
+            elif isinstance(x[0], tuple):
+                x = list(sum(x,()))
+        return self.__matrix_class(self, x, coerce, copy)
 
     def matrix_space(self, nrows, ncols, sparse=False):
+        if nrows is None:
+            nrows = self.__nrows
+        if ncols is None:
+            ncols = self.__ncols
         return MatrixSpace(self.__base_ring, nrows, ncols,
                         sparse=sparse)
 
@@ -401,7 +442,7 @@ class MatrixSpace_generic(gens.Generators):
             else:
                 return zero
         v = [f() for _ in xrange(self.nrows()*self.ncols())]
-        return self(v, coerce_entries=False, copy=False)
+        return self(v, coerce=False, copy=False)
 
 _random = 1
 
@@ -420,9 +461,9 @@ class MatrixSpace_domain(MatrixSpace_generic):
 
     def _get_matrix_class(self):
         if self.is_dense():
-            return matrix.Matrix_generic_dense_domain
+            return matrix_domain.Matrix_domain
         else:
-            return matrix.Matrix_generic_sparse_domain
+            return matrix_sparse.Matrix_domain_sparse
 
 
 class MatrixSpace_pid(MatrixSpace_domain):
@@ -441,12 +482,12 @@ class MatrixSpace_pid(MatrixSpace_domain):
     def _get_matrix_class(self):
         if self.is_dense():
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
-                return matrix.Matrix_dense_integer
-            return matrix.Matrix_generic_dense_pid
+                return matrix_integer_dense.Matrix_integer_dense
+            return matrix_pid.Matrix_pid
         else:
             if isinstance(self.base_ring(), integer_ring.IntegerRing):
-                return matrix.Matrix_sparse_integer
-            return matrix.Matrix_generic_sparse_pid
+                return matrix_integer_sparse.Matrix_sparse_integer
+            return matrix_sparse.Matrix_pid_sparse
 
 
 class MatrixSpace_field(MatrixSpace_pid):
@@ -466,16 +507,18 @@ class MatrixSpace_field(MatrixSpace_pid):
         K = self.base_ring()
         if self.is_dense():
             if isinstance(K, rational_field.RationalField):
-                return matrix.Matrix_dense_rational
+                return matrix_rational_dense.Matrix_rational_dense
+            if isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
+                return matrix_modn_dense.Matrix_modn_dense
             else:
-                return matrix.Matrix_generic_dense_field
+                return matrix_field.Matrix_field
         else:
             if isinstance(K, rational_field.RationalField):
                 #return matrix.Matrix_sparse_rational
-                return matrix.Matrix_sparse_rational
+                return matrix_rational_sparse.Matrix_rational_sparse
             elif sage.rings.number_field.all.is_CyclotomicField(K):
-                return matrix.Matrix_sparse_cyclotomic
-            return matrix.Matrix_generic_sparse_field
+                return matrix.Matrix_sparse_cyclotomic # TODO: last of the old matrices
+            return matrix_field.Matrix_field_sparse
 
     def base_field(self):
         return self.base_ring()

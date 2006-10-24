@@ -26,8 +26,6 @@ cdef process(s):
         return s
 
 
-include '../ext/stdsage.pxi'
-
 cdef class SageObject:
 
     #############################################################################

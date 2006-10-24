@@ -253,7 +253,7 @@ ext_modules = [ \
                          'sage/ext/arith.pyx']), \
 
     Extension('sage.structure.element',
-              sources = ['sage/structure/element.pyx', 'sage/ext/stdsage.c']), \
+              sources = ['sage/structure/element.pyx']), \
 
     Extension('sage.modules.module',
               sources = ['sage/modules/module.pyx']), \
@@ -265,7 +265,7 @@ ext_modules = [ \
               sources = ['sage/groups/group.pyx']), \
 
     Extension('sage.structure.sage_object',
-              sources = ['sage/structure/sage_object.pyx', 'sage/ext/stdsage.c']), \
+              sources = ['sage/structure/sage_object.pyx']), \
 
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
@@ -366,7 +366,7 @@ if DEVEL:
     ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c']
+    m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 def need_to_create(file1, file2):

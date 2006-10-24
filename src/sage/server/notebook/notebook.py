@@ -159,7 +159,7 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text1" and "Text2" buttons provide the full text of the
+the "Text" and "DocText" buttons provide the full text of the
 worksheet in a very convenient format for copy and paste.
 
 
@@ -773,8 +773,8 @@ class Notebook(SageObject):
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Wiki</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar

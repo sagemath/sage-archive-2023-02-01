@@ -109,7 +109,8 @@ class MPolynomialIdeal_magma_repr:
         """
         R = self.ring()
         mgb = self._magma_().GroebnerBasis()
-        return [R(str(mgb[i+1])) for i in range(len(mgb))]
+        return Sequence([R(str(mgb[i+1])) for i in range(len(mgb))], R,
+                        check=False, immutable=True)
 
 
 class MPolynomialIdeal_singular_repr:
@@ -170,7 +171,7 @@ class MPolynomialIdeal_singular_repr:
         """
         S = singular_default
         f = S(f)
-        I = self._singular_(S).std()
+        I = self._singular_(S).groebner()
         g = f.reduce(I, 1)  # 1 avoids tail reduction (page 67 of singular book)
         return g.is_zero()
 
@@ -287,7 +288,7 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__dimension
         except AttributeError:
-            self.__dimension = Integer(self._singular_().std().dim())
+            self.__dimension = Integer(singular(list(self.groebner_basis()),"ideal").dim())
         return self.__dimension
 
     def _singular_groebner_basis(self, algorithm="groebner"):
@@ -631,6 +632,7 @@ class MPolynomialIdeal_macaulay2_repr:
             G = G[i+2:j].split(',')
             L = self.ring().var_dict()
             B = [sage_eval(f, L) for f in G]
+            B = Sequence(B, self.ring(), check=False, immutable=True)
             B.sort()
             self.__groebner_basis = B
             return B

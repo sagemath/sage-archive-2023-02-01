@@ -200,6 +200,9 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         global the_complex_double_field
         self._parent = the_complex_double_field
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __richcmp__(ComplexDoubleElement self, right, int op):
         """
         We order the complex numbers in dictionary order by real

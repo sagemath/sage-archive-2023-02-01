@@ -671,7 +671,7 @@ class Singular(Expect):
         Return a list of all Singular commands.
         """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
-        proclist = singular.eval("listvar(proc)").splitlines()
+        proclist = self.eval("listvar(proc)").splitlines()
         return [p.match(line).group(int(1)) for line in proclist]
 
     def console(self):
@@ -868,6 +868,7 @@ class SingularElement(ExpectElement):
         from sage.rings.polynomial_ring import is_PolynomialRing
         from sage.rings.polydict import PolyDict,ETuple
         from sage.rings.quotient_ring import QuotientRing_generic
+        from sage.rings.quotient_ring_element import QuotientRingElement
 
         sage_repr = {}
         k = R.base_ring()
@@ -887,7 +888,7 @@ class SingularElement(ExpectElement):
         # [[['x','3'],['y','3']],'a']. We may do this quickly,
         # as we know what to expect.
 
-        singular_poly_list = singular.eval("string(coef(%s,%s))"%(\
+        singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                                    self.name(),variable_str)).split(",")
 
         if singular_poly_list == ['1','0'] :
@@ -924,7 +925,11 @@ class SingularElement(ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            return MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
+            p = MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
+            if isinstance(R, MPolynomialRing_polydict):
+                return p
+            else:
+                return QuotientRingElement(R,p,reduce=False)
 
         elif is_PolynomialRing(R) and R._can_convert_to_singular():
 
@@ -1028,7 +1033,7 @@ class SingularElement(ExpectElement):
         """
         # singular reports //  $varname [index] $type $random
         p = re.compile("//.*[\w]*.*\[[0-9]*\][ \*]*([a-z]*)")
-        m = p.match(singular.eval("type(%s)"%self.name()))
+        m = p.match(self.parent().eval("type(%s)"%self.name()))
         return m.group(int(1))
 
     def __iter__(self):

@@ -98,19 +98,24 @@ class MySystem(Expect):
 
     def trait_names(self):
         ## [[implement giving a list of all functions and identifiers in the system]]
+        pass
 
     def read(self, filename):
         # [[implement loading of the contents of filename into the system]]
+        pass
 
 
     def kill(self, var):
         # [[send code that kills the variable with given name in the system.]]
+        pass
 
     def console(self):
         # run the console command (defined below).
+        pass
 
     def version(self):
         # run the version command (defined below)
+        pass
 
     def _object_class(self):
         return MySystemElement
@@ -131,7 +136,7 @@ class MySystem(Expect):
 
     def help(self, command):
         # return help on a given command.
-
+        pass
 
 class MySystemElement(ExpectElement):
     """

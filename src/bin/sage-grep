@@ -21,3 +21,24 @@ grep -i "$*" */*/*/*/*/*.pyx   2>/dev/null
 grep -i "$*" */*/*/*/*/*/*.pyx  2>/dev/null
 grep -i "$*" */*/*/*/*/*/*/*.pyx   2>/dev/null
 grep -i "$*" */*/*/*/*/*/*/*/*.pyx 2>/dev/null
+
+
+grep -i "$*" *.pxd      2>/dev/null
+grep -i "$*" */*.pxd    2>/dev/null
+grep -i "$*" */*/*.pxd  2>/dev/null
+grep -i "$*" */*/*/*.pxd   2>/dev/null
+grep -i "$*" */*/*/*/*.pxd  2>/dev/null
+grep -i "$*" */*/*/*/*/*.pxd   2>/dev/null
+grep -i "$*" */*/*/*/*/*/*.pxd  2>/dev/null
+grep -i "$*" */*/*/*/*/*/*/*.pxd   2>/dev/null
+grep -i "$*" */*/*/*/*/*/*/*/*.pxd 2>/dev/null
+
+grep -i "$*" *.pxi      2>/dev/null
+grep -i "$*" */*.pxi    2>/dev/null
+grep -i "$*" */*/*.pxi  2>/dev/null
+grep -i "$*" */*/*/*.pxi   2>/dev/null
+grep -i "$*" */*/*/*/*.pxi  2>/dev/null
+grep -i "$*" */*/*/*/*/*.pxi   2>/dev/null
+grep -i "$*" */*/*/*/*/*/*.pxi  2>/dev/null
+grep -i "$*" */*/*/*/*/*/*/*.pxi   2>/dev/null
+grep -i "$*" */*/*/*/*/*/*/*/*.pxi 2>/dev/null

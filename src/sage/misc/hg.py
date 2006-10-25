@@ -80,6 +80,20 @@ class HG:
             if b == '': b='main'
             print("Branch: %s"%b)
 
+    def _changed_files(self):
+        out, err = self('status', interactive=False)
+        return out.strip() != ''
+
+    def _ensure_safe(self):
+        """
+        Ensure that the repository is in a safe state to have changes
+        applied to it, i.e., that all changes to controlled files in
+        the working directory are recorded.
+        """
+        if self._changed_files():
+            self.ci()
+        if self._changed_files():
+            raise RuntimeError, "Refusing to do operation since you still have unrecorded changes. You must check in all changes in your working repository first."
 
     def _warning(self):
         if not os.path.exists(os.environ['HOME'] + '/.hgrc'):
@@ -91,15 +105,35 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd, check_initialized=True):
+    def __call__(self, cmd, interactive=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
+
+        INPUT:
+            cmd -- string, the hg command line (everything after 'hg')
+            interactive -- If True, runs using os.system, so user can
+                           interactively interact with hg, i.e., this
+                           is needed when you record changes because
+                           the editor pops up.
+                           If False, popen3 is used to launch hg
+                           as a subprocess.
+        OUTPUT:
+            * If interactive is True, returns the exit code of the system call.
+            * If interactive is False, returns the output and error text.
         """
         self._warning()
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
-        return os.system(s)
+        if interactive:
+            e = os.system(s)
+            return e
+        else:
+            x = os.popen3(s).read()
+            x[0].close()
+            out = x[1].read()
+            err = x[2].read()
+            return out, err
 
     def serve(self, port=8200, open_viewer=False):
         """
@@ -132,6 +166,7 @@ class HG:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        self._ensure_safe()
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle
         if update:
@@ -224,6 +259,7 @@ class HG:
 
         ALIASES: patch
         """
+        self._ensure_safe()
         self('import "%s" %s'%(os.path.abspath(filename),options))
 
     patch = import_patch
@@ -434,6 +470,8 @@ class HG:
           Alternatively specify "ssh -C" as your ssh command in your hgrc or
           with the --ssh command line option.
         """
+        self._ensure_safe()
+
         if url is None:
             url = self.__url
         if not '/' in url:
@@ -584,7 +622,7 @@ class HG:
         else:
             os.system('sage -clone %s -r %s'%(name, int(rev)))
 
-    def commit(self, files='', comment=None, options=''):
+    def commit(self, files='', comment=None, options='', diff=True):
         """
         Commit your changes to the repository.
 
@@ -610,10 +648,16 @@ class HG:
                  -I --include    include names matching the given patterns
                  -X --exclude    exclude names matching the given patterns
 
+             diff -- (default: True) if True show diffs between your repository
+                             and your working repository before recording changes.
+
         \note{If you create new files you should first add them with the add method.}
         """
         if sage.server.support.EMBEDDED_MODE and comment is None:
             raise RuntimeError, "You're using the SAGE notebook, so you *must* explicitly specify the comment in the commit command."
+        if diff:
+            hg_sage.diff(files)
+
         if comment:
             self('commit %s -m "%s" %s '%(options, comment, files))
         else:

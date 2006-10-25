@@ -1,16 +1,19 @@
-#Modify free_module.py to check if base_ring is RealDoubleField and if so call this constructor#
+"""
+Vectors with entries that are floating point doubles
+
+TODO: #Modify free_module.py to check if base_ring is RealDoubleField and if so call this constructor#
+
+AUTHOR:
+    -- Josh Kantor (2006-10)
+"""
 
 cimport free_module_element
 import  free_module_element
 
-cimport ComplexDoubleVectors
-import  ComplexDoubleVectors
-
+cimport complex_double_vector
+import  complex_double_vector
 
 import sage.rings.complex_double
-
-
-
 
 
 cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
@@ -60,15 +63,11 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
         else:
             gsl_vector_set(self.v,i,x)
 
- #       self.vec[i] = x
-
     def __getitem__(self,size_t i):
         if i < 0 or i >=self.v.size:
             raise IndexError
         else:
             return gsl_vector_get(self.v,i)
-#        return self.vec[i]
-
 
 #    def __add__(left,right):
 #       return (<RealDoubleVectorSpace_element>left)._add_(<RealDoubleVectorSpace_element>right)
@@ -97,10 +96,10 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
 
 
     def fft(self):
-        cdef ComplexDoubleVectors.ComplexDoubleVectorSpace_element result
+        cdef complex_double_vector.ComplexDoubleVectorSpace_element result
         cdef int i
         P = self.parent().change_ring( sage.rings.complex_double.CDF )
-        result = ComplexDoubleVectors.ComplexDoubleVectorSpace_element.__new__(ComplexDoubleVectors.ComplexDoubleVectorSpace_element,
+        result = complex_double_vector.ComplexDoubleVectorSpace_element.__new__(complex_double_vector.ComplexDoubleVectorSpace_element,
                                                                                P, None)
         for i from 0 <=i< self.v.size:
             (result.v).data[2*i]= self.v.data[i]
@@ -110,10 +109,5 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
 
     def test_add(self,right):
         return self._add_(right)
-#    def __getslice__(
-
-
-#    def free_module(self):
-#        return self
 
 

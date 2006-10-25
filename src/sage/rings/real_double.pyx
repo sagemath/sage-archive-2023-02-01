@@ -1,7 +1,22 @@
 """
 Field of Double-Precision Real Numbers
 
-PYREX: sage.rings.real_double
+EXAMPLES:
+
+We create the real double vector space of dimension $3$:
+    sage: V = RDF^3; V
+    Vector space of dimension 3 over Real Double Field
+
+Notice that this space is unique.
+    sage: V is RDF^3
+    True
+    sage: V is FreeModule(RDF, 3)
+    True
+    sage: V is VectorSpace(RDF, 3)
+    True
+
+Also, you can instantly create a space of large dimension.
+    sage: V = RDF^10000
 """
 
 include '../ext/cdefs.pxi'
@@ -19,8 +34,8 @@ cimport sage.rings.ring
 import  sage.rings.ring
 
 import sage.misc.functional
-#import real_number
 
+import sage.modules.free_module
 
 cdef class RealDoubleField_class(sage.rings.ring.Field):
     """
@@ -54,12 +69,6 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
             Real Double Field
         """
         return "Real Double Field"
-
-##########Josh's Modification#################
-    def __pow__(self,n,_):
-        return sage.ring.RealDoubleVectors.RealDoubleVectorSpace_class(n)
-
-###########################################
 
     def __call__(self, x):
         """

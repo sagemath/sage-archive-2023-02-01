@@ -95,8 +95,8 @@ import sage.rings.integer_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.gens as gens
-import sage.modules.RealDoubleVectors
-import sage.modules.ComplexDoubleVectors
+import sage.modules.real_double_vector
+import sage.modules.complex_double_vector
 from sage.structure.sequence import Sequence
 
 
@@ -215,8 +215,6 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     if not (inner_product_matrix is None):
         inner_product_matrix = sage.matrix.matrix_space.MatrixSpace(base_ring, rank)(inner_product_matrix)
 
-    # Caching disabled since inner product matrix can be changed at any time.
-    # Enabling caching saves little and might lead to difficult to understand bugs.
     key = (base_ring, rank, sparse, inner_product_matrix)
     if _cache.has_key(key):
         M = _cache[key]()
@@ -760,51 +758,94 @@ class FreeModule_generic(module.Module):
                     self._inner_product_is_dot_product_cache = False
             return self._inner_product_is_dot_product_cache
 
-    def set_inner_product_matrix(self, A):
-        """
-        Sets the inner product matrix of this module to the matrix A.
+# I commented out both setting and unsetting the inner product matrix
+# since being able to change them contradicts that unique objects are
+# immutable.
+##     def unset_inner_product_matrix(self):
+##         r"""
+##         If an inner product was set on this module using
+##         \code{self.set_inner_product_matrix(...)}, this function
+##         unsets that inner product, thus reverting to the inner
+##         product induced from that on the ambient module.
 
-        EXAMPLES:
-        We change the inner product matrix over an ambient free module.
-            sage: M = FreeModule(IntegerRing(), 2)
-            sage: M.inner_product_matrix()
-            [1 0]
-            [0 1]
-            sage: M.set_inner_product_matrix([0,-1,-1,0])
-            sage: M.inner_product_matrix()
-            [ 0 -1]
-            [-1  0]
-            sage: (M.0).inner_product(M.1)
-            -1
+##         EXAMPLES:
+##             sage: M = FreeModule(RationalField(), 2)
+##             sage: M.set_inner_product_matrix([-1,0,0,-1])
+##             sage: (M.0).inner_product(M.0)
+##             -1
 
-        We can also set the inner product matrix of a submodule:
-            sage: W = M.submodule([[1,2]])
-            sage: W.set_inner_product_matrix([2])
-            sage: W
-            Free module of degree 2 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [1 2]
-            sage: W.inner_product_matrix()
-            [2]
-            sage: v = W.gen(0)
-            sage: v.inner_product(v)
-            2
-        """
-        if not isinstance(A, sage.matrix.matrix_generic.Matrix):
-            A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.rank())(A)
-        else:
-            if A.nrows() != self.rank():
-                raise ArithmeticError, "A must have %s rows but it has %s rows"%(self.rank(),
-                                                                                A.nrows())
-            if A.ncols() != self.rank():
-                raise ArithmeticError, "A must have %s columns but it has %s rows"%(self.rank(),
-                                                                                A.ncols())
-        self._inner_product_matrix = A
-        self.__uses_ambient_inner_product = False
-        try:
-            del self._inner_product_is_dot_product_cache
-        except AttributeError:
-            pass
+##         We set and unset an inner product matrix on a submodule.  Note
+##         that unsetting the inner product on the submodule switches back
+##         to using the ambient inner product.
+##             sage: M2 = M.submodule([[1,1]])
+##             sage: M2.gen(0).inner_product(M2.gen(0))
+##             -2
+##             sage: M2.set_inner_product_matrix([1])
+##             sage: M2.gen(0).inner_product(M2.gen(0))
+##             1
+##             sage: M2.unset_inner_product_matrix()
+##             sage: M2.gen(0).inner_product(M2.gen(0))
+##             -2
+
+##         Changing the ambient inner product changes that
+##         on the submodule, since the submodule uses the ambient
+##         product after calling \code{unset_inner_product_matrix}.
+##             sage: M.unset_inner_product_matrix()
+##             sage: M2.gen(0).inner_product(M2.gen(0))
+##             2
+##         """
+##         self.__uses_ambient_inner_product = True
+##         try:
+##             del self._inner_product_is_dot_product_cache
+##             self._inner_product_matrix = None
+##         except AttributeError:
+##             pass
+
+##     def set_inner_product_matrix(self, A):
+##         """
+##         Sets the inner product matrix of this module to the matrix A.
+
+##         EXAMPLES:
+##         We change the inner product matrix over an ambient free module.
+##             sage: M = FreeModule(IntegerRing(), 2)
+##             sage: M.inner_product_matrix()
+##             [1 0]
+##             [0 1]
+##             sage: M.set_inner_product_matrix([0,-1,-1,0])
+##             sage: M.inner_product_matrix()
+##             [ 0 -1]
+##             [-1  0]
+##             sage: (M.0).inner_product(M.1)
+##             -1
+
+##         We can also set the inner product matrix of a submodule:
+##             sage: W = M.submodule([[1,2]])
+##             sage: W.set_inner_product_matrix([2])
+##             sage: W
+##             Free module of degree 2 and rank 1 over Integer Ring
+##             Echelon basis matrix:
+##             [1 2]
+##             sage: W.inner_product_matrix()
+##             [2]
+##             sage: v = W.gen(0)
+##             sage: v.inner_product(v)
+##             2
+##         """
+##         if not isinstance(A, sage.matrix.matrix_generic.Matrix):
+##             A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), self.rank())(A)
+##         else:
+##             if A.nrows() != self.rank():
+##                 raise ArithmeticError, "A must have %s rows but it has %s rows"%(self.rank(),
+##                                                                                 A.nrows())
+##             if A.ncols() != self.rank():
+##                 raise ArithmeticError, "A must have %s columns but it has %s rows"%(self.rank(),
+##                                                                                 A.ncols())
+##         self._inner_product_matrix = A
+##         self.__uses_ambient_inner_product = False
+##         try:
+##             del self._inner_product_is_dot_product_cache
+##         except AttributeError:
+##             pass
 
     def is_ambient(self):
         """
@@ -952,46 +993,6 @@ class FreeModule_generic(module.Module):
             2
         """
         return self.__rank
-
-    def unset_inner_product_matrix(self):
-        r"""
-        If an inner product was set on this module using
-        \code{self.set_inner_product_matrix(...)}, this function
-        unsets that inner product, thus reverting to the inner
-        product induced from that on the ambient module.
-
-        EXAMPLES:
-            sage: M = FreeModule(RationalField(), 2)
-            sage: M.set_inner_product_matrix([-1,0,0,-1])
-            sage: (M.0).inner_product(M.0)
-            -1
-
-        We set and unset an inner product matrix on a submodule.  Note
-        that unsetting the inner product on the submodule switches back
-        to using the ambient inner product.
-            sage: M2 = M.submodule([[1,1]])
-            sage: M2.gen(0).inner_product(M2.gen(0))
-            -2
-            sage: M2.set_inner_product_matrix([1])
-            sage: M2.gen(0).inner_product(M2.gen(0))
-            1
-            sage: M2.unset_inner_product_matrix()
-            sage: M2.gen(0).inner_product(M2.gen(0))
-            -2
-
-        Changing the ambient inner product changes that
-        on the submodule, since the submodule uses the ambient
-        product after calling \code{unset_inner_product_matrix}.
-            sage: M.unset_inner_product_matrix()
-            sage: M2.gen(0).inner_product(M2.gen(0))
-            2
-        """
-        self.__uses_ambient_inner_product = True
-        try:
-            del self._inner_product_is_dot_product_cache
-            self._inner_product_matrix = None
-        except AttributeError:
-            pass
 
     def uses_ambient_inner_product(self):
         """
@@ -3268,18 +3269,11 @@ def basis_seq(V, w):
 
 
 
-#class FreeModule_real_double(sage.modules.free_module.FreeModule_ambient_field):
-
-
 
 class RealDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.real_double.RDF,n)
-        self._element_class = sage.modules.RealDoubleVectors.RealDoubleVectorSpace_element
-
-#    def __call__(self,x,coerce_entries=True,copy=True,check_elements=True):
-
-#        return sage.modules.RealDoubleVectors.RealDoubleVectorSpace_element(self.rank(),x)
+        self._element_class = sage.modules.real_double_vector.RealDoubleVectorSpace_element
 
     def coordinates(self,v):
         return v
@@ -3287,8 +3281,7 @@ class RealDoubleVectorSpace_class(FreeModule_ambient_field):
 class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
     def __init__(self,n):
         FreeModule_ambient_field.__init__(self,sage.rings.complex_double.CDF,n)
-        self._element_class = sage.modules.ComplexDoubleVectors.ComplexDoubleVectorSpace_element
-
+        self._element_class = sage.modules.complex_double_vector.ComplexDoubleVectorSpace_element
 
     def coordinates(self,v):
         return v

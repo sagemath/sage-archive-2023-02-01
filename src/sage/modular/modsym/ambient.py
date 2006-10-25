@@ -47,7 +47,6 @@ import sage.misc.latex as latex
 import sage.misc.misc as misc
 
 import sage.matrix.matrix_space as matrix_space
-import sage.matrix.sparse_matrix_pyx as sparse_matrix_pyx
 import sage.modules.free_module_element as free_module_element
 import sage.modules.free_module as free_module
 import sage.misc.misc as misc

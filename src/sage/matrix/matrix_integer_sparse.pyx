@@ -3,7 +3,7 @@ Sparse matrices over the integers.
 """
 
 cimport matrix_sparse
-import matrix_sparse
+import  matrix_sparse
 
 cdef class Matrix_integer_sparse(matrix_sparse.Matrix_pid_sparse):
 

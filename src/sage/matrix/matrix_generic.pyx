@@ -96,8 +96,8 @@ EXAMPLES:
 doc = """
 Matrices
 """
+#cimport sage.modules.free_module_element
 
-import sage.modules.free_module_element
 import sage.modules.free_module
 import sage.misc.latex
 import sage.structure.coerce
@@ -1554,7 +1554,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             (5, 5)
         """
         M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
-        if not isinstance(v, sage.modules.free_module_element.FreeModuleElement):
+        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         if self.nrows() != v.degree():
             raise ArithmeticError, "number of rows of matrix must equal degree of vector"
@@ -1597,7 +1597,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
         M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
-        if not isinstance(v, sage.modules.free_module_element.FreeModuleElement):
+        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         X = [v]
         for _ in range(n-1):
@@ -1734,23 +1734,57 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return M
 
     def _right_scalar_multiply(self, x):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if not x in self.base_ring():
             x = self.base_ring()(x)
-        M = self.new_matrix()
-        nc = self.ncols()
-        for i in xrange(self.nrows()):
-            for j in xrange(self.ncols()):
-                M[i,j] = self[i,j] * x
-        return M
+        w = self.list()
+        v = eval('[a*x for a in w]', {'x':x, 'w':w})
+        return self.new_matrix(self._nrows, self._ncols, v, coerce=False, copy=False)
+
+    def _left_scalar_multiply(self, x):
+        """
+        EXAMPLES:
+            sage: ?
+        """
+        # same as _right, because base ring is always commutative.
+        return self._right_scalar_multiply(x)
 
     def __mul__(self, right):
-        if not isinstance(self,Matrix):
-            self,right = right,self
+        if not PY_TYPE_CHECK(self, Matrix):
+            # it is not a vector, since if it were the vector __mul__ would be called.
+            return right._left_scalar_multiply(self)
 
-        if isinstance(right, sage.modules.free_module_element.FreeModuleElement):
-            return self.transpose().vector_matrix_multiply(right)
-        if not isinstance(right, Matrix):
+        if not PY_TYPE_CHECK(right, sage.modules.free_module_element.FreeModuleElement):
+            raise TypeError, "cannot multiply matrix times row vector -- instead computer row vector times matrix"
+
+        if not PY_TYPE_CHECK(right, Matrix):
+            # the only possibility is to coerce to a scalar.
             return self._right_scalar_multiply(right)
+
+        # Now both self and right are matrices.
+
+        # Now we have to use coercion rules.
+        # If parents are compatible, multiply. Compatible means that
+        # they have the same base ring and are both either dense or sparse.
+        #
+        #  If not, use the following rules:
+        #
+        #   * error if the matrix dimensions don't match up,
+        #
+        #   * check for canonical coercion of the base rings in
+        #      exactly one direction -- if not error
+        #
+        #   * if one matrix is sparse and the other is dense, the
+        #     product is dense.
+
+        if self._parent.base_ring() is right._parent.base_ring():
+            return self._multiply_matrices_over_same_base_ring(self, right)
+
+        # Now the base rings are not the same
+
         if self.base_ring() != right.base_ring():
             try:
                 self, right = sage.structure.coerce.canonical_base_coercion(self, right)
@@ -1759,23 +1793,45 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         if self.ncols() != right.nrows():
             raise ArithmeticError, "number of columns of self (=%s) must equal number of rows of right (=%s)."%(
                 self.ncols(), right.nrows())
-        try:
-            return self._mul_(right)
-        except (TypeError, AttributeError):
-            pass
-        nr = self.nrows()
-        snc = self.ncols()
-        nc = right.ncols()
-        M = self.new_matrix(nr, nc)
-        if snc == 0: return M
-        zero = self.base_ring()(0)
-        for i in xrange(nr):
-            for j in xrange(nc):
-                tmp = []
-                for k in range(snc):
-                    tmp.append(self[i,k]*right[k,j])
-                M[i,j] = sum(tmp,zero)
-        return M
+
+    def _multiply_matrices_over_same_base_ring(self, Matrix right):
+        """
+        Multiply two matrices that are assumed to be defined over the same
+        base ring.
+        """
+        # Both self and right are matrices and have the same base rings.
+        # First we check that matrix multiplication is defined.
+        if self._ncols != right._nrows:
+            raise ArithmeticError, "number of columns of self must equal number of rows of right."
+        # Now we can do the matrix multiply.
+        if self._will_use_strassen(right):
+            return self.strassen_multiply(right)
+        else:
+            return self._multiply_classical(right)
+
+    cdef _multiply_classical(self, Matrix right):
+        """
+        Multiply the matrices self and right using the classical $O(n^3)$
+        algorithm.
+
+        EXAMPLES
+
+            sage: include the 0 rows and 0 columns cases
+        """
+        raise NotImplementedError, "this should be defined in the dense and sparse derived classes."
+
+
+    cdef int _will_use_strassen(self, Matrix right) except -1:
+        """
+        Whether or not matrix multiplication of self by right should
+        be done using Strassen.
+        Overload this in derived classes to not use Strassen by default.
+        """
+        cdef int n
+        n = self._strassen_default_cutoff()
+        if self._nrows > n and self._ncols > n and right._nrows > n and right._ncols > n:
+            return 1
+        return 0
 
     def __neg__(self):
         return self.__rmul__(self.base_ring()(-1))
@@ -2196,18 +2252,26 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
     # strassen with windows
     # todo: matrix windows only implemented for dense matrices, but no multiple inheritance for cdef class (?)
+    cdef int _strassen_default_cutoff(self) except -1:
+        return 128
 
-    def strassen_multiply(self, other, cutoff):
-        if self.ncols() != other.nrows():
-            raise IndexError, "Number of columns of self must equal number of rows of other."
+    def strassen_multiply(self, Matrix right, int cutoff=0):
+        if self._ncols != right._nrows:
+            raise IndexError, "Number of columns of self must equal number of rows of right."
 
-        output = self.new_matrix(self.nrows(), other.ncols())
+        if cutoff == 0:
+            cutoff = self._strassen_default_cutoff()
+
+        if cutoff <= 1:
+            raise ValueError, "cutoff must be at least 2"
+
+        output = self.new_matrix(self.nrows(), right.ncols())
 
         self_window = self.matrix_window()
-        other_window = other.matrix_window()
+        right_window = right.matrix_window()
         output_window = output.matrix_window()
 
-        strassen_window_multiply(output_window, self_window, other_window, cutoff)
+        strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
     def echelon_strassen(self, cutoff):
@@ -2709,26 +2773,26 @@ class int_range:
 
     # Yes, these two could be a lot faster...
     # Basically, this class is for abstracting away what I was trying to do by hand in several places
-    def __add__(self, other):
+    def __add__(self, right):
         all = self.to_list()
-        for i in other.to_list():
+        for i in right.to_list():
             all.append(i)
         return int_range(all)
 
-    def __sub__(self, other):
+    def __sub__(self, right):
         all = self.to_list()
-        for i in other.to_list():
+        for i in right.to_list():
             if i in all:
                 all.remove(i)
         return int_range(all)
 
-    def __mul__(self, other):
+    def __mul__(self, right):
         """
         In the boolean sense, i.e. intersection
         """
         intersection = []
         all = self.to_list()
-        for i in other.to_list():
+        for i in right.to_list():
             if i in all:
                 intersection.append(i)
         return int_range(intersection)

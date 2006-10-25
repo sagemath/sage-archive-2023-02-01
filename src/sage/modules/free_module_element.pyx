@@ -10,11 +10,8 @@ include '../ext/cdefs.pxi'
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
+
 cimport sage.structure.coerce
-cimport sage.structure.element
-
-cimport sage.matrix.matrix_generic
-
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
 

@@ -23,8 +23,6 @@ ai = sage.ext.arith.arith_int()
 
 LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 
-MAX_MODULUS = 46340
-
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __init__(self, parent, object entries=None, coerce_entries=True, copy=True, clear=True):
         matrix_dense.Matrix_dense.__init__(self, parent)
@@ -32,7 +30,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef int i, p, nrows, ncols
         nrows = parent.nrows()
         ncols = parent.ncols()
-        p = parent.base_ring().characteristic() # Should I do a sanity check here?
+
+        p = parent.base_ring().characteristic()
+
         self.matrix = <uint **> PyMem_Malloc(sizeof(uint*)*nrows)
         if self.matrix == <uint**> 0:
             raise MemoryError, "Error allocating memory"

@@ -24,8 +24,8 @@ cdef class Matrix_dense(matrix_generic.Matrix):
     this class.
     """
     def __init__(self, parent,
-                 copy = True,
                  entries = None,
+                 copy = True,
                  coerce = True):
         matrix_generic.Matrix.__init__(self, parent)
         self._nrows = parent.nrows()
@@ -33,7 +33,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
         cdef int i, n
         if entries:
             if not isinstance(entries, list):
-                raise TypeError
+                raise TypeError, 'entries must be a list'
             if not (coerce or copy):
                 self.__entries = entries
             else:
@@ -93,7 +93,15 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             ncols = self._ncols
         return MatrixWindow(self, row, col, nrows, ncols)
 
-    def _multiply(self, Matrix_dense right):
+    def _multiply_classical(self, Matrix_dense right):
+        """
+        Multiply the matrices self and right using the classical $O(n^3)$
+        algorithm.
+
+        EXAMPLES
+
+            sage: include the 0 rows and 0 columns cases  -- do dense examples
+        """
         cdef int i, j, k, m, n, r, nr, nc, snc
         cdef object v
 

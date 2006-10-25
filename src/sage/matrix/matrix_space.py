@@ -28,6 +28,7 @@ import sage.rings.finite_field as finite_field
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
+import sage.rings.integer_mod_ring
 import sage.misc.latex as latex
 from sage.misc.misc import xsrange
 
@@ -266,11 +267,17 @@ class MatrixSpace_generic(gens.Generators):
         sage: MS2._get_matrix_class()
         <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
-
+        R = self.base_ring()
         if self.is_dense():
-            return matrix_dense.Matrix_dense
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+                return matrix_modn_dense.Matrix_modn_dense
+            else:
+                matrix_dense.Matrix_dense
         else:
-            return matrix_sparse.Matrix_sparse
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+                return matrix_modn_sparse.Matrix_modn_sparse
+            else:
+                return matrix_sparse.Matrix_sparse
 
     def base_ring(self):
         """

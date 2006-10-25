@@ -403,7 +403,15 @@ for m in ext_modules:
     m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
-def need_to_create(file1, file2):
+
+######################################################################
+# CODE for generating C/C++ code from Pyrex and doing dependency
+# checking, etc.  In theory distutils would run Pyrex, but I don't
+# trust it at all, and it won't have the more sophisticated dependency
+# checking that we need.
+######################################################################
+
+def is_older(file1, file2):
     """
     Return True if either file2 does not exist or is older than file1.
 
@@ -417,6 +425,91 @@ def need_to_create(file1, file2):
         return True
     return False
 
+
+def need_to_pyrex(filename, outfile):
+    """
+    INPUT:
+        filename -- The name of a pyrex file in the SAGE source tree.
+        outfile -- The name of the corresponding c or cpp file in the build directory.
+
+    OUTPUT:
+        bool -- whether or not outfile must be regenerated.
+    """
+    if is_older(filename, outfile):   # outfile is older than filename
+        return True
+    base =  os.path.splitext(filename)[0]
+    pxd = base+'.pxd'
+    if is_older(pxd, outfile):   # outfile is older than pxd file (if it exists)
+        return True
+
+    # Now we look inside the file to see what it cimports or include.
+    # If any of these files are newer than outfile, we rebuild
+    # outfile.
+    S = open(filename).readlines()
+    if os.path.exists(pxd):
+        S += open(pxd).readlines()
+    # Take the lines that begin with cimport (it won't hurt to
+    # have extra lines)
+    C = [x.strip() for x in S if 'cimport' in x]
+    for A in C:
+        # Deduce the full module name.
+        # The only allowed forms of cimport are:
+        #        cimport a.b.c.d
+        #        from a.b.c.d cimport e
+        # Also, the cimport can be both have no dots (current directory) or absolute.
+        # The multiple imports with parens, e.g.,
+        #        import (a.b.c.d, e.f.g)
+        # of Python are not allowed in Pyrex.
+        # In both cases, the module name is the second word if we split on whitespace.
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # illegal statement or not really a cimport (e.g., cimport could
+            # be in a comment or something)
+            continue
+
+        # Now convert A to a filename, e.g., a/b/c/d
+        #
+        if '.' in A:
+            # It is an absolute cimport.
+            A = A.replace('.','/') + '.pxd'
+        else:
+            # It is a relative cimport.
+            A =  os.path.split(base)[0] + '/' + A + '.pxd'
+        # Check to see if a/b/c/d.pxd exists and is newer than filename.
+        # If so, we have to regenerate outfile.  If not, we're safe.
+        if os.path.exists(A) and is_older(A, outfile):
+            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            return True # yep we must rebuild
+
+    # OK, next we move on to include pxi files.
+    # If they change, we likewise must rebuild the pyx file.
+    I = [x for x in S if 'include' in x]
+    # The syntax for include is like this:
+    #       include "../a/b/c.pxi"
+    # I.e., it's a quoted *relative* path to a pxi file.
+    for A in I:
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # Illegal include statement or not really an include
+            # (e.g., include could easily be in a comment or
+            # something).  No reason to crash setup.py!
+            continue
+        # Strip the quotes from either side of the pxi filename.
+        A = A.strip('"').strip("'")
+        # Now take filename (the input argument to this function)
+        # and strip off the last part of the path and stick
+        # A onto it to get the filename of the pxi file relative
+        # where setup.py is being run.
+        A = os.path.split(filename)[0] + '/' + A
+        # Finally, check to see if filename is older than A
+        if os.path.exists(A) and is_older(A, outfile):
+            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            return True
+
+    # We do not have to rebuild.
+    return False
 
 def process_pyrexembed_file(f, m):
     # This is a pyrexembed file, so process accordingly.
@@ -435,7 +528,7 @@ def process_pyrexembed_file(f, m):
     pyx_file = "%s/%s.pyx"%(dir,base)
     pyx_embed_file = "%s/%s.pyx"%(tmp, base)
     h_file = "%s/%s_embed.h"%(tmp, base)
-    if need_to_create(f, pyx_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
+    if is_older(f, pyx_file) or is_older(f, cpp_file) or is_older(f, h_file):
         os.system('cp -p %s %s'%(f, pyxe_file))
         os.system('cp -p %s/*.pxi %s'%(dir, tmp))
         os.system('cp -p %s/*.pxd %s'%(dir, tmp))
@@ -459,15 +552,15 @@ def process_pyrex_file(f, m):
         m -- Extension module description (i.e., object of type Extension).
     """
     # This is a pyrex file, so process accordingly.
-    g = os.path.splitext(f)[0]
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-    if need_to_create(f, pyx_inst_file):
+    if is_older(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
         os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
-    out_file = f[:-4] + ".c"
+    outfile = f[:-4] + ".c"
     if m.language == 'c++':
-        out_file += 'pp'
-    if need_to_create(f, out_file) or need_to_create(g + '.pxd', out_file):
+        outfile += 'pp'
+
+    if need_to_pyrex(f, outfile):
         cmd = "pyrexc -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
@@ -478,8 +571,8 @@ def process_pyrex_file(f, m):
         # then move the resulting output file to have the correct extension.
         # (I don't know how to tell Pyrex to do this automatically.)
         if m.language == 'c++':
-            os.system('mv %s.c %s'%(f[:-4], out_file))
-    return [out_file]
+            os.system('mv %s.c %s'%(f[:-4], outfile))
+    return [outfile]
 
 
 def pyrex(ext_modules):
@@ -511,7 +604,6 @@ os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 if not sdist:
     pyrex(ext_modules)
-
 
 setup(name        = 'sage',
 

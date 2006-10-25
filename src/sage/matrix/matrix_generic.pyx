@@ -96,7 +96,7 @@ EXAMPLES:
 doc = """
 Matrices
 """
-#cimport sage.modules.free_module_element
+include "../ext/stdsage.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -106,15 +106,23 @@ from   sage.structure.sequence import _combinations
 from sage.structure.mutability_pyx cimport Mutability
 
 def is_Matrix(x):
+    """
+    EXAMPLES:
+        sage: ???
+    """
     return isinstance(x, Matrix)
 
 cdef class Matrix(sage.structure.element.ModuleElement):
     r"""
-    The \class{Matrix} class is the base class for all matrix
-    classes.  To create a \class{Matrix}, first create a
-    \class{MatrixSpace}, then coerce a list of elements into the
-    \class{MatrixSpace}.  See the documentation of
-    \class{MatrixSpace} for more details.
+    A generic matrix.
+
+    The \class{Matrix} class is the base class for all matrix classes.
+    To create a \class{Matrix}, first create a \class{MatrixSpace},
+    then coerce a list of elements into the \class{MatrixSpace}.  See
+    the documentation of \class{MatrixSpace} for more details.
+
+    EXAMPLES:
+        sage: ???
     """
     def __init__(self, parent):
         """
@@ -130,21 +138,45 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         self._mutability = Mutability(False)
 
     def _require_mutable(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         self._mutability._require_mutable()
 
     def set_immutable(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         self._mutability.set_immutable()
 
     def is_immutable(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self._mutability.is_immutable()
 
     def is_mutable(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self._mutability.is_mutable()
 
     def _matrix_(self, R):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.change_ring(R)
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return sage.matrix.matrix.__reduce__Matrix_generic, \
                  (self.__class__, self.__dict__,
                   self.parent(), self.__dict, self.__determinant,
@@ -165,6 +197,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         self._mutability = mutability
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         nr = int(self.nrows())
         nc = int(self.ncols())
         if nr == 0 or nc == 0:
@@ -197,11 +233,6 @@ cdef class Matrix(sage.structure.element.ModuleElement):
                 s = s + entry + sep
             rows.append(s)
 
-        # Remove leading spaces
-##        n = width-m
-##        if n > 0:
-##            for r in xrange(nr):
-##                rows[r] = rows[r][n:]
 
         # Put brackets around in a single string
         tmp = []
@@ -215,6 +246,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Return a latex string that represents this matrix as a sparse
         matrix.  The rows are printed as sums sum a_i x_i, where
         x is the variable.
+
+        EXAMPLES:
+            sage: ???
         """
         nr = self.nrows()
         nc = self.ncols()
@@ -236,6 +270,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return s
 
     def _latex_(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         nr = self.nrows()
         nc = self.ncols()
         if nr == 0 or nc == 0:
@@ -277,9 +315,17 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return "\\left(\\begin{array}{%s}\n"%('r'*nc) + s + "\n\\end{array}\\right)"
 
     def __str__(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.__repr__()
 
     def __hash__(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return hash(self.__str__())
 
 
@@ -291,6 +337,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     #        self.nrows(), self.ncols(), self.list())
 
     def _pari_init_(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         w = self.list()
         nr = self.nrows(); nc = self.ncols()
         v = []
@@ -467,7 +517,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         if nrows == None: nrows = self.nrows()
         if ncols == None: ncols = self.ncols()
         if sparse is None:
-            sparse = sparse=self.is_sparse()
+            sparse = (sparse==self.is_sparse())
         return self.parent().matrix_space(nrows, ncols, sparse=sparse)
 
     def new_matrix(self, nrows=None, ncols=None, entries=0,
@@ -572,6 +622,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def add_multiple_of_row(self, i, j, s):
         """
         Add s times row j to row i.
+
+        EXAMPLES:
+            sage: ???
         """
         self._require_mutable()
         s = self.base_ring()(s)
@@ -581,6 +634,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def add_multiple_of_column(self, i, j, s):
         """
         Add s times column j to column i.
+
+        EXAMPLES:
+            sage: ???
         """
         self._require_mutable()
         s = self.base_ring()(s)
@@ -653,6 +709,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Return the block matrix that has self and other on the diagonal:
         [self |    0  ]
         [  0  | other ]
+
+
+        EXAMPLES:
+            sage: ???
         """
         if not isinstance(other, Matrix):
             raise TypeError, "other must be a Matrix"
@@ -664,6 +724,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         Return the matrix obtained by coercing the entries of this
         matrix into the given ring.
+
+        EXAMPLES:
+            sage: ???
         """
         if ring == self.base_ring():
             if copy:
@@ -676,6 +739,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def column(self, i):
         """
         Return the i-th column of this matrix.
+
+        EXAMPLES:
+            sage: ???
         """
         V = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
         tmp = []
@@ -700,6 +766,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def commutator(self, other):
         """
         Return the commutator self*other - other*self.
+
+        EXAMPLES:
+            sage: ???
         """
         return self*other - other*self
 
@@ -707,6 +776,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
+
+        EXAMPLES:
+            sage: ???
         """
         return self.new_matrix(entries=self._entries(), coerce=False)
 
@@ -787,6 +859,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return M(self._dict())
 
     def dense_row(self, n):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if n < 0 or n >= self.nrows():
             raise IndexError, "n must be between 0 and the number of rows"
         V = sage.modules.free_module.VectorSpace(\
@@ -798,6 +874,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return V(tmp)
 
     def _dict(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if self.__dict != None:
             return self.__dict
         else:
@@ -813,19 +893,37 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         This must be defined in the derived class.  It is the
         underlying representation of elements, which may be a list or
         dict or something else.
+        EXAMPLES:
+            sage: ???
         """
         raise NotImplementedError
 
     def is_dense(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.parent().is_dense()
 
     def is_sparse(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.parent().is_sparse()
 
     def is_square(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.nrows() == self.ncols()
 
     def list(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         tmp = []
         for i in xrange(self.nrows()):
             for j in xrange(self.ncols()):
@@ -841,6 +939,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
         OUTPUT:
             list -- sorted list of integers
+        EXAMPLES:
+            sage: ???
         """
         X = set(self.pivots())
         tmp = []
@@ -852,6 +952,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def nonzero_positions(self):
         """
         Returns the set of pairs (i,j) such that self[i,j] != 0.
+
+        EXAMPLES:
+            sage: ???
         """
         z = self.base_ring()(0)
         tmp = set()
@@ -865,6 +968,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         Return the integers j such that self[j,i] is nonzero, i.e.,
         such that the j-th position of the i-th column is nonzero.
+
+        EXAMPLES:
+            sage: ???
         """
         z = self.base_ring()(0)
         tmp = set()
@@ -877,6 +983,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         Return the integers j such that self[i,j] is nonzero, i.e.,
         such that the j-th position of the i-th row is nonzero.
+
+        EXAMPLES:
+            sage: ???
         """
         z = self.base_ring()(0)
         tmp = set()
@@ -889,6 +998,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         r"""
         Calculate the product of all row sums of a submatrix of $A$ for a
         list of selected columns \code{cols}.
+
+        EXAMPLES:
+            sage: ???
 
         AUTHOR:
             -- Jaap Spies (2006-02-18)
@@ -1209,6 +1321,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def characteristic_polynomial(self, *args, **kwds):
         """
         Synonym for self.charpoly(...).
+
+        EXAMPLES:
+            sage: ???
         """
         return self.charpoly(*args, **kwds)
 
@@ -1218,10 +1333,17 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def minimal_polynomial(self, *args, **kwds):
         """
         Synonym for self.charpoly(...).
+
+        EXAMPLES:
+            sage: ???
         """
         return self.minpoly(*args, **kwds)
 
     def minpoly(self, *args, **kwds):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         raise NotImplementedError
 
     ###########################
@@ -1229,6 +1351,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def rescale_row(self, i, s):
         """
         Replace i-th row of self by s times i-th row of self.
+
+        EXAMPLES:
+            sage: ???
         """
         if s == 1: return
         self._require_mutable()
@@ -1238,6 +1363,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def row(self, i):
         """
         Return the i-th row of this matrix.
+
+        EXAMPLES:
+            sage: ???
         """
         V = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
         tmp = []
@@ -1248,6 +1376,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def rows(self):
         """
         Return a list of the rows of this matrix.
+
+        EXAMPLES:
+            sage: ???
         """
         tmp = []
         for i in xrange(self.nrows()):
@@ -1255,6 +1386,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return tmp
 
     def linear_combination_of_rows(self, v):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         R = self.rows()
         tmp = []
         for i in xrange(len(v)):
@@ -1262,6 +1397,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return sum(tmp, 0)
 
     def linear_combination_of_columns(self, v):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         C = self.columns()
         tmp = []
         for i in xrange(len(v)):
@@ -1271,10 +1410,17 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def set_row_to_multiple_of_row(self, i, j, s):
         """
         Set row i equal to s times row j.
+
+        EXAMPLES:
+            sage: ???
         """
         self[i] = s*self[j]
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, i, A, r, cols):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         # this will be insanely slow for a generic matrix, and should be
         # overloaded for specific matrix classes!
         # the ints cols are assumed sorted.
@@ -1288,6 +1434,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             l = l + 1
 
     def sparse_columns(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if self.__sparse_columns!=None:
             return self.__sparse_columns
         else:
@@ -1301,6 +1451,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             return C
 
     def sparse_rows(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if self.__sparse_rows != None:
             return self.__sparse_rows
         else:
@@ -1611,12 +1765,24 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     ## Arithmetic
     ###################################################
     def __abs__(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return self.determinant()
 
     def __is_compatible(self, other):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         return isinstance(other, Matrix) and self.parent() == other.parent()
 
     def _add_(self, right):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if not isinstance(self,Matrix):
             self,right = right,self
 
@@ -1632,6 +1798,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     #    return cmp(self._entries(), right._entries())
 
     def __richcmp__(self, right, int op):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if not isinstance(right, Matrix) or not (right._parent is self._parent):
             # todo: can make faster using the cdef interface to coerce
             return sage.structure.coerce.cmp(self, right)
@@ -1669,6 +1839,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return sage.structure.coerce.cmp(self, 0)
 
     def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if not isinstance(self,Matrix):
             self,right = right,self
 
@@ -1724,6 +1898,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self.change_ring(self.base_ring().cover_ring())
 
     def _scalar_multiply(self, x):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if not x in self.base_ring():
             x = self.base_ring()(x)
         M = self.new_matrix()
@@ -1753,11 +1931,15 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self._right_scalar_multiply(x)
 
     def __mul__(self, right):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         if not PY_TYPE_CHECK(self, Matrix):
             # it is not a vector, since if it were the vector __mul__ would be called.
             return right._left_scalar_multiply(self)
 
-        if not PY_TYPE_CHECK(right, sage.modules.free_module_element.FreeModuleElement):
+        if PY_TYPE_CHECK(right, sage.modules.free_module_element.FreeModuleElement):
             raise TypeError, "cannot multiply matrix times row vector -- instead computer row vector times matrix"
 
         if not PY_TYPE_CHECK(right, Matrix):
@@ -1784,32 +1966,39 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             return self._multiply_matrices_over_same_base_ring(self, right)
 
         # Now the base rings are not the same
+        try:
+            self, right = sage.structure.coerce.canonical_base_coercion(self, right)
+        except TypeError:
+            raise TypeError, "base rings must be compatible"
 
-        if self.base_ring() != right.base_ring():
-            try:
-                self, right = sage.structure.coerce.canonical_base_coercion(self, right)
-            except TypeError:
-                raise ArithmeticError, "base rings must be compatible"
-        if self.ncols() != right.nrows():
-            raise ArithmeticError, "number of columns of self (=%s) must equal number of rows of right (=%s)."%(
-                self.ncols(), right.nrows())
+        # Either an error was just raised, or self and right now have the same base ring.
+        return self._multiply_matrices_over_same_base_ring(right)
 
     def _multiply_matrices_over_same_base_ring(self, Matrix right):
         """
         Multiply two matrices that are assumed to be defined over the same
         base ring.
+
+        EXAMPLES:
+            sage: ???
         """
         # Both self and right are matrices and have the same base rings.
         # First we check that matrix multiplication is defined.
         if self._ncols != right._nrows:
             raise ArithmeticError, "number of columns of self must equal number of rows of right."
+        # Next we deal with the possiblity that one could be sparse and the other dense.
+        if self.is_sparse() and not right.is_sparse():
+            self = self.dense_matrix()
+        elif right.is_sparse() and not self.is_dense():
+            right = right.dense_matrix()
+
         # Now we can do the matrix multiply.
         if self._will_use_strassen(right):
             return self.strassen_multiply(right)
         else:
-            return self._multiply_classical(right)
+            return self.classical_multiply_cdef(right)
 
-    cdef _multiply_classical(self, Matrix right):
+    cdef classical_multiply_cdef(self, Matrix right):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.
@@ -1826,6 +2015,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
         Overload this in derived classes to not use Strassen by default.
+
+        EXAMPLES:
+            sage: ???
         """
         cdef int n
         n = self._strassen_default_cutoff()
@@ -1834,9 +2026,17 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return 0
 
     def __neg__(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return self.__rmul__(self.base_ring()(-1))
 
     def __pos__(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return self
 
     def __pow__(self, n, ignored):
@@ -1872,6 +2072,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return ans
 
     def __rmul__(self, left):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if not isinstance(self,Matrix):
             self,left = left,self
 
@@ -1881,6 +2085,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return A
 
     def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if not isinstance(self,Matrix):
             self,right = right,self
 
@@ -1938,6 +2146,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self._adjoint()
 
     def _adjoint(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         raise NotImplementedError
 
     def lllgram(self):
@@ -2120,6 +2332,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
     def _invert_submatrix(Matrix self,
                           int self_r, int self_c, int n):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         M = self._submatrix(self_r, self_c, n, n)
         return ~M.matrix_over_field()
 
@@ -2129,6 +2345,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     # Strassen Matrix Multiplication
     #####################################################################################
     def strassen(self, other, int cutoff=64):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         # todo -- add something for nonsquare case
 
         if self.parent() != other.parent():
@@ -2138,6 +2358,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
 
     def _strassen_subdivide(self, int r, int c, int n):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         cdef int m
         m = n/2
         return ((r,   c),
@@ -2151,6 +2375,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
                                   int b_r, int b_c,
                                   int cutoff):
 
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if n <= cutoff:
             return self._mul_submatrices(other, a_r, a_c, n, n, b_r, b_c, n, n)
 
@@ -2253,9 +2481,17 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     # strassen with windows
     # todo: matrix windows only implemented for dense matrices, but no multiple inheritance for cdef class (?)
     cdef int _strassen_default_cutoff(self) except -1:
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return 128
 
     def strassen_multiply(self, Matrix right, int cutoff=0):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if self._ncols != right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right."
 
@@ -2275,6 +2511,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return output
 
     def echelon_strassen(self, cutoff):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         pivots = strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         return self
@@ -2524,6 +2764,10 @@ def strassen_window_multiply(C, A, B, int cutoff):
 
 # TODO: make cdef
 def subtract_strassen_product(result, A, B, int cutoff):
+    """
+    EXAMPLES:
+        sage: ?
+    """
     cutoff = 1000000 # for testing
     if (result.ncols() < cutoff or result.nrows() < cutoff):
         result.subtract_prod(A, B)
@@ -2724,10 +2968,19 @@ def strassen_echelon(A, cutoff):
 class int_range:
     r"""
     Useful class for dealing with pivots in the strassen echelon, could have much more general application
+
+    EXAMPLES:
+        sage: ?
+
     AUTHORS:
       -- Robert Bradshaw
+
     """
     def __init__(self, indices=None, range=None):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         if indices is None:
             self._intervals = []
             return
@@ -2750,12 +3003,24 @@ class int_range:
             self._intervals.append((start, last-start+1))
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return str(self._intervals)
 
     def intervals(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return self._intervals
 
     def to_list(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         all = []
         for iv in self._intervals:
             for i in range(iv[0], iv[0]+iv[1]):
@@ -2763,9 +3028,17 @@ class int_range:
         return all
 
     def __iter__(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         return self._intervals.__iter__()
 
     def __len__(self):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         len = 0
         for iv in self._intervals:
             len = len + iv[1]
@@ -2774,12 +3047,20 @@ class int_range:
     # Yes, these two could be a lot faster...
     # Basically, this class is for abstracting away what I was trying to do by hand in several places
     def __add__(self, right):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         all = self.to_list()
         for i in right.to_list():
             all.append(i)
         return int_range(all)
 
     def __sub__(self, right):
+        """
+        EXAMPLES:
+            sage: ?
+        """
         all = self.to_list()
         for i in right.to_list():
             if i in all:
@@ -2789,6 +3070,9 @@ class int_range:
     def __mul__(self, right):
         """
         In the boolean sense, i.e. intersection
+
+        EXAMPLES:
+            sage: ?
         """
         intersection = []
         all = self.to_list()

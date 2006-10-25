@@ -93,7 +93,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             ncols = self._ncols
         return MatrixWindow(self, row, col, nrows, ncols)
 
-    def _multiply_classical(self, Matrix_dense right):
+    cdef classical_multiply_cdef(self, matrix_generic.Matrix right):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.

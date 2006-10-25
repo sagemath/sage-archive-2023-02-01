@@ -39,5 +39,6 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _strassen_default_cutoff(self) except -1
-    cdef _multiply_classical(self, Matrix right)
+
+    cdef classical_multiply_cdef(self, Matrix right)
 

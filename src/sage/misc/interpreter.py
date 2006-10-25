@@ -410,10 +410,11 @@ def my_getdoc(obj):
         return None
     return sagedoc.format(ds)
 
+import pyrex_inspect
+
 import IPython.OInspect
 IPython.OInspect.getdoc = my_getdoc
-
-
+IPython.OInspect.inspect_getsource = pyrex_inspect.getsource
 
 import log
 

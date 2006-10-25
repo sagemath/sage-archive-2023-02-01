@@ -23,6 +23,10 @@ Standard SAGE Pyrex Helper Code
 cdef extern from "stdsage.h":
     # Global tuple -- useful optimization
     void init_global_empty_tuple()
+    object PY_NEW(object t)
+    void* PY_TYPE(object o)
+    int PY_TYPE_CHECK(object o, object t)
+    void PY_SET_TP_NEW(object t1, object t2)
 
 # Initialize the global tuple.
 init_global_empty_tuple()
@@ -30,6 +34,7 @@ init_global_empty_tuple()
 # Memory management
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
+
 cdef extern from "stdsage.h":
     void  sage_free(void *p)
     void* sage_realloc(void *p, size_t n)

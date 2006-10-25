@@ -6,6 +6,7 @@ AUTHOR:
 """
 
 import inspect
+import sage.misc.pyrex_inspect
 import os
 import string
 
@@ -180,7 +181,7 @@ def source_code(s, globs):
         try:
             fname = inspect.getabsfile(obj)
         except TypeError:
-            fname = "unknown"
+            return sage.misc.pyrex_inspect.getsource(obj)
         lines, num = inspect.getsourcelines(obj)
         src = ''.join(lines)
         return """File: %s

@@ -24,7 +24,9 @@ AUTHOR:
 #*****************************************************************************
 
 #include 'gsl.pxi'
+
 import sage.plot.all
+
 #import gsl_array
 #cimport gsl_array
 

@@ -1,6 +1,6 @@
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
-include 'gsl.pxi'
+include "gsl_wavelet.pxi"
 import gsl_array
 cimport gsl_array
 

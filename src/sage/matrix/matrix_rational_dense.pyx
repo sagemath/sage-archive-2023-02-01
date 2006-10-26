@@ -42,6 +42,8 @@ import matrix_modn_dense
 cimport sage.rings.rational
 import  sage.rings.rational
 
+import matrix_generic
+
 import matrix_space
 from sage.rings.finite_field import GF
 from sage.rings.integer_ring import IntegerRing
@@ -57,7 +59,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpq_t *v
 
-        matrix_field.Matrix_field.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
 
         nrows = parent.nrows()
         ncols = parent.ncols()

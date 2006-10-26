@@ -1722,23 +1722,23 @@ function hide_help_window() {
 ///////////////////////////////////////////////////////////////////
 function history_window() {
     history = window.open ("__history__.html",
-      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1");
+      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1,resizable=1");
 }
 
 function worksheet_text_window(worksheet) {
     log = window.open (worksheet+"__plain__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1, resizable=1");
 }
 
 function doctest_window(worksheet) {
     log = window.open (worksheet+"__doc__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
 }
 
 
 function print_window(worksheet) {
     log = window.open (worksheet+"__print__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 
 //////////////////////////////////

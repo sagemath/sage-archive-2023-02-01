@@ -268,6 +268,9 @@ cdef class ntl_ZZX:
     def copy(self):
         return make_ZZX(ZZX_copy(self.x))
 
+    def __copy__(self):
+        return make_ZZX(ZZX_copy(self.x))
+
     def __setitem__(self, long i, a):
         if i < 0:
             raise IndexError, "index (i=%s) must be >= 0"%i
@@ -1276,6 +1279,9 @@ cdef class ntl_ZZ_pX:
 
     def __repr__(self):
         return str(ZZ_pX_repr(self.x))
+
+    def __copy__(self):
+        return make_ZZ_pX(ZZ_pX_copy(self.x))
 
     def copy(self):
         return make_ZZ_pX(ZZ_pX_copy(self.x))
@@ -2761,6 +2767,9 @@ cdef class ntl_GF2E(ntl_GF2X):
         Returns True if this element equals one, False otherwise.
         """
         return bool(GF2E_is_one(self.gf2e_x))
+
+    def __copy__(self):
+        return make_GF2E(GF2E_copy(self.gf2e_x))
 
     def copy(ntl_GF2E self):
         """

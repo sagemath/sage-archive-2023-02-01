@@ -503,8 +503,7 @@ cdef class Matrix_integer_dense(matrix_integer.Matrix_integer):
                 for k from 0 <= k < snc:
                     mpz_mul(z, v[k], other._matrix[k][j])
                     mpz_add(s, s, z)
-                mpz_init(m[i][j])
-                mpz_set(m[i][j], s)
+                mpz_init_set(m[i][j], s)
         _sig_off
         mpz_clear(s); mpz_clear(z)
         return M

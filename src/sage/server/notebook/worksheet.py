@@ -139,7 +139,7 @@ class Worksheet:
         for C in self.__cells:
             t = C.plain_text(prompts=prompts).strip('\n')
             if t != '':
-                s += '\n\n' + t
+                s += '\n' + t
         return s
 
     def input_text(self):

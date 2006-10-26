@@ -393,8 +393,14 @@ cdef class RingElement(Element):
                     PY_TYPE_CHECK(self, RingElement)):
             # If parents agree, then we can use _add_sibling_cdef.
             if (<RingElement>right)._parent is (<RingElement>self)._parent:
-                return (<RingElement>self)._add_sibling_cdef(
-                                                     <RingElement>right)
+                # If self is actually a Python class that derives from
+                # a SAGE Pyrex class, then we call its non-cdef'd
+                # _add_sibling method instead.  We declare something
+                # Python class if it has a dictionary:
+                if HAS_DICTIONARY(self):
+                    return (<RingElement>self)._add_sibling(<RingElement>right)
+                else:
+                    return (<RingElement>self)._add_sibling_cdef(<RingElement>right)
 
         # Fast pathway didn't work. Fall back on the old coercion code.
         # todo:
@@ -448,7 +454,7 @@ cdef class RingElement(Element):
         NOTE: The plan is to replace all '_add_' methods in SAGE by
         '_add_sibling'. Eventually this method will be removed.
         """
-        self._add_sibling_cdef(right)
+        return self._add_sibling_cdef(right)
 
 
     def __sub__(self, right):

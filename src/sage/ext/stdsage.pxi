@@ -27,6 +27,7 @@ cdef extern from "stdsage.h":
     void* PY_TYPE(object o)
     int PY_TYPE_CHECK(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
+    int HAS_DICTIONARY(object o)
 
 # Initialize the global tuple.
 init_global_empty_tuple()

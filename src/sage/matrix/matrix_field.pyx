@@ -50,18 +50,20 @@ cdef class Matrix_field(matrix_pid.Matrix_pid):
         """
         cdef int i
 
-        if self.__charpoly is not None:
-            return self.__charpoly
-        if self.nrows() != self.ncols():
+        try:
+            return self._cache['charpoly']
+        except KeyError:
+            pass
+        if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly of non-square matrix not defined."
 
         R = sage.rings.polynomial_ring.PolynomialRing(self.base_ring())
         zero = R(0)
-        if self.nrows() == 0:
-            self.__charpoly = zero
-            return self.__charpoly
+        if self._nrows == 0:
+            self._cache['charpoly'] = zero
+            return zero
         time = sage.misc.misc.verbose(t=0)
-        H = self.copy().hessenberg_form()
+        H = self.hessenberg_form()
         n = self.nrows()
         c = [zero]*(n+1)
         c[0] = R(1)
@@ -75,8 +77,7 @@ cdef class Matrix_field(matrix_pid.Matrix_pid):
         sage.misc.misc.verbose('computed characteristic polynomial of %sx%s matrix'%
                      (self.nrows(), self.ncols()), time)
         f = c[n]
-        if self.is_immutable():
-            self.__charpoly = f
+        self._cache['charpoly'] = f
         return f
 
     def column_space(self):

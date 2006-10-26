@@ -729,8 +729,9 @@ class PowerSeries_generic_dense(PowerSeries):
         return self.__f(x)
 
     def __setitem__(self, n, value):
-        self.__f[n] = value
-        self._prec = max(self._prec, n+1)
+        raise IndexError, "power series are immutable"
+    #self.__f[n] = value
+    #    self._prec = max(self._prec, n+1)
 
     def __getitem__(self, n):
         if n<0:

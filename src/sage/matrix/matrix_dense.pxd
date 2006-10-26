@@ -6,7 +6,6 @@ cdef class Matrix_dense(matrix_generic.Matrix):
     cdef object __entries
     cdef int* _row_indices
 
-
 cdef class MatrixWindow:
     cdef Matrix_dense _matrix
     cdef int _row

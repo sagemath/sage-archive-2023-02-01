@@ -168,12 +168,6 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef _clear_cache_cdef(self):
         self._cache = {}
 
-    def _clear_cache(self):
-        """
-        Delete all cached information computed about this matrix, e.g., determinant, etc.
-        """
-        return self._clear_cache_cdef()
-
     cdef _require_mutable(self):
         """
         EXAMPLES:
@@ -350,32 +344,30 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         s = "\\\\\n".join(tmp)
         return "\\left(\\begin{array}{%s}\n"%('r'*nc) + s + "\n\\end{array}\\right)"
 
-    def __str__(self):
-        """
-        EXAMPLES:
-            sage: ???
-        """
-        return self.__repr__()
-
     def __hash__(self):
         """
         EXAMPLES:
             sage: ???
         """
-        return hash(self.__str__())
+        return hash(str(self))
 
 
     ###################################################
     ## Coercion to PARI
     ###################################################
-    #def _pari_(self):
-    #    return pari.pari.matrix(
-    #        self.nrows(), self.ncols(), self.list())
 
     def _pari_init_(self):
         """
         EXAMPLES:
-            sage: ???
+            sage: R.<x> = QQ['x']
+            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+            sage: b = pari(a); b
+            [x + 1, 2/3; 1/2*x^2, x^3 + 1]
+            sage: a.determinant()
+            sage: b.determinant()
+
         """
         w = self.list()
         nr = self.nrows(); nc = self.ncols()
@@ -449,7 +441,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
         K = self.base_ring()._magma_init_()
-        if self.is_square():
+        if self._nrows != self._ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
         else:
             s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
@@ -641,8 +633,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             sage: A.act_on_polynomial(f)
             -12*y^2 - 20*x*y - 8*x^2
         """
-        if not self.is_square():
-            raise ArithmeticError, "self must be square but is %s x %s"%(self.nrows(), self.ncols())
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "self must be square"
 
         F = f.base_ring()
         vars = f.parent().gens()
@@ -939,21 +931,21 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        return self.parent().is_dense()
+        return self._parent.is_dense()
 
     def is_sparse(self):
         """
         EXAMPLES:
             sage: ???
         """
-        return self.parent().is_sparse()
+        return self._parent.is_sparse()
 
     def is_square(self):
         """
         EXAMPLES:
             sage: ???
         """
-        return self.nrows() == self.ncols()
+        return self._nrows == self._ncols
 
     def list(self):
         """
@@ -1277,13 +1269,13 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         r"""
         Return the determinant of self.
 
-        ALGORITHM: This is computed using a \emph{naive generic
-        algorithm}.  For matrices over more most rings more
-        sophisticated algorithms can be used.  (Type
-        \code{A.determinant?} to see what is done for a specific
-        matrix A.)  If you're actually using the algorithm below, you
-        should probably clamor for something better to be implemented
-        for your base ring.
+        ALGORITHM: This is computed using the very stupid expansion by
+        minors stupid \emph{naive generic algorithm}.  For matrices
+        over more most rings more sophisticated algorithms can be
+        used.  (Type \code{A.determinant?} to see what is done for a
+        specific matrix A.)  If you're actually using the algorithm
+        below, you should probably clamor for something better to be
+        implemented for your base ring.
 
         EXAMPLES:
             sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
@@ -1305,11 +1297,13 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             sage: A.determinant()
             -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
         """
-        if self.__determinant is not None:
-            return self.__determinant
-        if not self.is_square():
-            raise ValueError, "self must be square but is %s x %s"%(
-                               self.nrows(), self.ncols())
+        try:
+            return self._cache['determinant']
+        except KeyError:
+            pass
+
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
         n = self.nrows()
         R = self.parent().base_ring()
         if n == 0:
@@ -1325,8 +1319,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             B = A.matrix_from_columns(v)
             d = d + s*self.get((0,i))*B.determinant()
             s = s*sgn
-        if self.is_immutable():
-            self.__determinant = d
+
+        self._cache['determinant'] = d
         return d
 
 
@@ -1999,7 +1993,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         #     product is dense.
 
         if (<Matrix> self)._parent.base_ring() is (<Matrix> right)._parent.base_ring():
-            return self._multiply_matrices_over_same_base_ring(self, right)
+            return self._multiply_matrices_over_same_base_ring(right)
 
         # Now the base rings are not the same
         try:
@@ -2177,7 +2171,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             only implemented for matrices over ZZ or QQ
             PARI can deal with more general base rings
         """
-        if not self.is_square():
+        if self._nrows != self._ncols:
             raise ArithmeticError, "matrix must be square"
         return self._adjoint()
 
@@ -2239,7 +2233,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         BUGS:
             should work for semidefinite forms (PARI is ok)
         """
-        if not self.is_square():
+        if self._nrows != self._ncols:
             raise ArithmeticError, "matrix must be square"
         return self._lllgram()
 

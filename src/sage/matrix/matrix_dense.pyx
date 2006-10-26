@@ -16,40 +16,84 @@ cimport matrix_generic
 import matrix_generic
 
 cdef class Matrix_dense(matrix_generic.Matrix):
+    r"""
+    The \class{Matrix_dense} class derives from \class{Matrix}, and
+    defines functionality for dense matrices over any base ring.
+    Matrices are represented by a list of elements in the base ring,
+    and element access operations are implemented in this class.
     """
-    The \\class{Matrix_dense} class derives from
-    \\class{Matrix}, and defines functionality for dense matrices over
-    any base ring.  Matrices are represented by a list of elements in
-    the base ring, and element access operations are implemented in
-    this class.
-    """
-    def __init__(self, parent,
-                 entries = None,
+    def __init__(self,
+                 parent,
+                 entries,
                  copy = True,
                  coerce = True):
         matrix_generic.Matrix.__init__(self, parent)
-        self._nrows = parent.nrows()
-        self._ncols = parent.ncols()
-        cdef int i, n
-        if entries:
-            if not isinstance(entries, list):
-                raise TypeError, 'entries must be a list'
-            if not (coerce or copy):
-                self.__entries = entries
-            else:
-                self.__entries = [None]*(self._nrows*self._ncols)
-                n = len(entries)
-                if coerce:
-                    R = parent.base_ring()
-                    for i from 0 <= i < n:
-                        self.__entries[i] = R(entries[i])
-                else:
-                    for i from 0 <= i < n:
-                        self.__entries[i] = entries[i]
+
+        cdef size_t i, n
+
+        if not isinstance(entries, list):
+            raise TypeError, 'entries must be a list'
+
+        if not (coerce or copy):
+            self.__entries = entries
         else:
             self.__entries = [None]*(self._nrows*self._ncols)
+            n = len(entries)
+            if coerce:
+                R = parent.base_ring()
+                for i from 0 <= i < n:
+                    self.__entries[i] = R(entries[i])
+            else:
+                for i from 0 <= i < n:
+                    self.__entries[i] = entries[i]
 
         self._init_row_indices()
+
+    def __copy__(self):
+        return self.__class__(self._parent, self.__entries, copy = True, coerce=False)
+
+    def __deepcopy__(self):
+        import copy
+        return self.__class__(self._parent, copy.deepcopy(self.__entries), copy = False, coerce=False)
+
+    def copy(self):
+        """
+        Make a copy of self.
+
+        WARNING: The individual elements aren't themselves copied
+        (though the list is copied).
+
+        EXAMPLES:
+            sage: R.<x> = QQ['x']
+            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+
+            sage: b = copy(a)
+
+            sage: b[0,0] = 5
+
+            sage: b
+            [      5     2/3]
+            [1/2*x^2 x^3 + 1]
+
+            sage: a
+            [  x + 1     2/3]
+            [1/2*x^2 x^3 + 1]
+
+            sage: b = copy(a)
+
+            sage: f = b[0,0]; f[0] = 10
+
+            sage: b
+            [ x + 10     2/3]
+            [1/2*x^2 x^3 + 1]
+
+            sage: a
+            [ x + 10     2/3]
+            [1/2*x^2 x^3 + 1]
+        """
+        return self.__copy__()
 
     def _init_row_indices(self):
         self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * self._nrows)
@@ -94,22 +138,37 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             ncols = self._ncols
         return MatrixWindow(self, row, col, nrows, ncols)
 
-    cdef classical_multiply_cdef(self, matrix_generic.Matrix right):
+    cdef classical_multiply_cdef(self, matrix_generic.Matrix _right):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.
 
-        EXAMPLES
+        EXAMPLES:
+        We multiply two matrices over a fairly general ring:
 
-            sage: include the 0 rows and 0 columns cases  -- do dense examples
+            sage: R.<x,y> = Integers(8)['x,y']
+            sage: a = matrix(R,2,[x,y,x^2,y^2]); a
+            [  x   y]
+            [x^2 y^2]
+            sage: a*a
+            [  x^2 + x^2*y     y^3 + x*y]
+            [x^2*y^2 + x^3   y^4 + x^2*y]
+            sage: a.det()^2 == (a*a).det()
+            True
+
+        SAGE fully supports degenerate matrices with 0 rows or 0 columns:
+
+
         """
         cdef int i, j, k, m, n, r, nr, nc, snc
         cdef object v
+        cdef Matrix_dense A, right
+
+        right = _right
 
         if self._ncols != right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of other."
 
-        cdef Matrix_dense A
         nr = self._nrows
         nc = right._ncols
         snc = self._ncols

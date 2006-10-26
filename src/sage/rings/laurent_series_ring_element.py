@@ -198,17 +198,18 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         for i in range(self.valuation(), self.degree()+1):
             yield self[i]
 
-    def __setitem__(self, i, value):
-        j = i - self.__n
-        if j >= 0:
-            self.__u[j] = value
-        else: # off to the left
-            if value != 0:
-                self.__n = self.__n + j
-                R = self.parent().base_ring()
-                coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
-                self.__u = self.__u.parent()(coeffs)
-        self.__normalize()
+    def __setitem__(self, n, value):
+         raise IndexError, "Laurent series are immutable"
+##         j = i - self.__n
+##         if j >= 0:
+##             self.__u[j] = value
+##         else: # off to the left
+##             if value != 0:
+##                 self.__n = self.__n + j
+##                 R = self.parent().base_ring()
+##                 coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
+##                 self.__u = self.__u.parent()(coeffs)
+##         self.__normalize()
 
     def __add__(self, right):
         """

@@ -173,6 +173,10 @@ class HG:
             options = '-u'
         else:
             options = ''
+
+        print "If you get an error 'abort: unknown parent'"
+        print "this just means you need to do an x.pull(),"
+        print "where x is the hg_ object you just called this method on."
         self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle

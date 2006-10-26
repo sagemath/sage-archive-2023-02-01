@@ -1590,7 +1590,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         use \code{pari.set_real_precision}.
 
              sage: type(z)
-             <type 'gen.gen'>
+             <type 'sage.libs.pari.gen.gen'>
              sage: R(z)
              1.6449340668482264
         """

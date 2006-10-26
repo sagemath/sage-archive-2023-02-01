@@ -52,13 +52,19 @@ We save and load a matrix:
 
 MUTABILITY: Matrices are either immutable or not.  When initially
 created, matrices are typically mutable, so one can change their
-entries.  However, nothing about mutable matrices is cached.  Once a
-matrix $A$ is made immutable using \code{A.set_immutable()} the
-entries of $A$ cannot be changed.  However, properies of $A$ such as
+entries.  Once a matrix $A$ is made immutable using
+\code{A.set_immutable()} the entries of $A$ cannot be changed, and $A$
+can never be made mutable again.  However, properies of $A$ such as
 its rank, characteristic polynomial, etc., are all cached so
 computations involving $A$ may be more efficient.  Once $A$ is made
 immutable it cannot be changed back.  However, one can obtain a
 mutable copy of $A$ using \code{A.copy()}.
+
+EXAMPLES:
+    sage: A = Matrix(RR,2,[1,10,3.5,2])
+    sage: A.set_immutable()
+    sage: A.copy() is A
+    False
 
 The echelon form method always returns immutable matrices with known
 rank.
@@ -78,24 +84,15 @@ EXAMPLES:
 """
 
 
-#*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+################################################################################
+#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
-#  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
+#  Distributed under the terms of the GNU General Public License (GPL), version 2.
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+################################################################################
 
-doc = """
-Matrices
-"""
 include "../ext/stdsage.pxi"
 
 import sage.modules.free_module
@@ -103,7 +100,7 @@ import sage.misc.latex
 import sage.structure.coerce
 from   sage.structure.sequence import _combinations
 
-from sage.structure.mutability_pyx cimport Mutability
+from sage.structure.mutability cimport Mutability
 
 def is_Matrix(x):
     """
@@ -122,7 +119,37 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     the documentation of \class{MatrixSpace} for more details.
 
     EXAMPLES:
-        sage: ???
+
+    We illustrate matrices and matrix spaces.  Note that no actual
+    matrix that you make should have class Matrix; the class should
+    always be derived from Matrix.
+
+        sage: M = MatrixSpace(CDF,2,3); M
+        Full MatrixSpace of 2 by 3 dense matrices over Complex Double Field
+        sage: a = M([1,2,3,  4,5,6]); a
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        sage: type(a)
+        <type 'sage.matrix.matrix_field.Matrix_field'>
+        sage: parent(a)
+        Full MatrixSpace of 2 by 3 dense matrices over Complex Double Field
+
+        sage: matrix(CDF, 2,3, [1,2,3, 4,5,6])
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+        sage: Mat(CDF,2,3)(range(1,7))
+        [1.0 2.0 3.0]
+        [4.0 5.0 6.0]
+
+    Note that matrices in SAGE are (currently) only implemented over commutative rings:
+        sage: Q = QuaternionAlgebra(QQ, -1,-1)
+        sage: matrix(Q,2,1,[1,2])
+        Traceback (most recent call last):
+        ...
+        TypeError: base_ring must be a commutative ring
+
+    (This is just because this assumption is implicitly made in some functions.  It
+    could be fixed if there were interest.)
     """
     def __init__(self, parent):
         """
@@ -133,16 +160,32 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             <type 'matrix_generic.Matrix'>
         """
         sage.structure.element.ModuleElement.__init__(self, parent)
-        self.__nrows = parent.nrows()
-        self.__ncols = parent.ncols()
+        self._nrows = parent.nrows()
+        self._ncols = parent.ncols()
         self._mutability = Mutability(False)
+        self._cache = {}
 
-    def _require_mutable(self):
+    cdef _clear_cache_cdef(self):
+        self._cache = {}
+
+    def _clear_cache(self):
+        """
+        Delete all cached information computed about this matrix, e.g., determinant, etc.
+        """
+        return self._clear_cache_cdef()
+
+    cdef _require_mutable(self):
         """
         EXAMPLES:
             sage: ???
         """
         self._mutability._require_mutable()
+
+    cdef int _check_bounds(self, size_t i, size_t j) except -1:
+        if i < 0 or i >= self._nrows:
+            raise IndexError, 'matrix row index out of range'
+        if j < 0 or j >= self._ncols:
+            raise IndexError, 'matrix column index out of range'
 
     def set_immutable(self):
         """
@@ -156,7 +199,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        return self._mutability.is_immutable()
+        return self._mutability._is_immutable
 
     def is_mutable(self):
         """
@@ -173,28 +216,21 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         return self.change_ring(R)
 
     def __reduce__(self):
-        """
-        EXAMPLES:
-            sage: ???
-        """
-        return sage.matrix.matrix.__reduce__Matrix_generic, \
-                 (self.__class__, self.__dict__,
-                  self.parent(), self.__dict, self.__determinant,
-                  self.__sparse_columns, self.__sparse_rows,
-                  self._mutability)
+        # One will never make an abstract matrix, so there is no need to know how to pickle them.
+        raise NotImplementedError, "pickling of matrices of this type not yet implemented."
 
-    def _init(self, attrs, parent, dict, determinant,
-              sparse_columns, sparse_rows,
-              mutability):
-        sage.structure.element.ModuleElement.__init__(self, parent)
-        self.__dict__ = attrs
-        self.__dict = dict
-        self.__determinant = determinant
-        self.__sparse_columns = sparse_columns
-        self.__sparse_rows = sparse_rows
-        self.__nrows = parent.nrows()
-        self.__ncols = parent.ncols()
-        self._mutability = mutability
+##     def _init(self, attrs, parent, dict, determinant,
+##               sparse_columns, sparse_rows,
+##               mutability):
+##         sage.structure.element.ModuleElement.__init__(self, parent)
+##         self.__dict__ = attrs
+##         self.__dict = dict
+##         self.__determinant = determinant
+##         self.__sparse_columns = sparse_columns
+##         self.__sparse_rows = sparse_rows
+##         self._nrows = parent.nrows()
+##         self._ncols = parent.ncols()
+##         self._mutability = mutability
 
     def __repr__(self):
         """
@@ -490,7 +526,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             ...
             ValueError: object is immutable; please change a copy instead.
         """
-        raise NotImplementedError
+        raise NotImplementedError, 'this must be defined in the derived class'
 
     def set(self, ij, x):
         """
@@ -555,7 +591,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        return self.__ncols
+        return self._ncols
 
     def nrows(self):
         r"""
@@ -579,7 +615,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        return self.__nrows
+        return self._nrows
 
 
     ###################################################
@@ -733,7 +769,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
                 return self.copy()
             else:
                 return self
-        M = sage.matrix.matrix_space.MatrixSpace(ring, self.__nrows, self.__ncols)
+        M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols)
         return M(self.list())
 
     def column(self, i):
@@ -1962,7 +1998,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         #   * if one matrix is sparse and the other is dense, the
         #     product is dense.
 
-        if self._parent.base_ring() is right._parent.base_ring():
+        if (<Matrix> self)._parent.base_ring() is (<Matrix> right)._parent.base_ring():
             return self._multiply_matrices_over_same_base_ring(self, right)
 
         # Now the base rings are not the same
@@ -3083,13 +3119,13 @@ class int_range:
 
 #######################
 
-def __reduce__Matrix_generic(cls, attrs, parent, dict, determinant,
-                         sparse_columns, sparse_rows,
-                         mutability):
-    M = cls.__new__(cls)
-    M._init(attrs, parent, dict, determinant,
-            sparse_columns, sparse_rows,
-            mutability)
-    return M
+## def __reduce__Matrix_generic(cls, attrs, parent, dict, determinant,
+##                          sparse_columns, sparse_rows,
+##                          mutability):
+##     M = cls.__new__(cls)
+##     M._init(attrs, parent, dict, determinant,
+##             sparse_columns, sparse_rows,
+##             mutability)
+##     return M
 
 

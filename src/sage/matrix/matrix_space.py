@@ -13,6 +13,7 @@ import matrix_generic
 import matrix_dense
 import matrix_domain
 import matrix_pid
+import matrix_field
 import matrix_integer_dense
 import matrix_integer_sparse
 import matrix_rational_dense
@@ -63,13 +64,13 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     The default value of the optional argument ncols is nrows.
 
     INPUT:
-         base_ring -- a ring
+         base_ring -- a commutative ring
          nrows -- int, the number of rows
          ncols -- (default nrows) int, the number of columns
          sparse -- (default false) whether or not matrices are given
                    a sparse representation
     OUTPUT:
-        The space of all nrows x ncols matrices over base_ring.
+        The unique space of all nrows x ncols matrices over base_ring.
 
     EXAMPLES:
         sage: MS = MatrixSpace(RationalField(),2)
@@ -120,13 +121,16 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         True
     """
     global __cache
-    if ncols == None: ncols = nrows
+    if ncols is None: ncols = nrows
     nrows = int(nrows); ncols = int(ncols)
     key = (base_ring, nrows, ncols, sparse)
     if __cache.has_key(key):
         M = __cache[key]()
         if M != None:
             return M
+
+    if not isinstance(base_ring, ring.CommutativeRing):
+        raise TypeError, "base_ring must be a commutative ring"
 
     if isinstance(base_ring, field.Field):
         M = MatrixSpace_field(base_ring, nrows, ncols, sparse)
@@ -272,7 +276,7 @@ class MatrixSpace_generic(gens.Generators):
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
                 return matrix_modn_dense.Matrix_modn_dense
             else:
-                matrix_dense.Matrix_dense
+                return matrix_dense.Matrix_dense
         else:
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
                 return matrix_modn_sparse.Matrix_modn_sparse

@@ -12,9 +12,6 @@ import sage.misc.misc
 
 
 cdef class Matrix_field(matrix_pid.Matrix_pid):
-    def __init__(self, parent):
-        matrix_pid.Matrix_pid.__init__(self, parent)
-
     def __invert__(self):
         """
         Return this inverse of this matrix.

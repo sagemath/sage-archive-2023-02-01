@@ -1,8 +1,6 @@
 """
 Vectors with entries that are floating point doubles
 
-TODO: #Modify free_module.py to check if base_ring is RealDoubleField and if so call this constructor#
-
 AUTHOR:
     -- Josh Kantor (2006-10)
 """

@@ -16,29 +16,21 @@ cdef extern from "stdlib.h":
 cimport sage.structure.element
 import  sage.structure.element
 
+cimport sage.structure.mutability
+
 cdef class Matrix(sage.structure.element.ModuleElement):
-    cdef object _mutability
-
-    # todo -- delete these two
-    cdef object __nrows
-    cdef object __ncols
-
-    cdef object __dict
-    cdef object __determinant
-    cdef object __charpoly
-    cdef object __sparse_columns
-    cdef object __sparse_rows
-    cdef object __eigenvectors
-    cdef object __rank
-    cdef object __echelon_form
-
+    # Properties of any matrix  (plus _parent, inherited from base class)
     cdef size_t _nrows
     cdef size_t _ncols
-
+    cdef object _cache
+    cdef sage.structure.mutability.Mutability _mutability
 
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _strassen_default_cutoff(self) except -1
 
     cdef classical_multiply_cdef(self, Matrix right)
+    cdef int _check_bounds(self, size_t i, size_t j) except -1
+    cdef _clear_cache_cdef(self)
+    cdef _require_mutable(self)
 

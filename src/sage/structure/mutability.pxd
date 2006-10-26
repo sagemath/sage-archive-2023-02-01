@@ -13,4 +13,5 @@ Mutability Pyrex Implementation
 ##########################################################################
 
 cdef class Mutability:
-    cdef object _is_immutable
+    cdef int _is_immutable
+    cdef _require_mutable_cdef(self)

@@ -45,7 +45,7 @@ if [ -d "$DEVEL/sage-main" ]; then
     # OK if the build takes a little longer, since this is a full
     # upgrade.  So we touch all pyrex code.
 
-    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx 2> /dev/null
+    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx  2> /dev/null
 
     "$SAGE_ROOT/sage" -b main
     if [ $? -ne 0 ]; then

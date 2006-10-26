@@ -67,11 +67,9 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             A[i, j] -- the i,j of A, and
             A[i]    -- the i-th row of A.
         """
-        #self._require_mutable()   # todo
-        cdef int i, j
+        cdef size_t i, j
         i, j = ij
-        if i < 0 or i >= self._nrows:
-            raise IndexError
+        self._check_bounds(i, j)
         return self.__entries[self._row_indices[i] + j]
 
     def __setitem__(self, ij, value):
@@ -80,11 +78,14 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             A[i, j] = value -- set the (i,j) entry of A
             A[i] = value    -- set the ith row of A
         """
-        #self._require_mutable()   # todo
-        cdef int i, j
+        if self._mutability._is_immutable:
+            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+        else:
+            self._clear_cache_cdef()
+
+        cdef size_t i, j
         i, j = ij
-        if i < 0 or i >= self._nrows:
-            raise IndexError
+        self._check_bounds(i, j)
         self.__entries[self._row_indices[i] + j] = value
 
     def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):

@@ -335,14 +335,6 @@ ext_modules = [ \
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
 
-    Extension('sage.matrix.dense_matrix_pyx',
-              ['sage/matrix/dense_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
-
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 

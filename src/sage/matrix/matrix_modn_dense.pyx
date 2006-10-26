@@ -5,6 +5,8 @@ Generic matrices over the integers modulo n.
 cimport matrix_dense
 import matrix_dense
 
+import matrix_generic
+
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 
@@ -22,10 +24,11 @@ ai = sage.ext.arith.arith_int()
 ##################################################################
 
 LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
+MAX_MODULUS = 46340
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __init__(self, parent, object entries=None, coerce_entries=True, copy=True, clear=True):
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        matrix_generic.Matrix.__init__(self, parent)
 
         cdef int i, p, nrows, ncols
         nrows = parent.nrows()

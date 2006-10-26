@@ -12,6 +12,7 @@ import sage.misc.misc
 
 
 cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
+
     def __invert__(self):
         """
         Return this inverse of this matrix.

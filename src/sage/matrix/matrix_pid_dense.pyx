@@ -25,6 +25,7 @@ import sage.modules.free_module
 
 
 cdef class Matrix_pid_dense(matrix_domain_dense.Matrix_domain_dense):
+
     def column_module(self):
         """
         Return the free module over the base ring spanned by the

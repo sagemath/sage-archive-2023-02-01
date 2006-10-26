@@ -21,6 +21,13 @@ build() {
 
 $SAGE_ROOT/local/bin/sage-env 1>/dev/null
 
+if [ "$1" = "-b" ]; then
+    DO_TOUCH=1
+    shift
+else
+    DO_TOUCH=0
+fi
+
 if [ "$1" != "" ]; then
     # make devel/sage point to devel/$1
     cd "$SAGE_ROOT/devel/"
@@ -36,6 +43,13 @@ fi
 if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
     echo "There is no directory '$SAGE_ROOT/devel/sage'"
     exit 1
+fi
+
+if [ DO_TOUCH = 1 ]; then
+   CUR=`pwd`
+   cd "$SAGE_ROOT/devel/sage/sage"
+   touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
+   cd "$CUR"
 fi
 
 build "sage"

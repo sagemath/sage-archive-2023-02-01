@@ -25,6 +25,7 @@ usage_advanced() {
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
+    echo "  -ba [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
     echo "  -clisp [...]  -- run Common Lisp"
@@ -317,6 +318,16 @@ fi
 if [ $1 = '-br' -o $1 = "--br" ]; then
    shift
    sage-build $* && sage
+   exit $?
+fi
+
+if [ $1 = '-ba' ]; then
+   shift
+   CUR=`pwd`
+   cd "$SAGE_ROOT/devel/sage/sage-"
+   touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx 2> /dev/null
+   cd "$CUR"
+   sage-build -b $* && sage
    exit $?
 fi
 

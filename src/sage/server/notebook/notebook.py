@@ -636,9 +636,7 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
-        from sage.misc.all import cputime
         if filename is None:
-            t = cputime()
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
@@ -646,7 +644,6 @@ class Notebook(SageObject):
                 pass
             print "Saving notebook to %s"%self.__filename
             SageObject.save(self, os.path.abspath(self.__filename), compress=False)
-            print "Time: %s"%cputime(t)
         else:
             SageObject.save(self, os.path.abspath(filename), compress=False)
 
@@ -1198,14 +1195,14 @@ def notebook(dir         ='sage_notebook',
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"
     nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
-    alarm(3)
+    alarm(5)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=False)
+    cancel_alarm()
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
     if os.path.exists('%s/pid'%dir):
         os.remove('%s/pid'%dir)
-    cancel_alarm()
     return nb
 
 

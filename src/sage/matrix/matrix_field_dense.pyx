@@ -2,8 +2,8 @@
 Generic matrices over a field
 """
 
-cimport matrix_pid
-import  matrix_pid
+cimport matrix_pid_dense
+import  matrix_pid_dense
 
 import matrix_space
 import sage.rings.polynomial_ring
@@ -11,7 +11,7 @@ import sage.rings.number_field.number_field
 import sage.misc.misc
 
 
-cdef class Matrix_field(matrix_pid.Matrix_pid):
+cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
     def __invert__(self):
         """
         Return this inverse of this matrix.

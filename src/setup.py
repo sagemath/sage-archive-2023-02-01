@@ -148,14 +148,11 @@ matrix_dense = Extension('sage.matrix.matrix_dense',
 matrix_sparse = Extension('sage.matrix.matrix_sparse',
               ['sage/matrix/matrix_sparse.pyx'])
 
-matrix_domain = Extension('sage.matrix.matrix_domain',
-              ['sage/matrix/matrix_domain.pyx'])
+matrix_domain_dense = Extension('sage.matrix.matrix_domain_dense',
+              ['sage/matrix/matrix_domain_dense.pyx'])
 
-matrix_pid = Extension('sage.matrix.matrix_pid',
-                       ['sage/matrix/matrix_pid.pyx'])
-
-matrix_integer = Extension('sage.matrix.matrix_integer',
-                           ['sage/matrix/matrix_integer.pyx'])
+matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
+                       ['sage/matrix/matrix_pid_dense.pyx'])
 
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
@@ -171,11 +168,8 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
 
-matrix_field = Extension('sage.matrix.matrix_field',
-                       ['sage/matrix/matrix_field.pyx'])
-
-matrix_pid = Extension('sage.matrix.matrix_pid',
-                       ['sage/matrix/matrix_pid.pyx'])
+matrix_field_dense = Extension('sage.matrix.matrix_field_dense',
+                       ['sage/matrix/matrix_field_dense.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx',
@@ -253,16 +247,15 @@ ext_modules = [ \
 
     #cf, \
 
-    matrix_domain,
     matrix_dense,
     matrix_sparse,
-    matrix_field,
+    matrix_domain_dense,
+    matrix_pid_dense,
+    matrix_field_dense,
     matrix_integer_dense,
     matrix_integer_sparse,
     matrix_modn_dense,
     matrix_modn_sparse,
-    matrix_pid,
-    matrix_integer,
     matrix_rational_dense,
     matrix_rational_sparse,
 

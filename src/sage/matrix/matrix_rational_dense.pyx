@@ -30,8 +30,8 @@ import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-cimport matrix_field
-import matrix_field
+cimport matrix_field_dense
+import matrix_field_dense
 
 cimport matrix_dense
 import matrix_dense
@@ -49,7 +49,7 @@ from sage.rings.integer_ring import IntegerRing
 START_PRIME = 20011  # used for multi-modular algorithms
 
 
-cdef class Matrix_rational_dense(matrix_field.Matrix_field):
+cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
     """
     Matrix over the rational numbers.
     """

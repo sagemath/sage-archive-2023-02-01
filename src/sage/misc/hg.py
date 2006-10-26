@@ -656,7 +656,7 @@ class HG:
         if sage.server.support.EMBEDDED_MODE and comment is None:
             raise RuntimeError, "You're using the SAGE notebook, so you *must* explicitly specify the comment in the commit command."
         if diff:
-            hg_sage.diff(files)
+            self.diff(files)
 
         if comment:
             self('commit %s -m "%s" %s '%(options, comment, files))

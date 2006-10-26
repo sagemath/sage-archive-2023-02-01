@@ -1195,10 +1195,8 @@ def notebook(dir         ='sage_notebook',
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"
     nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
-    alarm(5)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=False)
-    cancel_alarm()
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
     if os.path.exists('%s/pid'%dir):

@@ -411,7 +411,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         EXAMPLES:
             sage: a = mod(5,14^20)
             sage: type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: loads(dumps(a)) == a
             True
         """
@@ -682,7 +682,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = mod(3,10^100); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: ~a
             6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667
             sage: ~mod(2,10^100)
@@ -706,7 +706,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^70); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: lift(a)
             8943
             sage: a.lift()
@@ -1042,7 +1042,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^10); type(a)
-            <type 'integer_mod.IntegerMod_int'>
+            <type 'sage.rings.integer_mod.IntegerMod_int'>
             sage: lift(a)
             751
             sage: a.lift()
@@ -1168,7 +1168,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: a = Mod(10,3^10); a
             10
             sage: type(a)
-            <type 'integer_mod.IntegerMod_int64'>
+            <type 'sage.rings.integer_mod.IntegerMod_int64'>
             sage: loads(a.dumps()) == a
             True
         """
@@ -1452,7 +1452,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = mod(7,2^40); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: ~a
             471219269047
             sage: a
@@ -1469,7 +1469,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^25); type(a)
-            <type 'integer_mod.IntegerMod_int64'>
+            <type 'sage.rings.integer_mod.IntegerMod_int64'>
             sage: lift(a)
             8943
             sage: a.lift()

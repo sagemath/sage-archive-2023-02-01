@@ -211,7 +211,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 ##                 self.__u = self.__u.parent()(coeffs)
 ##         self.__normalize()
 
-    def __add__(self, right):
+    def _add_sibling(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -220,8 +220,6 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f*g
             x^-10 - x^-9 + x^-8 - x^-6 + O(x^-2)
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.add)
         # Algorithm: Make a copy of self then modify coefficients
         # using those of right.
         if right.is_zero():

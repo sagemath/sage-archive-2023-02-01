@@ -662,7 +662,7 @@ class ComplexNumber(ring_element.RingElement):
             x^5 + x^2                           # 32-bit
             x^5 - x^4 + x^3 + x^2 - x + 1       # 64-bit
             sage: p.factor()
-            x^2 * (x + 1) * (x^2 - x + 1)       # 32-bit
+            x^2 * (x^2 - x + 1) * (x + 1)       # 32-bit
             (x + 1) * (x^2 - x + 1)^2           # 64-bit
             sage: z^2 - z + 1
             0.00000000000000011102230246251565

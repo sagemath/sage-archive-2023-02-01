@@ -64,13 +64,13 @@ def Ideal(R, gens=[], coerce=True):
         Ideal (x^2 + 1, x^2 + 3*x + 4) of Univariate Polynomial Ring in x over Integer Ring
 
         sage: ideal(x^2-2*x+1, x^2-1)
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal(x^2-2*x+1, x^2-1)
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        deal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
     """
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())

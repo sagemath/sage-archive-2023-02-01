@@ -40,8 +40,8 @@ import sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
 
-cimport matrix_sparse
-import matrix_sparse
+cimport matrix_field_sparse
+import matrix_field_sparse
 
 cimport matrix_modn_sparse
 import matrix_modn_sparse
@@ -885,7 +885,7 @@ cdef class Vector_mpq:
 #    Sparse Matrix over mpq_t (the GMP rationals)
 #
 #############################################################
-cdef class Matrix_rational_sparse(matrix_sparse.Matrix_field_sparse):
+cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
 
     def __new__(self, int nrows, int ncols, object entries=[], init=True, coerce=False):
         # allocate memory

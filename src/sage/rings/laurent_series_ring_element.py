@@ -29,10 +29,10 @@ Saving and loading.
     sage: loads(K.dumps()) == K
     True
 
-IMPLEMENTATION:
-    Laurent series in SAGE are represented internally as a
-    power of the variable times the unit part.  The zero Laurent
-    series has unit part 0.
+IMPLEMENTATION: Laurent series in SAGE are represented internally as a
+    power of the variable times the unit part (which need not be a
+    unit -- it's a polynomial with nonzero constant term).  The zero
+    Laurent series has unit part 0.
 
 
 AUTHORS:
@@ -85,7 +85,32 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         self.__u = f.unit_part()        # unit part
 
     def is_unit(self):
-        return not self.is_zero()
+        """
+        Returns True if this is Laurent series is a unit in this ring.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: (2+t).is_unit()
+            True
+            sage: f = 2+t^2+O(t^10); f.is_unit()
+            True
+            sage: 1/f
+            1/2 - 1/4*t^2 + 1/8*t^4 - 1/16*t^6 + 1/32*t^8 + O(t^10)
+            sage: R(0).is_unit()
+            False
+            sage: R.<s> = LaurentSeriesRing(ZZ)
+            sage: f = 2 + s^2 + O(s^10)
+            sage: f.is_unit()
+            False
+            sage: 1/f
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division not defined
+
+        ALGORITHM: A Laurent series is a unit if and only if
+        its "unit part" is a unit.
+        """
+        return self.__u.is_unit()
 
     def is_zero(self):
         """
@@ -104,7 +129,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return codomain(self(im_gens[0]))
 
     def __normalize(self):
-        """
+        r"""
         A Laurent series is a pair (u(t), n), where either u=0 (to
         some precision) or u is a unit.  This pair corresponds to
         $t^n\cdot u(t)$.
@@ -118,6 +143,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         self.__u = self.__u.unit_part()
 
     def __repr__(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: (2 + (2/3)*t^3).__repr__()
+            '2 + 2/3*t^3'
+        """
         if self.is_zero():
             if self.prec() == infinity:
                 return "0"
@@ -212,17 +243,64 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
     def __getitem__(self, i):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3; f
+            -5*t^-10 + t + t^2 - 10/3*t^3
+            sage: f[-10]
+            -5
+            sage: f[1]
+            1
+            sage: f[3]
+            -10/3
+            sage: f[-9]
+            0
+        """
         return self.__u[i-self.__n]
 
     def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3; f
+            -5*t^-10 + t + t^2 - 10/3*t^3
+            sage: f[-10:3]
+            [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+        """
         return self.__u[i-self.__n:j-self.__n]
 
     def __iter__(self):
+        """
+        Iterate through the coefficients from the first nonzero one to
+        the last nonzero one.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
+            -5*t^-2 + t + t^2 - 10/3*t^3
+            sage: for a in f: print a
+            -5
+            0
+            0
+            1
+            1
+            -10/3
+        """
         for i in range(self.valuation(), self.degree()+1):
             yield self[i]
 
     def __setitem__(self, n, value):
-         raise IndexError, "Laurent series are immutable"
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^2 + t^3 + O(t^10)
+            sage: f[2] = 5
+            Traceback (most recent call last):
+            ...
+            IndexError: Laurent series are immutable
+        """
+        raise IndexError, "Laurent series are immutable"
 ##         j = i - self.__n
 ##         if j >= 0:
 ##             self.__u[j] = value
@@ -283,6 +361,14 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return LaurentSeries(self.parent(), g, -m)
 
     def add_bigoh(self, prec):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^2 + t^3 + O(t^10); f
+            t^2 + t^3 + O(t^10)
+            sage: f.add_bigoh(5)
+            t^2 + t^3 + O(t^5)
+        """
         if prec == infinity or prec >= self.prec():
             return self
         u = self.__u.add_bigoh(prec - self.__n)
@@ -305,9 +391,26 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return self.__u.degree() + self.valuation()
 
     def __sub__(self, right):
-        return self + (-1)*right
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: f = t^2 + t^3 + O(t^10)
+            sage: g = 3/t^4 + t^3 + O(t^5)
+            sage: f - g
+            -3*t^-4 + t^2 + O(t^5)
+            sage: g - f
+            3*t^-4 - t^2 + O(t^5)
+        """
+        return self + right.__neg__()
 
     def __neg__(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
+            sage: f.__neg__()
+            -3*t^-2 - t^2 - t^3 + O(t^10)
+        """
         return (-1)*self
 
     def __mul__(self, right):
@@ -352,9 +455,16 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         """
         if not isinstance(right, LaurentSeries):
             return bin_op(self, right, operator.div)
-        return LaurentSeries(self.parent(),
+        # todo: should ensure parents are the same at this point (via arith architecture)
+        if right.__u.is_zero():
+            raise ZeroDivisionError
+        try:
+            return LaurentSeries(self.parent(),
                              self.__u / right.__u,
                              self.__n - right.__n)
+        except TypeError:
+            # todo: this could also make something in the formal fraction field.
+            raise ArithmeticError, "division not defined"
 
 
     def _cmp_(self, right):
@@ -501,6 +611,21 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 
 
     def power_series(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: f = 1/(1-t+O(t^10)); f.parent()
+            Laurent Series Ring in t over Integer Ring
+            sage: g = f.power_series(); g
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+            sage: parent(g)
+            Power Series Ring in t over Integer Ring
+            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
+            sage: f.power_series()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self is a not a power series
+        """
         if self.__n < 0:
             raise ArithmeticError, "self is a not a power series"
         u = self.__u

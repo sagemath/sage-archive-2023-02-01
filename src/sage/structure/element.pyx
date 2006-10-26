@@ -728,7 +728,24 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 cdef class FieldElement(CommutativeRingElement):
 
     def is_unit(self):
-        return not self.is_zero()
+        """
+        Return True if self is a unit in its parent ring.
+
+        EXAMPLES:
+            sage: a = 2/3; a.is_unit()
+            True
+
+        On the other hand, 2 is not a unit, since its parent is ZZ.
+            sage: a = 2; a.is_unit()
+            False
+            sage: parent(a)
+            Integer Ring
+
+        However, a is a unit when viewed as an element of QQ:
+            sage: a = QQ(2); a.is_unit()
+            True
+        """
+        return bool(not self.is_zero())
 
     def _gcd(self, FieldElement other):
         """

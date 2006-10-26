@@ -116,7 +116,7 @@ cdef class RealField(sage.rings.ring.Field):
                 and mpfr_prec_max(). In the current implementation,
                 mpfr_prec_min() is equal to 2.
 
-        sci_not -- (default: True) whether or not to display
+        sci_not -- (default: False) whether or not to display
                 using scientific notation
 
         rnd -- (string) the rounding mode

@@ -32,9 +32,6 @@ EXAMPLES:
     (x0, x1, x2)
     sage: R.variable_names()
     ('x0', 'x1', 'x2')
-    sage: R.assign_names(['a', 'b', 'c'])
-    sage: R
-    Polynomial Ring in a, b, c over Integer Ring
 
 This example illustrates generators for a free module over $\Z$.
 
@@ -107,10 +104,9 @@ cdef class Generators(sage_object.SageObject):
             self.__list = list(self.__iter__())
         return self.__list
 
-    def objgens(self, names=None):
+    def objgens(self):
         """
-        Return self and the generators of self as a tuple, possibly re-assigning
-        the names of self.
+        Return self and the generators of self as a tuple.
 
         INPUT:
             names -- tuple or string
@@ -125,18 +121,12 @@ cdef class Generators(sage_object.SageObject):
             Polynomial Ring in x0, x1, x2 over Rational Field
             sage: x
             (x0, x1, x2)
-            sage: R, (a,b,c) = R.objgens('abc')
-            sage: a^2 + b^2 + c^2
-            c^2 + b^2 + a^2
         """
-        if not names is None:
-            self.assign_names(names)
         return self, self.gens()
 
-    def objgen(self, names=None):
+    def objgen(self):
         """
-        Return self and the generator of self, possibly re-assigning
-        the name of this generator.
+        Return self and the generator of self.
 
         INPUT:
             names -- tuple or string
@@ -151,12 +141,7 @@ cdef class Generators(sage_object.SageObject):
             Univariate Polynomial Ring in x over Rational Field
             sage: x
             x
-            sage: S, a = (R/(x^2+1)).objgen('a')
-            sage: S
-            Univariate Quotient Polynomial Ring in a over Rational Field with modulus x^2 + 1
         """
-        if not names is None:
-            self.assign_names(names)
         return self, self.gen()
 
     def gens(self):

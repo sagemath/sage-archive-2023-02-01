@@ -129,7 +129,7 @@ class HG:
             e = os.system(s)
             return e
         else:
-            x = os.popen3(s).read()
+            x = os.popen3(s)
             x[0].close()
             out = x[1].read()
             err = x[2].read()

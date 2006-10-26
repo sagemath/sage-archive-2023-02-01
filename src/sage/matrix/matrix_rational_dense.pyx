@@ -55,6 +55,24 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
     """
     Matrix over the rational numbers.
     """
+
+    def __new__(self, parent, entries, coerce, copy):
+            """
+        Create and allocate memory for the matrix.  Does not actually initialize
+        any of the memory (e.g., mpz_init is not called).
+
+        INPUT:
+            parent, entries, coerce, copy -- as for __init__.
+
+        EXAMPLES:
+            sage: from sage.matrix.matrix_integer_dense import Matrix_integer_dense
+            sage: a = Matrix_integer_dense.__new__(Matrix_integer_dense, Mat(ZZ,3), 0,0,0)
+            sage: type(a)
+            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+
+        WARNING: This is for internal use only, or if you really know what you're doing.
+        """
+
     def __init__(self, parent, object entries=None, construct=False, zero=True):
         cdef int n, i, j, k, r, base, nrows, ncols
         cdef mpq_t *v

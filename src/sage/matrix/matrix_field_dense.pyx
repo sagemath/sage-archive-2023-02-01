@@ -10,6 +10,9 @@ import sage.rings.polynomial_ring
 import sage.rings.number_field.number_field
 import sage.misc.misc
 
+from sage.rings.finite_field import is_FiniteField
+from sage.rings.integer_mod_ring import is_IntegerModRing
+
 
 cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
 

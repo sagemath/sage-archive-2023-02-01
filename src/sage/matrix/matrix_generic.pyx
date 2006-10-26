@@ -184,28 +184,58 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def set_immutable(self):
         """
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ['x','y'], 2, 2, range(4))
+            sage: A.is_mutable()
+            True
+            sage: A[0,0] = 10
+            sage: A
+            [10   1]
+            [ 2   3]
+            sage: A.set_immutable()
+            sage: A.is_mutable()
+            False
+            sage: A[0,0] = 10
+            Traceback (most recent call last):
+            ...
+            <type 'exceptions.ValueError'>: matrix is immutable; please change a copy instead (use self.copy())
         """
         self._mutability.set_immutable()
 
     def is_immutable(self):
         """
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ['t','s'], 2, 2, range(4))
+            sage: A.is_immutable()
+            False
+            sage: A.set_immutable()
+            sage: A.is_immutable()
+            True
         """
-        return self._mutability._is_immutable
+        return bool(self._mutability._is_immutable)
 
     def is_mutable(self):
         """
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ['t','s'], 2, 2, range(4))
+            sage: A.is_mutable()
+            True
+            sage: A.set_immutable()
+            sage: A.is_mutable()
+            False
         """
-        return self._mutability.is_mutable()
+        return bool(self._mutability.is_mutable())
 
     def _matrix_(self, R):
         """
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
+            sage: A.parent()
+             Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Integer Ring
+            sage: A._matrix_(QQ[['t']])
+            [0 1]
+            [2 3]
+            sage: A._matrix_(QQ[['t']]).parent()
+             Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Rational Field
         """
         return self.change_ring(R)
 
@@ -347,7 +377,13 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     def __hash__(self):
         """
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
+            sage: B = A.copy()
+            sage: A.__hash__() == B.__hash__()
+            True
+            sage: A[0,0] = -1
+            sage: A.__hash__() == B.__hash__()
+            False
         """
         return hash(str(self))
 
@@ -740,7 +776,12 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
 
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ[['t']], 2, 2, range(4))
+            sage: A.block_sum(100*A)
+            [  1   2   0   0]
+            [  3   4   0   0]
+            [  0   0 100 200]
+            [  0   0 300 400]
         """
         if not isinstance(other, Matrix):
             raise TypeError, "other must be a Matrix"
@@ -754,7 +795,18 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         matrix into the given ring.
 
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ, 2, 2, [1/2, 1/3, 1/3, 1/4])
+            sage: A.parent()
+             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: A.change_ring(GF(25))
+            [3 2]
+            [2 4]
+            sage: A.change_ring(GF(25)).parent()
+             Full MatrixSpace of 2 by 2 dense matrices over Finite Field in a of size 5^2
+            sage: A.change_ring(ZZ)
+            Traceback (most recent call last):
+            ...
+            <type 'exceptions.TypeError'>: Unable to coerce rational (=1/2) to an Integer.
         """
         if ring == self.base_ring():
             if copy:
@@ -796,7 +848,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Return the commutator self*other - other*self.
 
         EXAMPLES:
-            sage: ???
+            sage: A = Matrix(QQ[['t']], 2, 2, range(4))
         """
         return self*other - other*self
 

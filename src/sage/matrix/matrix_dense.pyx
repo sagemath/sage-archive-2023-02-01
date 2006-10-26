@@ -31,21 +31,53 @@ cdef class Matrix_dense(matrix_generic.Matrix):
 
         cdef size_t i, n
 
-        if not isinstance(entries, list):
-            raise TypeError, 'entries must be a list'
+        if entries is None:
+            entries = 0
 
-        if not (coerce or copy):
-            self.__entries = entries
+        if not isinstance(entries, list):
+            try:
+                x = parent.base_ring()(entries)
+                is_list = 0
+            except TypeError:
+                try:
+                    entries = list(entries)
+                    is_list = 1
+                except TypeError:
+                    raise TypeError, "entries must be coercible to a list or the basering"
+
         else:
-            self.__entries = [None]*(self._nrows*self._ncols)
-            n = len(entries)
-            if coerce:
-                R = parent.base_ring()
-                for i from 0 <= i < n:
-                    self.__entries[i] = R(entries[i])
+            is_list = 1
+
+        if is_list:
+
+            if len(entries) != self._nrows * self._ncols:
+                raise TypeError, "entries has the wrong length"
+
+            if not (coerce or copy):
+                self.__entries = entries
             else:
-                for i from 0 <= i < n:
-                    self.__entries[i] = entries[i]
+                self.__entries = [None]*(self._nrows*self._ncols)
+                n = len(entries)
+                if coerce:
+                    R = parent.base_ring()
+                    for i from 0 <= i < n:
+                        self.__entries[i] = R(entries[i])
+                else:
+                    for i from 0 <= i < n:
+                        self.__entries[i] = entries[i]
+
+        else:
+
+            self.__entries = [None]*(self._nrows*self._ncols)
+            zero = parent.base_ring()(0)
+            for i from 0 <= i < self._nrows * self._ncols:
+                self.__entries[i] = zero
+
+            if x != zero:
+                if self._nrows != self._ncols:
+                    raise TypeError, "nonzero scalar matrix must be square"
+                for i from 0 <= i < self._nrows:
+                    self.__entries[i*i+i] = x
 
         self._init_row_indices()
 

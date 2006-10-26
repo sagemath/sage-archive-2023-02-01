@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest [[remove the nodoctest, so doctests will run]]
 Interface Template
 
 [[Describe the math software you are interfacing with here.]]

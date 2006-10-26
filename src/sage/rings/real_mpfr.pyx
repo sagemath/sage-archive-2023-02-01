@@ -120,9 +120,9 @@ cdef class RealField(sage.rings.ring.Field):
                 using scientific notation
 
         rnd -- (string) the rounding mode
-                RNDN -- round to nearest
+                RNDN -- round to nearest  (default)
                 RNDZ -- round towards zero
-                RNDU -- round towards plus infinity (default)
+                RNDU -- round towards plus infinity
                 RNDD -- round towards minus infinity
 
     EXAMPLES:

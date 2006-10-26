@@ -83,19 +83,13 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
     A polynomial.
 
     EXAMPLE:
-        sage: R = QQ['y']
-        sage: R.0
-        y
-        sage: S = R['x']
-        sage: f = S.0 * R.0; f
-        x
+        sage: R.<y> = QQ['y']
+        sage: S.<x> = R['x']
+        sage: f = x*y; f
+        y*x
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
     """
-    def __new__(cls, *args, **kwds):
-        return commutative_algebra_element.CommutativeAlgebraElement.__new__(*args, **kwds)
-    __new__ = classmethod(__new__)
-
     def __init__(self, parent, is_gen = False, construct=False):
         """
         The following examples illustrate creation of elements of
@@ -197,7 +191,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             True
         """
         m = max(self.degree(), other.degree())
-        for i in xrange(m):
+        for i in xrange(m+1):
             c = cmp(self[i], other[i])
             if c: return c
         return 0
@@ -365,7 +359,6 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             return (~self)**(-right)
         if self._is_gen:   # special case x**n should be faster!
             v = [0]*right + [1]
-            print v
             return self.parent()(v, check=True)
         return arith.generic_power(self, right, self.parent()(1))
 
@@ -747,30 +740,22 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
                                       name = self.parent().variable_name())
         return S(self)
 
-    def copy(self):
+    def __copy__(self):
         """
-        Return a copy of self.
+        Return a "copy" of self.  This is just self, since in SAGE polynomials are
+        immutable this just returns self again.
 
         EXAMPLES:
-        We create the polynomial $f=x+3$, then set $g=f$, and change
-        the coefficient of $x$ in $g$, which also changes the coefficient
-        of $x$ in $f$.  If we instead copy $f$, then changing the
-        coefficient of $x$ of $g$ does not change $f$.
+        We create the polynomial $f=x+3$, then note that the copy is just
+        the same polynomial again, which is fine since polynomials are immutable.
 
-            sage: x = PolynomialRing(IntegerRing()).gen()
-            sage: f = x+3
-            sage: g = f
-            sage: g[1]=3
-            sage: f
-            3*x + 3
-            sage: g = f.copy()
-            sage: g[1]=5
-            sage: f
-            3*x + 3
-            sage: g
-            5*x + 3
+            sage: x = ZZ['x'].0
+            sage: f = x + 3
+            sage: g = copy(f)
+            sage: g is f
+            True
         """
-        return self.polynomial(self)
+        return self
 
     def degree(self):
         """
@@ -838,7 +823,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             sage: f.denominator()
             Traceback (most recent call last):
             ...
-            AttributeError: 'real_mpfr.RealNumber' object has no attribute 'denominator'
+            AttributeError: 'sage.rings.real_mpfr.RealNumber' object has no attribute 'denominator'
         """
         if self.degree() == -1:
             return 1
@@ -907,8 +892,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             sage: R, x = PolynomialRing(k).objgen()
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + (a + 1)*x + a + 2) * (x^2 + 3*x + 4*a + 4) *
-            (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
+            (2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1) * (x^2 + (a + 1)*x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x + a + 2)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -916,15 +900,18 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
 
         Factorization also works even if the variable of the finite field is nefariously
         labeled "x".
-            sage: R, x = PolynomialRing(GF(3^2, 'x')).objgen()
+            sage: x = GF(3^2, 'a')['x'].0
             sage: f = x^10 +7*x -13
-            sage: f.factor()
-            (x + 2*x + 1) * (x + x) * (x^4 + 2*x*x^3 + (x + 1)*x + 2) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2)
+            sage: G = f.factor(); G
+            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + 2*a + 1) * (x + a)
+            sage: prod(G) == f
+            True
+
             sage: f.parent().base_ring().assign_names(['a'])
             sage: f.factor()
-            (x + 2*a + 1) * (x + a) * (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2)
+            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + 2*a + 1) * (x + a)
 
-            sage: k, a = GF(9,'x').objgen()
+            sage: k.<x> = GF(9,'a')
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
@@ -1446,7 +1433,8 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
     def shift(self, n):
         r"""
         Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
-        terms below $x^n$ will be discarded. Does not change this polynomial.
+        terms below $x^n$ will be discarded. Does not change this polynomial (since
+        polynomials are immutable).
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(PolynomialRing(QQ))  # force generic dense poly
@@ -1464,7 +1452,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.coeffs())
@@ -1516,8 +1504,6 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs = []
             return
         R = parent.base_ring()
-#        if isinstance(x, Polynomial) and x.parent() == self.parent():
-#            x = list(x.list())
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 x = list(x.list())
@@ -1526,7 +1512,6 @@ class Polynomial_generic_dense(Polynomial):
             else:
                 x = [R(a) for a in x.list()]
                 check = False
-                #raise TypeError, "Cannot coerce %s into %s."%(x, parent)
         elif isinstance(x, dict):
             zero = R(0)
             n = max(x.keys())
@@ -1618,7 +1603,7 @@ class Polynomial_generic_dense(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.__coeffs)
@@ -1845,7 +1830,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         n = int(n)
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = {}
             for (index, coeff) in self.__coeffs.iteritems():
@@ -2550,10 +2535,10 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         R = sage.rings.polynomial_ring.PolynomialRing(QQ)
         return R(self.list()).complex_roots()
 
-    def copy(self):
-        f = Polynomial_integer_dense(self.parent())
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         f = Polynomial_integer_dense(self.parent())
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """
@@ -2733,7 +2718,7 @@ class Polynomial_dense_mod_n(Polynomial):
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 parent._ntl_set_modulus()
-                self.__poly = x.__poly.copy()
+                self.__poly = x.__poly.__copy__()
                 return
             else:
                 R = parent.base_ring()
@@ -2856,7 +2841,7 @@ class Polynomial_dense_mod_n(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         return self.parent()(self.__poly.left_shift(n), construct=True)
 
     def _sub_(self, right):
@@ -2880,11 +2865,11 @@ class Polynomial_dense_mod_n(Polynomial):
 ##         self.parent()._ntl_set_modulus()
 ##         self.__poly[n] = int(value)
 
-    def copy(self):
-        self.parent()._ntl_set_modulus()
-        f = self.parent()()
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         self.parent()._ntl_set_modulus()
+##         f = self.parent()()
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """

@@ -1,12 +1,21 @@
-"""
+r"""
 HG from SAGE.
 
 These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
-This system should all be fully usable from the SAGE notebook (except
-for merging, currently).
+This system should all be mostly from the SAGE notebook.
+
+\begin{itemize}
+\item Use \code{hg_sage.record()} to record all of your changes.
+\item Use \code{hg_sage.bundle('filename')} to bundle them up to send them.
+\item Use \code{hg_sage.inspect('filename.hg')} to inspect a bundle.
+\item Use \code{hg_sage.unbundle('filename.hg')} to import a bundle into your
+      repository.
+\item Use \code{hg_sage.pull()} to synchronize with the latest official
+      stable SAGE changesets.
+\end{itemize}
 """
 
 ########################################################################
@@ -40,9 +49,8 @@ class HG:
 
     This system should all be fully usable from the SAGE notebook.
 
-    The few of the simplest and most useful commands are directly
-    provided as member functions.  However, you can use the full
-    functionality of hg by noting that typing, e.g.,
+    Most commands are directly provided as member functions.  However,
+    you can use the full functionality of hg, i.e.,
             \code{hg_sage("command line arguments")}
     is \emph{exactly} the same as typing
     \begin{verbatim}
@@ -162,6 +170,8 @@ class HG:
         """
         Apply patches from a hg patch to the repository.
 
+        To see what is in a bundle before applying it, using self.incoming(bundle).
+
         INPUT:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
@@ -267,6 +277,44 @@ class HG:
         self('import "%s" %s'%(os.path.abspath(filename),options))
 
     patch = import_patch
+
+    def incoming(self, source, options=''):
+        """
+        Show new changesets found in the given source.  This even
+        works if the source is a bundle file (ends in .hg or .bundle).
+
+        Show new changesets found in the specified path/URL or the default
+        pull location. These are the changesets that would be pulled if a pull
+        was requested.
+
+        For remote repository, using --bundle avoids downloading the changesets
+        twice if the incoming is followed by a pull.
+
+        See pull for valid source format details.
+
+        ALIAS: inspect
+
+        INPUT:
+            filename -- string
+            options -- string '[-p] [-n] [-M] [-r REV] ...'
+                         -M --no-merges     do not show merges
+                         -f --force         run even when remote repository is unrelated
+                            --style         display using template map file
+                         -n --newest-first  show newest record first
+                            --bundle        file to store the bundles into
+                         -p --patch         show patch
+                         -r --rev           a specific revision you would like to pull
+                            --template      display with template
+                         -e --ssh           specify ssh command to use
+                            --remotecmd     specify hg command to run on the remote side
+        """
+        if os.path.exists(source):
+            source = os.path.abspath(source)
+        if os.path.splitext(source)[1] in ['.hg', '.bundle']:
+            source = 'bundle://%s'%source
+        self('incoming %s "%s"'%(options, source))
+
+    inspect = incoming
 
 
     def add(self, files, options=''):
@@ -681,6 +729,8 @@ class HG:
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the
         'official' SAGE repository).
+
+        Use self.inspect('file.bundle') to inspect the resulting bundle.
 
         This is a file that you should probably send to William Stein
         (wstein@gmail.com), post to a web page, or send to sage-devel.

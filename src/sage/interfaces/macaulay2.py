@@ -257,6 +257,9 @@ class Macaulay2(Expect):
 
 class Macaulay2Element(ExpectElement):
 
+    def _latex_(self):
+        return self.tex().str().strip('"').strip('$').replace('\\\\','\\')
+
     def __iter__(self):
         for i in range(len(self)):  # zero-indexed!
             yield self[i]

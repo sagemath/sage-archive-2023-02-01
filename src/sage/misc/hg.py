@@ -90,7 +90,8 @@ class HG:
 
     def _changed_files(self):
         out, err = self('status', interactive=False)
-        return out.strip() != ''
+        v = [x for x in out.split('\n') if x.strip()[:1] != '?']
+        return len(v) > 0
 
     def _ensure_safe(self):
         """

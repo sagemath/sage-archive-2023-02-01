@@ -516,7 +516,7 @@ cdef class Matrix_modn_sparse(matrix_pid_sparse.Matrix_pid_sparse):
         cdef object seq
         cdef void** X
 
-        matrix_generic.Matrix.__init__(self, parent)
+        matrix.Matrix.__init__(self, parent)
 
         self.p = parent.base_ring().order()
 

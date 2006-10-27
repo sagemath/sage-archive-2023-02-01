@@ -15,6 +15,7 @@ cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
 
+import sage.matrix.matrix
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -156,7 +157,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         if isinstance(right, FreeModuleElement):
             # vector x vector -> dot product
             return self.dot_product(right)
-        if isinstance(right, sage.matrix.matrix_generic.Matrix):
+        if isinstance(right, sage.matrix.matrix.Matrix):
             # vector x matrix multiply
             return (<FreeModuleElement>self)._matrix_multiply(right)
 
@@ -229,7 +230,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         except TypeError:
             return sage.rings.coerce.bin_op(left, right, operator.sub)
 
-    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix_generic.Matrix A):
+    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix.Matrix A):
         """
         Return the product self*A.
 

@@ -1,4 +1,4 @@
-cimport matrix_dense
+cimport matrix
 
-cdef class Matrix_domain_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_domain_dense(matrix.Matrix):
     pass

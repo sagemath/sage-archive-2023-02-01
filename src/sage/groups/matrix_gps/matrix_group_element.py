@@ -29,7 +29,7 @@ from linear import LinearGroup_generic
 import sage.structure.element as element
 from general_linear import GeneralLinearGroup_generic
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
-from sage.matrix.matrix_generic import Matrix
+from sage.matrix.matrix import Matrix
 
 def is_MatrixGroupElement(x):
     return isinstance(x, MatrixGroupElement)

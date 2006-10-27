@@ -1,12 +1,11 @@
 include "../ext/cdefs.pxi"
 
-cimport matrix_generic
+cimport matrix
 
-cdef class Matrix_generic_dense(matrix_generic.Matrix):
+cdef class Matrix_generic_dense(matrix.Matrix):
     cdef object _entries
-    cdef int* _row_indices
 
-cdef class MatrixWindow:
+cdef class MatrixWindow(matrix.MatrixWindow):
     cdef Matrix_generic_dense _matrix
     cdef int _row
     cdef int _col

@@ -64,7 +64,7 @@ cdef _convert_sparse_entries_to_dict(entries):
             e[(i,j)] = x
     return e
 
-cdef class Matrix_sparse(matrix_generic.Matrix):
+cdef class Matrix_sparse(matrix.Matrix):
     r"""
     The \class{Matrix_sparse} class derives from \class{Matrix}, and
     defines functionality for sparse matrices over any base ring.  A
@@ -74,7 +74,7 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
     def __init__(self, parent, entries=0, coerce=True, copy=True):
         cdef size_t i, j
 
-        matrix_generic.Matrix.__init__(self, parent)
+        matrix.Matrix.__init__(self, parent)
         R = parent.base_ring()
         self._base_ring = R
         self._zero = R(0)

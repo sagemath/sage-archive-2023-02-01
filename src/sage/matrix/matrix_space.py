@@ -7,29 +7,29 @@ import random
 import weakref
 
 # SAGE matrix imports
-import matrix_generic
-import matrix_dense
+import matrix
+import matrix_generic_dense
 
-import matrix_domain_dense
-import matrix_domain_sparse
+## import matrix_domain_dense
+## import matrix_domain_sparse
 
-import matrix_pid_dense
-import matrix_pid_sparse
+## import matrix_pid_dense
+## import matrix_pid_sparse
 
-import matrix_field_dense
-import matrix_field_sparse
+## import matrix_field_dense
+## import matrix_field_sparse
 
-import matrix_modn_dense
-import matrix_modn_sparse
+## import matrix_modn_dense
+## import matrix_modn_sparse
 
-import matrix_integer_dense
-import matrix_integer_sparse
+## import matrix_integer_dense
+## import matrix_integer_sparse
 
-import matrix_rational_dense
-import matrix_rational_sparse
+## import matrix_rational_dense
+## import matrix_rational_sparse
 
-import matrix_cyclo_dense
-import matrix_cyclo_sparse
+## import matrix_cyclo_dense
+## import matrix_cyclo_sparse
 
 
 # SAGE imports
@@ -170,14 +170,17 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     if not isinstance(base_ring, ring.CommutativeRing):
         raise TypeError, "base_ring must be a commutative ring"
 
-    if isinstance(base_ring, field.Field):
-        M = MatrixSpace_field(base_ring, nrows, ncols, sparse)
-    elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
-        M = MatrixSpace_pid(base_ring, nrows, ncols, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
-        M = MatrixSpace_domain(base_ring, nrows, ncols, sparse)
-    else:
-        M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
+##     if isinstance(base_ring, field.Field):
+##         M = MatrixSpace_field(base_ring, nrows, ncols, sparse)
+##     elif isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+##         M = MatrixSpace_pid(base_ring, nrows, ncols, sparse)
+##     elif isinstance(base_ring, integral_domain.IntegralDomain):
+##         M = MatrixSpace_domain(base_ring, nrows, ncols, sparse)
+##     else:
+##         M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
+
+## delete the following line when uncomment the above
+    M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
 
     __cache[key] = weakref.ref(M)
     return M
@@ -309,17 +312,18 @@ class MatrixSpace_generic(gens.Generators):
         sage: MS2._get_matrix_class()
         <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
-        R = self.base_ring()
-        if self.is_dense():
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
-                return matrix_modn_dense.Matrix_modn_dense
-            else:
-                return matrix_dense.Matrix_dense
-        else:
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
-                return matrix_modn_sparse.Matrix_modn_sparse
-            else:
-                return matrix_sparse.Matrix_sparse
+        return matrix_generic_dense.Matrix_generic_dense
+##         R = self.base_ring()
+##         if self.is_dense():
+##             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+##                 return matrix_modn_dense.Matrix_modn_dense
+##             else:
+##                 return matrix_dense.Matrix_dense
+##         else:
+##             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+##                 return matrix_modn_sparse.Matrix_modn_sparse
+##             else:
+##                 return matrix_sparse.Matrix_sparse
 
     def base_ring(self):
         """
@@ -440,7 +444,7 @@ class MatrixSpace_generic(gens.Generators):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()
-        if matrix_generic.is_Matrix(x):
+        if matrix.is_Matrix(x):
             if x.parent() == self:
                 return x.copy()
             x = x.list()
@@ -494,85 +498,85 @@ class MatrixSpace_generic(gens.Generators):
 
 _random = 1
 
-class MatrixSpace_domain(MatrixSpace_generic):
-    """
-    The space of all nrows x ncols matrices over base_ring
-    """
-    def __init__(self,  base_ring,
-                        nrows,
-                        ncols=None,
-                        sparse=False):
-        if not isinstance(base_ring, integral_domain.IntegralDomain):
-            raise TypeError, "base_ring must be an integral domain"
-        MatrixSpace_generic.__init__(self, base_ring,
-                        nrows, ncols, sparse)
+## class MatrixSpace_domain(MatrixSpace_generic):
+##     """
+##     The space of all nrows x ncols matrices over base_ring
+##     """
+##     def __init__(self,  base_ring,
+##                         nrows,
+##                         ncols=None,
+##                         sparse=False):
+##         if not isinstance(base_ring, integral_domain.IntegralDomain):
+##             raise TypeError, "base_ring must be an integral domain"
+##         MatrixSpace_generic.__init__(self, base_ring,
+##                         nrows, ncols, sparse)
 
-    def _get_matrix_class(self):
-        if self.is_dense():
-            return matrix_domain_dense.Matrix_domain_dense
-        else:
-            return matrix_domain_sparse.Matrix_domain_sparse
-
-
-class MatrixSpace_pid(MatrixSpace_domain):
-    """
-    The space of all nrows x ncols matrices over base_ring
-    """
-    def __init__(self,  base_ring,
-                        nrows,
-                        ncols=None,
-                        sparse=False):
-        if not isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
-            raise TypeError, "base_ring must be a principal ideal domain"
-        MatrixSpace_domain.__init__(self, base_ring,
-                                    nrows, ncols, sparse)
-
-    def _get_matrix_class(self):
-        if self.is_dense():
-            if isinstance(self.base_ring(), integer_ring.IntegerRing):
-                return matrix_integer_dense.Matrix_integer_dense
-            return matrix_pid_dense.Matrix_pid_dense
-        else:
-            if isinstance(self.base_ring(), integer_ring.IntegerRing):
-                return matrix_integer_sparse.Matrix_integer_sparse
-            return matrix_pid_sparse.Matrix_pid_sparse
+##     def _get_matrix_class(self):
+##         if self.is_dense():
+##             return matrix_domain_dense.Matrix_domain_dense
+##         else:
+##             return matrix_domain_sparse.Matrix_domain_sparse
 
 
-class MatrixSpace_field(MatrixSpace_pid):
-    """
-    The space of all nrows x ncols matrices over base_field
-    """
-    def __init__(self,  base_field,
-                        nrows,
-                        ncols=None,
-                        sparse=False):
-        if not isinstance(base_field, field.Field):
-            raise TypeError, "base_ring must be a field"
-        MatrixSpace_pid.__init__(self, base_field,
-                        nrows, ncols, sparse)
+## class MatrixSpace_pid(MatrixSpace_domain):
+##     """
+##     The space of all nrows x ncols matrices over base_ring
+##     """
+##     def __init__(self,  base_ring,
+##                         nrows,
+##                         ncols=None,
+##                         sparse=False):
+##         if not isinstance(base_ring, principal_ideal_domain.PrincipalIdealDomain):
+##             raise TypeError, "base_ring must be a principal ideal domain"
+##         MatrixSpace_domain.__init__(self, base_ring,
+##                                     nrows, ncols, sparse)
 
-    def _get_matrix_class(self):
-        K = self.base_ring()
-        if self.is_dense():
-            if isinstance(K, rational_field.RationalField):
-                return matrix_rational_dense.Matrix_rational_dense
-            elif isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
-                return matrix_modn_dense.Matrix_modn_dense
-            elif sage.rings.number_field.all.is_CyclotomicField(K):
-                return matrix_cyclo_dense.Matrix_cyclo_dense
-            else:
-                return matrix_field_dense.Matrix_field_dense
-        else:
-            if isinstance(K, rational_field.RationalField):
-                #return matrix.Matrix_sparse_rational
-                return matrix_rational_sparse.Matrix_rational_sparse
-            elif sage.rings.number_field.all.is_CyclotomicField(K):
-                return matrix.Matrix_sparse_cyclotomic # TODO: last of the old matrices
-            elif sage.rings.number_field.all.is_CyclotomicField(K):
-                return matrix_cyclo_sparse.Matrix_cyclo_sparse
-            return matrix_field_sparse.Matrix_field_sparse
+##     def _get_matrix_class(self):
+##         if self.is_dense():
+##             if isinstance(self.base_ring(), integer_ring.IntegerRing):
+##                 return matrix_integer_dense.Matrix_integer_dense
+##             return matrix_pid_dense.Matrix_pid_dense
+##         else:
+##             if isinstance(self.base_ring(), integer_ring.IntegerRing):
+##                 return matrix_integer_sparse.Matrix_integer_sparse
+##             return matrix_pid_sparse.Matrix_pid_sparse
 
-    def base_field(self):
-        return self.base_ring()
+
+## class MatrixSpace_field(MatrixSpace_pid):
+##     """
+##     The space of all nrows x ncols matrices over base_field
+##     """
+##     def __init__(self,  base_field,
+##                         nrows,
+##                         ncols=None,
+##                         sparse=False):
+##         if not isinstance(base_field, field.Field):
+##             raise TypeError, "base_ring must be a field"
+##         MatrixSpace_pid.__init__(self, base_field,
+##                         nrows, ncols, sparse)
+
+##     def _get_matrix_class(self):
+##         K = self.base_ring()
+##         if self.is_dense():
+##             if isinstance(K, rational_field.RationalField):
+##                 return matrix_rational_dense.Matrix_rational_dense
+##             elif isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
+##                 return matrix_modn_dense.Matrix_modn_dense
+##             elif sage.rings.number_field.all.is_CyclotomicField(K):
+##                 return matrix_cyclo_dense.Matrix_cyclo_dense
+##             else:
+##                 return matrix_field_dense.Matrix_field_dense
+##         else:
+##             if isinstance(K, rational_field.RationalField):
+##                 #return matrix.Matrix_sparse_rational
+##                 return matrix_rational_sparse.Matrix_rational_sparse
+##             elif sage.rings.number_field.all.is_CyclotomicField(K):
+##                 return matrix.Matrix_sparse_cyclotomic # TODO: last of the old matrices
+##             elif sage.rings.number_field.all.is_CyclotomicField(K):
+##                 return matrix_cyclo_sparse.Matrix_cyclo_sparse
+##             return matrix_field_sparse.Matrix_field_sparse
+
+##     def base_field(self):
+##         return self.base_ring()
 
 

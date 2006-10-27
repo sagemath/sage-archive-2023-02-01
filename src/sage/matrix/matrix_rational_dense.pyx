@@ -75,7 +75,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
 
         WARNING: This is for internal use only, or if you really know what you're doing.
         """
-        matrix_generic.Matrix.__init__(self, parent)
+        matrix.Matrix.__init__(self, parent)
 
         cdef size_t i, k
 
@@ -266,7 +266,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         PyMem_Free(self._matrix)
 
 
-    cdef classical_multiply_cdef(Matrix_rational_dense self, matrix_generic.Matrix _other):
+    cdef classical_multiply_cdef(Matrix_rational_dense self, matrix.Matrix _other):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.

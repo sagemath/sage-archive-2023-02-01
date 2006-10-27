@@ -92,7 +92,7 @@ cdef class Matrix_integer_dense(matrix_pid_dense.Matrix_pid_dense):
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None
-        matrix_generic.Matrix.__init__(self, parent)
+        matrix.Matrix.__init__(self, parent)
 
         # Allocate an array where all the entries of the matrix are stored.
         self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))

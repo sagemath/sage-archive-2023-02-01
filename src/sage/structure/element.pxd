@@ -14,7 +14,7 @@ cdef class Element(sage_object.SageObject):
     cdef object _parent
 
 cdef class ModuleElement(Element):
-    pass
+    cdef ModuleElement _add_sibling_cdef(self, ModuleElement right)
 
 cdef class MonoidElement(Element):
     pass

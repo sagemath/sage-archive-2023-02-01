@@ -82,8 +82,6 @@ import module
 
 import sage.matrix.matrix_space
 
-import sage.matrix.matrix_generic
-
 import sage.misc.latex as latex
 
 import sage.rings.commutative_ring as commutative_ring

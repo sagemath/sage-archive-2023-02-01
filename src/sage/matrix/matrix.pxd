@@ -15,7 +15,6 @@ cdef extern from "stdlib.h":
 
 cimport sage.structure.element
 import  sage.structure.element
-
 cimport sage.structure.mutability
 
 cdef class Matrix(sage.structure.element.ModuleElement):
@@ -26,13 +25,16 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef sage.structure.mutability.Mutability _mutability
 
     cdef int _will_use_strassen(self, Matrix right) except -1
-    cdef int _strassen_default_cutoff(self) except -1
+    cdef int _strassen_default_cutoff(self, Matrix right) except -1
 
-    cdef _mul_cousins_cdef(self, Matrix right)
-    cdef classical_multiply_cdef(self, Matrix right)
+    cdef _mul_cousin_cdef(self, Matrix right)
+    cdef _cmp_sibling_cdef(self, Matrix right)
+
+    # Pivots.
+    cdef _set_pivots(self, X)
 
     # Cache
-    cdef clear_cache_cdef(self)
+    cdef clear_cache(self)
     cdef fetch(self, key)
     cdef cache(self, key, x)
 
@@ -41,3 +43,18 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef check_mutability(self)
     cdef check_bounds_and_mutability(self, size_t i, size_t j)
 
+    # Unsafe entry access
+    cdef set_unsafe(self, size_t i, size_t j, object x)
+    cdef get_unsafe(self, size_t i, size_t j)
+
+    # Pickling:
+    cdef pickle(self)
+    cdef unpickle(self, data, int version)
+
+
+    # Strassen
+    cdef subtract_strassen_product(result, A, B, int cutoff)
+
+cdef class MatrixWindow:
+    cdef size_t _row, _col, _nrows, _ncols
+    cdef Matrix _matrix

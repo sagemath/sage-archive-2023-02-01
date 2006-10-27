@@ -1,4 +1,4 @@
-cimport matrix_sparse
+cimport matrix
 
-cdef class Matrix_domain_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_domain_sparse(matrix.Matrix):
     pass

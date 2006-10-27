@@ -142,6 +142,8 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
+matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
+
 matrix_generic_dense = Extension('sage.matrix.matrix_generic_dense',
                                  ['sage/matrix/matrix_generic_dense.pyx'])
 
@@ -263,29 +265,30 @@ ext_modules = [ \
 
     ntl,
 
+    matrix,
     matrix_generic_dense,
-    matrix_generic_sparse,
+##     matrix_generic_sparse,
 
-    matrix_domain_dense,
-    matrix_domain_sparse,
+##     matrix_domain_dense,
+##     matrix_domain_sparse,
 
-    matrix_pid_dense,
-    matrix_pid_sparse,
+##     matrix_pid_dense,
+##     matrix_pid_sparse,
 
-    matrix_field_dense,
-    matrix_field_sparse,
+##     matrix_field_dense,
+##     matrix_field_sparse,
 
-    matrix_integer_dense,
-    matrix_integer_sparse,
+##     matrix_integer_dense,
+##     matrix_integer_sparse,
 
-    matrix_modn_dense,
-    matrix_modn_sparse,
+##     matrix_modn_dense,
+##     matrix_modn_sparse,
 
-    matrix_rational_dense,
-    matrix_rational_sparse,
+##     matrix_rational_dense,
+##     matrix_rational_sparse,
 
-    matrix_cyclo_dense,
-    matrix_cyclo_sparse,
+##     matrix_cyclo_dense,
+##     matrix_cyclo_sparse,
 
     dwt,
 

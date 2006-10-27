@@ -11,23 +11,23 @@ def _convert_dense_entries_to_list(entries):
     return e
 
 include "../ext/interrupt.pxi"
+include "../ext/stdsage.pxi"
 
-cimport matrix_generic
-import matrix_generic
+cimport matrix
+import matrix
 
-cdef class Matrix_generic_dense(matrix_generic.Matrix):
+cdef class Matrix_generic_dense(matrix.Matrix):
     r"""
-    The \class{Matrix_dense} class derives from \class{Matrix}, and
+    The \class{Matrix_generic_dense} class derives from \class{Matrix}, and
     defines functionality for dense matrices over any base ring.
     Matrices are represented by a list of elements in the base ring,
     and element access operations are implemented in this class.
     """
-    def __init__(self,
-                 parent,
-                 entries,
-                 copy = True,
-                 coerce = True):
-        matrix_generic.Matrix.__init__(self, parent)
+    ########################################################################
+    # LEVEL 1 functionality
+    ########################################################################
+    def __init__(self, parent, entries, copy, coerce):
+        matrix.Matrix.__init__(self, parent)
 
         cdef size_t i, n
 
@@ -54,118 +54,61 @@ cdef class Matrix_generic_dense(matrix_generic.Matrix):
                 raise TypeError, "entries has the wrong length"
 
             if not (coerce or copy):
-                self.__entries = entries
+                self._entries = entries
             else:
-                self.__entries = [None]*(self._nrows*self._ncols)
+                self._entries = [None]*(self._nrows*self._ncols)
                 n = len(entries)
                 if coerce:
                     R = parent.base_ring()
                     for i from 0 <= i < n:
-                        self.__entries[i] = R(entries[i])
+                        self._entries[i] = R(entries[i])
                 else:
                     for i from 0 <= i < n:
-                        self.__entries[i] = entries[i]
+                        self._entries[i] = entries[i]
 
         else:
 
-            self.__entries = [None]*(self._nrows*self._ncols)
+            self._entries = [None]*(self._nrows*self._ncols)
             zero = parent.base_ring()(0)
             for i from 0 <= i < self._nrows * self._ncols:
-                self.__entries[i] = zero
+                self._entries[i] = zero
 
             if x != zero:
                 if self._nrows != self._ncols:
                     raise TypeError, "nonzero scalar matrix must be square"
                 for i from 0 <= i < self._nrows:
-                    self.__entries[i*i+i] = x
+                    self._entries[i*i+i] = x
 
-        self._init_row_indices()
+    cdef set_unsafe(self, size_t i, size_t j, value):
+        # TODO: make faster with Python/C API
+        self._entries[i*self._ncols + j] = value
 
-    def __copy__(self):
-        return self.__class__(self._parent, self.__entries, copy = True, coerce=False)
+    cdef get_unsafe(self, size_t i, size_t j):
+        # TODO: make faster with Python/C API
+        return self._entries[i*self._ncols + j]
 
-    def __deepcopy__(self):
-        import copy
-        return self.__class__(self._parent, copy.deepcopy(self.__entries), copy = False, coerce=False)
+    ########################################################################
+    # LEVEL 2 functionality
+    ########################################################################
 
-    def copy(self):
-        """
-        Make a copy of self.
+    ########################################################################
+    # pickle
+    ########################################################################
+    cdef pickle(self):
+        return self._entries, 0
 
-        WARNING: The individual elements aren't themselves copied
-        (though the list is copied).
+    cdef unpickle(self, data, int version):
+        if version == 0:
+            self._entries = data
+        else:
+            raise RuntimeError
 
-        EXAMPLES:
-            sage: R.<x> = QQ['x']
-            sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
-            [  x + 1     2/3]
-            [1/2*x^2 x^3 + 1]
+    ########################################################################
+    # arithmetic
+    ########################################################################
 
-            sage: b = copy(a)
 
-            sage: b[0,0] = 5
-
-            sage: b
-            [      5     2/3]
-            [1/2*x^2 x^3 + 1]
-
-            sage: a
-            [  x + 1     2/3]
-            [1/2*x^2 x^3 + 1]
-
-            sage: b = copy(a)
-
-            sage: f = b[0,0]; f[0] = 10
-
-            sage: b
-            [ x + 10     2/3]
-            [1/2*x^2 x^3 + 1]
-
-            sage: a
-            [ x + 10     2/3]
-            [1/2*x^2 x^3 + 1]
-        """
-        return self.__copy__()
-
-    def _init_row_indices(self):
-        self._row_indices = <int*> PyMem_Malloc(sizeof(int*) * self._nrows)
-        n = 0
-        for i from 0 <= i < self._nrows:
-            self._row_indices[i] = n
-            n = n + self._ncols
-
-    def  __dealloc__(self):
-        PyMem_Free(self._row_indices)
-
-    def __getitem__(self, ij):
-        """
-        INPUT:
-            A[i, j] -- the i,j of A, and
-            A[i]    -- the i-th row of A.
-        """
-        cdef size_t i, j
-        i, j = ij
-        self.check_bounds(i, j)
-        return self.__entries[self._row_indices[i] + j]
-
-    def __setitem__(self, ij, value):
-        """
-        INPUT:
-            A[i, j] = value -- set the (i,j) entry of A
-            A[i] = value    -- set the ith row of A
-        """
-        cdef size_t i, j
-        i, j = ij
-        self.check_bounds_and_is_mutability(i, j)
-        self.__entries[self._row_indices[i] + j] = value
-
-    def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
-        if nrows == -1:
-            nrows = self._nrows
-            ncols = self._ncols
-        return MatrixWindow(self, row, col, nrows, ncols)
-
-    cdef classical_multiply_cdef(self, matrix_generic.Matrix _right):
+    def multiply_classical(self, matrix.Matrix _right):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.
@@ -184,13 +127,11 @@ cdef class Matrix_generic_dense(matrix_generic.Matrix):
             True
 
         SAGE fully supports degenerate matrices with 0 rows or 0 columns:
-
-
+            sage: ???
         """
-        cdef int i, j, k, m, n, r, nr, nc, snc
+        cdef size_t i, j, k, m, nr, nc, snc
         cdef object v
-        cdef Matrix_dense A, right
-
+        cdef Matrix_generic_dense A, right
         right = _right
 
         if self._ncols != right._nrows:
@@ -202,66 +143,51 @@ cdef class Matrix_generic_dense(matrix_generic.Matrix):
 
         R = self.base_ring()
         P = self.matrix_space(nr, nc)
-        A = Matrix_dense(P)
-        v = A.__entries
+        v = []
         zero = R(0)
-        r = 0
         for i from 0 <= i < nr:
-            m = self._row_indices[i]
             for j from 0 <= j < nc:
                 z = zero
+                m = i*nc
                 for k from 0 <= k < snc:
-                    z = z + self.__entries[m + k] * right.__entries[right._row_indices[k]+j]
-                v[r] = z
-                r = r + 1
+                    z = z + self._entries[m + k] * right._entries[k*self._ncols + j]
+                v.append(z)
+        A = Matrix_generic_dense.__new__(Matrix_generic_dense, 0, 0 ,0)
+        A._parent = P
+        A._nrows = nr
+        A._ncols = nc
+        A._entries = v
         return A
 
-    def _entries(self):
-        return self.__entries
+    ########################################################################
+    # copy
+    ########################################################################
+    def __copy__(self):
+        return self.__class__(self._parent, self._entries, copy = True, coerce=False)
 
+    def __deepcopy__(self):
+        import copy
+        return self.__class__(self._parent, copy.deepcopy(self._entries), copy = False, coerce=False)
+
+    ########################################################################
+    # representation
+    ########################################################################
     def list(self):
-        return self.__entries
+        return list(self._entries)
 
-    def antitranspose(self):
-        f = []
-        e = self.list()
-        (nc, nr) = (self.ncols(), self.nrows())
-        for j in reversed(xrange(nc)):
-            for i in reversed(xrange(nr)):
-                f.append(e[i*nc + j])
-        return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False, coerce=False)
+    ########################################################################
+    # LEVEL 3 functionality -- matrix windows, etc.
+    ########################################################################
 
-    def transpose(self):
-        """
-        Returns the transpose of self, without changing self.
-
-        EXAMPLES:
-        We create a matrix, compute its transpose, and note that the
-        original matrix is not changed.
-            sage: M = MatrixSpace(QQ,  2)
-            sage: A = M([1,2,3,4])
-            sage: B = A.transpose()
-            sage: print B
-            [1 3]
-            [2 4]
-            sage: print A
-            [1 2]
-            [3 4]
-        """
-        f = []
-        e = self.list()
-        (nc, nr) = (self.ncols(), self.nrows())
-        for j in xrange(nc):
-            for i in xrange(nr):
-                f.append(e[i*nc + j])
-        return self.new_matrix(nrows = nc, ncols = nr,
-                               entries = f, copy=False,
-                               coerce=False)
+    def x_matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
+        if nrows == -1:
+            nrows = self._nrows
+            ncols = self._ncols
+        return MatrixWindow(self, row, col, nrows, ncols)
 
 
 
-cdef class MatrixWindow:
+cdef class MatrixWindow(matrix.MatrixWindow):
 
     def __init__(MatrixWindow self, matrix, int row, int col, int nrows, int ncols):
         self._matrix = matrix
@@ -293,12 +219,12 @@ cdef class MatrixWindow:
                                        coerce=False, copy=False)
 
     def list(MatrixWindow self):
-        v = self._matrix.__entries
+        v = self._matrix._entries
         w = [None]*(self._nrows*self._ncols)
         cdef int i, j, k, l
         k = 0
         for i from 0 <= i < self._nrows:
-            l = self._matrix._row_indices[i]
+            l = i * self._matrix._ncols
             for j from 0 <= j < self._ncols:
                 w[k] = v[l + j]
                 k = k + 1
@@ -308,7 +234,7 @@ cdef class MatrixWindow:
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
-        return self._matrix.matrix_window(self._matrix, _row + row, _col + col, n_rows, n_cols)
+        return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
 
     def nrows(MatrixWindow self):
         return self._nrows
@@ -322,9 +248,9 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         cdef int A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._row_indices[i+A._row] + a._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = A._matrix.__entries[A_ix]
+            A_ix = self._matrix._ncols * (i+A._row) + a._col
+            for self_ix from (i+self._row)*self._ncols + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = A._matrix._entries[A_ix]
                 A_ix = A_ix + 1
 
 
@@ -333,8 +259,8 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         zero = self._matrix.base_ring(0)
         for i from 0 <= i < self._nrows:
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = zero
+            for self_ix from (i+self._row)*self._ncols + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = zero
 
 
     def add(MatrixWindow self, MatrixWindow A):
@@ -342,9 +268,9 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         cdef int A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = A._matrix._row_indices[i+A._row] + A._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = slef._matrix.__entries[self_ix] + A._matrix.__entries[A_ix]
+            A_ix = (i+A._row)*self._matrix._ncols + A._col
+            for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = slef._matrix._entries[self_ix] + A._matrix._entries[A_ix]
                 A_ix = A_ix + 1
 
 
@@ -353,9 +279,9 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         cdef int A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = A._matrix._row_indices[i+A._row] + a._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = self._matrix.__entries[self_ix] - A._matrix.__entries[A_ix]
+            A_ix = A._matrix._ncols*(i+A._row) + a._col
+            for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = self._matrix._entries[self_ix] - A._matrix._entries[A_ix]
                 A_ix = A_ix + 1
 
 
@@ -364,10 +290,10 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         cdef int A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = A._matrix._row_indices[i+A._row] + A._col
-            B_ix = B._matrix._row_indices[i+B._row] + B._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = A._matrix.__entries[A_ix] + B._matrix.__entries[B_ix]
+            A_ix = A._matrix._ncols*(i+A._row) + A._col
+            B_ix = B._matrix._ncols*(i+B._row) + B._col
+            for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = A._matrix._entries[A_ix] + B._matrix._entries[B_ix]
                 A_ix = A_ix + 1
                 B_ix = B_ix + 1
 
@@ -377,10 +303,10 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         cdef int A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = A._matrix._row_indices[i+A._row] + A._col
-            B_ix = B._matrix._row_indices[i+B._row] + B._col
-            for self_ix from self._row_indices[i+self._row] + self._col <= self_ix < self_start + self._ncols:
-                self._matrix.__entries[self_ix] = A._matrix.__entries[A_ix] - B._matrix.__entries[B_ix]
+            A_ix = A._matrix._ncols*(i+A._row) + A._col
+            B_ix = B._matrix._ncols*(i+B._row) + B._col
+            for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < self_start + self._ncols:
+                self._matrix._entries[self_ix] = A._matrix._entries[A_ix] - B._matrix._entries[B_ix]
                 A_ix = A_ix + 1
                 B_ix = B_ix + 1
 
@@ -390,10 +316,10 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
-                sum = A._matrix.__entries[ A._row_indices[A._row+i]+A._col ] *B._matrix.__entries[ B._row_indices[B._row]+B._col+j ]
+                sum = A._matrix._entries[ A._ncols*(A._row+i) + A._col ] *B._matrix._entries[ B._ncols*(B._row)+B._col+j ]
                 for k from 1 <= k < A._ncols:
-                    sum = sum + A._matrix.__entries[ A._row_indices[A._row+i]+A._col + k ] * B._matrix.__entries[ B._row_indices[B._row+k]+B._col+j ]
-                self._matrix.__entries[ self._row_indices[self_.row+i]+self._col+j ] = sum
+                    sum = sum + A._matrix._entries[ A._ncols*(A._row+i) + A._col + k ] * B._matrix._entries[ B._ncols*(B._row+k)+B._col+j ]
+                self._matrix._entries[ self._ncols*(self._row+i) + self._col+j ] = sum
 
 
     def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
@@ -401,11 +327,11 @@ cdef class MatrixWindow:
         cdef int start, self_ix
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
-                sum = A._matrix.__entries[ A._row_indices[A._row+i]+A._col ] *B._matrix.__entries[ B._row_indices[B._row]+B._col+j ]
+                sum = A._matrix._entries[ A._ncols*(A._row+i)+A._col ] *B._matrix._entries[ B._ncols* B._row  + B._col+j ]
                 for k from 1 <= k < A._ncols:
-                    sum = sum + A._matrix.__entries[ A._row_indices[A._row+i]+A._col + k ] * B._matrix.__entries[ B._row_indices[B._row+k]+B._col+j ]
-                self._matrix.__entries[ self._row_indices[self_.row+i]+self._col+j ] = self._matrix.__entries[ self._row_indices[self_.row+i]+self._col+j ] + sum
+                    sum = sum + A._matrix._entries[ A._ncols*(A._row+i) + A._col + k ] * B._matrix._entries[ B._ncols*(B._row+k)+B._col+j ]
+                self._matrix._entries[ self._ncols*(self._row+i)+self._col+j ] = self._matrix._entries[ self._ncols*(self._row+i)+self._col+j ] + sum
 
 
-    def new_empty_window(MatrixWindow self, int nrows, int ncols, zero=True):
-        return self._matrix.new_matrix(nrows,ncols, zero=zero).matrix_window()
+    def new_empty_window(MatrixWindow self, int nrows, int ncols):
+        return self._matrix.new_matrix(nrows,ncols).matrix_window()

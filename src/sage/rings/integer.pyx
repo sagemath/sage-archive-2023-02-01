@@ -116,7 +116,7 @@ cdef object the_integer_ring
 the_integer_ring = sage.rings.integer_ring.Z
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport EuclideanDomainElement, RingElement
+from sage.structure.element cimport EuclideanDomainElement, ModuleElement
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""

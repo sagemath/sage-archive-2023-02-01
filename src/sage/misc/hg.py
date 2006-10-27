@@ -177,6 +177,8 @@ class HG:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        if bundle[-5:] == '.diff':
+            return self.import_patch(bundle)
         self._ensure_safe()
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle

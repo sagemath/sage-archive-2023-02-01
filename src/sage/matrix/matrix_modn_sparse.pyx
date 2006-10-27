@@ -54,15 +54,16 @@ ai = sage.ext.arith.arith_int()
 
 include "../ext/cdefs.pxi"
 include '../ext/interrupt.pxi'
+include '../ext/stdsage.pxi'
 
 cdef int allocate_c_vector_modint(c_vector_modint* v, int num_nonzero) except -1:
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
     """
-    v.entries = <int*>PyMem_Malloc(num_nonzero*sizeof(int))
+    v.entries = <int*>sage_malloc(num_nonzero*sizeof(int))
     if v.entries == <int*> 0:
         raise MemoryError, "Error allocating memory"
-    v.positions = <int*>PyMem_Malloc(num_nonzero*sizeof(int))
+    v.positions = <int*>sage_malloc(num_nonzero*sizeof(int))
     if v.positions == <int*> 0:
         raise MemoryError, "Error allocating memory"
     return 0
@@ -81,8 +82,8 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, int degree,
     v.p = p
 
 cdef void clear_c_vector_modint(c_vector_modint* v):
-    PyMem_Free(v.entries)
-    PyMem_Free(v.positions)
+    sage_free(v.entries)
+    sage_free(v.positions)
 
 cdef int linear_search0(int* v, int n, int x):
     """
@@ -191,7 +192,7 @@ cdef int binary_search(int* v, int n, int x, int* ins):
 
 def bs(v, x):
     cdef int* w
-    w = <int*>PyMem_Malloc(sizeof(int)*len(v))
+    w = <int*>sage_malloc(sizeof(int)*len(v))
     for i from 0 <= i < len(v):
         w[i] = v[i]
     cdef int ins, b
@@ -199,7 +200,7 @@ def bs(v, x):
     s1 = (b, ins)
     b = linear_search(w, len(v), x, &ins)
     s2 = (b, ins)
-    PyMem_Free(w)
+    sage_free(w)
     return s1, s2
 
 cdef int get_entry(c_vector_modint* v, int n) except -1:
@@ -264,8 +265,8 @@ cdef int set_entry(c_vector_modint* v, int n, int x) except -1:
             for i from m < i < v.num_nonzero:
                 v.entries[i-1] = e[i]
                 v.positions[i-1] = pos[i]
-            PyMem_Free(e)
-            PyMem_Free(pos)
+            sage_free(e)
+            sage_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -290,8 +291,8 @@ cdef int set_entry(c_vector_modint* v, int n, int x) except -1:
         for i from ins < i < v.num_nonzero:
             v.entries[i] = e[i-1]
             v.positions[i] = pos[i-1]
-        PyMem_Free(e)
-        PyMem_Free(pos)
+        sage_free(e)
+        sage_free(pos)
 
 cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
                                   c_vector_modint* w, int multiple) except -1:
@@ -474,49 +475,82 @@ cdef class Vector_modint:
         for i from 0 <= i < sparcity:
             self[random.randrange(self.v.degree)] = random.randrange(1,bound)
 
-cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_modn_sparse(matrix_pid_sparse.Matrix_pid_sparse):
 
-    def __new__(self, parent, int p, int nrows, int ncols, object entries=[]):
+    def __new__(self, parent, entries, copy, coerce):
         # allocate memory
-        cdef int i
-        self.rows = <c_vector_modint*> PyMem_Malloc(nrows*sizeof(c_vector_modint))
-        for i from 0 <= i < nrows:
-            init_c_vector_modint(&self.rows[i], p, ncols, 0)
+        cdef size_t i, nr, nc
+        cdef int p
+
+        nr = parent.nrows()
+        nc = parent.ncols()
+        p = parent.base_ring().order()
+
+        self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+
+        for i from 0 <= i < nr:
+            init_c_vector_modint(&self.rows[i], p, nc, 0)
 
     def __dealloc__(self):
         cdef int i
-        for i from 0 <= i < self.nr:
+        for i from 0 <= i < self._nrows:
             clear_c_vector_modint(&self.rows[i])
 
-
-    def __init__(self, parent, int p, int nrows, int ncols, object entries=[]):
+    def __init__(self, parent, entries, copy, coerce):
         """
-        p should be a prime < 46340 and entries should be a list of triples
-        (i,j,x), where 0 <= i < nrows, 0 <= j < ncols, and x is an integer
-        which need not be reduced modulo p.  Then the i,j entry of the matrix
-        is set to x.  It is OK for some x to be zero.
+        Create a sparse matrix modulo n.
+
+        INPUT:
+            parent -- a matrix space
+            entries -- * a Python list of triples (i,j,x), where 0 <= i < nrows,
+                         0 <= j < ncols, and x is coercible to an int.  The i,j
+                         entry of self is set to x.  The x's can be 0.
+                       * Alternatively, entries can be a list of *all* the entries
+                         of the sparse matrix (so they would be mostly 0).
+            copy -- ignored
+            coerce -- ignored
         """
         cdef int y, z
+        cdef size_t i, j, k
+
+        cdef object seq
+        cdef void** X
 
         matrix_generic.Matrix.__init__(self, parent)
 
-        self.p = p
-        self.nr = nrows
-        self.nc = ncols
-        self.__pivots = []
+        self.p = parent.base_ring().order()
 
         if len(entries) == 0:
             return
 
-        _sig_on
-        for i, j, x in entries:
-            y = x
-            z = y % p
-            if z < 0:
-                z = z + p
-            if z:
-                self[i,j] = z
-        _sig_off
+        if not isinstance(entries[0], tuple):
+            # Dense input format
+            if len(entries) != self._nrows * self._ncols:
+                raise TypeError, "list of entries must be a list of sparse tuples (i,j,x) or a dense list of n * m elements"
+            seq = PySequence_Fast(entries,"expected a list")
+            X = PySequence_Fast_ITEMS(seq)
+            k = 0
+            _sig_on
+            # Get fast access to the entries list.
+            for i from 0 <= i < self._nrows:
+                for  j from 0 <= j < self._ncols:
+                    set_entry(&self.rows[i], j, <object>X[k])
+                    k = k + 1
+            _sig_off
+        else:
+            # Sparse input format.
+            _sig_on
+            for i, j, x in entries:
+                y = x
+                z = y % p
+                if z < 0:
+                    z = z + p
+                if z:
+                    if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
+                        _sig_off
+                        raise IndexError, "invalid entries list"
+                    set_entry(&self.rows[i], j, z)
+            _sig_off
 
     def pivots(self):
         return self.__pivots
@@ -530,7 +564,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         """
         cdef int j, n
         cdef object entries
-        if i < 0 or i >= self.nr: raise IndexError
+        if i < 0 or i >= self._nrows: raise IndexError
         X = {}
         for j from 0 <= j < self.rows[i].num_nonzero:
             n = self.rows[i].positions[j]
@@ -549,7 +583,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef int i, j, n
         cdef object entries
         X = {}
-        for i from 0 <= i < self.nr:
+        for i from 0 <= i < self._nrows:
             for j from 0 <= j < self.rows[i].num_nonzero:
                 n = self.rows[i].positions[j]
                 x = sage.rings.integer.Integer()
@@ -568,37 +602,37 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         The sparcity is (an upper bound) on the number of nonzeros per row.
         """
         cdef int i, j, k, r
-        for i from 0 <= i < self.nr:
+        for i from 0 <= i < self._nrows:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             if exact:
                 r = sparcity
             else:
                 r = random.randrange(sparcity)
             for j from 0 <= j <= r:
-                self[i, random.randrange(0,self.nc)] = \
+                self[i, random.randrange(0,self._ncols)] = \
                         random.randrange(1,self.p)
 
-    def __repr__(self):
-        cdef int i, j
-        s = "[\n"
-        for i from 0 <= i < self.nr:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
-            for j from 0 <= j < self.nc:
-                s = s + str(get_entry(&self.rows[i],j)) + ", "
-            s = s + "\n"
-        s = s[:-3] + "\n]"
-        return s
+##     def __repr__(self):
+##         cdef int i, j
+##         s = "[\n"
+##         for i from 0 <= i < self._nrows:
+##             if PyErr_CheckSignals(): raise KeyboardInterrupt
+##             for j from 0 <= j < self._ncols:
+##                 s = s + str(get_entry(&self.rows[i],j)) + ", "
+##             s = s + "\n"
+##         s = s[:-3] + "\n]"
+##         return s
 
     def list(self):
         """
         Return list of entries of self.
         """
         R = self.base_ring()
-        X = [R(0)]*(self.nr*self.nc)
+        X = [R(0)]*(self._nrows*self._ncols)
         cdef int i
-        for i from 0 <= i < self.nr:
+        for i from 0 <= i < self._nrows:
             for j, x in to_list(&self.rows[i]):
-                X[i*self.nc + j] = x
+                X[i*self._ncols + j] = x
         return X
 
     def __getitem__(self, t):
@@ -606,28 +640,23 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             raise IndexError, "Index of matrix item must be a row and a column."
         cdef int i, j
         i, j = t
-        return self.base_ring()(get_entry(&self.rows[i], j))   # make this quickly
+        self.check_bounds(i, j)
+        # TODO: Optimize this -- should directly create modn element.
+        return self.base_ring()(get_entry(&self.rows[i], j))
 
     def __setitem__(self, t, x):
         if not isinstance(t, tuple) or len(t) != 2:
             raise IndexError, "Index for setting matrix item must be a row and a column."
-        cdef int i, j
+        cdef size_t i, j
         i, j = t
-        if i<0 or i >= self.nr or j<0 or j >= self.nc:
-            raise IndexError, "Array index out of bounds."
+        self.check_bounds_and_mutability(i, j)
         set_entry(&self.rows[i], j, x)
-
-    def nrows(self):
-        return self.nr
-
-    def ncols(self):
-        return self.nc
 
     def swap_rows(self, int n1, int n2):
         """
         Swap the rows in positions n1 and n2
         """
-        if n1 < 0 or n1 >= self.nr or n2 < 0 or n2 >= self.nr:
+        if n1 < 0 or n1 >= self._nrows or n2 < 0 or n2 >= self._nrows:
             raise IndexError, "Invalid row number."
         if n1 == n2:
             return
@@ -650,18 +679,18 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         cdef c_vector_modint tmp
         start_row = 0
         self.__pivots = []
-        fifth = self.nc / 10 + 1
+        fifth = self._ncols / 10 + 1
         tm = sage.misc.all.verbose(caller_name = 'sparse_matrix_pyx matrix_modint echelon')
         do_verb = (sage.misc.all.get_verbose() >= 2)
-        for c from 0 <= c < self.nc:
+        for c from 0 <= c < self._ncols:
             if c % fifth == 0 and c>0:
                 if do_verb:
-                    tm = sage.misc.all.verbose('on column %s of %s'%(c, self.nc),
+                    tm = sage.misc.all.verbose('on column %s of %s'%(c, self._ncols),
                              level = 2,
                              caller_name = 'matrix_modn_sparse echelon')
-            min = self.nc + 1
+            min = self._ncols + 1
             min_row = -1
-            for r from start_row <= r < self.nr:
+            for r from start_row <= r < self._nrows:
                 if self.rows[r].num_nonzero > 0 and self.rows[r].num_nonzero < min:
                     # Since there is at least one nonzero entry, the first entry
                     # of the positions list is defined.  It is the first position
@@ -688,7 +717,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                     a_inverse = ai.c_inverse_mod_int(a, self.p)
                     scale_c_vector_modint(&self.rows[r], a_inverse)
                 self.swap_rows(r, start_row)
-                for i from 0 <= i < self.nr:
+                for i from 0 <= i < self._nrows:
                     if i != start_row:
                         b = get_entry(&self.rows[i], c)
                         if b != 0:
@@ -709,12 +738,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         return len(self.__pivots)
 
     def linear_combination_of_rows(self, Vector_modint v):
-        if self.nr != v.degree():
+        if self._nrows != v.degree():
             raise ArithmeticError, "Incompatible vector * matrix multiply."
         cdef c_vector_modint w, sum, sum2
         cdef int i, r, nr, p
         cdef Vector_modint ans
-        nr = self.nr
+        nr = self._nrows
         p = self.p
         w = v.v
         init_c_vector_modint(&sum, p, nr, 0)

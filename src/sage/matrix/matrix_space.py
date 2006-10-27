@@ -6,23 +6,34 @@ Spaces of matrices over a ring or field
 import random
 import weakref
 
-# SAGE imports
-import sage.structure.gens as gens
-
+# SAGE matrix imports
 import matrix_generic
 import matrix_dense
+
 import matrix_domain_dense
 import matrix_domain_sparse
+
 import matrix_pid_dense
 import matrix_pid_sparse
+
 import matrix_field_dense
 import matrix_field_sparse
+
+import matrix_modn_dense
+import matrix_modn_sparse
+
 import matrix_integer_dense
 import matrix_integer_sparse
+
 import matrix_rational_dense
 import matrix_rational_sparse
-import matrix_modn_dense
 
+import matrix_cyclo_dense
+import matrix_cyclo_sparse
+
+
+# SAGE imports
+import sage.structure.gens as gens
 import sage.rings.ring as ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
@@ -122,6 +133,30 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         Full MatrixSpace of 10 by 10 dense matrices over Integer Ring
         sage: loads(M.dumps()) == M
         True
+
+    EXAMPLES OF EACH TYPE OF MATRIX SPACE:
+    In this section, we create sparse and dense matrix spaces and
+    matrices in those spaces for a wide range of base rings.
+
+    Dense and sparse generic matrices:
+
+    Dense and sparse matrices over a domain:
+
+    Dense and sparse matrices over a principal ideal domain:
+
+    Dense and sparse matrices over a field:
+
+    Dense and sparse matrices over the rational numbers:
+
+    Dense and sparse matrices over a cyclotomic field:
+
+    Dense and sparse matrices over the ring ZZ of integers:
+
+    Dense and sparse matrices over the ring of integers:
+
+    Dense and sparse matrices modulo $n$:
+
+
     """
     global __cache
     if ncols is None: ncols = nrows
@@ -386,7 +421,7 @@ class MatrixSpace_generic(gens.Generators):
     def ngens(self):
         return self.dimension()
 
-    def matrix(self, x=0, coerce=True, copy=True, zero=True):
+    def matrix(self, x=0, coerce=True, copy=True):
         """
         Create a matrix in self.  The entries can be specified either
         as a single list of length nrows*ncols, or as a list of
@@ -401,7 +436,6 @@ class MatrixSpace_generic(gens.Generators):
             [ 1  0]
             [ 0 -1]
         """
-        # TODO: implement/propagate the zero/clear flag
         if isinstance(x, (xrange,xsrange)):
             x = list(x)
         elif isinstance(x, (int, integer.Integer)) and x==1:
@@ -522,8 +556,10 @@ class MatrixSpace_field(MatrixSpace_pid):
         if self.is_dense():
             if isinstance(K, rational_field.RationalField):
                 return matrix_rational_dense.Matrix_rational_dense
-            if isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
+            elif isinstance(K, finite_field.FiniteField_prime_modn) and K.characteristic() <= matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_dense.Matrix_modn_dense
+            elif sage.rings.number_field.all.is_CyclotomicField(K):
+                return matrix_cyclo_dense.Matrix_cyclo_dense
             else:
                 return matrix_field_dense.Matrix_field_dense
         else:
@@ -532,6 +568,8 @@ class MatrixSpace_field(MatrixSpace_pid):
                 return matrix_rational_sparse.Matrix_rational_sparse
             elif sage.rings.number_field.all.is_CyclotomicField(K):
                 return matrix.Matrix_sparse_cyclotomic # TODO: last of the old matrices
+            elif sage.rings.number_field.all.is_CyclotomicField(K):
+                return matrix_cyclo_sparse.Matrix_cyclo_sparse
             return matrix_field_sparse.Matrix_field_sparse
 
     def base_field(self):

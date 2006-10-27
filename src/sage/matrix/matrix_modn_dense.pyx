@@ -26,7 +26,7 @@ ai = sage.ext.arith.arith_int()
 LEAVE_UNINITIALIZED = "LEAVE UNINITIALIZED"
 MAX_MODULUS = 46340
 
-cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_modn_dense(matrix_pid_dense.Matrix_pid_dense):
     def __init__(self, parent, object entries=None, coerce_entries=True, copy=True, clear=True):
         matrix_generic.Matrix.__init__(self, parent)
 

@@ -1,6 +1,6 @@
-#############################################
-## Generic *DENSE* matrices over any commutative ring
-#############################################
+"""
+Dense Matrices over a General Commutative Ring
+"""
 
 def _convert_dense_entries_to_list(entries):
     # Create matrix from a list of vectors
@@ -15,7 +15,7 @@ include "../ext/interrupt.pxi"
 cimport matrix_generic
 import matrix_generic
 
-cdef class Matrix_dense(matrix_generic.Matrix):
+cdef class Matrix_generic_dense(matrix_generic.Matrix):
     r"""
     The \class{Matrix_dense} class derives from \class{Matrix}, and
     defines functionality for dense matrices over any base ring.
@@ -145,7 +145,7 @@ cdef class Matrix_dense(matrix_generic.Matrix):
         """
         cdef size_t i, j
         i, j = ij
-        self._check_bounds(i, j)
+        self.check_bounds(i, j)
         return self.__entries[self._row_indices[i] + j]
 
     def __setitem__(self, ij, value):
@@ -154,14 +154,9 @@ cdef class Matrix_dense(matrix_generic.Matrix):
             A[i, j] = value -- set the (i,j) entry of A
             A[i] = value    -- set the ith row of A
         """
-        if self._mutability._is_immutable:
-            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
-        else:
-            self._clear_cache_cdef()
-
         cdef size_t i, j
         i, j = ij
-        self._check_bounds(i, j)
+        self.check_bounds_and_is_mutability(i, j)
         self.__entries[self._row_indices[i] + j] = value
 
     def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):

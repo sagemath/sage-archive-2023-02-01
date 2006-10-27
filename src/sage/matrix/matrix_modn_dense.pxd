@@ -3,7 +3,7 @@ cimport matrix_dense
 ctypedef unsigned int uint
 
 
-cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_modn_dense(matrix_pid_dense.Matrix_pid_dense):
     cdef uint **matrix
     cdef uint *_entries
     cdef uint p

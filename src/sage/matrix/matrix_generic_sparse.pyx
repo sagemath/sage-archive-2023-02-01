@@ -1,69 +1,12 @@
 """
-Sparse matrices
+Sparse Matrices Base Class
 
 EXAMPLES:
-    sage: M = MatrixSpace(QQ, 2, 3, sparse=True)
-    sage: A = M([1,2,3, 1,1,1])
-    sage: A
-    [1 2 3]
-    [1 1 1]
-    sage: A.echelon_form()
-    [ 1  0 -1]
-    [ 0  1  2]
-
-    sage: M = MatrixSpace(QQ, 1000,1000, sparse=True)
-    sage: A = M(0)
-    sage: A[1,1] = 5
-
-
-    sage: from sage.matrix.sparse_matrix import SparseMatrix
-    sage: x = SparseMatrix(QQ, 5,10)
-    sage: x.randomize(5)
-    sage: x.echelon_form()       # random output
-    [
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 10/29,
-    0, 1, 0, 0, 0, 0, 0, 0, 0, -4/29,
-    0, 0, 1, 0, 0, 0, 0, 0, 0, -12/29,
-    0, 0, 0, 0, 0, 0, 1, 0, 0, 24/29,
-    0, 0, 0, 0, 0, 0, 0, 0, 1, 4/29
-    ]
+    sage: ???
 """
-import random, weakref
 
-import sage.rings.arith as arith
 import sage.misc.misc as misc
-import sage.rings.integer_ring as integer_ring
-import sage.rings.rational_field as rational_field
-import sage.rings.rational as rational
-import sage.rings.integer as integer
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_ring as integer_ring
-import sage.rings.ring as ring
-
-from sage.misc.proof import proof
-
-START_PRIME = 20011  # used for modular algorithms
-
-#################################################################
-#
-# Generic sparse matrices
-#
-#################################################################
-
-def Sparse_matrix(cls, base_ring, nrows, ncols, entries=[],
-                coerce=True, sort=True, copy=True):
-      nrows = int(nrows)
-      #if not isinstance(nrows, int):
-      #    raise TypeError, "nrows must be an int"
-      ncols = int(ncols)
-      #if not isinstance(ncols, int):
-      #    raise TypeError, "ncols must be an int"
-      if not isinstance(entries, list):
-          raise TypeError, "entries must be a list"
-      if base_ring is rational_field.RationalField():
-          return object.__new__(Sparse_matrix_rational)
-      return object.__new__(Sparse_matrix_generic)
-      # TODO: fit the above matrices into this tree
+import matrix_space
 
 def Matrix_sparse_from_rows(X):
     """
@@ -77,12 +20,12 @@ def Matrix_sparse_from_rows(X):
         sage: V = VectorSpace(QQ,20,sparse=True)
         sage: v = V(0)
         sage: v[9] = 4
-        sage: from sage.matrix.sparse_matrix import *
-        sage: SparseMatrix_from_rows([v])
+        sage: from sage.matrix.sparse_matrix import Matrix_sparse_from_rows
+        sage: Matrix_sparse_from_rows([v])
         [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ]
-        sage: SparseMatrix_from_rows([v, v, v, V(0)])
+        sage: Matrix_sparse_from_rows([v, v, v, V(0)])
         [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -90,6 +33,8 @@ def Matrix_sparse_from_rows(X):
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ]
     """
+    cdef size_t i, j
+
     if not isinstance(X, (list, tuple)):
         raise TypeError, "X (=%s) must be a list or tuple"%X
     if len(X) == 0:
@@ -97,37 +42,83 @@ def Matrix_sparse_from_rows(X):
     entries = []
     R = X[0].base_ring()
     ncols = X[0].degree()
-    for i in range(len(X)):
+    for i from 0 <= i < len(X):
         for j, x in X[i].entries().iteritems():
             entries.append((i,j,x))
-    return Sparse_matrix(R, len(X), ncols, entries, coerce=False, sort=False)
+    M = matrix_space.MatrixSpace(R, len(X), ncols)
+    return M(entries, coerce=False, copy=False)
 
 
-#################################################################
-#
-# Generic sparse matrix over any ring
-#
-#################################################################
+def _sparse_dot_product(v, w):
+    """
+    INPUT:
+        v and w are dictionaries with integer keys.
+    """
+    x = set(v.keys()).intersection(set(w.keys()))
+    return sum([v[k]*w[k] for k in x])
 
-# TODO: should I call this Matrix_generic_sparse? (Possible name conflict with old matrix.py)
+cdef _convert_sparse_entries_to_dict(entries):
+    e = {}
+    for i in xrange(len(entries)):
+        for j, x in (entries[i].dict()).iteritems():
+            e[(i,j)] = x
+    return e
+
 cdef class Matrix_sparse(matrix_generic.Matrix):
+    r"""
+    The \class{Matrix_sparse} class derives from \class{Matrix}, and
+    defines functionality for sparse matrices over any base ring.  A
+    generic sparse matrix is represented using a dictionary with keys
+    pairs $(i,j)$ and values in the base ring.
     """
-    A generic sparse matrix.
-    """
-    def __init__(self, base_ring, nrows, ncols, entries=[],
-                 coerce=True, sort=True, copy=True):
-        self.__nrows = nrows
-        self.__ncols = ncols
-        self.__base_ring = base_ring
-        self.set_entries(entries, coerce, sort, copy)
+    def __init__(self, parent, entries=0, coerce=True, copy=True):
+        cdef size_t i, j
 
-    def __repr__(self):
-        return str(self.dense_matrix())
+        matrix_generic.Matrix.__init__(self, parent)
+        R = parent.base_ring()
+        self._base_ring = R
+        self._zero = R(0)
 
-    def copy(self):
-        E = list(self.entries())
-        return SparseMatrix(self.__base_ring, self.__nrows, \
-                self.__ncols, E, coerce=False, sort=False, copy=False)
+        if not isinstance(entries, (list, dict)):
+            x = R(entries)
+            entries = {}
+            if x != self._zero:
+                if self._nrows != self._ncols:
+                    raise TypeError, "scalar matrix must be square"
+                for i from 0 <= i < self._nrows:
+                    entries[(i,i)] = x
+
+        if isinstance(entries, list) and len(entries) > 0 and \
+                hasattr(entries[0], "is_vector"):
+            entries = _convert_sparse_entries_to_dict(entries)
+
+        if isinstance(entries, list):
+            if len(entries) != self.nrows() * self.ncols():
+                raise TypeError, "entries has the wrong length"
+            x = entries
+            entries = {}
+            k = 0
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    if x[k] != 0:
+                        entries[(i,j)] = x[k]
+                    k = k + 1
+            copy = False
+
+        if not isinstance(entries, dict):
+            raise TypeError, "entries must be a dict"
+
+        if coerce:
+            try:
+                for k, x in entries.iteritems():
+                    entries[k] = R(x)
+            except TypeError:
+                raise TypeError, "Unable to coerce entries to %s"%R
+        elif copy:
+            # Make a copy
+            entries = dict(entries)
+
+        self._entries = entries
 
     def __add__(self, other):
         if not isinstance(other, Sparse_matrix_generic):
@@ -174,16 +165,64 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
                          self.ncols(), s, coerce=False)
         return A
 
-    def __sub__(self, right):
-        return self + (-1)*right
+    def __copy__(self):
+        cdef Matrix_sparse M
+        M = Matrix_sparse.__new__(self._parent,0,0,0)
+        M._entries = dict(self._entries)
+        M._base_ring = self._base_ring
+        M._zero = self._zero
+        return M
 
-    def __neg__(self):
-        return (-1)*self
+    def __repr__(self):
+        return str(self.dense_matrix())
 
-    def __getitem__(self, i):
-        return self.row(i)
+    def __getitem__(self, t):
+        cdef size_t r
+        if not isinstance(t, tuple) or len(t) != 2:
+            try:
+                r = t
+            except TypeError:
+                raise IndexError, "Index of matrix item must be a row and a column."
+            return self.row(r)
 
-    def row(self, i):
+        cdef size_t i, j
+        i, j = t
+        self.check_bounds(i, j)
+        try:
+            return self._entries[(i,j)]
+        except KeyError:
+            return self._zero
+
+    def __setitem__(self, t, x):
+        """
+        INPUT:
+            A[i, j] -- the i,j of A, and
+            A[i]    -- the i-th row of A.
+        """
+        cdef size_t r
+
+        if not isinstance(t, tuple) or len(t) != 2:
+            try:
+                r = t
+            except TypeError:
+                raise IndexError, "Index of matrix item must be a row and a column."
+            return self.set_row(r, x)
+
+        cdef size_t i, j
+        i, j = t
+        self.check_bounds_and_mutability(i, j)
+
+        x = self._base_ring(value)
+        if x == 0:
+            if self._entries.has_key(ij):
+                del self._entries[ij]
+            return
+        self._entries[ij] = x
+
+    def base_ring(self):
+        return self._base_ring
+
+    def row(self, size_t i):
         """
         Return the ith row of this matrix as a sparse vector.
 
@@ -192,90 +231,69 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
         representation of the matrix as a list of sparse vectors, thus doubling
         the memory requirement.
         """
-        i = int(i)
-        #if not isinstance(i, int):
-        #    raise TypeError, "i must be an int"
-        if i < 0: i = self.nrows() + i
+        if i < 0:
+            i = self._nrows + i
         return self.rows()[i]
 
     def rows(self):
         """
-        Return a list of the sparse rows of this matrix.  The ith
+        Return a list of the sparse rows of this matrix.  The i-th
         element of this list is the i-th row of this matrix.
         """
-        if self.__rows is None:
-            X = []
-            entries = []
-            k = 0
-            R = self.base_ring()
-            n = self.ncols()
-            for i, j, x in self.entries():
-                if i > k:
-                    while len(X) <= k-1:
-                        X.append(SparseVector(R, n))
-                    X.append(SparseVector(R, n, entries, coerce=False, sort=False))
-                    entries = []
-                    k = i
-                entries.append((j,x))
-            while len(X) <= k-1:
-                X.append(SparseVector(R, n))
-            X.append(SparseVector(R, n, entries, coerce=False, sort=False))
-            while len(X) < self.nrows():
-                X.append(SparseVector(R, n))
-            self.__rows = X
-        return self.__rows
-
-    def __getslice__(self, i, j):
-        i = int(i)
-        #if not  isinstance(i, int):
-        #    raise TypeError, "i must be an int"
-        j = int(j)
-        #if not  isinstance(j, int):
-        #    raise TypeError, "j must be an int"
-        if i < 0: i = self.nrows() + i
-        if j < 0: j = self.nrows() + j
-        if i >= self.nrows():
-            i = self.nrows() - 1
-        if j >= self.nrows():
-            j = self.nrows() - 1
-        return self.matrix_from_rows(xrange(i,j))
-
-    def nrows(self):
-        return self.__nrows
-
-    def ncols(self):
-        return self.__ncols
-
-    def base_ring(self):
-        return self.__base_ring
-
-    def entries(self):
-        return self.__entries
-
-    def list(self):
-        return self.__entries
-
-    def dict(self):
-        X = {}
+        x = self.fetch('rows')
+        if not x is None: return x
+        X = []
+        entries = []
+        k = 0
+        R = self.base_ring()
+        n = self.ncols()
         for i, j, x in self.entries():
-            X[(i,j)] = x
+            if i > k:
+                while len(X) <= k-1:
+                  X.append(SparseVector(R, n))
+                X.append(SparseVector(R, n, entries, coerce=False, sort=False))
+                entries = []
+                k = i
+            entries.append((j,x))
+        while len(X) <= k-1:
+            X.append(SparseVector(R, n))
+        X.append(SparseVector(R, n, entries, coerce=False, sort=False))
+        while len(X) < self.nrows():
+            X.append(SparseVector(R, n))
+        self.cache('rows', X)
         return X
 
+    def list(self):
+        """
+        Return all entries of self as a linear list of numbers of rows
+        times number of columns entries.
+
+        This is not cached, so it is safe to change the returned list.
+        """
+        v = [self._base_ring(0)]*(self._nrows * self._ncols)
+        for i, j, x in self._entries:
+            v[i*self._ncols + j] = x
+        return v
+
+    def dict(self):
+        """
+        Return a copy of the underlying dictionary of self.
+
+        It is safe to change the returned list.
+        """
+        return dict(self._entries)
+
     def dense_matrix(self):
-        """
-        todo
-        """
         import sage.matrix.matrix
         M = sage.matrix.matrix.MatrixSpace(self.base_ring(),
-                                     self.nrows(),
-                                     self.ncols(),
-                                     sparse = False)(0)
-        for i, j, x in self.list():
+                                           self._nrows, self._ncols,
+                                           sparse = False)(0)
+        for i, j, x in self._entries
             M[i,j] = x
         return M
 
     def nonpivots(self):
-        # We convert the pivots to a set so we have VERY FAST
+        # We convert the pivots to a set so we have fast
         # inclusion testing
         X = set(self.pivots())
         # [j for j in xrange(self.ncols()) if not (j in X)]
@@ -284,14 +302,6 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
             if not (j in X):
                 np.append(j)
         return np
-
-    def pivots(self):
-        if self.__pivots is None:
-            self.echelon_form()
-        return self.__pivots
-
-    def _set_pivots(self, X):
-        self.__pivots = X
 
     def matrix_from_nonpivot_columns(self):
         """
@@ -360,51 +370,6 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
         return SparseMatrix(self.base_ring(), len(R),
                             self.ncols(), entries2, coerce=False, sort=False)
 
-
-    def set_entries(self, entries, coerce=True, sort=True, copy=True):
-        """
-        entries is a list of triples (i,j,x) and the
-        x must be nonzero.
-
-        This function does *not* check that i and j are in bounds
-        or that the x are all nonzero.
-        """
-        self.__rows = None
-        self.__echelon_form = None
-        if not coerce:
-            if copy:
-                self.__entries = list(entries)   # copy
-            else:
-                self.__entries = entries
-            if sort:
-                self.__entries.sort()
-            return
-        self.__entries = []
-        R = self.base_ring()
-        # self.__entries = [(i,j,R(z)) for i,j,z in entries]
-        for t in entries:
-            t[2] = R(t[2])
-        self.__entries = entries
-        if sort:
-            self.__entries.sort()
-
-    def randomize(self, sparcity=4, exact=True):
-        entries = []
-        R = self.base_ring()
-        for i in range(self.nrows()):
-            if exact:
-                r = sparcity
-            else:
-                r = random.randrange(sparcity)
-            X = []
-            for j in range(0,r+1):
-                x = R.random()
-                if x != R(0):
-                    k = random.randrange(0,self.ncols())
-                    if not (k in X):
-                        entries.append((i,k, x))
-                        X.append(k)
-        self.set_entries(entries, coerce=False, sort=True)
 
     def transpose(self):
         """
@@ -489,7 +454,7 @@ cdef class Matrix_sparse(matrix_generic.Matrix):
         #endfor
         if self.is_immutable():
             self.__pivots = pivot_positions
-            E = SparseMatrix_from_rows(X)
+            E = Matrix_sparse_from_rows(X)
             E.__pivots = pivot_positions
             self.__echelon_form = E
         misc.verbose("Finished generic echelon.",t)

@@ -1,5 +1,5 @@
 r"""
-Sparse matrices over $\F_p$ and $\Q$
+Sparse matrices over $\Q$
 
 This is a compiled implementation of sparse matrix algebra over small
 prime finite fields and the rational numbers, which is used mainly
@@ -9,6 +9,34 @@ AUTHOR:
    -- William Stein (2004): first version
    -- William Stein (2006-02-12): added set_row_to_multiple_of_row
    -- William Stein (2006-03-04): added multimodular echelon, __reduce__, etc.
+
+EXAMPLES:
+    sage: M = MatrixSpace(QQ, 2, 3, sparse=True)
+    sage: A = M([1,2,3, 1,1,1])
+    sage: A
+    [1 2 3]
+    [1 1 1]
+    sage: A.echelon_form()
+    [ 1  0 -1]
+    [ 0  1  2]
+
+    sage: M = MatrixSpace(QQ, 1000,1000, sparse=True)
+    sage: A = M(0)
+    sage: A[1,1] = 5
+
+
+    sage: from sage.matrix.sparse_matrix import SparseMatrix
+    sage: x = SparseMatrix(QQ, 5,10)
+    sage: x.randomize(5)
+    sage: x.echelon_form()       # random output
+    [
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 10/29,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, -4/29,
+    0, 0, 1, 0, 0, 0, 0, 0, 0, -12/29,
+    0, 0, 0, 0, 0, 0, 1, 0, 0, 24/29,
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 4/29
+    ]
+
 """
 
 #############################################################################

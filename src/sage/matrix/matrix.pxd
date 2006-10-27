@@ -30,7 +30,14 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
     cdef _mul_cousins_cdef(self, Matrix right)
     cdef classical_multiply_cdef(self, Matrix right)
-    cdef int _check_bounds(self, size_t i, size_t j) except -1
-    cdef _clear_cache_cdef(self)
-    cdef _require_mutable(self)
+
+    # Cache
+    cdef clear_cache_cdef(self)
+    cdef fetch(self, key)
+    cdef cache(self, key, x)
+
+    # Mutability and bounds checking
+    cdef check_bounds(self, size_t i, size_t j)
+    cdef check_mutability(self)
+    cdef check_bounds_and_mutability(self, size_t i, size_t j)
 

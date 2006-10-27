@@ -142,14 +142,14 @@ linbox_gfq = Extension('sage.libs.linbox.finite_field_givaro',
                    language='c++'
                    )
 
-matrix_dense = Extension('sage.matrix.matrix_dense',
-              ['sage/matrix/matrix_dense.pyx'])
+matrix_generic_dense = Extension('sage.matrix.matrix_generic_dense',
+                                 ['sage/matrix/matrix_generic_dense.pyx'])
 
-matrix_sparse = Extension('sage.matrix.matrix_sparse',
-              ['sage/matrix/matrix_sparse.pyx'])
+matrix_generic_sparse = Extension('sage.matrix.matrix_generic_sparse',
+                                  ['sage/matrix/matrix_generic_sparse.pyx'])
 
 matrix_domain_dense = Extension('sage.matrix.matrix_domain_dense',
-              ['sage/matrix/matrix_domain_dense.pyx'])
+                                ['sage/matrix/matrix_domain_dense.pyx'])
 
 matrix_domain_sparse = Extension('sage.matrix.matrix_domain_sparse',
               ['sage/matrix/matrix_domain_sparse.pyx'])
@@ -188,9 +188,15 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                    'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
                                   libraries = ['gmp'])
 
+matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
+                               ['sage/matrix/matrix_cyclo_dense.pyx'])
+
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],
                                    libraries = ['gmp'])
+
+matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
+                                   ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
 complex_number2 = Extension('sage.rings.complex_number2',
 			    ['sage/rings/complex_number2.pyx'],
@@ -244,39 +250,51 @@ dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
 #####################################################
 
 ext_modules = [ \
-    free_module_element, \
-    complex_double_vector,\
-    real_double_vector,\
-    ec, \
-    pari, \
 
-    mwrank, \
+    free_module_element,
 
-    ntl, \
+    complex_double_vector,
+    real_double_vector,
 
-    #cf, \
+    ec,
+    pari,
 
-    matrix_dense,
-    matrix_sparse,
+    mwrank,
+
+    ntl,
+
+    matrix_generic_dense,
+    matrix_generic_sparse,
+
     matrix_domain_dense,
     matrix_domain_sparse,
+
     matrix_pid_dense,
     matrix_pid_sparse,
+
     matrix_field_dense,
     matrix_field_sparse,
+
     matrix_integer_dense,
     matrix_integer_sparse,
+
     matrix_modn_dense,
     matrix_modn_sparse,
+
     matrix_rational_dense,
     matrix_rational_sparse,
 
+    matrix_cyclo_dense,
+    matrix_cyclo_sparse,
+
     dwt,
+
     gsl_array,
     gsl_ode,
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
+
     real_double,
     complex_double,
 
@@ -365,8 +383,8 @@ ext_modules = [ \
               ['sage/structure/mutability.pyx']
               ), \
 
-    Extension('sage.matrix.matrix_generic',
-              ['sage/matrix/matrix_generic.pyx']
+    Extension('sage.matrix.matrix',
+              ['sage/matrix/matrix.pyx']
               ), \
 
     Extension('sage.rings.integer_mod',

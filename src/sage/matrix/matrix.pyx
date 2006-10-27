@@ -11,6 +11,39 @@ Elements of matrix spaces are of class \code{Matrix} (or a class
 derived from Matrix).  They can be either sparse or dense, and can be
 defined over any base ring.
 
+MATRIX CLASS DIAGRAM:
+\begin{verbatim}
+ModuleElement
+    Matrix
+        Matrix_generic_dense
+        Matrix_domain_dense
+            Matrix_pid_dense
+                Matrix_field_dense
+                    Matrix_rational_dense
+                    Matrix_cyclo_dense
+                Matrix_integer_dense
+                Matrix_modn_dense
+   ----------------------
+        Matrix_generic_sparse
+        Matrix_domain_sparse
+            Matrix_pid_sparse
+                Matrix_field_sparse
+                    Matrix_rational_sparse
+                    Matrix_cyclo_sparse
+                Matrix_integer_sparse
+                Matrix_modn_sparse
+\end{verbatim}
+
+The corresponding files in the sage/matrix library code
+directory are named
+
+          [matrix] [base ring] [dense or sparse].
+
+The base rings with (or nearterm planned) specific implementations are
+QQ, ZZ, ZZ/nZZ.  The planned base rings with optimized implementations
+are QQ(zeta\_n), GF(q), QQ[x], GF(q)[x], and QQ\_p (p-adics) and
+extensions of QQ\_p.
+
 EXAMPLES:
 
 We create the $2\times 3$ matrix
@@ -165,21 +198,51 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         self._mutability = Mutability(False)
         self._cache = {}
 
-    cdef _clear_cache_cdef(self):
+    cdef clear_cache_cdef(self):
         self._cache = {}
 
-    cdef _require_mutable(self):
-        """
-        EXAMPLES:
-            sage: ???
-        """
-        self._mutability._require_mutable()
 
-    cdef int _check_bounds(self, size_t i, size_t j) except -1:
-        if i < 0 or i >= self._nrows:
-            raise IndexError, 'matrix row index out of range'
-        if j < 0 or j >= self._ncols:
-            raise IndexError, 'matrix column index out of range'
+    cdef check_mutability(self):
+        """
+        This function gets called when you're about to change this matrix.
+
+        If self is immutable, a ValueError is raised, since you should
+        never change a mutable matrix.
+
+        If self is mutable, the cache of results about self is deleted.
+        """
+        if self._mutability._is_immutable:
+            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+        else:
+            self._cache = {}
+
+    cdef check_bounds_and_mutability(self, size_t i, size_t j):
+        """
+        This function gets called when you're about to set the i,j
+        entry of this matrix.  If i or j is out of range, an
+        IndexError exception is raised.
+
+        If self is immutable, a ValueError is raised, since you should
+        never change a mutable matrix.
+
+        If self is mutable, the cache of results about self is deleted.
+        """
+        if self._mutability._is_immutable:
+            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+        else:
+            self._cache = {}
+
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "matrix index out of range"
+
+    cdef check_bounds(self, size_t i, size_t j):
+        """
+        This function gets called when you're about to access the i,j
+        entry of this matrix.  If i, j are out of range, and
+        IndexError is raised.
+        """
+        if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
+            raise IndexError, "matrix index out of range"
 
     def set_immutable(self):
         """
@@ -511,6 +574,15 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             (2005, 2)
         """
         raise NotImplementedError
+
+    def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
+        if i < 0: i = self._nrows + i
+        if j < 0: j = self._nrows + j
+        if i >= self._nrows:
+            i = self._nrows - 1
+        if j >= self._nrows:
+            j = self._nrows - 1
+        return self.matrix_from_rows(xrange(i,j))
 
     def get(self, ij):
         """
@@ -2595,6 +2667,16 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
         strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
+
+    def pivots(self):
+        try:
+            return self._cache['pivots']
+        except KeyError:
+            self.echelon_form()
+        return self._cache['pivots']
+
+    cdef _set_pivots(self, X):
+        self._cache['pivots'] = X
 
     def echelon_strassen(self, cutoff):
         """

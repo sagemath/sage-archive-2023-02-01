@@ -8,7 +8,6 @@ cdef struct c_vector_modint:
     int num_nonzero
 
 
-cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
+cdef class Matrix_modn_sparse(matrix_pid_sparse.Matrix_pid_sparse):
     cdef c_vector_modint* rows
-    cdef public int nr, nc, p
-    cdef object __pivots
+    cdef public int p

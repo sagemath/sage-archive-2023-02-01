@@ -1171,6 +1171,8 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             <type 'integer_mod.IntegerMod_int64'>
             sage: loads(a.dumps()) == a
             True
+            sage: Mod(5, 2^31)
+            5
         """
         IntegerMod_abstract.__init__(self, parent, value)
         if empty:

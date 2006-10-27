@@ -11,6 +11,7 @@ problems on linear spaces.
 import os
 
 import sage.misc.misc
+from sage.rings.all import ZZ
 
 seq = 0
 tmp = None
@@ -213,18 +214,47 @@ def tex_rel(x):
         return '='
     raise NotImplementedError
 
+class ExtremalRays(list):
+    def __init__(self, s, linear_system):
+        """
+        INPUT:
+            s -- string of the form n i
+        """
+        self._s = s
+        self._linear_system = linear_system
+        v = s.split('\n')
+        w = v[0].strip().split()
+        self._number_of_vectors = int(w[0])
+        self._degree_of_vectors = int(w[1])
+        # ASSUMPTION: carriage return between each vector
+        self._rows = v[1:]
+        self._M = ZZ ** self._degree_of_vectors
+
+    def __repr__(self):
+        return "List of %s Extremal Rays"%self._number_of_vectors
+
+    def linear_system(self):
+        return self._linear_system
+
+    def __len__(self):
+        return self._number_of_vectors
+
+    def __getitem__(self, i):
+        return self._M(self._rows[i].strip().split())
+
+
 class LinearSystem:
-    """
+    r"""
     A linear system of relations $A x \eps b$, where $\eps$ is a list
     of relations (<, =, >), $A$ is a matrix of integers, and $b$ is a
     column vector.  Also the possible orthants of $x$ can be constrained.
 
-    LinearSystem(matrix, rels, rhs, sign)
+    LinearSystem(matrix, rel, rhs, sign)
 
     INPUT:
          matrix -- a matrix with integer entries
 
-         rels -- a list of signs (as strings, e.g., '<=', '==', '>='), which
+         rel -- a list of signs (as strings, e.g., '<=', '==', '>='), which
                  has length the number of rows of the matrix.
 
          rhs --  (default: 0 vector) a list (or vector) of integers of
@@ -257,10 +287,10 @@ class LinearSystem:
     EXAMPLES:
         sage: from sage.interfaces.fortytwo import LinearSystem
         sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
-        sage: rels = ['<=', '<=']
+        sage: rel = ['<=', '<=']
         sage: rhs = 0
         sage: signs = [1,2,2,0]
-        sage: L = LinearSystem(m, rels, rhs, signs)
+        sage: L = LinearSystem(m, rel, rhs, signs)
         sage: L
         Linear System defined by
         Matrix:
@@ -270,17 +300,17 @@ class LinearSystem:
         Right Hand Side: [0, 0]
         Signs: [1, 2, 2, 0]
     """
-    def __init__(self, matrix, rels, rhs=0, signs=0):
+    def __init__(self, matrix, rel, rhs=0, signs=0):
         matrix.set_immutable()
         self._matrix = matrix
-        if len(rels) != matrix.nrows():
-            raise ValueError, "number of rels must equal numbers rows of matrix"
+        if len(rel) != matrix.nrows():
+            raise ValueError, "number of rel must equal numbers rows of matrix"
 
-        self._rels = rels
+        self._rel = rel
 
-        if not isinstance(rels, list):
-            raise TypeError, 'rels must be a list'
-        for x in rels:
+        if not isinstance(rel, list):
+            raise TypeError, 'rel must be a list'
+        for x in rel:
             if not x in ['<=', '==', '>=']:
                 raise ValueError, "each rel must be <=, ==, or >="
 
@@ -318,15 +348,15 @@ class LinearSystem:
 
     def __repr__(self):
         s = "Linear System defined by\nMatrix:\n%s\nRelations: %s\nRight Hand Side: %s\nSigns: %s"%(
-            self._matrix, self._rels, self._rhs, self._signs)
+            self._matrix, self._rel, self._rhs, self._signs)
         return s
 
     def _latex_(self):
-        rels = '\\begin{array}{c} %s \\end{array}'%('\\\\\n'.join([tex_rel(x) for x in self._rels]))
+        rel = '\\begin{array}{c} %s \\end{array}'%('\\\\\n'.join([tex_rel(x) for x in self._rel]))
         rhs = self._matrix.new_matrix(len(self._rhs), 1, self._rhs)
         signs = self._signs
         s = '\\begin{array}{cccc} %s & \\mathbf{x} & %s & %s\\\\ \n %s & & & & \\end{array}'%(
-            self._matrix._latex_(),rels, rhs._latex_(), signs)
+            self._matrix._latex_(),rel, rhs._latex_(), signs)
         return s
 
 
@@ -350,9 +380,9 @@ class LinearSystem:
         mat = open('%s/%s'%(dir, project), 'w')
         mat.write(matrix_to_4ti2(self._matrix))
 
-        # put rels in foo.rel
-        rels = open('%s/%s.rel'%(dir, project), 'w')
-        rels.write('1 %s %s'%(len(self._rels), ' '.join([str(x[0]) for x in self._rels])))
+        # put rel in foo.rel
+        rel = open('%s/%s.rel'%(dir, project), 'w')
+        rel.write('1 %s %s'%(len(self._rel), ' '.join([str(x[0]) for x in self._rel])))
 
         # put sign in foo.sign
         signs = open('%s/%s.sign'%(dir, project), 'w')
@@ -362,7 +392,7 @@ class LinearSystem:
         rhs = open('%s/%s.rhs'%(dir, project), 'w')
         rhs.write('1 %s %s'%(len(self._rhs), ' '.join([str(s) for s in self._rhs])))
 
-    def qsolve(self):
+    def qsolve(self, options=''):
         """
         This function returns the extreme rays in the cone determined
         by this system of linear constraints.
@@ -380,10 +410,10 @@ class LinearSystem:
         EXAMPLES:
             sage: from sage.interfaces.fortytwo import LinearSystem
             sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
-            sage: rels = ['<=', '<=']
+            sage: rel = ['<=', '<=']
             sage: rhs = 0
             sage: signs = [1,2,2,0]
-            sage: L = LinearSystem(m, rels, rhs, signs)
+            sage: L = LinearSystem(m, rel, rhs, signs)
             sage: a = L.qsolve();
             sage: print a[0]
             10 4
@@ -403,8 +433,8 @@ class LinearSystem:
         for x in self._rhs:
             if x != 0:
                 raise NotImplementedError, "qsolve is currently only implemented for homogeneous systems (i.e., with rhs=0)"
-        out, err = self.call_4ti2('qsolve')
-        qhom = self._read_file('qhom')
+        out, err = self.call_4ti2('qsolve', options=options)
+        qhom = ExtremalRays(self._read_file('qhom'), self)
         qfree = self._read_file('qfree')
         return (qhom, qfree)
 
@@ -428,15 +458,6 @@ class LinearSystem:
         pass
 
 
-    def zsolve(self):
-        """
-        """
-        out, err = self.call_4ti2('zsolve')
-        zhom = self._read_file('zhom')
-        zinhom = self._read_file('zinhom')
-        zfree = self._read_file('zfree')
-        return (zhom, zinhom, zfree)
-
     def graver(self):
         """
         Calls zsolve with
@@ -450,3 +471,24 @@ class LinearSystem:
 
 
 
+class LinearSystemOverZZ(LinearSystem):
+    def solve(self, bound=None):
+        if not bound is None:
+            # the extensions will be .ub and .lb
+            raise NotImplementedError
+
+        out, err = self.call_4ti2('zsolve')
+        zhom = self._read_file('zhom')
+        zinhom = self._read_file('zinhom')
+        zfree = self._read_file('zfree')
+
+        return (zhom, zinhom, zfree)
+
+class LinearSystemOverQQ(LinearSystem):
+    pass
+
+
+
+linear_system_over_ZZ = LinearSystemOverZZ
+
+linear_system_over_QQ = LinearSystemOverQQ

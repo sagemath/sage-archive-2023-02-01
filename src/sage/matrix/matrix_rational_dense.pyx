@@ -25,6 +25,8 @@ include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"
 #include "../ext/cdefs.pxi"
 
+include "../ext/stdsage.pxi"
+
 cimport sage.ext.arith
 import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
@@ -42,6 +44,7 @@ import matrix_modn_dense
 cimport sage.rings.rational
 import  sage.rings.rational
 
+cimport matrix_generic
 import matrix_generic
 
 import matrix_space
@@ -56,126 +59,102 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
     Matrix over the rational numbers.
     """
 
-    def __new__(self, parent, entries, coerce, copy):
-            """
-        Create and allocate memory for the matrix.  Does not actually initialize
-        any of the memory (e.g., mpz_init is not called).
+    def __new__(self, parent, entries=0, coerce=True, copy=True):
+        """
+        Create and allocate memory for the matrix.
+        Unlike over matrix_integer_dense, mpq_init() is called (as there is no mpq_init_set function).
 
         INPUT:
             parent, entries, coerce, copy -- as for __init__.
 
         EXAMPLES:
-            sage: from sage.matrix.matrix_integer_dense import Matrix_integer_dense
-            sage: a = Matrix_integer_dense.__new__(Matrix_integer_dense, Mat(ZZ,3), 0,0,0)
+            sage: from sage.matrix.matrix_rational_dense import Matrix_rational_dense
+            sage: a = Matrix_rational_dense.__new__(Matrix_rational_dense, Mat(ZZ,3), 0,0,0)
             sage: type(a)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
 
         WARNING: This is for internal use only, or if you really know what you're doing.
         """
-
-    def __init__(self, parent, object entries=None, construct=False, zero=True):
-        cdef int n, i, j, k, r, base, nrows, ncols
-        cdef mpq_t *v
-
         matrix_generic.Matrix.__init__(self, parent)
+
+        cdef size_t i, k
+
+        self._entries = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        if self._entries == <mpq_t *> 0:
+            raise MemoryError, "out of memory allocating a matrix"
+
+        self._matrix =  <mpq_t **> PyMem_Malloc(sizeof(mpq_t*) * self._ncols)
+        if self._matrix == <mpq_t**> 0:
+            raise MemoryError, "out of memory allocating a matrix"
+
+        # store pointers to the starts of the rows
+        k = 0
+        for i from 0 <= i < self._nrows:
+            self._matrix[i] = self._entries + k
+            k = k + self._ncols
+
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_init(self._entries[i])
+
+
+
+    def __init__(self, parent, entries=0, coerce=True, copy=True):
+
+        cdef size_t i
+        cdef sage.rings.rational.Rational z
+        cdef mpz_t zero
 
         nrows = parent.nrows()
         ncols = parent.ncols()
-        self._nrows = nrows
-        self._ncols = ncols
 
-        self._entries = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*(nrows*ncols))
-        if self._entries == <mpq_t *> 0:
-            raise MemoryError, "Error allocating matrix."
+        if not isinstance(entries, list):
+            try:
+                entries = list(entries)
+                is_list = 1
+            except TypeError:
+                try:
+                    # Try to coerce entries to a scalar (an integer)
+                    z = sage.rings.rational.Rational(entries)
+                    is_list = 0
+                except TypeError:
+                    raise TypeError, "entries must be coercible to a list or integer"
+        else:
+            is_list = 1
 
-        for i from 0 <= i < (nrows*ncols):
-            mpq_init(self._entries[i])
+        if is_list:
+            if len(entries) != self._nrows * self._ncols:
+                raise TypeError, "entries has the wrong length"
 
-        self._matrix =  <mpq_t **> PyMem_Malloc(sizeof(mpq_t*)*ncols)
-        if self._matrix == <mpq_t**> 0:
-            raise MemoryError, "Error allocating matrix."
-
-        k = 0
-        for i from 0 <= i < nrows:
-            self._matrix[i] = self._entries + k
-            k = k + ncols
-
-        if zero:
-            for i from 0 <= i < (nrows*ncols):
-                mpq_set_si(self._entries[i], 0, 1)
-
-        self.__pivots = None
-        base = 10
-        if isinstance(entries, str):
-            if construct:
-                base = 32
-                entries = entries.split(' ')
-                raise NotImplementedError, "need to deal with base below"
-
-        elif not isinstance(entries, list) and not entries is None:
-            entries = sage.rings.rational.Rational(entries)
-
-        if isinstance(entries, sage.rings.rational.Rational):
-            if entries != 0 and nrows != ncols:
-                raise TypeError, "scalar matrix must be square"
-            s = str(entries)
-            mpq_init(self.tmp)
-            r = mpq_set_str(self.tmp, s, 0)
-            if r == -1:
-                raise TypeError, "Invalid rational number"
-            mpq_canonicalize(self.tmp)
             _sig_on
-            for i from 0 <= i < nrows:
-                v = self._matrix[i]
-                for j from 0 <= j < ncols:
-                    if i == j:
-                        mpq_set(v[j], self.tmp)
-                        k = k + 1
-                    else:
-                        mpq_set_si(v[j], 0, 1)
-            _sig_off
-            return
-
-        if nrows*ncols != 0:
-            if isinstance(entries, list) and len(entries) != nrows*ncols:
-                raise IndexError, "The vector of entries has length %s but should have length %s"%(len(entries), nrows*ncols)
-
-        cdef sage.rings.rational.Rational z
-
-        if entries == 0:
-            entries = None
-            zero = True
-
-        if entries is None:
-            if zero:
-                for i from 0 <= i < nrows * ncols:
-                    mpq_set_si(self._entries[i], 0, 1)
-            return
-
-        elif isinstance(entries, list):
-
             if coerce:
-                for i from 0 <= i < nrows*ncols:
+                for i from 0 <= i < self._nrows * self._ncols:
+                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     z = sage.rings.rational.Rational(entries[i])
                     mpq_set(self._entries[i], z.value)
             else:
-                for i from 0 <= i < nrows*ncols:
+                for i from 0 <= i < self._nrows * self._ncols:
+                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     z = entries[i]
                     mpq_set(self._entries[i], z.value)
+            _sig_off
 
         else:
-            z = entries
-            for i from 0 <= i < nrows * ncols:
-                mpq_set_si(self._entries[i], 0, 1)
-            for i from 0 <= i < nrows:
-                mpq_set(self._entries[i+nrows*i], z.value)
 
+            mpz_init(zero)
+            mpz_set_si(zero, 0)
+            _sig_on
+            for i from 0 <= i < self._nrows * self._ncols:
+                mpq_set_z(self._entries[i], zero)
+            _sig_off
+            mpz_clear(zero)
 
-    def nrows(self):
-        return self._nrows
+            if not z.is_zero():
 
-    def ncols(self):
-        return self._ncols
+                if self._nrows != self._ncols:
+                    raise TypeError, "nonzero scalar matrix must be square"
+                for i from 0 <= i < self._nrows:
+                    mpq_set(self._entries[i*i+i], z.value)
+
 
     def _adjoint(self):
         """assumes self is a square matrix (checked in adjoint)"""
@@ -204,7 +183,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
     def __reduce__(self):
         import sage._matrix.reduce
 
-        cdef int i, j, len_so_far, m, n
+        cdef size_t i, j, len_so_far, m, n
         cdef char *a
         cdef char *s, *t, *tmp
 
@@ -246,7 +225,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
 
 
     def __cmp__(self, other):
-        cdef int i, c
+        cdef size_t i, c
         cdef Matrix_rational_dense x
         if isinstance(other, Matrix_rational_dense):
             x = other
@@ -280,14 +259,24 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         return x
 
     def  __dealloc__(self):
-        # TODO: should I be calling mpz_clear on all my entries?
+        cdef size_t i
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_clear(self._entries[i])
         PyMem_Free(self._entries)
         PyMem_Free(self._matrix)
 
 
-    def _mul_(Matrix_rational_dense self, Matrix_rational_dense other):
-        if self._ncols != other._nrows:
-            raise IndexError, "Number of columns of self must equal number of rows of other."
+    cdef classical_multiply_cdef(Matrix_rational_dense self, matrix_generic.Matrix _other):
+        """
+        Multiply the matrices self and right using the classical $O(n^3)$
+        algorithm.
+
+        This method assumes that self and right are of the same type <Matrix_rational_dense>
+        and have compatable dimensions.
+        """
+
+        cdef Matrix_rational_dense other
+        other = <Matrix_rational_dense> _other
 
         cdef int i, j, k, nr, nc, snc
         cdef mpq_t *v
@@ -297,7 +286,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         snc = self._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.new_matrix(self._nrows, other._ncols).parent(), zero=False) # clean up when MatrixSpace creates this class
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent().matrix_space(self._nrows, other._ncols))
 
         cdef mpq_t **m
         m = M._matrix
@@ -328,7 +317,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         nc = other._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
 
         cdef mpq_t **m
         m = M._matrix
@@ -354,7 +343,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         cdef int i, j
         cdef Matrix_rational_dense M
 
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent().matrix_space(self._ncols, self._nrows))
         cdef mpq_t **m
         m = M._matrix
 
@@ -391,7 +380,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         if min(rows) < 0 or max(rows) >= self._nrows:
             raise IndexError, "invalid row indexes; rows don't exist"
 
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
         cdef mpq_t **m
         m = M._matrix
 
@@ -426,7 +415,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         if min(cols) < 0 or max(cols) >= self._ncols:
             raise IndexError, "invalid cols indexes; cols don't exist"
 
-        M = self.new_matrix(nrows=nr, ncols=nc, zero=False) #Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
         cdef mpq_t **m
         m = M._matrix
 
@@ -461,7 +450,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
             raise ArithmeticError, "incompatible matrix vector multiple"
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
 
         cdef mpq_t **m
         m = M._matrix
@@ -502,7 +491,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         if r == -1:
             raise TypeError, "Invalid rational number"
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
 
         cdef mpq_t **m
         m = M._matrix
@@ -520,7 +509,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         nr = self._nrows; nc = self._ncols
 
         cdef Matrix_rational_dense M
-        M = Matrix_rational_dense(self.parent(), zero=False)
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent())
         cdef mpq_t **m
         m = M._matrix
 

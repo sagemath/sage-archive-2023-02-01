@@ -2022,10 +2022,11 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             return right._left_scalar_multiply(self)
 
         if PY_TYPE_CHECK(right, sage.modules.free_module_element.FreeModuleElement):
-            raise TypeError, "cannot multiply matrix times row vector -- instead computer row vector times matrix"
+            raise TypeError, "cannot multiply matrix times row vector -- instead compute row vector times matrix"
 
         if not PY_TYPE_CHECK(right, Matrix):
             # the only possibility is to coerce to a scalar.
+            # TODO: what if right is not in the
             return self._right_scalar_multiply(right)
 
         # Now both self and right are matrices.
@@ -2044,37 +2045,37 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         #   * if one matrix is sparse and the other is dense, the
         #     product is dense.
 
-        if (<Matrix> self)._parent.base_ring() is (<Matrix> right)._parent.base_ring():
-            return self._multiply_matrices_over_same_base_ring(right)
 
-        # Now the base rings are not the same
-        try:
-            self, right = sage.structure.coerce.canonical_base_coercion(self, right)
-        except TypeError:
-            raise TypeError, "base rings must be compatible"
-
-        # Either an error was just raised, or self and right now have the same base ring.
-        return self._multiply_matrices_over_same_base_ring(right)
-
-    def _multiply_matrices_over_same_base_ring(self, Matrix right):
-        """
-        Multiply two matrices that are assumed to be defined over the same
-        base ring.
-
-        EXAMPLES:
-            sage: ???
-        """
-        # Both self and right are matrices and have the same base rings.
         # First we check that matrix multiplication is defined.
-        if self._ncols != right._nrows:
+        if (<Matrix> self)._ncols != (<Matrix> right)._nrows:
             raise ArithmeticError, "number of columns of self must equal number of rows of right."
+
+        # check parents directly for speed on square matrices (e.g. 2x2 matrices over ZZ)
+        if not ( (<Matrix> self)._parent is (<Matrix> right)._parent
+                or (<Matrix> self)._parent.base_ring() is (<Matrix> right)._parent.base_ring() ):
+            # The base rings are not the same
+            try:
+                self, right = sage.structure.coerce.canonical_base_coercion(self, right)
+            except TypeError:
+                raise TypeError, "base rings must be compatible"
+            # Either an error was just raised, or self and right now have the same base ring.
+
         # Next we deal with the possiblity that one could be sparse and the other dense.
         if self.is_sparse() and not right.is_sparse():
             self = self.dense_matrix()
         elif right.is_sparse() and not self.is_dense():
             right = right.dense_matrix()
 
-        # Now we can do the matrix multiply.
+        return (<Matrix> self)._mul_cousins_cdef(right)
+
+    cdef _mul_cousins_cdef(self, Matrix right):
+        """
+        Multiply two matrices that are assumed to be compatable and
+        defined over the same base ring.
+
+        EXAMPLES:
+            sage: ???
+        """
         if self._will_use_strassen(right):
             return self.strassen_multiply(right)
         else:
@@ -2084,6 +2085,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         Multiply the matrices self and right using the classical $O(n^3)$
         algorithm.
+
+        This method assumes that self and right have the same parent and
+        compatable dimensions.
 
         EXAMPLES
 

@@ -3,6 +3,7 @@ include "../ext/cdefs.pxi"
 cimport matrix_field_dense
 
 cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
+
     cdef mpq_t tmp
     cdef mpq_t *_entries
     cdef mpq_t ** _matrix

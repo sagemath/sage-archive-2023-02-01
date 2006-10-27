@@ -28,6 +28,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _strassen_default_cutoff(self) except -1
 
+    cdef _mul_cousins_cdef(self, Matrix right)
     cdef classical_multiply_cdef(self, Matrix right)
     cdef int _check_bounds(self, size_t i, size_t j) except -1
     cdef _clear_cache_cdef(self)

@@ -286,28 +286,20 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             sage: a = matrix(R,2,[x+1,2/3,  x^2/2, 1+x^3]); a
             [  x + 1     2/3]
             [1/2*x^2 x^3 + 1]
-
-            sage: b = copy(a)
-
+            sage: b = a.copy()
             sage: b[0,0] = 5
-
             sage: b
             [      5     2/3]
             [1/2*x^2 x^3 + 1]
-
             sage: a
             [  x + 1     2/3]
             [1/2*x^2 x^3 + 1]
 
             sage: b = copy(a)
-
             sage: f = b[0,0]; f[0] = 10
+            error
 
             sage: b
-            [ x + 10     2/3]
-            [1/2*x^2 x^3 + 1]
-
-            sage: a
             [ x + 10     2/3]
             [1/2*x^2 x^3 + 1]
         """
@@ -353,15 +345,24 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     # Cache
     ###########################################################
     cdef clear_cache(self):
+        """
+        Clear the properties cache.
+        """
         self._cache = {}
 
     cdef fetch(self, key):
+        """
+        Try to get an element from the cache; if there isn't anything there, return None.
+        """
         try:
             return self._cache[key]
         except KeyError:
             return None
 
     cdef cache(self, key, x):
+        """
+        Record x in the cache with given key.
+        """
         self._cache[key] = x
 
     ###########################################################
@@ -412,15 +413,35 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
 
     def set_immutable(self):
-        """
+        r"""
+        Call this function to matrix a matrix immutable.
+
+        Matrices are always mutable by default, i.e., you can change
+        their entries using \code{A[i,j] = x}.  However, mutable
+        matrices aren't hasheable, so can't be used as keys in
+        dictionaries, etc.  Also, often when implementing a class, you
+        might compute a matrix associated to it, e.g., the matrix of a
+        Hecke operator.  If you return this matrix to the user you're
+        really returning a reference and the user could then change an
+        entry; this could be confusing. Thus you shoulds set such a
+        matrix immutable.
+
         EXAMPLES:
-            sage: A = Matrix(QQ['x','y'], 2, 2, range(4))
+            sage: A = Matrix(QQ, 2, 2, range(4))
             sage: A.is_mutable()
             True
             sage: A[0,0] = 10
             sage: A
             [10   1]
             [ 2   3]
+
+        Mutable matrices are not hasheable, so can't be used as keys for dictionaries:
+            sage: hash(A)
+            boom
+            sage: v = {A:1}
+            boom
+
+        If we make A immutable it suddenly is hasheable.
             sage: A.set_immutable()
             sage: A.is_mutable()
             False
@@ -428,11 +449,19 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             Traceback (most recent call last):
             ...
             <type 'exceptions.ValueError'>: matrix is immutable; please change a copy instead (use self.copy())
+            sage: hash(A)
+            ...
+            sage: v = {A:1}; v
         """
         self._mutability.set_immutable()
 
     def is_immutable(self):
         """
+        Return True if this matrix is immutable.
+
+        See the documentation for self.set_immutable for more details
+        about mutability.
+
         EXAMPLES:
             sage: A = Matrix(QQ['t','s'], 2, 2, range(4))
             sage: A.is_immutable()
@@ -445,6 +474,11 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
     def is_mutable(self):
         """
+        Return True if this matrix is mutable.
+
+        See the documentation for self.set_immutable for more details
+        about mutability.
+
         EXAMPLES:
             sage: A = Matrix(QQ['t','s'], 2, 2, range(4))
             sage: A.is_mutable()
@@ -461,15 +495,20 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     ###########################################################
     cdef set_unsafe(self, size_t i, size_t j, object x):
         """
-        Set entry, but potentially faster because it might be without
-        bounds checking.
+        Set entry quickly without doing any bounds checking.  Calling
+        this with invalid arguments is allowed to produce a
+        segmentation fault.
+
+        This is fast since it is a cdef function and there is no bounds checking.
         """
         raise NotImplementedError, "this must be defined in the derived type."
 
     cdef get_unsafe(self, size_t i, size_t j):
         """
-        Entry access, but potentially faster since it might be without
+        Entry access, but fast since it might be without
         bounds checking.
+
+        This is fast since it is a cdef function and there is no bounds checking.
         """
         raise NotImplementedError, "this must be defined in the derived type."
 
@@ -478,9 +517,9 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         Return element or row of self.
 
         INPUT:
-            ij -- tuple (i,j) with i, j ints
+            ij -- tuple (i,j) with i, j integers
         or
-            ij -- int
+            ij -- integer
 
         USAGE:
             A[i, j] -- the i,j of A, and

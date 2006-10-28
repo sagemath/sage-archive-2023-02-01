@@ -2551,8 +2551,9 @@ def make_new_GF2X(x=[]):
         sage: ntl.GF2X(2)
         [0 1]
     """
-    from sage.rings.finite_field_element import FiniteFieldElement
+    from sage.rings.finite_field_element import FiniteField_ext_pariElement
     from sage.rings.finite_field import FiniteField_ext_pari
+    from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
     from sage.rings.polynomial_element import Polynomial_dense_mod_p
     from sage.rings.integer import Integer
 
@@ -2565,13 +2566,15 @@ def make_new_GF2X(x=[]):
     elif isinstance(x, Polynomial_dense_mod_p):
         if x.base_ring().characteristic():
             x=x._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteField_ext_pari):
+    elif isinstance(x, (FiniteField_ext_pari,FiniteField_givaro)):
         if x.characteristic() == 2:
-            x=x.modulus()._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteFieldElement):
+            x= list(x.modulus())
+    elif isinstance(x, FiniteField_ext_pariElement):
         if x.parent().characteristic() == 2:
             x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
             x="0x"+hex(x)[2:][::-1]
+    elif isinstance(x, FiniteField_givaroElement):
+        x = "0x"+hex(int(x))[2:][::-1]
     s = str(x).replace(","," ")
     cdef ntl_GF2X n
     n = ntl_GF2X()

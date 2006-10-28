@@ -39,7 +39,7 @@ def Set(X):
     EXAMPLES:
         sage: X = Set(GF(9))
         sage: X
-        {a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a}
+        {2, a + 2, 2*a + 1, a, 2*a, a + 1, 1, 2*a + 2, 0}
         sage: type(X)
         <class 'sage.sets.set.Set_object_enumerated'>
         sage: Y = X.union(Set(QQ))
@@ -319,9 +319,9 @@ class Set_object(Set_generic):
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4))
-            {0, 1, 1, a, a + 1, 0}
+            {0, 1, a + 1, 1, a, 0}
             sage: Set(GF(8)) + Set(GF(4))
-            {a, a^2 + 1, a + 1, a^2, a + 1, 1, 0, 1, a, a^2 + a, a^2 + a + 1}
+            {a^2 + a + 1, 1, a, a^2 + a, a^2 + 1, a + 1, 1, a^2, a + 1, 0}
         """
         return self.union(X)
 
@@ -452,9 +452,9 @@ class Set_object_enumerated(Set_object):
         EXAMPLES:
             sage: X = Set(GF(8))
             sage: X
-            {a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1}
+            {a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
             sage: X.set()
-            set([a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1])
+            set([a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0])
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -494,11 +494,11 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8))
             sage: Y = Set([GF(8).0, 1, 2, 3])
             sage: X
-            {a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1}
+            {a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
             sage: Y
-            {a, 1, 2, 3}
+            {1, 2, 3, a}
             sage: X.union(Y)
-            {a, a^2 + 1, 2, 3, a + 1, a^2, 1, 1, 0, a^2 + a, a^2 + a + 1}
+            {1, 2, 3, a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)

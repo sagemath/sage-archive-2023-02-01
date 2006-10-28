@@ -896,8 +896,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: R, x = PolynomialRing(k).objgen()
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + (a + 1)*x + a + 2) * (x^2 + 3*x + 4*a + 4) *
-            (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
+            (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -908,17 +907,16 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: R, x = PolynomialRing(GF(3^2, 'x')).objgen()
             sage: f = x^10 +7*x -13
             sage: f.factor()
-            (x + 2*x + 1) * (x + x) * (x^4 + 2*x*x^3 + (x + 1)*x + 2) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2)
+            (x + x) * (x + 2*x + 1) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2) * (x^4 + 2*x*x^3 + (x + 1)*x + 2)
             sage: f.parent().base_ring().assign_names(['a'])
             sage: f.factor()
-            (x + 2*a + 1) * (x + a) * (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2)
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
 
             sage: k, a = GF(9,'x').objgen()
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
-            (x0 + 2*x + 1) * (x0 + x) * (x0 + 2)
-
+            (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
             sage: f = 0*x
             sage: f.factor()
             Traceback (most recent call last):
@@ -1501,7 +1499,7 @@ class Polynomial_generic_dense(Polynomial):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
-        if x == None:
+        if x is None:
             self.__coeffs = []
             return
         R = parent.base_ring()
@@ -1632,7 +1630,7 @@ class Polynomial_generic_sparse(Polynomial):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
-        if x == None:
+        if x is None:
             self.__coeffs = {}
             return
         R = parent.base_ring()
@@ -2328,7 +2326,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
         self.__poly = ZZX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):
@@ -2715,7 +2713,7 @@ class Polynomial_dense_mod_n(Polynomial):
 
         self.__poly = ZZ_pX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):

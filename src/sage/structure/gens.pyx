@@ -251,6 +251,8 @@ cdef class Generators(sage_object.SageObject):
         g = self.gens()
         if scope is None:
             scope = globals()
+            if not scope.has_key('__SAGE_AUTOINJECT__'):
+                return
         cdef int i
         for i from 0 <= i < len(v):
             scope[v[i]] = g[i]

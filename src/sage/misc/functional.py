@@ -54,6 +54,8 @@ def arg(x):
         sage: sin(theta)*abs(z)
         2.0000000000000000
     """
+    R = sage.rings.all.PolynomialRing(sage.rings.all.QQ,'z',inject_variables=True)
+    print z
     try: return x.arg()
     except AttributeError: return sage.rings.all.CC(x).arg()
 
@@ -66,6 +68,7 @@ def base_ring(x):
         sage: base_ring(R)
         Finite Field of size 7
     """
+    print z
     return x.base_ring()
 
 def base_field(x):

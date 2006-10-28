@@ -266,14 +266,16 @@ class Worksheet:
         self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
-        S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
-        S.eval('from sage.all_notebook import *')
-        S.eval('import sage.server.support as _support_')
-        S.eval('__SAGENB__globals = set(globals().keys())')
         object_directory = os.path.abspath(self.__notebook.object_directory())
-        verbose(object_directory)
-        S.eval('_support_.init("%s", globals())'%object_directory)
-        print "(done)"
+        #verbose(object_directory)
+        # We do exactly one eval below of one long line instead of
+        cmd = 'from sage.all_notebook import *; '
+        cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
+        cmd += '__SAGE_AUTOINJECT__=True;'
+        cmd += 'import sage.server.support as _support_; '
+        cmd += '__SAGENB__globals = set(globals().keys()); '
+        cmd += '_support_.init("%s", globals()); '%object_directory
+        S.eval(cmd)
 
         A = self.attached_files()
         for F in A.iterkeys():

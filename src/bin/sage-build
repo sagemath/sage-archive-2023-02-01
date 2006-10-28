@@ -45,9 +45,10 @@ if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
     exit 1
 fi
 
-if [ DO_TOUCH = 1 ]; then
+if [ $DO_TOUCH = 1 ]; then
    CUR=`pwd`
    cd "$SAGE_ROOT/devel/sage/sage"
+   echo "*** TOUCHING ALL PYREX FILES ***"
    touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx 2> /dev/null
    cd "$CUR"
 fi

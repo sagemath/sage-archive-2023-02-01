@@ -5,6 +5,8 @@ SAGE IPython startup script.
 
 """
 
+__SAGE_AUTOINJECT__ = True
+
 import IPython
 from IPython.CrashHandler import CrashHandler
 
@@ -13,7 +15,7 @@ sage = IPython.Shell.start()
 sageCH = CrashHandler(sage.IP, 'SAGE', 'William Stein', \
                       'wstein@gmail.com', \
                       'http://sage.math.washington.edu/trac', \
-		      'SAGE_Crash_Report.txt', \
+		      'SAGE_crash_report.txt', \
                       show_crash_traceback=False)
 
 sage.IP.set_crash_handler(sageCH)

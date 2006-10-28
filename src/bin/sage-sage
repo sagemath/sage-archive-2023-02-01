@@ -147,6 +147,7 @@ SAGE_STARTUP_COMMAND="
 import sage.misc.misc; print \
 sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
 from sage.all import *;\
+__SAGE_AUTOINJECT__=True;\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\
 from sage.misc.interpreter import attached_files;\
@@ -323,10 +324,6 @@ fi
 
 if [ $1 = '-ba' ]; then
    shift
-   CUR=`pwd`
-   cd "$SAGE_ROOT/devel/sage/sage-"
-   touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx 2> /dev/null
-   cd "$CUR"
    sage-build -b $* && sage
    exit $?
 fi

@@ -109,50 +109,25 @@ def ceil(x):
     except AttributeError:
         return sage.rings.all.ceil(x)
 
-def charpoly(x):
+def charpoly(x, var):
     """
-    Return the characteristic polynomial of x.
+    Return the characteristic polynomial of x in the given variable.
 
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
         sage: charpoly(A)
         x^3 - 15*x^2 - 18*x
+
+        sage: GF(7^10, 'alpha')
+        Finite Field in alpha of size 7^10
+        sage: alpha.charpoly('T')
+        T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
     """
     try:
-        return x.characteristic_polynomial()
-    except AttributeError:
-        return x.charpoly()
+        return x.charpoly(var)
     except AttributeError:
         raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
-
-## def conductor(x):
-##     """
-##     Return the conductor of x.
-
-##     EXAMPLES:
-##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
-##         sage: E
-##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-##         sage: conductor(E)
-##         11
-##     """
-##     return x.conductor()
-
-## def cos(x):
-##     """
-##     Return the cosine of x.
-
-##     EXAMPLES:
-##         sage: z = 1+2*I
-##         sage: theta = arg(z)
-##         sage: cos(theta)*abs(z)
-##         1.0000000000000002
-##         sage: cos(3.141592)
-##         -0.99999999999978639
-##     """
-##     try: return x.cos()
-##     except AttributeError: return RR(x).cos()
 
 def acos(x):
     """

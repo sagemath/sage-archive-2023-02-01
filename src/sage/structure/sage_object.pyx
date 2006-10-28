@@ -307,6 +307,9 @@ cdef class SageObject:
                 pass
         return X
 
+    def _interface_init_(self):
+        return str(self)
+
     def _interface_is_cached_(self):
         """
         Return True if the interface objects are cached.

@@ -990,9 +990,6 @@ class Worksheet:
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
-
-                #input = [x for x in input.split('\n') if len(x.split()) > 0 and \
-                #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
                 input = input.split('\n')
 
                 i = len(input)-1
@@ -1004,7 +1001,6 @@ class Worksheet:
                         try:
                             compile(t+'\n', '', 'single')
                             t = t.replace("'", "\\u0027").replace('\n','\\u000a')
-                            #input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input = input[:i+1]
                         except SyntaxError, msg:

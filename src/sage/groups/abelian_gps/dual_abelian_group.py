@@ -130,7 +130,7 @@ class DualAbelianGroup_class(group.AbelianGroup):
         else:
             base_ring = bse_ring
         self.__group = G
-        self.assign_names(names)
+        self._assign_names(names)
         self._base_ring = base_ring
 
     def group(self):

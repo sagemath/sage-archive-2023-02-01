@@ -60,53 +60,9 @@ from sage.rings.ring import FiniteField as FiniteField_generic
 
 import sage.interfaces.gap
 
-#_objsFiniteField = {}
-def FiniteField(order, name='a', modulus=None):
-    """
-    Return a finite field of given order with generator labeled by the given name.
+from finite_field_c import FiniteField, is_FiniteField, is_PrimeFiniteField
 
-    INPUT:
-        order -- int
-        name -- string (default: 'a')
-        modulus -- defining polynomial for field, i.e., generator of the field will
-                   be a root of this polynomial.
-
-    EXAMPLES:
-        sage: k, a = GF(9).objgen()
-        sage: k
-        Finite Field in a of size 3^2
-        sage: k.assign_names(['b'])
-        sage: k
-        Finite Field in b of size 3^2
-        sage: GF(9,'a')
-        Finite Field in a of size 3^2
-    """
-    #global _objsFiniteField
-    #key = (order, name)
-    #if _objsFiniteField.has_key(key):
-    #    x = _objsFiniteField[key]()
-    #    if x != None and x.variable_name() == name:      # see example above for why this is necessary
-    #        return x
-    if arith.is_prime(order):
-        R = integer_mod_ring.IntegerModRing(order) # there is a cannonical isomorphism between finite fields of prime order
-        R.assign_names(name) # does this do anything?
-    else:
-        R = FiniteField_ext_pari(order, name, modulus)
-    return R
-    #_objsFiniteField[key] = weakref.ref(R)
-    #return R
-
-def GF(order, name='a'):
-    """
-    Synonym for FiniteField.
-    """
-    return FiniteField(order, name)
-
-def is_FiniteField(x):
-    return isinstance(x, FiniteField_generic)
-
-def is_PrimeFiniteField(x):
-    return isinstance(x, FiniteField_prime_modn)
+GF = FiniteField
 
 class FiniteField_ext_pari(FiniteField_generic):
     """
@@ -240,7 +196,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         F = q.factor()
         if len(F) > 1:
             raise ArithmeticError, "q must be a prime power"
-        self.assign_names(name)
+        self._assign_names(name)
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = F[0][1]
@@ -634,7 +590,6 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         integer_mod_ring.IntegerModRing_generic.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
-        self.assign_names(name)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

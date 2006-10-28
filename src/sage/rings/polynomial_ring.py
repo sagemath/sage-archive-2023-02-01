@@ -17,7 +17,6 @@ AUTHOR:
 #*****************************************************************************
 
 import random
-import weakref
 
 import commutative_ring
 import commutative_algebra
@@ -43,70 +42,7 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
-#_objsPolynomialRing = {}
-
-def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
-    """
-    Return a univariate or multivariate polynomial ring.
-
-    INPUT:
-        base_ring -- the base ring
-        name -- (str) the name of the generator
-        sparse -- (bool; default: False) whether or not elements are represented using
-                  sparse methods; note that multivariate polynomials are always sparse
-        names -- names of the generators (for multivariate poly)
-        order -- term order of ring
-
-    EXAMPLES:
-        sage: PolynomialRing(ZZ)
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: PolynomialRing(ZZ, 'y')
-        Univariate Polynomial Ring in y over Integer Ring
-        sage: PolynomialRing(PolynomialRing(QQ,'z'), 'y')
-        Univariate Polynomial Ring in y over Univariate Polynomial Ring in z over Rational Field
-        sage: PolynomialRing(QQ, name='abc')
-        Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, name='abc', sparse=True)
-        Sparse Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, 3, sparse=True)
-        Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: PolynomialRing(QQ, 3)
-        Polynomial Ring in x0, x1, x2 over Rational Field
-    """
-    if isinstance(name, (int,long,integer.Integer)):
-        if isinstance(sparse, (list, str)):
-            if order is None:
-                order = names
-            names = sparse
-        if order is None:
-            order = 'degrevlex'
-        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order)
-
-    #global _objsPolynomialRing
-    #key = (base_ring, name, sparse)
-    #if _objsPolynomialRing.has_key(key):
-    #    R = _objsPolynomialRing[key]()
-    #    if R != None:
-    #        return R
-
-    if integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
-        n = base_ring.order()
-        if n.is_prime():
-            R = PolynomialRing_dense_mod_p(base_ring, name)
-        else:
-            R = PolynomialRing_dense_mod_n(base_ring, name)
-    elif isinstance(base_ring, field.Field):
-        R = PolynomialRing_field(base_ring, name, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = PolynomialRing_integral_domain(base_ring, name, sparse)
-    else:
-        R = PolynomialRing_generic(base_ring, name, sparse)
-
-    #_objsPolynomialRing[key] = weakref.ref(R)
-    return R
-
-def is_PolynomialRing(x):
-    return isinstance(x, PolynomialRing_generic)
+from polynomial_ring_c import PolynomialRing, is_PolynomialRing
 
 class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
     """
@@ -124,13 +60,13 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
         commutative_algebra.CommutativeAlgebra.__init__(self, base_ring)
-        self.assign_names(name)
         self.__is_sparse = sparse
         ring.Ring.__init__(self)
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
+        self._assign_names(name)
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         C = self.__polynomial_class
@@ -185,7 +121,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             G = sage.interfaces.magma.magma
         B = G(self.base_ring())
         R = G('PolynomialRing(%s)'%B.name())
-        R.assign_names(self.variable_names())
+        R._assign_names(self.variable_names())
         return R
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
@@ -308,7 +244,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
 
     #def quotient(self, I, name=None):
     #    Q = commutative_ring.CommutativeRing.quotient(self, I)
-    #Q.assign_names([name])
+    #Q._assign_names([name])
     #    return Q
 
     def random_element(self, degree, bound=0):

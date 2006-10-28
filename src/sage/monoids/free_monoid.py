@@ -121,7 +121,7 @@ class FreeMonoid_class(Monoid_class):
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
         self.__ngens = int(n)
-        self.assign_names(names)
+        self._assign_names(names)
 
     def __cmp__(self, other):
         if not isinstance(other, FreeMonoid_class):

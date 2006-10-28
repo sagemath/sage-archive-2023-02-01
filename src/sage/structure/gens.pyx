@@ -186,8 +186,29 @@ cdef class Generators(sage_object.SageObject):
             v.append(N)
         return tuple(v)
 
-    def assign_names(self, names=None):
+    def _assign_names(self, names=None):
+        """
+        Set the names of the generator of this object.
+
+        This can only be done once during creation of the object.
+
+        EXAMPLES:
+        When we create this polynomial ring, self._assign_names is called by the constructor:
+
+            sage: R = QQ['x,y,abc']; R
+            Polynomial Ring in x, y, abc over Rational Field
+            sage: R.2
+            abc
+
+        We can't rename the variables:
+            sage: R._assign_names(['a','b','c'])
+            Traceback (most recent call last):
+            ...
+            ValueError: variable names cannot be changed after object creation.
+        """
         if names is None: return
+        if not self.__names is None:
+            raise ValueError, 'variable names cannot be changed after object creation.'
         if isinstance(names, str) and names.find(',') != -1:
             names = names.split(',')
         if isinstance(names, str) and self.ngens() > 1 and len(names) == self.ngens():
@@ -209,6 +230,30 @@ cdef class Generators(sage_object.SageObject):
             latex_names = names
         self.__names = tuple(names)
         self.__latex_names = tuple(latex_names)
+
+
+    def inject_variables(self, scope=None):
+        """
+        Inject the generators of self with their names into the
+        namespace of the Python code from which this function is
+        called.  Thus, e.g., if the generators of self are labeled
+        'a', 'b', and 'c', then after calling this method the
+        variables a, b, and c in the current scope will be set
+        equal to the generators of self.
+
+        NOTE: If Foo is a constructor for a SAGE object with
+        generators, and Foo is defined in Pyrex, then it would
+        typically call inject_variables() on the object it
+        creates.  E.g., PolyomialRing(QQ, 'y') does this so that the
+        variable y is the generator of the polynomial ring.
+        """
+        v = self.variable_names()
+        g = self.gens()
+        if scope is None:
+            scope = globals()
+        cdef int i
+        for i from 0 <= i < len(v):
+            scope[v[i]] = g[i]
 
     def _names_from_obj(self, X):
         if self.__names != None and self.__latex_names != None:
@@ -400,3 +445,4 @@ cdef class AdditiveAbelianGenerators(Generators):
         Return an iterator over the elements in this object.
         """
         return gens_py.abelian_iterator(self)
+

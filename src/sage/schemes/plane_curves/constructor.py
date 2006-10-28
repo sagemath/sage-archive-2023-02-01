@@ -21,7 +21,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import MPolynomial, is_MPolynomialRing, is_FiniteField
+from sage.rings.all import is_MPolynomial, is_MPolynomialRing, is_FiniteField
 
 from sage.structure.all import Sequence
 
@@ -143,7 +143,7 @@ def Curve(F):
         A._coordinate_ring = P
         return ProjectiveSpaceCurve_generic(A, F)
 
-    if not isinstance(F, MPolynomial):
+    if not is_MPolynomial(F):
         raise TypeError, "F (=%s) must be a multivariate polynomial"%F
 
     P = F.parent()

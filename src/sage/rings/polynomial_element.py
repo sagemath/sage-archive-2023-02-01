@@ -907,7 +907,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             sage: prod(G) == f
             True
 
-            sage: f.parent().base_ring().assign_names(['a'])
+            sage: f.parent().base_ring()._assign_names(['a'])
             sage: f.factor()
             (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + 2*a + 1) * (x + a)
 

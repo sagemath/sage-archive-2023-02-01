@@ -46,7 +46,7 @@ class FreeAlgebraQuotient(Algebra, object):
             sage: M = MatrixSpace(QQ,4)
             sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]),  M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]),  M([0,0,0,1, 0,0,-1,0, 0,1,0,0, -1,0,0,0]) ]
             sage: H3 = FreeAlgebraQuotient(A,mons,mats)
-            sage: H3.assign_names(["i","j","k"])
+            sage: H3._assign_names(["i","j","k"])
             sage: i, j, k = H3.gens()
             sage: x = 1 + i + j + k
             sage: x
@@ -67,7 +67,7 @@ class FreeAlgebraQuotient(Algebra, object):
             sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]), M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]) ]
             sage: H2 = FreeAlgebraQuotient(A,mons,mats)
             sage: i, j = H2.gens(); k = i*j
-            sage: H2.assign_names(["i","j"])
+            sage: H2._assign_names(["i","j"])
             sage: x = 1 + i + j + k
             sage: x
             1 + i + j + i*j
@@ -89,7 +89,7 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__module = FreeModule(R,self.__dim)
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
-        self.assign_names(names)
+        self._assign_names(names)
 
     def __call__(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
@@ -164,13 +164,13 @@ class FreeAlgebraQuotient(Algebra, object):
         """
         return self.__free_algebra
 
-    def assign_names(self,names):
+    def _assign_names(self,names):
         """
         Assign the printing names for the generators; this will have the unfortunate
         effect of overwriting the names for the covering algebra; this also does not
         overwrite the return value of names() for the Algebra.
         """
-        self.monoid().assign_names(names)
+        self.monoid()._assign_names(names)
 
     def variable_names(self):
         """

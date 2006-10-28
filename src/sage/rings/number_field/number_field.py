@@ -170,7 +170,7 @@ class NumberField_generic(field.Field):
         if not polynomial.is_monic():
             raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
 
-        self.assign_names(name)
+        self._assign_names(name)
         if latex_name is None:
             self.__latex_variable_name = self.variable_name()
         else:
@@ -792,7 +792,7 @@ class NumberField_extension(NumberField_generic):
         self.__base_field = base
         NumberField_generic.__init__(self, self.absolute_polynomial(), name=name, latex_name=latex_name, check=False)
 
-        self.assign_names(name)
+        self._assign_names(name)
         self.__relative_polynomial = polynomial
         self.__pari_bnf_certified = False
 

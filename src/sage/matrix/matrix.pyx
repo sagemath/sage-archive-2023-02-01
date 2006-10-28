@@ -115,7 +115,9 @@ directory are named
 
 See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
 
-LEVEL 1. For each base field it is necessary to completely implement the following
+*********** LEVEL 1  **********
+
+For each base field it is necessary to completely implement the following
    functionality for that base ring:
    * __new__       -- should use sage_malloc from ext/stdsage.pxi  (only needed if allocate memory)
    * __init__      -- this signature: 'def __init__(self, parent, entries, copy, coerce)'
@@ -123,8 +125,11 @@ LEVEL 1. For each base field it is necessary to completely implement the followi
    * set_unsafe(self, size_t i, size_t j, x) -- a cdef'd method that doesn't do bounds or any other checks; can core dump if given bad i,j
    * get_unsafe(self, size_t i, size_t j) -- a cdef'd method that doesn't do checks
 
-LEVEL 2. After getting the special class with the above code to work, implement any subset
-         of the following purely for speed reasons:
+*********** LEVEL 2  **********
+
+After getting the special class with the above code to work, implement
+any subset of the following purely for speed reasons:
+
    * cdef pickle(self):
           return data, version
    * cdef unpickle(self, data, int version):
@@ -143,7 +148,8 @@ LEVEL 2. After getting the special class with the above code to work, implement 
    * list -- copy of the list of underlying elements
    * dict -- copy of the sparse dictionary of underlying elements
 
-LEVEL 3
+*********** LEVEL 3  **********
+
    * Matrix windows -- only if you need strassen for that base
 
    * Other functions, e.g., transpose, for which knowing the
@@ -1703,7 +1709,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             raise IndexError, "invalid row"
         if r2 < 0 or r2 >= nc:
             raise IndexError, "invalid row"
-        if r1 == c2:
+        if r1 == r2:
             return
 
         self.check_mutability()
@@ -1764,7 +1770,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             l = l + 1
 
 
-    def add_multiple_of_row(self, size_t i, size_t j, s):
+    def add_multiple_of_row(self, size_t i, size_t j,    s,   size_t col_start=0):
         """
         Add s times row j to row i.
 
@@ -1777,10 +1783,10 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             raise IndexError, "matrix row index out of range"
 
         s = self.base_ring()(s)
-        for c from 0 <= c < self._ncols:
+        for c from col_start <= c < self._ncols:
             self.set_unsafe(i, c, self.get_unsafe(i, c) + s*self.get_unsafe(j, c))
 
-    def add_multiple_of_column(self, size_t i, size_t j, s):
+    def add_multiple_of_column(self, size_t i, size_t j, s, size_t row_start=0):
         """
         Add s times column j to column i.
 
@@ -1792,12 +1798,40 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         if i<0 or i >= self._ncols or j<0 or j >= self._ncols:
             raise IndexError, "matrix column index out of range"
         s = self.base_ring()(s)
-        for r from 0 <= r < self._nrows:
+        for r from row_start <= r < self._nrows:
             self.set_unsafe(r, i, self.get_unsafe(r, i) + s*self.get_unsafe(r, j))
 
-    def rescale_row(self, size_t i, s):
+    def rescale_row(self, size_t i, s, size_t start_col=0):
         """
         Replace i-th row of self by s times i-th row of self.
+
+        start_row -- only rescale enries at that column and to the right
+
+        EXAMPLES:
+            sage: ???
+        """
+        if s == 1:
+            return
+
+        s = self.base_ring()(s)
+
+        self.check_mutability()
+
+        if i<0 or i >= self._nrows:
+            raise IndexError, "matrix row index out of range"
+
+        for j from start_col <= j < self._ncols:
+            self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
+
+
+    def rescale_col(self, size_t i, s, size_t start_row=0):
+        """
+        Replace i-th col of self by s times i-th col of self.
+
+        INPUT:
+            i -- ith column
+            s -- scalar
+            start_row -- only rescale enries at that row and lower
 
         EXAMPLES:
             sage: ???
@@ -1806,11 +1840,13 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             return
         self.check_mutability()
 
-        if i<0 or i >= self._nrows:
-            raise IndexError, "matrix row index out of range"
+        if i<0 or i >= self._ncols:
+            raise IndexError, "matrix col index out of range"
 
-        for j from 0 <= j < self._ncols:
-            self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
+        s = self.base_ring()(s)
+
+        for j from start_rows <= j < self._nrows:
+            self.set_unsafe(j, i, self.get_unsafe(i, j)*s)
 
 
     ###################################################
@@ -2215,17 +2251,23 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         cdef size_t i, n
 
-        try:
-            return self._cache['determinant']
-        except KeyError:
-            pass
+        d = self.fetch('det')
+        if not d is None: return d
 
         if self._nrows != self._ncols:
             raise ValueError, "self must be square"
 
-        n = self._nrows
+        n = self._ncols
         R = self.parent().base_ring()
-        if n == 0: return R(1)
+        if n == 0:
+            d = R(1)
+            self.cache('det', d)
+            return d
+
+        elif n == 1:
+            d = self.get_unsafe(0,0)
+            self.cache('det', d)
+            return d
 
         d = R(0)
         s = R(1)
@@ -2238,8 +2280,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
             d = d + s*self.get_unsafe(0,i) * B.determinant()
             s = s*sgn
 
-        self._cache['determinant'] = d
-
+        self.cache('det', d)
         return d
 
 
@@ -2705,6 +2746,51 @@ cdef class Matrix(sage.structure.element.ModuleElement):
         """
         return self == self.parent()(0)
 
+    #####################################################################################
+    # Generic Echelon
+    #####################################################################################
+    def _echelon_classical(self):
+        """
+        Return the echelon form of self.
+        """
+        E = self.fetch('echelon_classical')
+        if not E is None:
+            return E
+        E = self.copy()
+        E._echelon_in_place_classical()
+        self.cache('echelon_classical', E)
+        return E
+
+    def _echelon_in_place_classical(self):
+        """
+        Return the echelon form of self.
+        """
+        cdef size_t start_row, c, r, nr, nc, i
+        if self.fetch('in_echelon_form'):
+            return
+
+        start_row = 0
+        nr = self._nrows
+        nc = self._ncols
+        pivots = []
+
+        for c from 0 <= c < nc:
+            if PyErr_CheckSignals(): raise KeyboardInterrupt
+            for r from start_row <= r < nr:
+                if self.get_unsafe(r, c) != 0:
+                    pivots.append(c)
+                    a_inverse = ~self.get_unsafe(r,c)
+                    self.rescale_row(r, a_inverse, c)
+                    self.swap_rows(r, start_row)
+                    for i from 0 <= i < nr:
+                        if i != start_row:
+                            if self.get_unsafe(i,c) != 0:
+                                minus_b = -self.get_unsafe(i, c)
+                                self.add_multiple_of_row(i, start_row, minus_b, c)
+                    start_row = start_row + 1
+                    break
+        self.cache('pivots', pivots)
+        self.cache('in_echelon_form', True)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -3363,7 +3449,7 @@ cdef class MatrixWindow:
 
     def echelon_in_place(MatrixWindow self):
         """
-        calculate the echelon form of this matrix, returning the list of pivot columns
+        Calculate the echelon form of this matrix, returning the list of pivot columns
         """
         echelon = self.to_matrix()
         echelon.echelon() # TODO: read only, only need to copy pointers
@@ -3372,7 +3458,6 @@ cdef class MatrixWindow:
 
     def element_is_zero(MatrixWindow self, int i, int j):
         return self._matrix.matrix[i+self._row][j+self._col] == 0
-
 
     def new_empty_window(MatrixWindow self, int nrows, int ncols):
         return self._matrix.new_matrix(nrows, ncols).matrix_window()

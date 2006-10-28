@@ -193,7 +193,7 @@ def charpoly(self, *args, **kwds):
 
     It's a little difficult to distinguish the variables.  To fix this,
     we rename the indeterminate $Z$:
-        sage: f.parent().assign_names("Z")
+        sage: f.parent()._assign_names("Z")
         sage: f
         Z^2 + (-1*x1^2 - x0)*Z + x0*x1^2 - x0^2*x1
 

@@ -578,7 +578,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
         """
         Changes self into echelon form.
         """
-        cdef int start_row, c, r, nr, nc, i
+        cdef size_t start_row, c, r, nr, nc, i
         cdef mpq_t **m
         cdef mpq_t a_inverse, minus_b
 
@@ -602,7 +602,7 @@ cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
                         if i != start_row:
                             if mpq_sgn(m[i][c]):
                                 mpq_neg(minus_b, m[i][c])
-                                self.add_multiple_of_row(start_row, minus_b, i, c)
+                                self.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
                     break
         mpq_clear(a_inverse)

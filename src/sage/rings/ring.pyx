@@ -102,11 +102,11 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            return P(self, len(v), names=v)
+            R = P(self, len(v), names=v)
         else:
-            return P(self, x)
+            R = P(self, x)
 
-
+        return R
 
     def __xor__(self, n):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
@@ -317,14 +317,14 @@ cdef class CommutativeRing(Ring):
             I -- an ideal of R
 
         EXAMPLES:
-            sage: R, x = (ZZ['x']).objgen()
+            sage: R = ZZ['x']
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: S = R.quotient(I, 'a')
             sage: S.gens()
             (a,)
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S, (a,b) = ( R/ (x^2, y) ).objgens('ab')
+            sage: R = QQ['x,y']
+            sage: S = R.quotient((x^2, y), 'ab')
             sage: S
             Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
             sage: S.gens()
@@ -334,7 +334,8 @@ cdef class CommutativeRing(Ring):
         """
         import sage.rings.quotient_ring
         Q = sage.rings.quotient_ring.QuotientRing(self, I)
-        Q.assign_names(names)
+        Q._assign_names(names)
+        Q.inject_variables()
         return Q
 
     def __div__(self, I):
@@ -744,7 +745,6 @@ cdef class FiniteField(Field):
             sage: k.multiplicative_generator()
             a
         """
-
         from sage.rings.arith import primitive_root
 
         if self.__multiplicative_generator != None:
@@ -919,3 +919,5 @@ cdef class CommutativeAlgebra(CommutativeRing):
 
 def is_Ring(x):
     return isinstance(x, Ring)
+
+

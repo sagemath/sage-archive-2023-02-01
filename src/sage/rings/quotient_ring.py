@@ -86,7 +86,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         """
         self.__R = R
         self.__I = I
-        self.assign_names(names)
+        self._assign_names(names)
 
     def _repr_(self):
         return "Quotient of %s by the ideal %s"%(self.cover_ring(), self.defining_ideal()._repr_short())

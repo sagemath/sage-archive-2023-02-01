@@ -148,7 +148,7 @@ cdef class GFq(FiniteField):
         p = F[0][0]
         k = F[0][1]
 
-        self.assign_names(name)
+        self._assign_names(name)
 
         if poly==None or poly=="random":
             if k>1 and sage.databases.conway.ConwayPolynomials().has_polynomial(p, k) and poly!="random":

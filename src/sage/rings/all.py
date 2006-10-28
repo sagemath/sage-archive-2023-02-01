@@ -96,7 +96,7 @@ from polynomial_element import Polynomial, is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
-from multi_polynomial_element import MPolynomial, degree_lowest_rational_function, is_MPolynomialRingElement
+from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing

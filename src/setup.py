@@ -335,6 +335,15 @@ ext_modules = [ \
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
 
+    Extension('sage.rings.polynomial_ring_c',
+              sources = ['sage/rings/polynomial_ring_c.pyx']), \
+
+    Extension('sage.rings.multi_polynomial_ring_c',
+              sources = ['sage/rings/multi_polynomial_ring_c.pyx']), \
+
+    Extension('sage.rings.finite_field_c',
+              sources = ['sage/rings/finite_field_c.pyx']), \
+
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \

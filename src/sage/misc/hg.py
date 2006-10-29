@@ -88,6 +88,8 @@ class HG:
             if b == '': b='main'
             print("Branch: %s"%b)
 
+
+
     def _changed_files(self):
         out, err = self('status', interactive=False)
         v = [x for x in out.split('\n') if x.strip()[:1] != '?' and len(x) != 0]
@@ -466,6 +468,52 @@ class HG:
         self('diff %s | %s'%(options, pager()))
 
     what = diff
+
+    def revert(self, files='', options=''):
+        """
+        Revert files or dirs to their states as of some revision
+
+            With no revision specified, revert the named files or
+            directories to the contents they had in the parent of the
+            working directory.  This restores the contents of the
+            affected files to an unmodified state.  If the working
+            directory has two parents, you must explicitly specify the
+            revision to revert to.
+
+            Modified files are saved with a .orig suffix before
+            reverting.  To disable these backups, use --no-backup.
+
+            Using the -r option, revert the given files or directories
+            to their contents as of a specific revision.  This can be
+            helpful to 'roll back' some or all of a change that should
+            not have been committed.
+
+            Revert modifies the working directory.  It does not commit
+            any changes, or change the parent of the working
+            directory.  If you revert to a revision other than the
+            parent of the working directory, the reverted files will
+            thus appear modified afterwards.
+
+            If a file has been deleted, it is recreated.  If the executable
+            mode of a file was changed, it is reset.
+
+            If names are given, all files matching the names are reverted.
+
+            If no arguments are given, all files in the repository are
+            reverted.
+
+        OPTIONS:
+         -r --rev        revision to revert to
+            --no-backup  do not save backup copies of files
+         -I --include    include names matching given patterns
+         -X --exclude    exclude names matching given patterns
+         -n --dry-run    do not perform actions, just print output
+        """
+        if not rev is None:
+            options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
+        else:
+            options = files
+        self('revert %s'%options)
 
     def dir(self):
         """

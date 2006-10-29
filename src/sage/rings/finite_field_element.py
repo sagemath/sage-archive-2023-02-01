@@ -330,7 +330,6 @@ class FiniteFieldElement(field_element.FieldElement):
             sage: b.charpoly()
             x^3 + x^2 + 2*x + 1
         """
-        QQ['x']
         R = polynomial_ring.PolynomialRing(self.parent().prime_subfield(), var)
         return R(self.__value.charpoly().lift())
 

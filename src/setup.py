@@ -340,6 +340,9 @@ ext_modules = [ \
     Extension('sage.rings.polynomial_ring_c',
               sources = ['sage/rings/polynomial_ring_c.pyx']), \
 
+    Extension('sage.ext.interactive_constructors_c',
+              sources = ['sage/ext/interactive_constructors_c.pyx']), \
+
     Extension('sage.rings.multi_polynomial_ring_c',
               sources = ['sage/rings/multi_polynomial_ring_c.pyx']), \
 

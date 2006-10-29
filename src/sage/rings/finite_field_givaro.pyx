@@ -132,6 +132,7 @@ cdef class FiniteField_givaro(FiniteField):
     cdef object _polynomial_ring
     cdef object _prime_subfield
     cdef int repr
+    cdef object __weakref__   # so it is possible to make weakrefs to this finite field.
 
     def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly"):
         """
@@ -225,7 +226,7 @@ cdef class FiniteField_givaro(FiniteField):
         p = F[0][0]
         k = F[0][1]
 
-        self.assign_names(name)
+        self._assign_names(name)
 
         if modulus is None or modulus=="random":
             if k>1 and sage.databases.conway.ConwayPolynomials().has_polynomial(p, k) and modulus!="random":
@@ -649,9 +650,10 @@ cdef class FiniteField_givaro(FiniteField):
 
     def polynomial(self):
         """
-        Minimal polynomial of self in self.polynomial_ring().
-        """
+        Defining polynomial of this field as an element of self.polynomial_ring().
 
+        This is the same as the characteristic polynomial of the generator of self.
+        """
         quo = int(-(self.gen()**(self.degree())))
         b   = int(self.characteristic())
 
@@ -660,8 +662,7 @@ cdef class FiniteField_givaro(FiniteField):
             ret.append(quo%b)
             quo = quo/b
         ret = ret + [1]
-        from sage.rings.polynomial_ring import PolynomialRing
-        R = PolynomialRing(self.prime_subfield_C())
+        R = self.polynomial_ring_c()
         return R(ret)
 
     def modulus(self):
@@ -676,7 +677,7 @@ cdef class FiniteField_givaro(FiniteField):
         f = pari(str(self.modulus()))
         return f.subst('x', 'a') * pari("Mod(1,%s)"%self.characteristic())
 
-    cdef polynomial_ring_C(self):
+    cdef polynomial_ring_c(self):
         """
         """
         if self._polynomial_ring is None:
@@ -691,7 +692,7 @@ cdef class FiniteField_givaro(FiniteField):
         Return the polynomial ring over the prime subfield in the
         same variable as this finite field.
         """
-        return self.polynomial_ring_C()
+        return self.polynomial_ring_c()
 
     def _finite_field_ext_pari_(self):
         """
@@ -1035,7 +1036,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     cdef int object
     cdef object __multiplicative_order
 
-    def __init__(FiniteField_givaroElement self, SageObject parent ):
+    def __init__(FiniteField_givaroElement self, parent ):
         """
         Initializes an element in parent. It's much better to use
         parent(<value>) or any specialized method of parent
@@ -1464,13 +1465,21 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         n = g.log(self)
         return 'Z(%s)^%s'%(F.order(), n)
 
-    def charpoly(FiniteField_givaroElement self):
+    def charpoly(FiniteField_givaroElement self, var):
         """
         Return characteristic polynomial of self.
 
+        EXAMPLES:
+            sage: k = GF(19^2,'a')
+            sage: parent(a)
+            Finite Field in a of size 19^2
+            sage: a.charpoly('X')
+            X^2 + 18*X + 2
+            sage: a^2 + 18*a + 2
+            0
         """
         from sage.rings.polynomial_ring import PolynomialRing
-        R = PolynomialRing(parent_object(self).prime_subfield_C())
+        R = PolynomialRing(parent_object(self).prime_subfield_C(), var)
         return R(self._pari_().charpoly().lift())
 
 

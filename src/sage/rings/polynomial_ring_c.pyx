@@ -3,7 +3,7 @@ import weakref
 cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False,
-                   order='degrevlex', inject_variables=True):
+                   order='degrevlex', scope=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
@@ -79,7 +79,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False,
             if not arg2 is None:
                 raise TypeError, "invalid input to PolynomialRing function; please see the docstring for that function"
             name = arg1
-            return single_variate(base_ring, name, sparse, inject_variables)
+            return single_variate(base_ring, name, sparse, scope)
         else:
             # 2. PolynomialRing(base_ring, names, order='degrevlex', inject_variables=True):
             if not arg2 is None:
@@ -87,7 +87,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False,
             names = arg1.split(',')
             n = len(names)
             return m.multi_polynomial_ring.MPolynomialRing(base_ring, n=n, names=names,
-                                                           order=order, inject_variables=inject_variables)
+                                                           order=order, scope=scope)
 
     elif isinstance(arg2, (int, long, m.integer.Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex', inject_variables=True):
@@ -96,19 +96,19 @@ def PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False,
         n = int(arg2)
         names = arg1
         return m.multi_polynomial_ring.MPolynomialRing(base_ring, names=names, n=n,
-                                                       order=order, inject_variables=inject_variables)
+                                                       order=order, scope=scope)
 
     raise TypeError, "invalid input to PolynomialRing function; please see the docstring for that function"
 
 
-cdef single_variate(base_ring, name, sparse, inject_variables):
+cdef single_variate(base_ring, name, sparse, scope):
     import polynomial_ring as m
     key = (base_ring, name, sparse)
     if cache.has_key(key):
         R = cache[key]()
         if not R is None:
-            if inject_variables:
-                R.inject_variables()
+            if scope:
+                R.inject_variables(scope)
             return R
 
     if m.integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
@@ -127,8 +127,8 @@ cdef single_variate(base_ring, name, sparse, inject_variables):
         R = m.PolynomialRing_generic(base_ring, name, sparse)
 
     cache[key] = weakref.ref(R)
-    if inject_variables:
-        R.inject_variables()
+    if scope:
+        R.inject_variables(scope)
     return R
 
 

@@ -102,9 +102,9 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            R = P(self, len(v), names=v)
+            R = P(self, len(v), names=v, scope=globals())
         else:
-            R = P(self, x)
+            R = P(self, x, scope=globals())
 
         return R
 

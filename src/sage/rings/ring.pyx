@@ -106,9 +106,9 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            R = P(self, v)
+            R = P(self, len(v), names=v, scope=globals())
         else:
-            R = P(self, x)
+            R = P(self, x, scope=globals())
 
         return R
 
@@ -301,7 +301,7 @@ cdef class CommutativeRing(Ring):
         """
         Return the monoid of ideals of this ring.
         """
-        if self.__ideal_monoid != None:
+        if self.__ideal_monoid is not None:
             return self.__ideal_monoid
         else:
             from sage.rings.ideal_monoid import IdealMonoid
@@ -367,7 +367,7 @@ cdef class IntegralDomain(CommutativeRing):
         """
         Return the fraction field of self.
         """
-        if self.__fraction_field != None:
+        if self.__fraction_field is not None:
             return self.__fraction_field
         else:
             import sage.rings.fraction_field
@@ -751,7 +751,7 @@ cdef class FiniteField(Field):
         """
         from sage.rings.arith import primitive_root
 
-        if self.__multiplicative_generator != None:
+        if self.__multiplicative_generator is not None:
             return self.__multiplicative_generator
         else:
             if self.degree() == 1:
@@ -852,7 +852,7 @@ cdef class FiniteField(Field):
         from sage.rings.polynomial_ring import PolynomialRing
         from sage.rings.finite_field import GF
 
-        if self.__polynomial_ring != None:
+        if self.__polynomial_ring is not None:
             return self.__polynomial_ring
         else:
             self.__polynomial_ring = PolynomialRing(
@@ -860,7 +860,7 @@ cdef class FiniteField(Field):
             return self.__polynomial_ring
 
     def vector_space(self):
-        if self.__vector_space != None:
+        if self.__vector_space is not None:
             return self.__vector_space
         else:
             import sage.modules.all

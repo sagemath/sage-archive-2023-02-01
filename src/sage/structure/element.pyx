@@ -803,8 +803,6 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         _, R = self.quo_rem(other)
         return R
 
-
-
 cdef class FieldElement(CommutativeRingElement):
 
     def is_unit(self):
@@ -860,6 +858,8 @@ cdef class FieldElement(CommutativeRingElement):
             right = self.parent()(right)
         return self/right, 0
 
+cdef class FiniteFieldElement(FieldElement):
+    pass
 
 cdef class AlgebraElement(RingElement):
     pass

@@ -915,8 +915,7 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
-            (x0 + 2*x + 1) * (x0 + x) * (x0 + 2)
-
+            (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
             sage: f = 0*x
             sage: f.factor()
             Traceback (most recent call last):
@@ -1629,7 +1628,7 @@ class Polynomial_generic_sparse(Polynomial):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
-        if x == None:
+        if x is None:
             self.__coeffs = {}
             return
         R = parent.base_ring()
@@ -2325,7 +2324,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
         self.__poly = ZZX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):
@@ -2712,7 +2711,7 @@ class Polynomial_dense_mod_n(Polynomial):
 
         self.__poly = ZZ_pX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):

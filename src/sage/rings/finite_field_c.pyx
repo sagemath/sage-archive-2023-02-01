@@ -41,11 +41,13 @@ def FiniteField(order, name=None, modulus=None, inject_variable=True):
 
     if finite_field.arith.is_prime(order):
         K = finite_field.integer_mod_ring.IntegerModRing(order)
-        # there is a cannonical isomorphism between finite fields of prime order
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"
-        K = finite_field.FiniteField_ext_pari(order, name, modulus)
+        if order < 2**16:
+            K = finite_field.FiniteField_givaro(order, name, modulus)
+        else:
+            K = finite_field.FiniteField_ext_pari(order, name, modulus)
 
     cache[key] = weakref.ref(K)
     if inject_variable:

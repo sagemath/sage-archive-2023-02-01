@@ -22,10 +22,10 @@ build() {
 $SAGE_ROOT/local/bin/sage-env 1>/dev/null
 
 if [ "$1" = "-b" ]; then
-    DO_TOUCH=1
+    DO_BUILD_ALL=1
     shift
 else
-    DO_TOUCH=0
+    DO_BUILD_ALL=0
 fi
 
 if [ "$1" != "" ]; then
@@ -45,7 +45,7 @@ if [ ! -d "$SAGE_ROOT/devel/sage" ]; then
     exit 1
 fi
 
-if [ $DO_TOUCH = 1 ]; then
+if [ $DO_BUILD_ALL = 1 ]; then
    CUR=`pwd`
    cd "$SAGE_ROOT/devel/sage/sage"
    echo "*** TOUCHING ALL PYREX FILES ***"

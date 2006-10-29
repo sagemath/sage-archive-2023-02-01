@@ -54,6 +54,8 @@ def arg(x):
         sage: sin(theta)*abs(z)
         2.0000000000000000
     """
+    R = sage.rings.all.PolynomialRing(sage.rings.all.QQ,'z',inject_variables=True)
+    print z
     try: return x.arg()
     except AttributeError: return sage.rings.all.CC(x).arg()
 
@@ -66,6 +68,7 @@ def base_ring(x):
         sage: base_ring(R)
         Finite Field of size 7
     """
+    print z
     return x.base_ring()
 
 def base_field(x):
@@ -104,65 +107,30 @@ def category(x):
         return sage.categories.all.Objects()
 
 def ceil(x):
-    """
-    Return the ceiling of x.
-    """
     try:
-        return sage.rings.all.Integer(x.ceil())
+        return x.ceil()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.ceil(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
+        return sage.rings.all.ceil(x)
 
-ceiling = ceil
-
-
-def charpoly(x):
+def charpoly(x, var):
     """
-    Return the characteristic polynomial of x.
+    Return the characteristic polynomial of x in the given variable.
 
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
         sage: charpoly(A)
         x^3 - 15*x^2 - 18*x
+
+        sage: GF(7^10, 'alpha')
+        Finite Field in alpha of size 7^10
+        sage: alpha.charpoly('T')
+        T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
     """
     try:
-        return x.characteristic_polynomial()
-    except AttributeError:
-        return x.charpoly()
+        return x.charpoly(var)
     except AttributeError:
         raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
-
-## def conductor(x):
-##     """
-##     Return the conductor of x.
-
-##     EXAMPLES:
-##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
-##         sage: E
-##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-##         sage: conductor(E)
-##         11
-##     """
-##     return x.conductor()
-
-## def cos(x):
-##     """
-##     Return the cosine of x.
-
-##     EXAMPLES:
-##         sage: z = 1+2*I
-##         sage: theta = arg(z)
-##         sage: cos(theta)*abs(z)
-##         1.0000000000000002
-##         sage: cos(3.141592)
-##         -0.99999999999978639
-##     """
-##     try: return x.cos()
-##     except AttributeError: return RR(x).cos()
 
 def acos(x):
     """
@@ -369,35 +337,12 @@ def fcp(x):
 
 gcd = sage.rings.arith.gcd
 
+
 def floor(x):
-    r"""
-    Return the largest integer $\leq x$.
-
-    INPUT:
-        x -- an object that has a floor method or is coercible to int
-
-    OUTPUT:
-        an Integer
-
-    EXAMPLES:
-        sage: floor(5.4)
-        5
-        sage: floor(float(5.4))
-        5
-        sage: floor(-5/2)
-        -3
-        sage: floor(RDF(-5/2))
-        -3
-    """
     try:
-        return sage.rings.all.Integer(x.floor())
+        return x.floor()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.floor(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
-
+        return sage.rings.all.floor(x)
 
 def gen(x):
     """

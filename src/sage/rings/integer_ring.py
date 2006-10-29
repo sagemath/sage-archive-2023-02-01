@@ -22,7 +22,7 @@ sense.
     sage: a = Z(1234); b = Z(5678); print a, b
     1234 5678
     sage: type(a)
-    <type 'integer.Integer'>
+    <type 'sage.rings.integer.Integer'>
     sage: a + b
     6912
     sage: Z('94803849083985934859834583945394')
@@ -89,7 +89,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         sage: a = Z(1234); b = Z(5678); print a, b
         1234 5678
         sage: type(a)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
         sage: a + b
         6912
         sage: b + a
@@ -110,17 +110,17 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         sage: a / b
         617/2839
         sage: type(a/b)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
         sage: a/a
         1
         sage: type(a/a)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     For floor division, instead using the // operator:
         sage: a // b
         0
         sage: type(a//b)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     Next we illustrate arithmetic with automatic coercion.
     The types that coerce are: str, int, long, Integer.

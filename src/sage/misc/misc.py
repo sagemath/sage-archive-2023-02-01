@@ -67,7 +67,11 @@ SPYX_TMP = '%s/spyx'%DOT_SAGE
 
 SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
 if not os.path.exists(SAGE_TMP):
-    os.makedirs(SAGE_TMP)
+    try:
+        os.makedirs(SAGE_TMP)
+    except OSError, msg:
+        print msg
+        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
 SAGE_DATA = '%s/data'%SAGE_ROOT
 SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT

@@ -9,7 +9,7 @@
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
 from sage.rings.all import (divisors, infinity, gcd, Integer,
                             is_PowerSeries)
-from sage.matrix.all import Matrix
+from sage.matrix.all import matrix
 
 def hecke_operator_on_qexp(f, n, k, eps = None,
                            prec=None, check=True, _return_list=False):
@@ -52,7 +52,7 @@ def _hecke_operator_on_basis(B, V, n, k, eps):
     TB = [hecke_operator_on_qexp(f, n, k, eps, prec, check=False, _return_list=True)
                 for f in B]
     TB = [V.coordinate_vector(w) for w in TB]
-    return Matrix(V.base_ring(), len(B), len(B), TB, sparse=False)
+    return matrix(V.base_ring(), len(B), len(B), TB, sparse=False)
 
 def hecke_operator_on_basis(B, n, k, eps=None,
                             already_echelonized = False):

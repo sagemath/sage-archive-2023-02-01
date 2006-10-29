@@ -1,13 +1,13 @@
 include "../ext/cdefs.pxi"
 
-cimport matrix_field
+cimport matrix_field_dense
 
-cdef class Matrix_rational_dense(matrix_field.Matrix_field):
+cdef class Matrix_rational_dense(matrix_field_dense.Matrix_field_dense):
+
     cdef mpq_t tmp
     cdef mpq_t *_entries
     cdef mpq_t ** _matrix
     cdef object __pivots
-    cdef int _nrows, _ncols
 
     cdef scale_row(self, int row, mpq_t multiple, int start_col)
     cdef add_multiple_of_row(self, int row_from, mpq_t multiple,

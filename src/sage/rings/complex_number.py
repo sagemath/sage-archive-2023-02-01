@@ -23,8 +23,6 @@ import real_field
 import sage.misc.misc
 import sage.libs.pari.all as pari
 import sage.interfaces.gp as gp
-import sage.interfaces.all
-import sage.rings.arith
 import integer
 import infinity
 
@@ -118,13 +116,6 @@ class ComplexNumber(ring_element.RingElement):
         This is only for the gp interpreter; can lose precision.
         """
         return str(self)
-        #if G is None:
-        #    G = sage.interfaces.all.gp
-        #try:
-        #    return self.__gp[G]
-        #except AttributeError:
-        #    self.__gp = gp.new_with_bits_prec(str(self), self.prec())
-        #    return self.__gp
 
     def _add_(self, right):
         return ComplexNumber(self.parent(), self.__re + right.__re, self.__im + right.__im)
@@ -671,11 +662,12 @@ class ComplexNumber(ring_element.RingElement):
             x^5 + x^2                           # 32-bit
             x^5 - x^4 + x^3 + x^2 - x + 1       # 64-bit
             sage: p.factor()
-            x^2 * (x + 1) * (x^2 - x + 1)       # 32-bit
+            x^2 * (x^2 - x + 1) * (x + 1)       # 32-bit
             (x + 1) * (x^2 - x + 1)^2           # 64-bit
             sage: z^2 - z + 1
             0.00000000000000011102230246251565
         """
+        import sage.rings.arith
         return sage.rings.arith.algdep(self,n)
 
 ComplexNumber.algebraic_dependancy = ComplexNumber.algdep

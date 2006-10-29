@@ -17,9 +17,9 @@ AUTHOR:
 #*****************************************************************************
 
 import random
-import weakref
 
 import commutative_ring
+import commutative_algebra
 import ring
 import ring_element
 import field
@@ -42,72 +42,9 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
-#_objsPolynomialRing = {}
+from polynomial_ring_c import PolynomialRing, is_PolynomialRing
 
-def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
-    """
-    Return a univariate or multivariate polynomial ring.
-
-    INPUT:
-        base_ring -- the base ring
-        name -- (str) the name of the generator
-        sparse -- (bool; default: False) whether or not elements are represented using
-                  sparse methods; note that multivariate polynomials are always sparse
-        names -- names of the generators (for multivariate poly)
-        order -- term order of ring
-
-    EXAMPLES:
-        sage: PolynomialRing(ZZ)
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: PolynomialRing(ZZ, 'y')
-        Univariate Polynomial Ring in y over Integer Ring
-        sage: PolynomialRing(PolynomialRing(QQ,'z'), 'y')
-        Univariate Polynomial Ring in y over Univariate Polynomial Ring in z over Rational Field
-        sage: PolynomialRing(QQ, name='abc')
-        Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, name='abc', sparse=True)
-        Sparse Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, 3, sparse=True)
-        Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: PolynomialRing(QQ, 3)
-        Polynomial Ring in x0, x1, x2 over Rational Field
-    """
-    if isinstance(name, (int,long,integer.Integer)):
-        if isinstance(sparse, (list, str)):
-            if order is None:
-                order = names
-            names = sparse
-        if order is None:
-            order = 'degrevlex'
-        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order)
-
-    #global _objsPolynomialRing
-    #key = (base_ring, name, sparse)
-    #if _objsPolynomialRing.has_key(key):
-    #    R = _objsPolynomialRing[key]()
-    #    if R != None:
-    #        return R
-
-    if integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
-        n = base_ring.order()
-        if n.is_prime():
-            R = PolynomialRing_dense_mod_p(base_ring, name)
-        else:
-            R = PolynomialRing_dense_mod_n(base_ring, name)
-    elif isinstance(base_ring, field.Field):
-        R = PolynomialRing_field(base_ring, name, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = PolynomialRing_integral_domain(base_ring, name, sparse)
-    else:
-        R = PolynomialRing_generic(base_ring, name, sparse)
-
-    #_objsPolynomialRing[key] = weakref.ref(R)
-    return R
-
-def is_PolynomialRing(x):
-    return isinstance(x, PolynomialRing_generic)
-
-class PolynomialRing_generic(commutative_ring.CommutativeRing):
+class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
     """
     Univariate polynomial ring over a commutative ring.
     """
@@ -122,14 +59,14 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
-        self.__base_ring = base_ring
-        self.assign_names(name)
+        commutative_algebra.CommutativeAlgebra.__init__(self, base_ring)
         self.__is_sparse = sparse
         ring.Ring.__init__(self)
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
+        self._assign_names(name)
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         C = self.__polynomial_class
@@ -155,7 +92,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def __reduce__(self):
         return sage.rings.polynomial_ring.PolynomialRing, \
-               (self.__base_ring, self.variable_name(), self.__is_sparse)
+               (self.base_ring(), self.variable_name(), self.__is_sparse)
 
     def _magma_(self, G=None):
         """
@@ -184,7 +121,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
             G = sage.interfaces.magma.magma
         B = G(self.base_ring())
         R = G('PolynomialRing(%s)'%B.name())
-        R.assign_names(self.variable_names())
+        R._assign_names(self.variable_names())
         return R
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
@@ -207,7 +144,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         if not isinstance(other, PolynomialRing_generic):
             return -1
         if self.variable_name() == other.variable_name() and \
-               self.__base_ring == other.__base_ring:
+               self.base_ring() == other.base_ring():
             return 0
         elif self.variable_name() < other.variable_name():
             return -1
@@ -215,7 +152,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
     def __repr__(self):
         s = "Univariate Polynomial Ring in %s over %s"%(
-                self.variable_name(), self.__base_ring)
+                self.variable_name(), self.base_ring())
         if self.is_sparse():
             s = "Sparse " + s
         return s
@@ -241,14 +178,11 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         else:
             self.__polynomial_class = polynomial.Polynomial_generic_dense
 
-    def base_ring(self):
-        return self.__base_ring
-
     def base_extend(self, R):
         return PolynomialRing(R, name=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):
-        return self.__base_ring.characteristic()
+        return self.base_ring().characteristic()
 
     def cyclotomic_polynomial(self, n):
         """
@@ -310,7 +244,7 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
 
     #def quotient(self, I, name=None):
     #    Q = commutative_ring.CommutativeRing.quotient(self, I)
-    #Q.assign_names([name])
+    #Q._assign_names([name])
     #    return Q
 
     def random_element(self, degree, bound=0):
@@ -330,6 +264,67 @@ class PolynomialRing_generic(commutative_ring.CommutativeRing):
         R = self.base_ring()
         return self([R.random_element(bound) for _ in xrange(degree+1)])
 
+    def _monics_degree( self, of_degree ):
+        base = self.base_ring()
+        x = self.gen()
+        for lt1 in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
+            yield sum([x**i*lt1[of_degree-i] for i in range(len(lt1))])
+
+    def _monics_max( self, max_degree ):
+        for degree in xrange(max_degree + 1):
+            for m in self._monics_degree( degree ):
+                yield m
+
+    def monics( self, of_degree = None, max_degree = None ):
+        """
+        Return an iterator over the monic polynomials of specified degree.
+
+        INPUT:
+            Pass exactly one of:
+            max_degree -- an int; the iterator will generate all monic polynomials which have degree less than or equal to max_degree
+            of_degree -- an int; the iterator will generate all monic polynomials which have degree of_degree
+
+        OUTPUT:
+            an iterator
+
+        EXAMPLES:
+            sage: P = PolynomialRing(GF(4),'y')
+            sage: for p in P.monics( of_degree = 2 ): print p
+            y^2
+            y^2 + 1
+            y^2 + a
+            y^2 + a + 1
+            y^2 + y
+            y^2 + y + 1
+            y^2 + y + a
+            y^2 + y + a + 1
+            y^2 + a*y
+            y^2 + a*y + 1
+            y^2 + a*y + a
+            y^2 + a*y + a + 1
+            y^2 + (a + 1)*y
+            y^2 + (a + 1)*y + 1
+            y^2 + (a + 1)*y + a
+            y^2 + (a + 1)*y + a + 1
+            sage: for p in P.monics( max_degree = 1 ): print p
+            1
+            y
+            y + 1
+            y + a
+            y + a + 1
+            sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
+            Traceback (most recent call last):
+            ...
+            ValueError
+        """
+
+        if self.base_ring().order() is sage.rings.infinity.Infinity:
+            raise NotImplementedError
+        if of_degree is not None and max_degree is None:
+            return self._monics_degree( of_degree )
+        if max_degree is not None and of_degree is None:
+            return self._monics_max( max_degree )
+        raise ValueError # You should pass exactly one of of_degree and max_degree
 
 class PolynomialRing_integral_domain(PolynomialRing_generic, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):

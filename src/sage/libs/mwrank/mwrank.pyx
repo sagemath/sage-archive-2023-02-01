@@ -18,7 +18,7 @@ EXAMPLES:
 
 import os
 
-include 'interrupt.pxi'
+include '../../ext/interrupt.pxi'
 
 cdef extern from "stdlib.h":
     void free(void *ptr)

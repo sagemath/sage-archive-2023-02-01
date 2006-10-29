@@ -328,7 +328,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         n = g.log(self)
         return 'Z(%s)^%s'%(F.order(), n)
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         Returns the characteristic polynomial of this element.
 
@@ -344,7 +344,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.charpoly()
             x^3 + x^2 + 2*x + 1
         """
-        R = polynomial_ring.PolynomialRing(self.parent().prime_subfield())
+        R = polynomial_ring.PolynomialRing(self.parent().prime_subfield(), var)
         return R(self.__value.charpoly().lift())
 
     def trace(self):

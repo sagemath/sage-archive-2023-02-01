@@ -23,6 +23,7 @@ if not os.environ.has_key('SAGE_ROOT'):
 else:
     SAGE_ROOT  = os.environ['SAGE_ROOT']
     SAGE_LOCAL = SAGE_ROOT + '/local/'
+    SAGE_DEVEL = SAGE_ROOT + '/devel/'
 
 
 if not os.environ.has_key('SAGE_VERSION'):
@@ -38,6 +39,8 @@ if not os.path.exists(SITE_PACKAGES):
         if not os.path.exists(SITE_PACKAGES):
             raise RuntimeError, "Unable to find site-packages directory (see setup.py file in sage python code)."
 
+SITE_PACKAGES_REL=SITE_PACKAGES[len(SAGE_LOCAL)+5:]
+
 if not os.path.exists('build/sage'):
     os.makedirs('build/sage')
 
@@ -45,6 +48,35 @@ sage_link = SITE_PACKAGES + '/sage'
 if not os.path.islink(sage_link) or not os.path.exists(sage_link):
     os.system('rm -rf "%s"'%sage_link)
     os.system('cd %s; ln -sf ../../../../devel/sage/build/sage .'%SITE_PACKAGES)
+
+
+include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL, \
+                '%s/sage/sage/ext'%SAGE_DEVEL]
+
+############# Prebuild stdsage.so ###################
+# AUTHOR:
+#     -- Joel B. Mohler (first version)
+# This does *not* work except on linux by accident: see
+#    http://mail.python.org/pipermail/pythonmac-sig/2005-December/015583.html
+#####################################################
+## stdsage = Extension('sage.ext.stdsage',
+##               sources = ['sage/ext/stdsage.c'],
+##               include_dirs = include_dirs )
+## # This command builds the stdsage module if it has changed.
+## setup(name        = 'sage-stdsage',
+##       version     =  SAGE_VERSION,
+##       description = 'SAGE: System for Algebra and Geometry Experimentation',
+##       license     = 'GNU Public License (GPL)',
+##       author      = 'William Stein',
+##       author_email= 'wstein@gmail.com',
+##       url         = 'http://sage.math.washington.edu/sage',
+##       packages    = ['sage.ext'],
+##       ext_modules = [stdsage],
+##       include_dirs = include_dirs)
+## cmd = 'cd %s/lib; ln -sf %s/sage/ext/stdsage.so libstdsage.so' % (SAGE_LOCAL,SITE_PACKAGES_REL)
+## print cmd
+## print "-"*80
+## os.system(cmd)
 
 #####################################################
 
@@ -104,20 +136,32 @@ cf = Extension('sage.libs.cf.cf',
                libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
                )
 
+
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
                        libraries = ['gmp', 'gmpxx', 'm', 'stdc++', 'givaro'],
                        language='c++'
                        )
 
-matrix_dense = Extension('sage.matrix.matrix_dense',
-              ['sage/matrix/matrix_dense.pyx'])
+matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
 
-matrix_domain = Extension('sage.matrix.matrix_domain',
-              ['sage/matrix/matrix_domain.pyx'])
+matrix_generic_dense = Extension('sage.matrix.matrix_generic_dense',
+                                 ['sage/matrix/matrix_generic_dense.pyx'])
 
-matrix_field = Extension('sage.matrix.matrix_field',
-              ['sage/matrix/matrix_field.pyx'])
+matrix_generic_sparse = Extension('sage.matrix.matrix_generic_sparse',
+                                  ['sage/matrix/matrix_generic_sparse.pyx'])
+
+matrix_domain_dense = Extension('sage.matrix.matrix_domain_dense',
+                                ['sage/matrix/matrix_domain_dense.pyx'])
+
+matrix_domain_sparse = Extension('sage.matrix.matrix_domain_sparse',
+              ['sage/matrix/matrix_domain_sparse.pyx'])
+
+matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
+                       ['sage/matrix/matrix_pid_dense.pyx'])
+
+matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
+                       ['sage/matrix/matrix_pid_sparse.pyx'])
 
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
@@ -133,80 +177,133 @@ matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
 
+matrix_field_dense = Extension('sage.matrix.matrix_field_dense',
+                       ['sage/matrix/matrix_field_dense.pyx'])
 
-matrix_pid = Extension('sage.matrix.matrix_pid',
-                       ['sage/matrix/matrix_pid.pyx'])
+matrix_field_sparse = Extension('sage.matrix.matrix_field_sparse',
+                       ['sage/matrix/matrix_field_sparse.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx'],
+                                  ['sage/matrix/matrix_rational_dense.pyx',
+                                   'sage/rings/integer.pyx',
+                                   'sage/rings/rational.pyx',
+                                   'sage/ext/arith.pyx',
+                                   'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
                                   libraries = ['gmp'])
+
+matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
+                               ['sage/matrix/matrix_cyclo_dense.pyx'])
 
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],
                                    libraries = ['gmp'])
 
+matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
+                                   ['sage/matrix/matrix_cyclo_sparse.pyx'])
+
 complex_number2 = Extension('sage.rings.complex_number2',
 			    ['sage/rings/complex_number2.pyx'],
 			    libraries = ['gmp'])
+
+free_module_element = Extension('sage.modules.free_module_element',
+                                ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
 
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
-                libraries = ['gsl', CBLAS])
+                libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_interpolation = Extension('sage.gsl.interpolation',
                 ['sage/gsl/interpolation.pyx'],
-                libraries = ['gsl', CBLAS])
+                libraries = ['gsl', CBLAS],
+define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_callback = Extension('sage.gsl.callback',
                 ['sage/gsl/callback.pyx'],
-                libraries = ['gsl', CBLAS])
+                libraries = ['gsl', CBLAS]
+,define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', CBLAS])
+                libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
+real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
+                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')])
+
+complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
+
+gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
+                libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
+                define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
+
+dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
+                 libraries=['gsl',CBLAS],
+                 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
+
 #####################################################
 
 ext_modules = [ \
-    ec, \
 
-    pari, \
+    free_module_element,
 
-    mwrank, \
+    complex_double_vector,
+    real_double_vector,
 
-    ntl, \
+    ec,
+    pari,
 
-    #cf, \
+    mwrank,
 
+    ntl,
+
+    matrix,
+    matrix_generic_dense,
+##     matrix_generic_sparse,
+
+##     matrix_domain_dense,
+##     matrix_domain_sparse,
+
+##     matrix_pid_dense,
+##     matrix_pid_sparse,
+
+##     matrix_field_dense,
+##     matrix_field_sparse,
+
+##     matrix_integer_dense,
+##     matrix_integer_sparse,
+
+##     matrix_modn_dense,
+##     matrix_modn_sparse,
     givaro_gfq, \
 
-    matrix_domain,
-    matrix_dense,
-    matrix_field,
-    matrix_integer_dense,
-    matrix_integer_sparse,
-    matrix_modn_dense,
-    matrix_modn_sparse,
-    matrix_pid,
-    matrix_rational_dense,
-    matrix_rational_sparse,
+##     matrix_rational_dense,
+##     matrix_rational_sparse,
 
+##     matrix_cyclo_dense,
+##     matrix_cyclo_sparse,
+
+    dwt,
+
+    gsl_array,
+    gsl_ode,
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
+
     real_double,
     complex_double,
 
     # complex_number2, \
-
-    #Extension('sage.rings.multi_polynomial_element_pyx',
-    #          sources = ['sage/rings/multi_polynomial_element_pyx.pyx']), \
 
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
@@ -239,6 +336,15 @@ ext_modules = [ \
 
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
+
+    Extension('sage.rings.polynomial_ring_c',
+              sources = ['sage/rings/polynomial_ring_c.pyx']), \
+
+    Extension('sage.rings.multi_polynomial_ring_c',
+              sources = ['sage/rings/multi_polynomial_ring_c.pyx']), \
+
+    Extension('sage.rings.finite_field_c',
+              sources = ['sage/rings/finite_field_c.pyx']), \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
@@ -273,22 +379,6 @@ ext_modules = [ \
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
 
-    Extension('sage.matrix.sparse_matrix_pyx',
-              ['sage/matrix/sparse_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
-
-    Extension('sage.matrix.dense_matrix_pyx',
-              ['sage/matrix/dense_matrix_pyx.pyx',
-               'sage/rings/integer.pyx',
-               'sage/rings/rational.pyx',
-               'sage/ext/arith.pyx',
-               'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
-
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 
@@ -303,12 +393,12 @@ ext_modules = [ \
                'sage/ext/arith.pyx'],
               libraries = ['gmp']), \
 
-    Extension('sage.structure.mutability_pyx',
-              ['sage/structure/mutability_pyx.pyx']
+    Extension('sage.structure.mutability',
+              ['sage/structure/mutability.pyx']
               ), \
 
-    Extension('sage.matrix.matrix_generic',
-              ['sage/matrix/matrix_generic.pyx']
+    Extension('sage.matrix.matrix',
+              ['sage/matrix/matrix.pyx']
               ), \
 
     Extension('sage.rings.integer_mod',
@@ -335,13 +425,18 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c']
+    m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
+    m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
-include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
 
-extra_link_args =  ['-L%s/lib'%SAGE_LOCAL]
+######################################################################
+# CODE for generating C/C++ code from Pyrex and doing dependency
+# checking, etc.  In theory distutils would run Pyrex, but I don't
+# trust it at all, and it won't have the more sophisticated dependency
+# checking that we need.
+######################################################################
 
-def need_to_create(file1, file2):
+def is_older(file1, file2):
     """
     Return True if either file2 does not exist or is older than file1.
 
@@ -355,6 +450,91 @@ def need_to_create(file1, file2):
         return True
     return False
 
+
+def need_to_pyrex(filename, outfile):
+    """
+    INPUT:
+        filename -- The name of a pyrex file in the SAGE source tree.
+        outfile -- The name of the corresponding c or cpp file in the build directory.
+
+    OUTPUT:
+        bool -- whether or not outfile must be regenerated.
+    """
+    if is_older(filename, outfile):   # outfile is older than filename
+        return True
+    base =  os.path.splitext(filename)[0]
+    pxd = base+'.pxd'
+    if is_older(pxd, outfile):   # outfile is older than pxd file (if it exists)
+        return True
+
+    # Now we look inside the file to see what it cimports or include.
+    # If any of these files are newer than outfile, we rebuild
+    # outfile.
+    S = open(filename).readlines()
+    if os.path.exists(pxd):
+        S += open(pxd).readlines()
+    # Take the lines that begin with cimport (it won't hurt to
+    # have extra lines)
+    C = [x.strip() for x in S if 'cimport' in x]
+    for A in C:
+        # Deduce the full module name.
+        # The only allowed forms of cimport are:
+        #        cimport a.b.c.d
+        #        from a.b.c.d cimport e
+        # Also, the cimport can be both have no dots (current directory) or absolute.
+        # The multiple imports with parens, e.g.,
+        #        import (a.b.c.d, e.f.g)
+        # of Python are not allowed in Pyrex.
+        # In both cases, the module name is the second word if we split on whitespace.
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # illegal statement or not really a cimport (e.g., cimport could
+            # be in a comment or something)
+            continue
+
+        # Now convert A to a filename, e.g., a/b/c/d
+        #
+        if '.' in A:
+            # It is an absolute cimport.
+            A = A.replace('.','/') + '.pxd'
+        else:
+            # It is a relative cimport.
+            A =  os.path.split(base)[0] + '/' + A + '.pxd'
+        # Check to see if a/b/c/d.pxd exists and is newer than filename.
+        # If so, we have to regenerate outfile.  If not, we're safe.
+        if os.path.exists(A) and is_older(A, outfile):
+            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            return True # yep we must rebuild
+
+    # OK, next we move on to include pxi files.
+    # If they change, we likewise must rebuild the pyx file.
+    I = [x for x in S if 'include' in x]
+    # The syntax for include is like this:
+    #       include "../a/b/c.pxi"
+    # I.e., it's a quoted *relative* path to a pxi file.
+    for A in I:
+        try:
+            A = A.strip().split()[1]
+        except IndexError:
+            # Illegal include statement or not really an include
+            # (e.g., include could easily be in a comment or
+            # something).  No reason to crash setup.py!
+            continue
+        # Strip the quotes from either side of the pxi filename.
+        A = A.strip('"').strip("'")
+        # Now take filename (the input argument to this function)
+        # and strip off the last part of the path and stick
+        # A onto it to get the filename of the pxi file relative
+        # where setup.py is being run.
+        A = os.path.split(filename)[0] + '/' + A
+        # Finally, check to see if filename is older than A
+        if os.path.exists(A) and is_older(A, outfile):
+            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            return True
+
+    # We do not have to rebuild.
+    return False
 
 def process_pyrexembed_file(f, m):
     # This is a pyrexembed file, so process accordingly.
@@ -373,7 +553,7 @@ def process_pyrexembed_file(f, m):
     pyx_file = "%s/%s.pyx"%(dir,base)
     pyx_embed_file = "%s/%s.pyx"%(tmp, base)
     h_file = "%s/%s_embed.h"%(tmp, base)
-    if need_to_create(f, pyx_file) or need_to_create(f, cpp_file) or need_to_create(f, h_file):
+    if is_older(f, pyx_file) or is_older(f, cpp_file) or is_older(f, h_file):
         os.system('cp -p %s %s'%(f, pyxe_file))
         os.system('cp -p %s/*.pxi %s'%(dir, tmp))
         os.system('cp -p %s/*.pxd %s'%(dir, tmp))
@@ -382,8 +562,8 @@ def process_pyrexembed_file(f, m):
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexembed."
-            sys.exit(ret)
+            print "sage: Error running pyrexembed."
+            sys.exit(1)
         process_pyrex_file(pyx_embed_file, m)
         cmd = 'cp -p %s/*.pyx %s/; cp -p %s/*.c %s/; cp -p %s/*.h %s/; cp -p %s/*.cpp %s/'%(tmp, dir, tmp, dir, tmp, dir, tmp, dir)
         print cmd
@@ -391,34 +571,39 @@ def process_pyrexembed_file(f, m):
     return [cpp_file, c_file]
 
 def process_pyrex_file(f, m):
+    """
+    INPUT:
+        f -- file name
+        m -- Extension module description (i.e., object of type Extension).
+    """
     # This is a pyrex file, so process accordingly.
-    g = os.path.splitext(f)[0]
     pyx_inst_file = '%s/%s'%(SITE_PACKAGES, f)
-    if need_to_create(f, pyx_inst_file):
+    if is_older(f, pyx_inst_file):
         print "%s --> %s"%(f, pyx_inst_file)
         os.system('cp %s %s 2>/dev/null'%(f, pyx_inst_file))
-    out_file = f[:-4] + ".c"
+    outfile = f[:-4] + ".c"
     if m.language == 'c++':
-        out_file += 'pp'
-    if need_to_create(f, out_file) or need_to_create(g + '.pxd', out_file):
-        cmd = "pyrexc -I%s %s"%(os.getcwd(),f)
+        outfile += 'pp'
+
+    if need_to_pyrex(f, outfile):
+        cmd = "pyrexc --embed-positions -I%s %s"%(os.getcwd(), f)
         print cmd
         ret = os.system(cmd)
         if ret != 0:
-            print "Error running pyrexc."
-            sys.exit(ret)
+            print "sage: Error running pyrexc."
+            sys.exit(1)
         # If the language for the extension is C++,
         # then move the resulting output file to have the correct extension.
         # (I don't know how to tell Pyrex to do this automatically.)
         if m.language == 'c++':
-            os.system('mv %s.c %s'%(f[:-4], out_file))
-    return [out_file]
+            os.system('mv %s.c %s'%(f[:-4], outfile))
+    return [outfile]
 
 
 def pyrex(ext_modules):
     for m in ext_modules:
         m.extra_compile_args += extra_compile_args
-        m.extra_link_args += extra_link_args
+#        m.extra_link_args += extra_link_args
         new_sources = []
         for i in range(len(m.sources)):
             f = m.sources[i]
@@ -433,13 +618,9 @@ def pyrex(ext_modules):
 
 
 #############################################
-# Update interrupt.h and interrupt.pxi files
-for D in os.listdir("sage/libs/"):
-    if os.path.isdir('sage/libs/%s'%D):
-        os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
-        os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-        os.system("cp sage/ext/interrupt.pxi sage/libs/%s/"%D)
-
+# Update interrupt.h and stdsage.h files
+os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 ##########################################
 
@@ -448,7 +629,6 @@ for D in os.listdir("sage/libs/"):
 
 if not sdist:
     pyrex(ext_modules)
-
 
 setup(name        = 'sage',
 

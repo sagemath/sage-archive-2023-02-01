@@ -630,11 +630,11 @@ class ReducedGroebnerBasis(SageObject, list):
         EXAMPLES:
             sage: R.<x,y,z> = PolynomialRing(QQ,3); G = R.ideal([x - z^3, y^2 - 3*x]).groebner_fan()
             sage: [g.weight_vector() for g in G]
-            [(2, 1, 0), (0, -1, 0), (-1, 0, 0)]
+            [(4, 2, 1), (3, 1, 1), (4, 3, 2)]
 
             sage: R.<x,y,z> = PolynomialRing(GF(3),3); G = R.ideal([x - z^3, y^2 - 3*x]).groebner_fan()
             sage: [g.weight_vector() for g in G]
-            [(1, 0, 0), (-1, 0, 0)]
+            [(4, 1, 1), (2, 1, 1)]
         """
         try:
             return self.__weight_vector

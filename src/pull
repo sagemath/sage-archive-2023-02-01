@@ -1,1 +1,1 @@
-hg pull ssh://was@sage.math.washington.edu/www/sage/hg/sage-main
+sage -hg pull http://sage.math.washington.edu/sage/hg/sage-main

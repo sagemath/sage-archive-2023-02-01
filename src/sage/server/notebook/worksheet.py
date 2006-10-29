@@ -137,9 +137,9 @@ class Worksheet:
         s += "# Worksheet: %s"%self.name() + '\n'
         s += "#"*80+ '\n\n'
         for C in self.__cells:
-            t = C.plain_text(prompts=prompts).strip()
+            t = C.plain_text(prompts=prompts).strip('\n')
             if t != '':
-                s += '\n\n' + t
+                s += '\n' + t
         return s
 
     def input_text(self):
@@ -266,14 +266,16 @@ class Worksheet:
         self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
-        S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
-        S.eval('from sage.all_notebook import *')
-        S.eval('import sage.server.support as _support_')
-        S.eval('__SAGENB__globals = set(globals().keys())')
         object_directory = os.path.abspath(self.__notebook.object_directory())
-        verbose(object_directory)
-        S.eval('_support_.init("%s", globals())'%object_directory)
-        print "(done)"
+        #verbose(object_directory)
+        # We do exactly one eval below of one long line instead of
+        cmd = 'from sage.all_notebook import *; '
+        cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
+        cmd += '__SAGE_AUTOINJECT__=True;'
+        cmd += 'import sage.server.support as _support_; '
+        cmd += '__SAGENB__globals = set(globals().keys()); '
+        cmd += '_support_.init("%s", globals()); '%object_directory
+        S.eval(cmd)
 
         A = self.attached_files()
         for F in A.iterkeys():
@@ -990,9 +992,6 @@ class Worksheet:
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
-
-                #input = [x for x in input.split('\n') if len(x.split()) > 0 and \
-                #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
                 input = input.split('\n')
 
                 i = len(input)-1
@@ -1004,7 +1003,6 @@ class Worksheet:
                         try:
                             compile(t+'\n', '', 'single')
                             t = t.replace("'", "\\u0027").replace('\n','\\u000a')
-                            #input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input = input[:i+1]
                         except SyntaxError, msg:

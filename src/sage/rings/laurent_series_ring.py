@@ -79,7 +79,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def __init__(self, base_ring, name=None):
         self.__base_ring = base_ring
-        self.assign_names(name)
+        self._assign_names(name)
 
     def __reduce__(self):
         return self.__class__, (self.__base_ring, self.variable_name())

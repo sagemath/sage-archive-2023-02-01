@@ -109,10 +109,10 @@ class AmbientSpace(scheme.Scheme, Generators):
             Affine Space of dimension 2 over Rational Field
             sage: A.coordinate_ring()
             Polynomial Ring in a, b over Rational Field
-            sage: A.assign_names('xy'); A.coordinate_ring()
+            sage: A._assign_names('xy'); A.coordinate_ring()
             Polynomial Ring in x, y over Rational Field
         """
-        self.coordinate_ring().assign_names(names)
+        self.coordinate_ring()._assign_names(names)
 
     def dimension(self):
         """

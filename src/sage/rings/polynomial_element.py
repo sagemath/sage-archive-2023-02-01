@@ -36,6 +36,7 @@ import sage.rings.polynomial_ring
 from sage.rings.coerce import bin_op, cmp as coerce_cmp
 import arith
 import sage.rings.ring_element as ring_element
+import sage.rings.commutative_algebra_element as commutative_algebra_element
 import sage.rings.euclidean_domain_element as euclidean_domain_element
 import sage.rings.integral_domain_element as integral_domain_element
 import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
@@ -77,14 +78,18 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(Element_cmp_, ring_element.RingElement):
+class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraElement):
     """
-    Polynomial base class.
-    """
-    def __new__(cls, *args, **kwds):
-        return ring_element.RingElement.__new__(*args, **kwds)
-    __new__ = classmethod(__new__)
+    A polynomial.
 
+    EXAMPLE:
+        sage: R.<y> = QQ['y']
+        sage: S.<x> = R['x']
+        sage: f = x*y; f
+        y*x
+        sage: type(f)
+        <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+    """
     def __init__(self, parent, is_gen = False, construct=False):
         """
         The following examples illustrate creation of elements of
@@ -115,7 +120,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: y^3 - 2*y
             y^3 - 2*y
         """
-        ring_element.RingElement.__init__(self, parent)
+        commutative_algebra_element.CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
     def _add_(self, right):
@@ -170,25 +175,26 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
     def _cmp_(self, other):
         """
+        Compare the two polynomials self and other.
+
+        We order polynomials in dictionary order starting with the *linear* coefficients.
+
         EXAMPLES:
-            sage: x = QQ['x'].0
+            sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
-            True
-            sage: f = x^2 - 2*x + 1; g= x^2 - 1
-            sage: f < g
-            True
-            sage: f > g
             False
-            sage: g < f
+            sage: x^2 - 2*x - 1 < x^2 - 1
+            True
+            sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: g > f
+            sage: R(-1) < R(0)
             True
         """
-        #if not isinstance(other, Polynomial) or other.parent() != self.parent():
-        #    return coerce_cmp(self, other)
-        c = cmp(self.degree(), other.degree())
-        if c: return c
-        return cmp(list(reversed(self.list())), list(reversed(other.list())))
+        m = max(self.degree(), other.degree())
+        for i in xrange(m+1):
+            c = cmp(self[i], other[i])
+            if c: return c
+        return 0
 
     def __nonzero__(self):
         """
@@ -352,9 +358,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         if right < 0:
             return (~self)**(-right)
         if self._is_gen:   # special case x**n should be faster!
-            z = self.parent()(0)
-            z[right] = 1
-            return z
+            v = [0]*right + [1]
+            return self.parent()(v, check=True)
         return arith.generic_power(self, right, self.parent()(1))
 
     def _repr(self, name=None):
@@ -424,9 +429,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
 
-    def __setitem__(self, n, x):
-        raise NotImplentedError
-
+    def __setitem__(self, n, value):
+        raise IndexError, "polynomials are immutable"
 
     def __floordiv__(self,right):
         """
@@ -736,30 +740,22 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
                                       name = self.parent().variable_name())
         return S(self)
 
-    def copy(self):
+    def __copy__(self):
         """
-        Return a copy of self.
+        Return a "copy" of self.  This is just self, since in SAGE polynomials are
+        immutable this just returns self again.
 
         EXAMPLES:
-        We create the polynomial $f=x+3$, then set $g=f$, and change
-        the coefficient of $x$ in $g$, which also changes the coefficient
-        of $x$ in $f$.  If we instead copy $f$, then changing the
-        coefficient of $x$ of $g$ does not change $f$.
+        We create the polynomial $f=x+3$, then note that the copy is just
+        the same polynomial again, which is fine since polynomials are immutable.
 
-            sage: x = PolynomialRing(IntegerRing()).gen()
-            sage: f = x+3
-            sage: g = f
-            sage: g[1]=3
-            sage: f
-            3*x + 3
-            sage: g = f.copy()
-            sage: g[1]=5
-            sage: f
-            3*x + 3
-            sage: g
-            5*x + 3
+            sage: x = ZZ['x'].0
+            sage: f = x + 3
+            sage: g = copy(f)
+            sage: g is f
+            True
         """
-        return self.polynomial(self)
+        return self
 
     def degree(self):
         """
@@ -827,7 +823,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: f.denominator()
             Traceback (most recent call last):
             ...
-            AttributeError: 'real_mpfr.RealNumber' object has no attribute 'denominator'
+            AttributeError: 'sage.rings.real_mpfr.RealNumber' object has no attribute 'denominator'
         """
         if self.degree() == -1:
             return 1
@@ -896,7 +892,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: R, x = PolynomialRing(k).objgen()
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
+            (2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1) * (x^2 + (a + 1)*x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x + a + 2)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -904,15 +900,18 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         Factorization also works even if the variable of the finite field is nefariously
         labeled "x".
-            sage: R, x = PolynomialRing(GF(3^2, 'x')).objgen()
+            sage: x = GF(3^2, 'a')['x'].0
             sage: f = x^10 +7*x -13
-            sage: f.factor()
-            (x + x) * (x + 2*x + 1) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2) * (x^4 + 2*x*x^3 + (x + 1)*x + 2)
-            sage: f.parent().base_ring().assign_names(['a'])
-            sage: f.factor()
-            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+            sage: G = f.factor(); G
+            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + 2*a + 1) * (x + a)
+            sage: prod(G) == f
+            True
 
-            sage: k, a = GF(9,'x').objgen()
+            sage: f.parent().base_ring()._assign_names(['a'])
+            sage: f.factor()
+            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + 2*a + 1) * (x + a)
+
+            sage: k.<x> = GF(9,'a')
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
@@ -1433,7 +1432,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def shift(self, n):
         r"""
         Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
-        terms below $x^n$ will be discarded. Does not change this polynomial.
+        terms below $x^n$ will be discarded. Does not change this polynomial (since
+        polynomials are immutable).
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(PolynomialRing(QQ))  # force generic dense poly
@@ -1451,7 +1451,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.coeffs())
@@ -1503,8 +1503,6 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs = []
             return
         R = parent.base_ring()
-#        if isinstance(x, Polynomial) and x.parent() == self.parent():
-#            x = list(x.list())
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 x = list(x.list())
@@ -1513,7 +1511,6 @@ class Polynomial_generic_dense(Polynomial):
             else:
                 x = [R(a) for a in x.list()]
                 check = False
-                #raise TypeError, "Cannot coerce %s into %s."%(x, parent)
         elif isinstance(x, dict):
             zero = R(0)
             n = max(x.keys())
@@ -1549,23 +1546,24 @@ class Polynomial_generic_dense(Polynomial):
         if i < 0:
             i = 0
         return self.__coeffs[i:j]
-
-    def __setitem__(self, n, value):
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        value = self.base_ring()(value)
-        if n >= 0 and n < len(self.__coeffs):
-            self.__coeffs[n] = value
-            if n == len(self.__coeffs) and value == 0:
-                self.__normalize()
-        elif n < 0:
-            raise IndexError, "polynomial coefficient index must be nonnegative"
-        elif value != 0:
-            zero = self.base_ring()(0)
-            for _ in xrange(len(self.__coeffs), n):
-                self.__coeffs.append(zero)
-            self.__coeffs.append(value)
+## Just because we could, doesn't mean we should.  Get rid of
+## mutability of polynomials,
+##    def __setitem__(self, n, value):
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         value = self.base_ring()(value)
+##         if n >= 0 and n < len(self.__coeffs):
+##             self.__coeffs[n] = value
+##             if n == len(self.__coeffs) and value == 0:
+##                 self.__normalize()
+##         elif n < 0:
+##             raise IndexError, "polynomial coefficient index must be nonnegative"
+##         elif value != 0:
+##             zero = self.base_ring()(0)
+##             for _ in xrange(len(self.__coeffs), n):
+##                 self.__coeffs.append(zero)
+##             self.__coeffs.append(value)
 
     def __floordiv__(self, right):
         if right.parent() == self.parent():
@@ -1604,7 +1602,7 @@ class Polynomial_generic_dense(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.__coeffs)
@@ -1721,19 +1719,19 @@ class Polynomial_generic_sparse(Polynomial):
             v[k] = x[k]
         return v
 
-    def __setitem__(self, n, value):
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        value = self.base_ring()(value)
-        x = self.__coeffs
-        if n < 0:
-            raise IndexError, "polynomial coefficient index must be nonnegative"
-        if value == 0:
-            if x.has_key(n):
-                del x[n]
-        else:
-            x[n] = value
+##    def __setitem__(self, n, value):
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         value = self.base_ring()(value)
+##         x = self.__coeffs
+##         if n < 0:
+##             raise IndexError, "polynomial coefficient index must be nonnegative"
+##         if value == 0:
+##             if x.has_key(n):
+##                 del x[n]
+##         else:
+##             x[n] = value
 
     def list(self):
         """
@@ -1831,7 +1829,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         n = int(n)
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = {}
             for (index, coeff) in self.__coeffs.iteritems():
@@ -2115,22 +2113,22 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
 
-    def __setitem__(self, n, value):
-        try:
-            del self.__list
-        except AttributeError:
-            pass
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        if n < 0:
-            raise IndexError, "n must be >= 0"
-        if n <= self.__poly.poldegree():
-            self.__poly[n] = QQ(value)
-        else:
-            self.__poly = self.__poly + pari('(%s)*x^%s'%(QQ(value),n))
-        if hasattr(self, "__list"):
-            del self.__list
+##     def __setitem__(self, n, value):
+##         try:
+##             del self.__list
+##         except AttributeError:
+##             pass
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         if n < 0:
+##             raise IndexError, "n must be >= 0"
+##         if n <= self.__poly.poldegree():
+##             self.__poly[n] = QQ(value)
+##         else:
+##             self.__poly = self.__poly + pari('(%s)*x^%s'%(QQ(value),n))
+##         if hasattr(self, "__list"):
+##             del self.__list
 
     def complex_roots(self, flag=0):
         """
@@ -2505,13 +2503,13 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             return Polynomial.__floordiv__(self, right)
         return self.parent()([c // d for c in self.list()], construct=True)
 
-    def __setitem__(self, n, value):
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        if n < 0:
-            raise IndexError, "n must be >= 0"
-        self.__poly[n] = int(value)
+##     def __setitem__(self, n, value):
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         if n < 0:
+##             raise IndexError, "n must be >= 0"
+##         self.__poly[n] = int(value)
 
     def complex_roots(self, flag=0):
         """
@@ -2536,10 +2534,10 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         R = sage.rings.polynomial_ring.PolynomialRing(QQ)
         return R(self.list()).complex_roots()
 
-    def copy(self):
-        f = Polynomial_integer_dense(self.parent())
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         f = Polynomial_integer_dense(self.parent())
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """
@@ -2719,7 +2717,7 @@ class Polynomial_dense_mod_n(Polynomial):
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 parent._ntl_set_modulus()
-                self.__poly = x.__poly.copy()
+                self.__poly = x.__poly.__copy__()
                 return
             else:
                 R = parent.base_ring()
@@ -2842,7 +2840,7 @@ class Polynomial_dense_mod_n(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         return self.parent()(self.__poly.left_shift(n), construct=True)
 
     def _sub_(self, right):
@@ -2857,20 +2855,20 @@ class Polynomial_dense_mod_n(Polynomial):
             return Polynomial.__floordiv__(self, right)
         return self.parent()([c // d for c in self.list()], construct=True)
 
-    def __setitem__(self, n, value):
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        if n < 0:
-            raise IndexError, "n must be >= 0"
-        self.parent()._ntl_set_modulus()
-        self.__poly[n] = int(value)
+##     def __setitem__(self, n, value):
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         if n < 0:
+##             raise IndexError, "n must be >= 0"
+##         self.parent()._ntl_set_modulus()
+##         self.__poly[n] = int(value)
 
-    def copy(self):
-        self.parent()._ntl_set_modulus()
-        f = self.parent()()
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         self.parent()._ntl_set_modulus()
+##         f = self.parent()()
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """

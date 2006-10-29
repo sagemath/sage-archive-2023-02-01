@@ -21,7 +21,7 @@ from sage.interfaces.all import singular
 
 from sage.misc.all import latex, generic_cmp, add
 
-from sage.rings.all import (MPolynomial, MPolynomialRing,
+from sage.rings.all import (MPolynomialRing,
                             degree_lowest_rational_function, is_PrimeField)
 
 from sage.schemes.generic.affine_space import is_AffineSpace

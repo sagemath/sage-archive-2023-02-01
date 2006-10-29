@@ -199,7 +199,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
         self.__ring = ring
         self.__polynomial = polynomial
-        self.assign_names(name)
+        self._assign_names(name)
 
     def __reduce__(self):
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())

@@ -119,7 +119,7 @@ class FreeAbelianMonoid_class(Generators):
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
         self.__ngens = int(n)
-        self.assign_names(names)
+        self._assign_names(names)
 
     def __repr__(self):
         n = self.__ngens

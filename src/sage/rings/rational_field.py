@@ -46,7 +46,7 @@ class RationalField(_uniq, field.Field):
             sage: Q('49/7')
             7
             sage: type(Q('49/7'))
-            <type 'rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
             sage: a = Q('19/374'); b = Q('17/371'); print a, b
             19/374 17/371
             sage: a + b

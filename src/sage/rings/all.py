@@ -26,6 +26,8 @@ from principal_ideal_domain import PrincipalIdealDomain, is_PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain, is_EuclideanDomain
 from field import Field, is_Field, is_PrimeField
 
+from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+
 # Ring element base classes
 from ring_element import RingElement, is_RingElement
 from commutative_ring_element import CommutativeRingElement, is_CommutativeRingElement
@@ -94,7 +96,7 @@ from polynomial_element import Polynomial, is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
-from multi_polynomial_element import MPolynomial, degree_lowest_rational_function, is_MPolynomialRingElement
+from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing

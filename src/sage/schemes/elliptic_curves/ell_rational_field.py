@@ -3390,6 +3390,65 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ...       assert E.padic_regulator(5, prec) == full   # long time
 
         """
+        d = self.padic_height_pairing_matrix(p=p, prec=prec,
+                              height=height, check_hypotheses=check_hypotheses)
+        if d.nrows() == 0:
+            return d.base_ring()(1)
+        return d.determinant()
+
+    def padic_height_pairing_matrix(self, p, prec=20, height=None, check_hypotheses=True):
+        r"""
+        Computes the cyclotomic $p$-adic height pairing matrix of this
+        curve with respect to the basis self.gens() for the
+        Mordell-Weil group.
+
+        This curve must be in minimal weierstrass form.
+
+        INPUT:
+            p -- prime >= 5
+            prec -- answer will be returned modulo p^prec (unless p is
+                    anomalous; see below)
+            height -- precomputed height function. If not supplied, this
+                 function will call padic_height to compute it.
+            check_hypotheses -- boolean, whether to check that this is a
+                 curve for which the p-adic height makes sense
+
+        OUTPUT:
+            The p-adic cyclotomic height pairing matrix of this curve
+            to the given precision. HOWEVER, if $p$ is anomalous for
+            this curve, then there may be some precision loss (at most
+            $2r$ p-adic digits, where $r$ is the rank of the
+            curve).
+
+        TODO:
+            -- remove restriction that curve must be in minimal weierstrass
+            form. This is currently required for E.gens().
+
+        AUTHORS:
+            -- David Harvey, Liang Xiao, Robert Bradshaw, Jennifer
+            Balakrishnan, original implementation at the 2006 MSRI
+            graduate workshop on modular forms
+            -- David Harvey (2006-09-13), cleaned up and integrated into SAGE,
+            removed some redundant height computations
+
+        EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: E.padic_height_pairing_matrix(5, 10)
+            [1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)]
+
+        A rank two example:
+            E = sage: EllipticCurve('389a').padic_height_pairing_matrix(5,4)
+            [    3 + 2*5 + 5^3 + O(5^4) 3 + 5 + 5^2 + 5^3 + O(5^4)]
+            [3 + 5 + 5^2 + 5^3 + O(5^4)     2*5^2 + 3*5^3 + O(5^4)]
+
+        An anomalous rank 3 example:
+            sage: E = EllipticCurve("5077a")
+            sage: E.padic_height_pairing_matrix(5, 10)
+            sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,2)
+            [4*5^-1 + 2 + 4*5 + O(5^2)              4*5 + O(5^2)       4*5^-1 + 1 + O(5^2)]
+            [             4*5 + O(5^2) 4*5^-1 + 3 + 4*5 + O(5^2)       2*5^-1 + 5 + O(5^2)]
+            [      4*5^-1 + 1 + O(5^2)       2*5^-1 + 5 + O(5^2)              2*5 + O(5^2)]
+        """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
@@ -3397,6 +3456,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         rank = self.rank()
         if rank == 0:
+
+
             return K(1)
 
         basis = self.gens()
@@ -3412,8 +3473,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             for j in range(i, rank):
                 M[i, j] = M[j, i] = point_height[i] + point_height[j] \
                                     - height(basis[i] + basis[j])
-
-        return M.determinant()
+        return M
 
 
     def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
@@ -3488,7 +3548,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # Find an integer A such that for any point P, the multiple A*P
         # is in the connected component of the Neron model modulo all primes.
-        # This is one of the conditions in Mazur/Stein/Tate; additionally
+        # This is one of the conditions in Mazur/Stein/Tate; additionally,
         # it is required to apply Proposition IV.2 from Christian Wuthrich's
         # thesis.
         A = arith.LCM(self.tamagawa_numbers())

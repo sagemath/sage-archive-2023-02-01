@@ -111,12 +111,12 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n'
+            s += '{{{\n' + self.__in.strip() + '\n///\n'
 
         if prompts:
             msg = 'Traceback (most recent call last):'
-            if self.__out[:len(msg)] == msg:
-                v = self.__out.split('\n')
+            if self.__out.strip()[:len(msg)] == msg:
+                v = self.__out.strip().split('\n')
                 w = [msg, '...']
                 for i in range(1,len(v)):
                     if not (len(v[i]) > 0 and v[i][0] == ' '):
@@ -126,18 +126,18 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).strip().split('\n')
-            out = [x for x in out if x.strip() != '']
-            if len(out) > 0:
-                out = '# ' + '\n# '.join(out)
-            else:
-                out = ''
+            out = self.output_text(ncols, html=False)
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
 
-        s = s.strip() + '\n' + out.strip()
+        # Get rid of spurious carriage returns
+        s = s.strip('\n')
+        out = out.strip('\n').strip('\r').strip('\r\n')
+        s = s + '\n' + out
 
+        if not prompts:
+            s = s.rstrip('\n') + '\n}}}'
         return s
 
     def is_last(self):
@@ -207,12 +207,13 @@ class Cell:
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        output = output.replace('\r','')
         i = output.find(worksheet.SAGE_VARS)
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output.strip()
+        self.__out = output
         self.__out_html = html
         self.__sage = sage
 
@@ -270,7 +271,7 @@ class Cell:
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s + '</pre>'
-        return s
+        return s.strip('\n')
 
     def has_output(self):
         return len(self.__out.strip()) > 0
@@ -404,11 +405,11 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
-        out_nowrap = self.output_text(0, html=True).strip()
+        out_nowrap = self.output_text(0, html=True)
         if self.introspect():
             out_wrap = out_nowrap
         else:
-            out_wrap = self.output_text(ncols, html=True).strip()
+            out_wrap = self.output_text(ncols, html=True)
 
         typ = self.cell_output_type()
 

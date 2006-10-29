@@ -47,7 +47,7 @@ import random
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer, MPolynomial, MPolynomialRing, Polynomial
+from sage.rings.all      import RationalField, Integer, is_MPolynomial, MPolynomialRing, Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -362,7 +362,7 @@ class PermutationGroupElement(element.Element_cmp_,
         elif isinstance(left, PermutationGroupElement):
             return PermutationGroupElement(self._gap_()*left._gap_(),
                                            parent = None, check = True)
-        elif isinstance(left, MPolynomial):
+        elif is_MPolynomial(left):
             F = left.base_ring()
             R = left.parent()
             x = R.gens()

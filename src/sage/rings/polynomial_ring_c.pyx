@@ -3,7 +3,8 @@ import weakref
 cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None, sparse=False,
-                   order='degrevlex', inject_variables=True):
+                   order='degrevlex', inject_variables=True,
+                   names=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.

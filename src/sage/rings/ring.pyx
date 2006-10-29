@@ -71,6 +71,10 @@ cdef class Ring(sage.structure.gens.Generators):
             Laurent Series Ring in t over Rational Field
 
         """
+        if not isinstance(x, list):
+            from sage.rings.polynomial_ring import PolynomialRing
+            return PolynomialRing(self, x)
+
         P = None
         if isinstance(x, list):
             if len(x) != 1:
@@ -102,7 +106,7 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            R = P(self, len(v), names=v)
+            R = P(self, v)
         else:
             R = P(self, x)
 

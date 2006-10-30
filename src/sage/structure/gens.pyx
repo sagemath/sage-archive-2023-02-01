@@ -15,7 +15,7 @@ function.
 
 The \code{gens} function returns a tuple of all generators, the
 \code{ngens} function returns the number of generators, and the
-\code{assign_names}, \code{name} and \code{names} functions allow one
+\code{_assign_names}, \code{name} and \code{names} functions allow one
 to change or obtain the way generators are printed. (They \emph{only}
 affect printing!)
 
@@ -209,7 +209,7 @@ cdef class Generators(sage_object.SageObject):
         if names is None: return
         if not self.__names is None:
             raise ValueError, 'variable names cannot be changed after object creation.'
-        if isinstance(names, str) and names.find(',') != -1:
+        if isinstance(names, str) and ',' in names:
             names = names.split(',')
         if isinstance(names, str) and self.ngens() > 1 and len(names) == self.ngens():
             names = tuple(names)

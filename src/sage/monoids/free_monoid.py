@@ -50,20 +50,19 @@ def FreeMonoid(n, names=None):
     EXAMPLES:
         sage: FreeMonoid(0)
         Free monoid on 0 generators ()
-        sage: F = FreeMonoid(5, names = list("abcde"))
-        sage: F
+        sage: F = FreeMonoid(5, names=list("abcde")); F
         Free monoid on 5 generators (a, b, c, d, e)
         sage: F(1)
         1
-        sage: (a, b, c, d, e) = F.gens()
         sage: mul([ a, b, a, c, b, d, c, d ])
         a*b*a*c*b*d*c*d
     """
-    global _cache
     if isinstance(names, list):
-        key = (n, tuple(names))
-    else:
-        key = (n, names)
+        names = tuple(names)
+    elif isinstance(names, str):
+        if ',' in names:
+            names = tuple(names.split(','))
+    key = (n, names)
     if _cache.has_key(key):
         M = _cache[key]()
         if not M is None:

@@ -571,16 +571,18 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             mpz_sub(x.value, x.value, modulus.value)
         return x;
 
-    def _sub_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
             sage: R(7) - R(8)
             9999999999
         """
+        # todo: ask someone (like Robert) why _add_c_impl and _sub_c_impl
+        # grab the modulus differently?
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_sub(x.value, self.value, right.value)
+        mpz_sub(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_sgn(x.value) == -1:
             mpz_add(x.value, x.value, self.__modulus.sageInteger.value)
         return x;
@@ -892,7 +894,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             x.ivalue = x.ivalue - self.__modulus.int32
         return x;
 
-    def _sub_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -901,7 +903,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         cdef IntegerMod_int x
         x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - right.ivalue
+        x.ivalue = self.ivalue - (<IntegerMod_int>right).ivalue
         if x.ivalue < 0:
             x.ivalue = x.ivalue + self.__modulus.int32
         return x;
@@ -1330,7 +1332,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             x.ivalue = x.ivalue - self.__modulus.int64
         return x;
 
-    def _sub_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
@@ -1339,7 +1341,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - right.ivalue
+        x.ivalue = self.ivalue - (<IntegerMod_int64>right).ivalue
         if x.ivalue < 0:
             x.ivalue = x.ivalue + self.__modulus.int64
         return x;

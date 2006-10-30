@@ -546,6 +546,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
+    cdef RingElement _sub_c_impl(self, RingElement right):
+        # self and right are guaranteed to be Integers
+        cdef Integer x
+        x = <Integer> PY_NEW(Integer)
+        mpz_sub(x.value, self.value, (<Integer>right).value)
+        return x
+
 #    todo: move the doctests here into the new addition routines
 #
 #    def __add__(x, y):
@@ -572,23 +579,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 #        if isinstance(x, Integer) and isinstance(y, Integer):
 #            return x.__add_(y)
 #        return sage.rings.coerce.bin_op(x, y, operator.add)
-
-    def __sub_(Integer self, Integer other):
-        cdef Integer x
-        x = Integer()
-        mpz_sub(x.value, self.value, other.value)
-        return x
-
-    def __sub__(x, y):
-        """
-        EXAMPLES:
-            sage: a = Integer(5); b = Integer(3)
-            sage: b - a
-            -2
-        """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__sub_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.sub)
 
     def _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers

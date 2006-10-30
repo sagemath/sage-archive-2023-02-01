@@ -14,7 +14,10 @@ cdef class Element(sage_object.SageObject):
     cdef object _parent
 
 cdef class ModuleElement(Element):
-    cdef ModuleElement _add_sibling_cdef(self, ModuleElement right)
+    cdef ModuleElement _add_c(self, ModuleElement right)
+    cdef ModuleElement _add_c_impl(self, ModuleElement right)
+    cdef ModuleElement _sub_c(self, ModuleElement right)
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
 
 cdef class MonoidElement(Element):
     pass
@@ -28,6 +31,8 @@ cdef class AdditiveGroupElement(ModuleElement):
 cdef class RingElement(Element):
     cdef RingElement _add_c(self, RingElement right)
     cdef RingElement _add_c_impl(self, RingElement right)
+    cdef RingElement _sub_c(self, RingElement right)
+    cdef RingElement _sub_c_impl(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass

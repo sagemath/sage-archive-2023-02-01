@@ -11,4 +11,6 @@ cdef class Integer(EuclideanDomainElement):
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
     cdef object _pari
+
     cdef RingElement _add_c_impl(self, RingElement right)
+    cdef RingElement _sub_c_impl(self, RingElement right)

@@ -288,103 +288,172 @@ cdef class ModuleElement(Element):
 ##     def is_nonzero(self):
 ##         return not self.is_zero()
 
+
     def __add__(self, right):
         """
-        Addition for ModuleElements.
+        Top-level addition operator for ModuleElements.
 
-        This method tries to call _add_sibling_cdef or _add_sibling. If the
-        parents disagree, it tries canonical coercion to make the parents
-        agree.
+        See extensive documentation at the top of element.pyx.
         """
-        # We know at least one of the arguments is a ModuleElement. So if their
-        # types are *equal* (fast to check) then they are both ModuleElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.
+
+        # Try fast pathway if they are both ModuleElements and the parents
+        # match.
+
+        # (We know at least one of the arguments is a ModuleElement. So if
+        # their types are *equal* (fast to check) then they are both
+        # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
 
         if (PY_TYPE(self) is PY_TYPE(right)) or \
                    (PY_TYPE_CHECK(right, ModuleElement) and \
                     PY_TYPE_CHECK(self, ModuleElement)):
-            # If parents agree, then we can use _add_sibling_cdef.
-            if (<ModuleElement>right)._parent is (<ModuleElement>self)._parent:
-                # If self is actually a Python class that derives from
-                # a SAGE Pyrex class, then we call its non-cdef'd
-                # _add_sibling method instead.  We declare something
-                # Python class if it has a dictionary:
-                if HAS_DICTIONARY(self):
-                    return (<ModuleElement>self)._add_sibling(<ModuleElement>right)
-                else:
-                    return (<ModuleElement>self)._add_sibling_cdef(<ModuleElement>right)
 
-        # Fast pathway didn't work. Fall back on the old coercion code.
+            if (<ModuleElement>right)._parent is (<ModuleElement>self)._parent:
+
+                return (<ModuleElement>self)._add_c(<ModuleElement>right)
+
+        # Fast pathway didn't work.
+
         # todo:
-        # (1) optimise this too
-        # (2) change "parent != parent" to "parent is not parent" and see
-        #     what breaks
+        # For now we are falling back on the old coercion code.
+        # This needs to be optimised and re-thought-out.
+        # In particular, the coercion code doesn't yet know about _add_c
+        # and all that.
         if not PY_TYPE_CHECK(self, ModuleElement) or \
                   not PY_TYPE_CHECK(right, ModuleElement) \
                   or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
 
-    cdef ModuleElement _add_sibling_cdef(ModuleElement self, ModuleElement right):
-        """
-        Adds two ModuleElements. They are assumed to belong to the SAME parent.
-        The return value MUST belong to the SAME parent.
-        """
-        # This default implementation tries to dispatch to a Python version
-        # (in case cdef version not available)
-        if self.__class__._add_sibling is ModuleElement._add_sibling:
-            # This is to prevent an infinite loop between _add_sibling_cdef
-            # and _add_sibling:
-            # raise NotImplementedError
 
-            # Actually, we can't do that right now, because most objects
-            # don't have _add_sibling yet. So we need to look up _add_
-            # as well:
-            if self.__class__._add_ is ModuleElement._add_:
-                raise NotImplementedError
-            else:
-                return self._add_(right)
+    cdef ModuleElement _add_c(self, ModuleElement right):
+        """
+        Addition dispatcher for ModuleElements.
 
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            # TODO: this bit will be unnecessarily slow if someone derives
+            # from the pyrex class *without* overriding _add_, since then
+            # we'll be making an unnecessary call to _add_, which will
+            # end up in _add_c_impl anyway. There must be a simple way to
+            # distinguish this situation. It's complicated because someone
+            # can even override it at the instance level (without overriding
+            # it in the class.)
+            return self._add_(right)
         else:
-            return self._add_sibling(right)
+            # Must be a pure Pyrex class.
+            return (<ModuleElement>self)._add_c_impl(<ModuleElement>right)
 
 
-    def _add_sibling(ModuleElement self, ModuleElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
-        Adds two ModuleElements. They are assumed to belong to the SAME parent.
-        The return value MUST belong to the SAME parent.
+        Pyrex classes should override this function to implement addition.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
         """
-        # This is the default Python implementation, which dispatches to any
-        # available cdef version.
-        return self._add_sibling_cdef(right)
+        raise NotImplementedError
 
 
     def _add_(ModuleElement self, ModuleElement right):
         """
-        See docstring for _add_sibling.
+        Python classes should override this function to implement addition.
 
-        NOTE: The plan is to replace all '_add_' methods in SAGE by
-        '_add_sibling'. Eventually this method will be removed.
+        See extensive documentation at the top of element.pyx.
         """
-        return self._add_sibling_cdef(right)
+        return self._add_c_impl(right)
 
-##     def __add__(self, right):
-##         if not isinstance(self, Element) or \
-##                not isinstance(right, Element) or right.parent() != self.parent():
-##             return coerce.bin_op(self, right, operator.add)
-##         return self._add_(right)
-
-##     def _add_(self, right):
-##         raise NotImplementedError
 
     def __sub__(self, right):
-        if not isinstance(self, Element) or \
-               not isinstance(right, Element) or right.parent() != self.parent():
+        """
+        Top-level subtraction operator for ModuleElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        # Try fast pathway if they are both ModuleElements and the parents
+        # match.
+
+        # (We know at least one of the arguments is a ModuleElement. So if
+        # their types are *equal* (fast to check) then they are both
+        # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
+
+        if (PY_TYPE(self) is PY_TYPE(right)) or \
+                   (PY_TYPE_CHECK(right, ModuleElement) and \
+                    PY_TYPE_CHECK(self, ModuleElement)):
+
+            if (<ModuleElement>right)._parent is (<ModuleElement>self)._parent:
+
+                return (<ModuleElement>self)._sub_c(<ModuleElement>right)
+
+        # Fast pathway didn't work.
+
+        # todo:
+        # For now we are falling back on the old coercion code.
+        # This needs to be optimised and re-thought-out.
+        # In particular, the coercion code doesn't yet know about _add_c
+        # and all that.
+        if not PY_TYPE_CHECK(self, ModuleElement) or \
+                  not PY_TYPE_CHECK(right, ModuleElement) \
+                  or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.sub)
         return self._sub_(right)
 
-    def _sub_(self, right):
-        return self + (-right)
+
+    cdef ModuleElement _sub_c(self, ModuleElement right):
+        """
+        Subtraction dispatcher for ModuleElements.
+
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            # TODO: this bit will be unnecessarily slow if someone derives
+            # from the pyrex class *without* overriding _add_, since then
+            # we'll be making an unnecessary call to _add_, which will
+            # end up in _add_c_impl anyway. There must be a simple way to
+            # distinguish this situation. It's complicated because someone
+            # can even override it at the instance level (without overriding
+            # it in the class.)
+            return self._sub_(right)
+        else:
+            # Must be a pure Pyrex class.
+            return (<ModuleElement>self)._sub_c_impl(<ModuleElement>right)
+
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        Pyrex classes should override this function to implement subtraction.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # default implementation is to use the negation and addition
+        # dispatchers:
+
+        # return self._add_c(right._neg_c())
+
+        # todo:
+        # unfortunately _neg_c doesn't exist yet, so we just have to
+        # use the operator version for now:
+        return self._add_c(-right)
+
+
+    def _sub_(ModuleElement self, ModuleElement right):
+        """
+        Python classes should override this function to implement subtraction.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return self._sub_c_impl(right)
+
 
     def __neg__(self):
         return coerce.bin_op(-1, self, operator.mul)
@@ -593,7 +662,7 @@ cdef class RingElement(Element):
         return self._add_(right)
 
 
-    cdef RingElement _add_c(RingElement self, RingElement right):
+    cdef RingElement _add_c(self, RingElement right):
         """
         Addition dispatcher for RingElements.
 
@@ -616,7 +685,7 @@ cdef class RingElement(Element):
             return (<RingElement>self)._add_c_impl(<RingElement>right)
 
 
-    cdef RingElement _add_c_impl(RingElement self, RingElement right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         Pyrex classes should override this function to implement addition.
 
@@ -637,13 +706,90 @@ cdef class RingElement(Element):
 
 
     def __sub__(self, right):
-        if not isinstance(self, Element) or \
-               not isinstance(right, Element) or right.parent() != self.parent():
+        """
+        Top-level subtraction operator for RingElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        # Try fast pathway if they are both RingElements and the parents match.
+
+        # (We know at least one of the arguments is a RingElement. So if their
+        # types are *equal* (fast to check) then they are both RingElements.
+        # Otherwise use the slower test via PY_TYPE_CHECK.)
+
+        if (PY_TYPE(self) is PY_TYPE(right)) or \
+                   (PY_TYPE_CHECK(right, RingElement) and \
+                    PY_TYPE_CHECK(self, RingElement)):
+
+            if (<RingElement>right)._parent is (<RingElement>self)._parent:
+
+                return (<RingElement>self)._sub_c(<RingElement>right)
+
+        # Fast pathway didn't work.
+
+        # todo:
+        # For now we are falling back on the old coercion code.
+        # This needs to be optimised and re-thought-out.
+        # In particular, the coercion code doesn't yet know about _add_c
+        # and all that.
+        if not PY_TYPE_CHECK(self, RingElement) or \
+                  not PY_TYPE_CHECK(right, RingElement) \
+                  or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.sub)
         return self._sub_(right)
 
-    def _sub_(self, right):
-        return self + (-right)
+
+    cdef RingElement _sub_c(self, RingElement right):
+        """
+        Subtraction dispatcher for RingElements.
+
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            # TODO: this bit will be unnecessarily slow if someone derives
+            # from the pyrex class *without* overriding _add_, since then
+            # we'll be making an unnecessary call to _add_, which will
+            # end up in _add_c_impl anyway. There must be a simple way to
+            # distinguish this situation. It's complicated because someone
+            # can even override it at the instance level (without overriding
+            # it in the class.)
+            return self._sub_(right)
+        else:
+            # Must be a pure Pyrex class.
+            return (<RingElement>self)._sub_c_impl(<RingElement>right)
+
+
+    cdef RingElement _sub_c_impl(self, RingElement right):
+        """
+        Pyrex classes should override this function to implement subtraction.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # default implementation is to use the negation and addition
+        # dispatchers:
+
+        # return self._add_c(right._neg_c())
+
+        # todo:
+        # unfortunately _neg_c doesn't exist yet, so we just have to
+        # use the operator version for now:
+        return self._add_c(-right)
+
+
+    def _sub_(RingElement self, RingElement right):
+        """
+        Python classes should override this function to implement subtraction.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return self._sub_c_impl(right)
+
 
     def __mul__(self, right):
         if not isinstance(self, Element) or not isinstance(right, Element) \

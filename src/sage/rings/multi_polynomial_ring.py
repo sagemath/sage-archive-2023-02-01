@@ -72,7 +72,7 @@ from sage.rings.polynomial_singular_interface import PolynomialRing_singular_rep
 
 import multi_polynomial_ideal
 
-from sage.rings.polynomial_ring_c import PolynomialRing as MPolynomialRing
+from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
@@ -118,10 +118,9 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         self._has_singular = False #cannot convert to Singular by default
 
     def __cmp__(self, right):
-        if not is_MPolynomialRing(right):
-            return -1
-        return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
-                   (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
+        if self is right:  # since polynomial rings are unique
+            return 0
+        return -1
 
     def __contains__(self, x):
         """

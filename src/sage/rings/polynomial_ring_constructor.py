@@ -1,6 +1,10 @@
+#########################################################################################
+# Factory function for making polynomial rings
+#########################################################################################
+
 import weakref
 
-cache = {}
+_cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex'):
@@ -8,7 +12,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
 
-    There are three ways to call the polynomial ring constructor:
+    There are four ways to call the polynomial ring constructor:
           1. PolynomialRing(base_ring, name,    sparse=False)
           2. PolynomialRing(base_ring, names,   order='degrevlex')
           3. PolynomialRing(base_ring, name, n, order='degrevlex')
@@ -51,16 +55,87 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     code, since it injects variables into the global scope.
 
     EXAMPLES:
-        sage: PolynomialRing(ZZ, 'y')
-        Univariate Polynomial Ring in y over Integer Ring
-        sage: PolynomialRing(QQ['z'], 'y')
-        Univariate Polynomial Ring in y over Univariate Polynomial Ring in z over Rational Field
-        sage: PolynomialRing(QQ, 'abc')
-        Univariate Polynomial Ring in abc over Rational Field
+    1. PolynomialRing(base_ring, name,    sparse=False):
+        sage: PolynomialRing(QQ, 'w')
+        Univariate Polynomial Ring in w over Rational Field
+
+    In the interactive interpreter the variable is immediately
+    ready for use after you define the ring:
+        sage: (1 + w)^3
+        w^3 + 3*w^2 + 3*w + 1
+
+    You must specify a name:
+        sage: PolynomialRing(QQ)
+        Traceback (most recent call last):
+        ...
+        TypeError: invalid input to PolynomialRing function; please see the docstring for that function
+
         sage: PolynomialRing(QQ, 'abc', sparse=True)
         Sparse Univariate Polynomial Ring in abc over Rational Field
+
+        sage: PolynomialRing(PolynomialRing(GF(7),'k'), 'w')
+        Univariate Polynomial Ring in w over Univariate Polynomial Ring in k over Finite Field of size 7
+
+    The square bracket notation:
+        sage: R = QQ['y']; R
+        Univariate Polynomial Ring in y over Rational Field
+        sage: y^2 + y
+        y^2 + y
+
+    This is exactly the same ring as what PolynomialRing returns:
+        sage: R is PolynomialRing(QQ,'y')
+        True
+
+    However, rings with different variables are different:
+        sage: QQ['x'] == QQ['y']
+        False
+
+    2. PolynomialRing(base_ring, names,   order='degrevlex'):
+        sage: R = PolynomialRing(QQ, 'a,b,c'); R
+        Polynomial Ring in a, b, c over Rational Field
+
+        sage: S = PolynomialRing(QQ, ['a','b','c']); S
+        Polynomial Ring in a, b, c over Rational Field
+
+        sage: T = PolynomialRing(QQ, ('a','b','c')); T
+        Polynomial Ring in a, b, c over Rational Field
+
+    All three rings are identical.
+        sage: (R is S) and  (S is T)
+        True
+
+    There is a unique polynomial ring with each term order:
+        sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex'); R
+        Polynomial Ring in x, y, z over Rational Field
+        sage: S = PolynomialRing(QQ, 'x,y,z', order='revlex'); S
+        Polynomial Ring in x, y, z over Rational Field
+        sage: S is PolynomialRing(QQ, 'x,y,z', order='revlex')
+        True
+        sage: R == S
+        False
+
+
+    3. PolynomialRing(base_ring, name, n, order='degrevlex'):
+
+    If you specify a single name as a string and a number of
+    variables, then variables labeled with numbers are created.
+        sage: PolynomialRing(QQ, 'x', 10)
+        Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9 over Rational Field
+
+        sage: PolynomialRing(GF(7), 'y', 5)
+        Polynomial Ring in y0, y1, y2, y3, y4 over Finite Field of size 7
+
         sage: PolynomialRing(QQ, 'y', 3, sparse=True)
         Polynomial Ring in y0, y1, y2 over Rational Field
+
+    It is easy in Python to create fairly aribtrary variable names.
+    For example, here is a ring with generators labeled by the first
+    100 primes:
+
+        sage: PolynomialRing(ZZ, ['x%s'%p for p in primes(100)])
+        Polynomial Ring in x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97 over Integer Ring
+        sage: (x2 + x41 + x71)^2
+        x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
     """
     import polynomial_ring as m
 
@@ -77,7 +152,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             raise TypeError, "You *must* specify the names of the variables (as a list of strings or a comma-seperated string)."
         n = int(arg2)
         names = arg1
-        R = multi_variate(base_ring, names, n, sparse, order)
+        R = _multi_variate(base_ring, names, n, sparse, order)
 
     elif isinstance(arg1, str):
         if not ',' in arg1:
@@ -85,19 +160,19 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             if not arg2 is None:
                 raise TypeError, "if second arguments is a string with no commas, then there must be no other non-optional arguments"
             name = arg1
-            R = single_variate(base_ring, name, sparse)
+            R = _single_variate(base_ring, name, sparse)
         else:
             # 2-4. PolynomialRing(base_ring, names, order='degrevlex'):
             if not arg2 is None:
                 raise TypeError, "invalid input to PolynomialRing function; please see the docstring for that function"
             names = arg1.split(',')
             n = len(names)
-            R = multi_variate(base_ring, names, n, sparse, order)
+            R = _multi_variate(base_ring, names, n, sparse, order)
     elif isinstance(arg1, (list, tuple)):
             # PolynomialRing(base_ring, names (list or tuple), order='degrevlex'):
             names = arg1
             n = len(names)
-            R = multi_variate(base_ring, names, n, sparse, order)
+            R = _multi_variate(base_ring, names, n, sparse, order)
 
     if R is None:
         raise TypeError, "invalid input to PolynomialRing function; please see the docstring for that function"
@@ -107,20 +182,20 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
 def _get_from_cache(key):
     try:
-        if cache.has_key(key):
-            return cache[key]()
+        if _cache.has_key(key):
+            return _cache[key]()
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
     return None
 
 def _save_in_cache(key, R):
     try:
-        cache[key] = weakref.ref(R)
+        _cache[key] = weakref.ref(R)
     except TypeError, msg:
         raise TypeError, 'key = %s\n%s'%(key,msg)
 
 
-cdef single_variate(base_ring, name, sparse):
+def _single_variate(base_ring, name, sparse):
     import polynomial_ring as m
     key = (base_ring, name, sparse)
     R = _get_from_cache(key)
@@ -144,7 +219,7 @@ cdef single_variate(base_ring, name, sparse):
     _save_in_cache(key, R)
     return R
 
-cdef multi_variate(base_ring, names, n, sparse, order):
+def _multi_variate(base_ring, names, n, sparse, order):
     import multi_polynomial_ring as m
 
     order = m.TermOrder(order)
@@ -169,4 +244,7 @@ cdef multi_variate(base_ring, names, n, sparse, order):
     _save_in_cache(key, R)
     return R
 
+#########################################################################################
+# END (Factory function for making polynomial rings)
+#########################################################################################
 

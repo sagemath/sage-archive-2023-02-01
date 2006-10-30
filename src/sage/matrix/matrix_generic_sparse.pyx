@@ -1,5 +1,5 @@
 """
-Sparse Matrices Base Class
+Sparse Matrices over a General Commutative Ring
 
 EXAMPLES:
     sage: ???
@@ -64,13 +64,16 @@ cdef _convert_sparse_entries_to_dict(entries):
             e[(i,j)] = x
     return e
 
-cdef class Matrix_sparse(matrix.Matrix):
+cdef class Matrix_generic_sparse(matrix.Matrix):
     r"""
-    The \class{Matrix_sparse} class derives from \class{Matrix}, and
+    The \class{Matrix_generic_sparse} class derives from \class{Matrix}, and
     defines functionality for sparse matrices over any base ring.  A
     generic sparse matrix is represented using a dictionary with keys
     pairs $(i,j)$ and values in the base ring.
     """
+    ########################################################################
+    # LEVEL 1 functionality
+    ########################################################################
     def __init__(self, parent, entries=0, coerce=True, copy=True):
         cdef size_t i, j
 
@@ -120,6 +123,25 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         self._entries = entries
 
+    cdef set_unsafe(self, size_t i, size_t j, value):
+        # TODO: make faster with Python/C API
+        self._entries[(i,j)] = value
+
+    cdef get_unsafe(self, size_t i, size_t j):
+        # TODO: make faster with Python/C API
+        try:
+            return self._entries[(i,j)]
+        except KeyError:
+            return self._zero
+
+    ########################################################################
+    # LEVEL 2 functionality
+    ########################################################################
+
+    ########################################################################
+    # LEVEL 3 functionality -- matrix windows, etc.
+    ########################################################################
+
     def __add__(self, other):
         if not isinstance(other, Sparse_matrix_generic):
             raise TypeError
@@ -166,8 +188,8 @@ cdef class Matrix_sparse(matrix.Matrix):
         return A
 
     def __copy__(self):
-        cdef Matrix_sparse M
-        M = Matrix_sparse.__new__(self._parent,0,0,0)
+        cdef Matrix_generic_sparse M
+        M = Matrix_generic_sparse.__new__(self._parent,0,0,0)
         M._entries = dict(self._entries)
         M._base_ring = self._base_ring
         M._zero = self._zero
@@ -454,7 +476,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         #endfor
         if self.is_immutable():
             self.__pivots = pivot_positions
-            E = Matrix_sparse_from_rows(X)
+            E = Matrix_generic_sparse_from_rows(X)
             E.__pivots = pivot_positions
             self.__echelon_form = E
         misc.verbose("Finished generic echelon.",t)

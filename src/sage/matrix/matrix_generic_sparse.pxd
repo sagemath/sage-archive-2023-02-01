@@ -1,6 +1,6 @@
-cimport matrix_generic
+cimport matrix
 
-cdef class Matrix_sparse(matrix.Matrix):
+cdef class Matrix_generic_sparse(matrix.Matrix):
     cdef object _entries
     cdef object _base_ring
     cdef object _zero

@@ -13,7 +13,7 @@ cdef do_inject(kwds):
 
 def PolynomialRing(*args, **kwds):
     """
-    Construct a polynomial ring and injects the variables of the
+    Construct a polynomial ring and inject the variables of the
     polynomial ring to the global interactive interpreter.  Use
     inject=False to not inject the variables.  This is a wrapper
     around the following function: <<<PolynomialRing>>>
@@ -35,6 +35,20 @@ def PolynomialRing(*args, **kwds):
     import sage.rings.all
     R = sage.rings.all.PolynomialRing(*args, **kwds)
     return inject(R, t)
+
+def FiniteField(*args, **kwds):
+    """
+    Construct a finite field and inject the variables of the
+    finite field to the global interactive interpreter.  Use
+    inject=False to not inject the variables.  This is a wrapper
+    around the following function: <<<FiniteField>>>
+    """
+    t = do_inject(kwds)
+    import sage.rings.all
+    R = sage.rings.all.FiniteField(*args, **kwds)
+    return inject(R, t)
+
+GF = FiniteField
 
 def FreeMonoid(*args, **kwds):
     """

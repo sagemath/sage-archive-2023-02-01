@@ -94,10 +94,10 @@ cdef class Matrix_generic_dense(matrix.Matrix):
     ########################################################################
     # pickle
     ########################################################################
-    cdef pickle(self):
+    def pickle(self):
         return self._entries, 0
 
-    cdef unpickle(self, data, int version):
+    def unpickle(self, data, int version):
         if version == 0:
             self._entries = data
         else:

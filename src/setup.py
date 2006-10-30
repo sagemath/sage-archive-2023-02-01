@@ -268,7 +268,7 @@ ext_modules = [ \
 
     matrix,
     matrix_generic_dense,
-##     matrix_generic_sparse,
+##    matrix_generic_sparse,
 
 ##     matrix_domain_dense,
 ##     matrix_domain_sparse,
@@ -339,9 +339,6 @@ ext_modules = [ \
 
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
-
-    Extension('sage.rings.finite_field_c',
-              sources = ['sage/rings/finite_field_c.pyx']), \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],

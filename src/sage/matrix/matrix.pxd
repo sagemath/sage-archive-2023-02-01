@@ -48,8 +48,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef get_unsafe(self, size_t i, size_t j)
 
     # Pickling:
-    cdef pickle(self)
-    cdef unpickle(self, data, int version)
+    #cdef pickle(self)
+    #cdef unpickle(self, data, int version)
 
 
     # Strassen

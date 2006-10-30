@@ -20,13 +20,18 @@ $$
 $$
 as an element of a matrix space over $\Q$:
 
-    sage: M = MatrixSpace(RationalField(),2,3)
-    sage: A = M([1,2,3, 4,5,6])
-    sage: A
+    sage: M = MatrixSpace(QQ,2,3)
+    sage: A = M([1,2,3, 4,5,6]); A
     [1 2 3]
     [4 5 6]
     sage: A.parent()
     Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+Alternatively, we could create A more directly as follows (which would
+completely avoid having to create the matrix space):
+    sage: A = matrix(QQ, 2, [1,2,3, 4,5,6]); A
+    [1 2 3]
+    [4 5 6]
 
 We next change the top-right entry of $A$.  Note that matrix indexing
 is $0$-based in SAGE, so the top right entry is $(0,2)$, which should
@@ -46,7 +51,7 @@ reduced row echelon form of $A$.
     [      0       1  1550/3]
 
 We save and load a matrix:
-    sage: A = Matrix(Integers(8),3,range(9))
+    sage: A = matrix(Integers(8),3,range(9))
     sage: loads(dumps(A)) == A
     True
 
@@ -130,9 +135,9 @@ For each base field it is necessary to completely implement the following
 After getting the special class with the above code to work, implement
 any subset of the following purely for speed reasons:
 
-   * cdef pickle(self):
+   * def pickle(self):
           return data, version
-   * cdef unpickle(self, data, int version):
+   * def unpickle(self, data, int version):
           reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
           Use version numbers so if you change the pickle strategy then
           old objects still unpickle.
@@ -187,7 +192,10 @@ from sage.structure.mutability cimport Mutability
 def is_Matrix(x):
     """
     EXAMPLES:
-        sage: ???
+        sage: is_Matrix(0)
+        False
+        sage: is_Matrix(matrix([[1,2],[3,4]]))
+        True
     """
     return isinstance(x, Matrix)
 
@@ -282,7 +290,7 @@ cdef class Matrix(ModuleElement):
 
     def copy(self):
         """
-        Make a copy of self.
+        Make a copy of self.  If self is immutable, the copy will be mutable.
 
         WARNING: The individual elements aren't themselves copied
         (though the list is copied).    This shouldn't matter, since ring
@@ -717,14 +725,21 @@ cdef class Matrix(ModuleElement):
     # Pickling
     ###########################################################
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = matrix(Integers(8),3,range(9))
+            sage: a == loads(dumps(a))
+            True
+        """
         data, version = self.pickle()
         return unpickle, (self.__class__, self._parent, data, version)
 
-    cdef pickle(self):
+    def pickle(self):
         version = 0
         data = self.list()  # linear list of all elements
+        return data, version
 
-    cdef unpickle(self, data, int version):
+    def unpickle(self, data, int version):
         cdef size_t i, j, k
         if version == 0:
             # data is a *list* of the entries of the matrix.

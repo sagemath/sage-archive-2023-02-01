@@ -5,6 +5,28 @@ AUTHOR:
    -- William Stein
    -- Kiran Kedlaya (2006-02-13): added macaulay2 option
    -- Martin Albrecht (2006-08-25): removed it again as it isn't needed anymore
+
+EXAMPLES:
+Creating a polynomial ring injects the variable into the interpreter namespace:
+    sage: QQ['z']
+    Univariate Polynomial Ring in z over Rational Field
+    sage: (z^3 + z - 1)^3
+    z^9 + 3*z^7 - 3*z^6 + 3*z^5 - 6*z^4 + 4*z^3 - 3*z^2 + 3*z - 1
+
+Saving and loading of polynomial rings works:
+    sage: loads(dumps(QQ['x'])) == QQ['x']
+    True
+    sage: k = PolynomialRing(QQ['x'],'y'); loads(dumps(k))==k
+    True
+    sage: k = PolynomialRing(ZZ,'y'); loads(dumps(k)) == k
+    True
+    sage: k = PolynomialRing(ZZ,'y', sparse=True); loads(dumps(k))
+    Sparse Univariate Polynomial Ring in y over Integer Ring
+
+The rings of sparse and dense polynomials in the same variable are
+canonically isomorphic:
+    sage: PolynomialRing(ZZ,'y', sparse=True) == PolynomialRing(ZZ,'y')
+    True
 """
 
 
@@ -98,10 +120,6 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
 
-    def __reduce__(self):
-        return sage.rings.polynomial_ring.PolynomialRing, \
-               (self.base_ring(), self.variable_name(), self.__is_sparse)
-
     def _magma_(self, G=None):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
@@ -149,9 +167,10 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         return self([self.base_ring()._coerce_(x)])
 
     def __cmp__(self, other):
-        if self is other:  # since polynomial rings are unique
-            return 0
-        return -1
+        if not isinstance(other, PolynomialRing_generic):
+            return -1
+        return cmp((self.base_ring(), self.variable_name()),
+                   (other.base_ring(), other.variable_name()))
 
     def __repr__(self):
         s = "Univariate Polynomial Ring in %s over %s"%(

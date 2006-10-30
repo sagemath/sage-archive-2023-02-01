@@ -337,14 +337,8 @@ ext_modules = [ \
     Extension('sage.structure.gens',
               sources = ['sage/structure/gens.pyx']), \
 
-    Extension('sage.rings.polynomial_ring_c',
-              sources = ['sage/rings/polynomial_ring_c.pyx']), \
-
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
-
-    Extension('sage.rings.multi_polynomial_ring_c',
-              sources = ['sage/rings/multi_polynomial_ring_c.pyx']), \
 
     Extension('sage.rings.finite_field_c',
               sources = ['sage/rings/finite_field_c.pyx']), \

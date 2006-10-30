@@ -44,7 +44,7 @@ def FiniteField(order, name=None, modulus=None, inject_variable=True):
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"
-        if order < 2**16:
+        if False and order < 2**16:   # todo -- re-enable
             K = finite_field.FiniteField_givaro(order, name, modulus)
         else:
             K = finite_field.FiniteField_ext_pari(order, name, modulus)

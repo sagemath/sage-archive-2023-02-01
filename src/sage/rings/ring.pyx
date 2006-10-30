@@ -46,7 +46,8 @@ cdef class Ring(sage.structure.gens.Generators):
 
     def __getitem__(self, x):
         """
-        Create a polynomial or power series ring over self.
+        Create a polynomial or power series ring over self and inject
+        the variables into the global module scope.
 
         EXAMPLES:
         We create several polynomial rings.
@@ -73,7 +74,9 @@ cdef class Ring(sage.structure.gens.Generators):
         """
         if not isinstance(x, list):
             from sage.rings.polynomial_ring import PolynomialRing
-            return PolynomialRing(self, x)
+            P = PolynomialRing(self, x)
+            P.inject_variables()
+            return P
 
         P = None
         if isinstance(x, list):
@@ -106,9 +109,11 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            R = P(self, len(v), names=v, scope=globals())
+            R = P(self, len(v), names=v)
         else:
-            R = P(self, x, scope=globals())
+            R = P(self, x)
+
+        R.inject_variables()
 
         return R
 

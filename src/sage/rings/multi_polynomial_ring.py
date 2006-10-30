@@ -72,7 +72,10 @@ from sage.rings.polynomial_singular_interface import PolynomialRing_singular_rep
 
 import multi_polynomial_ideal
 
-from multi_polynomial_ring_c import MPolynomialRing, is_MPolynomialRing
+from sage.rings.polynomial_ring_c import PolynomialRing as MPolynomialRing
+
+def is_MPolynomialRing(x):
+    return isinstance(x, MPolynomialRing_generic)
 
 class MPolynomialRing_macaulay2_repr:
     """
@@ -408,6 +411,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
     def ideal(self, gens, coerce=True):
         """
+        Create an ideal in this polynomial ring.
         """
         if not self._has_singular:
             # pass through

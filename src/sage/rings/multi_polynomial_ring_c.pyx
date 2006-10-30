@@ -68,10 +68,6 @@ def MPolynomialRing(base_ring, names, n=1, order='degrevlex', inject_variables=T
     """
     import multi_polynomial_ring as m
 
-    if isinstance(names, (int, long, m.Integer)):
-        # swap them.
-        names, n = n, names
-
     T = m.TermOrder(order)
     if isinstance(names, list):
         names = tuple(names)
@@ -101,7 +97,4 @@ def MPolynomialRing(base_ring, names, n=1, order='degrevlex', inject_variables=T
         R.inject_variables()
     return R
 
-def is_MPolynomialRing(x):
-    import multi_polynomial_ring as m
-    return isinstance(x, m.MPolynomialRing_generic)
 

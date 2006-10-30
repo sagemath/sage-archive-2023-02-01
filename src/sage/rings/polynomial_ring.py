@@ -42,7 +42,10 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
-from polynomial_ring_c import PolynomialRing, is_PolynomialRing
+from polynomial_ring_c import PolynomialRing
+
+def is_PolynomialRing(x):
+    return isinstance(x, PolynomialRing_generic)
 
 class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
     """

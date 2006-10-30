@@ -111,7 +111,7 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += '{{{\n' + self.__in.strip() + '\n///\n'
+            s += self.__in.strip() + '\n///\n'
 
         if prompts:
             msg = 'Traceback (most recent call last):'
@@ -145,7 +145,7 @@ class Cell:
         s = s + '\n' + out
 
         if not prompts:
-            s = s.rstrip('\n') + '\n}}}'
+            s = s.rstrip('\n')
         return s
 
     def wiki_text(self, ncols=0, prompts=False, max_out=None):

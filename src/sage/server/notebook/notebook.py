@@ -772,7 +772,8 @@ class Notebook(SageObject):
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
-        body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
+        #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide All</a>' + vbar
@@ -851,9 +852,29 @@ class Notebook(SageObject):
             body += 'start_update_check(); </script>\n'
         return body
 
-    def wiki_window(self, cells):
+    def edit_window(self, body_html):
+        """
+        Return a window for editing worksheet.
+
+        INPUT:
+            body_html -- output by edit_text() method in server.py; this is html
+                         that defines the body of the text edit window.
+        """
         return """
         <html><head><title>SAGE Wiki cell text </title>
+        <style type="text/css">
+
+        textarea.edit {
+            font-family: monospace;
+            border: 1px solid #8cacbb;
+            color: black;
+            background-color: white;
+            padding: 3px;
+            width: 100%%;
+            margin-top: 0.5em;
+        }
+        </style>
+
         <script language=javascript> <!--
 
         %s
@@ -912,7 +933,7 @@ class Notebook(SageObject):
         }
         --></script></head>
         <body>%s
-        </body></html>"""%(js.async_lib(), cells)
+        </body></html>"""%(js.async_lib(), body_html)
 
 
     def help_window(self):

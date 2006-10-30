@@ -325,22 +325,47 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Location", '/%d'%W.id())
         self.end_headers()
 
-    def wiki_text(self, filename, prompts=False):
+    #######################################################################
+    #  SAGE plain text editing functionality
+    #######################################################################
+
+    def edit_text(self, filename, prompts=False):
+        """
+        Return a window that allows the user to edit the text of the
+        worksheet with the given filename.
+        """
         self.send_head()
         W = notebook.get_worksheet_with_filename(filename)
-        t = W.wiki_text()
+        t = W.edit_text()
         t = t.replace('<','&lt;')
-        cells = '<textarea id="cell_intext" rows="40" cols="100">'+t+'</textarea>'
-        cells += '<form>'
-        cells += '<input type="button" value="Update Worksheet" onClick="send_to_ws(false);"/>'
-        cells += '<input type="button" value="Update and Evaluate Worksheet" onClick="send_to_ws(true);"/>'
-        #cells += '<input type="button" value="Add cell to current worksheet" onClick="send_cell_text()"/>'
-        #cells += '<input type="button" value="Add html to current worksheet" onClick="send_doc_html()"/>'
-        #cells += '<input type="button" value="Add cell to new worksheet" onClick="send_cell_text_new_window()"/>'
-        cells += '<input type="button"value="Clear this window" onClick="clear_wiki_window()"/>'
-        cells += '</form>'
-        s = notebook.wiki_window(cells)
+        body_html = ''
+        body_html += '<h1 class="edit">Editing "%s"</h1>\n'%W.name()
+        body_html += '<form method="post" action="/%s#edit">\n'%W.name()
+        body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
+        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        body_html += '<input type="submit" value="Save and Evaluate" name="button_save_eval"/>\n'
+        body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
+        body_html += '<textarea class="edit" id="cell_intext" rows="30">'+t+'</textarea>'
+        body_html += '</form>'
+        s = notebook.edit_window(body_html)
         self.wfile.write(s)
+
+    def edit_button_save(self):
+        pass
+    def edit_button_preview(self):
+        pass
+
+    def edit_button_save_and_evaluate(self):
+        pass
+
+    def edit_button_cancel(self):
+        pass
+
+
+    #######################################################################
+    #  End editing functionality
+    #######################################################################
+
 
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
@@ -449,8 +474,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.help_window()
             elif worksheet_filename == '__license__':
                 self.license_window()
-            elif worksheet_filename[-8:] == '__wiki__':
-                self.wiki_text(worksheet_filename[:-8],prompts=False)
+            elif worksheet_filename[-8:] == '__edit__':
+                self.edit_text(worksheet_filename[:-8],prompts=False)
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
             elif worksheet_filename[-9:] == '__plain__':

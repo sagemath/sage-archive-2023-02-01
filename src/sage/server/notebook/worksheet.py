@@ -142,9 +142,10 @@ class Worksheet:
                 s += '\n' + t
         return s
 
-    def wiki_text(self, prompts=False):
+    def edit_text(self, prompts=False):
         """
-        Returns a plain-text version of the worksheet with {{{}}} wiki-formatting.
+        Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
+        suitable for hand editing.
         """
         s = '#'*80 + '\n'
         s += '# Wiki form for worksheet: %s'%self.name() + '\n'

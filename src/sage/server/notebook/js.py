@@ -1785,19 +1785,13 @@ function get_cell_list() {
     return cell_id_list;
 }
 
-/*
-function show_wiki_window() {
-    var wiki = get_element("wiki_window");
-    wiki.style.display = "block";
-}
-*/
 function hide_wiki_window() {
     var wiki = get_element("wiki_window");
     wiki.style.display = "none";
 }
 
 function show_wiki_window(worksheet) {
-    window.open (worksheet+"__wiki__.html","", "location=1,menubar=1,scrollbars=1,width=750,height=700,toolbar=1");
+    window.open (worksheet+"__wiki__.html","", "location=1,menubar=1,scrollbars=1,width=750,height=700,toolbar=1,resizable=1");
 }
 
 function insert_cells_from_wiki(text,do_eval) {

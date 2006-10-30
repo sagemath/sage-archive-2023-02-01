@@ -142,6 +142,49 @@ class Worksheet:
                 s += '\n\n' + t
         return s
 
+    def wiki_text(self, prompts=False):
+        """
+        Returns a plain-text version of the worksheet with {{{}}} wiki-formatting.
+        """
+        s = '#'*80 + '\n'
+        s += '# Wiki form for worksheet: %s'%self.name() + '\n'
+        s += '#'*80+'\n\n'
+        for C in self.__cells:
+            t = C.wiki_text(prompts=prompts).strip()
+            if t != '':
+                s += '\n\n' + t
+        return s
+
+    def insert_wiki_cells(self,text):
+        text.replace('\r\n','\n')
+        lines = text.split('\n')
+        input = ""
+        output = ""
+        in_cell = False
+        in_output = False
+        old_first = self.__cells[0].id()
+        for line in lines:
+            if not in_cell:
+                if line[:3] == '{{{':
+                    in_cell = True
+            elif line != '}}}':
+                if not in_output:
+                    if line == '///':
+                        in_output = True
+                    else:
+                        input += line+'\n'
+                else:
+                    output += line+'\n'
+            else:
+                C = self.new_cell_before(old_first)
+                C.set_input_text(input)
+                C.set_output_text(output,output)
+                C.set_cell_output_type()
+                input = ""
+                output = ""
+                in_cell = False
+                in_output = False
+
     def input_text(self):
         """
         Return text version of the input to the worksheet.
@@ -227,7 +270,7 @@ class Worksheet:
                 if i > 0:
                     return cells[i-1].id()
                 else:
-                    return cells[0].id()
+                    break
         return cells[0].id()
 
     def directory(self):

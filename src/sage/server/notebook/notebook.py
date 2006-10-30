@@ -775,6 +775,7 @@ class Notebook(SageObject):
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
@@ -852,6 +853,70 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
         return body
+
+    def wiki_window(self, cells):
+        return """
+        <html><head><title>SAGE Wiki cell text </title>
+        <script language=javascript> <!--
+
+        %s
+
+        function get_element(id) {
+            if(document.getElementById)
+                return document.getElementById(id);
+            if(document.all)
+                return document.all[id];
+            if(document.layers)
+                return document.layers[id];
+        }
+
+        function get_cell_list() {
+            return window.opener.get_cell_list()
+        }
+
+        function send_doc_html() {
+            var cell_id_list = get_cell_list();
+            var num = cell_id_list.length;
+            var lastid = cell_id_list[num-1];
+            var doc_intext = get_element('cell_intext').value; /*for testing doc_html*/
+            window.opener.upload_doc_html(lastid,doc_intext);
+        }
+
+        function send_cell_text() {
+            var cell_id_list = get_cell_list();
+            var num = cell_id_list.length;
+            var lastid = cell_id_list[num-1];
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.upload_cell_text(lastid,cell_intext);
+        }
+
+        function send_to_ws(do_eval) {
+            var f = send_to_ws_callback;
+            if (do_eval)
+                f = send_to_ws_eval_callback;
+            async_request('/delete_cell_all',f, "worksheet_id="+window.opener.get_worksheet_id());
+        }
+
+        function send_to_ws_callback(status, response_text) {
+            window.opener.cell_delete_all_callback(status, response_text);
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.insert_cells_from_wiki(cell_intext, false);
+        }
+
+        function send_to_ws_eval_callback(status, response_text) {
+            window.opener.cell_delete_all_callback(status, response_text);
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.insert_cells_from_wiki(cell_intext, true);
+        }
+
+
+        function clear_wiki_window() {
+            get_element('cell_intext').value = ' ';
+        }
+        --></script></head>
+        <body>%s
+        </body></html>"""%(js.async_lib(), cells)
+
 
     def help_window(self):
         help = [

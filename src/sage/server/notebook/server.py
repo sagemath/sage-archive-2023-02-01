@@ -92,7 +92,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         id = int(C['id'][0])
         input_text = C['input'][0]
-        input_text = input_text.replace('__plus__','+')
+        #input_text = input_text.replace('__plus__','+')
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
@@ -121,8 +121,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def introspect(self):
         C = self.get_postvars()
         id = int(C['id'][0])
-        before_cursor = C['before_cursor'][0].replace('__plus__','+')
-        after_cursor = C['after_cursor'][0].replace('__plus__','+')
+        before_cursor = C['before_cursor'][0] #.replace('__plus__','+')
+        after_cursor = C['after_cursor'][0] #.replace('__plus__','+')
         input_text = (before_cursor+after_cursor)
         verbose('introspect -- %s: %s|%s'%(id, before_cursor, after_cursor))
 
@@ -183,6 +183,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             prev_id = W.delete_cell_with_id(id)
             #notebook.save()
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
+
+    def delete_cell_all(self):
+        C = self.get_postvars()
+        worksheet_id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(worksheet_id)
+        cells = W.cell_id_list()[1:]
+        cells.reverse()
+        for cell in cells:
+            W.delete_cell_with_id(cell)
+            print cell
+        cell = W[0]
+        cell.set_input_text("")
+        cell.set_output_text("", "")
+        self.wfile.write("OK")
 
     def save_notebook_every_so_often(self):
         global last_save_time
@@ -311,6 +325,23 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Location", '/%d'%W.id())
         self.end_headers()
 
+    def wiki_text(self, filename, prompts=False):
+        self.send_head()
+        W = notebook.get_worksheet_with_filename(filename)
+        t = W.wiki_text()
+        t = t.replace('<','&lt;')
+        cells = '<textarea id="cell_intext" rows="40" cols="100">'+t+'</textarea>'
+        cells += '<form>'
+        cells += '<input type="button" value="Update Worksheet" onClick="send_to_ws(false);"/>'
+        cells += '<input type="button" value="Update and Evaluate Worksheet" onClick="send_to_ws(true);"/>'
+        #cells += '<input type="button" value="Add cell to current worksheet" onClick="send_cell_text()"/>'
+        #cells += '<input type="button" value="Add html to current worksheet" onClick="send_doc_html()"/>'
+        #cells += '<input type="button" value="Add cell to new worksheet" onClick="send_cell_text_new_window()"/>'
+        cells += '<input type="button"value="Clear this window" onClick="clear_wiki_window()"/>'
+        cells += '</form>'
+        s = notebook.wiki_window(cells)
+        self.wfile.write(s)
+
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
         W = notebook.get_worksheet_with_filename(filename)
@@ -371,6 +402,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         self.wfile.write(notebook.upload_window())
 
+    def insert_wiki_cells(self):
+        C = self.get_postvars()
+        W = notebook.get_worksheet_with_id(C['worksheet_id'][0])
+        W.insert_wiki_cells(C['text'][0])
+        response = C['eval'][0] + SEP
+        response+= "%r"%W.cell_id_list() + SEP
+        response+= SEP.join([c.html(div_wrap=False) for c in W[:-1]])
+        self.wfile.write(response)
+
     def download_worksheet(self, filename):
         try:
             notebook.export_worksheet(filename, filename)
@@ -409,6 +449,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.help_window()
             elif worksheet_filename == '__license__':
                 self.license_window()
+            elif worksheet_filename[-8:] == '__wiki__':
+                self.wiki_text(worksheet_filename[:-8],prompts=False)
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
             elif worksheet_filename[-9:] == '__plain__':
@@ -563,7 +605,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             method = self.path[self.path.rfind('/')+1:]
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
-                          'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet' ]:
+                          'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
+                          'insert_wiki_cells', 'delete_cell_all']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':

@@ -70,7 +70,7 @@ class Cell:
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
-    def plain_text(self, ncols=0, prompts=True, max_out=None):
+    def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
@@ -126,18 +126,26 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).split('\n')
+            out = self.output_text(ncols, html=False).strip().split('\n')
+            out = [x for x in out if x.strip() != '']
             if len(out) > 0:
-                out = '# ' + '\n# '.join(out)
+                if wiki_out:
+                  out = '///\n' + '\n'.join(out)
+                else:
+                  out = 'out:\n' + '\n'.join(out)
             else:
                 out = ''
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
 
-        s = s.strip() + '\n' + out
+        s = s.strip() + '\n' + out.strip()
 
         return s
+
+    def wiki_text(self, ncols=0, prompts=False, max_out=None):
+        s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
+        return '{{{#!python\n' + s + '\n}}}'
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -211,7 +219,7 @@ class Cell:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
             output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output
+        self.__out = output.strip()
         self.__out_html = html
         self.__sage = sage
 
@@ -323,6 +331,35 @@ class Cell:
     def do_time(self):
         self.__time = True
 
+    #def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+     #   self.evaluate()
+        #s = self.output_text()
+      #  s = '\n\n<div class="doc_html" id="doc_html_%s">\n%s\n</div>\n'%(self.id(),self.output_text())
+       # return s
+
+    def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+        """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
+        The problem is how to get the documentation html to display nicely between the example cells.
+        The type setting (jsMath formating) needs attention too.
+        """
+        self.evaluate()
+        if wrap is None:
+            wrap = self.notebook().defaults()['word_wrap_cols']
+        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        if evaluated:
+            cls = 'cell_evaluated'
+        else:
+            cls = 'cell_not_evaluated'
+
+        html_in  = self.html_in(do_print=do_print)
+        introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
+        #html_out = self.html_out(wrap, do_print=do_print)
+        html_out = self.html()
+        s = html_out
+        if div_wrap:
+            s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+        return s
+
     def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
@@ -403,11 +440,11 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
-        out_nowrap = self.output_text(0, html=True)
+        out_nowrap = self.output_text(0, html=True).strip()
         if self.introspect():
             out_wrap = out_nowrap
         else:
-            out_wrap = self.output_text(ncols, html=True)
+            out_wrap = self.output_text(ncols, html=True).strip()
 
         typ = self.cell_output_type()
 

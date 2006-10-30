@@ -24,7 +24,6 @@ AUTHORS:
 #  * DO NOT CALL _add_c_impl DIRECTLY.
 #  * To implement addition for a python class, override def _add_().
 #  * To implement addition for a pyrex class, override cdef _add_c_impl().
-#    (You could also override def _add_(), but it won't be as fast.)
 #  * If you want to add x and y, whose parents you know are IDENTICAL,
 #    you may call _add_(x, y) (from python or pyrex) or _add_c(x, y) (from
 #    pyrex -- this will be faster). This will be the fastest way to guarantee
@@ -71,6 +70,10 @@ AUTHORS:
 # def RingElement._add_
 #    This is the function you should override to implement addition in a
 #    python subclass of RingElement.
+#
+#    WARNING: if you override this in a *pyrex* class, it won't get called.
+#    You should override _add_c_impl instead. It is especially important to
+#    keep this in mind whenever you move a class down from python to pyrex.
 #
 #    The two arguments to this function are guaranteed to have the
 #    SAME PARENT. Its return value MUST have the SAME PARENT as its

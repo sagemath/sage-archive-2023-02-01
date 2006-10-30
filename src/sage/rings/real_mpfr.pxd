@@ -21,4 +21,3 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     cdef RealNumber abs(RealNumber self)
     cdef int cmp(RealNumber self, RealNumber x)
-    cdef RealField c_parent(RealNumber self)

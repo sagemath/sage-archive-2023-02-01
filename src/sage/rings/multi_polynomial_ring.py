@@ -66,102 +66,13 @@ from sage.interfaces.macaulay2 import is_Macaulay2Element
 from sage.structure.sage_object import SageObject
 
 from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer import Integer
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
 import multi_polynomial_ideal
 
-#_cache = {}
-
-def MPolynomialRing(base_ring, n=1, names=None,
-                    order='degrevlex'):
-    r"""
-    Create a Multivariate polynomial ring over a commutative base ring.
-
-    INPUT:
-        base_ring -- CommutativeRing
-        n -- int, number of variables  (default: 1)
-        names -- tuple or string:
-                   - tuple of n variable names
-                   - if string, names the variables the characters in the string.
-                 default: names variables x0, x1, etc.
-
-        order -- string; the term order, or an object of type TermOrder:
-                 'degrevlex' (default) -- degree reverse lexicographic
-                 'revlex' -- reverse lexicographic
-                 'lex'  -- lexicographic
-                 'deglex' -- degree lexicographic
-                 'wp(w1,...,wn)' -- weight reverse lexicographic
-                 'Wp(w1,...,wn)' -- weight lexicographic
-
-    EXAMPLES:
-        sage: R = MPolynomialRing(RationalField(), 3)
-        sage: R
-        Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: x0,x1,x2 = R.gens()
-        sage: x0.element()
-        PolyDict with representation {(1, 0, 0): 1}
-        sage: x0 + x1 + x2
-        x2 + x1 + x0
-        sage: (x0 + x1 + x2)**2
-        x2^2 + 2*x1*x2 + x1^2 + 2*x0*x2 + 2*x0*x1 + x0^2
-
-    This example illustrates the quick shorthand for naming several
-    variables one-letter names.
-        sage: MPolynomialRing(ZZ, 4, 'xyzw')
-        Polynomial Ring in x, y, z, w over Integer Ring
-
-    To obtain both the ring and its generators, use the \code{objgens} function.
-        sage: R, (x,y,z,w) = MPolynomialRing(ZZ, 4, 'xyzw').objgens()
-        sage: (x+y+z+w)^2
-        w^2 + 2*z*w + z^2 + 2*y*w + 2*y*z + y^2 + 2*x*w + 2*x*z + 2*x*y + x^2
-
-    We can construct multi-variate polynomials rings over completely
-    arbitrary SAGE rings.  In this example, we construct a polynomial
-    ring S in 3 variables over a polynomial ring in 2 variables over
-    GF(9).  Then we construct a polynomial ring in 20 variables over S!
-
-        sage: R, (n1,n2) = MPolynomialRing(GF(9),2, names=['n1','n2']).objgens()
-        sage: n1^2 + 2*n2
-        2*n2 + n1^2
-        sage: S = MPolynomialRing(R,3, names='a'); a0,a1,a2=S.gens()
-        sage: S
-        Polynomial Ring in a0, a1, a2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
-        sage: x = (n1+n2)*a0 + 2*a1**2
-        sage: x
-        2*a1^2 + (n2 + n1)*a0
-        sage: x**3
-        2*a1^6 + (n2^3 + n1^3)*a0^3
-        sage: T = MPolynomialRing(S, 20)
-        sage: T
-        Polynomial Ring in x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19 over Polynomial Ring in a0, a1, a2 over Polynomial Ring in n1, n2 over Finite Field in a of size 3^2
-
-    """
-    global _cache
-    T = TermOrder(order)
-    if isinstance(names, list):
-        names = tuple(names)
-
-    #elif isinstance(names, str):
-    #    if len(names) > 1:
-    #        names = tuple(names)
-    #key = (base_ring, n, names, T, macaulay2)
-    #if _cache.has_key(key):
-    #    R = _cache[key]()
-    #    if not (R is None):
-    #        return R
-
-    if not isinstance(base_ring, commutative_ring.CommutativeRing):
-        raise TypeError, "Base ring must be a commutative ring."
-
-    if integral_domain.is_IntegralDomain(base_ring):
-        R = MPolynomialRing_polydict_domain(base_ring, n, names, T)
-    else:
-        R = MPolynomialRing_polydict(base_ring, n, names, T)
-
-    #_cache[key] = weakref.ref(R)
-
-    return R
+from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
@@ -202,15 +113,14 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             raise ValueError, "Multivariate Polynomial Rings must " + \
                   "have more than 0 variables."
         self.__ngens = n
-        self.assign_names(names)
+        self._assign_names(names)
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
 
     def __cmp__(self, right):
-        if not is_MPolynomialRing(right):
-            return -1
-        return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
-                   (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
+        if self is right:  # since polynomial rings are unique
+            return 0
+        return -1
 
     def __contains__(self, x):
         """
@@ -283,7 +193,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         except (AttributeError,ValueError):
             B = magma(self.base_ring())
             R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
-            R.assign_names(self.variable_names())
+            R._assign_names(self.variable_names())
             self.__magma = R
             return R
 
@@ -383,7 +293,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             del self.__latex_variable_names
         except AttributeError:
             pass
-        commutative_ring.CommutativeRing.assign_names(self, names)
+        commutative_ring.CommutativeRing._assign_names(self, names)
 
 class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """
@@ -500,6 +410,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
     def ideal(self, gens, coerce=True):
         """
+        Create an ideal in this polynomial ring.
         """
         if not self._has_singular:
             # pass through

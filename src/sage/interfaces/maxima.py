@@ -349,7 +349,7 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
@@ -357,8 +357,6 @@ SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
 cnt = 0
 seq = 0
-
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
 
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 

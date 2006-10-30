@@ -1,7 +1,22 @@
 """
 Field of Double-Precision Real Numbers
 
-PYREX: sage.rings.real_double
+EXAMPLES:
+
+We create the real double vector space of dimension $3$:
+    sage: V = RDF^3; V
+    Vector space of dimension 3 over Real Double Field
+
+Notice that this space is unique.
+    sage: V is RDF^3
+    True
+    sage: V is FreeModule(RDF, 3)
+    True
+    sage: V is VectorSpace(RDF, 3)
+    True
+
+Also, you can instantly create a space of large dimension.
+    sage: V = RDF^10000
 """
 
 include '../ext/cdefs.pxi'
@@ -14,13 +29,14 @@ from sage.misc.sage_eval import sage_eval
 
 cimport sage.structure.element
 import  sage.structure.element
+from sage.structure.element cimport RingElement
 
 cimport sage.rings.ring
 import  sage.rings.ring
 
 import sage.misc.functional
-#import real_number
 
+import sage.modules.free_module
 
 cdef class RealDoubleField_class(sage.rings.ring.Field):
     """
@@ -311,7 +327,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
     ########################
     #   Basic Arithmetic
     ########################
-    def _add_(RealDoubleElement self, RealDoubleElement other):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         Add two real numbers with the same parent.
 
@@ -320,7 +336,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             sage: R(-1.5) + R(2.5)
             1.0
         """
-        return RealDoubleElement(self._value + other._value)
+        return RealDoubleElement(self._value + (<RealDoubleElement>right)._value)
 
     def __invert__(self):
         """

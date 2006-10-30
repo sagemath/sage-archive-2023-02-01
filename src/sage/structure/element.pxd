@@ -10,10 +10,14 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    cdef sage_object.SageObject _parent
+    #cdef sage_object.SageObject _parent
+    cdef object _parent
 
 cdef class ModuleElement(Element):
-    pass
+    cdef ModuleElement _add_c(self, ModuleElement right)
+    cdef ModuleElement _add_c_impl(self, ModuleElement right)
+    cdef ModuleElement _sub_c(self, ModuleElement right)
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right)
 
 cdef class MonoidElement(Element):
     pass
@@ -25,7 +29,10 @@ cdef class AdditiveGroupElement(ModuleElement):
     pass
 
 cdef class RingElement(Element):
-    pass
+    cdef RingElement _add_c(self, RingElement right)
+    cdef RingElement _add_c_impl(self, RingElement right)
+    cdef RingElement _sub_c(self, RingElement right)
+    cdef RingElement _sub_c_impl(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass
@@ -43,6 +50,9 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
     pass
 
 cdef class FieldElement(CommutativeRingElement):
+    pass
+
+cdef class FiniteFieldElement(FieldElement):
     pass
 
 cdef class AlgebraElement(RingElement):

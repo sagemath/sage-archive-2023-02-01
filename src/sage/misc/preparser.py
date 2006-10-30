@@ -9,20 +9,75 @@ AUTHOR:
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
 
 EXAMPLES:
-These examples all illustrate input lines whose pre-parsing is subtle.
 
+PREPARSE:
     sage: preparse('2/3')
     'Integer(2)/Integer(3)'
     sage: preparse('2.5')
     "RealNumber('2.5')"
     sage: preparse('2^3')
     'Integer(2)**Integer(3)'
-    sage: preparse('a^b')
+    sage: preparse('a^b')            # exponent
     'a**b'
     sage: preparse('a**b')
     'a**b'
-    sage: preparse('G.0')
+    sage: preparse('G.0')            # generator
     'G.gen(0)'
+    sage: preparse('a = 939393R')    # raw
+    'a = 939393'
+
+RAW LITERALS:
+
+Raw literals are not preparsed, which can be useful from an efficiency
+point of view.  Just like Python ints are denoted by an L, in SAGE raw
+integer and floating literals are followed by an"r" (or "R") for raw, meaning not preparsed.
+
+We create a raw integer.
+    sage: a = 393939r
+    sage: a
+    393939
+    sage: type(a)
+    <type 'int'>
+
+We create a raw float:
+    sage: z = 1.5949r
+    sage: z
+    1.5949
+    sage: type(z)
+    <type 'float'>
+
+You can also use an upper case letter:
+    sage: z = 3.1415R
+    sage: z
+    3.1415000000000002
+    sage: type(z)
+    <type 'float'>
+
+This next example illustrates how raw literals can be very useful in
+certain cases.  We make a list of even integers up to 10000.
+    sage: v = [ 2*i for i in range(10000)]
+
+This talkes a noticeable fraction of a second (e.g., 0.25 seconds).
+After preparsing, what Python is really executing is the following:
+
+    sage: preparse('v = [ 2*i for i in range(10000)]')
+    'v = [ Integer(2)*i for i in range(Integer(10000))]'
+
+If instead we use a raw 2 we get executation that is ``instant'' (0.00 seconds):
+    sage: v = [ 2r * i for i in range(10000r)]
+
+Behind the scenes what happens is the following:
+    sage: preparse('v = [ 2r * i for i in range(10000r)]')
+    'v = [ 2 * i for i in range(10000)]'
+
+WARNING: The result of the above two expressions is different.  The
+first one computes a list of SAGE integers, whereas the second creates
+a list of Python integers.  Python integers are typically much more
+efficient than SAGE integers when they are very small; large SAGE
+integers are much more efficient than Python integers, since they are
+implemented using the GMP C library.
+
+
 
 """
 
@@ -94,14 +149,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     while i < len(line):
         # Decide if we should wrap a particular integer or real literal
         if in_number:
-            if line[i] == ".": # and not (i+1 < len(line) and line[i+1].isalpha()):
+            if line[i] == ".":
                 is_real = True
             elif not line[i].isdigit():
                 # end of a number
                 # Do we wrap?
                 if in_quote():
                     # do not wrap
-                    print "hi"
                     pass
                 elif i < len(line) and line[i] in 'eE':
                     # Yes, in scientific notation, so will wrap later
@@ -110,6 +164,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     if i < len(line) and line[i] == '-':
                         i += 2
                     continue
+                elif i < len(line) and line[i] in 'rR':
+                    # Raw number so do not wrap; but have to get rid of the "r".
+                    line = line[:i] + line[i+1:]
                 else:
                     line, n = wrap_num(i, line, is_real, num_start)
                     i += n
@@ -117,60 +174,60 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 is_real = False
                 continue
 
-        # Support for generator construction syntax:
-        # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
-        # is converted into
-        # "obj = objConstructor(...); \
-        #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
-        #  (gen0, gen1, ..., genN,) = obj.gens()"
-        #
-        # LIMITATIONS:
-        #    - The entire constructor must be on one line.
-        #
-        # AUTHORS:
-        #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
-        #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
-        #     -- 2006-05-01: William -- fix bug that Joe found
-        elif line[i:i+2] == ".<" and not in_quote():
-            try:
-                gen_end = line.index(">", i+2)
-            except ValueError:
-                # Syntax Error -- let Python notice and raise the error
-                i += 2
-                continue
-
-            gen_begin = i
-            while gen_begin > 0 and line[gen_begin-1] != ';':
-                gen_begin -= 1
-
-            # parse out the object name and the list of generator names
-            gen_obj = line[gen_begin:i].strip()
-            gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
-            for g in gen_list:
-                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
-                    raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
-            # format names as a list of strings and a list of variables
-            gen_names = str(gen_list)
-            gen_vars  = ", ".join(gen_list)
-            # find end of constructor:
-            #    either end of line, next semicolon, or next #.
-
-            line_after = line[gen_end:]
-            c = line_after.find('#')
-            if c==-1: c = len(line_after)
-            s = line_after.find(';')
-            if s==-1: s = len(line_after)
-            c = min(c,s) + gen_end
-            # rewrite the input line as three commands
-            line_new = "; ".join([line[:i] + line[gen_end+1:c],
-                              "%s.assign_names(%s)" % (gen_obj, gen_names),
-                              "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
-
-            line = line_new + line[c:]
-            #i = len(line_new)
-            i += 1
-
-            continue
+##         # Support for generator construction syntax:
+##         # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+##         # is converted into
+##         # "obj = objConstructor(...); \
+##         #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
+##         #  (gen0, gen1, ..., genN,) = obj.gens()"
+##         #
+##         # LIMITATIONS:
+##         #    - The entire constructor must be on one line.
+##         #
+##         # AUTHORS:
+##         #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+##         #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
+##         #     -- 2006-05-01: William -- fix bug that Joe found
+##         elif line[i:i+2] == ".<" and not in_quote():
+##             try:
+##                 gen_end = line.index(">", i+2)
+##             except ValueError:
+##                 # Syntax Error -- let Python notice and raise the error
+##                 i += 2
+##                 continue
+##
+##             gen_begin = i
+##             while gen_begin > 0 and line[gen_begin-1] != ';':
+##                 gen_begin -= 1
+##
+##             # parse out the object name and the list of generator names
+##             gen_obj = line[gen_begin:i].strip()
+##             gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
+##             for g in gen_list:
+##                 if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
+##                     raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
+##             # format names as a list of strings and a list of variables
+##             gen_names = str(gen_list)
+##             gen_vars  = ", ".join(gen_list)
+##             # find end of constructor:
+##             #    either end of line, next semicolon, or next #.
+##
+##             line_after = line[gen_end:]
+##             c = line_after.find('#')
+##             if c==-1: c = len(line_after)
+##             s = line_after.find(';')
+##             if s==-1: s = len(line_after)
+##             c = min(c,s) + gen_end
+##             # rewrite the input line as three commands
+##             line_new = "; ".join([line[:i] + line[gen_end+1:c],
+##                               "%s._assign_names(%s)" % (gen_obj, gen_names),
+##                               "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
+##
+##             line = line_new + line[c:]
+##             #i = len(line_new)
+##             i += 1
+##
+##             continue
 
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():
@@ -180,7 +237,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
         elif line[i] == "." and i > 0 and i < len(line)-1 and not in_quote() and \
                  (isalphadigit_(line[i-1]) or line[i-1] == ")" or line[i-1] == ']') and line[i+1].isdigit():
-            # Generators like in MAGMA: replace all ".<number>" by ".gen(<number>)"
+            # Generators: replace all ".<number>" by ".gen(<number>)"
             # If . is preceeded by \, then replace "\." by ".".
             j = i+1
             while j < len(line) and line[j].isdigit():

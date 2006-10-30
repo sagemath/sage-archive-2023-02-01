@@ -15,7 +15,7 @@ function.
 
 The \code{gens} function returns a tuple of all generators, the
 \code{ngens} function returns the number of generators, and the
-\code{assign_names}, \code{name} and \code{names} functions allow one
+\code{_assign_names}, \code{name} and \code{names} functions allow one
 to change or obtain the way generators are printed. (They \emph{only}
 affect printing!)
 
@@ -32,9 +32,6 @@ EXAMPLES:
     (x0, x1, x2)
     sage: R.variable_names()
     ('x0', 'x1', 'x2')
-    sage: R.assign_names(['a', 'b', 'c'])
-    sage: R
-    Polynomial Ring in a, b, c over Integer Ring
 
 This example illustrates generators for a free module over $\Z$.
 
@@ -107,10 +104,9 @@ cdef class Generators(sage_object.SageObject):
             self.__list = list(self.__iter__())
         return self.__list
 
-    def objgens(self, names=None):
+    def objgens(self):
         """
-        Return self and the generators of self as a tuple, possibly re-assigning
-        the names of self.
+        Return self and the generators of self as a tuple.
 
         INPUT:
             names -- tuple or string
@@ -125,18 +121,12 @@ cdef class Generators(sage_object.SageObject):
             Polynomial Ring in x0, x1, x2 over Rational Field
             sage: x
             (x0, x1, x2)
-            sage: R, (a,b,c) = R.objgens('abc')
-            sage: a^2 + b^2 + c^2
-            c^2 + b^2 + a^2
         """
-        if not names is None:
-            self.assign_names(names)
         return self, self.gens()
 
-    def objgen(self, names=None):
+    def objgen(self):
         """
-        Return self and the generator of self, possibly re-assigning
-        the name of this generator.
+        Return self and the generator of self.
 
         INPUT:
             names -- tuple or string
@@ -151,12 +141,7 @@ cdef class Generators(sage_object.SageObject):
             Univariate Polynomial Ring in x over Rational Field
             sage: x
             x
-            sage: S, a = (R/(x^2+1)).objgen('a')
-            sage: S
-            Univariate Quotient Polynomial Ring in a over Rational Field with modulus x^2 + 1
         """
-        if not names is None:
-            self.assign_names(names)
         return self, self.gen()
 
     def gens(self):
@@ -196,14 +181,35 @@ cdef class Generators(sage_object.SageObject):
             N = N.strip()
             if len(N) == 0:
                 raise ValueError, "variable name must be nonempty"
-            if not N.isalnum():
-                raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
+            #if not N.isalnum():
+            #    raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
             v.append(N)
         return tuple(v)
 
-    def assign_names(self, names=None):
+    def _assign_names(self, names=None):
+        """
+        Set the names of the generator of this object.
+
+        This can only be done once during creation of the object.
+
+        EXAMPLES:
+        When we create this polynomial ring, self._assign_names is called by the constructor:
+
+            sage: R = QQ['x,y,abc']; R
+            Polynomial Ring in x, y, abc over Rational Field
+            sage: R.2
+            abc
+
+        We can't rename the variables:
+            sage: R._assign_names(['a','b','c'])
+            Traceback (most recent call last):
+            ...
+            ValueError: variable names cannot be changed after object creation.
+        """
         if names is None: return
-        if isinstance(names, str) and names.find(',') != -1:
+        if not self.__names is None:
+            raise ValueError, 'variable names cannot be changed after object creation.'
+        if isinstance(names, str) and ',' in names:
             names = names.split(',')
         if isinstance(names, str) and self.ngens() > 1 and len(names) == self.ngens():
             names = tuple(names)
@@ -224,6 +230,30 @@ cdef class Generators(sage_object.SageObject):
             latex_names = names
         self.__names = tuple(names)
         self.__latex_names = tuple(latex_names)
+
+
+    def inject_variables(self, scope=None):
+        """
+        Inject the generators of self with their names into the
+        namespace of the Python code from which this function is
+        called.  Thus, e.g., if the generators of self are labeled
+        'a', 'b', and 'c', then after calling this method the
+        variables a, b, and c in the current scope will be set
+        equal to the generators of self.
+
+        NOTE: If Foo is a constructor for a SAGE object with
+        generators, and Foo is defined in Pyrex, then it would
+        typically call inject_variables() on the object it
+        creates.  E.g., PolyomialRing(QQ, 'y') does this so that the
+        variable y is the generator of the polynomial ring.
+        """
+        v = self.variable_names()
+        g = self.gens()
+        if scope is None:
+            scope = globals()
+        cdef int i
+        for i from 0 <= i < len(v):
+            scope[v[i]] = g[i]
 
     def _names_from_obj(self, X):
         if self.__names != None and self.__latex_names != None:
@@ -415,3 +445,4 @@ cdef class AdditiveAbelianGenerators(Generators):
         Return an iterator over the elements in this object.
         """
         return gens_py.abelian_iterator(self)
+

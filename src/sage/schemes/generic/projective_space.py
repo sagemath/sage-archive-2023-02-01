@@ -174,7 +174,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.dimension()+1, names=self.__names)
+            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.__names, self.dimension()+1)
             return self._coordinate_ring
 
     def _point_morphism_class(self, *args, **kwds):

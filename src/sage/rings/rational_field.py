@@ -46,7 +46,7 @@ class RationalField(_uniq, field.Field):
             sage: Q('49/7')
             7
             sage: type(Q('49/7'))
-            <type 'rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
             sage: a = Q('19/374'); b = Q('17/371'); print a, b
             19/374 17/371
             sage: a + b
@@ -137,19 +137,19 @@ class RationalField(_uniq, field.Field):
             sage: QQ(23.2, 2)
             6530219459687219/281474976710656
             sage: 6530219459687219.0/281474976710656
-            23.19999999999999929
+            23.199999999999999
             sage: QQ(23.2, 10)
             116/5
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.25384186085600002
+            0.253841860855999
             sage: O = E.omega(); O
-            1.269209304279553421688794613    # 32-bit
+            1.269209304279553421688794              # 32-bit
             1.269209304279553421688794616754547304  # 64-bit
             sage: t = L/O; t
-            0.20000000000007040
+            0.200000000000070
             sage: QQ(t)
             1/5
         """

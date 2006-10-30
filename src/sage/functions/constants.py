@@ -719,3 +719,49 @@ class Brun(Constant):
 
 brun=Brun()
 
+class UniversalPolynomialElement(Constant):
+    """
+    A universal indeterminate.
+
+    EXAMPLES:
+        sage: x
+        x
+        sage: x.parent()
+    """
+    def __init__(self, name):
+        self._name = name
+        Constant.__init__(self,
+            {'axiom':name,
+             'maxima':name,
+             'gp':name,'kash':name,
+             'mathematica':name,
+             'matlab':name,
+             'maple':name,
+             'octave':name,
+             'pari':name})
+
+    def _repr_(self):
+        return self._name
+
+    def _latex_(self):
+        return self._name
+
+    def _mathml_(self):
+        return "<mi>%s</mi>"%self._name
+
+    def __float__(self):
+        raise TypeError
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _real_double_(self):
+        raise TypeError
+
+    def __abs__(self):
+        raise TypeError
+
+    def floor(self):
+        raise TypeError
+
+x = UniversalPolynomialElement('x')

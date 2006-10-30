@@ -41,7 +41,6 @@ import sage.rings.arith
 import rational
 import field_element
 from rational_field import frac, QQ
-import sage.misc.functional
 
 class pAdic(field_element.FieldElement):
     r"""

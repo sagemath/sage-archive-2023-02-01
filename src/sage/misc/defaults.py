@@ -20,7 +20,7 @@ AUTHORS: William Stein and David Kohel
 #*****************************************************************************
 
 # default variable name
-var_name = 'x'
+var_name = '_'
 
 def variable_names(n, name=None):
     if name is None:

@@ -25,6 +25,7 @@ cdef process(s):
     else:
         return s
 
+
 cdef class SageObject:
 
     #############################################################################
@@ -58,7 +59,7 @@ cdef class SageObject:
         Real numbers are not Python classes, so rename is not supported:
             sage: a = 3.14
             sage: type(a)
-            <type 'real_mpfr.RealNumber'>
+            <type 'sage.rings.real_mpfr.RealNumber'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
@@ -139,7 +140,7 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps(compress))
+        open(filename, 'wb').write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -305,6 +306,9 @@ cdef class SageObject:
             except AttributeError:
                 pass
         return X
+
+    def _interface_init_(self):
+        return str(self)
 
     def _interface_is_cached_(self):
         """
@@ -527,7 +531,7 @@ def save(obj, filename=None, compress=True):
         s = cPickle.dumps(obj, protocol=2)
         if compress:
             s = comp.compress(s)
-        open(process(filename), 'w').write(s)
+        open(process(filename), 'wb').write(s)
 
 def dumps(obj, compress=True):
     """

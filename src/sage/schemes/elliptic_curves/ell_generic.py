@@ -647,18 +647,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
            sage: X = E.change_ring(K)
            sage: f = X.pseudo_torsion_polynomial(5)
            sage: x_coords = [root for (root, _) in f.roots()]; x_coords
-            [a^3 + 7*a^2 + 6*a,
-             2*a^3 + 3*a^2 + a + 7,
-             3*a^3 + 10*a^2 + 7*a + 1,
-             3*a^3 + 10*a^2 + 7*a + 3,
-             3*a^3 + 10*a^2 + 7*a + 8,
-             5*a^3 + 2*a^2 + 8*a + 7,
-             6*a^3 + 9*a^2 + 3*a + 4,
-             8*a^3 + a^2 + 4*a + 4,
-             8*a^3 + a^2 + 4*a + 8,
-             8*a^3 + a^2 + 4*a + 10,
-             9*a^3 + 8*a^2 + 10*a + 8,
-             10*a^3 + 4*a^2 + 5*a + 6]
+           [10*a^3 + 4*a^2 + 5*a + 6,
+            9*a^3 + 8*a^2 + 10*a + 8,
+            8*a^3 + a^2 + 4*a + 10,
+            8*a^3 + a^2 + 4*a + 8,
+            8*a^3 + a^2 + 4*a + 4,
+            6*a^3 + 9*a^2 + 3*a + 4,
+            5*a^3 + 2*a^2 + 8*a + 7,
+            3*a^3 + 10*a^2 + 7*a + 8,
+            3*a^3 + 10*a^2 + 7*a + 3,
+            3*a^3 + 10*a^2 + 7*a + 1,
+            2*a^3 + 3*a^2 + a + 7,
+            a^3 + 7*a^2 + 6*a]
 
           Now we check that these are exactly the x coordinates of the
           5-torsion points of E.

@@ -6,13 +6,13 @@ AUTHOR:
 """
 
 import inspect
+import sage.misc.pyrex_inspect
 import os
 import string
 
 import sage.plot.plot
 import sage.structure.sage_object
 import sage.misc.latex
-import sage.all
 import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc
@@ -170,7 +170,7 @@ def docstring(obj_name, globs):
 
 def source_code(s, globs):
     """
-        AUTHOR: William Stein (but taken from IPython for use in SAGE).
+        AUTHOR: William Stein (but partly taken from IPython for use in SAGE).
     """
     try:
         obj = eval(s, globs)
@@ -180,14 +180,19 @@ def source_code(s, globs):
     try:
         try:
             fname = inspect.getabsfile(obj)
+            lines, num = inspect.getsourcelines(obj)
+            src = ''.join(lines)
         except TypeError:
-            fname = "unknown"
-        lines, num = inspect.getsourcelines(obj)
-        src = ''.join(lines)
-        return """File: %s
+            src = sage.misc.pyrex_inspect.getsource(obj, True)
+            num =None
+        src = sagedoc.format_src(src)
+        if not num is None:
+            src = """File: %s
 Source Code (starting at line %s):\n%s"""%(fname, num, src)
+        return src
 
-    except (TypeError, IndexError):
+    except (TypeError, IndexError), msg:
+        print msg
 
         return "Source code for %s not available."%obj
 

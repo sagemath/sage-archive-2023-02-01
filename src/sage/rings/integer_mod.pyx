@@ -27,6 +27,7 @@ cimport sage.rings.integer
 
 import sage.structure.element
 cimport sage.structure.element
+from sage.structure.element cimport RingElement
 
 from sage.rings.coerce import cmp as coerce_cmp
 
@@ -99,7 +100,7 @@ cdef class NativeIntStruct:
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
-    def __init__(self, parent, value, empty=False):
+    def __init__(self, parent):
         """
         EXAMPLES:
             sage: a = Mod(10,30^10); a
@@ -107,9 +108,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: loads(a.dumps()) == a
             True
         """
-        if self.__class__ is IntegerMod:
-            raise NotImplementedError, "Can't instantiate abstract IntegerMod"
-        commutative_ring_element.CommutativeRingElement.__init__(self, parent)
+        self._parent = parent
         self.__modulus = parent._pyx_order
 
     def __abs__(self):
@@ -240,23 +239,23 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     def is_square(self):
         return bool(self.pari().issquare()) # TODO implement directly
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         Returns the characteristic polynomial of this element.
 
         EXAMPLES:
             sage: k = GF(3)
             sage: a = k.gen()
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x + 2
-            sage: a.charpoly()(a)
+            sage: a + 2
             0
 
         AUTHOR:
          -- Craig Citro
         """
         import polynomial_ring
-        R = polynomial_ring.PolynomialRing(self._parent)
+        R = polynomial_ring.PolynomialRing(self._parent, var)
         return R([-self,1])
 
     def norm(self):
@@ -411,12 +410,12 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         EXAMPLES:
             sage: a = mod(5,14^20)
             sage: type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: loads(dumps(a)) == a
             True
         """
         mpz_init(self.value)
-        IntegerMod_abstract.__init__(self, parent, value)
+        IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
         cdef sage.rings.integer.Integer z
@@ -431,6 +430,21 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __dealloc__(self):
         mpz_clear(self.value)
+
+##     def __reduce__(self):
+##         """
+##         EXAMPLES:
+##             sage: k = Integers(2^200)
+##             sage: loads(dumps(k))  == k
+##             True
+##             sage: loads(dumps(k(17)))  == k(17)
+##             True
+##         """
+##         cdef sage.rings.integer.Integer z
+##         z = sage.rings.integer.Integer()
+##         sage.rings.integer.set_mpz(z, self.value)
+##         # todo -- should do this via some direct bytes thing that is the same function used in ZZ class, etc.
+##         return (IntegerMod_gmp, (self._parent, z))
 
 
     cdef void set_from_mpz(IntegerMod_gmp self, mpz_t value):
@@ -477,7 +491,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: mod(5,13^20) == mod(-5,13)
             False
         """
-        if right._parent is not self._parent:
+        if right._parent != self._parent:
             return -1
         cdef int i
         i = mpz_cmp(self.value, right.value)
@@ -554,7 +568,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return copy
 
 
-    def _add_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
@@ -565,21 +579,23 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         modulus = self.__modulus.sageInteger
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_add(x.value, self.value, right.value)
+        mpz_add(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_cmp(x.value, modulus.value)  >= 0:
             mpz_sub(x.value, x.value, modulus.value)
         return x;
 
-    def _sub_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
             sage: R(7) - R(8)
             9999999999
         """
+        # todo: ask someone (like Robert) why _add_c_impl and _sub_c_impl
+        # grab the modulus differently?
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_sub(x.value, self.value, right.value)
+        mpz_sub(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_sgn(x.value) == -1:
             mpz_add(x.value, x.value, self.__modulus.sageInteger.value)
         return x;
@@ -682,7 +698,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = mod(3,10^100); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: ~a
             6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667
             sage: ~mod(2,10^100)
@@ -706,7 +722,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^70); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: lift(a)
             8943
             sage: a.lift()
@@ -730,6 +746,13 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 #      class IntegerMod_int
 ######################################################################
 
+def create_IntegerMod_int(parent, int ivalue):
+    cdef IntegerMod_int n
+    n = IntegerMod_int.__new__(IntegerMod_int, 0)
+    n._parent = parent
+    n.ivalue = ivalue
+    return n
+
 cdef class IntegerMod_int(IntegerMod_abstract):
     """
     Elements of $\Z/n\Z$ for n small enough to be operated on in 32 bits
@@ -745,7 +768,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: loads(a.dumps()) == a
             True
         """
-        IntegerMod_abstract.__init__(self, parent, value)
+        IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
         cdef sage.rings.integer.Integer z
@@ -756,7 +779,6 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         else:
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
-
 
     cdef void set_from_mpz(IntegerMod_int self, mpz_t value):
         if mpz_sgn(value) == -1 or mpz_cmp_si(value, self.__modulus.int32) >= 0:
@@ -877,7 +899,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         copy.ivalue = self.ivalue
         return copy
 
-    def _add_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -886,12 +908,12 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         cdef IntegerMod_int x
         x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + right.ivalue
+        x.ivalue = self.ivalue + (<IntegerMod_int>right).ivalue
         if x.ivalue >= self.__modulus.int32:
             x.ivalue = x.ivalue - self.__modulus.int32
         return x;
 
-    def _sub_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -900,7 +922,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         cdef IntegerMod_int x
         x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - right.ivalue
+        x.ivalue = self.ivalue - (<IntegerMod_int>right).ivalue
         if x.ivalue < 0:
             x.ivalue = x.ivalue + self.__modulus.int32
         return x;
@@ -1042,7 +1064,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^10); type(a)
-            <type 'integer_mod.IntegerMod_int'>
+            <type 'sage.rings.integer_mod.IntegerMod_int'>
             sage: lift(a)
             751
             sage: a.lift()
@@ -1168,11 +1190,13 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: a = Mod(10,3^10); a
             10
             sage: type(a)
-            <type 'integer_mod.IntegerMod_int64'>
+            <type 'sage.rings.integer_mod.IntegerMod_int64'>
             sage: loads(a.dumps()) == a
             True
+            sage: Mod(5, 2^31)
+            5
         """
-        IntegerMod_abstract.__init__(self, parent, value)
+        IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
         cdef sage.rings.integer.Integer z
@@ -1313,7 +1337,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         copy.ivalue = self.ivalue
         return copy
 
-    def _add_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
@@ -1322,12 +1346,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + right.ivalue
+        x.ivalue = self.ivalue + (<IntegerMod_int64>right).ivalue
         if x.ivalue >= self.__modulus.int64:
             x.ivalue = x.ivalue - self.__modulus.int64
         return x;
 
-    def _sub_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
@@ -1336,7 +1360,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - right.ivalue
+        x.ivalue = self.ivalue - (<IntegerMod_int64>right).ivalue
         if x.ivalue < 0:
             x.ivalue = x.ivalue + self.__modulus.int64
         return x;
@@ -1452,7 +1476,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = mod(7,2^40); type(a)
-            <type 'integer_mod.IntegerMod_gmp'>
+            <type 'sage.rings.integer_mod.IntegerMod_gmp'>
             sage: ~a
             471219269047
             sage: a
@@ -1469,7 +1493,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
         EXAMPLES:
             sage: a = Mod(8943, 2^25); type(a)
-            <type 'integer_mod.IntegerMod_int64'>
+            <type 'sage.rings.integer_mod.IntegerMod_int64'>
             sage: lift(a)
             8943
             sage: a.lift()

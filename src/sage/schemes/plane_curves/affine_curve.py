@@ -21,7 +21,7 @@ from sage.interfaces.all import singular
 
 from sage.misc.all import latex, generic_cmp, add
 
-from sage.rings.all import (MPolynomial, MPolynomialRing,
+from sage.rings.all import (MPolynomialRing,
                             degree_lowest_rational_function, is_PrimeField)
 
 from sage.schemes.generic.affine_space import is_AffineSpace
@@ -187,8 +187,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
             sage: C
             Affine Curve over Finite Field in a of size 3^2 defined by 2 + x1^2 + x0^2
             sage: C.rational_points()
-            [(2*a + 2, 2*a + 2), (2*a + 2, a + 1), (a + 1, 2*a + 2),
-             (a + 1, a + 1), (2, 0), (1, 0), (0, 2), (0, 1)]
+            [(0, 1), (0, 2), (1, 0), (2, 0), (a + 1, a + 1), (a + 1, 2*a + 2), (2*a + 2, a + 1), (2*a + 2, 2*a + 2)]
         """
         f = self.defining_polynomial()
         R = f.parent()

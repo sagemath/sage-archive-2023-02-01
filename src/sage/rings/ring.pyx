@@ -1,5 +1,9 @@
 """
 Abstract base class for rings
+
+AUTHORS:
+    -- David Harvey (2006-10-16): changed CommutativeAlgebra to derive from
+    CommutativeRing instead of from Algebra
 """
 
 #*****************************************************************************
@@ -42,7 +46,8 @@ cdef class Ring(sage.structure.gens.Generators):
 
     def __getitem__(self, x):
         """
-        Create a polynomial or power series ring over self.
+        Create a polynomial or power series ring over self and inject
+        the variables into the global module scope.
 
         EXAMPLES:
         We create several polynomial rings.
@@ -67,6 +72,12 @@ cdef class Ring(sage.structure.gens.Generators):
             Laurent Series Ring in t over Rational Field
 
         """
+        if not isinstance(x, list):
+            from sage.rings.polynomial_ring import PolynomialRing
+            P = PolynomialRing(self, x)
+            P.inject_variables()
+            return P
+
         P = None
         if isinstance(x, list):
             if len(x) != 1:
@@ -98,21 +109,38 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            return P(self, len(v), names=v)
+            R = P(self, len(v), names=v)
         else:
-            return P(self, x)
+            R = P(self, x)
 
+        R.inject_variables()
 
+        return R
 
     def __xor__(self, n):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
-        #if x.parent() is self:
-        #    return x
-        #raise TypeError
+        # TODO: Should uncommment this line and *do the work* to implement _coerce_
+        # everywhere else.
+        # raise NotImplementedError
         return self(x)
+
+    def has_natural_map_from(self, S):
+        """
+        Return True if there is a natural map from S to self.
+        Otherwise, return False.
+        """
+        # TODO This generic behavior is stupid and slow -- but is
+        # doing exactly what we want.  Moreover, again, as in _coerce_
+        # above, this should be "raise NotImplementedError", and all
+        # rings must define this.
+        try:
+            self(S(0))
+        except TypeError:
+            return False
+        return True
 
     def base_ring(self):
         import sage.rings.integer_ring
@@ -278,7 +306,7 @@ cdef class CommutativeRing(Ring):
         """
         Return the monoid of ideals of this ring.
         """
-        if self.__ideal_monoid != None:
+        if self.__ideal_monoid is not None:
             return self.__ideal_monoid
         else:
             from sage.rings.ideal_monoid import IdealMonoid
@@ -298,14 +326,14 @@ cdef class CommutativeRing(Ring):
             I -- an ideal of R
 
         EXAMPLES:
-            sage: R, x = (ZZ['x']).objgen()
+            sage: R = ZZ['x']
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: S = R.quotient(I, 'a')
             sage: S.gens()
             (a,)
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S, (a,b) = ( R/ (x^2, y) ).objgens('ab')
+            sage: R = QQ['x,y']
+            sage: S = R.quotient((x^2, y), 'ab')
             sage: S
             Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
             sage: S.gens()
@@ -315,7 +343,7 @@ cdef class CommutativeRing(Ring):
         """
         import sage.rings.quotient_ring
         Q = sage.rings.quotient_ring.QuotientRing(self, I)
-        Q.assign_names(names)
+        Q._assign_names(names)
         return Q
 
     def __div__(self, I):
@@ -343,7 +371,7 @@ cdef class IntegralDomain(CommutativeRing):
         """
         Return the fraction field of self.
         """
-        if self.__fraction_field != None:
+        if self.__fraction_field is not None:
             return self.__fraction_field
         else:
             import sage.rings.fraction_field
@@ -725,10 +753,9 @@ cdef class FiniteField(Field):
             sage: k.multiplicative_generator()
             a
         """
-
         from sage.rings.arith import primitive_root
 
-        if self.__multiplicative_generator != None:
+        if self.__multiplicative_generator is not None:
             return self.__multiplicative_generator
         else:
             if self.degree() == 1:
@@ -829,7 +856,7 @@ cdef class FiniteField(Field):
         from sage.rings.polynomial_ring import PolynomialRing
         from sage.rings.finite_field import GF
 
-        if self.__polynomial_ring != None:
+        if self.__polynomial_ring is not None:
             return self.__polynomial_ring
         else:
             self.__polynomial_ring = PolynomialRing(
@@ -837,7 +864,7 @@ cdef class FiniteField(Field):
             return self.__polynomial_ring
 
     def vector_space(self):
-        if self.__vector_space != None:
+        if self.__vector_space is not None:
             return self.__vector_space
         else:
             import sage.modules.all
@@ -850,6 +877,8 @@ cdef class Algebra(Ring):
     Generic algebra
     """
     def __init__(self, base_ring):
+        if not isinstance(base_ring, Ring):
+            raise TypeError, "base ring must be a ring"
         self.__base_ring = base_ring
 
     def base_ring(self):
@@ -867,18 +896,27 @@ cdef class Algebra(Ring):
         return self.base_ring().characteristic()
 
 
-cdef class CommutativeAlgebra(Algebra):
+cdef class CommutativeAlgebra(CommutativeRing):
     """
-    Generic algebra
+    Generic commutative algebra
     """
     def __init__(self, base_ring):
-        Algebra.__init__(self, base_ring)
+        if not isinstance(base_ring, CommutativeRing):
+            raise TypeError, "base ring must be a commutative ring"
+        self.__base_ring = base_ring
 
     def base_ring(self):
         """
         Return the base ring of this commutative algebra.
         """
         return self.__base_ring
+
+    def characteristic(self):
+        """
+        Return the characteristic of this algebra, which is the same
+        as the characteristic of its base ring.
+        """
+        return self.base_ring().characteristic()
 
     def is_commutative(self):
         """
@@ -889,3 +927,5 @@ cdef class CommutativeAlgebra(Algebra):
 
 def is_Ring(x):
     return isinstance(x, Ring)
+
+

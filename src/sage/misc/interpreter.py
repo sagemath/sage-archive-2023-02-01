@@ -391,29 +391,11 @@ InteractiveShell.prefilter = sage_prefilter
 
 # Clean up the namespace.
 #del InteractiveShell, sage_prefilter
-
-#######################################
-## Add detex'ing of documentation
-#######################################
 import sagedoc
-import inspect
-
-def my_getdoc(obj):
-    try:
-        ds = obj._sage_doc_()
-    except (AttributeError, TypeError):  # TypeError for interfaces
-        try:
-            ds = inspect.getdoc(obj)
-        except:
-            return None
-    if ds is None:
-        return None
-    return sagedoc.format(ds)
 
 import IPython.OInspect
-IPython.OInspect.getdoc = my_getdoc
-
-
+IPython.OInspect.getdoc = sagedoc.my_getdoc
+IPython.OInspect.getsource = sagedoc.my_getsource
 
 import log
 

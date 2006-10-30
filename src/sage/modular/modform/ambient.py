@@ -1,5 +1,40 @@
-"""
-Modular Forms
+r"""
+Ambient Spaces of Modular Forms
+
+EXAMPLES:
+
+We compute a basis for the ambient space $M_2(\Gamma_1(25),\chi)$,
+where $\chi$ is quadratic.
+
+    sage: chi = DirichletGroup(25,QQ).0; chi
+    [-1]
+    sage: n = ModularForms(chi,2); n
+    Modular Forms space of dimension 6, character [-1] and weight 2 over Rational Field
+    sage: type(n)
+    <class 'sage.modular.modform.ambient_eps.ModularFormsAmbient_eps'>
+
+Compute a basis:
+    sage: n.basis()
+    [
+    1 + O(q^6),
+    q + O(q^6),
+    q^2 + O(q^6),
+    q^3 + O(q^6),
+    q^4 + O(q^6),
+    q^5 + O(q^6)
+    ]
+
+Compute the same basis but to higher precision:
+    sage: n.set_precision(20)
+    sage: n.basis()
+    [
+    1 + 10*q^10 + 20*q^15 + O(q^20),
+    q + 2*q^6 + 12*q^11 + 11*q^16 + O(q^20),
+    q^2 + 6*q^7 + 6*q^12 + 16*q^17 + O(q^20),
+    q^3 + 5/2*q^8 + 6*q^13 + 7/2*q^18 + O(q^20),
+    q^4 + 7/3*q^9 + 2*q^14 + 20/3*q^19 + O(q^20),
+    q^5 + q^10 + 2*q^15 + O(q^20)
+    ]
 """
 
 #########################################################################

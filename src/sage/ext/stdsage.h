@@ -1,6 +1,12 @@
 /*
 General C (.h) code this is useful to include in any pyrex module.
 
+Put
+
+include 'relative/path/to/stdsage.pxi'
+
+at the top of your Pyrex file.
+
 These are mostly things that can't be done in Pyrex.
 */
 
@@ -14,9 +20,63 @@ These are mostly things that can't be done in Pyrex.
 
 ******************************************************************************/
 
+#ifndef STDSAGE_H
+#define STDSAGE_H
+
 
 /*****************************************
           For PARI
+          Memory management
+
  *****************************************/
 
 #define set_gel(x, n, z)  gel(x,n)=z;
+
+
+/******************************************
+ Some macros exported for Pyrex in cdefs.pxi
+ ****************************************/
+
+/* Tests whether zzz_obj is of type zzz_type. The zzz_type must be a built-in
+   or extension type. This is just a C++-compatible wrapper for
+   PyObject_TypeCheck. */
+#define PY_TYPE_CHECK(zzz_obj, zzz_type) \
+    (PyObject_TypeCheck((PyObject*)(zzz_obj), (PyTypeObject*)(zzz_type)))
+
+/* Returns the type field of a python object, cast to void*. The returned
+   value should only be used as an opaque object e.g. for type comparisons. */
+#define PY_TYPE(zzz_obj) ((void*)((zzz_obj)->ob_type))
+
+/* Constructs a new object of type zzz_type by calling tp_new directly,
+   with no arguments. */
+/* #define PY_NEW(zzz_type) \
+    (((PyTypeObject*)(zzz_type))->tp_new((zzz_type), global_empty_tuple, NULL)) */
+
+#define PY_NEW(zzz_type) \
+    (((PyTypeObject*)(zzz_type))->tp_new((zzz_type), global_empty_tuple, NULL))
+
+/* Resets the tp_new slot of zzz_type1 to point to the tp_new slot of
+   zzz_type2. This is used in SAGE to speed up Pyrex's boilerplate object
+   construction code by skipping irrelevant base class tp_new methods. */
+#define PY_SET_TP_NEW(zzz_type1, zzz_type2) \
+    (((PyTypeObject*)zzz_type1)->tp_new = ((PyTypeObject*)zzz_type2)->tp_new)
+
+
+/* Tests whether the given object has a python dictionary. */
+#define HAS_DICTIONARY(zzz_obj) \
+    (((PyObject*)(zzz_obj))->ob_type->tp_dictoffset != NULL)
+
+PyObject* global_empty_tuple;
+
+/*****************************************
+          Memory management
+
+ *****************************************/
+
+#define sage_malloc  malloc
+#define sage_free    free
+#define sage_realloc realloc
+
+
+
+#endif

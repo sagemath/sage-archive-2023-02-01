@@ -648,7 +648,7 @@ function unlock_worksheet() {
 
 function unlock_worksheet_submit(e,passcode) {
     if(is_submit(e)) {
-        document.cookie = "ws_"+worksheet_name+"_passcode="+passcode;
+        document.cookie = "ws_"+worksheet_filename+"_passcode="+passcode;
         async_request('/unlock_worksheet', unlock_worksheet_callback, 'worksheet_id='+worksheet_id);
         return false;
     }
@@ -1833,23 +1833,23 @@ function insert_cells_from_wiki_callback(status, response_text) {
 ///////////////////////////////////////////////////////////////////
 function history_window() {
     history = window.open ("__history__.html",
-      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1");
+      "", "menubar=1,scrollbars=1,width=700,height=600, toolbar=1,resizable=1");
 }
 
 function worksheet_text_window(worksheet) {
     log = window.open (worksheet+"__plain__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600, toolbar=1, resizable=1");
 }
 
 function doctest_window(worksheet) {
     log = window.open (worksheet+"__doc__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1, resizable=1");
 }
 
 
 function print_window(worksheet) {
     log = window.open (worksheet+"__print__.html","",
-      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1");
+      "menubar=1,scrollbars=1,width=700,height=600,toolbar=1,  resizable=1");
 }
 
 //////////////////////////////////

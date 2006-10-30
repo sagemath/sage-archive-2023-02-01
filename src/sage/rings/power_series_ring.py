@@ -88,11 +88,11 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name)
         self.__power_series_class = power_series_ring_element.PowerSeries_generic_dense
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
-        self.assign_names(name)
+        self._assign_names(name)
 
     def assign_names(self, name):
-        commutative_ring.CommutativeRing.assign_names(self, name)
-        self.__poly_ring.assign_names(name)
+        commutative_ring.CommutativeRing._assign_names(self, name)
+        self.__poly_ring._assign_names(name)
 
     def __repr__(self):
         return "Power Series Ring in %s over %s"%(self.variable_name(), self.base_ring())

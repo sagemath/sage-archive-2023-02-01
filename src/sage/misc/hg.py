@@ -1,12 +1,21 @@
-"""
+r"""
 HG from SAGE.
 
 These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
-This system should all be fully usable from the SAGE notebook (except
-for merging, currently).
+This system should all be mostly from the SAGE notebook.
+
+\begin{itemize}
+\item Use \code{hg_sage.record()} to record all of your changes.
+\item Use \code{hg_sage.bundle('filename')} to bundle them up to send them.
+\item Use \code{hg_sage.inspect('filename.hg')} to inspect a bundle.
+\item Use \code{hg_sage.unbundle('filename.hg')} to import a bundle into your
+      repository.
+\item Use \code{hg_sage.pull()} to synchronize with the latest official
+      stable SAGE changesets.
+\end{itemize}
 """
 
 ########################################################################
@@ -40,9 +49,8 @@ class HG:
 
     This system should all be fully usable from the SAGE notebook.
 
-    The few of the simplest and most useful commands are directly
-    provided as member functions.  However, you can use the full
-    functionality of hg by noting that typing, e.g.,
+    Most commands are directly provided as member functions.  However,
+    you can use the full functionality of hg, i.e.,
             \code{hg_sage("command line arguments")}
     is \emph{exactly} the same as typing
     \begin{verbatim}
@@ -78,8 +86,27 @@ class HG:
         if self.__name == "SAGE Library Source Code":
             b = branch_current_hg()
             if b == '': b='main'
+	    elif b[-1] == '/':
+	        b = b[:-1]
             print("Branch: %s"%b)
 
+
+
+    def _changed_files(self):
+        out, err = self('status', interactive=False)
+        v = [x for x in out.split('\n') if x.strip()[:1] != '?' and len(x) != 0]
+        return len(v) > 0
+
+    def _ensure_safe(self):
+        """
+        Ensure that the repository is in a safe state to have changes
+        applied to it, i.e., that all changes to controlled files in
+        the working directory are recorded.
+        """
+        if self._changed_files():
+            self.ci()
+        if self._changed_files():
+            raise RuntimeError, "Refusing to do operation since you still have unrecorded changes. You must check in all changes in your working repository first."
 
     def _warning(self):
         if not os.path.exists(os.environ['HOME'] + '/.hgrc'):
@@ -91,15 +118,35 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd, check_initialized=True):
+    def __call__(self, cmd, interactive=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
+
+        INPUT:
+            cmd -- string, the hg command line (everything after 'hg')
+            interactive -- If True, runs using os.system, so user can
+                           interactively interact with hg, i.e., this
+                           is needed when you record changes because
+                           the editor pops up.
+                           If False, popen3 is used to launch hg
+                           as a subprocess.
+        OUTPUT:
+            * If interactive is True, returns the exit code of the system call.
+            * If interactive is False, returns the output and error text.
         """
         self._warning()
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
-        return os.system(s)
+        if interactive:
+            e = os.system(s)
+            return e
+        else:
+            x = os.popen3(s)
+            x[0].close()
+            out = x[1].read()
+            err = x[2].read()
+            return out, err
 
     def serve(self, port=8200, open_viewer=False):
         """
@@ -124,26 +171,30 @@ class HG:
 
     browse = serve
 
-    def unbundle(self, bundle, update=True, options=''):
+    def unbundle(self, bundle, update=True):
         """
         Apply patches from a hg patch to the repository.
 
-        If the bundle is a .patch file, instead call the import_patch method.
+        To see what is in a bundle before applying it, using self.incoming(bundle).
 
         INPUT:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
-        if bundle[-6:] == '.patch':
-            self.import_patch(bundle, options)
-            return
+        if bundle[-5:] == '.diff':
+            return self.import_patch(bundle)
+        self._ensure_safe()
         bundle = os.path.abspath(bundle)
         print "Unbundling bundle %s"%bundle
         if update:
             options = '-u'
         else:
             options = ''
-        self('unbundle %s %s "%s"'%(options, options, bundle))
+
+        print "If you get an error 'abort: unknown parent'"
+        print "this just means you need to do an x.pull(),"
+        print "where x is the hg_ object you just called this method on."
+        self('unbundle %s "%s"'%(options, bundle))
 
     apply = unbundle
 
@@ -229,9 +280,49 @@ class HG:
 
         ALIASES: patch
         """
+        self._ensure_safe()
         self('import "%s" %s'%(os.path.abspath(filename),options))
 
     patch = import_patch
+
+    def incoming(self, source, options=''):
+        """
+        Show new changesets found in the given source.  This even
+        works if the source is a bundle file (ends in .hg or .bundle).
+
+        Show new changesets found in the specified path/URL or the default
+        pull location. These are the changesets that would be pulled if a pull
+        was requested.
+
+        For remote repository, using --bundle avoids downloading the changesets
+        twice if the incoming is followed by a pull.
+
+        See pull for valid source format details.
+
+        ALIAS: inspect
+
+        INPUT:
+            filename -- string
+            options -- string '[-p] [-n] [-M] [-r REV] ...'
+                         -M --no-merges     do not show merges
+                         -f --force         run even when remote repository is unrelated
+                            --style         display using template map file
+                         -n --newest-first  show newest record first
+                            --bundle        file to store the bundles into
+                         -p --patch         show patch
+                         -r --rev           a specific revision you would like to pull
+                            --template      display with template
+                         -e --ssh           specify ssh command to use
+                            --remotecmd     specify hg command to run on the remote side
+        """
+        if os.path.exists(source):
+            source = os.path.abspath(source)
+        if os.path.splitext(source)[1] in ['.hg', '.bundle']:
+            source = 'bundle://%s'%source
+        self('incoming %s "%s"'%(options, source))
+
+    inspect = incoming
+
 
     def add(self, files, options=''):
         """
@@ -380,6 +471,51 @@ class HG:
 
     what = diff
 
+    def revert(self, files='', options='', rev=None):
+        """
+        Revert files or dirs to their states as of some revision
+
+            With no revision specified, revert the named files or
+            directories to the contents they had in the parent of the
+            working directory.  This restores the contents of the
+            affected files to an unmodified state.  If the working
+            directory has two parents, you must explicitly specify the
+            revision to revert to.
+
+            Modified files are saved with a .orig suffix before
+            reverting.  To disable these backups, use --no-backup.
+
+            Using the -r option, revert the given files or directories
+            to their contents as of a specific revision.  This can be
+            helpful to 'roll back' some or all of a change that should
+            not have been committed.
+
+            Revert modifies the working directory.  It does not commit
+            any changes, or change the parent of the working
+            directory.  If you revert to a revision other than the
+            parent of the working directory, the reverted files will
+            thus appear modified afterwards.
+
+            If a file has been deleted, it is recreated.  If the executable
+            mode of a file was changed, it is reset.
+
+            If names are given, all files matching the names are reverted.
+
+            If no arguments are given, all files in the repository are
+            reverted.
+
+        OPTIONS:
+            --no-backup  do not save backup copies of files
+         -I --include    include names matching given patterns
+         -X --exclude    exclude names matching given patterns
+         -n --dry-run    do not perform actions, just print output
+        """
+        if not rev is None:
+            options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
+        else:
+            options = files
+        self('revert %s'%options)
+
     def dir(self):
         """
         Return the directory where this repository is located.
@@ -438,6 +574,8 @@ class HG:
           Alternatively specify "ssh -C" as your ssh command in your hgrc or
           with the --ssh command line option.
         """
+        self._ensure_safe()
+
         if url is None:
             url = self.__url
         if not '/' in url:
@@ -455,7 +593,7 @@ class HG:
         print "of the repository you are using.  This might not"
         print "work with the notebook yet."
 
-    def merge(self, options='-f'):
+    def merge(self, options=''):
         """
         Merge working directory with another revision
 
@@ -465,13 +603,13 @@ class HG:
         performed before any further updates are allowed.
 
         INPUT:
-            options -- default: '-f'
+            options -- default: ''
                  -b --branch  merge with head of a specific branch
                  -f --force   force a merge with outstanding changes
         """
         self('merge %s'%options)
 
-    def update(self, options='-f'):
+    def update(self, options=''):
         """
         update or merge working directory
 
@@ -490,7 +628,7 @@ class HG:
         aliases: up, checkout, co
 
         INPUT:
-            options -- string (default: '-f')
+            options -- string (default: '')
              -b --branch  checkout the head of a specific branch
              -C --clean   overwrite locally modified files
              -f --force   force a merge with outstanding changes
@@ -588,7 +726,7 @@ class HG:
         else:
             os.system('sage -clone %s -r %s'%(name, int(rev)))
 
-    def commit(self, files='', comment=None, options=''):
+    def commit(self, files='', comment=None, options='', diff=True):
         """
         Commit your changes to the repository.
 
@@ -614,10 +752,16 @@ class HG:
                  -I --include    include names matching the given patterns
                  -X --exclude    exclude names matching the given patterns
 
+             diff -- (default: True) if True show diffs between your repository
+                             and your working repository before recording changes.
+
         \note{If you create new files you should first add them with the add method.}
         """
         if sage.server.support.EMBEDDED_MODE and comment is None:
             raise RuntimeError, "You're using the SAGE notebook, so you *must* explicitly specify the comment in the commit command."
+        if diff:
+            self.diff(files)
+
         if comment:
             self('commit %s -m "%s" %s '%(options, comment, files))
         else:
@@ -637,6 +781,8 @@ class HG:
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the
         'official' SAGE repository).
+
+        Use self.inspect('file.bundle') to inspect the resulting bundle.
 
         This is a file that you should probably send to William Stein
         (wstein@gmail.com), post to a web page, or send to sage-devel.

@@ -54,7 +54,7 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 import multi_polynomial_ring
 import polynomial_ring
 
-def is_MPolynomialRingElement(x):
+def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
 class MPolynomial(Element_cmp_, CommutativeRingElement):

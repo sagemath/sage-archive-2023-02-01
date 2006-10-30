@@ -73,7 +73,7 @@ class FreeAlgebra_generic(Algebra):
         self.__base_ring = R
         self.__monoid = FreeMonoid(n, names=names)
         self.__ngens = n
-        self.assign_names(names)
+        self._assign_names(names)
 
     def __cmp__(self, other):
         if not isinstance(other, FreeAlgebra_generic):
@@ -128,14 +128,13 @@ class FreeAlgebra_generic(Algebra):
         """
         return self.__ngens
 
-    def assign_names(self,names):
+    def _assign_names(self,names):
         """
         Assign the printing names for the generators; this will have the unfortunate
         effect of overwriting the names for the covering algebra; this also does not
         overwrite the return value of names() for the Algebra.
         """
-        #self._Algebra.assign_names(names) # where is this located?
-        self.monoid().assign_names(names)
+        self.monoid()._assign_names(names)
 
 
     def base_ring(self):

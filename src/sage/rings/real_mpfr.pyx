@@ -171,13 +171,13 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealField(20)
             sage: R('1.234')
-            1.233
+            1.2339
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
             TypeError: Unable to convert x (='2') to real number.
             sage: a = R('1.1001', base=2); a
-            1.562
+            1.5625
             sage: a.str(2)
             '1.1001000000000000000'
         """
@@ -314,12 +314,12 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealField(100)
             sage: R.pi()
-            3.141592653589793238462643383279
+            3.1415926535897932384626433832
             sage: R.pi().sqrt()/2
-            0.8862269254527580136490837416698
+            0.88622692545275801364908374166
             sage: R = RealField(150)
             sage: R.pi().sqrt()/2
-            0.88622692545275801364908374167057259139877472759
+            0.88622692545275801364908374167057259139877472
         """
         cdef RealNumber x
         x = RealNumber(self)
@@ -334,7 +334,7 @@ cdef class RealField(sage.rings.ring.Field):
 
         EXAMPLES:
             sage: RealField(100).euler_constant()
-            0.5772156649015328606065120900823
+            0.57721566490153286060651209008
         """
         cdef RealNumber x
         x = RealNumber(self)
@@ -348,7 +348,7 @@ cdef class RealField(sage.rings.ring.Field):
 
         EXAMPLES:
             sage: RealField(100).catalan_constant()
-            0.9159655941772190150546035149317
+            0.91596559417721901505460351493
         """
         cdef RealNumber x
         x = RealNumber(self)
@@ -363,9 +363,9 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R=RealField(100)
             sage: R.log2()
-            0.6931471805599453094172321214579
+            0.69314718055994530941723212145
             sage: R(2).log()
-            0.6931471805599453094172321214579
+            0.69314718055994530941723212145
         """
         cdef RealNumber x
         x = RealNumber(self)
@@ -408,7 +408,7 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealField()
             sage: R.zeta()
-            -1.0000000000000
+            -1.00000000000000
             sage: R.zeta(1)
             1.00000000000000
             sage: R.zeta(5)
@@ -453,7 +453,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.24559999999999
             sage: R = RealField(3)
             sage: R('1.2456')
-            1
+            1.0
 
         EXAMPLE: Rounding Modes
             sage: w = RealField(3)(5/2)
@@ -520,7 +520,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: loads(dumps(b)) == b
             True
             sage: b = R(-1).sqrt(); b
-            1.0000000000000000000000000000000000000000000000000000000000000*I
+            1.0000000000000000000000000000000000000000000000000000000000*I
             sage: loads(dumps(b)) == b
             True
         """
@@ -623,13 +623,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
         free(s)
 
         cdef int i
-        # This is log(2^(b-1)/10)/log(10), which is the number of digits
-        # that are write.  This avoids the confusion a lot of people have
-        # with the last 1-2 binary digits being wrong due to rounding
-        # coming from representating numbers in binary.
+
+        # This is log_{10}(2^(b-1)), which is the number of *decimal*
+        # digits that are "right", given that the last binary bit of the
+        # binary number can be off.  I.e., the number that corresponds to an
+        # exact real number, which written in binary, is right except that
+        # the last digit could be wrong.  This changes the number by
+        # a relative error of 2^(-b). Thus a guaranteed number of digits
+        # that are right is
+        # This avoids the confusion a lot of people have with the last
+        # 1-2 binary digits being wrong due to rounding coming from
+        # representating numbers in binary.
+
         if base == 10 and truncate:
-            i = ((<RealField>self._parent).__prec - 4)/3 - 1
-            t = t[:i]
+            i = ((<RealField>self._parent).__prec - 1) * 0.3010299956
+            if len(t) == 0 or t[0] == '-': i = i + 1  # to compensate for minus sign.
+            if i > 0:
+                t = t[:i]
 
         if no_sci==False or ((<RealField>self._parent).sci_not and not (no_sci==True)):
             if t[0] == "-":
@@ -711,7 +721,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R(-1.5) - R(2.5)
-            -4.0000000000000
+            -4.00000000000000
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -725,7 +735,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R(-1.5) * R(2.5)
-            -3.7500000000000
+            -3.75000000000000
 
         If two elements have different precision, arithmetic
         operations are performed after coercing to the lower
@@ -736,13 +746,13 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = R20('393.3902834028345')
             sage: b = R100('393.3902834028345')
             sage: a
-            393.3
+            393.39
             sage: b
-            393.3902834028344999999999999997
+            393.39028340283449999999999999
             sage: a*b
-            154700
+            154750
             sage: b*a
-            154700
+            154750
             sage: parent(b*a)
             Real Field with 20 bits of precision
         """
@@ -771,7 +781,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R(-1.5) / R(2.5)
-            -0.60000000000000
+            -0.600000000000000
         """
         if isinstance(x, RealNumber) and isinstance(y, RealNumber):
             return x.__div_(y)
@@ -859,31 +869,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: R = RealField(20,False,'RNDN')
             sage: R(22.454)
-            22.45
+            22.454
             sage: R(22.491)
-            22.49
+            22.490
 
             RNDZ -- round towards zero:
             sage: R = RealField(20,False,'RNDZ')
             sage: R(22.454)
-            22.45
+            22.453
             sage: R(22.491)
-            22.49
+            22.490
 
             RNDU -- round towards plus infinity:
             sage: R = RealField(20,False,'RNDU')
             sage: R(22.454)
-            22.45
+            22.454
             sage: R(22.491)
-            22.49
+            22.491
 
             RNDU -- round towards minus infinity:
             sage: R = RealField(20,False,'RNDD')
             sage: R(22.454)
-            22.45
+            22.453
             sage: R(22.491)
-            22.49
-
+            22.490
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -939,7 +948,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: (2.99).trunc()
             2.00000000000000
             sage: (-0.00).trunc()
-            -0.00000000000000
+            -0.000000000000000
             sage: (0.00).trunc()
             0.000000000000000
         """
@@ -960,7 +969,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: (2.50).frac()
             0.500000000000000
             sage: (-2.79).frac()
-            -0.79000000000000
+            -0.790000000000000
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1076,7 +1085,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r.sqrt()^2 == r
             False
             sage: r.sqrt()^2 - r
-             -0.00000000000090949470177292
+             -0.000000000000909494701772928
 
             sage: r = -2.0
             sage: r.sqrt()
@@ -1117,7 +1126,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             5.00000000000000
             sage: r = -119.0
             sage: r.cube_root()^3 - r       # illustrates precision loss
-            -0.000000000000014210854715202
+            -0.0000000000000142108547152020
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1150,12 +1159,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R = RealField(30)
             sage: a = R('1.23456')
             sage: a^20
-            67.64629
+            67.646297
             sage: a^a
-            1.297111
+            1.2971114
             sage: b = R(-1)
             sage: b^(1/2)
-            1.000000*I
+            1.0000000*I
         """
         cdef RealNumber x
         if not isinstance(self, RealNumber):
@@ -1345,7 +1354,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField(100)
             sage: R(2).sin()
-            0.9092974268256816953960198659115
+            0.90929742682568169539601986591
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1421,7 +1430,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: i.asin() == q
             False
             sage: i.asin() - q
-            -0.00000000000000011102230246251
+            -0.000000000000000111022302462515
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1522,7 +1531,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: i = q.sinh() ; i
             0.464017630492990
             sage: i.asinh() - q
-            -0.000000000000000055511151231257
+            -0.0000000000000000555111512312578
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
@@ -1540,7 +1549,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: i = q.tanh() ; i
             0.420911241048534
             sage: i.atanh() - q
-            -0.000000000000000055511151231257
+            -0.0000000000000000555111512312578
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)

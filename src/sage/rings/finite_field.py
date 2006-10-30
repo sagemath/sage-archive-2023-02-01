@@ -63,6 +63,61 @@ import sage.interfaces.gap
 
 from finite_field_c import FiniteField, is_FiniteField, is_PrimeFiniteField
 
+import weakref
+
+cache = {}
+
+def FiniteField(order, name=None, modulus=None):
+    """
+    Return the globally unique finite field of given order with generator
+    labeled by the given name and possibly with given modulus.
+
+    INPUT:
+        order --   int
+        name --    string; must be specified in not a prime field
+        modulus -- (optional) defining polynomial for field, i.e.,
+                   generator of the field will be a root of this
+                   polynomial; if not specified the choice of
+                   definining polynomials can be arbitrary.
+
+    EXAMPLES:
+        sage: k = FiniteField(9, 'a'); k
+        Finite Field in a of size 3^2
+        sage: parent(a)
+        Finite Field in a of size 3^2
+        sage: charpoly(a, 'y')
+        y^2 + 2*y + 2
+
+    You can also use GF instead of FiniteField -- they are identical.
+    """
+    order = int(order)
+
+    key = (order, name, modulus)
+    if cache.has_key(key):
+        K = cache[key]()
+        if not K is None:
+            return K
+
+    if arith.is_prime(order):
+        K = integer_mod_ring.IntegerModRing(order)
+    else:
+        if name is None:
+            raise TypeError, "you must specify the generator name"
+        if False and order < 2**16:   # todo -- re-enable
+            K = FiniteField_givaro(order, name, modulus)
+        else:
+            K = FiniteField_ext_pari(order, name, modulus)
+
+    cache[key] = weakref.ref(K)
+    return K
+
+
+def is_FiniteField(x):
+    return isinstance(x, FiniteField_generic)
+
+def is_PrimeFiniteField(x):
+    return isinstance(x, FiniteField_prime_modn)
+
 GF = FiniteField
 
 class FiniteField_ext_pari(FiniteField_generic):
@@ -95,7 +150,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         a
         sage: a.parent()
         Finite Field in a of size 3^2
-        sage: a.charpoly()
+        sage: a.charpoly('x')
         x^2 + 2*x + 2
         sage: [a**i for i in range(8)]
         [1, a, a + 1, 2*a + 1, 2, 2*a, 2*a + 2, a + 2]
@@ -123,7 +178,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: z = k16.gen()
         sage: z
         b
-        sage: z.charpoly()
+        sage: z.charpoly('x')
         x^4 + x + 1
         sage: k16.is_field()
         True
@@ -163,7 +218,7 @@ class FiniteField_ext_pari(FiniteField_generic):
     different.  However, if you load a previously saved field, that
     will have the same defining polynomial.
 
-        sage: K = GF(10007^10)
+        sage: K = GF(10007^10, 'a')
         sage: loads(K.dumps()) == K
         True
     """
@@ -183,8 +238,8 @@ class FiniteField_ext_pari(FiniteField_generic):
         EXAMPLES:
             sage: FiniteField(17)
             Finite Field of size 17
-            sage: FiniteField(2^10)
-            Finite Field in a of size 2^10
+            sage: FiniteField(2^10, 'c')
+            Finite Field in c of size 2^10
             sage: FiniteField(3^5, "b")
             Finite Field in b of size 3^5
             sage: FiniteField(3^5, "b").gen()
@@ -192,7 +247,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         You can also create a finite field using GF, which is a synonym
         for FiniteField.
-            sage: GF(19**2)
+            sage: GF(19**2, 'a')
             Finite Field in a of size 19^2
         """
         q = integer.Integer(q)
@@ -218,7 +273,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 #     self.__pari_modulus = pari.pari.finitefield_init(self.__char, self.__degree, self.variable_name())
                 # So instead we iterate through random polys until we find an irreducible one.
 
-                R = polynomial_ring.PolynomialRing(GF(self.__char))
+                R = polynomial_ring.PolynomialRing(GF(self.__char), 'x')
                 while True:
                     modulus = R.random_element(self.__degree)
                     modulus = modulus.monic()
@@ -238,7 +293,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             True
             sage: GF(7)(2) == GF(11)(2)
             False
-            sage: GF(7)(2) == GF(8)(2)
+            sage: GF(7)(2) == GF(8,'a')(2)
             False
             sage: GF(7)(2) == 2
             True
@@ -424,7 +479,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: a.parent()
             Finite Field of size 13
 
-            sage: F = GF(16)
+            sage: F = GF(16, 'a')
             sage: F(gap('Z(16)^3'))
             a^3
             sage: F(gap('Z(16)^2'))
@@ -568,7 +623,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__order
 
-    def polynomial(self):
+    def polynomial(self, name):
         """
         Return the irreducible characteristic polynomial of the
         generator of this finite field, i.e., the polynomial f(x) so
@@ -576,28 +631,35 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: k = FiniteField(17)
-            sage: k.polynomial()
+            sage: k.polynomial('x')
             x
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(9)
-            sage: k.polynomial()
+            sage: k.polynomial('x')
             x^2 + 2*x + 2
         """
         try:
             return self.__polynomial
         except  AttributeError:
-            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()))
+            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
             self.__polynomial = R(self._pari_modulus())
         return self.__polynomial
 
     def __hash__(self):
         """
-        An extension field is described by it's characteristic and it's minimal polynomial.
+        Return the hash of this field.
 
-        So if you have two GFs with the same mathematical properties but different names
-        for their algebraic variables they will still have the same hash.
+        EXAMPLES:
+            sage: hash(GF(3,'b'))
+            904200654
+            sage: hash(GF(3,'a'))
+            904200654
+            sage: hash(GF(9,'a'))
+            -443918504
+            sage: hash(GF(9,'b'))
+            419125555
         """
-        return hash((self.characteristic(),self.polynomial()))
+        return hash((self.__order, self.variable_name(), self.__modulus))
 
 class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRing_generic):
     def __init__(self, p, name=None):
@@ -640,11 +702,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
     def is_prime(self):
         return True
 
-    def polynomial(self):
+    def polynomial(self, name):
         try:
             return self.__polynomial
         except  AttributeError:
-            self.__polynomial = polynomial_ring.PolynomialRing(self)([0,1])
+            self.__polynomial = polynomial_ring.PolynomialRing(self, name)([0,1])
             return self.__polynomial
 
     def order(self):
@@ -668,7 +730,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         EXAMPLES:
             sage: FiniteField(3).degree()
             1
-            sage: FiniteField(3**20).degree()
+            sage: FiniteField(3**20, 'a').degree()
             20
         """
         return 1
@@ -754,12 +816,12 @@ def gap_to_sage(x, F):
 
     EXAMPLES:
         sage: x = gap('Z(13)')
-        sage: F = GF(13)
+        sage: F = GF(13, 'a')
         sage: F(x)
         2
         sage: F(gap('0*Z(13)'))
         0
-        sage: F = GF(13^2)
+        sage: F = GF(13^2, 'a')
         sage: x = gap('Z(13)')
         sage: F(x)
         2

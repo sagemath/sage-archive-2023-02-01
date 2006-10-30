@@ -150,7 +150,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         EXAMPLES:
           sage: from sage.rings.finite_field import FiniteField_ext_pari
-          sage: F = FiniteField_ext_pari(7^2)
+          sage: F = FiniteField_ext_pari(7^2, 'a')
           sage: F(2).square_root()
           3
           sage: F(3).square_root()
@@ -159,14 +159,14 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
           3
           sage: F(4).square_root()
           2
-          sage: K = FiniteField_ext_pari(7^3)
+          sage: K = FiniteField_ext_pari(7^3, 'alpha')
           sage: K(3).square_root()
           Traceback (most recent call last):
           ...
           ValueError: must be a perfect square.
 
         """
-        R = polynomial_ring.PolynomialRing(self.parent())
+        R = polynomial_ring.PolynomialRing(self.parent(), 'x')
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
@@ -336,12 +336,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3)
             sage: a = k.gen()
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^3 + 2*x + 1
             sage: k.modulus()
             x^3 + 2*x + 1
             sage: b = a**2 + 1
-            sage: b.charpoly()
+            sage: b.charpoly('x')
             x^3 + x^2 + 2*x + 1
         """
         R = polynomial_ring.PolynomialRing(self.parent().prime_subfield(), var)
@@ -355,7 +355,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3); a = k.gen()
             sage: b = a**2 + 2
-            sage: b.charpoly()
+            sage: b.charpoly('x')
             x^3 + x^2 + 2
             sage: b.trace()
             2
@@ -374,14 +374,14 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: k = FiniteField_ext_pari(3**3); a = k.gen()
             sage: b = a**2 + 2
-            sage: b.charpoly()
+            sage: b.charpoly('x')
             x^3 + x^2 + 2
             sage: b.trace()
             2
             sage: b.norm()
             2
         """
-        return self.charpoly()[0]
+        return self.charpoly('x')[0]
 
     def log(self, a):
         """

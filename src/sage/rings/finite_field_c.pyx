@@ -1,9 +1,8 @@
 import weakref
-import finite_field
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None, inject_variable=True):
+def FiniteField(order, name=None, modulus=None):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -15,9 +14,6 @@ def FiniteField(order, name=None, modulus=None, inject_variable=True):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        inject_variable -- (default: True) whether to set finite field
-                   generator in current scope (this only applies to
-                   a non-prime finite field).
 
     EXAMPLES:
         sage: k = FiniteField(9, 'a'); k

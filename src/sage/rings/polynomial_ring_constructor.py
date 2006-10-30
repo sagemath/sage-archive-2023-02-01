@@ -175,8 +175,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             R = _multi_variate(base_ring, names, n, sparse, order)
 
     if arg1 is None and arg2 is None:
-        raise TypeError, "you must specify the indeterminates."
-
+        raise TypeError, "you *must* specify the indeterminates."
     if R is None:
         raise TypeError, "invalid input (%s, %s, %s) to PolynomialRing function; please see the docstring for that function"%(
             base_ring, arg1, arg2)

@@ -174,7 +174,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 is_real = False
                 continue
 
-        ### REMOVED -- this breaks mutability and is not needed anymore given injector_variables()
 ##         # Support for generator construction syntax:
 ##         # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
 ##         # is converted into
@@ -221,7 +220,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 ##             c = min(c,s) + gen_end
 ##             # rewrite the input line as three commands
 ##             line_new = "; ".join([line[:i] + line[gen_end+1:c],
-##                               "%s.assign_names(%s)" % (gen_obj, gen_names),
+##                               "%s._assign_names(%s)" % (gen_obj, gen_names),
 ##                               "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
 ##
 ##             line = line_new + line[c:]

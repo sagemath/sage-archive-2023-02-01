@@ -52,13 +52,13 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
     The quotient ring of $R$ by the ideal $I$.
 
     EXAMPLES:
-        sage: R.<x> = PolynomialRing(ZZ)
+        sage: R = PolynomialRing(ZZ,'x')
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
 
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S, (a,b) = (R/(x^2 + y^2)).objgens('ab')
+        sage: R = QQ['x,y']
+        sage: S = quo(R, x^2 + y^2, 'a,b')
         sage: a^2 + b^2 == 0
         True
         sage: S(0) == a^2 + b^2
@@ -191,9 +191,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
 
     def cover_ring(self):
         return self.__R
-
-    def variable_names(self):
-        return self.__R.variable_names()
 
     def base_ring(self):
         return self.__R.base_ring()

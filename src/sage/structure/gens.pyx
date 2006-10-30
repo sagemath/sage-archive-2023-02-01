@@ -181,8 +181,8 @@ cdef class Generators(sage_object.SageObject):
             N = N.strip()
             if len(N) == 0:
                 raise ValueError, "variable name must be nonempty"
-            if not N.isalnum():
-                raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
+            #if not N.isalnum():
+            #    raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
             v.append(N)
         return tuple(v)
 

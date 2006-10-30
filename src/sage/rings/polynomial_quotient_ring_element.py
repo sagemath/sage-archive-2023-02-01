@@ -101,12 +101,12 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         necessary).
 
         EXAMPLES:
-            sage: R, x = PolynomialRing(QQ).objgen()
-            sage: S = R.quotient(x^3-2, 'a'); a = S.gen()
-            sage: S(1) == 1
-            True
-            sage: a^3 == 2
-            True
+            sage: R = PolynomialRing(QQ, 'x')
+            sage: S = R.quotient(x^3-2, 'a')
+            sage: a
+            a
+            sage: a^3
+            2
 
         For the purposes of comparison in SAGE the quotient element
         $a^3$ is equal to $x^3$.  This is because when the comparison
@@ -133,8 +133,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         Return the quotient of two polynomial ring quotient elements.
 
         EXAMPLES:
-            sage: R, x = PolynomialRing(QQ).objgen()
-            sage: S = R.quotient(x^3-2, 'a'); a = S.gen()
+            sage: R = PolynomialRing(QQ,'x')
+            sage: S = R.quotient(x^3-2, 'a')
             sage: (a^2 - 4) / (a+2)
             a - 2
         """

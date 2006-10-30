@@ -1,40 +1,15 @@
 # Interactive versions.
 
-cdef inject(X, do):
+cdef _inject(X, do):
     if do:
         X.inject_variables()
     return X
 
-cdef do_inject(kwds):
+cdef _do_inject(kwds):
     if kwds.has_key('inject') and kwds['inject'] == False:
         del kwds['inject']
         return False
     return True
-
-def PolynomialRing(*args, **kwds):
-    """
-    Construct a polynomial ring and inject the variables of the
-    polynomial ring to the global interactive interpreter.  Use
-    inject=False to not inject the variables.  This is a wrapper
-    around the following function: <<<PolynomialRing>>>
-
-    MORE EXAMPLES:
-    We illustrate creating a polynomial ring without injecting the variables
-    into the interpreter.
-
-        sage: PolynomialRing(QQ,'w')
-        Univariate Polynomial Ring in w over Rational Field
-        sage: parent(w)
-        Univariate Polynomial Ring in w over Rational Field
-        sage: PolynomialRing(GF(17), 'w', inject=False)
-        Univariate Polynomial Ring in w over Finite Field of size 17
-        sage: parent(w)
-        Univariate Polynomial Ring in w over Rational Field
-    """
-    t = do_inject(kwds)
-    import sage.rings.all
-    R = sage.rings.all.PolynomialRing(*args, **kwds)
-    return inject(R, t)
 
 def FiniteField(*args, **kwds):
     """
@@ -43,10 +18,10 @@ def FiniteField(*args, **kwds):
     inject=False to not inject the variables.  This is a wrapper
     around the following function: <<<FiniteField>>>
     """
-    t = do_inject(kwds)
+    t = _do_inject(kwds)
     import sage.rings.all
     R = sage.rings.all.FiniteField(*args, **kwds)
-    return inject(R, t)
+    return _inject(R, t)
 
 GF = FiniteField
 
@@ -72,12 +47,62 @@ def FreeMonoid(*args, **kwds):
         ...
         NameError: name 'y' is not defined
     """
-    t = do_inject(kwds)
+    t = _do_inject(kwds)
     import sage.monoids.free_monoid
     R = sage.monoids.free_monoid.FreeMonoid(*args, **kwds)
-    return inject(R, t)
+    return _inject(R, t)
 
 
+
+def quotient(R, I, names, inject=True):
+    """
+    Construct the quotient R/I and name the generators, which are
+    then injected into the module scope (if inject=True).
+
+    EXAMPLES:
+        sage: R = QQ['x,y']
+        sage: S = quo(R, (x^3, x^2 + y^2), 'a,b')
+        sage: S
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2, x^3)
+        sage: a^2
+        -1*b^2
+        sage: a^3
+        0
+        sage: a^2 + b
+        b - b^2
+        sage: a^2 + b^2
+        0
+    """
+    Q = R.quotient(I, names)
+    return _inject(Q, inject)
+
+quo = quotient
+
+
+def PolynomialRing(*args, **kwds):
+    """
+    Construct a polynomial ring and inject the variables of the
+    polynomial ring to the global interactive interpreter.  Use
+    inject=False to not inject the variables.  This is a wrapper
+    around the following function: <<<PolynomialRing>>>
+
+    MORE EXAMPLES:
+    We illustrate creating a polynomial ring without injecting the variables
+    into the interpreter.
+
+        sage: PolynomialRing(QQ,'w')
+        Univariate Polynomial Ring in w over Rational Field
+        sage: parent(w)
+        Univariate Polynomial Ring in w over Rational Field
+        sage: PolynomialRing(GF(17), 'w', inject=False)
+        Univariate Polynomial Ring in w over Finite Field of size 17
+        sage: parent(w)
+        Univariate Polynomial Ring in w over Rational Field
+    """
+    t = _do_inject(kwds)
+    import sage.rings.all
+    R = sage.rings.all.PolynomialRing(*args, **kwds)
+    return _inject(R, t)
 
 
 

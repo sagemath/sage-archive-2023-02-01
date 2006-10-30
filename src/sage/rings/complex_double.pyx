@@ -159,11 +159,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         numbers and higher-precision ones, though of course there may
         be loss of precision:
             sage: a = ComplexField(200)(-2).sqrt(); a
-            1.4142135623730950488016887242096980785696718753769480731766796*I
+            1.4142135623730950488016887242096980785696718753769480731766*I
             sage: b = CDF(a); b
             1.41421353817*I
             sage: a.parent()(b)
-            1.4142135623700000000000000000000000000000000000000000000000002*I
+            1.4142135623699999999999999999999999999999999999999999999999*I
         """
         if im is None:
             if isinstance(x, ComplexDoubleElement):
@@ -557,11 +557,11 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.099425429373735899
+            0.0994254293737358
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
-            0.099425429372582675602989386713555936556752871164033127857197658
+            0.099425429372582675602989386713555936556752871164033127857197
 
         Indeed, the logabs, wins.
         """
@@ -1176,7 +1176,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: (1+I).agm(2-I)
-            1.6278054848727066 + 0.13682754839736855*I
+            1.62780548487270 + 0.136827548397368*I
         """
         cdef pari_sp sp
         sp = avma
@@ -1287,7 +1287,7 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
         _sig_on
         f = P.new_gen(algdep0(self._gen(), n, 0, PREC))
         import  polynomial_ring
-        R = polynomial_ring.PolynomialRing(integer_ring.IntegerRing())
+        R = polynomial_ring.PolynomialRing(integer_ring.IntegerRing(),'x')
         return R(list(reversed(eval(str(f.Vec())))))
 
 

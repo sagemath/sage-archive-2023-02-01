@@ -47,22 +47,22 @@ class ComplexField_class(field.Field):
         Complex Field with 53 bits of precision
         sage: Q = RationalField()
         sage: C(1/3)
-        0.33333333333333331
+        0.333333333333333
         sage: C(1/3, 2)
-        0.33333333333333331 + 2.0000000000000000*I
+        0.333333333333333 + 2.00000000000000*I
 
     Note that the second argument is the number of *bits* of precision,
     not the number of digits of precision:
         sage: C(1/3, 2)
-        0.33333333333333331 + 2.0000000000000000*I
+        0.333333333333333 + 2.00000000000000*I
 
     We can also coerce rational numbers and integers into C, but
     coercing a polynomial in raising an exception.
 
         sage: Q = RationalField()
         sage: C(1/3)
-        0.33333333333333331
-        sage: S = PolynomialRing(Q)
+        0.333333333333333
+        sage: S = PolynomialRing(Q, 'x')
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
@@ -70,13 +70,13 @@ class ComplexField_class(field.Field):
 
     This illustrates precision.
         sage: CC = ComplexField(10); CC(1/3, 2/3)
-        0.33350 + 0.66699*I
+        0.33 + 0.66*I
         sage: CC
         Complex Field with 10 bits of precision
         sage: CC = ComplexField(100); CC
         Complex Field with 100 bits of precision
         sage: z = CC(1/3, 2/3); z
-        0.33333333333333333333333333333346 + 0.66666666666666666666666666666693*I
+        0.33333333333333333333333333333 + 0.66666666666666666666666666666*I
 
     We can load and save complex numbers and the complex field.
         sage: loads(z.dumps()) == z
@@ -93,7 +93,7 @@ class ComplexField_class(field.Field):
         sage: CC.precision()
         200
         sage: CC.variable_name()
-        'x'
+        'I'
         sage: CC == ComplexField(200)
         True
         sage: CC == ComplexField(53)
@@ -104,6 +104,7 @@ class ComplexField_class(field.Field):
     """
     def __init__(self, prec=53):
         self.__prec = int(prec)
+        self._assign_names('I')
 
     def prec(self):
         return self.__prec
@@ -128,13 +129,13 @@ class ComplexField_class(field.Field):
         """
         EXAMPLES:
             sage: CC(2)
-            2.0000000000000000
+            2.00000000000000
             sage: CC(CC.0)
-            1.0000000000000000*I
+            1.00000000000000*I
             sage: CC('1+I')
-            1.0000000000000000 + 1.0000000000000000*I
+            1.00000000000000 + 1.00000000000000*I
             sage: CC(2,3)
-            2.0000000000000000 + 3.0000000000000000*I
+            2.00000000000000 + 3.00000000000000*I
         """
         if im is None:
             if isinstance(x, complex_number.ComplexNumber) and x.parent() is self:

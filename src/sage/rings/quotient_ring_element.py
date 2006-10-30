@@ -37,7 +37,7 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
     An element of a quotient ring $R/I$.
 
     EXAMPLES:
-        sage: R.<x> = PolynomialRing(ZZ)
+        sage: R = PolynomialRing(ZZ,'x')
         sage: S = R/(4 + 3*x + x^2, 1 + x^2); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
         sage: v = S.gens(); v
@@ -46,14 +46,14 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         sage: loads(v[0].dumps()) == v[0]  # todo: not implemented
         True
 
-        sage: R.<x,y> = PolynomialRing(QQ, 2)
+        sage: R = PolynomialRing(QQ, 'x,y')
         sage: S = R/(x^2 + y^2); S
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
         sage: S.gens()
         (x, y)
 
     We name each of the generators.
-        sage: S.<a,b> = R/(x^2 + y^2)
+        sage: S = R.quotient(x^2 + y^2, 'a,b')
         sage: a
         a
         sage: b

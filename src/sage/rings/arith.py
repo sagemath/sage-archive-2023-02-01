@@ -2140,7 +2140,7 @@ def falling_factorial(x, a):
         sage: falling_factorial(1+I, 4)
         2.00000000000000 + 4.00000000000000*I
         sage: falling_factorial(I, 4)
-        -10.000000000000
+        -10.0000000000000
 
         sage: M = MatrixSpace(ZZ, 4, 4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
@@ -2200,7 +2200,7 @@ def rising_factorial(x, a):
         0.266816390637832 + 0.122783354006371*I
 
         sage: rising_factorial(I, 4)
-        -10.000000000000
+        -10.0000000000000
 
     See falling_factorial(I, 4).
 

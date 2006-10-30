@@ -344,7 +344,6 @@ cdef class CommutativeRing(Ring):
         import sage.rings.quotient_ring
         Q = sage.rings.quotient_ring.QuotientRing(self, I)
         Q._assign_names(names)
-        Q.inject_variables()
         return Q
 
     def __div__(self, I):

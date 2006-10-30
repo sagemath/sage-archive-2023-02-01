@@ -27,6 +27,7 @@ cimport sage.rings.integer
 
 import sage.structure.element
 cimport sage.structure.element
+from sage.structure.element cimport RingElement
 
 from sage.rings.coerce import cmp as coerce_cmp
 
@@ -554,7 +555,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return copy
 
 
-    def _add_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
@@ -565,7 +566,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         modulus = self.__modulus.sageInteger
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_add(x.value, self.value, right.value)
+        mpz_add(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_cmp(x.value, modulus.value)  >= 0:
             mpz_sub(x.value, x.value, modulus.value)
         return x;
@@ -877,7 +878,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         copy.ivalue = self.ivalue
         return copy
 
-    def _add_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
@@ -886,7 +887,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         cdef IntegerMod_int x
         x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + right.ivalue
+        x.ivalue = self.ivalue + (<IntegerMod_int>right).ivalue
         if x.ivalue >= self.__modulus.int32:
             x.ivalue = x.ivalue - self.__modulus.int32
         return x;
@@ -1315,7 +1316,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         copy.ivalue = self.ivalue
         return copy
 
-    def _add_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
@@ -1324,7 +1325,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + right.ivalue
+        x.ivalue = self.ivalue + (<IntegerMod_int64>right).ivalue
         if x.ivalue >= self.__modulus.int64:
             x.ivalue = x.ivalue - self.__modulus.int64
         return x;

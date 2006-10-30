@@ -6,7 +6,106 @@ PYREX: sage.structure.element
 AUTHORS:
    -- David Harvey (2006-10-16): changed CommutativeAlgebraElement to derive
    from CommutativeRingElement instead of AlgebraElement
+   -- David Harvey (2006-10-29): implementation and documentation of new
+   arithmetic architecture
 """
+
+###############################################################################
+# Some notes about arithmetic architecture.
+# (This documentation should get moved into a more useful place.)
+#
+# SAGE has a special system in place for handling arithmetic operations
+# for all Element subclasses. There are various rules that must be followed
+# by both arithmetic implementors and callers.
+#
+# A quick summary for the impatient:
+#
+#  * DO NOT OVERRIDE _add_c. EVER. THANKS.
+#  * DO NOT CALL _add_c_impl DIRECTLY.
+#  * To implement addition for a python class, override def _add_().
+#  * To implement addition for a pyrex class, override cdef _add_c_impl().
+#    (You could also override def _add_(), but it won't be as fast.)
+#  * If you want to add x and y, whose parents you know are IDENTICAL,
+#    you may call _add_(x, y) (from python or pyrex) or _add_c(x, y) (from
+#    pyrex -- this will be faster). This will be the fastest way to guarantee
+#    that the correct implementation gets called. Of course you can still
+#    always use "x + y".
+#
+# Now in more detail. The aims of this system are to provide (1) an efficient
+# calling protocol from both python and pyrex, (2) uniform coercion semantics
+# across SAGE, (3) ease of use, (4) readability of code.
+#
+# We will take addition of RingElements as an example; all other operators
+# and classes are similar. There are four relevant functions.
+#
+# def RingElement.__add__
+#    This function is called by python or pyrex when the binary "+" operator
+#    is encountered. It can't make many assumptions about its arguments.
+#    It has a fast pathway to deal with the most common case where the
+#    arguments have the same parent. Otherwise, it uses the coercion module
+#    to work out how to make them have the same parent. After any necessary
+#    coercions have been performed, it calls _add_c to dispatch to the correct
+#    underlying addition implementation.
+#
+#    Note that although this function is declared as def, it doesn't have the
+#    usual overheads associated with python functions (either for the caller
+#    or for __add__ itself). This is because python has optimised calling
+#    protocols for such special functions.
+#
+# cdef RingElement._add_c
+#    DO ***NOT*** OVERRIDE THIS FUNCTION.
+#
+#    The two arguments to this function MUST have the SAME PARENT.
+#    Its return value MUST have the SAME PARENT as its arguments.
+#
+#    If you want to add two objects from pyrex, and you know that their
+#    parents are the same object, you are encouraged to call this function
+#    directly, instead of using "x + y".
+#
+#    This function dispatches to either _add_ or _add_c_impl as appropriate.
+#    It takes necessary steps to decide whether a pyrex implementation of
+#    _add_c_impl has been overridden by some python implementation of _add_.
+#    The code is optimised in favour of reaching _add_c_impl as soon as
+#    possible.
+#
+# def RingElement._add_
+#    This is the function you should override to implement addition in a
+#    python subclass of RingElement.
+#
+#    The two arguments to this function are guaranteed to have the
+#    SAME PARENT. Its return value MUST have the SAME PARENT as its
+#    arguments.
+#
+#    If you want to add two objects from python, and you know that their
+#    parents are the same object, you are encouraged to call this function
+#    directly, instead of using "x + y".
+#
+#    The default implementation of this function is to call _add_c_impl,
+#    so if no-one has defined a python implementation, the correct pyrex
+#    implementation will get called.
+#
+# cdef RingElement._add_c_impl
+#    This is the function you should override to implement addition in a
+#    pyrex subclass of RingElement.
+#
+#    The two arguments to this function are guaranteed to have the
+#    SAME PARENT. Its return value MUST have the SAME PARENT as its
+#    arguments.
+#
+#    DO ***NOT*** CALL THIS FUNCTION DIRECTLY.
+#
+#    (Exception: you know EXACTLY what you are doing, and you know exactly
+#    which implementation you are trying to call; i.e. you're not trying to
+#    write generic code. In particular, if you call this directly, your code
+#    will not work correctly if you run it on a python class derived from
+#    a pyrex class where someone has redefined _add_ in python.)
+#
+#    The default implementation of this function is to raise a
+#    NotImplementedError, which will happen if no-one has supplied
+#    implementations of either _add_ or _add_c_impl.
+#
+###############################################################################
+
 
 ##################################################################
 # Generic element, so all this functionality must be defined
@@ -458,83 +557,80 @@ cdef class RingElement(Element):
 
     def __add__(self, right):
         """
-        Addition for RingElements.
+        Top-level addition operator for RingElements.
 
-        This method tries to call _add_sibling_cdef or _add_sibling. If the
-        parents disagree, it tries canonical coercion to make the parents
-        agree.
+        See extensive documentation at the top of element.pyx.
         """
-        # We know at least one of the arguments is a RingElement. So if their
+
+        # Try fast pathway if they are both RingElements and the parents match.
+
+        # (We know at least one of the arguments is a RingElement. So if their
         # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.
+        # Otherwise use the slower test via PY_TYPE_CHECK.)
 
         if (PY_TYPE(self) is PY_TYPE(right)) or \
                    (PY_TYPE_CHECK(right, RingElement) and \
                     PY_TYPE_CHECK(self, RingElement)):
-            # If parents agree, then we can use _add_sibling_cdef.
-            if (<RingElement>right)._parent is (<RingElement>self)._parent:
-                # If self is actually a Python class that derives from
-                # a SAGE Pyrex class, then we call its non-cdef'd
-                # _add_sibling method instead.  We declare something
-                # Python class if it has a dictionary:
-                if HAS_DICTIONARY(self):
-                    return (<RingElement>self)._add_sibling(<RingElement>right)
-                else:
-                    return (<RingElement>self)._add_sibling_cdef(<RingElement>right)
 
-        # Fast pathway didn't work. Fall back on the old coercion code.
+            if (<RingElement>right)._parent is (<RingElement>self)._parent:
+
+                return (<RingElement>self)._add_c(<RingElement>right)
+
+        # Fast pathway didn't work.
+
         # todo:
-        # (1) optimise this too
-        # (2) change "parent != parent" to "parent is not parent" and see
-        #     what breaks
+        # For now we are falling back on the old coercion code.
+        # This needs to be optimised and re-thought-out.
+        # In particular, the coercion code doesn't yet know about _add_c
+        # and all that.
         if not PY_TYPE_CHECK(self, RingElement) or \
                   not PY_TYPE_CHECK(right, RingElement) \
                   or right.parent() != self.parent():
             return coerce.bin_op(self, right, operator.add)
         return self._add_(right)
 
-    cdef RingElement _add_sibling_cdef(RingElement self, RingElement right):
-        """
-        Adds two RingElements. They are assumed to belong to the SAME parent.
-        The return value MUST belong to the SAME parent.
-        """
-        # This default implementation tries to dispatch to a Python version
-        # (in case cdef version not available)
-        if self.__class__._add_sibling is RingElement._add_sibling:
-            # This is to prevent an infinite loop between _add_sibling_cdef
-            # and _add_sibling:
-            # raise NotImplementedError
 
-            # Actually, we can't do that right now, because most objects
-            # don't have _add_sibling yet. So we need to look up _add_
-            # as well:
-            if self.__class__._add_ is RingElement._add_:
-                raise NotImplementedError
-            else:
-                return self._add_(right)
+    cdef RingElement _add_c(RingElement self, RingElement right):
+        """
+        Addition dispatcher for RingElements.
 
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            # TODO: this bit will be unnecessarily slow if someone derives
+            # from the pyrex class *without* overriding _add_, since then
+            # we'll be making an unnecessary call to _add_, which will
+            # end up in _add_c_impl anyway. There must be a simple way to
+            # distinguish this situation. It's complicated because someone
+            # can even override it at the instance level (without overriding
+            # it in the class.)
+            return self._add_(right)
         else:
-            return self._add_sibling(right)
+            # Must be a pure Pyrex class.
+            return (<RingElement>self)._add_c_impl(<RingElement>right)
 
 
-    def _add_sibling(RingElement self, RingElement right):
+    cdef RingElement _add_c_impl(RingElement self, RingElement right):
         """
-        Adds two RingElements. They are assumed to belong to the SAME parent.
-        The return value MUST belong to the SAME parent.
+        Pyrex classes should override this function to implement addition.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
         """
-        # This is the default Python implementation, which dispatches to any
-        # available cdef version.
-        return self._add_sibling_cdef(right)
+        raise NotImplementedError
 
 
     def _add_(RingElement self, RingElement right):
         """
-        See docstring for _add_sibling.
+        Python classes should override this function to implement addition.
 
-        NOTE: The plan is to replace all '_add_' methods in SAGE by
-        '_add_sibling'. Eventually this method will be removed.
+        See extensive documentation at the top of element.pyx.
         """
-        return self._add_sibling_cdef(right)
+        return self._add_c_impl(right)
 
 
     def __sub__(self, right):

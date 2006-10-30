@@ -327,7 +327,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
     ########################
     #   Basic Arithmetic
     ########################
-    cdef RingElement _add_sibling_cdef(self, RingElement right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         Add two real numbers with the same parent.
 

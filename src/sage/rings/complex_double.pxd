@@ -21,5 +21,5 @@ cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 	cdef int cmp(ComplexDoubleElement left,ComplexDoubleElement right)
 
 	cdef GEN _gen(self)
-	cdef RingElement _add_sibling_cdef(self, RingElement right)
+	cdef RingElement _add_c_impl(self, RingElement right)
 

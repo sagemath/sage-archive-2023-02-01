@@ -539,7 +539,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    cdef RingElement _add_sibling_cdef(self, RingElement right):
+    cdef RingElement _add_c_impl(self, RingElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
@@ -590,14 +590,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return x.__sub_(y)
         return sage.rings.coerce.bin_op(x, y, operator.sub)
 
-    cdef RingElement _mul_sibling_cdef(self, RingElement right):
-        # self and right are guaranteed to be Integers
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-        mpz_mul(x.value, self.value, (<Integer>right).value)
-        return x
-
-    def _mul_sibling(self, RingElement right):
+    def _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
@@ -627,7 +620,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer _x
         if isinstance(x, Integer) and isinstance(y, Integer):
             _x = x
-            return _x._mul_sibling_cdef(y)
+            return _x._mul_(y)
         if isinstance(x, (str, list)):
             return x * int(y)
         return sage.rings.coerce.bin_op(x, y, operator.mul)

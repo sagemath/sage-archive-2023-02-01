@@ -52,6 +52,7 @@ cimport sage.rings.ring
 import  sage.rings.ring
 
 cimport sage.structure.element
+from sage.structure.element cimport RingElement
 import  sage.structure.element
 
 import sage.rings.coerce
@@ -702,8 +703,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     #   Basic Arithmetic
     ########################
 
-    cdef sage.structure.element.RingElement _add_sibling_cdef(self,
-                                    sage.structure.element.RingElement other):
+    cdef RingElement _add_c_impl(self, RingElement other):
         """
         Add two real numbers with the same parent.
 

@@ -312,7 +312,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 ##                 self.__u = self.__u.parent()(coeffs)
 ##         self.__normalize()
 
-    def _add_sibling(self, right):
+    def _add_(self, right):
         """
         Add two power series with the same parent.
 

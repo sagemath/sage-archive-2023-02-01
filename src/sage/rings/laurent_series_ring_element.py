@@ -390,18 +390,25 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         """
         return self.__u.degree() + self.valuation()
 
-    def __sub__(self, right):
-        """
-        EXAMPLES:
-            sage: R.<t> = LaurentSeriesRing(ZZ)
-            sage: f = t^2 + t^3 + O(t^10)
-            sage: g = 3/t^4 + t^3 + O(t^5)
-            sage: f - g
-            -3*t^-4 + t^2 + O(t^5)
-            sage: g - f
-            3*t^-4 - t^2 + O(t^5)
-        """
-        return self + right.__neg__()
+# todo:
+# I commented out the following __sub__ because it doesn't fit the new
+# arithmetic architecture rules. Perhaps a native _sub_ implementation would
+# be reasonable to have, but it seems pretty well covered by the default
+# RingElement._sub_c_impl() implementation anyway, so why bother.
+#   -- David Harvey
+#
+#    def __sub__(self, right):
+#        """
+#        EXAMPLES:
+#            sage: R.<t> = LaurentSeriesRing(ZZ)
+#            sage: f = t^2 + t^3 + O(t^10)
+#            sage: g = 3/t^4 + t^3 + O(t^5)
+#            sage: f - g
+#            -3*t^-4 + t^2 + O(t^5)
+#            sage: g - f
+#            3*t^-4 - t^2 + O(t^5)
+#        """
+#        return self + right.__neg__()
 
     def __neg__(self):
         """

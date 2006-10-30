@@ -995,6 +995,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return self.__values_on_gens
 
+_cache = {}
 def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
     r"""
     The group of Dirichlet characters modulo~$N$ with values in
@@ -1069,14 +1070,36 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
         sage: loads(G.dumps()) == G
         True
     """
-    return DirichletGroup_class(modulus, base_ring, zeta, zeta_order)
-    #key = (base_ring, modulus, zeta, zeta_order)
-    #if _objsDirichletGroup.has_key(key):
-    #    x = _objsDirichletGroup[key]()
-    #    if x != None: return x
-    #R = DirichletGroup_class(modulus, base_ring, zeta, zeta_order)
-    #_objsDirichletGroup[key] = weakref.ref(R)
-    #return R
+    modulus = rings.Integer(modulus)
+
+    if base_ring is None:
+        if not (zeta is None and zeta_order is None):
+            raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
+        e = rings.IntegerModRing(modulus).unit_group_exponent()
+        base_ring = rings.CyclotomicField(e)
+
+    if not rings.is_Ring(base_ring):
+        raise TypeError, "base_ring (=%s) must be a ring"%base_ring
+
+    if zeta is None:
+        e = rings.IntegerModRing(modulus).unit_group_exponent()
+        try:
+            zeta = base_ring.zeta(e)
+        except ValueError:
+            zeta = base_ring.zeta()
+        zeta_order = zeta.multiplicative_order()
+
+    elif zeta_order is None:
+        zeta_order = zeta.multiplicative_order()
+
+    key = (base_ring, modulus, zeta, zeta_order)
+    if _cache.has_key(key):
+        x = _cache[key]()
+        if not x is None: return x
+
+    R = DirichletGroup_class(modulus, zeta, zeta_order)
+    _cache[key] = weakref.ref(R)
+    return R
 
 def is_DirichletGroup(x):
     """
@@ -1096,30 +1119,7 @@ class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
     """
     Group of Dirichlet characters modulo $N$ over a given base ring $R$.
     """
-    def __init__(self, modulus, base_ring=None, zeta=None, zeta_order=None):
-        modulus = rings.Integer(modulus)
-
-        if base_ring is None:
-            if not (zeta is None and zeta_order is None):
-                raise ValueError, "zeta and zeta_order must be None if base_ring not specified."
-            e = rings.IntegerModRing(modulus).unit_group_exponent()
-            base_ring = rings.CyclotomicField(e)
-
-        if not rings.is_Ring(base_ring):
-            raise TypeError, "base_ring (=%s) must be a ring"%base_ring
-
-        if zeta is None:
-            e = rings.IntegerModRing(modulus).unit_group_exponent()
-            try:
-                zeta = base_ring.zeta(e)
-            except ValueError:
-                zeta = base_ring.zeta()
-            zeta_order = zeta.multiplicative_order()
-
-        elif zeta_order is None:
-            zeta_order = zeta.multiplicative_order()
-
-        #self._base_ring = base_ring
+    def __init__(self, modulus, zeta, zeta_order):
         self._zeta = zeta
         self._zeta_order = zeta_order
         self._modulus = modulus

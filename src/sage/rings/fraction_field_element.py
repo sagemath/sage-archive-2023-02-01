@@ -37,7 +37,7 @@ def is_FractionFieldElement(x):
 class FractionFieldElement(field_element.FieldElement):
     """
     EXAMPLES:
-        sage: K, x = FractionField(PolynomialRing(QQ)).objgen()
+        sage: K, x = FractionField(PolynomialRing(QQ, 'x')).objgen()
         sage: K
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: loads(K.dumps()) == K
@@ -105,7 +105,7 @@ class FractionFieldElement(field_element.FieldElement):
         that a call function is defined for the numerator and denominator.
 
         EXAMPLES:
-            sage: x = MPolynomialRing(RationalField(),3).gens()
+            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             x1 - 2*x1*x2 + x0
@@ -228,7 +228,7 @@ class FractionFieldElement(field_element.FieldElement):
         denominator have valuation functions defined on them.
 
         EXAMPLES:
-            sage: x = PolynomialRing(RationalField()).gen()
+            sage: x = PolynomialRing(RationalField(),'x').gen()
             sage: f = (x**3 + x)/(x**2 - 2*x**3)
             sage: f
             (x^2 + 1)/(-2*x^2 + x)

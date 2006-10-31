@@ -75,7 +75,6 @@ cdef class Ring(sage.structure.gens.Generators):
         if not isinstance(x, list):
             from sage.rings.polynomial_ring import PolynomialRing
             P = PolynomialRing(self, x)
-            P.inject_variables()
             return P
 
         P = None
@@ -112,8 +111,6 @@ cdef class Ring(sage.structure.gens.Generators):
             R = P(self, len(v), names=v)
         else:
             R = P(self, x)
-
-        R.inject_variables()
 
         return R
 

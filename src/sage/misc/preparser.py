@@ -30,7 +30,8 @@ RAW LITERALS:
 
 Raw literals are not preparsed, which can be useful from an efficiency
 point of view.  Just like Python ints are denoted by an L, in SAGE raw
-integer and floating literals are followed by an"r" (or "R") for raw, meaning not preparsed.
+integer and floating literals are followed by an"r" (or "R") for raw,
+meaning not preparsed.
 
 We create a raw integer.
     sage: a = 393939r
@@ -174,60 +175,71 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 is_real = False
                 continue
 
-##         # Support for generator construction syntax:
-##         # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
-##         # is converted into
-##         # "obj = objConstructor(...); \
-##         #  obj.assign_names(["gen0", "gen1", ..., "genN"]); \
-##         #  (gen0, gen1, ..., genN,) = obj.gens()"
-##         #
-##         # LIMITATIONS:
-##         #    - The entire constructor must be on one line.
-##         #
-##         # AUTHORS:
-##         #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
-##         #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
-##         #     -- 2006-05-01: William -- fix bug that Joe found
-##         elif line[i:i+2] == ".<" and not in_quote():
-##             try:
-##                 gen_end = line.index(">", i+2)
-##             except ValueError:
-##                 # Syntax Error -- let Python notice and raise the error
-##                 i += 2
-##                 continue
-##
-##             gen_begin = i
-##             while gen_begin > 0 and line[gen_begin-1] != ';':
-##                 gen_begin -= 1
-##
-##             # parse out the object name and the list of generator names
-##             gen_obj = line[gen_begin:i].strip()
-##             gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
-##             for g in gen_list:
-##                 if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
-##                     raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
-##             # format names as a list of strings and a list of variables
-##             gen_names = str(gen_list)
-##             gen_vars  = ", ".join(gen_list)
-##             # find end of constructor:
-##             #    either end of line, next semicolon, or next #.
-##
-##             line_after = line[gen_end:]
-##             c = line_after.find('#')
-##             if c==-1: c = len(line_after)
-##             s = line_after.find(';')
-##             if s==-1: s = len(line_after)
-##             c = min(c,s) + gen_end
-##             # rewrite the input line as three commands
-##             line_new = "; ".join([line[:i] + line[gen_end+1:c],
-##                               "%s._assign_names(%s)" % (gen_obj, gen_names),
-##                               "(%s,) = %s.gens()" % (gen_vars, gen_obj)])
-##
-##             line = line_new + line[c:]
-##             #i = len(line_new)
-##             i += 1
-##
-##             continue
+        # Support for generator construction syntax:
+        # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+        # is converted into
+        # "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
+        #  (gen0, gen1, ..., genN,) = obj.gens()"
+        #
+        # You can also write
+        #     "obj.[gen0,gen1,...,genN] = objConstructor(...)"
+        #
+        # LIMITATIONS:
+        #    - The entire constructor must be on one line.
+        #
+        # AUTHORS:
+        #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+        #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
+        #     -- 2006-05-01: William -- fix bug that Joe found
+        #     -- 2006-10-31: William -- fix so obj doesn't have to be mutated
+        elif (line[i:i+2] == ".<" or line[i:i+2] == ".[") and not in_quote():
+            try:
+                gen_end = line.index(">", i+2)
+            except ValueError:
+                try:
+                    gen_end = line.index("]", i+2)
+                except ValueError:
+                    # Syntax Error -- let Python notice and raise the error
+                    i += 2
+                    continue
+
+            gen_begin = i
+            while gen_begin > 0 and line[gen_begin-1] != ';':
+                gen_begin -= 1
+
+            # parse out the object name and the list of generator names
+            gen_obj = line[gen_begin:i].strip()
+            gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
+            for g in gen_list:
+                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
+                    raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
+
+            # format names as a list of strings and a list of variables
+            gen_names = str(gen_list)
+            gen_vars  = ", ".join(gen_list)
+
+            # find end of constructor:
+            #    either end of line, next semicolon, or next #.
+            line_after = line[gen_end:]
+            c = line_after.find('#')
+            if c==-1: c = len(line_after)
+            s = line_after.find(';')
+            if s==-1: s = len(line_after)
+            c = min(c,s) + gen_end
+
+            # Find where the paranthesis of the constructor ends
+            c0 = line[:c].rfind(')')
+
+            # rewrite the input line as two commands
+            line_new = '%s,names=%s); (%s,) = %s.gens()'%(
+                line[:i] + line[gen_end+1:c0], gen_names,
+                gen_vars, gen_obj)
+
+            line = line_new + line[c:]
+            #i = len(line_new)
+            i += 1
+
+            continue
 
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():

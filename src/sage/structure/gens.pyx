@@ -68,7 +68,44 @@ but they are still defined:
 #*****************************************************************************
 
 import sage.misc.defaults
+import sage.misc.latex
 import gens_py
+
+def _certify_names(names):
+    v = []
+    for N in names:
+        if not isinstance(N, str):
+            raise TypeError, "variable name must be a string but %s isn't"%N
+        N = N.strip()
+        if len(N) == 0:
+            raise ValueError, "variable name must be nonempty"
+        if not N.isalnum():
+            raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
+        v.append(N)
+    return tuple(v)
+
+def normalize_names(int ngens, names=None):
+    if names is None: return None
+    if isinstance(names, str) and names.find(',') != -1:
+        names = names.split(',')
+    if isinstance(names, str) and ngens > 1 and len(names) == ngens:
+        names = tuple(names)
+    if isinstance(names, str):
+        name = names
+        names = sage.misc.defaults.variable_names(ngens, name)
+        names = _certify_names(names)
+    else:
+        names = _certify_names(names)
+        if not isinstance(names, (list, tuple)):
+            raise TypeError, "names must be a list or tuple of strings"
+        for x in names:
+            if not isinstance(x,str):
+                raise TypeError, "names must consist of strings"
+        if len(names) != ngens:
+            raise IndexError, "the number of names must equal the number of generators"
+    return tuple(names)
+
+
 
 # Classes that derive from Generators must define
 # gen(i) and ngens() functions.  It is also good
@@ -173,20 +210,7 @@ cdef class Generators(sage_object.SageObject):
             self.__gens_dict = v
             return v
 
-    def __certify_names(self, names):
-        v = []
-        for N in names:
-            if not isinstance(N, str):
-                raise TypeError, "variable name must be a string but %s isn't"%N
-            N = N.strip()
-            if len(N) == 0:
-                raise ValueError, "variable name must be nonempty"
-            #if not N.isalnum():
-            #    raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
-            v.append(N)
-        return tuple(v)
-
-    def _assign_names(self, names=None):
+    def _assign_names(self, names=None, normalize=True):
         """
         Set the names of the generator of this object.
 
@@ -208,30 +232,15 @@ cdef class Generators(sage_object.SageObject):
         """
         if names is None: return
         if not self.__names is None:
-            raise ValueError, 'variable names cannot be changed after object creation.'
-        if isinstance(names, str):
-            if ',' in names:
-                names = tuple(names.split(','))
-            else:
-                name = names
-                names = sage.misc.defaults.variable_names(self.ngens(), name)
-                names = self.__certify_names(names)
-                latex_names = sage.misc.defaults.latex_variable_names(self.ngens(), name)
+            names = normalize_names(self.ngens(), names)
+            if names != self.__names:
+                raise ValueError, 'variable names cannot be changed after object creation.'
+        if normalize:
+            self.__names = normalize_names(self.ngens(), names)
         else:
-            names = self.__certify_names(names)
-            if not isinstance(names, (list, tuple)):
-                raise TypeError, "names must be a list or tuple of strings"
-            for x in names:
-                if not isinstance(x,str):
-                    raise TypeError, "names must consist of strings"
-            if len(names) != self.ngens():
-                raise IndexError, "the number of names (=%s) must equal the number of generators (=%s)"%(names, self.ngens())
-            latex_names = names
-        self.__names = tuple(names)
-        self.__latex_names = tuple(latex_names)
+            self.__names = names
 
-
-    def inject_variables(self, scope=None):
+    def inject_variables(self, scope=None, verbose=True):
         """
         Inject the generators of self with their names into the
         namespace of the Python code from which this function is
@@ -250,6 +259,8 @@ cdef class Generators(sage_object.SageObject):
         g = self.gens()
         if scope is None:
             scope = globals()
+        if verbose:
+            print "Defining %s"%(', '.join(v))
         cdef int i
         for i from 0 <= i < len(v):
             scope[v[i]] = g[i]
@@ -281,9 +292,12 @@ cdef class Generators(sage_object.SageObject):
     def latex_variable_names(self):
         if self.__latex_names != None:
             return self.__latex_names
-        else:
-            self.__latex_names = sage.misc.defaults.latex_variable_names(self.ngens())
-            return self.__latex_names
+        # Compute the latex versions of the variable names.
+        self.__latex_names = []
+        for x in self.__variable_names:
+            self.__latex.append(sage.misc.latex.latex_variable_name(x))
+        return self.__latex_names
+
 
     def variable_name(self):
         return self.variable_names()[0]

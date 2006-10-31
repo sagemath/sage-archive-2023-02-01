@@ -59,6 +59,8 @@ from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
 from sage.rings.finite_field_givaro import FiniteField_givaro
 
+from sage.structure.gens import normalize_names
+
 import sage.interfaces.gap
 
 from finite_field_c import FiniteField, is_FiniteField, is_PrimeFiniteField
@@ -67,7 +69,7 @@ import weakref
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None):
+def FiniteField(order, name=None, modulus=None, names=None):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -81,7 +83,7 @@ def FiniteField(order, name=None, modulus=None):
                    definining polynomials can be arbitrary.
 
     EXAMPLES:
-        sage: k = FiniteField(9, 'a'); k
+        sage: k.<a> = FiniteField(9); k
         Finite Field in a of size 3^2
         sage: parent(a)
         Finite Field in a of size 3^2
@@ -90,11 +92,14 @@ def FiniteField(order, name=None, modulus=None):
 
     You can also use GF instead of FiniteField -- they are identical.
     """
+    if not names is None: name = names
     order = int(order)
+    name = normalize_names(1,name)
 
     key = (order, name, modulus)
     if cache.has_key(key):
         return cache[key]
+
     # I have disabled weakref support for finite fields, because it isn't
     # really implemented in Pyrex.  - SEE track ticket #165
         #K = cache[key]()

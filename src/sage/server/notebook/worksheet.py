@@ -314,7 +314,6 @@ class Worksheet:
         #verbose(object_directory)
         # We do exactly one eval below of one long line instead of
         cmd = 'from sage.all_notebook import *; '
-        cmd += 'init_interactive_constructors(globals()); '
         cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
         cmd += 'import sage.server.support as _support_; '
         cmd += '__SAGENB__globals = set(globals().keys()); '

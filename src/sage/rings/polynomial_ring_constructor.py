@@ -2,12 +2,15 @@
 # Factory function for making polynomial rings
 #########################################################################################
 
+from sage.structure.gens import normalize_names
+
 import weakref
 
 _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
-                   sparse=False, order='degrevlex'):
+                   sparse=False, order='degrevlex',
+                   names=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
@@ -138,9 +141,11 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
     """
     import polynomial_ring as m
-
     if isinstance(arg1, (int, long, m.integer.Integer)):
         arg1, arg2 = arg2, arg1
+
+    if not names is None:
+        arg1 = names
 
     if not m.ring.is_Ring(base_ring):
         raise TypeError, 'base_ring must be a ring'
@@ -154,7 +159,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         names = arg1
         R = _multi_variate(base_ring, names, n, sparse, order)
 
-    elif isinstance(arg1, str):
+    elif isinstance(arg1, str) or len(arg1) == 1:
         if not ',' in arg1:
             # 1. PolynomialRing(base_ring, name, sparse=False):
             if not arg2 is None:
@@ -200,6 +205,7 @@ def _save_in_cache(key, R):
 
 def _single_variate(base_ring, name, sparse):
     import polynomial_ring as m
+    name = normalize_names(1, name)
     key = (base_ring, name, sparse)
     R = _get_from_cache(key)
     if not R is None: return R
@@ -223,6 +229,8 @@ def _single_variate(base_ring, name, sparse):
     return R
 
 def _multi_variate(base_ring, names, n, sparse, order):
+    names = normalize_names(n, names)
+
     import multi_polynomial_ring as m
 
     order = m.TermOrder(order)

@@ -24,8 +24,8 @@ import field
 #    -- David Harvey (2006-09-09)
 
 
-#_objsLaurentSeriesRing = {}
-def LaurentSeriesRing(base_ring, name=None):
+laurent_series = {}
+def LaurentSeriesRing(base_ring, name=None, names=None):
     """
     EXAMPLES:
         sage: R = LaurentSeriesRing(QQ, 'x'); R
@@ -47,11 +47,13 @@ def LaurentSeriesRing(base_ring, name=None):
         sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
     """
-    #global _objsLaurentSeriesRing
-    #key = (base_ring, name)
-    #if _objsLaurentSeriesRing.has_key(key):
-    #    x = _objsLaurentSeriesRing[key]()
-    #    if x != None: return x
+    if not names is None: name = names
+
+    global laurent_series
+    key = (base_ring, name)
+    if _objsLaurentSeriesRing.has_key(key):
+        x = _objsLaurentSeriesRing[key]()
+        if x != None: return x
 
     if isinstance(base_ring, field.Field):
         R = LaurentSeriesRing_field(base_ring, name)

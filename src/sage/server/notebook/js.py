@@ -1264,10 +1264,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
          // TODO: should make this not case sensitive!!  how to .lower() in javascript?
          if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
              try {
-                 jsMath.Process(cell_output);
+                 /* jsMath.Process(cell_output); */
                  /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
-                 /* jsMath.ProcessBeforeShowing(cell_output);
-                 jsMath.ProcessBeforeShowing(cell_output_nowrap); */
+                 jsMath.ProcessBeforeShowing(cell_output);
+                 /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
              } catch(e) {
                  cell_output.innerHTML = jsmath_font_msg + cell_output.innerHTML;
                  cell_output_nowrap.innerHTML = jsmath_font_msg + cell_output_nowrap.innerHTML;

@@ -336,30 +336,19 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         self.send_head()
         W = notebook.get_worksheet_with_filename(filename)
-        t = W.edit_text()
-        t = t.replace('<','&lt;')
-        body_html = ''
-        body_html += '<h1 class="edit">Editing "%s"</h1>\n'%W.name()
-        body_html += '<form method="post" action="/%s#edit">\n'%W.name()
-        body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
-        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
-        body_html += '<input type="submit" value="Save and Evaluate" name="button_save_eval"/>\n'
-        body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
-        body_html += '<textarea class="edit" id="cell_intext" rows="30">'+t+'</textarea>'
-        body_html += '</form>'
-        s = notebook.edit_window(body_html)
+        s = notebook.edit_window(W)
         self.wfile.write(s)
 
-    def edit_button_save(self):
-        pass
-    def edit_button_preview(self):
-        pass
+    def edit_save(self, filename, newtext):
+        W = notebook.get_worksheet_with_filename(filename)
+        raise NotImplementedError
 
-    def edit_button_save_and_evaluate(self):
-        pass
+    def edit_preview(self):
+        print "edit_preview"
 
-    def edit_button_cancel(self):
-        pass
+    def edit_cancel(self):
+        print "edit_ancel"
+
 
 
     #######################################################################
@@ -612,11 +601,22 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose("POST: %s"%post_dict)
         self.save_notebook_every_so_often()
 
+        print content_type
+
         if not self.authorize():
             self.body = {}
 
         elif content_type == 'multipart/form-data':
             M = cgi.parse_multipart(self.rfile, post_dict);
+            print self.path
+            print M
+
+            if self.path[-5:] == '/edit' and self.path != '/edit':
+                # i.e., this "/edit" after a longer name, not a worksheet named /edit
+                filename = self.path[:-5].strip('/')
+                if M.has_key('button_save'):
+                    self.edit_save(filename, M['textfield'][0])
+                return
 
             if self.path == '/upload_worksheet' and M.has_key('fileField'):
                 tmp = '%s/tmp.sws'%notebook.directory()

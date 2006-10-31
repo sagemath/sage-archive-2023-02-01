@@ -770,15 +770,15 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
-        body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
+        #body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
+        #body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
         #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
         body += '    <a class="hide" onClick="hide_all()">Hide All</a>' + vbar
         body += '    <a class="hide" onClick="show_all()">Show All</a>' + vbar
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Load</a>' + vbar
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
         body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Single Cell Mode</a>' + vbar
@@ -852,15 +852,25 @@ class Notebook(SageObject):
             body += 'start_update_check(); </script>\n'
         return body
 
-    def edit_window(self, body_html):
+    def edit_window(self, worksheet):
         """
         Return a window for editing worksheet.
 
         INPUT:
-            body_html -- output by edit_text() method in server.py; this is html
-                         that defines the body of the text edit window.
+            worksheet -- a worksheet
         """
-        return """
+        t = worksheet.edit_text()
+        t = t.replace('<','&lt;')
+        body_html = ''
+        body_html += '<h1 class="edit">Editing "%s"</h1>\n'%worksheet.name()
+        body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
+        body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
+        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
+        body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
+        body_html += '</form>'
+
+        s = """
         <html><head><title>SAGE Wiki cell text </title>
         <style type="text/css">
 
@@ -934,6 +944,8 @@ class Notebook(SageObject):
         --></script></head>
         <body>%s
         </body></html>"""%(js.async_lib(), body_html)
+
+        return s
 
 
     def help_window(self):

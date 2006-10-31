@@ -150,7 +150,8 @@ class Cell:
 
     def wiki_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        return '{{{#!sage\n' + s + '\n}}}'
+        #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
+        return '{{{[%s]\n'%self.id() + s + '\n}}}'
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self

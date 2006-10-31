@@ -127,7 +127,8 @@ cdef class FiniteField_givaro(FiniteField):
     cardinality must be < 2^16. See FiniteField_ext_pari for larger
     cardinalities.
     """
-    #cdef object __weakref__   # so it is possible to make weakrefs to this finite field.
+    #cdef object __weakref__   # so it is possible to make weakrefs to this finite field -- BROKEN **
+                               # see trac #165
     cdef GivaroGfq *objectptr # C++ object
     cdef object _polynomial_ring
     cdef object _prime_subfield
@@ -761,9 +762,9 @@ cdef class FiniteField_givaro(FiniteField):
         characterstic, polynomial and the string 'givaro'
         """
         if self.degree()>1:
-            return hash((self.characteristic(),self.polynomial(),"givaro"))
+            return hash((self.characteristic(),self.polynomial(),self.variable_name(),"givaro"))
         else:
-            return hash((self.characteristic(),"givaro"))
+            return hash((self.characteristic(),self.variable_name(),"givaro"))
 
     def _element_repr(FiniteField_givaro self, FiniteField_givaroElement e):
         """

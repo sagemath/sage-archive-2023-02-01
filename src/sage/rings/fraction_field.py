@@ -39,15 +39,15 @@ def FractionField(R):
     We create some example fraction fields.
         sage: FractionField(IntegerRing())
         Rational Field
-        sage: FractionField(PolynomialRing(RationalField()))
+        sage: FractionField(PolynomialRing(RationalField(),'x'))
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
-        sage: FractionField(PolynomialRing(IntegerRing()))
+        sage: FractionField(PolynomialRing(IntegerRing(),'x'))
         Fraction Field of Univariate Polynomial Ring in x over Integer Ring
-        sage: FractionField(MPolynomialRing(RationalField(),2))
+        sage: FractionField(MPolynomialRing(RationalField(),2,'x'))
         Fraction Field of Polynomial Ring in x0, x1 over Rational Field
 
     Dividing elements often implicitly creates elements of the fraction field.
-        sage: x = PolynomialRing(RationalField()).gen()
+        sage: x = PolynomialRing(RationalField(), 'x').gen()
         sage: f = x/(x+1)
         sage: g = x**3/(x+1)
         sage: f/g
@@ -55,6 +55,11 @@ def FractionField(R):
         sage: g/f
         x^2
 
+    The input must be an integral domain.
+        sage: Frac(Integer(4))
+        Traceback (most recent call last):
+        ...
+        TypeError: R must be an integral domain.
     """
     if not isinstance(R, integral_domain.IntegralDomain):
         raise TypeError, "R must be an integral domain."
@@ -73,19 +78,46 @@ class FractionField_generic(field.Field):
         INPUT:
             R -- an integral domain
         EXAMPLES:
-            sage: K, x = FractionField(PolynomialRing(QQ)).objgen()
-            sage: K
+            sage: Frac(QQ['x'])
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
         """
         self.__R = R
 
     def is_field(self):
+        """
+        Returns True, since the fraction field is a field.
+
+        EXAMPLES:
+            sage: Frac(ZZ).is_field()
+            True
+        """
         return True
 
     def base_ring(self):
-        return self.__R.base_ring().fraction_field()
+        """
+        Return the base ring of self; this is the base ring of the ring which
+        this fraction field is the fraction field of.
+
+        EXAMPLES:
+            sage: R = Frac(ZZ['t'])
+            sage: R.base_ring()
+            Integer Ring
+        """
+        return self.__R.base_ring()
 
     def characteristic(self):
+        """
+        Return the characteristic of this fraction field.
+
+        EXAMPLES:
+            sage: R = Frac(ZZ['t'])
+            sage: R.base_ring()
+            Integer Ring
+            sage: R = Frac(ZZ['t']); R.characteristic()
+            0
+            sage: R = Frac(GF(5)['w']); R.characteristic()
+            5
+        """
         return self.ring().characteristic()
 
     def __repr__(self):
@@ -95,6 +127,16 @@ class FractionField_generic(field.Field):
         return "\\mbox{\\rm Frac}(%s)"%latex.latex(self.ring())
 
     def ring(self):
+        """
+        Return the ring that this is the fraction field of.
+
+        EXAMPLES:
+            sage: R = Frac(QQ['x,y'])
+            sage: R
+            Fraction Field of Polynomial Ring in x, y over Rational Field
+            sage: R.ring()
+            Polynomial Ring in x, y over Rational Field
+        """
         return self.__R
 
     def __call__(self, x, y=1, coerce=True):
@@ -126,8 +168,29 @@ class FractionField_generic(field.Field):
         return 1
 
     def ngens(self):
+        """
+        This is the same as for the parent object.
+
+        EXAMPLES:
+            sage: R = Frac(PolynomialRing(QQ,'z',10)); R
+            Fraction Field of Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
+            sage: R.ngens()
+            10
+        """
         return self.ring().ngens()
 
     def gen(self, i=0):
-        return fraction_field_element.FractionFieldElement(self, self.ring().gen(i))
+        """
+        Return the ith generator of self.
 
+        EXAMPLES:
+            sage: R = Frac(PolynomialRing(QQ,'z',10)); R
+            Fraction Field of Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
+            sage: R.gen()
+            z0
+            sage: R.gen(3)
+            z3
+            sage: R.3
+            z3
+        """
+        return fraction_field_element.FractionFieldElement(self, self.ring().gen(i))

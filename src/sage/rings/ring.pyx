@@ -375,7 +375,9 @@ cdef class IntegralDomain(CommutativeRing):
             return self.__fraction_field
         else:
             import sage.rings.fraction_field
-            self.__fraction_field = sage.rings.fraction_field.FractionField_generic(self)
+            K = sage.rings.fraction_field.FractionField_generic(self)
+            self.__fraction_field = K
+            K._assign_names(self.variable_names())
         return self.__fraction_field
 
     def is_field(self):

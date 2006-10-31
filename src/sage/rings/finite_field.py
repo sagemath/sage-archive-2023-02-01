@@ -660,9 +660,9 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: hash(GF(3,'a'))
             904200654
             sage: hash(GF(9,'a'))
-            -443918504
+            1524231377
             sage: hash(GF(9,'b'))
-            419125555
+            -584596322
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 

@@ -1,14 +1,18 @@
 # Interactive versions.
 
+# TO ADD:
+#   FractionField
+
 cdef _inject(X, do):
     if do:
         X.inject_variables()
     return X
 
 cdef _do_inject(kwds):
-    if kwds.has_key('inject') and kwds['inject'] == False:
+    if kwds.has_key('inject'):
+        s = kwds['inject']
         del kwds['inject']
-        return False
+        return s == True
     return True
 
 def FiniteField(*args, **kwds):
@@ -24,6 +28,28 @@ def FiniteField(*args, **kwds):
     return _inject(R, t)
 
 GF = FiniteField
+
+
+def FractionField(*args, **kwds):
+    """
+    Construct the fraction field of a field and inject the generators
+    of the fraction field to the global interactive interpreter.  Use
+    inject=False to not inject the variables.  This is a wrapper
+    around the following function: <<<FractionField>>>
+
+    EXAMPLES (that illustrate interactive injection of variables):
+        sage: Frac(QQ['x'])
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+        sage: parent(x)
+        Fraction Field of Univariate Polynomial Ring in x over Rational Field
+    """
+    t = _do_inject(kwds)
+    import sage.rings.all
+    R = sage.rings.all.FractionField(*args, **kwds)
+    return _inject(R, t)
+
+Frac = FractionField
+
 
 def FreeMonoid(*args, **kwds):
     """

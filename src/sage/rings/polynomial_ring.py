@@ -98,6 +98,12 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         self._has_singular = False
         self._assign_names(name)
 
+    def __reduce__(self):
+        import sage.rings.polynomial_ring_constructor
+        return (sage.rings.polynomial_ring_constructor.PolynomialRing,
+                (self.base_ring(), self.variable_name(), None, self.is_sparse()))
+
+
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:

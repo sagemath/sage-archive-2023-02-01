@@ -201,7 +201,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: K = FiniteField(7)
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField_ext_pari(7^10)
+        sage: K = FiniteField_ext_pari(7^10, 'b')
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField_ext_pari(7^10, 'a')
@@ -222,16 +222,17 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, q, name='a', modulus=None):
+    def __init__(self, q, name, modulus=None):
         """
         Create finite field of order q with variable printed as name.
 
         INPUT:
             q -- integer, size of the finite field, not prime
-            name -- (optional:default 'a') variable used for
-                    printing element of the finite field.  Also,
-                    two finite fields are considered equal
-                    if they have the same variable name, and not otherwise.
+            name -- variable used for printing element of the finite
+                    field.  Also, two finite fields are considered
+                    equal if they have the same variable name, and not
+                    otherwise.
+
         OUTPUT:
             FiniteField_ext_pari -- a finite field of order q with given variable name.
 
@@ -379,7 +380,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**4)
+            sage: k = FiniteField_ext_pari(3**4, 'a')
             sage: k.characteristic()
             3
         """
@@ -397,7 +398,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: FiniteField(3).degree()
             1
-            sage: FiniteField_ext_pari(3**20).degree()
+            sage: FiniteField_ext_pari(3**20, 'a').degree()
             20
         """
         return self.__degree
@@ -417,7 +418,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3^4)
+            sage: k = FiniteField_ext_pari(3^4, 'a')
             sage: b = k(5)
             sage: b.parent()
             Finite Field in a of size 3^4
@@ -428,10 +429,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         Constant polynomials coerce into finite fields:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: R = QQ['x']
-            sage: k, a = FiniteField_ext_pari(5^2).objgen()
+            sage: k, a = FiniteField_ext_pari(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-            sage: R, x = k['x'].objgen()
+            sage: R = k['x']
             sage: k(R(3))
             3
 
@@ -505,7 +506,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 return x
             else:
                 # This is where we *would* do coercion from one finite field to another...
-                raise TypeError, "no coercion of defined"
+                raise TypeError, "no coercion defined"
 
         elif sage.interfaces.gap.is_GapElement(x):
             try:
@@ -553,27 +554,27 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(4)._coerce_(GF(2)(1))
+            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1))
             1
-            sage: k = FiniteField_ext_pari(4)
+            sage: k = FiniteField_ext_pari(4,'a')
             sage: k._coerce_(k.0)
             a
-            sage: FiniteField_ext_pari(4)._coerce_(3)
+            sage: FiniteField_ext_pari(4,'a')._coerce_(3)
             1
-            sage: FiniteField_ext_pari(4)._coerce_(2/3)
+            sage: FiniteField_ext_pari(4,'a')._coerce_(2/3)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: FiniteField_ext_pari(8)._coerce_(FiniteField_ext_pari(4).0)
+            sage: FiniteField_ext_pari(8,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: FiniteField_ext_pari(16)._coerce_(FiniteField_ext_pari(4).0)
+            sage: FiniteField_ext_pari(16,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: k = FiniteField_ext_pari(8)
-            sage: k._coerce_(FiniteField(7)(2))
+            sage: k = FiniteField_ext_pari(8,'a')
+            sage: k._coerce_(FiniteField(7,'a')(2))
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
@@ -601,7 +602,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10)
+            sage: k = FiniteField_ext_pari(2**10, 'a')
             sage: k
             Finite Field in a of size 2^10
             sage: len(k)
@@ -615,7 +616,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10)
+            sage: k = FiniteField_ext_pari(2**10,'a')
             sage: k
             Finite Field in a of size 2^10
             sage: k.order()
@@ -634,7 +635,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k.polynomial('x')
             x
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(9)
+            sage: k = FiniteField_ext_pari(9,'a')
             sage: k.polynomial('x')
             x^2 + 2*x + 2
         """

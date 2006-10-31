@@ -601,15 +601,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose("POST: %s"%post_dict)
         self.save_notebook_every_so_often()
 
-        print content_type
-
         if not self.authorize():
             self.body = {}
 
         elif content_type == 'multipart/form-data':
             M = cgi.parse_multipart(self.rfile, post_dict);
-            print self.path
-            print M
 
             if self.path[-5:] == '/edit' and self.path != '/edit':
                 # i.e., this "/edit" after a longer name, not a worksheet named /edit

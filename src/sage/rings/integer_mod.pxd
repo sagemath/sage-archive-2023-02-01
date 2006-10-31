@@ -29,6 +29,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t* get_value(IntegerMod_gmp self)
     cdef RingElement _add_c_impl(self, RingElement right)
     cdef RingElement _sub_c_impl(self, RingElement right)
+    cdef RingElement _neg_c_impl(self)
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t ivalue
@@ -37,6 +38,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef int_fast32_t get_int_value(IntegerMod_int self)
     cdef RingElement _add_c_impl(self, RingElement right)
     cdef RingElement _sub_c_impl(self, RingElement right)
+    cdef RingElement _neg_c_impl(self)
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t ivalue
@@ -45,4 +47,5 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t get_int_value(IntegerMod_int64 self)
     cdef RingElement _add_c_impl(self, RingElement right)
     cdef RingElement _sub_c_impl(self, RingElement right)
+    cdef RingElement _neg_c_impl(self)
 

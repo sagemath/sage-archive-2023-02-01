@@ -553,6 +553,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
 
+    cdef RingElement _neg_c_impl(self):
+        cdef Integer x
+        x = Integer()
+        mpz_neg(x.value, self.value)
+        return x
+
 #    todo: move the doctests here into the new addition routines
 #
 #    def __add__(x, y):
@@ -579,6 +585,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 #        if isinstance(x, Integer) and isinstance(y, Integer):
 #            return x.__add_(y)
 #        return sage.rings.coerce.bin_op(x, y, operator.add)
+
+#    def __neg__(self):
+#        """
+#        Computes $-self$
+#
+#        EXAMPLES:
+#            sage: z = 32
+#            sage: -z
+#            -32
+#            sage: z = 0; -z
+#            0
+#            sage: z = -0; -z
+#            0
+#            sage: z = -1; -z
+#            1
+#        """
+#        cdef Integer x
+#        x = Integer()
+#        mpz_neg(x.value, self.value)
+#        return x
+
 
     def _mul_(self, RingElement right):
         # self and right are guaranteed to be Integers
@@ -856,26 +883,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             43434
         """
         return self
-
-    def __neg__(self):
-        """
-        Computes $-self$
-
-        EXAMPLES:
-            sage: z = 32
-            sage: -z
-            -32
-            sage: z = 0; -z
-            0
-            sage: z = -0; -z
-            0
-            sage: z = -1; -z
-            1
-        """
-        cdef Integer x
-        x = Integer()
-        mpz_neg(x.value, self.value)
-        return x
 
     def __abs__(self):
         """

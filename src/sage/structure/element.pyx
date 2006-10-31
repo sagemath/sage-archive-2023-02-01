@@ -39,12 +39,13 @@ AUTHORS:
 #
 # def RingElement.__add__
 #    This function is called by python or pyrex when the binary "+" operator
-#    is encountered. It can't make many assumptions about its arguments.
-#    It has a fast pathway to deal with the most common case where the
-#    arguments have the same parent. Otherwise, it uses the coercion module
-#    to work out how to make them have the same parent. After any necessary
-#    coercions have been performed, it calls _add_c to dispatch to the correct
-#    underlying addition implementation.
+#    is encountered. It ASSUMES that at least one of its arguments is a
+#    RingElement; only a really twisted programmer would violate this
+#    condition. It has a fast pathway to deal with the most common case
+#    where the arguments have the same parent. Otherwise, it uses the coercion
+#    module to work out how to make them have the same parent. After any
+#    necessary coercions have been performed, it calls _add_c to dispatch to
+#    the correct underlying addition implementation.
 #
 #    Note that although this function is declared as def, it doesn't have the
 #    usual overheads associated with python functions (either for the caller
@@ -337,7 +338,7 @@ cdef class ModuleElement(Element):
         if HAS_DICTIONARY(self):   # fast check
             # TODO: this bit will be unnecessarily slow if someone derives
             # from the pyrex class *without* overriding _add_, since then
-            # we'll be making an unnecessary call to _add_, which will
+            # we'll be making an unnecessary python call to _add_, which will
             # end up in _add_c_impl anyway. There must be a simple way to
             # distinguish this situation. It's complicated because someone
             # can even override it at the instance level (without overriding
@@ -345,7 +346,7 @@ cdef class ModuleElement(Element):
             return self._add_(right)
         else:
             # Must be a pure Pyrex class.
-            return (<ModuleElement>self)._add_c_impl(<ModuleElement>right)
+            return self._add_c_impl(right)
 
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
@@ -414,17 +415,10 @@ cdef class ModuleElement(Element):
         """
 
         if HAS_DICTIONARY(self):   # fast check
-            # TODO: this bit will be unnecessarily slow if someone derives
-            # from the pyrex class *without* overriding _add_, since then
-            # we'll be making an unnecessary call to _add_, which will
-            # end up in _add_c_impl anyway. There must be a simple way to
-            # distinguish this situation. It's complicated because someone
-            # can even override it at the instance level (without overriding
-            # it in the class.)
             return self._sub_(right)
         else:
             # Must be a pure Pyrex class.
-            return (<ModuleElement>self)._sub_c_impl(<ModuleElement>right)
+            return self._sub_c_impl(right)
 
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -437,13 +431,7 @@ cdef class ModuleElement(Element):
         """
         # default implementation is to use the negation and addition
         # dispatchers:
-
-        # return self._add_c(right._neg_c())
-
-        # todo:
-        # unfortunately _neg_c doesn't exist yet, so we just have to
-        # use the operator version for now:
-        return self._add_c(-right)
+        return self._add_c(right._neg_c())
 
 
     def _sub_(ModuleElement self, ModuleElement right):
@@ -456,7 +444,51 @@ cdef class ModuleElement(Element):
 
 
     def __neg__(self):
+        """
+        Top-level negation operator for ModuleElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # We ASSUME that self is a ModuleElement. No type checks.
+        return (<ModuleElement>self)._neg_c()
+
+
+    cdef ModuleElement _neg_c(self):
+        """
+        Negation dispatcher for ModuleElements.
+
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            return self._neg_()
+        else:
+            # Must be a pure Pyrex class.
+            return self._neg_c_impl()
+
+
+    cdef ModuleElement _neg_c_impl(self):
+        """
+        Pyrex classes should override this function to implement negation.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # default implementation is to try multiplying by -1.
         return coerce.bin_op(-1, self, operator.mul)
+
+
+    def _neg_(ModuleElement self):
+        """
+        Python classes should override this function to implement negation.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return self._neg_c_impl()
+
 
     def __pos__(self):
         return self
@@ -679,10 +711,12 @@ cdef class RingElement(Element):
             # distinguish this situation. It's complicated because someone
             # can even override it at the instance level (without overriding
             # it in the class.)
+            # TODO: if you fix this up here, fix it up for the other operators
+            # (sub, neg, etc.) as well. Thanks.
             return self._add_(right)
         else:
             # Must be a pure Pyrex class.
-            return (<RingElement>self)._add_c_impl(<RingElement>right)
+            return self._add_c_impl(right)
 
 
     cdef RingElement _add_c_impl(self, RingElement right):
@@ -750,17 +784,10 @@ cdef class RingElement(Element):
         """
 
         if HAS_DICTIONARY(self):   # fast check
-            # TODO: this bit will be unnecessarily slow if someone derives
-            # from the pyrex class *without* overriding _add_, since then
-            # we'll be making an unnecessary call to _add_, which will
-            # end up in _add_c_impl anyway. There must be a simple way to
-            # distinguish this situation. It's complicated because someone
-            # can even override it at the instance level (without overriding
-            # it in the class.)
             return self._sub_(right)
         else:
             # Must be a pure Pyrex class.
-            return (<RingElement>self)._sub_c_impl(<RingElement>right)
+            return self._sub_c_impl(right)
 
 
     cdef RingElement _sub_c_impl(self, RingElement right):
@@ -773,13 +800,7 @@ cdef class RingElement(Element):
         """
         # default implementation is to use the negation and addition
         # dispatchers:
-
-        # return self._add_c(right._neg_c())
-
-        # todo:
-        # unfortunately _neg_c doesn't exist yet, so we just have to
-        # use the operator version for now:
-        return self._add_c(-right)
+        return self._add_c(right._neg_c())
 
 
     def _sub_(RingElement self, RingElement right):
@@ -789,6 +810,53 @@ cdef class RingElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         return self._sub_c_impl(right)
+
+
+    def __neg__(self):
+        """
+        Top-level negation operator for RingElements.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # We ASSUME that self is a RingElement. No type checks.
+        return (<RingElement>self)._neg_c()
+
+
+    cdef RingElement _neg_c(self):
+        """
+        Negation dispatcher for RingElements.
+
+        DO NOT OVERRIDE THIS FUNCTION.
+
+        See extensive documentation at the top of element.pyx.
+        """
+
+        if HAS_DICTIONARY(self):   # fast check
+            return self._neg_()
+        else:
+            # Must be a pure Pyrex class.
+            return self._neg_c_impl()
+
+
+    cdef RingElement _neg_c_impl(self):
+        """
+        Pyrex classes should override this function to implement negation.
+
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        # default implementation is to try multiplying by -1.
+        return coerce.bin_op(-1, self, operator.mul)
+
+
+    def _neg_(RingElement self):
+        """
+        Python classes should override this function to implement negation.
+
+        See extensive documentation at the top of element.pyx.
+        """
+        return self._neg_c_impl()
 
 
     def __mul__(self, right):
@@ -813,9 +881,6 @@ cdef class RingElement(Element):
 
     def _div_(self, right):
         return self.parent().fraction_field()(self, right)
-
-    def __neg__(self):
-        return coerce.bin_op(-1, self, operator.mul)
 
     def __pos__(self):
         return self

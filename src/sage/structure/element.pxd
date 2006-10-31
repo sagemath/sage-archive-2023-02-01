@@ -18,6 +18,8 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _add_c_impl(self, ModuleElement right)
     cdef ModuleElement _sub_c(self, ModuleElement right)
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
+    cdef ModuleElement _neg_c(self)
+    cdef ModuleElement _neg_c_impl(self)
 
 cdef class MonoidElement(Element):
     pass
@@ -33,6 +35,8 @@ cdef class RingElement(Element):
     cdef RingElement _add_c_impl(self, RingElement right)
     cdef RingElement _sub_c(self, RingElement right)
     cdef RingElement _sub_c_impl(self, RingElement right)
+    cdef RingElement _neg_c(self)
+    cdef RingElement _neg_c_impl(self)
 
 cdef class CommutativeRingElement(RingElement):
     pass

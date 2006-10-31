@@ -397,6 +397,9 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 # RingElement._sub_c_impl() implementation anyway, so why bother.
 #   -- David Harvey
 #
+# BTW should mention that David Roe is working on reimplementing laurent
+# series from scratch. (hopefully!)
+#
 #    def __sub__(self, right):
 #        """
 #        EXAMPLES:
@@ -410,15 +413,17 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 #        """
 #        return self + right.__neg__()
 
-    def __neg__(self):
-        """
-        EXAMPLES:
-            sage: R.<t> = LaurentSeriesRing(ZZ)
-            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
-            sage: f.__neg__()
-            -3*t^-2 - t^2 - t^3 + O(t^10)
-        """
-        return (-1)*self
+# ditto with __neg__:
+#
+#    def __neg__(self):
+#        """
+#        EXAMPLES:
+#            sage: R.<t> = LaurentSeriesRing(ZZ)
+#            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
+#            sage: f.__neg__()
+#            -3*t^-2 - t^2 - t^3 + O(t^10)
+#        """
+#        return (-1)*self
 
     def __mul__(self, right):
         """

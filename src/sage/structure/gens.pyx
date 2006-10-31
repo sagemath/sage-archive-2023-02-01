@@ -209,15 +209,14 @@ cdef class Generators(sage_object.SageObject):
         if names is None: return
         if not self.__names is None:
             raise ValueError, 'variable names cannot be changed after object creation.'
-        if isinstance(names, str) and ',' in names:
-            names = names.split(',')
-        if isinstance(names, str) and self.ngens() > 1 and len(names) == self.ngens():
-            names = tuple(names)
         if isinstance(names, str):
-            name = names
-            names = sage.misc.defaults.variable_names(self.ngens(), name)
-            names = self.__certify_names(names)
-            latex_names = sage.misc.defaults.latex_variable_names(self.ngens(), name)
+            if ',' in names:
+                names = tuple(names.split(','))
+            else:
+                name = names
+                names = sage.misc.defaults.variable_names(self.ngens(), name)
+                names = self.__certify_names(names)
+                latex_names = sage.misc.defaults.latex_variable_names(self.ngens(), name)
         else:
             names = self.__certify_names(names)
             if not isinstance(names, (list, tuple)):
@@ -226,7 +225,7 @@ cdef class Generators(sage_object.SageObject):
                 if not isinstance(x,str):
                     raise TypeError, "names must consist of strings"
             if len(names) != self.ngens():
-                raise IndexError, "the number of names must equal the number of generators"
+                raise IndexError, "the number of names (=%s) must equal the number of generators (=%s)"%(names, self.ngens())
             latex_names = names
         self.__names = tuple(names)
         self.__latex_names = tuple(latex_names)

@@ -231,8 +231,8 @@ def _multi_variate(base_ring, names, n, sparse, order):
         names = tuple(names)
 
     elif isinstance(names, str):
-        if len(names) > 1:
-            names = tuple(names)
+        if ',' in names:
+            names = tuple(names.split(','))
 
     key = (base_ring, names, n, sparse, order)
     R = _get_from_cache(key)

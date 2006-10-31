@@ -127,12 +127,11 @@ cdef class FiniteField_givaro(FiniteField):
     cardinality must be < 2^16. See FiniteField_ext_pari for larger
     cardinalities.
     """
-
+    #cdef object __weakref__   # so it is possible to make weakrefs to this finite field.
     cdef GivaroGfq *objectptr # C++ object
     cdef object _polynomial_ring
     cdef object _prime_subfield
     cdef int repr
-    cdef object __weakref__   # so it is possible to make weakrefs to this finite field.
 
     def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly"):
         """
@@ -161,40 +160,37 @@ cdef class FiniteField_givaro(FiniteField):
 
             By default conway polynomials are used:
 
-            sage: k.<a> = GF(2**8)
-            sage: -a^k.degree()
+            sage: k = GF(2**8, 'a')
+            sage: -a ^ k.degree()
             a^4 + a^3 + a^2 + 1
             sage: f = k.modulus(); f
-            x^8 + x^4 + x^3 + x^2 + 1
+            a^8 + a^4 + a^3 + a^2 + 1
 
 
             You may enforce a modulus:
 
             sage: k = GF(2)
-            sage: P.<x> = PolynomialRing(k)
-            sage: f = x^8+x^4+x^3+x+1 # Rijndael Polynomial
-            sage: k.<a> = GF(2**8,modulus=f)
+            sage: P = PolynomialRing(k, 'x')
+            sage: f = x^8 + x^4 + x^3 + x + 1 # Rijndael Polynomial
+            sage: k = GF(2^8, 'a', modulus=f)
             sage: k.modulus()
-            x^8 + x^4 + x^3 + x + 1
-            sage: -a^k.degree()
-            a^4 + a^3 + a + 1
+            a^8 + a^4 + a^3 + a + 1
+            sage: a^(2^8)
+            a
 
             You may enforce a random modulus:
 
-            sage: k = GF(3**5,modulus='random')
+            sage: k = GF(3**5, 'a', modulus='random')
             sage: k.modulus() # random polynomial
             x^5 + 2*x^4 + 2*x^3 + x^2 + 2
 
             Three different representations are possible:
 
-            sage: k.<a> = sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='poly')
-            sage: a
+            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='poly').gen()
             a
-            sage: k.<a> = sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='int')
-            sage: a
+            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='int').gen()
             3
-            sage: k.<a> = sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='log')
-            sage: a
+            sage: sage.rings.finite_field_givaro.FiniteField_givaro(9,repr='log').gen()
             5
         """
 
@@ -254,8 +250,8 @@ cdef class FiniteField_givaro(FiniteField):
 
     def __dealloc__(FiniteField_givaro self):
         """
+        Free the memory occupied by this Givaro finite field.
         """
-
         delete(self.objectptr)
 
     def __repr__(FiniteField_givaro self):
@@ -284,7 +280,7 @@ cdef class FiniteField_givaro(FiniteField):
         len(k) is defined as k.cardinality()
 
         EXAMPLE:
-            sage: k = GF(23**3)
+            sage: k = GF(23**3, 'a')
             sage: len(k)
             12167
             sage: k = GF(2)
@@ -318,7 +314,7 @@ cdef class FiniteField_givaro(FiniteField):
         Return True if self is a prime field
 
         EXAMPLES:
-            sage: GF(3**7).is_prime_field()
+            sage: GF(3**7, 'a').is_prime_field()
             False
 
         """
@@ -335,11 +331,10 @@ cdef class FiniteField_givaro(FiniteField):
         Return a random element of self.
 
         EXAMPLES:
-            sage: k = GF(23**3)
+            sage: k = GF(23**3, 'a')
             sage: e = k.random_element()
             sage: type(e)
-            <type 'finite_field_givaro.FiniteField_givaroElement'>
-
+            <type 'sage.rings.finite_field_givaro.FiniteField_givaroElement'>
         """
         cdef int res
         cdef GivRandom generator
@@ -358,7 +353,7 @@ cdef class FiniteField_givaro(FiniteField):
             FiniteField_givaroElement are accepted where the parent
             is either self, equals self or is the prime subfield
 
-            sage: k = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k.gen() == k(k.gen())
             True
 
@@ -367,20 +362,22 @@ cdef class FiniteField_givaro(FiniteField):
 
             sage: k(2)
             0
+
+            Floats coerce in:
             sage: k(float(2.0))
             0
 
             Rational are interpreted as
-            self(numerator)/self(denominator). Both may not be >=
-            self.characteristic().
+                             self(numerator)/self(denominator).
+            Both may not be >= self.characteristic().
 
-            sage: k = GF(3**8)
+            sage: k = GF(3**8, 'a')
             sage: k(1/2) == k(1)/k(2)
             True
 
             Free modulo elements over self.prime_subfield() are interpreted 'little endian'
 
-            sage: k = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: e = k.vector_space().gen(1); e
             (0, 1, 0, 0, 0, 0, 0, 0)
             sage: k(e)
@@ -391,7 +388,8 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k('a^2+1')
             a^2 + 1
 
-            PARI elements are interpreted as finite field elements, the strategy is pretty liberal:
+            PARI elements are interpreted as finite field elements; this PARI flexibility
+            is (absurdly!) liberal:
 
             sage: k(pari('Mod(1,2)'))
             1
@@ -604,7 +602,7 @@ cdef class FiniteField_givaro(FiniteField):
             integer representation of a finite field element.
 
         EXAMPLE:
-            sage: k = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k.log2int(4)
             16
             sage: k.log2int(20)
@@ -634,7 +632,7 @@ cdef class FiniteField_givaro(FiniteField):
             log representation of p
 
         EXAMPLE:
-        sage: k = GF(7**3)
+        sage: k = GF(7**3, 'a')
         sage: k.int2log(4)
         228
         sage: k.int2log(3)
@@ -710,7 +708,7 @@ cdef class FiniteField_givaro(FiniteField):
          self.prime_subfield()
 
          EXAMPLE:
-             sage: k = GF(3**5)
+             sage: k = GF(3**5, 'a')
              sage: k.vector_space()
              Vector space of dimension 5 over Finite Field of size 3
 
@@ -724,7 +722,7 @@ cdef class FiniteField_givaro(FiniteField):
         Finite fields may be iterated over:
 
         EXAMPLE:
-            sage: list(GF(2**2))
+            sage: list(GF(2**2, 'a'))
             [0, 1, a, a + 1]
         """
         if self.degree()>1:
@@ -822,9 +820,9 @@ cdef class FiniteField_givaro(FiniteField):
             return "0"
         return ret[:-3]
 
-    def abpc(FiniteField_givaro self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
+    def a_times_b_plus_c(FiniteField_givaro self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
         """
-        Return r = ab + c. This is faster than multiplying a and b
+        Return r = a*b + c. This is faster than multiplying a and b
         first and adding c to the result.
 
         INPUT:
@@ -833,19 +831,18 @@ cdef class FiniteField_givaro(FiniteField):
             c -- FiniteField_givaroElement
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
-            sage: k.abpc(a,a,k(1))
+            sage: k = GF(2**8, 'a')
+            sage: k.a_times_b_plus_c(a,a,k(1))
             a^2 + 1
-
         """
         cdef int r
 
         r = self.objectptr.axpy(r, a.object, b.object, c.object)
         return make_FiniteField_givaroElement(self,r)
 
-    def abmc(FiniteField_givaro self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
+    def a_times_b_minus_c(FiniteField_givaro self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
         """
-        Return r = ab - c.
+        Return r = a*b - c.
 
         INPUT:
             a -- FiniteField_givaroElement
@@ -853,8 +850,8 @@ cdef class FiniteField_givaro(FiniteField):
             c -- FiniteField_givaroElement
 
         EXAMPLE:
-            sage: k.<a> = GF(3**3)
-            sage: k.abmc(a,a,k(1))
+            sage: k = GF(3**3, 'a')
+            sage: k.a_times_b_minus_c(a,a,k(1))
             a^2 + 2
 
         """
@@ -864,10 +861,10 @@ cdef class FiniteField_givaro(FiniteField):
         r = self.objectptr.axmy(r, a.object, b.object, c.object, )
         return make_FiniteField_givaroElement(self,r)
 
-    def cmab(FiniteField_givaro self,FiniteField_givaroElement a, FiniteField_givaroElement b, FiniteField_givaroElement c):
+    def c_minus_a_times_b(FiniteField_givaro self,FiniteField_givaroElement a,
+                          FiniteField_givaroElement b, FiniteField_givaroElement c):
         """
-        Return r = c - ab.
-
+        Return r = c - a*b.
 
         INPUT:
             a -- FiniteField_givaroElement
@@ -875,8 +872,8 @@ cdef class FiniteField_givaro(FiniteField):
             c -- FiniteField_givaroElement
 
         EXAMPLE:
-            sage: k.<a> = GF(3**3)
-            sage: k.cmab(a,a,k(1))
+            sage: k = GF(3**3, 'a')
+            sage: k.c_minus_a_times_b(a,a,k(1))
             2*a^2 + 1
         """
         cdef int r
@@ -895,7 +892,7 @@ cdef class FiniteField_givaro(FiniteField):
             l -- int representing an exponent of self.gen()
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k._add(int(10),int(20))
             31
             sage: (a^10+a^20).log_repr()
@@ -915,12 +912,11 @@ cdef class FiniteField_givaro(FiniteField):
             l -- int representing an exponent of self.gen()
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k._mul(int(10),int(20))
             30
             sage: (a^10*a^20).log_repr()
             '30'
-
         """
         cdef int res
         return self.objectptr.mul(res, r , l )
@@ -936,7 +932,7 @@ cdef class FiniteField_givaro(FiniteField):
             l -- int representing an exponent of self.gen()
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k._div(int(10),int(20))
             245
             sage: (a^10/a^20).log_repr()
@@ -957,7 +953,7 @@ cdef class FiniteField_givaro(FiniteField):
             l -- int representing an exponent of self.gen()
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: k._sub(int(10),int(20))
             31
             sage: (a^10-a^20).log_repr()
@@ -972,7 +968,7 @@ cdef class FiniteField_givaro(FiniteField):
         Pickle self:
 
         EXAMPLE:
-            sage: k = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: loads(dumps(k)) == k
             True
 
@@ -1104,7 +1100,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Add two elements.
 
         EXAMPLE:
-            sage: k.<b> = GF(9**2)
+            sage: k = GF(9**2, 'b')
             sage: b^10 + 2*b
             2*b^3 + 2*b^2 + 2*b + 1
 
@@ -1130,7 +1126,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Multiply two elements:
 
         EXAMPLE:
-            sage: k.<c> = GF(7**4)
+            sage: k = GF(7**4, 'c')
             sage: 3*c
             3*c
             sage: c*c
@@ -1155,7 +1151,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Divide two elements
 
         EXAMPLE:
-            sage: k.<g> = GF(2**8)
+            sage: k = GF(2**8, 'g')
             sage: g/g
             1
         """
@@ -1177,7 +1173,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Subtract two elements
 
         EXAMPLE:
-            sage: k.<a> = GF(3**4)
+            sage: k = GF(3**4, 'a')
             sage: k(3) - k(1)
             2
             sage: 2*a - a^2
@@ -1510,7 +1506,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         finite field, if there is one.  Otherwise, raise a ValueError.
 
         EXAMPLES:
-          sage: k.<a> = GF(7^2)
+          sage: k = GF(7^2, 'a')
           sage: k(2).square_root()
           4
           sage: k(3).square_root()
@@ -1519,7 +1515,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
           3
           sage: k(4).square_root()
           5
-          sage: k = GF(7^3)
+          sage: k = GF(7^3, 'a')
           sage: k(3).square_root()
           Traceback (most recent call last):
           ...
@@ -1527,7 +1523,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         """
         from sage.rings.polynomial_ring import PolynomialRing
-        R = PolynomialRing(parent_object(self))
+        R = PolynomialRing(parent_object(self), 'x')
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
@@ -1538,7 +1534,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
 
         EXAMPLE:
-            sage: k.<a> = GF(2**8)
+            sage: k = GF(2**8, 'a')
             sage: e = k.random_element()
             sage: loads(dumps(e)) == e
             True

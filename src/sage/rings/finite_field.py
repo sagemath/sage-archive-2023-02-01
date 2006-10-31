@@ -94,21 +94,25 @@ def FiniteField(order, name=None, modulus=None):
 
     key = (order, name, modulus)
     if cache.has_key(key):
-        K = cache[key]()
-        if not K is None:
-            return K
+        return cache[key]
+    # I have disabled weakref support for finite fields, because it isn't
+    # really implemented in Pyrex.  - SEE track ticket #165
+        #K = cache[key]()
+        #if not K is None:
+        #    return K
 
     if arith.is_prime(order):
         K = integer_mod_ring.IntegerModRing(order)
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"
-        if False and order < 2**16:   # todo -- re-enable
+        if order < 2**16:   # todo -- re-enable
             K = FiniteField_givaro(order, name, modulus)
         else:
             K = FiniteField_ext_pari(order, name, modulus)
 
-    cache[key] = weakref.ref(K)
+    #cache[key] = weakref.ref(K)
+    #cache[key] = K
     return K
 
 
@@ -545,8 +549,8 @@ class FiniteField_ext_pari(FiniteField_generic):
             pass
         try:
             return finite_field_element.FiniteField_ext_pariElement(self, integer.Integer(x))
-        except TypeError:
-            raise TypeError, "no coercion defined"
+        except TypeError, msg:
+            raise TypeError, "%s\nno coercion defined"%msg
 
     def _coerce_(self, x):
         """
@@ -693,7 +697,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__modulus
         except AttributeError:
-            x = polynomial_ring.PolynomialRing(self).gen()
+            x = polynomial_ring.PolynomialRing(self, 'x').gen()
             self.__modulus = x - 1
         return self.__modulus
 

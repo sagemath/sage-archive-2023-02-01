@@ -215,7 +215,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
 
             # format names as a list of strings and a list of variables
-            gen_names = str(gen_list)
+            gen_names = tuple(gen_list)
             gen_vars  = ", ".join(gen_list)
 
             # find end of constructor:

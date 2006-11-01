@@ -403,10 +403,10 @@ cdef class CommutativeRing(Ring):
         import sage.rings.quotient_ring
         return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
 
-    def __div__(self, I):
-        return self.quotient(I, names=None)
+    #def __div__(self, I):
+    #    return self.quotient(I, names=None)
 
-    def quotient_ring(self, I, names):
+    def quotient_ring(self, I, names=None):
         """
         Return the quotient of self by the ideal I of self.
         (Synonym for self.quotient(I).)

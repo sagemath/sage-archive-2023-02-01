@@ -177,8 +177,6 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
                         return self(x)
                     else:
                         raise TypeError, "no natural map between bases of polynomial rings"
-                else:
-                    raise TypeError, "polynomial ring has a different indeterminate name"
 
         except AttributeError:
             pass

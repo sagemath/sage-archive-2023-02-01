@@ -439,8 +439,8 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
-            sage: S = PolynomialRing(R, 'y'); y = S.gen()
-            sage: T = S.quotient(y + x, 'z')
+            sage: S.<y> = PolynomialRing(R)
+            sage: T.<z> = S.quotient(y + x)
             sage: T
             Univariate Quotient Polynomial Ring in z over Univariate Polynomial Ring in x over Rational Field with modulus y + x
             sage: T.ngens()
@@ -529,23 +529,6 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             b
             sage: g(a)
             alpha
-
-        We do another example over $\ZZ$.
-            sage: R.<x> = ZZ['x']
-            sage: S.<a> = R.quo(x^3 - 2)
-            sage: F.<b>, g, h = S.field_extension()
-            sage: h(F.0^2 + 3)
-            a^2 + 3
-            sage: g(x^2 + 2)
-            b^2 + 2
-
-        Note that the homomorphism is not defined on the entire
-        ''domain''.   (Allowing creation of such functions may be
-        disallowed in a future version of SAGE.):
-            sage: h(1/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: Unable to coerce rational (=1/3) to an Integer.
 
         Note that the parent ring must be an integral domain:
             sage: R.<x> = GF(25,'f25')['x']
@@ -649,7 +632,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
 
         EXAMPLES:
             sage: f = x^5 + x + 17
-            sage: k = QQ['x']/(f)
+            sage: k = QQ['x'].quotient(f)
             sage: v = k.complex_embeddings(100)
             sage: [phi(k.0^2) for phi in v]
             [2.9757207403766761469671194565, 0.92103906697304693634806949136 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949136 + 3.0755331188457794473265418086*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I]

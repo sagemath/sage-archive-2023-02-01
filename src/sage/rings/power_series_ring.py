@@ -233,7 +233,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R._coerce_(s)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: power series ring has a different indeterminate name
 
         We illustrate canonical coercion between power series rings with compatible
         base rings:
@@ -261,8 +261,6 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
                         return self(x)
                     else:
                         raise TypeError, "no natural map between bases of power series rings"
-                else:
-                    raise TypeError, "power series ring has a different indeterminate name"
 
         except AttributeError:
             pass

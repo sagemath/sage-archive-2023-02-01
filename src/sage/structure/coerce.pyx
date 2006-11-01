@@ -89,8 +89,8 @@ def canonical_coercion(x, y):
                 if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
                     #raise TypeError, "you cannot combine ring (=%s) with a number or another ring (=%s)!"%(x, y)
                     raise TypeError, "you cannot combine ring with a number or another ring!"
-                #raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-                raise TypeError, "unable to find a common canonical parent"
+                raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
+                #raise TypeError, "unable to find a common canonical parent"
         return x, y
     except AttributeError:
         raise TypeError, "unable to find a common canonical parent"

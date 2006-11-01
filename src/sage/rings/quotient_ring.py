@@ -61,8 +61,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
 
-        sage: R = QQ['x,y']
-        sage: S = quo(R, x^2 + y^2, 'a,b')
+        sage: R.<x,y> = PolynomialRing(QQ)
+        sage: S.<a,b> = R.quo(x^2 + y^2)
         sage: a^2 + b^2 == 0
         True
         sage: S(0) == a^2 + b^2
@@ -72,9 +72,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
 
     A quotient of a quotient is just the quotient of the
     original top ring by the sum of two ideals.
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S, (a,b) = (R/(1 + y^2)).objgens('ab')
-        sage: T, (c,d) = (S/(a, )).objgens('cd')
+        sage: R.<x,y> = PolynomialRing(QQ,2)
+        sage: S.<a,b> = R.quo(1 + y^2)
+        sage: T.<c,d> = S.quo(a)
         sage: T
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, 1 + y^2)
         sage: T.gens()
@@ -116,11 +116,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
             sage: l = pi.lift()
 
         EXAMPLES:
-            sage: R, (x,y)  = QQ['x,y'].objgens()
+            sage: R.<x,y>  = PolynomialRing(QQ)
             sage: Q = R/(x^2,y^2)
             sage: pi = Q.cover()
             sage: pi(x^3+y)
-            y
+            ybar
             sage: l = pi.lift(x+y^3)
             sage: l
             x
@@ -148,8 +148,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
         Return the lifting map to the cover.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S = R.quotient(x^2 + y^2, names=['xbar', 'ybar'])
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S = R.quotient(x^2 + y^2)
             sage: pi = S.cover(); pi
             Ring morphism:
               From: Polynomial Ring in x, y over Rational Field

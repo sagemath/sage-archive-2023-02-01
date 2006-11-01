@@ -99,7 +99,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
         sage: R.<x> = PolynomialRing(QQ)
         sage: K.<a> = NumberField(x^2 - 2)
         sage: R.<t> = K['t']
-        sage: L = K.extension(t^3+t+a); L
+        sage: L = K.extension(t^3+t+a, 'b'); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
         sage: L.absolute_field()
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
@@ -178,12 +178,12 @@ class NumberField_generic(field.Field):
     """
     EXAMPLES:
         sage: R.<x> = PolynomialRing(QQ)
-        sage: K = NumberField(x^3 - 2); K
+        sage: K.<a> = NumberField(x^3 - 2); K
         Number Field in a with defining polynomial x^3 - 2
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, polynomial, name=None,
+    def __init__(self, polynomial, name,
                  latex_name=None, check=True):
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
@@ -212,7 +212,7 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: f = x^5 + x + 17
-            sage: k = NumberField(f)
+            sage: k.<a> = NumberField(f)
             sage: v = k.complex_embeddings()
             sage: [phi(k.0^2) for phi in v]
             [2.97572074037667, 0.921039066973046 - 3.07553311884577*I, 0.921039066973046 + 3.07553311884577*I, -2.40889943716138 + 1.90254105303505*I, -2.40889943716138 - 1.90254105303505*I]
@@ -372,7 +372,7 @@ class NumberField_generic(field.Field):
     def class_number(self, certify=True):
         return self.class_group(certify).order()
 
-    def composite_fields(self, other):
+    def composite_fields(self, other, names):
         """
         List of all possible composite fields formed from self and other.
         """
@@ -383,7 +383,7 @@ class NumberField_generic(field.Field):
         C = f.polcompositum(g)
         R = self.polynomial().parent()
         C = [R(h) for h in C]
-        return [NumberField(h, name=self.variable_name()) for h in C]
+        return [NumberField(h, names) for h in C]
 
     def degree(self):
         return self.polynomial().degree()
@@ -450,10 +450,12 @@ class NumberField_generic(field.Field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
-            sage: L = K.extension(t^2 + a); L
+            sage: L.<b> = K.extension(t^2 + a); L
             Extension by x^2 + a of the Number Field in a with defining polynomial x^3 - 2
         """
         if not names is None: name = names
+        if name is None:
+            raise TypeError, "the variable name must be specified."
         return NumberField_extension(self, poly, name)
 
     def factor_integer(self, n):
@@ -769,7 +771,7 @@ class NumberField_extension(NumberField_generic):
         sage: R.<x> = PolynomialRing(QQ)
         sage: K.<a> = NumberField(x^3 - 2)
         sage: t = K['x'].gen()
-        sage: L = K.extension(t^2+t+a); L
+        sage: L.<b> = K.extension(t^2+t+a); L
         Extension by x^2 + x + a of the Number Field in a with defining polynomial x^3 - 2
     """
     def __init__(self, base, polynomial, name, latex_name=None, names=None):
@@ -838,7 +840,7 @@ class NumberField_extension(NumberField_generic):
             sage: x = QQ['x'].0
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
-            sage: K.extension(t^2+t+a)._latex_()
+            sage: K.extension(t^2+t+a, 'b')._latex_()
             '\\mathbf{Q}[b,a]/(b^{2} + b + a, a^{3} - 2)'
         """
         return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.variable_name(), self.base_field().variable_name(), self.polynomial()._latex_(self.variable_name()), self.base_field().polynomial()._latex_(self.base_field().variable_name()))
@@ -1020,9 +1022,9 @@ class NumberField_extension(NumberField_generic):
 
         EXAMPLE:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 1); R = K['x']
-            sage: a, t = K.gen(), R.gen()
-            sage: L = K.extension(t^5-t+a)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L = K.extension(t^5-t+a, 'b')
             sage: L.galois_group()                     # optional
             Transitive group number 22 of degree 10
         """
@@ -1035,8 +1037,8 @@ class NumberField_extension(NumberField_generic):
 
         EXAMPLES:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2+6)
-            sage: L = K.extension(K['x'].gen()^2 + 3) ## extend by x^2+3
+            sage: K.<a> = NumberField(x^2+6)
+            sage: L.<b> = K.extension(K['x'].gen()^2 + 3)    ## extend by x^2+3
             sage: L.is_free()
             False
         """
@@ -1360,8 +1362,8 @@ class NumberField_quadratic(NumberField_generic):
     EXAMPLES:
         sage: QuadraticField(3, 'a')
         Number Field in a with defining polynomial x^2 - 3
-        sage: QuadraticField(-4)
-        Number Field in a with defining polynomial x^2 + 4
+        sage: QuadraticField(-4, 'b')
+        Number Field in b with defining polynomial x^2 + 4
     """
     def __init__(self, polynomial, name=None, check=True):
         NumberField_generic.__init__(self, polynomial, name=name, check=check)
@@ -1398,11 +1400,11 @@ class NumberField_quadratic(NumberField_generic):
 
         EXAMPLES:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 23)
+            sage: K = NumberField(x^2 + 23, 'a')
             sage: K.hilbert_class_polynomial()
             x^3 + x^2 - 1
 
-            sage: K = NumberField(x^2 + 431)
+            sage: K = NumberField(x^2 + 431, 'a')
             sage: K.hilbert_class_polynomial()
             x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
         """
@@ -1410,7 +1412,7 @@ class NumberField_quadratic(NumberField_generic):
         g = QQ['x'](f)
         return g
 
-    def hilbert_class_field(self):
+    def hilbert_class_field(self, names):
         r"""
         Returns the Hilbert class field of this quadratic
         field as an absolute extension of $\Q$.  For a polynomial
@@ -1425,11 +1427,11 @@ class NumberField_quadratic(NumberField_generic):
             sage: K = NumberField(x^2 + 23, 'a')
             sage: K.hilbert_class_polynomial()
             x^3 + x^2 - 1
-            sage: K.hilbert_class_field()
-            Number Field in a with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
+            sage: K.hilbert_class_field('h')
+            Number Field in h with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
         """
         f = self.hilbert_class_polynomial()
-        C = self.composite_fields(NumberField(f))
+        C = self.composite_fields(NumberField(f,'x'),names)
         assert len(C) == 1
         return C[0]
 

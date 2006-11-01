@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 from sage.misc.latex import Latex, lprint, typeset
 latex = Latex(density=130)
 latex_debug = Latex(debug=True, density=130)
@@ -9,6 +11,7 @@ from sage.misc.python import python
 from sage.misc.html import html
 
 from sage.misc.sh import sh
+
 
 
 

@@ -6,6 +6,8 @@ It is a linearly-ordered collections of numbered cells, where a
 cell is a single input/output block.
 """
 
+from __future__ import with_statement
+
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -298,7 +300,7 @@ class Worksheet:
             if S._expect != None:
                 return S
         except AttributeError:
-            S = Sage(maxread=1)
+            S = Sage(maxread = 1)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__sage = S
@@ -488,6 +490,9 @@ class Worksheet:
             input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
         input = self.synchronize(input)
+        # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
+        # in order to support use of the with statement in the notebook.  Very annoying.
+        input = 'from __future__ import with_statement\n' + input
         open(tmp,'w').write(input)
         e = 'execfile("%s")\n'%os.path.abspath(tmp)
         # just in case, put an extra end...

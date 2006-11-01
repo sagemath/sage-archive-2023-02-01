@@ -266,6 +266,18 @@ class FreeAlgebra_generic(Algebra):
         F = self.__monoid
         return FreeAlgebraElement(self,{F.gen(i):R(1)})
 
+    def quotient(self, mons, mats, names):
+        """
+        Returns a quotient algebra defined via the action of a free algebra A
+        on a (finitely generated) free module.  The input for the quotient algebra
+        is a list of monomials (in the underlying monoid for A) which form a free
+        basis for the module of A, and a list of matrices, which give the action
+        of the free generators of A on this monomial basis.
+        """
+        import free_algebra_quotient
+        return free_algebra_quotient.FreeAlgebraQuotient(self, mons, mats, names)
+    quo = quotient
+
     def ngens(self):
         """
         The number of generators of the algebra.

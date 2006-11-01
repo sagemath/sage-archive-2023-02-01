@@ -4,6 +4,8 @@ Free algebra quotient elements
 AUTHOR: David Kohel, 2005-09
 """
 
+from __future__ import with_statement
+
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu>
 #
@@ -33,6 +35,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 from sage.structure.element import Element_cmp_
+from sage.structure.gens import localvars
 
 def is_FreeAlgebraQuotientElement(x):
     return isinstance(x, FreeAlgebraQuotientElement)
@@ -91,15 +94,17 @@ class FreeAlgebraQuotientElement(AlgebraElement, Element_cmp_):
             print "type(x) =", type(x)
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def __repr__(self):
+    def _repr_(self):
         Q = self.parent()
-        cffs = list(self.__vector)
-        mons = Q.monomial_basis()
-        x = repr_lincomb(mons, cffs).replace("*1 "," ")
-        if x[len(x)-2:] == "*1":
-            return x[:len(x)-2]
-        else:
-            return x
+        M = Q.monoid()
+        with localvars(M, Q.variable_names()):
+            cffs = list(self.__vector)
+            mons = Q.monomial_basis()
+            x = repr_lincomb(mons, cffs).replace("*1 "," ")
+            if x[len(x)-2:] == "*1":
+                return x[:len(x)-2]
+            else:
+                return x
 
     def vector(self):
         return self.__vector

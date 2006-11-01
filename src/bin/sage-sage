@@ -147,7 +147,6 @@ SAGE_STARTUP_COMMAND="
 import sage.misc.misc; print \
 sage.misc.misc.branch_current_hg_notice(sage.misc.misc.branch_current_hg()); \
 from sage.all_cmdline import *;\
-init_interactive_constructors(globals());\
 import os; os.chdir(\"$CUR\");\
 import sage.misc.interpreter;\
 from sage.misc.interpreter import attached_files;\
@@ -221,6 +220,13 @@ if [ $1 = '-kash'  -o $1 = '--kash' ]; then
     cd $CUR
     shift
     kash $*
+    exit $?
+fi
+
+if [ $1 = '-fixdoctests' -o $1 = '--fixdoctests' ]; then
+    cd $CUR
+    shift
+    sage-fixdoctests $*
     exit $?
 fi
 
@@ -516,7 +522,6 @@ if [ $1 = '-pyrex' -o $1 = "--pyrex" ]; then
 fi
 
 if [ $# -ge 1 ]; then
-   # rewrite this to not use IPYTHON at all ?
    matplotlib_setup
    T=`echo "$1" | sed -e "s/.*\.//"`
    if [ "$T " = "spkg " ]; then

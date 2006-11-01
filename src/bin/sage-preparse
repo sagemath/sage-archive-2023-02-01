@@ -29,9 +29,14 @@ def do_preparse(f, files_before=[]):
         sys.exit(1)
 
     fname = '%s.py'%f[:-5]
-    if os.path.exists(fname) and \
-           os.path.getmtime(fname) >= os.path.getmtime(f):
-        return
+
+    # TODO:
+    # I am commenting this "intelligence" out, since, e.g., if I change
+    # the preparser between versions this can cause problems.  This
+    # is an optimization that probabily isn't needed at present.
+    # I could introduce version numbers, though.
+    #if os.path.exists(fname) and os.path.getmtime(fname) >= os.path.getmtime(f):
+    #    return
 
     F = open(f).read()
     from sage.misc.preparser  import preparse_file
@@ -42,7 +47,7 @@ def do_preparse(f, files_before=[]):
     W.write(G)
 
 def do_load_and_attach(G, file, files_before):
-    s = 'from sage.all import *\n'
+    s = 'from sage.all_cmdline import *\n'
     for t in G.split('\n'):
         z = t.lstrip().split()
         if len(z) > 0 and z[0] in ['load', 'attach']:

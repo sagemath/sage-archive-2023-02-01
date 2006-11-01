@@ -42,7 +42,8 @@ if __name__ ==  '__main__':
     import doctest, sys
     s = doctest.testmod(sys.modules[__name__],
                    optionflags=doctest.NORMALIZE_WHITESPACE,
-                   verbose=%s)
+                   verbose=%s,
+                   globs=globals())
     quit_sage(verbose=False)
 """%verbose
 
@@ -164,8 +165,7 @@ def extract_doc(file_name, module):
 
     n = 0
     i = 0
-    #s = ALARM
-    s =  "from sage.all import *\n"
+    s =  "from sage.all_cmdline import *; \n"
 
     while True:
         i = F.find('"""')

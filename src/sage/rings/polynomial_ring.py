@@ -170,7 +170,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             if P is self: return x
             if P == self: return self(x)
 
-            # polynomial rings in the same variable over the any base that coerces in:
+            # polynomial rings in the same variable over any base that coerces in:
             if is_PolynomialRing(P):
                 if P.variable_name() == self.variable_name():
                     if self.has_coerce_map_from(P.base_ring()):

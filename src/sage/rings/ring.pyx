@@ -137,8 +137,7 @@ cdef class Ring(sage.structure.gens.Generators):
         for R in v:
             try:
                 y = R._coerce_(x)
-                z = self(y)
-                return z
+                return self(y)
             except TypeError, msg:
                 pass
         raise TypeError, "no canonical coercion of x into self"

@@ -31,8 +31,8 @@ class FreeAlgebraElement(AlgebraElement):
         """
         Create the element x of the FreeAlgebra A.
         """
-        if isinstance(x, FreeAlgebraElement) and x.parent() == A:
-            return x
+        if isinstance(x, FreeAlgebraElement):
+            x = x.__monomial_coefficients
         AlgebraElement.__init__(self, A)
         R = A.base_ring()
         if isinstance(x, AlgebraElement): #and x.parent() == A.base_ring():
@@ -55,7 +55,7 @@ class FreeAlgebraElement(AlgebraElement):
         else:
             return x
 
-    def __add__(self, y):
+    def _add_(self, y):
         A = self.parent()
         if isinstance(y, (int, long, Integer)):
             z_elt = dict(self.__monomial_coefficients)
@@ -91,7 +91,7 @@ class FreeAlgebraElement(AlgebraElement):
         y.__monomial_coefficients = y_elt
         return y
 
-    def __sub__(self, y):
+    def _sub_(self, y):
         A = self.parent()
         if isinstance(y, (int, long, Integer)):
             z_elt = dict(self.__monomial_coefficients)
@@ -119,7 +119,7 @@ class FreeAlgebraElement(AlgebraElement):
         z.__monomial_coefficients = z_elt
         return z
 
-    def __mul__(self, y):
+    def _mul_(self, y):
         A = self.parent()
         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
             raise TypeError, "Argument y (= %s) is of the wrong type."%y

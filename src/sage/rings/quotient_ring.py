@@ -258,7 +258,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
         except AttributeError:
             pass
 
-        # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.cover_ring()])
 
     def __cmp__(self, other):

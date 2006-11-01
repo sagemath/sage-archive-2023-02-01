@@ -49,7 +49,7 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         True
 
         sage: R.<x,y> = PolynomialRing(QQ, 2)
-        sage: S = R/(x^2 + y^2); S
+        sage: S = R.quo(x^2 + y^2); S
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
         sage: S.gens()
         (xbar, ybar)

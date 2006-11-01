@@ -104,7 +104,7 @@ EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
 EXAMPLE: The reduction map from the integers to the integers modulo 8,
 viewed as a quotient ring:
 
-    sage: R = ZZ/(8*ZZ)
+    sage: R = ZZ.quo(8*ZZ)
     sage: pi = R.cover()
     sage: pi
     Ring morphism:

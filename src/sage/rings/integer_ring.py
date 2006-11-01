@@ -246,13 +246,13 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
 
         EXAMPLES:
-            sage: ZZ/(6*ZZ)
+            sage: ZZ.quo(6*ZZ)
             Ring of integers modulo 6
-            sage: ZZ/(0*ZZ)
+            sage: ZZ.quo(0*ZZ)
             Integer Ring
-            sage: ZZ/3
+            sage: ZZ.quo(3)
             Finite Field of size 3
-            sage: ZZ/(3*QQ)
+            sage: ZZ.quo(3*QQ)
             Traceback (most recent call last):
             ...
             TypeError: I must be an ideal of ZZ

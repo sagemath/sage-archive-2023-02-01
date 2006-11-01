@@ -73,6 +73,9 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None):
     except TypeError:
         raise TypeError, "illegal variable name"
 
+    if name is None:
+        raise TypeError, "You must specify the name of the indeterminate of the Power series ring."
+
     key = (base_ring, name, default_prec)
     if _cache.has_key(key):
         R = _cache[key]()
@@ -233,7 +236,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R._coerce_(s)
             Traceback (most recent call last):
             ...
-            TypeError: power series ring has a different indeterminate name
+            TypeError: no canonical coercion of x into self
 
         We illustrate canonical coercion between power series rings with compatible
         base rings:

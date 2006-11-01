@@ -193,6 +193,7 @@ cdef class RealField(sage.rings.ring.Field):
              * this real field itself
              * any other mpfr real field with precision that is as large as this one
              * int, long, integer, and rational rings.
+             * real mathematical constants
         """
         cdef RealField K
         if isinstance(x, RealNumber):

@@ -400,11 +400,11 @@ cdef class CommutativeRing(Ring):
             sage: a == b
             False
         """
-        import sage.rings.quotient_ring
-        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+        return self.quotient(I, names=names)
 
-    #def __div__(self, I):
-    #    return self.quotient(I, names=None)
+    def __div__(self, I):
+        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
+        #return self.quotient(I, names=None)
 
     def quotient_ring(self, I, names=None):
         """

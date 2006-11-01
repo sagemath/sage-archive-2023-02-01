@@ -28,7 +28,7 @@ def QuotientRing(R, I, names=None):
     if not isinstance(R, commutative_ring.CommutativeRing):
         raise TypeError, "R must be a commutative ring."
     if names is None:
-        names = tuple([x + 'bar' for x in R.gens()])
+        names = tuple([x + 'bar' for x in R.variable_names()])
     else:
         names = sage.structure.gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
@@ -103,7 +103,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
         The covering ring homomorphism $R \to R/I$, equipped with a section.
 
         EXAMPLES:
-            sage: R = ZZ/(3*ZZ)
+            sage: R = ZZ.quo(3*ZZ)
             sage: pi = R.cover()
             sage: pi
             Ring morphism:
@@ -117,7 +117,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
 
         EXAMPLES:
             sage: R.<x,y>  = PolynomialRing(QQ)
-            sage: Q = R/(x^2,y^2)
+            sage: Q = R.quo( (x^2,y^2) )
             sage: pi = Q.cover()
             sage: pi(x^3+y)
             ybar

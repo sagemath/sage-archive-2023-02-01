@@ -13,6 +13,8 @@ EXAMPLES:
     6.1232339957367663e-16
 """
 
+import sage.functions.constants
+
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.rational
@@ -106,7 +108,7 @@ class FunctionRing_class(CommutativeRing):
         elif isinstance(x, (sage.rings.integer.Integer,
                             sage.rings.rational.Rational,
                             int,long,float,complex)):
-            return Constant_gen(x)
+            return sage.functions.constants.Constant_gen(x)
         raise TypeError
 
     def characteristic(self):
@@ -121,7 +123,7 @@ class Function(Element_cmp_, RingElement):
         RingElement.__init__(self, FunctionRing)
 
     def __call__(self, x):
-        if isinstance(x, Function) and not isinstance(x, Constant):
+        if isinstance(x, Function) and not isinstance(x, sage.functions.constants.Constant):
             return Function_composition(self, x)
 
         elif is_Polynomial(x):

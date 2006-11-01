@@ -173,7 +173,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
     We create some sample homomorphisms;
         sage: R.<x> = PolynomialRing(ZZ)
-        sage: S = R/(x^2-4)
+        sage: S = R.quo(x^2-4)
         sage: f = S.hom([2])
         sage: f
         Ring morphism:

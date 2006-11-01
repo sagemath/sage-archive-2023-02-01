@@ -48,6 +48,8 @@ def LaurentSeriesRing(base_ring, name=None, names=None):
         Fraction Field of Power Series Ring in t over Integer Ring
     """
     if not names is None: name = names
+    if name is None:
+        raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
 
     global laurent_series
     key = (base_ring, name)

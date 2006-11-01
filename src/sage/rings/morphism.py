@@ -45,9 +45,9 @@ EXAMPLE: Map from single variable polynomial ring.
 EXAMPLE: Identity map on the real numbers.
     sage: f = RR.hom([RR(1)]); f
     Ring endomorphism of Real Field with 53 bits of precision
-      Defn: 1.0000000000000000 |--> 1.0000000000000000
+      Defn: 1.00000000000000 |--> 1.00000000000000
     sage: f(2.5)
-    2.5000000000000000
+    2.50000000000000
     sage: f = RR.hom( [2.0] )
     Traceback (most recent call last):
     ...
@@ -63,23 +63,23 @@ From smaller to bigger doesn't make sense:
     TypeError: Natural coercion morphism from Real Field with 53 bits of precision to Real Field with 200 bits of precision not defined.
 
 From bigger to small does:
-    sage: f = RR.hom( RealField(5) )
+    sage: f = RR.hom( RealField(15) )
     sage: f(2.5)
-    2.50
+    2.500
     sage: f(RR.pi())
-    3.12
+    3.141
 
 EXAMPLE: Inclusion map from the reals to the complexes:
     sage: i = RR.hom([CC(1)]); i
     Ring morphism:
       From: Real Field with 53 bits of precision
       To:   Complex Field with 53 bits of precision
-      Defn: 1.0000000000000000 |--> 1.0000000000000000
+      Defn: 1.00000000000000 |--> 1.00000000000000
     sage: i(RR('3.1'))
-    3.1000000000000001
+    3.09999999999999
 
 EXAMPLE: A map from a multivariate polynomial ring to itself:
-    sage: QQ['x,y,z']
+    sage: R.<x,y,z> = PolynomialRing(QQ,3)
     sage: phi = R.hom([y,z,x^2]); phi
     Ring endomorphism of Polynomial Ring in x, y, z over Rational Field
       Defn: x |--> y
@@ -89,8 +89,8 @@ EXAMPLE: A map from a multivariate polynomial ring to itself:
     z + y + x^2
 
 EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
-    sage: R = QQ['x,y']
-    sage: S = quo(R, ideal(1 + y^2), 'a,b')
+    sage: R.<x,y> = PolynomialRing(QQ)
+    sage: S.<a,b> = quo(R, ideal(1 + y^2))
     sage: phi = S.hom([a^2, -b])
     sage: phi
     Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (1 + y^2)
@@ -173,8 +173,8 @@ EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
     1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + O(3^Infinity)
 
 EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
-    sage: R = QQ['x']
-    sage: S = quo(R, x^2-2, 'sqrt2')
+    sage: R.<x> = PolynomialRing(QQ)
+    sage: S.<sqrt2> = R.quo(x^2-2)
     sage: sqrt2^2
     2
     sage: (3+sqrt2)^10
@@ -192,8 +192,7 @@ Note that \sage verifies that the morphism is valid:
     TypeError: images do not define a valid homomorphism
 
 EXAMPLE: Endomorphism of power series ring.
-    sage: R = QQ[['t']]
-    sage: R
+    sage: R.<t> = PowerSeriesRing(QQ); R
     Power Series Ring in t over Rational Field
     sage: f = R.hom([t^2]); f
     Ring endomorphism of Power Series Ring in t over Rational Field
@@ -205,7 +204,7 @@ EXAMPLE: Endomorphism of power series ring.
     1 - t^2 + t^4 - t^6 + t^8 - t^10 + t^12 - t^14 + t^16 - t^18 + O(t^20)
 
 EXAMPLE: Frobenious on a power series ring over a finite field.
-    sage: R = GF(5)[['t']]
+    sage: R.<t> = PowerSeriesRing(GF(5))
     sage: f = R.hom([t^5]); f
     Ring endomorphism of Power Series Ring in t over Finite Field of size 5
       Defn: t |--> t^5
@@ -221,7 +220,7 @@ EXAMPLE: Frobenious on a power series ring over a finite field.
     2 + 3*t^5 + 3*t^10 + t^15 + O(t^20)
 
 EXAMPLE: Homomorphism of Laurent series ring.
-    sage: R = LaurentSeriesRing(QQ, 't')
+    sage: R.<t> = LaurentSeriesRing(QQ)
     sage: f = R.hom([t^3 + t]); f
     Ring endomorphism of Laurent Series Ring in t over Rational Field
       Defn: t |--> t + t^3
@@ -253,35 +252,35 @@ so the valuation of the image of the generator must be positive:
 
 
 EXAMPLE: Complex conjugation on cyclotomic fields.
-    sage: K = CyclotomicField(7); z = K.0
+    sage: K.<zeta7> = CyclotomicField(7)
     sage: c = K.hom([1/zeta7]); c
     Ring endomorphism of Cyclotomic Field of order 7 and degree 6
       Defn: zeta7 |--> -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - zeta7 - 1
-    sage: a = (1+z)^5; a
+    sage: a = (1+zeta7)^5; a
     zeta7^5 + 5*zeta7^4 + 10*zeta7^3 + 10*zeta7^2 + 5*zeta7 + 1
     sage: c(a)
     5*zeta7^5 + 5*zeta7^4 - 4*zeta7^2 - 5*zeta7 - 4
-    sage: c(z + 1/z)       # obviously fixed by inversion
+    sage: c(zeta7 + 1/zeta7)       # this element is obviously fixed by inversion
     -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - 1
-    sage: z + 1/z
+    sage: zeta7 + 1/zeta7
     -zeta7^5 - zeta7^4 - zeta7^3 - zeta7^2 - 1
 
 EXAMPLE: Embedding a number field into the reals.
-    sage: R = QQ['x']
-    sage: K = NumberField(x^3 - 2, 'beta')
+    sage: R.<x> = PolynomialRing(QQ)
+    sage: K.<beta> = NumberField(x^3 - 2)
     sage: alpha = RR(2)^(1/3); alpha
-    1.2599210498948732
-    sage: i = K.hom([alpha]); i
+    1.25992104989487
+    sage: i = K.hom([alpha],check=False); i
     Ring morphism:
-      From: Number Field in a with defining polynomial x^3 - 2
+      From: Number Field in beta with defining polynomial x^3 - 2
       To:   Real Field with 53 bits of precision
-      Defn: beta |--> 1.2599210498948732
+      Defn: beta |--> 1.25992104989487
     sage: i(beta)
-    1.2599210498948732
+    1.25992104989487
     sage: i(beta^3)
-    2.0000000000000000
+    2.00000000000000
     sage: i(beta^2 + 1)
-    2.5874010519681994
+    2.58740105196819
 """
 
 #*****************************************************************************
@@ -326,7 +325,7 @@ class RingMap_lift(RingMap):
 
     EXAMPLES:
         sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S = R/(x^2 + y^2, y)
+        sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
           From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, y^2 + x^2)
@@ -431,8 +430,8 @@ class RingHomomorphism_cover(RingHomomorphism):
     A homomorphism induced by quotienting a ring out by an ideal.
 
     EXAMPLES:
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S, (a,b) = (R/(x^2 + y^2)).objgens('ab')
+        sage: R.<x,y> = PolynomialRing(QQ, 2)
+        sage: S.<a,b> = R.quo(x^2 + y^2)
         sage: phi = S.cover(); phi
         Ring morphism:
           From: Polynomial Ring in x, y over Rational Field
@@ -472,8 +471,8 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
     kernel of $\varphi$ maps to $0$.
 
     EXAMPLES:
-        sage: R, (x, y, z) = PolynomialRing(QQ, 3, 'xyz').objgens()
-        sage: S, (a, b, c) = (R/(x^3 + y^3 + z^3)).objgens('abc')
+        sage: R.<x, y, z> = PolynomialRing(QQ, 3)
+        sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
         sage: phi = S.hom([b, c, a]); phi
         Ring endomorphism of Quotient of Polynomial Ring in x, y, z over Rational Field by the ideal (z^3 + y^3 + x^3)
           Defn: a |--> b

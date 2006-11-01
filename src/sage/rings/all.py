@@ -91,7 +91,7 @@ Complexes = ComplexField
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 # Univariate Polynomial Rings
-from polynomial_ring import PolynomialRing, polygen, is_PolynomialRing
+from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
 from polynomial_element import Polynomial, is_Polynomial
 
 # Multivariate Polynomial Rings

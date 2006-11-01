@@ -181,27 +181,24 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
         #  (gen0, gen1, ..., genN,) = obj.gens()"
         #
-        # You can also write
-        #     "obj.[gen0,gen1,...,genN] = objConstructor(...)"
+        # Also, obj.<gen0,gen1,...,genN> = R[...] is converted into
+        # "obj = R['gen0,gen1,..., genN']; (gen0, gen1, ..., genN,) = obj.gens()"
         #
         # LIMITATIONS:
-        #    - The entire constructor must be on one line.
+        #    - The entire constructor *must* be on one line.
         #
         # AUTHORS:
         #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
         #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
         #     -- 2006-05-01: William -- fix bug that Joe found
         #     -- 2006-10-31: William -- fix so obj doesn't have to be mutated
-        elif (line[i:i+2] == ".<" or line[i:i+2] == ".[") and not in_quote():
+        elif (line[i:i+2] == ".<") and not in_quote():
             try:
                 gen_end = line.index(">", i+2)
             except ValueError:
-                try:
-                    gen_end = line.index("]", i+2)
-                except ValueError:
-                    # Syntax Error -- let Python notice and raise the error
-                    i += 2
-                    continue
+                # Syntax Error -- let Python notice and raise the error
+                i += 2
+                continue
 
             gen_begin = i
             while gen_begin > 0 and line[gen_begin-1] != ';':
@@ -227,13 +224,31 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             if s==-1: s = len(line_after)
             c = min(c,s) + gen_end
 
-            # Find where the paranthesis of the constructor ends
-            c0 = line[:c].rfind(')')
-
-            # rewrite the input line as two commands
-            line_new = '%s,names=%s); (%s,) = %s.gens()'%(
-                line[:i] + line[gen_end+1:c0], gen_names,
-                gen_vars, gen_obj)
+            # Find where the parenthesis of the constructor ends
+            if line[:c].rstrip()[-1] == ']':
+                # brackets constructor
+                c0 = line[:c].find(']')
+                d0 = line[:c0].rfind('[')
+                if c0 == -1:
+                    raise SyntaxError, 'constructor must end with ) or ]'
+                line_new = '%s"%s"%s; (%s,) = %s.gens()'%(
+                    line[:i] + line[gen_end+1:d0+1], gen_vars,
+                    line[c0:c], gen_vars, gen_obj)
+            else:
+                c0 = line[:c].rfind(')')
+                # General constructor -- rewrite the input line as two commands
+                # We have to determine whether or not to put a comma before
+                # the list of names.  We do this only if there are already
+                # arguments to the constructor.  Some constructors have no
+                # arguments, e.g., "K.<a> = f.root_field(  )"
+                c1 = line[:c0].rfind('(')
+                if len(line[c1+1:c0].strip()) > 0:
+                    sep = ','
+                else:
+                    sep = ''
+                line_new = '%s%snames=%s); (%s,) = %s.gens()'%(
+                    line[:i] + line[gen_end+1:c0], sep, gen_names,
+                    gen_vars, gen_obj)
 
             line = line_new + line[c:]
             #i = len(line_new)

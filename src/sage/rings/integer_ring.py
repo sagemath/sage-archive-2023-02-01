@@ -141,6 +141,9 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         -64
     """
 
+    def __init__(self):
+        self._assign_names(('x'),normalize=False)
+
     def __repr__(self):
         return "Integer Ring"
 
@@ -223,7 +226,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
-    def quotient(self, I):
+    def quotient(self, I, names=None):
         r"""
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
 

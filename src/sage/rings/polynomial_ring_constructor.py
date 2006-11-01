@@ -10,7 +10,7 @@ _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
                    sparse=False, order='degrevlex',
-                   names=None):
+                   names=None, name=None):
     r"""
     Return the globally unique univariate or multivariate polynomial
     ring with given properties and variable name or names.
@@ -47,23 +47,48 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     single-variate polynomial ring over each base ring in each choice
     of variable and sparsenes.  There is also exactly one multivariate
     polynomial ring over each base ring for each choice of names of
-    variables and term order.  The names of the generators cannot be
-    changed after the ring has been created (immutability).
+    variables and term order.  The names of the generators can only
+    be temporarily changed after the ring has been created.  Do this
+    using the localvars context:
+
+        EXAMPLES of VARIABLE NAME CONTEXT:
+            sage: R.<x,y> = PolynomialRing(QQ,2); R
+            Polynomial Ring in x, y over Rational Field
+            sage: f = x^2 - 2*y^2
+
+        You can't just globally change the names of those variables.
+        This is because objects all over SAGE could have pointers to
+        that polynomial ring.
+            sage: R._assign_names(['z','w'])
+            Traceback (most recent call last):
+            ...
+            ValueError: variable names cannot be changed after object creation.
+
+        However, you can very easily change the names within a "with" block:
+            sage: with localvars(R, ['z','w']):
+            ...     print f
+            ...
+            -2*w^2 + z^2
+
+        After the with block the names revert to what they were before.
+            sage: print f
+            -2*y^2 + x^2
+
 
     SQUARE BRACKETS NOTATION: You can alternatively create a single or
     multivariate polynomial ring over a ring $R$ by writing
     \code{R['varname']} or \code{R['var1,var2,var3,...']}.  This
     square brackets notation doesn't allow for setting any of the
-    optional arguments.  Also, it must *never* be used in library
-    code, since it injects variables into the global scope.
+    optional arguments.
 
     EXAMPLES:
     1. PolynomialRing(base_ring, name,    sparse=False):
         sage: PolynomialRing(QQ, 'w')
         Univariate Polynomial Ring in w over Rational Field
 
-    In the interactive interpreter the variable is immediately
+    Use the diamond brackets notation to make the variable
     ready for use after you define the ring:
+        sage: R.<w> = PolynomialRing(QQ)
         sage: (1 + w)^3
         w^3 + 3*w^2 + 3*w + 1
 
@@ -71,22 +96,29 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: PolynomialRing(QQ)
         Traceback (most recent call last):
         ...
-        TypeError: invalid input to PolynomialRing function; please see the docstring for that function
+        TypeError: You must specify the names of the variables.
 
-        sage: PolynomialRing(QQ, 'abc', sparse=True)
+        sage: R.<abc> = PolynomialRing(QQ, sparse=True); R
         Sparse Univariate Polynomial Ring in abc over Rational Field
 
-        sage: PolynomialRing(PolynomialRing(GF(7),'k'), 'w')
+        sage: R.<w> = PolynomialRing(PolynomialRing(GF(7),'k')); R
         Univariate Polynomial Ring in w over Univariate Polynomial Ring in k over Finite Field of size 7
 
     The square bracket notation:
-        sage: R = QQ['y']; R
+        sage: R.<y> = QQ['y']; R
         Univariate Polynomial Ring in y over Rational Field
         sage: y^2 + y
         y^2 + y
 
+    In fact, since the diamond brackets on the left determine the variable name, you can omit the
+    variable from the square brackets:
+        sage: R.<zz> = QQ[ ]; R
+        Univariate Polynomial Ring in zz over Rational Field
+        sage: (zz + 1)^2
+        zz^2 + 2*zz + 1
+
     This is exactly the same ring as what PolynomialRing returns:
-        sage: R is PolynomialRing(QQ,'y')
+        sage: R is PolynomialRing(QQ,'zz')
         True
 
     However, rings with different variables are different:
@@ -135,10 +167,23 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     For example, here is a ring with generators labeled by the first
     100 primes:
 
-        sage: PolynomialRing(ZZ, ['x%s'%p for p in primes(100)])
+        sage: R = PolynomialRing(ZZ, ['x%s'%p for p in primes(100)]); R
         Polynomial Ring in x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97 over Integer Ring
+
+    By calling the \code{inject_variables()} method all those variable
+    names are available for interactive use:
+        sage: R.inject_variables()
+        Defining x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97
         sage: (x2 + x41 + x71)^2
         x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
+
+    You can also call \code{injvar}, which is a convenient shortcut fro \code{inject_variables()}.
+        sage: R = PolynomialRing(GF(7),15,'w'); R
+        Polynomial Ring in w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14 over Finite Field of size 7
+        sage: R.injvar()
+        Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
+        sage: (w0 + 2*w8 + w13)^2
+        w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 2*w0*w8 + 2*w0*w8 + w0^2
     """
     import polynomial_ring as m
     if isinstance(arg1, (int, long, m.integer.Integer)):
@@ -146,9 +191,14 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     if not names is None:
         arg1 = names
+    elif not name is None:
+        arg1 = name
 
     if not m.ring.is_Ring(base_ring):
         raise TypeError, 'base_ring must be a ring'
+
+    if arg1 is None:
+        raise TypeError, "You must specify the names of the variables."
 
     R = None
     if isinstance(arg2, (int, long, m.integer.Integer)):

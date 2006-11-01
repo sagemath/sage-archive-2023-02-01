@@ -295,27 +295,6 @@ class FiniteField_ext_pari(FiniteField_generic):
         self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
 
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES:
-            sage: GF(7)(2) == GF(7)(9)
-            True
-            sage: GF(7)(2) == GF(11)(2)
-            False
-            sage: GF(7)(2) == GF(8,'a')(2)
-            False
-            sage: GF(7)(2) == 2
-            True
-        """
-        if not isinstance(other, FiniteField_ext_pari):
-            return -1
-        if (self is other) or (self.__order == other.__order and
-                               self.variable_name() == other.variable_name() \
-                               and self.__modulus == other.__modulus):
-            return 0
-        return 1
-
     def _pari_one(self):
         """
         The PARI object Mod(1,p).  This is implementation specific
@@ -633,7 +612,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__order
 
-    def polynomial(self, name):
+    def polynomial(self, name=None):
         """
         Return the irreducible characteristic polynomial of the
         generator of this finite field, i.e., the polynomial f(x) so
@@ -648,12 +627,19 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k.polynomial('x')
             x^2 + 2*x + 2
         """
+        if name is None:
+            name = self.variable_name()
         try:
-            return self.__polynomial
-        except  AttributeError:
+            return self.__polynomial[name]
+        except (AttributeError, KeyError):
             R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
-            self.__polynomial = R(self._pari_modulus())
-        return self.__polynomial
+            f = R(self._pari_modulus())
+            try:
+                self.__polynomial[name] = f
+            except (KeyError, AttributeError):
+                self.__polynomial = {}
+                self.__polynomial[name] = f
+            return f
 
     def __hash__(self):
         """
@@ -679,6 +665,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         integer_mod_ring.IntegerModRing_generic.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
+        self._assign_names(('x'),normalize=False)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -712,12 +699,20 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
     def is_prime(self):
         return True
 
-    def polynomial(self, name):
+    def polynomial(self, name=None):
+        if name is None:
+            name = self.variable_name()
         try:
-            return self.__polynomial
+            return self.__polynomial[name]
         except  AttributeError:
-            self.__polynomial = polynomial_ring.PolynomialRing(self, name)([0,1])
-            return self.__polynomial
+            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
+            f = polynomial_ring.PolynomialRing(self, name)([0,1])
+            try:
+                self.__polynomial[name] = f
+            except (KeyError, AttributeError):
+                self.__polynomial = {}
+                self.__polynomial[name] = f
+            return f
 
     def order(self):
         return self.__char

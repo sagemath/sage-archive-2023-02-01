@@ -28,12 +28,13 @@ import field
 import fraction_field_element
 import sage.misc.latex as latex
 
-def FractionField(R):
+def FractionField(R, names=None):
     """
     Create the fraction field of the integral domain R.
 
     INPUT:
         R -- an integral domain
+        names -- ignored
 
     EXAMPLES:
     We create some example fraction fields.

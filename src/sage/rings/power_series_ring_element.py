@@ -432,8 +432,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
     def __div__(self, denom):
         if not isinstance(denom, PowerSeries) or \
-               self.parent() != denom.parent():
-
+               not (self.parent() is denom.parent()):
             return bin_op(self, denom, operator.div)
 
         u = denom.unit_part()

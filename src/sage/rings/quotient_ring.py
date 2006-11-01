@@ -21,17 +21,21 @@ import sage.misc.latex as latex
 import commutative_ring
 import ideal
 import multi_polynomial_ideal
-from sage.structure.all import Generators
+import sage.structure.gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
-def QuotientRing(R, I):
+def QuotientRing(R, I, names=None):
     if not isinstance(R, commutative_ring.CommutativeRing):
         raise TypeError, "R must be a commutative ring."
+    if names is None:
+        names = tuple([x + 'bar' for x in R.gens()])
+    else:
+        names = sage.structure.gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     try:
         if I.is_principal():
-            return R.quotient_by_principal_ideal(I.gen())
+            return R.quotient_by_principal_ideal(I.gen(), names)
     except (AttributeError, NotImplementedError):
         pass
     if isinstance(R, QuotientRing_generic):
@@ -40,14 +44,14 @@ def QuotientRing(R, I):
         G = [pi.lift(x) for x in I.gens()]
         I_lift = S.ideal(G)
         J = R.defining_ideal()
-        return QuotientRing_generic(S, I_lift + J)
+        return QuotientRing_generic(S, I_lift + J, names)
 
-    return QuotientRing_generic(R, I)
+    return QuotientRing_generic(R, I, names)
 
 def is_QuotientRing(x):
     return isinstance(x, QuotientRing_generic)
 
-class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
+class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens.Generators):
     """
     The quotient ring of $R$ by the ideal $I$.
 
@@ -76,7 +80,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         sage: T.gens()
         (0, d)
     """
-    def __init__(self, R, I, names=None):
+    def __init__(self, R, I, names):
         """
         Create the quotient ring of R by the ideal I.
 

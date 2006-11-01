@@ -51,8 +51,8 @@ def LaurentSeriesRing(base_ring, name=None, names=None):
 
     global laurent_series
     key = (base_ring, name)
-    if _objsLaurentSeriesRing.has_key(key):
-        x = _objsLaurentSeriesRing[key]()
+    if laurent_series.has_key(key):
+        x = laurent_series[key]()
         if x != None: return x
 
     if isinstance(base_ring, field.Field):
@@ -63,7 +63,7 @@ def LaurentSeriesRing(base_ring, name=None, names=None):
         R = LaurentSeriesRing_generic(base_ring, name)
     else:
         raise TypeError, "base_ring must be a commutative ring"
-    #_objsLaurentSeriesRing[key] = weakref.ref(R)
+    laurent_series[key] = weakref.ref(R)
     return R
 
 def is_LaurentSeriesRing(x):

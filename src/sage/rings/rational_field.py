@@ -85,6 +85,8 @@ class RationalField(_uniq, field.Field):
             sage: a + 1
             393/374
         """
+    def __init__(self):
+        self._assign_names(('x'),normalize=False)
 
     def __repr__(self):
         return "Rational Field"

@@ -16,7 +16,9 @@ from sage.rings.all import (
     is_Ring,
     MPolynomialRing,
     is_MPolynomialRing,
-    ZZ)
+    ZZ,
+    Integer)
+
 from sage.misc.all import latex
 
 import algebraic_scheme
@@ -80,6 +82,8 @@ def AffineSpace(n, R=None, names=None):
         A = AffineSpace(n.ngens(), n.base_ring())
         A._coordinate_ring = n
         return A
+    if isinstance(R, (int, long, Integer)):
+        n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
     return AffineSpace_generic(n, R, names)

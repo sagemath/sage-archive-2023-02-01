@@ -119,10 +119,24 @@ cdef class Ring(sage.structure.gens.Generators):
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
-        # TODO: Should uncommment this line and *do the work* to implement _coerce_
-        # everywhere else.
-        # raise NotImplementedError
-        return self(x)
+        raise NotImplementedError
+        #return self(x)
+
+    def _coerce_try(self, x, v):
+        """
+        Given a list v of rings, try to coerce x canonically into each
+        one in turn.  Return the __call__ coercion of the result into
+        self of the first canonical coercion that succeeds.  Raise a
+        TypeError if none of them succeed.
+        """
+        for R in v:
+            try:
+                y = R._coerce_(x)
+                z = self(y)
+                return z
+            except TypeError, msg:
+                pass
+        raise TypeError, "no canonical coercion of x into self"
 
     def has_natural_map_from(self, S):
         """
@@ -321,16 +335,19 @@ cdef class CommutativeRing(Ring):
         INPUT:
             R -- a commutative ring
             I -- an ideal of R
+            names -- (optional) names of the generators of the quotient (if there are multiple generators,
+                     you can specify a single character string and the generators are named
+                     in sequence starting with 0).
 
         EXAMPLES:
-            sage: R = ZZ['x']
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: S = R.quotient(I, 'a')
             sage: S.gens()
             (a,)
 
-            sage: R = QQ['x,y']
-            sage: S = R.quotient((x^2, y), 'ab')
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quotient((x^2, y))
             sage: S
             Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
             sage: S.gens()
@@ -339,19 +356,40 @@ cdef class CommutativeRing(Ring):
             False
         """
         import sage.rings.quotient_ring
-        Q = sage.rings.quotient_ring.QuotientRing(self, I)
-        Q._assign_names(names)
-        return Q
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+
+    def quo(self, I, names=None):
+        """
+        Create the quotient of R by the ideal I.
+
+        This is a synonym for self.quotient(...)
+
+        INPUT:
+            R -- a commutative ring
+            I -- an ideal of R
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quo((x^2, y))
+            sage: S
+            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
+            sage: S.gens()
+            (a, 0)
+            sage: a == b
+            False
+        """
+        import sage.rings.quotient_ring
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
 
     def __div__(self, I):
-        return self.quotient(I)
+        return self.quotient(I, names=None)
 
-    def quotient_ring(self, I):
+    def quotient_ring(self, I, names):
         """
         Return the quotient of self by the ideal I of self.
         (Synonym for self.quotient(I).)
         """
-        return self.quotient(I)
+        return self.quotient(I, names)
 
 
 cdef class IntegralDomain(CommutativeRing):
@@ -559,7 +597,7 @@ cdef class Field(PrincipalIdealDomain):
         Return the prime subfield of self.
 
         EXAMPLES:
-            sage: k = GF(9)
+            sage: k = GF(9, 'a')
             sage: k.prime_subfield()
             Finite Field of size 3
         """
@@ -591,7 +629,7 @@ cdef class FiniteField(Field):
             Finite Field of size 7
             sage: loads(K.dumps()) == K
             True
-            sage: GF(7^10)
+            sage: GF(7^10, 'a')
             Finite Field in a of size 7^10
             sage: K = GF(7^10, 'a'); K
             Finite Field in a of size 7^10
@@ -603,7 +641,7 @@ cdef class FiniteField(Field):
     def _latex_(self):
         r"""
         EXAMPLES:
-            sage: latex(GF(81))
+            sage: latex(GF(81, 'a'))
             \mathbf{F}_{3^{4}}
             sage: latex(GF(3))
             \mathbf{F}_{3}
@@ -622,35 +660,36 @@ cdef class FiniteField(Field):
 
     def __cmp__(self, other):
         """
-        Compares this finite field with other.  Two finite fields are
-        equal if and only if they have the same cardinality *and* the
-        defining polynomials are the same.
+        Compares this finite field with other.
+
+        WARNING: The notation of equality of finite fields in SAGE is
+        currently not stable, i.e., it may change in a future version.
 
         EXAMPLES:
-            sage: FiniteField(3**2) == FiniteField(3**3)
+            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c')
             False
-            sage: FiniteField(3**2) == FiniteField(3**2)
+            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
             True
-            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'alpha')
+
+        The variable name is (currently) relevant for comparison of finite fields:
+            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
             False
-            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'beta')
-            True
         """
         if self is other: return 0
         if not isinstance(other, FiniteField):
             return -1
-        if self.characteristic() < other.characteristic():
-            return -1
-        elif self.characteristic() > other.characteristic():
-            return 1
-        if self.variable_name() != other.variable_name():
-            return -1
-        if self.order() < other.order():
-            return -1
-        elif self.order()== other.order() and \
-                 (self.degree() == 1 or self.polynomial() == other.polynomial()):
+        c = cmp(self.characteristic(), other.characteristic())
+        if c:
+            return c
+        c = cmp(self.order(), other.order())
+        if c:
+            return c
+        c = cmp(self.order(), other.order())
+        if c:
+            return c
+        if self.degree() == 1:
             return 0
-        return 1
+        return cmp(self.polynomial('x'), other.polynomial('x'))
 
 ##     def __getstate__(self):
 ##         d = []
@@ -721,7 +760,7 @@ cdef class FiniteField(Field):
             2
             sage: k.zeta(3).multiplicative_order()
             3
-            sage: k = GF(49)
+            sage: k = GF(49, 'a')
             sage: k.zeta().multiplicative_order()
             48
             sage: k.zeta(6)
@@ -777,7 +816,7 @@ cdef class FiniteField(Field):
         The number of generators of the finite field.  Always 1.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4)
+            sage: k = FiniteField(3^4, 'b')
             sage: k.ngens()
             1
         """
@@ -789,7 +828,7 @@ cdef class FiniteField(Field):
         always returns True.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4)
+            sage: k.<a> = FiniteField(3^4)
             sage: k.is_field()
             True
         """
@@ -813,7 +852,7 @@ cdef class FiniteField(Field):
         finite field, this is always the order minus 1.
 
         EXAMPLES:
-            sage: k = GF(2**10)
+            sage: k = GF(2**10, 'a')
             sage: k.order()
             1024
             sage: k.unit_group_exponent()
@@ -848,7 +887,7 @@ cdef class FiniteField(Field):
         same variable as this finite field.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4, "alpha")
+            sage: k.<alpha> = FiniteField(3^4)
             sage: k.polynomial_ring()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """

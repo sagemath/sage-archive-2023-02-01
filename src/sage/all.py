@@ -21,6 +21,7 @@ all.py -- much of sage is imported into this module, so you don't
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
+from __future__ import with_statement
 
 # Error message that matches the SAGE/IPython defaults
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
@@ -245,3 +246,4 @@ from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
+

@@ -41,14 +41,14 @@ import integral_domain
 
 import polynomial_quotient_ring_element
 
-def PolynomialQuotientRing(ring, polynomial, name=None):
+def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
     Create a quotient of a polynomial ring.
 
     INPUT:
         ring -- a univariate polynomial ring in one variable.
         polynomial -- element
-        name -- (optional) name for the variable
+        names -- (optional) name for the variable
 
     OUTPUT:
         Creates the quotient ring R/I, where R is the ring and I is
@@ -86,14 +86,14 @@ def PolynomialQuotientRing(ring, polynomial, name=None):
            R = (\F_2[y]/(y^{2}+y+1))[x]/(x^3 - 5).
     $$
 
-        sage: A = PolynomialRing(GF(2),'y'); y=A.gen(); print A
+        sage: A.<y> = PolynomialRing(GF(2)); A
         Univariate Polynomial Ring in y over Finite Field of size 2
         sage: B = A.quotient(y^2 + y + 1, 'y2'); print B
         Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
         sage: C = PolynomialRing(B, 'x'); x=C.gen(); print C
         Univariate Polynomial Ring in x over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1
         sage: R = C.quotient(x^3 - 5); print R
-        Univariate Quotient Polynomial Ring in x over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
+        Univariate Quotient Polynomial Ring in xbar over Univariate Quotient Polynomial Ring in y2 over Finite Field of size 2 with modulus y^2 + y + 1 with modulus x^3 + 1
 
 
     Next we create a number field, but viewed as a quotient of a
@@ -124,10 +124,10 @@ def PolynomialQuotientRing(ring, polynomial, name=None):
         TypeError: polynomial must have unit leading coefficient
 
     Another example:
-        sage: R, x = PolynomialRing(IntegerRing()).objgen()
+        sage: R.<x> = PolynomialRing(IntegerRing())
         sage: f = x^2 + 1
         sage: R.quotient(f)
-        Univariate Quotient Polynomial Ring in x over Integer Ring with modulus x^2 + 1
+        Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
     """
     if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
         raise TypeError, "ring must be a polynomial ring"
@@ -143,12 +143,12 @@ def PolynomialQuotientRing(ring, polynomial, name=None):
         try:
             if polynomial.is_irreducible():
                 if isinstance(R, field.Field):
-                    return PolynomialQuotientRing_field(ring, polynomial, name)
+                    return PolynomialQuotientRing_field(ring, polynomial, names)
                 else:
-                    return PolynomialQuotientRing_domain(ring, polynomial, name)
+                    return PolynomialQuotientRing_domain(ring, polynomial, names)
         except NotImplementedError:   # is_irreducible sometimes not implemented
             pass
-    return PolynomialQuotientRing_generic(ring, polynomial, name)
+    return PolynomialQuotientRing_generic(ring, polynomial, names)
 
 
 def is_PolynomialQuotientRing(x):
@@ -160,9 +160,9 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
     Quotient of a univariate polynomial ring by an ideal.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(Integers(8)).objgen(); R
+        sage: R.<x> = PolynomialRing(Integers(8)); R
         Univariate Polynomial Ring in x over Ring of integers modulo 8
-        sage: S, xbar = R.quotient(x^2 + 1, 'xbar').objgen(); S
+        sage: S.<xbar> = R.quotient(x^2 + 1); S
         Univariate Quotient Polynomial Ring in xbar over Ring of integers modulo 8 with modulus x^2 + 1
 
     We demonstrate object persistence.
@@ -172,14 +172,14 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         True
 
     We create some sample homomorphisms;
-        sage: R, x = PolynomialRing(ZZ).objgen()
+        sage: R.<x> = PolynomialRing(ZZ)
         sage: S = R/(x^2-4)
         sage: f = S.hom([2])
         sage: f
         Ring morphism:
-          From: Univariate Quotient Polynomial Ring in x over Integer Ring with modulus x^2 - 4
+          From: Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 - 4
           To:   Integer Ring
-          Defn: x |--> 2
+          Defn: xbar |--> 2
         sage: f(x)
         2
         sage: f(x^2 - 4)
@@ -217,8 +217,8 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
             an element obtained by coercing x into this ring.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
-            sage: S = R.quotient(x^3-3*x+1, 'alpha')
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<alpha> = R.quotient(x^3-3*x+1)
             sage: S(x)
             alpha
             sage: S(x^3)
@@ -265,8 +265,8 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         Compare self and other.
 
         EXAMPLES:
-            sage: Rx = PolynomialRing(RationalField(), 'x'); x = Rx.gen()
-            sage: Ry = PolynomialRing(RationalField(), 'y'); y = Ry.gen()
+            sage: Rx.<x> = PolynomialRing(QQ)
+            sage: Ry.<y> = PolynomialRing(QQ)
             sage: Rx == Ry
             False
             sage: Qx = Rx.quotient(x^2+1)
@@ -298,13 +298,14 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
         EXAMPLES:
         The base ring of $\Z[z]/(z^3 + z^2 + z + 1)$ is $\Z$.
-            sage: R = PolynomialRing(IntegerRing(), 'z'); z = R.gen()
-            sage: S = R.quotient(z^3 + z^2 + z + 1, 'beta')
+            sage: R.<z> = PolynomialRing(ZZ)
+            sage: S.<beta> = R.quo(z^3 + z^2 + z + 1)
             sage: S.base_ring()
             Integer Ring
 
         Next we make a polynomial quotient ring over $S$ and ask for its basering.
-            sage: T = PolynomialRing(S); W = T.quotient(T.gen()^99 + 99)
+            sage: T.<t> = PolynomialRing(S)
+            sage: W = T.quotient(t^99 + 99)
             sage: W.base_ring()
             Univariate Quotient Polynomial Ring in beta over Integer Ring with modulus z^3 + z^2 + z + 1
         """
@@ -317,11 +318,11 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         This is always the same as the characteristic of the base ring.
 
         EXAMPLES:
-            sage: R = PolynomialRing(IntegerRing(), 'z'); z = R.gen()
-            sage: S = R.quotient(z - 19, 'a')
+            sage: R.<z> = PolynomialRing(ZZ)
+            sage: S.<a> = R.quo(z - 19)
             sage: S.characteristic()
             0
-            sage: R = PolynomialRing(GF(9), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(GF(9,'a'))
             sage: S = R.quotient(x^3 + 1)
             sage: S.characteristic()
             3
@@ -334,7 +335,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         degree of the polynomial that we quotiented out by.
 
         EXAMPLES:
-            sage: R = PolynomialRing(GF(3), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(GF(3))
             sage: S = R.quotient(x^2005 + 1)
             sage: S.degree()
             2005
@@ -348,7 +349,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         quotiented out by.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: S = R.quotient(x^3 + x^2 + x + 1)
             sage: S.discriminant()
             -16
@@ -375,7 +376,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         polynomial ring.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: S = R.quotient(x^2 - 8, 'gamma')
             sage: S.gen()
             gamma
@@ -393,11 +394,11 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         Return whether or not this quotient ring is a field.
 
         EXAMPLES:
-            sage: R = PolynomialRing(IntegerRing(), 'z'); z = R.gen()
-            sage: S = R.quotient(z^2-2)
+            sage: R.<z> = PolynomialRing(ZZ)
+            sage: S = R.quo(z^2-2)
             sage: S.is_field()
             False
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: S = R.quotient(x^2 - 2)
             sage: S.is_field()
             True
@@ -412,7 +413,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         Return the polynomial modulus of this quotient ring.
 
         EXAMPLES:
-            sage: R = PolynomialRing(GF(3), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(GF(3))
             sage: S = R.quotient(x^2 - 2)
             sage: S.modulus()
             x^2 + 1
@@ -425,7 +426,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         base ring.  This function always returns 1.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: S = PolynomialRing(R, 'y'); y = S.gen()
             sage: T = S.quotient(y + x, 'z')
             sage: T
@@ -441,8 +442,8 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         ring, if possible.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
-            sage: S = R.quotient(x^29 - 17*x - 1, 'alpha')
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<alpha> = R.quotient(x^29 - 17*x - 1)
             sage: K = S.number_field()
             sage: K
             Number Field in alpha with defining polynomial x^29 - 17*x - 1
@@ -462,7 +463,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         Return the polynomial ring of which this ring is the quotient.
 
         EXAMPLES:
-            sage: R = PolynomialRing(RationalField(), 'x'); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: S = R.quotient(x^2-2)
             sage: S.polynomial_ring()
             Univariate Polynomial Ring in x over Rational Field
@@ -473,8 +474,8 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_domain.IntegralDomain):
     """
     EXAMPLES:
-        sage: R, x = PolynomialRing(ZZ).objgen()
-        sage: S, xbar = R.quotient(x^2 + 1, 'xbar').objgen()
+        sage: R.<x> = PolynomialRing(ZZ)
+        sage: S.<xbar> = R.quotient(x^2 + 1)
         sage: S
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
         sage: loads(S.dumps()) == S
@@ -489,7 +490,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
 
-    def field_extension(self):
+    def field_extension(self, names):
         r"""
         Takes a polynomial defined in a quotient ring, and returns
         a tuple with three elements: the NumberField defined by the
@@ -506,25 +507,25 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             -- homomorphism from field to self
 
         EXAMPLES:
-            sage: R = PolynomialRing(Rationals()) ; x = R.gen()
-            sage: S = R.quotient(x^3-2, 'alpha') ; alpha = S.gen()
-            sage: F, f, g = S.field_extension()
+            sage: R.<x> = PolynomialRing(Rationals())
+            sage: S.<alpha> = R.quotient(x^3-2)
+            sage: F.<b>, f, g = S.field_extension()
             sage: F
-            Number Field in a with defining polynomial x^3 - 2
+            Number Field in b with defining polynomial x^3 - 2
             sage: a = F.gen()
             sage: f(alpha)
-            a
+            b
             sage: g(a)
             alpha
 
         We do another example over $\ZZ$.
             sage: R.<x> = ZZ['x']
-            sage: S.<a> = R/(x^3 - 2)
-            sage: F, g, h = S.field_extension()
+            sage: S.<a> = R.quo(x^3 - 2)
+            sage: F.<b>, g, h = S.field_extension()
             sage: h(F.0^2 + 3)
             a^2 + 3
             sage: g(x^2 + 2)
-            a^2 + 2
+            b^2 + 2
 
         Note that the homomorphism is not defined on the entire
         ''domain''.   (Allowing creation of such functions may be
@@ -535,9 +536,9 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             TypeError: Unable to coerce rational (=1/3) to an Integer.
 
         Note that the parent ring must be an integral domain:
-            sage: R.<x> = GF(25)['x']
-            sage: S.<a> = R/(x^3 - 2)
-            sage: F, g, h = S.field_extension()
+            sage: R.<x> = GF(25,'f25')['x']
+            sage: S.<a> = R.quo(x^3 - 2)
+            sage: F, g, h = S.field_extension('b')
             Traceback (most recent call last):
             ...
             AttributeError: 'PolynomialQuotientRing_generic' object has no attribute 'field_extension'
@@ -546,13 +547,13 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         Over a finite field, the corresponding field extension is
         not a number field:
 
-            sage: R.<x> = GF(25)['x']
-            sage: S.<a> = R/(x^3 + 2*x + 1)
-            sage: F, g, h = S.field_extension()
+            sage: R.<x> = GF(25, 'a')['x']
+            sage: S.<a> = R.quo(x^3 + 2*x + 1)
+            sage: F, g, h = S.field_extension('b')
             sage: h(F.0^2 + 3)
             a^2 + 3
             sage: g(x^2 + 2)
-            x^2 + 2
+            b^2 + 2
 
         We do an example involving a relative number field, which
         doesn't work since the relative extension generator doesn't
@@ -560,8 +561,8 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             sage: R.<x> = QQ['x']
             sage: K.<a> = NumberField(x^3-2)
             sage: S.<X> = K['X']
-            sage: Q.<b> = S/(X^3 + 2*X + 1)
-            sage: F, g, h = Q.field_extension()
+            sage: Q.<b> = S.quo(X^3 + 2*X + 1)
+            sage: F, g, h = Q.field_extension('b')
             Traceback (most recent call last):
             ...
             NotImplementedError: not implemented for relative extensions in which the relative generator is not an absolute generator, i.e., F.gen() != F.gen_relative()
@@ -570,14 +571,13 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         We slightly change the example above so it works.
 
             sage: R.<x> = QQ['x']
-            sage: K.<a> = NumberField(x^3-2)
+            sage: K.<a> = NumberField(x^3 - 2)
             sage: S.<X> = K['X']
             sage: f = (X+a)^3 + 2*(X+a) + 1
             sage: f
             X^3 + 3*a*X^2 + (3*a^2 + 2)*X + 2*a + 3
-            sage: Q.<z> = S/f
-            sage: F, g, h = Q.field_extension()
-            sage: F.<w> = F
+            sage: Q.<z> = S.quo(f)
+            sage: F.<w>, g, h = Q.field_extension()
             sage: c = g(z)
             sage: f(c)
             0
@@ -591,7 +591,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             -- William Stein 06 Aug 06
         """
 
-        F = self.modulus().root_field()
+        F = self.modulus().root_field(names)
         if isinstance(F, number_field.number_field.NumberField_extension):
             if F.gen() != F.gen_relative():
                 # The issue is that there is no way to specify a homomorphism
@@ -640,7 +640,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
             sage: k = QQ['x']/(f)
             sage: v = k.complex_embeddings(100)
             sage: [phi(k.0^2) for phi in v]
-            [2.9757207403766761469671194565393, 0.92103906697304693634806949137117 - 3.0755331188457794473265418086276*I, 0.92103906697304693634806949137117 + 3.0755331188457794473265418086276*I, -2.4088994371613850098316292196393 + 1.9025410530350528612407363802074*I, -2.4088994371613850098316292196393 - 1.9025410530350528612407363802074*I]
+            [2.9757207403766761469671194565, 0.92103906697304693634806949136 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949136 + 3.0755331188457794473265418086*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I]
         """
         CC = complex_field.ComplexField(prec)
         f = self.modulus().base_extend(CC)

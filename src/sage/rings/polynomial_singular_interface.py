@@ -51,7 +51,7 @@ class PolynomialRing_singular_repr:
             singular ring matching this ring
 
         EXAMPLES:
-            sage: r=MPolynomialRing(GF(2**8),10,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -60,35 +60,35 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering rp
             //                  : names    x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
             //        block   2 : ordering C
-            sage: r=MPolynomialRing(GF(127),2,'x', order='revlex')
+            sage: r = MPolynomialRing(GF(127),2,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r=MPolynomialRing(QQ,2,'x', order='revlex')
+            sage: r = MPolynomialRing(QQ,2,'x', order='revlex')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 2
             //        block   1 : ordering rp
             //                  : names    x0 x1
             //        block   2 : ordering C
-            sage: r=PolynomialRing(QQ)
+            sage: r = PolynomialRing(QQ,'x')
             sage: r._singular_()
             //   characteristic : 0
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
             //        block   2 : ordering C
-            sage: r=PolynomialRing(GF(127))
+            sage: r = PolynomialRing(GF(127),'x')
             sage: r._singular_()
             //   characteristic : 127
             //   number of vars : 1
             //        block   1 : ordering lp
             //                  : names    x
             //        block   2 : ordering C
-            sage: r=PolynomialRing(GF(2**8),'y')
+            sage: r = PolynomialRing(GF(2**8,'a'),'y')
             sage: r._singular_()
             //   characteristic : 2
             //   1 parameter    : a
@@ -97,7 +97,7 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering lp
             //                  : names    y
             //        block   2 : ordering C
-            sage: R.<x,y> = PolynomialRing(CC,2)
+            sage: R.<x,y> = PolynomialRing(CC,'x',2)
             sage: R._singular_()
             //   characteristic : 0 (complex:15 digits, additional 0 digits)
             //   1 parameter    : I
@@ -106,7 +106,7 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
-            sage: R.<x,y> = PolynomialRing(RealField(100),2)
+            sage: R.<x,y> = PolynomialRing(RealField(100),'x',2)
             sage: R._singular_()
             //   characteristic : 0 (real:29 digits, additional 0 digits)
             //   number of vars : 2
@@ -222,8 +222,7 @@ class Polynomial_singular_repr:
                          False)
 
         EXAMPLES:
-            sage: R = PolynomialRing(GF(7))
-            sage: x = R.gen()
+            sage: R.<x> = PolynomialRing(GF(7))
             sage: f = (x^3 + 2*x^2*x)^7; f
             3*x^21
             sage: h = f._singular_(); h
@@ -232,8 +231,7 @@ class Polynomial_singular_repr:
             3*x^21
             sage: R(h^20) == f^20
             True
-            sage: R = PolynomialRing(GF(7), 2, ['x','y'])
-            sage: x, y = R.gens()
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)
             sage: f = (x^3 + 2*y^2*x)^7; f
             2*x^7*y^14 + x^21
             sage: h = f._singular_(); h
@@ -283,12 +281,11 @@ class Polynomial_singular_repr:
         ALGORITHM: Singular
 
         EXAMPLES:
-            sage: r=MPolynomialRing(GF(2**8),2,'x')
-            sage: x,y=r.gens()
-            sage: k=r.base_ring()
-            sage: f=k('a^2+a')*x^2*y + k('a^4+a^3+a')*y + k('a^5')
+            sage: r.<x,y> = MPolynomialRing(GF(2**8,'a'),2)
+            sage: a = r.base_ring().0
+            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
-            a^5*x0^4 + (a^4 + a^3 + a)*x0^4*x1 + (a^2 + a)*x0^6*x1
+            a^5*x^4 + (a^4 + a^3 + a)*x^4*y + (a^2 + a)*x^6*y
         """
         lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
         return lcm.sage_poly(self.parent())

@@ -81,6 +81,8 @@ def _certify_names(names):
             raise ValueError, "variable name must be nonempty"
         if not N.isalnum():
             raise ValueError, "variable names must be alphanumeric, but one is '%s' which is not."%N
+        if not N[0].isalpha():
+            raise ValueError, "first letter of variable name must be a letter"
         v.append(N)
     return tuple(v)
 
@@ -103,9 +105,7 @@ def normalize_names(int ngens, names=None):
                 raise TypeError, "names must consist of strings"
         if len(names) != ngens:
             raise IndexError, "the number of names must equal the number of generators"
-    return tuple(names)
-
-
+    return names
 
 # Classes that derive from Generators must define
 # gen(i) and ngens() functions.  It is also good
@@ -264,6 +264,14 @@ cdef class Generators(sage_object.SageObject):
         cdef int i
         for i from 0 <= i < len(v):
             scope[v[i]] = g[i]
+
+    def injvar(self, scope=None, verbose=True):
+        """
+        This is a synonym for self.inject_variables(...)
+        <<<sage.structure.gens.Generators.inject_variables>>>
+        """
+        return self.inject_variables(scope=scope, verbose=verbose)
+
 
     def __temporarily_change_names(self, names, latex_names):
         """

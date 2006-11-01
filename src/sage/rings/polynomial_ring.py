@@ -152,6 +152,40 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
 
+    def _coerce_(self, x):
+        """
+        Return the canonical coercion of x to this polynomial ring, if one is
+        defined, or raise a TypeError.
+
+        The rings that canonically coerce to this polynomial ring are:
+            * this ring itself
+            * polynomial rings in the same variable over any base ring that
+              canonically coerces to the base ring of this ring
+            * any ring that canonically coerces to the base ring of this ring.
+        """
+        try:
+            P = x.parent()
+
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+
+            # polynomial rings in the same variable over the any base that coerces in:
+            if is_PolynomialRing(P):
+                if P.variable_name() == self.variable_name():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of polynomial rings"
+                else:
+                    raise TypeError, "polynomial ring has a different indeterminate name"
+
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.base_ring()])
+
     def _magma_(self, G=None):
         """
         Used in converting this ring to the corresponding ring in MAGMA.
@@ -192,11 +226,6 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         except TypeError:
             return False
         return True
-
-    def _coerce_(self, x):
-        if isinstance(x, polynomial.Polynomial) and x.parent() is self:
-            return x
-        return self([self.base_ring()._coerce_(x)])
 
     def __cmp__(self, other):
         if not isinstance(other, PolynomialRing_generic):

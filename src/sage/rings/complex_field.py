@@ -149,6 +149,23 @@ class ComplexField_class(field.Field):
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
+    def _coerce_(self, x):
+        """
+        Return the canonical coerce of x into this complex field, if it is defined,
+        otherwise raise a TypeError.
+
+        The rings that canonicaly coerce to the MPFS complex field are:
+
+           * the mpfr complex field
+           * anything that canonically coerces to the mpfr real field
+        """
+        try:
+            return self._coerce_self(x)
+        except TypeError:
+            import sage.functions.constants
+            return self._coerce_try(x, [self._real_field(),
+                                        sage.functions.constants.ConstantRing])
+
     def _repr_(self):
         return "Complex Field with %s bits of precision"%self.__prec
 

@@ -40,22 +40,22 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
 
     EXAMPLES:
         sage: R.<x> = PolynomialRing(ZZ)
-        sage: S = R.quo((4 + 3*x + x^2, 1 + x^2), 'xbar); S
+        sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
         sage: v = S.gens(); v
-        (x,)
+        (xbar,)
 
         sage: loads(v[0].dumps()) == v[0]
         True
 
-        sage: R = PolynomialRing(QQ, 'x,y')
+        sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S = R/(x^2 + y^2); S
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
         sage: S.gens()
-        (x, y)
+        (xbar, ybar)
 
     We name each of the generators.
-        sage: S = R.quotient(x^2 + y^2, 'a,b')
+        sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: a
         a
         sage: b
@@ -154,7 +154,7 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         return float(self.lift())
 
     def _cmp_(self, other):
-        if (self.__rep - other.__rep) in self.parent().defining_ideal():
+        if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
             return 0
         return -1
 

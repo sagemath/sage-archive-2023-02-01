@@ -38,6 +38,12 @@ import sage.misc.functional
 
 import sage.modules.free_module
 
+import sage.rings.complex_double
+import sage.rings.complex_field
+
+import sage.rings.integer
+import sage.rings.rational
+
 cdef class RealDoubleField_class(sage.rings.ring.Field):
     """
     The field of real double precision numbers.
@@ -91,13 +97,47 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
         numbers and higher-precision ones, though of course there may
         be loss of precision:
             sage: a = RealField(200)(2).sqrt(); a
-            1.4142135623730950488016887242096980785696718753769480731766796
+            1.4142135623730950488016887242096980785696718753769480731766
             sage: b = RDF(a); b
             1.41421356237
             sage: a.parent()(b)
-            1.4142135623700000000000000000000000000000000000000000000000002
+            1.4142135623699999999999999999999999999999999999999999999999
         """
         return RealDoubleElement(x)
+
+    def _coerce_(self, x):
+        """
+        Canonical coercion of x to the real double field.
+
+        The rings that canonically coerce to the real double field are:
+             * the real double field itself
+             * int, long, integer, and rational rings
+             * real mathematical constants
+             * the mpfr real field
+
+        EXAMPLES:
+            sage: RDF._coerce_(5)
+            5.0
+            sage: RDF._coerce_(9499294r)
+            9499294.0
+            sage: RDF._coerce_(61/3)
+            20.3333333333
+            sage: parent(RDF(3) + CDF(5))
+            Complex Double Field
+            sage: parent(CDF(5) + RDF(3))
+            Complex Double Field
+        """
+        try:
+            return self._coerce_self(x)
+        except TypeError:
+            pass
+        if isinstance(x, (int, long, sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
+            return self(x)
+        import real_mpfr
+        return self._coerce_try(x, [sage.functions.constants.ConstantRing,
+                                    real_mpfr.RR])
+
 
     def gen(self, n=0):
         """
@@ -540,7 +580,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
         return sage.rings.complex_field.ComplexField()(self)
 
     def _complex_double_(self):
-         return sage.rings.complex_double.ComplexDoubleField(self)
+        return sage.rings.complex_double.ComplexDoubleField(self)
 
     def _pari_(self):
         return sage.libs.pari.all.pari.new_with_bits_prec("%.15e"%self._value, 64)
@@ -604,19 +644,19 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: r = 4.0
             sage: r.sqrt()
-            2.0000000000000000
+            2.00000000000000
             sage: r.sqrt()^2 == r
             True
 
             sage: r = 4344
             sage: r.sqrt()
-            65.909028213136324
-            sage: r.sqrt()^2 == r
-            True
+            65.9090282131363
+            sage: r.sqrt()^2 - r
+            -0.000000000000909494701772928
 
             sage: r = -2.0
             sage: r.sqrt()
-            1.4142135623730951*I
+            1.41421356237309*I
             """
         if self >= 0:
             return self.square_root()
@@ -635,7 +675,7 @@ cdef class RealDoubleElement(sage.structure.element.FieldElement):
             sage: r.square_root()
             NaN
             sage: r.sqrt()
-            1.4142135623730951*I
+            1.41421356237309*I
         """
         return RealDoubleElement(sqrt(self._value))
 

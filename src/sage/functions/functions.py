@@ -114,6 +114,7 @@ class FunctionRing_class(CommutativeRing):
 
 FunctionRing = FunctionRing_class()
 
+
 class Function(Element_cmp_, RingElement):
     def __init__(self, conversions={}):
         self._conversions = conversions
@@ -308,7 +309,7 @@ class Function_composition(Function):
 
 #################################################################
 #
-# Support for arithmetic with constants.
+# Support for arithmetic with functions.
 #
 #################################################################
 
@@ -585,39 +586,6 @@ class Function_at(Function):
         except AttributeError:
             raise NotImplementedError, 'coercion of %s to maxima not implemented'%self
 
-######################
-# Constant functions
-######################
-
-class Constant(Function):
-    def __call__(self, x):
-        return self
-
-    def _interface_is_cached_(self):
-        """
-        Return False, since coercion of functions to interfaces
-        is not cached.
-
-        We do not cache coercions of functions to interfaces, since
-        the precision of the interface may change.
-
-        EXAMPLES:
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-            sage: old_prec = gp.set_precision(100)
-            sage: gp(pi)
-            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-            sage: _ = gp.set_precision(old_prec)
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-        """
-        return False
-
-class Constant_gen(Constant, Function_gen):
-    def __call__(self, x):
-        return self.obj()
 
 
 ########################################################

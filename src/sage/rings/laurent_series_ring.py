@@ -94,6 +94,28 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             return x
         return laurent_series_ring_element.LaurentSeries(self, x, n)
 
+    def _coerce_(self, x):
+        """
+        Return canonical coercion of x into self.
+
+        Rings that canonically coerce to this power series ring R:
+
+           * R itself
+           * Any ring that canonically coerces to the power series ring over the base ring of R.
+           * Any ring that canonically coerces to the base ring of R
+
+        EXAMPLES:
+        """
+        try:
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return self(x)
+        except TypeError:
+            pass
+        return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
+
     def __cmp__(self, other):
         if not isinstance(other, LaurentSeriesRing_generic):
             return -1

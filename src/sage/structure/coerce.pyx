@@ -81,7 +81,8 @@ def canonical_coercion(x, y):
             except TypeError, msg:
                 i = i + 1
             if i == 0:
-                raise TypeError, "unable to find an unambiguous parent"
+                #raise TypeError, "unable to find an unambiguous parent"
+                return x,y
                 #raise TypeError, "unable to find an unambiguous parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
             elif i == 2:
                 import  sage.rings.ring
@@ -89,10 +90,10 @@ def canonical_coercion(x, y):
                     #raise TypeError, "you cannot combine ring (=%s) with a number or another ring (=%s)!"%(x, y)
                     raise TypeError, "you cannot combine ring with a number or another ring!"
                 #raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-                raise TypeError, "unable to find a common parent"
+                raise TypeError, "unable to find a common canonical parent"
         return x, y
     except AttributeError:
-        raise TypeError, "unable to find a common parent"
+        raise TypeError, "unable to find a common canonical parent"
 
 def canonical_base_coercion(x, y):
     try:
@@ -128,14 +129,15 @@ def bin_op(x, y, op):
            isinstance(x, (element.RingElement, int, long, float)):
         return op(y,x)
     try:
+        #print 1, x, y, x.parent(), y.parent()
         x, y = canonical_coercion(x, y)
+        #print 2, x, y, x.parent(), y.parent()
     except TypeError, mesg:
         try:
             return y._r_action(x)
         except AttributeError:
-            raise TypeError, mesg
+            raise TypeError, '%s: x=%s, y=%s'%(mesg, x, y)
         except TypeError:
-            #raise TypeError, "No right action of %s on %s defined"%(y,x)
             raise TypeError, "No right action defined"
         try:
             return x._l_action(y)

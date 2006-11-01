@@ -252,13 +252,25 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
             return False
 
     def _coerce_(self, x):
-        if isinstance(x, polynomial_quotient_ring_element.PolynomialQuotientRingElement):
-            if x.parent() == self:
-                return x
-        if x in self.__ring:
-            return polynomial_quotient_ring_element.PolynomialQuotientRingElement(
-                self, self.__ring(x) , check=True)
-        raise TypeError
+        """
+        Return the coercion of x into this polynomial quotient ring.
+
+        The rings that coerce into the quotient ring canonically, are:
+
+           * this ring,
+           * anything that coerces into the ring of which this is the quotient
+
+        """
+        try:
+            P = x.parent()
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.polynomial_ring()])
 
     def __cmp__(self, other):
         """

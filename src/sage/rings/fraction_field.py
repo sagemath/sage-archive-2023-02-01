@@ -153,13 +153,36 @@ class FractionField_generic(field.Field):
         return fraction_field_element.FractionFieldElement(self, x, y, coerce=False)
 
     def _coerce_(self, x):
-        if isinstance(x, fraction_field_element.FractionFieldElement) \
-           and x.parent() is self:
-            return x
+        """
+        Return the canonical coercion of x into this fraction field, or raise a TypeError.
+
+        The rings that canonically coerce to the fraction field are
+           * the fraction field itself
+           * any fraction field that of the form Frac(S) where S canonically
+             coerces to this ring.
+           * any ring that canonically coerces to the ring R such that this
+             fraction field is Frac(R)
+
+        """
         try:
-            return self(self.__R._coerce_(x))
-        except TypeError:
-            raise TypeError, "no canonical coercion"
+            P = x.parent()
+            if is_FractionField(P):
+                if P is self:
+                    return x
+                elif P == self:
+                    return self(x)
+                R = P.ring()
+                S = self.ring()
+                if S.has_coerce_map_from(R):
+                    return self(x)
+            else:
+                S = self.ring()
+                if S.has_coerce_map_from(P):
+                    return self(x)
+                raise TypeError
+        except AttributeError:
+            pass
+        return self._coerce_try(x, [self.ring()])
 
     def __cmp__(self, other):
         if not isinstance(other, FractionField_generic):

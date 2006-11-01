@@ -21,6 +21,9 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../ext/stdsage.pxi"
+
+cimport sage.structure.element
 import random
 
 cdef class Ring(sage.structure.gens.Generators):
@@ -119,8 +122,10 @@ cdef class Ring(sage.structure.gens.Generators):
               "in Python, and has the wrong precedence."
 
     def _coerce_(self, x):
-        raise NotImplementedError
-        #return self(x)
+        if PY_TYPE_CHECK(x, sage.structure.element.RingElement) and \
+               (<sage.structure.element.RingElement>x)._parent is self:
+            return x
+        raise TypeError
 
     def _coerce_try(self, x, v):
         """
@@ -138,7 +143,24 @@ cdef class Ring(sage.structure.gens.Generators):
                 pass
         raise TypeError, "no canonical coercion of x into self"
 
-    def has_natural_map_from(self, S):
+    def _coerce_self(self, x):
+        """
+        Try to canonically coerce x into self.
+
+        Return result on success or raise TypeError on failure.
+        """
+        try:
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return self(x)
+        except AttributeError:
+            pass
+        raise TypeError, "no canonical coercion to self defined"
+
+
+    def has_coerce_map_from(self, S):
         """
         Return True if there is a natural map from S to self.
         Otherwise, return False.
@@ -148,7 +170,7 @@ cdef class Ring(sage.structure.gens.Generators):
         # above, this should be "raise NotImplementedError", and all
         # rings must define this.
         try:
-            self(S(0))
+            self._coerce_(S(0))
         except TypeError:
             return False
         return True

@@ -118,6 +118,42 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
 
+    def _coerce_(self, x):
+        """
+        Return the canonical coercion of x to this multivariate
+        polynomial ring, if one is defined, or raise a TypeError.
+
+        The rings that canonically coerce to this polynomial ring are:
+            * this ring itself
+            * polynomial rings in the same variables over any base ring that
+              canonically coerces to the base ring of this ring
+            * any ring that canonically coerces to the base ring of this
+              polynomial ring.
+
+        """
+        try:
+            P = x.parent()
+
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+
+            # polynomial rings in the same variable over the any base that coerces in:
+            if is_MPolynomialRing(P):
+                if P.variable_names() == self.variable_names():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of polynomial rings"
+                else:
+                    raise TypeError, "polynomial ring has a different indeterminate names"
+
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.base_ring()])
+
     def __cmp__(self, right):
         if not is_MPolynomialRing(right):
             return -1

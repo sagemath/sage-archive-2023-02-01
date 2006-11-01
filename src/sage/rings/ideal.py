@@ -163,7 +163,7 @@ class Ideal_generic(MonoidElement):
             return -1
         return self._cmp_(other)
 
-    def _cmp_(self):
+    def _cmp_(self, other):
         if set(self.gens()) == set(other.gens()):
             return 0
         raise NotImplementedError

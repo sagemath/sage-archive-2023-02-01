@@ -227,14 +227,48 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens
             x = R(x)
         return quotient_ring_element.QuotientRingElement(self, x)
 
+    def _coerce_(self, x):
+        """
+        Return the coercion of x into this quotient ring.
+
+        The rings that coerce into the quotient ring canonically, are:
+
+           * this ring.
+           * anything that coerces into the ring of which this is the quotient
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: S._coerce_(0)
+            0
+            sage: S._coerce_(2/3)
+            2/3
+            sage: S._coerce_(a^2 - b)
+            -1*b - b^2
+            sage: S._coerce_(GF(7)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of x into self
+        """
+        try:
+            P = x.parent()
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.cover_ring()])
+
     def __cmp__(self, other):
         r"""
-        Only quotients by the \emph{same} (in "is") ring
-        and same ideal are considered equal.
+        Only quotients by the \emph{same} ring and same ideal (with
+        the same generators!!) are considered equal.
         """
         if not isinstance(other, QuotientRing_generic):
             return -1
-        if self.cover_ring() is other.cover_ring() and self.defining_ideal() is other.defining_ideal():
+        if self.cover_ring() == other.cover_ring() and self.defining_ideal().gens() == other.defining_ideal().gens():
             return 0
         return 1
 

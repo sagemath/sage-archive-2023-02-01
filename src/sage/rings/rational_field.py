@@ -257,11 +257,6 @@ class RationalField(_uniq, field.Field):
     def __cmp__(self, other):
         if isinstance(other, RationalField):
             return 0
-        if ring.is_Ring(other):
-            if other.characteristic() == 0 and field.is_Field(other):
-                return -1
-            else:
-                return 1
         return -1
 
     def zeta(self, n=2):

@@ -122,10 +122,8 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: S(x^3)
             2
         """
-        if not isinstance(other, PolynomialQuotientRingElement) or other.parent() != self.parent():
+        if not isinstance(other, PolynomialQuotientRingElement) or (other.parent() != self.parent()):
             return coerce.cmp(self, other)
-        if self.parent() != other.parent():
-            return -1
         return misc.generic_cmp(self.__polynomial, other.__polynomial)
 
     def __div__(self, right):

@@ -65,6 +65,7 @@ from sage.misc.sage_eval import sage_eval
 cimport sage.structure.element
 cimport sage.rings.ring
 
+
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
@@ -73,9 +74,6 @@ import  integer_ring
 
 import infinity
 import  complex_number
-
-
-
 
 
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
@@ -181,6 +179,34 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
+    def _coerce_(self, x):
+        """
+        Return the canonical coerce of x into the complex double
+        field, if it is defined, otherwise raise a TypeError.
+
+        The rings that canonicaly coerce to the complex double field are:
+
+           * the complex double field itself
+           * anything that canonically coerces to real double field.
+           * mathematical constants
+           * the 53-bit mpfr complex field
+
+        EXAMPLES:
+            sage: CDF._coerce_(5)
+            5.0
+            sage: CDF._coerce_(RDF(3.4))
+            3.4
+        """
+        try:
+            return self._coerce_self(x)
+        except TypeError:
+            import sage.functions.constants
+            import complex_field
+            return self._coerce_try(x, [self.real_double_field(),
+                                        sage.functions.constants.ConstantRing,
+                                        complex_field.CC])
+
+
     def gen(self, n=0):
         """
         Return the generator of the complex double field.
@@ -196,6 +222,10 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def ngens(self):
         return 1
+
+    def real_double_field(self):
+        import real_double
+        return real_double.RDF
 
 
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):

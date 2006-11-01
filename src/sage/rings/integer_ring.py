@@ -178,6 +178,11 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
     def _coerce_(self, x):
         """
+        Return canonical coercion of x into the integers ZZ.
+
+        x canonically coerces to the integers ZZ over only if x is an
+        int, long or already an element of ZZ.
+
         EXAMPLES:
             sage: k = GF(7)
             sage: k._coerce_(2/3)
@@ -190,13 +195,23 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion to an integer
-        """
 
+        The rational number 3/1 = 3 does not canonically coerce into
+        the integers, since there is no canonical coercion map from
+        the full field of rational numbers to the integers.
+
+            sage: a = 3/1; parent(a)
+            Rational Field
+            sage: ZZ(a)
+            3
+            sage: ZZ._coerce_(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion to an integer
+        """
         if isinstance(x, sage.rings.integer.Integer):
             return x
         elif isinstance(x, (int, long)):
-            return self(x)
-        elif isinstance(x, sage.libs.pari.all.pari_gen) and x.type() == 't_INT':
             return self(x)
         raise TypeError, 'no canonical coercion to an integer'
 
@@ -291,11 +306,6 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def __cmp__(self, other):
         if isinstance(other, IntegerRing):
             return 0
-        if ring.is_Ring(other):
-            if other.characteristic() == 0:
-                return -1
-            else:
-                return 1
         return -1
 
     def zeta(self, n=2):

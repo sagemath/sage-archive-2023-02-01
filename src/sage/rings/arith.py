@@ -52,8 +52,7 @@ def algdep(z, n):
         x^2 - 2
 
     This example involves a complex number.
-        sage: C = ComplexField()
-        sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+        sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
         0.500000000000000 + 0.866025403784438*I
         sage: p = algdep(z, 6); p
         x^6 + 2*x^3 + 1

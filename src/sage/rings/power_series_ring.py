@@ -205,7 +205,10 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         Return canonical coercion of x into self.
 
         Rings that canonically coerce to this power series ring R:
+
            * R itself
+           * Any power series ring in the same variable whose base ring canonically coerces to
+             the base ring of R.
            * Any ring that canonically coerces to the polynomial ring over the base ring of R.
            * Any ring that canonically coerces to the base ring of R
 
@@ -231,14 +234,37 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion of x into self
+
+        We illustrate canonical coercion between power series rings with compatible
+        base rings:
+            sage: R.<t> = PowerSeriesRing(GF(7)['w'])
+            sage: S = PowerSeriesRing(ZZ, 't')
+            sage: f = S([1,2,3,4]); f
+            1 + 2*t + 3*t^2 + 4*t^3
+            sage: g = R._coerce_(f); g
+            1 + 2*t + 3*t^2 + 4*t^3
+            sage: parent(g)
+            Power Series Ring in t over Univariate Polynomial Ring in w over Finite Field of size 7
+            sage: S._coerce_(g)
+            Traceback (most recent call last):
+            ...
+            TypeError: no natural map between bases of power series rings
         """
         try:
             P = x.parent()
-            if P is self:
-                return x
-            elif P == self:
-                return self(x)
-        except TypeError:
+            if P is self: return x
+            elif P == self: return self(x)
+
+            if is_PowerSeriesRing(P):
+                if P.variable_name() == self.variable_name():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of power series rings"
+                else:
+                    raise TypeError, "power series ring has a different indeterminate name"
+
+        except AttributeError:
             pass
         return self._coerce_try(x, [self.__poly_ring, self.base_ring()])
 

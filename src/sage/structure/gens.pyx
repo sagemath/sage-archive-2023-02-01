@@ -490,7 +490,7 @@ class localvars:
     disappear in Python 2.6.
 
     EXAMPLES:
-        sage: R.[x,y] = PolynomialRing(QQ,2)
+        sage: R.<x,y> = PolynomialRing(QQ,2)
         sage: with localvars(R, 'z,w'):
         ...       print x^3 + y^3 - x*y
         ...

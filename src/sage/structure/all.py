@@ -8,7 +8,8 @@ from element import *    # a whole bunch of classes
 
 from gens import (Generators,
                   AdditiveAbelianGenerators,
-                  MultiplicativeAbelianGenerators)
+                  MultiplicativeAbelianGenerators,
+                  localvars)
 
 from formal_sum import FormalSum
 

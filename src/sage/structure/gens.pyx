@@ -199,7 +199,7 @@ cdef class Generators(sage_object.SageObject):
 
     def gens_dict(self):
         r"""
-        Return a dictionary whose entries are \code{var_name:variable}.
+        Return a dictionary whose entries are \code{{var_name:variable,...}}.
         """
         if self.__gens_dict != None:
             return self.__gens_dict
@@ -214,7 +214,9 @@ cdef class Generators(sage_object.SageObject):
         """
         Set the names of the generator of this object.
 
-        This can only be done once during creation of the object.
+        This can only be done once because objects with generators
+        are immutable, and is typically done during creation of the object.
+
 
         EXAMPLES:
         When we create this polynomial ring, self._assign_names is called by the constructor:
@@ -231,14 +233,12 @@ cdef class Generators(sage_object.SageObject):
             ValueError: variable names cannot be changed after object creation.
         """
         if names is None: return
-        if not self.__names is None:
-            names = normalize_names(self.ngens(), names)
-            if names != self.__names:
-                raise ValueError, 'variable names cannot be changed after object creation.'
         if normalize:
-            self.__names = normalize_names(self.ngens(), names)
-        else:
-            self.__names = names
+            names = normalize_names(self.ngens(), names)
+        if not (self.__names is None) and names != self.__names:
+            raise ValueError, 'variable names cannot be changed after object creation.'
+
+        self.__names = names
 
     def inject_variables(self, scope=None, verbose=True):
         """
@@ -265,39 +265,27 @@ cdef class Generators(sage_object.SageObject):
         for i from 0 <= i < len(v):
             scope[v[i]] = g[i]
 
-    def _names_from_obj(self, X):
-        if self.__names != None and self.__latex_names != None:
-            old = (self.__names, self.__latex_names)
-        else:
-            old = None
-        if X is None:
-            self.__names = None
-            self.__latex_names = None
-            return old
-        if not isinstance(X, tuple):
-            if X.__names!=None and X.__latex_names!=None:
-                X = (X.__names, X.__latex_names)
-            else:
-                return old
-        (self.__names, self.__latex_names) =  X
+    def __temporarily_change_names(self, names, latex_names):
+        """
+        This is used by the variable names context manager.
+        """
+        old = self.__names, self.__latex_names
+        (self.__names, self.__latex_names) = names, latex_names
         return old
 
     def variable_names(self):
-        if self.__names!=None:
+        if self.__names != None:
             return self.__names
-        else:
-            self.__names = sage.misc.defaults.variable_names(self.ngens())
-            return self.__names
+        raise ValueError, "variable names have not yet been set using self._assign_names(...)"
 
     def latex_variable_names(self):
         if self.__latex_names != None:
             return self.__latex_names
         # Compute the latex versions of the variable names.
         self.__latex_names = []
-        for x in self.__variable_names:
+        for x in self.variable_names():
             self.__latex.append(sage.misc.latex.latex_variable_name(x))
         return self.__latex_names
-
 
     def variable_name(self):
         return self.variable_names()[0]
@@ -305,6 +293,11 @@ cdef class Generators(sage_object.SageObject):
     def latex_name(self):
         return self.variable_name()
 
+    #################################################################################
+    # Give all objects with generators a dictionary, so that attribute setting
+    # works.   It would be nice if this functionality were standard in Pyrex,
+    # i.e., just define __dict__ as an attribute and all this code gets generated.
+    #################################################################################
     def __getstate__(self):
         d = []
         try:
@@ -458,4 +451,61 @@ cdef class AdditiveAbelianGenerators(Generators):
         Return an iterator over the elements in this object.
         """
         return gens_py.abelian_iterator(self)
+
+
+
+
+class localvars:
+    r"""
+    Context manager for safely temporarily changing the variables
+    names of an object with generators.
+
+    Objects with named generators are globally unique in SAGE.
+    Sometimes, though, it is very useful to be able to temporarily
+    display the generators differently.   The new Python "with"
+    statement and the localvars context manager make this easy and
+    safe (and fun!)
+
+    Suppose X is any object with generators.  Write
+    \begin{verbatim}
+        with localvars(X, names[, latex_names] [,normalize=False]):
+             some code
+             ...
+    \end{verbatim}
+    and the indented code will be run as if the names in X are changed
+    to the new names.  If you give normalize=True, then the names are
+    assumed to be a tuple of the correct number of strings.
+
+    If you're writing Python library code, you currently have
+    to put \code{from __future__ import with_statement} in your file
+    in order to use the \code{with} statement.  This restriction will
+    disappear in Python 2.6.
+
+    EXAMPLES:
+        sage: R.[x,y] = PolynomialRing(QQ,2)
+        sage: with localvars(R, 'z,w'):
+        ...       print x^3 + y^3 - x*y
+        ...
+        w^3 - z*w + z^3
+
+    NOTES: I wrote this because it was needed to print elements of the
+    quotient of a ring R by an ideal I using the print function for
+    elemnts of R.  See the code in \code{quotient_ring_element.pyx}.
+
+    AUTHOR: William Stein (2006-10-31)
+    """
+    def __init__(self, obj, names, latex_names=None, normalize=True):
+        self._obj = obj
+        if normalize:
+            self._names = normalize_names(obj.ngens(), names)
+            self._latex_names = latex_names
+        else:
+            self._names = normalize_names(obj.ngens(), names)
+            self._latex_names = latex_names
+
+    def __enter__(self):
+        self._orig = self._obj.__temporarily_change_names(self._names, self._latex_names)
+
+    def __exit__(self, type, value, traceback):
+        self._obj.__temporarily_change_names(self._orig[0], self._orig[1])
 

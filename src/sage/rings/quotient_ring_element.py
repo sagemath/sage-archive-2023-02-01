@@ -23,6 +23,8 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+
 import operator
 
 import ring_element
@@ -90,12 +92,14 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         raise NotImplementedError
 
     def _repr_(self):
+        from sage.structure.gens import localvars
         P = self.parent()
         R = P.cover_ring()
-        tmp = R._names_from_obj(P)
-        s = str(self.__rep)
-        R._names_from_obj(tmp)
-        return s
+        # We print by temporarily (and safely!) changing the variable
+        # names of the covering structure R to those of P.
+        # These names get changed back, since we're using "with".
+        with localvars(R, P.variable_names(), normalize=False):
+            return str(self.__rep)
 
     def _add_(self, right):
         return QuotientRingElement(self.parent(), self.__rep + right.__rep)

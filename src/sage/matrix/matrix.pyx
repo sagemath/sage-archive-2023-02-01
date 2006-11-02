@@ -6,11 +6,11 @@ AUTHORS:
     -- Martin Albrecht: conversion to Pyrex
     -- Jaap Spies: various functions
     -- Gary Zablackis: fixed a sign bug in generic determinant.
+    -- William Stein and Robert Bradshaw -- complete restructuring.
 
 Elements of matrix spaces are of class \code{Matrix} (or a class
 derived from Matrix).  They can be either sparse or dense, and can be
 defined over any base ring.
-
 
 EXAMPLES:
 
@@ -67,7 +67,7 @@ immutable it cannot be changed back.  However, one can obtain a
 mutable copy of $A$ using \code{A.copy()}.
 
 EXAMPLES:
-    sage: A = Matrix(RR,2,[1,10,3.5,2])
+    sage: A = matrix(RR,2,[1,10,3.5,2])
     sage: A.set_immutable()
     sage: A.copy() is A
     False
@@ -76,7 +76,7 @@ The echelon form method always returns immutable matrices with known
 rank.
 
 EXAMPLES:
-    sage: A = Matrix(Integers(8),3,range(9))
+    sage: A = matrix(Integers(8),3,range(9))
     sage: A.determinant()
     0
     sage: A[0,0] = 5
@@ -89,7 +89,7 @@ EXAMPLES:
     ValueError: object is immutable; please change a copy instead.
 
 
-\subsection{Implementation Discussion}
+\subsection{Implementation and Design}
 Class Diagram:
 \begin{verbatim}
 Matrix (*) -- abstract base
@@ -115,36 +115,43 @@ Matrix (*) -- abstract base
 
 The corresponding files in the sage/matrix library code
 directory are named
-
+\begin{verbatim}
           [matrix] [base ring] [dense or sparse].
+\end{verbatim}
 
 See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
 
+New matrices types can only be implemented in Pyrex.
+
 *********** LEVEL 1  **********
 
-For each base field it is necessary to completely implement the following
-   functionality for that base ring:
-   * __new__       -- should use sage_malloc from ext/stdsage.pxi  (only needed if allocate memory)
+For each base field it is *absolutely* essential to completely
+implement the following functionality for that base ring:
+
+   * __new__       -- should use sage_malloc from ext/stdsage.pxi (only
+                      needed if allocate memory)
    * __init__      -- this signature: 'def __init__(self, parent, entries, copy, coerce)'
    * __dealloc__   -- use sage_free (only needed if allocate memory)
-   * set_unsafe(self, size_t i, size_t j, x) -- a cdef'd method that doesn't do bounds or any other checks; can core dump if given bad i,j
+   * set_unsafe(self, size_t i, size_t j, x) -- a cdef'd method that
+                       doesn't do bounds or any other checks; can core dump if given bad i,j
    * get_unsafe(self, size_t i, size_t j) -- a cdef'd method that doesn't do checks
+   * def _pickle(self):
+          return data, version
+   * def _unpickle(self, data, int version):
+          reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
+          Use version numbers so if you change the pickle strategy then
+          old objects still unpickle.
 
 *********** LEVEL 2  **********
 
 After getting the special class with the above code to work, implement
-any subset of the following purely for speed reasons:
+any subset of the following *purely* for speed reasons (they should not
+change functionality in any way):
 
-   * def pickle(self):
-          return data, version
-   * def unpickle(self, data, int version):
-          reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
-          Use version numbers so if you change the pickle strategy then
-          old objects still unpickle.
-   * _add_sibling_cdef
-   * _sub_sibling_cdef
-   * _mul_cousin_cdef
-   * _cmp_sibling_cdef
+   * _add_c_impl
+   * _sub_c_impl
+   * _mul_c_cousin
+   * _cmp_c_impl
    * __neg__
    * __invert__
    * __copy__
@@ -155,13 +162,13 @@ any subset of the following purely for speed reasons:
 
 *********** LEVEL 3  **********
 
+Further special support:
    * Matrix windows -- only if you need strassen for that base
-
    * Other functions, e.g., transpose, for which knowing the
      specific representation can be helpful.
 
 NOTES:
-   * For cacheing, use self.fetch and self.cache.
+   * For caching, use self.fetch and self.cache.
    * Any method that can change the matrix should call check_mutability() first.
 
 """
@@ -344,17 +351,17 @@ cdef class Matrix(ModuleElement):
         """
         cdef size_t i, j
 
-        x = self.fetch('dict')
-        if not x is None:
-            return x
-        x = {}
+        d = self.fetch('dict')
+        if not d is None:
+            return d
+        d = {}
         for i from 0 <= i < self._nrows:
-            for j from 0 <= j < nself._ncols:
+            for j from 0 <= j < self._ncols:
                 x = self.get_unsafe(i, j)
                 if x != 0:
-                    x[(i,j)] = x
-        self.cache('dict', x)
-        return x
+                    d[(int(i),int(j))] = x
+        self.cache('dict', d)
+        return d
 
     ###########################################################
     # Cache
@@ -731,15 +738,16 @@ cdef class Matrix(ModuleElement):
             sage: a == loads(dumps(a))
             True
         """
-        data, version = self.pickle()
-        return unpickle, (self.__class__, self._parent, data, version)
+        data, version = self._pickle()
+        return unpickle, (self.__class__, self._parent, self._mutability,
+                                          self._cache, data, version)
 
-    def pickle(self):
+    def _pickle(self):
         version = 0
         data = self.list()  # linear list of all elements
         return data, version
 
-    def unpickle(self, data, int version):
+    def _unpickle(self, data, int version):
         cdef size_t i, j, k
         if version == 0:
             # data is a *list* of the entries of the matrix.
@@ -747,6 +755,7 @@ cdef class Matrix(ModuleElement):
             k = 0
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
+                    print "setting %s, %s entry to %s"%(i,j,data[k])
                     self.set_unsafe(i, j, data[k])
                     k = k + 1
         else:
@@ -3604,7 +3613,7 @@ class int_range:
 # Unpickling
 #######################
 
-def unpickle(cls, parent, data, version):
+def unpickle(cls, parent, mutability, cache, data, version):
     """
     Unpickle a matrix.
     """
@@ -3614,7 +3623,9 @@ def unpickle(cls, parent, data, version):
         A._parent = parent  # make sure -- __new__ doesn't have to set it, but unpickle may need to know.
         A._nrows = parent.nrows()
         A._ncols = parent.ncols()
-        A.unpickle(data, version)
+        A._mutability = mutability
+        A._cache = cache
+        A._unpickle(data, version)
     except Exception, msg:
         print msg
     return A

@@ -9,6 +9,7 @@ import weakref
 # SAGE matrix imports
 import matrix
 import matrix_generic_dense
+import matrix_generic_sparse
 
 ## import matrix_domain_dense
 ## import matrix_domain_sparse
@@ -305,25 +306,26 @@ class MatrixSpace_generic(gens.Generators):
         Returns the class of self
 
         EXAMPLES:
-        sage: MS1 = MatrixSpace(QQ,4)
-        sage: MS2 = MatrixSpace(ZZ,4,5,true)
-        sage: MS1._get_matrix_class()
-        <type 'matrix_rational_dense.Matrix_rational_dense'>
-        sage: MS2._get_matrix_class()
-        <class 'sage.matrix.matrix.Matrix_sparse_integer'>
+            sage: MS1 = MatrixSpace(QQ,4)
+            sage: MS2 = MatrixSpace(ZZ,4,5,true)
+            sage: MS1._get_matrix_class()
+            <type 'matrix_rational_dense.Matrix_rational_dense'>
+            sage: MS2._get_matrix_class()
+            <class 'sage.matrix.matrix.Matrix_sparse_integer'>
         """
-        return matrix_generic_dense.Matrix_generic_dense
-##         R = self.base_ring()
-##         if self.is_dense():
-##             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
-##                 return matrix_modn_dense.Matrix_modn_dense
-##             else:
-##                 return matrix_dense.Matrix_dense
-##         else:
-##             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
-##                 return matrix_modn_sparse.Matrix_modn_sparse
-##             else:
-##                 return matrix_sparse.Matrix_sparse
+        R = self.base_ring()
+        if self.is_dense():
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+                return matrix_modn_dense.Matrix_modn_dense
+            # the default
+            return matrix_generic_dense.Matrix_generic_dense
+
+        else:
+
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+                return matrix_modn_sparse.Matrix_modn_sparse
+            # the default
+            return matrix_generic_sparse.Matrix_generic_sparse
 
     def base_ring(self):
         """

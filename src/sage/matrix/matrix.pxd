@@ -1,5 +1,5 @@
 """
-Declaration file for generic matrices
+Generic matrices
 """
 
 ###############################################################################

@@ -268,7 +268,7 @@ ext_modules = [ \
 
     matrix,
     matrix_generic_dense,
-##    matrix_generic_sparse,
+    matrix_generic_sparse,
 
 ##     matrix_domain_dense,
 ##     matrix_domain_sparse,

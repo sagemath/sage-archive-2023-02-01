@@ -126,8 +126,11 @@ class FractionFieldElement(field_element.FieldElement):
             return "0"
         s = "%s"%self.__numerator
         if self.__denominator != 1:
-            s = "%s/%s"%(self.__numerator._coeff_repr(no_space=False),
-                         self.__denominator._coeff_repr(no_space=False))
+            denom_string = str( self.__denominator )
+            if self.__denominator._is_atomic() and denom_string.find( "*" ) < 0 and denom_string.find( "/" ) < 0:
+                s = "%s/%s"%(self.__numerator._coeff_repr(no_space=False),denom_string)
+            else:
+                s = "%s/(%s)"%(self.__numerator._coeff_repr(no_space=False),denom_string)
         return s
 
     def _latex_(self):

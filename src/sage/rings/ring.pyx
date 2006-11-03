@@ -632,6 +632,7 @@ cdef class Field(PrincipalIdealDomain):
 cdef class FiniteFieldIterator:
     cdef object iter
     cdef FiniteField parent
+
     def __init__(self,FiniteField parent):
         self.parent = parent
         self.iter =iter(self.parent.vector_space())

@@ -958,7 +958,7 @@ class Worksheet:
         spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
-        s  = '_support_.pyrex_import_all("%s", globals(), make_c_file_nice=True)'%spyx
+        s  = '_support_.pyrex_import_all("%s", globals())'%spyx
         return s
 
     def check_for_system_switching(self, s, C):

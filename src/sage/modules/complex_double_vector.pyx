@@ -7,12 +7,12 @@ import sage.rings.complex_double
 #from sage.functions.constants import log2
 
 cdef class ComplexDoubleVectorSpace_element(free_module_element.FreeModuleElement):
-    def __new__(self, parent,x,coerce_entries=True, copy=True):
+    def __new__(self, parent,x,coerce=True, copy=True):
         self.v = gsl_vector_complex_calloc(parent.rank())
         self._parent = parent
 
-    def __init__(self,parent,x,coerce_entries = True, copy = True):
-        #Think about whether coerce_entries = False or copy = False should be behave differently
+    def __init__(self,parent,x,coerce = True, copy = True):
+        #Think about whether coerce = False or copy = False should be behave differently
         free_module_element.FreeModuleElement.__init__(self,sage.rings.complex_double.CDF)
         cdef int i
         cdef int n

@@ -16,7 +16,7 @@ import sage.rings.complex_double
 
 cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
 
-    def __init__(self,parent,x,coerce_entries=True,copy=True):
+    def __init__(self,parent,x,coerce=True,copy=True):
         free_module_element.FreeModuleElement.__init__(self,sage.rings.real_double.RDF)
         self._parent=parent
         cdef int n

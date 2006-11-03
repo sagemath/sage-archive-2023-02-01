@@ -13,10 +13,11 @@ def _convert_dense_entries_to_list(entries):
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 
+cimport matrix_dense
+import matrix_dense
 cimport matrix
-import matrix
 
-cdef class Matrix_generic_dense(matrix.Matrix):
+cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""
     The \class{Matrix_generic_dense} class derives from \class{Matrix}, and
     defines functionality for dense matrices over any base ring.

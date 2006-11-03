@@ -66,10 +66,34 @@ These are mostly things that can't be done in Pyrex.
 #define HAS_DICTIONARY(zzz_obj) \
     (((PyObject*)(zzz_obj))->ob_type->tp_dictoffset != NULL)
 
+/* Very very unsafe access to the list of pointers to PyObject*'s underlying a list / sequence.
+   This does error checking of any kind -- make damn sure you hand it a list or sequence! */
+#define FAST_SEQ_UNSAFE(zzz_obj) \
+    PySequence_Fast_ITEMS(PySequence_Fast(zzz_obj, "expected sequence type"))
+
 PyObject* global_empty_tuple;
 
 /*****************************************
           Memory management
+
+NOTE -- before changing these away from Python's keep the following in
+mind (from the Python C/API guide):
+
+"In most situations, however, it is recommended to allocate memory from
+the Python heap specifically because the latter is under control of
+the Python memory manager. For example, this is required when the
+interpreter is extended with new object types written in C. Another
+reason for using the Python heap is the desire to inform the Python
+memory manager about the memory needs of the extension module. Even
+when the requested memory is used exclusively for internal,
+highly-specific purposes, delegating all memory requests to the Python
+memory manager causes the interpreter to have a more accurate image of
+its memory footprint as a whole. Consequently, under certain
+circumstances, the Python memory manager may or may not trigger
+appropriate actions, like garbage collection, memory compaction or
+other preventive procedures. Note that by using the C library
+allocator as shown in the previous example, the allocated memory for
+the I/O buffer escapes completely the Python memory manager."
 
  *****************************************/
 

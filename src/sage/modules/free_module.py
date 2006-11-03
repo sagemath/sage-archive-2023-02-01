@@ -342,7 +342,7 @@ class FreeModule_generic(module.Module):
         else:
             return free_module_element.FreeModuleElement_generic_dense
 
-    def __call__(self, x, coerce_entries=True, copy=True, check_element=True):
+    def __call__(self, x, coerce=True, copy=True, check=True):
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
@@ -353,10 +353,12 @@ class FreeModule_generic(module.Module):
                     return x
             x = x.list()
         if self.__is_sparse:
-            w = free_module_element.FreeModuleElement_generic_sparse(self, x, coerce_entries, copy)
+            w = free_module_element.FreeModuleElement_generic_sparse(self, x, coerce, copy)
         else:
-            w = free_module_element.FreeModuleElement_generic_dense(self, x, coerce_entries, copy)
-        if check_element:
+            w = free_module_element.FreeModuleElement_generic_dense(self, x, coerce, copy)
+        if check:
+            if isinstance(self, FreeModule_ambient):
+                return w
             self.coordinates(w)
         return w
 
@@ -2520,7 +2522,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
         C = self._element_class()
         w = [C(self, x.list(),
-                          coerce_entries=False, copy=True) for x in basis]
+                          coerce=False, copy=True) for x in basis]
 
         self.__basis = basis_seq(self, w)
 

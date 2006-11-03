@@ -93,24 +93,29 @@ EXAMPLES:
 Class Diagram:
 \begin{verbatim}
 Matrix (*) -- abstract base
-    Matrix_generic_dense
+  Matrix_sparse
     Matrix_generic_sparse
-    Matrix_integer_dense
     Matrix_integer_sparse
-    Matrix_rational_dense
     Matrix_rational_sparse
-    Matrix_cyclo_dense
     Matrix_cyclo_sparse
-    Matrix_modn_dense
     Matrix_modn_sparse
-    Matrix_RR_dense
     Matrix_RR_sparse
-    Matrix_CC_dense
     Matrix_CC_sparse
-    Matrix_RDF_dense
     Matrix_RDF_sparse
-    Matrix_CDF_dense
     Matrix_CDF_sparse
+
+  Matrix_dense
+    Matrix_generic_dense
+    Matrix_integer_dense
+    Matrix_integer_2x2_dense
+    Matrix_rational_dense
+    Matrix_cyclo_dense
+    Matrix_modn_dense
+    Matrix_RR_dense
+    Matrix_CC_dense
+    Matrix_RDF_dense
+    Matrix_CDF_dense
+
 \end{verbatim}
 
 The corresponding files in the sage/matrix library code
@@ -124,7 +129,7 @@ See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
 New matrices types can only be implemented in Pyrex.
 
 *********** LEVEL 1  **********
-
+NON-OPTIONAL
 For each base field it is *absolutely* essential to completely
 implement the following functionality for that base ring:
 
@@ -137,30 +142,37 @@ implement the following functionality for that base ring:
    * get_unsafe(self, size_t i, size_t j) -- a cdef'd method that doesn't do checks
    * def _pickle(self):
           return data, version
-   * def _unpickle(self, data, int version):
+   * def _unpickle(self, data, int version)
           reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
           Use version numbers so if you change the pickle strategy then
           old objects still unpickle.
 
 *********** LEVEL 2  **********
 
-After getting the special class with the above code to work, implement
-any subset of the following *purely* for speed reasons (they should not
-change functionality in any way):
+IMPORTANT (and *highly* recommended):
 
-   * _add_c_impl
-   * _sub_c_impl
-   * _mul_c_cousin
-   * _cmp_c_impl
-   * __neg__
-   * __invert__
+After getting the special class with all level 1 functionality to
+work, implement all of the following (they should not change
+functionality, except speed (always faster!) in any way):
+
+   * cdef _list -- list of underlying elements (need not be a copy)
+   * cdef _dict -- sparse dictionary of underlying elements
+   * cdef _add_c_impl
+   * cdef _mul_c_impl
+   * cdef _cmp_c_impl
    * __copy__
-   * __deepcopy__
-   * multiply_classical
-   * list -- copy of the list of underlying elements
-   * dict -- copy of the sparse dictionary of underlying elements
+   * __neg__
+
+The list and dict returned by _list and _dict will *not* be changed
+by any internal algorithms and are not accessible to the user.
 
 *********** LEVEL 3  **********
+OPTIONAL:
+
+   * cdef _sub_c_impl
+   * __deepcopy__
+   * __invert__
+   * multiply_classical
 
 Further special support:
    * Matrix windows -- only if you need strassen for that base
@@ -170,7 +182,6 @@ Further special support:
 NOTES:
    * For caching, use self.fetch and self.cache.
    * Any method that can change the matrix should call check_mutability() first.
-
 """
 
 ################################################################################
@@ -264,36 +275,6 @@ cdef class Matrix(ModuleElement):
         self._mutability = Mutability(False)
         self._cache = {}
 
-    def __hash__(self):
-        """
-        EXAMPLES:
-            sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
-            sage: B = A.copy()
-            sage: A.__hash__() == B.__hash__()
-            True
-            sage: A[0,0] = -1
-            sage: A.__hash__() == B.__hash__()
-            False
-        """
-        h = self.fetch('hash')
-        if not h is None: return h
-
-        if not self._mutability._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
-
-        h = hash(str(self))
-        self.cache('hash', h)
-        return h
-
-    def __copy__(self):
-        """
-        Return a copy of this matrix.  Changing the entries of the
-        copy will not change the entries of this matrix.
-
-        EXAMPLES:
-            sage: ???
-        """
-        return self.new_matrix(entries=self.list(), coerce=False, copy=False)
 
     def copy(self):
         """
@@ -332,6 +313,13 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
+        return list(self._list())
+
+    def _list(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         cdef size_t i, j
 
         x = self.fetch('list')
@@ -346,14 +334,23 @@ cdef class Matrix(ModuleElement):
 
     def dict(self):
         """
+        It is safe to change the returned dictionary.
+
         EXAMPLES:
             sage: ???
         """
-        cdef size_t i, j
+        return dict(self._dict())
 
+    def _dict(self):
+        """
+        EXAMPLES:
+            sage: ???
+        """
         d = self.fetch('dict')
         if not d is None:
             return d
+
+        cdef size_t i, j
         d = {}
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -574,12 +571,12 @@ cdef class Matrix(ModuleElement):
         cdef size_t i, j
         cdef object x
 
-        if PyTuple_Check(ij):
+        if PyTuple_Check(<PyObject*> ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
+            if PyTuple_Size(<PyObject*> ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
+            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
+            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
             self.check_bounds(i, j)
             return self.get_unsafe(i, j)
         else:
@@ -649,12 +646,12 @@ cdef class Matrix(ModuleElement):
         """
         cdef size_t i, j
 
-        if PyTuple_Check(ij):
+        if PyTuple_Check(<PyObject*> ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
+            if PyTuple_Size(<PyObject*> ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
+            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
+            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
             self.check_bounds_and_mutability(i, j)
             self.set_unsafe(i, j, x)
         else:
@@ -663,70 +660,6 @@ cdef class Matrix(ModuleElement):
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, x)
 
-    def column(self, size_t i):
-        """
-        Return the i-th column of this matrix.
-
-        EXAMPLES:
-            sage: ???
-        """
-        cdef size_t j
-        V = sage.modules.free_module.FreeModule(self.base_ring(), self._ncols)
-        tmp = []
-        for j from 0 <= j < self._nrows:
-            tmp.append(self.get_unsafe(j,i))
-        return V(tmp)
-
-    def columns(self):
-        """
-        Returns the list of columns of self, as vectors.
-
-        EXAMPLES:
-            sage: A = MatrixSpace(RationalField(), 2,3) (xrange(6))
-            sage: A
-            [0 1 2]
-            [3 4 5]
-            sage: A.columns()
-            [(0, 3), (1, 4), (2, 5)]
-        """
-        cdef size_t j
-        x = self.fetch('columns')
-        if not x is None: return x
-        tmp = []
-        for j from 0 <= j < self._nrows:
-            tmp.append(self.column(j))
-        self.cache('columns', tmp)
-        return tmp
-
-    def row(self, size_t i):
-        """
-        Return the i-th row of this matrix.
-
-        EXAMPLES:
-            sage: ???
-        """
-        cdef size_t j
-        V = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
-        tmp = []
-        for j from 0 <= j < self._ncols:
-            tmp.append(self.get_unsafe(i,j))
-        return V(tmp)
-
-    def rows(self):
-        """
-        Return a list of the rows of this matrix.
-
-        EXAMPLES:
-            sage: ???
-        """
-        cdef size_t i
-        x = self.fetch('rows')
-        if not x is None: return x
-        tmp = []
-        for i from 0 <= i < self._nrows:
-            tmp.append(self.row(i))
-        self.cache('rows', tmp)
-        return tmp
 
     ###########################################################
     # Pickling
@@ -765,7 +698,6 @@ cdef class Matrix(ModuleElement):
     ###########################################################
     # Base Change
     ###########################################################
-
     def change_ring(self, ring):
         """
         Return the matrix obtained by coercing the entries of this
@@ -1094,40 +1026,296 @@ cdef class Matrix(ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def sparse_columns(self):
+    #############################################################################################
+    # rows, columns, sparse_rows, sparse_columns, dense_rows, dense_columns, row, column
+    #############################################################################################
+
+    def columns(self, copy=True):
         """
+        Return a list of the columns of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy of the list of
+                    columns, which is safe to change.
+
+        If self is sparse, returns columns as sparse vectors, and if self
+        is dense returns them as dense vectors.
+        """
+        x = self.fetch('columns')
+        if not x is None:
+            if copy: return list(x)
+            return x
+        if self.is_sparse():
+            columns = self.sparse_columns(copy=copy)
+        else:
+            columns = self.dense_columns(copy=copy)
+        self.cache('columns', columns)
+        if copy: return list(columns)
+        return columns
+
+    def rows(self, copy=True):
+        """
+        Return a list of the rows of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy of the list of rows, which is safe to change.
+
+        If self is sparse, returns rows as sparse vectors, and if self
+        is dense returns them as dense vectors.
+        """
+        x = self.fetch('rows')
+        if not x is None:
+            if copy: return list(x)
+            return x
+        if self.is_sparse():
+            rows = self.sparse_rows(copy=copy)
+        else:
+            rows = self.dense_rows(copy=copy)
+        self.cache('rows', rows)
+        if copy: return list(rows)
+        return rows
+
+    def dense_columns(self, copy=True):
+        """
+        Return list of the dense columns of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy so you can modify it safely
+
         EXAMPLES:
             sage: ???
         """
-        if self.__sparse_columns!=None:
-            return self.__sparse_columns
+        x = self.fetch('dense_columns')
+        if not x is None:
+            if copy: return list(x)
+            return x
+
+        F = sage.modules.free_module.FreeModule(self.base_ring(), self._nrows, sparse=False)
+        C = []
+        cdef size_t i, j
+        cdef PyObject* v
+        for j from 0 <= j < self._ncols:
+            v = PyList_New(self._ncols)
+            for i from 0 <= i < self._nrows:
+                o = self.get_unsafe(i,j)
+                PyList_SET_ITEM(v, i, <PyObject*> o)
+                Py_INCREF(<PyObject*> o)
+            C.append(F(<object>v, coerce=False,copy=False,check=False))
+            Py_DECREF(v)
+        # cache result
+        self.cache('dense_columns', C)
+        if copy:
+            return list(C)
         else:
-            C =[]
-            for _ in xrange(self.ncols()):
-                C.append({})
-            for i, j in self.nonzero_positions():
-                C[i][j] = self.get(i,j)
-            if self.is_immutable():
-                self.__sparse_columns = C
             return C
 
-    def sparse_rows(self):
+    def dense_rows(self, copy=True):
         """
+        Return list of the dense rows of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy so you can modify it safely
+
+        EXAMPLES:
+            sage: m = Mat(ZZ,3,3,dense=True)(range(9)); m
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: v = m.dense_rows(); v
+            [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+            sage: v is m.dense_rows()
+            True
+            sage: m[0,0] = 10
+            sage: m.dense_rows()
+            [(10, 1, 2), (3, 4, 5), (6, 7, 8)]
+        """
+        x = self.fetch('dense_rows')
+        if not x is None:
+            if copy: return list(x)
+            return x
+
+        F = sage.modules.free_module.FreeModule(self.base_ring(), self._ncols, sparse=False)
+        R = []
+        cdef size_t i, j
+        cdef object o
+        cdef PyObject* v
+        for i from 0 <= i < self._nrows:
+            v = PyList_New(self._ncols)
+            for j from 0 <= j < self._ncols:
+                o = self.get_unsafe(i,j)
+                PyList_SET_ITEM(v, j, <PyObject*> o)
+                Py_INCREF(<PyObject*> o)
+            R.append(F(<object>v, coerce=False,copy=False,check=False))
+        # cache result
+        self.cache('dense_rows', R)
+        if copy:
+            return list(R)
+        else:
+            return R
+
+
+    def sparse_columns(self, copy=True):
+        """
+        Return list of the sparse columns of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy so you can modify it safely
+
         EXAMPLES:
             sage: ???
         """
-        if self.__sparse_rows != None:
-            return self.__sparse_rows
+        x = self.fetch('sparse_columns')
+        if not x is None:
+            if copy: return list(x)
+            return x
+
+        F = sage.modules.free_module.FreeModule(self.base_ring(), self._nrows, sparse=True)
+
+        C = []
+        k = 0
+        entries = {}
+        cdef size_t i, j
+
+        for i, j in self.nonzero_positions(copy=False, column_order=True):
+            if i > k:
+                # new column -- emit vector
+                while len(C) < k:
+                    C.append(F(0))
+                C.append(F(entries, coerce=False, copy=False, check=False))
+                entries = {}
+                k = i
+            entries[j] = self.get_unsafe(i, j)
+
+        # finish up
+        while len(C) < k:
+            C.append(F(0))
+        C.append(F(entries, coerce=False, copy=False, check=False))
+        while len(C) < self._ncols:
+            C.append(F(0))
+
+        # cache result
+        self.cache('sparse_columns', C)
+        if copy:
+            return list(C)
         else:
-            R = []
-            for _ in xrange(self.ncols()):
-                R.append({})
-            for i, j in self.nonzero_positions():
-                R[i][j] = self.get((i,j))
-            if self.is_immutable():
-                self.__sparse_rows = R
+            return C
+
+    def sparse_rows(self, copy=True):
+        """
+        Return list of the sparse rows of self.
+
+        INPUT:
+            copy -- (default: True) if True, return a copy so you can modify it safely
+
+        EXAMPLES:
+            sage: m = Mat(ZZ,3,3,sparse=True)(range(9)); m
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: v = m.sparse_rows(); v
+            [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
+            sage: v is m.sparse_rows()
+            True
+            sage: m[0,0] = 10
+            sage: m.sparse_rows()
+            [(10, 1, 2), (3, 4, 5), (6, 7, 8)]
+        """
+        x = self.fetch('sparse_rows')
+        if not x is None:
+            if copy: return list(x)
+            return x
+
+        F = sage.modules.free_module.FreeModule(self.base_ring(), self._ncols, sparse=True)
+
+        R = []
+        k = 0
+        entries = {}
+        cdef size_t i, j
+
+        for i, j in self.nonzero_positions(copy=False):
+            if i > k:
+                # new column -- emit vector
+                while len(R) < k:
+                    R.append(F(0))
+                R.append(F(entries, coerce=False, copy=False, check=False))
+                entries = {}
+                k = i
+            entries[j] = self.get_unsafe(i, j)
+
+        # finish up
+        while len(R) < k:
+            R.append(F(0))
+        R.append(F(entries, coerce=False, copy=False, check=False))
+        while len(R) < self._ncols:
+            R.append(F(0))
+
+        # cache result
+        self.cache('sparse_rows', R)
+        if copy:
+            return list(R)
+        else:
             return R
 
+    def column(self, size_t i, from_list=False):
+        """
+        Return the i-th column of this matrix as a vector.
+
+        This column is a dense vector if and only if the matrix is a
+        dense matrix.
+
+        INPUT:
+            i -- integer
+            from_list -- bool (default: False); if true, returns the
+                         ith element of self.columns(), which may be
+                         faster, but requires building a list of all
+                         columns the first time it is called after an
+                         entry of the matrix is changed.
+
+        EXAMPLES:
+            sage: ???
+        """
+        if from_list:
+            return self.columns(copy=False)[i]
+        cdef size_t j
+        V = sage.modules.free_module.FreeModule(self.base_ring(),
+                                     self._ncols, sparse=self.is_sparse())
+        tmp = []
+        for j from 0 <= j < self._nrows:
+            tmp.append(self.get_unsafe(j,i))
+        return V(tmp, coerce=False, copy=False, check=False)
+
+    def row(self, size_t i, from_list=False):
+        """
+        Return the i-th row of this matrix as a vector.
+
+        This row is a dense vector if and only if the matrix is a
+        dense matrix.
+
+        INPUT:
+            i -- integer
+            from_list -- bool (default: False); if true, returns the
+                         ith element of self.rows(), which may be
+                         faster, but requires building a list of all
+                         rows the first time it is called after an
+                         entry of the matrix is changed.
+
+        EXAMPLES:
+            sage: ???
+        """
+        if from_list:
+            return self.rows(copy=False)[i]
+        cdef size_t j
+        V = sage.modules.free_module.FreeModule(self.base_ring(),
+                                      self.ncols(), sparse=self.is_sparse())
+        tmp = []
+        for j from 0 <= j < self._ncols:
+            tmp.append(self.get_unsafe(i,j))
+        return V(tmp, coerce=False, copy=False, check=False)
+
+
+    ############################################################################################
+    # Building matrices out of other matrices, rows, or columns
+    ############################################################################################
     def stack(self, Matrix other):
         """
         Return the augmented matrix self on top of other:
@@ -1271,6 +1459,10 @@ cdef class Matrix(ModuleElement):
             r = r + 1
         return A
 
+    ####################################################################################
+    # Change of representation between dense and sparse.
+    ####################################################################################
+
     def dense_matrix(self):
         """
         If this matrix is sparse, return a dense matrix with the same
@@ -1346,24 +1538,6 @@ cdef class Matrix(ModuleElement):
             return self
         return self.new_matrix(self._nrows, self._ncols, entries = self.dict(), coerce=False,
                                copy = False, sparse=True)
-
-    def dense_row(self, size_t n):
-        """
-        Return the n-th row of self as a dense vector.
-
-        EXAMPLES:
-            sage: ???
-        """
-        cdef size_t i
-        if n < 0 or n >= self._nrows:
-            raise IndexError, "n must be between 0 and the number of rows"
-        V = sage.modules.free_module.VectorSpace(self.base_ring(), self.ncols(), sparse=False)
-        # TODO -- better way to build a list using Python API??
-        tmp = []
-        for i from 0 <= i < self._ncols:
-            tmp.append(self.get_unsafe(n, i))
-
-        return V(tmp)
 
     def matrix_space(self, nrows=None, ncols=None, sparse=None):
         if nrows is None:
@@ -1517,6 +1691,10 @@ cdef class Matrix(ModuleElement):
             raise ArithmeticError, "matrix must be square"
         raise NotImplementedError
 
+    ####################################################################################
+    # LLL
+    ####################################################################################
+
     def lllgram(self):
         """
         LLL reduction of the lattice whose gram matrix is self.
@@ -1574,7 +1752,7 @@ cdef class Matrix(ModuleElement):
 
 
     ###################################################
-    ## Properties
+    ## Basic Properties
     ###################################################
     def ncols(self):
         """
@@ -1619,8 +1797,6 @@ cdef class Matrix(ModuleElement):
             -- Naqi Jaffery (2006-01-24): examples
         """
         return self._nrows
-
-
     ###################################################
     # Functions
     ###################################################
@@ -1899,6 +2075,20 @@ cdef class Matrix(ModuleElement):
         """
         return self._nrows == self._ncols
 
+
+    ###################################################
+    # Invariants of a matrix
+    ###################################################
+
+    def pivots(self):
+        x = self.fetch('pivots')
+        if not x is None: return x
+        self.echelon_form()
+        return self.fetch('pivots')
+
+    cdef _set_pivots(self, X):
+        self.cache('pivots', X)
+
     def nonpivots(self):
         """
         Return the list of i such that the i-th column of self
@@ -1917,21 +2107,69 @@ cdef class Matrix(ModuleElement):
                 tmp.append(j)
         return tmp
 
-    def nonzero_positions(self):
+    def nonzero_positions(self, copy=True, column_order=False):
         """
-        Returns the set of pairs (i,j) such that self[i,j] != 0.
+        Returns the sorted list of pairs (i,j) such that self[i,j] != 0.
+
+        INPUT:
+            copy -- (default: True) It is safe to change the resulting
+                    list (unless you give the option copy=False).
+            column_order -- (default: False)  If true, returns the list of pairs (i,j)
+                    such that self[i,j] != 0, but sorted by columns, i.e.,
+                    column j=0 entries occur first, then column j=1 entries, etc.
 
         EXAMPLES:
             sage: ???
         """
+        if column_order:
+            return self._nonzero_positions_by_column(copy)
+        else:
+            return self._nonzero_positions_by_row(copy)
+
+    def _nonzero_positions_by_row(self, copy=True):
+        x = self.fetch('nonzero_positions')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
         cdef size_t i, j
         z = self.base_ring()(0)
-        tmp = set()
+        nzp = []
         for i from 0 <= i < self._nrows:
            for j from 0 <= j < self._ncols:
                 if self.get_unsafe(i,j) != z:
-                    tmp.add((i,j))
-        return tmp
+                    nzp.append((i,j))
+        self.cache('nonzero_positions', nzp)
+        if copy:
+            return list(nzp)
+        return nzp
+
+    def _nonzero_positions_by_column(self, copy=True):
+        """
+        Returns the list of pairs (i,j) such that self[i,j] != 0, but sorted by columns, i.e.,
+        column j=0 entries occur first, then column j=1 entries, etc.
+
+        It is safe to change the resulting list (unless you give the option copy=False).
+
+        EXAMPLES:
+            sage: ???
+        """
+        x = self.fetch('nonzero_positions_by_column')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
+        cdef size_t i, j
+        z = self.base_ring()(0)
+        nzp = []
+        for j from 0 <= j < self._ncols:
+            for i from 0 <= i < self._nrows:
+                if self.get_unsafe(i,j) != z:
+                    nzp.append((i,j))
+        self.cache('nonzero_positions_by_column', nzp)
+        if copy:
+            return list(nzp)
+        return nzp
 
     def nonzero_positions_in_column(self, size_t i):
         """
@@ -1994,19 +2232,6 @@ cdef class Matrix(ModuleElement):
                 tmp.append(self.get_unsafe(row, c))
             pr = pr * sum(tmp)
         return pr
-
-    ###################################################
-    # Invariants of a matrix
-    ###################################################
-    def pivots(self):
-        try:
-            return self._cache['pivots']
-        except KeyError:
-            self.echelon_form()
-        return self._cache['pivots']
-
-    cdef _set_pivots(self, X):
-        self.cache('pivots', X)
 
     def permanent(self):
         r"""
@@ -2299,8 +2524,7 @@ cdef class Matrix(ModuleElement):
         A = self.matrix_from_rows(range(1, n))
         sgn = R(-1)
         for i from 0 <= i < n:
-            v = range(n)
-            del v[i]
+            v = range(0,i) + range(i+1,n)
             B = A.matrix_from_columns(v)
             d = d + s*self.get_unsafe(0,i) * B.determinant()
             s = s*sgn
@@ -2323,6 +2547,8 @@ cdef class Matrix(ModuleElement):
 
     def __abs__(self):
         """
+        Synonym for self.determinant(...).
+
         EXAMPLES:
             sage: ???
         """
@@ -2506,16 +2732,16 @@ cdef class Matrix(ModuleElement):
             v[i] = v[i] % p
         return self.new_matrix(entries = v, copy=False, coerce=True)
 
-    def Mod(self, p):
+    def mod(self, p):
         """
         Return matrix mod $p$, over the reduced ring.
 
         EXAMPLES:
             sage: M = Matrix(ZZ, 2, 2, [5, 9, 13, 15])
-            sage: M.Mod(7)
+            sage: M.mod(7)
             [5 2]
             [6 1]
-            sage: parent(M.Mod(7))
+            sage: parent(M.mod(7))
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
@@ -2613,9 +2839,9 @@ cdef class Matrix(ModuleElement):
         elif right.is_sparse() and not self.is_dense():
             right = right.dense_matrix()
 
-        return (<Matrix> self)._mul_cousin_cdef(right)
+        return (<Matrix> self)._mul_c_impl(right)
 
-    cdef _mul_cousin_cdef(self, Matrix right):
+    cdef _mul_c_impl(self, Matrix right):
         """
         Multiply two matrices that are assumed to be compatable and
         defined over the same base ring.
@@ -2741,7 +2967,7 @@ cdef class Matrix(ModuleElement):
             return sage.structure.coerce.cmp(self, right)
 
         cdef int r
-        r = (<Matrix>self)._cmp_sibling_cdef(right)
+        r = (<Matrix>self)._cmp_c_impl(right)
 
         if op == 0:  #<
             return bool(r  < 0)
@@ -2756,7 +2982,7 @@ cdef class Matrix(ModuleElement):
         elif op == 5: #>=
             return bool(r >= 0)
 
-    cdef _cmp_sibling_cdef(self, Matrix right):
+    cdef int _cmp_c_impl(self, Matrix right) except -2:
         return cmp(self.list(), right.list())
 
     def __nonzero__(self):
@@ -2769,11 +2995,23 @@ cdef class Matrix(ModuleElement):
             sage: bool(M)
             True
         """
-        return self == self.parent()(0)
+        z = self.base_ring()(0)
+        cdef size_t i, j
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if self.get_unsafe(i,j) != z:
+                    return True
+        return False
 
     #####################################################################################
     # Generic Echelon
     #####################################################################################
+    def echelon_form(self):
+        """
+        Return the echelon form of self.
+        """
+        return self._echelon_classical()
+
     def _echelon_classical(self):
         """
         Return the echelon form of self.
@@ -2793,6 +3031,8 @@ cdef class Matrix(ModuleElement):
         cdef size_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
             return
+
+        self.check_mutability()
 
         start_row = 0
         nr = self._nrows
@@ -3301,8 +3541,14 @@ cdef class Matrix(ModuleElement):
                 A.swap_rows(i, cur_row)
 
         return pivots
-############################# end class ####################
 
+############################# end matrix class ####################
+
+
+#########################################################################
+# Generic matrix windows, which are used for block echelon and strassen #
+# algorithms.                                                           #
+#########################################################################
 cdef class MatrixWindow:
 
     def __init__(MatrixWindow self, Matrix matrix, int row, int col, int nrows, int ncols):
@@ -3325,12 +3571,12 @@ cdef class MatrixWindow:
 
     def __setitem__(self, ij, x):
         cdef size_t i, j
-        if PyTuple_Check(ij):
+        if PyTuple_Check(<PyObject*> ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
+            if PyTuple_Size(<PyObject*> ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
+            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
+            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
             if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
                 raise IndexError, "matrix index out of range"
             self.set_unsafe(i, j, x)
@@ -3344,12 +3590,12 @@ cdef class MatrixWindow:
         cdef size_t i, j
         cdef object x
 
-        if PyTuple_Check(ij):
+        if PyTuple_Check(<PyObject*> ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
+            if PyTuple_Size(<PyObject*> ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
+            i = <object> PyTuple_GET_ITEM(<PyObject*>ij, 0)
+            j = <object> PyTuple_GET_ITEM(<PyObject*>ij, 1)
             if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
                 raise IndexError, "matrix index out of range"
             return self.get_unsafe(i, j)

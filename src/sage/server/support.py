@@ -291,7 +291,7 @@ import sys
 import __builtin__
 
 def pyrex_import(filename, verbose=False, compile_message=False,
-                 make_c_file_nice=False, use_cache=False):
+                 use_cache=False):
     """
     INPUT:
         filename -- name of a file that contains pyrex code
@@ -304,7 +304,6 @@ def pyrex_import(filename, verbose=False, compile_message=False,
 
     name, build_dir = sage.misc.pyrex.pyrex(filename, verbose=verbose,
                                             compile_message=compile_message,
-                                            make_c_file_nice=make_c_file_nice,
                                             use_cache=use_cache)
 
     sys.path.append(build_dir)
@@ -312,7 +311,7 @@ def pyrex_import(filename, verbose=False, compile_message=False,
 
 
 def pyrex_import_all(filename, globals, verbose=False, compile_message=False,
-                     make_c_file_nice=False, use_cache=False):
+                     use_cache=False):
     """
     INPUT:
         filename -- name of a file that contains pyrex code
@@ -324,7 +323,6 @@ def pyrex_import_all(filename, globals, verbose=False, compile_message=False,
     Raises an ImportError exception if anything goes wrong.
     """
     m = pyrex_import(filename, verbose=verbose, compile_message=compile_message,
-                     make_c_file_nice=make_c_file_nice,
                      use_cache=use_cache)
     for k, x in m.__dict__.iteritems():
         if k[0] != '_':

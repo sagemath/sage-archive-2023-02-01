@@ -3215,7 +3215,7 @@ cdef class ntl_mat_GF2E:
 
         from sage.matrix.matrix import Matrix_generic_dense
         from sage.matrix.matrix_space import MatrixSpace
-        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce_entries=False,copy=False,entries=l)
+        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce=False,copy=False,entries=l)
 
     def transpose(ntl_mat_GF2E self):
         """

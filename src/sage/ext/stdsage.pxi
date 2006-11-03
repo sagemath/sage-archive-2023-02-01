@@ -21,6 +21,8 @@ Standard SAGE Pyrex Helper Code
 ###############################################################################
 
 cdef extern from "stdsage.h":
+    ctypedef void PyObject
+
     # Global tuple -- useful optimization
     void init_global_empty_tuple()
     object PY_NEW(object t)
@@ -28,6 +30,7 @@ cdef extern from "stdsage.h":
     int PY_TYPE_CHECK(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
     int HAS_DICTIONARY(object o)
+    PyObject** FAST_SEQ_UNSAFE(object o)
 
 # Initialize the global tuple.
 init_global_empty_tuple()

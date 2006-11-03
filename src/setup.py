@@ -145,6 +145,12 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
 
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
 
+matrix_dense = Extension('sage.matrix.matrix_dense',
+                         ['sage/matrix/matrix_dense.pyx'])
+
+matrix_sparse = Extension('sage.matrix.matrix_sparse',
+                          ['sage/matrix/matrix_sparse.pyx'])
+
 matrix_generic_dense = Extension('sage.matrix.matrix_generic_dense',
                                  ['sage/matrix/matrix_generic_dense.pyx'])
 
@@ -267,7 +273,11 @@ ext_modules = [ \
     ntl,
 
     matrix,
+
+    matrix_dense,
     matrix_generic_dense,
+
+    matrix_sparse,
     matrix_generic_sparse,
 
 ##     matrix_domain_dense,
@@ -308,6 +318,9 @@ ext_modules = [ \
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 
+    Extension('sage.plot.alex',
+              sources = ['sage/plot/alex.pyx']), \
+
     Extension('sage.ext.arith_gmp',
               sources = ['sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
@@ -334,8 +347,11 @@ ext_modules = [ \
     Extension('sage.structure.sage_object',
               sources = ['sage/structure/sage_object.pyx']), \
 
-    Extension('sage.structure.gens',
-              sources = ['sage/structure/gens.pyx']), \
+    Extension('sage.structure.parent',
+              sources = ['sage/structure/parent.pyx']), \
+
+    Extension('sage.structure.parent_gens',
+              sources = ['sage/structure/parent_gens.pyx']), \
 
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \

@@ -27,8 +27,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef int _will_use_strassen(self, Matrix right) except -1
     cdef int _strassen_default_cutoff(self, Matrix right) except -1
 
-    cdef _mul_cousin_cdef(self, Matrix right)
-    cdef _cmp_sibling_cdef(self, Matrix right)
+    cdef _mul_c_impl(self, Matrix right)
+    cdef int _cmp_c_impl(self, Matrix right) except -2
 
     # Pivots.
     cdef _set_pivots(self, X)

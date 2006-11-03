@@ -52,14 +52,18 @@ EXAMPLES:
     sage: c.is_sparse()
     True
 """
+
 cimport matrix
+cimport matrix_sparse
+cimport sage.structure.element
+from sage.structure.element cimport ModuleElement
 
 import sage.misc.misc as misc
 
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
 
-cdef class Matrix_generic_sparse(matrix.Matrix):
+cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     r"""
     The \class{Matrix_generic_sparse} class derives from \class{Matrix}, and
     defines functionality for sparse matrices over any base ring.  A
@@ -68,6 +72,13 @@ cdef class Matrix_generic_sparse(matrix.Matrix):
     """
     ########################################################################
     # LEVEL 1 functionality
+    #   * __new__
+    #   * __init__
+    #   * __dealloc__
+    #   * set_unsafe
+    #   * get_unsafe
+    #   * def _pickle
+    #   * def _unpickle
     ########################################################################
     def __init__(self, parent, entries=0, coerce=True, copy=True):
         cdef size_t i, j
@@ -157,174 +168,144 @@ cdef class Matrix_generic_sparse(matrix.Matrix):
 
     ########################################################################
     # LEVEL 2 functionality
+    # x  * cdef _add_c_impl
+    #    * cdef _sub_c_impl
+    #    * cdef _mul_c_impl
+    #    * cdef _cmp_c_impl
+    #    * __neg__
+    #    * __invert__
+    # x  * __copy__
+    #    * __deepcopy__
+    #    * multiply_classical
+    # x  * list -- copy of the list of underlying elements
+    # x  * dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement _other):
+        """
+        EXAMPLES:
+            sage: a = matrix([[1,10],[3,4]],sparse=True); a
+            [ 1 10]
+            [ 3  4]
+            sage: a+a
+            [ 2 20]
+            [ 6  8]
+
+            sage: a = matrix([[1,10,-5/3],[2/8,3,4]],sparse=True); a
+            [   1   10 -5/3]
+            [ 1/4    3    4]
+            sage: a+a
+            [    2    20 -10/3]
+            [  1/2     6     8]
+        """
+        # Compute the sum of two sparse matrices.
+        # This is complicated because of how we represent sparse matrices.
+        # Algorithm:
+        #   1. Sort both entry coefficient lists.
+        #   2. March through building a new list, adding when the two i,j are the same.
+        cdef size_t i, j, len_v, len_w
+        cdef Matrix_generic_sparse other
+        other = <Matrix_generic_sparse> _other
+        v = self._entries.items()
+        v.sort()
+        w = other._entries.items()
+        w.sort()
+        s = {}
+        i = 0  # pointer into self
+        j = 0  # pointer into other
+        len_v = len(v)   # could be sped up with Python/C API??
+        len_w = len(w)
+        while i < len_v and j < len_w:
+            vi = v[i][0]
+            wj = w[j][0]
+            if vi < wj:
+                s[vi] = v[i][1]
+                i = i + 1
+            elif vi > wj:
+                s[wj] = w[j][1]
+                j = j + 1
+            else:  # equal
+                s[vi] = v[i][1] + w[j][1]
+                i = i + 1
+                j = j + 1
+        while i < len(v):
+            s[v[i][0]] = v[i][1]
+            i = i + 1
+        while j < len(w):
+            s[w[j][0]] = w[j][1]
+            j = j + 1
+
+        cdef Matrix_generic_sparse A
+        A = Matrix_generic_sparse.__new__(Matrix_generic_sparse, self._parent, 0,0,0)
+        matrix.Matrix.__init__(A, self._parent)
+        A._entries = s
+        A._zero = self._zero
+        A._base_ring = self._base_ring
+        return A
+
+    def __copy__(self):
+        cdef Matrix_generic_sparse M
+        M = Matrix_generic_sparse.__new__(Matrix_generic_sparse, self._parent,0,0,0)
+        M._entries = dict(self._entries)
+        M._base_ring = self._base_ring
+        M._zero = self._zero
+        return M
+
+    def _list(self):
+        """
+        Return all entries of self as a list of numbers of rows times
+        number of columns entries.
+        """
+        x = self.fetch('list')
+        if not x is None:
+            return x
+        v = [self._base_ring(0)]*(self._nrows * self._ncols)
+        for ij, x in self._entries.iteritems():
+            i, j = ij          # todo: optimize
+            v[i*self._ncols + j] = x
+        self.cache('list', v)
+        return v
+
+    def _dict(self):
+        """
+        Return the underlying dictionary of self.
+        """
+        return self._entries
 
     ########################################################################
     # LEVEL 3 functionality -- matrix windows, etc.
     ########################################################################
 
-##     def __add__(self, other):
-##         if not isinstance(other, Sparse_matrix_generic):
-##             raise TypeError
-##         if self.nrows() != other.nrows() or self.ncols() != other.ncols():
-##             raise ArithmeticError, "Matrices must have the same number of rows and columns."
-##         if self.base_ring() != other.base_ring():
-##             raise ArithmeticError, "Matrices must have the same base ring."
+    def _nonzero_positions_by_row(self, copy=True):
+        x = self.fetch('nonzero_positions')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
 
-##         # Compute the sum of two sparse matrices.
-##         # This is complicated because of how we represent sparse matrices as tuples (i,j,x).
-##         # Algorithm:
-##         #   1. Sort both entry lists.
-##         #   2. March through building a new list, adding when the two i,j are the same.
-##         v = self.__entries
-##         v.sort()
-##         w = other.__entries
-##         w.sort()
-##         s = []
-##         i = 0  # pointer into self
-##         j = 0  # pointer into other
-##         while i < len(v) and j < len(w):
-##             vi = (v[i][0], v[i][1])
-##             wj = (w[j][0], w[j][1])
-##             if vi < wj:
-##                 s.append(tuple(v[i]))
-##                 i = i + 1
-##             elif vi > wj:
-##                 s.append(tuple(w[j]))
-##                 j = j + 1
-##             else:  # equal
-##                 s.append((vi[0],vi[1],v[i][2] + w[j][2]))
-##                 i = i + 1
-##                 j = j + 1
-##         if i < len(v):
-##             while i < len(v):
-##                 s.append(tuple(v[i]))
-##                 i = i + 1
-##         if j < len(w):
-##             while j < len(w):
-##                 s.append(tuple(w[j]))
-##                 j = j + 1
-##         A = SparseMatrix(self.base_ring(), self.nrows(),
-##                          self.ncols(), s, coerce=False)
-##         return A
+        v = self._entries.keys()
+        v.sort()
 
-##     def __copy__(self):
-##         cdef Matrix_generic_sparse M
-##         M = Matrix_generic_sparse.__new__(self._parent,0,0,0)
-##         M._entries = dict(self._entries)
-##         M._base_ring = self._base_ring
-##         M._zero = self._zero
-##         return M
+        self.cache('nonzero_positions', v)
+        if copy:
+            return list(v)
 
-##     def __repr__(self):
-##         return str(self.dense_matrix())
+        return v
 
-##     def __getitem__(self, t):
-##         cdef size_t r
-##         if not isinstance(t, tuple) or len(t) != 2:
-##             try:
-##                 r = t
-##             except TypeError:
-##                 raise IndexError, "Index of matrix item must be a row and a column."
-##             return self.row(r)
+    def _nonzero_positions_by_column(self, copy=True):
+        x = self.fetch('nonzero_positions_by_column')
+        if not x is None:
+            if copy:
+                return list(x)
+            return x
 
-##         cdef size_t i, j
-##         i, j = t
-##         self.check_bounds(i, j)
-##         try:
-##             return self._entries[(i,j)]
-##         except KeyError:
-##             return self._zero
+        v = self._entries.keys()
+        v.sort(_cmp_backward)
 
-##     def __setitem__(self, t, x):
-##         """
-##         INPUT:
-##             A[i, j] -- the i,j of A, and
-##             A[i]    -- the i-th row of A.
-##         """
-##         cdef size_t r
-
-##         if not isinstance(t, tuple) or len(t) != 2:
-##             try:
-##                 r = t
-##             except TypeError:
-##                 raise IndexError, "Index of matrix item must be a row and a column."
-##             return self.set_row(r, x)
-
-##         cdef size_t i, j
-##         i, j = t
-##         self.check_bounds_and_mutability(i, j)
-
-##         x = self._base_ring(value)
-##         if x == 0:
-##             if self._entries.has_key(ij):
-##                 del self._entries[ij]
-##             return
-##         self._entries[ij] = x
-
-##     def base_ring(self):
-##         return self._base_ring
-
-##     def row(self, size_t i):
-##         """
-##         Return the ith row of this matrix as a sparse vector.
-
-##         WARNING: Sparse matrices are stored as a single list of triples (i,j,x),
-##         so extracting the i-th row is expensive.  This command builds a redundant
-##         representation of the matrix as a list of sparse vectors, thus doubling
-##         the memory requirement.
-##         """
-##         if i < 0:
-##             i = self._nrows + i
-##         return self.rows()[i]
-
-##     def rows(self):
-##         """
-##         Return a list of the sparse rows of this matrix.  The i-th
-##         element of this list is the i-th row of this matrix.
-##         """
-##         x = self.fetch('rows')
-##         if not x is None: return x
-##         X = []
-##         entries = []
-##         k = 0
-##         R = self.base_ring()
-##         n = self.ncols()
-##         for i, j, x in self.entries():
-##             if i > k:
-##                 while len(X) <= k-1:
-##                   X.append(SparseVector(R, n))
-##                 X.append(SparseVector(R, n, entries, coerce=False, sort=False))
-##                 entries = []
-##                 k = i
-##             entries.append((j,x))
-##         while len(X) <= k-1:
-##             X.append(SparseVector(R, n))
-##         X.append(SparseVector(R, n, entries, coerce=False, sort=False))
-##         while len(X) < self.nrows():
-##             X.append(SparseVector(R, n))
-##         self.cache('rows', X)
-##         return X
-
-##     def list(self):
-##         """
-##         Return all entries of self as a linear list of numbers of rows
-##         times number of columns entries.
-
-##         This is not cached, so it is safe to change the returned list.
-##         """
-##         v = [self._base_ring(0)]*(self._nrows * self._ncols)
-##         for i, j, x in self._entries:
-##             v[i*self._ncols + j] = x
-##         return v
-
-    def dict(self):
-        """
-        Return a copy of the underlying dictionary of self.
-
-        It is safe to change the returned list.
-        """
-        return dict(self._entries)
+        self.cache('nonzero_positions_by_column', v)
+        if copy:
+            return list(v)
+        return v
 
 ##     def dense_matrix(self):
 ##         import sage.matrix.matrix
@@ -566,3 +547,14 @@ cdef _convert_sparse_entries_to_dict(entries):
         for j, x in (entries[i].dict()).iteritems():
             e[(i,j)] = x
     return e
+
+
+
+def _cmp_backward(x,y):  # todo: speed up via Python/C API
+    cdef int c
+    # compare two 2-tuples, but in reverse order, i.e., second entry than first
+    c = cmp(x[1],y[1])
+    if c: return c
+    c = cmp(x[0],y[0])
+    if c: return c
+    return 0

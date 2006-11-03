@@ -302,17 +302,14 @@ cdef class ModuleElement(Element):
         # (We know at least one of the arguments is a ModuleElement. So if
         # their types are *equal* (fast to check) then they are both
         # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
-
         if (PY_TYPE(self) is PY_TYPE(right)) or \
                    (PY_TYPE_CHECK(right, ModuleElement) and \
                     PY_TYPE_CHECK(self, ModuleElement)):
-
             if (<ModuleElement>right)._parent is (<ModuleElement>self)._parent:
 
                 return (<ModuleElement>self)._add_c(<ModuleElement>right)
 
         # Fast pathway didn't work.
-
         # todo:
         # For now we are falling back on the old coercion code.
         # This needs to be optimised and re-thought-out.
@@ -333,7 +330,6 @@ cdef class ModuleElement(Element):
 
         See extensive documentation at the top of element.pyx.
         """
-
         if HAS_DICTIONARY(self):   # fast check
             # TODO: this bit will be unnecessarily slow if someone derives
             # from the pyrex class *without* overriding _add_, since then

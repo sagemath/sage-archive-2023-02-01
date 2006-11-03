@@ -1,3 +1,6 @@
+
+include "python.pxi"
+
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
     void free(void *ptr)
@@ -24,57 +27,6 @@ cdef extern from "stdio.h":
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!
-
-
-cdef extern from "Python.h":
-    # Memory management
-    void PyMem_Free(void *p)
-    void* PyMem_Realloc(void *p, size_t n)
-    void* PyMem_Malloc(size_t)
-
-    # Type conversions
-    object PyString_FromString(char *v)
-    char* PyString_AsString(object string)
-    object PyString_InternFromString(char *v)
-
-    # Type checking
-    # int PyObject_TypeCheck(object o, object t)   # doesn't work in C++
-    int PyInt_Check(object o)
-    int PyLong_Check(object o)
-    int PyString_Check(object o)
-
-    int PyTuple_Check(object o)
-    #   Return true if p is a tuple object or an instance of a subtype
-    #   of the tuple type.
-
-
-    void* PyTuple_GetItem(object o, Py_ssize_t pos)
-    #   Return value: Borrowed reference.  Return the object at
-    #   position pos in the tuple pointed to by p. If pos is out of
-    #   bounds, return NULL and sets an IndexError exception.
-
-    void* PyTuple_GET_ITEM(object o, Py_ssize_t pos)
-    #   Return value: Borrowed reference.
-    #   Like PyTuple_GetItem(), but does no checking of its arguments.
-
-    int PyTuple_Size(object o)
-    #   Take a pointer to a tuple object, and return the size of that tuple.
-
-    # Python attribute lookup functions
-    object PyObject_GetAttrString(object o, char *attr_name)
-    int PyObject_HasAttrString(object o, char *attr_name)
-
-    # Miscellaneous
-    int PyErr_CheckSignals()
-
-    # Sequences
-    object PySequence_Fast(object,char *)
-    int PySequence_Size(object)
-    object PySequence_Fast_GET_ITEM(object, int)
-    void** PySequence_Fast_ITEMS(object o)
-
-    # Reference counting
-    void Py_INCREF(object)
 
 
 cdef extern from "gmp.h":

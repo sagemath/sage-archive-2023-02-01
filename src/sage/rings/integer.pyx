@@ -205,13 +205,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             if PY_TYPE_CHECK(x, Integer):
                 set_from_Integer(self, <Integer>x)
 
-            elif PyInt_Check(<PyObject*>x):
+            elif PyInt_Check(x):
                 mpz_set_si(self.value, x)
 
-            elif PyLong_Check(<PyObject*>x):
+            elif PyLong_Check(x):
                 mpz_set_pylong(self.value, x)
 
-            elif PyString_Check(<PyObject*>x):
+            elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
                 if mpz_set_str(self.value, x, base) != 0:
@@ -238,7 +238,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 s = hex(x)
                 if mpz_set_str(self.value, s, 16) != 0:
                     raise TypeError, "Unable to coerce PARI %s to an Integer."%x
-            elif PyObject_HasAttrString(<PyObject*>x, "_integer_"):
+            elif PyObject_HasAttrString(x, "_integer_"):
                 # todo: Note that PyObject_GetAttrString returns NULL if
                 # the attribute was not found. If we could test for this,
                 # we could skip the double lookup. Unfortunately pyrex doesn't
@@ -247,7 +247,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # out of the NULL pointer. This really sucks. Perhaps we could
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
-                set_from_Integer(self, (<object> PyObject_GetAttrString(<PyObject*>x, "_integer_"))())
+                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
 
             else:
                 raise TypeError, "Unable to coerce %s (of type %s) to an Integer."%(x,type(x))

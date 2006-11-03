@@ -571,12 +571,12 @@ cdef class Matrix(ModuleElement):
         cdef size_t i, j
         cdef object x
 
-        if PyTuple_Check(<PyObject*> ij):
+        if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(<PyObject*> ij) != 2:
+            if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
-            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
             self.check_bounds(i, j)
             return self.get_unsafe(i, j)
         else:
@@ -646,12 +646,12 @@ cdef class Matrix(ModuleElement):
         """
         cdef size_t i, j
 
-        if PyTuple_Check(<PyObject*> ij):
+        if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(<PyObject*> ij) != 2:
+            if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
-            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
             self.check_bounds_and_mutability(i, j)
             self.set_unsafe(i, j, x)
         else:
@@ -1093,15 +1093,14 @@ cdef class Matrix(ModuleElement):
         F = sage.modules.free_module.FreeModule(self.base_ring(), self._nrows, sparse=False)
         C = []
         cdef size_t i, j
-        cdef PyObject* v
+        cdef object v
         for j from 0 <= j < self._ncols:
             v = PyList_New(self._ncols)
             for i from 0 <= i < self._nrows:
                 o = self.get_unsafe(i,j)
-                PyList_SET_ITEM(v, i, <PyObject*> o)
-                Py_INCREF(<PyObject*> o)
-            C.append(F(<object>v, coerce=False,copy=False,check=False))
-            Py_DECREF(v)
+                Py_INCREF(o)  # since we are about to set it, which doesn't increment the ref count.
+                PyList_SET_ITEM(v, i, o)
+            C.append(F(v, coerce=False,copy=False,check=False))
         # cache result
         self.cache('dense_columns', C)
         if copy:
@@ -1138,14 +1137,14 @@ cdef class Matrix(ModuleElement):
         R = []
         cdef size_t i, j
         cdef object o
-        cdef PyObject* v
+        cdef object v
         for i from 0 <= i < self._nrows:
             v = PyList_New(self._ncols)
             for j from 0 <= j < self._ncols:
                 o = self.get_unsafe(i,j)
-                PyList_SET_ITEM(v, j, <PyObject*> o)
-                Py_INCREF(<PyObject*> o)
-            R.append(F(<object>v, coerce=False,copy=False,check=False))
+                Py_INCREF(o)  # since we are about to set it.
+                PyList_SET_ITEM(v, j, o)
+            R.append(F(v, coerce=False,copy=False,check=False))
         # cache result
         self.cache('dense_rows', R)
         if copy:
@@ -3571,12 +3570,12 @@ cdef class MatrixWindow:
 
     def __setitem__(self, ij, x):
         cdef size_t i, j
-        if PyTuple_Check(<PyObject*> ij):
+        if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(<PyObject*> ij) != 2:
+            if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(<PyObject*> ij, 0)
-            j = <object> PyTuple_GET_ITEM(<PyObject*> ij, 1)
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
             if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
                 raise IndexError, "matrix index out of range"
             self.set_unsafe(i, j, x)
@@ -3590,12 +3589,12 @@ cdef class MatrixWindow:
         cdef size_t i, j
         cdef object x
 
-        if PyTuple_Check(<PyObject*> ij):
+        if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(<PyObject*> ij) != 2:
+            if PyTuple_Size(ij) != 2:
                 raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(<PyObject*>ij, 0)
-            j = <object> PyTuple_GET_ITEM(<PyObject*>ij, 1)
+            i = <object> PyTuple_GET_ITEM(ij, 0)
+            j = <object> PyTuple_GET_ITEM(ij, 1)
             if i<0 or i >= self._nrows or j<0 or j >= self._ncols:
                 raise IndexError, "matrix index out of range"
             return self.get_unsafe(i, j)

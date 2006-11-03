@@ -22,7 +22,7 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.all import SageObject
+from sage.structure.parent import Parent
 import sage.categories.all
 from sage.misc.latex import latex
 import sage.rings.infinity
@@ -100,7 +100,7 @@ def is_Set(x):
     """
     return isinstance(x, Set_generic)
 
-class Set_generic(SageObject):
+class Set_generic(Parent):
     """
     Abstract base class for sets.
     """

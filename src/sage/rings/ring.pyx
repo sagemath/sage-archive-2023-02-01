@@ -26,7 +26,7 @@ include "../ext/stdsage.pxi"
 cimport sage.structure.element
 import random
 
-cdef class Ring(sage.structure.gens.Generators):
+cdef class Ring(sage.structure.parent_gens.ParentWithGens):
     """
     Generic ring class.
     """

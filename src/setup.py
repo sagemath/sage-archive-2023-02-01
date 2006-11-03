@@ -318,9 +318,6 @@ ext_modules = [ \
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 
-    Extension('sage.plot.alex',
-              sources = ['sage/plot/alex.pyx']), \
-
     Extension('sage.ext.arith_gmp',
               sources = ['sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \

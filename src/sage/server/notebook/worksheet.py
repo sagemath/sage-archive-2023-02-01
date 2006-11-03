@@ -985,7 +985,7 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:6] == "%pyrex":  # a block of Pyrex code.
+        if s[:6] == "%pyrex" or s[:6] == "%syrex":  # a block of Pyrex code.
             return True, self.pyrex_import(s[6:].lstrip(), C)
 
         i = s.find('\n')

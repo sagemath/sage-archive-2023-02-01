@@ -21,7 +21,7 @@ PYREX: sage.modules.module
 
 import random
 
-cdef class Module(sage.structure.gens.AdditiveAbelianGenerators):
+cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """

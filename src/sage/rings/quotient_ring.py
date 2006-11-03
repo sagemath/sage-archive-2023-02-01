@@ -21,7 +21,7 @@ import sage.misc.latex as latex
 import commutative_ring
 import ideal
 import multi_polynomial_ideal
-import sage.structure.gens
+import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 def QuotientRing(R, I, names=None):
@@ -30,7 +30,7 @@ def QuotientRing(R, I, names=None):
     if names is None:
         names = tuple([x + 'bar' for x in R.variable_names()])
     else:
-        names = sage.structure.gens.normalize_names(R.ngens(), names)
+        names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     try:
@@ -51,7 +51,7 @@ def QuotientRing(R, I, names=None):
 def is_QuotientRing(x):
     return isinstance(x, QuotientRing_generic)
 
-class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.gens.Generators):
+class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of $R$ by the ideal $I$.
 

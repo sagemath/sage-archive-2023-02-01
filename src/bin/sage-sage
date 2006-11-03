@@ -181,6 +181,13 @@ fi
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################
 
+if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
+    cd $CUR
+    shift
+    axiom $*
+    exit $?
+fi
+
 if [ $1 = '-gap' -o $1 = '--gap' ]; then
     cd $CUR
     shift

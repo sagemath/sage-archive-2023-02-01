@@ -35,7 +35,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 from sage.structure.element import Element_cmp_
-from sage.structure.gens import localvars
+from sage.structure.parent_gens import localvars
 
 def is_FreeAlgebraQuotientElement(x):
     return isinstance(x, FreeAlgebraQuotientElement)

@@ -25,7 +25,7 @@ import commutative_ring
 import integral_domain
 import field
 import integer
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 from infinity import infinity
 import sage.misc.latex as latex
 from sage.structure.nonexact import Nonexact

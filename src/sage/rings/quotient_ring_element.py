@@ -92,7 +92,7 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         raise NotImplementedError
 
     def _repr_(self):
-        from sage.structure.gens import localvars
+        from sage.structure.parent_gens import localvars
         P = self.parent()
         R = P.cover_ring()
         # We print by temporarily (and safely!) changing the variable

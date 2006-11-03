@@ -22,7 +22,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
 
-import sage.structure.gens
+import sage.structure.parent_gens
 
 
 def FreeAlgebra(R, n, names):
@@ -61,7 +61,7 @@ def FreeAlgebra(R, n, names):
         sage: F is G
         True
     """
-    names = sage.structure.gens.normalize_names(n, names)
+    names = sage.structure.parent_gens.normalize_names(n, names)
     return cache(R, n, names)
 
 def is_FreeAlgebra(x):

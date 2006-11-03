@@ -2,7 +2,7 @@
 # Factory function for making polynomial rings
 #########################################################################################
 
-from sage.structure.gens import normalize_names
+from sage.structure.parent_gens import normalize_names
 
 import weakref
 

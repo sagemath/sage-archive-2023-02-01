@@ -59,11 +59,9 @@ from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
 from sage.rings.finite_field_givaro import FiniteField_givaro
 
-from sage.structure.gens import normalize_names
+from sage.structure.parent_gens import normalize_names
 
 import sage.interfaces.gap
-
-from finite_field_c import FiniteField, is_FiniteField, is_PrimeFiniteField
 
 import weakref
 

@@ -31,7 +31,7 @@ import sage.rings.arith
 import sage.rings.complex_field
 import sage.rings.ring
 
-import sage.structure.gens
+import sage.structure.parent_gens
 
 _gp = None
 def gp():
@@ -122,7 +122,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
     if not names is None:
         name = names
 
-    name = sage.structure.gens.normalize_names(1, name)
+    name = sage.structure.parent_gens.normalize_names(1, name)
     key = (polynomial, name)
     if _nf_cache.has_key(key):
         K = _nf_cache[key]()
@@ -161,7 +161,7 @@ _cyclo_cache = {}
 def CyclotomicField(n, names=None):
     if names is None:
         names = "zeta%s"%n
-    names = sage.structure.gens.normalize_names(1, names)
+    names = sage.structure.parent_gens.normalize_names(1, names)
     key = (n, names)
     if _cyclo_cache.has_key(key):
         K = _cyclo_cache[key]()

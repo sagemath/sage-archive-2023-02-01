@@ -288,7 +288,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (4, pts[0]), (0,pts[1]), (4, pts[2]) ])
             sage: C.riemann_roch_basis(D)
-            [x/y, 1, z/y, z^2/y^2, z/x, z^2/x*y]
+            [x/y, 1, z/y, z^2/y^2, z/x, z^2/(x*y)]
 
         The following example illustrates that the Riemann-Roch space
         function in Singular doesn't \emph{not} work correctly.

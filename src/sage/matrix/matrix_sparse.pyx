@@ -3,6 +3,8 @@ cimport matrix
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 
+include '../ext/interrupt.pxi'
+
 cdef class Matrix_sparse(matrix.Matrix):
     def __copy__(self):
         """
@@ -65,3 +67,46 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         self.cache('hash', h)
         return h
+
+    def _multiply_classical(Matrix_sparse left, Matrix_sparse right):
+        """
+        sage: do 0 x 0 case
+        """
+        cdef Py_ssize_t row, col, row_start, k1, k2
+        left_nonzero = left.nonzero_positions(copy=False, column_order=False)
+        right_nonzero = left.nonzero_positions(copy=False, column_order=True)
+
+        e = {}
+        k1 = 0
+        _sig_on
+        while k1 < len(left_nonzero):
+            row_start = k1
+            row = left_nonzero[row_start][0]
+            k2 = 0
+            while k2 < len(right_nonzero):
+                col = right_nonzero[k2][1]
+                sum = 0
+                k1 = row_start
+                while k1 < len(left_nonzero) and left_nonzero[k1][0] == row and k2 < len(right_nonzero) and right_nonzero[k2][1] == col:
+                    if left_nonzero[k1][1] == right_nonzero[k2][0]:
+                        sum = sum + left[left_nonzero[k1]] * right[right_nonzero[k2]]
+                        k1 = k1 + 1
+                        k2 = k2 + 1
+                    elif left_nonzero[k1][1] < right_nonzero[k2][0]:
+                        k1 = k1 + 1
+                    else:
+                        k2 = k2 + 1
+
+                if sum != 0:
+                    e[row, col] = sum
+
+                while k2 < len(right_nonzero) and right_nonzero[k2][1] == col:
+                    k2 = k2 + 1
+
+            while k1 < len(left_nonzero) and left_nonzero[k1][0] == row:
+                k1 = k1 + 1
+
+        _sig_off
+        return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
+
+

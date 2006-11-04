@@ -16,6 +16,7 @@ include "../ext/python_list.pxi"
 
 cimport matrix_dense
 import matrix_dense
+
 cimport matrix
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
@@ -105,8 +106,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         else:
             raise RuntimeError, "unknown matrix version"
 
-    def __richcmp__(self, right, int op):
-        return self.richcmp(right, op)
+    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
+        return self._richcmp(right, op)
 
     ########################################################################
     # LEVEL 2 functionality

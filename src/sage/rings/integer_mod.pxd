@@ -31,7 +31,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef RingElement _sub_c_impl(self, RingElement right)
 
 cdef class IntegerMod_int(IntegerMod_abstract):
-    cdef int_fast32_t ivalue
+    cdef public int_fast32_t ivalue
     cdef void set_from_mpz(IntegerMod_int self, mpz_t value)
     cdef void set_from_int(IntegerMod_int self, int_fast32_t value)
     cdef int_fast32_t get_int_value(IntegerMod_int self)

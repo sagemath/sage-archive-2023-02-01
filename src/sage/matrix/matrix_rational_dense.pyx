@@ -16,18 +16,19 @@ include "../ext/cdefs.pxi"
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 import sage.structure.coerce
+from sage.rings.integer cimport Integer
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 1 functionality
-    #   * __new__
-    #   * __dealloc__
-    #   * __init__
-    #   * set_unsafe
-    #   * get_unsafe
-    #   * cdef _pickle
-    #   * cdef _unpickle
+    # x * __new__
+    # x * __dealloc__
+    # x * __init__
+    # x * set_unsafe
+    # x * get_unsafe
+    # x * cdef _pickle
+    # x * cdef _unpickle
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         """
@@ -50,11 +51,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef Py_ssize_t i, k
 
-        self._entries = <mpq_t *> PyMem_Malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
         if self._entries == <mpq_t *> 0:
             raise MemoryError, "out of memory allocating a matrix"
 
-        self._matrix =  <mpq_t **> PyMem_Malloc(sizeof(mpq_t*) * self._ncols)
+        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._ncols)
         if self._matrix == <mpq_t**> 0:
             raise MemoryError, "out of memory allocating a matrix"
 
@@ -71,8 +72,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])
-        PyMem_Free(self._entries)
-        PyMem_Free(self._matrix)
+        sage_free(self._entries)
+        sage_free(self._matrix)
 
     def __init__(self, parent, entries=0, coerce=True, copy=True):
 
@@ -143,7 +144,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if version == 0:
             self._unpickle_version0(data)
         else:
-            raise RuntimeError, "unknown matrix version."
+            raise RuntimeError, "unknown matrix version (=%s)"%version
 
     cdef _pickle_version0(self):
         cdef Py_ssize_t i, j, len_so_far, m, n
@@ -154,7 +155,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             data = ''
         else:
             n = self._nrows*self._ncols*10
-            s = <char*> PyMem_Malloc(n * sizeof(char))
+            s = <char*> sage_malloc(n * sizeof(char))
             t = s
             len_so_far = 0
 
@@ -166,9 +167,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     if len_so_far + m + 1 >= n:
                         # copy to new string with double the size
                         n = 2*n + m + 1
-                        tmp = <char*> PyMem_Malloc(n * sizeof(char))
+                        tmp = <char*> sage_malloc(n * sizeof(char))
                         strcpy(tmp, s)
-                        PyMem_Free(s)
+                        sage_free(s)
                         s = tmp
                         t = s + len_so_far
                     #endif
@@ -186,21 +187,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef _unpickle_version0(self, data):
         cdef Py_ssize_t i, n
-        if version == 0:
-            data = data.split()
-            n = self._nrows * self._ncols
-            if len(data) != n:
-                raise RuntimeError, "invalid pickle data."
-            for i from 0 <= i < n:
-                s = data[i]
-                if mpz_init_set_str(self._entries[i], s, 32):
-                    raise RuntimeError, "invalid pickle data"
-        else:
-            raise NotImplementedError, "unknown matrix version"
+        data = data.split()
+        n = self._nrows * self._ncols
+        if len(data) != n:
+            raise RuntimeError, "invalid pickle data."
+        for i from 0 <= i < n:
+            s = data[i]
+            if mpq_set_str(self._entries[i], s, 32):
+                raise RuntimeError, "invalid pickle data"
 
-
-    def __richcmp__(self, right, int op):
-        return self.richcmp(right, op)
+    def __richcmp__(Matrix self, right, int op):
+        return self._richcmp(right, op)
 
     ########################################################################
     # LEVEL 2 functionality
@@ -234,11 +231,90 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     ########################################################################
+    def denom(self):
+        """
+        Return the denominator of this matrix.
+
+        OUTPUT:
+            -- SAGE Integer
+
+        EXAMPLES:
+            sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b
+            [-5007/293         1         2]
+            [        3         4         5]
+            sage: b.denom()
+            293
+        """
+        cdef Integer z
+        z = Integer.__new__(Integer)
+        self.mpz_denom(z.value)
+        return z
+
     cdef int mpz_denom(self, mpz_t d) except -1:
-        pass
+        cdef mpz_t y
+        mpz_set_si(d,1)
+        mpz_init(y)
+        cdef int i, j
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpq_get_den(y,self._matrix[i][j])
+                mpz_lcm(d, d, y)
+        _sig_off
+        mpz_clear(y)
+        return 0
 
     cdef int mpz_height(self, mpz_t height) except -1:
-        pass
+        cdef mpz_t x, h
+        mpz_init(x)
+        mpz_init_set_si(h, 0)
+        cdef int i, j
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpq_get_num(x,self._matrix[i][j])
+                mpz_abs(x, x)
+                if mpz_cmp(h,x) < 0:
+                    mpz_set(h,x)
+                mpq_get_den(x,self._matrix[i][j])
+                mpz_abs(x, x)
+                if mpz_cmp(h,x) < 0:
+                    mpz_set(h,x)
+        _sig_off
+        mpz_set(height, h)
+        mpz_clear(h)
+        mpz_clear(x)
+        return 0
+
+    def height(self):
+        """
+        Return the height of this matrix, which is the least common
+        multiple of all numerators and denominators of elements of
+        this matrix.
+
+        OUTPUT:
+            -- SAGE Integer
+
+        EXAMPLES:
+            sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b
+            [-5007/293         1         2]
+            [        3         4         5]
+            sage: b.height()
+            5007
+        """
+        cdef Integer z
+        z = Integer.__new__(Integer)
+        self.mpz_height(z.value)
+        return z
 
     cdef int _rescale(self, mpq_t a) except -1:
-        pass
+        cdef int i, j
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                mpq_mul(self._matrix[i][j], self._matrix[i][j], a)
+        _sig_off
+
+
+###########################
+

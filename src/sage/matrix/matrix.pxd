@@ -28,7 +28,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef _mul_c_impl(self, Matrix right)
     cdef int _cmp_c_impl(self, Matrix right) except -2
 
-    cdef richcmp(Matrix self, right, int op)
+    cdef public _richcmp(self, right, int op)
 
     # Pivots.
     cdef _set_pivots(self, X)
@@ -46,6 +46,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     # Unsafe entry access
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x)
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)
+    cdef _coerce_element(self, x)
 
     # Pickling:
     cdef _pickle(self)
@@ -53,7 +54,7 @@ cdef class Matrix(sage.structure.element.ModuleElement):
 
 
     # Strassen
-    cdef subtract_strassen_product(result, A, B, int cutoff)
+    cdef subtract_strassen_product(self, result, A, B, int cutoff)
 
 cdef class MatrixWindow:
     cdef Py_ssize_t _row, _col, _nrows, _ncols

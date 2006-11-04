@@ -20,7 +20,7 @@ import matrix_generic_sparse
 ## import matrix_field_dense
 ## import matrix_field_sparse
 
-## import matrix_modn_dense
+import matrix_modn_dense
 ## import matrix_modn_sparse
 
 import matrix_integer_dense
@@ -251,9 +251,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     def __cmp__(self, other):
         if isinstance(other, MatrixSpace_generic) and \
            self.__base_ring == other.__base_ring and \
-           self.__nrows == other.__nrows and \
-           self.__ncols == other.__ncols and \
-           self.__is_sparse == other.__is_sparse:
+           self.__nrows == other.__nrows and self.__ncols == other.__ncols:
             return 0
         return -1
 
@@ -312,7 +310,6 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
-
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
                 return matrix_modn_sparse.Matrix_modn_sparse
             # the default
@@ -481,12 +478,22 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         if coerce:
             X = [R(a) for a in X]
         zero = R(0)
-        def f():
-            if random.random() < prob:
-                return random.choice(X)
-            else:
-                return zero
-        v = [f() for _ in xrange(self.nrows()*self.ncols())]
+
+        if self.is_sparse():
+            nc = self.ncols()
+            num_per_row = int(prob * nc) + 1
+            z = range(num_per_row)
+            v = {}
+            for i in xrange(self.nrows()):
+                for k in z:
+                    v[(i,random.randint(0,nc-1))] = random.choice(X)
+        else:
+            def f():
+                if random.random() < prob:
+                    return random.choice(X)
+                else:
+                    return zero
+            v = [f() for _ in xrange(self.nrows()*self.ncols())]
         return self(v, coerce=False, copy=False)
 
 _random = 1

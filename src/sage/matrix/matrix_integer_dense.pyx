@@ -18,6 +18,7 @@ include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 from sage.rings.integer cimport Integer
 
+from matrix cimport Matrix
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -313,7 +314,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if version == 0:
             self._unpickle_version0(data)
         else:
-            raise NotImplementedError, "unknown matrix version"
+            raise RuntimeError, "unknown matrix version (=%s)"%version
 
     cdef _unpickle_version0(self, data):
         cdef Py_ssize_t i, n
@@ -326,6 +327,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if mpz_init_set_str(self._entries[i], s, 32):
                 raise RuntimeError, "invalid pickle data"
 
+
+    def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
+        return self._richcmp(right, op)
 
     ########################################################################
     # LEVEL 1 helpers:

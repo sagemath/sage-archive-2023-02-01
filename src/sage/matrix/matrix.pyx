@@ -139,13 +139,7 @@ implement the following functionality for that base ring:
    * __dealloc__   -- use sage_free (only needed if allocate memory)
    * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
    * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
-   * cdef _pickle(self):
-          return data, version
-   * cdef _unpickle(self, data, int version)
-          reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
-          Use version numbers so if you change the pickle strategy then
-          old objects still unpickle.
-
+   * __richcmp__    -- always the same (I don't know why its needed).
 *********** LEVEL 2  **********
 
 IMPORTANT (and *highly* recommended):
@@ -154,6 +148,12 @@ After getting the special class with all level 1 functionality to
 work, implement all of the following (they should not change
 functionality, except speed (always faster!) in any way):
 
+   * cdef _pickle(self):
+          return data, version
+   * cdef _unpickle(self, data, int version)
+          reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
+          Use version numbers >= 0 so if you change the pickle strategy then
+          old objects still unpickle.
    * cdef _list -- list of underlying elements (need not be a copy)
    * cdef _dict -- sparse dictionary of underlying elements
    * cdef _add_c_impl
@@ -203,7 +203,7 @@ from   sage.structure.sequence import _combinations
 import sage.rings.integer
 
 cimport sage.structure.element
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement, Element
 
 from sage.structure.mutability cimport Mutability
 
@@ -654,7 +654,7 @@ cdef class Matrix(ModuleElement):
             i = <object> PyTuple_GET_ITEM(ij, 0)
             j = <object> PyTuple_GET_ITEM(ij, 1)
             self.check_bounds_and_mutability(i, j)
-            self.set_unsafe(i, j, self._base_ring(x))
+            self.set_unsafe(i, j, self._coerce_element(x))
         else:
             # If ij is not a tuple, coerce to an integer and set the whole row.
             i = ij
@@ -662,8 +662,15 @@ cdef class Matrix(ModuleElement):
                 return
             self.check_bounds_and_mutability(i, 0)
             for j from 0 <= j < self._ncols:
-                self.set_unsafe(i, j, self._base_ring(x[j]))
+                self.set_unsafe(i, j, self._coerce_element(x[j]))
 
+    cdef _coerce_element(self, x):
+        """
+        Return coercion of x into the base ring of self.
+        """
+        if PY_TYPE_CHECK(x, Element) and (<Element> x)._parent is self._base_ring:
+            return x
+        return self._base_ring(x)
 
     ###########################################################
     # Pickling
@@ -680,24 +687,10 @@ cdef class Matrix(ModuleElement):
                                           self._cache, data, version)
 
     cdef _pickle(self):
-        version = 0
-        data = self.list()  # linear list of all elements
-        return data, version
+        raise NotImplementedError
 
     cdef _unpickle(self, data, int version):
-        cdef Py_ssize_t i, j, k
-        if version == 0:
-            # data is a *list* of the entries of the matrix.
-            # TODO: Change the data[k] below to use the fast list access macros from the Python/C API
-            k = 0
-            for i from 0 <= i < self._nrows:
-                for j from 0 <= j < self._ncols:
-                    print "setting %s, %s entry to %s"%(i,j,data[k])
-                    self.set_unsafe(i, j, data[k])
-                    k = k + 1
-        else:
-            raise RuntimeError, "unknown version"
-
+        raise NotImplementedError
 
     ###########################################################
     # Base Change
@@ -2699,14 +2692,20 @@ cdef class Matrix(ModuleElement):
                 A.set_unsafe(i,j, self.get_unsafe(i,j) + (<Matrix>right).get_unsafe(i,j))
         return A
 
-##     cdef sage.structure.element.ModuleElement _sub_sibling_cdef(self,
-##                                                 sage.structure.element.ModuleElement right):
-##         cdef Py_ssize_t i, j
-##         A = self.new_matrix()
-##         for i from 0 <= i < self._nrows:
-##             for j from 0 <= j < self._ncols:
-##                 A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
-##         return A
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        Sub two matrices with the same parent.
+
+        EXAMPLES:
+            sage:
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix A
+        A = self.new_matrix()
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
+        return A
 
     def _div_(self, right):
         """
@@ -2844,7 +2843,7 @@ cdef class Matrix(ModuleElement):
         # Next we deal with the possiblity that one could be sparse and the other dense.
         if self.is_sparse() and not right.is_sparse():
             self = self.dense_matrix()
-        elif right.is_sparse() and not self.is_dense():
+        elif right.is_sparse() and not self.is_sparse():
             right = right.dense_matrix()
 
         return (<Matrix> self)._mul_c_impl(right)
@@ -2945,17 +2944,18 @@ cdef class Matrix(ModuleElement):
     ###################################################
     # Comparison
     ###################################################
-    cdef richcmp(Matrix self, right, int op):
+    cdef _richcmp(self, right, int op):
         """
         EXAMPLES:
             sage: ???
         """
-        print "__richcmp__"
         # TODO: change the last "==" here to "is"
         if not PY_TYPE_CHECK(right, Matrix) or not PY_TYPE_CHECK(self, Matrix) or \
-                        not ((<Matrix>right)._parent == (self)._parent):
+                        not ((<Matrix>right)._parent == (<Matrix>self)._parent) or \
+                        (self.is_sparse() != right.is_sparse()):
+
             # todo: can make faster using the cdef interface to coerce
-            return sage.structure.coerce.cmp(self, right)
+            return bool(sage.structure.coerce.cmp(self, right))
 
         cdef int r
         r = self._cmp_c_impl(right)
@@ -2974,10 +2974,10 @@ cdef class Matrix(ModuleElement):
             return bool(r >= 0)
 
     def __richcmp__(self, right, int op):
-        return self.richcmp(right, op)
+        return self._richcmp(right, op)
 
     cdef int _cmp_c_impl(self, Matrix right) except -2:
-        return cmp(self.list(), right.list())
+        raise NotImplementedError
 
     def __nonzero__(self):
         """
@@ -3000,11 +3000,27 @@ cdef class Matrix(ModuleElement):
     #####################################################################################
     # Generic Echelon
     #####################################################################################
-    def echelon_form(self):
+    def echelonize(self):
+        """
+        Transform self into echelon form using the classical algorithm (there is
+        no in-place Strassen).
+        """
+        self.check_mutability()
+        self._echelon_in_place_classical()
+
+
+    def echelon_form(self, algorithm="default"):
         """
         Return the echelon form of self.
         """
-        return self._echelon_classical()
+        if algorithm == 'classical':
+            return self._echelon_classical()
+        elif algorithm == 'strassen':
+            return self._echelon_strassen()
+        elif algorithm == 'default':
+            return self._echelon_strassen()
+        else:
+            raise ValueError, "Unknown algorithm '%s'"%algorithm
 
     def _echelon_classical(self):
         """
@@ -3088,11 +3104,16 @@ cdef class Matrix(ModuleElement):
         self._strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
-    def _echelon_strassen(self, cutoff):
+    def _echelon_strassen(self, int cutoff=0):
         """
         EXAMPLES:
             sage: ?
         """
+        if cutoff == 0:
+            cutoff = self._strassen_default_cutoff(self)
+
+        if cutoff <= 1:
+            raise ValueError, "cutoff must be at least 2"
         pivots = self._strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         return self
@@ -3339,7 +3360,7 @@ cdef class Matrix(ModuleElement):
             C_bulk = C.matrix_window(0, 0, A_sub_nrows << 1, B_sub_ncols << 1)
             C_bulk.add_prod(A_last_col, B_last_row)
 
-    cdef subtract_strassen_product(result, A, B, int cutoff):
+    cdef subtract_strassen_product(self, result, A, B, int cutoff):
         """
         EXAMPLES:
             sage: ?
@@ -3352,7 +3373,7 @@ cdef class Matrix(ModuleElement):
             result.subtract(to_sub)
 
 
-    def _strassen_echelon(A, cutoff):
+    def _strassen_echelon(self, A, cutoff):
         """
         Compute echelon form, in place.
         Internal function, call with M.echelon(alg="block")
@@ -3864,17 +3885,16 @@ def unpickle(cls, parent, mutability, cache, data, version):
         [2 3]
     """
     cdef Matrix A
-    try:
-        A = cls.__new__(cls, parent, 0,0,0)
-        A._parent = parent  # make sure -- __new__ doesn't have to set it, but unpickle may need to know.
-        A._nrows = parent.nrows()
-        A._ncols = parent.ncols()
-        A._mutability = mutability
-        A._cache = cache
+    A = cls.__new__(cls, parent, 0,0,0)
+    A._parent = parent  # make sure -- __new__ doesn't have to set it, but unpickle may need to know.
+    A._nrows = parent.nrows()
+    A._ncols = parent.ncols()
+    A._mutability = mutability
+    A._base_ring = parent.base_ring()
+    A._cache = cache
+    if version >= 0:
         A._unpickle(data, version)
-
-    except Exception, msg:
-
-        print msg
+    else:
+        Matrix._unpickle(A, data, version)
     return A
 

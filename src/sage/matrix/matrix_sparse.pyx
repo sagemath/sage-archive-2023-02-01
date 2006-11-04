@@ -2,8 +2,15 @@ cimport matrix
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
-
+include '../ext/python.pxi'
 include '../ext/interrupt.pxi'
+
+cdef extern from "Python.h":
+    PyObject* PyTuple_GET_ITEM0 "PyTuple_GET_ITEM" (PyObject*  p, Py_ssize_t pos)
+    PyObject* PyList_GET_ITEM0 "PyList_GET_ITEM" (PyObject*  list, Py_ssize_t i)
+    Py_ssize_t PyNumber_AsSsize_t(PyObject* o, PyObject* exc)
+
+
 
 cdef class Matrix_sparse(matrix.Matrix):
     def __copy__(self):
@@ -72,41 +79,73 @@ cdef class Matrix_sparse(matrix.Matrix):
         """
         sage: do 0 x 0 case
         """
-        cdef Py_ssize_t row, col, row_start, k1, k2
+        cdef Py_ssize_t row, col, row_start, k1, k2, len_left, len_right
         left_nonzero = left.nonzero_positions(copy=False, column_order=False)
         right_nonzero = left.nonzero_positions(copy=False, column_order=True)
+        len_left = len(left_nonzero)
+        len_right = len(right_nonzero)
 
         e = {}
         k1 = 0
         _sig_on
-        while k1 < len(left_nonzero):
+        while k1 < len_left:
             row_start = k1
-            row = left_nonzero[row_start][0]
+            row = get_ij(left_nonzero, row_start, 0)
             k2 = 0
-            while k2 < len(right_nonzero):
-                col = right_nonzero[k2][1]
-                sum = 0
+            while k2 < len_right:
+                col = get_ij(right_nonzero, k2, 1)
+                sum = None
                 k1 = row_start
-                while k1 < len(left_nonzero) and left_nonzero[k1][0] == row and k2 < len(right_nonzero) and right_nonzero[k2][1] == col:
-                    if left_nonzero[k1][1] == right_nonzero[k2][0]:
-                        sum = sum + left[left_nonzero[k1]] * right[right_nonzero[k2]]
+                while k1 < len_left and get_ij(left_nonzero,k1,0) == row and \
+                          k2 < len_right and get_ij(right_nonzero,k2,1) == col:
+                    if get_ij(left_nonzero,k1,1) == get_ij(right_nonzero,k2,0):
+                        if sum is None:
+                            sum = left[left_nonzero[k1]] * right[right_nonzero[k2]]
+                        else:
+                            sum = sum + left[left_nonzero[k1]] * right[right_nonzero[k2]]
                         k1 = k1 + 1
                         k2 = k2 + 1
-                    elif left_nonzero[k1][1] < right_nonzero[k2][0]:
+                    elif get_ij(left_nonzero,k1,1) < get_ij(right_nonzero,k2,0):
                         k1 = k1 + 1
                     else:
                         k2 = k2 + 1
-
-                if sum != 0:
+                if not sum is None:
                     e[row, col] = sum
-
-                while k2 < len(right_nonzero) and right_nonzero[k2][1] == col:
+                while k2 < len_right and get_ij(right_nonzero,k2,1) == col:
                     k2 = k2 + 1
-
-            while k1 < len(left_nonzero) and left_nonzero[k1][0] == row:
+            while k1 < len_left and get_ij(left_nonzero,k1,0) == row:
                 k1 = k1 + 1
-
         _sig_off
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
+    cdef int _will_use_strassen(self, matrix.Matrix right) except -1:
+        # never use Strassen for sparse matrix multiply
+        return 0
 
+    cdef _pickle(self):
+        version = -1
+        data = self._dict()  # dict of all elements
+        return data, version
+
+    cdef _unpickle(self, data, int version):
+        cdef Py_ssize_t i, j, k
+        if version == -1:
+            for ij, x in data.iteritems():
+                i = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 0), NULL)
+                j = PyNumber_AsSsize_t(PyTuple_GET_ITEM0(<PyObject*> ij, 1), NULL)
+                self.set_unsafe(i, j, x)
+        else:
+            raise RuntimeError, "unknown matrix version (=%s)"%version
+
+    cdef int _cmp_c_impl(self, matrix.Matrix right) except -2:
+        return cmp(self._dict(), right._dict())
+
+##################################
+# Helper code
+
+cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
+    return PyNumber_AsSsize_t(PyTuple_GET_ITEM0(PyList_GET_ITEM0(<PyObject*>v, i), j), NULL)
+
+#cdef Py_ssize_t get_ij(v, Py_ssize_t i, int j):
+#    return PyNumber_AsSsize_t(<object>PyTuple_GET_ITEM(
+#              <object>PyList_GET_ITEM(v, i), j), <object>NULL)

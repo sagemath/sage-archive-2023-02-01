@@ -77,14 +77,15 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     #   * def _pickle
     #   * def _unpickle
     ########################################################################
+    def __new__(self, parent, entries=0, coerce=True, copy=True):
+        self._entries = {}  # crucial so that pickling works
+
     def __init__(self, parent, entries=0, coerce=True, copy=True):
         cdef Py_ssize_t i, j
-
         matrix.Matrix.__init__(self, parent)
-        R = parent.base_ring()
-        self._zero = R(0)
-        self._base_ring = R
 
+        R = self._base_ring
+        self._zero = R(0)
         if not isinstance(entries, (list, dict)):
             x = R(entries)
             entries = {}
@@ -137,11 +138,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         except KeyError:
             return self._zero
 
-    def _pickle(self):
+    cdef _pickle(self):
         version = 0
         return self._entries, version
 
-    def _unpickle(self, data, int version):
+    cdef _unpickle(self, data, int version):
         """
         EXAMPLES:
             sage: a = matrix([[1,10],[3,4]],sparse=True); a
@@ -157,11 +158,12 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         if version == 0:
             self._entries = data
-            self._base_ring = self.parent().base_ring()
-            self._zero = self.parent().base_ring()(0)
+            self._zero = self._base_ring(0)
         else:
-            raise RuntimeError, "unknown matrix version"
+            raise RuntimeError, "unknown matrix version (=%s)"%version
 
+    def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
+        return self._richcmp(right, op)
 
     ########################################################################
     # LEVEL 2 functionality

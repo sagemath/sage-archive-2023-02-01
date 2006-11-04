@@ -190,11 +190,7 @@ matrix_field_sparse = Extension('sage.matrix.matrix_field_sparse',
                        ['sage/matrix/matrix_field_sparse.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx',
-                                   'sage/rings/integer.pyx',
-                                   'sage/rings/rational.pyx',
-                                   'sage/ext/arith.pyx',
-                                   'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+                                  ['sage/matrix/matrix_rational_dense.pyx'],
                                   libraries = ['gmp'])
 
 matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
@@ -289,14 +285,14 @@ ext_modules = [ \
 ##     matrix_field_dense,
 ##     matrix_field_sparse,
 
-##     matrix_integer_dense,
+     matrix_integer_dense,
 ##     matrix_integer_sparse,
 
 ##     matrix_modn_dense,
 ##     matrix_modn_sparse,
     givaro_gfq, \
 
-##     matrix_rational_dense,
+     matrix_rational_dense,
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,
@@ -353,8 +349,8 @@ ext_modules = [ \
     Extension('sage.ext.interactive_constructors_c',
               sources = ['sage/ext/interactive_constructors_c.pyx']), \
 
-    Extension('sage.misc.pyrex_c',
-              sources = ['sage/misc/pyrex_c.pyx']), \
+    Extension('sage.misc.sagex_c',
+              sources = ['sage/misc/sagex_c.pyx']), \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],

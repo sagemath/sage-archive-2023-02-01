@@ -60,9 +60,6 @@ from sage.structure.element cimport ModuleElement
 
 import sage.misc.misc as misc
 
-cdef extern from "stdlib.h":
-    ctypedef unsigned long size_t
-
 cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     r"""
     The \class{Matrix_generic_sparse} class derives from \class{Matrix}, and
@@ -81,7 +78,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     #   * def _unpickle
     ########################################################################
     def __init__(self, parent, entries=0, coerce=True, copy=True):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
 
         matrix.Matrix.__init__(self, parent)
         R = parent.base_ring()
@@ -129,11 +126,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         self._entries = entries
 
-    cdef set_unsafe(self, size_t i, size_t j, value):
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         # TODO: make faster with Python/C API
         self._entries[(int(i),int(j))] = value
 
-    cdef get_unsafe(self, size_t i, size_t j):
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         # TODO: make faster with Python/C API
         try:
             return self._entries[(int(i),int(j))]
@@ -156,29 +153,27 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [1 2]
             [3 4]
         """
-        cdef size_t i, j, k
+        cdef Py_ssize_t i, j, k
 
         if version == 0:
             self._entries = data
             self._base_ring = self.parent().base_ring()
             self._zero = self.parent().base_ring()(0)
         else:
-            raise RuntimeError, "unknown version"
+            raise RuntimeError, "unknown matrix version"
 
 
     ########################################################################
     # LEVEL 2 functionality
     # x  * cdef _add_c_impl
-    #    * cdef _sub_c_impl
     #    * cdef _mul_c_impl
     #    * cdef _cmp_c_impl
     #    * __neg__
     #    * __invert__
     # x  * __copy__
-    #    * __deepcopy__
-    #    * multiply_classical
-    # x  * list -- copy of the list of underlying elements
-    # x  * dict -- copy of the sparse dictionary of underlying elements
+    #    * _multiply_classical
+    # x  * _list -- copy of the list of underlying elements
+    # x  * _dict -- copy of the sparse dictionary of underlying elements
     ########################################################################
 
     cdef ModuleElement _add_c_impl(self, ModuleElement _other):
@@ -203,7 +198,7 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         # Algorithm:
         #   1. Sort both entry coefficient lists.
         #   2. March through building a new list, adding when the two i,j are the same.
-        cdef size_t i, j, len_v, len_w
+        cdef Py_ssize_t i, j, len_v, len_w
         cdef Matrix_generic_sparse other
         other = <Matrix_generic_sparse> _other
         v = self._entries.items()
@@ -514,7 +509,7 @@ def Matrix_sparse_from_rows(X):
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         ]
     """
-    cdef size_t i, j
+    cdef Py_ssize_t i, j
 
     if not isinstance(X, (list, tuple)):
         raise TypeError, "X (=%s) must be a list or tuple"%X

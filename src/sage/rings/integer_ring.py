@@ -69,6 +69,9 @@ class _uniq_int(object):
             _obj = object.__new__(cls)
         return _obj
 
+def is_IntegerRing(x):
+    return isinstance(x, IntegerRing)
+
 class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     r"""
     The ring of integers.

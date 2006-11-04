@@ -16,14 +16,22 @@ cdef class Matrix_dense(matrix.Matrix):
 
     def __hash__(self):
         """
+        Return the hash of this matrix.
+
+        Equal matrices should have equal hashes, even if one is sparse and
+        the other is dense.
+
         EXAMPLES:
-            sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
-            sage: B = A.copy()
-            sage: A.__hash__() == B.__hash__()
+            sage: m = matrix(2, range(24))
+            sage: m.set_immutable()
+            sage: hash(m)
+
+            sage: d = M.dense_matrix()
+            sage: d.set_immutable()
+            sage: hash(d)
+
+            sage: hash(m) == hash(d)
             True
-            sage: A[0,0] = -1
-            sage: A.__hash__() == B.__hash__()
-            False
         """
         x = self.fetch('hash')
         if not x is None: return x
@@ -44,3 +52,31 @@ cdef class Matrix_dense(matrix.Matrix):
         self.cache('hash', h)
         return h
 
+    def _multiply_classical(left, Matrix_dense right):
+        """
+        Multiply the matrices left and right using the classical $O(n^3)$
+        algorithm.
+
+        This method assumes that left and right have the same parent and
+        compatable dimensions.
+
+        EXAMPLES
+            sage: include the 0 rows and 0 columns cases
+        """
+        cdef Py_ssize_t i, j, k, l
+        if left._ncols != right._nrows:
+            raise IndexError, "Number of columns of left must equal number of rows of other."
+
+
+        v = PyList_New(left._nrows * right._ncols)     # this is really sort of v = []..."
+        zero = left.base_ring()(0)
+        l = 0
+        for i from 0 <= i < left._nrows:
+            for j from 0 <= j < right._ncols:
+                s = zero
+                for k from 0 <= k < left._ncols:
+                    s = s + left.get_unsafe(i,k) * right.get_unsafe(k,j)
+                # This is really v.append(s)
+                Py_INCREF(s); PyList_SET_ITEM(v, l, s)
+                l = l + 1
+        return left.new_matrix(left._nrows, right._ncols, entries = v, coerce=False, copy=False)

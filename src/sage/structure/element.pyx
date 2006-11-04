@@ -231,7 +231,7 @@ cdef class Element(sage_object.SageObject):
         s = str(self)
         return bool(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
 
-    def _rich_to_bool(self, int op, int n):
+    cdef _rich_to_bool(self, int op, int n):
         if op == 0:
             return bool(n < 0)
         elif op == 1:

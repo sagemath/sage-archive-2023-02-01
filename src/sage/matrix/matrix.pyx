@@ -137,12 +137,11 @@ implement the following functionality for that base ring:
                       needed if allocate memory)
    * __init__      -- this signature: 'def __init__(self, parent, entries, copy, coerce)'
    * __dealloc__   -- use sage_free (only needed if allocate memory)
-   * set_unsafe(self, size_t i, size_t j, x) -- a cdef'd method that
-                       doesn't do bounds or any other checks; can core dump if given bad i,j
-   * get_unsafe(self, size_t i, size_t j) -- a cdef'd method that doesn't do checks
-   * def _pickle(self):
+   * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
+   * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
+   * cdef _pickle(self):
           return data, version
-   * def _unpickle(self, data, int version)
+   * cdef _unpickle(self, data, int version)
           reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
           Use version numbers so if you change the pickle strategy then
           old objects still unpickle.
@@ -172,7 +171,7 @@ OPTIONAL:
    * cdef _sub_c_impl
    * __deepcopy__
    * __invert__
-   * multiply_classical
+   * _multiply_classical
 
 Further special support:
    * Matrix windows -- only if you need strassen for that base
@@ -195,6 +194,7 @@ NOTES:
 
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+include "../ext/python.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
@@ -270,6 +270,7 @@ cdef class Matrix(ModuleElement):
             <type 'matrix.Matrix'>
         """
         self._parent = parent
+        self._base_ring = parent.base_ring()
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._mutability = Mutability(False)
@@ -320,7 +321,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
 
         x = self.fetch('list')
         if not x is None:
@@ -350,7 +351,7 @@ cdef class Matrix(ModuleElement):
         if not d is None:
             return d
 
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         d = {}
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
@@ -388,7 +389,7 @@ cdef class Matrix(ModuleElement):
     # Mutability and bounds checking
     ###########################################################
 
-    cdef check_bounds(self, size_t i, size_t j):
+    cdef check_bounds(self, Py_ssize_t i, Py_ssize_t j):
         """
         This function gets called when you're about to access the i,j
         entry of this matrix.  If i, j are out of range, and
@@ -411,7 +412,7 @@ cdef class Matrix(ModuleElement):
         else:
             self._cache = {}
 
-    cdef check_bounds_and_mutability(self, size_t i, size_t j):
+    cdef check_bounds_and_mutability(self, Py_ssize_t i, Py_ssize_t j):
         """
         This function gets called when you're about to set the i,j
         entry of this matrix.  If i or j is out of range, an
@@ -512,7 +513,7 @@ cdef class Matrix(ModuleElement):
     # Entry access
     #    The first two must be overloaded in the derived class
     ###########################################################
-    cdef set_unsafe(self, size_t i, size_t j, object x):
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object x):
         """
         Set entry quickly without doing any bounds checking.  Calling
         this with invalid arguments is allowed to produce a
@@ -522,7 +523,7 @@ cdef class Matrix(ModuleElement):
         """
         raise NotImplementedError, "this must be defined in the derived type."
 
-    cdef get_unsafe(self, size_t i, size_t j):
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """
         Entry access, but fast since it might be without
         bounds checking.
@@ -568,7 +569,7 @@ cdef class Matrix(ModuleElement):
             ...
             IndexError: index out of bounds
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         cdef object x
 
         if PyTuple_Check(ij):
@@ -644,7 +645,7 @@ cdef class Matrix(ModuleElement):
             [10  1  2]
             [ 3  4  5]
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
 
         if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
@@ -653,12 +654,15 @@ cdef class Matrix(ModuleElement):
             i = <object> PyTuple_GET_ITEM(ij, 0)
             j = <object> PyTuple_GET_ITEM(ij, 1)
             self.check_bounds_and_mutability(i, j)
-            self.set_unsafe(i, j, x)
+            self.set_unsafe(i, j, self._base_ring(x))
         else:
-            # If ij is not a tuple, coerce to an integer and set the row.
+            # If ij is not a tuple, coerce to an integer and set the whole row.
             i = ij
+            if self._ncols == 0: # degenerate case
+                return
+            self.check_bounds_and_mutability(i, 0)
             for j from 0 <= j < self._ncols:
-                self.set_unsafe(i, j, x)
+                self.set_unsafe(i, j, self._base_ring(x[j]))
 
 
     ###########################################################
@@ -675,13 +679,13 @@ cdef class Matrix(ModuleElement):
         return unpickle, (self.__class__, self._parent, self._mutability,
                                           self._cache, data, version)
 
-    def _pickle(self):
+    cdef _pickle(self):
         version = 0
         data = self.list()  # linear list of all elements
         return data, version
 
-    def _unpickle(self, data, int version):
-        cdef size_t i, j, k
+    cdef _unpickle(self, data, int version):
+        cdef Py_ssize_t i, j, k
         if version == 0:
             # data is a *list* of the entries of the matrix.
             # TODO: Change the data[k] below to use the fast list access macros from the Python/C API
@@ -698,6 +702,9 @@ cdef class Matrix(ModuleElement):
     ###########################################################
     # Base Change
     ###########################################################
+    def base_ring(self):
+        return self._base_ring
+
     def change_ring(self, ring):
         """
         Return the matrix obtained by coercing the entries of this
@@ -720,7 +727,7 @@ cdef class Matrix(ModuleElement):
             ...
             <type 'exceptions.TypeError'>: Unable to coerce rational (=1/2) to an Integer.
         """
-        if ring is self.base_ring():
+        if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self
             return self.copy()
@@ -752,7 +759,9 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t nr, nc, r, c
+        x = self.fetch('repr')
+        if not x is None: return x
+        cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
 
@@ -792,7 +801,7 @@ cdef class Matrix(ModuleElement):
         for row in rows:
             tmp.append("[%s]"%row)
         s = "\n".join(tmp)
-
+        self.cache('repr',s)
         return s
 
     def _latex_sparse(self, variable="x"):
@@ -804,7 +813,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t nr, nc, i, j
+        cdef Py_ssize_t nr, nc, i, j
         nr = self._nrows
         nc = self._ncols
         s = "\\left(\\begin{align*}\n"
@@ -830,7 +839,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t nr, nc, r, c
+        cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
         if nr == 0 or nc == 0:
@@ -893,7 +902,7 @@ cdef class Matrix(ModuleElement):
 
         """
         w = self.list()
-        cdef size_t nr, nc, i, j
+        cdef Py_ssize_t nr, nc, i, j
         nr = self._nrows
         nc = self._ncols
         v = []
@@ -913,7 +922,7 @@ cdef class Matrix(ModuleElement):
             sage: g.IsMatrix()
             true
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         v = []
         for i from 0 <= i < self._nrows:
             tmp = []
@@ -928,7 +937,7 @@ cdef class Matrix(ModuleElement):
            sage: A = MatrixSpace(QQ,3)([1,2,3,4/3,5/3,6/4,7,8,9])
            sage: g = mathematica(A); g
        """
-       cdef size_t i, j
+       cdef Py_ssize_t i, j
        v = []
        for i from 0 <= i < self._nrows:
            w = []
@@ -961,7 +970,7 @@ cdef class Matrix(ModuleElement):
             sage: B.Parent()                            # optional
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
-        K = self.base_ring()._magma_init_()
+        K = self._base_ring._magma_init_()
         if self._nrows != self._ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
         else:
@@ -1024,7 +1033,7 @@ cdef class Matrix(ModuleElement):
             sage: parent(M.lift())
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
-        return self.change_ring(self.base_ring().cover_ring())
+        return self.change_ring(self._base_ring.cover_ring())
 
     #############################################################################################
     # rows, columns, sparse_rows, sparse_columns, dense_rows, dense_columns, row, column
@@ -1090,9 +1099,9 @@ cdef class Matrix(ModuleElement):
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self.base_ring(), self._nrows, sparse=False)
+        F = sage.modules.free_module.FreeModule(self._base_ring, self._nrows, sparse=False)
         C = []
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         cdef object v
         for j from 0 <= j < self._ncols:
             v = PyList_New(self._ncols)
@@ -1133,9 +1142,9 @@ cdef class Matrix(ModuleElement):
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self.base_ring(), self._ncols, sparse=False)
+        F = sage.modules.free_module.FreeModule(self._base_ring, self._ncols, sparse=False)
         R = []
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         cdef object o
         cdef object v
         for i from 0 <= i < self._nrows:
@@ -1168,12 +1177,12 @@ cdef class Matrix(ModuleElement):
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self.base_ring(), self._nrows, sparse=True)
+        F = sage.modules.free_module.FreeModule(self._base_ring, self._nrows, sparse=True)
 
         C = []
         k = 0
         entries = {}
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
 
         for i, j in self.nonzero_positions(copy=False, column_order=True):
             if i > k:
@@ -1224,12 +1233,12 @@ cdef class Matrix(ModuleElement):
             if copy: return list(x)
             return x
 
-        F = sage.modules.free_module.FreeModule(self.base_ring(), self._ncols, sparse=True)
+        F = sage.modules.free_module.FreeModule(self._base_ring, self._ncols, sparse=True)
 
         R = []
         k = 0
         entries = {}
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
 
         for i, j in self.nonzero_positions(copy=False):
             if i > k:
@@ -1255,7 +1264,7 @@ cdef class Matrix(ModuleElement):
         else:
             return R
 
-    def column(self, size_t i, from_list=False):
+    def column(self, Py_ssize_t i, from_list=False):
         """
         Return the i-th column of this matrix as a vector.
 
@@ -1275,15 +1284,15 @@ cdef class Matrix(ModuleElement):
         """
         if from_list:
             return self.columns(copy=False)[i]
-        cdef size_t j
-        V = sage.modules.free_module.FreeModule(self.base_ring(),
+        cdef Py_ssize_t j
+        V = sage.modules.free_module.FreeModule(self._base_ring,
                                      self._ncols, sparse=self.is_sparse())
         tmp = []
         for j from 0 <= j < self._nrows:
             tmp.append(self.get_unsafe(j,i))
         return V(tmp, coerce=False, copy=False, check=False)
 
-    def row(self, size_t i, from_list=False):
+    def row(self, Py_ssize_t i, from_list=False):
         """
         Return the i-th row of this matrix as a vector.
 
@@ -1303,8 +1312,8 @@ cdef class Matrix(ModuleElement):
         """
         if from_list:
             return self.rows(copy=False)[i]
-        cdef size_t j
-        V = sage.modules.free_module.FreeModule(self.base_ring(),
+        cdef Py_ssize_t j
+        V = sage.modules.free_module.FreeModule(self._base_ring,
                                       self.ncols(), sparse=self.is_sparse())
         tmp = []
         for j from 0 <= j < self._ncols:
@@ -1329,9 +1338,9 @@ cdef class Matrix(ModuleElement):
             [ 3  4  5]
             [10 11 12]
         """
-        cdef size_t r, c
+        cdef Py_ssize_t r, c
 
-        if not (self.base_ring() is other.base_ring()):
+        if not (self._base_ring is other.base_ring()):
             raise TypeError, "base rings must be the same"
         if self._ncols != other._ncols:
             raise TypeError, "number of columns must be the same"
@@ -1604,7 +1613,7 @@ cdef class Matrix(ModuleElement):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        if not (self.base_ring() is other.base_ring()):
+        if not (self._base_ring is other.base_ring()):
             raise TypeError, "base rings must be the same"
         if self._nrows != other._nrows:
             raise TypeError, "number of rows must be the same"
@@ -1612,7 +1621,7 @@ cdef class Matrix(ModuleElement):
         cdef Matrix Z
         Z = self.new_matrix(ncols = self._ncols + other._ncols)
 
-        cdef size_t r, c
+        cdef Py_ssize_t r, c
         for r from 0 <= r < self._nrows:
             for c from 0 <= c < self._ncols:
                 Z.set_unsafe(r,c, self.get_unsafe(r,c))
@@ -1819,7 +1828,7 @@ cdef class Matrix(ModuleElement):
             sage: A.act_on_polynomial(f)
             -12*y^2 - 20*x*y - 8*x^2
         """
-        cdef size_t i, j, n
+        cdef Py_ssize_t i, j, n
 
         if self._nrows != self._ncols:
             raise ArithmeticError, "self must be square"
@@ -1851,7 +1860,7 @@ cdef class Matrix(ModuleElement):
     # Row and column operations
     ###################################################
 
-    def swap_columns(self, size_t c1, size_t c2):
+    def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
         """
         Swap columns c1 and c2 of self.
 
@@ -1867,7 +1876,7 @@ cdef class Matrix(ModuleElement):
             [4/5   3   4]
             [  6   3   4]
         """
-        cdef size_t nc, r
+        cdef Py_ssize_t nc, r
 
         nc = self.ncols()
         if c1 < 0 or c1 >= nc:
@@ -1902,7 +1911,7 @@ cdef class Matrix(ModuleElement):
             [4/5   4   3]
             [  1   9  -7]
         """
-        cdef size_t nc, r
+        cdef Py_ssize_t nc, r
 
         nr = self.nrows()
         if r1 < 0 or r1 >= nc:
@@ -1925,7 +1934,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t i
+        cdef Py_ssize_t i
         R = self.rows()
         s = 0
         for i from 0 <= i < len(v):
@@ -1937,7 +1946,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t i
+        cdef Py_ssize_t i
 
         C = self.columns()
         s = 0
@@ -1954,13 +1963,13 @@ cdef class Matrix(ModuleElement):
         """
         self[i] = s*self[j]
 
-    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, i, A, size_t r, cols):
+    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, i, A, Py_ssize_t r, cols):
         """
         EXAMPLES:
             sage: ???
         """
         # this function exists just because it is useful for modular symbols presentations.
-        cdef size_t l
+        cdef Py_ssize_t l
         l = 0
         rows = A.sparse_rows()
         v = rows[r]
@@ -1970,38 +1979,38 @@ cdef class Matrix(ModuleElement):
             l = l + 1
 
 
-    def add_multiple_of_row(self, size_t i, size_t j,    s,   size_t col_start=0):
+    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start=0):
         """
         Add s times row j to row i.
 
         EXAMPLES:
             sage: ???
         """
-        cdef size_t c
+        cdef Py_ssize_t c
         self.check_mutability()
         if i<0 or i >= self._nrows or j<0 or j >= self._nrows:
             raise IndexError, "matrix row index out of range"
 
-        s = self.base_ring()(s)
+        s = self._base_ring(s)
         for c from col_start <= c < self._ncols:
             self.set_unsafe(i, c, self.get_unsafe(i, c) + s*self.get_unsafe(j, c))
 
-    def add_multiple_of_column(self, size_t i, size_t j, s, size_t row_start=0):
+    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start=0):
         """
         Add s times column j to column i.
 
         EXAMPLES:
             sage: ???
         """
-        cdef size_t r
+        cdef Py_ssize_t r
         self.check_mutability()
         if i<0 or i >= self._ncols or j<0 or j >= self._ncols:
             raise IndexError, "matrix column index out of range"
-        s = self.base_ring()(s)
+        s = self._base_ring(s)
         for r from row_start <= r < self._nrows:
             self.set_unsafe(r, i, self.get_unsafe(r, i) + s*self.get_unsafe(r, j))
 
-    def rescale_row(self, size_t i, s, size_t start_col=0):
+    def rescale_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
         """
         Replace i-th row of self by s times i-th row of self.
 
@@ -2013,7 +2022,7 @@ cdef class Matrix(ModuleElement):
         if s == 1:
             return
 
-        s = self.base_ring()(s)
+        s = self._base_ring(s)
 
         self.check_mutability()
 
@@ -2024,7 +2033,7 @@ cdef class Matrix(ModuleElement):
             self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
 
 
-    def rescale_col(self, size_t i, s, size_t start_row=0):
+    def rescale_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
         """
         Replace i-th col of self by s times i-th col of self.
 
@@ -2043,7 +2052,7 @@ cdef class Matrix(ModuleElement):
         if i<0 or i >= self._ncols:
             raise IndexError, "matrix col index out of range"
 
-        s = self.base_ring()(s)
+        s = self._base_ring(s)
 
         for j from start_rows <= j < self._nrows:
             self.set_unsafe(j, i, self.get_unsafe(i, j)*s)
@@ -2131,8 +2140,8 @@ cdef class Matrix(ModuleElement):
             if copy:
                 return list(x)
             return x
-        cdef size_t i, j
-        z = self.base_ring()(0)
+        cdef Py_ssize_t i, j
+        z = self._base_ring(0)
         nzp = []
         for i from 0 <= i < self._nrows:
            for j from 0 <= j < self._ncols:
@@ -2158,8 +2167,8 @@ cdef class Matrix(ModuleElement):
             if copy:
                 return list(x)
             return x
-        cdef size_t i, j
-        z = self.base_ring()(0)
+        cdef Py_ssize_t i, j
+        z = self._base_ring(0)
         nzp = []
         for j from 0 <= j < self._ncols:
             for i from 0 <= i < self._nrows:
@@ -2170,7 +2179,7 @@ cdef class Matrix(ModuleElement):
             return list(nzp)
         return nzp
 
-    def nonzero_positions_in_column(self, size_t i):
+    def nonzero_positions_in_column(self, Py_ssize_t i):
         """
         Return the integers j such that self[j,i] is nonzero, i.e.,
         such that the j-th position of the i-th column is nonzero.
@@ -2178,8 +2187,8 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t j
-        z = self.base_ring()(0)
+        cdef Py_ssize_t j
+        z = self._base_ring(0)
         tmp = set()
 
         if i<0 or i >= self._ncols:
@@ -2189,7 +2198,7 @@ cdef class Matrix(ModuleElement):
                 tmp.add(j)
         return tmp
 
-    def nonzero_positions_in_row(self, size_t i):
+    def nonzero_positions_in_row(self, Py_ssize_t i):
         """
         Return the integers j such that self[i,j] is nonzero, i.e.,
         such that the j-th position of the i-th row is nonzero.
@@ -2197,12 +2206,12 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t j
+        cdef Py_ssize_t j
 
         if i<0 or i >= self._nrows:
             raise IndexError, "matrix row index out of range"
 
-        z = self.base_ring()(0)
+        z = self._base_ring(0)
         tmp = set()
 
         for j from 0 <= j < self._nrows:
@@ -2221,7 +2230,7 @@ cdef class Matrix(ModuleElement):
         AUTHOR:
             -- Jaap Spies (2006-02-18)
         """
-        cdef size_t c, row
+        cdef Py_ssize_t c, row
         pr = 1
         for row from 0 <= row < self._nrows:
             tmp = []
@@ -2314,7 +2323,7 @@ cdef class Matrix(ModuleElement):
         NOTES:
             -- Currently optimized for dense matrices over QQ.
         """
-        cdef size_t m, n, r
+        cdef Py_ssize_t m, n, r
 
         perm = 0
         m = self._nrows
@@ -2333,7 +2342,7 @@ cdef class Matrix(ModuleElement):
             perm = perm + (-1)**(m-r) * binomial(n-r, m-r) * s
         return perm
 
-    def permanental_minor(self, size_t k):
+    def permanental_minor(self, Py_ssize_t k):
         r"""
         Calculates the permanental $k$-minor of a $m \times n$ matrix.
 
@@ -2399,7 +2408,7 @@ cdef class Matrix(ModuleElement):
         if not m <= n:
             raise ValueError, "must have m <= n, but m (=%s) and n (=%s)"%(m,n)
 
-        R = self.base_ring()
+        R = self._base_ring
         if k == 0:
             return R(1)
         if k > m:
@@ -2498,7 +2507,7 @@ cdef class Matrix(ModuleElement):
             sage: A.determinant()
             -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
         """
-        cdef size_t i, n
+        cdef Py_ssize_t i, n
 
         d = self.fetch('det')
         if not d is None: return d
@@ -2592,7 +2601,7 @@ cdef class Matrix(ModuleElement):
         """
         if self.nrows() != self.ncols():
             raise ArithmeticError, "matrix must be square"
-        R = self.base_ring()
+        R = self._base_ring
         tmp =  []
         for i in xrange(self.nrows()):
             tmp.append(self[i,i])
@@ -2623,7 +2632,7 @@ cdef class Matrix(ModuleElement):
             sage: Bt.vector_matrix_multiply(v)    # computes B*v
             (5, 5)
         """
-        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         if self.nrows() != v.degree():
@@ -2666,7 +2675,7 @@ cdef class Matrix(ModuleElement):
             raise ArithmeticError, "matrix must be square if n >= 2."
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
-        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         X = [v]
@@ -2682,7 +2691,7 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage:
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         cdef Matrix A
         A = self.new_matrix()
         for i from 0 <= i < self._nrows:
@@ -2692,7 +2701,7 @@ cdef class Matrix(ModuleElement):
 
 ##     cdef sage.structure.element.ModuleElement _sub_sibling_cdef(self,
 ##                                                 sage.structure.element.ModuleElement right):
-##         cdef size_t i, j
+##         cdef Py_ssize_t i, j
 ##         A = self.new_matrix()
 ##         for i from 0 <= i < self._nrows:
 ##             for j from 0 <= j < self._ncols:
@@ -2725,7 +2734,7 @@ cdef class Matrix(ModuleElement):
             sage: parent(M % 7)
             Full MatrixSpace of 2 by 2 dense matrices over Integer Ring
         """
-        cdef size_t i
+        cdef Py_ssize_t i
         v = self.list()
         for i from 0 <= i < len(v):
             v[i] = v[i] % p
@@ -2743,7 +2752,7 @@ cdef class Matrix(ModuleElement):
             sage: parent(M.mod(7))
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
         """
-        return self.change_ring(self.base_ring().quotient_ring(p))
+        return self.change_ring(self._base_ring.quotient_ring(p))
 
 
     def _scalar_multiply(self, x):
@@ -2751,10 +2760,10 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        cdef size_t i
+        cdef Py_ssize_t i
 
-        if not x in self.base_ring():
-            x = self.base_ring()(x)
+        if not x in self._base_ring:
+            x = self._base_ring(x)
 
         v = self.list()
         for i from 0 <= i < len(v):
@@ -2766,10 +2775,10 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ?
         """
-        cdef size_t i
+        cdef Py_ssize_t i
 
-        if not x in self.base_ring():
-            x = self.base_ring()(x)
+        if not x in self._base_ring:
+            x = self._base_ring(x)
 
         v = self.list()
         for i from 0 <= i < len(v):
@@ -2849,32 +2858,10 @@ cdef class Matrix(ModuleElement):
             sage: ???
         """
         if self._will_use_strassen(right):
-            return self.multiply_strassen(right)
+            return self._multiply_strassen(right)
         else:
-            return self.multiply_classical(right)
+            return self._multiply_classical(right)
 
-    def multiply_classical(self, Matrix right):
-        """
-        Multiply the matrices self and right using the classical $O(n^3)$
-        algorithm.
-
-        This method assumes that self and right have the same parent and
-        compatable dimensions.
-
-        EXAMPLES
-            sage: include the 0 rows and 0 columns cases
-        """
-        cdef size_t i, j, k
-        if self._ncols != right._nrows:
-            raise IndexError, "Number of columns of self must equal number of rows of other."
-        v = []
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < right._ncols:
-                s = 0
-                for k from 0 <= k < self._ncols:
-                    s = s + self.get_unsafe(i,k) * right.get_unsafe(k,j)
-                v.append(s)
-        return self.new_matrix(self._nrows, right._ncols, entries = v, coerce=False, copy=False)
 
     cdef int _will_use_strassen(self, Matrix right) except -1:
         """
@@ -2897,7 +2884,10 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ?
         """
-        return self._left_scalar_multiply(self.base_ring()(-1))
+        return self._left_scalar_multiply(self._base_ring(-1))
+
+    def __invert__(self):
+        raise NotImplementedError
 
     def __pos__(self):
         """
@@ -2955,18 +2945,20 @@ cdef class Matrix(ModuleElement):
     ###################################################
     # Comparison
     ###################################################
-    def __richcmp__(self, right, int op):
+    cdef richcmp(Matrix self, right, int op):
         """
         EXAMPLES:
             sage: ???
         """
+        print "__richcmp__"
         # TODO: change the last "==" here to "is"
-        if not PY_TYPE_CHECK(right, Matrix) or not PY_TYPE_CHECK(self, Matrix) or not ((<Matrix>right)._parent == (<Matrix>self)._parent):
+        if not PY_TYPE_CHECK(right, Matrix) or not PY_TYPE_CHECK(self, Matrix) or \
+                        not ((<Matrix>right)._parent == (self)._parent):
             # todo: can make faster using the cdef interface to coerce
             return sage.structure.coerce.cmp(self, right)
 
         cdef int r
-        r = (<Matrix>self)._cmp_c_impl(right)
+        r = self._cmp_c_impl(right)
 
         if op == 0:  #<
             return bool(r  < 0)
@@ -2981,6 +2973,9 @@ cdef class Matrix(ModuleElement):
         elif op == 5: #>=
             return bool(r >= 0)
 
+    def __richcmp__(self, right, int op):
+        return self.richcmp(right, op)
+
     cdef int _cmp_c_impl(self, Matrix right) except -2:
         return cmp(self.list(), right.list())
 
@@ -2994,8 +2989,8 @@ cdef class Matrix(ModuleElement):
             sage: bool(M)
             True
         """
-        z = self.base_ring()(0)
-        cdef size_t i, j
+        z = self._base_ring(0)
+        cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if self.get_unsafe(i,j) != z:
@@ -3027,7 +3022,7 @@ cdef class Matrix(ModuleElement):
         """
         Return the echelon form of self.
         """
-        cdef size_t start_row, c, r, nr, nc, i
+        cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
             return
 
@@ -3068,14 +3063,14 @@ cdef class Matrix(ModuleElement):
         """
         return 128
 
-    def strassen_multiply(self, Matrix right, int cutoff=0):
+    def _multiply_strassen(self, Matrix right, int cutoff=0):
         """
         EXAMPLES:
             sage: ?
         """
         if self._ncols != right._nrows:
             raise ArithmeticError, "Number of columns of self must equal number of rows of right."
-        if not self.base_ring() is right.base_ring():
+        if not self._base_ring is right.base_ring():
             raise TypeError, "Base rings must be the same."
 
         if cutoff == 0:
@@ -3093,7 +3088,7 @@ cdef class Matrix(ModuleElement):
         self._strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
-    def strassen_echelon(self, cutoff):
+    def _echelon_strassen(self, cutoff):
         """
         EXAMPLES:
             sage: ?
@@ -3102,7 +3097,7 @@ cdef class Matrix(ModuleElement):
         self._set_pivots(pivots)
         return self
 
-    def matrix_window(self, size_t row=0, size_t col=0, size_t nrows=-1, size_t ncols=-1):
+    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0, Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         if nrows == -1:
             nrows = self._nrows
             ncols = self._ncols
@@ -3562,14 +3557,14 @@ cdef class MatrixWindow:
         return "Matrix window of size %s x %s at (%s,%s):\n%s"%(
             self._nrows, self._ncols, self._row, self._col, self._matrix)
 
-    def set_unsafe(self, size_t i, size_t j, x):
+    def set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
         self._matrix.set_unsafe(i + self._row, j + self._col, x)
 
-    def get_unsafe(self, size_t i, size_t j):
+    def get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         return self._matrix.get_unsafe(i + self._row, j + self._col)
 
     def __setitem__(self, ij, x):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         if PyTuple_Check(ij):
             # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
             if PyTuple_Size(ij) != 2:
@@ -3586,7 +3581,7 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, x)
 
     def __getitem__(self, ij):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         cdef object x
 
         if PyTuple_Check(ij):
@@ -3636,20 +3631,20 @@ cdef class MatrixWindow:
         """
         Change self, making it equal A.
         """
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j))
 
     def set_to_zero(MatrixWindow self):
-        cdef size_t i, j
-        z = self.base_ring()(0)
+        cdef Py_ssize_t i, j
+        z = self._base_ring(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self._matrix.matrix.set_unsafe(i, j, z)
 
     def add(MatrixWindow self, MatrixWindow A):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < self._nrows:
@@ -3657,7 +3652,7 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, self.get_unsafe(i, j) + A.get_unsafe(i, j))
 
     def subtract(MatrixWindow self, MatrixWindow A):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < self._nrows:
@@ -3665,7 +3660,7 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, self.get_unsafe(i, j) - A.get_unsafe(i, j))
 
     def set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
         if self._nrows != B._nrows or self._ncols != B._ncols:
@@ -3675,13 +3670,13 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, A.get_unsafe(i, j) + B.get_unsafe(i, j))
 
     def set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef size_t i, j
+        cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j) - B.get_unsafe(i, j))
 
     def set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef size_t i, j, k
+        cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < A._nrows:
@@ -3692,7 +3687,7 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, s)
 
     def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef size_t i, j, k
+        cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < A._nrows:
@@ -3703,7 +3698,7 @@ cdef class MatrixWindow:
                 self.set_unsafe(i, j, s)
 
     def subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef size_t i, j, k
+        cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < A._nrows:
@@ -3861,17 +3856,25 @@ class int_range:
 def unpickle(cls, parent, mutability, cache, data, version):
     """
     Unpickle a matrix.
+
+    EXAMPLES:
+        sage: A = matrix(ZZ,2,range(4))
+        sage: loads(dumps(A))
+        [0 1]
+        [2 3]
     """
     cdef Matrix A
     try:
-        A = cls.__new__(cls, parent, 0,0)
+        A = cls.__new__(cls, parent, 0,0,0)
         A._parent = parent  # make sure -- __new__ doesn't have to set it, but unpickle may need to know.
         A._nrows = parent.nrows()
         A._ncols = parent.ncols()
         A._mutability = mutability
         A._cache = cache
         A._unpickle(data, version)
+
     except Exception, msg:
+
         print msg
     return A
 

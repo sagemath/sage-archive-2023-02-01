@@ -10,8 +10,8 @@ cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    #cdef sage_object.SageObject _parent
     cdef object _parent
+    cdef _rich_to_bool(self, int op, int n)
 
 cdef class ModuleElement(Element):
     cdef ModuleElement _add_c(self, ModuleElement right)

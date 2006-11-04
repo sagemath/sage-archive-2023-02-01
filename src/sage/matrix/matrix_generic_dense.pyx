@@ -97,10 +97,10 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         # TODO: make faster with Python/C API
         return self._entries[i*self._ncols + j]
 
-    cdef _pickle(self):
+    def _pickle(self):
         return self._entries, 0
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle(self, data, int version):
         if version == 0:
             self._entries = data
         else:

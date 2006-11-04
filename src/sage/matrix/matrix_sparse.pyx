@@ -122,12 +122,12 @@ cdef class Matrix_sparse(matrix.Matrix):
         # never use Strassen for sparse matrix multiply
         return 0
 
-    cdef _pickle(self):
+    def _pickle(self):
         version = -1
         data = self._dict()  # dict of all elements
         return data, version
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle_generic(self, data, int version):
         cdef Py_ssize_t i, j, k
         if version == -1:
             for ij, x in data.iteritems():

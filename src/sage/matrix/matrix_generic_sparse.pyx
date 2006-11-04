@@ -138,11 +138,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         except KeyError:
             return self._zero
 
-    cdef _pickle(self):
+    def _pickle(self):
         version = 0
         return self._entries, version
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle(self, data, int version):
         """
         EXAMPLES:
             sage: a = matrix([[1,10],[3,4]],sparse=True); a

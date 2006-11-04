@@ -11,15 +11,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #cdef set_matrix(Matrix_modn_dense self, uint **m)
     #cdef uint **get_matrix(Matrix_modn_dense self)
     #cdef uint entry(self, uint i, uint j)
+    cdef _rescale_row_c(self, Py_ssize_t row, uint multiple, Py_ssize_t start_col)
+    cdef _rescale_col_c(self, Py_ssize_t col, uint multiple, Py_ssize_t start_row)
+    cdef _add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from,
+                                uint multiple, Py_ssize_t start_col)
+    cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from,
+                                   uint multiple, Py_ssize_t start_row)
 
-    cdef rescale_row_c(self, Py_ssize_t row, uint multiple, Py_ssize_t start_col)
-    cdef rescale_col_c(self, Py_ssize_t col, uint multiple, Py_ssize_t start_row)
-    cdef add_multiple_of_row_c(self, uint row_to, uint row_from, uint multiple, \
-                            uint start_col)
-    cdef add_multiple_of_column_c(self, uint col_to, uint col_from, uint multiple, \
-                                  uint start_row)
-    cdef swap_rows_c(self, uint row1, uint row2)
-    cdef swap_columns_c(self, uint col1, uint col2)
 
 
 

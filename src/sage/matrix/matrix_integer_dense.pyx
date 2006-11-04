@@ -47,8 +47,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * __init__
     # x * set_unsafe
     # x * get_unsafe
-    # x * cdef _pickle
-    # x * cdef _unpickle
+    # x * def _pickle
+    # x * def _unpickle
     ########################################################################
 
     def __new__(self, parent, entries, coerce, copy):
@@ -268,7 +268,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_init_set(z.value, self._matrix[i][j])
         return z
 
-    cdef _pickle(self):
+    def _pickle(self):
         return self._pickle_version0(), 0
 
     cdef _pickle_version0(self):
@@ -310,7 +310,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             free(s)
         return data
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle(self, data, int version):
         if version == 0:
             self._unpickle_version0(data)
         else:

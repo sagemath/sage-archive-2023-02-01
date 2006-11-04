@@ -1,186 +1,7 @@
 r"""
-Matrices over an arbitrary ring
+Abstract base class for matrices.
 
-AUTHORS:
-    -- William Stein
-    -- Martin Albrecht: conversion to Pyrex
-    -- Jaap Spies: various functions
-    -- Gary Zablackis: fixed a sign bug in generic determinant.
-    -- William Stein and Robert Bradshaw -- complete restructuring.
-
-Elements of matrix spaces are of class \code{Matrix} (or a class
-derived from Matrix).  They can be either sparse or dense, and can be
-defined over any base ring.
-
-EXAMPLES:
-
-We create the $2\times 3$ matrix
-$$
-   \left(\begin{matrix} 1&2&3\\4&5&6 \end{matrix}\right)
-$$
-as an element of a matrix space over $\Q$:
-
-    sage: M = MatrixSpace(QQ,2,3)
-    sage: A = M([1,2,3, 4,5,6]); A
-    [1 2 3]
-    [4 5 6]
-    sage: A.parent()
-    Full MatrixSpace of 2 by 3 dense matrices over Rational Field
-
-Alternatively, we could create A more directly as follows (which would
-completely avoid having to create the matrix space):
-    sage: A = matrix(QQ, 2, [1,2,3, 4,5,6]); A
-    [1 2 3]
-    [4 5 6]
-
-We next change the top-right entry of $A$.  Note that matrix indexing
-is $0$-based in SAGE, so the top right entry is $(0,2)$, which should
-be thought of as ``row number $0$, column number 2''.
-
-    sage: A[0,2] = 389
-    sage: A
-    [  1   2 389]
-    [  4   5   6]
-
-Also notice how matrices print.  All columns have the same width and
-entries in a given column are right justified.   Next we compute the
-reduced row echelon form of $A$.
-
-    sage: A.echelon_form()
-    [      1       0 -1933/3]
-    [      0       1  1550/3]
-
-We save and load a matrix:
-    sage: A = matrix(Integers(8),3,range(9))
-    sage: loads(dumps(A)) == A
-    True
-
-
-MUTABILITY: Matrices are either immutable or not.  When initially
-created, matrices are typically mutable, so one can change their
-entries.  Once a matrix $A$ is made immutable using
-\code{A.set_immutable()} the entries of $A$ cannot be changed, and $A$
-can never be made mutable again.  However, properies of $A$ such as
-its rank, characteristic polynomial, etc., are all cached so
-computations involving $A$ may be more efficient.  Once $A$ is made
-immutable it cannot be changed back.  However, one can obtain a
-mutable copy of $A$ using \code{A.copy()}.
-
-EXAMPLES:
-    sage: A = matrix(RR,2,[1,10,3.5,2])
-    sage: A.set_immutable()
-    sage: A.copy() is A
-    False
-
-The echelon form method always returns immutable matrices with known
-rank.
-
-EXAMPLES:
-    sage: A = matrix(Integers(8),3,range(9))
-    sage: A.determinant()
-    0
-    sage: A[0,0] = 5
-    sage: A.determinant()
-    1
-    sage: A.set_immutable()
-    sage: A[0,0] = 5
-    Traceback (most recent call last):
-    ...
-    ValueError: object is immutable; please change a copy instead.
-
-
-\subsection{Implementation and Design}
-Class Diagram:
-\begin{verbatim}
-Matrix (*) -- abstract base
-  Matrix_sparse
-    Matrix_generic_sparse
-    Matrix_integer_sparse
-    Matrix_rational_sparse
-    Matrix_cyclo_sparse
-    Matrix_modn_sparse
-    Matrix_RR_sparse
-    Matrix_CC_sparse
-    Matrix_RDF_sparse
-    Matrix_CDF_sparse
-
-  Matrix_dense
-    Matrix_generic_dense
-    Matrix_integer_dense
-    Matrix_integer_2x2_dense
-    Matrix_rational_dense
-    Matrix_cyclo_dense
-    Matrix_modn_dense
-    Matrix_RR_dense
-    Matrix_CC_dense
-    Matrix_RDF_dense
-    Matrix_CDF_dense
-
-\end{verbatim}
-
-The corresponding files in the sage/matrix library code
-directory are named
-\begin{verbatim}
-          [matrix] [base ring] [dense or sparse].
-\end{verbatim}
-
-See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
-
-New matrices types can only be implemented in Pyrex.
-
-*********** LEVEL 1  **********
-NON-OPTIONAL
-For each base field it is *absolutely* essential to completely
-implement the following functionality for that base ring:
-
-   * __new__       -- should use sage_malloc from ext/stdsage.pxi (only
-                      needed if allocate memory)
-   * __init__      -- this signature: 'def __init__(self, parent, entries, copy, coerce)'
-   * __dealloc__   -- use sage_free (only needed if allocate memory)
-   * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
-   * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
-   * __richcmp__    -- always the same (I don't know why its needed).
-*********** LEVEL 2  **********
-
-IMPORTANT (and *highly* recommended):
-
-After getting the special class with all level 1 functionality to
-work, implement all of the following (they should not change
-functionality, except speed (always faster!) in any way):
-
-   * cdef _pickle(self):
-          return data, version
-   * cdef _unpickle(self, data, int version)
-          reconstruct matrix from given data and version; may assume _parent, _nrows, and _ncols are set.
-          Use version numbers >= 0 so if you change the pickle strategy then
-          old objects still unpickle.
-   * cdef _list -- list of underlying elements (need not be a copy)
-   * cdef _dict -- sparse dictionary of underlying elements
-   * cdef _add_c_impl
-   * cdef _mul_c_impl
-   * cdef _cmp_c_impl
-   * __copy__
-   * __neg__
-
-The list and dict returned by _list and _dict will *not* be changed
-by any internal algorithms and are not accessible to the user.
-
-*********** LEVEL 3  **********
-OPTIONAL:
-
-   * cdef _sub_c_impl
-   * __deepcopy__
-   * __invert__
-   * _multiply_classical
-
-Further special support:
-   * Matrix windows -- only if you need strassen for that base
-   * Other functions, e.g., transpose, for which knowing the
-     specific representation can be helpful.
-
-NOTES:
-   * For caching, use self.fetch and self.cache.
-   * Any method that can change the matrix should call check_mutability() first.
+For design documentation see matrix/docs.py.
 """
 
 ################################################################################
@@ -198,6 +19,7 @@ include "../ext/python.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
+from sage.misc.misc import verbose, get_verbose
 import sage.structure.coerce
 from   sage.structure.sequence import _combinations
 import sage.rings.integer
@@ -686,11 +508,21 @@ cdef class Matrix(ModuleElement):
         return unpickle, (self.__class__, self._parent, self._mutability,
                                           self._cache, data, version)
 
-    cdef _pickle(self):
+    def _pickle(self):
         raise NotImplementedError
 
-    cdef _unpickle(self, data, int version):
-        raise NotImplementedError
+    def _test_pickle(self):
+        a, b = self.__reduce__()
+        print "__reduce__:"
+        print a
+        print b
+        print "Now call a with b:"
+        c = a(*b)
+        print "Got c = ", c
+        if self == c:
+            print "Pickle success."
+        else:
+            print "Pickle failure."
 
     ###########################################################
     # Base Change
@@ -1851,7 +1683,24 @@ cdef class Matrix(ModuleElement):
 
     ###################################################
     # Row and column operations
+    # The _c versions do no bounds checking and all
+    # assume input values have parent that is self._base_ring.
     ###################################################
+    cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2):
+        if self._mutability._is_immutable:
+            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+        else:
+            self._cache = {}
+        if r1<0 or r1 >= self._nrows or r2<0 or r2 >= self._nrows:
+            raise IndexError, "matrix row index out of range"
+
+    cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2):
+        if self._mutability._is_immutable:
+            raise ValueError, "matrix is immutable; please change a copy instead (use self.copy())."
+        else:
+            self._cache = {}
+        if c1<0 or c1 >= self._ncols or c2<0 or c2 >= self._ncols:
+            raise IndexError, "matrix column index out of range"
 
     def swap_columns(self, Py_ssize_t c1, Py_ssize_t c2):
         """
@@ -1869,24 +1718,16 @@ cdef class Matrix(ModuleElement):
             [4/5   3   4]
             [  6   3   4]
         """
-        cdef Py_ssize_t nc, r
+        self.check_column_bounds_and_mutability(c1, c2)
+        if c1 != c2:
+            self.swap_columns_c(c1, c2)
 
-        nc = self.ncols()
-        if c1 < 0 or c1 >= nc:
-            raise IndexError, "c1 invalid column"
-        if c2 < 0 or c2 >= nc:
-            raise IndexError, "c2 invalid column"
-        if c1 == c2:
-            return
-
-        self.check_mutability()
-
+    cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2):
+        cdef Py_ssize_t r
         for r from 0 <= r < self._nrows:
             a = self.get_unsafe(r, c2)
-            b = self.get_unsafe(r, c1)
+            self.set_unsafe(r, c2, self.get_unsafe(r,c1))
             self.set_unsafe(r, c1, a)
-            self.set_unsafe(r, c2, b)
-
 
     def swap_rows(self, r1, r2):
         """
@@ -1904,48 +1745,88 @@ cdef class Matrix(ModuleElement):
             [4/5   4   3]
             [  1   9  -7]
         """
-        cdef Py_ssize_t nc, r
+        self.check_row_bounds_and_mutability(r1, r2)
+        if r1 != r2:
+            self.swap_rows_c(r1, r2)
 
-        nr = self.nrows()
-        if r1 < 0 or r1 >= nc:
-            raise IndexError, "invalid row"
-        if r2 < 0 or r2 >= nc:
-            raise IndexError, "invalid row"
-        if r1 == r2:
-            return
-
-        self.check_mutability()
-
+    cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2):
+        cdef Py_ssize_t c
         for c from 0 <= c < self._ncols:
             a = self.get_unsafe(r2, c)
-            b = self.get_unsafe(r1, c)
+            self.set_unsafe(r2, c, self.get_unsafe(r1, c))
             self.set_unsafe(r1, c, a)
-            self.set_unsafe(r2, c, b)
 
-    def linear_combination_of_rows(self, v):
+
+    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start=0):
         """
+        Add s times row j to row i.
+
         EXAMPLES:
             sage: ???
         """
-        cdef Py_ssize_t i
-        R = self.rows()
-        s = 0
-        for i from 0 <= i < len(v):
-            s = s + v[i] * R[i]
-        return s
+        self.check_row_bounds_and_mutability(i,j)
+        s = self._coerce_element(s)
+        self.add_multiple_of_row_c(i, j, s, col_start)
 
-    def linear_combination_of_columns(self, v):
+    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start):
+        cdef Py_ssize_t c
+        for c from col_start <= c < self._ncols:
+            self.set_unsafe(i, c, self.get_unsafe(i, c) + s*self.get_unsafe(j, c))
+
+    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start=0):
         """
+        Add s times column j to column i.
+
         EXAMPLES:
             sage: ???
         """
-        cdef Py_ssize_t i
+        self.check_column_bounds_and_mutability(i,j)
+        s = self._coerce_element(s)
+        self.add_multiple_of_column_c(i, j, s, row_start)
 
-        C = self.columns()
-        s = 0
-        for i from 0 <= i < len(v):
-            s = s + v[i]*C[i]
-        return s
+    cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start):
+        cdef Py_ssize_t r
+        for r from row_start <= r < self._nrows:
+            self.set_unsafe(r, i, self.get_unsafe(r, i) + s*self.get_unsafe(r, j))
+
+    def rescale_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
+        """
+        Replace i-th row of self by s times i-th row of self.
+
+        start_row -- only rescale enries at that column and to the right
+
+        EXAMPLES:
+            sage: ???
+        """
+        self.check_row_bounds_and_mutability(i, i)
+        s = self._coerce_element(s)
+        self.rescale_row_c(i, s, start_col)
+
+    cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col):
+        cdef Py_ssize_t j
+        for j from start_col <= j < self._ncols:
+            self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
+
+
+    def rescale_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
+        """
+        Replace i-th col of self by s times i-th col of self.
+
+        INPUT:
+            i -- ith column
+            s -- scalar
+            start_row -- only rescale enries at that row and lower
+
+        EXAMPLES:
+            sage: ???
+        """
+        self.check_column_bounds_and_mutability(i, i)
+        s = self._coerce_element(s)
+
+    cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row):
+        cdef Py_ssize_t j
+        for j from start_rows <= j < self._nrows:
+            self.set_unsafe(j, i, self.get_unsafe(i, j)*s)
 
     def set_row_to_multiple_of_row(self, i, j, s):
         """
@@ -1971,85 +1852,33 @@ cdef class Matrix(ModuleElement):
                 self.set_unsafe(i, l, -v[k])
             l = l + 1
 
-
-    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start=0):
+    ###################################################
+    # Matrix-vector multiply
+    ###################################################
+    def linear_combination_of_rows(self, v):
         """
-        Add s times row j to row i.
-
         EXAMPLES:
             sage: ???
         """
-        cdef Py_ssize_t c
-        self.check_mutability()
-        if i<0 or i >= self._nrows or j<0 or j >= self._nrows:
-            raise IndexError, "matrix row index out of range"
+        cdef Py_ssize_t i
+        R = self.rows()
+        s = 0
+        for i from 0 <= i < len(v):
+            s = s + v[i] * R[i]
+        return s
 
-        s = self._base_ring(s)
-        for c from col_start <= c < self._ncols:
-            self.set_unsafe(i, c, self.get_unsafe(i, c) + s*self.get_unsafe(j, c))
-
-    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start=0):
+    def linear_combination_of_columns(self, v):
         """
-        Add s times column j to column i.
-
         EXAMPLES:
             sage: ???
         """
-        cdef Py_ssize_t r
-        self.check_mutability()
-        if i<0 or i >= self._ncols or j<0 or j >= self._ncols:
-            raise IndexError, "matrix column index out of range"
-        s = self._base_ring(s)
-        for r from row_start <= r < self._nrows:
-            self.set_unsafe(r, i, self.get_unsafe(r, i) + s*self.get_unsafe(r, j))
+        cdef Py_ssize_t i
 
-    def rescale_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
-        """
-        Replace i-th row of self by s times i-th row of self.
-
-        start_row -- only rescale enries at that column and to the right
-
-        EXAMPLES:
-            sage: ???
-        """
-        if s == 1:
-            return
-
-        s = self._base_ring(s)
-
-        self.check_mutability()
-
-        if i<0 or i >= self._nrows:
-            raise IndexError, "matrix row index out of range"
-
-        for j from start_col <= j < self._ncols:
-            self.set_unsafe(i, j, self.get_unsafe(i, j)*s)
-
-
-    def rescale_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
-        """
-        Replace i-th col of self by s times i-th col of self.
-
-        INPUT:
-            i -- ith column
-            s -- scalar
-            start_row -- only rescale enries at that row and lower
-
-        EXAMPLES:
-            sage: ???
-        """
-        if s == 1:
-            return
-        self.check_mutability()
-
-        if i<0 or i >= self._ncols:
-            raise IndexError, "matrix col index out of range"
-
-        s = self._base_ring(s)
-
-        for j from start_rows <= j < self._nrows:
-            self.set_unsafe(j, i, self.get_unsafe(i, j)*s)
-
+        C = self.columns()
+        s = 0
+        for i from 0 <= i < len(v):
+            s = s + v[i]*C[i]
+        return s
 
     ###################################################
     # Predicates
@@ -2086,6 +1915,13 @@ cdef class Matrix(ModuleElement):
         if not x is None: return x
         self.echelon_form()
         return self.fetch('pivots')
+
+    def rank(self):
+        x = self.fetch('rank')
+        if not x is None: return x
+        r = len(self.pivots())
+        self.cache('rank', r)
+        return r
 
     cdef _set_pivots(self, X):
         self.cache('pivots', X)
@@ -2998,29 +2834,124 @@ cdef class Matrix(ModuleElement):
         return False
 
     #####################################################################################
-    # Generic Echelon
+    # Generic Hessenberg Form
     #####################################################################################
-    def echelonize(self):
+    def hessenberg_form(self):
+        """
+        Return Hessenberg form of self.
+        """
+        X = self.fetch('hessenberg_form')
+        if not X is None:
+            return X
+        H = self.copy()
+        H.hessenbergize()
+        self.cache('hessenberg_form', H)
+        return H
+
+    def hessenbergize(self):
+        """
+        Tranform self to Hessenberg form.
+
+        The hessenberg form of a matrix $A$ is a matrix that is
+        similar to $A$, so has the same characteristic polynomial as
+        $A$, and is upper triangular except possible for entries right
+        below the diagonal.
+
+        ALGORITHM: See Henri Cohen's first book.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(RationalField(),3)([2, 1, 1, -2, 2, 2, -1, -1, -1])
+            sage: A.hessenberg_form()
+            [  2 3/2   1]
+            [ -2   3   2]
+            [  0  -3  -2]
+
+            sage: A = MatrixSpace(RationalField(),4)([2, 1, 1, -2, 2, 2, -1, -1, -1,1,2,3,4,5,6,7])
+            sage: A.hessenberg_form()
+            [    2  -7/2 -19/5    -2]
+            [    2   1/2 -17/5    -1]
+            [    0  25/4  15/2   5/2]
+            [    0     0  58/5     3]
+        """
+        tm = verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
+
+        if not self.is_square():
+            raise ArithmeticError, "self must be square"
+
+        self.check_mutability()
+
+        cdef Py_ssize_t i, j, m, n, r
+        zero = self._base_ring(0)
+        one = self._base_ring(1)
+        n = self._nrows
+        for m from 1 <= m < n-1:
+            # Search for a non-zero entry in column m-1
+            i = -1
+            for r from m+1 <= r < n:
+                if self.get_unsafe(r, m-1) != zero:
+                    i = r
+                    break
+            if i != -1:
+                # Found a nonzero entry in column m-1 that is strictly below row m
+                # Now set i to be the first nonzero position >= m in column m-1
+                if self.get_unsafe(m,m-1) != zero:
+                    i = m
+                t = self.get_unsafe(i,m-1)
+                t_inv = None
+                if i > m:
+                    self.swap_rows_c(i,m)
+                    # We must do the corresponding column swap to
+                    # maintain the characteristic polynomial (which is
+                    # an invariant of Hessenberg form)
+                    self.swap_columns_c(i,m)
+                # Now the nonzero entry in position (m,m-1) is t.
+                # Use t to clear the entries in column m-1 below m.
+                for j from m+1 <= j < n:
+                    x = self.get_unsafe(j, m-1)
+                    if x != zero:
+                        if t_inv is None:
+                            t_inv = one / t
+                        u = x * t_inv
+                        self.add_multiple_of_row_c(j, m, -u, 0)
+                        # To maintain charpoly, do the corresponding column operation,
+                        # which doesn't mess up the matrix, since it only changes
+                        # column m, and we're only worried about column m-1 right now.
+                        # Add u*column_j to column_m.
+                        self.add_multiple_of_column_c(m, j, u, 0)
+        verbose("Finished Hessenberg Normal Form of %sx%s matrix"%(n,n),tm)
+
+
+
+    #####################################################################################
+    # Generic Echelon Form
+    #####################################################################################
+    def echelonize(self, algorithm="default", cutoff=0):
         """
         Transform self into echelon form using the classical algorithm (there is
         no in-place Strassen).
         """
         self.check_mutability()
-        self._echelon_in_place_classical()
+        if algorithm == 'classical':
+            self._echelon_in_place_classical()
+        elif algorithm == 'strassen':
+            self._echelon_strassen(cutoff)
+        elif algorithm == 'default':
+            self._echelon_strassen(cutoff)
+        else:
+            raise ValueError, "Unknown algorithm '%s'"%algorithm
 
-
-    def echelon_form(self, algorithm="default"):
+    def echelon_form(self, algorithm="default", cutoff=0):
         """
         Return the echelon form of self.
         """
-        if algorithm == 'classical':
-            return self._echelon_classical()
-        elif algorithm == 'strassen':
-            return self._echelon_strassen()
-        elif algorithm == 'default':
-            return self._echelon_strassen()
-        else:
-            raise ValueError, "Unknown algorithm '%s'"%algorithm
+        x = self.fetch('echelon_form')
+        if not x is None:
+            return x
+        E = self.copy()
+        E.echelonize(algorithm = algorithm, cutoff=cutoff)
+        self.cache('echelon_form', E)
+        self.cache('pivots', E.pivots())
+        return E
 
     def _echelon_classical(self):
         """
@@ -3036,7 +2967,7 @@ cdef class Matrix(ModuleElement):
 
     def _echelon_in_place_classical(self):
         """
-        Return the echelon form of self.
+        Return the echelon form of self and set the pivots of self.
         """
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
@@ -3106,17 +3037,26 @@ cdef class Matrix(ModuleElement):
 
     def _echelon_strassen(self, int cutoff=0):
         """
+        In place Strassen echelon of self, and sets the pivots.
+
         EXAMPLES:
             sage: ?
         """
+        self.check_mutability()
+
         if cutoff == 0:
             cutoff = self._strassen_default_cutoff(self)
 
         if cutoff <= 1:
             raise ValueError, "cutoff must be at least 2"
+
+        if self._nrows < cutoff or self._ncols < cutoff:
+            self._echelon_in_place_classical()
+            return
+
         pivots = self._strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
-        return self
+
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0, Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         if nrows == -1:
@@ -3376,7 +3316,7 @@ cdef class Matrix(ModuleElement):
     def _strassen_echelon(self, A, cutoff):
         """
         Compute echelon form, in place.
-        Internal function, call with M.echelon(alg="block")
+        Internal function, call with M.echelonize(algorithm="strassen")
         Based on work of Robert Bradshaw and David Harvey at MSRI workshop in 2006.
 
         INPUT:
@@ -3391,7 +3331,7 @@ cdef class Matrix(ModuleElement):
             sage: parent = MatrixSpace(QQ, 5, 30)
             sage: data = parent.random_element(range(18), prob=.2).list() # test lots of non-pivots
             sage: A = m.Matrix_rational_dense(parent, data)
-            sage: T = A.echelon(alg="gauss")
+            sage: T = A.echelonize(alg="gauss")
             sage: E = A.echelon_strassen(4)
             sage: A.copy() == T.copy()  # fix when parents are changed
             True
@@ -3732,13 +3672,12 @@ cdef class MatrixWindow:
     def swap_rows(MatrixWindow self, int a, int b):
         self._matrix.swap_rows(self._row + a, self._row + b)
 
-
     def echelon_in_place(MatrixWindow self):
         """
         Calculate the echelon form of this matrix, returning the list of pivot columns
         """
         echelon = self.to_matrix()
-        echelon.echelon() # TODO: read only, only need to copy pointers
+        echelon.echelonize() # TODO: read only, only need to copy pointers
         self.set_to(echelon.matrix_window())
         return echelon.pivots()
 
@@ -3895,6 +3834,6 @@ def unpickle(cls, parent, mutability, cache, data, version):
     if version >= 0:
         A._unpickle(data, version)
     else:
-        Matrix._unpickle(A, data, version)
+        A._unpickle_generic(data, version)
     return A
 

@@ -137,10 +137,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_set(x.value, self._matrix[i][j])
         return x
 
-    cdef _pickle(self):
+    def _pickle(self):
         return self._pickle_version0(), 0
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle(self, data, int version):
         if version == 0:
             self._unpickle_version0(data)
         else:

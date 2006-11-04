@@ -40,8 +40,8 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     ########################################################################
     # LEVEL 2 functionality
-    #   * cdef _pickle
-    #   * cdef _unpickle
+    #   * def _pickle
+    #   * def _unpickle
     #   * cdef _add_c_impl
     #   * cdef _mul_c_impl
     #   * cdef _cmp_c_impl
@@ -52,8 +52,8 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
-    # cdef _pickle(self):
-    # cdef _unpickle(self, data, int version):   # use version >= 0
+    # def _pickle(self):
+    # def _unpickle(self, data, int version):   # use version >= 0
     # cdef ModuleElement _add_c_impl(self, ModuleElement right):
     # cdef _mul_c_impl(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:

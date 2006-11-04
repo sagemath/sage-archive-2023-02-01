@@ -82,12 +82,12 @@ cdef class Matrix_dense(matrix.Matrix):
         return left.new_matrix(left._nrows, right._ncols, entries = v, coerce=False, copy=False)
 
 
-    cdef _pickle(self):
+    def _pickle(self):
         version = -1
         data = self._list()  # linear list of all elements
         return data, version
 
-    cdef _unpickle(self, data, int version):
+    def _unpickle_generic(self, data, int version):
         cdef Py_ssize_t i, j, k
         if version == -1:
             # data is a *list* of the entries of the matrix.
@@ -95,7 +95,6 @@ cdef class Matrix_dense(matrix.Matrix):
             k = 0
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < self._ncols:
-                    print "setting %s, %s entry to %s"%(i,j,data[k])
                     self.set_unsafe(i, j, data[k])
                     k = k + 1
         else:

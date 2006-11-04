@@ -48,13 +48,22 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)
     cdef _coerce_element(self, x)
 
-    # Pickling:
-    cdef _pickle(self)
-    cdef _unpickle(self, data, int version)
-
-
     # Strassen
     cdef subtract_strassen_product(self, result, A, B, int cutoff)
+
+    # Row and column operations
+    cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2)
+    cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2)
+    cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2)
+    cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2)
+    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start)
+    cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start)
+    cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col)
+    cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row)
+
+
+
+
 
 cdef class MatrixWindow:
     cdef Py_ssize_t _row, _col, _nrows, _ncols

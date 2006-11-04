@@ -21,7 +21,7 @@ import matrix_generic_sparse
 ## import matrix_field_sparse
 
 import matrix_modn_dense
-## import matrix_modn_sparse
+import matrix_modn_sparse
 
 import matrix_integer_dense
 ## import matrix_integer_sparse

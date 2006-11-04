@@ -1,5 +1,53 @@
 """
-Matrix over integers modulo p, for p <= 46340
+Matrix over integers modulo n, for n <= 46340
+
+EXAMPLES:
+    sage: a = matrix(Integers(37),3,range(9),sparse=False); a
+    [0 1 2]
+    [3 4 5]
+    [6 7 8]
+    sage: a.rank()
+    2
+    sage: type(a)
+    <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
+    sage: a[0,0] = 5
+    sage: a.rank()
+    3
+    sage: parent(a)
+    Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 37
+
+    sage: a^2
+    [ 3 23 31]
+    [20 17 29]
+    [25 16  0]
+    sage: a+a
+    [10  2  4]
+    [ 6  8 10]
+    [12 14 16]
+
+    sage: b = a.new_matrix(2,3,range(6)); b
+    [0 1 2]
+    [3 4 5]
+    sage: a*b
+    Traceback (most recent call last):
+    ...
+    ArithmeticError: number of columns of self must equal number of rows of right.
+    sage: b*a
+    [15 18 21]
+    [20 17 29]
+
+    sage: a == loads(dumps(a))
+    True
+    sage: b == loads(dumps(b))
+    True
+
+    sage: a.echelonize(); a
+    [1 0 0]
+    [0 1 0]
+    [0 0 1]
+    sage: b.echelonize(); b
+    [ 1  0 36]
+    [ 0  1  2]
 """
 
 include "../ext/interrupt.pxi"
@@ -13,10 +61,14 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.structure.element import ModuleElement
 
-# change this to use extern cdef's methods.
+from sage.misc.misc import verbose, get_verbose
+
+################
+# TODO: change this to use extern cdef's methods.
 from sage.ext.arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
+################
 
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
@@ -129,8 +181,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
-    # cdef _pickle(self):
-    # cdef _unpickle(self, data, int version):   # use version >= 0
+    # def _pickle(self):
+    # def _unpickle(self, data, int version):   # use version >= 0
     # cdef ModuleElement _add_c_impl(self, ModuleElement right):
     # cdef _mul_c_impl(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
@@ -150,11 +202,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     #        - all row/column operations, but optimized
-    #        - echelon form in place
+    # x      - echelon form in place
     #        - Hessenberg forms of matrices
     ########################################################################
 
-    # fix all type conversion and Py_ssize_t's below
+    # TODO TODO: fix all type conversion and Py_ssize_t's below
 
     def _echelon_in_place_classical(self):
         x = self.fetch('in_echelon_form')
@@ -171,31 +223,36 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         nr = self._nrows
         nc = self._ncols
         pivots = []
+        fifth = self._ncols / 10 + 1
+        do_verb = (get_verbose() >= 2)
         for c from 0 <= c < nc:
+            if do_verb and (c % fifth == 0 and c>0):
+                tm = verbose('on column %s of %s'%(c, self._ncols),
+                             level = 2,
+                             caller_name = 'matrix_modn_dense echelon')
+            #end if
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for r from start_row <= r < nr:
                 a = m[r][c]
                 if a:
                     pivots.append(c)
                     a_inverse = ai.c_inverse_mod_int(a, p)
-                    self.rescale_row_c(r, a_inverse, c)
-                    self.swap_rows_c(r, start_row)
+                    self._rescale_row_c(r, a_inverse, c)
+                    self._swap_rows_c(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
                             b = m[i][c]
                             if b != 0:
-                                self.add_multiple_of_row_c(i, start_row, p-b, c)
+                                self._add_multiple_of_row_c(i, start_row, p-b, c)
                     start_row = start_row + 1
                     break
         self.cache('pivots',pivots)
         self.cache('in_echelon_form',True)
 
-    def rescale_row(self, Py_ssize_t i, s, Py_ssize_t start_col=0):
-        self.check_bounds_and_mutability(i,0)
-        t = self._coerce_element(s)
-        self.rescale_row_c(i, (<IntegerMod_int> t).get_int_value(), start_col)
+    cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
+        self._rescale_row_c(row, multiple, start_col)
 
-    cdef rescale_row_c(self, Py_ssize_t row, uint multiple, Py_ssize_t start_col):
+    cdef _rescale_row_c(self, Py_ssize_t row, uint multiple, Py_ssize_t start_col):
         cdef uint r, p
         cdef uint* v
         cdef Py_ssize_t i
@@ -204,7 +261,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         for i from start_col <= i < self._ncols:
             v[i] = (v[i]*multiple) % p
 
-    def rescale_col(self, Py_ssize_t i, s, Py_ssize_t start_row=0):
+    cdef rescale_col_c(self, Py_ssize_t col, multiple, Py_ssize_t start_row):
+        self._rescale_col_c(col, multiple, start_row)
+
+    cdef _rescale_col_c(self, Py_ssize_t col, uint multiple, Py_ssize_t start_row):
         """
         EXAMPLES:
             sage: n=3; b = MatrixSpace(Integers(37),n,n,sparse=False)([1]*n*n)
@@ -230,10 +290,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [2 5 1]
             [2 5 1]
         """
-        self.check_bounds_and_mutability(0,i)
-        self.rescale_col_c(i, s, start_row)
-
-    cdef rescale_col_c(self, Py_ssize_t col, uint multiple, Py_ssize_t start_row):
         cdef uint r, p, t
         cdef uint* v
         cdef Py_ssize_t i
@@ -244,58 +300,50 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         for i from start_row <= i < self._nrows:
             self.matrix[i][col] = (self.matrix[i][col]*x) % p
 
-    def add_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t col_start=0):
-        self.check_bounds_and_mutability(i,0)
-        self.check_bounds_and_mutability(j,0)
-        s = self._coerce_element(s)
-        cdef uint x
-        x = (<IntegerMod_int> s).get_int_value()
-        self.add_multiple_of_row_c(i,j,x,col_start)
+    cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple,
+                               Py_ssize_t start_col):
+        self._add_multiple_of_row_c(row_to, row_from, multiple, start_col)
 
-    cdef add_multiple_of_row_c(self,  uint row_to, uint row_from, uint multiple,
-                               uint start_col):
-        cdef uint i, p, nc
+    cdef _add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, uint multiple,
+                               Py_ssize_t start_col):
+        cdef uint p
         cdef uint *v_from, *v_to
+
         p = self.p
         v_from = self.matrix[row_from]
         v_to = self.matrix[row_to]
+
+        cdef Py_ssize_t i, nc
         nc = self._ncols
         for i from start_col <= i < nc:
             v_to[i] = (multiple * v_from[i] +  v_to[i]) % p
 
-    def add_multiple_of_column(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start=0):
-        self.check_bounds_and_mutability(0,i)
-        self.check_bounds_and_mutability(0,j)
-        self.add_multiple_of_column_c(i, j, s, 0)
+    cdef add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from, s,
+                                   Py_ssize_t start_row):
+        self._add_multiple_of_column_c(col_to, col_from, s, start_row)
 
-    cdef add_multiple_of_column_c(self, uint col_to, uint col_from, uint multiple,
-                               uint start_row):
-        cdef uint i, p, nr
+    cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from, uint multiple,
+                                   Py_ssize_t start_row):
+        cdef uint  p
         cdef uint **m
+
         m = self.matrix
         p = self.p
+
+        cdef Py_ssize_t i, nr
         nr = self._nrows
         for i from start_row <= i < self._nrows:
             m[i][col_to] = (m[i][col_to] + multiple * m[i][col_from]) %p
 
-    def swap_rows(self, r1, r2):
-        self.check_bounds_and_mutability(r1,0)
-        self.check_bounds_and_mutability(r2,0)
-        self.swap_rows_c(r1, r2)
-
-    cdef swap_rows_c(self, uint row1, uint row2):
+    cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
         cdef uint* temp
         temp = self.matrix[row1]
         self.matrix[row1] = self.matrix[row2]
         self.matrix[row2] = temp
 
-    def swap_columns(self, c1, c):
-        self.check_bounds_and_mutability(0,c1)
-        self.check_bounds_and_mutability(0,c2)
-        self.swap_columns_c(c1, c)
-
-    cdef swap_columns_c(self, uint col1, uint col2):
-        cdef uint i, t, nr
+    cdef swap_columns_c(self, Py_ssize_t col1, Py_ssize_t col2):
+        cdef Py_ssize_t i, nr
+        cdef uint t
         cdef uint **m
         m = self.matrix
         nr = self._nrows
@@ -315,14 +363,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         if self._nrows != self._ncols:
             raise ArithmeticError, "Matrix must be square to compute Hessenberg form."
 
-        cdef uint n
+        cdef Py_ssize_t n
         n = self._nrows
 
         cdef uint **h
         h = self.matrix
 
         cdef uint p, r, t, t_inv, u
-        cdef int i, j, m
+        cdef Py_ssize_t i, j, m
         p = self.p
 
         _sig_on
@@ -343,21 +391,21 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                  t = h[i][m-1]
                  t_inv = ai.c_inverse_mod_int(t,p)
                  if i > m:
-                     self.swap_rows_c(i,m)
-                     self.swap_columns_c(i,m)
+                     self._swap_rows_c(i,m)
+                     self._swap_columns_c(i,m)
 
                  # Now the nonzero entry in position (m,m-1) is t.
                  # Use t to clear the entries in column m-1 below m.
                  for j from m+1 <= j < n:
                      if h[j][m-1]:
                          u = (h[j][m-1] * t_inv) % p
-                         self.add_multiple_of_row_c(j, m, p - u, 0)  # h[j] -= u*h[m]
+                         self._add_multiple_of_row_c(j, m, p - u, 0)  # h[j] -= u*h[m]
                          # To maintain charpoly, do the corresponding
                          # column operation, which doesn't mess up the
                          # matrix, since it only changes column m, and
                          # we're only worried about column m-1 right
                          # now.  Add u*column_j to column_m.
-                         self.add_multiple_of_column_c(m, j, u, 0)
+                         self._add_multiple_of_column_c(m, j, u, 0)
                  # end for
             # end if
         # end for
@@ -377,8 +425,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly not defined for non-square matrix."
 
-        cdef uint i, m, n, p, t
+        cdef Py_ssize_t i, m, n,
         n = self._nrows
+
+        cdef uint p, t
         p = self.p
 
         # Replace self by its Hessenberg form, and set H to this form
@@ -409,12 +459,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             for i from 1 <= i <= n:
                 c.matrix[m][i] = c.matrix[m-1][i-1]
             # the p-.. below is to keep scalar normalized between 0 and p.
-            c.add_multiple_of_row_c(m, m-1, p - H.matrix[m-1][m-1], 0)
+            c._add_multiple_of_row_c(m, m-1, p - H.matrix[m-1][m-1], 0)
             t = 1
             for i from 1 <= i < m:
                 t = (t*H.matrix[m-i][m-i-1]) % p
                 # Set the m-th row of c to c[m] - t*H[m-i-1,m-1]*c[m-i-1]
-                c.add_multiple_of_row_c(m, m-i-1, p - (t*H.matrix[m-i-1][m-1])%p, 0)
+                c._add_multiple_of_row_c(m, m-i-1, p - (t*H.matrix[m-i-1][m-1])%p, 0)
 
         # The answer is now the n-th row of c.
         v = []

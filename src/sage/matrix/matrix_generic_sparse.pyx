@@ -417,67 +417,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 ##         return SparseMatrix(self.base_ring(), self.nrows(),
 ##                             self.ncols(), X, coerce=False, sort=False)
 
-##     def echelon_form(self, params=None):
-##         """
-##         Returns the echelon form of this matrix.
-
-##         INPUT:
-##            params -- ignored.
-##         """
-##         # ALGORITHM:
-##         # Since we know nothing about the base field, we use a generic
-##         # algorithm.  Since sparse matrices are stored as triples
-##         # (i,j,x), which is not a suitable format for row operations,
-##         # we first convert to a list of sparse rows, then directly
-##         # perform a generic echelon algorithm on that list of rows.
-##         if self.__echelon_form is not None:
-##             return self.__echelon_form
-##         t = misc.verbose("Started generic sparse echelon.")
-##         K = self.base_ring()
-##         ONE = K(1)
-##         if not K.is_field():
-##             raise ArithmeticError, "The base ring must be a field."
-##         X = self.rows()
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         pivot_positions = []
-##         start_row = 0
-##         nrows = self.nrows()
-##         ncols = self.ncols()
-##         for c in range(ncols):
-## #            N = [(X[r].num_nonzero(),r) for r in xrange(start_row, nrows) \
-## #                 if X[r].first_nonzero_position() == c]
-##             N = []
-##             for r in xrange(start_row, nrows):
-##                 if X[r].first_nonzero_position() == c:
-##                     N.append((X[r].num_nonzero(),r))
-##             if len(N) == 0:
-##                 continue
-##             N.sort()
-##             r = N[0][1]
-##             leading = X[r].first_nonzero_entry()
-##             if leading != 0:
-##                 pivot_positions.append(c)
-##                 # 1. Rescale
-##                 X[r].rescale(ONE/leading)
-##                 # 2. Swap
-##                 X[r], X[start_row] = X[start_row], X[r]
-##                 # 3. Clear column
-##                 for i in range(nrows):
-##                     if i != start_row:
-##                         s = X[i][c]
-##                         if s != 0:
-##                             X[i] = X[i].add(X[start_row], -s)
-##             # endif
-##             start_row = start_row + 1
-##         #endfor
-##         if self.is_immutable():
-##             self.__pivots = pivot_positions
-##             E = Matrix_generic_sparse_from_rows(X)
-##             E.__pivots = pivot_positions
-##             self.__echelon_form = E
-##         misc.verbose("Finished generic echelon.",t)
-##         return E
 
 ####################################################################################
 # Various helper functions

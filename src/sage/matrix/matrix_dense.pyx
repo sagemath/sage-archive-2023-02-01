@@ -85,6 +85,8 @@ cdef class Matrix_dense(matrix.Matrix):
         return left.new_matrix(left._nrows, right._ncols, entries = v, coerce=False, copy=False)
 
 
+
+
     def _pickle(self):
         version = -1
         data = self._list()  # linear list of all elements

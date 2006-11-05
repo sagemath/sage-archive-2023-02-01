@@ -2522,6 +2522,60 @@ cdef class Matrix(ModuleElement):
 ##         """
 ##         raise NotImplementedError
 
+    def denominator(self):
+        r"""
+        Return the least common multiple of the denominators of the
+        elements of self.
+
+        If there is no denominator function for the base field, or no
+        LCM function for the denominators, raise a TypeError.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(RationalField(),2)(['1/2', '1/3', '1/5', '1/7'])
+            sage: A.denominator()
+            210
+
+        Denominators are note defined for real numbers:
+            sage: A = MatrixSpace(RealField(),2)([1,2,3,4])
+            sage: A.denominator()
+            Traceback (most recent call last):
+            ...
+            TypeError: denominator not defined for elements of the base ring
+
+        We can even compute the denominator of matrix over the fraction field
+        of $\Z[x]$.
+            sage: K.<x> = FractionField(PolynomialRing(IntegerRing()))
+            sage: A = MatrixSpace(K,2)([1/x, 2/(x+1), 1, 5/(x^3)])
+            sage: A.denominator()
+            x^4 + x^3
+
+        Here's an example involving a cyclotomic field:
+            sage: K.<z> = CyclotomicField(3)
+            sage: M = MatrixSpace(K,3,sparse=True)
+            sage: A = M([(1+z)/3,(2+z)/3,z/3,1,1+z,-2,1,5,-1+z])
+            sage: print A
+            [1/3*z + 1/3 1/3*z + 2/3       1/3*z]
+            [          1       z + 1          -2]
+            [          1           5       z - 1]
+            sage: print A.denominator()
+            3
+        """
+        if self.nrows() == 0 or self.ncols() == 0:
+            return integer.Integer(1)
+        R = self.base_ring()
+        x = self.list()
+        try:
+            d = x[0].denominator()
+        except AttributeError:
+            raise TypeError, "denominator not defined for elements of the base ring"
+        try:
+            for y in x:
+                d = d.lcm(y.denominator())
+        except AttributeError:
+            raise TypeError, "lcm function not defined for elements of the base ring"
+        return d
+
+
     def trace(self):
         """
         Return the trace of self, which is the sum of the
@@ -3390,6 +3444,49 @@ cdef class Matrix(ModuleElement):
             return E, Edual
         return E
 
+    def decomposition_of_subspace(self, M, is_diagonalizable=False):
+        """
+        Suppose the right action of self on M leaves M
+        invariant. Return the decomposition of M as a list of pairs
+        (W, is_irred) where is_irred is True if the charpoly of self
+        acting on the factor W is irreducible.
+        """
+        if not sage.modules.free_module.is_FreeModule(M):
+            raise TypeError, "M must be a free module."
+        if not self.is_square():
+            raise ArithmeticError, "matrix must be square"
+        if M.base_ring() != self.base_ring():
+            raise ArithmeticError, "base rings are incompatible"
+        if M.degree() != self.ncols():
+            raise ArithmeticError, \
+               "M must be a subspace of an %s-dimensional space"%self.ncols()
+
+        time = verbose(t=0)
+
+        # 1. Restrict
+        B = self.restrict(M)
+        time0 = verbose("restrict -- ", time)
+
+        # 2. Decompose restriction
+        D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
+
+        assert sum([A.dimension() for A,_ in D]) == M.dimension(), "bug in decomposition; " + \
+               "the sum of the dimensions of the factors must equal the dimension of the acted on space."
+
+        # 3. Lift decomposition to subspaces of ambient vector space.
+        # Each basis vector for an element of D defines a linear combination
+        # of the basis of W, and these linear combinations define the
+        # corresponding subspaces of the ambient space M.
+
+        verbose("decomposition -- ", time0)
+        C = M.basis_matrix()
+        Z = M.ambient_vector_space()
+
+        D = [(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]
+
+        verbose(t=time)
+        return D
+
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
@@ -3414,6 +3511,26 @@ cdef class Matrix(ModuleElement):
     def echelon_form(self, algorithm="default", cutoff=0):
         """
         Return the echelon form of self.
+
+        INPUT:
+            matrix -- an element A of a MatrixSpace
+
+        OUTPUT:
+            matrix -- The reduced row echelon form of A.
+            Note that self is *not* changed by this command.
+            Use A.echelonize() to change A in place.
+
+        EXAMPLES:
+           sage: MS = MatrixSpace(RationalField(),2,3)
+           sage: C = MS.matrix([1,2,3,4,5,6])
+           sage: C.rank()
+           2
+           sage: C.nullity()
+           1
+           sage: C.echelon_form()
+           [ 1  0 -1]
+           [ 0  1  2]
+
         """
         x = self.fetch('echelon_form')
         if not x is None:

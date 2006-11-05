@@ -199,12 +199,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
             sage: f = (17/2)*x^-2 + x + x^2 + 3*x^4 + O(x^7)
-            sage: f._latex_()
-            '\\frac{17}{2}x^{-2} + x + x^{2} + 3x^{4} + \\cdots'
+            sage: latex(f)
+            \frac{\frac{17}{2}}{x^{-2}} + x + x^{2} + 3x^{4} + \cdots
         """
         if self.is_zero():
             if self.prec() == infinity:

@@ -360,21 +360,24 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         return F, f, g
 
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         The characteristic polynomial of this element, which is by
         definition the characteristic polynomial of right multiplication
         by this element.
 
+        INPUT:
+            var -- string -- the variable name
+
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quo(x^3 -389*x^2 + 2*x - 5)
-            sage: a.charpoly()
-            x^3 - 389*x^2 + 2*x - 5
+            sage: a.charpoly('X')
+            X^3 - 389*X^2 + 2*X - 5
         """
-        return self.matrix().charpoly()
+        return self.matrix().charpoly(var)
 
-    def fcp(self):
+    def fcp(self, var):
         """
         Return the factorization of the characteristic polynomial
         of this element.
@@ -382,12 +385,12 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
-            sage: a.fcp()
+            sage: a.fcp('x')
             (x^3 - 389*x^2 + 2*x - 5)
-            sage: S(1).fcp()
-            (x - 1)^3
+            sage: S(1).fcp('y')
+            (y - 1)^3
         """
-        return self.charpoly().factor()
+        return self.charpoly(var).factor()
 
     def lift(self):
         """

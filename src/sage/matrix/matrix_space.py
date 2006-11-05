@@ -244,7 +244,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         """
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
-                raise TypeError, "cannot coerce sparse matrix into dense space for arithmetic"
+                raise TypeError, "cannot coerce dense matrix into sparse space for arithmetic"
         # todo: this is *way* too permissive and must be fixed!
         return self(x)
 

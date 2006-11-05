@@ -33,6 +33,9 @@ cdef class Matrix_dense(matrix.Matrix):
             sage: hash(m) == hash(d)
             True
         """
+        return self._hash()
+
+    cdef long _hash(self) except -1:
         x = self.fetch('hash')
         if not x is None: return x
 
@@ -102,3 +105,42 @@ cdef class Matrix_dense(matrix.Matrix):
 
     cdef int _cmp_c_impl(self, matrix.Matrix right) except -2:
         return cmp(self._list(), right._list())
+
+    def transpose(self):
+        """
+        Returns the transpose of self, without changing self.
+
+        EXAMPLES:
+        We create a matrix, compute its transpose, and note that the
+        original matrix is not changed.
+            sage: M = MatrixSpace(QQ,  2)
+            sage: A = M([1,2,3,4])
+            sage: B = A.transpose()
+            sage: print B
+            [1 3]
+            [2 4]
+            sage: print A
+            [1 2]
+            [3 4]
+        """
+        f = []
+        e = self.list()
+        (nc, nr) = (self.ncols(), self.nrows())
+        for j in xrange(nc):
+            for i in xrange(nr):
+                f.append(e[i*nc + j])
+        return self.new_matrix(nrows = nc, ncols = nr,
+                               entries = f, copy=False,
+                               coerce=False)
+
+
+    def antitranspose(self):
+        f = []
+        e = self.list()
+        (nc, nr) = (self.ncols(), self.nrows())
+        for j in reversed(xrange(nc)):
+            for i in reversed(xrange(nr)):
+                f.append(e[i*nc + j])
+        return self.new_matrix(nrows = nc, ncols = nr,
+                               entries = f, copy=False, coerce=False)
+

@@ -164,6 +164,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+    def __hash__(self):
+        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality
@@ -241,12 +243,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
         return A
 
     def __copy__(self):
-        cdef Matrix_generic_sparse M
-        M = Matrix_generic_sparse.__new__(Matrix_generic_sparse, self._parent,0,0,0)
-        M._entries = dict(self._entries)
-        M._base_ring = self._base_ring
-        M._zero = self._zero
-        return M
+        return self.__class__(self._parent, self._entries, copy = True, coerce=False)
+
 
     def _list(self):
         """

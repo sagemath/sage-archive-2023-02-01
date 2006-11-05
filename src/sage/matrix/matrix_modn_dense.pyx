@@ -90,13 +90,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self, parent)
 
-        self.matrix = <uint **> sage_malloc(sizeof(uint*)*self._nrows)
-        if self.matrix == NULL:
-            raise MemoryError, "Error allocating memory"
-
         self._entries = <uint *> sage_malloc(sizeof(uint)*self._nrows*self._ncols)
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
+
+        self.matrix = <uint **> sage_malloc(sizeof(uint*)*self._nrows)
+        if self.matrix == NULL:
+            raise MemoryError, "Error allocating memory"
 
         cdef uint k
         k = 0
@@ -156,6 +156,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __richcmp__(Matrix_modn_dense self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+    def __hash__(self):
+        return self._hash()
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         self.matrix[i][j] = (<IntegerMod_int> value).ivalue
@@ -352,7 +354,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             m[i][col1] = m[i][col2]
             m[i][col2] = t
 
-    def hessenberg_form(self):
+    def hessenbergize(self):
         """
         Transforms self in place to its Hessenberg form.
         """
@@ -433,7 +435,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         # Replace self by its Hessenberg form, and set H to this form
         # for notation below.
-        self.hessenberg_form()
+        self.hessenbergize()
 
         cdef Matrix_modn_dense H
         H = self  # just for notational purposes below

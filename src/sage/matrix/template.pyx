@@ -20,6 +20,7 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * set_unsafe
     #   * get_unsafe
     #   * __richcmp__    -- always the same
+    #   * __hash__       -- alway simple
     ########################################################################
     #def __new__(self, parent, entries, copy, coerce):
     #    allocate memory
@@ -27,6 +28,9 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    free memory
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+    def __hash__(self):
+        return self._hash()
+
 
     def __init__(self, parent, entries, copy, coerce):
         pass
@@ -43,6 +47,7 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * def _pickle
     #   * def _unpickle
     #   * cdef _add_c_impl
+    #   * cdef _sub_c_impl
     #   * cdef _mul_c_impl
     #   * cdef _cmp_c_impl
     #   * __neg__

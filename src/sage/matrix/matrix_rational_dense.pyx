@@ -52,11 +52,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, k
 
         self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
-        if self._entries == <mpq_t *> 0:
+        if self._entries == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
-        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._ncols)
-        if self._matrix == <mpq_t**> 0:
+        self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
+        if self._matrix == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
         # store pointers to the starts of the rows
@@ -80,21 +80,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         cdef Rational z
 
-        if not isinstance(entries, list):
-            try:
-                entries = list(entries)
-                is_list = 1
-            except TypeError:
-                try:
-                    # Try to coerce entries to a scalar (an integer)
-                    z = Rational(entries)
-                    is_list = 0
-                except TypeError:
-                    raise TypeError, "entries must be coercible to a list or integer"
-        else:
-            is_list = 1
-
-        if is_list:
+        if isinstance(entries, list):
             if len(entries) != self._nrows * self._ncols:
                 raise TypeError, "entries has the wrong length"
 
@@ -107,22 +93,23 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             else:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
-                    z = entries[i]
-                    mpq_set(self._entries[i], z.value)
+                    mpq_set(self._entries[i], (<Rational> entries[i]).value)
             _sig_off
 
         else:
-            # is it a scalar
-            _sig_on
-            for i from 0 <= i < self._nrows * self._ncols:
-                mpq_init(self._entries[i])
-            _sig_off
+            # is it a scalar?
+            try:
+                # Try to coerce entries to a scalar (an integer)
+                z = Rational(entries)
+                is_list = False
+            except TypeError:
+                raise TypeError, "entries must be coercible to a list or integer"
 
             if not z.is_zero():
                 if self._nrows != self._ncols:
                     raise TypeError, "nonzero scalar matrix must be square"
                 for i from 0 <= i < self._nrows:
-                    mpq_set(self._entries[i*i+i], z.value)
+                    mpq_set(self._entries[i*self._ncols+i], z.value)
 
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
@@ -198,6 +185,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def __richcmp__(Matrix self, right, int op):
         return self._richcmp(right, op)
+    def __hash__(self):
+        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality

@@ -333,7 +333,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             pass
         commutative_ring.CommutativeRing._assign_names(self, names)
 
-class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
+class MPolynomialRing_polydict(MPolynomialRing_generic, MPolynomialRing_macaulay2_repr):
     """
     Multivariable polynomial ring.
 
@@ -438,9 +438,9 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_g
 
 
 
-class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
+class MPolynomialRing_polydict_domain(MPolynomialRing_polydict,
+                                      integral_domain.IntegralDomain,
                                       PolynomialRing_singular_repr,
-                                      MPolynomialRing_polydict,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)

@@ -22,13 +22,16 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef public object _base_ring
     cdef sage.structure.mutability.Mutability _mutability
 
-    cdef int _will_use_strassen(self, Matrix right) except -1
-    cdef int _strassen_default_cutoff(self, Matrix right) except -1
+    cdef int _will_use_strassen(self, Matrix right) except -2
+    cdef int _will_use_strassen_echelon(self) except -2
+    cdef int _strassen_default_cutoff(self, Matrix right) except -2
+    cdef int _strassen_default_echelon_cutoff(self) except -2
 
     cdef _mul_c_impl(self, Matrix right)
     cdef int _cmp_c_impl(self, Matrix right) except -2
 
     cdef public _richcmp(self, right, int op)
+    cdef long _hash(self) except -1
 
     # Pivots.
     cdef _set_pivots(self, X)

@@ -19,7 +19,20 @@ cdef class Matrix_sparse(matrix.Matrix):
         copy will not change the entries of this matrix.
 
         EXAMPLES:
-            sage: ???
+            sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2], sparse=True); A
+            [ 0 -1]
+            [ 2 -2]
+            sage: B = copy(A); B
+            [ 0 -1]
+            [ 2 -2]
+            sage: B is A
+            False
+            sage: B[0,0]=10; B
+            [10 -1]
+            [ 2 -2]
+            sage: A
+            [ 0 -1]
+            [ 2 -2]
         """
         return self.new_matrix(entries=self.dict(), coerce=False, copy=False)
 
@@ -31,19 +44,18 @@ cdef class Matrix_sparse(matrix.Matrix):
         the other is dense.
 
         EXAMPLES:
-            sage: m = matrix(2, range(6))
+            sage: m = matrix(2, range(6), sparse=True)
             sage: m.set_immutable()
             sage: hash(m)
             5
-            sage: d = M.dense_matrix()
+
+        The sparse and dense hashes should agree:
+            sage: d = m.dense_matrix()
             sage: d.set_immutable()
             sage: hash(d)
-            ?
+            5
 
-            sage: hash(m) == hash(d)
-
-
-            sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
+            sage: A = Matrix(ZZ[['t']], 2, 2, range(4), sparse=True)
             sage: hash(A)
             Traceback (most recent call last):
             ...
@@ -53,6 +65,9 @@ cdef class Matrix_sparse(matrix.Matrix):
             sage: hash(A) == hash(B)
             True
         """
+        return self._hash()
+
+    cdef long _hash(self) except -1:
         x = self.fetch('hash')
         if not x is None: return x
 
@@ -71,17 +86,25 @@ cdef class Matrix_sparse(matrix.Matrix):
                 PyInt_AS_LONG(<object>PyTuple_GET_ITEM(ij,1))
 
             h = h ^ (i*PyObject_Hash(x))
+        if h == -1: h = -2
 
         self.cache('hash', h)
         return h
 
     def _multiply_classical(Matrix_sparse left, Matrix_sparse right):
         """
-        sage: do 0 x 0 case
+        EXAMPLES:
+            sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2], sparse=True)
+            sage: type(A)
+            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
+            sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2], sparse=True)
+            sage: A*B
+            [2 2]
+            [2 2]
         """
-        cdef Py_ssize_t row, col, row_start, k1, k2, len_left, len_right
+        cdef Py_ssize_t row, col, row_start, k1, k2, len_left, len_right, a, b
         left_nonzero = left.nonzero_positions(copy=False, column_order=False)
-        right_nonzero = left.nonzero_positions(copy=False, column_order=True)
+        right_nonzero = right.nonzero_positions(copy=False, column_order=True)
         len_left = len(left_nonzero)
         len_right = len(right_nonzero)
 
@@ -98,14 +121,16 @@ cdef class Matrix_sparse(matrix.Matrix):
                 k1 = row_start
                 while k1 < len_left and get_ij(left_nonzero,k1,0) == row and \
                           k2 < len_right and get_ij(right_nonzero,k2,1) == col:
-                    if get_ij(left_nonzero,k1,1) == get_ij(right_nonzero,k2,0):
+                    a = get_ij(left_nonzero, k1,1)
+                    b = get_ij(right_nonzero,k2,0)
+                    if a == b:
                         if sum is None:
-                            sum = left[left_nonzero[k1]] * right[right_nonzero[k2]]
+                            sum = left.get_unsafe(row,a)*right.get_unsafe(a,col)
                         else:
-                            sum = sum + left[left_nonzero[k1]] * right[right_nonzero[k2]]
+                            sum = sum + left.get_unsafe(row,a)*right.get_unsafe(a,col)
                         k1 = k1 + 1
                         k2 = k2 + 1
-                    elif get_ij(left_nonzero,k1,1) < get_ij(right_nonzero,k2,0):
+                    elif a < b:
                         k1 = k1 + 1
                     else:
                         k2 = k2 + 1
@@ -118,7 +143,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         _sig_off
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cdef int _will_use_strassen(self, matrix.Matrix right) except -1:
+    cdef int _will_use_strassen(self, matrix.Matrix right) except -2:
         # never use Strassen for sparse matrix multiply
         return 0
 
@@ -139,6 +164,47 @@ cdef class Matrix_sparse(matrix.Matrix):
 
     cdef int _cmp_c_impl(self, matrix.Matrix right) except -2:
         return cmp(self._dict(), right._dict())
+
+    def transpose(self):
+        """
+        Returns the transpose of self, without changing self.
+
+        EXAMPLES:
+        We create a matrix, compute its transpose, and note that the
+        original matrix is not changed.
+            sage: M = MatrixSpace(QQ,  2)
+            sage: A = M([1,2,3,4])
+            sage: B = A.transpose()
+            sage: print B
+            [1 3]
+            [2 4]
+            sage: print A
+            [1 2]
+            [3 4]
+        """
+        cdef Matrix_sparse A
+        A = self.new_matrix(self._ncols, self._nrows)
+
+        nz = self.nonzero_positions(copy=False)
+        cdef Py_ssize_t i, j, k
+        for k from 0 <= k < len(nz):
+            i = get_ij(nz, k, 0)
+            j = get_ij(nz, k, 1)
+            A.set_unsafe(j,i,self.get_unsafe(i,j))
+        return A
+
+    def antitranspose(self):
+        cdef Matrix_sparse A
+        A = self.new_matrix(self._ncols, self._nrows)
+
+        nz = self.nonzero_positions(copy=False)
+        cdef Py_ssize_t i, j, k
+        for k from 0 <= k < len(nz):
+            i = get_ij(nz, k, 0)
+            j = get_ij(nz, k, 1)
+            A.set_unsafe(self._ncols-j-1, self._nrows-i-1,self.get_unsafe(i,j))
+        return A
+
 
 ##################################
 # Helper code

@@ -30,7 +30,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 60
+INTERRUPT_TRIES = 20
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -315,12 +315,17 @@ class Worksheet:
         object_directory = os.path.abspath(self.__notebook.object_directory())
         #verbose(object_directory)
         # We do exactly one eval below of one long line instead of
-        cmd = 'from sage.all_notebook import *; '
-        cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
-        cmd += 'import sage.server.support as _support_; '
-        cmd += '__SAGENB__globals = set(globals().keys()); '
-        cmd += '_support_.init("%s", globals()); '%object_directory
-        S.eval(cmd)
+        try:
+            cmd = 'from sage.all_notebook import *; '
+            cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
+            cmd += 'import sage.server.support as _support_; '
+            cmd += '__SAGENB__globals = set(globals().keys()); '
+            cmd += '_support_.init("%s", globals()); '%object_directory
+            S.eval(cmd)
+        except Exception, msg:
+            print msg
+            del self.__sage
+            raise RuntimeError
 
         A = self.attached_files()
         for F in A.iterkeys():
@@ -685,7 +690,6 @@ class Worksheet:
             tm = 0.05
             al = INTERRUPT_TRIES * tm
             print "Trying to interrupt for at most %s seconds"%al
-            alarm(al)
             try:
                 for i in range(INTERRUPT_TRIES):
                     E.sendline('q')
@@ -699,7 +703,6 @@ class Worksheet:
                         verbose("Trying again to interrupt SAGE (try %s)..."%i)
             except Exception, msg:
                 print msg
-            cancel_alarm()
             if not success:
                 pid = self.__sage.pid()
                 cmd = 'kill -9 -%s'%pid

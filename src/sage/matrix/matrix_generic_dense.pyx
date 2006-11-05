@@ -13,6 +13,8 @@ def _convert_dense_entries_to_list(entries):
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/python_list.pxi"
+include "../ext/python_number.pxi"
+include "../ext/python_ref.pxi"
 
 cimport matrix_dense
 import matrix_dense
@@ -87,7 +89,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 if self._nrows != self._ncols:
                     raise TypeError, "nonzero scalar matrix must be square"
                 for i from 0 <= i < self._nrows:
-                    self._entries[i*i+i] = x
+                    self._entries[i*self._ncols + i] = x
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         # TODO: make faster with Python/C API
@@ -108,6 +110,8 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
     def __richcmp__(matrix.Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+    def __hash__(self):
+        return self._hash()
 
     ########################################################################
     # LEVEL 2 functionality
@@ -143,8 +147,24 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             sage: a.det()^2 == (a*a).det()
             True
 
+            sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2])
+            sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2])
+            sage: A*B
+            [2 2]
+            [2 2]
+
         SAGE fully supports degenerate matrices with 0 rows or 0 columns:
-            sage: ???
+            sage: A = matrix(QQ['x,y'], 0, 4, []); A
+            []
+            sage: B = matrix(QQ['x,y'], 4,0, []); B
+            []
+            sage: A*B
+            []
+            sage: B*A
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
+            [0 0 0 0]
         """
         cdef Py_ssize_t i, j, k, m, nr, nc, snc, p
         cdef object v
@@ -178,9 +198,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 p = p + 1
 
         A = Matrix_generic_dense.__new__(Matrix_generic_dense, 0, 0 ,0)
-        A._parent = P
-        A._nrows = nr
-        A._ncols = nc
+        matrix.Matrix.__init__(A, P)
         A._entries = v
         return A
 

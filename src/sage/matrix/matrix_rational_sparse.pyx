@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Sparse matrices over $\Q$
 
 This is a compiled implementation of sparse matrix algebra over small

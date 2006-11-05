@@ -48,6 +48,8 @@ import sage.rings.integer_mod_ring
 import sage.misc.latex as latex
 from sage.misc.misc import xsrange
 
+import sage.modules.free_module_element
+
 from sage.structure.sequence import Sequence
 
 def is_MatrixSpace(x):
@@ -79,7 +81,7 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     The default value of the optional argument ncols is nrows.
 
     INPUT:
-         base_ring -- a commutative ring
+         base_ring -- a ring
          nrows -- int, the number of rows
          ncols -- (default nrows) int, the number of columns
          sparse -- (default false) whether or not matrices are given
@@ -165,9 +167,6 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         M = _cache[key]()
         if not M is None: return M
 
-    if not isinstance(base_ring, ring.CommutativeRing):
-        raise TypeError, "base_ring must be a commutative ring"
-
     M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
 
     _cache[key] = weakref.ref(M)
@@ -223,6 +222,17 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         self.__matrix_class = self._get_matrix_class()
 
     def __call__(self, entries=0, coerce=True, copy=True):
+        if isinstance(entries, list) and len(entries) > 0 and \
+           sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
+            if self.__is_sparse:
+                e = {}
+                for i in xrange(len(entries)):
+                    for j, x in entries[i].iteritems():
+                        e[(i,j)] = x
+                entries = e
+            else:
+                entries = sum([v.list() for v in entries],[])
+
         return self.matrix(entries, coerce=coerce, copy=copy)
 
     def _coerce_(self, x):

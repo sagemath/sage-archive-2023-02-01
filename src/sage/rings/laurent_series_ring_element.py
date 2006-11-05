@@ -231,9 +231,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
                     var = "|%s"%X
                 elif e == 0:
                     var = ""
-                else:
+                elif e > 0:
                     var = "|%s^{%s}"%(X,e)
-                s += "%s%s"%(x,var)
+                if e >= 0:
+                    s += "%s%s"%(x,var)
+                else: # negative e
+                    s += "\\frac{%s}{%s^{%s}}"%(x, X,e)
                 first = False
         if atomic_repr:
             s = s.replace(" + -", " - ")
@@ -305,16 +308,27 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             IndexError: Laurent series are immutable
         """
         raise IndexError, "Laurent series are immutable"
-##         j = i - self.__n
-##         if j >= 0:
-##             self.__u[j] = value
-##         else: # off to the left
-##             if value != 0:
-##                 self.__n = self.__n + j
-##                 R = self.parent().base_ring()
-##                 coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
-##                 self.__u = self.__u.parent()(coeffs)
-##         self.__normalize()
+
+    def _unsafe_mutate(self, i, value):
+        """
+        SAGE assumes throughout that commutative ring elements are immutable.
+        This is relevant for caching, etc.  But sometimes you need to change
+        a Laurent series and you really know what you're doing.  That's
+        when this function is for you.
+
+        EXAMPLES:
+
+        """
+        j = i - self.__n
+        if j >= 0:
+            self.__u._unsafe_mutate(j, value)
+        else: # off to the left
+            if value != 0:
+                self.__n = self.__n + j
+                R = self.parent().base_ring()
+                coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
+                self.__u = self.__u.parent()(coeffs)
+        self.__normalize()
 
     def _add_(self, right):
         """
@@ -489,10 +503,8 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f>g
             True
         """
-        if self.__n < right.__n:
-            return -1
-        elif self.__n > right.__n:
-            return 1
+        c = cmp(self.__n, right.__n)
+        if c: return c
         return cmp(self.__u, right.__u)
 
     def unit_part(self):

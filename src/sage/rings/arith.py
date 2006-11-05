@@ -1867,10 +1867,7 @@ def continued_fraction(x, partial_convergents=False):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction(e)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: computation of continued fraction of x not implemented;
-        try computing continued fraction of RR(x) instead.
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: continued_fraction(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: print continued_fraction(RealField(200)(e))
@@ -1901,8 +1898,8 @@ def continued_fraction(x, partial_convergents=False):
                 else:
                     return v
             x = 1/x
-    except (AttributeError, NotImplementedError, TypeError):
-        raise NotImplementedError, "computation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."
+    except (AttributeError, NotImplementedError, TypeError), msg:
+        raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
 
 def convergent(v, n):
     """

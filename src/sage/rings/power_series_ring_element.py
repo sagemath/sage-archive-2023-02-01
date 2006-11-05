@@ -730,8 +730,19 @@ class PowerSeries_generic_dense(PowerSeries):
 
     def __setitem__(self, n, value):
         raise IndexError, "power series are immutable"
-    #self.__f[n] = value
-    #    self._prec = max(self._prec, n+1)
+
+    def _unsafe_mutate(self, i, value):
+        """
+        SAGE assumes throughout that commutative ring elements are immutable.
+        This is relevant for caching, etc.  But sometimes you need to change
+        a power series and you really know what you're doing.  That's
+        when this function is for you.
+
+        EXAMPLES:
+
+        """
+        self.__f._unsafe_mutate(i, value)
+        self._prec = max(self._prec, i+1)
 
     def __getitem__(self, n):
         if n<0:

@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Matrices over a domain
 """
 
@@ -25,80 +25,6 @@ import sage.structure.sequence
 
 
 cdef class Matrix_domain_dense(matrix.Matrix):
-
-    def eigenspaces(self):
-        """
-        Return a list of pairs
-             (e, V)
-        where e runs through all eigenvalues (up to Galois conjugation)
-        of this matrix, and V is the corresponding eigenspace.
-
-        WARNING: Uses a somewhat naive algorithm (simply factors the
-        characteristic polynomial and computes kernels directly over
-        the extension field).  TODO: Implement the better algorithm
-        that is in dual_eigenvector in sage/hecke/module.py.
-
-        EXAMPLES:
-        We compute the eigenspaces of the matrix of the Hecke operator
-        $T_2$ on a space:
-
-            sage: A = ModularSymbols(43).T(2).matrix()
-            sage: A.eigenspaces()
-            [
-            (3, [
-            (1, 0, 1/7, 0, -1/7, 0, -2/7)
-            ]),
-            (-2, [
-            (0, 1, 0, 1, -1, 1, -1),
-            (0, 0, 1, 0, -1, 2, -1)
-            ]),
-            (a, [
-            (0, 1, 0, -1, -a - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a + 1)
-            ])
-            ]
-
-        Next we compute the eigenspaces over the finite field
-        of order 11:
-
-            sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
-            sage: A.eigenspaces()
-            [
-            (9, [
-            (0, 0, 1, 5)
-            ]),
-            (3, [
-            (1, 6, 0, 6)
-            ]),
-            (x, [
-            (0, 1, 0, 5*x + 10)
-            ])
-            ]
-
-        Finally, we compute the eigenspaces of a $3\times 3$ matrix.
-
-            sage: A = Matrix(QQ,3,3,range(9))
-            sage: A.eigenspaces()
-            [
-            (0, [
-            (1, -2, 1)
-            ]),
-            (a, [
-            (1, 1/15*a + 2/5, 2/15*a - 1/5)
-            ])
-            ]
-        """
-        if self.__eigenvectors is not None:
-            return self.__eigenvectors
-        f = self.charpoly()
-        G = f.factor()
-        V = []
-        for h, e in G:
-            F = h.root_field()
-            W = (self.change_ring(F) - F.gen(0)).kernel()
-            V.append((F.gen(0), W.basis()))
-        self.__eigenvectors = V
-        return sage.structure.sequence.Sequence(V, cr=True)
 
 
     def charpoly(self, *args, **kwds):

@@ -807,10 +807,55 @@ cdef class Matrix(ModuleElement):
             v.append(x._magma_init_())
         return s + '![%s]'%(','.join(v))
 
+    def _singular_(self, singular=None):
+        """
+        Tries to coerce this matrix to a singular matrix.
+        """
+        if singular is None:
+            from sage.interfaces.all import singular as singular_default
+            singular = singular_default
+        try:
+            self.base_ring()._singular_(singular)
+        except (NotImplementedError, AttributeError):
+            raise TypeError, "Cannot coerce to Singular"
+
+        return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
+
+    def numeric(self, typecode=None):
+        """
+        Return the Numeric array associated to this matrix (if possible).
+        All entries must be coercible to the given typecode.
+
+        INPUT:
+            typecode -- optional (default: Numeric.Float64)
+        """
+        import Numeric
+        if typecode is None:
+            typecode = Numeric.Float64
+        A = Numeric.array(self.list(), typecode=typecode)
+        return Numeric.resize(A,(self._nrows, self._ncols))
+
 
     ###################################################
     # Construction functions
     ###################################################
+
+    def matrix_over_field(self):
+        """
+        Return this matrix, but with entries viewed as elements of the
+        fraction field of the base ring (assuming it is defined).
+
+        EXAMPLES:
+            sage: A = MatrixSpace(IntegerRing(),2)([1,2,3,4])
+            sage: B = A.matrix_over_field()
+            sage: B
+            [1 2]
+            [3 4]
+            sage: B.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+        """
+        return self.change_ring(self.base_ring().fraction_field())
+
 
     def lift(self):
         """
@@ -2347,15 +2392,43 @@ cdef class Matrix(ModuleElement):
             [x6 x7 x8]
             sage: A.determinant()
             -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
+
+        We create a matrix over $\Z[x,y]$ and compute its determinant.
+            sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
+            sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
+            sage: A.determinant()
+            x0*x1^2 - x0^2*x1
         """
-        cdef Py_ssize_t i, n
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
 
         d = self.fetch('det')
         if not d is None: return d
 
-        if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
+        cdef Py_ssize_t i, n
 
+        # if charpoly known, then det is easy.
+        D = self.fetch('charpoly')
+        if not D is None:
+            c = D.iteritems()[0][1][0]
+            if self._nrows % 2:
+                c = -c
+            d = self._coerce_element(c)
+            self.cache('det', d)
+            return d
+
+        # if over an integral domain, get the det by computing charpoly.
+        if self._base_ring.is_integral_domain():
+            c = self.charpoly('x')[0]
+            if self._nrows % 2:
+                c = -c
+            d = self._coerce_element(c)
+            self.cache('det', d)
+            return d
+
+        # fall back to very very stupid algorithm
+        # TODO: surely there is something much better, even in total generality...
+        # this is ridiculous.
         n = self._ncols
         R = self.parent().base_ring()
         if n == 0:
@@ -2412,7 +2485,7 @@ cdef class Matrix(ModuleElement):
         """
         return self.charpoly(*args, **kwds)
 
-    def charpoly(self, var='x', algorithm="hessenberg"):
+    def charpoly(self, var, algorithm="hessenberg"):
         r"""
         Return the characteristic polynomial of self, as a polynomial
         over the base ring.
@@ -2422,7 +2495,7 @@ cdef class Matrix(ModuleElement):
         cached.
 
         INPUT:
-            var -- a variable name (default: 'x')
+            var -- a variable name
             algorithm -- string:
                   'hessenberg' -- default (use Hessenberg form of matrix)
 
@@ -2478,22 +2551,26 @@ cdef class Matrix(ModuleElement):
             sage: A.charpoly('Z')
             Z^2 + (-1*x1^2 - x0)*Z + x0*x1^2 - x0^2*x1
         """
-        key = 'charpoly_%s'%var
-        f = self.fetch(key)
-        if not f is None:
-            return f
+        D = self.fetch('charpoly')
+        if not D is None:
+            if D.has_key(var):
+                return f[var]
+        else:
+            D = {}
+            self.cache('charpoly',D)
+
         f = self._charpoly_hessenberg(var)
-        self.cache(key, f)
+        D[var] = f   # this caches it.
         return f
 
 
-    def fcp(self, var='x'):
+    def fcp(self, var):
         """
         Return the factorization of the characteristic polynomial of
         self.
 
         INPUT:
-            var -- name of variable of charpoly (default: 'x')
+            var -- name of variable of charpoly
 
         EXAMPLES:
             sage: M = MatrixSpace(QQ,3,3)
@@ -2753,7 +2830,10 @@ cdef class Matrix(ModuleElement):
     def _scalar_multiply(self, x):
         """
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,range(6))
+            sage: a._scalar_multiply(3/4)
+            [   0  3/4  3/2]
+            [ 9/4    3 15/4]
         """
         cdef Py_ssize_t i
 
@@ -2768,7 +2848,26 @@ cdef class Matrix(ModuleElement):
     def _right_scalar_multiply(self, x):
         """
         EXAMPLES:
-            sage: ?
+        A simple example in which the base ring is commutative:
+            sage: a = matrix(QQ,2,range(6))
+            sage: a._right_scalar_multiply(3/4)
+            [   0  3/4  3/2]
+            [ 9/4    3 15/4]
+
+        An example in which the base ring is not commutative:
+            sage: F.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(2,[x,y,x^2,y^2]); a
+            [  x   y]
+            [x^2 y^2]
+            sage: a._scalar_multiply(x)
+            [  x^2   x*y]
+            [  x^3 x*y^2]
+            sage: a._right_scalar_multiply(x)
+            [  x^2   y*x]
+            [  x^3 y^2*x]
+            sage: a._right_scalar_multiply(y)
+            [  x*y   y^2]
+            [x^2*y   y^3]
         """
         cdef Py_ssize_t i
 
@@ -2924,8 +3023,7 @@ cdef class Matrix(ModuleElement):
             sage: (~I).parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
         """
-
-        if not is_Field(self.base_ring()):
+        if not self.base_ring().is_field():
             return ~self.matrix_over_field()
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
@@ -3256,7 +3354,7 @@ cdef class Matrix(ModuleElement):
 
         EXAMPLES:
 
-        A kernel of dimension one over $\Q$:x
+        A kernel of dimension one over $\Q$:
             sage: A = MatrixSpace(QQ, 3)(range(9))
             sage: A.kernel()
             Vector space of degree 3 and dimension 1 over Rational Field
@@ -3325,7 +3423,7 @@ cdef class Matrix(ModuleElement):
             B = A.matker()
             n = self._nrows
             V = sage.modules.free_module.VectorSpace(R, n)
-            basis = eval('[V([R(x) for x in b]) for b in B]', {'V':V, 'b':b, 'B':B})
+            basis = eval('[V([R(x) for x in b]) for b in B]', {'V':V, 'B':B, 'R':R})
             return V.subspace(basis)
 
         E = self.transpose().echelon_form(*args, **kwds)
@@ -3470,7 +3568,8 @@ cdef class Matrix(ModuleElement):
         # 2. Decompose restriction
         D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
 
-        assert sum([A.dimension() for A,_ in D]) == M.dimension(), "bug in decomposition; " + \
+        assert sum(eval('[A.dimension() for A,_ in D]',{'D':D})) == M.dimension(), \
+               "bug in decomposition; " + \
                "the sum of the dimensions of the factors must equal the dimension of the acted on space."
 
         # 3. Lift decomposition to subspaces of ambient vector space.
@@ -3482,10 +3581,181 @@ cdef class Matrix(ModuleElement):
         C = M.basis_matrix()
         Z = M.ambient_vector_space()
 
-        D = [(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]
+        D = eval('[(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]',\
+                 {'C':C, 'D':D, 'Z':Z})
 
         verbose(t=time)
         return D
+
+    def restrict(self, V, check=True):
+        """
+        Returns the matrix that defines the action of self on the
+        chosen basis for the invariant subspace V.  If V is an
+        ambient, returns self (not a copy of self).
+
+        INPUT:
+            V -- vector subspace
+            check -- (optional) default: True; if False may not check
+                     that V is invariant (hence can be faster).
+        OUTPUT:
+            a matrix
+
+        WARNING:
+        This function returns an nxn matrix, where V has dimension n.
+        It does \emph{not} check that V is in fact invariant under
+        self, unless check is True (not the default).
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ, 3)
+            sage: M = MatrixSpace(QQ, 3)
+            sage: A = M([1,2,0, 3,4,0, 0,0,0])
+            sage: W = V.subspace([[1,0,0], [0,1,0]])
+            sage: A.restrict(W)
+            [1 2]
+            [3 4]
+            sage: A.restrict(W, check=True)
+            [1 2]
+            [3 4]
+
+        We illustrate the warning about invariance not being checked
+        by default, by giving a non-invariant subspace.  With the default
+        check=False this function returns the 'restriction' matrix, which
+        is meaningless as check=True reveals.
+            sage: W2 = V.subspace([[1,0,0], [0,1,1]])
+            sage: A.restrict(W2, check=False)
+            [1 2]
+            [3 4]
+            sage: A.restrict(W2, check=True)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: subspace is not invariant under matrix
+        """
+        if not isinstance(V, sage.modules.free_module.FreeModule_generic):
+            raise TypeError, "V must be a Vector Space"
+        if V.base_field() != self.base_ring():
+            raise TypeError, "base rings must be the same"
+        if V.degree() != self.nrows():
+            raise IndexError, "degree of V (=%s) must equal number of rows of self (=%s)"%(\
+                V.degree(), self.nrows())
+        if V.rank() == 0:
+            return self.new_matrix(nrows=0, ncols=0)
+
+        if not check and V.base_ring().is_field() and not V.has_user_basis():
+            B = V.echelonized_basis_matrix()
+            P = B.pivots()
+            return B*self.matrix_from_columns(P)
+        else:
+            n = V.rank()
+            try:
+                # todo optimize so only involves matrix multiplies ?
+                C = eval('[V.coordinate_vector(b*self) for b in V.basis()]',{'V':V, 'self':self})
+            except ArithmeticError:
+                raise ArithmeticError, "subspace is not invariant under matrix"
+            return self.new_matrix(n, n, C, sparse=False)
+
+    def restrict_domain(self, V):
+        """
+        Compute the matrix relative to the basis for V on the domain
+        obtained by restricting self to V, but not changing the
+        codomain of the matrix.  This is the matrix whose rows are the
+        images of the basis for V.
+
+        INPUT:
+            V -- vector space (subspace of ambient space on which self acts)
+
+        SEE ALSO: restrict()
+
+        EXAMPLES:
+            sage: V = VectorSpace(QQ, 3)
+            sage: M = MatrixSpace(QQ, 3)
+            sage: A = M([1,2,0, 3,4,0, 0,0,0])
+            sage: W = V.subspace([[1,0,0], [1,2,3]])
+            sage: A.restrict_domain(W)
+            [1 2 0]
+            [3 4 0]
+            sage: W2 = V.subspace_with_basis([[1,0,0], [1,2,3]])
+            sage: A.restrict_domain(W2)
+            [ 1  2  0]
+            [ 7 10  0]
+        """
+        e = eval('[b*self for b in V.basis()]', {'self':self, 'V':V})
+        return self.new_matrix(V.dimension(), self.ncols(), e)
+
+    def eigenspaces(self):
+        """
+        Return a list of pairs
+             (e, V)
+        where e runs through all eigenvalues (up to Galois conjugation)
+        of this matrix, and V is the corresponding eigenspace.
+
+        WARNING: Uses a somewhat naive algorithm (simply factors the
+        characteristic polynomial and computes kernels directly over
+        the extension field).  TODO: Implement the better algorithm
+        that is in dual_eigenvector in sage/hecke/module.py.
+
+        EXAMPLES:
+        We compute the eigenspaces of the matrix of the Hecke operator
+        $T_2$ on a space:
+
+            sage: A = ModularSymbols(43).T(2).matrix()
+            sage: A.eigenspaces()
+            [
+            (3, [
+            (1, 0, 1/7, 0, -1/7, 0, -2/7)
+            ]),
+            (-2, [
+            (0, 1, 0, 1, -1, 1, -1),
+            (0, 0, 1, 0, -1, 2, -1)
+            ]),
+            (a, [
+            (0, 1, 0, -1, -a - 1, 1, -1),
+            (0, 0, 1, 0, -1, 0, -a + 1)
+            ])
+            ]
+
+        Next we compute the eigenspaces over the finite field
+        of order 11:
+
+            sage: A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
+            sage: A.eigenspaces()
+            [
+            (9, [
+            (0, 0, 1, 5)
+            ]),
+            (3, [
+            (1, 6, 0, 6)
+            ]),
+            (x, [
+            (0, 1, 0, 5*x + 10)
+            ])
+            ]
+
+        Finally, we compute the eigenspaces of a $3\times 3$ matrix.
+
+            sage: A = Matrix(QQ,3,3,range(9))
+            sage: A.eigenspaces()
+            [
+            (0, [
+            (1, -2, 1)
+            ]),
+            (a, [
+            (1, 1/15*a + 2/5, 2/15*a - 1/5)
+            ])
+            ]
+        """
+        x = self.fetch('eigenvectors')
+        if not x is None:
+            return x
+        f = self.charpoly('x')
+        G = f.factor()
+        V = []
+        for h, e in G:
+            F = h.root_field()
+            W = (self.change_ring(F) - F.gen(0)).kernel()
+            V.append((F.gen(0), W.basis()))
+        V = sage.structure.sequence.Sequence(V, cr=True)
+        self.cache('eigenvectors', V)
+        return V
 
     #####################################################################################
     # Generic Echelon Form

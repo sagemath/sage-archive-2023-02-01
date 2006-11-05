@@ -92,7 +92,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
 
     def __call__(self, x, n=0):
-        if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self == x.parent():
+        if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
             return x
         return laurent_series_ring_element.LaurentSeries(self, x, n)
 
@@ -121,10 +121,10 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     def __cmp__(self, other):
         if not isinstance(other, LaurentSeriesRing_generic):
             return -1
-        if self.base_ring() != other.base_ring():
-            return -1
-        if self.variable_name() != other.variable_name():
-            return -1
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
+        c = cmp(self.variable_name(), other.variable_name())
+        if c: return c
         return 0
 
 

@@ -94,24 +94,24 @@ class AlgebraOrderElement(AlgebraElement):
         R = self.parent().base_ring()
         return R(self.__ambient_algebra_element.norm())
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         The characteristic polynomial of the element with respect
         to its action by left or right multiplication on the order.
 	"""
         R = self.parent().base_ring()
-        P = PolynomialRing(R)
+        P = PolynomialRing(R, var)
         return P(self.__ambient_algebra_element.charpoly())
 
     characteristic_polynomial = charpoly
 
-    def minpoly(self):
+    def minpoly(self, var):
         """
         The minimal polynomial of the element with respect to its
         action by left or right multiplication on the order.
 	"""
         R = self.parent().base_ring()
-        P = PolynomialRing(R)
+        P = PolynomialRing(R, var)
         return P(self.__element.minpoly())
 
     minimal_polynomial = minpoly

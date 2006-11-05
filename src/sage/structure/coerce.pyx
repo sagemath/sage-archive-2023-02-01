@@ -73,6 +73,7 @@ def canonical_coercion(x, y):
         else:
             i = 0
             try:
+                x0 = x
                 x = coerce(yp, x)
             except TypeError, msg:
                 i = i + 1
@@ -81,16 +82,15 @@ def canonical_coercion(x, y):
             except TypeError, msg:
                 i = i + 1
             if i == 0:
-                #raise TypeError, "unable to find an unambiguous parent"
-                return x,y
-                #raise TypeError, "unable to find an unambiguous parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
+                # Both succeed.  But we must be careful to take x before
+                # it was coerced, or we end up *switching* to the parents,
+                # which is no good.
+                return x0, y
             elif i == 2:
                 import  sage.rings.ring
                 if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
-                    #raise TypeError, "you cannot combine ring (=%s) with a number or another ring (=%s)!"%(x, y)
-                    raise TypeError, "you cannot combine ring with a number or another ring!"
+                    raise TypeError, "you cannot +,*,/ a ring with a number."
                 raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-                #raise TypeError, "unable to find a common canonical parent"
         return x, y
     except AttributeError:
         raise TypeError, "unable to find a common canonical parent"
@@ -153,7 +153,7 @@ def bin_op(x, y, op):
 N = type(None)
 
 cdef class Coerce:
-    cdef cmp_cdef(self, x, y):
+    cdef cmp_c(self, x, y):
         tx = type(x); ty = type(y)
         if (tx == N and ty != N) or (tx != N and ty == N):
             return -1
@@ -190,12 +190,8 @@ cdef class Coerce:
             except (TypeError, ValueError):
                 fails = fails + 1
             if fails == 0:
-                c0 = __builtin__.cmp(x0,y)
-                c1 = __builtin__.cmp(x,y0)
-                if c0 == c1:
-                    return c0
-                else:
-                    return -1
+                assert (parent(x0) is parent(y))  # debug
+                return __builtin__.cmp(x0,y)
 
             elif fails == 2:
 
@@ -207,9 +203,11 @@ cdef class Coerce:
                 return __builtin__.cmp(x,y)
 
 
+# TODO -- don't use a classic, use "extern public".
+
 cdef Coerce functions
 functions = Coerce()
 
 def cmp(x,y):  # external interface to cmp_cdef
-    return functions.cmp_cdef(x,y)
+    return functions.cmp_c(x,y)
 

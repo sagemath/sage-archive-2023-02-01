@@ -139,7 +139,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         # point enumeration algorithms. -- David Harvey (2006-09-24)
 
         points = [self(0)]
-        R = PolynomialRing(self.base_ring())
+        R = PolynomialRing(self.base_ring(), 'x')
         a1, a2, a3, a4, a6 = self.ainvs()
         for x in self.base_field():
             f = R([-(x**3 + a2*x**2 + a4*x + a6), (a1*x + a3), 1])
@@ -167,7 +167,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
           sage: E.points()
           [(0 : 1 : 0), (4 : 1 : 1), (1 : 0 : 1), (4 : 4 : 1)]
 
-          sage: K = GF(p**2)
+          sage: K = GF(p**2,'a')
           sage: E = E.change_ring(K)
           sage: len(E.points())
           32
@@ -275,12 +275,12 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         The cardinality is \emph{not} cached.
 
         EXAMPLES:
-            sage: EllipticCurve(GF(4),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.
             8
-            sage: EllipticCurve(GF(9),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(9,'a'),[1,2,3,4,5]).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.

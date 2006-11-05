@@ -37,7 +37,7 @@ def Set(X):
     wrapper.
 
     EXAMPLES:
-        sage: X = Set(GF(9))
+        sage: X = Set(GF(9,'a'))
         sage: X
         {2, a + 2, 2*a + 1, a, 2*a, a + 1, 1, 2*a + 2, 0}
         sage: type(X)
@@ -318,10 +318,10 @@ class Set_object(Set_generic):
             Set-theoretic union of Real Field with 53 bits of precision and Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}
-            sage: Set(GF(2)) + Set(GF(4))
+            sage: Set(GF(2)) + Set(GF(4,'a'))
             {0, 1, a + 1, 1, a, 0}
-            sage: Set(GF(8)) + Set(GF(4))
-            {a^2 + a + 1, 1, a, a^2 + a, a^2 + 1, a + 1, 1, a^2, a + 1, 0}
+            sage: Set(GF(8,'b')) + Set(GF(4,'a'))
+            {b^2 + b + 1, 1, b, b^2 + b, b^2 + 1, a + 1, 1, b^2, b + 1, 0}
         """
         return self.union(X)
 
@@ -342,7 +342,7 @@ class Set_object(Set_generic):
             sage: 2/1 in X
             False
 
-            sage: X = Set(GF(9)).intersection(Set(GF(27)))
+            sage: X = Set(GF(9,'b')).intersection(Set(GF(27,'c')))
             sage: X
             {0}
         """
@@ -369,7 +369,7 @@ class Set_object(Set_generic):
             Infinity
             sage: Set(GF(5)).order()
             5
-            sage: Set(GF(5^2)).order()
+            sage: Set(GF(5^2,'a')).order()
             25
         """
         try:
@@ -450,11 +450,11 @@ class Set_object_enumerated(Set_object):
         that set.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
+            sage: X = Set(GF(8,'c'))
             sage: X
-            {a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
+            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
             sage: X.set()
-            set([a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0])
+            set([c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0])
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -471,10 +471,10 @@ class Set_object_enumerated(Set_object):
         Compare the sets self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: X == Set(GF(8))
+            sage: X = Set(GF(8,'c'))
+            sage: X == Set(GF(8,'c'))
             True
-            sage: X == Set(GF(4))
+            sage: X == Set(GF(4,'a'))
             False
             sage: Set(QQ) == Set(ZZ)
             False
@@ -491,14 +491,14 @@ class Set_object_enumerated(Set_object):
         Return the union of self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: Y = Set([GF(8).0, 1, 2, 3])
+            sage: X = Set(GF(8,'c'))
+            sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X
-            {a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
+            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
             sage: Y
-            {1, 2, 3, a}
+            {1, 2, 3, c}
             sage: X.union(Y)
-            {1, 2, 3, a^2 + a + 1, a, a^2 + a, a^2 + 1, 1, a^2, a + 1, 0}
+            {1, 2, 3, c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -509,10 +509,10 @@ class Set_object_enumerated(Set_object):
         Return the intersection of self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: Y = Set([GF(8).0, 1, 2, 3])
+            sage: X = Set(GF(8,'c'))
+            sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X.intersection(Y)
-            {a}
+            {c}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.intersection(self, other)

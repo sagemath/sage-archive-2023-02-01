@@ -24,8 +24,8 @@ import field
 #    -- David Harvey (2006-09-09)
 
 
-#_objsLaurentSeriesRing = {}
-def LaurentSeriesRing(base_ring, name=None):
+laurent_series = {}
+def LaurentSeriesRing(base_ring, name=None, names=None):
     """
     EXAMPLES:
         sage: R = LaurentSeriesRing(QQ, 'x'); R
@@ -47,11 +47,15 @@ def LaurentSeriesRing(base_ring, name=None):
         sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
     """
-    #global _objsLaurentSeriesRing
-    #key = (base_ring, name)
-    #if _objsLaurentSeriesRing.has_key(key):
-    #    x = _objsLaurentSeriesRing[key]()
-    #    if x != None: return x
+    if not names is None: name = names
+    if name is None:
+        raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
+
+    global laurent_series
+    key = (base_ring, name)
+    if laurent_series.has_key(key):
+        x = laurent_series[key]()
+        if x != None: return x
 
     if isinstance(base_ring, field.Field):
         R = LaurentSeriesRing_field(base_ring, name)
@@ -61,7 +65,7 @@ def LaurentSeriesRing(base_ring, name=None):
         R = LaurentSeriesRing_generic(base_ring, name)
     else:
         raise TypeError, "base_ring must be a commutative ring"
-    #_objsLaurentSeriesRing[key] = weakref.ref(R)
+    laurent_series[key] = weakref.ref(R)
     return R
 
 def is_LaurentSeriesRing(x):
@@ -88,17 +92,39 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
 
     def __call__(self, x, n=0):
-        if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self == x.parent():
+        if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
             return x
         return laurent_series_ring_element.LaurentSeries(self, x, n)
+
+    def _coerce_(self, x):
+        """
+        Return canonical coercion of x into self.
+
+        Rings that canonically coerce to this power series ring R:
+
+           * R itself
+           * Any ring that canonically coerces to the power series ring over the base ring of R.
+           * Any ring that canonically coerces to the base ring of R
+
+        EXAMPLES:
+        """
+        try:
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return self(x)
+        except TypeError:
+            pass
+        return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
     def __cmp__(self, other):
         if not isinstance(other, LaurentSeriesRing_generic):
             return -1
-        if self.base_ring() != other.base_ring():
-            return -1
-        if self.variable_name() != other.variable_name():
-            return -1
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
+        c = cmp(self.variable_name(), other.variable_name())
+        if c: return c
         return 0
 
 

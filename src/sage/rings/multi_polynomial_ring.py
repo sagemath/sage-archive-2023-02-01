@@ -74,6 +74,7 @@ import multi_polynomial_ideal
 
 from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
+
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
 
@@ -117,10 +118,47 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
 
+    def _coerce_(self, x):
+        """
+        Return the canonical coercion of x to this multivariate
+        polynomial ring, if one is defined, or raise a TypeError.
+
+        The rings that canonically coerce to this polynomial ring are:
+            * this ring itself
+            * polynomial rings in the same variables over any base ring that
+              canonically coerces to the base ring of this ring
+            * any ring that canonically coerces to the base ring of this
+              polynomial ring.
+
+        """
+        try:
+            P = x.parent()
+
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+
+            # polynomial rings in the same variable over the any base that coerces in:
+            if is_MPolynomialRing(P):
+                if P.variable_names() == self.variable_names():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of polynomial rings"
+                else:
+                    raise TypeError, "polynomial ring has a different indeterminate names"
+
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.base_ring()])
+
     def __cmp__(self, right):
-        if self is right:  # since polynomial rings are unique
-            return 0
-        return -1
+        if not is_MPolynomialRing(right):
+            return -1
+        return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
+                   (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
 
     def __contains__(self, x):
         """
@@ -230,10 +268,10 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         Return the characteristic of this polynomial ring.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(RationalField(), 3)
+            sage: R = MPolynomialRing(QQ, 'x', 3)
             sage: R.characteristic()
             0
-            sage: R = MPolynomialRing(GF(7),20)
+            sage: R = MPolynomialRing(GF(7),'x', 20)
             sage: R.characteristic()
             7
         """
@@ -264,7 +302,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         so that subscripts of subscripts work.
 
         EXAMPLES:
-            sage: R, x = PolynomialRing(QQ,12).objgens();
+            sage: R, x = PolynomialRing(QQ,'x',12).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11)
             sage: print R.latex_variable_names ()
@@ -295,12 +333,12 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             pass
         commutative_ring.CommutativeRing._assign_names(self, names)
 
-class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
+class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """
     Multivariable polynomial ring.
 
     EXAMPLES:
-        sage: R = MPolynomialRing(Integers(12),5); R
+        sage: R = MPolynomialRing(Integers(12), 'x', 5); R
         Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
         sage: loads(R.dumps()) == R
         True
@@ -334,7 +372,7 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_g
         EXAMPLES:
         We create a Singular multivariate polynomial via ideal arithmetic,
         then coerce it into R.
-            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: I = R.ideal([x^3 + y, y])
             sage: S = singular(I)
             sage: f = (S*S*S)[2]
@@ -350,7 +388,7 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_g
         EXAMPLES:
         We create a Macaulay2 multivariate polynomial via ideal arithmetic,
         then coerce it into R.
-            sage: R, (x,y) = PolynomialRing(QQ, 2, ['x','y']).objgens()  # optional
+            sage: R.<x,y> = PolynomialRing(QQ, 2)                        # optional
             sage: I = R.ideal([x^3 + y, y])                              # optional
             sage: S = I._macaulay2_()                                    # optional
             sage: T = S*S*S                                              # optional
@@ -401,12 +439,20 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, MPolynomialRing_g
 
 
 class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
-                                      PolynomialRing_singular_repr,
                                       MPolynomialRing_polydict,
+                                      PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
         self._has_singular = self._can_convert_to_singular()
+
+    def is_integral_domain(self):
+        return True
+
+    def is_field(self):
+        if self.ngens() == 0:
+            return self.base_ring().is_field()
+        return False
 
     def ideal(self, gens, coerce=True):
         """

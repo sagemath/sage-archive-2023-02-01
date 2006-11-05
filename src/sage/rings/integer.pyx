@@ -247,7 +247,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # out of the NULL pointer. This really sucks. Perhaps we could
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
-                set_from_Integer(self, PyObject_GetAttrString(x, "_integer_")())
+                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
 
             else:
                 raise TypeError, "Unable to coerce %s (of type %s) to an Integer."%(x,type(x))
@@ -426,7 +426,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_on
         mpz_get_str(s, base, self.value)
         _sig_off
-        k = PyString_FromString(s)
+        k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
 

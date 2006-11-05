@@ -9,7 +9,8 @@ for some ring $R$, to the map $\Z/N\Z \to R$ obtained by sending
 those $x\in\Z/N\Z$ with $\gcd(N,x)>1$ to $0$.
 
 EXAMPLES:
-    sage: G, x = DirichletGroup(35).objgens()
+    sage: G = DirichletGroup(35)
+    sage: x = G.gens()
     sage: e = x[0]*x[1]^2; e
     [zeta12^3, zeta12^2 - 1]
     sage: e.order()
@@ -40,7 +41,7 @@ import weakref
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
-import sage.structure.gens as gens
+import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
 import sage.rings.coerce as coerce
 from sage.structure.all import MultiplicativeGroupElement, Sequence
@@ -996,7 +997,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         return self.__values_on_gens
 
 _cache = {}
-def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
+def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=None):
     r"""
     The group of Dirichlet characters modulo~$N$ with values in
     the subgroup $\langle \zeta_n\rangle$ of the multiplicative
@@ -1011,6 +1012,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None):
                      (should be an integral domain).
         zeta -- Element (optional), element of base_ring; zeta is a root of unity
         zeta_order -- int (optional), the order of zeta
+        names -- ignored (needed so G.<...> = DirichletGroup(...) notation works)
 
     OUTPUT:
         DirichletGroup -- a group of Dirichlet characters.
@@ -1115,7 +1117,7 @@ def is_DirichletGroup(x):
     """
     return isinstance(x, DirichletGroup_class)
 
-class DirichletGroup_class(gens.MultiplicativeAbelianGenerators):
+class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
     """
     Group of Dirichlet characters modulo $N$ over a given base ring $R$.
     """

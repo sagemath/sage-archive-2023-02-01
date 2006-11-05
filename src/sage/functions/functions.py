@@ -13,6 +13,8 @@ EXAMPLES:
     6.1232339957367663e-16
 """
 
+import sage.functions.constants
+
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.rational
@@ -106,7 +108,7 @@ class FunctionRing_class(CommutativeRing):
         elif isinstance(x, (sage.rings.integer.Integer,
                             sage.rings.rational.Rational,
                             int,long,float,complex)):
-            return Constant_gen(x)
+            return sage.functions.constants.Constant_gen(x)
         raise TypeError
 
     def characteristic(self):
@@ -114,13 +116,14 @@ class FunctionRing_class(CommutativeRing):
 
 FunctionRing = FunctionRing_class()
 
+
 class Function(Element_cmp_, RingElement):
     def __init__(self, conversions={}):
         self._conversions = conversions
         RingElement.__init__(self, FunctionRing)
 
     def __call__(self, x):
-        if isinstance(x, Function) and not isinstance(x, Constant):
+        if isinstance(x, Function) and not isinstance(x, sage.functions.constants.Constant):
             return Function_composition(self, x)
 
         elif is_Polynomial(x):
@@ -308,7 +311,7 @@ class Function_composition(Function):
 
 #################################################################
 #
-# Support for arithmetic with constants.
+# Support for arithmetic with functions.
 #
 #################################################################
 
@@ -585,39 +588,6 @@ class Function_at(Function):
         except AttributeError:
             raise NotImplementedError, 'coercion of %s to maxima not implemented'%self
 
-######################
-# Constant functions
-######################
-
-class Constant(Function):
-    def __call__(self, x):
-        return self
-
-    def _interface_is_cached_(self):
-        """
-        Return False, since coercion of functions to interfaces
-        is not cached.
-
-        We do not cache coercions of functions to interfaces, since
-        the precision of the interface may change.
-
-        EXAMPLES:
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-            sage: old_prec = gp.set_precision(100)
-            sage: gp(pi)
-            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-            sage: _ = gp.set_precision(old_prec)
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-        """
-        return False
-
-class Constant_gen(Constant, Function_gen):
-    def __call__(self, x):
-        return self.obj()
 
 
 ########################################################

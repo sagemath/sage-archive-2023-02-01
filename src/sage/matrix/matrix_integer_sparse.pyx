@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Sparse matrices over the integers.
 """
 

@@ -1,3 +1,4 @@
+"""nodoctest"""
 
 cdef class MatrixWindow:
 

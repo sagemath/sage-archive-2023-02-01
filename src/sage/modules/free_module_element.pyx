@@ -6,6 +6,8 @@ AUTHOR:
     -- Josh Kantor
 """
 
+import operator
+
 include '../ext/cdefs.pxi'
 
 import sage.misc.misc as misc
@@ -55,21 +57,6 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __abs__(self):
         return self.norm()
 
-    def __add__(left, right):
-        """
-        EXAMPLES:
-            sage: V = QQ^5
-            sage: W = V.span([V.1, V.2])
-            sage: W.0 + V.0
-            (1, 1, 0, 0, 0)
-            sage: V.0 + W.0
-            (1, 1, 0, 0, 0)
-        """
-        try:
-            return _add_(left, right)
-        except TypeError:
-            return sage.rings.coerce.bin_op(left, right, operator.add)
-
     def __cmp__(self, right):
         """
         EXAMPLES:
@@ -88,7 +75,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         if not isinstance(right, FreeModuleElement) or \
                   not (self.parent().ambient_module() == right.parent().ambient_module()):
-            return coerce.cmp_cdef(self, right)
+            return coerce.cmp_c(self, right)
         cdef size_t i
         cdef int c
         for i from 0 <= i < self.degree():
@@ -127,8 +114,32 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
         return eval('self.parent()([x % p for x in self.list()], \
-                     copy=False, coerce_entries=False, check_element=False)',
+                     copy=False, coerce=False, check=False)',
                     {'self':self, 'p':p})
+
+    cdef sage.structure.element.ModuleElement _add_c_impl(left, sage.structure.element.ModuleElement right):
+        """
+        Add left and right.
+        """
+        X = eval('[left[i] + right[i] for i in xrange(left.degree())]',
+                 {'left':left, 'right':right})
+        return left.parent()(X, coerce=False, copy=False, check=False)
+
+    cdef sage.structure.element.ModuleElement _sub_c_impl(left, sage.structure.element.ModuleElement right):
+        """
+        Subtract right from left.
+
+        EXAMPLES:
+            sage: V = QQ^5
+            sage: W = V.span([V.1, V.2])
+            sage: W.0 - V.0
+            ?
+            sage: V.0 - W.0
+            ?
+        """
+        X = eval('[left[i] - right[i] for i in xrange(left.degree())]',
+                 {'left':left, 'right':right})
+        return left.parent()(X, coerce=False, copy=False, check=False)
 
     def Mod(self, p):
         """
@@ -215,21 +226,6 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __setitem__(self, i, x):
         raise NotImplementedError
 
-    def __sub__(left, right):
-        """
-        EXAMPLES:
-            sage: V = QQ^5
-            sage: W = V.span([V.1, V.2])
-            sage: W.0 - V.0
-            ?
-            sage: V.0 - W.0
-            ?
-        """
-        try:
-            return _sub_(left, right)
-        except TypeError:
-            return sage.rings.coerce.bin_op(left, right, operator.sub)
-
     cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix.Matrix A):
         """
         Return the product self*A.
@@ -254,12 +250,12 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         s = self.base_ring()(s)
         return eval('self.parent()([x*s for x in self.list()], \
-                     copy=False, coerce_entries=False, check_element=False)',
+                     copy=False, coerce=False, check=False)',
                     {'self':self, 's':s})
 
     def copy(self):
         return self.parent()(self.entries(), \
-                             coerce_entries=False, copy=True, check_element=False)
+                             coerce=False, copy=True, check=False)
     def degree(self):
         return self.parent().degree()
 
@@ -426,7 +422,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: loads(dumps(v)) == v
             True
     """
-    def __init__(self, parent, entries, coerce_entries=True, copy=True):
+    def __init__(self, parent, entries, coerce=True, copy=True):
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
         if entries == 0:
@@ -440,7 +436,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             if len(entries) != self.degree():
                 raise ArithmeticError, "entries must be a list of length %s"%\
                             self.degree()
-            if coerce_entries:
+            if coerce:
                 try:
                     entries = eval('[R(x) for x in entries]',{'R':R, 'entries':entries})
                 except TypeError:
@@ -519,7 +515,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
     def __init__(self, parent,
                  entries=0,
-                 coerce_entries=True,
+                 coerce=True,
                  copy=True):
         #WARNING: In creation, we do not check that the i pairs satisfy
         #     0 <= i < degree.
@@ -539,7 +535,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 copy = False
             if not isinstance(entries, dict):
                 raise TypeError, "entries must be a dict"
-            if coerce_entries:
+            if coerce:
                 try:
                     for k, x in entries.iteritems():
                         entries[k] = R(x)
@@ -549,6 +545,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 # Make a copy
                 entries = dict(entries)
         self._entries = entries
+
+    def iteritems(self):
+        return self._entries.iteritems()
 
     def __reduce__(self):
         return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries))
@@ -625,26 +624,3 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     def support(self):
         return self.nonzero_positions()
 
-cdef _add_(FreeModuleElement left, FreeModuleElement right):
-    """
-    Add self and right.
-
-    EXAMPLES:
-        sage: CDF(2,-3)._add_(CDF(1,-2))
-        3.0 - 5.0*I
-    """
-    if not (left.parent() is right.parent()):
-        return sage.rings.coerce.bin_op(left, right, operator.add)
-    X = eval('[left[i] + right[i] for i in xrange(left.degree())]',
-             {'left':left, 'right':right})
-    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)
-
-cdef _sub_(FreeModuleElement left, FreeModuleElement right):
-    """
-    Add self and right.
-    """
-    if not (left.parent() is right.parent()):
-        return sage.rings.coerce.bin_op(left, right, operator.add)
-    X = eval('[left[i] - right[i] for i in xrange(left.degree())]',
-             {'left':left, 'right':right})
-    return left.parent()(X, coerce_entries=False, copy=False, check_element=False)

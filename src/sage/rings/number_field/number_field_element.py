@@ -60,11 +60,11 @@ class NumberFieldElement(field_element.FieldElement):
         number fields, and some basic arithmetic.
 
         First we define a polynomial over Q.
-            sage: x = PolynomialRing(QQ).0
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^2 + 1
 
         Next we use f to define the number field.
-            sage: K = NumberField(f, "a"); K
+            sage: K.<a> = NumberField(f); K
             Number Field in a with defining polynomial x^2 + 1
             sage: a = K.gen()
             sage: a^2
@@ -77,7 +77,7 @@ class NumberFieldElement(field_element.FieldElement):
             1/5
 
         We create a cube root of 2.
-            sage: K = NumberField(x^3 - 2, "b")
+            sage: K.<b> = NumberField(x^3 - 2)
             sage: b = K.gen()
             sage: b^3
             2
@@ -85,7 +85,7 @@ class NumberFieldElement(field_element.FieldElement):
             12*b^2 + 15*b + 19
 
         This example illustrates save and load:
-            sage: K, a = NumberField(x^17 - 2, 'a').objgen()
+            sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
             True
@@ -308,7 +308,7 @@ class NumberFieldElement(field_element.FieldElement):
 
         We compute the charpoly of cube root of $3$.
 
-            sage: R.<x> = QQ['x']
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-2)
             sage: a.charpoly()
             x^3 - 2
@@ -316,7 +316,7 @@ class NumberFieldElement(field_element.FieldElement):
         We construct a relative extension and find the characteristic
         polynomial over $\Q$.
 
-            sage: S.<X> = K['X']
+            sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17)
             sage: L
             Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2

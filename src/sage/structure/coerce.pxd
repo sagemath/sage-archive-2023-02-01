@@ -1,3 +1,3 @@
 cdef class Coerce:
-    cdef cmp_cdef(self, x, y)
+    cdef cmp_c(self, x, y)
 

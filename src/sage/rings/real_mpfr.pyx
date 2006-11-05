@@ -186,6 +186,15 @@ cdef class RealField(sage.rings.ring.Field):
         return RealNumber(self, x, base)
 
     def _coerce_(self, x):
+        """
+        Canonical coercion of x to this mpfr real field.
+
+        The rings that canonically coerce to this mpfr real field are:
+             * this real field itself
+             * any other mpfr real field with precision that is as large as this one
+             * int, long, integer, and rational rings.
+             * real mathematical constants
+        """
         cdef RealField K
         if isinstance(x, RealNumber):
             K = x.parent()
@@ -198,11 +207,10 @@ cdef class RealField(sage.rings.ring.Field):
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)
-        try:
-            return x._mpfr_(self)
-        except AttributeError:
-            pass
-        raise TypeError
+
+        return self._coerce_try(x, [sage.functions.constants.ConstantRing])
+
+        raise TypeError, "no coercion of x to mpfr real field"
 
     def __cmp__(self, other):
         """

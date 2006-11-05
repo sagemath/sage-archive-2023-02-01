@@ -85,6 +85,8 @@ class RationalField(_uniq, field.Field):
             sage: a + 1
             393/374
         """
+    def __init__(self):
+        self._assign_names(('x'),normalize=False)
 
     def __repr__(self):
         return "Rational Field"
@@ -255,11 +257,6 @@ class RationalField(_uniq, field.Field):
     def __cmp__(self, other):
         if isinstance(other, RationalField):
             return 0
-        if ring.is_Ring(other):
-            if other.characteristic() == 0 and field.is_Field(other):
-                return -1
-            else:
-                return 1
         return -1
 
     def zeta(self, n=2):

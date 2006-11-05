@@ -22,6 +22,74 @@ import keyboards
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 
+def async_lib():
+    s = r"""
+///////////////////////////////////////////////////////////////////
+// An AJAX framework for connections back to the
+// SAGE server (written by Tom Boothby).
+///////////////////////////////////////////////////////////////////
+//globals
+var asyncObj;
+var async_count = 0;
+
+function getAsyncObject(handler) {
+  asyncObj=null
+  try {
+    asyncObj = new XMLHttpRequest();
+    asyncObj.onload  = handler;
+    asyncObj.onerror = handler;
+    return asyncObj;
+  } catch(e) {
+    no_async = true;
+    return null;
+  }
+}
+
+function generic_callback(status, response_text) {
+   /* do nothing */
+}
+
+function asyncCallbackHandler(name, callback) {
+    function f() {
+                 eval('asyncObj = ' + name);
+                 try {
+                   if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
+                       && asyncObj.status == 200 )
+                     try {
+                       callback('success', asyncObj.responseText);
+                     } catch(e) {
+                       callback('success', "empty");
+                     }
+                 } catch(e) {
+                   callback("failure", e);
+                 } finally { }
+              };
+    return f;
+}
+
+function async_request(url, callback, postvars) {
+  async_count++;
+  var name = "async_object_no_" + async_count;
+  var f = asyncCallbackHandler(name, callback);
+  asyncObj = getAsyncObject(f);
+  eval(name + '=asyncObj;');
+
+  if(postvars != null) {
+    asyncObj.open('POST',url,true);
+    asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+    asyncObj.send(postvars);
+  } else {
+    asyncObj.open('GET',url,true);
+    asyncObj.setRequestHeader('Content-Type',  "text/html");
+    asyncObj.send(null);
+  }
+}
+"""
+    return s
+
+
+
+
 def javascript():
     s = r"""
 
@@ -59,7 +127,6 @@ var cell_output_delta = update_normal_delta;
 
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
 var current_cell = -1;       // gets set on focus / blur
-var asyncObj;
 var no_async = false; //this isn't really used -- should we think about dealing with this?
 
 // introspection variables
@@ -110,7 +177,6 @@ var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
-var async_count = 0;
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -233,70 +299,6 @@ function time_now() {
   return (new Date()).getTime();
 }
 
-///////////////////////////////////////////////////////////////////
-// An AJAX framework for connections back to the
-// SAGE server (written by Tom Boothby).
-///////////////////////////////////////////////////////////////////
-
-function getAsyncObject(handler) {
-  asyncObj=null
-  try {
-    if (browser_ie) {
-      var s =browser_ie5?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
-      asyncObj = new ActiveXObject(s);
-      asyncObj.onreadystatechange = handler;
-      return asyncObj;
-    } else {
-      asyncObj = new XMLHttpRequest();
-      asyncObj.onload  = handler;
-      asyncObj.onerror = handler;
-      return asyncObj;
-    }
-  } catch(e) {
-    no_async = true;
-    return null;
-  }
-}
-
-function generic_callback(status, response_text) {
-   /* do nothing */
-}
-
-function asyncCallbackHandler(name, callback) {
-    function f() {
-                 eval('asyncObj = ' + name);
-                 try {
-                   if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
-                       && asyncObj.status == 200 )
-                     try {
-                       callback('success', asyncObj.responseText);
-                     } catch(e) {
-                       callback('success', "empty");
-                     }
-                 } catch(e) {
-                   callback("failure", e);
-                 } finally { }
-              };
-    return f;
-}
-
-function async_request(url, callback, postvars) {
-  async_count++;
-  var name = "async_object_no_" + async_count;
-  var f = asyncCallbackHandler(name, callback);
-  asyncObj = getAsyncObject(f);
-  eval(name + '=asyncObj;');
-
-  if(postvars != null) {
-    asyncObj.open('POST',url,true);
-    asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-    asyncObj.send(postvars);
-  } else {
-    asyncObj.open('GET',url,true);
-    asyncObj.setRequestHeader('Content-Type',  "text/html");
-    asyncObj.send(null);
-  }
-}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -812,9 +814,26 @@ function cell_delete_callback(status, response_text) {
     cell_id_list = delete_from_array(cell_id_list, X[1]);
 }
 
+function cell_delete_all_callback(status, response_text){
+    if (status == "success") {
+        var worksheet = get_element('worksheet_cell_list');
+        for (var i = 1; i < cell_id_list.length; i++){
+            var cell = get_element('cell_outer_' + cell_id_list[i]);
+            worksheet.removeChild(cell);
+        }
+        get_cell(cell_id_list[0]).value = "";
+        cell_id_list = [cell_id_list[0]];
+    }
+}
+
 function cell_delete(id) {
    async_request('/delete_cell', cell_delete_callback, 'id='+id)
 }
+
+function cell_delete_all() {
+   async_request('/delete_cell_all', cell_delete_all_callback, 'worksheet_id='+worksheet_id)
+}
+
 
 function key_listen_ie() {
     var e = get_event(null);
@@ -1024,9 +1043,10 @@ function jump_to_cell(id, delta) {
 }
 
 function escape0(input) {
-    input = escape(input);
-    input = input.replace(/\+/g,"__plus__");
-    return input;
+    var a = input.split('+');
+    for(i = 0; i < a.length; i++)
+        a[i] = escape(a[i]);
+    return a.join("%2B");
 }
 
 function text_cursor_split(input) {
@@ -1244,10 +1264,10 @@ function set_output_text(id, text, wrapped_text, output_html, status, introspect
          // TODO: should make this not case sensitive!!  how to .lower() in javascript?
          if (text.indexOf('class="math"') != -1 || text.indexOf("class='math'") != -1) {
              try {
-                 jsMath.Process(cell_output);
+                 /* jsMath.Process(cell_output); */
                  /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
-                 /* jsMath.ProcessBeforeShowing(cell_output);
-                 jsMath.ProcessBeforeShowing(cell_output_nowrap); */
+                 jsMath.ProcessBeforeShowing(cell_output);
+                 /* jsMath.ProcessBeforeShowing(cell_output_nowrap); */
              } catch(e) {
                  cell_output.innerHTML = jsmath_font_msg + cell_output.innerHTML;
                  cell_output_nowrap.innerHTML = jsmath_font_msg + cell_output_nowrap.innerHTML;
@@ -1715,6 +1735,91 @@ function hide_help_window() {
 
 }
 
+////////////////////////////////////////////
+//
+// wiki-window related stuff
+//
+///////////////////////////////////////////
+
+function insert_new_doc_html_after(id,doc_htmlin) {
+    async_request('/new_doc_html_after', insert_doc_html_callback, 'id=' + id + '&doc_htmlin=' + doc_htmlin);
+}
+
+//-------------------------------------------------
+/* This is a early hack attempt at putting html into the worksheet cell area from the wiki window.*/
+//
+function insert_doc_html_callback(status, response_text) {
+    if (status == "failure") {
+        alert("Problem inserting new doc html after current cell.");
+        return ;
+    }
+    var X = response_text.split(SEP);
+    var new_id = eval(X[0]);
+    var new_html = X[1];
+    var id = eval(X[2]);
+    do_insert_doc_html(id, new_id, new_html);
+    jump_to_cell(new_id,0);
+}
+
+function do_insert_doc_html(id,new_id,html) {
+    var new_doc_html = make_new_doc_html(id, html);
+    var worksheet = get_element('worksheet_cell_list');
+    worksheet.appendChild(new_doc_html);
+    cell_id_list = cell_id_list.concat([new_id]);
+}
+
+function make_new_doc_html(id, html) {
+    var new_doc_html = document.createElement("div");
+    new_doc_html.id = 'doc_html_'+id;
+    new_doc_html.innerHTML = html;
+    return new_doc_html;
+}
+
+function upload_doc_html(lastid,doc_html) {
+    insert_new_doc_html_after(lastid,doc_html);
+}
+//
+//------------------------------------------------------
+
+function get_cell_list() {
+    return cell_id_list;
+}
+
+function hide_wiki_window() {
+    var wiki = get_element("wiki_window");
+    wiki.style.display = "none";
+}
+
+function show_wiki_window(worksheet) {
+    window.open (worksheet+"__wiki__.html","", "location=1,menubar=1,scrollbars=1,width=750,height=700,toolbar=1,resizable=1");
+}
+
+function insert_cells_from_wiki(text,do_eval) {
+    var eval_param = "&eval=0";
+    if(do_eval)
+        eval_param = "&eval=1";
+    async_request("/insert_wiki_cells", insert_cells_from_wiki_callback,
+                  "worksheet_id="+worksheet_id+"&text="+escape0(text)+eval_param);
+}
+
+function get_worksheet_id(){
+    return worksheet_id;
+}
+
+function insert_cells_from_wiki_callback(status, response_text) {
+    if(status == "success") {
+        var X = response_text.split(SEP);
+        var do_eval = eval(X[0]);
+        var new_cell_id_list = eval(X[1]);
+        var old_first_cell = cell_id_list[0];
+        for(var i = 2; i < X.length; i++)
+            do_insert_new_cell_before(old_first_cell, new_cell_id_list[i-2], X[i]);
+        if(do_eval)
+            evaluate_all();
+    }
+}
+
+
 ///////////////////////////////////////////////////////////////////
 //
 // LOG windows
@@ -1788,7 +1893,7 @@ function is_submit(e) {
 
 %s
 """%keyhandler.all_tests()
-
+    s += async_lib()
     s += keyboards.get_keyboard('')
 
     return s

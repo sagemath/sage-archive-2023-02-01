@@ -59,15 +59,15 @@ from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
 from sage.rings.finite_field_givaro import FiniteField_givaro
 
-import sage.interfaces.gap
+from sage.structure.parent_gens import normalize_names
 
-from finite_field_c import FiniteField, is_FiniteField, is_PrimeFiniteField
+import sage.interfaces.gap
 
 import weakref
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None):
+def FiniteField(order, name=None, modulus=None, names=None):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -81,7 +81,7 @@ def FiniteField(order, name=None, modulus=None):
                    definining polynomials can be arbitrary.
 
     EXAMPLES:
-        sage: k = FiniteField(9, 'a'); k
+        sage: k.<a> = FiniteField(9); k
         Finite Field in a of size 3^2
         sage: parent(a)
         Finite Field in a of size 3^2
@@ -90,25 +90,32 @@ def FiniteField(order, name=None, modulus=None):
 
     You can also use GF instead of FiniteField -- they are identical.
     """
+    if not names is None: name = names
     order = int(order)
+    name = normalize_names(1,name)
 
     key = (order, name, modulus)
     if cache.has_key(key):
-        K = cache[key]()
-        if not K is None:
-            return K
+        return cache[key]
+
+    # I have disabled weakref support for finite fields, because it isn't
+    # really implemented in Pyrex.  - SEE track ticket #165
+        #K = cache[key]()
+        #if not K is None:
+        #    return K
 
     if arith.is_prime(order):
         K = integer_mod_ring.IntegerModRing(order)
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"
-        if False and order < 2**16:   # todo -- re-enable
+        if order < 2**16:   # todo -- re-enable
             K = FiniteField_givaro(order, name, modulus)
         else:
             K = FiniteField_ext_pari(order, name, modulus)
 
-    cache[key] = weakref.ref(K)
+    #cache[key] = weakref.ref(K)
+    #cache[key] = K
     return K
 
 
@@ -201,7 +208,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: K = FiniteField(7)
         sage: loads(K.dumps()) == K
         True
-        sage: K = FiniteField_ext_pari(7^10)
+        sage: K = FiniteField_ext_pari(7^10, 'b')
         sage: loads(K.dumps()) == K
         True
         sage: K = FiniteField_ext_pari(7^10, 'a')
@@ -222,16 +229,17 @@ class FiniteField_ext_pari(FiniteField_generic):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, q, name='a', modulus=None):
+    def __init__(self, q, name, modulus=None):
         """
         Create finite field of order q with variable printed as name.
 
         INPUT:
             q -- integer, size of the finite field, not prime
-            name -- (optional:default 'a') variable used for
-                    printing element of the finite field.  Also,
-                    two finite fields are considered equal
-                    if they have the same variable name, and not otherwise.
+            name -- variable used for printing element of the finite
+                    field.  Also, two finite fields are considered
+                    equal if they have the same variable name, and not
+                    otherwise.
+
         OUTPUT:
             FiniteField_ext_pari -- a finite field of order q with given variable name.
 
@@ -284,27 +292,6 @@ class FiniteField_ext_pari(FiniteField_generic):
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
-
-
-    def __cmp__(self, other):
-        """
-        EXAMPLES:
-            sage: GF(7)(2) == GF(7)(9)
-            True
-            sage: GF(7)(2) == GF(11)(2)
-            False
-            sage: GF(7)(2) == GF(8,'a')(2)
-            False
-            sage: GF(7)(2) == 2
-            True
-        """
-        if not isinstance(other, FiniteField_ext_pari):
-            return -1
-        if (self is other) or (self.__order == other.__order and
-                               self.variable_name() == other.variable_name() \
-                               and self.__modulus == other.__modulus):
-            return 0
-        return 1
 
     def _pari_one(self):
         """
@@ -379,7 +366,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**4)
+            sage: k = FiniteField_ext_pari(3**4, 'a')
             sage: k.characteristic()
             3
         """
@@ -397,7 +384,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: FiniteField(3).degree()
             1
-            sage: FiniteField_ext_pari(3**20).degree()
+            sage: FiniteField_ext_pari(3**20, 'a').degree()
             20
         """
         return self.__degree
@@ -417,7 +404,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3^4)
+            sage: k = FiniteField_ext_pari(3^4, 'a')
             sage: b = k(5)
             sage: b.parent()
             Finite Field in a of size 3^4
@@ -428,10 +415,10 @@ class FiniteField_ext_pari(FiniteField_generic):
         Constant polynomials coerce into finite fields:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: R = QQ['x']
-            sage: k, a = FiniteField_ext_pari(5^2).objgen()
+            sage: k, a = FiniteField_ext_pari(5^2, 'a').objgen()
             sage: k(R(2/3))
             4
-            sage: R, x = k['x'].objgen()
+            sage: R = k['x']
             sage: k(R(3))
             3
 
@@ -505,7 +492,7 @@ class FiniteField_ext_pari(FiniteField_generic):
                 return x
             else:
                 # This is where we *would* do coercion from one finite field to another...
-                raise TypeError, "no coercion of defined"
+                raise TypeError, "no coercion defined"
 
         elif sage.interfaces.gap.is_GapElement(x):
             try:
@@ -544,8 +531,8 @@ class FiniteField_ext_pari(FiniteField_generic):
             pass
         try:
             return finite_field_element.FiniteField_ext_pariElement(self, integer.Integer(x))
-        except TypeError:
-            raise TypeError, "no coercion defined"
+        except TypeError, msg:
+            raise TypeError, "%s\nno coercion defined"%msg
 
     def _coerce_(self, x):
         """
@@ -553,27 +540,27 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(4)._coerce_(GF(2)(1))
+            sage: FiniteField_ext_pari(4,'a')._coerce_(GF(2)(1))
             1
-            sage: k = FiniteField_ext_pari(4)
+            sage: k = FiniteField_ext_pari(4,'a')
             sage: k._coerce_(k.0)
             a
-            sage: FiniteField_ext_pari(4)._coerce_(3)
+            sage: FiniteField_ext_pari(4,'a')._coerce_(3)
             1
-            sage: FiniteField_ext_pari(4)._coerce_(2/3)
+            sage: FiniteField_ext_pari(4,'a')._coerce_(2/3)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: FiniteField_ext_pari(8)._coerce_(FiniteField_ext_pari(4).0)
+            sage: FiniteField_ext_pari(8,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: FiniteField_ext_pari(16)._coerce_(FiniteField_ext_pari(4).0)
+            sage: FiniteField_ext_pari(16,'a')._coerce_(FiniteField_ext_pari(4,'a').0)
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
-            sage: k = FiniteField_ext_pari(8)
-            sage: k._coerce_(FiniteField(7)(2))
+            sage: k = FiniteField_ext_pari(8,'a')
+            sage: k._coerce_(FiniteField(7,'a')(2))
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion defined
@@ -601,7 +588,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10)
+            sage: k = FiniteField_ext_pari(2**10, 'a')
             sage: k
             Finite Field in a of size 2^10
             sage: len(k)
@@ -615,7 +602,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10)
+            sage: k = FiniteField_ext_pari(2**10,'a')
             sage: k
             Finite Field in a of size 2^10
             sage: k.order()
@@ -623,7 +610,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         """
         return self.__order
 
-    def polynomial(self, name):
+    def polynomial(self, name=None):
         """
         Return the irreducible characteristic polynomial of the
         generator of this finite field, i.e., the polynomial f(x) so
@@ -634,16 +621,23 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: k.polynomial('x')
             x
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(9)
+            sage: k = FiniteField_ext_pari(9,'a')
             sage: k.polynomial('x')
             x^2 + 2*x + 2
         """
+        if name is None:
+            name = self.variable_name()
         try:
-            return self.__polynomial
-        except  AttributeError:
+            return self.__polynomial[name]
+        except (AttributeError, KeyError):
             R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
-            self.__polynomial = R(self._pari_modulus())
-        return self.__polynomial
+            f = R(self._pari_modulus())
+            try:
+                self.__polynomial[name] = f
+            except (KeyError, AttributeError):
+                self.__polynomial = {}
+                self.__polynomial[name] = f
+            return f
 
     def __hash__(self):
         """
@@ -655,9 +649,9 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: hash(GF(3,'a'))
             904200654
             sage: hash(GF(9,'a'))
-            -443918504
+            1524231377
             sage: hash(GF(9,'b'))
-            419125555
+            -584596322
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 
@@ -669,6 +663,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         integer_mod_ring.IntegerModRing_generic.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
+        self._assign_names(('x'),normalize=False)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -692,7 +687,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         try:
             return self.__modulus
         except AttributeError:
-            x = polynomial_ring.PolynomialRing(self).gen()
+            x = polynomial_ring.PolynomialRing(self, 'x').gen()
             self.__modulus = x - 1
         return self.__modulus
 
@@ -702,12 +697,20 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
     def is_prime(self):
         return True
 
-    def polynomial(self, name):
+    def polynomial(self, name=None):
+        if name is None:
+            name = self.variable_name()
         try:
-            return self.__polynomial
+            return self.__polynomial[name]
         except  AttributeError:
-            self.__polynomial = polynomial_ring.PolynomialRing(self, name)([0,1])
-            return self.__polynomial
+            R = polynomial_ring.PolynomialRing(FiniteField(self.characteristic()), name)
+            f = polynomial_ring.PolynomialRing(self, name)([0,1])
+            try:
+                self.__polynomial[name] = f
+            except (KeyError, AttributeError):
+                self.__polynomial = {}
+                self.__polynomial[name] = f
+            return f
 
     def order(self):
         return self.__char

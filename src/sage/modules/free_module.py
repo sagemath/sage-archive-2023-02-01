@@ -92,7 +92,7 @@ import sage.rings.ring as ring
 import sage.rings.integer_ring
 import sage.rings.infinity
 import sage.rings.integer
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 import sage.modules.real_double_vector
 import sage.modules.complex_double_vector
 from sage.structure.sequence import Sequence
@@ -342,7 +342,7 @@ class FreeModule_generic(module.Module):
         else:
             return free_module_element.FreeModuleElement_generic_dense
 
-    def __call__(self, x, coerce_entries=True, copy=True, check_element=True):
+    def __call__(self, x, coerce=True, copy=True, check=True):
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         elif isinstance(x, free_module_element.FreeModuleElement):
@@ -353,10 +353,12 @@ class FreeModule_generic(module.Module):
                     return x
             x = x.list()
         if self.__is_sparse:
-            w = free_module_element.FreeModuleElement_generic_sparse(self, x, coerce_entries, copy)
+            w = free_module_element.FreeModuleElement_generic_sparse(self, x, coerce, copy)
         else:
-            w = free_module_element.FreeModuleElement_generic_dense(self, x, coerce_entries, copy)
-        if check_element:
+            w = free_module_element.FreeModuleElement_generic_dense(self, x, coerce, copy)
+        if check:
+            if isinstance(self, FreeModule_ambient):
+                return w
             self.coordinates(w)
         return w
 
@@ -2513,14 +2515,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         R = ambient.base_ring()
 
         if echelonize and not already_echelonized:
-            basis = self._echelonize(ambient, basis).rows()
+            basis = self._echelonized_basis(ambient, basis)
 
         FreeModule_generic.__init__(self, R, len(basis), ambient.degree(),
                             ambient.is_sparse(), inner_product_matrix=inner_product_matrix)
 
         C = self._element_class()
         w = [C(self, x.list(),
-                          coerce_entries=False, copy=True) for x in basis]
+                          coerce=False, copy=True) for x in basis]
 
         self.__basis = basis_seq(self, w)
 
@@ -2533,13 +2535,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             if echelonize or already_echelonized:
                 self.__echelonized_basis = self.__basis
             else:
-                w = self._echelonize(ambient, basis).rows()
+                w = self._echelonized_basis(ambient, basis)
                 self.__echelonized_basis = basis_seq(self, w)
 
         if check and len(basis) != len(self.__echelonized_basis):
             raise ArithmeticError, "basis vectors must be linearly independent."
 
-    def _echelonize(self, ambient, basis):
+    def _echelonized_basis(self, ambient, basis):
         d = self._denominator(basis)
         MAT = sage.matrix.matrix_space.MatrixSpace(ambient.base_ring(),
                         len(basis), ambient.degree(),
@@ -2547,10 +2549,11 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if d > 1:
             basis = [x*d for x in basis]
         A = MAT(basis)
-        E = A.echelon_form(include_zero_rows=False)
+        E = A.echelon_form()
         if d != 1:
             E = E.matrix_over_field()*(~d)   # divide out denominator
-        return E
+        # Return the first rank rows (i.e., the nonzero rows).
+        return E.rows()[:E.rank()]
 
     def __cmp__(self, other):
         r"""
@@ -3118,13 +3121,14 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
         # for internal use only
         return 1
 
-    def _echelonize(self, ambient, basis):
+    def _echelonized_basis(self, ambient, basis):
         MAT = sage.matrix.matrix_space.MatrixSpace(ambient.base_ring(),
                         len(basis), ambient.degree(),
                         sparse = ambient.is_sparse())
         A = MAT(basis)
-        E = A.echelon_form(include_zero_rows=False)
-        return E
+        E = A.echelon_form()
+        # Return the first rank rows (i.e., the nonzero rows).
+        return E.rows()[:E.rank()]
 
     def is_ambient(self):
         """

@@ -80,7 +80,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             sage: f((1,2))
             5
 
-            sage: x = MPolynomialRing(RationalField(),3).gens()
+            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             x1 - 2*x1*x2 + x0
@@ -267,7 +267,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ, 10).objgens()
+            sage: R, x = MPolynomialRing(QQ, 'x', 10).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -430,7 +430,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f[0,1]
             0
 
-            sage: R.<x> = MPolynomialRing(GF(7)); R
+            sage: R.<x> = PolynomialRing(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             3 + 5*x^2

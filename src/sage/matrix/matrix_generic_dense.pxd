@@ -1,8 +1,6 @@
-include "../ext/cdefs.pxi"
+cimport matrix_dense
 
-cimport matrix
-
-cdef class Matrix_generic_dense(matrix.Matrix):
+cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     cdef object _entries
 
 cdef class MatrixWindow(matrix.MatrixWindow):

@@ -3,6 +3,9 @@ all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
 """
 
+from __future__ import with_statement
+
+
 ###############################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
@@ -243,6 +246,6 @@ def _quit_sage_(self):
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
-def init_interactive_constructors(scope):
-    import sage.ext.interactive_constructors
-    sage.ext.interactive_constructors.SAGE_GLOBAL=scope
+from sage.ext.interactive_constructors_c import inject_on, inject_off
+
+from catalogue import cat

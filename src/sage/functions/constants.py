@@ -140,17 +140,120 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import math
+import math, operator
 
-from sage.rings.all import CommutativeRing, RealField, Integer
+from sage.rings.all import CommutativeRing, RealField, Integer, RingElement
 import sage.interfaces.all
 import sage.rings.all
 from sage.libs.pari.all import pari
 from sage.misc.latex import latex
 
+
 # Default real field used for coercion.
 
-from functions import Constant
+from functions import Function_gen, Function_arith, Function, FunctionRing_class
+
+######################
+# Ring of Constants
+######################
+
+class ConstantRing_class(FunctionRing_class):
+    def _repr_(self):
+        return "Ring of Real Mathematical Constants"
+
+    def __cmp__(self, right):
+        if isinstance(right, ConstantRing_class):
+            return 0
+        return -1
+
+    def __call__(self, x):
+        try:
+            return self._coerce_(x)
+        except TypeError:
+            return Constant_gen(x)
+
+    def _coerce_(self, x):
+        try:
+            if x.parent() == self:
+                return x
+        except AttributeError:
+            pass
+        if isinstance(x, (sage.rings.integer.Integer,
+                          sage.rings.rational.Rational,
+                          int,long,float,complex)):
+            return Constant_gen(x)
+        raise TypeError, 'no canonical coercion of x into self.'
+
+ConstantRing = ConstantRing_class()
+
+
+######################
+# Constant functions
+######################
+
+class Constant(Function):
+    def __init__(self, conversions={}):
+        self._conversions = conversions
+        RingElement.__init__(self, ConstantRing)
+
+    def __call__(self, x):
+        return self
+
+    def floor(self):
+        return Integer(int(float(self)))
+
+    # The following adds formal arithmetic support for generic constant
+    def _add_(self, right):
+        return Constant_arith(self, right, operator.add)
+
+    def _sub_(self, right):
+        return Constant_arith(self, right, operator.sub)
+
+    def _mul_(self, right):
+        return Constant_arith(self, right, operator.mul)
+
+    def _div_(self, right):
+        return Constant_arith(self, right, operator.div)
+
+    def _interface_is_cached_(self):
+        """
+        Return False, since coercion of functions to interfaces
+        is not cached.
+
+        We do not cache coercions of functions to interfaces, since
+        the precision of the interface may change.
+
+        EXAMPLES:
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+            sage: old_prec = gp.set_precision(100)
+            sage: gp(pi)
+            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+            sage: _ = gp.set_precision(old_prec)
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+        """
+        return False
+
+
+class Constant_gen(Constant, Function_gen):
+    def __init__(self, x):
+        Function_gen.__init__(self, x)
+        Constant.__init__(self)
+
+    def __call__(self, x):
+        return self.obj()
+
+    def __repr__(self):
+        return Function_gen._repr_(self)
+
+class Constant_arith(Function_arith, Constant):
+    def parent(self):
+        return ConstantRing
+
+
 
 class Pi(Constant):
     """
@@ -209,7 +312,7 @@ class Pi(Constant):
         return -self
 
     def floor(self):
-        raise NotImplementedError
+        return Integer(3)
 
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!

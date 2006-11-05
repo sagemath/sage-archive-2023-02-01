@@ -97,7 +97,7 @@ class Cusps_class(SageObject):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
         """
         if isinstance(x, Cusp):
             return x
@@ -160,7 +160,7 @@ class Cusp(Element_cmp_, SageObject):
             sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a

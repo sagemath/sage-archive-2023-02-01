@@ -11,7 +11,8 @@ Ambient Spaces
 #*****************************************************************************
 
 from sage.rings.all import Integer, is_CommutativeRing, ZZ
-from sage.structure.all import Generators
+
+from sage.structure.parent_gens import ParentWithGens
 
 import algebraic_scheme
 import scheme
@@ -19,7 +20,7 @@ import scheme
 def is_AmbientSpace(x):
     return isinstance(x, AmbientSpace)
 
-class AmbientSpace(scheme.Scheme, Generators):
+class AmbientSpace(scheme.Scheme, ParentWithGens):
     """
     Base class for ambient spaces over a ring.
 

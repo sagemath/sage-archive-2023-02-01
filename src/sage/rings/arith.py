@@ -52,8 +52,7 @@ def algdep(z, n):
         x^2 - 2
 
     This example involves a complex number.
-        sage: C = ComplexField()
-        sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+        sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
         0.500000000000000 + 0.866025403784438*I
         sage: p = algdep(z, 6); p
         x^6 + 2*x^3 + 1
@@ -1868,10 +1867,7 @@ def continued_fraction(x, partial_convergents=False):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction(e)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: computation of continued fraction of x not implemented;
-        try computing continued fraction of RR(x) instead.
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: continued_fraction(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: print continued_fraction(RealField(200)(e))
@@ -1902,8 +1898,8 @@ def continued_fraction(x, partial_convergents=False):
                 else:
                     return v
             x = 1/x
-    except (AttributeError, NotImplementedError, TypeError):
-        raise NotImplementedError, "computation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."
+    except (AttributeError, NotImplementedError, TypeError), msg:
+        raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
 
 def convergent(v, n):
     """

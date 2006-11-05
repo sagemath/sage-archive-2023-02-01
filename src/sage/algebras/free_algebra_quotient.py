@@ -26,11 +26,11 @@ from sage.algebras.free_algebra import is_FreeAlgebra
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
 
 class FreeAlgebraQuotient(Algebra, object):
-    def __init__(self, A, mons, mats, names = None): #, gens_function = None):
+    def __init__(self, A, mons, mats, names):
         """
         Returns a quotient algebra defined via the action of a free algebra A
         on a (finitely generated) free module.  The input for the quotient algebra
-        is a list monomials (in the underlying monoid for A) which form a free
+        is a list of monomials (in the underlying monoid for A) which form a free
         basis for the module of A, and a list of matrices, which give the action
         of the free generators of A on this monomial basis.
 
@@ -39,15 +39,13 @@ class FreeAlgebraQuotient(Algebra, object):
         Quaternion algebra defined in terms of three generators:
 
             sage: n = 3
-            sage: A = FreeAlgebra(QQ,n); B = A.gens()
+            sage: A = FreeAlgebra(QQ,n,'i')
             sage: F = A.monoid()
             sage: i, j, k = F.gens()
             sage: mons = [ F(1), i, j, k ]
             sage: M = MatrixSpace(QQ,4)
             sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]),  M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]),  M([0,0,0,1, 0,0,-1,0, 0,1,0,0, -1,0,0,0]) ]
-            sage: H3 = FreeAlgebraQuotient(A,mons,mats)
-            sage: H3._assign_names(["i","j","k"])
-            sage: i, j, k = H3.gens()
+            sage: H3.<i,j,k> = FreeAlgebraQuotient(A,mons,mats)
             sage: x = 1 + i + j + k
             sage: x
             1 + i + j + k
@@ -58,16 +56,15 @@ class FreeAlgebraQuotient(Algebra, object):
         penalty on already slow arithmetic.
 
             sage: n = 2
-            sage: A = FreeAlgebra(QQ,n); B = A.gens()
+            sage: A = FreeAlgebra(QQ,n,'x')
             sage: F = A.monoid()
             sage: i, j = F.gens()
             sage: mons = [ F(1), i, j, i*j ]
             sage: r = len(mons)
             sage: M = MatrixSpace(QQ,r)
             sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]), M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]) ]
-            sage: H2 = FreeAlgebraQuotient(A,mons,mats)
-            sage: i, j = H2.gens(); k = i*j
-            sage: H2._assign_names(["i","j"])
+            sage: H2.<i,j> = A.quotient(mons,mats)
+            sage: k = i*j
             sage: x = 1 + i + j + k
             sage: x
             1 + i + j + i*j
@@ -85,22 +82,40 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__free_algebra = A
         self.__base_ring = R
         self.__ngens = n
+        self._assign_names(names)
         self.__dim = len(mons)
         self.__module = FreeModule(R,self.__dim)
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
-        self._assign_names(names)
 
     def __call__(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
             return x
         return FreeAlgebraQuotientElement(self,x)
 
+    def _coerce_(self, x):
+        """
+        Return the coercion of x into this free algebra quotient.
+
+        The algebras that coerce into this quotient ring canonically, are:
+
+           * this quotient algebra
+           * anything that coerces into the algebra of which this is the quotient
+        """
+        try:
+            P = x.parent()
+            # this ring itself:
+            if P is self: return x
+        except AttributeError:
+            pass
+        return self._coerce_try(x, [self.__free_algebra])
+
+
     def __repr__(self):
         R = self.__base_ring
         n = self.__ngens
         r = self.__module.dimension()
-        x = self.__free_algebra.variable_names()
+        x = self.variable_names()
         return "Free algebra quotient on %s generators %s and dimension %s over %s"%(n,x,r,R)
 
     def __contains__(self, x):
@@ -164,17 +179,4 @@ class FreeAlgebraQuotient(Algebra, object):
         """
         return self.__free_algebra
 
-    def _assign_names(self,names):
-        """
-        Assign the printing names for the generators; this will have the unfortunate
-        effect of overwriting the names for the covering algebra; this also does not
-        overwrite the return value of names() for the Algebra.
-        """
-        self.monoid()._assign_names(names)
-
-    def variable_names(self):
-        """
-        I override this in order to return to names of the underlying monoid.
-        """
-        return self.monoid().variable_names()
 

@@ -349,24 +349,24 @@ cdef class Rational(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: x = 23/2
             sage: x.sqrt()
-            3.3911649915626341
+            3.39116499156263
             sage: x = 32/5
             sage: x.sqrt()
-            2.5298221281347035
+            2.52982212813470
             sage: x = 16/9
             sage: x.sqrt()
             4/3
             sage: x.sqrt(53)
-            1.3333333333333333
+            1.33333333333333
             sage: x = 9837/2
             sage: x.sqrt()
-            70.132018365365752
+            70.1320183653657
             sage: x = 645373/45
             sage: x.sqrt()
-            119.75651223303984
+            119.756512233039
             sage: x = -12/5
             sage: x.sqrt()
-            1.5491933384829668*I
+            1.54919333848296*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
@@ -486,7 +486,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         _sig_on
         mpq_get_str(s, base, self.value)
         _sig_off
-        k = PyString_FromString(s)
+        k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
 

@@ -218,7 +218,7 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         entries = arg2
         ncols = len(entries) // nrows
 
-    elif rings.is_Ring(arg0) and isinstance(arg3, (list, tuple)):
+    elif rings.is_Ring(arg0):
         # 7. matrix(ring, nrows, ncols, entries, [sparse]):
         #       matrix over the given ring with given number of rows and columns and entries.
         ring = arg0
@@ -245,3 +245,5 @@ def prepare(w):
     elif not rings.is_Ring(ring):
         raise TypeError, "unable to find a common ring for all elements"
     return entries, ring
+
+Matrix = matrix

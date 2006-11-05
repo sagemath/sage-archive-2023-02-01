@@ -487,7 +487,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                 for k, x in entries:
                     f, s = mod2term[k]
                     if s != 0:
-                        W.set((j,f), W.get((j,f)) + s*K(x))
+                        W[j,f] = W[j,f] + s*K(x)
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
         Tp = W*R
@@ -1251,7 +1251,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
                 if k != -1:
                     f, s = mod2term[k]
                     if s != 0:
-                        W.set((j,f), W.get((j,f)) + s*m)
+                        W[j,f] = W[j,f] + s*m
             j += 1
         tm = misc.verbose("done making non-reduced matrix",tm)
         misc.verbose("start matrix-matrix multiply to get Tp")

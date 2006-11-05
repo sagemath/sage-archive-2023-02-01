@@ -36,7 +36,7 @@ import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 import sage.rings.arith as arith
 import sage.rings.coerce as coerce
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 
 import sage.modular.cusps as cusps
 

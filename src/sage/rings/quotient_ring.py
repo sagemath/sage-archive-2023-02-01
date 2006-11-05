@@ -21,17 +21,21 @@ import sage.misc.latex as latex
 import commutative_ring
 import ideal
 import multi_polynomial_ideal
-from sage.structure.all import Generators
+import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
-def QuotientRing(R, I):
+def QuotientRing(R, I, names=None):
     if not isinstance(R, commutative_ring.CommutativeRing):
         raise TypeError, "R must be a commutative ring."
+    if names is None:
+        names = tuple([x + 'bar' for x in R.variable_names()])
+    else:
+        names = sage.structure.parent_gens.normalize_names(R.ngens(), names)
     if not isinstance(I, ideal.Ideal_generic) or I.ring() != R:
         I = R.ideal(I)
     try:
         if I.is_principal():
-            return R.quotient_by_principal_ideal(I.gen())
+            return R.quotient_by_principal_ideal(I.gen(), names)
     except (AttributeError, NotImplementedError):
         pass
     if isinstance(R, QuotientRing_generic):
@@ -40,14 +44,14 @@ def QuotientRing(R, I):
         G = [pi.lift(x) for x in I.gens()]
         I_lift = S.ideal(G)
         J = R.defining_ideal()
-        return QuotientRing_generic(S, I_lift + J)
+        return QuotientRing_generic(S, I_lift + J, names)
 
-    return QuotientRing_generic(R, I)
+    return QuotientRing_generic(R, I, names)
 
 def is_QuotientRing(x):
     return isinstance(x, QuotientRing_generic)
 
-class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
+class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.parent_gens.ParentWithGens):
     """
     The quotient ring of $R$ by the ideal $I$.
 
@@ -57,8 +61,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         sage: S = R.quotient_ring(I); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
 
-        sage: R = QQ['x,y']
-        sage: S = quo(R, x^2 + y^2, 'a,b')
+        sage: R.<x,y> = PolynomialRing(QQ)
+        sage: S.<a,b> = R.quo(x^2 + y^2)
         sage: a^2 + b^2 == 0
         True
         sage: S(0) == a^2 + b^2
@@ -68,15 +72,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
 
     A quotient of a quotient is just the quotient of the
     original top ring by the sum of two ideals.
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S, (a,b) = (R/(1 + y^2)).objgens('ab')
-        sage: T, (c,d) = (S/(a, )).objgens('cd')
+        sage: R.<x,y> = PolynomialRing(QQ,2)
+        sage: S.<a,b> = R.quo(1 + y^2)
+        sage: T.<c,d> = S.quo(a)
         sage: T
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, 1 + y^2)
         sage: T.gens()
         (0, d)
     """
-    def __init__(self, R, I, names=None):
+    def __init__(self, R, I, names):
         """
         Create the quotient ring of R by the ideal I.
 
@@ -99,7 +103,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         The covering ring homomorphism $R \to R/I$, equipped with a section.
 
         EXAMPLES:
-            sage: R = ZZ/(3*ZZ)
+            sage: R = ZZ.quo(3*ZZ)
             sage: pi = R.cover()
             sage: pi
             Ring morphism:
@@ -112,11 +116,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
             sage: l = pi.lift()
 
         EXAMPLES:
-            sage: R, (x,y)  = QQ['x,y'].objgens()
-            sage: Q = R/(x^2,y^2)
+            sage: R.<x,y>  = PolynomialRing(QQ)
+            sage: Q = R.quo( (x^2,y^2) )
             sage: pi = Q.cover()
             sage: pi(x^3+y)
-            y
+            ybar
             sage: l = pi.lift(x+y^3)
             sage: l
             x
@@ -144,8 +148,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
         Return the lifting map to the cover.
 
         EXAMPLES:
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S = R.quotient(x^2 + y^2, names=['xbar', 'ybar'])
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S = R.quotient(x^2 + y^2)
             sage: pi = S.cover(); pi
             Ring morphism:
               From: Polynomial Ring in x, y over Rational Field
@@ -223,14 +227,47 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, Generators):
             x = R(x)
         return quotient_ring_element.QuotientRingElement(self, x)
 
+    def _coerce_(self, x):
+        """
+        Return the coercion of x into this quotient ring.
+
+        The rings that coerce into the quotient ring canonically, are:
+
+           * this ring.
+           * anything that coerces into the ring of which this is the quotient
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: S.<a,b> = R.quotient(x^2 + y^2)
+            sage: S._coerce_(0)
+            0
+            sage: S._coerce_(2/3)
+            2/3
+            sage: S._coerce_(a^2 - b)
+            -1*b - b^2
+            sage: S._coerce_(GF(7)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of x into self
+        """
+        try:
+            P = x.parent()
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+        except AttributeError:
+            pass
+
+        return self._coerce_try(x, [self.cover_ring()])
+
     def __cmp__(self, other):
         r"""
-        Only quotients by the \emph{same} (in "is") ring
-        and same ideal are considered equal.
+        Only quotients by the \emph{same} ring and same ideal (with
+        the same generators!!) are considered equal.
         """
         if not isinstance(other, QuotientRing_generic):
             return -1
-        if self.cover_ring() is other.cover_ring() and self.defining_ideal() is other.defining_ideal():
+        if self.cover_ring() == other.cover_ring() and self.defining_ideal().gens() == other.defining_ideal().gens():
             return 0
         return 1
 

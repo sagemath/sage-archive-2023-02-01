@@ -204,7 +204,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         raise TypeError, "mod must be a list"
 
     tm = misc.verbose()
-    A = relation_matrix.echelon_form(1)
+    A = relation_matrix.echelon_form()
     A.set_immutable()
 
     tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)

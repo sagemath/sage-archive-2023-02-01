@@ -103,7 +103,7 @@ def is_IntegerModRing(x):
         True
         sage: is_IntegerModRing(GF(13))
         True
-        sage: is_IntegerModRing(GF(4))
+        sage: is_IntegerModRing(GF(4, 'a'))
         False
         sage: is_IntegerModRing(10)
         False
@@ -196,7 +196,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._pyx_order = integer_mod.NativeIntStruct(order)
         self.__unit_group_exponent = None
         self.__factored_order = None
-        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order))
+        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
 
     def is_finite(self):
         """
@@ -268,7 +268,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self.__modulus
         except AttributeError:
             from polynomial_ring import PolynomialRing
-            x = PolynomialRing(self).gen()
+            x = PolynomialRing(self, 'x').gen()
             self.__modulus = x - 1
             return self.__modulus
 

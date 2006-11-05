@@ -1,7 +1,6 @@
-import  sage.structure.gens
-cimport sage.structure.gens
+cimport sage.structure.parent_gens
 
-cdef class Ring(sage.structure.gens.Generators):
+cdef class Ring(sage.structure.parent_gens.ParentWithGens):
     pass
 
 cdef class CommutativeRing(Ring):

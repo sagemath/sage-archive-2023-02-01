@@ -83,31 +83,26 @@ cdef extern from "stdlib.h":
     void abort()
 
 cdef void* pymem_realloc(void *ptr, size_t old_size, size_t new_size):
-    return PyMem_Realloc(ptr, new_size)
-    #print "hello-realloc: ", <long> ptr, old_size, new_size
-    #cdef void* p
-    #p = PyMem_Realloc(ptr, new_size)
-    #print "p = ", <long> p
-    #if <void*> p != <void*> ptr:
-    #    abort()
-    #return p
-
+    return sage_realloc(ptr, new_size)
 
 cdef void pymem_free(void *ptr, size_t size):
-    PyMem_Free(ptr)
+    sage_free(ptr)
 
 cdef void* pymem_malloc(size_t size):
-    return PyMem_Malloc(size)
+    return sage_malloc(size)
 
 cdef extern from "gmp.h":
-    void mp_set_memory_functions (void *(*alloc_func_ptr) (size_t), void *(*realloc_func_ptr) (void *, size_t, size_t), void (*free_func_ptr) (void *, size_t))
+    void mp_set_memory_functions (void *(*alloc_func_ptr) (size_t),  \
+                                  void *(*realloc_func_ptr) (void *, size_t, size_t),    \
+                                  void (*free_func_ptr) (void *, size_t))
 
 
 def pmem_malloc():
     """
-    Use the Python heap for GMP memory management.
+    Use our own memory manager for for GMP memory management.
     """
-    mp_set_memory_functions(PyMem_Malloc, pymem_realloc, pymem_free)
+    mp_set_memory_functions(sage_malloc, pymem_realloc, pymem_free)
+    #mp_set_memory_functions(PyMem_Malloc, pymem_realloc, pymem_free)
     #mp_set_memory_functions(pymem_malloc, pymem_realloc, pymem_free)
 
 pmem_malloc()
@@ -409,10 +404,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ValueError: base (=37) must be between 2 and 36
 
             sage: big = 10^5000000
-            sage: s = big.str()                 # long (> 20 seconds)
-            sage: len(s)                        # depends on long
+            sage: s = big.str()                 # long time (> 20 seconds)
+            sage: len(s)                        # long time (depends on above defn of s)
             5000001
-            sage: s[:10]                        # depends on long
+            sage: s[:10]                        # long time (depends on above defn of s)
             '1000000000'
         """
         if base < 2 or base > 36:
@@ -833,20 +828,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            sage: Integer(1).exact_log(5)
            0
 
-        This is why you don't want to use log(n, m):
-           sage: x = 3**10000000
+
+           sage: x = 3^100000
            sage: log(x, 3)
-           9999999.9999999981
+           100000.000000000
            sage: log(x + 100000, 3)
-           9999999.9999999981
+           100000.000000000
 
            sage: x.exact_log(3)
-           10000000
+           100000   BUG -- TODO -- this is *really* slow for no reason...
            sage: (x+1).exact_log(3)
-           10000000
+           100000
            sage: (x-1).exact_log(3)
-           9999999
-
+           99999
         """
         if self <= 0:
             raise ValueError, "self must be positive"
@@ -1452,23 +1446,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(4).sqrt()
             2
             sage: Z(4).sqrt(53)
-            2.0000000000000000
+            2.00000000000000
             sage: Z(2).sqrt(53)
-            1.4142135623730951
+            1.41421356237309
             sage: Z(2).sqrt(100)
-            1.4142135623730950488016887242092
+            1.4142135623730950488016887242
             sage: n = 39188072418583779289; n.square_root()
             6260037733
             sage: (100^100).sqrt()
             10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
             sage: (-1).sqrt()
-            1.0000000000000000*I
+            1.00000000000000*I
             sage: sqrt(-2)
-            1.4142135623730951*I
+            1.41421356237309*I
             sage: sqrt(97)
-            9.8488578017961039
+            9.84885780179610
             sage: n = 97; n.sqrt(200)
-            9.8488578017961047217462114149176244816961362874427641717231516
+            9.8488578017961047217462114149176244816961362874427641717231
         """
         if bits is None:
             try:

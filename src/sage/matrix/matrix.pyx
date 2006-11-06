@@ -76,15 +76,10 @@ cdef class Matrix(ModuleElement):
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
 
-    Note that matrices in SAGE are (currently) only implemented over commutative rings:
-        sage: Q = QuaternionAlgebra(QQ, -1,-1)
+        sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
         sage: matrix(Q,2,1,[1,2])
-        Traceback (most recent call last):
-        ...
-        TypeError: base_ring must be a commutative ring
-
-    (This is just because this assumption is implicitly made in some functions.  It
-    could be fixed if there were interest.)
+        [1]
+        [2]
     """
     def __init__(self, parent):
         """

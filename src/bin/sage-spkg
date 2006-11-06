@@ -270,3 +270,7 @@ else
    echo "`pwd`"
    exit 1
 fi
+
+echo "Making SAGE/Python scripts relocatable..."
+
+cd "$SAGE_LOCAL"/bin && ./sage-make_relative

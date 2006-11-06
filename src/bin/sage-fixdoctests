@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+
+"""
+Given the output of doctest and a file, adjust the doctests so they won't fail.
+
+This doesn't touch anything with exceptions.
+"""
+
+import os, sys
+
+if not (len(sys.argv) in [2,3]) :
+    print "Usage: sage -fixdoctests <source file> [doctest output]"
+    print "Creates file <source file>.out that would pass the doctests (modulo raised exception)"
+    sys.exit(1)
+
+if len(sys.argv) == 2:
+    os.system('sage -t %s > .tmp'%sys.argv[1])
+    doc_out = '.tmp'
+else:
+    doc_out = sys.argv[2]
+
+src_in = open(sys.argv[1]).read()
+doc_out = open(doc_out).read()
+
+sep = "**********************************************************************"
+
+doctests = doc_out.split(sep)
+src_in_lines = src_in.split('\n')
+
+v = src_in.split('\n')
+
+for X in doctests:
+    if 'raceback' in X: continue
+    # 1. Extracted what was expected and was got.
+    # 2. Search for the expected one.
+    # 3. If expected is unique, replace it by got.
+    # 4. If not, print a warning.
+    i = X.find(':')
+    if i == -1: continue
+    j = X.find('Expected:')
+    if j == -1:
+        continue
+    line = X[i+1:j].strip()
+    X = X[j+9:]
+    expected, got = X.split('Got:')
+    expected = expected.strip()
+    got = got.strip()
+    k = [i for i in range(len(v)) if v[i].strip() == expected \
+                             and i > 0 and v[i-1].strip() == line]
+    if len(k) == 1:
+        n = len(v[k[0]]) - len(v[k[0]].lstrip())
+        v[k[0]] = ' '*n + got
+
+src_out = '\n'.join(v)
+
+open(sys.argv[1] + '.out','w').write(src_out)
+
+os.system('diff -u %s %s | more'%(sys.argv[1], sys.argv[1] + '.out'))
+
+

@@ -300,7 +300,7 @@ class NumberFieldElement(field_element.FieldElement):
         return QQ(self._pari_().norm())
         #return self.matrix().determinant()
 
-    def charpoly(self):
+    def charpoly(self, var):
         r"""
         The characteristic polynomial of this element over $\Q$.
 
@@ -310,7 +310,7 @@ class NumberFieldElement(field_element.FieldElement):
 
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-2)
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^3 - 2
 
         We construct a relative extension and find the characteristic
@@ -322,10 +322,12 @@ class NumberFieldElement(field_element.FieldElement):
             Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2
             sage: a = L.0; a
             b
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^9 + 57*x^6 + 165*x^3 + 6859
+            sage: a.charpoly('y')
+            y^9 + 57*y^6 + 165*y^3 + 6859
         """
-        R = self.parent().polynomial_ring()
+        R = self.parent().base_ring()[var]
         if not isinstance(self.parent(), number_field.NumberField_extension):
             return R(self._pari_().charpoly())
         else:
@@ -342,7 +344,7 @@ class NumberFieldElement(field_element.FieldElement):
 ##             prp = self.parent().pari_relative_polynomial()
 ##             elt = str(self.polynomial()._pari_())
 ##             return R(nf.rnfcharpoly(prp, elt))
-##         # return self.matrix().charpoly()
+##         # return self.matrix().charpoly('x')
 
     def minpoly(self):
         # The minimal polynomial is square-free and
@@ -351,7 +353,7 @@ class NumberFieldElement(field_element.FieldElement):
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
         f = polynomial_ring.PolynomialRing(QQ)(1)
-        for g, _ in self.charpoly().factor():
+        for g, _ in self.charpoly('x').factor():
             f *= g
         return f
 

@@ -429,7 +429,7 @@ cdef class ParentWithGens(parent.Parent):
             TypeError: images do not define a valid homomorphism
 
             sage: R, x = PolynomialRing(GF(7)).objgen()
-            sage: f = R.hom([3], GF(49))
+            sage: f = R.hom([3], GF(49,'a'))
             sage: f
             Ring morphism:
               From: Univariate Polynomial Ring in x over Finite Field of size 7

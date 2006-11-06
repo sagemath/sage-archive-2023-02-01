@@ -100,7 +100,7 @@ cdef class Matrix_pid_dense(matrix_domain_dense.Matrix_domain_dense):
         if self.nrows() == 0:
             return []
 
-        f = self.charpoly()
+        f = self.charpoly('x')
         E = []
 
         # Idea: For optimization, could compute powers of self

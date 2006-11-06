@@ -715,7 +715,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         Return the characteristic polynomial of this rational number.
         This will always be just x - self; this is really here
@@ -723,14 +723,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         applied to rational numbers.
 
         EXAMPLES:
-            sage: (1/3).charpoly()
+            sage: (1/3).charpoly('x')
              x - 1/3
 
         AUTHOR:
           -- Craig Citro
         """
         QQ = self.parent()
-        return QQ['x']([-self,1])
+        return QQ[var]([-self,1])
 
     def minpoly(self):
         """

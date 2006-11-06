@@ -208,7 +208,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3
 
-            sage: magma(PolynomialRing(GF(49),10)) #optional
+            sage: magma(PolynomialRing(GF(49,'a'),10)) #optional
             Polynomial ring of rank 10 over GF(7^2)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9

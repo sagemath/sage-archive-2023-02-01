@@ -45,7 +45,7 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
 
         EXAMPLES:
             sage: A = MatrixSpace(RationalField(),3)(range(9))
-            sage: A.charpoly()
+            sage: A.charpoly('x')
             x^3 - 12*x^2 - 18*x
             sage: A.trace()
             12
@@ -304,13 +304,13 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
         EXAMPLES:
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
-            sage: A.fcp()
+            sage: A.fcp('x')
             (x^3 - 8*x^2 + 209/5*x - 286)
             sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
-            sage: A.fcp()
+            sage: A.fcp('x')
             (x - 3) * x * (x + 2)
         """
-        return self.charpoly().factor()
+        return self.charpoly('x').factor()
 
 
     def hessenberg_form(self):

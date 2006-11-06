@@ -199,7 +199,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: magma(PolynomialRing(GF(7))) #optional
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49))) #optional
+            sage: magma(PolynomialRing(GF(49,'a'))) #optional
             Univariate Polynomial Ring in x over GF(7^2)
 
             sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'))) #optional

@@ -89,7 +89,7 @@ def eigenspaces(self):
         pass
     if not self.is_square():
         raise ValueError, "matrix must be square"
-    f = self.charpoly()
+    f = self.charpoly('x')
     G = f.factor()
     V = []
     for h, e in G:
@@ -151,7 +151,7 @@ def charpoly(self, *args, **kwds):
     EXAMPLES:
     First a matrix over $\Z$:
         sage: A = MatrixSpace(IntegerRing(),2)( [[1,2], [3,4]] )
-        sage: f = A.charpoly()
+        sage: f = A.charpoly('x')
         sage: f
         x^2 - 5*x - 2
         sage: f.parent()
@@ -159,7 +159,7 @@ def charpoly(self, *args, **kwds):
 
     An example over $\Q$, verifying against the trace and determinant:
         sage: A = MatrixSpace(RationalField(),3)(range(9))
-        sage: A.charpoly()
+        sage: A.charpoly('x')
         x^3 - 12*x^2 - 18*x
         sage: A.trace()
         12
@@ -173,7 +173,7 @@ def charpoly(self, *args, **kwds):
         sage: M
         [    a     1]
         [    a a + 1]
-        sage: f = M.charpoly()
+        sage: f = M.charpoly('x')
         sage: f
         x^2 + (-2*a - 1)*x + a^2
         sage: f.parent()
@@ -187,7 +187,7 @@ def charpoly(self, *args, **kwds):
     multi-variate polynomial ring $\Z[x,y]$:
         sage: R = MPolynomialRing(IntegerRing(),2); x,y = R.gens()
         sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
-        sage: f = A.charpoly()
+        sage: f = A.charpoly('x')
         sage: f
         x^2 + (-1*x1^2 - x0)*x + x0*x1^2 - x0^2*x1
 
@@ -203,7 +203,7 @@ def charpoly(self, *args, **kwds):
         sage: A.charpoly(bound=2)
         x^10 + 14707*x^9 - 21509*x^8
         sage: A = 1000*MatrixSpace(ZZ,10)(range(100))
-        sage: A.charpoly()
+        sage: A.charpoly('x')
         x^10 - 495000*x^9 - 8250000000*x^8
 
 
@@ -251,13 +251,13 @@ def fcp(self):
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,9,-7,4/5,4,3,6,4,3])
-        sage: A.fcp()
+        sage: A.fcp('x')
         (x^3 - 8*x^2 + 209/5*x - 286)
         sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
-        sage: A.fcp()
+        sage: A.fcp('x')
         (x - 3) * x * (x + 2)
     """
-    return self.charpoly().factor()
+    return self.charpoly('x').factor()
 
 
 def determinant(self):
@@ -280,7 +280,7 @@ def determinant(self):
     if not self.is_square():
         raise ValueError, "matrix must be square"
     # Use stupid slow but completely general method.
-    d = (-1)**self.nrows() * self.charpoly()[0]
+    d = (-1)**self.nrows() * self.charpoly('x')[0]
     return self.base_ring()(d)
 
 def is_invertible(self):
@@ -463,7 +463,7 @@ def decomposition(self, is_diagonalizable=False, dual=False):
     if self.nrows() == 0:
         return []
 
-    f = self.charpoly()
+    f = self.charpoly('x')
     E = []
 
     # Idea: For optimization, could compute powers of self

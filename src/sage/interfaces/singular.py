@@ -838,11 +838,11 @@ class SingularElement(ExpectElement):
            MPolynomial
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'xy')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'xy')
             sage: f=R('a^20*x^2*y+a^10+x')
             sage: f._singular_().sage_poly(R)==f
             True
-            sage: R = PolynomialRing(GF(2**8),1,'x')
+            sage: R = PolynomialRing(GF(2^8,'a'),1,'x')
             sage: f=R('a^20*x^3+x^2+a^10')
             sage: f._singular_().sage_poly(R)==f
             True
@@ -1019,7 +1019,7 @@ class SingularElement(ExpectElement):
         Returns the internal type of this element.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'x')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'x')
             sage: R._singular_().type()
             'ring'
             sage: fs = singular('x0^2','poly')

@@ -92,11 +92,13 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                     self._entries[i*self._ncols + i] = x
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
+        self.check_bounds(i, j)
         # TODO: make faster with Python/C API
         self._entries[i*self._ncols + j] = value
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         # TODO: make faster with Python/C API
+        self.check_bounds(i, j)
         return self._entries[i*self._ncols + j]
 
     def _pickle(self):

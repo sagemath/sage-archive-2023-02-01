@@ -416,7 +416,7 @@ class FreeModule_generic(module.Module):
         Return iterator over the elements of this free module.
 
         EXAMPLES:
-            sage: V = VectorSpace(GF(4),2)
+            sage: V = VectorSpace(GF(4,'a'),2)
             sage: [x for x in V]
             [(0, 0), (1, 0), (a, 0), (a + 1, 0), (0, 1), (1, 1), (a, 1), (a + 1, 1), (0, a), (1, a), (a, a), (a + 1, a), (0, a + 1), (1, a + 1), (a, a + 1), (a + 1, a + 1)]
 
@@ -1031,12 +1031,10 @@ class FreeModule_generic(module.Module):
             sage: M.zero_submodule().zero_vector()
             (0, 0)
         """
-        try:
-            return self.__zero
-        except AttributeError:
-            self.__zero = self._element_class()(self, 0)
-        return self.__zero
+        # Do *not* cache this -- it must be computed fresh each time, since
+        # it is is used by __call__ to make a new copy of the 0 element.
 
+        return self._element_class()(self, 0)
 
 class FreeModule_generic_pid(FreeModule_generic):
     """

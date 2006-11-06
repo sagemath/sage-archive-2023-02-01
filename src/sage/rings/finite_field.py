@@ -159,7 +159,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         Finite Field in a of size 3^2
         sage: a.charpoly('x')
         x^2 + 2*x + 2
-        sage: [a**i for i in range(8)]
+        sage: [a^i for i in range(8)]
         [1, a, a + 1, 2*a + 1, 2, 2*a, 2*a + 2, a + 2]
 
     Fields can be coerced into sets or list and iterated over:
@@ -255,7 +255,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         You can also create a finite field using GF, which is a synonym
         for FiniteField.
-            sage: GF(19**2, 'a')
+            sage: GF(19^2, 'a')
             Finite Field in a of size 19^2
         """
         q = integer.Integer(q)
@@ -312,10 +312,10 @@ class FiniteField_ext_pari(FiniteField_generic):
             gen -- a pari polynomial gen
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(19**2, 'a')._pari_modulus()
+            sage: FiniteField_ext_pari(19^2, 'a')._pari_modulus()
             Mod(1, 19)*a^2 + Mod(18, 19)*a + Mod(2, 19)
 
-            sage: FiniteField_ext_pari(13**3, 'a')._pari_modulus()
+            sage: FiniteField_ext_pari(13^3, 'a')._pari_modulus()
             Mod(1, 13)*a^3 + Mod(2, 13)*a + Mod(11, 13)
 
         Note that the PARI modulus is always in terms of a, even if
@@ -323,7 +323,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         of variable name has meaning in PARI, i.e., it can't be
         arbitrary.
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(2**4, "b")._pari_modulus()
+            sage: FiniteField_ext_pari(2^4, "b")._pari_modulus()
             Mod(1, 2)*a^4 + Mod(1, 2)*a + Mod(1, 2)
         """
         return self.__pari_modulus
@@ -348,13 +348,13 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: FiniteField_ext_pari(2**4, "b").gen()
+            sage: FiniteField_ext_pari(2^4, "b").gen()
             b
-            sage: k = FiniteField_ext_pari(3**4, "alpha")
+            sage: k = FiniteField_ext_pari(3^4, "alpha")
             sage: a = k.gen()
             sage: a
             alpha
-            sage: a**4
+            sage: a^4
             alpha^3 + 1
         """
         return self.__gen
@@ -366,7 +366,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**4, 'a')
+            sage: k = FiniteField_ext_pari(3^4, 'a')
             sage: k.characteristic()
             3
         """
@@ -384,7 +384,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: FiniteField(3).degree()
             1
-            sage: FiniteField_ext_pari(3**20, 'a').degree()
+            sage: FiniteField_ext_pari(3^20, 'a').degree()
             20
         """
         return self.__degree
@@ -588,7 +588,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10, 'a')
+            sage: k = FiniteField_ext_pari(2^10, 'a')
             sage: k
             Finite Field in a of size 2^10
             sage: len(k)
@@ -602,7 +602,7 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(2**10,'a')
+            sage: k = FiniteField_ext_pari(2^10,'a')
             sage: k
             Finite Field in a of size 2^10
             sage: k.order()
@@ -733,7 +733,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         EXAMPLES:
             sage: FiniteField(3).degree()
             1
-            sage: FiniteField(3**20, 'a').degree()
+            sage: FiniteField(3^20, 'a').degree()
             20
         """
         return 1

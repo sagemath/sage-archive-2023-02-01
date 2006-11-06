@@ -545,10 +545,10 @@ cdef class Matrix(ModuleElement):
             sage: A = Matrix(QQ, 2, 2, [1/2, 1/3, 1/3, 1/4])
             sage: A.parent()
              Full MatrixSpace of 2 by 2 dense matrices over Rational Field
-            sage: A.change_ring(GF(25))
+            sage: A.change_ring(GF(25,'a'))
             [3 2]
             [2 4]
-            sage: A.change_ring(GF(25)).parent()
+            sage: A.change_ring(GF(25,'a')).parent()
              Full MatrixSpace of 2 by 2 dense matrices over Finite Field in a of size 5^2
             sage: A.change_ring(ZZ)
             Traceback (most recent call last):
@@ -1866,11 +1866,11 @@ cdef class Matrix(ModuleElement):
         """
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
-        l = 0
         z = self._base_ring(0)
+        l = 0
         for k in cols:
             self[i,l] = -A[r,k]
-        l = l + 1
+            l = l + 1
 
     ###################################################
     # Matrix-vector multiply
@@ -2554,7 +2554,7 @@ cdef class Matrix(ModuleElement):
         D = self.fetch('charpoly')
         if not D is None:
             if D.has_key(var):
-                return f[var]
+                return D[var]
         else:
             D = {}
             self.cache('charpoly',D)
@@ -2575,10 +2575,10 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
-            sage: A.fcp()
+            sage: A.fcp('x')
             (x^3 - 8*x^2 + 209/5*x - 286)
             sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
-            sage: A.fcp()
+            sage: A.fcp('x')
             (x - 3) * x * (x + 2)
         """
         return self.charpoly(var).factor()
@@ -3408,15 +3408,21 @@ cdef class Matrix(ModuleElement):
             Basis matrix:
             [ 1 -1]
         """
-
+        K = self.fetch('kernel')
+        if not K is None:
+            return K
         R = self._base_ring
 
         if self._nrows == 0:    # from a 0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
-            return V.zero_subspace()
+            Z = V.zero_subspace()
+            self.cache('kernel', Z)
+            return Z
 
         elif self._ncols == 0:  # to a 0 space
-            return sage.modules.free_module.VectorSpace(R, self._nrows)
+            Z = sage.modules.free_module.VectorSpace(R, self._nrows)
+            self.cache('kernel', Z)
+            return Z
 
         if is_NumberField(R):
             A = self._pari_().mattranspose()
@@ -3424,7 +3430,9 @@ cdef class Matrix(ModuleElement):
             n = self._nrows
             V = sage.modules.free_module.VectorSpace(R, n)
             basis = eval('[V([R(x) for x in b]) for b in B]', {'V':V, 'B':B, 'R':R})
-            return V.subspace(basis)
+            Z = V.subspace(basis)
+            self.cache('kernel', Z)
+            return Z
 
         E = self.transpose().echelon_form(*args, **kwds)
         pivots = E.pivots()
@@ -3433,14 +3441,18 @@ cdef class Matrix(ModuleElement):
         VS = sage.modules.free_module.VectorSpace
         V = VS(R, self.nrows())
         ONE = R(1)
-        for i in xrange(self.nrows()):
+        for i in xrange(self._nrows):
             if not (i in pivots_set):
                 v = V(0)
                 v[i] = ONE
                 for r in range(len(pivots)):
                     v[pivots[r]] = -E[r,i]
                 basis.append(v)
-        return V.subspace(basis)
+        W = V.subspace(basis)
+        if W.dimension() != len(basis):
+            raise RuntimeError, "bug in kernel function in matrix.pyx -- basis got from echelon form not a basis."
+        self.cache('kernel', W)
+        return W
 
 
 

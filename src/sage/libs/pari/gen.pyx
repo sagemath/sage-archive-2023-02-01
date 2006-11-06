@@ -4620,7 +4620,7 @@ cdef class gen:
             sage: t = pari('[3, -2, 0, 0; 0, -2, 0, 1; 0, -1, -2, 2; 0, -2, 0, 2]')
             sage: t.matfrobenius()
             [0, 0, 0, -12; 1, 0, 0, -2; 0, 1, 0, 8; 0, 0, 1, 1]
-            sage: t.charpoly()
+            sage: t.charpoly('x')
             x^4 - x^3 - 8*x^2 + 2*x + 12
             sage: t.matfrobenius(1)
             [x^4 - x^3 - 8*x^2 + 2*x + 12]

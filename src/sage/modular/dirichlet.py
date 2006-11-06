@@ -658,7 +658,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         Note that \code{is_even} need not be the negation of is_odd, e.g., in characteristic 2:
 
-            sage: G.<e> = DirichletGroup(13, GF(4))
+            sage: G.<e> = DirichletGroup(13, GF(4,'a'))
             sage: e.is_even()
             True
             sage: e.is_odd()
@@ -686,7 +686,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         Note that \code{is_even} need not be the negation of is_odd, e.g., in characteristic 2:
 
-            sage: G.<e> = DirichletGroup(13, GF(4))
+            sage: G.<e> = DirichletGroup(13, GF(4,'a'))
             sage: e.is_even()
             True
             sage: e.is_odd()
@@ -1515,7 +1515,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             zeta4
             sage: DirichletGroup(60,QQ).zeta()
             -1
-            sage: DirichletGroup(60, GF(25)).zeta()
+            sage: DirichletGroup(60, GF(25,'a')).zeta()
             2
         """
         return self._zeta
@@ -1530,7 +1530,7 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             4
             sage: DirichletGroup(60).zeta_order()
             4
-            sage: DirichletGroup(60, GF(25)).zeta_order()
+            sage: DirichletGroup(60, GF(25,'a')).zeta_order()
             4
             sage: DirichletGroup(19).zeta_order()
             18

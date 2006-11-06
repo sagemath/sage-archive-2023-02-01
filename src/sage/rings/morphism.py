@@ -126,7 +126,7 @@ viewed as a quotient ring:
     5
 
 
-EXAMPLE: Inclusion of GF(2) into GF(4).
+EXAMPLE: Inclusion of GF(2) into GF(4,'a').
     sage: k = GF(2)
     sage: i = k.hom(GF(4, 'a'))
     sage: i

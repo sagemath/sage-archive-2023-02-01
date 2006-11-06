@@ -186,7 +186,7 @@ We can also compute the echelon form in \sage:
     [  0   0   0   0]
     [  0   0   0   0]
     [  0   0   0   0]
-    sage: B.charpoly().factor()
+    sage: B.charpoly('x').factor()
     (x - 4) * x^3
 
 \subsection{Laplace Transforms}

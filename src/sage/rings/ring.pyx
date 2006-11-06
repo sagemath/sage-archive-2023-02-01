@@ -809,7 +809,7 @@ cdef class FiniteField(Field):
             sage: k = GF(997)
             sage: k.multiplicative_generator()
             7
-            sage: k = GF(11**3, name='a')
+            sage: k = GF(11^3, name='a')
             sage: k.multiplicative_generator()
             a
         """
@@ -874,7 +874,7 @@ cdef class FiniteField(Field):
         finite field, this is always the order minus 1.
 
         EXAMPLES:
-            sage: k = GF(2**10, 'a')
+            sage: k = GF(2^10, 'a')
             sage: k.order()
             1024
             sage: k.unit_group_exponent()
@@ -891,7 +891,7 @@ cdef class FiniteField(Field):
             bound -- ignored
 
         EXAMPLES:
-            sage.: k = GF(2**10, 'a')
+            sage.: k = GF(2^10, 'a')
             sage.: k.random_element()
             a^9 + a
         """

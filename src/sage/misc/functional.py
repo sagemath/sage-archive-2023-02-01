@@ -321,7 +321,7 @@ def factor(x, *args, **kwds):
 factorization = factor
 factorisation = factor
 
-def fcp(x):
+def fcp(x, var):
     """
     Return the factorization of the characteristic polynomial
     of x.
@@ -329,11 +329,11 @@ def fcp(x):
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
-        sage: fcp(A)
+        sage: fcp(A, 'x')
         x * (x^2 - 15*x - 18)
     """
-    try: return x.fcp()
-    except AttributeError: return factor(charpoly(x))
+    try: return x.fcp(var)
+    except AttributeError: return factor(charpoly(x, var))
 
 gcd = sage.rings.arith.gcd
 

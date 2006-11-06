@@ -19,13 +19,13 @@ EXAMPLES:
     [0 0 1]
     sage: is_MatrixMorphism(m)
     True
-    sage: m.charpoly()
+    sage: m.charpoly('x')
     x^3 - 3*x^2 + 3*x - 1
     sage: m.base_ring()
     Rational Field
     sage: m.det()
     1
-    sage: m.fcp()
+    sage: m.fcp('x')
     (x - 1)^3
     sage: m.matrix()
     [1 0 0]
@@ -143,11 +143,11 @@ class MatrixMorphism(sage.categories.all.Morphism):
     def base_ring(self):
         return self.domain().base_ring()
 
-    def charpoly(self):
+    def charpoly(self, var):
         if not self.is_endomorphism():
             raise ArithmeticError, "charpoly only defined for endomorphisms " +\
                     "(i.e., domain = range)"
-        return self.__matrix.charpoly()
+        return self.__matrix.charpoly(var)
 
     def decomposition(self, is_diagonalizable=False):
         if not self.is_endomorphism():
@@ -169,11 +169,11 @@ class MatrixMorphism(sage.categories.all.Morphism):
             raise ArithmeticError, "Matrix morphism must be an endomorphism."
         return self.matrix().determinant()
 
-    def fcp(self):
+    def fcp(self, var):
         """
         Return the factorization of the characteristic polynomial.
         """
-        return self.charpoly().factor()
+        return self.charpoly(var).factor()
 
     def kernel(self):
         V = self.matrix().kernel()

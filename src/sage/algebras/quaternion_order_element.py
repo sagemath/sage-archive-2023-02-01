@@ -68,7 +68,7 @@ class QuaternionOrderElement(AlgebraOrderElement):
 	"""
         R = self.parent().base_ring()
         P = PolynomialRing(R, var)
-        return P(self.ambient_algebra_element().charpoly())
+        return P(self.ambient_algebra_element().charpoly('x'))
 
     characteristic_polynomial = charpoly
 

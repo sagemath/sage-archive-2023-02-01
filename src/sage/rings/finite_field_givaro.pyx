@@ -1481,7 +1481,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         from sage.rings.polynomial_ring import PolynomialRing
         R = PolynomialRing(parent_object(self).prime_subfield_C(), var)
-        return R(self._pari_().charpoly().lift())
+        return R(self._pari_().charpoly('x').lift())
 
 
     def norm(FiniteField_givaroElement self):
@@ -1489,7 +1489,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         Return norm of self.
 
         """
-        return self.charpoly()[0]
+        return self.charpoly('x')[0]
 
     def trace(FiniteField_givaroElement self):
         """

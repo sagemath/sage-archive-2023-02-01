@@ -17,9 +17,9 @@ EXAMPLES:
         ([X^2,(0,1)], [X^2,(1,6)], [X^2,(1,7)], [X^2,(1,8)], [X^2,(1,9)], [X^2,(1,10)])
 
     The charpoly of the Hecke operator $T_2$ has an extra factor $x$.
-        sage: M.T(2).matrix().fcp()
+        sage: M.T(2).matrix().fcp('x')
         x^5 * (x + 1)^2
-        sage: M0.T(2).matrix().fcp()
+        sage: M0.T(2).matrix().fcp('x')
         (x - 9)^2 * (x^2 - 2*x - 2)^2
 
 """
@@ -401,13 +401,13 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         We first compute some examples for Gamma0(N):
 
             sage: m = ModularSymbols(2, weight=4)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^2 - 9*x + 8
 
             sage: m = ModularSymbols(1,weight=12)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^3 - 2001*x^2 - 97776*x - 1180224
-            sage: m._compute_hecke_matrix_prime(13).charpoly()
+            sage: m._compute_hecke_matrix_prime(13).charpoly('x')
             x^3 - 1792159238562*x^2 - 2070797989680255444*x - 598189440899986203208472
 
             sage: m = ModularSymbols(1,weight=12, sign=-1)
@@ -417,44 +417,44 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             [18643272]
 
             sage: m = ModularSymbols(3,4)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^2 - 18*x + 81
 
             sage: m = ModularSymbols(6,4)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^6 - 14*x^5 + 29*x^4 + 172*x^3 - 124*x^2 - 320*x + 256
-            sage: m._compute_hecke_matrix_prime(3).charpoly()
+            sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 - 50*x^5 + 511*x^4 + 3012*x^3 - 801*x^2 - 9234*x + 6561
 
             sage: m = ModularSymbols(15,4, sign=-1)
-            sage: m._compute_hecke_matrix_prime(3).charpoly()
+            sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^4 - 2*x^3 + 18*x^2 + 18*x - 243
 
             sage: m = ModularSymbols(6,4)
-            sage: m._compute_hecke_matrix_prime(7).charpoly()
+            sage: m._compute_hecke_matrix_prime(7).charpoly('x')
             x^6 - 1344*x^5 + 666240*x^4 - 140462080*x^3 + 8974602240*x^2 + 406424518656*x + 3584872677376
 
             sage: m = ModularSymbols(4,4)
-            sage: m._compute_hecke_matrix_prime(3).charpoly()
+            sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^3 - 84*x^2 + 2352*x - 21952
 
         We now compute some examples for modular symbols on Gamma1(N):
 
             sage: m = ModularSymbols(Gamma1(13),2, sign=-1)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^2 + 3*x + 3
 
         The following is an example with odd weight:
 
             sage: m = ModularSymbols(Gamma1(5),3)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^4 - 10*x^3 + 50*x^2 - 170*x + 289
 
         This example has composite conductor and weight>2 dividing the
         conductor and nontrivial sign:
 
             sage: m = ModularSymbols(Gamma1(9),3, sign=1)
-            sage: m._compute_hecke_matrix_prime(3).charpoly()
+            sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
         p = int(p)
@@ -1209,7 +1209,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         Compute and return the matrix of the p-th Hecke operator.
         EXAMPLES:
             sage: m = ModularSymbols(37,2)
-            sage: m._compute_hecke_matrix_prime(2).charpoly()
+            sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^5 + x^4 - 8*x^3 - 12*x^2
         """
         assert arith.is_prime(p), "p must be prime."

@@ -108,7 +108,7 @@ cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
 
     def __dealloc__(self):
         #    GSLDoubleArray.__dealloc__(self)
-        #    PyMem_Free(self.data)
+        #    sage_free(self.data)
         gsl_wavelet_free(self.wavelet)
         gsl_wavelet_workspace_free(self.workspace)
 

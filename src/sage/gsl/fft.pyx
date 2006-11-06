@@ -24,6 +24,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include '../ext/stdsage.pxi'
+
 import sage.plot.all
 import sage.libs.pari.all
 
@@ -50,13 +52,13 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
     def __init__(self, size_t n, size_t stride=1):
         self.n = n
         self.stride = stride
-        self.data = <double*> PyMem_Malloc(sizeof(double)*(2*n))
+        self.data = <double*> sage_malloc(sizeof(double)*(2*n))
         cdef int i
         for i from 0 <= i < 2*n:
             self.data[i] = 0
 
     def  __dealloc__(self):
-        PyMem_Free(self.data)
+        sage_free(self.data)
 
     def __len__(self):
         return self.n

@@ -25,6 +25,7 @@ To use these functions in your pyrex extension:
 
 include "gmp.pxi"
 include "interrupt.pxi"
+include "stdsage.pxi"
 
 cdef class functions:
     cdef public int mpz_crt(self, mpz_t z, mpz_t x, mpz_t y, mpz_t m, mpz_t n) except -1:
@@ -62,7 +63,7 @@ cdef class functions:
         in any way, construct a C array of elements mpz_t elements.
         """
         cdef int i
-        z[0] = <mpz_t*> PyMem_Malloc(sizeof(mpz_t)*n)
+        z[0] = <mpz_t*> sage_malloc(sizeof(mpz_t)*n)
         if z[0] == <mpz_t*> 0:
             raise MemoryError
         for i from 0 <= i < n:
@@ -76,7 +77,7 @@ cdef class functions:
         the calling function is responsible for de-allocating z.
         """
         cdef int i
-        z[0] = <unsigned long*> PyMem_Malloc(sizeof(unsigned long)*n)
+        z[0] = <unsigned long*> sage_malloc(sizeof(unsigned long)*n)
         if z[0] == <unsigned long *>0:
             raise MemoryError, "Error allocating memory"
         _sig_on
@@ -93,7 +94,7 @@ cdef class functions:
         the calling function is responsible for de-allocating z.
         """
         cdef int i
-        z[0] = <mpz_t *> PyMem_Malloc(sizeof(mpz_t) * n)
+        z[0] = <mpz_t *> sage_malloc(sizeof(mpz_t) * n)
         if z[0] == <mpz_t *>0:
             raise MemoryError
         _sig_on
@@ -108,7 +109,7 @@ cdef class functions:
         to point to an array of n 0's.
         """
         cdef int i
-        z[0] = <mpz_t *> PyMem_Malloc(sizeof(mpz_t) * n)
+        z[0] = <mpz_t *> sage_malloc(sizeof(mpz_t) * n)
         if z[0] == <mpz_t *>0:
             raise MemoryError
         for i from 0 <= i < n:

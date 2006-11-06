@@ -364,13 +364,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __str_malloc(self, int base=10):
         r"""
         Return the string representation of \code{self} in the given
-        base.  (Uses malloc then PyMem.  This is actually slightly
-        faster than self.str() below, but it is unpythonic to use
-        malloc.)  However, self.str() below is nice because we know
-        the size of the string ahead of time, and can work around a
-        bug in GMP nicely.  There seems to be a bug in GMP, where
-        non-2-power base conversion for very large integers > 10
-        million digits (?) crashes GMP.
+        base.
+
+        However, self.str() below is nice because we know the size of
+        the string ahead of time, and can work around a bug in GMP
+        nicely.  There seems to be a bug in GMP, where non-2-power
+        base conversion for very large integers > 10 million digits
+        (?) crashes GMP.
         """
         _sig_on
         cdef char *s

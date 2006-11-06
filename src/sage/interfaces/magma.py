@@ -599,10 +599,18 @@ class MagmaElement(ExpectElement):
         return G
 
     def evaluate(self, *args):
-        return ExpectElement.__call__(self, *args)
+        P = self._check_valid()
+        v = [P(a) for a in args]
+        names = ','.join([str(x) for x in v])
+        return P('%s(%s)'%(self.name(), names))
+    eval = evaluate
 
     def __call__(self, *args):
         """
+        Coerce something into the object (using the MAGMA ! notation).
+
+        For function calls, use self.eval(...).
+
         EXAMPLES:
             sage: M = magma.RMatrixSpace(magma.IntegerRing(), 2, 2)  # optional
             sage: A = M([1,2,3,4]); A        # optional
@@ -617,10 +625,10 @@ class MagmaElement(ExpectElement):
             return self.evaluate(*args)
         P = self._check_valid()
         x = P(args[0])
-        #try:
-        return P('%s!%s'%(self.name(), x.name()))
-        #except (RuntimeError, TypeError):
-        #    return self.evaluate(*args)
+        try:
+            return P('%s!%s'%(self.name(), x.name()))
+        except (RuntimeError, TypeError):
+            return self.evaluate(*args)
 
     def x__iter__(self):
         P = self._check_valid()

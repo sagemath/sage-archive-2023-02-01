@@ -90,10 +90,10 @@ cdef int allocate_c_vector_modint(c_vector_modint* v, int num_nonzero) except -1
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
     """
-    v.entries = <int*>PyMem_Malloc(num_nonzero*sizeof(int))
+    v.entries = <int*>sage_malloc(num_nonzero*sizeof(int))
     if v.entries == <int*> 0:
         raise MemoryError, "Error allocating memory"
-    v.positions = <int*>PyMem_Malloc(num_nonzero*sizeof(int))
+    v.positions = <int*>sage_malloc(num_nonzero*sizeof(int))
     if v.positions == <int*> 0:
         raise MemoryError, "Error allocating memory"
     return 0
@@ -112,8 +112,8 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, int degree,
     v.p = p
 
 cdef void clear_c_vector_modint(c_vector_modint* v):
-    PyMem_Free(v.entries)
-    PyMem_Free(v.positions)
+    sage_free(v.entries)
+    sage_free(v.positions)
 
 cdef int linear_search0(int* v, int n, int x):
     """
@@ -222,7 +222,7 @@ cdef int binary_search(int* v, int n, int x, int* ins):
 
 def bs(v, x):
     cdef int* w
-    w = <int*>PyMem_Malloc(sizeof(int)*len(v))
+    w = <int*>sage_malloc(sizeof(int)*len(v))
     for i from 0 <= i < len(v):
         w[i] = v[i]
     cdef int ins, b
@@ -230,7 +230,7 @@ def bs(v, x):
     s1 = (b, ins)
     b = linear_search(w, len(v), x, &ins)
     s2 = (b, ins)
-    PyMem_Free(w)
+    sage_free(w)
     return s1, s2
 
 cdef int get_entry(c_vector_modint* v, int n) except -1:
@@ -295,8 +295,8 @@ cdef int set_entry(c_vector_modint* v, int n, int x) except -1:
             for i from m < i < v.num_nonzero:
                 v.entries[i-1] = e[i]
                 v.positions[i-1] = pos[i]
-            PyMem_Free(e)
-            PyMem_Free(pos)
+            sage_free(e)
+            sage_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -321,8 +321,8 @@ cdef int set_entry(c_vector_modint* v, int n, int x) except -1:
         for i from ins < i < v.num_nonzero:
             v.entries[i] = e[i-1]
             v.positions[i] = pos[i-1]
-        PyMem_Free(e)
-        PyMem_Free(pos)
+        sage_free(e)
+        sage_free(pos)
 
 cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
                                   c_vector_modint* w, int multiple) except -1:
@@ -429,12 +429,12 @@ cdef int allocate_mpq_vector(mpq_vector* v, int num_nonzero) except -1:
     It does *not* clear the entries of v, if there are any.
     """
     cdef int i
-    v.entries = <mpq_t*>PyMem_Malloc(num_nonzero*sizeof(mpq_t))
+    v.entries = <mpq_t*>sage_malloc(num_nonzero*sizeof(mpq_t))
     if v.entries == <mpq_t*> 0:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < num_nonzero:
         mpq_init(v.entries[i])
-    v.positions = <int*>PyMem_Malloc(num_nonzero*sizeof(int))
+    v.positions = <int*>sage_malloc(num_nonzero*sizeof(int))
     if v.positions == <int*> 0:
         raise MemoryError, "Error allocating memory"
     return 0
@@ -456,8 +456,8 @@ cdef void clear_mpq_vector(mpq_vector* v):
     # These were allocated from the Python heap.
     # If init_mpq_vector was not called, then this
     # will (of course!) cause a core dump.
-    PyMem_Free(v.entries)
-    PyMem_Free(v.positions)
+    sage_free(v.entries)
+    sage_free(v.positions)
 
 cdef int mpq_binary_search0(mpq_t* v, int n, mpq_t x):
     """
@@ -599,8 +599,8 @@ cdef int mpq_vector_set_entry(mpq_vector* v, int n, mpq_t x) except -1:
                 # v.entries[i-1] = e[i]
                 mpq_set(v.entries[i-1], e[i])
                 v.positions[i-1] = pos[i]
-            PyMem_Free(e)
-            PyMem_Free(pos)
+            sage_free(e)
+            sage_free(pos)
             v.num_nonzero = v.num_nonzero - 1
     else:
         # Allocate new memory and copy over elements from the
@@ -631,8 +631,8 @@ cdef int mpq_vector_set_entry(mpq_vector* v, int n, mpq_t x) except -1:
         # This -1 is because we incremented v.num_nonzero above.
         for i from 0 <= i < v.num_nonzero-1:
             mpq_clear(e[i])
-        PyMem_Free(e)
-        PyMem_Free(pos)
+        sage_free(e)
+        sage_free(pos)
 
 
 
@@ -918,7 +918,7 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
     def __new__(self, int nrows, int ncols, object entries=[], init=True, coerce=False):
         # allocate memory
         cdef int i
-        self.rows = <mpq_vector*> PyMem_Malloc(nrows*sizeof(mpq_vector))
+        self.rows = <mpq_vector*> sage_malloc(nrows*sizeof(mpq_vector))
         self.is_init = init
         if self.is_init:
             self.is_init = True
@@ -1071,7 +1071,7 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
         cdef int m, n, ln, i, j, z, len_so_far
 
         n = self.nr * 200 + 30
-        s = <char*> PyMem_Malloc(n * sizeof(char))
+        s = <char*> sage_malloc(n * sizeof(char))
         len_so_far = 0
         t = s
         s[0] = <char>0   # make s a null-terminated string
@@ -1080,9 +1080,9 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
             if len_so_far + 20*ln >= n:
                 # copy to new string with double the size
                 n = 2*n + 20*ln
-                tmp = <char*> PyMem_Malloc(n * sizeof(char))
+                tmp = <char*> sage_malloc(n * sizeof(char))
                 strcpy(tmp, s)
-                PyMem_Free(s)
+                sage_free(s)
                 s = tmp
                 t = s + len_so_far
             #endif
@@ -1100,9 +1100,9 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
                 if len_so_far + m >= n:
                     # copy to new string with double the size
                     n = 2*n + m + 1
-                    tmp = <char*> malloc(n)
+                    tmp = <char*> sage_malloc(n)
                     strcpy(tmp, s)
-                    PyMem_Free(s)
+                    sage_free(s)
                     s = tmp
                     t = s + len_so_far
                 mpq_get_str(t, 32, self.rows[i].entries[j])
@@ -1120,7 +1120,7 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
         # end for
 
         entries = str(s)[:-1]
-        PyMem_Free(s)
+        sage_free(s)
         return make_sparse_rational_matrix, (self.nr, self.nc, entries)
 
 
@@ -1383,7 +1383,7 @@ cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
                 mpq_vector_get_entry(&x, &self.rows[i], j)
                 buf = mpq_get_str(NULL, 10, x)
                 s = s + str(buf) + ", "
-                free(buf)   # use c's malloc/free
+                sage_free(buf)   # use c's malloc/free
             s = s + "\n"
         s = s[:-3] + "\n]"
         mpq_clear(x)
@@ -1998,7 +1998,7 @@ def lift_matrices_modint(X):
     mpz_init(prod)
     mpz_set_si(prod, 1)
 
-    B = <mpz_t*> PyMem_Malloc(sizeof(mpz_t) * len(_B))
+    B = <mpz_t*> sage_malloc(sizeof(mpz_t) * len(_B))
     if B == <mpz_t*> 0:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < len(_B):
@@ -2087,7 +2087,7 @@ def lift_matrices_modint(X):
 
     for i from 0 <= i < len(_B):
         mpz_clear(B[i])
-    PyMem_Free(B)
+    sage_free(B)
 
     if not error is None:
         raise error, msg

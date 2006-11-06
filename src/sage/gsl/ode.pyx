@@ -56,6 +56,7 @@ EXAMPLES: ## doesn't work!!!
 
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
+include '../ext/stdsage.pxi'
 
 
 include 'gsl.pxi'
@@ -139,13 +140,13 @@ def ode_solver_wrapper(g,jac,n,initial_y,params,double t_start,double t_end,doub
     cdef int c_test_int
     parameters.param_n = param_n
     parameters.y_n = n
-    y = <double*> PyMem_Malloc(sizeof(double)*(n))
+    y = <double*> sage_malloc(sizeof(double)*(n))
     cdef double *c_params
     test_int = len([1,2,3,4])
     c_test_int = test_int
 
     if param_n > 0:
-        c_params = <double *> PyMem_Malloc(sizeof(double)*(parameters.param_n))
+        c_params = <double *> sage_malloc(sizeof(double)*(parameters.param_n))
         for i from 0<=i < parameters.param_n:
             c_params[i]=params[i]
     else:
@@ -189,8 +190,8 @@ def ode_solver_wrapper(g,jac,n,initial_y,params,double t_start,double t_end,doub
     gsl_odeiv_evolve_free (e)
     gsl_odeiv_control_free (c)
     gsl_odeiv_step_free (s)
-    PyMem_Free(y)
-    PyMem_Free(c_params)
+    sage_free(y)
+    sage_free(c_params)
     return v
 
 

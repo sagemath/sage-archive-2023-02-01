@@ -6,6 +6,7 @@ cdef extern from "Python.h":
 cdef extern from "signal.h":
     int SIGSEGV
     int SIGBUS
+    int SIGFPE
     ctypedef void (*sighandler_t)(int)
     void signal(int, sighandler_t)
 
@@ -28,16 +29,22 @@ cdef void msg(char* s):
     fprintf(stderr, '------------------------------------------------------------\n\n')
 
 cdef void sig_handle_sigsegv(int n):
-    msg("A segmentation fault occured in SAGE.\n")
+    msg("Unhandled SIGSEGV: A segmentation fault occured in SAGE.\n")
     PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
     exit(1)
 
 cdef void sig_handle_sigbus(int n):
-    msg("A bus error occured in SAGE.\n")
+    msg("Unhandled SIGBUS: A bus error occured in SAGE.\n")
+    PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
+    exit(1)
+
+cdef void sig_handle_sigfpe(int n):
+    msg("Unhandled SIGFPE: An unhandled floating point exception occured in SAGE.\n")
     PyErr_SetString(<object>PyExc_KeyboardInterrupt, "")
     exit(1)
 
 def get_bad_sigs():
     signal(SIGSEGV, sig_handle_sigsegv)
     signal(SIGBUS, sig_handle_sigbus)
+    signal(SIGFPE, sig_handle_sigfpe)
 

@@ -1,6 +1,6 @@
 #include 'gsl.pxi'
 
-
+include '../ext/stdsage.pxi'
 
 cdef class GSLDoubleArray:
     def __init__(self, size_t n, size_t stride = 1, data = None):
@@ -8,7 +8,7 @@ cdef class GSLDoubleArray:
 
         self.n = n
         self.stride = stride
-        self.data = <double *> PyMem_Malloc(sizeof(double)*n)
+        self.data = <double *> sage_malloc(sizeof(double)*n)
         if data is not None:
             for i from 0 <= i < n:
                 self.data[i] = data[i]
@@ -17,7 +17,7 @@ cdef class GSLDoubleArray:
                 self.data[i] = 0
 
     def  __dealloc__(self):
-        PyMem_Free(self.data)
+        sage_free(self.data)
 
     def __len__(self):
         return self.n

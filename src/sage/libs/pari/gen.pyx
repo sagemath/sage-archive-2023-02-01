@@ -18,6 +18,7 @@ import operator
 
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
+include '../../ext/stdsage.pxi'
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
@@ -87,7 +88,7 @@ cdef class gen:
 
     def __dealloc__(self):
         if self.b:
-            PyMem_Free(<void*> self.b)
+            sage_free(<void*> self.b)
 
     def __repr__(self):
         return P.GEN_to_str(self.g)
@@ -570,7 +571,7 @@ cdef class gen:
             return "0"
         lx = lgefint(x)-2  # number of words
         size = lx*2*BYTES_IN_LONG
-        s = <char *>PyMem_Malloc(size+2) # 1 char for sign, 1 char for '\0'
+        s = <char *>sage_malloc(size+2) # 1 char for sign, 1 char for '\0'
         sp = s + size+1
         sp[0] = 0
         xp = int_LSW(x)
@@ -588,7 +589,7 @@ cdef class gen:
             sp = sp-1
             sp[0] = c'-'
         k = sp
-        PyMem_Free(s)
+        sage_free(s)
         return k
 
     def __int__(gen self):
@@ -5594,7 +5595,7 @@ cdef int init_stack(size_t size) except -1:
 
     # delete this if get core dumps and change the 2* to a 1* below.
     if bot:
-        PyMem_Free(<void*>bot)
+        sage_free(<void*>bot)
 
     if size == 0:
         size = 2*(top-bot)
@@ -5604,7 +5605,7 @@ cdef int init_stack(size_t size) except -1:
         s = 4294967295
         while True:
             s = fix_size(s)
-            bot = <pari_sp> PyMem_Malloc(s)
+            bot = <pari_sp> sage_malloc(s)
             if bot:
                 break
             s = s/2
@@ -5614,7 +5615,7 @@ cdef int init_stack(size_t size) except -1:
         # Alocate memory for new stack using Python's memory allocator.
         # As explained in the python/C api reference, using this instead
         # of malloc is much better (and more platform independent, etc.)
-        bot = <pari_sp> PyMem_Malloc(s)
+        bot = <pari_sp> sage_malloc(s)
         if not bot:
             raise MemoryError, "Unable to allocate %s bytes memory for PARI."%(<long>size)
     #endif
@@ -5649,7 +5650,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     s = <size_t> (tmp_avma - avma)
 
     #print "Allocating %s bytes for PARI/Python object"%(<long> s)
-    bot = <pari_sp> PyMem_Malloc(s)
+    bot = <pari_sp> sage_malloc(s)
     top = bot + s
     avma = top
     h = forcecopy(x)

@@ -333,7 +333,6 @@ class NumberFieldElement(field_element.FieldElement):
         else:
             g = self.polynomial()  # in QQ[x]
             f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            R = g.parent()
             return R( (g._pari_().Mod(f)).charpoly() )
 
 ## This might be useful for computing relative charpoly.

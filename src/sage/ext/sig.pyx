@@ -23,6 +23,7 @@ cdef void msg(char* s):
     fprintf(stderr, "This probably occured because a *compiled* component\n")
     fprintf(stderr, "of SAGE has a bug in it (typically accessing invalid memory)\n")
     fprintf(stderr, "or is not properly wrapped with _sig_on, _sig_off.\n")
+    fprintf(stderr, "You might want to run SAGE under gdb with 'sage -gdb' to debug this.\n")
     fprintf(stderr, "SAGE will now terminate (sorry).\n")
     fprintf(stderr, '------------------------------------------------------------\n\n')
 

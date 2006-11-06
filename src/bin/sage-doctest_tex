@@ -155,7 +155,7 @@ def no_escapes(x):
         k = j + x[j:].find(chr(109))
         x = x[:j] + x[k+1:]
 
-def test_session(S, verbose=False):
+def test_session(S, verbose):
     global E
 
     if verbose:
@@ -195,7 +195,7 @@ def test_session(S, verbose=False):
             i += 1
 
 
-def test_file(file, start, stop):
+def test_file(file, start, stop, verbose):
     global ERRORS
     name = os.path.basename(file)
     name = name[:name.find(".")]
@@ -205,7 +205,7 @@ def test_file(file, start, stop):
 
         sessions = extract_python_doc(file)
     else:
-        print "Skipping %s, unknown file type"%file
+        print "Skipping %s; unknown file type"%file
         return 0
     i = 0
     for S in sessions:
@@ -213,7 +213,7 @@ def test_file(file, start, stop):
         try:
             if i >= start:
                 print "Example %s (line %s)"%(i,S[0][0])
-                test_session(S, verbose=False)
+                test_session(S, verbose=verbose)
         except pexpect.TIMEOUT:
             print "Example %s (line %s)"%(i,S[0][0])
             print "TIMEOUT!!"
@@ -238,10 +238,16 @@ if __name__ ==  '__main__':
     import os, sys
     print ''
     if len(sys.argv) == 1:
-        print "Usage: %s <filename.tex> [start number] [stop number]"%(sys.argv[0])
-        print "Test the documentation in a latex file using SAGE."
+        print "Usage: %s [--verbose or -v] <filename.tex> [start number] [stop number]"%(sys.argv[0])
+        print "Test the documentation in a .tex or .sage file using SAGE (via a pseudo-tty)."
         sys.exit(1)
     else:
+        verbose = False
+        for i in range(1, len(sys.argv)):
+            if sys.argv[i] in ['--verbose', '-verbose', '-v']:
+                verbose = True
+                del sys.argv[i]
+                break
         file = sys.argv[1]
         start = 0
         stop  = 0
@@ -250,9 +256,21 @@ if __name__ ==  '__main__':
         if len(sys.argv) > 3:
             stop = int(sys.argv[3])
         initialize_sage()
-        if test_file(file, start, stop):
+        if test_file(file, start, stop, verbose=verbose):
             sys.exit(1)
         if len(ERRORS) > 0:
             print ERRORS
             sys.exit(1)
+        e = E.terminate(0)
+        if e:
+            print " ** Unclean exit -- possibly a memory error or segmentation fault occured. ** "
+            sys.exit(1)
+        try:
+            # Hack to get around stupid pointless error message.
+            def foo():
+                pass
+            E.__del__ = foo
+            del E
+        except:
+            pass
         sys.exit(0)

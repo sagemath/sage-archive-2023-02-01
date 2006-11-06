@@ -79,8 +79,8 @@ def test_file(F):
             F = file
 
     base, ext = os.path.splitext(F)
-    if use_sage_only or ext in ['.sage']:
-        return test(F, 'doctest_tex')
+    if use_sage_only or ext == '.sage':
+        return test(F, 'doctest_tex ' + opts)
     elif ext in ['.py', '.pyx', '.tex']:
         return test(F, 'doctest '+opts)
     elif os.path.isdir(F) and not (F[:1] == '.') \

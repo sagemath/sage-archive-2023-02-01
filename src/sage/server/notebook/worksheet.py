@@ -503,7 +503,13 @@ class Worksheet:
         # just in case, put an extra end...
         cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
         self.__comp_is_running = True
-        S._send(cmd)
+        try:
+            S._send(cmd)
+        except OSError, msg:
+            self.restart_sage()
+            C.set_output_text('The SAGE compute process quit (possibly SAGE crashed?).\nPlease retry your calculation.','')
+
+
 
     def check_cell(self, id):
         """

@@ -311,6 +311,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                                           or line[i-1] == ')'))):
             in_number = True
             num_start = i
+
+        # Decide if we hit a comment, so we're done.
+        if line[i] == '#' and not (in_single_quote or in_double_quote or in_triple_quote):
+            i = len(line)
+            break
+
         i += 1
 
     if in_number:

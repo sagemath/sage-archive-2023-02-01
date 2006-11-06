@@ -127,16 +127,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         # scalar?
         if not isinstance(entries, list):
-            if self._nrows != self._ncols:
-                raise TypeError, "scalar matrix must be square"
+            _sig_on
+            for i from 0 <= i < self._nrows*self._ncols:
+                self._entries[i] = 0
             e = entries   # coerce to an unsigned int
-            for i from 0 <= i < self._nrows:
-                v = self.matrix[i]
-                for j from 0 <= j < i:
-                    v[j] = 0
-                v[i] = e
-                for j from i+1 <= j < self._ncols:
-                    v[j] = 0
+            if e != 0:
+                for i from 0 <= i < self._nrows:
+                    self.matrix[i][i] = e
+            _sig_off
             return
 
         # all entries are given as a long list

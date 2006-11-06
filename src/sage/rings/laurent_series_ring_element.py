@@ -72,17 +72,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         OUTPUT:
             a Laurent series
         """
-        if not isinstance(parent, laurent_series_ring.LaurentSeriesRing_generic):
-            raise TypeError, "parent must be a LaurentSeriesRing"
-
         ring_element.RingElement.__init__(self, parent)
-
-        if not isinstance(f, power_series_ring_element.PowerSeries):
-            if isinstance(f, LaurentSeries):
-                n += f.__u
-                f = f.unit_part()
-            else:
-                f = parent.power_series_ring()(f)
+        if isinstance(f, LaurentSeries):
+            n += f.__n
+            f = parent.power_series_ring()(f.__u)
+        elif not isinstance(f, power_series_ring_element.PowerSeries):
+            f = parent.power_series_ring()(f)
 
         # self is that t^n * u:
         self.__n = n + f.valuation()    # power of the variable

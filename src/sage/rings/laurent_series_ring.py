@@ -95,8 +95,20 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         return "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
 
     def __call__(self, x, n=0):
+        """
+        EXAMPLES:
+            sage: R.<u> = LaurentSeriesRing(pAdicField(5, 10))
+            sage: S.<t> = LaurentSeriesRing(RationalField())
+            sage: print R(t + t^2 + O(t^3))
+            u + u^2 + O(u^3)
+
+        Note that coercing an element into its own parent just produces
+        that element again (since Laurent series are immutable):
+            sage: u is R(u)
+            True
+        """
         if isinstance(x, laurent_series_ring_element.LaurentSeries) and n==0 and self is x.parent():
-            return x
+            return x  # ok, since Laurent series are immutable (no need to make a copy)
         return laurent_series_ring_element.LaurentSeries(self, x, n)
 
     def _coerce_(self, x):

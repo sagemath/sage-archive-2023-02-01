@@ -23,7 +23,6 @@ cdef extern from "stdio.h":
     cdef FILE *stdout
     int scanf(char *format, ...)
 
-
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!

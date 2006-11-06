@@ -311,6 +311,9 @@ ext_modules = [ \
 
     # complex_number2, \
 
+    Extension('sage.ext.sig',
+              sources = ['sage/ext/sig.pyx']), \
+
     Extension('sage.ext.arith',
               sources = ['sage/ext/arith.pyx']), \
 

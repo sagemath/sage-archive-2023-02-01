@@ -605,9 +605,11 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         EXAMPLES:
             sage: -mod(5,10^10)
             9999999995
+            sage: -mod(0,10^10)
+            0
         """
-        # TODO: this code is WRONG!!!! -mod(0, 10^10) is WRONG.
-        # It doesn't normalise correctly.
+        if mpz_cmp_si(self.value, 0) == 0:
+            return self
         cdef IntegerMod_gmp x
         x = IntegerMod_gmp(self._parent, None, empty=True)
         mpz_sub(x.value, self.__modulus.sageInteger.value, self.value)
@@ -934,9 +936,11 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         EXAMPLES:
             sage: -mod(7,10)
             3
+            sage: -mod(0,10)
+            0
         """
-        # TODO: this code is WRONG!!!! -mod(0, 10^10) is WRONG.
-        # It doesn't normalise correctly.
+        if self.ivalue == 0:
+            return self
         cdef IntegerMod_int x
         x = IntegerMod_int(self._parent, None, empty=True)
         x.ivalue = self.__modulus.int32 - self.ivalue
@@ -1374,10 +1378,11 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         EXAMPLES:
             sage: -mod(7,10^5)
             99993
+            sage: -mod(0,10^6)
+            0
         """
-        # TODO: this code is WRONG!!!! -mod(0, 10^10) is WRONG.
-        # It doesn't normalise correctly.
-        # The docstring is wrong too because it's not a 64-bit example?
+        if self.ivalue == 0:
+            return self
         cdef IntegerMod_int64 x
         x = IntegerMod_int64(self._parent, None, empty=True)
         x.ivalue = self.__modulus.int64 - self.ivalue

@@ -346,7 +346,7 @@ cdef class Matrix(ModuleElement):
 
         This is fast since it is a cdef function and there is no bounds checking.
         """
-        raise NotImplementedError, "this must be defined in the derived type."
+        raise NotImplementedError, "this must be defined in the derived class (type=%s)"%type(self)
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         """

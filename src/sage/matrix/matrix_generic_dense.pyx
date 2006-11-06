@@ -92,13 +92,11 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                     self._entries[i*self._ncols + i] = x
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        self.check_bounds(i, j)
         # TODO: make faster with Python/C API
         self._entries[i*self._ncols + j] = value
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         # TODO: make faster with Python/C API
-        self.check_bounds(i, j)
         return self._entries[i*self._ncols + j]
 
     def _pickle(self):
@@ -192,9 +190,9 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
                 m = i*nc
                 for k from 0 <= k < snc:
                     # The following is really:
-                    #     z = z + left._entries[m + k] * right._entries[k*left._ncols + j]
+                    #     z = z + left._entries[m + k] * right._entries[k*right._ncols + j]
                     l = PyList_GET_ITEM(left._entries, m+k)
-                    r = PyList_GET_ITEM(right._entries, k*snc + j)
+                    r = PyList_GET_ITEM(right._entries, k*nc + j)
                     z = z + PyNumber_Multiply(<object>l, <object>r)
                 Py_INCREF(z); PyList_SET_ITEM(v, p, z)   #   Basically this is "v.append(z)"
                 p = p + 1

@@ -11,18 +11,6 @@ import integral_domain
 import field
 
 
-# Note: I commented out all the _objsLaurentSeriesRing stuff because
-# it was breaking a lot of things, and I'm not sure whether it's good
-# design. For example, the following would happen:
-#   sage: K = pAdicField(5, prec = 5)
-#   sage: L = pAdicField(5, prec = 200)
-#   sage: R.<x> = LaurentSeriesRing(K)
-#   sage: S.<y> = LaurentSeriesRing(L)
-#   sage: R is S
-#    True
-# Very very bad.
-#    -- David Harvey (2006-09-09)
-
 
 laurent_series = {}
 def LaurentSeriesRing(base_ring, name=None, names=None):
@@ -46,6 +34,21 @@ def LaurentSeriesRing(base_ring, name=None, names=None):
     use the \code{Frac} notation to make the Laurent series ring.
         sage: Frac(ZZ[['t']])
         Fraction Field of Power Series Ring in t over Integer Ring
+
+    Laurent series rings are determined by their variable and the base ring,
+    and are globally unique.
+        sage: K = pAdicField(5, prec = 5)
+        sage: L = pAdicField(5, prec = 200)
+        sage: R.<x> = LaurentSeriesRing(K)
+        sage: S.<y> = LaurentSeriesRing(L)
+        sage: R is S
+        False
+        sage: T.<y> = LaurentSeriesRing(pAdicField(5,prec=200))
+        sage: S is T
+        True
+        sage: W.<y> = LaurentSeriesRing(pAdicField(5,prec=199))
+        sage: W is T
+        False
     """
     if not names is None: name = names
     if name is None:

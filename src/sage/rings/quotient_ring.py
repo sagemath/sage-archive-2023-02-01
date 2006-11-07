@@ -221,7 +221,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
                 return x
             x = x.lift()
         if is_SingularElement(x):
-            return x.sage_poly(self)
+            #self._singular_().set_ring()
+            x = x.sage_poly(self)
+            return x
         if coerce:
             R = self.cover_ring()
             x = R(x)

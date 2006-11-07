@@ -159,16 +159,16 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         return -1
 
     def lt(self):
-        return self.__rep.lt()
+        return QuotientRingElement(self.parent(),self.__rep.lt())
 
     def lm(self):
-        return self.__rep.lm()
+        return QuotientRingElement(self.parent(),self.__rep.lm())
 
     def lc(self):
-        return self.__rep.lc()
+        return QuotientRingElement(self.parent(),self.__rep.lc())
 
     def variables(self):
-        return self.__rep.variables()
+        return [QuotientRingElement(self.parent(),v) for v in self.__rep.variables()]
 
     def monomials(self):
-        return self.__rep.monomials()
+        return [QuotientRingElement(self.parent(),m) for m in self.__rep.monomials()]

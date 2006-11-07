@@ -290,6 +290,42 @@ class Polynomial_singular_repr:
         lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
         return lcm.sage_poly(self.parent())
 
+    def diff(self, variable, have_ring=False):
+        """
+        Differentiats self with respect in the provided variable. This
+        is completely symbolic so it is also defined over e.g. finite
+        fields.
+
+        INPUT:
+            variable -- the derivate is taken with respect to that variable
+            have_ring -- see self._singular_() (default:False)
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(RR,2)
+            sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
+            sage: f.diff(x)
+            3.0000000000000000 + 9.0000000000000000*x^2*y^2
+            sage: f.diff(y)
+            10.000000000000000*y + 6.0000000000000000*x^3*y
+
+            The derivate is also defined over finite fields:
+
+            sage: R.<x,y> = PolynomialRing(GF(2**8),2)
+            sage: f = x^3*y^2 + y^2 + x + 2
+            sage: f.diff(x)
+            1 + x^2*y^2
+
+            The new coefficients are coerced to the base ring:
+
+            sage: f.diff(y)
+            0
+
+        ALGORITHM: Singular
+
+        """
+        df = self._singular_(have_ring=have_ring).diff(variable._singular_(have_ring=have_ring))
+        return df.sage_poly(self.parent())
+
 ##     def lt(self, have_ring=False):
 ##         """
 ##         Returns the leading (or initial) term of a polynomial

@@ -47,6 +47,9 @@ import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
 
+cimport sage.structure.parent
+
+
 ## cdef extern from 'interrupt.h':
 ##     int _sig_on, _sig_off, _sig_check
 ##     void _sig_str(char*)
@@ -1048,7 +1051,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         OUTPUT:
             finite field element.
         """
-        self._parent = parent
+        self._parent = <sage.structure.parent.Parent> parent
         self.object = 0
 
     def __dealloc__(FiniteField_givaroElement self):

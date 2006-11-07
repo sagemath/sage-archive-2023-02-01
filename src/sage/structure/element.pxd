@@ -4,13 +4,14 @@
 # from other directories will fail.
 
 cimport sage.structure.sage_object
-
+cimport sage.structure.parent
 
 cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    cdef object _parent
+    cdef sage.structure.parent.Parent _parent
+    #cdef object _parent
     cdef _rich_to_bool(self, int op, int n)
 
 cdef class ModuleElement(Element):

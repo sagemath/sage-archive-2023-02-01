@@ -723,7 +723,7 @@ cdef class ETuple:
         """
         x.__hash__() <==> hash(x)
         """
-        return hash((tuple(self._data.iteritems()),self._length))
+        return hash((tuple(sorted(self._data.iteritems())),self._length))
 
     def __len__(ETuple self):
         """

@@ -107,10 +107,16 @@ class MPolynomialIdeal_magma_repr:
             sage: len(gb) #optional MAGMA
             45
         """
+        try:
+            return self.__magma_groebner_basis
+        except AttributeError:
+            pass
         R = self.ring()
         mgb = self._magma_().GroebnerBasis()
-        return Sequence([R(str(mgb[i+1])) for i in range(len(mgb))], R,
+        B = Sequence([R(str(mgb[i+1])) for i in range(len(mgb))], R,
                         check=False, immutable=True)
+        self.__magma_groebner_basis = B
+        return B
 
 
 class MPolynomialIdeal_singular_repr:

@@ -155,7 +155,7 @@ cdef class Element(sage_object.SageObject):
         INPUT:
             parent -- a SageObject
         """
-        self._parent = parent
+        self._parent = <sage.structure.parent.Parent> parent
 
     def _set_parent(self, parent):
         r"""

@@ -38,6 +38,9 @@ import sage.misc.sage_eval
 
 import quit
 
+import monitor
+EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
+
 import sage.rings.coerce as coerce
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
@@ -230,12 +233,6 @@ class Expect(SageObject):
             os.makedirs(dir)
         os.chdir(dir)
 
-        # This _absolute call below programs around a bug in pexpect:
-        # make a directory X with a subdirectory "magma" and cd into X. Then:
-        #sage: import pexpect
-        #sage: m = pexpect.spawn('magma')
-        #sage: m.interact()  # -- boom!
-
         try:
             cmd = _absolute(self.__command)
         except RuntimeError:
@@ -248,6 +245,7 @@ class Expect(SageObject):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
+            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None

@@ -19,16 +19,15 @@ include "../ext/python.pxi"
 
 import sage.modules.free_module
 import sage.misc.latex
-from sage.misc.misc import verbose, get_verbose
 import sage.structure.coerce
-from   sage.structure.sequence import _combinations
 import sage.rings.integer
-from sage.rings.number_field.all import is_NumberField
 
-cimport sage.structure.element
-from sage.structure.element cimport ModuleElement, Element
+from   sage.misc.misc import verbose, get_verbose
+from   sage.structure.sequence import _combinations
+from   sage.rings.number_field.all import is_NumberField
 
-from sage.structure.mutability cimport Mutability
+from   sage.structure.element    cimport ModuleElement, Element
+from   sage.structure.mutability cimport Mutability
 
 import sage.modules.free_module
 
@@ -147,13 +146,45 @@ cdef class Matrix(ModuleElement):
 
     def _list(self):
         """
-        Unsafe version of list, mainly for internal use.  This may
-        return the list of elements, but as an *unsafe* reference to
-        the underlying list of the object.  It is very dangerous if
-        you change entries of the returned list.
+        Unsafe version of the list method, mainly for internal use.
+        This may return the list of elements, but as an *unsafe*
+        reference to the underlying list of the object.  It is might
+        be dangerous if you change entries of the returned list.
 
         EXAMPLES:
-            sage: ???
+        Using _list is potentially fast and memory efficient, but
+        very dangerous (at least for generic dense matrices).
+
+            sage: a = matrix(QQ['x,y'],2,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: v = a._list(); v
+            [0, 1, 2, 3, 4, 5]
+
+        If you change an entry of the list, the corresponding entry
+        of the matrix will be changed (but without clearing any caches
+        of computing information about the matrix):
+            sage: v[0] = -2/3; v
+            [-2/3, 1, 2, 3, 4, 5]
+            sage: a._list()
+            [-2/3, 1, 2, 3, 4, 5]
+
+        Now the 0,0 entry of the matrix is $-2/3$, which is weird.
+            sage: a[0,0]
+            -2/3
+
+        But the matrix doesn't know the entry changed, so it returns the cached
+        version of its print representation:
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        If we change an entry, the cache is cleared, and the correct print
+        representation appears:
+            sage: a[1,2]=10
+            sage: a
+            [-2/3    1    2]
+            [   8    4   10]
         """
         cdef Py_ssize_t i, j
 
@@ -188,8 +219,43 @@ cdef class Matrix(ModuleElement):
 
     def _dict(self):
         """
+        Unsafe version of the dict method, mainly for internal use.
+        This may return the dict of elements, but as an *unsafe*
+        reference to the underlying dict of the object.  It is might
+        be dangerous if you change entries of the returned dict.
+
         EXAMPLES:
-            sage: ???
+        Using _dict is potentially fast and memory efficient, but
+        very dangerous (at least for generic sparse matrices).
+
+            sage: a = matrix(QQ['x,y'],2,range(6), sparse=True); a
+            [0 1 2]
+            [3 4 5]
+            sage: v = a._dict(); v
+            {(0, 1): 1, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+
+        If you change a key of the dictionary, the corresponding entry
+        of the matrix will be changed (but without clearing any caches
+        of computing information about the matrix):
+            sage: v[0,1] = -2/3; v
+            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            sage: a._dict()
+            {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
+            sage: a[0,1]
+            -2/3
+        But the matrix doesn't know the entry changed, so it returns the cached
+        version of its print representation:
+
+            sage: a
+            [0 1 2]
+            [3 4 5]
+
+        If we change an entry, the cache is cleared, and the correct print
+        representation appears:
+            sage: a[1,2]=10
+            sage: a
+            [   0 -2/3    2]
+            [   3    4   10]
         """
         d = self.fetch('dict')
         if not d is None:
@@ -587,12 +653,12 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: A = Matrix(ZZ[['t']], 2, 2, range(4))
             sage: A.parent()
-             Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Integer Ring
+            Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Integer Ring
             sage: A._matrix_(QQ[['t']])
             [0 1]
             [2 3]
             sage: A._matrix_(QQ[['t']]).parent()
-             Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Rational Field
+            Full MatrixSpace of 2 by 2 dense matrices over Power Series Ring in t over Rational Field
         """
         return self.change_ring(R)
 
@@ -601,9 +667,12 @@ cdef class Matrix(ModuleElement):
     ###########################################################
 
     def __repr__(self):
-        """
+        r"""
         EXAMPLES:
-            sage: ???
+            sage: R = PolynomialRing(QQ,6,'z')
+            sage: a = matrix(2,3, R.gens())
+            sage: a.__repr__()
+            '[z0 z1 z2]\n[z3 z4 z5]'
         """
         x = self.fetch('repr')
         if not x is None: return x
@@ -650,40 +719,49 @@ cdef class Matrix(ModuleElement):
         self.cache('repr',s)
         return s
 
-    def _latex_sparse(self, variable="x"):
-        r"""
-        Return a latex string that represents this matrix as a sparse
-        matrix.  The rows are printed as sums $\sum a_i x_i$, where
-        $x$ is the variable.
+##     def _latex_sparse(self, variable="x"):
+##         r"""
+##         Return a latex string that represents this matrix as a sparse
+##         matrix.  The rows are printed as sums $\sum a_i x_i$, where
+##         $x$ is the variable.
 
-        EXAMPLES:
-            sage: ???
-        """
-        cdef Py_ssize_t nr, nc, i, j
-        nr = self._nrows
-        nc = self._ncols
-        s = "\\left(\\begin{align*}\n"
-        for i from 0 <= i < nr:
-            v = []
-            for j in 0 <= j < nc:
-                x = self.get_unsafe(i, j)
-                if x != 0:
-                    v.append((j, x))
-            for j in xrange(len(v)):
-                s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
-                if j == 0:
-                    s = s + "& + "
-                elif j < len(v) - 1:
-                    s =  s + " + "
-                else:
-                    s =  s + "\\\\\n"
-        s = s + "\n\\end{align*}"
-        return s
+##         EXAMPLES:
+
+##         """
+##         cdef Py_ssize_t nr, nc, i, j
+##         nr = self._nrows
+##         nc = self._ncols
+##         s = "\\left(\\begin{align*}\n"
+##         for i from 0 <= i < nr:
+##             v = []
+##             for j from 0 <= j < nc:
+##                 x = self.get_unsafe(i, j)
+##                 if x != 0:
+##                     v.append((j, x))
+##             for j from 0 <= j < len(v):
+##                 s  = s + "%s*%s_{%s}"%(v[j][1], variable, v[j][0])
+##                 if j == 0:
+##                     s = s + "& + "
+##                 elif j < len(v) - 1:
+##                     s =  s + " + "
+##                 else:
+##                     s =  s + "\\\\\n"
+##         s = s + "\n\\end{align*}"
+##         return s
 
     def _latex_(self):
         """
+        Return latex representation of this matrix.
+
         EXAMPLES:
-            sage: ???
+            sage: R = PolynomialRing(QQ,4,'z')
+            sage: a = matrix(2,2, R.gens())
+            sage: b = a*a
+            sage: latex(b)
+            \left(\begin{array}{rr}
+            z_{1}z_{2} + z_{0}^{2}&z_{1}z_{3} + z_{0}z_{1}\\
+            z_{2}z_{3} + z_{0}z_{2}&z_{3}^{2} + z_{1}z_{2}
+            \end{array}\right)
         """
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
@@ -947,7 +1025,17 @@ cdef class Matrix(ModuleElement):
             copy -- (default: True) if True, return a copy so you can modify it safely
 
         EXAMPLES:
-            sage: ???
+            sage: R.<x> = QQ[ ]
+            sage: a = matrix(R, 2, [x,x^2, 2/3*x,1+x^5]); a
+            [      x     x^2]
+            [  2/3*x x^5 + 1]
+            sage: a.dense_columns()
+            [(x, 2/3*x), (x^2, x^5 + 1)]
+            sage: a = matrix(R, 2, [x,x^2, 2/3*x,1+x^5], sparse=True)
+            sage: c = a.dense_columns(); c
+            [(x, 2/3*x), (x^2, x^5 + 1)]
+            sage: parent(c[1])
+            Ambient free module of rank 2 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
         """
         x = self.fetch('dense_columns')
         if not x is None:

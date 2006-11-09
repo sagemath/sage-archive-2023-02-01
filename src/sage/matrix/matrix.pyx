@@ -173,8 +173,8 @@ cdef class Matrix(ModuleElement):
             sage: a[0,0]
             -2/3
 
-        But the matrix doesn't know the entry changed, so it returns the cached
-        version of its print representation:
+        But the matrix doesn't know the entry changed, so it returns
+        the cached version of its print representation:
             sage: a
             [0 1 2]
             [3 4 5]
@@ -243,6 +243,7 @@ cdef class Matrix(ModuleElement):
             {(0, 1): -2/3, (1, 2): 5, (1, 0): 3, (0, 2): 2, (1, 1): 4}
             sage: a[0,1]
             -2/3
+
         But the matrix doesn't know the entry changed, so it returns the cached
         version of its print representation:
 
@@ -2988,15 +2989,168 @@ cdef class Matrix(ModuleElement):
     def _left_scalar_multiply(self, x):
         """
         EXAMPLES:
-            sage: ?
+            sage: R.<x,y> = QQ[]
+            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
+            [       1        x        y]
+            [  -1*x*y    y + x -1*y + x]
+            sage: a._left_scalar_multiply(x*y)
+            [             x*y            x^2*y            x*y^2]
+            [      -1*x^2*y^2    x*y^2 + x^2*y -1*x*y^2 + x^2*y]
+            sage: R.<x,y> = FreeAlgebra(ZZ,2)
+            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
+            [    1     x     y]
+            [ -x*y x + y x - y]
+            sage: a._left_scalar_multiply(x*y)
+            [          x*y         x*y*x         x*y^2]
+            [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
+            sage: a._right_scalar_multiply(x*y)
+            [          x*y         x^2*y         y*x*y]
+            [     -x*y*x*y x^2*y + y*x*y x^2*y - y*x*y]
         """
-        # same as _right, because base ring is always commutative.
         return self._scalar_multiply(x)
 
     def __mul__(self, right):
-        """
-        EXAMPLES:
-            sage: ???
+        r"""
+        Return the product of two matrices, a vector*matrix and
+        matrix*vector product, or a scalar*matrix or matrix*scalar
+        product.
+
+        EXAMPLE of matrix times matrix over same base ring:
+        We multiply matrices over $\QQ[x,y]$.
+            sage: R.<x,y> = QQ[]
+            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
+            [       1        x        y]
+            [  -1*x*y    y + x -1*y + x]
+            sage: b = a.transpose(); b
+            [       1   -1*x*y]
+            [       x    y + x]
+            [       y -1*y + x]
+            sage: a*b
+            [          1 + y^2 + x^2      -1*y^2 + x*y + x^2]
+            [     -1*y^2 + x*y + x^2 2*y^2 + 2*x^2 + x^2*y^2]
+            sage: b*a
+            [        1 + x^2*y^2   x - x*y^2 - x^2*y   y + x*y^2 - x^2*y]
+            [  x - x*y^2 - x^2*y y^2 + 2*x*y + 2*x^2  -1*y^2 + x*y + x^2]
+            [  y + x*y^2 - x^2*y  -1*y^2 + x*y + x^2 2*y^2 - 2*x*y + x^2]
+
+        We verify that the matrix multiplies are correct by comparing them
+        with what PARI gets:
+            sage: gp(a)*gp(b) - gp(a*b)
+            [0, 0; 0, 0]
+            sage: gp(b)*gp(a) - gp(b*a)
+            [0, 0, 0; 0, 0, 0; 0, 0, 0]
+
+        EXAMPLE of matrix times matrix over different base rings:
+            sage: a = matrix(ZZ,2,2,range(4))
+            sage: b = matrix(GF(7),2,2,range(4))
+            sage: c = matrix(QQ,2,2,range(4))
+            sage: d = a*b; d
+            [2 3]
+            [6 4]
+            sage: parent(d)
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+            sage: parent(b*a)
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+            sage: d = a*c; d
+            [ 2  3]
+            [ 6 11]
+            sage: parent(d)
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: d = b*c; d
+            Traceback (most recent call last):
+            ...
+            TypeError: base rings must be compatible
+            sage: d = b*c.change_ring(GF(7)); d
+            [2 3]
+            [6 4]
+
+
+        EXAMPLE of matrix times matrix where one matrix is sparse and
+        the other is dense (in such mixed cases, the result is always
+        dense):
+            sage: a = matrix(ZZ,2,2,range(4),sparse=True)
+            sage: b = matrix(GF(7),2,2,range(4),sparse=False)
+            sage: c = a*b; c
+            [2 3]
+            [6 4]
+            sage: parent(c)
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+            sage: c = b*a; c
+            [2 3]
+            [6 4]
+            sage: parent(c)
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+
+        EXAMPLE of matrix multiplication over a noncommutative base ring:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: x*y - y*x
+            x*y - y*x
+            sage: a = matrix(2,2, [1,2,x,y])
+            sage: b = matrix(2,2, [x,y,x^2,y^2])
+            sage: a*b
+            [  x + 2*x^2   y + 2*y^2]
+            [x^2 + y*x^2   x*y + y^3]
+            sage: b*a
+            [    x + y*x   2*x + y^2]
+            [x^2 + y^2*x 2*x^2 + y^3]
+
+        EXAMPLE of row vector times matrix (vectors are row vectors, so
+        matrices act from the right):
+            sage: a = matrix(2,3, range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: V = ZZ^2
+            sage: v = V([-2,3]); v
+            (-2, 3)
+            sage: v*a
+            (9, 10, 11)
+
+        This is not allowed, since v is a {\em row} vector:
+            sage: a*v
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot multiply matrix times row vector -- instead compute row vector times matrix
+
+        This illustrates how coercion works:
+            sage: V = QQ^2
+            sage: v = V([-2,3]); v
+            (-2, 3)
+            sage: parent(v*a)
+            Vector space of dimension 2 over Rational Field
+
+        EXAMPLE of matrix times column vector:
+          (column vectors are not implemented yet)  TODO TODO
+
+        EXAMPLE of scalar times matrix:
+            sage: a = matrix(2,3, range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = 3*a; b
+            [ 0  3  6]
+            [ 9 12 15]
+            sage: parent(b)
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            sage: b = (2/3)*a; b
+            ???
+            sage: parent(b)
+            Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+        EXAMPLE of matrix times scalar:
+            sage: a = matrix(2,3, range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: b = a*3; b
+            [ 0  3  6]
+            [ 9 12 15]
+            sage: parent(b)
+            Full MatrixSpace of 2 by 3 dense matrices over Integer Ring
+            sage: b = a*(2/3); b
+            ???
+            sage: parent(b)
+            Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+
+        EXAMPLE of scalar multiplication in the noncommutative case:
+            sage: todo
         """
         if not PY_TYPE_CHECK(self, Matrix):
             # it is not a vector, since if it were the vector __mul__ would be called.
@@ -3051,11 +3205,8 @@ cdef class Matrix(ModuleElement):
 
     cdef _mul_c_impl(self, Matrix right):
         """
-        Multiply two matrices that are assumed to be compatable and
-        defined over the same base ring.
-
-        EXAMPLES:
-            sage: ???
+        Multiply two matrices that are assumed to have compatible dimensions and
+        are defined over the same base ring.
         """
         if self._will_use_strassen(right):
             return self._multiply_strassen(right)
@@ -3069,9 +3220,6 @@ cdef class Matrix(ModuleElement):
         be done using Strassen.
 
         Overload this in derived classes to not use Strassen by default.
-
-        EXAMPLES:
-            sage: ???
         """
         cdef int n
         n = self._strassen_default_cutoff(right)
@@ -3087,9 +3235,6 @@ cdef class Matrix(ModuleElement):
         be done using Strassen.
 
         Overload this in derived classes to not use Strassen by default.
-
-        EXAMPLES:
-            sage: ???
         """
         cdef int n
         n = self._strassen_default_echelon_cutoff()
@@ -3101,33 +3246,51 @@ cdef class Matrix(ModuleElement):
 
     def __neg__(self):
         """
+        Return the negative of self.
+
         EXAMPLES:
-            sage: ?
+            sage: a = matrix(ZZ,2,range(4))
+            sage: a.__neg__()
+            [ 0 -1]
+            [-2 -3]
+            sage: -a
+            [ 0 -1]
+            [-2 -3]
         """
         return self._left_scalar_multiply(self._base_ring(-1))
 
     def __invert__(self):
         r"""
-        Return this inverse of this matrix, as a matrix over the fraction field.
+        Return this inverse of this matrix, as a matrix over the
+        fraction field.
 
         Raises a \code{ZeroDivisionError} if the matrix has zero
         determinant, and raises an \code{ArithmeticError}, if the
-        inverse doesn't exist because the matrix is nonsquare.
+        inverse doesn't exist because the matrix is nonsquare.  Also,
+        note, e.g., that the inverse of a matrix over $\ZZ$ is always
+        a matrix defined over $\Q$ (even if the entries are integers).
 
         EXAMPLES:
-            sage: A = MatrixSpace(IntegerRing(), 2)([1,1,3,5])
+            sage: A = MatrixSpace(ZZ, 2)([1,1,3,5])
             sage: ~A
+            [ 5/2 -1/2]
+            [-3/2  1/2]
+            sage: A.__invert__()
             [ 5/2 -1/2]
             [-3/2  1/2]
 
         Even if the inverse lies in the base field, the result is still a matrix
         over the fraction field.
-            sage: I = MatrixSpace(IntegerRing(),2)( 1 )  # identity matrix
+            sage: I = MatrixSpace(ZZ,2)(1)  # identity matrix
             sage: ~I
             [1 0]
             [0 1]
             sage: (~I).parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+        This is analogous to the situation for ring elements, e.g., for $\ZZ$ we have:
+            sage: parent(~1)
+            Rational Field
         """
         if not self.base_ring().is_field():
             return ~self.matrix_over_field()
@@ -3135,14 +3298,22 @@ cdef class Matrix(ModuleElement):
             raise ArithmeticError, "self must be a square matrix"
         A = self.augment(self.parent().identity_matrix())
         B = A.echelon_form()
-        if B[self.nrows()-1,self.ncols()-1] != 1:
+        if B[self._nrows - 1,  self._ncols - 1] != 1:
             raise ZeroDivisionError, "self is not invertible"
-        return B.matrix_from_columns(range(self.ncols(), 2*self.ncols()))
+        return B.matrix_from_columns(range(self._ncols, 2*self._ncols))
 
     def __pos__(self):
         """
+        Return +self, which is just self, of course.
+
         EXAMPLES:
-            sage: ?
+            sage: a = matrix(ZZ,2,range(4))
+            sage: +a
+            [0 1]
+            [2 3]
+            sage: a.__pos__()
+            [0 1]
+            [2 3]
         """
         return self
 
@@ -3151,9 +3322,13 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: MS = MatrixSpace(QQ, 3, 3)
             sage: A = MS([0, 0, 1, 1, 0, '-2/11', 0, 1, '-3/11'])
-            sage: A * A**(-1) == 1
+            sage: A * A^(-1) == 1
             True
-            sage: A**4
+            sage: A^4
+            [      -3/11     -13/121   1436/1331]
+            [    127/121   -337/1331 -4445/14641]
+            [    -13/121   1436/1331 -8015/14641]
+            sage: A.__pow__(4)
             [      -3/11     -13/121   1436/1331]
             [    127/121   -337/1331 -4445/14641]
             [    -13/121   1436/1331 -8015/14641]
@@ -3176,21 +3351,6 @@ cdef class Matrix(ModuleElement):
             apow = apow * apow
         return ans
 
-    def __rmul__(self, left):
-        """
-        EXAMPLES:
-            sage: ?
-        """
-        return self._left_scalar_multiply(left)
-
-    def _sub_(self, right):
-        """
-        EXAMPLES:
-            sage: ?
-        """
-        return self + right._left_scalar_multiply(-1)
-
-
 
     ###################################################
     # Comparison
@@ -3198,40 +3358,31 @@ cdef class Matrix(ModuleElement):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    cdef _richcmp(self, right, int op):
-        """
-        EXAMPLES:
-            sage: ???
-        """
-        # TODO: change the last "==" here to "is"
-        if not PY_TYPE_CHECK(right, Matrix) or not PY_TYPE_CHECK(self, Matrix) or \
-                        not ((<Matrix>right)._parent == (<Matrix>self)._parent) or \
-                        (self.is_sparse() != right.is_sparse()):
-
-            # todo: can make faster using the cdef interface to coerce
-            return bool(sage.structure.coerce.cmp(self, right))
-
-        cdef int r
-        r = self._cmp_c_impl(right)
-
-        if op == 0:  #<
-            return bool(r  < 0)
-        elif op == 2: #==
-            return bool(r == 0)
-        elif op == 4: #>
-            return bool(r  > 0)
-        elif op == 1: #<=
-            return bool(r <= 0)
-        elif op == 3: #!=
-            return bool(r != 0)
-        elif op == 5: #>=
-            return bool(r >= 0)
-
     def __richcmp__(self, right, int op):
-        return self._richcmp(right, op)
+        """
+        Compare two matrices.
 
-    cdef int _cmp_c_impl(self, Matrix right) except -2:
-        raise NotImplementedError
+        Matrices are compared in lexicographic order on the underlying
+        list of coefficients.   A dense matrix and a sparse matrix
+        are equal if their coefficients are the same.
+
+        EXAMPLES:
+        EXAMPLE cmparing sparse and dense matrices:
+            sage:
+            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
+            True
+            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
+            True
+
+        Dictionary order:
+            sage: matrix(ZZ,2,[1,2,3,4]) < matrix(ZZ,2,[3,2,3,4])
+            True
+            sage: matrix(ZZ,2,[1,2,3,4]) > matrix(ZZ,2,[3,2,3,4])
+            False
+            sage: matrix(ZZ,2,[0,2,3,4]) < matrix(ZZ,2,[0,3,3,4], sparse=True)
+            True
+        """
+        return self._richcmp(right, op)
 
     def __nonzero__(self):
         """
@@ -3382,6 +3533,18 @@ cdef class Matrix(ModuleElement):
         The characteristic polynomial is represented as a vector of
         ints, where the constant term of the characteristic polynomial
         is the 0th coefficient of the vector.
+
+        EXAMPLES:
+            sage: matrix(QQ,3,range(9))._charpoly_hessenberg('Z')
+            Z^3 - 12*Z^2 - 18*Z
+            sage: matrix(ZZ,3,range(9))._charpoly_hessenberg('Z')
+            Z^3 - 12*Z^2 - 18*Z
+            sage: matrix(GF(7),3,range(9))._charpoly_hessenberg('Z')
+            Z^3 + 2*Z^2 + 3*Z
+            sage: matrix(QQ['x'],3,range(9))._charpoly_hessenberg('Z')
+            Z^3 + (-12)*Z^2 + (-18)*Z
+            sage: matrix(ZZ['ZZ'],3,range(9))._charpoly_hessenberg('Z')
+            Z^3 + (-12)*Z^2 + (-18)*Z
         """
         if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly not defined for non-square matrix."
@@ -3666,6 +3829,9 @@ cdef class Matrix(ModuleElement):
         invariant. Return the decomposition of M as a list of pairs
         (W, is_irred) where is_irred is True if the charpoly of self
         acting on the factor W is irreducible.
+
+        EXAMPLES:
+             sage: ???
         """
         if not sage.modules.free_module.is_FreeModule(M):
             raise TypeError, "M must be a free module."
@@ -3880,7 +4046,26 @@ cdef class Matrix(ModuleElement):
     ###################################################################################
     def echelonize(self, algorithm="default", cutoff=0):
          """
-         Transform self into echelon form.
+         Transform self into a matrix in echelon form.
+
+         EXAMPLES:
+             sage: ???
+
+         An immutable matrix cannot be transformed into echelon form.
+         Use self.echelon() instead:
+             sage: ???
+
+         Echelon form over the integers is what is also classically often known as
+         Hermite normal form:
+             sage: ???
+
+         Echelon form is defined for any integral domain:
+             sage: ???
+
+         Echelon form is not defined over arbitrary rings:
+
+             sage: ???
+
          """
          self.check_mutability()
          if algorithm == 'default':
@@ -3980,21 +4165,23 @@ cdef class Matrix(ModuleElement):
     # at William Stein's MSRI 2006 Summer Workshop on Modular Forms.
     #####################################################################################
     cdef int _strassen_default_cutoff(self, Matrix right) except -2:
-        """
-        EXAMPLES:
-            sage: ?
-        """
         return -1
 
     cdef int _strassen_default_echelon_cutoff(self) except -2:
-        """
-        EXAMPLES:
-            sage: ?
-        """
         return -1
 
     def _multiply_strassen(self, Matrix right, int cutoff=0):
         """
+        Multiply self by the matrix right using a Strassen-based
+        asymptotically fast arithmetic algorithm.
+
+        ALGORITHM: Custom algorithm for arbitrary size matrices
+        designed by David Harvey and Robert Bradshaw, based on
+        Strassen's algorithm.
+
+        INPUT:
+            cutoff -- integer (default: 0 -- let class decide).
+
         EXAMPLES:
             sage: ?
         """
@@ -4021,6 +4208,10 @@ cdef class Matrix(ModuleElement):
     def _echelon_strassen(self, int cutoff=0):
         """
         In place Strassen echelon of self, and sets the pivots.
+
+        ALGORITHM: Custom algorithm for arbitrary size matrices
+        designed by David Harvey and Robert Bradshaw, based on
+        Strassen's algorithm.
 
         EXAMPLES:
             sage: ?
@@ -4679,19 +4870,11 @@ cdef class MatrixWindow:
 class int_range:
     r"""
     Useful class for dealing with pivots in the strassen echelon, could have much more general application
-
-    EXAMPLES:
-        sage: ?
-
     AUTHORS:
       -- Robert Bradshaw
 
     """
     def __init__(self, indices=None, range=None):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         if indices is None:
             self._intervals = []
             return
@@ -4714,24 +4897,12 @@ class int_range:
             self._intervals.append((start, last-start+1))
 
     def __repr__(self):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         return str(self._intervals)
 
     def intervals(self):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         return self._intervals
 
     def to_list(self):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         all = []
         for iv in self._intervals:
             for i in range(iv[0], iv[0]+iv[1]):
@@ -4739,17 +4910,9 @@ class int_range:
         return all
 
     def __iter__(self):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         return self._intervals.__iter__()
 
     def __len__(self):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         len = 0
         for iv in self._intervals:
             len = len + iv[1]
@@ -4758,20 +4921,12 @@ class int_range:
     # Yes, these two could be a lot faster...
     # Basically, this class is for abstracting away what I was trying to do by hand in several places
     def __add__(self, right):
-        """
-        EXAMPLES:
-            sage: ?
-        """
         all = self.to_list()
         for i in right.to_list():
             all.append(i)
         return int_range(all)
 
     def __sub__(self, right):
-        """
-        EXAMPLES:
-        sage: ?
-        """
         all = self.to_list()
         for i in right.to_list():
             if i in all:
@@ -4779,12 +4934,6 @@ class int_range:
         return int_range(all)
 
     def __mul__(self, right):
-        """
-        In the boolean sense, i.e. intersection
-
-        EXAMPLES:
-            sage: ?
-        """
         intersection = []
         all = self.to_list()
         for i in right.to_list():
@@ -4797,14 +4946,25 @@ class int_range:
 #######################
 
 def unpickle(cls, parent, mutability, cache, data, version):
-    """
-    Unpickle a matrix.
+    r"""
+    Unpickle a matrix.  This is only used internally by SAGE.
+    Users should never call this function directly.
 
     EXAMPLES:
+    We illustrating saving and loading several different types of matrices.
+
+    OVER $\ZZ$:
         sage: A = matrix(ZZ,2,range(4))
         sage: loads(dumps(A))
         [0 1]
         [2 3]
+
+    Sparse OVER $\QQ$:
+
+    Dense over $\QQ[x,y]$:
+
+    Dense over finite field.
+
     """
     cdef Matrix A
     A = cls.__new__(cls, parent, 0,0,0)

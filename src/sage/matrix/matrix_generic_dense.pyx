@@ -187,7 +187,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         for i from 0 <= i < nr:
             for j from 0 <= j < nc:
                 z = zero
-                m = i*nc
+                m = i*snc
                 for k from 0 <= k < snc:
                     # The following is really:
                     #     z = z + left._entries[m + k] * right._entries[k*right._ncols + j]

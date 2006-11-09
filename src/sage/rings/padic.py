@@ -635,7 +635,7 @@ class pAdic(field_element.FieldElement):
             sage: a < b
             True
         """
-        if not isinstance(other, pAdic) or other.parent() != self.parent():
+        if not isinstance(other, pAdic) or not (other.parent() is self.parent()):
             return coerce.cmp(self, other)
 
         m = min(self.big_oh(), other.big_oh())

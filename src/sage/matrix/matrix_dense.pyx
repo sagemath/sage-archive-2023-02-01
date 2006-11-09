@@ -1,5 +1,7 @@
 cimport matrix
 
+from   sage.structure.element    cimport Element
+
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
 
@@ -105,7 +107,7 @@ cdef class Matrix_dense(matrix.Matrix):
         else:
             raise RuntimeError, "unknown matrix version (=%s)"%version
 
-    cdef int _cmp_c_impl(self, matrix.Matrix right) except -2:
+    cdef int _cmp_c_impl(self, Element right) except -2:
         return cmp(self._list(), right._list())
 
     def transpose(self):

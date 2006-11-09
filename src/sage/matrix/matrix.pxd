@@ -28,9 +28,8 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef int _strassen_default_echelon_cutoff(self) except -2
 
     cdef _mul_c_impl(self, Matrix right)
-    cdef int _cmp_c_impl(self, Matrix right) except -2
+    cdef int _cmp_c_impl(self, sage.structure.element.Element right) except -2
 
-    cdef public _richcmp(self, right, int op)
     cdef long _hash(self) except -1
 
     # Pivots.

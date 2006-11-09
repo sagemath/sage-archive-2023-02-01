@@ -207,7 +207,10 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         if nrows == 0:
             ncols = 0
         else:
-            ncols = len(arg1[0])
+            try:
+                ncols = len(arg1[0])
+            except TypeError:
+                raise TypeError, "If making a matrix with the matrix(ring, list_of_row, [sparse]) constructor, the second input must be a list of rows."
         entries = sum([list(v) for v in arg1], [])
 
     elif rings.is_Ring(arg0) and isinstance(arg2, (list, tuple)) and arg3 is None:

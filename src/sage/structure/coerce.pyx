@@ -182,13 +182,21 @@ cdef class Coerce:
                 x0 = x
                 x = coerce(yp, x)
             except (TypeError, ValueError):
+            #    print "coercing %s to %s failed"%(x0,yp)
                 fails = fails + 1
+            #else:
+            #    print "coercion %s to %s suceeded with %s (parent=%s)"%(x0,yp,x,parent(x))
 
             try:
                 y0 = y
                 y = coerce(xp, y)
             except (TypeError, ValueError):
+            #    print "coercing %s to %s failed"%(y0,xp)
                 fails = fails + 1
+            #else:
+            #    print "coercion %s to %s suceeded with %s (parent=%s)"%(y0,xp,y,parent(y))
+
+
             if fails == 0:
                 assert (parent(x0) is parent(y))  # debug
                 return __builtin__.cmp(x0,y)

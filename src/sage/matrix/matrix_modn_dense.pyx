@@ -412,11 +412,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         _sig_off
         self.cache('in_hessenberg_form',True)
 
-    def _charpoly_hessenberg(self):
+    def _charpoly_hessenberg(self, var):
         """
         Transforms self in place to its Hessenberg form then computes
         and returns the coefficients of the characteristic polynomial of
         this matrix.
+
+        INPUT:
+            var -- name of the indeterminate of the charpoly.
 
         The characteristic polynomial is represented as a vector of
         ints, where the constant term of the characteristic polynomial
@@ -470,4 +473,5 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         v = []
         for i from 0 <= i <= n:
             v.append(int(c.matrix[n][i]))
-        return v
+        R = self._base_ring[var]    # polynomial ring over the base ring
+        return R(v)

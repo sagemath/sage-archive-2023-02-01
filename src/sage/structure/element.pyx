@@ -278,6 +278,62 @@ cdef class Element(sage_object.SageObject):
     def is_zero(self):
         return bool(self == self._parent(0))
 
+
+    cdef _richcmp(left, right, int op):
+        """
+        Compare left and right.
+        """
+        cdef int r
+
+        # TODO: change the last "==" here to "is"
+        if not PY_TYPE_CHECK(right, Element) or not PY_TYPE_CHECK(left, Element) or \
+               not ((<Element>right)._parent is (<Element>left)._parent):
+
+            # TODO: can make faster using the cdef interface to coerce
+            r = sage.structure.coerce.cmp(left, right)
+
+        else:
+
+            r = left._cmp_c_impl(right)
+
+        if op == 0:  #<
+            return bool(r  < 0)
+        elif op == 2: #==
+            return bool(r == 0)
+        elif op == 4: #>
+            return bool(r  > 0)
+        elif op == 1: #<=
+            return bool(r <= 0)
+        elif op == 3: #!=
+            return bool(r != 0)
+        elif op == 5: #>=
+            return bool(r >= 0)
+
+    ####################################################################
+    # For a derived Python class, you **must** put the following in
+    # your subclasses, in order for it to take advantage of the
+    # above generic comparison code.  You must also define
+    # _cmp_c_impl.
+    ####################################################################
+    def __richcmp__(left, right, int op):
+        return left._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        raise NotImplementedError
+
+
+    ####################################################################
+    # For a derived Python class, put the following:
+    ####################################################################
+    #def __cmp__(left, right):
+    #    if not isinstance(right, Element) or not (left.parent() is right.parent()):
+    #        return coerce.cmp(self, other)
+    #    else:
+    #        ...
+    # TODO: can we do something more systematic (and faster)?!
+
+
+
 cdef class ModuleElement(Element):
     """
     Generic element of a module.

@@ -57,7 +57,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __abs__(self):
         return self.norm()
 
-    def __cmp__(self, right):
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         """
         EXAMPLES:
             sage: v = (QQ['x']^4)(0)
@@ -73,13 +73,11 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             sage: w > v
             False
         """
-        if not isinstance(right, FreeModuleElement) or \
-                  not (self.parent().ambient_module() == right.parent().ambient_module()):
-            return coerce.cmp_c(self, right)
         cdef size_t i
         cdef int c
-        for i from 0 <= i < self.degree():
-            c = cmp(self[i], right[i])
+        # todo -- optimize this crap.
+        for i from 0 <= i < left.degree():
+            c = cmp(left[i], right[i])
             if c: return c
         return 0
 
@@ -448,6 +446,32 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
+
+    def __richcmp__(self, right, int op):
+        """
+        Compare two matrices.
+
+        Matrices are compared in lexicographic order on the underlying
+        list of coefficients.   A dense matrix and a sparse matrix
+        are equal if their coefficients are the same.
+
+        EXAMPLES:
+        EXAMPLE cmparing sparse and dense matrices:
+            sage:
+            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
+            True
+            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
+            True
+
+        Dictionary order:
+            sage: matrix(ZZ,2,[1,2,3,4]) < matrix(ZZ,2,[3,2,3,4])
+            True
+            sage: matrix(ZZ,2,[1,2,3,4]) > matrix(ZZ,2,[3,2,3,4])
+            False
+            sage: matrix(ZZ,2,[0,2,3,4]) < matrix(ZZ,2,[0,3,3,4], sparse=True)
+            True
+        """
+        return self._richcmp(right, op)
 
     def __getitem__(self, i):
         """

@@ -255,8 +255,12 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         if isinstance(x, matrix.Matrix):
             if self.is_sparse() and x.is_dense():
                 raise TypeError, "cannot coerce dense matrix into sparse space for arithmetic"
-        # todo: this is *way* too permissive and must be fixed!
-        return self(x)
+            if x.nrows() == self.nrows() and x.ncols() == self.ncols():
+                if self.base_ring().has_coerce_map_from(x.base_ring()):
+                    return self(x)
+                raise TypeError, "no canonical coercion"
+        else:
+            return self(self.base_ring()._coerce_(x))
 
     def __cmp__(self, other):
         if isinstance(other, MatrixSpace_generic) and \
@@ -445,8 +449,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         elif isinstance(x, (int, integer.Integer)) and x==1:
             return self.identity_matrix()
         if matrix.is_Matrix(x):
-            if x.parent() == self:
-                return x.copy()
+            if x.parent() is self:
+                if x.is_immutable():
+                    return x
+                else:
+                    return x.copy()
             x = x.list()
         if isinstance(x, list) and len(x) > 0:
             if isinstance(x[0], list):

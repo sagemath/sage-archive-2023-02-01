@@ -221,30 +221,15 @@ cdef class Rational(sage.structure.element.FieldElement):
         return [ self ]
 
 
+    def __richcmp__(left, right, int op):
+        return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef cmp(Rational self, Rational x):
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int i
-        i = mpq_cmp(self.value, x.value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
-
-    def __cmp__(self, x):
-        return self.cmp(x)
-
-    def __richcmp__(Rational self, right, int op):
-        cdef int n
-        if not isinstance(right, Rational):
-            try:
-                n = sage.rings.coerce.cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return self._rich_to_bool(op, n)
+        i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        if i < 0: return -1
+        elif i == 0: return 0
+        else: return 1
 
     def copy(self):
         cdef Rational z

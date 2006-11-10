@@ -68,7 +68,6 @@ def base_ring(x):
         sage: base_ring(R)
         Finite Field of size 7
     """
-    print z
     return x.base_ring()
 
 def base_field(x):

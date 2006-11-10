@@ -13,15 +13,15 @@ Parent objects with generators
 cimport parent
 
 cdef class ParentWithGens(parent.Parent):
-    cdef public object __gens
-    cdef public object __gens_dict
-    cdef public object __list
-    cdef public object __names
-    cdef public object __latex_names
+    cdef public object _gens
+    cdef public object _gens_dict
+    cdef public object _names
+    cdef public object _latex_names
+    cdef public object _list
     cdef public object _base
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
-    cdef public object __generator_orders
+    cdef public object _generator_orders
 
 cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
-    cdef public object __generator_orders
+    cdef public object _generator_orders

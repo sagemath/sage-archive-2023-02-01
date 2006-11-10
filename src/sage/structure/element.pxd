@@ -13,8 +13,6 @@ import  sage_object
 
 cdef class Element(sage_object.SageObject):
     cdef sage.structure.parent.Parent _parent
-    #cdef object _parent
-    cdef _rich_to_bool(self, int op, int n)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef public _richcmp(self, right, int op)
 

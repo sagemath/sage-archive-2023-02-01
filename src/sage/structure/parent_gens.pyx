@@ -153,6 +153,13 @@ def normalize_names(int ngens, names=None):
 # all gens, but this is not necessary.
 
 cdef class ParentWithGens(parent.Parent):
+    def __init__(self, base, names=None, normalize=True):
+        self._base = base
+        self._assign_names(names=names, normalize=normalize)
+
+    def base_ring(self):
+        return self._base
+
     # Derived class *must* define ngens method.
     def ngens(self):
         raise NotImplementedError, "Number of generators not known."
@@ -175,11 +182,11 @@ cdef class ParentWithGens(parent.Parent):
         Return a list of all elements in this object, if possible (the
         object must define an iterator).
         """
-        if self.__list != None:
-            return self.__list
+        if self._list != None:
+            return self._list
         else:
-            self.__list = list(self.__iter__())
-        return self.__list
+            self._list = list(self.__iter__())
+        return self._list
 
     def objgens(self):
         """
@@ -227,27 +234,27 @@ cdef class ParentWithGens(parent.Parent):
        object, in order.
        """
        cdef int i, n
-       if self.__gens != None:
-           return self.__gens
+       if self._gens != None:
+           return self._gens
        else:
            v = []
            n = self.ngens()
            for i from 0 <= i < n:
                v.append(self.gen(i))
-           self.__gens = tuple(v)
-           return self.__gens
+           self._gens = tuple(v)
+           return self._gens
 
     def gens_dict(self):
         r"""
         Return a dictionary whose entries are \code{{var_name:variable,...}}.
         """
-        if self.__gens_dict != None:
-            return self.__gens_dict
+        if self._gens_dict != None:
+            return self._gens_dict
         else:
             v = {}
             for x in self.gens():
                 v[str(x)] = x
-            self.__gens_dict = v
+            self._gens_dict = v
             return v
 
     def _assign_names(self, names=None, normalize=True):
@@ -275,10 +282,9 @@ cdef class ParentWithGens(parent.Parent):
         if names is None: return
         if normalize:
             names = normalize_names(self.ngens(), names)
-        if not (self.__names is None) and names != self.__names:
+        if not (self._names is None) and names != self._names:
             raise ValueError, 'variable names cannot be changed after object creation.'
-
-        self.__names = names
+        self._names = names
 
     def inject_variables(self, scope=None, verbose=True):
         """
@@ -317,23 +323,23 @@ cdef class ParentWithGens(parent.Parent):
         """
         This is used by the variable names context manager.
         """
-        old = self.__names, self.__latex_names
-        (self.__names, self.__latex_names) = names, latex_names
+        old = self._names, self._latex_names
+        (self._names, self._latex_names) = names, latex_names
         return old
 
     def variable_names(self):
-        if self.__names != None:
-            return self.__names
+        if self._names != None:
+            return self._names
         raise ValueError, "variable names have not yet been set using self._assign_names(...)"
 
     def latex_variable_names(self):
-        if self.__latex_names != None:
-            return self.__latex_names
+        if self._latex_names != None:
+            return self._latex_names
         # Compute the latex versions of the variable names.
-        self.__latex_names = []
+        self._latex_names = []
         for x in self.variable_names():
-            self.__latex.append(sage.misc.latex.latex_variable_name(x))
-        return self.__latex_names
+            self._latex.append(sage.misc.latex.latex_variable_name(x))
+        return self._latex_names
 
     def variable_name(self):
         return self.variable_names()[0]
@@ -353,13 +359,14 @@ cdef class ParentWithGens(parent.Parent):
         except AttributeError:
             pass
         d = dict(d)
-        d['__gens'] = self.__gens
-        d['__gens_dict'] = self.__gens_dict
-        d['__list'] = self.__list
-        d['__names'] = self.__names
-        d['__latex_names'] = self.__latex_names
+        d['_base'] = self._base
+        d['_gens'] = self._gens
+        d['_gens_dict'] = self._gens_dict
+        d['_list'] = self._list
+        d['_names'] = self._names
+        d['_latex_names'] = self._latex_names
         try:
-            d['__generator_orders'] = self.__generator_orders
+            d['_generator_orders'] = self._generator_orders
         except AttributeError:
             pass
 
@@ -368,14 +375,15 @@ cdef class ParentWithGens(parent.Parent):
     def __setstate__(self,d):
         try:
             self.__dict__ = d
-            self.__generator_orders = d['__generator_orders']
+            self._generator_orders = d['_generator_orders']
         except (AttributeError,KeyError):
             pass
-        self.__gens = d['__gens']
-        self.__gens_dict = d['__gens_dict']
-        self.__list = d['__list']
-        self.__names = d['__names']
-        self.__latex_names = d['__latex_names']
+        self._base = d['_base']
+        self._gens = d['_gens']
+        self._gens_dict = d['_gens_dict']
+        self._list = d['_list']
+        self._names = d['_names']
+        self._latex_names = d['_latex_names']
 
 
     #################################################################################
@@ -466,13 +474,13 @@ cdef class ParentWithGens(parent.Parent):
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
     def generator_orders(self):
-        if self.__generator_orders != None:
-            return self.__generator_orders
+        if self._generator_orders != None:
+            return self._generator_orders
         else:
             g = []
             for x in self.gens():
                 g.append(x.multiplicative_order())
-            self.__generator_orders = g
+            self._generator_orders = g
             return g
 
     def __iter__(self):
@@ -485,13 +493,13 @@ cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
 
 cdef class ParentWithAdditiveAbelianGens(ParentWithGens):
     def generator_orders(self):
-        if self.__generator_orders != None:
-            return self.__generator_orders
+        if self._generator_orders != None:
+            return self._generator_orders
         else:
             g = []
             for x in self.gens():
                 g.append(x.additive_order())
-            self.__generator_orders = g
+            self._generator_orders = g
             return g
 
     def __iter__(self):

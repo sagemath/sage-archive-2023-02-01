@@ -254,11 +254,6 @@ class RationalField(_uniq, field.Field):
         return self("%s/%s"%(random.randrange(-num_bound-1, num_bound+1), \
                              random.randrange(1,den_bound+1)))
 
-    def __cmp__(self, other):
-        if isinstance(other, RationalField):
-            return 0
-        return -1
-
     def zeta(self, n=2):
         if n == 1:
             return sage.rings.rational.Rational(1)

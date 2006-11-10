@@ -1,5 +1,17 @@
-"""
+r"""
 Spaces of matrices over a ring or field
+
+You can create any space $\text{Mat}_{n\times m}(R)$ of either dense
+or sparse matrices with given number of rows and columns over any
+commutative or noncommutative ring.
+
+EXAMPLES:
+    sage: MS = MatrixSpace(QQ,6,6,sparse=True); MS
+    Full MatrixSpace of 6 by 6 sparse matrices over Rational Field
+    sage: MS.base_ring()
+    Rational Field
+    sage: MS = MatrixSpace(ZZ,3,5,sparse=False); MS
+    Full MatrixSpace of 3 by 5 dense matrices over Integer Ring
 """
 
 # System imports
@@ -191,6 +203,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                         nrows,
                         ncols=None,
                         sparse=False):
+        parent_gens.ParentWithGens.__init__(self, base_ring)
         if not isinstance(base_ring, ring.Ring):
             raise TypeError, "base_ring must be a ring"
         if ncols == None: ncols = nrows
@@ -212,7 +225,6 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             if nrows >= 2**32 or ncols >= 2**32:
                 raise ValueError, "number of rows and columns must be less than 2^32 (on a 32-bit computer -- use a 64-bit computer for bigger matrices)"
 
-        self.__base_ring = base_ring
         self.__nrows = nrows
         self.__is_sparse = sparse
         if ncols == None:
@@ -263,13 +275,22 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return self(self.base_ring()._coerce_(x))
 
     def __cmp__(self, other):
-        if isinstance(other, MatrixSpace_generic) and \
-           self.__base_ring == other.__base_ring and \
-           self.__nrows == other.__nrows and self.__ncols == other.__ncols:
-            return 0
-        return -1
+        """
+        Compare this matrix space with other.
 
-    def __repr__(self):
+        If other is not a matrix space, return something arbitrary but
+        deterministic.  Otherwise, compare based on base ring, then on
+        number of rows and columns.
+
+        EXAMPLES:
+
+        """
+        if isinstance(other, MatrixSpace_generic):
+            return cmp((self.base_ring(), self.__nrows, self.__ncols),
+                       (other.base_ring(), other.__nrows, other.__ncols))
+        return cmp(type(self), type(other))
+
+    def _repr_(self):
         """
         Returns the string representation of a MatrixSpace
 
@@ -286,7 +307,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         else:
             s = "dense"
         return "Full MatrixSpace of %s by %s %s matrices over %s"%(
-                    self.__nrows, self.__ncols, s, self.__base_ring)
+                    self.__nrows, self.__ncols, s, self.base_ring())
 
     def _latex_(self):
         r"""
@@ -308,9 +329,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MS1 = MatrixSpace(QQ,4)
             sage: MS2 = MatrixSpace(ZZ,4,5,true)
             sage: MS1._get_matrix_class()
-            <type 'matrix_rational_dense.Matrix_rational_dense'>
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: MS2._get_matrix_class()
-            <class 'sage.matrix.matrix.Matrix_sparse_integer'>
+            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
         """
         R = self.base_ring()
         if self.is_dense():
@@ -329,20 +350,6 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             # the default
             return matrix_generic_sparse.Matrix_generic_sparse
 
-    def base_ring(self):
-        """
-        Returns the base ring of a MatrixSpace
-
-        EXAMPLES:
-    	sage: MS3 = MatrixSpace(QQ,6,6,true)
-    	sage: MS4 = MatrixSpace(ZZ,3,5,false)
-    	sage: MS3.base_ring()
-    	Rational Field
-    	sage: base_ring(MS4)
-    	Integer Ring
-        """
-
-        return self.__base_ring
 
     def basis(self):
         try:
@@ -473,7 +480,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             nrows = self.__nrows
         if ncols is None:
             ncols = self.__ncols
-        return MatrixSpace(self.__base_ring, nrows, ncols,
+        return MatrixSpace(self.base_ring(), nrows, ncols,
                         sparse=sparse)
 
     def ncols(self):

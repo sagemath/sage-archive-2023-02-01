@@ -306,11 +306,6 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def order(self):
         return sage.rings.infinity.Infinity()
 
-    def __cmp__(self, other):
-        if isinstance(other, IntegerRing):
-            return 0
-        return -1
-
     def zeta(self, n=2):
         if n == 1:
             return sage.rings.integer.Integer(1)

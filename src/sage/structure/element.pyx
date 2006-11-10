@@ -232,22 +232,12 @@ cdef class Element(sage_object.SageObject):
         s = str(self)
         return bool(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
 
-    cdef _rich_to_bool(self, int op, int n):
-        if op == 0:
-            return bool(n < 0)
-        elif op == 1:
-            return bool(n <= 0)
-        elif op == 2:
-            return bool(n == 0)
-        elif op == 3:
-            return bool(n != 0)
-        elif op == 4:
-            return bool(n > 0)
-        elif op == 5:
-            return bool(n >= 0)
-        assert False, "bug in _rich_to_bool"
-
     def __cmp__(left, right):
+        if not PY_TYPE_CHECK(right, Element) or not PY_TYPE_CHECK(left, Element) or \
+               not ((<Element>right)._parent is (<Element>left)._parent):
+            # TODO: can make faster using the cdef interface to coerce
+            return coerce.cmp(left, right)
+
         if HAS_DICTIONARY(left):
             return left._cmp_(right)
         else:
@@ -270,7 +260,6 @@ cdef class Element(sage_object.SageObject):
         """
         cdef int r
 
-        # TODO: change the last "==" here to "is"
         if not PY_TYPE_CHECK(right, Element) or not PY_TYPE_CHECK(left, Element) or \
                not ((<Element>right)._parent is (<Element>left)._parent):
 

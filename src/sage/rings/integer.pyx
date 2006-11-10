@@ -300,31 +300,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return sage.rings.coerce.bin_op(x, y, operator.xor)
 
 
+    def __richcmp__(left, right, int op):
+        return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int cmp(self, Integer x):
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int i
-        i = mpz_cmp(self.value, x.value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
-
-    def __richcmp__(Integer self, right, int op):
-        cdef int n
-        if not isinstance(right, Integer):
-            try:
-                n = sage.rings.coerce.cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return self._rich_to_bool(op, n)
-
-    def __cmp__(self, x):
-        return self.cmp(x)
-
+        i = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        if i < 0: return -1
+        elif i == 0: return 0
+        else: return 1
 
     def copy(self):
         """

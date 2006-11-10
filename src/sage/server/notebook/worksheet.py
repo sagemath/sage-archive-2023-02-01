@@ -315,6 +315,7 @@ class Worksheet:
         object_directory = os.path.abspath(self.__notebook.object_directory())
         #verbose(object_directory)
         # We do exactly one eval below of one long line instead of
+        # a whole bunch of short ones.
         try:
             cmd = 'from sage.all_notebook import *; '
             cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()

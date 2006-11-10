@@ -511,6 +511,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * _multiply_classical
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
+    #    * Specialized echelon form
     ########################################################################
 
     def height(self):
@@ -576,5 +577,125 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_clear(x)
 
         return 0   # no error occured.
+
+    def _echelon_in_place_classical(self):
+        cdef Matrix_integer_dense E
+        E = self.echelon_form()
+
+        cdef int i
+        for i from 0 <= i < self._ncols * self._nrows:
+            mpz_set(self._entries[i], E._entries[i])
+
+    def _echelon_strassen(self):
+        raise NotImplementedError
+
+    def echelon_form(self, algorithm="default", cutoff=0, include_zero_rows=True):
+        r"""
+        Return the echelon form of this matrix over the integers.
+
+        INPUT:
+            algorithm, cutoff -- ignored currently
+            include_zero_rows -- (default: True) if False, don't include zero rows.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
+            sage: A.echelon_form()
+            [1 0]
+            [0 2]
+
+            sage: A = MatrixSpace(ZZ,5)(range(25))
+            sage: A.echelon_form()
+            [  5   0  -5 -10 -15]
+            [  0   1   2   3   4]
+            [  0   0   0   0   0]
+            [  0   0   0   0   0]
+            [  0   0   0   0   0]
+        """
+        x = self.fetch('echelon_form')
+        if not x is None:
+            return x
+
+        if self._nrows == 0 or self._ncols == 0:
+            self.cache('echelon_form', self)
+            self.cache('pivots', [])
+            self.cache('rank', 0)
+            return self
+
+        cdef Py_ssize_t nr, nc, n, i
+        nr = self._nrows
+        nc = self._ncols
+
+        # The following complicated sequence of column reversals
+        # and transposes is needed since PARI's Hermite Normal Form
+        # does column operations instead of row operations.
+        n = nc
+        r = []
+        for i from 0 <= i < n:
+            r.append(n-i)
+        v = self._pari_()
+        v = v.vecextract(r) # this reverses the order of columns
+        v = v.mattranspose()
+        w = v.mathnf(1)
+
+        cdef Matrix_integer_dense H_m
+        H = convert_parimatrix(w[0])
+        if nc == 1:
+            H = [H]
+
+        # We do a 'fast' change of the above into a list of ints,
+        # since we know all entries are ints:
+        num_missing_rows = (nr*nc - len(H)) / nc
+        rank = nr - num_missing_rows
+
+        if include_zero_rows:
+            H = H + ['0']*(num_missing_rows*nc)
+            H_m = self.new_matrix(nrows=nr, ncols=nc, entries=H, coerce=True)
+        else:
+            H_m = self.new_matrix(nrows=rank, ncols=nc, entries=H, coerce=True)
+
+        H_m.set_immutable()
+        H_m.cache('rank', rank)
+        self.cache('rank',rank)
+        H_m.cache('echelon_form',H_m)
+        self.cache('echelon_form',H_m)
+        return H_m
+
+
+###########################################
+# Helper code for Echelon form algorithm.
+###########################################
+def _parimatrix_to_strlist(A):
+    s = str(A)
+    s = s.replace('Mat(','').replace(')','')
+    s = s.replace(';',',').replace(' ','')
+    s = s.replace(",", "','")
+    s = s.replace("[", "['")
+    s = s.replace("]", "']")
+    return eval(s)
+
+def _parimatrix_to_reversed_strlist(A):
+    s = str(A)
+    if s.find('Mat') != -1:
+        return _parimatrix_to_strlist(A)
+    s = s.replace('[','').replace(']','').replace(' ','')
+    v = s.split(';')
+    v.reverse()
+    s = "['" + (','.join(v)) + "']"
+    s = s.replace(",", "','")
+    return eval(s)
+
+def convert_parimatrix(z):
+    n = z.ncols();
+    r = []
+    for i from 0 <= i < n:
+        r.append(n-i)
+    z = z.vecextract(r)
+    z = z.mattranspose()
+    n = z.ncols();
+    r = []
+    for i from 0 <= i < n:
+        r.append(n-i)
+    z = z.vecextract(r)
+    return _parimatrix_to_strlist(z)
 
 

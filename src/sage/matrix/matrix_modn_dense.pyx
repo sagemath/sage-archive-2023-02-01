@@ -238,7 +238,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                     pivots.append(c)
                     a_inverse = ai.c_inverse_mod_int(a, p)
                     self._rescale_row_c(r, a_inverse, c)
-                    self._swap_rows_c(r, start_row)
+                    self.swap_rows_c(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
                             b = m[i][c]

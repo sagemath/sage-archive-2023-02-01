@@ -4045,41 +4045,73 @@ cdef class Matrix(ModuleElement):
     # Generic Echelon Form
     ###################################################################################
     def echelonize(self, algorithm="default", cutoff=0):
-         """
-         Transform self into a matrix in echelon form.
+        r"""
+        Transform self into a matrix in echelon form.
 
-         EXAMPLES:
-             sage: ???
+        INPUT:
+            algorithm -- string, which algorithm to use (default: 'default')
+                   'default' -- use a default algorithm, chosen by SAGE
+                   'strassen' -- use a Strassen divide and conquer algorithm
+            cutoff -- integer; only used if the Strassen algorithm is selected.
 
-         An immutable matrix cannot be transformed into echelon form.
-         Use self.echelon() instead:
-             sage: ???
+        EXAMPLES:
+            sage: a = matrix(QQ,3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a.echelonize()
+            sage: a
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
 
-         Echelon form over the integers is what is also classically often known as
-         Hermite normal form:
-             sage: ???
+        An immutable matrix cannot be transformed into echelon form.
+        Use \code{self.echelon_form()} instead:
 
-         Echelon form is defined for any integral domain:
-             sage: ???
+            sage: a = matrix(QQ,3,range(9)); a.set_immutable()
+            sage: a.echelonize()
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix is immutable; please change a copy instead (use self.copy()).
+            sage: a.echelon_form()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
 
-         Echelon form is not defined over arbitrary rings:
+        Echelon form over the integers is what is also classically often known as
+        Hermite normal form:
+            sage: a = matrix(ZZ,3,range(9))
+            sage: a.echelonize(); a
+            [ 3  0 -3]
+            [ 0  1  2]
+            [ 0  0  0]
 
-             sage: ???
+        Echelon form is not defined for any integral domain; you may have to explicitly
+        base extend to the fraction field, if that is what you want.
+            sage: R.<x,y> = QQ[]
+            sage: a = matrix(R, 2, [x,y,x^2,y^2])
+            sage: a.echelonize()
+            ???
+            sage: b = a.change_ring(R.fraction_field())
+            sage: b.echelonize()
 
-         """
-         self.check_mutability()
-         if algorithm == 'default':
-             if self._will_use_strassen_echelon():
-                 algorithm = 'strassen'
-             else:
-                 algorithm = 'classical'
-
-         if algorithm == 'classical':
-             self._echelon_in_place_classical()
-         elif algorithm == 'strassen':
-             self._echelon_strassen(cutoff)
-         else:
-             raise ValueError, "Unknown algorithm '%s'"%algorithm
+        Echelon form is not defined over arbitrary rings:
+            sage: a = matrix(Integers(8),3,range(9))
+            sage: a.echelonize()
+            ???
+        """
+        self.check_mutability()
+        if algorithm == 'default':
+            if self._will_use_strassen_echelon():
+                algorithm = 'strassen'
+            else:
+                algorithm = 'classical'
+        if algorithm == 'classical':
+            self._echelon_in_place_classical()
+        elif algorithm == 'strassen':
+            self._echelon_strassen(cutoff)
+        else:
+            raise ValueError, "Unknown algorithm '%s'"%algorithm
 
     def echelon_form(self, algorithm="default", cutoff=0):
         """
@@ -4089,9 +4121,9 @@ cdef class Matrix(ModuleElement):
             matrix -- an element A of a MatrixSpace
 
         OUTPUT:
-            matrix -- The reduced row echelon form of A.
-            Note that self is *not* changed by this command.
-            Use A.echelonize() to change A in place.
+            matrix -- The reduced row echelon form of A, as an
+            immutable matrix.  Note that self is *not* changed by this
+            command.  Use A.echelonize() to change A in place.
 
         EXAMPLES:
            sage: MS = MatrixSpace(QQ,2,3)
@@ -4104,12 +4136,15 @@ cdef class Matrix(ModuleElement):
            [ 1  0 -1]
            [ 0  1  2]
 
+
+
         """
         x = self.fetch('echelon_form')
         if not x is None:
             return x
         E = self.copy()
         E.echelonize(algorithm = algorithm, cutoff=cutoff)
+        E.set_immutable()  # so we can cache the echelon form.
         self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())
         return E
@@ -4133,6 +4168,9 @@ cdef class Matrix(ModuleElement):
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
             return
+
+        if not self._base_ring.is_field():
+            raise ValueError, "Echelon form not implemented over this base ring."
 
         self.check_mutability()
 
@@ -4217,6 +4255,9 @@ cdef class Matrix(ModuleElement):
             sage: ?
         """
         self.check_mutability()
+
+        if not self._base_ring.is_field():
+            raise ValueError, "Echelon form not implemented over this base ring."
 
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()

@@ -291,10 +291,10 @@ class Expect(SageObject):
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except AttributeError:
-                pass
-        except RuntimeError, msg:
-            pass
+            except Exception, msg:
+                print msg
+        except Exception, msg:
+            print msg
 
     def cputime(self):
         """

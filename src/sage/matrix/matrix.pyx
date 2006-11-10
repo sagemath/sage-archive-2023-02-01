@@ -1026,6 +1026,15 @@ cdef class Matrix(ModuleElement):
             copy -- (default: True) if True, return a copy so you can modify it safely
 
         EXAMPLES:
+        An example over the integers:
+            sage: a = matrix(3,3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a.dense_columns()
+            [(0, 3, 6), (1, 4, 7), (2, 5, 8)]
+
+        We do an example over a polynomial ring:
             sage: R.<x> = QQ[ ]
             sage: a = matrix(R, 2, [x,x^2, 2/3*x,1+x^5]); a
             [      x     x^2]
@@ -1048,7 +1057,7 @@ cdef class Matrix(ModuleElement):
         cdef Py_ssize_t i, j
         cdef object v
         for j from 0 <= j < self._ncols:
-            v = PyList_New(self._ncols)
+            v = PyList_New(self._nrows)
             for i from 0 <= i < self._nrows:
                 o = self.get_unsafe(i,j)
                 Py_INCREF(o)  # since we are about to set it, which doesn't increment the ref count.
@@ -1114,7 +1123,13 @@ cdef class Matrix(ModuleElement):
              copy -- (default: True) if True, return a copy so you can modify it safely
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: v = a.sparse_columns(); v
+            [(0, 3), (1, 4), (2, 5)]
+            sage: v[1].is_sparse()
+            True
         """
         x = self.fetch('sparse_columns')
         if not x is None:
@@ -1129,14 +1144,14 @@ cdef class Matrix(ModuleElement):
         cdef Py_ssize_t i, j
 
         for i, j in self.nonzero_positions(copy=False, column_order=True):
-            if i > k:
+            if j > k:
                 # new column -- emit vector
                 while len(C) < k:
                     C.append(F(0))
                 C.append(F(entries, coerce=False, copy=False, check=False))
                 entries = {}
-                k = i
-            entries[j] = self.get_unsafe(i, j)
+                k = j
+            entries[i] = self.get_unsafe(i, j)
 
         # finish up
         while len(C) < k:
@@ -1168,6 +1183,8 @@ cdef class Matrix(ModuleElement):
             [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
             sage: v is m.sparse_rows()
             True
+            sage: v[1].is_sparse()
+            True
             sage: m[0,0] = 10
             sage: m.sparse_rows()
             [(10, 1, 2), (3, 4, 5), (6, 7, 8)]
@@ -1186,7 +1203,7 @@ cdef class Matrix(ModuleElement):
 
         for i, j in self.nonzero_positions(copy=False):
             if i > k:
-                # new column -- emit vector
+                # new row -- emit vector
                 while len(R) < k:
                     R.append(F(0))
                 R.append(F(entries, coerce=False, copy=False, check=False))
@@ -1224,13 +1241,25 @@ cdef class Matrix(ModuleElement):
                          entry of the matrix is changed.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.column(1)
+            (1, 4)
+
+        If the column is negative, it wraps around, just like with list
+        indexing, e.g., -1 gives the right-most column:
+            sage: a.column(-1)
+            (2, 5)
         """
+        i = i % self._ncols
+        if i < 0:
+            i = i + self._ncols
         if from_list:
             return self.columns(copy=False)[i]
         cdef Py_ssize_t j
         V = sage.modules.free_module.FreeModule(self._base_ring,
-                                     self._ncols, sparse=self.is_sparse())
+                                     self._nrows, sparse=self.is_sparse())
         tmp = []
         for j from 0 <= j < self._nrows:
             tmp.append(self.get_unsafe(j,i))
@@ -1252,13 +1281,24 @@ cdef class Matrix(ModuleElement):
                          entry of the matrix is changed.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.row(0)
+            (0, 1, 2)
+            sage: a.row(1)
+            (3, 4, 5)
+            sage: a.row(-1)  # last row
+            (3, 4, 5)
         """
+        i = i % self._nrows
+        if i < 0:
+            i = i + self._nrows
         if from_list:
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
         V = sage.modules.free_module.FreeModule(self._base_ring,
-                                      self.ncols(), sparse=self.is_sparse())
+                                      self._ncols, sparse=self.is_sparse())
         tmp = []
         for j from 0 <= j < self._ncols:
             tmp.append(self.get_unsafe(i,j))
@@ -1882,7 +1922,13 @@ cdef class Matrix(ModuleElement):
         Add s times row j to row i.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.add_multiple_of_row(1,0,-3)
+            sage: a
+            [ 0  1  2]
+            [ 3  1 -1]
         """
         self.check_row_bounds_and_mutability(i,j)
         s = self._coerce_element(s)
@@ -1898,7 +1944,13 @@ cdef class Matrix(ModuleElement):
         Add s times column j to column i.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.add_multiple_of_column(1,2,-1/2)
+            sage: a
+            [  0   0   2]
+            [  3 3/2   5]
         """
         self.check_column_bounds_and_mutability(i,j)
         s = self._coerce_element(s)
@@ -1916,7 +1968,12 @@ cdef class Matrix(ModuleElement):
         start_row -- only rescale enries at that column and to the right
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.add_multiple_of_row(1,0,-3); a
+            [ 0  1  2]
+            [ 3  1 -1]
         """
         self.check_row_bounds_and_mutability(i, i)
         s = self._coerce_element(s)
@@ -1935,25 +1992,70 @@ cdef class Matrix(ModuleElement):
         INPUT:
             i -- ith column
             s -- scalar
-            start_row -- only rescale enries at that row and lower
+            start_row -- only rescale enries at this row and lower
 
         EXAMPLES:
-            sage: ???
+        We rescale the last column of a matrix over the rational numbers:
+
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.rescale_col(2,1/2); a
+            [  0   1   1]
+            [  3   4 5/2]
+            sage: R.<x> = QQ[]
+
+        We rescale a matrix over a polynomial ring.
+            sage: a = matrix(R,2,3,[1,x,x^2,x^3,x^4,x^5]); a
+            [  1   x x^2]
+            [x^3 x^4 x^5]
+            sage: a.rescale_col(2,1/2); a
+            [      1       x 1/4*x^2]
+            [    x^3     x^4 1/4*x^5]
+
+        We try and fail to rescale a matrix over the integers by a non-integer:
+            sage: a = matrix(ZZ,2,3,[0,1,2, 3,4,4]); a
+            [0 1 2]
+            [3 4 4]
+            sage: a.rescale_col(2,1/2); a
+            Traceback (most recent call last):
+            ...
+            TypeError: Unable to coerce rational (=1/2) to an Integer.
+
+        We rescale the integer matrix's column 2 column by $-1$, which is an integer.
+            sage: a.rescale_col(2,-1); a
+            [ 0  1 -2]
+            [ 3  4 -4]
+
+        To rescale the matrix by 1/2, you must change the base ring to the rationals:
+            sage: b = a.change_ring(QQ); b
+            [ 0  1 -2]
+            [ 3  4 -4]
+            sage: b.rescale_col(2, 1/2); b
+            [ 0  1 -1]
+            [ 3  4 -2]
         """
         self.check_column_bounds_and_mutability(i, i)
         s = self._coerce_element(s)
+        self.rescale_col_c(i, s, start_row)
 
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row):
         cdef Py_ssize_t j
-        for j from start_rows <= j < self._nrows:
-            self.set_unsafe(j, i, self.get_unsafe(i, j)*s)
+        for j from start_row <= j < self._nrows:
+            self.set_unsafe(j, i, self.get_unsafe(j, i)*s)
 
     def set_row_to_multiple_of_row(self, i, j, s):
         """
         Set row i equal to s times row j.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a
+            [ 0  1  2]
+            [ 0 -3 -6]
         """
         self[i] = s*self[j]
 
@@ -1970,7 +2072,13 @@ cdef class Matrix(ModuleElement):
             cols -- a *sorted* list of integers.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
+            sage: a
+            [-4 -5  2]
+            [ 3  4  5]
         """
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
@@ -1985,8 +2093,18 @@ cdef class Matrix(ModuleElement):
     ###################################################
     def linear_combination_of_rows(self, v):
         """
+        Return the linear combination of the rows of self given by the coefficients in
+        the list v.
+
+        INPUT:
+            v -- list
+
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.linear_combination_of_rows([1,2])
+            (6, 9, 12)
         """
         cdef Py_ssize_t i
         R = self.rows()
@@ -1997,8 +2115,18 @@ cdef class Matrix(ModuleElement):
 
     def linear_combination_of_columns(self, v):
         """
+        Return the linear combination of the columns of self given by the coefficients in
+        the list v.
+
+        INPUT:
+            v -- list
+
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.linear_combination_of_columns([1,1,1])
+            (3, 12)
         """
         cdef Py_ssize_t i
 
@@ -2014,24 +2142,46 @@ cdef class Matrix(ModuleElement):
 
     def is_dense(self):
         """
+        Returns True if this is a dense matrix.
+
+        In SAGE, being dense is a property of the underlying
+        representation, not the number of nonzero entries.
+
         EXAMPLES:
-            sage: ???
+            sage: matrix(QQ,2,2,range(4)).is_dense()
+            True
+            sage: matrix(QQ,2,2,range(4),sparse=True).is_dense()
+            False
         """
         return self._parent.is_dense()
 
     def is_sparse(self):
         """
+        Return True if this is a sparse matrix.
+
+        In SAGE, being sparse is a property of the underlying
+        representation, not the number of nonzero entries.
+
         EXAMPLES:
-            sage: ???
+            sage: matrix(QQ,2,2,range(4)).is_sparse()
+            False
+            sage: matrix(QQ,2,2,range(4),sparse=True).is_sparse()
+            True
         """
         return self._parent.is_sparse()
 
     def is_square(self):
         """
+        Return True precisely if this matrix is square, i.e., has the same
+        number of rows and columns.
+
         EXAMPLES:
-            sage: ???
+            sage: matrix(QQ,2,2,range(4)).is_square()
+            True
+            sage: matrix(QQ,2,3,range(6)).is_square()
+            False
         """
-        return self._nrows == self._ncols
+        return bool(self._nrows == self._ncols)
 
     def is_invertible(self):
         r"""
@@ -2097,16 +2247,30 @@ cdef class Matrix(ModuleElement):
         of self.
 
         OUTPUT:
-            list -- sorted list of integers
+            list -- sorted list of (Python) integers
+
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ,3,3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a.echelon_form()
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
+            sage: a.nonpivots()
+            [2]
         """
+        x = self.fetch('nonpivots')
+        if not x is None: return x
+
         X = set(self.pivots())
-        tmp = []
+        np = []
         for j in xrange(self.ncols()):
             if not (j in X):
-                tmp.append(j)
-        return tmp
+                np.append(j)
+        self.cache('nonpivots',np)
+        return np
 
     def nonzero_positions(self, copy=True, column_order=False):
         """
@@ -2120,7 +2284,24 @@ cdef class Matrix(ModuleElement):
                     column j=0 entries occur first, then column j=1 entries, etc.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 2,3, [1,2,0,2,0,0]); a
+            [1 2 0]
+            [2 0 0]
+            sage: a.nonzero_positions()
+            [(0, 0), (0, 1), (1, 0)]
+            sage: a.nonzero_positions(copy=False)
+            [(0, 0), (0, 1), (1, 0)]
+            sage: a.nonzero_positions(column_order=True)
+            [(0, 0), (1, 0), (0, 1)]
+            sage: a = matrix(QQ, 2,3, [1,2,0,2,0,0], sparse=True); a
+            [1 2 0]
+            [2 0 0]
+            sage: a.nonzero_positions()
+            [(0, 0), (0, 1), (1, 0)]
+            sage: a.nonzero_positions(copy=False)
+            [(0, 0), (0, 1), (1, 0)]
+            sage: a.nonzero_positions(column_order=True)
+            [(0, 0), (1, 0), (0, 1)]
         """
         if column_order:
             return self._nonzero_positions_by_column(copy)
@@ -2151,9 +2332,6 @@ cdef class Matrix(ModuleElement):
         column j=0 entries occur first, then column j=1 entries, etc.
 
         It is safe to change the resulting list (unless you give the option copy=False).
-
-        EXAMPLES:
-            sage: ???
         """
         x = self.fetch('nonzero_positions_by_column')
         if not x is None:
@@ -2174,21 +2352,41 @@ cdef class Matrix(ModuleElement):
 
     def nonzero_positions_in_column(self, Py_ssize_t i):
         """
-        Return the integers j such that self[j,i] is nonzero, i.e.,
-        such that the j-th position of the i-th column is nonzero.
+        Return a sorted list of the integers j such that self[j,i] is
+        nonzero, i.e., such that the j-th position of the i-th column
+        is nonzero.
+
+        INPUT:
+            i -- an integer
+
+        OUTPUT:
+            list
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 3,2, [1,2,0,2,0,0]); a
+            [1 2]
+            [0 2]
+            [0 0]
+            sage: a.nonzero_positions_in_column(0)
+            [0]
+            sage: a.nonzero_positions_in_column(1)
+            [0, 1]
+
+        You'll get an IndexError, if you select an invalid column:
+            sage: a.nonzero_positions_in_column(2)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix column index out of range
         """
         cdef Py_ssize_t j
         z = self._base_ring(0)
-        tmp = set()
+        tmp = []
 
         if i<0 or i >= self._ncols:
             raise IndexError, "matrix column index out of range"
         for j from 0 <= j < self._nrows:
             if self.get_unsafe(j,i) != z:
-                tmp.add(j)
+                tmp.append(j)
         return tmp
 
     def nonzero_positions_in_row(self, Py_ssize_t i):
@@ -2196,8 +2394,23 @@ cdef class Matrix(ModuleElement):
         Return the integers j such that self[i,j] is nonzero, i.e.,
         such that the j-th position of the i-th row is nonzero.
 
+        INPUT:
+            i -- an integer
+
+        OUTPUT:
+            list
+
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 3,2, [1,2,0,2,0,0]); a
+            [1 2]
+            [0 2]
+            [0 0]
+            sage: a.nonzero_positions_in_row(0)
+            [0, 1]
+            sage: a.nonzero_positions_in_row(1)
+            [1]
+            sage: a.nonzero_positions_in_row(2)
+            []
         """
         cdef Py_ssize_t j
 
@@ -2205,11 +2418,11 @@ cdef class Matrix(ModuleElement):
             raise IndexError, "matrix row index out of range"
 
         z = self._base_ring(0)
-        tmp = set()
+        tmp = []
 
-        for j from 0 <= j < self._nrows:
+        for j from 0 <= j < self._ncols:
             if self.get_unsafe(i,j) != z:
-                tmp.add(j)
+                tmp.append(j)
         return tmp
 
     def prod_of_row_sums(self, cols):
@@ -2218,7 +2431,18 @@ cdef class Matrix(ModuleElement):
         list of selected columns \code{cols}.
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 2,2, [1,2,3,2]); a
+            [1 2]
+            [3 2]
+            sage: a.prod_of_row_sums([0,1])
+            15
+
+        Another example:
+            sage: a = matrix(QQ, 2,3, [1,2,3,2,5,6]); a
+            [1 2 3]
+            [2 5 6]
+            sage: a.prod_of_row_sums([1,2])
+            55
 
         AUTHOR:
             -- Jaap Spies (2006-02-18)
@@ -2579,7 +2803,11 @@ cdef class Matrix(ModuleElement):
         Synonym for self.determinant(...).
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 2,2, [1,2,3,4]); a
+            [1 2]
+            [3 4]
+            sage: abs(a)
+            -2
         """
         return self.determinant()
 
@@ -2588,7 +2816,11 @@ cdef class Matrix(ModuleElement):
         Synonym for self.charpoly(...).
 
         EXAMPLES:
-            sage: ???
+            sage: a = matrix(QQ, 2,2, [1,2,3,4]); a
+            [1 2]
+            [3 4]
+            sage: a.characteristic_polynomial('T')
+            T^2 - 5*T - 2
         """
         return self.charpoly(*args, **kwds)
 
@@ -2892,10 +3124,9 @@ cdef class Matrix(ModuleElement):
         EXAMPLES:
             sage: ???
         """
-        if not isinstance(self,Matrix):
-            self,right = right,self
+        # TODO TODO
+        raise NotImplementedError
 
-        return self*(~right)
 
     def __mod__(self, p):
         r"""
@@ -4089,16 +4320,22 @@ cdef class Matrix(ModuleElement):
         Echelon form is not defined for any integral domain; you may have to explicitly
         base extend to the fraction field, if that is what you want.
             sage: R.<x,y> = QQ[]
-            sage: a = matrix(R, 2, [x,y,x^2,y^2])
+            sage: a = matrix(R, 2, [x,y,x,y])
             sage: a.echelonize()
-            ???
+            Traceback (most recent call last):
+            ...
+            ValueError: Echelon form not defined over this base ring.
             sage: b = a.change_ring(R.fraction_field())
             sage: b.echelonize()
+            [  1 y/x]
+            [  0   0]
 
         Echelon form is not defined over arbitrary rings:
-            sage: a = matrix(Integers(8),3,range(9))
+            sage: a = matrix(Integers(9),3,range(9))
             sage: a.echelonize()
-            ???
+            Traceback (most recent call last):
+            ...
+            ValueError: Echelon form not defined over this base ring.
         """
         self.check_mutability()
         if algorithm == 'default':
@@ -4106,12 +4343,16 @@ cdef class Matrix(ModuleElement):
                 algorithm = 'strassen'
             else:
                 algorithm = 'classical'
-        if algorithm == 'classical':
-            self._echelon_in_place_classical()
-        elif algorithm == 'strassen':
-            self._echelon_strassen(cutoff)
-        else:
-            raise ValueError, "Unknown algorithm '%s'"%algorithm
+        try:
+            if algorithm == 'classical':
+                self._echelon_in_place_classical()
+            elif algorithm == 'strassen':
+                self._echelon_strassen(cutoff)
+            else:
+                raise ValueError, "Unknown algorithm '%s'"%algorithm
+        except ArithmeticError, msg:
+            print msg
+            raise ValueError, "Echelon form not defined over this base ring."
 
     def echelon_form(self, algorithm="default", cutoff=0):
         """
@@ -4170,7 +4411,7 @@ cdef class Matrix(ModuleElement):
             return
 
         if not self._base_ring.is_field():
-            raise ValueError, "Echelon form not implemented over this base ring."
+            raise ValueError, "Echelon form not defined over this base ring."
 
         self.check_mutability()
 
@@ -4257,7 +4498,7 @@ cdef class Matrix(ModuleElement):
         self.check_mutability()
 
         if not self._base_ring.is_field():
-            raise ValueError, "Echelon form not implemented over this base ring."
+            raise ValueError, "Echelon form not defined over this base ring."
 
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()
@@ -4273,13 +4514,21 @@ cdef class Matrix(ModuleElement):
         self._set_pivots(pivots)
 
 
-    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0, Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                      Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        """
+        Return the requested matrix window.
+
+        EXAMPLES:
+
+        """
         if nrows == -1:
             nrows = self._nrows
             ncols = self._ncols
         return MatrixWindow(self, row, col, nrows, ncols)
 
-    def _strassen_window_multiply(self, MatrixWindow C, MatrixWindow A, MatrixWindow B, int cutoff):
+    def _strassen_window_multiply(self, MatrixWindow C, MatrixWindow A,
+                                  MatrixWindow B, int cutoff):
         """
         Multiplies the submatrices specified by A and B, places result
         in C.  Assumes that A and B have compatible dimensions to be
@@ -4312,13 +4561,13 @@ cdef class Matrix(ModuleElement):
             sage: C = T(0)
             sage: D = T(0)
 
-            sage.: A_window = A.matrix_window(0, 0, dim1, dim2)
-            sage.: B_window = B.matrix_window(0, 0, dim2, dim3)
-            sage.: C_window = C.matrix_window(0, 0, dim1, dim3)
-            sage.: D_window = D.matrix_window(0, 0, dim1, dim3)
+            sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+            sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+            sage: C_window = C.matrix_window(0, 0, dim1, dim3)
+            sage: D_window = D.matrix_window(0, 0, dim1, dim3)
 
-            sage.: strassen_window_multiply(C, A, B, 2)   # use strassen method
-            sage.: D_window.set_to_prod(A, B)             # use naive method
+            sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
+            sage: D_window.set_to_prod(A, B)             # use naive method
             sage: C == D
             True
 
@@ -4332,9 +4581,9 @@ cdef class Matrix(ModuleElement):
             sage: C = T(0)
             sage: D = T(0)
 
-            sage.: A_window = A.matrix_window(0, 0, dim1, dim2)
-            sage.: B_window = B.matrix_window(0, 0, dim2, dim3)
-            sage.: C_window = C.matrix_window(0, 0, dim1, dim3)
+            sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+            sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+            sage: C_window = C.matrix_window(0, 0, dim1, dim3)
 
             sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
             sage: D.set_to_prod(A, B)                    # use naive method

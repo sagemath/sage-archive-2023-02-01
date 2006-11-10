@@ -211,6 +211,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def _echelon_in_place_classical(self):
         x = self.fetch('in_echelon_form')
         if not x is None and x: return  # already known to be in echelon form
+
         self.check_mutability()
 
         cdef Py_ssize_t start_row, c, r, nr, nc, i

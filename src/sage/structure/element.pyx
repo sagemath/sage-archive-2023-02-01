@@ -290,7 +290,7 @@ cdef class Element(sage_object.SageObject):
                not ((<Element>right)._parent is (<Element>left)._parent):
 
             # TODO: can make faster using the cdef interface to coerce
-            r = sage.structure.coerce.cmp(left, right)
+            r = coerce.cmp(left, right)
 
         else:
 
@@ -316,7 +316,7 @@ cdef class Element(sage_object.SageObject):
     # _cmp_c_impl.
     ####################################################################
     def __richcmp__(left, right, int op):
-        return left._richcmp(right, op)
+        return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         raise NotImplementedError

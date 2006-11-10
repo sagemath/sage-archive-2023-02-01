@@ -126,7 +126,7 @@ cdef class PolyDict:
 
     def _cmp_(PolyDict self, PolyDict other, fn=None):
         if not isinstance(other, PolyDict):
-            return False
+            return -1
         if fn == None:
             return cmp(self.__repn, other.__repn)
 

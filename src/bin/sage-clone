@@ -41,7 +41,7 @@ if len(sys.argv) == 2:
     # auto-generated code and pre-built code, hence
     # saving lots of time.
 
-    print "Copying over all Pyrex auto-generated .c and .h files..."
+    print "Copying over all Pyrex auto-generated .c, .cpp and .h files..."
     def cpdir(src, dest):
         if not os.path.isdir(dest):
             return
@@ -50,7 +50,7 @@ if len(sys.argv) == 2:
                 cpdir(src + '/' + F, dest + '/' + F)
             else:
                 ext = os.path.splitext(F)[-1]
-                if ext in ['.h', '.c']:
+                if ext in ['.h', '.c', '.cpp']:
                     if 'Pyrex' in open(src + '/' + F).readline():
                         shutil.copy(src + '/' + F, dest + '/' +F)
 

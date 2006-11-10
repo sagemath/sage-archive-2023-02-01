@@ -1146,7 +1146,7 @@ function evaluate_cell_introspection(id, before, after) {
 function evaluate_cell_callback(status, response_text) {
     /* update focus and possibly add a new cell to the end */
     if (status == "failure") {
-        alert("Failure evaluating a cell.");
+       /* alert("Failure evaluating a cell."); */
         return;
     }
     var X = response_text.split(SEP);

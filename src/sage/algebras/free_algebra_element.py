@@ -27,6 +27,9 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.algebra_element import AlgebraElement
 
 class FreeAlgebraElement(AlgebraElement):
+    """
+    A free algebra element.
+    """
     def __init__(self, A, x):
         """
         Create the element x of the FreeAlgebra A.
@@ -44,8 +47,8 @@ class FreeAlgebraElement(AlgebraElement):
         else:
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def __repr__(self):
-        v = list(self.__monomial_coefficients.iteritems())
+    def _repr_(self):
+        v = self.__monomial_coefficients.items()
         v.sort()
         mons = [ m for (m, _) in v ]
         cffs = [ x for (_, x) in v ]
@@ -54,6 +57,27 @@ class FreeAlgebraElement(AlgebraElement):
             return x[:len(x)-2]
         else:
             return x
+
+    def _cmp_(left, right):
+        """
+        Compare two free algebra elements with the same parents.
+
+        The ordering is the one on the underlying sorted list of (monomial,coefficients) pairs.
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: x < y
+            True
+            sage: x * y < y * x
+            True
+            sage: y * x < x * y
+            False
+        """
+        v = left.__monomial_coefficients.items()
+        v.sort()
+        w = right.__monomial_coefficients.items()
+        w.sort()
+        return cmp(v, w)
 
     def _add_(self, y):
         A = self.parent()

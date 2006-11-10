@@ -136,7 +136,7 @@ def bin_op(x, y, op):
         try:
             return y._r_action(x)
         except AttributeError:
-            raise TypeError, '%s: x=%s, y=%s'%(mesg, x, y)
+            raise TypeError, '%s: x parent: %s, y parent: %s'%(mesg, parent(x), parent(y))
         except TypeError:
             raise TypeError, "No right action defined"
         try:

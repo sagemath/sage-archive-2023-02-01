@@ -247,26 +247,11 @@ cdef class Element(sage_object.SageObject):
             return bool(n >= 0)
         assert False, "bug in _rich_to_bool"
 
-    #def __richcmp__(self, right, int op):
-        # Warning -- this is *not* inherited by derived Pyrex types,
-        # so you must copy it to them.  It works fine for Python
-        # derived classes (even of derived Pyrex types).  Weird.
-        # For some important details about this weirdness, see
-        # the email by Lenard Lindstrom in the notes subdirectory.
-    #    print "hi", self, right, op
-    #    cdef int n
-    #    if not isinstance(right, Element) or right.parent() != self.parent():
-    #        try:
-    #            n = coerce.cmp(self, right)
-    #        except TypeError:
-    #            n = -1
-    #    else:
-    #        n = self.__cmp__(right)
-    #    return self._rich_to_bool(op, n)
-
-    def __cmp__(self, other):
-        raise NotImplementedError
-    #    return self._cmp(other)
+    def __cmp__(left, right):
+        if HAS_DICTIONARY(left):
+            return left._cmp_(right)
+        else:
+            return left._cmp_c_impl(right)
 
     #def act(self, right):
     #    try:
@@ -293,8 +278,10 @@ cdef class Element(sage_object.SageObject):
             r = coerce.cmp(left, right)
 
         else:
-
-            r = left._cmp_c_impl(right)
+            if HAS_DICTIONARY(left):   # fast check
+                r = left._cmp_(right)
+            else:
+                r = left._cmp_c_impl(right)
 
         if op == 0:  #<
             return bool(r  < 0)
@@ -319,7 +306,7 @@ cdef class Element(sage_object.SageObject):
         return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
-        raise NotImplementedError
+        raise NotImplementedError, "sort algorithm for elements of type %s not implemented"%(type(left))
 
 
     ####################################################################

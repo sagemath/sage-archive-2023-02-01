@@ -2695,7 +2695,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if not isinstance(v, free_module_element.FreeModuleElement):
             v = self.ambient_vector_space()(v)
         if v.degree() != self.degree():
-            raise ArithmeticError, "v (=%s) is not in self"%v
+            raise TypeError, "v (=%s) is not in self"%v
         nz = v.nonzero_positions()
         zero = self.base_ring()(0)
         if len(nz) == 0:
@@ -2718,7 +2718,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             # recursion.
             v -= b*q
         if not v.is_zero():
-            raise ArithmeticError, "v (=%s) is not in self"%v
+            raise TypeError, "v (=%s) is not in self"%v
         return c
 
     def user_to_echelon_matrix(self):
@@ -3202,7 +3202,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
         if not isinstance(v, free_module_element.FreeModuleElement):
             v = self.ambient_vector_space()(v)
         if v.degree() != self.degree():
-            raise ArithmeticError, "v (=%s) is not in self"%v
+            raise TypeError, "v (=%s) is not in self"%v
         nz = v.nonzero_positions()
         zero = self.base_field()(0)
         if len(nz) == 0:
@@ -3217,7 +3217,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             # function and when get a huge (but not infinite) wasteful recursion.
             v -= b*v[j]
         if v != 0:
-            raise ArithmeticError, "v (=%s) is not in self"%v
+            raise TypeError, "v (=%s) is not in self"%v
         return c
 
     def coordinate_vector(self, v):

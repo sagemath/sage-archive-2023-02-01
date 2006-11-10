@@ -4,6 +4,11 @@ Elements of free modules
 AUTHOR:
     -- William Stein
     -- Josh Kantor
+
+TODO:
+    Change to use a get_unsafe / set_unsafe, etc., structure exactly
+    like with matrices, since we'll have to define a bunch of special
+    purpose implementations of vectors easily and systematically.
 """
 
 import operator
@@ -73,9 +78,8 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
             sage: w > v
             False
         """
-        cdef size_t i
+        cdef Py_ssize_t i
         cdef int c
-        # todo -- optimize this crap.
         for i from 0 <= i < left.degree():
             c = cmp(left[i], right[i])
             if c: return c
@@ -447,32 +451,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
 
-    def __richcmp__(self, right, int op):
-        """
-        Compare two matrices.
-
-        Matrices are compared in lexicographic order on the underlying
-        list of coefficients.   A dense matrix and a sparse matrix
-        are equal if their coefficients are the same.
-
-        EXAMPLES:
-        EXAMPLE cmparing sparse and dense matrices:
-            sage:
-            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
-            True
-            sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
-            True
-
-        Dictionary order:
-            sage: matrix(ZZ,2,[1,2,3,4]) < matrix(ZZ,2,[3,2,3,4])
-            True
-            sage: matrix(ZZ,2,[1,2,3,4]) > matrix(ZZ,2,[3,2,3,4])
-            False
-            sage: matrix(ZZ,2,[0,2,3,4]) < matrix(ZZ,2,[0,3,3,4], sparse=True)
-            True
-        """
-        return self._richcmp(right, op)
-
     def __getitem__(self, i):
         """
         """
@@ -503,6 +481,19 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def list(self):
         return self._entries
+
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+        """
+        Compare two free module elements.
+
+        Free module elements are compared in lexicographic order on
+        the underlying list of coefficients.  A dense a sparse free
+        module element are equal if their coefficients are the same.
+
+        EXAMPLES:
+        sage: ??
+        """
+        return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
 
 #############################################
@@ -569,6 +560,23 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 # Make a copy
                 entries = dict(entries)
         self._entries = entries
+
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+        """
+        Compare two sparse free module elements.
+
+        Free module elements are compared in lexicographic order on
+        the underlying list of coefficients.  A dense a sparse free
+        module element are equal if their coefficients are the same.
+
+        EXAMPLES:
+        sage: ??
+        """
+        a = left._entries.items()
+        a.sort()
+        b = (<FreeModuleElement_generic_dense>right)._entries.items()
+        b.sort()
+        return cmp(a,b)
 
     def iteritems(self):
         return self._entries.iteritems()

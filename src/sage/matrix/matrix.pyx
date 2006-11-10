@@ -23,7 +23,7 @@ import sage.structure.coerce
 import sage.rings.integer
 
 from   sage.misc.misc import verbose, get_verbose
-from   sage.structure.sequence import _combinations
+from   sage.structure.sequence import _combinations, Sequence
 from   sage.rings.number_field.all import is_NumberField
 
 from   sage.structure.element    cimport ModuleElement, Element
@@ -3106,26 +3106,32 @@ cdef class Matrix(ModuleElement):
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
-        Sub two matrices with the same parent.
+        Subtract two matrices with the same parent.
 
         EXAMPLES:
-            sage:
-        """
-        cdef Py_ssize_t i, j
-        cdef Matrix A
-        A = self.new_matrix()
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
-        return A
+            sage: R.<x,y> = FreeAlgebra(QQ,2)
+            sage: a = matrix(2,2, [1,2,x*y,y*x])
+            sage: b = matrix(2,2, [1,2,y*x,y*x])
 
-    def _div_(self, right):
+
         """
-        EXAMPLES:
-            sage: ???
-        """
-        # TODO TODO
-        raise NotImplementedError
+        return self._add_c_impl(right._left_scalar_multiply(-1))
+
+##         cdef Py_ssize_t i, j
+##         cdef Matrix A
+##         A = self.new_matrix()
+##         for i from 0 <= i < self._nrows:
+##             for j from 0 <= j < self._ncols:
+##                 A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
+##         return A
+
+##     def _div_(self, right):
+##         """
+##         EXAMPLES:
+##             sage: ???
+##         """
+##         # TODO TODO
+##         raise NotImplementedError
 
 
     def __mod__(self, p):
@@ -3589,7 +3595,7 @@ cdef class Matrix(ModuleElement):
     cdef long _hash(self) except -1:
         raise NotImplementedError
 
-    def __richcmp__(self, right, int op):
+    cdef int _cmp_c_impl(left,Element right) except -2:
         """
         Compare two matrices.
 
@@ -3613,7 +3619,7 @@ cdef class Matrix(ModuleElement):
             sage: matrix(ZZ,2,[0,2,3,4]) < matrix(ZZ,2,[0,3,3,4], sparse=True)
             True
         """
-        return self._richcmp(right, op)
+        raise NotImplementedError  # this is defined in the derived classes
 
     def __nonzero__(self):
         """
@@ -3980,7 +3986,7 @@ cdef class Matrix(ModuleElement):
         guarenteed to correspond.
 
         OUTPUT:
-            list -- list of pairs (V,t), where V is a vector spaces
+            Sequence -- list of pairs (V,t), where V is a vector spaces
                     and t is a bool, and t is True exactly when the
                     charpoly of self on V is irreducible.
 
@@ -4021,26 +4027,26 @@ cdef class Matrix(ModuleElement):
             raise ArithmeticError, "self must be a square matrix"
 
         if self.nrows() == 0:
-            return []
+            return decomp_seq([])
 
         f = self.charpoly('x')
-        E = []
+        E = decomp_seq([])
 
         # Idea: For optimization, could compute powers of self
         #       up to max degree of any factor.  Then get g(self)
-        #       by taking a linear combination.   ??????
+        #       by taking a linear combination.
 
         if dual:
-            Edual = []
+            Edual = decomp_seq([])
         F = f.factor()
         if len(F) == 1:
             V = sage.modules.free_module.FreeModule(
                               self.base_ring(), self.nrows())
             m = F[0][1]
             if dual:
-                return [(V,m==1)], [(V,m==1)]
+                return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
             else:
-                return [(V,m==1)]
+                return decomp_seq([(V,m==1)])
         F.sort()
         for g, m in f.factor():
             if is_diagonalizable:
@@ -4062,7 +4068,30 @@ cdef class Matrix(ModuleElement):
         acting on the factor W is irreducible.
 
         EXAMPLES:
-             sage: ???
+            sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]); t
+            [ 3  0 -2]
+            [ 0 -2  0]
+            [ 0  0  0]
+            sage: t.fcp('X')   # factored charpoly
+            (X - 3) * X * (X + 2)
+            sage: v = kernel(t*(t+2)); v   # an invariant subspace
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [0 1 0]
+            [0 0 1]
+            sage: D = t.decomposition_of_subspace(v); D
+            [
+            (Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 0 1], 1),
+            (Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [0 1 0], 1)
+            ]
+            sage: t.restrict(D[0][0])
+            [0]
+            sage: t.restrict(D[1][0])
+            [-2]
         """
         if not sage.modules.free_module.is_FreeModule(M):
             raise TypeError, "M must be a free module."
@@ -4098,6 +4127,7 @@ cdef class Matrix(ModuleElement):
 
         D = eval('[(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]',\
                  {'C':C, 'D':D, 'Z':Z})
+        D = decomp_seq(D)
 
         verbose(t=time)
         return D
@@ -5270,3 +5300,6 @@ def unpickle(cls, parent, mutability, cache, data, version):
         A._unpickle_generic(data, version)
     return A
 
+
+cdef decomp_seq(v):
+    return Sequence(v, universe=tuple, check=False, cr=True)

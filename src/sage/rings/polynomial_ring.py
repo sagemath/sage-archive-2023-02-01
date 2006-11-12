@@ -26,6 +26,12 @@ The rings of sparse and dense polynomials in the same variable are
 canonically isomorphic:
     sage: PolynomialRing(ZZ,'y', sparse=True) == PolynomialRing(ZZ,'y')
     True
+
+
+    sage: QQ['y'] < QQ['x']
+    False
+    sage: QQ['y'] < QQ['z']
+    True
 """
 
 
@@ -225,13 +231,11 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             return False
         return True
 
-    def __cmp__(self, other):
-        if not isinstance(other, PolynomialRing_generic):
-            return -1
-        return cmp((self.base_ring(), self.variable_name()),
-                   (other.base_ring(), other.variable_name()))
+    def _cmp_(left, right):
+        return cmp((left.base_ring(), left.variable_name()),
+                   (right.base_ring(), right.variable_name()))
 
-    def __repr__(self):
+    def _repr_(self):
         s = "Univariate Polynomial Ring in %s over %s"%(
                 self.variable_name(), self.base_ring())
         if self.is_sparse():

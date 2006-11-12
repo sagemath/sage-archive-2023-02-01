@@ -71,6 +71,12 @@ These are mostly things that can't be done in Pyrex.
 #define FAST_SEQ_UNSAFE(zzz_obj) \
     PySequence_Fast_ITEMS(PySequence_Fast(zzz_obj, "expected sequence type"))
 
+/* Returns the type field of a python object, cast to void*. The returned
+   value should only be used as an opaque object e.g. for type comparisons. */
+#define PY_IS_NUMERIC(zzz_obj) \
+     (PyInt_Check(zzz_obj) ||  PyBool_Check(zzz_obj) || PyLong_Check(zzz_obj) || \
+       PyFloat_Check(zzz_obj) || PyComplex_Check(zzz_obj))
+
 PyObject* global_empty_tuple;
 
 /*****************************************

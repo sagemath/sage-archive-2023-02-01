@@ -75,11 +75,13 @@ cdef class Ring(sage.structure.parent_gens.ParentWithGens):
         return (<Ring>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Ring right) except -2:
-        if right.has_coerce_map_from(left):
-            if left.has_coerce_map_from(right):
-                return 0
-            else:
-                return -1
+        # this would be nice to do, but we can't since
+        # it leads to infinite recurssions.
+        #if right.has_coerce_map_from(left):
+        #    if left.has_coerce_map_from(right):
+        #        return 0
+        #    else:
+        #        return -1
         return cmp(type(left), type(right))
 
     def _cmp_(left, right):

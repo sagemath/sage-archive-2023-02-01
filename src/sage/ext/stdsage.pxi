@@ -31,6 +31,7 @@ cdef extern from "stdsage.h":
     void PY_SET_TP_NEW(object t1, object t2)
     int HAS_DICTIONARY(object o)
     PyObject** FAST_SEQ_UNSAFE(object o)
+    int PY_IS_NUMERIC(object o)
 
 # Initialize the global tuple.
 init_global_empty_tuple()

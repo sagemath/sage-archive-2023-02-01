@@ -11,7 +11,35 @@ AUTHORS:
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
 
-PYREX: sage.rings.integer
+EXAMPLES:
+   Add 2 integers:
+       sage: a = Integer(3) ; b = Integer(4)
+       sage: a + b == 7
+       True
+
+   Add an integer and a real number:
+       sage: a + 4.0
+       7.0000000000000000
+
+   Add an integer and a rational number:
+       sage: a + Rational(2)/5
+       17/5
+
+   Add an integer and a complex number:
+       sage: b = ComplexField().0 + 1.5
+       sage: loads((a+b).dumps()) == a+b
+       True
+
+   sage: z = 32
+   sage: -z
+   -32
+   sage: z = 0; -z
+   0
+   sage: z = -0; -z
+   0
+   sage: z = -1; -z
+   1
+
 """
 
 #*****************************************************************************
@@ -58,6 +86,8 @@ import sage.rings.complex_field
 import rational as rational
 import sage.libs.pari.all
 import real_mpfr
+
+
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -112,6 +142,8 @@ the_integer_ring = sage.rings.integer_ring.Z
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport EuclideanDomainElement, ModuleElement
+
+#cimport rational
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -538,62 +570,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_neg(x.value, self.value)
         return x
 
-#    todo: move the doctests here into the new addition routines
-#
-#    def __add__(x, y):
-#        """
-#        EXAMPLES:
-#        Add 2 integers:
-#            sage: a = Integer(3) ; b = Integer(4)
-#            sage: a + b == 7
-#            True
-#
-#        Add an integer and a real number:
-#            sage: a + 4.0
-#            7.0000000000000000
-#
-#        Add an integer and a rational number:
-#            sage: a + Rational(2)/5
-#            17/5
-#
-#        Add an integer and a complex number:
-#            sage: b = ComplexField().0 + 1.5
-#            sage: loads((a+b).dumps()) == a+b
-#            True
-#        """
-#        if isinstance(x, Integer) and isinstance(y, Integer):
-#            return x.__add_(y)
-#        return sage.rings.coerce.bin_op(x, y, operator.add)
-
-#    def __neg__(self):
-#        """
-#        Computes $-self$
-#
-#        EXAMPLES:
-#            sage: z = 32
-#            sage: -z
-#            -32
-#            sage: z = 0; -z
-#            0
-#            sage: z = -0; -z
-#            0
-#            sage: z = -1; -z
-#            1
-#        """
-#        cdef Integer x
-#        x = Integer()
-#        mpz_neg(x.value, self.value)
-#        return x
-
-
-    def _mul_(self, RingElement right):
-        # self and right are guaranteed to be Integers
-        cdef Integer x
-        x = <Integer> PY_NEW(Integer)
-        mpz_mul(x.value, self.value, (<Integer>right).value)
-        return x
-
-    def __mul__(x, y):
+    def __mul__(self, right):
         """
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)
@@ -603,9 +580,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: a * Rational(2)/5
             6/5
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a*b).dumps()) == a*b
-            True
 
             sage: list([2,3]) * 4
             [2, 3, 2, 3, 2, 3, 2, 3]
@@ -613,26 +587,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 'sage'*Integer(3)
             'sagesagesage'
         """
-        cdef Integer _x
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            _x = x
-            return _x._mul_(y)
-        if isinstance(x, (str, list)):
-            return x * int(y)
-        return sage.rings.coerce.bin_op(x, y, operator.mul)
+        try:
+            return RingElement.__mul__(self, right)
+        except TypeError, msg:
+            if isinstance(self, (str, list)):
+                return self*int(right)
+            raise TypeError, msg
 
-    def __div_(Integer self, Integer other):
+    cdef RingElement _mul_c_impl(self, RingElement right):
+        # self and right are guaranteed to be Integers
         cdef Integer x
-        #if mpz_divisible_p(self.value, other.value):
-        #    x = Integer()
-        #    mpz_divexact(x.value, self.value, other.value)
-        #    return x
-        #else:
-        return rational.Rational(self)/rational.Rational(other)
-        #raise ArithmeticError, "Exact division impossible."
+        x = <Integer> PY_NEW(Integer)
+        mpz_mul(x.value, self.value, (<Integer>right).value)
+        return x
 
-    def __div__(x, y):
-        """
+    cdef RingElement _div_c_impl(self, RingElement right):
+        r"""
         Computes a \over{b}
 
         EXAMPLES:
@@ -641,13 +611,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: Integer(32) / Integer(32)
             1
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a/b).dumps()) == a/b
-            True
         """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__div_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.div)
+        return rational.Rational(self)/rational.Rational(right)
+
 
     def __floordiv(Integer self, Integer other):
         cdef Integer x

@@ -675,8 +675,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
         if isinstance(x, RingElement):
-            K = x.parent()
-            if K == self:
+            if x.parent() is self:
                 return x
         raise TypeError, "no canonical coercion of x"
 

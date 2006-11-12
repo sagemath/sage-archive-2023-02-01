@@ -27,7 +27,7 @@ cimport sage.rings.integer
 
 import sage.structure.element
 cimport sage.structure.element
-from sage.structure.element cimport RingElement
+from sage.structure.element cimport RingElement, Element
 
 from sage.rings.coerce import cmp as coerce_cmp
 
@@ -473,15 +473,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
         return x
 
-    def __cmp__(IntegerMod_gmp self, right):
-        if not isinstance(right, IntegerMod_gmp):
-            try:
-                return coerce_cmp(self, right)
-            except TypeError:
-                return -1
-        return self.cmp(right)
-
-    def cmp(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
             sage: mod(5,13^20) == mod(5,13^20)
@@ -491,10 +483,8 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: mod(5,13^20) == mod(-5,13)
             False
         """
-        if right._parent != self._parent:
-            return -1
         cdef int i
-        i = mpz_cmp(self.value, right.value)
+        i = mpz_cmp((<IntegerMod_gmp>left).value, (<IntegerMod_gmp>right).value)
         if i < 0:
             return -1
         elif i == 0:
@@ -502,16 +492,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         else:
             return 1
 
-    def __richcmp__(self, right, int op):
-        cdef int n
-        if not isinstance(right, IntegerMod_gmp):
-            try:
-                n = coerce_cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return (<IntegerMod_gmp> self)._rich_to_bool(op, n)
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
 
     def is_one(IntegerMod_gmp self):
         """
@@ -802,15 +785,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return self.ivalue
 
 
-    def __cmp__(IntegerMod_int self, right):
-        if not isinstance(right, IntegerMod_int):
-            try:
-                return coerce_cmp(self, right)
-            except TypeError:
-                return -1
-        return self.cmp(right)
 
-    def cmp(IntegerMod_int self, IntegerMod_int right):
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
             sage: mod(5,13) == mod(-8,13)
@@ -824,22 +800,12 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(0, 13) == int(0)
             True
         """
-        if right._parent != self._parent:
-            return -1
-        if self.ivalue == right.ivalue: return 0
-        elif self.ivalue < right.ivalue: return -1
+        if (<IntegerMod_int>left).ivalue == (<IntegerMod_int>right).ivalue: return 0
+        elif (<IntegerMod_int>left).ivalue < (<IntegerMod_int>right).ivalue: return -1
         else: return 1
 
-    def __richcmp__(self, right, int op):
-        cdef int n
-        if not isinstance(right, IntegerMod_int):
-            try:
-                n = coerce_cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return (<IntegerMod_int> self)._rich_to_bool(op, n)
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
 
 
     def is_one(IntegerMod_int self):
@@ -1235,15 +1201,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         return self.ivalue
 
 
-    def __cmp__(IntegerMod_int64 self, right):
-        if not isinstance(right, IntegerMod_int64):
-            try:
-                return coerce_cmp(self, right)
-            except TypeError:
-                return -1
-        return self.cmp(right)
-
-    def cmp(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
             sage: mod(5,13^5) == mod(13^5+5,13^5)
@@ -1257,22 +1215,12 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(0, 13^5) == int(0)
             True
         """
-        if right._parent != self._parent:
-            return -1
-        if self.ivalue == right.ivalue: return 0
-        elif self.ivalue < right.ivalue: return -1
+        if (<IntegerMod_int64>left).ivalue == (<IntegerMod_int64>right).ivalue: return 0
+        elif (<IntegerMod_int64>left).ivalue < (<IntegerMod_int64>right).ivalue: return -1
         else: return 1
 
-    def __richcmp__(self, right, int op):
-        cdef int n
-        if not isinstance(right, IntegerMod_int64):
-            try:
-                n = coerce_cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return (<IntegerMod_int64> self)._rich_to_bool(op, n)
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
 
 
     def is_one(IntegerMod_int64 self):

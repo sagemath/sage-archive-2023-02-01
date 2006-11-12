@@ -40,6 +40,10 @@ cdef class RingElement(Element):
     cdef RingElement _sub_c_impl(self, RingElement right)
     cdef RingElement _neg_c(self)
     cdef RingElement _neg_c_impl(self)
+    cdef RingElement _mul_c(self, RingElement right)
+    cdef RingElement _mul_c_impl(self, RingElement right)
+    cdef RingElement _div_c(self, RingElement right)
+    cdef RingElement _div_c_impl(self, RingElement right)
 
 cdef class CommutativeRingElement(RingElement):
     pass

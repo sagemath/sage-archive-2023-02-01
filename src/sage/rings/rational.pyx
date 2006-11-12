@@ -22,6 +22,9 @@ AUTHORS:
 ###########################################################################
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
+
 
 import operator
 
@@ -35,14 +38,14 @@ import sage.libs.pari.all
 cimport integer
 import integer
 
+from sage.structure.element cimport RingElement
+
 import sage.rings.real_mpfr
 
 cimport sage.ext.arith
 import  sage.ext.arith
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
-
-include "../ext/gmp.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -222,6 +225,17 @@ cdef class Rational(sage.structure.element.FieldElement):
 
 
     def __richcmp__(left, right, int op):
+        """
+        EXAMPLES:
+            sage: 1/3 < 2/3
+            True
+            sage: 2/3 < 1/3
+            False
+            sage: 4/5 < 2.0
+            True
+            sage: 4/5 < 0.8
+            False
+        """
         return (<sage.structure.element.Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
@@ -525,31 +539,25 @@ cdef class Rational(sage.structure.element.FieldElement):
         if valid != 0:
             raise ValueError, "invalid literal:" + s
 
-    def __add_(Rational self, Rational other):
+
+    cdef RingElement _add_c_impl(self, RingElement right):
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_add(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __add__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__add_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.add)
-
-    def __sub_(Rational self, Rational other):
+    cdef RingElement _sub_c_impl(self, RingElement right):
+        # self and right are guaranteed to be Integers
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_sub(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __sub__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__sub_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.sub)
+    cdef RingElement _neg_c_impl(self):
+        cdef Rational x
+        x = Rational()
+        mpq_neg(x.value, self.value)
+        return x
 
     def __mul_(Rational self, Rational other):
         cdef Rational x

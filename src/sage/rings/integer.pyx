@@ -59,6 +59,8 @@ import sage.libs.pari.all
 import real_mpfr
 import sage.misc.functional
 
+from sage.interfaces.maxima import maxima, MaximaElement
+
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
@@ -688,10 +690,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer _self, _n
         cdef unsigned int _nval
         if not isinstance(self, Integer):
+            # this can never happen, why is this here?
             return self.__pow__(int(n))
         try:
             _n = Integer(n)
         except TypeError:
+            # reject everything else but allow symbolic calculations
+            if isinstance(n,MaximaElement):
+                return maxima(self)**n
             raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
         if _n < 0:
             return Integer(1)/(self**(-_n))

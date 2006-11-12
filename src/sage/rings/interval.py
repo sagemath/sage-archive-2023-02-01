@@ -127,7 +127,7 @@ class Interval(ring_element.RingElement):
     def __sub__(self, other):
         if not isinstance(other, Interval):
             return bin_op(self, other, operator.sub)
-        return Interval(self.__min+- other.__max, self.__max - other.__min)
+        return Interval(self.__min - other.__max, self.__max - other.__min)
 
     def __neg__(self):
         return Interval(-self.__max, -self.__min)

@@ -43,7 +43,6 @@ AUTHORS:
 
 import operator
 
-from coerce import bin_op
 from infinity import infinity
 
 import laurent_series_ring
@@ -52,7 +51,6 @@ import power_series_ring
 import polynomial_element as polynomial
 import sage.misc.latex as latex
 import sage.rings.ring_element as ring_element
-import sage.structure.coerce
 from sage.structure.element import Element_cmp_
 
 class LaurentSeries(Element_cmp_, ring_element.RingElement):
@@ -438,7 +436,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 #        """
 #        return (-1)*self
 
-    def __mul__(self, right):
+    def _mul_(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -447,8 +445,6 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f*g
             x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.mul)
         return LaurentSeries(self.parent(),
                              self.__u * right.__u,
                              self.__n + right.__n)
@@ -467,7 +463,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
 
 
-    def __div__(self, right):
+    def _div_(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -478,9 +474,6 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f/g
             x^8 + x^9 + 3*x^11 + O(x^14)
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.div)
-        # todo: should ensure parents are the same at this point (via arith architecture)
         if right.__u.is_zero():
             raise ZeroDivisionError
         try:

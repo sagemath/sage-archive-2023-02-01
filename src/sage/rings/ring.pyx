@@ -184,62 +184,6 @@ cdef class Ring(sage.structure.parent_gens.ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
-    def _coerce_(self, x):
-        if PY_TYPE_CHECK(x, sage.structure.element.RingElement) and \
-               (<sage.structure.element.RingElement>x)._parent is self:
-            return x
-        raise TypeError
-
-    def _coerce_try(self, x, v):
-        """
-        Given a list v of rings, try to coerce x canonically into each
-        one in turn.  Return the __call__ coercion of the result into
-        self of the first canonical coercion that succeeds.  Raise a
-        TypeError if none of them succeed.
-        """
-        for R in v:
-            try:
-                y = R._coerce_(x)
-                return self(y)
-            except TypeError, msg:
-                pass
-        raise TypeError, "no canonical coercion of x into self"
-
-    def _coerce_self(self, x):
-        """
-        Try to canonically coerce x into self.
-
-        Return result on success or raise TypeError on failure.
-        """
-        try:
-            P = x.parent()
-            if P is self:
-                return x
-            elif P == self:
-                return self(x)
-        except AttributeError:
-            pass
-        raise TypeError, "no canonical coercion to self defined"
-
-
-    def has_coerce_map_from(self, S):
-        """
-        Return True if there is a natural map from S to self.
-        Otherwise, return False.
-        """
-        # TODO This generic behavior is stupid and slow -- but is
-        # doing exactly what we want.  Moreover, again, as in _coerce_
-        # above, this should be "raise NotImplementedError", and all
-        # rings must define this.
-        try:
-            self._coerce_(S(0))
-        except TypeError:
-            return False
-        return True
-
-    def base_ring(self):
-        import sage.rings.integer_ring
-        return sage.rings.integer_ring.Z
 
     def category(self):
         """

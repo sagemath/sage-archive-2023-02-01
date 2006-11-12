@@ -47,10 +47,10 @@ cimport sage.rings.ring
 import  sage.rings.ring
 
 cimport sage.structure.element
-from sage.structure.element cimport RingElement
+from sage.structure.element cimport RingElement, Element
 import  sage.structure.element
 
-import sage.rings.coerce
+import sage.structure.coerce
 import operator
 
 import sage.rings.rational
@@ -722,7 +722,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def __invert__(self):
         return self._parent(1) / self
 
-    def _sub_(RealNumber self, RealNumber other):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         Subtract two real numbers with the same parent.
 
@@ -733,10 +733,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
-        mpfr_sub(x.value, self.value, other.value, (<RealField>self._parent).rnd)
+        mpfr_sub(x.value, self.value, (<RealNumber>other).value, (<RealField>self._parent).rnd)
         return x
 
-    def _mul_(RealNumber self, RealNumber other):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         Multiply two real numbers with the same parent.
 
@@ -766,10 +766,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
-        mpfr_mul(x.value, self.value, other.value, (<RealField>self._parent).rnd)
+        mpfr_mul(x.value, self.value, (<RealNumber>right).value, (<RealField>self._parent).rnd)
         return x
 
-    def __div_(RealNumber self, RealNumber other):
+
+    cdef RingElement _div_c_impl(self, RingElement right):
         """
         Divide self by other, where both are real numbers with the same parent.
 
@@ -778,31 +779,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.333333333333333
             sage: RR(1)/RR(0)
             +infinity
-        """
-        cdef RealNumber x
-        x = RealNumber(self._parent, None)
-        mpfr_div(x.value, self.value, other.value, (<RealField>self._parent).rnd)
-        return x
 
-    def __div__(x, y):
-        """
-        EXAMPLES:
             sage: R = RealField()
             sage: R(-1.5) / R(2.5)
             -0.600000000000000
         """
-        if isinstance(x, RealNumber) and isinstance(y, RealNumber):
-            return x.__div_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.div)
+        cdef RealNumber x
+        x = RealNumber(self._parent, None)
+        mpfr_div((<RealNumber>x).value, self.value,
+                 (<RealNumber>right).value, (<RealField>self._parent).rnd)
+        return x
 
-    def __neg__(self):
+    cdef RingElement _neg_c_impl(self):
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_neg(x.value, self.value, (<RealField>self._parent).rnd)
         return x
-
-    def __pos__(self):
-        return self
 
     def __abs__(self):
         return self.abs()
@@ -830,7 +822,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         if isinstance(x, RealNumber) and isinstance(y, (int,long,sage.rings.integer.Integer)):
             return x._lshift_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+        return sage.structure.coerce.bin_op(x, y, operator.lshift)
 
     def _rshift_(RealNumber self, n):
         if n > sys.maxint:
@@ -848,7 +840,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         if isinstance(x, RealNumber) and isinstance(y, (int,long,sage.rings.integer.Integer)):
             return x._rshift_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.rshift)
+        return sage.structure.coerce.bin_op(x, y, operator.rshift)
 
     def multiplicative_order(self):
         if self == 1:
@@ -1024,7 +1016,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def is_NaN(self):
         return bool(mpfr_nan_p(self.value))
 
-    cdef int cmp(RealNumber self, RealNumber x):
+    def __richcmp__(left, right, int op):
+        return (<RingElement>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        cdef RealNumber self, x
+        self = left
+        x = right
+
         cdef int a,b
         a = mpfr_nan_p(self.value)
         b = mpfr_nan_p(x.value)
@@ -1038,33 +1037,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return 0
         else:
             return 1
-
-    def __cmp__(RealNumber self, RealNumber x):
-        return self.cmp(x)
-
-    def __richcmp__(RealNumber self, x, int op):
-        cdef int n
-        if not isinstance(x, RealNumber):
-            try:
-                x = RealNumber(self._parent, x)
-            except TypeError:
-                n = sage.rings.coerce.cmp(self, x)
-            else:
-                n = self.cmp(x)
-        else:
-            n = self.cmp(x)
-        if op == 0:
-            return bool(n < 0)
-        elif op == 1:
-            return bool(n <= 0)
-        elif op == 2:
-            return bool(n == 0)
-        elif op == 3:
-            return bool(n != 0)
-        elif op == 4:
-            return bool(n > 0)
-        elif op == 5:
-            return bool(n >= 0)
 
 
     ############################

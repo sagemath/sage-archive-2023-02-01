@@ -25,7 +25,6 @@ import operator
 
 import homset
 
-import sage.rings.coerce
 import sage.rings.arith as arith
 
 from sage.structure.all import Element, Element_cmp_

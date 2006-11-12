@@ -13,7 +13,7 @@ AUTHORS:
 import math
 import types
 from sage.misc.misc import xsrange
-import sage.rings.coerce
+import sage.structure.coerce
 import operator
 
 include 'pari_err.pxi'
@@ -143,27 +143,27 @@ cdef class gen:
     def __add__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._add(other)
-        return sage.rings.coerce.bin_op(self, other, operator.add)
+        return sage.structure.coerce.bin_op(self, other, operator.add)
 
     def __sub__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._sub(other)
-        return sage.rings.coerce.bin_op(self, other, operator.sub)
+        return sage.structure.coerce.bin_op(self, other, operator.sub)
 
     def __mul__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mul(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mul)
+        return sage.structure.coerce.bin_op(self, other, operator.mul)
 
     def __div__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._div(other)
-        return sage.rings.coerce.bin_op(self, other, operator.div)
+        return sage.structure.coerce.bin_op(self, other, operator.div)
 
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mod(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mod)
+        return sage.structure.coerce.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)

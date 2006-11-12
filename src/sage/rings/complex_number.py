@@ -16,7 +16,6 @@ AUTHOR:
 import math
 import operator
 
-from coerce import bin_op
 import complex_field
 import sage.rings.ring_element as ring_element
 import real_field

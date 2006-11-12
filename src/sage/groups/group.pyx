@@ -25,8 +25,6 @@ Base class for all groups
 
 import random
 
-import sage.rings.coerce
-
 from   sage.rings.infinity import infinity
 
 cdef class Group(sage.structure.parent_gens.ParentWithGens):

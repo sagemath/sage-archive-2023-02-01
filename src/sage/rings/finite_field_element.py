@@ -20,7 +20,6 @@ from integer import Integer
 import rational
 import polynomial_ring
 from sage.libs.all import pari, pari_gen
-from sage.rings.coerce import bin_op
 from sage.structure.element import FiniteFieldElement
 import field_element
 
@@ -444,28 +443,16 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         if self.parent() != other.parent():
             raise TypeError, "Parents of finite field elements must be equal."
 
-    def __add__(self, right):
-        if not isinstance(right, FiniteField_ext_pariElement):
-            return bin_op(self, right, operator.add)
-        self.__compat(right)
+    def _add_(self, right):
         return FiniteField_ext_pariElement(self.__parent, self.__value + right.__value)
 
-    def __sub__(self, right):
-        if not isinstance(right, FiniteField_ext_pariElement):
-            return bin_op(self, right, operator.sub)
-        self.__compat(right)
+    def _sub_(self, right):
         return FiniteField_ext_pariElement(self.__parent, self.__value - right.__value)
 
-    def __mul__(self, right):
-        if not isinstance(right, FiniteField_ext_pariElement):
-            return bin_op(self, right, operator.mul)
-        self.__compat(right)
+    def _mul_(self, right):
         return FiniteField_ext_pariElement(self.__parent, self.__value * right.__value)
 
-    def __div__(self, right):
-        if not isinstance(right, FiniteField_ext_pariElement):
-            return bin_op(self, right, operator.div)
-        self.__compat(right)
+    def _div_(self, right):
         if right.__value == 0:
             raise ZeroDivisionError
         return FiniteField_ext_pariElement(self.__parent, self.__value / right.__value)
@@ -490,9 +477,6 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             return float(self.__value.lift().lift())
         except ValueError:
             raise TypeError, "cannot coerce to float"
-
-    def __rdiv__(self, left):
-        return self.parent()(left)/self
 
     # commented out because PARI (used for .__value) prints
     # out crazy warnings when the exponent is LARGE -- this

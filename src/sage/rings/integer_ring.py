@@ -61,6 +61,8 @@ import sage.libs.pari.all
 import sage.rings.ideal
 import ring
 
+from sage.structure.parent_gens import ParentWithGens
+
 _obj = None
 class _uniq_int(object):
     def __new__(cls):
@@ -145,9 +147,10 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     """
 
     def __init__(self):
+        ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Integer Ring"
 
     def _latex_(self):

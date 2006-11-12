@@ -14,6 +14,8 @@ import sage.structure.factorization
 import complex_field
 import infinity
 
+from sage.structure.parent_gens import ParentWithGens
+
 _obj = {}
 class _uniq(object):
     def __new__(cls):
@@ -86,9 +88,10 @@ class RationalField(_uniq, field.Field):
             393/374
         """
     def __init__(self):
+        ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Rational Field"
 
     def _latex_(self):

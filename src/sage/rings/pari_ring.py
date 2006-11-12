@@ -17,7 +17,6 @@ import operator
 import sage.libs.pari.all as pari
 import sage.rings.ring as ring
 import ring_element
-from coerce import bin_op
 
 _obj = {}
 class _uniq(object):
@@ -92,28 +91,20 @@ class Pari(ring_element.RingElement):
     def __repr__(self):
         return str(self.__x)
 
-    def __add__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.add)
+    def _add_(self, other):
         return Pari(self.__x + other.__x)
 
-    def __radd__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.add)
-        return Pari(other.__x + self.__x )
-
-    def __sub__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.sub)
+    def _sub_(self, other):
         return Pari(self.__x - other.__x)
+
+    def _mul_(self, other):
+        return Pari(self.__x * other.__x)
+
+    def _div_(self, other):
+        return self.__x * (~other.__x)
 
     def __neg__(self):
         return Pari(-self.__x)
-
-    def __mul__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.mul)
-        return Pari(self.__x * other.__x)
 
     def __pow__(self, other):
         if not isinstance(other, Pari):
@@ -122,11 +113,6 @@ class Pari(ring_element.RingElement):
 
     def __invert__(self):
         return Pari(~self.__x)
-
-    def __div__(self, other):
-        if not isinstance(other, Pari):
-            return bin_op(self, other, operator.div)
-        return self.__x * (~other.__x)
 
     def __cmp__(self, other):
         try:

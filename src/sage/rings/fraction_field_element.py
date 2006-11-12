@@ -28,7 +28,6 @@ import sage.rings.field_element as field_element
 import fraction_field
 import integer_ring
 
-from sage.rings.coerce import bin_op
 import sage.misc.latex as latex
 
 def is_FractionFieldElement(x):
@@ -151,8 +150,6 @@ class FractionFieldElement(field_element.FieldElement):
            self.__denominator*right.__denominator,  coerce=False)
 
     def _mul_(self, right):
-        if not isinstance(right, FractionFieldElement):
-            return bin_op(self, right, operator.mul)
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__numerator,
            self.__denominator*right.__denominator, coerce=False, reduce=True)

@@ -20,7 +20,7 @@ AUTHOR: David Kohel, 2005-09
 #*****************************************************************************
 
 import operator
-from sage.rings.coerce import bin_op
+from sage.structure.element import bin_op
 from sage.rings.ring import Ring
 from sage.rings.integer import Integer
 from sage.rings.ring_element import RingElement

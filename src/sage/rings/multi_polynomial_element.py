@@ -38,7 +38,6 @@ import operator
 import arith
 
 from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
-from coerce import bin_op, cmp as coerce_cmp
 
 from sage.interfaces.all import singular, macaulay2
 

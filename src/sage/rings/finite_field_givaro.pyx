@@ -36,8 +36,7 @@ r"""
 
 
 from sage.rings.ring cimport FiniteField
-from sage.rings.coerce import bin_op
-from sage.structure.element cimport FiniteFieldElement, Element
+from sage.structure.element cimport FiniteFieldElement, Element, RingElement
 from sage.rings.finite_field_element import FiniteField_ext_pariElement
 from sage.structure.sage_object cimport SageObject
 import operator
@@ -1098,7 +1097,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         return bool(a == 1)
 
 
-    def __add__(self, other):
+    cdef RingElement _add_c_impl(self, RingElement right):
         """
         Add two elements.
 
@@ -1109,22 +1108,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         """
         cdef int r
+        r = parent_object(self).objectptr.add(r, self.object ,
+                                              (<FiniteField_givaroElement>other).object )
+        return make_FiniteField_givaroElement(parent_object(self),r)
 
-        if not PyObject_TypeCheck(self, type_object(FiniteField_givaroElement)):
-            other,self = self,other
-
-        if not PyObject_TypeCheck(other, type_object(FiniteField_givaroElement)):
-            return bin_op(self,other,operator.add)
-
-        else:
-            r = parent_object(self).objectptr.add(r,
-                                                  (<FiniteField_givaroElement>self).object ,
-                                                  (<FiniteField_givaroElement>other).object )
-
-
-            return make_FiniteField_givaroElement(parent_object(self),r)
-
-    def __mul__(self, other):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         Multiply two elements:
 
@@ -1136,20 +1124,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             c^2
         """
         cdef int r
+        r = parent_object(self).objectptr.mul(r, self.object,
+                                              (<FiniteField_givaroElement>other).object)
+        return make_FiniteField_givaroElement(parent_object(self),r)
 
-
-        if not PyObject_TypeCheck(self, type_object(FiniteField_givaroElement)):
-            other,self = self,other
-
-        if not PyObject_TypeCheck(other,type_object(FiniteField_givaroElement)):
-            return bin_op(self,other,operator.mul)
-        else:
-            r = parent_object(self).objectptr.mul(r,
-                                                  (<FiniteField_givaroElement>self).object,
-                                                  (<FiniteField_givaroElement>other).object)
-            return make_FiniteField_givaroElement(parent_object(self),r)
-
-    def __div__(self, other):
+    cdef RingElement _div_c_impl(self, RingElement right):
         """
         Divide two elements
 
@@ -1159,19 +1138,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             1
         """
         cdef int r
+        r = parent_object(self).objectptr.div(r, self.object,
+                                              (<FiniteField_givaroElement>other).object)
+        return make_FiniteField_givaroElement(parent_object(self),r)
 
-        if not PyObject_TypeCheck(self, type_object(FiniteField_givaroElement)):
-            other,self = self,other
-
-        if not PyObject_TypeCheck(other, type_object(FiniteField_givaroElement)):
-            return bin_op(self,other,operator.div)
-        else:
-            r = parent_object(self).objectptr.div(r,
-                                                  (<FiniteField_givaroElement>self).object,
-                                                  (<FiniteField_givaroElement>other).object)
-            return make_FiniteField_givaroElement(parent_object(self),r)
-
-    def __sub__(self, other):
+    cdef RingElement _sub_c_impl(self, RingElement right):
         """
         Subtract two elements
 
@@ -1183,17 +1154,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             2*a^2 + 2*a
         """
         cdef int r
-
-        if not PyObject_TypeCheck(self, type_object(FiniteField_givaroElement)):
-            other,self = self,other
-
-        if not PyObject_TypeCheck(other, type_object(FiniteField_givaroElement)):
-            return bin_op(self,other,operator.sub)
-        else:
-            r = parent_object(self).objectptr.sub(r,
-                                                  (<FiniteField_givaroElement>self).object,
-                                                  (<FiniteField_givaroElement>other).object)
-            return make_FiniteField_givaroElement(parent_object(self),r)
+        r = parent_object(self).objectptr.sub(r, self.object,
+                                              (<FiniteField_givaroElement>other).object)
+        return make_FiniteField_givaroElement(parent_object(self),r)
 
     def __neg__(FiniteField_givaroElement self):
         cdef int r

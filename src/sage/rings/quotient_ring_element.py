@@ -30,8 +30,6 @@ import operator
 import ring_element
 import quotient_ring
 
-from sage.rings.coerce import bin_op
-
 from sage.structure.all import Element_cmp_
 
 class QuotientRingElement(Element_cmp_, ring_element.RingElement):

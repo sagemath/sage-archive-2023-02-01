@@ -22,7 +22,6 @@ from __future__ import with_statement
 #*****************************************************************************
 
 import operator
-from sage.rings.coerce import bin_op
 from sage.misc.misc import repr_lincomb
 from sage.rings.ring import Ring
 from sage.rings.ring_element import RingElement
@@ -109,43 +108,25 @@ class FreeAlgebraQuotientElement(AlgebraElement, Element_cmp_):
     def vector(self):
         return self.__vector
 
-    def __add__(self, y):
-        if not isinstance(y, FreeAlgebraQuotientElement):
-            return bin_op(self, y, operator.add)
-        A = self.parent()
-        if not A is y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
-        z = A(0)
-        z.__vector = self.__vector + y.__vector
-        return z
-
-    def __radd__(self, y):
-        """
-        Can be deleted once this moves to the base ring class.
-        """
-        return bin_op(y, self, operator.add)
-
     def __neg__(self):
         y = self.parent()(0)
         y.__vector = -self.__vector
         return y
 
-    def __sub__(self, y):
-        if not isinstance(y, FreeAlgebraQuotientElement):
-            return bin_op(self, y, operator.sub)
+    def _add_(self, y):
         A = self.parent()
-        if not A is y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
+        z = A(0)
+        z.__vector = self.__vector + y.__vector
+        return z
+
+    def _sub_(self, y):
+        A = self.parent()
         z = A(0)
         z.__vector = self.__vector - y.__vector
         return z
 
-    def __mul__(self, y):
-        if not isinstance(y, FreeAlgebraQuotientElement):
-            return bin_op(self, y, operator.mul)
+    def _mul_(self, y):
         A = self.parent()
-        if not A is y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
         def monomial_product(X,w,m):
             mats = X._FreeAlgebraQuotient__matrix_action
             for (j,k) in m._element_list:

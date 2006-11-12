@@ -24,7 +24,6 @@ of integers, etc., easier.
 #*****************************************************************************
 
 import operator
-import sage.rings.coerce as coerce
 
 import sage.rings.field_element as field_element
 import sage.rings.infinity as infinity
@@ -150,16 +149,22 @@ class NumberFieldElement(field_element.FieldElement):
         g = self.parent().polynomial()._pari_().subst("x",var)
         return 'Mod(%s, %s)'%(f,g)
 
-    def __cmp__(self, other):
-        if not isinstance(other, NumberFieldElement) or self.parent() != other.parent():
-            return coerce.cmp(self, other)
-        return misc.generic_cmp(self.__element, other.__element)
+    def __getitem__(self, n):
+        return self.polynomial()[n]
+
+    def _cmp_(self, other):
+        return cmp(self.__element, other.__element)
+
+    def __pow__(self, right):
+        right = int(right)
+        if right < 0:
+            x = self.__invert__()
+            right *= -1
+            return arith.generic_power(x, right, one=self.parent()(1))
+        return arith.generic_power(self, right, one=self.parent()(1))
 
     def _add_(self, other):
         return NumberFieldElement(self.parent(), self.__element+other.__element)
-
-    def __getitem__(self, n):
-        return self.polynomial()[n]
 
     def _mul_(self, other):
         """
@@ -172,15 +177,7 @@ class NumberFieldElement(field_element.FieldElement):
         #defining polynomial every time:
         #     src/number_fields/algebraic_num/order.cc: compute_table
         # but asymptotically fast poly multiplication means it's
-        # actually faster to *not* build a table!
-
-    def __pow__(self, right):
-        right = int(right)
-        if right < 0:
-            x = self.__invert__()
-            right *= -1
-            return arith.generic_power(x, right, one=self.parent()(1))
-        return arith.generic_power(self, right, one=self.parent()(1))
+        # actually faster to *not* build a table!?!
 
     def _sub_(self, other):
         return NumberFieldElement(self.parent(), self.__element - other.__element)

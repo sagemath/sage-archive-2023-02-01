@@ -43,7 +43,6 @@ import sage.misc.misc as misc
 import sage.rings.all as rings
 import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
-import sage.rings.coerce as coerce
 from sage.structure.all import MultiplicativeGroupElement, Sequence
 import sage.categories.all
 import sage.algebras.quaternion_algebra
@@ -224,7 +223,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent().change_ring(R)
         return G(self)
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES:
             sage: e = DirichletGroup(16)([-1, 1])
@@ -236,8 +235,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e == f
             False
         """
-        if not isinstance(other, DirichletCharacter):
-            return coerce.cmp(self, other)
         # E.g., the trivial character of modulus
         # 8 is *not* equal to the trivial character of modulus 16,
         # since they are completely different functions.

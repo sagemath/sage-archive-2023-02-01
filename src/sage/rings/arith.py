@@ -23,8 +23,7 @@ import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
-from sage.rings.coerce import canonical_coercion, bin_op
-from sage.structure.element import RingElement
+from sage.structure.element import RingElement, canonical_coercion, bin_op
 
 ##################################################################
 # Elementary Arithmetic

@@ -33,7 +33,6 @@ from sage.misc.latex import latex
 from infinity import infinity
 
 import arith
-import coerce
 import integer
 import integer_mod
 import padic_field
@@ -621,7 +620,7 @@ class pAdic(field_element.FieldElement):
     def _integer_(self):
         return self.lift()
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -635,9 +634,6 @@ class pAdic(field_element.FieldElement):
             sage: a < b
             True
         """
-        if not isinstance(other, pAdic) or not (other.parent() is self.parent()):
-            return coerce.cmp(self, other)
-
         m = min(self.big_oh(), other.big_oh())
         x_ordp = self.__ordp
         if x_ordp >= m :

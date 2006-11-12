@@ -29,7 +29,6 @@ import sage.structure.element
 cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element
 
-from sage.rings.coerce import cmp as coerce_cmp
 
 def Mod(n, m):
     """

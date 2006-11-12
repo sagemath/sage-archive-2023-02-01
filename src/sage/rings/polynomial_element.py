@@ -33,7 +33,6 @@ import integer
 import finite_field
 import padic_field
 import sage.rings.polynomial_ring
-from sage.rings.coerce import bin_op, cmp as coerce_cmp
 import arith
 import sage.rings.ring_element as ring_element
 import sage.rings.commutative_algebra_element as commutative_algebra_element
@@ -58,8 +57,6 @@ import sage.structure.factorization as factorization
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
-
-from coerce import bin_op
 
 from real_field import RealField, is_RealNumber, is_RealField
 RR = RealField()

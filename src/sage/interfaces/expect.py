@@ -41,7 +41,6 @@ import quit
 import monitor
 EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
 
-import sage.rings.coerce as coerce
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
 BAD_SESSION = -2
@@ -680,8 +679,6 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         return str(self)
 
     def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1

@@ -65,6 +65,8 @@ import sage.misc.defaults
 import sage.misc.latex
 import gens_py
 
+#cimport sage.structure.element
+
 include '../ext/stdsage.pxi'
 
 def is_ParentWithGens(x):
@@ -156,6 +158,7 @@ cdef class ParentWithGens(parent.Parent):
     def __init__(self, base, names=None, normalize=True):
         self._base = base
         self._assign_names(names=names, normalize=normalize)
+        self._has_coerce_map_from = {}
 
     def base_ring(self):
         return self._base
@@ -346,6 +349,72 @@ cdef class ParentWithGens(parent.Parent):
 
     def latex_name(self):
         return self.variable_name()
+
+    #################################################################################
+    # Coercion support functionality
+    #################################################################################
+    def _coerce_(self, x):
+        raise TypeError
+        # Default coerce is maximally restrictive.
+        #if PY_TYPE_CHECK(x, sage.structure.element.Element) and \
+        #       (<sage.structure.element.Element>x)._parent is self:
+        #    return x
+        #raise TypeError
+
+    def _coerce_try(self, x, v):
+        """
+        Given a list v of rings, try to coerce x canonically into each
+        one in turn.  Return the __call__ coercion of the result into
+        self of the first canonical coercion that succeeds.  Raise a
+        TypeError if none of them succeed.
+        """
+        for R in v:
+            try:
+                y = R._coerce_(x)
+                return self(y)
+            except TypeError, msg:
+                pass
+        raise TypeError, "no canonical coercion of x into self"
+
+    def _coerce_self(self, x):
+        """
+        Try to canonically coerce x into self.
+        Return result on success or raise TypeError on failure.
+        """
+        try:
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return self(x)
+        except AttributeError:
+            pass
+        raise TypeError, "no canonical coercion to self defined"
+
+    def has_coerce_map_from(self, S):
+        return self.has_coerce_map_from_c(S)
+
+    cdef has_coerce_map_from_c(self, S):
+        """
+        Return True if there is a natural map from S to self.
+        Otherwise, return False.
+        """
+        # TODO This generic behavior is stupid and slow -- but is
+        # doing exactly what we want.  Moreover, again, as in _coerce_
+        # above, this should be "raise NotImplementedError", and all
+        # rings must define this.
+        try:
+            return self._has_coerce_map_from[S]
+        except KeyError:
+            pass
+        try:
+            self._coerce_(S(0))
+        except TypeError:
+            self._has_coerce_map_from[S] = False
+            return False
+        self._has_coerce_map_from[S] = True
+        return True
+
 
     #################################################################################
     # Give all objects with generators a dictionary, so that attribute setting

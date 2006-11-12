@@ -11,7 +11,6 @@ Elements of Quotients of Univariate Polynomial Rings
 #*****************************************************************************
 
 import operator
-import coerce
 import sage.structure.element as element
 import sage.rings.arith as arith
 import sage.misc.misc as misc
@@ -77,7 +76,40 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
     def _repr_(self):
         return self.__polynomial._repr(self.parent().variable_name())
 
-    def __add__(self, right):
+    ##################################################
+    # Arithmetic
+    ##################################################
+
+    def _mul_(self, right):
+        """
+        Return the product of two polynomial ring quotient elements.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3-2)
+            sage: (a^2 - 4) * (a+2)
+            2*a^2 - 4*a - 6
+        """
+        R = self.parent()
+        prod = self.__polynomial * right.__polynomial
+        return PolynomialQuotientRingElement(R, prod, check=False)
+
+    def _sub_(self, right):
+        """
+        Return the difference of two polynomial ring quotient elements.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3 - 2)
+            sage: (a^2 - 4) - (a+2)
+            a^2 - a - 6
+            sage: int(1) - a
+            -a + 1
+        """
+        return PolynomialQuotientRingElement(self.parent(),
+                                             self.__polynomial - right.__polynomial, check=False)
+
+    def _add_(self, right):
         """
         Return the sum of two polynomial ring quotient elements.
 
@@ -89,13 +121,43 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: int(1) + a
             a + 1
         """
-        if not isinstance(right, PolynomialQuotientRingElement) \
-               or self.parent() != right.parent():
-            return coerce.bin_op(self, right, operator.add)
         return PolynomialQuotientRingElement(self.parent(),
-                               self.__polynomial + right.__polynomial, check=False)
+                                             self.__polynomial + right.__polynomial, check=False)
 
-    def __cmp__(self, other):
+    def _div_(self, right):
+        """
+        Return the quotient of two polynomial ring quotient elements.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: S.<a> = R.quotient(x^3-2)
+            sage: (a^2 - 4) / (a+2)
+            a - 2
+        """
+        return self * ~right
+
+    def __neg__(self):
+        return PolynomialQuotientRingElement(self.parent(), -self.__polynomial)
+
+    def __pow__(self, n):
+        """
+        Return a power of a polynomial ring quotient element.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(Integers(9))
+            sage: S.<a> = R.quotient(x^4 + 2*x^3 + x + 2)
+            sage: a^100
+            7*a^3 + 8*a + 7
+        """
+        n = int(n)
+        if n < 0:
+            x = self.__invert__()
+            n *= -1
+            return arith.generic_power(x, n, one=self.parent()(1))
+        return arith.generic_power(self, n, one=self.parent()(1))
+
+
+    def _cmp_(self, other):
         """
         Compare this element with something else, where equality
         testing coerces the object on the right, if possible (and
@@ -123,24 +185,9 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: S(x^3)
             2
         """
-        if not isinstance(other, PolynomialQuotientRingElement) or (other.parent() != self.parent()):
-            return coerce.cmp(self, other)
         return misc.generic_cmp(self.__polynomial, other.__polynomial)
 
-    def __div__(self, right):
-        """
-        Return the quotient of two polynomial ring quotient elements.
 
-        EXAMPLES:
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: S.<a> = R.quotient(x^3-2)
-            sage: (a^2 - 4) / (a+2)
-            a - 2
-        """
-        if not isinstance(right, PolynomialQuotientRingElement) \
-               or self.parent() != right.parent():
-            return coerce.bin_op(self, right, operator.div)
-        return self * ~right
 
     def __getitem__(self, n):
         return self.__polynomial[n]
@@ -187,61 +234,6 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             TypeError: cannot coerce nonconstant polynomial to long
         """
         return long(self.__polynomial)
-
-    def __mul__(self, right):
-        """
-        Return the product of two polynomial ring quotient elements.
-
-        EXAMPLES:
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: S.<a> = R.quotient(x^3-2)
-            sage: (a^2 - 4) * (a+2)
-            2*a^2 - 4*a - 6
-        """
-        if not isinstance(right, PolynomialQuotientRingElement) \
-               or self.parent() != right.parent():
-            return coerce.bin_op(self, right, operator.mul)
-        R = self.parent()
-        prod = self.__polynomial * right.__polynomial
-        return PolynomialQuotientRingElement(R, prod, check=False)
-
-    def __neg__(self):
-        return PolynomialQuotientRingElement(self.parent(), -self.__polynomial)
-
-    def __pow__(self, n):
-        """
-        Return a power of a polynomial ring quotient element.
-
-        EXAMPLES:
-            sage: R.<x> = PolynomialRing(Integers(9))
-            sage: S.<a> = R.quotient(x^4 + 2*x^3 + x + 2)
-            sage: a^100
-            7*a^3 + 8*a + 7
-        """
-        n = int(n)
-        if n < 0:
-            x = self.__invert__()
-            n *= -1
-            return arith.generic_power(x, n, one=self.parent()(1))
-        return arith.generic_power(self, n, one=self.parent()(1))
-
-    def __sub__(self, right):
-        """
-        Return the difference of two polynomial ring quotient elements.
-
-        EXAMPLES:
-            sage: R.<x> = PolynomialRing(QQ)
-            sage: S.<a> = R.quotient(x^3 - 2)
-            sage: (a^2 - 4) - (a+2)
-            a^2 - a - 6
-            sage: int(1) - a
-            -a + 1
-        """
-        if not isinstance(right, PolynomialQuotientRingElement) \
-               or self.parent() != right.parent():
-            return coerce.bin_op(self, right, operator.sub)
-        return PolynomialQuotientRingElement(self.parent(),
-                               self.__polynomial - right.__polynomial, check=False)
 
     def field_extension(self, names):
         r"""

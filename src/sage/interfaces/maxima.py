@@ -643,8 +643,7 @@ class Maxima(Expect):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s : %s;'%(var, value)
-        #out = self._eval_line(cmd, reformat=False)
+        cmd = '%s : %s$"";'%(var, str(value).rstrip(';'))
         out = self._eval_line(cmd, reformat=False, allow_use_file=True)
 
         if out.find("error") != -1:

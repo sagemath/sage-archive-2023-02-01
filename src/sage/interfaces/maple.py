@@ -384,11 +384,17 @@ command-line version of Maple.
             raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
         return z
 
+    def cputime(self, t=None):
+        if t is None:
+            return float(self('time()'))
+        else:
+            return float(self('time() - %s'%float(t)))
+
     def set(self, var, value):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s:=%s;'%(var,value)
+        cmd = '%s:=%s:'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
             raise TypeError, "Error executing code in Maple\nCODE:\n\t%s\nMaple ERROR:\n\t%s"%(cmd, out)

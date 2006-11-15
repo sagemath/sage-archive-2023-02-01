@@ -198,6 +198,18 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order))
 
+    def list_of_elements_of_multiplicative_group(self):
+        import sage.ext.arith as a
+        if self.__order <= 46340:   # todo: don't hard code
+            gcd = a.arith_int().gcd_int
+        elif self.__order <= 2147483647:   # todo: don't hard code
+            gcd = a.arith_llong().gcd_longlong
+        else:
+            raise MemoryError, "creating the list would exhaust memory."
+        N = self.__order
+        H = [i for i in range(N) if gcd(i, N) == 1]
+        return H
+
     def is_finite(self):
         """
         EXAMPLES:

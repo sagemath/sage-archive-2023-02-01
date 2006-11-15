@@ -235,7 +235,7 @@ cdef extern from "Python.h":
 
     int PyObject_TypeCheck(object o, object type) #	object o, PyTypeObject *type)
     # Return true if the object o is of type type or a subtype of
-    # type. Both parameters must be non-NULL. New in version 2.2.
+    # type. Both parameters must be non-NULL.
 
     Py_ssize_t PyObject_Length(	object o)
     Py_ssize_t PyObject_Size(	object o)

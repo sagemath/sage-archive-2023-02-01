@@ -33,13 +33,12 @@ from sage.monoids.free_monoid import FreeMonoid
 from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_element import FreeAlgebraElement
-from sage.structure.element import Element_cmp_
 from sage.structure.parent_gens import localvars
 
 def is_FreeAlgebraQuotientElement(x):
     return isinstance(x, FreeAlgebraQuotientElement)
 
-class FreeAlgebraQuotientElement(AlgebraElement, Element_cmp_):
+class FreeAlgebraQuotientElement(AlgebraElement):
     def __init__(self, A, x):
         """
         Create the element x of the FreeAlgebraQuotient A.

@@ -37,7 +37,7 @@ import operator
 
 import arith
 
-from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
+from sage.structure.element import CommutativeRingElement, Element
 
 from sage.interfaces.all import singular, macaulay2
 
@@ -56,7 +56,7 @@ import polynomial_ring
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
-class MPolynomial(Element_cmp_, CommutativeRingElement):
+class MPolynomial(CommutativeRingElement):
     def __init__(self, parent, x):
         CommutativeRingElement.__init__(self, parent)
         self.__element = x

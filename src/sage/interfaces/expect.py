@@ -625,7 +625,7 @@ class FunctionElement(SageObject):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
+class ExpectElement(RingElement):
     """
     Expect element.
     """

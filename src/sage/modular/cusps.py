@@ -27,7 +27,6 @@ EXAMPLES:
 from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.structure.element import Element_cmp_
 from sage.structure.sage_object import SageObject
 
 
@@ -127,7 +126,7 @@ class Cusps_class(SageObject):
 Cusps = Cusps_class()
 
 
-class Cusp(Element_cmp_, SageObject):
+class Cusp(SageObject):
     """
     A cusp.
 

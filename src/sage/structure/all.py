@@ -4,7 +4,7 @@ from sage.structure.sequence import Sequence, seq
 
 from sage.structure.sage_object import SageObject
 
-from element import *    # a whole bunch of classes
+from element import *    # a whole bunch of classes and is_types.
 
 from parent import Parent, is_Parent
 

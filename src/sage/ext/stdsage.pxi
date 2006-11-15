@@ -28,6 +28,7 @@ cdef extern from "stdsage.h":
     object PY_NEW(object t)
     void* PY_TYPE(object o)
     int PY_TYPE_CHECK(object o, object t)
+    object IS_INSTANCE(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
     int HAS_DICTIONARY(object o)
     PyObject** FAST_SEQ_UNSAFE(object o)

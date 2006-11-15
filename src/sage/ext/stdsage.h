@@ -77,6 +77,15 @@ These are mostly things that can't be done in Pyrex.
      (PyInt_Check(zzz_obj) ||  PyBool_Check(zzz_obj) || PyLong_Check(zzz_obj) || \
        PyFloat_Check(zzz_obj) || PyComplex_Check(zzz_obj))
 
+
+/* This is exactly the same as isinstance (and does return a Python
+   bool), but the second argument must be a C-extension type -- so it
+   can't be a Python class or a list.  If you just want an int return
+   value, i.e., aren't going to pass this back to Python, just use
+   PY_TYPE_CHECK. */
+#define IS_INSTANCE(zzz_obj, zzz_type) \
+    PyBool_FromLong(PY_TYPE_CHECK(zzz_obj, zzz_type))
+
 PyObject* global_empty_tuple;
 
 /*****************************************

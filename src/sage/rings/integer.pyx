@@ -40,6 +40,20 @@ EXAMPLES:
    sage: z = -1; -z
    1
 
+Multiplication:
+    sage: a = Integer(3) ; b = Integer(4)
+    sage: a * b == 12
+    True
+    sage: loads((a * 4.0).dumps()) == a*b
+    True
+    sage: a * Rational(2)/5
+    6/5
+
+    sage: list([2,3]) * 4
+    [2, 3, 2, 3, 2, 3, 2, 3]
+
+    sage: 'sage'*Integer(3)
+    'sagesagesage'
 """
 
 #*****************************************************************************
@@ -548,49 +562,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    cdef RingElement _add_c_impl(self, RingElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
         mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
         x = Integer()
         mpz_neg(x.value, self.value)
         return x
 
-    def __mul__(self, right):
-        """
-        EXAMPLES:
-            sage: a = Integer(3) ; b = Integer(4)
-            sage: a * b == 12
-            True
-            sage: loads((a * 4.0).dumps()) == a*b
-            True
-            sage: a * Rational(2)/5
-            6/5
-
-            sage: list([2,3]) * 4
-            [2, 3, 2, 3, 2, 3, 2, 3]
-
-            sage: 'sage'*Integer(3)
-            'sagesagesage'
-        """
-        try:
-            return RingElement.__mul__(self, right)
-        except TypeError, msg:
-            if isinstance(self, (str, list)):
-                return self*int(right)
-            raise TypeError, msg
+    def _r_action(self, s):
+        if isinstance(s, (str, list)):
+            return s*int(self)
+        raise TypeError
 
     cdef RingElement _mul_c_impl(self, RingElement right):
         # self and right are guaranteed to be Integers

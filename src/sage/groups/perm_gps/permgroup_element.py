@@ -57,7 +57,7 @@ import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.rings.arith import *
+from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
 
 import permgroup
 
@@ -72,8 +72,7 @@ def gap_format(x):
     x = str(x).replace(' ','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
-class PermutationGroupElement(element.Element_cmp_,
-                              element.MultiplicativeGroupElement):
+class PermutationGroupElement(element.MultiplicativeGroupElement):
     """
     An element of a permutation group.
 
@@ -342,9 +341,8 @@ class PermutationGroupElement(element.Element_cmp_,
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
-            sage: R = MPolynomialRing(RationalField(), 5, ["x","y","z","u","v"])
-            sage: x,y,z,u,v = R.gens()
-            sage: f = x**2 + y**2 - z**2 + 2*u**2
+            sage: R.<x,y,z,u,v> = MPolynomialRing(QQ,5)
+            sage: f = x^2 + y^2 - z^2 + 2*u^2
             sage: sigma, tau = G.gens()
             sage: f*sigma
             2*v^2 + z^2 + y^2 - x^2
@@ -356,7 +354,7 @@ class PermutationGroupElement(element.Element_cmp_,
             u^2 + z^2 - y^2 + 2*x^2
         """
         if isinstance(left, Polynomial):
-            if not (self == 1):
+            if self != 1:
                 raise ValueError, "%s does not act on %s"%(self, left.parent())
             return left
         elif isinstance(left, PermutationGroupElement):

@@ -30,9 +30,7 @@ import operator
 import ring_element
 import quotient_ring
 
-from sage.structure.all import Element_cmp_
-
-class QuotientRingElement(Element_cmp_, ring_element.RingElement):
+class QuotientRingElement(ring_element.RingElement):
     """
     An element of a quotient ring $R/I$.
 

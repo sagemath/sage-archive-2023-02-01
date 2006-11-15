@@ -25,7 +25,7 @@ import operator
 
 import copy
 
-from sage.structure.element import Element, Element_cmp_
+from sage.structure.element import Element
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -75,7 +75,7 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraElement):
+class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
     """
     A polynomial.
 
@@ -126,6 +126,12 @@ class Polynomial(Element_cmp_, commutative_algebra_element.CommutativeAlgebraEle
             x[i] += y[i]
 
         return self.polynomial(x)
+
+    def _lmul_(self, left):
+        return self.parent()(left) * self
+
+    def _rmul_(self, right):
+        return self * self.parent()(right)
 
     def __call__(self, *a):
         """
@@ -2250,7 +2256,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         b = 1
         c = []
         for i in range(self.degree()+1):
-            c.append(self[i]*b)
+            c.append(b*self[i])
             b *= a
         return self.parent()(c)
 
@@ -2799,6 +2805,15 @@ class Polynomial_dense_mod_n(Polynomial):
     def _add_(self, right):
         return self.parent()(self.__poly + right.__poly, construct=True)
 
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: x = PolynomialRing(Integers(100), 'x').0
+            sage: (x - 2)*(x^2 - 8*x + 16)
+            x^3 + 90*x^2 + 32*x + 68
+        """
+        return self.parent()(self.__poly * right.__poly, construct=True)
+
     def quo_rem(self, right):
         """
         Returns a tuple (quotient, remainder) where
@@ -2811,15 +2826,6 @@ class Polynomial_dense_mod_n(Polynomial):
         v = self.__poly.quo_rem(right.__poly)
         P = self.parent()
         return P(v[0], construct=True), P(v[1], construct=True)
-
-    def _mul_(self, right):
-        """
-        EXAMPLES:
-            sage: x = PolynomialRing(Integers(100), 'x').0
-            sage: (x - 2)*(x^2 - 8*x + 16)
-            x^3 + 90*x^2 + 32*x + 68
-        """
-        return self.parent()(self.__poly * right.__poly, construct=True)
 
     def shift(self, n):
         r"""

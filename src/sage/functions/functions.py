@@ -21,7 +21,7 @@ import sage.rings.rational
 import sage.rings.integer
 
 import sage.rings.all
-from sage.structure.all import RingElement, Element_cmp_
+from sage.structure.all import RingElement
 import operator
 from sage.misc.latex import latex
 from sage.interfaces.maxima import maxima, MaximaFunction
@@ -117,7 +117,7 @@ class FunctionRing_class(CommutativeRing):
 FunctionRing = FunctionRing_class()
 
 
-class Function(Element_cmp_, RingElement):
+class Function(RingElement):
     def __init__(self, conversions={}):
         self._conversions = conversions
         RingElement.__init__(self, FunctionRing)

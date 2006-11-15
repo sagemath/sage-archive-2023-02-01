@@ -476,6 +476,9 @@ def need_to_pyrex(filename, outfile):
     if is_older(pxd, outfile):   # outfile is older than pxd file (if it exists)
         return True
 
+    ## comment this out to turn on dependency checking!
+    return False
+
     # Now we look inside the file to see what it cimports or include.
     # If any of these files are newer than outfile, we rebuild
     # outfile.

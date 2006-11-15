@@ -51,9 +51,8 @@ import power_series_ring
 import polynomial_element as polynomial
 import sage.misc.latex as latex
 import sage.rings.ring_element as ring_element
-from sage.structure.element import Element_cmp_
 
-class LaurentSeries(Element_cmp_, ring_element.RingElement):
+class LaurentSeries(ring_element.RingElement):
     """
     A Laurent Series.
     """

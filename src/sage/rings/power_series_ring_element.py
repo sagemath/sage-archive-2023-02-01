@@ -35,7 +35,6 @@ import sage.structure.coerce
 import rational_field, integer_ring
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
-from sage.structure.element import Element_cmp_
 from sage.libs.all import PariError
 
 Polynomial = polynomial.Polynomial_generic_dense
@@ -43,7 +42,7 @@ Polynomial = polynomial.Polynomial_generic_dense
 def is_PowerSeries(x):
     return isinstance(x, PowerSeries)
 
-class PowerSeries(Element_cmp_, ring_element.RingElement):
+class PowerSeries(ring_element.RingElement):
     def __init__(self, parent, prec, is_gen=False):
         ring_element.RingElement.__init__(self, parent)
         self.__is_gen = is_gen

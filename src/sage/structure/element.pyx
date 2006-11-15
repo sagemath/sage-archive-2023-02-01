@@ -8,12 +8,36 @@ AUTHORS:
    arithmetic architecture
    -- William Stein (2006-11): arithmetic architecture -- pushing it through to completion.
 
-\subsection{Some technical implementation notes about arithmetic architecture}
-(This documentation should get moved into a more useful place.)
 
+\subsection{The Abstract Element Class Heierarchy}
+This is the abstract class heierchary, i.e., these are all
+abstract base classes.
+\begin{verbatim}
+SageObject
+    Element
+        ModuleElement
+            AdditiveGroupElement
+
+        MonoidElement
+            MultiplicativeGroupElement
+
+        RingElement
+            CommutativeRingElement
+                IntegralDomainElement
+                    DedekindDomainElement
+                        PrincipalIdealDomainElement
+                            EuclideanDomainElement
+            FieldElement
+                FiniteFieldElement
+            AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
+                CommutativeAlgebraElement
+            InfinityElement
+\end{verbatim}
+
+\subsection{How to Define a New Element Class}
 SAGE has a special system in place for handling arithmetic operations
-for all Element subclasses. There are various rules that must be followed
-by both arithmetic implementors and callers.
+for all Element subclasses. There are various rules that must be
+followed by both arithmetic implementors and callers.
 
 A quick summary for the impatient:
 \begin{itemize}
@@ -110,30 +134,6 @@ and classes are similar. There are four relevant functions.
    NotImplementedError, which will happen if no-one has supplied
    implementations of either _add_ or _add_c_impl.
 
-\subsection{The Element Class Heierarchy}
-This is the abstract class heierchary, i.e., these are all
-abstract base classes.
-\begin{verbatim}
-SageObject
-    Element
-        ModuleElement
-            AdditiveGroupElement
-
-        MonoidElement
-            MultiplicativeGroupElement
-
-        RingElement
-            CommutativeRingElement
-                IntegralDomainElement
-                    DedekindDomainElement
-                        PrincipalIdealDomainElement
-                            EuclideanDomainElement
-            FieldElement
-                FiniteFieldElement
-            AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
-                CommutativeAlgebraElement
-            InfinityElement
-\end{verbatim}
 """
 
 
@@ -165,6 +165,19 @@ def make_element(_class, _dict, parent):
     new_object.__dict__ = _dict
     return new_object
 
+
+
+def is_Element(x):
+    """
+    Return True if x is of type Element.
+
+    EXAMPLES:
+        sage: is_Element(2/3)
+        True
+        sage: is_Element(QQ^3)
+        False
+    """
+    return IS_INSTANCE(x, Element)
 
 cdef class Element(sage_object.SageObject):
     """
@@ -327,6 +340,20 @@ cdef class Element(sage_object.SageObject):
 
 
 
+def is_ModuleElement(x):
+    """
+    Return True if x is of type ModuleElement.
+
+    This is even faster than using isinstance inline.
+
+    EXAMPLES:
+        sage: is_ModuleElement(2/3)
+        False
+        sage: is_ModuleElement((QQ^3).0)
+        True
+    """
+    return IS_INSTANCE(x, ModuleElement)
+
 cdef class ModuleElement(Element):
     """
     Generic element of a module.
@@ -335,6 +362,9 @@ cdef class ModuleElement(Element):
     def is_zero(self):
         return bool(self == self._parent(0))
 
+    ##################################################
+    # Addition
+    ##################################################
     def __add__(self, right):
         """
         Top-level addition operator for ModuleElements.
@@ -396,42 +426,20 @@ cdef class ModuleElement(Element):
         """
         return self._add_c_impl(right)
 
+    ##################################################
+    # Subtraction
+    ##################################################
 
     def __sub__(self, right):
         """
         Top-level subtraction operator for ModuleElements.
-
         See extensive documentation at the top of element.pyx.
         """
-
-        # Try fast pathway if they are both ModuleElements and the parents
-        # match.
-
-        # (We know at least one of the arguments is a ModuleElement. So if
-        # their types are *equal* (fast to check) then they are both
-        # ModuleElements. Otherwise use the slower test via PY_TYPE_CHECK.)
-
-        if (PY_TYPE(self) is PY_TYPE(right)) or \
-                   (PY_TYPE_CHECK(right, ModuleElement) and \
-                    PY_TYPE_CHECK(self, ModuleElement)):
-
-            if (<ModuleElement>right)._parent is (<ModuleElement>self)._parent:
-
-                return (<ModuleElement>self)._sub_c(<ModuleElement>right)
-
-        # Fast pathway didn't work.
-
-        # todo:
-        # For now we are falling back on the old coercion code.
-        # This needs to be optimised and re-thought-out.
-        # In particular, the coercion code doesn't yet know about _add_c
-        # and all that.
-        if not PY_TYPE_CHECK(self, ModuleElement) or \
-                  not PY_TYPE_CHECK(right, ModuleElement) \
-                  or not (right.parent() is self.parent()):
+        if have_same_parent(self, right):
+            return (<ModuleElement>self)._sub_c(<ModuleElement>right)
+        else:
             return bin_op_c(self, right, operator.sub)
         return self._sub_(right)
-
 
     cdef ModuleElement _sub_c(self, ModuleElement right):
         """
@@ -470,22 +478,13 @@ cdef class ModuleElement(Element):
         """
         return self._sub_c_impl(right)
 
-    # addition is commutative in a module:
-    def __rsub__(self, left):
-        return self.parent()(left) - self
-
-    def __radd__(self, left):
-        return self.parent()(left) + self
-
-    def __rmul__(self, n):
-        if not isinstance(n, (int, long)):
-            raise TypeError, "multiplication on by %s not defined"%n
-        return self*n
+    ##################################################
+    # Negation
+    ##################################################
 
     def __neg__(self):
         """
         Top-level negation operator for ModuleElements.
-
         See extensive documentation at the top of element.pyx.
         """
         # We ASSUME that self is a ModuleElement. No type checks.
@@ -495,9 +494,7 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _neg_c(self):
         """
         Negation dispatcher for ModuleElements.
-
         DO NOT OVERRIDE THIS FUNCTION.
-
         See extensive documentation at the top of element.pyx.
         """
 
@@ -511,9 +508,7 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _neg_c_impl(self):
         """
         Pyrex classes should override this function to implement negation.
-
         DO NOT CALL THIS FUNCTION DIRECTLY.
-
         See extensive documentation at the top of element.pyx.
         """
         # default implementation is to try multiplying by -1.
@@ -528,36 +523,41 @@ cdef class ModuleElement(Element):
         """
         return self._neg_c_impl()
 
-    cdef ModuleElement _mul_left_scalar_c(self, RingElement m):
+    ##################################################
+    # Scalar multiplication
+    ##################################################
+    cdef ModuleElement _lmul_c(self, RingElement m):
         """
-        DO NOT OVERRIDE THIS FUNCTION.
+        DO NOT OVERRIDE THIS FUNCTION.  OK to call.
         """
         if HAS_DICTIONARY(self):
-            return self._mul_left_scalar_c_impl(right)
+            return self._lmul_c_impl(right)
         else:
-            return self._mul_left_scalar(right)
+            return self._lmul_(right)
 
-    cdef ModuleElement _mul_left_scalar_c_impl(self, RingElement m):
+    cdef ModuleElement _lmul_c_impl(self, RingElement m):
         raise NotImplementedError
+
     def _mul_left_scalar(self, m):
-        return self._mul_left_scalar_c_impl(m)
+        return self._lmul_c_impl(m)
 
-
-    cdef ModuleElement _mul_right_scalar_c(self, RingElement m):
+    cdef ModuleElement _rmul_c(self, RingElement m):
         """
         DO NOT OVERRIDE THIS FUNCTION.
         """
         if HAS_DICTIONARY(self):
-            return self._mul_right_scalar_c_impl(right)
+            return self._rmul_c_impl(right)
         else:
-            return self._mul_right_scalar(right)
+            return self._rmul_(right)
 
-    cdef ModuleElement _mul_right_scalar_c_impl(self, RingElement m):
+    cdef ModuleElement _rmul_c_impl(self, RingElement m):
         raise NotImplementedError
     def _mul_right_scalar(self, m):
-        return self._mul_right_scalar_c_impl(m)
+        return self._rmul_c_impl(m)
 
 
+    ##################################################
+    # Other properties
     ##################################################
     def order(self):
         """
@@ -572,14 +572,57 @@ cdef class ModuleElement(Element):
         raise NotImplementedError
 
 
-def is_ModuleElement(x):
-    return isinstance(x, ModuleElement)
 
+def is_MonoidElement(x):
+    """
+    Return True if x is of type MonoidElement.
+    """
+    return IS_INSTANCE(x, MonoidElement)
 
 cdef class MonoidElement(Element):
     """
     Generic element of a monoid.
     """
+
+    #############################################################
+    # Multiplication
+    #############################################################
+    def __mul__(self, right):
+        """
+        Top-level multiplication operator for ring elements.
+        See extensive documentation at the top of element.pyx.
+        """
+        if have_same_parent(self, right):
+            return (<MonoidElement>self)._mul_c(<MonoidElement>right)
+        return bin_op_c(self, right, operator.mul)
+
+    cdef MonoidElement _mul_c(self, MonoidElement right):
+        """
+        Multiplication dispatcher for RingElements.
+        DO NOT OVERRIDE THIS FUNCTION.
+        See extensive documentation at the top of element.pyx.
+        """
+        if HAS_DICTIONARY(self):   # fast check
+            return self._mul_(right)
+        else:
+            return self._mul_c_impl(right)
+
+
+    cdef MonoidElement _mul_c_impl(self, MonoidElement right):
+        """
+        Pyrex classes should override this function to implement multiplication.
+        DO NOT CALL THIS FUNCTION DIRECTLY.
+        See extensive documentation at the top of element.pyx.
+        """
+        raise NotImplementedError
+
+    def _mul_(self, right):
+        return self._mul_c_impl(right)
+
+    #############################################################
+    # Other generic functions that should be available to
+    # any monoid element.
+    #############################################################
     def order(self):
         """
         Return the multiplicative order of self.
@@ -591,15 +634,6 @@ cdef class MonoidElement(Element):
         Return the multiplicative order of self.
         """
         raise NotImplementedError
-
-    def __mul__(self, right):
-        if not isinstance(self, Element) or not isinstance(right, Element) \
-               or not (right.parent() is self.parent()):
-            return bin_op_c(self, right, operator.mul)
-        return self._mul_(right)
-
-    def _mul_(self, right):
-        return NotImplementedError
 
     def __pow__(self, n, dummy):
         cdef int i
@@ -630,6 +664,12 @@ cdef class MonoidElement(Element):
         return power
 
 
+def is_AdditiveGroupElement(x):
+    """
+    Return True if x is of type AdditiveGroupElement.
+    """
+    return IS_INSTANCE(x, AdditiveGroupElement)
+
 cdef class AdditiveGroupElement(ModuleElement):
     """
     Generic element of an additive group.
@@ -643,10 +683,10 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
-    cdef ModuleElement _mul_left_scalar_c_impl(self, RingElement m):
-        return self._mul_right_scalar_c_impl(m)
+    cdef ModuleElement _lmul_c_impl(self, RingElement m):
+        return self._rmul_c_impl(m)
 
-    cdef ModuleElement _mul_right_scalar_c_impl(self, RingElement m):
+    cdef ModuleElement _rmul_c_impl(self, RingElement m):
         m = int(m)  # a little worrisome.
         if m<0:
             return (-self)*(-m)
@@ -665,6 +705,12 @@ cdef class AdditiveGroupElement(ModuleElement):
             i = i + 1
         return power
 
+
+def is_MultiplicativeGroupElement(x):
+    """
+    Return True if x is of type MultiplicativeGroupElement.
+    """
+    return IS_INSTANCE(x, MultiplicativeGroupElement)
 
 cdef class MultiplicativeGroupElement(MonoidElement):
     """
@@ -697,196 +743,19 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         return 1/self
 
 
-cdef class RingElement(Element):
+def is_RingElement(x):
+    """
+    Return True if x is of type RingElement.
+    """
+    return IS_INSTANCE(x, RingElement)
+
+cdef class RingElement(ModuleElement):
     ##################################################
     def is_zero(self):
         return bool(self == self.parent()(0))
 
     def is_one(self):
         return bool(self == self.parent()(1))
-
-    ##################################
-    # Addition
-    ##################################
-    def __add__(self, right):
-        """
-        Top-level addition operator for RingElements.
-        See extensive documentation at the top of element.pyx.
-        """
-        # Try fast pathway if they are both RingElements and the parents match.
-        # (We know at least one of the arguments is a RingElement. So if their
-        # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.)
-        if have_same_parent(self, right):
-            return (<RingElement>self)._add_c(<RingElement>right)
-        else:
-            return bin_op_c(self, right, operator.add)
-
-    cdef RingElement _add_c(self, RingElement right):
-        """
-        Addition dispatcher for RingElements.
-        DO NOT OVERRIDE THIS FUNCTION.
-        See extensive documentation at the top of element.pyx.
-        """
-
-        if HAS_DICTIONARY(self):   # fast check
-            # TODO: this bit will be unnecessarily slow if someone derives
-            # from the pyrex class *without* overriding _add_, since then
-            # we'll be making an unnecessary call to _add_, which will
-            # end up in _add_c_impl anyway. There must be a simple way to
-            # distinguish this situation. It's complicated because someone
-            # can even override it at the instance level (without overriding
-            # it in the class.)
-            # TODO: if you fix this up here, fix it up for the other operators
-            # (sub, neg, etc.) as well. Thanks.
-            return self._add_(right)
-        else:
-            # Must be a pure Pyrex class.
-            return self._add_c_impl(right)
-
-
-    cdef RingElement _add_c_impl(self, RingElement right):
-        """
-        Pyrex classes should override this function to implement addition.
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-        See extensive documentation at the top of element.pyx.
-        """
-        raise NotImplementedError
-
-
-    def _add_(RingElement self, RingElement right):
-        """
-        Python classes should override this function to implement addition.
-        See extensive documentation at the top of element.pyx.
-        """
-        return self._add_c_impl(right)
-
-
-    ##################################
-    # Subtraction
-    ##################################
-
-    def __sub__(self, right):
-        """
-        Top-level subtraction operator for RingElements.
-
-        See extensive documentation at the top of element.pyx.
-        """
-
-        # Try fast pathway if they are both RingElements and the parents match.
-
-        # (We know at least one of the arguments is a RingElement. So if their
-        # types are *equal* (fast to check) then they are both RingElements.
-        # Otherwise use the slower test via PY_TYPE_CHECK.)
-
-        if (PY_TYPE(self) is PY_TYPE(right)) or \
-                   (PY_TYPE_CHECK(right, RingElement) and \
-                    PY_TYPE_CHECK(self, RingElement)):
-
-            if (<RingElement>right)._parent is (<RingElement>self)._parent:
-
-                return (<RingElement>self)._sub_c(<RingElement>right)
-
-        # Fast pathway didn't work.
-
-        # todo:
-        # For now we are falling back on the old coercion code.
-        # This needs to be optimised and re-thought-out.
-        # In particular, the coercion code doesn't yet know about _add_c
-        # and all that.
-        if not PY_TYPE_CHECK(self, RingElement) or \
-                  not PY_TYPE_CHECK(right, RingElement) \
-                  or not (right.parent() is self.parent()):
-            return bin_op_c(self, right, operator.sub)
-        return self._sub_(right)
-
-
-    cdef RingElement _sub_c(self, RingElement right):
-        """
-        Subtraction dispatcher for RingElements.
-
-        DO NOT OVERRIDE THIS FUNCTION.
-
-        See extensive documentation at the top of element.pyx.
-        """
-
-        if HAS_DICTIONARY(self):   # fast check
-            return self._sub_(right)
-        else:
-            # Must be a pure Pyrex class.
-            return self._sub_c_impl(right)
-
-
-    cdef RingElement _sub_c_impl(self, RingElement right):
-        """
-        Pyrex classes should override this function to implement subtraction.
-
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        # default implementation is to use the negation and addition
-        # dispatchers:
-        return self._add_c(right._neg_c())
-
-
-    def _sub_(RingElement self, RingElement right):
-        """
-        Python classes should override this function to implement subtraction.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        return self._sub_c_impl(right)
-
-    ##################################
-    # Negation
-    ##################################
-
-    def __neg__(self):
-        """
-        Top-level negation operator for RingElements.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        # We ASSUME that self is a RingElement. No type checks.
-        return (<RingElement>self)._neg_c()
-
-
-    cdef RingElement _neg_c(self):
-        """
-        Negation dispatcher for RingElements.
-
-        DO NOT OVERRIDE THIS FUNCTION.
-
-        See extensive documentation at the top of element.pyx.
-        """
-
-        if HAS_DICTIONARY(self):   # fast check
-            return self._neg_()
-        else:
-            # Must be a pure Pyrex class.
-            return self._neg_c_impl()
-
-
-    cdef RingElement _neg_c_impl(self):
-        """
-        Pyrex classes should override this function to implement negation.
-
-        DO NOT CALL THIS FUNCTION DIRECTLY.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        # default implementation is to try multiplying by -1.
-        return bin_op_c(-1, self, operator.mul)
-
-
-    def _neg_(RingElement self):
-        """
-        Python classes should override this function to implement negation.
-
-        See extensive documentation at the top of element.pyx.
-        """
-        return self._neg_c_impl()
 
     ##################################
     # Multiplication
@@ -1041,6 +910,12 @@ cdef class RingElement(Element):
 
 
 
+def is_CommutativeRingElement(x):
+    """
+    Return True if x is of type CommutativeRingElement.
+    """
+    return IS_INSTANCE(x, CommutativeRingElement)
+
 cdef class CommutativeRingElement(RingElement):
     def _im_gens_(self, codomain, im_gens):
         if len(im_gens) == 1 and self.parent().gen(0) == 1:
@@ -1118,12 +993,30 @@ cdef class CommutativeRingElement(RingElement):
             #raise TypeError, "I = %s must be an ideal in %s"%(I, self.parent())
         return I.reduce(self)
 
+def is_IntegralDomainElement(x):
+    """
+    Return True if x is of type IntegralDomainElement.
+    """
+    return IS_INSTANCE(x, IntegralDomainElement)
+
 cdef class IntegralDomainElement(CommutativeRingElement):
     pass
 
-cdef class DedekindDomainElement(IntegralDomainElement):
 
+def is_DedekindDomainElement(x):
+    """
+    Return True if x is of type DedekindDomainElement.
+    """
+    return IS_INSTANCE(x, DedekindDomainElement)
+
+cdef class DedekindDomainElement(IntegralDomainElement):
     pass
+
+def is_PrincipalIdealDomainElement(x):
+    """
+    Return True if x is of type PrincipalIdealDomainElement.
+    """
+    return IS_INSTANCE(x, PrincipalIdealDomainElement)
 
 cdef class PrincipalIdealDomainElement(DedekindDomainElement):
     def lcm(self, right):
@@ -1161,6 +1054,12 @@ cdef class PrincipalIdealDomainElement(DedekindDomainElement):
 # of EuclideanDomainElements (in particular Integers) by skipping some tp_new
 # calls up the inheritance tree.
 PY_SET_TP_NEW(EuclideanDomainElement, Element)
+
+def is_EuclideanDomainElement(x):
+    """
+    Return True if x is of type EuclideanDomainElement.
+    """
+    return IS_INSTANCE(x, EuclideanDomainElement)
 
 cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
 
@@ -1206,6 +1105,12 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
         """
         _, R = self.quo_rem(other)
         return R
+
+def is_FieldElement(x):
+    """
+    Return True if x is of type FieldElement.
+    """
+    return IS_INSTANCE(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
 
@@ -1262,68 +1167,48 @@ cdef class FieldElement(CommutativeRingElement):
             right = self.parent()(right)
         return self/right, 0
 
+def is_FiniteFieldElement(x):
+    """
+    Return True if x is of type FiniteFieldElement.
+    """
+    return IS_INSTANCE(x, FiniteFieldElement)
+
 cdef class FiniteFieldElement(FieldElement):
     pass
 
+def is_AlgebraElement(x):
+    """
+    Return True if x is of type AlgebraElement.
+    """
+    return IS_INSTANCE(x, AlgebraElement)
+
 cdef class AlgebraElement(RingElement):
-    cdef AlgebraElement _mul_left_scalar_c(self, RingElement m):
-        """
-        DO NOT OVERRIDE THIS FUNCTION.
-        """
-        if HAS_DICTIONARY(self):
-            return self._mul_left_scalar_c_impl(right)
-        else:
-            return self._mul_left_scalar(right)
+    pass
 
-    cdef AlgebraElement _mul_left_scalar_c_impl(self, RingElement m):
-        raise NotImplementedError
-
-    def _mul_left_scalar(self, m):
-        return self._mul_left_scalar_c_impl(m)
-
-
-    cdef AlgebraElement _mul_right_scalar_c(self, RingElement m):
-        """
-        DO NOT OVERRIDE THIS FUNCTION.
-        """
-        if HAS_DICTIONARY(self):
-            return self._mul_right_scalar_c_impl(right)
-        else:
-            return self._mul_right_scalar(right)
-
-    cdef AlgebraElement _mul_right_scalar_c_impl(self, RingElement m):
-        raise NotImplementedError
-
-    def _mul_right_scalar(self, m):
-        return self._mul_right_scalar_c_impl(m)
-
-
+def is_CommutativeAlgebraElement(x):
+    """
+    Return True if x is of type CommutativeAlgebraElement.
+    """
+    return IS_INSTANCE(x, CommutativeAlgebraElement)
 
 cdef class CommutativeAlgebraElement(CommutativeRingElement):
     pass
+
+def is_InfinityElement(x):
+    """
+    Return True if x is of type InfinityElement.
+    """
+    return IS_INSTANCE(x, InfinityElement)
 
 cdef class InfinityElement(RingElement):
     pass
 
 
-# A Python class
-class Element_cmp_:
-    """
-    Class for defining comparisons between elements.
-    """
-    def __cmp__(self, right):
-        try:
-            if not (right.parent() is self.parent()):
-                return cmp(self, right)
-        except AttributeError:
-            return cmp(self, right)
-        return self._cmp_(right)
-
-    def _cmp_(self, right):
-        raise NotImplementedError
-
-
 cdef int have_same_parent(left, right):
+    """
+    Return nonzero true value if and only if left and right are
+    elements and have the same parent.
+    """
     # (We know at least one of the arguments is an Element. So if
     # their types are *equal* (fast to check) then they are both
     # Elements.  Otherwise use the slower test via PY_TYPE_CHECK.)
@@ -1380,61 +1265,17 @@ cdef canonical_coercion_c(x, y):
         return yp(x), y
     elif PY_IS_NUMERIC(y):
         return x, xp(y)
-    if xp.has_coerce_map_from(yp):
-        return x, xp(y)
-    elif yp.has_coerce_map_from(xp):
-        return yp(x), y
-    raise TypeError, "unable to find a common canonical parent for x and y"
-
-def x2_canonical_coercion(x, y):
-    return canonical_coercion_c(x,y)
-
-cdef x2_canonical_coercion_c(x, y):
-    cdef int i
-    xp = parent_c(x)
-    yp = parent_c(y)
-    if xp is yp:
-        return x, y
-
     try:
-        if PY_IS_NUMERIC(x):
-            try:
-                x = yp(x)
-            except TypeError:
-                y = xp(y)
-                return x, y
-        elif PY_IS_NUMERIC(y):
-            try:
-                y = xp(y)
-            except TypeError:
-                x = yp(x)
-                return x, y
-        else:
-            i = 0
-            try:
-                x0 = x
-                x = coerce(yp, x)
-            except TypeError, msg:
-                i = i + 1
-            try:
-                y = coerce(xp, y)
-            except TypeError, msg:
-                i = i + 1
-            if i == 0:
-                # Both succeed.  But we must be careful to take x before
-                # it was coerced, or we end up *switching* to the parents,
-                # which is no good.
-                return x0, y
-            elif i == 2:
-                import  sage.rings.ring
-                if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
-                    raise TypeError, "you cannot +,*,/ a ring with a number."
-                raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-        return x, y
+        if xp.has_coerce_map_from(yp):
+            return x, xp(y)
     except AttributeError:
-        raise TypeError, "unable to find a common canonical parent"
-
-########################################
+        pass
+    try:
+        if yp.has_coerce_map_from(xp):
+            return yp(x), y
+    except AttributeError:
+        pass
+    raise TypeError, "unable to find a common canonical parent for x and y"
 
 def canonical_base_coercion(x, y):
     try:
@@ -1457,41 +1298,74 @@ def canonical_base_coercion(x, y):
 
 def bin_op(x, y, op):
     return functions.bin_op_c(x,y,op)
+
 cdef bin_op_c(x, y, op):
     """
     Compute x op y, where coercion of x and y works according to
     SAGE's coercion rules.
     """
-    #print "bin_op(%s,%s,%s)"%(x,y,op)   # debug
-    if isinstance(y, InfinityElement):
-        return op(y,x)
-    if op == operator.mul and \
-           isinstance(y, (\
-                      ModuleElement,
-                      AlgebraElement,
-                      sage.modules.module.Module)) and \
-           isinstance(x, (RingElement, int, long, float)):
-        return op(y,x)
-    try:
-        #print 1, x, y, x.parent(), y.parent()
-        x, y = canonical_coercion_c(x, y)
-        #print 2, x, y, x.parent(), y.parent()
-    except TypeError, mesg:
-        try:
-            return y._r_action(x)
-        except AttributeError:
-            raise TypeError, '%s: x parent: %s, y parent: %s'%(mesg, parent(x), parent(y))
-        except TypeError:
-            raise TypeError, "No right action defined"
-        try:
-            return x._l_action(y)
-        except AttributeError:
-            raise TypeError, mesg
-        except TypeError:
-            raise TypeError, "No left action defined"
-            #raise TypeError, "No left action of %s on %s defined"%(x,y)
 
-    return op(x,y)
+    # 1. Try canonical ring element coercion.
+    try:
+        x, y = canonical_coercion_c(x, y)
+        return op(x,y)
+    except TypeError:
+        pass
+
+    # 2. Try scalar multiplication.
+    # No way to multiply x and y using the ``coerce into a canonical
+    # parent'' rule.
+    # The next rule to try is scalar multiplication by coercing
+    # into the base ring.
+    cdef int x_is_modelt, y_is_modelt
+    y_is_modelt = PY_TYPE_CHECK(y, ModuleElement)
+    if y_is_modelt:
+        # First try to coerce x into the base ring of y if y is an element.
+        try:
+            x = (<ModuleElement> y)._parent._base(x)
+            return (<ModuleElement> y)._lmul_c(x)     # the product x * y
+        except TypeError, msg:
+            pass
+
+    x_is_modelt = PY_TYPE_CHECK(x, ModuleElement)
+    if x_is_modelt:
+        # That did not work.  Try to coerce y into the base ring of x.
+        try:
+            y = (<ModuleElement> x)._parent._base(y)
+            return (<ModuleElement> x)._rmul_c(y)    # the product x * y
+        except TypeError:
+            pass
+
+    if y_is_modelt and x_is_modelt:
+        # 3. Both coercion failed, but both are module elements.
+        # Try base extending the right object by the parent of the left
+
+        ## TODO -- WORRY -- only unambiguous if one succeeds!
+        if  PY_TYPE_CHECK(x, RingElement):
+            try:
+                return x * y.base_extend((<RingElement>x)._parent)
+            except (TypeError, AttributeError), msg:
+                pass
+        # Also try to base extending the left object by the parent of the right
+        if  PY_TYPE_CHECK(y, RingElement):
+            try:
+                return y * x.base_extend((<Element>y)._parent)
+            except (TypeError, AttributeError), msg:
+                pass
+
+    # 4. Try _l_action or _r_action.
+    # Test to see if an _r_action or _l_action is
+    # defined on either side.
+    try:
+        return y._r_action(x)
+    except (AttributeError, TypeError):
+        pass
+    try:
+        return x._l_action(y)
+    except (AttributeError, TypeError):
+        pass
+
+    raise TypeError, "unable to multiply %s times %s"%(x,y)
 
 
 def coerce_cmp(x,y):  # external interface to cmp_cdef

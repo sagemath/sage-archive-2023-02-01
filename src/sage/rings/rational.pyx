@@ -1,4 +1,4 @@
-"""
+r"""
 Rational Numbers
 
 AUTHORS:
@@ -35,7 +35,7 @@ import sage.libs.pari.all
 cimport integer
 import integer
 
-from sage.structure.element cimport RingElement
+from sage.structure.element cimport RingElement, ModuleElement
 from sage.structure.element import bin_op
 
 import sage.rings.real_mpfr
@@ -541,20 +541,20 @@ cdef class Rational(sage.structure.element.FieldElement):
     ################################################################
     # Optimized arithmetic
     ################################################################
-    cdef RingElement _add_c_impl(self, RingElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         mpq_neg(x.value, self.value)

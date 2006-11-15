@@ -6,10 +6,11 @@ An element of the integers modulo $n$.
 AUTHORS:
     -- Robert Bradshaw (most of the work)
     -- Didier Deshommes (bit shifting)
-    -- William Stein (editing and polishing)
+    -- William Stein (editing and polishing; new arith architecture)
 """
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "../ext/stdsage.pxi"
 
 import operator
 
@@ -24,10 +25,13 @@ import sage.interfaces.all
 
 import sage.rings.integer
 cimport sage.rings.integer
+from sage.rings.integer cimport Integer
 
 import sage.structure.element
 cimport sage.structure.element
-from sage.structure.element cimport RingElement, Element
+from sage.structure.element cimport RingElement, ModuleElement, Element
+
+from sage.structure.parent cimport Parent
 
 
 def Mod(n, m):
@@ -39,15 +43,13 @@ def Mod(n, m):
         sage: x = Mod(12345678, 32098203845329048)
         sage: x
         12345678
-        sage: x**100
+        sage: x^100
         1017322209155072
 
     You can also use the lowercase version:
         sage: mod(12,5)
         2
     """
-
-
     return IntegerMod(integer_mod_ring.IntegerModRing(m), n)
 
 mod = Mod
@@ -397,6 +399,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 #      class IntegerMod_gmp
 ######################################################################
 
+
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     """
     Elements of $\Z/n\Z$ for n not small enough to be operated on in word size
@@ -426,25 +429,15 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
 
+    cdef IntegerMod_gmp _new_c(self):
+        cdef IntegerMod_gmp x
+        x = PY_NEW(IntegerMod_gmp)
+        x.__modulus = self.__modulus
+        x._parent = self._parent
+        return x
 
     def __dealloc__(self):
         mpz_clear(self.value)
-
-##     def __reduce__(self):
-##         """
-##         EXAMPLES:
-##             sage: k = Integers(2^200)
-##             sage: loads(dumps(k))  == k
-##             True
-##             sage: loads(dumps(k(17)))  == k(17)
-##             True
-##         """
-##         cdef sage.rings.integer.Integer z
-##         z = sage.rings.integer.Integer()
-##         sage.rings.integer.set_mpz(z, self.value)
-##         # todo -- should do this via some direct bytes thing that is the same function used in ZZ class, etc.
-##         return (IntegerMod_gmp, (self._parent, z))
-
 
     cdef void set_from_mpz(IntegerMod_gmp self, mpz_t value):
         cdef sage.rings.integer.Integer modulus
@@ -467,7 +460,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             9443608576
         """
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         mpz_mul_2exp(x.value, self.value, right)
         mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
         return x
@@ -543,46 +536,40 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             raise ZeroDivisionError, "moduli must be coprime"
 
 
-    def copy(IntegerMod_gmp self):
-        cdef IntegerMod_gmp copy
-        copy = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_set(copy.value, self.value)
-        return copy
+    def __copy__(IntegerMod_gmp self):
+        cdef IntegerMod_gmp x
+        x = self._new_c()
+        mpz_init_set(x.value, self.value)
 
-
-    cdef RingElement _add_c_impl(self, RingElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
             sage: R(7) + R(8)
             15
         """
-        cdef sage.rings.integer.Integer modulus
-        modulus = self.__modulus.sageInteger
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         mpz_add(x.value, self.value, (<IntegerMod_gmp>right).value)
-        if mpz_cmp(x.value, modulus.value)  >= 0:
-            mpz_sub(x.value, x.value, modulus.value)
+        if mpz_cmp(x.value, self.__modulus.sageInteger.value)  >= 0:
+            mpz_sub(x.value, x.value, self.__modulus.sageInteger.value)
         return x;
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^10)
             sage: R(7) - R(8)
             9999999999
         """
-        # todo: ask someone (like Robert) why _add_c_impl and _sub_c_impl
-        # grab the modulus differently?
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         mpz_sub(x.value, self.value, (<IntegerMod_gmp>right).value)
         if mpz_sgn(x.value) == -1:
             mpz_add(x.value, x.value, self.__modulus.sageInteger.value)
         return x;
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         """
         EXAMPLES:
             sage: -mod(5,10^10)
@@ -593,47 +580,46 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         if mpz_cmp_si(self.value, 0) == 0:
             return self
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         mpz_sub(x.value, self.__modulus.sageInteger.value, self.value)
         return x
 
-    def _mul_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^11)
             sage: R(700000) * R(800000)
             60000000000
         """
-        cdef sage.rings.integer.Integer modulus
-        modulus = self.__modulus.sageInteger
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
-        mpz_mul(x.value, self.value, right.value)
-        mpz_fdiv_r(x.value, x.value, modulus.value)
-        return x;
+        x = self._new_c()
+        mpz_init(x.value)
+        mpz_mul(x.value, self.value,  (<IntegerMod_gmp>right).value)
+        mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
+        return x
 
-    def _div_(IntegerMod_gmp self, IntegerMod_gmp right):
+    cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^11)
             sage: R(3) / R(7)
             71428571429
         """
-        return self._mul_(~right)
+        return self._mul_c(~right)
 
     def __int__(self):
         return int(self.lift())
 
     def __index__(self):
         """
-        Needed so integers can be used as list indices.
+        Needed so integers modulo n can be used as list indices.
 
         EXAMPLES:
             sage: v = [1,2,3,4,5]
             sage: v[Mod(3,10^20)]
             4
         """
-        return int(self)
+        return int(self.lift())
 
     def __long__(self):
         return long(self.lift())
@@ -658,7 +644,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         cdef sage.rings.integer.Integer exp
         exp = sage.rings.integer_ring.Z(right)
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         _sig_on
         mpz_powm(x.value, self.value, exp.value, self.__modulus.sageInteger.value)
         _sig_off
@@ -674,7 +660,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             31250
         """
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
+        x = self._new_c()
         mpz_fdiv_q_2exp(x.value, self.value, right)
         return x
 
@@ -692,14 +678,14 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             ...
             ZeroDivisionError: Inverse does not exist.
         """
+        if self.is_zero():
+            raise ZeroDivisionError, "Inverse does not exist."
+
         cdef IntegerMod_gmp x
-        x = IntegerMod_gmp(self._parent, None, empty=True)
-        _sig_on
+        x = self._new_c()
         if (mpz_invert(x.value, self.value, self.__modulus.sageInteger.value)):
-            _sig_off
             return x
         else:
-            _sig_off
             raise ZeroDivisionError, "Inverse does not exist."
 
     def lift(IntegerMod_gmp self):
@@ -732,12 +718,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 #      class IntegerMod_int
 ######################################################################
 
-def create_IntegerMod_int(parent, int ivalue):
-    cdef IntegerMod_int n
-    n = IntegerMod_int.__new__(IntegerMod_int, 0)
-    n._parent = parent
-    n.ivalue = ivalue
-    return n
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     """
@@ -765,6 +745,14 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         else:
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
+
+    cdef IntegerMod_int _new_c(self, int_fast32_t value):
+        cdef IntegerMod_int x
+        x = PY_NEW(IntegerMod_int)
+        x.__modulus = self.__modulus
+        x._parent = self._parent
+        x.ivalue = value
+        return x
 
     cdef void set_from_mpz(IntegerMod_int self, mpz_t value):
         if mpz_sgn(value) == -1 or mpz_cmp_si(value, self.__modulus.int32) >= 0:
@@ -799,9 +787,12 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(0, 13) == int(0)
             True
         """
-        if (<IntegerMod_int>left).ivalue == (<IntegerMod_int>right).ivalue: return 0
-        elif (<IntegerMod_int>left).ivalue < (<IntegerMod_int>right).ivalue: return -1
-        else: return 1
+        if (<IntegerMod_int>left).ivalue == (<IntegerMod_int>right).ivalue:
+            return 0
+        elif (<IntegerMod_int>left).ivalue < (<IntegerMod_int>right).ivalue:
+            return -1
+        else:
+            return 1
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -862,41 +853,36 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             raise ZeroDivisionError, "moduli must be coprime"
 
 
-    def copy(IntegerMod_int self):
-        cdef IntegerMod_int copy
-        copy = IntegerMod_int(self._parent, None, empty=True)
-        copy.ivalue = self.ivalue
-        return copy
+    def __copy__(IntegerMod_int self):
+        return self._new_c(self.ivalue)
 
-    cdef RingElement _add_c_impl(self, RingElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
             sage: R(7) + R(8)
             5
         """
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + (<IntegerMod_int>right).ivalue
-        if x.ivalue >= self.__modulus.int32:
-            x.ivalue = x.ivalue - self.__modulus.int32
-        return x;
+        cdef int_fast32_t x
+        x = self.ivalue + (<IntegerMod_int>right).ivalue
+        if x >= self.__modulus.int32:
+            x = x - self.__modulus.int32
+        return self._new_c(x)
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
             sage: R(7) - R(8)
             9
         """
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - (<IntegerMod_int>right).ivalue
-        if x.ivalue < 0:
-            x.ivalue = x.ivalue + self.__modulus.int32
-        return x;
+        cdef int_fast32_t x
+        x = self.ivalue - (<IntegerMod_int>right).ivalue
+        if x < 0:
+            x = x + self.__modulus.int32
+        return self._new_c(x)
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         """
         EXAMPLES:
             sage: -mod(7,10)
@@ -906,34 +892,28 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         if self.ivalue == 0:
             return self
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = self.__modulus.int32 - self.ivalue
-        return x
+        return self._new_c(self.__modulus.int32 - self.ivalue)
 
-    def _mul_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
             sage: R(7) * R(8)
             6
         """
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue * right.ivalue) % self.__modulus.int32
-        return x;
+        return self._new_c((self.ivalue * right.ivalue) % self.__modulus.int32)
 
-    def _div_(IntegerMod_int self, IntegerMod_int right):
+    cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10)
             sage: R(2)/3
             4
         """
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue * mod_inverse_int(right.ivalue, self.__modulus.int32) ) % self.__modulus.int32
-        return x;
+        cdef int_fast32_t x
+        x = (self.ivalue * mod_inverse_int(
+            (<IntegerMod_int>right).ivalue, self.__modulus.int32) ) % self.__modulus.int32
+        return self._new_c(x)
 
     def __int__(IntegerMod_int self):
         return self.ivalue
@@ -1002,20 +982,19 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
-        cdef IntegerMod_int x
+        cdef int_fast32_t x
         cdef mpz_t x_mpz
-        x = IntegerMod_int(self._parent, None, empty=True)
         if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
-            x.ivalue = mod_pow_int(self.ivalue, mpz_get_si(exp.value), self.__modulus.int32)
+            x = mod_pow_int(self.ivalue, mpz_get_si(exp.value), self.__modulus.int32)
         else:
             mpz_init(x_mpz)
             _sig_on
             base = self.lift()
             mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
             _sig_off
-            x.ivalue = mpz_get_si(x_mpz)
+            x = mpz_get_si(x_mpz)
             mpz_clear(x_mpz)
-        return x
+        return self._new_c(x)
 
 
     def __invert__(IntegerMod_int self):
@@ -1026,10 +1005,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: ~mod(7,100)
             43
         """
-        cdef IntegerMod_int x
-        x = IntegerMod_int(self._parent, None, empty=True)
-        x.ivalue = mod_inverse_int(self.ivalue, self.__modulus.int32)
-        return x
+        return self._new_c(mod_inverse_int(self.ivalue, self.__modulus.int32))
 
     def lift(IntegerMod_int self):
         """
@@ -1181,6 +1157,13 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             z = sage.rings.integer_ring.Z(value)
         self.set_from_mpz(z.value)
 
+    cdef IntegerMod_int64 _new_c(self, int_fast64_t value):
+        cdef IntegerMod_int64 x
+        x = PY_NEW(IntegerMod_int64)
+        x.__modulus = self.__modulus
+        x._parent = self._parent
+        x.ivalue = value
+        return x
 
     cdef void set_from_mpz(IntegerMod_int64 self, mpz_t value):
         if mpz_sgn(value) == -1 or mpz_cmp_si(value, self.__modulus.int64) >= 0:
@@ -1286,41 +1269,36 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             raise ZeroDivisionError, "moduli must be coprime"
 
 
-    def copy(IntegerMod_int64 self):
-        cdef IntegerMod_int64 copy
-        copy = IntegerMod_int64(self._parent, None, empty=True)
-        copy.ivalue = self.ivalue
-        return copy
+    def __copy__(IntegerMod_int64 self):
+        return self._new_c(self.ivalue)
 
-    cdef RingElement _add_c_impl(self, RingElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
             sage: R(7) + R(8)
             15
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue + (<IntegerMod_int64>right).ivalue
-        if x.ivalue >= self.__modulus.int64:
-            x.ivalue = x.ivalue - self.__modulus.int64
-        return x;
+        cdef int_fast64_t x
+        x = self.ivalue + (<IntegerMod_int64>right).ivalue
+        if x >= self.__modulus.int64:
+            x = x - self.__modulus.int64
+        return self._new_c(x)
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
             sage: R(7) - R(8)
             99999
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.ivalue - (<IntegerMod_int64>right).ivalue
-        if x.ivalue < 0:
-            x.ivalue = x.ivalue + self.__modulus.int64
-        return x;
+        cdef int_fast64_t x
+        x = self.ivalue - (<IntegerMod_int64>right).ivalue
+        if x < 0:
+            x = x + self.__modulus.int64
+        return self._new_c(x)
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         """
         EXAMPLES:
             sage: -mod(7,10^5)
@@ -1330,34 +1308,26 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         if self.ivalue == 0:
             return self
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = self.__modulus.int64 - self.ivalue
-        return x
+        return self._new_c(self.__modulus.int64 - self.ivalue)
 
-    def _mul_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
             sage: R(700) * R(800)
             60000
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue * right.ivalue) % self.__modulus.int64
-        return x;
+        return self._new_c((self.ivalue * (<IntegerMod_int64>right).ivalue) % self.__modulus.int64)
 
-    def _div_(IntegerMod_int64 self, IntegerMod_int64 right):
+    cdef RingElement _div_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R = Integers(10^5)
             sage: R(2)/3
             33334
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue * mod_inverse_int64(right.ivalue, self.__modulus.int64) ) % self.__modulus.int64
-        return x;
+        return self._new_c((self.ivalue * mod_inverse_int64((<IntegerMod_int64>right).ivalue,
+                                   self.__modulus.int64) ) % self.__modulus.int64)
 
     def __int__(IntegerMod_int64 self):
         return self.ivalue
@@ -1384,20 +1354,19 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         cdef sage.rings.integer.Integer exp, base
         exp = sage.rings.integer_ring.Z(right)
-        cdef IntegerMod_int64 x
+        cdef int_fast64_t x
         cdef mpz_t x_mpz
-        x = IntegerMod_int64(self._parent, None, empty=True)
         if mpz_sgn(exp.value) >= 0 and mpz_cmp_si(exp.value, 100000) < 0:  # TODO: test to find a good threshold
-            x.ivalue = mod_pow_int64(self.ivalue, mpz_get_si(exp.value), self.__modulus.int64)
+            x = mod_pow_int64(self.ivalue, mpz_get_si(exp.value), self.__modulus.int64)
         else:
             mpz_init(x_mpz)
             _sig_on
             base = self.lift()
             mpz_powm(x_mpz, base.value, exp.value, self.__modulus.sageInteger.value)
             _sig_off
-            x.ivalue = mpz_get_si(x_mpz)
+            x = mpz_get_si(x_mpz)
             mpz_clear(x_mpz)
-        return x
+        return self._new_c(x)
 
     def __lshift__(IntegerMod_int64 self, int right):
         r"""
@@ -1408,10 +1377,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: e*2^32
             10
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue << right) % self.__modulus.int64
-        return x
+        return self._new_c((self.ivalue << right) % self.__modulus.int64)
 
     def __rshift__(IntegerMod_int64 self, int right):
         """
@@ -1424,10 +1390,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: int(e)/int(2^3)
             1
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = (self.ivalue >> right) % self.__modulus.int64
-        return x
+        return self._new_c((self.ivalue >> right) % self.__modulus.int64)
 
     def __invert__(IntegerMod_int64 self):
         """
@@ -1441,10 +1404,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: a
             7
         """
-        cdef IntegerMod_int64 x
-        x = IntegerMod_int64(self._parent, None, empty=True)
-        x.ivalue = mod_inverse_int64(self.ivalue, self.__modulus.int64)
-        return x
+        return self._new_c(mod_inverse_int64(self.ivalue, self.__modulus.int64))
 
     def lift(IntegerMod_int64 self):
         """

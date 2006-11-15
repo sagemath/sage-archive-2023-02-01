@@ -290,11 +290,15 @@ cdef class Element(sage_object.SageObject):
         Compare left and right.
         """
         cdef int r
+
         if not have_same_parent(left, right):
-
-            # TODO: can make faster using the cdef interface to coerce
-            r = cmp_c(left, right)
-
+            try:
+                left, right = canonical_coercion_c(left, right)
+                r = cmp(left, right)
+            except TypeError:
+                r = cmp(type(left), type(right))
+                if r == 0:
+                    r = -1
         else:
             if HAS_DICTIONARY(left):   # fast check
                 r = left._cmp_(right)
@@ -526,22 +530,42 @@ cdef class ModuleElement(Element):
     ##################################################
     # Scalar multiplication
     ##################################################
-    cdef ModuleElement _lmul_c(self, RingElement m):
+    cdef ModuleElement _lmul_c(self, RingElement left):
         """
         DO NOT OVERRIDE THIS FUNCTION.  OK to call.
         """
         if HAS_DICTIONARY(self):
-            return self._lmul_c_impl(right)
+            return self._lmul_c_impl(left)
         else:
-            return self._lmul_(right)
+            return self._lmul_(left)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement m):
-        raise NotImplementedError
+    cdef ModuleElement _lmul_c_impl(self, RingElement left):
+        """
+        Default left multiplication, which is to try to canonically
+        coerce the scalar to the integers and do that multiplication,
+        which is always defined.
+        """
+        from sage.rings.all import ZZ
+        n = ZZ._coerce_(left)
+        a = self
+        if n < 0:
+            a = -a
+            n = -n
+        prod = self._parent(0)
+        aprod = a
+        while True:
+            if n&1 > 0: prod = prod + aprod
+            n = n >> 1
+            if n != 0:
+                aprod = aprod + aprod
+            else:
+                break
+        return prod
 
-    def _mul_left_scalar(self, m):
-        return self._lmul_c_impl(m)
+    def _lmul_(self, left):
+        return self._lmul_c_impl(left)
 
-    cdef ModuleElement _rmul_c(self, RingElement m):
+    cdef ModuleElement _rmul_c(self, RingElement right):
         """
         DO NOT OVERRIDE THIS FUNCTION.
         """
@@ -550,10 +574,16 @@ cdef class ModuleElement(Element):
         else:
             return self._rmul_(right)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement m):
-        raise NotImplementedError
-    def _mul_right_scalar(self, m):
-        return self._rmul_c_impl(m)
+    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+        """
+        Default right multiplication, which is to try to canonically
+        coerce the scalar to the integers and do that multiplication,
+        which is always defined.
+        """
+        return self._lmul_c(right)
+
+    def _rmul_(self, right):
+        return self._rmul_c_impl(right)
 
 
     ##################################################
@@ -651,7 +681,7 @@ cdef class MonoidElement(Element):
         elif n == 0:
             return power
 
-        power = self.parent()(1)
+        power = self._parent(1)
         apow = a
         while True:
             if n&1 > 0: power = power*apow
@@ -683,11 +713,12 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement m):
-        return self._rmul_c_impl(m)
+    cdef ModuleElement _lmul_c_impl(self, RingElement left):
+        return self._rmul_c_impl(left)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement m):
-        m = int(m)  # a little worrisome.
+    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+        cdef int m
+        m = int(right)  # a little worrisome.
         if m<0:
             return (-self)*(-m)
         if m==1:
@@ -1212,9 +1243,14 @@ cdef int have_same_parent(left, right):
     # (We know at least one of the arguments is an Element. So if
     # their types are *equal* (fast to check) then they are both
     # Elements.  Otherwise use the slower test via PY_TYPE_CHECK.)
-    return (PY_TYPE(left) is PY_TYPE(right)) or \
-           (PY_TYPE_CHECK(right, Element) and PY_TYPE_CHECK(left, Element) and \
-            (<Element>left)._parent is (<Element>right)._parent)
+    if PY_TYPE(left) is PY_TYPE(right):
+        return (<Element>left)._parent is (<Element>right)._parent
+
+    if PY_TYPE_CHECK(right, Element) and PY_TYPE_CHECK(left, Element):
+        return (<Element>left)._parent is (<Element>right)._parent
+
+    return 0
+
 
 
 
@@ -1297,7 +1333,7 @@ def canonical_base_coercion(x, y):
 
 
 def bin_op(x, y, op):
-    return functions.bin_op_c(x,y,op)
+    return bin_op_c(x,y,op)
 
 cdef bin_op_c(x, y, op):
     """
@@ -1309,8 +1345,13 @@ cdef bin_op_c(x, y, op):
     try:
         x, y = canonical_coercion_c(x, y)
         return op(x,y)
-    except TypeError:
+    except TypeError, msg:
         pass
+
+    # If the op is multiplication, then some other algebra multiplications
+    # may be defined
+    if not op is operator.mul:
+        raise TypeError, "%s\nno canonical coercion."%msg
 
     # 2. Try scalar multiplication.
     # No way to multiply x and y using the ``coerce into a canonical
@@ -1369,114 +1410,13 @@ cdef bin_op_c(x, y, op):
 
 
 def coerce_cmp(x,y):  # external interface to cmp_cdef
-    return functions.cmp_c(x,y)
-
-N = type(None)  # todo -- use Python/C API
-
-cdef cmp_c(x, y):
-    tx = type(x); ty = type(y)
-    if (tx == N and ty != N) or (tx != N and ty == N):
-        return -1
-    elif isinstance(y, InfinityElement):
-        return -y.__cmp__(x)
-
-    xp = parent(x)
-    yp = parent(y)
-    if xp is yp:
-        return __builtin__.cmp(x,y)
-
-    cdef int fails
-    fails = 0
-    if isinstance(x, (int, long)):
-
-        return __builtin__.cmp(yp(x), y)
-
-    elif isinstance(y, (int, long)):
-
-        return __builtin__.cmp(x, xp(y))
-
-    else:
-
-        fails = 0
-        try:
-            x0 = x
-            x = coerce(yp, x)
-        except (TypeError, ValueError):
-        #    print "coercing %s to %s failed"%(x0,yp)
-            fails = fails + 1
-        #else:
-        #    print "coercion %s to %s suceeded with %s (parent=%s)"%(x0,yp,x,parent(x))
-
-        try:
-            y0 = y
-            y = coerce(xp, y)
-        except (TypeError, ValueError):
-        #    print "coercing %s to %s failed"%(y0,xp)
-            fails = fails + 1
-        #else:
-        #    print "coercion %s to %s suceeded with %s (parent=%s)"%(y0,xp,y,parent(y))
-
-
-        if fails == 0:
-            assert (parent(x0) is parent(y))  # debug
-            return __builtin__.cmp(x0,y)
-
-        elif fails == 2:
-
-            return -1
-
-        else:
-            if not (parent(x) is parent(y)):
-                raise RuntimeError, "There is a bug in coercion: x=%s (parent=%s), y=%s (parent=%s)"%(x, parent(x), y, parent(y))
-            return __builtin__.cmp(x,y)
-
-
-def x_canonical_coercion(x, y):
-    return x_canonical_coercion_c(x,y)
-cdef x_canonical_coercion_c(x, y):
-    cdef int i
-    xp = parent(x)
-    yp = parent(y)
-    if xp is yp:
-        return x, y
-
     try:
-        if x.__class__ in [int, long, float, complex]:
-            try:
-                x = yp(x)
-            except TypeError:
-                y = x.__class__(y)
-                return x, y
-        elif y.__class__ in [int, long, float, complex]:
-            try:
-                y = xp(y)
-            except TypeError:
-                x = y.__class__(x)
-                return x, y
-        else:
-            i = 0
-            try:
-                x0 = x
-                x = coerce(yp, x)
-            except TypeError, msg:
-                i = i + 1
-            try:
-                y = coerce(xp, y)
-            except TypeError, msg:
-                i = i + 1
-            if i == 0:
-                # Both succeed.  But we must be careful to take x before
-                # it was coerced, or we end up *switching* to the parents,
-                # which is no good.
-                return x0, y
-            elif i == 2:
-                import  sage.rings.ring
-                if isinstance(x, sage.rings.ring.Ring) or isinstance(y, sage.rings.ring.Ring):
-                    raise TypeError, "you cannot +,*,/ a ring with a number."
-                raise TypeError, "unable to find a common parent for %s (parent: %s) and %s (parent: %s)"%(x,xp, y, yp)
-        return x, y
-    except AttributeError:
-        raise TypeError, "unable to find a common canonical parent"
+        x, y = canonical_coercion_c(x, y)
+        return cmp(left, right)
+    except TypeError:
+        return cmp(type(x), type(y))
+
+
 
 ###############################################################################
 

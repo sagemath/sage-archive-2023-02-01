@@ -399,14 +399,12 @@ cdef class ParentWithGens(parent.Parent):
         Return True if there is a natural map from S to self.
         Otherwise, return False.
         """
-        # TODO This generic behavior is stupid and slow -- but is
-        # doing exactly what we want.  Moreover, again, as in _coerce_
-        # above, this should be "raise NotImplementedError", and all
-        # rings must define this.
         try:
             return self._has_coerce_map_from[S]
         except KeyError:
             pass
+        except TypeError:
+            self._has_coerce_map_from = {}
         try:
             self._coerce_(S(0))
         except TypeError:

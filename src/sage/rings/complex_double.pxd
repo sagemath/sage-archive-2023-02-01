@@ -9,7 +9,7 @@ import sage.structure.coerce
 
 import sage.structure.element
 cimport sage.structure.element
-from sage.structure.element cimport RingElement
+from sage.structure.element cimport RingElement, ModuleElement
 
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
@@ -17,9 +17,6 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
 cdef class ComplexDoubleElement(sage.structure.element.FieldElement):
 	cdef gsl_complex _complex
-
-	cdef int cmp(ComplexDoubleElement left,ComplexDoubleElement right)
-
 	cdef GEN _gen(self)
-	cdef RingElement _add_c_impl(self, RingElement right)
+
 

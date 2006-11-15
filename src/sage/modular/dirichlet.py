@@ -565,7 +565,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not rings.is_CyclotomicField(K) or rings.is_RationalField(K):
+        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
             raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
         g = 0
         m = G.modulus()
@@ -622,7 +622,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         G = self.parent()
         K = G.base_ring()
-        if not rings.is_CyclotomicField(K) or rings.is_RationalField(K):
+        if not (rings.is_CyclotomicField(K) or rings.is_RationalField(K)):
             raise NotImplementedError, "Gauss sums only currently implemented when the base ring is a cyclotomic field or QQ."
         phi = K.complex_embedding(prec)
         CC = phi.codomain()

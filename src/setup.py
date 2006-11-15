@@ -334,7 +334,8 @@ if DEVEL:
     ext_modules.append(linbox_gfq)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c']
+    #m.sources += ['sage/ext/interrupt.c']
+    m.libraries += ['csage']
 
 include_dirs = ['%s/include'%SAGE_LOCAL, '%s/include/python'%SAGE_LOCAL]
 
@@ -435,8 +436,8 @@ def pyrex(ext_modules):
 # Update interrupt.h and interrupt.pxi files
 for D in os.listdir("sage/libs/"):
     if os.path.isdir('sage/libs/%s'%D):
-        os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
-        os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+        #os.system("cp sage/ext/interrupt.h sage/libs/%s/"%D)
+        #os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
         os.system("cp sage/ext/interrupt.pxi sage/libs/%s/"%D)
 
 

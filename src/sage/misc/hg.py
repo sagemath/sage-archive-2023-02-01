@@ -68,11 +68,10 @@ class HG:
         self.__cloneable = cloneable
 
     def __repr__(self):
-        self.status()
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
 
     def status(self):
-        print("Status of modified or unknown files:")
+        print("Getting status of modified or unknown files:")
         self('status')
         print "\n---\n"
         if self.__name == "SAGE Library Source Code":
@@ -91,15 +90,23 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd, check_initialized=True):
+    def __call__(self, cmd=None, check_initialized=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
         """
         self._warning()
-        s = 'cd "%s" && hg %s'%(self.__dir, cmd)
-        print s
-        return os.system(s)
+
+        # this is a pretty ugly hack and probably not very pythonic...
+        if cmd == None:
+            self.status()
+        else:
+            # there should be no need for the user to see this unless we're
+            # debugging... my compromise is to preface the output with some
+            # explanation so that it doesn't look so out of place.
+            s = 'cd "%s" && hg %s'%(self.__dir, cmd)
+            print "Now executing: " + s + "\n"
+            return os.system(s)
 
     def serve(self, port=8200, open_viewer=False):
         """
@@ -551,7 +558,7 @@ class HG:
         r"""
         Clone the current branch of the SAGE library, and make it active.
 
-        Only available for \code{hg_sage.}
+        Only available for the \code{hg_sage} repository.
 
         Use \code{hg_sage.switch('branch_name')} to switch to a different branch.
         You must restart SAGE after switching.

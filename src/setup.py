@@ -333,6 +333,11 @@ ext_modules = [ \
                'sage/ext/arith.pyx'],
               libraries = ['gmp']), \
 
+    Extension('sage.modular.modsym.right_cosets',
+              ['sage/modular/modsym/right_cosets.pyx',
+               'sage/ext/arith.pyx'],
+              libraries = ['gmp']), \
+
     Extension('sage.structure.mutability_pyx',
               ['sage/structure/mutability_pyx.pyx']
               ), \

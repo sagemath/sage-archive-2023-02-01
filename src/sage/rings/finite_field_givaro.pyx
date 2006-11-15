@@ -131,6 +131,7 @@ cdef class FiniteField_givaro(FiniteField):
     cdef GivaroGfq *objectptr # C++ object
     cdef object _polynomial_ring
     cdef object _prime_subfield
+    cdef object _array
     cdef int repr
 
     def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly"):
@@ -234,6 +235,7 @@ cdef class FiniteField_givaro(FiniteField):
                 _sig_on
                 self.objectptr = gfq_factorypk(p,k)
                 _sig_off
+                self._array = self.gen_array()
                 return
 
         if is_Polynomial(modulus):
@@ -247,9 +249,17 @@ cdef class FiniteField_givaro(FiniteField):
             _sig_on
             self.objectptr = gfq_factorypkp(p, k,cPoly)
             _sig_off
+            self._array = self.gen_array()
             return
 
         raise TypeError, "Cannot understand modulus"
+
+    cdef gen_array(FiniteField_givaro self):
+        cdef int i
+        array = list()
+        for i from 0 <= i < self.order():
+            array.append( make_FiniteField_givaroElement(self,i) )
+        return tuple(array)
 
     def __dealloc__(FiniteField_givaro self):
         """
@@ -1544,9 +1554,12 @@ cdef make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     """
     """
     cdef FiniteField_givaroElement y
-    y = FiniteField_givaroElement(parent)
-    y.object = x
-    return y
+    if parent._array is None:
+        y = FiniteField_givaroElement(parent)
+        y.object = x
+        return y
+    else:
+        return parent._array[x]
 
 cdef gap_to_givaro(x, F):
     """

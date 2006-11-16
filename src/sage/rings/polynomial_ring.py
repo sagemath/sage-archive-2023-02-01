@@ -5,6 +5,33 @@ AUTHOR:
    -- William Stein
    -- Kiran Kedlaya (2006-02-13): added macaulay2 option
    -- Martin Albrecht (2006-08-25): removed it again as it isn't needed anymore
+
+EXAMPLES:
+Creating a polynomial ring injects the variable into the interpreter namespace:
+    sage: z = QQ['z'].0
+    sage: (z^3 + z - 1)^3
+    z^9 + 3*z^7 - 3*z^6 + 3*z^5 - 6*z^4 + 4*z^3 - 3*z^2 + 3*z - 1
+
+Saving and loading of polynomial rings works:
+    sage: loads(dumps(QQ['x'])) == QQ['x']
+    True
+    sage: k = PolynomialRing(QQ['x'],'y'); loads(dumps(k))==k
+    True
+    sage: k = PolynomialRing(ZZ,'y'); loads(dumps(k)) == k
+    True
+    sage: k = PolynomialRing(ZZ,'y', sparse=True); loads(dumps(k))
+    Sparse Univariate Polynomial Ring in y over Integer Ring
+
+The rings of sparse and dense polynomials in the same variable are
+canonically isomorphic:
+    sage: PolynomialRing(ZZ,'y', sparse=True) == PolynomialRing(ZZ,'y')
+    True
+
+
+    sage: QQ['y'] < QQ['x']
+    False
+    sage: QQ['y'] < QQ['z']
+    True
 """
 
 
@@ -17,7 +44,6 @@ AUTHOR:
 #*****************************************************************************
 
 import random
-import weakref
 
 import commutative_ring
 import commutative_algebra
@@ -25,10 +51,9 @@ import ring
 import ring_element
 import field
 import integral_domain
-import multi_polynomial_ring
-import multi_polynomial_element
 import principal_ideal_domain
 import polynomial_element as polynomial
+import multi_polynomial_element
 import rational_field
 import integer_ring
 import integer
@@ -36,6 +61,7 @@ import integer_mod_ring
 from sage.libs.all import pari
 import sage.misc.defaults
 import sage.misc.latex as latex
+import sage.rings.multi_polynomial_element
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
@@ -43,70 +69,42 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
 
-#_objsPolynomialRing = {}
-
-def PolynomialRing(base_ring, name=None, sparse=False, names=None, order=None):
+def is_PolynomialRing(x):
     """
-    Return a univariate or multivariate polynomial ring.
-
-    INPUT:
-        base_ring -- the base ring
-        name -- (str) the name of the generator
-        sparse -- (bool; default: False) whether or not elements are represented using
-                  sparse methods; note that multivariate polynomials are always sparse
-        names -- names of the generators (for multivariate poly)
-        order -- term order of ring
+    Return True if x is a *univariate* polynomial ring (and not a sparse multivariate
+    polynomial ring in one variable).
 
     EXAMPLES:
-        sage: PolynomialRing(ZZ)
-        Univariate Polynomial Ring in x over Integer Ring
-        sage: PolynomialRing(ZZ, 'y')
-        Univariate Polynomial Ring in y over Integer Ring
-        sage: PolynomialRing(PolynomialRing(QQ,'z'), 'y')
-        Univariate Polynomial Ring in y over Univariate Polynomial Ring in z over Rational Field
-        sage: PolynomialRing(QQ, name='abc')
-        Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, name='abc', sparse=True)
-        Sparse Univariate Polynomial Ring in abc over Rational Field
-        sage: PolynomialRing(QQ, 3, sparse=True)
-        Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: PolynomialRing(QQ, 3)
-        Polynomial Ring in x0, x1, x2 over Rational Field
+        sage: is_PolynomialRing(2)
+        False
+
+    This polynomial ring is not univariate.
+        sage: is_PolynomialRing(ZZ['x,y,z'])
+        False
+        sage: is_MPolynomialRing(ZZ['x,y,z'])
+        True
+
+        sage: is_PolynomialRing(ZZ['w'])
+        True
+
+    Univariate means not only in one variable, but is a specific data
+    type.  There is a multivariate (sparse) polynomial ring data type,
+    which supports a single variable as a special case.
+
+        sage: is_PolynomialRing(PolynomialRing(ZZ,1,'w'))
+        False
+        sage: R = PolynomialRing(ZZ,1,'w'); R
+        Polynomial Ring in w over Integer Ring
+        sage: is_PolynomialRing(R)
+        False
+        sage: type(R)
+        <class 'sage.rings.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
     """
-    if isinstance(name, (int,long,integer.Integer)):
-        if isinstance(sparse, (list, str)):
-            if order is None:
-                order = names
-            names = sparse
-        if order is None:
-            order = 'degrevlex'
-        return multi_polynomial_ring.MPolynomialRing(base_ring, n=name, names=names, order=order)
-
-    #global _objsPolynomialRing
-    #key = (base_ring, name, sparse)
-    #if _objsPolynomialRing.has_key(key):
-    #    R = _objsPolynomialRing[key]()
-    #    if R != None:
-    #        return R
-
-    if integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
-        n = base_ring.order()
-        if n.is_prime():
-            R = PolynomialRing_dense_mod_p(base_ring, name)
-        else:
-            R = PolynomialRing_dense_mod_n(base_ring, name)
-    elif isinstance(base_ring, field.Field):
-        R = PolynomialRing_field(base_ring, name, sparse)
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = PolynomialRing_integral_domain(base_ring, name, sparse)
-    else:
-        R = PolynomialRing_generic(base_ring, name, sparse)
-
-    #_objsPolynomialRing[key] = weakref.ref(R)
-    return R
-
-def is_PolynomialRing(x):
     return isinstance(x, PolynomialRing_generic)
+
+from polynomial_ring_constructor import PolynomialRing
+
+#########################################################################################
 
 class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
     """
@@ -124,13 +122,19 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
         commutative_algebra.CommutativeAlgebra.__init__(self, base_ring)
-        self.assign_names(name)
         self.__is_sparse = sparse
         ring.Ring.__init__(self)
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
+        self._assign_names(name)
+
+    def __reduce__(self):
+        import sage.rings.polynomial_ring_constructor
+        return (sage.rings.polynomial_ring_constructor.PolynomialRing,
+                (self.base_ring(), self.variable_name(), None, self.is_sparse()))
+
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         C = self.__polynomial_class
@@ -154,9 +158,37 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
 
-    def __reduce__(self):
-        return sage.rings.polynomial_ring.PolynomialRing, \
-               (self.base_ring(), self.variable_name(), self.__is_sparse)
+    def _coerce_(self, x):
+        """
+        Return the canonical coercion of x to this polynomial ring, if one is
+        defined, or raise a TypeError.
+
+        The rings that canonically coerce to this polynomial ring are:
+            * this ring itself
+            * polynomial rings in the same variable over any base ring that
+              canonically coerces to the base ring of this ring
+            * any ring that canonically coerces to the base ring of this ring.
+        """
+        try:
+            P = x.parent()
+
+            # this ring itself:
+            if P is self: return x
+            if P == self: return self(x)
+
+            # polynomial rings in the same variable over any base that coerces in:
+            if is_PolynomialRing(P):
+                if P.variable_name() == self.variable_name():
+                    if self.has_coerce_map_from(P.base_ring()):
+                        return self(x)
+                    else:
+                        raise TypeError, "no natural map between bases of polynomial rings"
+
+        except AttributeError:
+            pass
+
+        # any ring that coerces to the base ring of this polynomial ring.
+        return self._coerce_try(x, [self.base_ring()])
 
     def _magma_(self, G=None):
         """
@@ -173,7 +205,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: magma(PolynomialRing(GF(7))) #optional
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49))) #optional
+            sage: magma(PolynomialRing(GF(49,'a'))) #optional
             Univariate Polynomial Ring in x over GF(7^2)
 
             sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'))) #optional
@@ -185,7 +217,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             G = sage.interfaces.magma.magma
         B = G(self.base_ring())
         R = G('PolynomialRing(%s)'%B.name())
-        R.assign_names(self.variable_names())
+        R._assign_names(self.variable_names())
         return R
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
@@ -199,22 +231,11 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             return False
         return True
 
-    def _coerce_(self, x):
-        if isinstance(x, polynomial.Polynomial) and x.parent() is self:
-            return x
-        return self([self.base_ring()._coerce_(x)])
+    def _cmp_(left, right):
+        return cmp((left.base_ring(), left.variable_name()),
+                   (right.base_ring(), right.variable_name()))
 
-    def __cmp__(self, other):
-        if not isinstance(other, PolynomialRing_generic):
-            return -1
-        if self.variable_name() == other.variable_name() and \
-               self.base_ring() == other.base_ring():
-            return 0
-        elif self.variable_name() < other.variable_name():
-            return -1
-        return +1
-
-    def __repr__(self):
+    def _repr_(self):
         s = "Univariate Polynomial Ring in %s over %s"%(
                 self.variable_name(), self.base_ring())
         if self.is_sparse():
@@ -243,7 +264,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             self.__polynomial_class = polynomial.Polynomial_generic_dense
 
     def base_extend(self, R):
-        return PolynomialRing(R, name=self.variable_name(), sparse=self.is_sparse())
+        return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):
         return self.base_ring().characteristic()
@@ -258,7 +279,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             x^4 + 1
             sage: R.cyclotomic_polynomial(12)
             x^4 - x^2 + 1
-            sage: S = PolynomialRing(FiniteField(7))
+            sage: S = PolynomialRing(FiniteField(7), 'x')
             sage: S.cyclotomic_polynomial(12)
             x^4 + 6*x^2 + 1
         """
@@ -308,7 +329,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
 
     #def quotient(self, I, name=None):
     #    Q = commutative_ring.CommutativeRing.quotient(self, I)
-    #Q.assign_names([name])
+    #Q._assign_names([name])
     #    return Q
 
     def random_element(self, degree, bound=0):
@@ -316,12 +337,13 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         Return a random polynomial.
 
         INPUT:
-            degree -- an int
-            bound -- an int (default: 0, which tries to spread choice across ring, if implemented)
+            degree -- an integer
+            bound -- an integer (default: 0, which tries to spread choice
+            across ring, if implemented)
 
         OUTPUT:
             Polynomial -- A polynomial such that the coefficient of x^i,
-            for i up to degree, are coercisions to the base ring of
+            for i up to degree, are coercions to the base ring of
             random integers between -bound and bound.
 
         """
@@ -352,7 +374,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             an iterator
 
         EXAMPLES:
-            sage: P = PolynomialRing(GF(4),'y')
+            sage: P = PolynomialRing(GF(4,'a'),'y')
             sage: for p in P.monics( of_degree = 2 ): print p
             y^2
             y^2 + 1
@@ -416,7 +438,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
                       the polynomial returned by this function must pass.
 
         EXAMPLE:
-            sage: R = PolynomialRing(QQ)
+            sage: R = PolynomialRing(QQ, 'x')
             sage: f = R.lagrange_polynomial([(0,1),(2,2),(3,-2),(-4,9)]);f
             -23/84*x^3 - 11/84*x^2 + 13/7*x + 1
             sage: f(0)
@@ -427,7 +449,7 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             -2
             sage: f(-4)
             9
-            sage: R = PolynomialRing(GF(2**3))
+            sage: R = PolynomialRing(GF(2**3,'a'), 'x')
             sage: a = R.base_ring().gen()
             sage: f = R.lagrange_polynomial([(a^2+a,a),(a,1),(a^2,a^2+a+1)]); f
             a^2*x^2 + a^2*x + a^2
@@ -498,6 +520,36 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
 
 
 def polygen(base_ring, name="x"):
-    if isinstance(name, list):
-        return polygens(base_ring, name)
-    return PolynomialRing(base_ring, name).gen()
+    """
+    Return an indeterminate over the given base ring with the given name.
+
+    EXAMPLES:
+        sage: z = polygen(QQ,'z')
+        sage: z^3 + z +1
+        z^3 + z + 1
+        sage: parent(z)
+        Univariate Polynomial Ring in z over Rational Field
+
+    NOTE: If you give a list or comma separated string to polygen, you'll
+    get a tuple of indeterminates, exactly as if you called polygens.
+    """
+    t = PolynomialRing(base_ring, name)
+    if t.ngens() > 1:
+        return t.gens()
+    return t.gen()
+
+def polygens(base_ring, names="x"):
+    """
+    Return indeterminates over the given base ring with the given names.
+
+    EXAMPLES:
+        sage: x,y,z = polygens(QQ,'x,y,z')
+        sage: (x+y+z)^2
+        z^2 + 2*y*z + y^2 + 2*x*z + 2*x*y + x^2
+        sage: parent(x)
+        Polynomial Ring in x, y, z over Rational Field
+        sage: t = polygens(QQ,['x','yz','abc'])
+        sage: t
+        (x, yz, abc)
+    """
+    return PolynomialRing(base_ring, names).gens()

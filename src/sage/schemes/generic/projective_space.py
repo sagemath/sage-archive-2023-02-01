@@ -54,6 +54,7 @@ from sage.rings.all import (MPolynomialRing,
                             is_Ring,
                             is_CommutativeRing,
                             is_MPolynomialRing,
+                            Integer,
                             ZZ)
 from sage.modules.all import VectorSpace
 
@@ -108,6 +109,8 @@ def ProjectiveSpace(n, R=None, names=None):
         A = ProjectiveSpace(n.ngens()-1, n.base_ring())
         A._coordinate_ring = n
         return A
+    if isinstance(R, (int, long, Integer)):
+        n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
     if is_Field(R):
@@ -174,7 +177,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.dimension()+1, names=self.__names)
+            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.__names, self.dimension()+1)
             return self._coordinate_ring
 
     def _point_morphism_class(self, *args, **kwds):

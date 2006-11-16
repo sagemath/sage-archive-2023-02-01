@@ -19,13 +19,13 @@ EXAMPLES:
     [0 0 1]
     sage: is_MatrixMorphism(m)
     True
-    sage: m.charpoly()
+    sage: m.charpoly('x')
     x^3 - 3*x^2 + 3*x - 1
     sage: m.base_ring()
     Rational Field
     sage: m.det()
     1
-    sage: m.fcp()
+    sage: m.fcp('x')
     (x - 1)^3
     sage: m.matrix()
     [1 0 0]
@@ -48,7 +48,6 @@ import sage.categories.homset
 import sage.matrix.all as matrix
 import sage.misc.misc as misc
 import sage.modules.free_module as free_module
-import sage.rings.coerce
 from   sage.structure.all import Sequence
 
 def is_MatrixMorphism(x):
@@ -91,9 +90,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             mat = str(self.__matrix)
         return "Morphism defined by the matrix\n%s"%mat
 
-    def __cmp__(self, other):
-        if not isinstance(other, MatrixMorphism) or self.parent() != other.parent():
-            return sage.rings.coerce.cmp(self, other)
+    def _cmp_(self, other):
         return cmp(self.__matrix, other.__matrix)
 
     def __call__(self, x):
@@ -143,11 +140,11 @@ class MatrixMorphism(sage.categories.all.Morphism):
     def base_ring(self):
         return self.domain().base_ring()
 
-    def charpoly(self):
+    def charpoly(self, var):
         if not self.is_endomorphism():
             raise ArithmeticError, "charpoly only defined for endomorphisms " +\
                     "(i.e., domain = range)"
-        return self.__matrix.charpoly()
+        return self.__matrix.charpoly(var)
 
     def decomposition(self, is_diagonalizable=False):
         if not self.is_endomorphism():
@@ -169,11 +166,11 @@ class MatrixMorphism(sage.categories.all.Morphism):
             raise ArithmeticError, "Matrix morphism must be an endomorphism."
         return self.matrix().determinant()
 
-    def fcp(self):
+    def fcp(self, var):
         """
         Return the factorization of the characteristic polynomial.
         """
-        return self.charpoly().factor()
+        return self.charpoly(var).factor()
 
     def kernel(self):
         V = self.matrix().kernel()

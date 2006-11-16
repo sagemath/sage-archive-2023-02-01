@@ -11,7 +11,8 @@ Ambient Spaces
 #*****************************************************************************
 
 from sage.rings.all import Integer, is_CommutativeRing, ZZ
-from sage.structure.all import Generators
+
+from sage.structure.parent_gens import ParentWithGens
 
 import algebraic_scheme
 import scheme
@@ -19,7 +20,7 @@ import scheme
 def is_AmbientSpace(x):
     return isinstance(x, AmbientSpace)
 
-class AmbientSpace(scheme.Scheme, Generators):
+class AmbientSpace(scheme.Scheme, ParentWithGens):
     """
     Base class for ambient spaces over a ring.
 
@@ -109,10 +110,10 @@ class AmbientSpace(scheme.Scheme, Generators):
             Affine Space of dimension 2 over Rational Field
             sage: A.coordinate_ring()
             Polynomial Ring in a, b over Rational Field
-            sage: A.assign_names('xy'); A.coordinate_ring()
+            sage: A._assign_names('xy'); A.coordinate_ring()
             Polynomial Ring in x, y over Rational Field
         """
-        self.coordinate_ring().assign_names(names)
+        self.coordinate_ring()._assign_names(names)
 
     def dimension(self):
         """

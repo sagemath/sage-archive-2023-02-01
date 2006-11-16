@@ -354,7 +354,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             Codomain: Modular Symbols space of dimension 3 for Gamma_0(11) of weight ...
             sage: M = ModularSymbols(Gamma1(13))
             sage: w = M.atkin_lehner_operator()
-            sage: w.fcp()
+            sage: w.fcp('x')
             (x - 1)^7 * (x + 1)^8
 
             sage: M = ModularSymbols(33)
@@ -575,7 +575,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         p = 2
         t = self.dual_hecke_matrix(p)
         while True:
-            f = t.charpoly()
+            f = t.charpoly('x')
             if f.is_irreducible():
                 break
             p = arith.next_prime(p)
@@ -782,7 +782,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         OUTPUT:
             a polynomial
         """
-        return self.hecke_operator(n).charpoly()
+        return self.hecke_operator(n).charpoly('x')
 
     def is_simple(self):
         raise NotImplementedError

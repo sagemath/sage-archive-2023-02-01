@@ -35,8 +35,7 @@ import sage.modular.congroup as congroup
 import sage.modular.dirichlet as dirichlet
 import sage.rings.all as rings
 import sage.rings.arith as arith
-import sage.rings.coerce as coerce
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 
 import sage.modular.cusps as cusps
 
@@ -80,9 +79,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             z[i] = c
         return repr_lincomb(g, z)
 
-    def __add__(self, other):
-        if not isinstance(other, BoundarySpaceElement):
-            return coerce.bin_op(self, other, operator.add)
+    def _add_(self, other):
         z = dict(other.__x)
         for i, c in self.__x.items():
             if z.has_key(i):
@@ -92,9 +89,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
         return BoundarySpaceElement(self.__parent, z)
 
 
-    def __sub__(self, other):
-        if not isinstance(other, BoundarySpaceElement):
-            return coerce.bin_op(self, other, "-")
+    def _sub_(self, other):
         z = dict(self.__x)
         for i, c in other.__x.items():
             if z.has_key(i):
@@ -103,6 +98,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                 z[i] = -c
         return BoundarySpaceElement(self.__parent, z)
 
+    # TODO: use arithmetic arch
     def __mul__(self, other):
         x = {}
         for i, c in self.__x.items():

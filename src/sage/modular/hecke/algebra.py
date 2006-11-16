@@ -28,7 +28,7 @@ import sage.misc.latex as latex
 import sage.categories.all
 import module
 import hecke_operator
-import sage.algebras.commutative_algebra
+import sage.rings.commutative_algebra
 
 def is_HeckeAlgebra(x):
     return isinstance(x, HeckeAlgebra_base)
@@ -54,7 +54,7 @@ def HeckeAlgebra(M):
     return T
 
 
-class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
+class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
     """
     An algebra of Hecke operators on a fixed Hecke module
     """
@@ -66,7 +66,7 @@ class HeckeAlgebra_base(sage.algebras.commutative_algebra.CommutativeAlgebra):
         if not module.is_HeckeModule(M):
             raise TypeError, "M (=%s) must be a HeckeModule"%M
         self.__M = M
-        sage.algebras.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
+        sage.rings.commutative_algebra.CommutativeAlgebra.__init__(self, M.base_ring())
 
     def _repr_(self):
         return "Hecke algebra acting on %s"%self.__M

@@ -33,7 +33,6 @@ from sage.misc.latex import latex
 from infinity import infinity
 
 import arith
-import coerce
 import integer
 import integer_mod
 import padic_field
@@ -41,7 +40,6 @@ import sage.rings.arith
 import rational
 import field_element
 from rational_field import frac, QQ
-import sage.misc.functional
 
 class pAdic(field_element.FieldElement):
     r"""
@@ -240,7 +238,7 @@ class pAdic(field_element.FieldElement):
         that is a power of $p$.
 
         EXAMPLES:
-            sage: K = Qp(11); K.prec(10)
+            sage: K = Qp(11, 10)
             sage: a = K(211/17); a
             4 + 4*11 + 11^2 + 7*11^3 + 9*11^5 + 5*11^6 + 4*11^7 + 8*11^8 + 7*11^9 + O(11^10)
             sage: a.denominator()
@@ -389,6 +387,8 @@ class pAdic(field_element.FieldElement):
                         s += "%s + "%var
             exp += 1
             u = (u-coeff)/p
+        #if prec < self.big_oh()-1:
+        #    s += '... + '
         s += "O(%s"%(p)
         if self.big_oh() == 1:
             s += ")"
@@ -405,7 +405,7 @@ class pAdic(field_element.FieldElement):
     def _add_(self, right):
         """
         EXAMPLES:
-            sage: K = Qp(11); K.prec(10); K.print_prec(5)
+            sage: K = Qp(11, 10); K.print_prec(5)
             sage: a = K(-1); a
             10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + O(11^10)
             sage: b = K(1); b
@@ -413,10 +413,6 @@ class pAdic(field_element.FieldElement):
             sage: a+b
             0
         """
-        #if not isinstance(right, pAdic):
-        #    return coerce.bin_op(self, right, operator.add)
-        #if self.__p != right.__p:
-        #    raise TypeError, "Addition of %s and %s not defined."%(self,right)
         if self.__ordp <= right.__ordp:
             x = self; y = right
         else:
@@ -440,22 +436,16 @@ class pAdic(field_element.FieldElement):
     def _sub_(self, right):
         """
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: zero(K) - one(K)
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
         """
-        #if not isinstance(right, pAdic):
-        #    return coerce.bin_op(self, right, operator.sub)
-        #if self.__p != right.__p:
-        #    raise TypeError, "Addition of %s and %s not defined."%(self,right)
         return self + (-right)
 
     def _mul_(self, right):
         """
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: (-1)*one(K)
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a = K(2/19); a
@@ -475,8 +465,7 @@ class pAdic(field_element.FieldElement):
     def _div_(self, right):
         """
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: a = K(2/19); a
             2*19^-1 + O(19^Infinity)
             sage: b = K(3/19); b
@@ -502,8 +491,7 @@ class pAdic(field_element.FieldElement):
     def __pow__(self, right):
         """
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: a = K(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a^2
@@ -536,8 +524,7 @@ class pAdic(field_element.FieldElement):
     def __neg__(self):
         """
         EXAMPLES:
-           sage: K = Qp(5)
-           sage: K.prec(3)
+           sage: K = Qp(5, 3)
            sage: K(1)
            1
            sage: -K(1)
@@ -556,8 +543,7 @@ class pAdic(field_element.FieldElement):
     def __invert__(self, prec=infinity):
         r"""
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: a = K(20); a
             1 + 19 + O(19^Infinity)
             sage: b = ~a    # calls __invert__
@@ -612,8 +598,7 @@ class pAdic(field_element.FieldElement):
             sage: a.lift()
             4596/49
 
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
 
             sage: a = K(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
@@ -635,14 +620,13 @@ class pAdic(field_element.FieldElement):
     def _integer_(self):
         return self.lift()
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         First compare valuations, then compare normalized
         residue of unit part.
 
         EXAMPLES:
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: a = K(2); a
             2 + O(19^Infinity)
             sage: b = K(3); b
@@ -650,9 +634,6 @@ class pAdic(field_element.FieldElement):
             sage: a < b
             True
         """
-        if not isinstance(other, pAdic) or other.parent() != self.parent():
-            return coerce.cmp(self, other)
-
         m = min(self.big_oh(), other.big_oh())
         x_ordp = self.__ordp
         if x_ordp >= m :
@@ -690,8 +671,7 @@ class pAdic(field_element.FieldElement):
             sage: x = 9*(2+3+O(3**7))
             sage: x.unit_part()
             2 + 3 + O(3^7)
-            sage: K = Qp(19)
-            sage: K.prec(5)
+            sage: K = Qp(19, 5)
             sage: a = K(2)/19; a
             2*19^-1 + O(19^4)
             sage: a.unit_part()
@@ -740,7 +720,7 @@ class pAdic(field_element.FieldElement):
         return $p^r \cdot (a/b)$, otherwise raises ValueError.
 
         EXAMPLES:
-            sage: K = Qp(11); K.prec(10); K.print_prec(10)
+            sage: K = Qp(11, 10); K.print_prec(10)
             sage: a = K(-1); a
             10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + 10*11^5 + 10*11^6 + 10*11^7 + 10*11^8 + 10*11^9 + O(11^10)
             sage: a.rational_reconstruction()
@@ -795,8 +775,7 @@ class pAdic(field_element.FieldElement):
            4. Then $$\log(u) = log(u^{p-1})/(p-1) = F(1-u^{p-1})/(p-1).$$
 
         EXAMPLES:
-            sage: Q13 = Qp(13)
-            sage: Q13.prec(10)
+            sage: Q13 = Qp(13, 10)
             sage: a = Q13(14); a
             1 + 13 + O(13^Infinity)
             sage: a.log()

@@ -38,7 +38,9 @@ import sage.misc.sage_eval
 
 import quit
 
-import sage.rings.coerce as coerce
+import monitor
+EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
+
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
 BAD_SESSION = -2
@@ -230,12 +232,6 @@ class Expect(SageObject):
             os.makedirs(dir)
         os.chdir(dir)
 
-        # This _absolute call below programs around a bug in pexpect:
-        # make a directory X with a subdirectory "magma" and cd into X. Then:
-        #sage: import pexpect
-        #sage: m = pexpect.spawn('magma')
-        #sage: m.interact()  # -- boom!
-
         try:
             cmd = _absolute(self.__command)
         except RuntimeError:
@@ -248,6 +244,7 @@ class Expect(SageObject):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
+            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
@@ -293,10 +290,10 @@ class Expect(SageObject):
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except AttributeError:
-                pass
-        except RuntimeError, msg:
-            pass
+            except Exception, msg:
+                print msg
+        except Exception, msg:
+            print msg
 
     def cputime(self):
         """
@@ -628,7 +625,7 @@ class FunctionElement(SageObject):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
+class ExpectElement(RingElement):
     """
     Expect element.
     """
@@ -682,8 +679,6 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         return str(self)
 
     def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1

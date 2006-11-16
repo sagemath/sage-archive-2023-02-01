@@ -23,12 +23,7 @@ import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
-from sage.rings.coerce import canonical_coercion, bin_op
-from sage.structure.element import RingElement
-
-import sage.interfaces.all
-
-import sage.rings.bernoulli
+from sage.structure.element import RingElement, canonical_coercion, bin_op
 
 ##################################################################
 # Elementary Arithmetic
@@ -56,17 +51,14 @@ def algdep(z, n):
         x^2 - 2
 
     This example involves a complex number.
-        sage: C = ComplexField()
-        sage: z = (1/2)*(1 + sqrt(3) *C.0); z
-        0.50000000000000000 + 0.86602540378443860*I
+        sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
+        0.500000000000000 + 0.866025403784438*I
         sage: p = algdep(z, 6); p
-        x^5 + x^2                    # 32-bit
-        x^6 + 2*x^3 + 1              # 64-bit
+        x^6 + 2*x^3 + 1
         sage: p.factor()
-        x^2 * (x + 1) * (x^2 - x + 1) # 32-bit
-        (x + 1)^2 * (x^2 - x + 1)^2   # 64-bit
+        (x^2 - x + 1)^2 * (x + 1)^2
         sage: z^2 - z + 1
-        0.00000000000000011102230246251565
+        0.000000000000000111022302462515
 
     This example involves a $p$-adic number.
         sage: K = pAdicField(3)
@@ -120,6 +112,7 @@ def bernoulli(n, algorithm='pari'):
                       by *far* the fastest.
             'gap'  -- use GAP
             'gp'   -- use PARI/GP interpreter
+            'magma' -- use MAGMA (optional)
             'python' -- use pure Python implementation
 
     EXAMPLES:
@@ -128,11 +121,16 @@ def bernoulli(n, algorithm='pari'):
         sage: bernoulli(50)
         495057205241079648212477525/66
 
-    We illustrate use of some of the alternative algorithms.
-
+    We use of each of the alternative algorithms:
         sage: bernoulli(12, algorithm='gap')
         -691/2730
         sage: bernoulli(12, algorithm='gp')
+        -691/2730
+        sage: bernoulli(12, algorithm='magma')           # optional
+        -691/2730
+        sage: bernoulli(12, algorithm='pari')
+        -691/2730
+        sage: bernoulli(12, algorithm='python')
         -691/2730
 
     \note{If $n>50000$ then algorithm = 'gp' is used instead of
@@ -141,18 +139,27 @@ def bernoulli(n, algorithm='pari'):
 
     AUTHOR: David Joyner and William Stein
     """
+    from sage.rings.all import Integer, Rational
+    n = Integer(n)
     if n > 50000 and algorithm == 'pari':
         algorithm = 'gp'
     if algorithm == 'pari':
-        x = pari(n).bernfrac()
-        return sage.rings.rational.Rational(x)
+        x = pari(n).bernfrac()         # Use the PARI C library
+        return Rational(x)
     elif algorithm == 'gap':
-        x = sage.interfaces.all.gap('Bernoulli(%s)'%n)
-        return sage.rings.rational.Rational(x)
+        import sage.interfaces.gap
+        x = sage.interfaces.gap.gap('Bernoulli(%s)'%n)
+        return Rational(x)
+    elif algorithm == 'magma':
+        import sage.interfaces.magma
+        x = sage.interfaces.magma.magma('Bernoulli(%s)'%n)
+        return Rational(x)
     elif algorithm == 'gp':
-        x = sage.interfaces.all.gp('bernfrac(%s)'%n)
-        return sage.rings.rational.Rational(x)
-    elif algorithm == 'sage':
+        import sage.interfaces.gp
+        x = sage.interfaces.gp.gp('bernfrac(%s)'%n)
+        return Rational(x)
+    elif algorithm == 'python':
+        import sage.rings.bernoulli
         return sage.rings.bernoulli.bernoulli_python(n)
     else:
         raise ValueError, "invalid choice of algorithm"
@@ -957,7 +964,7 @@ def generic_power(a, m, one=1):
         sage: generic_power(2,5)
         32
         sage: generic_power(RealField()('2.5'),4)
-        39.062500000000000
+        39.0625000000000
         sage: generic_power(0,0)
         1
         sage: generic_power(2,-3)
@@ -1493,7 +1500,7 @@ def binomial(x,m):
         sage: binomial(20,10)
         184756
         sage: binomial(RealField()('2.5'), 2)
-        1.8750000000000000
+        1.87500000000000
     """
     if not isinstance(m, (int, long, sage.rings.integer.Integer)):
         raise TypeError, 'm must be an integer'
@@ -1591,7 +1598,7 @@ def discrete_log_generic(b, a, ord=None):
         sage: discrete_log_generic(b, a)
         20
 
-        sage: K = GF(3^6)
+        sage: K = GF(3^6,'b')
         sage: b = K.gen()
         sage: a = b^210
         sage: discrete_log_generic(b, a, K.order()-1)
@@ -1841,7 +1848,7 @@ def continued_fraction(x, partial_convergents=False):
         sage: continued_fraction(45/17)
         [2, 1, 1, 1, 5]
         sage: continued_fraction(sqrt(2))
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
         sage: continued_fraction(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
@@ -1859,14 +1866,11 @@ def continued_fraction(x, partial_convergents=False):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction(e)
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: computation of continued fraction of x not implemented;
-        try computing continued fraction of RR(x) instead.
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: continued_fraction(RR(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
         sage: print continued_fraction(RealField(200)(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 2]
     """
     if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
                       int, long)):
@@ -1893,8 +1897,8 @@ def continued_fraction(x, partial_convergents=False):
                 else:
                     return v
             x = 1/x
-    except (AttributeError, NotImplementedError, TypeError):
-        raise NotImplementedError, "computation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."
+    except (AttributeError, NotImplementedError, TypeError), msg:
+        raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
 
 def convergent(v, n):
     """
@@ -2118,26 +2122,20 @@ def falling_factorial(x, a):
     EXAMPLES:
         sage: falling_factorial(10, 3)
         720
-
         sage: falling_factorial(10, RR('3.0'))
-        720.00000000000000
-
+        720.000000000000
         sage: falling_factorial(10, RR('3.3'))
-        1310.1163339660077
-
+        1310.11633396600
         sage: falling_factorial(10, 10)
         3628800
         sage: factorial(10)
         3628800
-
         sage: falling_factorial(1+I, I)
-        0.65296549642016677 + 0.34306583981654537*I
-
+        0.652965496420166 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
-        2.0000000000000000 + 4.0000000000000000*I
-
+        2.00000000000000 + 4.00000000000000*I
         sage: falling_factorial(I, 4)
-        -10.000000000000000
+        -10.0000000000000
 
         sage: M = MatrixSpace(ZZ, 4, 4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
@@ -2188,20 +2186,20 @@ def rising_factorial(x, a):
         1320
 
         sage: rising_factorial(10,RR('3.0'))
-        1320.0000000000000
+        1320.00000000000
 
         sage: rising_factorial(10,RR('3.3'))
-        2826.3889582496449
+        2826.38895824963
 
         sage: rising_factorial(1+I, I)
-        0.26681639063783236 + 0.12278335400637194*I
+        0.266816390637832 + 0.122783354006371*I
 
         sage: rising_factorial(I, 4)
-        -10.000000000000000
+        -10.0000000000000
 
     See falling_factorial(I, 4).
 
-        sage: R.<x> = PolynomialRing(ZZ)
+        sage: R = ZZ['x']
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
@@ -2212,3 +2210,50 @@ def rising_factorial(x, a):
         return misc.prod([(x + i) for i in range(a)])
     from sage.functions.transcendental import gamma
     return gamma(x+a) / gamma(x)
+
+
+
+
+def ceil(x):
+    """
+    Return the ceiling of x.
+    """
+    try:
+        return sage.rings.all.Integer(x.ceil())
+    except AttributeError:
+        try:
+            return sage.rings.all.Integer(int(math.ceil(float(x))))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%x
+
+ceiling = ceil
+
+def floor(x):
+    r"""
+    Return the largest integer $\leq x$.
+
+    INPUT:
+        x -- an object that has a floor method or is coercible to int
+
+    OUTPUT:
+        an Integer
+
+    EXAMPLES:
+        sage: floor(5.4)
+        5
+        sage: floor(float(5.4))
+        5
+        sage: floor(-5/2)
+        -3
+        sage: floor(RDF(-5/2))
+        -3
+    """
+    try:
+        return sage.rings.all.Integer(x.floor())
+    except AttributeError:
+        try:
+            return sage.rings.all.Integer(int(math.floor(float(x))))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%x

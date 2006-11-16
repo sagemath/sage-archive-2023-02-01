@@ -27,7 +27,6 @@ EXAMPLES:
 from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.structure.element import Element_cmp_
 from sage.structure.sage_object import SageObject
 
 
@@ -97,7 +96,7 @@ class Cusps_class(SageObject):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
         """
         if isinstance(x, Cusp):
             return x
@@ -127,7 +126,7 @@ class Cusps_class(SageObject):
 Cusps = Cusps_class()
 
 
-class Cusp(Element_cmp_, SageObject):
+class Cusp(SageObject):
     """
     A cusp.
 
@@ -160,7 +159,7 @@ class Cusp(Element_cmp_, SageObject):
             sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a

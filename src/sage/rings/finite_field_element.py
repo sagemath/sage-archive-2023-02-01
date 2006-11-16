@@ -527,9 +527,8 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         return integer_ring.IntegerRing()(self.__value.lift().lift())
 
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
-
         Compare an element of a finite field with other.  If other is
         not an element of a finite field, an attempt is made to coerce
         it so it is one.
@@ -548,16 +547,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: a > a**2
             False
         """
-        if self is other: return 0
-        if not isinstance(other, FiniteField_ext_pariElement):
-            try:
-                other = self.parent()(other)
-            except TypeError:
-                return -1
-        #if self.parent() != other.parent():
-        #    return -1
-        if self.__value == other.__value:
-            return 0
-        return -1
+        return cmp(self.__value, other.__value)
+
 
 

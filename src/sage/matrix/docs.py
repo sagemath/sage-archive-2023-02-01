@@ -138,7 +138,7 @@ implement the following functionality for that base ring:
    * __dealloc__   -- use sage_free (only needed if allocate memory)
    * set_unsafe(self, size_t i, size_t j, x) -- doesn't do bounds or any other checks; assumes x is in self._base_ring
    * get_unsafe(self, size_t i, size_t j) -- doesn't do checks
-   * __richcmp__    -- always the same (I don't know why its needed).
+   * __richcmp__    -- always the same (I don't know why its needed -- bug in PYREX).
 *********** LEVEL 2  **********
 
 IMPORTANT (and *highly* recommended):

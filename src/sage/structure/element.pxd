@@ -13,6 +13,7 @@ cdef class Element(sage_object.SageObject):
     cdef sage.structure.parent.Parent _parent
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef public _richcmp(self, right, int op)
+    cdef _set_parent_c(self, sage.structure.parent.Parent parent)
 
 cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration

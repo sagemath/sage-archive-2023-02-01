@@ -110,6 +110,11 @@ class FreeAlgebra_generic(Algebra):
         self.__ngens = n
         self._assign_names(names)
 
+    def is_field(self):
+        if self.__ngens == 0:
+            return self.__base_ring.is_field()
+        return False
+
     def __cmp__(self, other):
         """
         Two free algebras are considered the same if they have the

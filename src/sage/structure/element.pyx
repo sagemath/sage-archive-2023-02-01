@@ -202,6 +202,8 @@ cdef class Element(sage_object.SageObject):
         """
         self._parent = parent
 
+    cdef _set_parent_c(self, sage.structure.parent.Parent parent):
+        self._parent = parent
 
     def _repr_(self):
         return "Generic element of a structure"
@@ -323,24 +325,13 @@ cdef class Element(sage_object.SageObject):
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
     # _cmp_c_impl.
+    # THIS IS A BUG IN PYREX.
     ####################################################################
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
-
     cdef int _cmp_c_impl(left, Element right) except -2:
+        ### YOU *MUST* ALSO COPY the __richcmp__ above (exactly as is) into your class!!!
         raise NotImplementedError, "sort algorithm for elements of type %s not implemented"%(type(left))
-
-
-    ####################################################################
-    # For a derived Python class, put the following:
-    ####################################################################
-    # import sage.structure.element as element
-    #def __cmp__(left, right):
-    #    if not isinstance(right, Element) or not (left.parent() is right.parent()):
-    #        return element.cmp(self, other)
-    #    else:
-    #        ...
-    # TODO: can we do something more systematic (and faster)?!
 
 
 
@@ -1410,11 +1401,14 @@ cdef bin_op_c(x, y, op):
 
 
 def coerce_cmp(x,y):  # external interface to cmp_cdef
+    cdef int c
     try:
         x, y = canonical_coercion_c(x, y)
-        return cmp(left, right)
+        return cmp(x,y)
     except TypeError:
-        return cmp(type(x), type(y))
+        c = cmp(type(x), type(y))
+        if c == 0: c = -1
+        return c
 
 
 

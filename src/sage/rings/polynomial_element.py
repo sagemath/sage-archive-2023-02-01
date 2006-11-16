@@ -128,9 +128,37 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         return self.polynomial(x)
 
     def _lmul_(self, left):
+        """
+        Multiply self on the left by a scalar.
+
+        EXAMPLE:
+            sage: R.<x> = ZZ[]
+            sage: f = (x^3 + x + 5)
+            sage: f._lmul_(7)
+            7*x^3 + 7*x + 35
+            sage: 7*f
+            7*x^3 + 7*x + 35
+        """
+        # todo -- should multiply individual coefficients??
+        #         that could be in derived class.
+        #         Note that we are guaranteed that right is in the base ring, so this could be fast.
         return self.parent()(left) * self
 
     def _rmul_(self, right):
+        """
+        Multiply self on the right by a scalar.
+
+        EXAMPLE:
+            sage: R.<x> = ZZ[]
+            sage: f = (x^3 + x + 5)
+            sage: f._rmul_(7)
+            7*x^3 + 7*x + 35
+            sage: f*7
+            7*x^3 + 7*x + 35
+        """
+        # todo -- Should multiply individual coefficients??
+        #         that could be in derived class.
+        #         Note that we are guaranteed that right is in the base ring, so this could be fast.
         return self * self.parent()(right)
 
     def __call__(self, *a):

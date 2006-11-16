@@ -47,7 +47,7 @@ cimport sage.rings.ring
 import  sage.rings.ring
 
 cimport sage.structure.element
-from sage.structure.element cimport RingElement, Element
+from sage.structure.element cimport RingElement, Element, ModuleElement
 import  sage.structure.element
 
 import sage.structure.coerce
@@ -705,7 +705,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     #   Basic Arithmetic
     ########################
 
-    cdef RingElement _add_c_impl(self, RingElement other):
+    cdef ModuleElement _add_c_impl(self, ModuleElement other):
         """
         Add two real numbers with the same parent.
 
@@ -722,7 +722,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
     def __invert__(self):
         return self._parent(1) / self
 
-    cdef RingElement _sub_c_impl(self, RingElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
         Subtract two real numbers with the same parent.
 
@@ -733,7 +733,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         cdef RealNumber x
         x = RealNumber(self._parent, None)
-        mpfr_sub(x.value, self.value, (<RealNumber>other).value, (<RealField>self._parent).rnd)
+        mpfr_sub(x.value, self.value, (<RealNumber>right).value, (<RealField> self._parent).rnd)
         return x
 
     cdef RingElement _mul_c_impl(self, RingElement right):
@@ -790,7 +790,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
                  (<RealNumber>right).value, (<RealField>self._parent).rnd)
         return x
 
-    cdef RingElement _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
         cdef RealNumber x
         x = RealNumber(self._parent, None)
         mpfr_neg(x.value, self.value, (<RealField>self._parent).rnd)

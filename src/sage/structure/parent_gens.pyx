@@ -374,7 +374,7 @@ cdef class ParentWithGens(parent.Parent):
                 return self(y)
             except TypeError, msg:
                 pass
-        raise TypeError, "no canonical coercion of x into self"
+        raise TypeError, "no canonical coercion of element into self"
 
     def _coerce_self(self, x):
         """

@@ -99,6 +99,12 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def __richcmp__(left, right, int op):
+        return (<sage.rings.ring.Ring>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, sage.rings.ring.Ring right) except -2:
+        # There is only one CDF.
+        return 0
 
     def __hash__(self):
         return 561162115
@@ -191,6 +197,24 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             5.0
             sage: CDF._coerce_(RDF(3.4))
             3.4
+
+        Symbolic constants canonically coerce into the complex double field,
+        but CDF does not canonically coerce to symbolic constants:
+            sage: CDF._coerce_(pi)
+            3.14159265359
+            sage: R = parent(pi)
+            sage: R(CDF.0)
+            1.0*I
+            sage: R._coerce_(CDF.0)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion of element into self.
+
+        Thus the sum of a CDF and a symbolic constant is in CDF:
+            sage: a = pi + CDF.0; a
+            3.14159265359 + 1.0*I
+            sage: parent(a)
+            Complex Double Field
         """
         try:
             return self._coerce_self(x)
@@ -216,14 +240,33 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         return I
 
     def ngens(self):
+        """
+        The number of generators of this complex field as an RR-algebra.
+
+        There is one generator, namely sqrt(-1).
+
+        EXAMPLES:
+            sage: CDF.ngens()
+            1
+        """
         return 1
 
     def real_double_field(self):
+        """
+        The real double field, which you may view as a subfield of this complex double field.
+
+        EXAMPLES:
+            sage: CDF.real_double_field()
+            Real Double Field
+        """
         import real_double
         return real_double.RDF
 
 
 cdef class ComplexDoubleElement(FieldElement):
+    """
+    An element of a complex double field.
+    """
     def __init__(self, real, imag):
         self._complex = gsl_complex_rect(real, imag)
         global _CDF
@@ -328,12 +371,39 @@ cdef class ComplexDoubleElement(FieldElement):
     #######################################################################
 
     def __int__(self):
+        """
+        EXAMPLES:
+            sage: int(CDF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex to int; use int(abs(z))
+            sage: int(abs(CDF(1,1)))
+            1
+        """
         raise TypeError, "can't convert complex to int; use int(abs(z))"
 
     def __long__(self):
+        """
+        EXAMPLES:
+            sage: long(CDF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex to long; use long(abs(z))
+            sage: long(abs(CDF(1,1)))
+            1L
+        """
         raise TypeError, "can't convert complex to long; use long(abs(z))"
 
     def __float__(self):
+        """
+        EXAMPLES:
+            sage: float(CDF(1,1))
+            Traceback (most recent call last):
+            ...
+            TypeError: can't convert complex to float; use abs(z)
+            sage: float(abs(CDF(1,1)))
+            1.4142135623730951
+        """
         raise TypeError, "can't convert complex to float; use abs(z)"
 
     def __complex__(self):
@@ -1348,6 +1418,12 @@ I = ComplexDoubleElement(0,1)
 def ComplexDoubleField():
     """
     Returns the field of double precision complex numbers.
+
+    EXAMPLE:
+        sage: ComplexDoubleField()
+        Complex Double Field
+        sage: ComplexDoubleField() is CDF
+        True
     """
     return _CDF
 

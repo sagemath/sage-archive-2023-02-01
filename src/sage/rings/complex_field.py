@@ -20,6 +20,7 @@ import real_field
 import integer_ring
 import integer
 import weakref
+import ring
 from sage.misc.sage_eval import sage_eval
 
 def is_ComplexField(x):
@@ -120,9 +121,7 @@ class ComplexField_class(field.Field):
             self.__real_field = real_field.RealField(self.__prec)
             return self.__real_field
 
-    def __cmp__(self, other):
-        if not isinstance(other, ComplexField_class):
-            return -1
+    def _cmp_(self, other):
         return cmp(self.__prec, other.__prec)
 
     def __call__(self, x, im=None):

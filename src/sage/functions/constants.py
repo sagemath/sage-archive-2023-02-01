@@ -174,15 +174,14 @@ class ConstantRing_class(FunctionRing_class):
 
     def _coerce_(self, x):
         try:
-            if x.parent() == self:
+            if x.parent() is self:
                 return x
         except AttributeError:
             pass
         if isinstance(x, (sage.rings.integer.Integer,
-                          sage.rings.rational.Rational,
-                          int,long,float,complex)):
+                          sage.rings.rational.Rational)):
             return Constant_gen(x)
-        raise TypeError, 'no canonical coercion of x into self.'
+        raise TypeError, 'no canonical coercion of element into self.'
 
 ConstantRing = ConstantRing_class()
 

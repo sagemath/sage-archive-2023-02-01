@@ -22,6 +22,7 @@ AUTHORS:
 #*****************************************************************************
 
 include "../ext/stdsage.pxi"
+include "../ext/python_bool.pxi"
 
 from sage.structure.parent_gens cimport ParentWithGens
 import random
@@ -39,29 +40,30 @@ cdef class Ring(ParentWithGens):
         """
         cdef int r
 
-        # TODO: change the last "==" here to "is"
-        if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring):
-            return cmp(type(left), type(right))
+        if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring) or \
+               not (PY_TYPE(left) is PY_TYPE(right)):
+            # Different type rings
+            r = cmp(type(left), type(right))
 
         else:
-
+            # Same type rings
             if HAS_DICTIONARY(left):
                 r = left._cmp_(right)
             else:
                 r = left._cmp_c_impl(right)
 
         if op == 0:  #<
-            return bool(r  < 0)
+            return PyBool_FromLong(r  < 0)
         elif op == 2: #==
-            return bool(r == 0)
+            return PyBool_FromLong(r == 0)
         elif op == 4: #>
-            return bool(r  > 0)
+            return PyBool_FromLong(r  > 0)
         elif op == 1: #<=
-            return bool(r <= 0)
+            return PyBool_FromLong(r <= 0)
         elif op == 3: #!=
-            return bool(r != 0)
+            return PyBool_FromLong(r != 0)
         elif op == 5: #>=
-            return bool(r >= 0)
+            return PyBool_FromLong(r >= 0)
 
     ####################################################################
     # For a derived SageX class, you **must** put the following in
@@ -87,14 +89,13 @@ cdef class Ring(ParentWithGens):
     def _cmp_(left, right):
         return left._cmp_c_impl(right)   # default
 
-    def __cmp__(left, right):
-        if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring):
-            return cmp(type(left), type(right))
-        if HAS_DICTIONARY(left):
-            return left._cmp_(right)
-        else:
-            return left._cmp_c_impl(right)
-
+    #def __cmp__(left, right):
+    #    if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring):
+    #        return cmp(type(left), type(right))
+    #    if HAS_DICTIONARY(left):
+    #        return left._cmp_(right)
+    #    else:
+    #        return left._cmp_c_impl(right)
 
     def __call__(self, x):
         """

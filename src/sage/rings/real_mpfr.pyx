@@ -53,13 +53,12 @@ import  sage.structure.element
 import sage.structure.coerce
 import operator
 
-import sage.rings.rational
+from sage.rings.integer cimport Integer
+from sage.rings.rational cimport Rational
+
 import sage.rings.complex_field
-import sage.rings.integer
 
 import sage.rings.infinity
-
-
 
 #*****************************************************************************
 # Headers.  When you past things in here from mpfr, be sure
@@ -195,22 +194,18 @@ cdef class RealField(sage.rings.ring.Field):
              * int, long, integer, and rational rings.
              * real mathematical constants
         """
-        cdef RealField K
         if isinstance(x, RealNumber):
-            K = x.parent()
-            if K is self:
+            P = x.parent()
+            if P is self:
                 return x
-            elif K.__prec >= self.__prec:
+            elif (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
-                raise TypeError
-        if isinstance(x, (int, long, sage.rings.integer.Integer,
-                          sage.rings.rational.Rational)):
+                raise TypeError, "Canonical coercion from lower to higher precision not defined"
+        if isinstance(x, (Integer, Rational)):
             return self(x)
-
+        import sage.functions.constants
         return self._coerce_try(x, [sage.functions.constants.ConstantRing])
-
-        raise TypeError, "no coercion of x to mpfr real field"
 
     def __cmp__(self, other):
         """
@@ -699,7 +694,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         s = self.str(base=32, no_sci=True)
         i = s.find(".")
-        return sage.rings.integer.Integer(s[:i], base=32)
+        return Integer(s[:i], base=32)
 
     ########################
     #   Basic Arithmetic
@@ -820,7 +815,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: 1.0 << 32
             4294967296.00000
         """
-        if isinstance(x, RealNumber) and isinstance(y, (int,long,sage.rings.integer.Integer)):
+        if isinstance(x, RealNumber) and isinstance(y, (int,long, Integer)):
             return x._lshift_(y)
         return sage.structure.coerce.bin_op(x, y, operator.lshift)
 
@@ -838,7 +833,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: 1024.0 >> 7
             8.00000000000000
         """
-        if isinstance(x, RealNumber) and isinstance(y, (int,long,sage.rings.integer.Integer)):
+        if isinstance(x, RealNumber) and isinstance(y, (int,long,Integer)):
             return x._rshift_(y)
         return sage.structure.coerce.bin_op(x, y, operator.rshift)
 

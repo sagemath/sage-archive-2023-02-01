@@ -15,4 +15,11 @@ cdef class Integer(EuclideanDomainElement):
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)
     cdef ModuleElement _neg_c_impl(self)
 
+    cdef _lshift(self, unsigned long int n)
+    cdef _rshift(Integer self, unsigned long int n)
+    cdef _and(Integer self, Integer other)
+    cdef _or(Integer self, Integer other)
+
+
+
 cdef extern int set_mpz(Integer self, mpz_t value)

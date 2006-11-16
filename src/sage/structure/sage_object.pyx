@@ -82,14 +82,11 @@ cdef class SageObject:
         del self.__custom_name
 
     def __repr__(self):
-        try:
+        if hasattr(self, '__custom_name'):
             return self.__custom_name
-        except AttributeError:
-            try:
-                return self._repr_()
-            except AttributeError:
-                return str(type(self))
-
+        elif hasattr(self, '_repr_'):
+            return self._repr_()
+        return str(type(self))
 
     def _plot_(self, *args, **kwds):
         import sage.plot.plot

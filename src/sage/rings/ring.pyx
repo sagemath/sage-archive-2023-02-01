@@ -42,11 +42,11 @@ cdef class Ring(ParentWithGens):
 
         if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring) or \
                not (PY_TYPE(left) is PY_TYPE(right)):
-            # Different type rings
+            # One is not a ring.
             r = cmp(type(left), type(right))
 
         else:
-            # Same type rings
+            # Both are rings -- but need *not* have the same type.
             if HAS_DICTIONARY(left):
                 r = left._cmp_(right)
             else:

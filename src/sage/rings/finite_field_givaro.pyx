@@ -36,6 +36,7 @@ r"""
 
 
 from sage.rings.ring cimport FiniteField
+from sage.rings.ring cimport Ring
 from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
 from sage.rings.finite_field_element import FiniteField_ext_pariElement
 from sage.structure.sage_object cimport SageObject
@@ -732,7 +733,9 @@ cdef class FiniteField_givaro(FiniteField):
         else:
             return FiniteField_givaro_iterator(self)
 
-    def __cmp__(FiniteField_givaro self, other):
+    def __richcmp__(left, right, int op):
+        return (<Ring>left)._richcmp(right, op)
+    cdef int _cmp_c_impl(left, Ring right) except -2:
         """
         Finite Fields are considered to be equal if
          * their implementation is the same (Givaro)
@@ -744,17 +747,15 @@ cdef class FiniteField_givaro(FiniteField):
         implementations are equal.
 
         """
-        if not PyObject_TypeCheck(other,type_object(FiniteField_givaro)):
+        if not isinstance(right, FiniteField_givaro):
             return 1
-        if self.characteristic()!=other.characteristic():
-            return 1
-        if self.degree()!=other.degree():
-            return 1
-        if self.degree()>1:
-            if self.polynomial()!=other.polynomial():
-                return 1
-            if self.variable_name()!=other.variable_name():
-                return 1
+        c = cmp(left.characteristic(), right.characteristic())
+        if c: return c
+        c = cmp(left.degree(), right.degree())
+        if c: return c
+        if left.degree()>1:
+            c = cmp(left.polynomial(), right.polynomial())
+            if c: return c
         return 0
 
     def __hash__(FiniteField_givaro self):
@@ -1109,7 +1110,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         cdef int r
         r = parent_object(self).objectptr.add(r, self.object ,
-                                              (<FiniteField_givaroElement>other).object )
+                                              (<FiniteField_givaroElement>right).object )
         return make_FiniteField_givaroElement(parent_object(self),r)
 
     cdef RingElement _mul_c_impl(self, RingElement right):
@@ -1125,7 +1126,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         cdef int r
         r = parent_object(self).objectptr.mul(r, self.object,
-                                              (<FiniteField_givaroElement>other).object)
+                                              (<FiniteField_givaroElement>right).object)
         return make_FiniteField_givaroElement(parent_object(self),r)
 
     cdef RingElement _div_c_impl(self, RingElement right):
@@ -1139,7 +1140,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         cdef int r
         r = parent_object(self).objectptr.div(r, self.object,
-                                              (<FiniteField_givaroElement>other).object)
+                                              (<FiniteField_givaroElement>right).object)
         return make_FiniteField_givaroElement(parent_object(self),r)
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -1155,7 +1156,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         cdef int r
         r = parent_object(self).objectptr.sub(r, self.object,
-                                              (<FiniteField_givaroElement>other).object)
+                                              (<FiniteField_givaroElement>right).object)
         return make_FiniteField_givaroElement(parent_object(self),r)
 
     def __neg__(FiniteField_givaroElement self):
@@ -1226,62 +1227,14 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 ##         r = (<FiniteField_givaro>self._parent).objectptr.sub(r, self.object , other.object )
 ##         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
 
-    def __cmp__(self, other):
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Comparison of finite field elements is performed by comparing
-        their int representation.
+        their underlying int representation.
         """
-        if PyObject_TypeCheck(self,type_object(FiniteField_givaroElement)) and \
-               PyObject_TypeCheck(other,type_object(FiniteField_givaroElement)):
-            if not parent_object(self) is parent_object(other):
-                if not parent_object(self) == parent_object(other):
-                    return 1
-            return cmp(int(self),int(other))
-        return cmp(int(self),int(other))
-
-    def __richcmp__(self, right, int op):
-        cdef int res
-
-        if PyObject_TypeCheck(self,type_object(FiniteField_givaroElement)) and \
-           PyObject_TypeCheck(right,type_object(FiniteField_givaroElement)):
-            return (<FiniteField_givaroElement>self).richcmp_C(<FiniteField_givaroElement>right,op)
-        else:
-            res = cmp(int(self),int(right))
-            if op == 0:  #<
-                return bool(res < 0)
-            if op == 2: #==
-                return bool(res == 0)
-            if op == 4: #>
-                return bool(res > 0)
-            if op == 1: #<=
-                return bool(res <= 0)
-            if op == 3: #!=
-                return bool(res != 0)
-            if op == 5: #>=
-                return bool(res >= 0)
-
-    cdef richcmp_C(FiniteField_givaroElement self, FiniteField_givaroElement right, int op):
-
-        if not parent_object(self) is parent_object(right):
-            if not parent_object(self) == parent_object(right):
-                if not self.is_zero() and right.is_zero():
-                    if op == 3:
-                        return True
-                    else:
-                        return False
-
-        if op == 0:  #<
-            return bool(int(self) < int(right))
-        if op == 2: #==
-            return bool(int(self) == int(right))
-        if op == 4: #>
-            return bool(int(self) > int(right))
-        if op == 1: #<=
-            return bool(int(self) <= int(right))
-        if op == 3: #!=
-            return bool(int(self) != int(right))
-        if op == 5: #>=
-            return bool(int(self) >= int(right))
+        return cmp(int(left), int(right))
 
     def __int__(FiniteField_givaroElement self):
         """
@@ -1388,6 +1341,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
     def multiplicative_order(FiniteField_givaroElement self):
         """
+        Return the multiplicative order of this field element.
         """
         # code copy'n'pasted from finite_field_element.py
         import sage.rings.arith
@@ -1409,8 +1363,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             self.__multiplicative_order = order
             return order
 
-    def copy(self):
+    def __copy__(self):
         """
+        Return a copy of this element.
         """
         return make_FiniteField_givaroElement((parent_object(self)),self.object)
 

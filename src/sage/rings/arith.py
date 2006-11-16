@@ -1653,6 +1653,7 @@ def discrete_log_generic(b, a, ord=None):
         if y in S2:
             x = S2.index(y)
             return Z(m*(g.index(y)) + x)
+
     raise ValueError, "Log does not exist."
 
 

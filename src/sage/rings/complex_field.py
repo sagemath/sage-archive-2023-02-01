@@ -23,11 +23,25 @@ import weakref
 import ring
 from sage.misc.sage_eval import sage_eval
 
+from sage.structure.parent_gens import ParentWithGens
+
 def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
 
 cache = {}
 def ComplexField(prec=53):
+    """
+    Return the complex field with real and imaginary parts having prec
+    *bits* of precision.
+
+    EXAMPLES:
+        sage: ComplexField()
+        Complex Field with 53 bits of precision
+        sage: ComplexField(100)
+        Complex Field with 100 bits of precision
+        sage: ComplexField(100).base_ring()
+        Real Field with 100 bits of precision
+    """
     global cache
     if cache.has_key(prec):
         X = cache[prec]
@@ -105,7 +119,7 @@ class ComplexField_class(field.Field):
     """
     def __init__(self, prec=53):
         self.__prec = int(prec)
-        self._assign_names('I')
+        ParentWithGens.__init__(self, self._real_field(), ('I',), False)
 
     def prec(self):
         return self.__prec

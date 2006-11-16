@@ -543,18 +543,6 @@ cdef class Field(PrincipalIdealDomain):
     """
     Generic field
     """
-    def base_ring(self):
-        """
-        Return the base ring of this field.  This is the prime
-        subfield of this field.
-        """
-        p = self.characteristic()
-        if p == 0:
-            import sage.rings.rational_field
-            return sage.rings.rational_field.Q
-        import sage.rings.finite_field
-        return sage.rings.finite_field.GF(p)
-
     def category(self):
         from sage.categories.all import Fields
         return Fields()

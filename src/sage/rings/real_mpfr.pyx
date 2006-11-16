@@ -60,6 +60,8 @@ import sage.rings.complex_field
 
 import sage.rings.infinity
 
+from sage.structure.parent_gens cimport ParentWithGens
+
 #*****************************************************************************
 # Headers.  When you past things in here from mpfr, be sure
 # to remove const's, since those aren't allowed in pyrex.  Also, it can be
@@ -153,6 +155,7 @@ cdef class RealField(sage.rings.ring.Field):
             raise ValueError, "rnd (=%s) must be one of RNDN, RNDZ, RNDU, or RNDD"%rnd
         self.rnd = n
         self.rnd_str = rnd
+        ParentWithGens.__init__(self, self, tuple([]), False)
 
     def _repr_(self):
         s = "Real Field with %s bits of precision"%self.__prec

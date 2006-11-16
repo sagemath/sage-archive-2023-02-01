@@ -98,18 +98,17 @@ class FunctionRing_class(CommutativeRing):
         try:
             return self._coerce_(x)
         except TypeError:
+
             return Function_gen(x)
 
     def _coerce_(self, x):
-        if isinstance(x, Function):
-            return x
-        elif is_Polynomial(x):
+        try:
+            return self._coerce_self(x)
+        except TypeError:
+            pass
+        if is_Polynomial(x):
             return Function_polynomial(x)
-        elif isinstance(x, (sage.rings.integer.Integer,
-                            sage.rings.rational.Rational,
-                            int,long,float,complex)):
-            return sage.functions.constants.Constant_gen(x)
-        raise TypeError
+        raise TypeError, "no canonical coercion of element to self."
 
     def characteristic(self):
         return sage.rings.all.Integer(0)

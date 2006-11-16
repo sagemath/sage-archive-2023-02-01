@@ -1360,7 +1360,7 @@ cdef bin_op_c(x, y, op):
     # If the op is multiplication, then some other algebra multiplications
     # may be defined
     if not op is operator.mul:
-        raise TypeError, "%s\nno canonical coercion."%msg
+        raise TypeError, "x=%s, y=%s\n%s\nNo canonical coercion defined."%(x,y,msg)
 
     # 2. Try scalar multiplication.
     # No way to multiply x and y using the ``coerce into a canonical

@@ -81,18 +81,18 @@ class FreeAlgebraElement(AlgebraElement):
 
     def _add_(self, y):
         A = self.parent()
-        if isinstance(y, (int, long, Integer)):
-            z_elt = dict(self.__monomial_coefficients)
-            e = A.monoid()(1)
-            if z_elt.has_key(e):
-                z_elt[e] += A.base_ring()(y)
-            else:
-                z_elt[e] = A.base_ring()(y)
-            z = A(0)
-            z.__monomial_coefficients = z_elt
-            return z
-        if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
+##         if isinstance(y, (int, long, Integer)):
+##             z_elt = dict(self.__monomial_coefficients)
+##             e = A.monoid()(1)
+##             if z_elt.has_key(e):
+##                 z_elt[e] += A.base_ring()(y)
+##             else:
+##                 z_elt[e] = A.base_ring()(y)
+##             z = A(0)
+##             z.__monomial_coefficients = z_elt
+##             return z
+##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
+##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
         z_elt = dict(self.__monomial_coefficients)
         for m, c in y.__monomial_coefficients.iteritems():
             if z_elt.has_key(m):
@@ -117,18 +117,18 @@ class FreeAlgebraElement(AlgebraElement):
 
     def _sub_(self, y):
         A = self.parent()
-        if isinstance(y, (int, long, Integer)):
-            z_elt = dict(self.__monomial_coefficients)
-            e = A.monoid()(1)
-            if z_elt.has_key(e):
-                z_elt[e] += A.base_ring()(-y)
-            else:
-                z_elt[e] = A.base_ring()(-y)
-            z = A(0)
-            z.__monomial_coefficients = z_elt
-            return z
-        if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
+##         if isinstance(y, (int, long, Integer)):
+##             z_elt = dict(self.__monomial_coefficients)
+##             e = A.monoid()(1)
+##             if z_elt.has_key(e):
+##                 z_elt[e] += A.base_ring()(-y)
+##             else:
+##                 z_elt[e] = A.base_ring()(-y)
+##             z = A(0)
+##             z.__monomial_coefficients = z_elt
+##             return z
+##         if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
+##             raise TypeError, "Argument y (= %s) is of the wrong type."%y
         z_elt = dict(self.__monomial_coefficients)
         for m, c in y.__monomial_coefficients.iteritems():
             if z_elt.has_key(m):
@@ -145,8 +145,6 @@ class FreeAlgebraElement(AlgebraElement):
 
     def _mul_(self, y):
         A = self.parent()
-        if not isinstance(y, FreeAlgebraElement) or not A == y.parent():
-            raise TypeError, "Argument y (= %s) is of the wrong type."%y
         z_elt = {}
         for mx, cx in self.__monomial_coefficients.iteritems():
             for my, cy in y.__monomial_coefficients.iteritems():

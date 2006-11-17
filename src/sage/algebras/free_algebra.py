@@ -3,6 +3,15 @@ Free algebras
 
 AUTHOR: David Kohel, 2005-09
     William Stein 2006-11-01 -- add all doctests; implemented many things.
+
+EXAMPLES:
+    sage: F = FreeAlgebra(ZZ,3,'x,y,z')
+    sage: F.base_ring()
+    Integer Ring
+    sage: G = FreeAlgebra(F, 2, 'm,n'); G
+    Free Algebra on 2 generators (m, n) over Free Algebra on 3 generators (x, y, z) over Integer Ring
+    sage: G.base_ring()
+    Free Algebra on 3 generators (x, y, z) over Integer Ring
 """
 
 #*****************************************************************************
@@ -60,6 +69,20 @@ def FreeAlgebra(R, n, names):
         sage: G = FreeAlgebra(ZZ,3,'x,y,z')
         sage: F is G
         True
+
+    Free algebras commute with their base ring.
+        sage: K.<a,b> = FreeAlgebra(QQ,2)
+        sage: K.is_commutative()
+        False
+        sage: L.<c> = FreeAlgebra(K,1)
+        sage: L.is_commutative()
+        False
+        sage: s = a*b^2 * c^3; s
+        a*b^2*c^3
+        sage: parent(s)
+        Free Algebra on 1 generators (c,) over Free Algebra on 2 generators (a, b) over Rational Field
+        sage: c^3 * a * b^2
+        a*b^2*c^3
     """
     names = sage.structure.parent_gens.normalize_names(n, names)
     return cache(R, n, names)
@@ -105,15 +128,23 @@ class FreeAlgebra_generic(Algebra):
         """
         if not isinstance(R, Ring):
             raise TypeError, "Argument R must be a ring."
-        self.__base_ring = R
         self.__monoid = FreeMonoid(n, names=names)
         self.__ngens = n
-        self._assign_names(names)
+        sage.structure.parent_gens.ParentWithGens.__init__(self, R, names)
 
     def is_field(self):
         if self.__ngens == 0:
-            return self.__base_ring.is_field()
+            return self.base_ring().is_field()
         return False
+
+    def is_commutative(self):
+        """
+        Return True if this free algebra is commutative.
+
+        EXAMPLES:
+
+        """
+        return self.__ngens <= 1 and self.base_ring().is_commutative()
 
     def __cmp__(self, other):
         """
@@ -135,7 +166,7 @@ class FreeAlgebra_generic(Algebra):
         """
         if not isinstance(other, FreeAlgebra_generic):
             return -1
-        c = cmp(self.__base_ring, other.__base_ring)
+        c = cmp(self.base_ring(), other.base_ring())
         if c: return c
         c = cmp(self.__ngens, other.__ngens)
         if c: return c
@@ -156,19 +187,21 @@ class FreeAlgebra_generic(Algebra):
             QQ<<x0,x1,x2>>
         """
         return "Free Algebra on %s generators %s over %s"%(
-            self.__ngens, self.gens(), self.__base_ring)
+            self.__ngens, self.gens(), self.base_ring())
 
     def __call__(self, x):
         """
         Coerce x into self.
         """
         if isinstance(x, FreeAlgebraElement):
-            if x.parent() is self:
+            P = x.parent()
+            if P is self:
                 return x
-            return FreeAlgebraElement(self, x)
-        # ok, not a free algebra element.
+            if not (P == self.base_ring()):
+                return FreeAlgebraElement(self, x)
+        # ok, not a free algebra element (or should not be viewed as one).
         F = self.__monoid
-        R = self.__base_ring
+        R = self.base_ring()
         # coercion from free monoid
         if isinstance(x, FreeMonoidElement) and x.parent() == F:
             return FreeAlgebraElement(self,{x:R(1)})
@@ -231,11 +264,11 @@ class FreeAlgebra_generic(Algebra):
             TypeError: no natural map between bases of free algebras
         """
         try:
+            return self._coerce_self(x)
+        except TypeError:
+            pass
+        try:
             R = x.parent()
-
-            # this ring itself:
-            if R is self: return x
-            if R == self: return self(x)
 
             # monoid
             if R == self.__monoid:
@@ -252,7 +285,7 @@ class FreeAlgebra_generic(Algebra):
         except AttributeError:
             pass
 
-        # any ring that coerces to the base ring of this polynomial ring.
+        # any ring that coerces to the base ring of this free algebra.
         return self._coerce_try(x, [self.base_ring()])
 
     def gen(self,i):
@@ -267,7 +300,7 @@ class FreeAlgebra_generic(Algebra):
         n = self.__ngens
         if i < 0 or not i < n:
             raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
-        R = self.__base_ring
+        R = self.base_ring()
         F = self.__monoid
         return FreeAlgebraElement(self,{F.gen(i):R(1)})
 
@@ -293,21 +326,6 @@ class FreeAlgebra_generic(Algebra):
             3
         """
         return self.__ngens
-
-    def base_ring(self):
-        """
-        Return the base ring of self.
-
-        EXAMPLES:
-            sage: F = FreeAlgebra(ZZ,3,'x,y,z')
-            sage: F.base_ring()
-            Integer Ring
-            sage: G = FreeAlgebra(F, 2, 'm,n'); G
-            Free Algebra on 2 generators (m, n) over Free Algebra on 3 generators (x, y, z) over Integer Ring
-            sage: G.base_ring()
-            Free Algebra on 3 generators (x, y, z) over Integer Ring
-        """
-        return self.__base_ring
 
     def monoid(self):
         """

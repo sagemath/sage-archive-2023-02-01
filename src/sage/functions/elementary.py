@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest -- TODO TODO
 Elementary Functions
 
 Call a univariate function an "elementary function" if it can be

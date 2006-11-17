@@ -21,8 +21,6 @@ A single element of an ambient space of modular symbols.
 
 import operator
 
-import sage.rings.coerce
-
 import sage.modules.free_module_element
 import sage.modules.module_element as module_element
 import sage.misc.misc as misc
@@ -78,21 +76,10 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
     def __is_compatible(self, other):
         return isinstance(other, ModularSymbolsElement) and self.parent() == other.parent()
 
-    def __add__(self, right):
-        if not self.__is_compatible(right):
-            return sage.rings.coerce.bin_op(self, right, operator.add)
+    def _add_(self, right):
         return ModularSymbolsElement(self.parent(), self.element() + right.element())
 
-    def __cmp__(self, other):
-        if not isinstance(other, ModularSymbolsElement):
-            if other is 0:
-                if self.element() == 0:
-                    return 0
-                else:
-                    return -1
-            other = self.parent()(other)
-        if self.parent() != other.parent():
-            raise TypeError, "parents must be the same"
+    def _cmp_(self, other):
         return self.element().__cmp__(other.element())
 
     def _repr_(self):
@@ -118,15 +105,14 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
         return latex.repr_lincomb(v, c)
 
 
+    # TODO -- use module machinery
     def __mul__(self, right):
         return ModularSymbolsElement(self.parent(), self.element()*right)
 
     def __neg__(self):
         return ModularSymbolsElement(self.parent(), -self.element())
 
-    def __sub__(self, right):
-        if self.parent() != right.parent():
-            raise ArithmeticError, "parents must be the same"
+    def _sub_(self, right):
         return ModularSymbolsElement(self.parent(), self.element() - right.element())
 
     def coordinate_vector(self):

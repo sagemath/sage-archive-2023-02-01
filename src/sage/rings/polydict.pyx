@@ -126,7 +126,7 @@ cdef class PolyDict:
 
     def _cmp_(PolyDict self, PolyDict other, fn=None):
         if not isinstance(other, PolyDict):
-            return False
+            return -1
         if fn == None:
             return cmp(self.__repn, other.__repn)
 
@@ -723,7 +723,7 @@ cdef class ETuple:
         """
         x.__hash__() <==> hash(x)
         """
-        return hash((tuple(self._data.iteritems()),self._length))
+        return hash((tuple(sorted(self._data.iteritems())),self._length))
 
     def __len__(ETuple self):
         """

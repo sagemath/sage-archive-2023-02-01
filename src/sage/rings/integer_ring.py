@@ -22,7 +22,7 @@ sense.
     sage: a = Z(1234); b = Z(5678); print a, b
     1234 5678
     sage: type(a)
-    <type 'integer.Integer'>
+    <type 'sage.rings.integer.Integer'>
     sage: a + b
     6912
     sage: Z('94803849083985934859834583945394')
@@ -61,6 +61,8 @@ import sage.libs.pari.all
 import sage.rings.ideal
 import ring
 
+from sage.structure.parent_gens import ParentWithGens
+
 _obj = None
 class _uniq_int(object):
     def __new__(cls):
@@ -68,6 +70,9 @@ class _uniq_int(object):
         if _obj is None:
             _obj = object.__new__(cls)
         return _obj
+
+def is_IntegerRing(x):
+    return isinstance(x, IntegerRing)
 
 class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     r"""
@@ -89,7 +94,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         sage: a = Z(1234); b = Z(5678); print a, b
         1234 5678
         sage: type(a)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
         sage: a + b
         6912
         sage: b + a
@@ -110,17 +115,17 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         sage: a / b
         617/2839
         sage: type(a/b)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
         sage: a/a
         1
         sage: type(a/a)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     For floor division, instead using the // operator:
         sage: a // b
         0
         sage: type(a//b)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
     Next we illustrate arithmetic with automatic coercion.
     The types that coerce are: str, int, long, Integer.
@@ -141,7 +146,11 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
         -64
     """
 
-    def __repr__(self):
+    def __init__(self):
+        ParentWithGens.__init__(self, self)
+        self._assign_names(('x'),normalize=False)
+
+    def _repr_(self):
         return "Integer Ring"
 
     def _latex_(self):
@@ -175,6 +184,11 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
     def _coerce_(self, x):
         """
+        Return canonical coercion of x into the integers ZZ.
+
+        x canonically coerces to the integers ZZ over only if x is an
+        int, long or already an element of ZZ.
+
         EXAMPLES:
             sage: k = GF(7)
             sage: k._coerce_(2/3)
@@ -187,13 +201,23 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion to an integer
-        """
 
+        The rational number 3/1 = 3 does not canonically coerce into
+        the integers, since there is no canonical coercion map from
+        the full field of rational numbers to the integers.
+
+            sage: a = 3/1; parent(a)
+            Rational Field
+            sage: ZZ(a)
+            3
+            sage: ZZ._coerce_(a)
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion to an integer
+        """
         if isinstance(x, sage.rings.integer.Integer):
             return x
         elif isinstance(x, (int, long)):
-            return self(x)
-        elif isinstance(x, sage.libs.pari.all.pari_gen) and x.type() == 't_INT':
             return self(x)
         raise TypeError, 'no canonical coercion to an integer'
 
@@ -223,18 +247,18 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     def fraction_field(self):
         return sage.rings.rational_field.Q
 
-    def quotient(self, I):
+    def quotient(self, I, names=None):
         r"""
         Return the quotient of $\Z$ by the ideal $I$ or integer $I$.
 
         EXAMPLES:
-            sage: ZZ/(6*ZZ)
+            sage: ZZ.quo(6*ZZ)
             Ring of integers modulo 6
-            sage: ZZ/(0*ZZ)
+            sage: ZZ.quo(0*ZZ)
             Integer Ring
-            sage: ZZ/3
+            sage: ZZ.quo(3)
             Finite Field of size 3
-            sage: ZZ/(3*QQ)
+            sage: ZZ.quo(3*QQ)
             Traceback (most recent call last):
             ...
             TypeError: I must be an ideal of ZZ
@@ -284,16 +308,6 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
 
     def order(self):
         return sage.rings.infinity.Infinity()
-
-    def __cmp__(self, other):
-        if isinstance(other, IntegerRing):
-            return 0
-        if ring.is_Ring(other):
-            if other.characteristic() == 0:
-                return -1
-            else:
-                return 1
-        return -1
 
     def zeta(self, n=2):
         if n == 1:

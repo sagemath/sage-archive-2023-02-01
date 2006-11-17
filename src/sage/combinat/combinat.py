@@ -706,7 +706,7 @@ def tuples(S,k):
 	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
          ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
 	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
-	sage: mset = [x for x in GF(4) if x!=0]
+	sage: mset = [x for x in GF(4,'a') if x!=0]
 	sage: tuples(mset,2)
         [[1, 1],
          [a, 1],

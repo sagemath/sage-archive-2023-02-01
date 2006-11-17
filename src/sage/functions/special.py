@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest -- TODO remove
 Special Functions
 
 AUTHORS:

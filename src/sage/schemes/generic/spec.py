@@ -40,7 +40,7 @@ class Spec(scheme.AffineScheme):
         Spectrum of Univariate Polynomial Ring in x over Rational Field
         sage: Spec(PolynomialRing(QQ, 3))
         Spectrum of Polynomial Ring in x0, x1, x2 over Rational Field
-        sage: X = Spec(PolynomialRing(GF(49), 3)); X
+        sage: X = Spec(PolynomialRing(GF(49,'a'), 3)); X
         Spectrum of Polynomial Ring in x0, x1, x2 over Finite Field in a of size 7^2
         sage: loads(X.dumps()) == X
         True

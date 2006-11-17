@@ -11,16 +11,16 @@ import padic
 import integer
 import rational
 
-#padics = {}
-#def pAdicField(p):
-#    return pAdicField_generic(p)
-    #if padics.has_key(p):
-    #    x = padics[p]()
-    #    if x != None:
-    #        return x
-    #K = pAdicField_generic(p)
-    #padics[p] = weakref.ref(K)
-    #return K
+padics = {}
+def pAdicField(p, prec=20):
+    key = (p, prec)
+    if padics.has_key(key):
+        K = padics[key]()
+        if K != None:
+            return K
+    K = pAdicField_generic(p, prec)
+    padics[key] = weakref.ref(K)
+    return K
 
 class pAdicField_generic(field.Field):
     r"""
@@ -33,16 +33,17 @@ class pAdicField_generic(field.Field):
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, p, prec=20, series_print=True, print_prec=infinity):
+    def __init__(self, p, prec, series_print=True, print_prec=infinity):
         self.__p = p
         self.__prec = prec
         self.__series_print = series_print
         self.__print_prec = print_prec
 
-    def prec(self, n=None):
-        if n==None:
-            return self.__prec
-        self.__prec = n
+    def __hash__(self):
+        return hash((self.__p, self.__prec))
+
+    def prec(self):
+        return self.__prec
 
     def series_print(self, n=None):
         if n is None:
@@ -111,8 +112,11 @@ class pAdicField_generic(field.Field):
         return padic.pAdic(self, x, prec)
 
     def _coerce_(self, x):
+        P = x.parent()
         if x.parent() is self:
             return x
+        if is_pAdicField(P) and P.prime() == self.prime() and self.prec() <= P.prec():
+            return self(x)
         if isinstance(x, (integer.Integer, rational.Rational)):
             return self(x)
         raise TypeError
@@ -120,18 +124,13 @@ class pAdicField_generic(field.Field):
     def __cmp__(self, other):
         if not isinstance(other, pAdicField_generic):
             return -1
-        if self.__p < other.__p:
-            return -1
-        elif self.__p > other.__p:
-            return 1
-        return 0
+        return cmp((self.__p, self.__prec), (other.__p, other.__prec))
 
 
 
 
 
-Qp = pAdicField_generic
-pAdicField = Qp
+Qp = pAdicField
 
 def is_pAdicField(x):
     return isinstance(x, pAdicField_generic)

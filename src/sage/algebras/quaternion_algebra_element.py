@@ -63,7 +63,7 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
         x = self * self.conjugate()
 	return x.vector()[0]
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
 	"""
 	v = self.vector()
@@ -73,7 +73,7 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
 	A = MatrixSpace(RationalField(),3,4)
 	M = A(list(u) + list(v) + [1,0,0,0]).kernel()
 	w = M.gen(0)
-	P = PolynomialRing(self.parent().base_ring())
+	P = PolynomialRing(self.parent().base_ring(), var)
 	x = P.gen()
 	if w[0] == 1:
             x**2 + w[1]*x + w[2]
@@ -83,15 +83,15 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
 
     characteristic_polynomial = charpoly
 
-    def minpoly(self):
+    def minpoly(self, var):
         """
 	"""
 	v = self.vector()
 	if v[1] == 0 and v[2] == 0 and v[3] == 0:
 	    K = self.parent().base_ring()
-	    P = PolynomialRing(K)
+	    P = PolynomialRing(K, var)
 	    x = P.gen()
 	    return x - v[0]
-	return self.charpoly()
+	return self.charpoly(var)
 
     minimal_polynomial = minpoly

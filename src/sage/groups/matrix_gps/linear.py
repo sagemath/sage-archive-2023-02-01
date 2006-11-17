@@ -150,7 +150,7 @@ class LinearGroup_finite_field(LinearGroup_generic):
         Return True if $x$ is an element of this group.
 
         EXAMPLES:
-            sage: G = GL(3,GF(4))
+            sage: G = GL(3,GF(4,'a'))
             sage: g = G.random()
             sage: g in G
             True
@@ -182,7 +182,7 @@ class LinearGroup_finite_field(LinearGroup_generic):
              [[0, 1], [1, 2]],
              [[0, 1], [1, 1]],
              [[2, 0], [0, 1]]]
-            sage: G = GL(2,GF(4))
+            sage: G = GL(2,GF(4,'a'))
             sage: C = G.conjugacy_class_representatives()
             sage: [g.list() for g in C]      # prints more nicely
             [[[1, 0], [0, 1]],

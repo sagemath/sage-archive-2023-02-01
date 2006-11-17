@@ -70,7 +70,7 @@ class Cell:
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
-    def plain_text(self, ncols=0, prompts=True, max_out=None):
+    def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
@@ -111,12 +111,12 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n'
+            s += self.__in.strip() + '\n///\n'
 
         if prompts:
             msg = 'Traceback (most recent call last):'
-            if self.__out[:len(msg)] == msg:
-                v = self.__out.split('\n')
+            if self.__out.strip()[:len(msg)] == msg:
+                v = self.__out.strip().split('\n')
                 w = [msg, '...']
                 for i in range(1,len(v)):
                     if not (len(v[i]) > 0 and v[i][0] == ' '):
@@ -128,16 +128,30 @@ class Cell:
         else:
             out = self.output_text(ncols, html=False).split('\n')
             if len(out) > 0:
-                out = '# ' + '\n# '.join(out)
+                if wiki_out:
+                  out = '///\n' + '\n'.join(out)
+                else:
+                  out = '#out: ' + '\n'.join(out)
             else:
                 out = ''
+            out = self.output_text(ncols, html=False)
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
 
-        s = s.strip() + '\n' + out
+        # Get rid of spurious carriage returns
+        s = s.strip('\n')
+        out = out.strip('\n').strip('\r').strip('\r\n')
+        s = s + '\n' + out
 
+        if not prompts:
+            s = s.rstrip('\n')
         return s
+
+    def wiki_text(self, ncols=0, prompts=False, max_out=None):
+        s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
+        #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
+        return '{{{[%s]\n'%self.id() + s + '\n}}}'
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -206,6 +220,7 @@ class Cell:
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        output = output.replace('\r','')
         i = output.find(worksheet.SAGE_VARS)
         if i != -1:
             output = output[:i]
@@ -269,7 +284,7 @@ class Cell:
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s + '</pre>'
-        return s
+        return s.strip('\n')
 
     def has_output(self):
         return len(self.__out.strip()) > 0
@@ -322,6 +337,35 @@ class Cell:
 
     def do_time(self):
         self.__time = True
+
+    #def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+     #   self.evaluate()
+        #s = self.output_text()
+      #  s = '\n\n<div class="doc_html" id="doc_html_%s">\n%s\n</div>\n'%(self.id(),self.output_text())
+       # return s
+
+    def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+        """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
+        The problem is how to get the documentation html to display nicely between the example cells.
+        The type setting (jsMath formating) needs attention too.
+        """
+        self.evaluate()
+        if wrap is None:
+            wrap = self.notebook().defaults()['word_wrap_cols']
+        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        if evaluated:
+            cls = 'cell_evaluated'
+        else:
+            cls = 'cell_not_evaluated'
+
+        html_in  = self.html_in(do_print=do_print)
+        introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
+        #html_out = self.html_out(wrap, do_print=do_print)
+        html_out = self.html()
+        s = html_out
+        if div_wrap:
+            s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+        return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:

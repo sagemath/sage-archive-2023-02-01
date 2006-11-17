@@ -417,7 +417,7 @@ def gen_legendre_Q(n,m,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
-        2.49185259170895401
+        2.491852591708954
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -464,7 +464,7 @@ def jacobi_P(n,a,b,x):
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
         sage: jacobi_P(2,1,2,1.2)
-        5.00999999999999801
+        5.009999999999887
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -503,7 +503,7 @@ def legendre_P(n,x):
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
         sage: legendre_P(3,1.1)
-        1.6775000000000000
+        1.67750000000000
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -523,7 +523,7 @@ def legendre_Q(n,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(3,0.5)
-        -0.198654771479482399
+        -0.1986547714794823
     """
     _init()
     n0 = ZZ(n) # n must be an integer

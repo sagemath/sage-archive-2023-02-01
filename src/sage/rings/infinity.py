@@ -59,10 +59,8 @@ class Infinity(InfinityElement):
                 return self
         raise TypeError, "product not defined"
 
-    def __cmp__(self, other):
-        if isinstance(other, InfinityElement):
-            return 0
-        return 1  # infinity is bigger than everything but itself
+    def _cmp_(self, other):
+        return 0  # only 1 infinity
 
 
 infinity = Infinity()

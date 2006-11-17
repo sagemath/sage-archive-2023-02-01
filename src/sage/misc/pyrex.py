@@ -79,6 +79,7 @@ def pyx_preparse(s):
     s = """
 include "cdefs.pxi"
 include "interrupt.pxi"  # ctrl-c interrupt block support
+include "stdsage.pxi"  # ctrl-c interrupt block support
 """ + s
     return s, libs, inc, lang, additional_source_files
 
@@ -97,7 +98,7 @@ include "interrupt.pxi"  # ctrl-c interrupt block support
 
 sequence_number = {}
 
-def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False,
+def pyrex(filename, verbose=False, compile_message=False,
           use_cache=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
@@ -122,7 +123,7 @@ def pyrex(filename, verbose=False, compile_message=False, make_c_file_nice=False
         if not os.path.isdir(G):
             os.unlink(G)
 
-    os.system('cd "%s"; ln -s "%s/devel/sage/sage/ext/interrupt.c" .'%(build_dir, SAGE_ROOT))
+    os.system('cd "%s"; ln -s "%s"/devel/sage/sage/ext/*.c .'%(build_dir, SAGE_ROOT))
 
     if compile_message:
         print "Compiling %s..."%filename
@@ -164,7 +165,7 @@ else:
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = ['-w']
 
-ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c', %s],
+ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c', 'stdsage.c', %s],
                      libraries=%s,
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
@@ -184,7 +185,7 @@ setup(ext_modules = ext_modules,
 
 
 
-    cmd = 'cd %s && pyrexc %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
+    cmd = 'cd %s && pyrexc -p %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
                                                                   name, target_c)
 
     if verbose:
@@ -197,36 +198,36 @@ setup(ext_modules = ext_modules,
     if language=='c++':
         os.system("cd %s && mv %s.c %s.cpp"%(build_dir,name,name))
 
-    if make_c_file_nice and os.path.exists(target_c):
-        R = open(target_c).read()
-        R = "/* THIS IS A PARSED TO MAKE READABLE VERSION OF THE C FILE. */" + R
+##     if make_c_file_nice and os.path.exists(target_c):
+##         R = open(target_c).read()
+##         R = "/* THIS IS A PARSED TO MAKE READABLE VERSION OF THE C FILE. */" + R
 
-        # 1. Get rid of the annoying __pyx_'s before variable names.
-        # R = R.replace('__pyx_v_','').replace('__pyx','')
-        # 2. Replace the line number references by the actual code from the file,
-        #    since it is very painful to go back and forth, and the philosophy
-        #    of SAGE is that everything that can be very easy *is*.
+##         # 1. Get rid of the annoying __pyx_'s before variable names.
+##         # R = R.replace('__pyx_v_','').replace('__pyx','')
+##         # 2. Replace the line number references by the actual code from the file,
+##         #    since it is very painful to go back and forth, and the philosophy
+##         #    of SAGE is that everything that can be very easy *is*.
 
-        pyx_file = os.path.abspath('%s/%s.pyx'%(build_dir,name))
-        S = '/* "%s":'%pyx_file
-        n = len(S)
-        last_i = -1
-        X = F.split('\n')
-        stars = '*'*80
-        while True:
-            i = R.find(S)
-            if i == -1 or i == last_i: break
-            last_i = i
-            j = R[i:].find('*/')
-            if j == -1: break
-            line_number = int(R[i+n: i+j])
-            try:
-                line = X[line_number-1]
-            except IndexError:
-                line = '(missing code)'
-            R = R[:i+2] + '%s\n\n Line %s: %s\n\n%s'%(stars, line_number, line, stars) + R[i+j:]
+##         pyx_file = os.path.abspath('%s/%s.pyx'%(build_dir,name))
+##         S = '/* "%s":'%pyx_file
+##         n = len(S)
+##         last_i = -1
+##         X = F.split('\n')
+##         stars = '*'*80
+##         while True:
+##             i = R.find(S)
+##             if i == -1 or i == last_i: break
+##             last_i = i
+##             j = R[i:].find('\n')
+##             if j == -1: break
+##             line_number = int(R[i+n: i+j])
+##             try:
+##                 line = X[line_number-1]
+##             except IndexError:
+##                 line = '(missing code)'
+##             R = R[:i+2] + '%s\n\n Line %s: %s\n\n%s'%(stars, line_number, line, stars) + R[i+j:]
 
-        open(target_c,'w').write(R)
+##         open(target_c,'w').write(R)
 
 
     cmd = 'cd %s && python setup.py build 1>log 2>err'%build_dir
@@ -257,3 +258,5 @@ def subtract_from_line_numbers(s, n):
         except ValueError:
             ans.append(X)
     return '\n'.join(ans)
+
+

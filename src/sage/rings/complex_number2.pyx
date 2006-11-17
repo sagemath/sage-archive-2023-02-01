@@ -1,9 +1,11 @@
-"""
+"""nodoctest
 Complex Numbers
 
 AUTHOR:
     -- William Stein (2006-01-26): complete rewrite
     -- William Stein (2006-08-14): rewrite into Pyrex
+
+** THIS IS NOT DONE **
 """
 
 #################################################################################

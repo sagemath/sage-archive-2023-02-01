@@ -26,8 +26,6 @@ cdef process(s):
         return s
 
 
-include '../ext/stdsage.pxi'
-
 cdef class SageObject:
 
     #############################################################################
@@ -61,7 +59,7 @@ cdef class SageObject:
         Real numbers are not Python classes, so rename is not supported:
             sage: a = 3.14
             sage: type(a)
-            <type 'real_mpfr.RealNumber'>
+            <type 'sage.rings.real_mpfr.RealNumber'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
@@ -84,14 +82,11 @@ cdef class SageObject:
         del self.__custom_name
 
     def __repr__(self):
-        try:
+        if hasattr(self, '__custom_name'):
             return self.__custom_name
-        except AttributeError:
-            try:
-                return self._repr_()
-            except AttributeError:
-                return str(type(self))
-
+        elif hasattr(self, '_repr_'):
+            return self._repr_()
+        return str(type(self))
 
     def _plot_(self, *args, **kwds):
         import sage.plot.plot
@@ -142,7 +137,7 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps(compress))
+        open(filename, 'wb').write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -241,19 +236,22 @@ cdef class SageObject:
 
     def __contains__(self, x):
         r"""
-        True if coercion of $x$ into self is possible.  Thus, e.g.,
-        $2$ is in the integers and in $\Z/7\Z$ and the element $3$ of
-        $\Z/7\Z$ {\em is} in $\Z$.  However, $2/3$ is not in $\Z$.
-        Think of this as returning True if $x==y$ for some $y$ in
-        self.
+        True if any coercion of $x$ into self is possible (this is not
+        necessarily canonical coercion).
 
         EXAMPLES:
             sage: 2 in Integers(7)
             True
-            sage: 2 in IntegerRing()
+            sage: 2 in ZZ
             True
-            sage: Integers(7)(3) in IntegerRing()
+            sage: Integers(7)(3) in ZZ
             True
+            sage: 3/1 in ZZ
+            True
+            sage: 5 in QQ
+            True
+            sage: I in RR
+            False
         """
         try:
             self(x)
@@ -308,6 +306,9 @@ cdef class SageObject:
             except AttributeError:
                 pass
         return X
+
+    def _interface_init_(self):
+        return str(self)
 
     def _interface_is_cached_(self):
         """
@@ -530,7 +531,7 @@ def save(obj, filename=None, compress=True):
         s = cPickle.dumps(obj, protocol=2)
         if compress:
             s = comp.compress(s)
-        open(process(filename), 'w').write(s)
+        open(process(filename), 'wb').write(s)
 
 def dumps(obj, compress=True):
     """

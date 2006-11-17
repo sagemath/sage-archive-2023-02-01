@@ -34,7 +34,7 @@ AUTHORS:
 
 
 from sage.rings.all import Integers, Integer, PolynomialRing, Polynomial
-from sage.matrix.all import Matrix
+from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 
@@ -137,7 +137,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html)
 
     self._speedup_matrix = \
-        (Matrix(Integers(), 3, 3, [2, 4, 8,
+        (matrix(Integers(), 3, 3, [2, 4, 8,
                                    1, 1, 1,
                                    8, 4, 2])**(-1)
          ).change_ring(base_ring).list()
@@ -424,7 +424,7 @@ def helper_matrix(Q):
     #   [  0,  -2a,  -3b ]
     #   [  3,    0,  -2a ]
 
-    return (1/D) * Matrix(Q.base_ring(), 3, 3,
+    return (1/D) * matrix(Q.base_ring(), 3, 3,
                           [  4*a**2 , -6*b*a  , 9*b**2,
                              -9*b   , -2*a**2 , 3*b*a,
                               6*a   , -9*b    , -2*a**2 ])
@@ -1245,7 +1245,7 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       "Hey that's impossible! The output matrix is not congruent mod p " \
       "to the approximation found earlier!"
 
-  return Matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
+  return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
                                   F0_reduced[1], F1_reduced[1]])
 
 

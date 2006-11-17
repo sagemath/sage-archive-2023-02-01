@@ -23,6 +23,7 @@ import sage.misc.misc
 
 include '../../ext/cdefs.pxi'
 include '../../ext/interrupt.pxi'
+include '../../ext/stdsage.pxi'
 
 cimport p1list
 import  p1list
@@ -109,13 +110,13 @@ cdef struct list:
 
 cdef int* expand(int *v, int n, int new_length) except NULL:
     cdef int *w, i
-    w = <int*>  PyMem_Malloc(new_length*sizeof(int))
+    w = <int*>  sage_malloc(new_length*sizeof(int))
     if w == <int*> 0:
         return NULL
     if v:
         for i from 0 <= i < n:
             w[i] = v[i]
-        PyMem_Free(v)
+        sage_free(v)
     return w
 
 cdef int list_append(list* L, int a) except -1:
@@ -134,7 +135,7 @@ cdef int list_append4(list* L, int a, int b, int c, int d) except -1:
     list_append(L, d)
 
 cdef void list_clear(list L):
-    PyMem_Free(L.v)
+    sage_free(L.v)
 
 cdef void list_init(list* L):
     L.n = 16

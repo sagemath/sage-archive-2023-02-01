@@ -12,7 +12,7 @@ import re
 from math import ceil, floor
 
 import sage.rings.integer
-from sage.misc.all import verbose, get_verbose, tmp_filename
+from sage.misc.misc import verbose, get_verbose, tmp_filename
 
 import sage.misc.package
 

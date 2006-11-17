@@ -107,7 +107,7 @@ class FreeAlgebraElement(AlgebraElement):
         z.__monomial_coefficients = z_elt
         return z
 
-    def __neg__(self):
+    def _neg_(self):
         y = self.parent()(0)
         y_elt = {}
         for m, c in self.__monomial_coefficients.iteritems():

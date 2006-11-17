@@ -22,7 +22,8 @@ cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
 
-import sage.matrix.matrix
+from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.matrix.matrix cimport Matrix
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -43,12 +44,12 @@ def Vector(R, elts):
     """
     return (R**len(elts))(elts)
 
-cdef class FreeModuleElement(sage.structure.element.ModuleElement):
+cdef class FreeModuleElement(ModuleElement):
     """
     An element of a generic free module.
     """
     def __init__(self, parent):
-        sage.structure.element.ModuleElement.__init__(self, parent)
+        ModuleElement.__init__(self, parent)
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -62,7 +63,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __abs__(self):
         return self.norm()
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
             sage: v = (QQ['x']^4)(0)
@@ -119,7 +120,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
                      copy=False, coerce=False, check=False)',
                     {'self':self, 'p':p})
 
-    cdef sage.structure.element.ModuleElement _add_c_impl(left, sage.structure.element.ModuleElement right):
+    cdef ModuleElement _add_c_impl(left, ModuleElement right):
         """
         Add left and right.
         """
@@ -127,7 +128,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
                  {'left':left, 'right':right})
         return left.parent()(X, coerce=False, copy=False, check=False)
 
-    cdef sage.structure.element.ModuleElement _sub_c_impl(left, sage.structure.element.ModuleElement right):
+    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         """
         Subtract right from left.
 
@@ -166,31 +167,43 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def __mul__(self, right):
-        if isinstance(right, FreeModuleElement):
-            # vector x vector -> dot product
-            return self.dot_product(right)
-        if isinstance(right, sage.matrix.matrix.Matrix):
-            # vector x matrix multiply
-            return (<FreeModuleElement>self)._matrix_multiply(right)
+    cdef ModuleElement _lmul_c_impl(self, RingElement left):
+        # todo -- this is STUPID
+        return eval('self.parent()([s*x for x in self.list()], \
+                     copy=False, coerce=False, check=False)',
+                    {'self':self, 's':left})
 
-        try:
-            right = self.base_ring()(right)
-        except TypeError:
-            try:
-                right = self.parent().base_field()(right)
-            except (AttributeError, TypeError):
-                raise TypeError, "unable to multiply self by right"
-            else:
-                v = self.parent().ambient_vector_space()(self)
-                return (<FreeModuleElement>v)._scalar_multiply(right)
 
-        return (<FreeModuleElement>self)._scalar_multiply(right)
+    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+        # todo -- this is STUPID
+        return eval('self.parent()([x*s for x in self.list()], \
+                     copy=False, coerce=False, check=False)',
+                    {'self':self, 's':right})
 
-    def __div__(left, right):
-        return left * ~(left.parent().base_ring()(right))
 
-    def __neg__(self):
+
+##     def __mul__(self, right):
+##         if isinstance(right, FreeModuleElement):
+##             # vector x vector -> dot product
+##             return self.dot_product(right)
+##         if isinstance(right, Matrix):
+##             # vector x matrix multiply
+##             return (<FreeModuleElement>self)._matrix_multiply(right)
+##         try:
+##             right = self.base_ring()(right)
+##         except TypeError:
+##             try:
+##                 right = self.parent().base_field()(right)
+##             except (AttributeError, TypeError):
+##                 raise TypeError, "unable to multiply self by right"
+##             else:
+##                 v = self.parent().ambient_vector_space()(self)
+##                 return (<FreeModuleElement>v)._scalar_multiply(right)
+##         return (<FreeModuleElement>self)._scalar_multiply(right)
+    #def __div__(left, right):
+    #    return left * ~(left.parent().base_ring()(right))
+
+    cdef ModuleElement _neg_c_impl(self):
         """
         EXAMPLES:
             sage: V = QQ^3
@@ -228,7 +241,7 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
     def __setitem__(self, i, x):
         raise NotImplementedError
 
-    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix.Matrix A):
+    cdef FreeModuleElement _matrix_multiply(self, Matrix A):
         """
         Return the product self*A.
 
@@ -246,14 +259,6 @@ cdef class FreeModuleElement(sage.structure.element.ModuleElement):
         """
         return A.vector_matrix_multiply(self)
 
-    cdef FreeModuleElement _scalar_multiply(self, s):
-        """
-        return the product s*self.
-        """
-        s = self.base_ring()(s)
-        return eval('self.parent()([x*s for x in self.list()], \
-                     copy=False, coerce=False, check=False)',
-                    {'self':self, 's':s})
 
     def copy(self):
         return self.parent()(self.entries(), \
@@ -482,7 +487,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     def list(self):
         return self._entries
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Compare two free module elements.
 
@@ -561,7 +566,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries = dict(entries)
         self._entries = entries
 
-    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Compare two sparse free module elements.
 

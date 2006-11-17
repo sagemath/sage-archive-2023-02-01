@@ -40,9 +40,6 @@ cdef class Group(sage.structure.parent_gens.ParentWithGens):
         """
         raise NotImplementedError
 
-    def _coerce_(self, x):
-        return self(x)
-
     def __contains__(self, x):
         r"""
         True if coercion of $x$ into self is defined.

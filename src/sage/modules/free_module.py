@@ -53,6 +53,15 @@ We illustrate the exponent notation for creation of free modules.
     Vector space of dimension 2 over Rational Field
     sage: R^3
     Vector space of dimension 3 over Real Field with 53 bits of precision
+
+Base ring:
+    sage: R = MPolynomialRing(RationalField(),2); x,y = R.gens()
+    sage: M = FreeModule(R,2)
+    sage: M.base_ring()
+    Polynomial Ring in x0, x1 over Rational Field
+
+    sage: VectorSpace(RationalField(), 10).base_ring()
+    Rational Field
 """
 
 #*****************************************************************************
@@ -97,6 +106,7 @@ import sage.modules.real_double_vector
 import sage.modules.complex_double_vector
 from sage.structure.sequence import Sequence
 
+from sage.structure.parent_gens import ParentWithGens
 
 ###############################################################################
 #
@@ -330,11 +340,11 @@ class FreeModule_generic(module.Module):
             raise ValueError, "degree (=%s) must be nonnegative"%degree
 
         self.__uses_ambient_inner_product = True
-        self.__base_ring = base_ring
         self.__rank = rank
         self.__degree = degree
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
+        ParentWithGens.__init__(self, base_ring)
 
     def _element_class(self):
         if self.__is_sparse:
@@ -470,21 +480,6 @@ class FreeModule_generic(module.Module):
             Vector space of dimension 4 over Rational Field
         """
         return FreeModule(self.base_ring(), self.degree())
-
-    def base_ring(self):
-        """
-        Return the base ring of this module.
-
-        EXAMPLES:
-            sage: R = MPolynomialRing(RationalField(),2); x,y = R.gens()
-            sage: M = FreeModule(R,2)
-            sage: M.base_ring()
-            Polynomial Ring in x0, x1 over Rational Field
-
-            sage: VectorSpace(RationalField(), 10).base_ring()
-            Rational Field
-        """
-        return self.__base_ring
 
     def basis(self):
         """

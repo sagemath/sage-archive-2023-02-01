@@ -229,7 +229,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x = R(x)
         return quotient_ring_element.QuotientRingElement(self, x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the coercion of x into this quotient ring.
 
@@ -252,14 +252,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             ...
             TypeError: no canonical coercion of x into self
         """
-        try:
-            P = x.parent()
-            # this ring itself:
-            if P is self: return x
-            if P == self: return self(x)
-        except AttributeError:
-            pass
-
         return self._coerce_try(x, [self.cover_ring()])
 
     def __cmp__(self, other):

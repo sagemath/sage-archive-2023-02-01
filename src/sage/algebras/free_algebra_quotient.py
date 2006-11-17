@@ -24,6 +24,7 @@ from sage.monoids.free_monoid_element import FreeMonoidElement
 from sage.algebras.algebra import Algebra
 from sage.algebras.free_algebra import is_FreeAlgebra
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
+from sage.structure.parent_gens import ParentWithGens
 
 class FreeAlgebraQuotient(Algebra, object):
     def __init__(self, A, mons, mats, names):
@@ -80,20 +81,19 @@ class FreeAlgebraQuotient(Algebra, object):
         n = A.ngens()
         assert n == len(mats)
         self.__free_algebra = A
-        self.__base_ring = R
         self.__ngens = n
-        self._assign_names(names)
         self.__dim = len(mons)
         self.__module = FreeModule(R,self.__dim)
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
+        ParentWithGens.__init__(self, R, names, normalize=False)
 
     def __call__(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
             return x
         return FreeAlgebraQuotientElement(self,x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the coercion of x into this free algebra quotient.
 
@@ -102,17 +102,10 @@ class FreeAlgebraQuotient(Algebra, object):
            * this quotient algebra
            * anything that coerces into the algebra of which this is the quotient
         """
-        try:
-            P = x.parent()
-            # this ring itself:
-            if P is self: return x
-        except AttributeError:
-            pass
-        return self._coerce_try(x, [self.__free_algebra])
+        return self._coerce_try(x, [self.__free_algebra, self.base_ring()])
 
-
-    def __repr__(self):
-        R = self.__base_ring
+    def _repr_(self):
+        R = self.base_ring()
         n = self.__ngens
         r = self.__module.dimension()
         x = self.variable_names()
@@ -128,7 +121,7 @@ class FreeAlgebraQuotient(Algebra, object):
         n = self.__ngens
         if i < 0 or not i < n:
             raise IndexError, "Argument i (= %s) must be between 0 and %s."%(i, n-1)
-        R = self.__base_ring
+        R = self.base_ring()
         F = self.__free_algebra.monoid()
         n = self.__ngens
         return FreeAlgebraQuotientElement(self,{F.gen(i):R(1)})
@@ -138,9 +131,6 @@ class FreeAlgebraQuotient(Algebra, object):
         The number of generators of the algebra.
         """
         return self.__ngens
-
-    def base_ring(self):
-        return self.__base_ring
 
     def dimension(self):
         """

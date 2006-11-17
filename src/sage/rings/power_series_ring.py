@@ -203,7 +203,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self(v) * (self.gen(0)**f.Valuation())
         return self.__power_series_class(self, f, prec, check=check)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return canonical coercion of x into self.
 
@@ -255,9 +255,6 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         try:
             P = x.parent()
-            if P is self: return x
-            elif P == self: return self(x)
-
             if is_PowerSeriesRing(P):
                 if P.variable_name() == self.variable_name():
                     if self.has_coerce_map_from(P.base_ring()):

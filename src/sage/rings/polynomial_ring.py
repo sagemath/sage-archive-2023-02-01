@@ -158,7 +158,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the canonical coercion of x to this polynomial ring, if one is
         defined, or raise a TypeError.
@@ -171,10 +171,6 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         """
         try:
             P = x.parent()
-
-            # this ring itself:
-            if P is self: return x
-            if P == self: return self(x)
 
             # polynomial rings in the same variable over any base that coerces in:
             if is_PolynomialRing(P):

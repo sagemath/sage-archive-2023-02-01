@@ -256,7 +256,7 @@ class NumberField_generic(field.Field):
 
         return number_field_element.NumberFieldElement(self, x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
                 return x
@@ -863,7 +863,7 @@ class NumberField_extension(NumberField_generic):
 
         return number_field_element.NumberFieldElement(self, x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
                 return x

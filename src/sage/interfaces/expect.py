@@ -414,9 +414,6 @@ class Expect(SageObject):
         except TypeError, s:
             return 'error evaluating "%s":\n%s'%(code,s)
 
-    def _coerce_(self, x):
-        return self(x)
-
     def __call__(self, x):
         r"""
         Create a new object in self from x.

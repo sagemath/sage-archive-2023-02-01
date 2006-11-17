@@ -1,10 +1,11 @@
 cimport free_module_element
 import  free_module_element
 
-cimport sage.rings.complex_double
-import sage.rings.complex_double
-#from sage.functions.constants cimport log2
-#from sage.functions.constants import log2
+from sage.structure.element cimport Element, ModuleElement, RingElement
+
+from sage.rings.complex_double cimport ComplexDoubleElement
+from sage.rings.complex_double import CDF
+
 
 cdef class ComplexDoubleVectorSpace_element(free_module_element.FreeModuleElement):
     def __new__(self, parent,x,coerce=True, copy=True):
@@ -43,7 +44,7 @@ cdef class ComplexDoubleVectorSpace_element(free_module_element.FreeModuleElemen
         if self.v is not NULL and length == n:
             for i from 0 <=i <n:
                 z = sage.rings.complex_double.CDF(x[i])
-                z_temp = <gsl_complex> (<sage.rings.complex_double.ComplexDoubleElement> z)._complex
+                z_temp = <gsl_complex> (<ComplexDoubleElement> z)._complex
                 gsl_vector_complex_set(self.v,i, z_temp)
 
 
@@ -68,9 +69,7 @@ cdef class ComplexDoubleVectorSpace_element(free_module_element.FreeModuleElemen
         if i < 0 or i >= self.v.size:
             raise IndexError
         else:
-            z_temp =<gsl_complex> (<sage.rings.complex_double.ComplexDoubleElement > sage.rings.complex_double.CDF(x))._complex
-#            z_temp = (<sage.rings.complex_double.ComplexDoubleElement> sage.rings.complex_double.CDF(x))._complex
-
+            z_temp =<gsl_complex> (<ComplexDoubleElement> CDF(x))._complex
             gsl_vector_complex_set(self.v,i,z_temp)
 
     def __getitem__(self,size_t i):
@@ -82,7 +81,10 @@ cdef class ComplexDoubleVectorSpace_element(free_module_element.FreeModuleElemen
             return sage.rings.complex_double.CDF(GSL_REAL(z_temp),GSL_IMAG (z_temp))
 
 
-    cdef _add_(ComplexDoubleVectorSpace_element self,ComplexDoubleVectorSpace_element right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
+        cdef ComplexDoubleVectorSpace_element right
+        right = _right
+
         cdef int i
         cdef int n
         cdef int err_1

@@ -307,7 +307,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             return TypeError, "error coercing to finite field"
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         r"""
         Canonical coercion.
 

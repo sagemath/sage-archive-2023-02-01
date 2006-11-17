@@ -247,7 +247,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
         return self.matrix(entries, coerce=coerce, copy=copy)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         EXAMPLES:
             sage: MS1 = MatrixSpace(QQ,3)
@@ -271,8 +271,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if self.base_ring().has_coerce_map_from(x.base_ring()):
                     return self(x)
                 raise TypeError, "no canonical coercion"
-        else:
-            return self(self.base_ring()._coerce_(x))
+        return self._coerce_try(x, self.base_ring())
 
     def __cmp__(self, other):
         """

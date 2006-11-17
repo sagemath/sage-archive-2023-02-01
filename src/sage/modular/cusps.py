@@ -102,7 +102,7 @@ class Cusps_class(SageObject):
             return x
         return Cusp(x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Canonical coercion of x into the set of cusps.
 
@@ -116,12 +116,10 @@ class Cusps_class(SageObject):
             sage: Cusps(GF(7)(3))
             3
         """
-        if isinstance(x, Cusp):
-            return x
-        elif is_Infinity(x):
+        if is_Infinity(x):
             return Cusp(x)
         else:
-            return Cusp(QQ._coerce_(x))
+            return self._coerce_try(x, QQ)
 
 Cusps = Cusps_class()
 

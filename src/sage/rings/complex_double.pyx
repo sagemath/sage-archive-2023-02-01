@@ -180,7 +180,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
-    def _coerce_(self, x):
+    def _coerce_c_impl(self, x):
         """
         Return the canonical coerce of x into the complex double
         field, if it is defined, otherwise raise a TypeError.
@@ -216,14 +216,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: parent(a)
             Complex Double Field
         """
-        try:
-            return self._coerce_self(x)
-        except TypeError:
-            import sage.functions.constants
-            import complex_field
-            return self._coerce_try(x, [self.real_double_field(),
-                                        sage.functions.constants.ConstantRing,
-                                        complex_field.CC])
+        import sage.functions.constants
+        import complex_field
+        return self._coerce_try(x, [self.real_double_field(),
+                                    sage.functions.constants.ConstantRing,
+                                    complex_field.CC])
 
 
     def gen(self, n=0):

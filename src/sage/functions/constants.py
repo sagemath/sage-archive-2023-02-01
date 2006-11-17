@@ -172,12 +172,7 @@ class ConstantRing_class(FunctionRing_class):
         except TypeError:
             return Constant_gen(x)
 
-    def _coerce_(self, x):
-        try:
-            if x.parent() is self:
-                return x
-        except AttributeError:
-            pass
+    def _coerce_impl(self, x):
         if isinstance(x, (sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return Constant_gen(x)

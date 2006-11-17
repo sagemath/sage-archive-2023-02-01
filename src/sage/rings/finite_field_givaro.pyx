@@ -503,7 +503,7 @@ cdef class FiniteField_givaro(FiniteField):
 
         return make_FiniteField_givaroElement(self,res)
 
-    def _coerce_(self, x):
+    def _coerce_c_impl(self, x):
         """
         Coercion accepts elements of self.parent(), ints, and prime subfield elements.
         """

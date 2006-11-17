@@ -101,11 +101,7 @@ class FunctionRing_class(CommutativeRing):
 
             return Function_gen(x)
 
-    def _coerce_(self, x):
-        try:
-            return self._coerce_self(x)
-        except TypeError:
-            pass
+    def _coerce_impl(self, x):
         if is_Polynomial(x):
             return Function_polynomial(x)
         raise TypeError, "no canonical coercion of element to self."

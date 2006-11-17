@@ -230,35 +230,6 @@ cdef class SageObject:
 ##     def _set_category(self, C):
 ##         self.__category = C
 
-    #############################################################################
-    # Containment testing
-    #############################################################################
-
-    def __contains__(self, x):
-        r"""
-        True if any coercion of $x$ into self is possible (this is not
-        necessarily canonical coercion).
-
-        EXAMPLES:
-            sage: 2 in Integers(7)
-            True
-            sage: 2 in ZZ
-            True
-            sage: Integers(7)(3) in ZZ
-            True
-            sage: 3/1 in ZZ
-            True
-            sage: 5 in QQ
-            True
-            sage: I in RR
-            False
-        """
-        try:
-            self(x)
-        except TypeError:
-            return False
-        return True
-
 
     #############################################################################
     # Coercions to interface objects

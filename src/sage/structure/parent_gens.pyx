@@ -65,8 +65,6 @@ import sage.misc.defaults
 import sage.misc.latex
 import gens_py
 
-#cimport sage.structure.element
-
 include '../ext/stdsage.pxi'
 
 def is_ParentWithGens(x):
@@ -353,13 +351,37 @@ cdef class ParentWithGens(parent.Parent):
     #################################################################################
     # Coercion support functionality
     #################################################################################
-    def _coerce_(self, x):
+    def _coerce_(self, x):            # Call this from Python (do not override!)
+        return self._coerce_c(x)
+
+    cdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
+        try:
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return self(x)
+        except AttributeError, msg:
+            print msg
+            pass
+        if HAS_DICTIONARY(self):
+            return self._coerce_impl(x)
+        else:
+            return self._coerce_c_impl(x)
+
+    cdef _coerce_c_impl(self, x):     # OVERRIDE THIS FOR SAGEX CLASES
+        """
+        Canonically coerce x in assuming that the parent of x is not
+        equal to self.
+        """
         raise TypeError
-        # Default coerce is maximally restrictive.
-        #if PY_TYPE_CHECK(x, sage.structure.element.Element) and \
-        #       (<sage.structure.element.Element>x)._parent is self:
-        #    return x
-        #raise TypeError
+
+    def _coerce_impl(self, x):        # OVERRIDE THIS FOR PYTHON CLASSES
+        """
+        Canonically coerce x in assuming that the parent of x is not
+        equal to self.
+        """
+        return self._coerce_c_impl(x)
 
     def _coerce_try(self, x, v):
         """
@@ -367,7 +389,13 @@ cdef class ParentWithGens(parent.Parent):
         one in turn.  Return the __call__ coercion of the result into
         self of the first canonical coercion that succeeds.  Raise a
         TypeError if none of them succeed.
+
+        INPUT:
+             x -- Python object
+             v -- parent object or list (iterator) of parent objects
         """
+        if not isinstance(v, list):
+            v = [v]
         for R in v:
             try:
                 y = R._coerce_(x)
@@ -377,10 +405,14 @@ cdef class ParentWithGens(parent.Parent):
         raise TypeError, "no canonical coercion of element into self"
 
     def _coerce_self(self, x):
+        return self._coerce_self_c(x)
+
+    cdef _coerce_self_c(self, x):
         """
         Try to canonically coerce x into self.
         Return result on success or raise TypeError on failure.
         """
+        # todo -- optimize?
         try:
             P = x.parent()
             if P is self:

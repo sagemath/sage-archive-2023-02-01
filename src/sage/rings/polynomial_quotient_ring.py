@@ -251,7 +251,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         except TypeError, ValueError:
             return False
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the coercion of x into this polynomial quotient ring.
 
@@ -261,14 +261,6 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
            * anything that coerces into the ring of which this is the quotient
 
         """
-        try:
-            P = x.parent()
-            # this ring itself:
-            if P is self: return x
-            if P == self: return self(x)
-        except AttributeError:
-            pass
-
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.polynomial_ring()])
 

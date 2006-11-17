@@ -534,7 +534,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         except TypeError, msg:
             raise TypeError, "%s\nno coercion defined"%msg
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Canonical coercion to self.
 
@@ -671,12 +671,9 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         except TypeError:
             return False
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
-        if isinstance(x, RingElement):
-            if x.parent() is self:
-                return x
         raise TypeError, "no canonical coercion of x"
 
     def characteristic(self):

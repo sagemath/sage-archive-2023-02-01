@@ -1,9 +1,8 @@
-cimport sage.structure.element
-cimport sage.matrix.matrix
+from sage.structure.element cimport ModuleElement
+from sage.matrix.matrix cimport Matrix
 
-cdef class FreeModuleElement(sage.structure.element.ModuleElement):
-    cdef FreeModuleElement _matrix_multiply(self, sage.matrix.matrix.Matrix A)
-    cdef FreeModuleElement _scalar_multiply(self, s)
+cdef class FreeModuleElement(ModuleElement):
+    cdef FreeModuleElement _matrix_multiply(self, Matrix A)
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     cdef object _entries

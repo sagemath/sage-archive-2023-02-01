@@ -111,10 +111,8 @@ class pAdicField_generic(field.Field):
     def __call__(self, x, prec=infinity):
         return padic.pAdic(self, x, prec)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         P = x.parent()
-        if x.parent() is self:
-            return x
         if is_pAdicField(P) and P.prime() == self.prime() and self.prec() <= P.prec():
             return self(x)
         if isinstance(x, (integer.Integer, rational.Rational)):

@@ -187,7 +187,7 @@ cdef class RealField(sage.rings.ring.Field):
             return x._mpfr_(self)
         return RealNumber(self, x, base)
 
-    def _coerce_(self, x):
+    def _coerce_c_impl(self, x):
         """
         Canonical coercion of x to this mpfr real field.
 
@@ -199,9 +199,7 @@ cdef class RealField(sage.rings.ring.Field):
         """
         if isinstance(x, RealNumber):
             P = x.parent()
-            if P is self:
-                return x
-            elif (<RealField> P).__prec >= self.__prec:
+            if (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"

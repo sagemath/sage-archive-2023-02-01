@@ -57,7 +57,7 @@ class IntervalRing(ring.Ring, _uniq):
         else:
             return Interval(x,y)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, (int, long, float, Interval, integer.Integer,
                           rational.Rational, real_field.RealNumberClass)):
             return self(x)

@@ -111,7 +111,7 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             return x  # ok, since Laurent series are immutable (no need to make a copy)
         return laurent_series_ring_element.LaurentSeries(self, x, n)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return canonical coercion of x into self.
 
@@ -123,14 +123,6 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
         EXAMPLES:
         """
-        try:
-            P = x.parent()
-            if P is self:
-                return x
-            elif P == self:
-                return self(x)
-        except TypeError:
-            pass
         return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
     def __cmp__(self, other):

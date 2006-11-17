@@ -932,18 +932,6 @@ cdef class Algebra(Ring):
     """
     Generic algebra
     """
-    def __init__(self, base_ring):
-        if not isinstance(base_ring, Ring):
-            raise TypeError, "base ring must be a ring"
-        self.__base_ring = base_ring
-
-    def base_ring(self):
-        """
-        Return the base ring of this algebra.  This is part of the
-        structure of being an algebra.
-        """
-        return self.__base_ring
-
     def characteristic(self):
         """
         Return the characteristic of this algebra, which is the same
@@ -956,17 +944,10 @@ cdef class CommutativeAlgebra(CommutativeRing):
     """
     Generic commutative algebra
     """
-    def __init__(self, base_ring):
+    def __init__(self, base_ring, names=None, normalize=True):
         if not isinstance(base_ring, CommutativeRing):
             raise TypeError, "base ring must be a commutative ring"
-        ParentWithGens.__init__(self, base_ring)
-
-    def characteristic(self):
-        """
-        Return the characteristic of this algebra, which is the same
-        as the characteristic of its base ring.
-        """
-        return self.base_ring().characteristic()
+        ParentWithGens.__init__(self, base_ring, names=names, normalize=normalize)
 
     def is_commutative(self):
         """

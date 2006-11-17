@@ -136,7 +136,7 @@ class ComplexField_class(field.Field):
             return self.__real_field
 
     def _cmp_(self, other):
-        if not isinstance(other, ComplexField):
+        if not isinstance(other, ComplexField_class):
             return cmp(type(self), type(other))
         return cmp(self.__prec, other.__prec)
 
@@ -164,7 +164,7 @@ class ComplexField_class(field.Field):
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
         return complex_number.ComplexNumber(self, x, im)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the canonical coerce of x into this complex field, if it is defined,
         otherwise raise a TypeError.
@@ -174,16 +174,12 @@ class ComplexField_class(field.Field):
            * anything that canonically coerces to the mpfr real field with this prec
         """
         try:
-            return self._coerce_self(x)
-        except TypeError:
-            pass
-        try:
             K = x.parent()
             if is_ComplexField(K) and K.__prec >= self.__prec:
                 return self(x)
         except AttributeError:
             pass
-        return self._coerce_try(x, [self._real_field()])
+        return self._coerce_try(x, self._real_field())
 
     def _repr_(self):
         return "Complex Field with %s bits of precision"%self.__prec

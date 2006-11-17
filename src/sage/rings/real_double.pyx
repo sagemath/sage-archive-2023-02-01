@@ -94,7 +94,7 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
         """
         return RealDoubleElement(x)
 
-    def _coerce_(self, x):
+    def _coerce_c_impl(self, x):
         """
         Canonical coercion of x to the real double field.
 
@@ -116,10 +116,6 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
             sage: parent(CDF(5) + RDF(3))
             Complex Double Field
         """
-        try:
-            return self._coerce_self(x)
-        except TypeError:
-            pass
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)

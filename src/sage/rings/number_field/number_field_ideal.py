@@ -66,7 +66,7 @@ class NumberFieldIdeal(Ideal_fractional):
             return 0
         return -1
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, NumberFieldIdeal):
             if x.parent() == self:
                 return x

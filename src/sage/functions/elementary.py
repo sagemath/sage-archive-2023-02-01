@@ -237,11 +237,8 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
             raise TypeError,"Not coercible."
         raise TypeError,"Not coercible."
 
-    def _coerce_(self,x):
-        if x in RR:
-            return self(x)
-        else:
-            raise TypeError
+    def _coerce_impl(self,x):
+        return self._coerce_try(x, [RR])
 
     def poly(self,p):
         """

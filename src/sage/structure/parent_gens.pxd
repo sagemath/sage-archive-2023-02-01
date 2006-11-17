@@ -19,8 +19,17 @@ cdef class ParentWithGens(parent.Parent):
     cdef public object _latex_names
     cdef public object _list
     cdef public object _base
+
+    #########################################
+    # Canonical Coercion
     cdef public object _has_coerce_map_from
     cdef has_coerce_map_from_c(self, S)
+    cdef _coerce_c(self, x)
+    cdef _coerce_c_impl(self, x)
+    cdef _coerce_self_c(self, x)
+
+
+
 
 cdef class ParentWithMultiplicativeAbelianGens(ParentWithGens):
     cdef public object _generator_orders

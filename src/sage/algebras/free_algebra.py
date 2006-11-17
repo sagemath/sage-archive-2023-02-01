@@ -52,7 +52,7 @@ def FreeAlgebra(R, n, names):
         Free Algebra on 3 generators (x0, x1, x2) over Finite Field of size 5
         sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
         sage: (x+y+z)^2
-        x^2 + x*y + x*z + y*x + y^2 + y*z + z*x + z*y + z^2
+        x*y + x*z + x^2 + y*x + y*z + y^2 + z*x + z*y + z^2
         sage: FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
         Free Algebra on 3 generators (xx, zba, Y) over Finite Field of size 5
         sage: FreeAlgebra(GF(5),3, 'abc')
@@ -117,7 +117,7 @@ class FreeAlgebra_generic(Algebra):
         x*y*x*y*x*y*x*y*x*y*x*y + x*y*z*x*y*z*x*y*z*x*y*z
 
         sage: (2 + x*z + x^2)^2 + (x - y)^2
-        4 + 3*x^2 - x*y + 2*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
+        4 - x*y + 2*x*z + x*z*x*z + x*z*x^2 + 3*x^2 + x^3*z + x^4 - y*x + y^2
     """
     def __init__(self, R, n, names):
         """
@@ -146,7 +146,7 @@ class FreeAlgebra_generic(Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Two free algebras are considered the same if they have the
         same base ring, number of generators and variable names.
@@ -212,7 +212,7 @@ class FreeAlgebra_generic(Algebra):
         else:
             return FreeAlgebraElement(self,{F(1):x})
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Canonical coercion of x into self.
 
@@ -238,7 +238,7 @@ class FreeAlgebra_generic(Algebra):
             sage: F._coerce_(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: no canonical coercion of element into self
 
         Elements of the base ring coerce in.
             sage: F._coerce_(GF(7)(5))
@@ -263,10 +263,6 @@ class FreeAlgebra_generic(Algebra):
             ...
             TypeError: no natural map between bases of free algebras
         """
-        try:
-            return self._coerce_self(x)
-        except TypeError:
-            pass
         try:
             R = x.parent()
 

@@ -34,15 +34,6 @@ cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
         """
         raise NotImplementedError
 
-    def _coerce_(self, x):
-        return self(x)
-
-    def base_ring(self):
-        """
-        Return the base ring of this module.
-        """
-        raise NotImplementedError
-
     def category(self):
         """
         Return the category to which this module belongs.

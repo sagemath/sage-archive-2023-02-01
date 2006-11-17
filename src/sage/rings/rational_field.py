@@ -162,10 +162,8 @@ class RationalField(_uniq, field.Field):
             return x
         return sage.rings.rational.Rational(x, base)
 
-    def _coerce_(self, x):
-        if isinstance(x, sage.rings.rational.Rational):
-            return x
-        elif isinstance(x, (int, long, sage.rings.integer.Integer)):
+    def _coerce_impl(self, x):
+        if isinstance(x, (int, long, sage.rings.integer.Integer)):
             return self(x)
         raise TypeError
 

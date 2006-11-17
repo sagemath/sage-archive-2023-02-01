@@ -118,7 +118,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the canonical coercion of x to this multivariate
         polynomial ring, if one is defined, or raise a TypeError.
@@ -133,11 +133,6 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         """
         try:
             P = x.parent()
-
-            # this ring itself:
-            if P is self: return x
-            if P == self: return self(x)
-
             # polynomial rings in the same variable over the any base that coerces in:
             if is_MPolynomialRing(P):
                 if P.variable_names() == self.variable_names():

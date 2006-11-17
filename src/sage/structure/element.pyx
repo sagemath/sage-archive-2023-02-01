@@ -148,6 +148,8 @@ include "../ext/python.pxi"
 
 import operator
 
+from sage.structure.parent_gens cimport ParentWithGens
+
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
 
@@ -521,6 +523,15 @@ cdef class ModuleElement(Element):
     ##################################################
     # Scalar multiplication
     ##################################################
+    def __mul__(left, right):
+        cdef RingElement x
+        if PY_TYPE_CHECK(left, ModuleElement):
+            x = (<ModuleElement>left)._parent._base(right)
+            return (<ModuleElement>left)._rmul_c(x)
+        else:
+            x = (<ModuleElement>right)._parent._base(left)
+            return (<ModuleElement>right)._lmul_c(x)
+
     cdef ModuleElement _lmul_c(self, RingElement left):
         """
         DO NOT OVERRIDE THIS FUNCTION.  OK to call.
@@ -1272,7 +1283,7 @@ def parent(x):
 #################################################################################
 def coerce(p, x):
     try:
-        return p._coerce_(x)
+        return (<ParentWithGens>p)._coerce_c(x)
     except AttributeError:
         return p(x)
 
@@ -1310,13 +1321,13 @@ cdef canonical_coercion_c(x, y):
         return _verify_canonical_coercion_c(x,y)
     try:
         if xp.has_coerce_map_from(yp):
-            y = xp._coerce_(y)
+            y = (<ParentWithGens>xp)._coerce_c(y)
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
     try:
         if yp.has_coerce_map_from(xp):
-            x = yp._coerce_(x)
+            x = (<ParentWithGens>yp)._coerce_c(x)
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
@@ -1352,8 +1363,8 @@ cdef bin_op_c(x, y, op):
 
     # 1. Try canonical ring element coercion.
     try:
-        x, y = canonical_coercion_c(x, y)
-        return op(x,y)
+        x1, y1 = canonical_coercion_c(x, y)
+        return op(x1,y1)
     except TypeError, msg:
         pass
 
@@ -1375,6 +1386,7 @@ cdef bin_op_c(x, y, op):
             x = (<ModuleElement> y)._parent._base(x)
             return (<ModuleElement> y)._lmul_c(x)     # the product x * y
         except TypeError, msg:
+            #print msg
             pass
 
     x_is_modelt = PY_TYPE_CHECK(x, ModuleElement)

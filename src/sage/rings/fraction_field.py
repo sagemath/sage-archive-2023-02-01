@@ -152,7 +152,7 @@ class FractionField_generic(field.Field):
             x = R(x); y = R(y)
         return fraction_field_element.FractionFieldElement(self, x, y, coerce=False)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return the canonical coercion of x into this fraction field, or raise a TypeError.
 
@@ -167,10 +167,6 @@ class FractionField_generic(field.Field):
         try:
             P = x.parent()
             if is_FractionField(P):
-                if P is self:
-                    return x
-                elif P == self:
-                    return self(x)
                 R = P.ring()
                 S = self.ring()
                 if S.has_coerce_map_from(R):

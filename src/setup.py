@@ -477,7 +477,7 @@ def need_to_pyrex(filename, outfile):
         return True
 
     ## comment this out to turn on dependency checking!
-    #return False
+    return False
 
     # Now we look inside the file to see what it cimports or include.
     # If any of these files are newer than outfile, we rebuild

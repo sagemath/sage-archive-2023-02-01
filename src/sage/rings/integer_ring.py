@@ -182,7 +182,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             yield -n
             n += 1
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Return canonical coercion of x into the integers ZZ.
 
@@ -215,9 +215,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
             ...
             TypeError: no canonical coercion to an integer
         """
-        if isinstance(x, sage.rings.integer.Integer):
-            return x
-        elif isinstance(x, (int, long)):
+        if isinstance(x, (int, long)):
             return self(x)
         raise TypeError, 'no canonical coercion to an integer'
 

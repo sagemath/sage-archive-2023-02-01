@@ -35,6 +35,17 @@ SageObject
 \end{verbatim}
 
 \subsection{How to Define a New Element Class}
+Elements typically define a method \code{_new_c}, e.g.,
+\begin{verbatim}
+    cdef _new_c(self, defining data):
+        cdef FreeModuleElement_generic_dense x
+        x = PY_NEW(FreeModuleElement_generic_dense)
+        x._parent = self._parent
+        x._entries = v
+\end{verbatim}
+that creates a new sibling very quickly from defining data
+with assumed properties.
+
 SAGE has a special system in place for handling arithmetic operations
 for all Element subclasses. There are various rules that must be
 followed by both arithmetic implementors and callers.
@@ -294,7 +305,6 @@ cdef class Element(sage_object.SageObject):
         Compare left and right.
         """
         cdef int r
-
         if not have_same_parent(left, right):
             try:
                 left, right = canonical_coercion_c(left, right)
@@ -327,7 +337,7 @@ cdef class Element(sage_object.SageObject):
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
     # _cmp_c_impl.
-    # THIS IS A BUG IN PYREX.
+    # MAYBE THAT THIS IS NEEDED IS A BUG IN PYREX. ?!?
     ####################################################################
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -527,25 +537,27 @@ cdef class ModuleElement(Element):
         cdef RingElement x
         if PY_TYPE_CHECK(left, ModuleElement):
             x = (<ModuleElement>left)._parent._base(right)
-            return (<ModuleElement>left)._rmul_c(x)
+            return (<ModuleElement>left)._lmul_c(x)
         else:
             x = (<ModuleElement>right)._parent._base(left)
-            return (<ModuleElement>right)._lmul_c(x)
+            return (<ModuleElement>right)._rmul_c(x)
 
-    cdef ModuleElement _lmul_c(self, RingElement left):
+    # rmul -- self * right
+
+    cdef ModuleElement _rmul_c(self, RingElement left):
         """
         DO NOT OVERRIDE THIS FUNCTION.  OK to call.
         """
         if HAS_DICTIONARY(self):
-            return self._lmul_c_impl(left)
+            return self._rmul_c_impl(left)
         else:
-            return self._lmul_(left)
+            return self._rmul_(left)
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement left):
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
         """
-        Default left multiplication, which is to try to canonically
-        coerce the scalar to the integers and do that multiplication,
-        which is always defined.
+        Default module left scalar multiplication, which is to try to
+        canonically coerce the scalar to the integers and do that
+        multiplication, which is always defined.
         """
         from sage.rings.all import ZZ
         n = ZZ._coerce_(left)
@@ -564,28 +576,31 @@ cdef class ModuleElement(Element):
                 break
         return prod
 
-    def _lmul_(self, left):
-        return self._lmul_c_impl(left)
+    def _rmul_(self, left):
+        return self._rmul_c_impl(left)
 
-    cdef ModuleElement _rmul_c(self, RingElement right):
+
+    # lmul -- self * right
+
+    cdef ModuleElement _lmul_c(self, RingElement right):
         """
         DO NOT OVERRIDE THIS FUNCTION.
         """
         if HAS_DICTIONARY(self):
-            return self._rmul_c_impl(right)
+            return self._lmul_c_impl(right)
         else:
-            return self._rmul_(right)
+            return self._lmul_(right)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
-        Default right multiplication, which is to try to canonically
-        coerce the scalar to the integers and do that multiplication,
-        which is always defined.
+        Default module right scalar multiplication, which is to try to
+        canonically coerce the scalar to the integers and do that
+        multiplication, which is always defined.
         """
-        return self._lmul_c(right)
+        return self._rmul_c(right)
 
-    def _rmul_(self, right):
-        return self._rmul_c_impl(right)
+    def _lmul_(self, right):
+        return self._lmul_c_impl(right)
 
 
     ##################################################
@@ -715,10 +730,10 @@ cdef class AdditiveGroupElement(ModuleElement):
     def __invert__(self):
         raise NotImplementedError, "multiplicative inverse not defined for additive group elements"
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement left):
-        return self._rmul_c_impl(left)
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        return self._lmul_c_impl(left)
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
         cdef int m
         m = int(right)  # a little worrisome.
         if m<0:
@@ -1368,10 +1383,23 @@ cdef bin_op_c(x, y, op):
     except TypeError, msg:
         pass
 
+    # special case of adding or subtracting 0 -- only do this if the above completely fails.
+    if not op is operator.mul:
+        if op is operator.add:
+            if x == 0:
+                return y
+            elif y == 0:
+                return x
+        elif op is operator.sub:
+            if x == 0:
+                return -y
+            elif y == 0:
+                return x
+        # This is not a 0 case, and it's not multiplication, so we fail.
+        raise TypeError, "x=%s, y=%s\n%s\nNo canonical coercion defined."%(x,y,msg)
+
     # If the op is multiplication, then some other algebra multiplications
     # may be defined
-    if not op is operator.mul:
-        raise TypeError, "x=%s, y=%s\n%s\nNo canonical coercion defined."%(x,y,msg)
 
     # 2. Try scalar multiplication.
     # No way to multiply x and y using the ``coerce into a canonical
@@ -1379,27 +1407,27 @@ cdef bin_op_c(x, y, op):
     # The next rule to try is scalar multiplication by coercing
     # into the base ring.
     cdef int x_is_modelt, y_is_modelt
+
     y_is_modelt = PY_TYPE_CHECK(y, ModuleElement)
     if y_is_modelt:
         # First try to coerce x into the base ring of y if y is an element.
         try:
-            x = (<ModuleElement> y)._parent._base(x)
-            return (<ModuleElement> y)._lmul_c(x)     # the product x * y
+            x = (<ParentWithGens>(<ModuleElement> y)._parent._base)._coerce_c(x)
+            return (<ModuleElement> y)._rmul_c(x)     # the product x * y
         except TypeError, msg:
-            #print msg
             pass
 
     x_is_modelt = PY_TYPE_CHECK(x, ModuleElement)
     if x_is_modelt:
         # That did not work.  Try to coerce y into the base ring of x.
         try:
-            y = (<ModuleElement> x)._parent._base(y)
-            return (<ModuleElement> x)._rmul_c(y)    # the product x * y
+            y = (<ParentWithGens> (<ModuleElement> x)._parent._base)._coerce_c(y)
+            return (<ModuleElement> x)._lmul_c(y)    # the product x * y
         except TypeError:
             pass
 
     if y_is_modelt and x_is_modelt:
-        # 3. Both coercion failed, but both are module elements.
+        # 3. Both canonical coercion failed, but both are module elements.
         # Try base extending the right object by the parent of the left
 
         ## TODO -- WORRY -- only unambiguous if one succeeds!
@@ -1419,18 +1447,18 @@ cdef bin_op_c(x, y, op):
     # Test to see if an _r_action or _l_action is
     # defined on either side.
     try:
-        return y._r_action(x)
-    except (AttributeError, TypeError):
-        pass
-    try:
         return x._l_action(y)
     except (AttributeError, TypeError):
         pass
+    try:
+        return y._r_action(x)
+    except (AttributeError, TypeError):
+        pass
 
-    raise TypeError, "unable to multiply %s times %s"%(x,y)
+    raise TypeError, "unable to multiply %s (parent: %s) times %s (parent: %s)"%(x,parent_c(x),y,parent_c(y))
 
 
-def coerce_cmp(x,y):  # external interface to cmp_cdef
+def coerce_cmp(x,y):
     cdef int c
     try:
         x, y = canonical_coercion_c(x, y)

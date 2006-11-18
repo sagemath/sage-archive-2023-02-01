@@ -362,7 +362,6 @@ cdef class ParentWithGens(parent.Parent):
             elif P == self:
                 return self(x)
         except AttributeError, msg:
-            print msg
             pass
         if HAS_DICTIONARY(self):
             return self._coerce_impl(x)
@@ -438,7 +437,7 @@ cdef class ParentWithGens(parent.Parent):
         except TypeError:
             self._has_coerce_map_from = {}
         try:
-            self._coerce_(S(0))
+            self._coerce_c(S(0))
         except TypeError:
             self._has_coerce_map_from[S] = False
             return False

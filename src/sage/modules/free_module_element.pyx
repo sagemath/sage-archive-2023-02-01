@@ -14,6 +14,7 @@ TODO:
 import operator
 
 include '../ext/cdefs.pxi'
+include '../ext/stdsage.pxi'
 
 import sage.misc.misc as misc
 import sage.misc.latex as latex
@@ -167,28 +168,34 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement left):
-        # todo -- this is STUPID
-        return eval('self.parent()([s*x for x in self.list()], \
-                     copy=False, coerce=False, check=False)',
-                    {'self':self, 's':left})
-
-
-    cdef ModuleElement _rmul_c_impl(self, RingElement right):
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
         # todo -- this is STUPID
         return eval('self.parent()([x*s for x in self.list()], \
                      copy=False, coerce=False, check=False)',
                     {'self':self, 's':right})
 
 
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        # todo -- this is STUPID
+        return eval('self.parent()([s*x for x in self.list()], \
+                     copy=False, coerce=False, check=False)',
+                    {'self':self, 's':left})
 
-##     def __mul__(self, right):
-##         if isinstance(right, FreeModuleElement):
-##             # vector x vector -> dot product
-##             return self.dot_product(right)
-##         if isinstance(right, Matrix):
-##             # vector x matrix multiply
-##             return (<FreeModuleElement>self)._matrix_multiply(right)
+
+    def __mul__(left, right):
+        if PY_TYPE(left) is PY_TYPE(right):
+            # vector x vector -> dot product
+            return left.dot_product(right)
+
+        if PY_TYPE_CHECK(right, Matrix):
+            # vector x matrix multiply
+            return (<FreeModuleElement>left)._matrix_multiply(<Matrix>right)
+
+        if PY_TYPE_CHECK(left, FreeModuleElement):
+            return (<FreeModuleElement>left)._lmul_c(right)
+        else:
+            return (<FreeModuleElement>right)._rmul_c(left)
+
 ##         try:
 ##             right = self.base_ring()(right)
 ##         except TypeError:
@@ -200,8 +207,9 @@ cdef class FreeModuleElement(ModuleElement):
 ##                 v = self.parent().ambient_vector_space()(self)
 ##                 return (<FreeModuleElement>v)._scalar_multiply(right)
 ##         return (<FreeModuleElement>self)._scalar_multiply(right)
+
     #def __div__(left, right):
-    #    return left * ~(left.parent().base_ring()(right))
+    #   return left * ~(left.parent().base_ring()(right))
 
     cdef ModuleElement _neg_c_impl(self):
         """
@@ -257,6 +265,7 @@ cdef class FreeModuleElement(ModuleElement):
             sage: v*A
             (2, 1, 3)
         """
+        # todo: speed up -- should be calling a cdef'd method of A.
         return A.vector_matrix_multiply(self)
 
 
@@ -429,12 +438,18 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: loads(dumps(v)) == v
             True
     """
+    cdef _new_c(self, object v):
+        cdef FreeModuleElement_generic_dense x
+        x = PY_NEW(FreeModuleElement_generic_dense)
+        x._parent = self._parent
+        x._entries = v
+        return x
+
     def __init__(self, parent, entries, coerce=True, copy=True):
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
         if entries == 0:
-            zero = R(0)
-            entries = [zero]*self.degree()
+            entries = [R(0)]*self.degree()
         else:
             if not isinstance(entries, (list, tuple)):
 
@@ -452,6 +467,23 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 # Make a copy
                 entries = list(entries)
         self._entries = entries
+
+    def foo(self, RingElement left):
+        return self._rmul_c_impl(left)
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        cdef object e, v
+        cdef Py_ssize_t i, n
+        cdef PyObject** w
+
+        n = PyList_Size(self._entries)
+        v = PyList_New(n)
+        w = FAST_SEQ_UNSAFE(self._entries)
+        for i from 0 <= i < n:
+            a = left._mul_c(<object> w[i])
+            Py_INCREF(a)
+            PyList_SET_ITEM(v, i, a)
+        return self._new_c(v)
 
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
@@ -487,6 +519,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     def list(self):
         return self._entries
 
+    def __richcmp__(left, right, int op):
+        a = (<Element>left)._richcmp(right, op)
+        return a
+
+
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Compare two free module elements.
@@ -498,6 +535,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         EXAMPLES:
         sage: ??
         """
+        print 2
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
 
@@ -533,6 +571,9 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         sage: loads(dumps(v)) == v
         True
     """
+    cdef _new_c(self, object v):
+        raise NotImplementedError
+
     def __init__(self, parent,
                  entries=0,
                  coerce=True,

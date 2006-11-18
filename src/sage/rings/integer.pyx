@@ -351,9 +351,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif i == 0: return 0
         else: return 1
 
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of the integer.
+
+        EXAMPLES:
+            sage: n = 2
+            sage: copy(n)
+            2
+            sage: copy(n) is n
+            False
         """
         cdef Integer z
         z = Integer()
@@ -363,13 +370,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def list(self):
         """
-        Return a list with the rational element in it, to be
+        Return a list with this integer in it, to be
         compatible with the method for number fields.
 
         EXAMPLES:
-        sage: m = 5
-        sage: m.list()
-        [5]
+            sage: m = 5
+            sage: m.list()
+            [5]
         """
         return [ self ]
 
@@ -486,8 +493,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1101101011101100011110001110010010100111010001101010001111111000101000000000101111000010000011
         """
         return self.str(2)
-
-
 
     def set_si(self, signed long int n):
         """

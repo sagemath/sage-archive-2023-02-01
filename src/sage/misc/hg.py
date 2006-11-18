@@ -39,7 +39,7 @@ def pager():
     if embedded():
         return 'cat'
     else:
-        return 'more'
+        return 'less'
 
 class HG:
     r"""

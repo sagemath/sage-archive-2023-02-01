@@ -376,6 +376,38 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             x^3*y^2+y^3
             sage: R(f)                                                   # optional
             y^3 + x^3*y^2
+
+        Some other subtle coercions.  We create polynomial rings in 2 variables
+        over the rationals, integers, and a finite field.
+            sage: R.<x,y> = QQ[]
+            sage: S.<x,y> = ZZ[]
+            sage: T.<x,y> = GF(7)[]
+
+        We coerce from the integer to the rationals, and back:
+            sage: f = R(S.0^2 - 4*S.1^3); f
+            -4*y^3 + x^2
+            sage: parent(f)
+            Polynomial Ring in x, y over Rational Field
+            sage: parent(S(f))
+            Polynomial Ring in x, y over Integer Ring
+
+        We coerce from the finite field.
+            sage: f = R(T.0^2 - 4*T.1^3); f
+            3*y^3 + x^2
+            sage: parent(f)
+            Polynomial Ring in x, y over Rational Field
+
+        We create an equal but not identical copy of the integer ring
+        by dumping and loading:
+            sage: S2 = loads(dumps(S))
+            sage: S2 is S
+            False
+            sage: S2 == S
+            True
+
+        Coerce works and gets the right parent.
+            sage: parent(S2._coerce_(S.0)) is S2
+            True
         """
 
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):

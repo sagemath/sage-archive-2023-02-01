@@ -301,7 +301,7 @@ cdef class Element(sage_object.SageObject):
 
     def __cmp__(left, right):
         if not have_same_parent(left, right):
-            # TODO: can make faster using the cdef interface to coerce
+            left, right = canonical_coercion_c(left, right)
             return cmp_c(left, right)
 
         if HAS_DICTIONARY(left):
@@ -313,6 +313,8 @@ cdef class Element(sage_object.SageObject):
     def is_zero(self):
         return PyBool_FromLong(self == self._parent(0))
 
+    def _richcmp_(left, right, op):
+        return left._richcmp(right, op)
 
     cdef _richcmp(left, right, int op):
         """

@@ -918,7 +918,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     return True
                 else:
                     return False
-            return NotImplemented
+            return self._richcmp_(right,2)
         return self._MPolynomial__element == right._MPolynomial__element
 
     def __ne__(self,right):
@@ -932,7 +932,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                 else:
                     return True
             # maybe add constant elements as well
-            return NotImplemented
+            return self._richcmp_(right,3)
         return self._MPolynomial__element != right._MPolynomial__element
 
     def is_zero(self):

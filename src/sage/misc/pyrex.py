@@ -132,6 +132,9 @@ def pyrex(filename, verbose=False, compile_message=False,
 
     F, libs, includes, language, additional_source_files = pyx_preparse(F)
 
+    # add the working directory to the includes so custom headers etc. work
+    includes.append(os.path.split(os.path.splitext(filename)[0])[0])
+
     if language == 'c++':
         extension = "cpp"
     else:

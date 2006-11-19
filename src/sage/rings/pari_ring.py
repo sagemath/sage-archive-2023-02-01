@@ -56,10 +56,8 @@ class PariRing(ring.Ring, _uniq):
     def random(self, bound=0):
         return Pari(0)
 
-    def __cmp__(self, other):
-        if isinstance(other, PariRing):
-            return 0
-        return -1
+    def _cmp_(self, other):
+        return cmp(type(self),type(other))
 
     def zeta(self):
         return Pari(-1)
@@ -114,17 +112,8 @@ class Pari(ring_element.RingElement):
     def __invert__(self):
         return Pari(~self.__x)
 
-    def __cmp__(self, other):
-        try:
-            if not isinstance(other, Pari):
-                other = Pari(other)
-        except TypeError:
-            return -1
-        if self.__x < other.__x:
-            return -1
-        elif self.__x > other.__x:
-            return 1
-        return 0
+    def _cmp_(self, other):
+        return cmp(self.__x, other.__x)
 
     def __int__(self):
         return int(self.__x)

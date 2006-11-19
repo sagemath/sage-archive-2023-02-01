@@ -3,9 +3,19 @@ Vectors with entries that are floating point doubles
 
 AUTHOR:
     -- Josh Kantor (2006-10)
+    -- William Stein (2006) rewrite
 """
+###############################################################################
+#   SAGE: System for Algebra and Geometry Experimentation
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#                  http://www.gnu.org/licenses/
+###############################################################################
 
-from sage.structure.element cimport ModuleElement
+
+from sage.structure.element cimport ModuleElement, RingElement
+
+from sage.rings.real_double cimport RealDoubleElement
 
 cimport free_module_element
 import  free_module_element
@@ -17,15 +27,15 @@ import sage.rings.complex_double
 
 include '../ext/stdsage.pxi'
 
-cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
+cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     cdef _new_c(self, gsl_vector* v):
-        cdef RealDoubleVectorSpace_element y
-        y = PY_NEW(RealDoubleVectorSpace_element)
+        cdef RealDoubleVectorSpaceElement y
+        y = PY_NEW(RealDoubleVectorSpaceElement)
         y._parent = self._parent
         y.v = v
         return y
 
-    cdef gsl_vector* gsl_vector_copy(self):
+    cdef gsl_vector* gsl_vector_copy(self) except NULL:
         """
         Return a copy of the underlying GSL vector of self.
         """
@@ -36,6 +46,9 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
         if gsl_vector_memcpy(v,self.v):
             raise RuntimeError, "error copying real double vector"
         return v
+
+    def __copy__(self, copy=True):
+        return self._new_c(self.gsl_vector_copy())
 
     def __init__(self,parent,x,coerce=True,copy=True):
         free_module_element.FreeModuleElement.__init__(self,sage.rings.real_double.RDF)
@@ -92,7 +105,7 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
         cdef gsl_vector* v
         gsl_set_error_handler_off()
         v = self.gsl_vector_copy()
-        if gsl_vector_add(v, (<RealDoubleVectorSpace_element> right).v):
+        if gsl_vector_add(v, (<RealDoubleVectorSpaceElement> right).v):
             raise RuntimeError, "error adding real double vectors"
         return self._new_c(v)
 
@@ -101,17 +114,28 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
         cdef gsl_vector* v
         gsl_set_error_handler_off()
         v = self.gsl_vector_copy()
-        if gsl_vector_sub(v, (<RealDoubleVectorSpace_element> right).v):
+        if gsl_vector_sub(v, (<RealDoubleVectorSpaceElement> right).v):
             raise RuntimeError, "error subtracting real double vectors"
         return self._new_c(v)
 
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        cdef gsl_vector* v
+        v = self.gsl_vector_copy()
+        gsl_vector_scale(v, (<RealDoubleElement>left)._value)
+        return self._new_c(v)
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        cdef gsl_vector* v
+        v = self.gsl_vector_copy()
+        gsl_vector_scale(v, (<RealDoubleElement>right)._value)
+        return self._new_c(v)
 
     def fft(self):
-        cdef complex_double_vector.ComplexDoubleVectorSpace_element result
+        cdef complex_double_vector.ComplexDoubleVectorSpaceElement result
         cdef int i
         P = self.parent().change_ring( sage.rings.complex_double.CDF )
-        result = complex_double_vector.ComplexDoubleVectorSpace_element.__new__(
-            complex_double_vector.ComplexDoubleVectorSpace_element, P, None)
+        result = complex_double_vector.ComplexDoubleVectorSpaceElement.__new__(
+            complex_double_vector.ComplexDoubleVectorSpaceElement, P, None)
         for i from 0 <=i< self.v.size:
             (result.v).data[2*i]= self.v.data[i]
         result.fft(inplace=True)

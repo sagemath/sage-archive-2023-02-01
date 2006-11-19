@@ -338,7 +338,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         EXAMPLES:
             sage: F = GF(11)
@@ -349,18 +349,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
         """
         if not isinstance(other, IntegerModRing_generic):
-            return -1
-        if self.__order < other.__order:
-            return -1
-        elif self.__order > other.__order:
-            return 1
-        return 0
-
-    ## This conflicts with polynomial ring constructor
-##     def __getitem__(self, n):
-##         if n < 0 or n >= self.order():
-##             raise IndexError
-##         return self(n)
+            return cmp(type(self), type(other))
+        return cmp(self.__order, other.__order)
 
     # The following __unit_gens functions are here since I just factored
     # them out from the unit_gens function.  They are only called by

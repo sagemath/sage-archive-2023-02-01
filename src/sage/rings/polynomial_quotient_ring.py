@@ -264,7 +264,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.polynomial_ring()])
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         """
         Compare self and other.
 
@@ -284,10 +284,11 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
             True
         """
         if not isinstance(other, PolynomialQuotientRing_generic):
-            return -1
-        if self.polynomial_ring() != other.polynomial_ring():
-            return -1
-        return self.modulus().__cmp__(other.modulus())
+            return cmp(type(self), type(other))
+        c = cmp(self.polynomial_ring(), other.polynomial_ring())
+        if c: return c
+        return cmp(self.modulus(), other.modulus())
+
 
 
     def __repr__(self):

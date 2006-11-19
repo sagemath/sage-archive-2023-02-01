@@ -2,7 +2,7 @@
 Fraction Field of Integral Domains
 
 AUTHOR: William Stein (with input from David Joyner, David Kohel, and
-Joe Wetherell)
+        Joe Wetherell)
 """
 
 #*****************************************************************************
@@ -142,8 +142,10 @@ class FractionField_generic(field.Field):
 
     def __call__(self, x, y=1, coerce=True):
         if isinstance(x, fraction_field_element.FractionFieldElement):
-            if x.parent() == self:
+            if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                return fraction_field_element.FractionFieldElement(self, x.numerator(), x.denominator())
             else:
                 R = self.ring()
                 return fraction_field_element.FractionFieldElement(self, R(x.numerator()), R(x.denominator()))
@@ -180,12 +182,10 @@ class FractionField_generic(field.Field):
             pass
         return self._coerce_try(x, [self.ring()])
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         if not isinstance(other, FractionField_generic):
-            return -1
-        if self.ring() == other.ring():
-            return 0
-        return 1
+            return cmp(type(self), type(other))
+        return cmp(self.ring(), other.ring())
 
     def ngens(self):
         """
@@ -206,7 +206,7 @@ class FractionField_generic(field.Field):
         EXAMPLES:
             sage: R = Frac(PolynomialRing(QQ,'z',10)); R
             Fraction Field of Polynomial Ring in z0, z1, z2, z3, z4, z5, z6, z7, z8, z9 over Rational Field
-            sage: R.gen()
+            sage: R.0
             z0
             sage: R.gen(3)
             z3

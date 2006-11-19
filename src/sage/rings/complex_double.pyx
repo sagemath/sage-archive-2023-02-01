@@ -180,7 +180,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         else:
             return ComplexDoubleElement(x, im)
 
-    def _coerce_c_impl(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Return the canonical coerce of x into the complex double
         field, if it is defined, otherwise raise a TypeError.

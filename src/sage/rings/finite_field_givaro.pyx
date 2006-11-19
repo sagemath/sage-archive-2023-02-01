@@ -439,7 +439,7 @@ cdef class FiniteField_givaro(FiniteField):
             if e.parent() is self:
                 return e
             if e.parent() == self:
-                return e
+                return make_FiniteField_givaroElement(self,(<FiniteField_givaroElement>e).object)
             if e.parent() is self.prime_subfield_C() or e.parent() == self.prime_subfield_C():
                 res = self.int2log(int(e))
 
@@ -503,12 +503,10 @@ cdef class FiniteField_givaro(FiniteField):
 
         return make_FiniteField_givaroElement(self,res)
 
-    def _coerce_c_impl(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Coercion accepts elements of self.parent(), ints, and prime subfield elements.
         """
-        #from finite_field.py
-
         from sage.rings.finite_field_element import FiniteFieldElement
         from sage.rings.integer_mod import is_IntegerMod
         from sage.rings.integer_mod_ring import IntegerModRing_generic
@@ -521,7 +519,7 @@ cdef class FiniteField_givaro(FiniteField):
         if PyObject_TypeCheck(x, type_object(FiniteFieldElement)) or \
                PyObject_TypeCheck(x, type_object(FiniteField_givaroElement)) or is_IntegerMod(x):
             K = x.parent()
-            if K is self:
+            if K is <object>self:
                 return x
             if PyObject_TypeCheck(K, type_object(IntegerModRing_generic)) \
                    and K.characteristic() % self.characteristic() == 0:

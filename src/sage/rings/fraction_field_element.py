@@ -121,7 +121,7 @@ class FractionFieldElement(field_element.FieldElement):
     def _is_atomic(self):
         return self.__numerator._is_atomic() and self.__denominator._is_atomic()
 
-    def __repr__(self):
+    def _repr_(self):
         if self.is_zero():
             return "0"
         s = "%s"%self.__numerator
@@ -212,12 +212,8 @@ class FractionFieldElement(field_element.FieldElement):
     def __float__(self):
         return float(self.__numerator) / float(self.__denominator)
 
-    def __cmp__(self, other):
-        if not isinstance(other, FractionFieldElement):
-            other = self.parent()(other)
-        if self.__numerator * other.__denominator == self.__denominator*other.__numerator:
-            return 0
-        return -1
+    def _cmp_(self, other):
+        return cmp(self.__numerator * other.__denominator, self.__denominator*other.__numerator)
 
     def valuation(self):
         """

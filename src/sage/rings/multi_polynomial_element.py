@@ -147,7 +147,7 @@ class MPolynomial(CommutativeRingElement):
         try:
             return self.__element._cmp_(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
         except AttributeError:
-            return self.__element.__cmp__(right.__element)
+            return self.__element._cmp_(right.__element)
 
     def _im_gens_(self, codomain, im_gens):
         """

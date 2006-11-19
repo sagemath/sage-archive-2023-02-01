@@ -187,7 +187,7 @@ cdef class RealField(sage.rings.ring.Field):
             return x._mpfr_(self)
         return RealNumber(self, x, base)
 
-    def _coerce_c_impl(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Canonical coercion of x to this mpfr real field.
 

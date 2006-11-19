@@ -49,7 +49,10 @@ class IntervalRing(ring.Ring, _uniq):
     def __call__(self, x, y=None):
         if y is None:
             if isinstance(x, Interval):
-                return x
+                if x.parent() is self:
+                    return x
+                elif x.parent() == self:
+                    return Interval(x.min(), x.max(), self)
             if isinstance(x, (int, long, float, integer.Integer,
                               rational.Rational, real_field.RealNumberClass)):
                 return Interval(x)
@@ -78,13 +81,12 @@ class IntervalRing(ring.Ring, _uniq):
     def __cmp__(self, other):
         if isinstance(other, IntervalRing):
             return 0
-        return -1
+        return cmp(type(self), type(other))
 
     def zeta(self):
         return Interval(-1)
 
-_inst = IntervalRing()  # make sure there is at least one instance.
-
+_inst = IntervalRing()  # make sure there is exctly one instance.
 
 class Interval(ring_element.RingElement):
     """
@@ -95,11 +97,11 @@ class Interval(ring_element.RingElement):
         sage: loads(a.dumps()) == a
         True
     """
-    def __init__(self, min, max=None):
+    def __init__(self, min, max=None, parent=_inst):
         if max == None: max = min
         self.__min, self.__max = float(min), float(max)
         assert self.__min <= self.__max
-        ring_element.RingElement.__init__(self, _inst)
+        ring_element.RingElement.__init__(self, parent)
 
     def _repr_(self):
         return "[%s, %s]"%(self.__min, self.__max)

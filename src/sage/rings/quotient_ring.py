@@ -254,16 +254,15 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         return self._coerce_try(x, [self.cover_ring()])
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         r"""
         Only quotients by the \emph{same} ring and same ideal (with
         the same generators!!) are considered equal.
         """
         if not isinstance(other, QuotientRing_generic):
-            return -1
-        if self.cover_ring() == other.cover_ring() and self.defining_ideal().gens() == other.defining_ideal().gens():
-            return 0
-        return 1
+            return cmp(type(self), type(other))
+        return cmp((self.cover_ring(), self.defining_ideal().gens()),
+                   (other.cover_ring(), other.defining_ideal().gens()))
 
     def ngens(self):
         return self.cover_ring().ngens()

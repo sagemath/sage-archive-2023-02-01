@@ -121,13 +121,11 @@ cdef class PolyDict:
 
     def __cmp__(PolyDict self, other):
         if not isinstance(other, PolyDict):
-            return False
+            return cmp(type(self), type(other))
         return cmp(self.__repn, (<PolyDict>other).__repn)
 
     def _cmp_(PolyDict self, PolyDict other, fn=None):
-        if not isinstance(other, PolyDict):
-            return -1
-        if fn == None:
+        if fn is None:
             return cmp(self.__repn, other.__repn)
 
         left  = iter(sorted( self.__repn,fn,reverse=True)) #start with biggest

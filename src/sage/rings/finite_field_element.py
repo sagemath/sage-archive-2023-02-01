@@ -151,13 +151,13 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
           sage: from sage.rings.finite_field import FiniteField_ext_pari
           sage: F = FiniteField_ext_pari(7^2, 'a')
           sage: F(2).square_root()
-          3
+          4
           sage: F(3).square_root()
-          2*a + 6
+          5*a + 1
           sage: F(3).square_root()**2
           3
           sage: F(4).square_root()
-          2
+          5
           sage: K = FiniteField_ext_pari(7^3, 'alpha')
           sage: K(3).square_root()
           Traceback (most recent call last):

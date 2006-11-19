@@ -179,6 +179,12 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
 
+    def list(self, copy=True):
+        v = []
+        for i in range(self.degree()):
+            v.append(self[i])
+        return v
+
     def lift(self):
         """
         EXAMPLES:

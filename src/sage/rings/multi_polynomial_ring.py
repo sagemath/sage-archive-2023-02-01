@@ -149,9 +149,9 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.base_ring()])
 
-    def __cmp__(self, right):
+    def _cmp_(self, right):
         if not is_MPolynomialRing(right):
-            return -1
+            return cmp(type(self),type(right))
         return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
                    (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
 
@@ -365,22 +365,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
         Coerce x into this multivariate polynomial ring.
 
         EXAMPLES:
-        We create a Singular multivariate polynomial via ideal arithmetic,
-        then coerce it into R.
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: I = R.ideal([x^3 + y, y])
-            sage: S = singular(I)
-            sage: f = (S*S*S)[2]
-            sage: f
-            x^3*y^2+y^3
-            sage: R(f)
-            y^3 + x^3*y^2
-        """
-    def __call__(self, x, check=True):
-        """
-        Coerce x into this multivariate polynomial ring.
-
-        EXAMPLES:
         We create a Macaulay2 multivariate polynomial via ideal arithmetic,
         then coerce it into R.
             sage: R.<x,y> = PolynomialRing(QQ, 2)                        # optional
@@ -394,8 +378,19 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             y^3 + x^3*y^2
         """
 
-        if isinstance(x, multi_polynomial_element.MPolynomial_polydict) and x.parent() == self:
-            return x
+        if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
+            P = x.parent()
+            if P is self:
+                return x
+            elif P == self:
+                return multi_polynomial_element.MPolynomial_polydict(self, x.element().dict())
+            elif P.variable_names() == self.variable_names():
+                K = self.base_ring()
+                D = x.element().dict()
+                for i, a in D.iteritems():
+                    D[i] = K(a)
+                return multi_polynomial_element.MPolynomial_polydict(self, D)
+            raise TypeError
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_polydict(self, x)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
@@ -633,7 +628,7 @@ class TermOrder(SageObject):
             if isinstance(other, str):
                 other = TermOrder(other)
             else:
-                return -1
+                return cmp(type(self), type(other))
         return cmp(self.__name, other.__name)
 
 

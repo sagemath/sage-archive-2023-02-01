@@ -347,7 +347,7 @@ cdef class Element(sage_object.SageObject):
             return PyBool_FromLong(r >= 0)
 
     ####################################################################
-    # For a derived Python class, you **must** put the following in
+    # For a derived Pyrex class, you **must** put the following in
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
     # _cmp_c_impl.

@@ -125,9 +125,9 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         """
         return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
-    def __cmp__(self, other):
+    def _cmp_(self, other):
         if not isinstance(other, LaurentSeriesRing_generic):
-            return -1
+            return cmp(type(self),type(other))
         c = cmp(self.base_ring(), other.base_ring())
         if c: return c
         c = cmp(self.variable_name(), other.variable_name())

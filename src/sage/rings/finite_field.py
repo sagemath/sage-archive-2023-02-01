@@ -488,8 +488,11 @@ class FiniteField_ext_pari(FiniteField_generic):
             -- Martin Albrecth (2006-03-06): added coercion from string
         """
         if isinstance(x, finite_field_element.FiniteField_ext_pariElement):
-            if x.parent() == self:
+            if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                # canonically isomorphic finite fields
+                return finite_field_element.FiniteField_ext_pariElement(self, x)
             else:
                 # This is where we *would* do coercion from one finite field to another...
                 raise TypeError, "no coercion defined"

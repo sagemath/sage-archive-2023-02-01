@@ -336,19 +336,16 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: f.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        If we do the same over $\ZZ$ the result has to lie
-        in the fraction field.
+        If we do the same over $\ZZ$ the result is in the polynomial
+        ring over $\QQ$.
 
             sage: x  = ZZ['x'].0
             sage: f = (x^3 + 5)/3; f
-            (x^3 + 5)/3
+            1/3*x^3 + 5/3
             sage: f.parent()
-            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            Univariate Polynomial Ring in x over Rational Field
 
-        Note that / is a constructor for elements of the fraction
-        field in all cases as long as both arguments have the same
-        parent.  This agrees with the behavior for integers and
-        rational numbers.
+        Divides can make elements of the fraction field:
 
             sage: R.<x> = QQ['x']
             sage: f = x^3 + 5

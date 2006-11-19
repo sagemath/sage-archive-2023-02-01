@@ -28,11 +28,6 @@ import operator
 
 from sage.misc.sage_eval import sage_eval
 
-from sage.structure.element cimport RingElement, ModuleElement, Element, FieldElement
-
-cimport sage.rings.ring
-import  sage.rings.ring
-
 import sage.misc.functional
 
 import sage.modules.free_module
@@ -43,7 +38,7 @@ import sage.rings.complex_field
 import sage.rings.integer
 import sage.rings.rational
 
-cdef class RealDoubleField_class(sage.rings.ring.Field):
+cdef class RealDoubleField_class(Field):
     """
     The field of real double precision numbers.
 
@@ -94,7 +89,7 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
         """
         return RealDoubleElement(x)
 
-    def _coerce_c_impl(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Canonical coercion of x to the real double field.
 
@@ -252,7 +247,6 @@ cdef class RealDoubleField_class(sage.rings.ring.Field):
 
 
 cdef class RealDoubleElement(FieldElement):
-    cdef double _value
     def __init__(self, x):
         self._value = float(x)
         global _RDF

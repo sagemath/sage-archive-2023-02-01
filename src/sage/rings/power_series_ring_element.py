@@ -23,7 +23,7 @@ AUTHOR:
 
 import operator
 
-from infinity import infinity
+from infinity import infinity, is_Infinity
 from polynomial_ring import PolynomialRing
 import polynomial_element as polynomial
 import power_series_ring
@@ -532,7 +532,6 @@ class PowerSeries(ring_element.RingElement):
 
            sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
-
         """
         if b is None:
             b = self.parent()(0)
@@ -764,9 +763,23 @@ class PowerSeries_generic_dense(PowerSeries):
         return PowerSeries_generic_dense(self.parent(), self.__f - right.__f, \
                                          self.common_prec(right), check=True)
 
-    def _mul_(self, right, prec):
+    def _mul_(self, right):
+        sp = self.prec()
+        rp = right.prec()
+        if is_Infinity(sp):
+            if is_Infinity(rp):
+                prec = infinity
+            else:
+                prec = rp + self.valuation()
+        else:  # sp != infinity
+            if is_Infinity(rp):
+                prec = sp + right.valuation()
+            else:
+                prec = min(rp + self.valuation(), sp + right.valuation())
         return PowerSeries_generic_dense(self.parent(),
-                                         self.__f * right.__f, prec)
+                                         self.__f * right.__f,
+                                         prec,
+                                         check=True)  # check, since truncation may be needed
 
 
     def __floordiv__(self, denom):

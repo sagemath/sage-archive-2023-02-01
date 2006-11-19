@@ -12,6 +12,18 @@ EXAMPLES:
     sage: S.truncate(3)
     5*t^2 + 3*t + 1
 
+    sage: S.<w> = PowerSeriesRing(QQ)
+    sage: S.base_ring()
+    Rational Field
+
+An iterated example:
+    sage: R.<t> = PowerSeriesRing(ZZ)
+    sage: S.<t2> = PowerSeriesRing(R)
+    sage: S
+    Power Series Ring in t2 over Power Series Ring in t over Integer Ring
+    sage: S.base_ring()
+    Power Series Ring in t over Integer Ring
+
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
@@ -32,6 +44,8 @@ from sage.structure.nonexact import Nonexact
 
 from sage.interfaces.magma import MagmaElement
 from sage.misc.sage_eval import sage_eval
+
+from sage.structure.parent_gens import ParentWithGens
 
 _cache = {}
 
@@ -126,12 +140,11 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             name -- name of the indeterminate
             default_prec -- the default precision
         """
+        ParentWithGens.__init__(self, base_ring, name)
         Nonexact.__init__(self, default_prec)
-        self.__base_ring = base_ring
         self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name)
         self.__power_series_class = power_series_ring_element.PowerSeries_generic_dense
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
-        self._assign_names(name)
 
     def _repr_(self):
         """
@@ -222,7 +235,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R._coerce_(1/t)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: no canonical coercion of element into self
             sage: R._coerce_(5)
             5
             sage: tt = PolynomialRing(ZZ,'t').gen()
@@ -231,12 +244,12 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R._coerce_(1/2)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: no canonical coercion of element into self
             sage: S.<s> = PowerSeriesRing(ZZ)
             sage: R._coerce_(s)
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: no canonical coercion of element into self
 
         We illustrate canonical coercion between power series rings with compatible
         base rings:
@@ -278,25 +291,6 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0
         return False
-
-    def base_ring(self):
-        """
-        Return the base ring of this power series ring.
-
-        EXAMPLES:
-            sage: S.<w> = PowerSeriesRing(QQ)
-            sage: S.base_ring()
-            Rational Field
-
-        An iterated example:
-            sage: R.<t> = PowerSeriesRing(ZZ)
-            sage: S.<t2> = PowerSeriesRing(R)
-            sage: S
-            Power Series Ring in t2 over Power Series Ring in t over Integer Ring
-            sage: S.base_ring()
-            Power Series Ring in t over Integer Ring
-        """
-        return self.__base_ring
 
     def _poly_ring(self):
         """

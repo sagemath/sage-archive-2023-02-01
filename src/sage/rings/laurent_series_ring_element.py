@@ -3,8 +3,7 @@ Laurent Series
 
 EXAMPLES:
 
-    sage: R.<t> = LaurentSeriesRing(GF(7), 't')
-    sage: R
+    sage: R.<t> = LaurentSeriesRing(GF(7), 't'); R
     Laurent Series Ring in t over Finite Field of size 7
     sage: f = 1/(1-t+O(t^10)); f
     1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
@@ -138,7 +137,7 @@ class LaurentSeries(ring_element.RingElement):
         self.__n += v
         self.__u = self.__u.unit_part()
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES:
             sage: R.<t> = LaurentSeriesRing(QQ)
@@ -359,7 +358,7 @@ class LaurentSeries(ring_element.RingElement):
         # 2. Find power of t that we can multiply both by to get power series.
         m = - min(self.valuation(), right.valuation())
         # Now t^m times each one is a polynomial.
-        # The the polynomial indeterminate t
+        # Get the polynomial indeterminate t
         t = self.__u.parent().gen()
         # Compute t^m times self
         f1 = t**(self.__n + m) * self.__u
@@ -479,7 +478,7 @@ class LaurentSeries(ring_element.RingElement):
             return LaurentSeries(self.parent(),
                              self.__u / right.__u,
                              self.__n - right.__n)
-        except TypeError:
+        except TypeError, msg:
             # todo: this could also make something in the formal fraction field.
             raise ArithmeticError, "division not defined"
 

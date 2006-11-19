@@ -166,6 +166,8 @@ from sage.misc.sage_eval import sage_eval
 from sage.misc.misc import prod, add
 from sage.misc.functional import log
 from sage.rings.rational_field import RationalField
+from sage.structure.parent_gens import ParentWithGens
+
 QQ = RationalField()
 
 VectorSpace = fm.VectorSpace
@@ -415,9 +417,10 @@ class LinearCode(module.Module):
     AUTHOR: David Joyner (11-2005)
     """
     def __init__(self, gen_mat):
+        base_ring = gen_mat[0][0].parent()
+        ParentWithGens.__init__(self, base_ring)
         self.__gens = gen_mat.rows()
         self.__gen_mat = gen_mat
-        self.__base_ring = gen_mat[0][0].parent()
         self.__length = len(gen_mat[0])
         self.__dim = gen_mat.rank()
 
@@ -426,9 +429,6 @@ class LinearCode(module.Module):
 
     def dimension(self):
         return self.__dim
-
-    def base_ring(self):
-        return self.__base_ring
 
     def _repr_(self):
         return "Linear code of length %s, dimension %s over %s"%(self.length(), self.dimension(), self.base_ring())
@@ -507,7 +507,7 @@ class LinearCode(module.Module):
             yield (v*Gs)*perm_mat
 
     def ambient_space(self):
-        return VectorSpace(self.__base_ring,self.__length)
+        return VectorSpace(self.base_ring(),self.__length)
 
     def __contains__(self,v):
         A = self.ambient_space()

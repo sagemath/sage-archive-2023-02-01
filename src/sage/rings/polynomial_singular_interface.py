@@ -304,13 +304,13 @@ class Polynomial_singular_repr:
             sage: R.<x,y> = PolynomialRing(RR,2)
             sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
             sage: f.diff(x)
-            3.0000000000000000 + 9.0000000000000000*x^2*y^2
+            3.00000000000000 + 9.00000000000000*x^2*y^2
             sage: f.diff(y)
-            10.000000000000000*y + 6.0000000000000000*x^3*y
+            10.0000000000000*y + 6.00000000000000*x^3*y
 
             The derivate is also defined over finite fields:
 
-            sage: R.<x,y> = PolynomialRing(GF(2**8),2)
+            sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
             sage: f = x^3*y^2 + y^2 + x + 2
             sage: f.diff(x)
             1 + x^2*y^2

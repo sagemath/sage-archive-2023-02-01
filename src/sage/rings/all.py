@@ -45,7 +45,7 @@ from ideal import Ideal, is_Ideal
 from quotient_ring import QuotientRing
 
 # Class Infinity containing the one element infinity
-from infinity import infinity, is_Infinity
+from infinity import infinity, is_Infinity, InfinityRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis

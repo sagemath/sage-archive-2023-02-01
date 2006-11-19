@@ -61,7 +61,7 @@ import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 
-
+from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 from number_field_ideal import convert_from_zk_basis
 
@@ -185,6 +185,7 @@ class NumberField_generic(field.Field):
     """
     def __init__(self, polynomial, name,
                  latex_name=None, check=True):
+        ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
 
@@ -243,6 +244,8 @@ class NumberField_generic(field.Field):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             f = x.polynomial()
             if f.degree() <= 0:
                 return number_field_element.NumberFieldElement(self, f[0])
@@ -259,11 +262,8 @@ class NumberField_generic(field.Field):
     def _coerce_impl(self, x):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
-                return x
-            f = x.polynomial()
-            if f.degree() <= 0:
-                return number_field_element.NumberFieldElement(self, f[0])
-        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
+                return number_field_element.NumberFieldElement(self, x.polynomial())
+        elif isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
@@ -301,9 +301,6 @@ class NumberField_generic(field.Field):
             return codomain(f(im_gens[0])) == 0
         except TypeError, ValueError:
             return False
-
-    def base_ring(self):
-        return rational_field.Q
 
     def pari_polynomial(self):
         """
@@ -850,8 +847,11 @@ class NumberField_extension(NumberField_generic):
         Coerce x into this number field.
         """
         if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() == self:
+            P = x.parent()
+            if P is self:
                 return x
+            elif P == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
 
@@ -869,7 +869,7 @@ class NumberField_extension(NumberField_generic):
                 return x
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
-        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
+        elif isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
@@ -1152,8 +1152,10 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         if isinstance(x, number_field_element.NumberFieldElement) and \
                 isinstance(x.parent(), NumberField_cyclotomic):
-            if x.parent() is self:   # crucial for speed!
+            if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             K = x.parent()
             n = K.zeta_order()
             m = self.zeta_order()

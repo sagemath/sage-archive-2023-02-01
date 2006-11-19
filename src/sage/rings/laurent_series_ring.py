@@ -1,5 +1,16 @@
 """
 Laurent Series Rings
+
+EXAMPLES:
+    sage: R = LaurentSeriesRing(QQ, "x")
+    sage: R.base_ring()
+    Rational Field
+    sage: S = LaurentSeriesRing(GF(17)['x'], 'y')
+    sage: S
+    Laurent Series Ring in y over Univariate Polynomial Ring in x over
+    Finite Field of size 17
+    sage: S.base_ring()
+    Univariate Polynomial Ring in x over Finite Field of size 17
 """
 
 import weakref
@@ -10,6 +21,7 @@ import commutative_ring
 import integral_domain
 import field
 
+from sage.structure.parent_gens import ParentWithGens
 
 
 laurent_series = {}
@@ -85,11 +97,10 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     """
 
     def __init__(self, base_ring, name=None):
-        self.__base_ring = base_ring
-        self._assign_names(name)
+        ParentWithGens.__init__(self, base_ring, name)
 
     def __reduce__(self):
-        return self.__class__, (self.__base_ring, self.variable_name())
+        return self.__class__, (self.base_ring(), self.variable_name())
 
     def __repr__(self):
         return "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
@@ -154,21 +165,6 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
 
     def default_prec(self):
         return self.power_series_ring().default_prec()
-
-    def base_ring(self):
-        """
-        EXAMPLES:
-            sage: R = LaurentSeriesRing(QQ, "x")
-            sage: R.base_ring()
-            Rational Field
-            sage: S = LaurentSeriesRing(GF(17)['x'], 'y')
-            sage: S
-            Laurent Series Ring in y over Univariate Polynomial Ring in x over
-            Finite Field of size 17
-            sage: S.base_ring()
-            Univariate Polynomial Ring in x over Finite Field of size 17
-        """
-        return self.__base_ring
 
     def gen(self, n=0):
         if n != 0:

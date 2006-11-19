@@ -13,7 +13,6 @@ Elements of Quotients of Univariate Polynomial Rings
 import operator
 import sage.structure.element as element
 import sage.rings.arith as arith
-import sage.misc.misc as misc
 import commutative_ring_element
 
 import polynomial_element
@@ -185,7 +184,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: S(x^3)
             2
         """
-        return misc.generic_cmp(self.__polynomial, other.__polynomial)
+        return cmp(self.__polynomial, other.__polynomial)
 
 
 

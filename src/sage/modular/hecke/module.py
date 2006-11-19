@@ -2,8 +2,8 @@
 Hecke modules
 """
 
-#*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@gmail.com>
+##########################################################################################
+#       Copyright (C) 2004,2005,2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -15,7 +15,7 @@ Hecke modules
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+##########################################################################################
 
 
 import sage.rings.arith as arith
@@ -25,6 +25,7 @@ import sage.categories.all
 import sage.structure.factorization
 from sage.structure.all import Sequence
 import sage.matrix.matrix_space as matrix_space
+from sage.structure.parent_gens import ParentWithGens
 
 import random
 
@@ -49,7 +50,7 @@ class HeckeModule_generic(sage.modules.module.Module):
     def __init__(self, base_ring, level):
         if not sage.rings.all.is_CommutativeRing(base_ring):
             raise TypeError, "base_ring must be commutative ring"
-        self.__base_ring = base_ring
+        ParentWithGens.__init__(self, base_ring)
 
         level = int(level)
         if level <= 0:
@@ -57,12 +58,12 @@ class HeckeModule_generic(sage.modules.module.Module):
         self.__level = level
 
     def __hash__(self):
-        return hash((self.__base_ring, self.__level))
+        return hash((self.base_ring(), self.__level))
 
     def __cmp__(self, other):
         if not isinstance(other, HeckeModule_generic):
             return -1
-        return cmp((self.__level, self.__base_ring), (other.__level, other.__base_ring))
+        return cmp((self.__level, self.base_ring()), (other.__level, other.base_ring()))
 
     def _compute_hecke_matrix_prime_power(self, n, p, r):
         # convert input arguments to int's.
@@ -146,9 +147,6 @@ class HeckeModule_generic(sage.modules.module.Module):
         except AttributeError:
             self.__anemic_hecke_algebra = algebra.AnemicHeckeAlgebra(self)
             return self.__anemic_hecke_algebra
-
-    def base_ring(self):
-        return self.__base_ring
 
     def basis_matrix(self):
         return self.free_module().basis_matrix()

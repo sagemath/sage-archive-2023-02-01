@@ -74,6 +74,8 @@ import multi_polynomial_ideal
 
 from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
+from sage.structure.parent_gens import ParentWithGens
+
 
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
@@ -108,15 +110,14 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
-        self.__base_ring = base_ring
         n = int(n)
         if n < 0:
             raise ValueError, "Multivariate Polynomial Rings must " + \
                   "have more than 0 variables."
         self.__ngens = n
-        self._assign_names(names)
         self.__term_order = order
         self._has_singular = False #cannot convert to Singular by default
+        ParentWithGens.__init__(self, base_ring, names)
 
     def _coerce_impl(self, x):
         """
@@ -152,8 +153,8 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
     def _cmp_(self, right):
         if not is_MPolynomialRing(right):
             return cmp(type(self),type(right))
-        return cmp((self.__base_ring, self.__ngens, self.variable_names(), self.__term_order),
-                   (right.__base_ring, right.__ngens, right.variable_names(), right.__term_order))
+        return cmp((self.base_ring(), self.__ngens, self.variable_names(), self.__term_order),
+                   (right.base_ring(), right.__ngens, right.variable_names(), right.__term_order))
 
     def __contains__(self, x):
         """
@@ -255,9 +256,6 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
     def term_order(self):
         return self.__term_order
 
-    def base_ring(self):
-        return self.__base_ring
-
     def characteristic(self):
         """
         Return the characteristic of this polynomial ring.
@@ -270,7 +268,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             sage: R.characteristic()
             7
         """
-        return self.__base_ring.characteristic()
+        return self.base_ring().characteristic()
 
     def gen(self, n=0):
         if n < 0 or n >= self.__ngens:
@@ -320,13 +318,6 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             names.append(g)
         self.__latex_variable_names = names
         return names
-
-    def assign_names(self, names=None):
-        try:
-            del self.__latex_variable_names
-        except AttributeError:
-            pass
-        commutative_ring.CommutativeRing._assign_names(self, names)
 
 class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_generic):
     """
@@ -409,7 +400,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(S2._coerce_(S.0)) is S2
             True
         """
-
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
             if P is self:

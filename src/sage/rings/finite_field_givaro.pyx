@@ -733,6 +733,7 @@ cdef class FiniteField_givaro(FiniteField):
 
     def __richcmp__(left, right, int op):
         return (<Ring>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(left, Ring right) except -2:
         """
         Finite Fields are considered to be equal if

@@ -572,7 +572,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: 2/3
             2/3
             sage: 3/0
-            ??
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Rational division by zero
         """
         if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
             raise ZeroDivisionError, "Rational division by zero"

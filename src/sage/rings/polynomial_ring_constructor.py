@@ -183,7 +183,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.injvar()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2
-        w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 2*w0*w8 + 2*w0*w8 + w0^2
+        w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 4*w0*w8 + w0^2
     """
     import polynomial_ring as m
     if isinstance(arg1, (int, long, m.integer.Integer)):

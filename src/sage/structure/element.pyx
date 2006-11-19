@@ -301,8 +301,13 @@ cdef class Element(sage_object.SageObject):
 
     def __cmp__(left, right):
         if not have_same_parent(left, right):
-            left, right = canonical_coercion_c(left, right)
-            return cmp_c(left, right)
+            try:
+                left, right = canonical_coercion_c(left, right)
+            except TypeError:
+                c = cmp(type(left), type(right))
+                if c == 0:
+                    return -1
+                return c
 
         if HAS_DICTIONARY(left):
             return left._cmp_(right)
@@ -980,8 +985,9 @@ cdef class RingElement(ModuleElement):
         """
         if have_same_parent(self, right):
             return (<RingElement>self)._div_c(<RingElement>right)
-        else:
-            return bin_op_c(self, right, operator.div)
+        return bin_op_c(self, right, operator.div)
+
+
 
     cdef RingElement _div_c(self, RingElement right):
         """
@@ -1000,7 +1006,10 @@ cdef class RingElement(ModuleElement):
         DO NOT CALL THIS FUNCTION DIRECTLY.
         See extensive documentation at the top of element.pyx.
         """
-        return self._parent.fraction_field()(self, right)
+        try:
+            return self._parent.fraction_field()(self, right)
+        except AttributeError:
+            raise TypeError
 
     def _div_(RingElement self, RingElement right):
         """
@@ -1493,23 +1502,28 @@ cdef bin_op_c(x, y, op):
         x1, y1 = canonical_coercion_c(x, y)
         return op(x1,y1)
     except TypeError, msg:
-        pass
+        if not op is operator.mul:
+            raise TypeError, "x=%s (in %s), y=%s (in %s)\n%s\nNo canonical arithmetic defined for %s."%(x,
+                          parent_c(x), y, parent_c(y), msg, op)
 
-    # special case of adding or subtracting 0 -- only do this if the above completely fails.
-    if not op is operator.mul:
-        if op is operator.add:
-            if x == 0:
-                return y
-            elif y == 0:
-                return x
-        elif op is operator.sub:
-            if x == 0:
-                return -y
-            elif y == 0:
-                return x
-        # This is not a 0 case, and it's not multiplication, so we fail.
+        # this violates the axioms!
+##     # special case of adding or subtracting 0 -- only do this if the above completely fails.
+##     if op is operator.add:
+##         if x == 0:
+##             return y
+##         elif y == 0:
+##             return x
+##         else:
+##             raise TypeError, "x=%s, y=%s\n%s\nNo canonical arithmetic coercion defined."%(x,y,msg)
+##     elif op is operator.sub:
+##         if x == 0:
+##             return -y
+##         elif y == 0:
+##             return x
+##         else:
+##             raise TypeError, "x=%s, y=%s\n%s\nNo canonical arithmetic coercion defined."%(x,y,msg)
 
-        raise TypeError, "x=%s, y=%s\n%s\nNo canonical coercion defined."%(x,y,msg)
+
 
     # If the op is multiplication, then some other algebra multiplications
     # may be defined
@@ -1525,7 +1539,10 @@ cdef bin_op_c(x, y, op):
     if y_is_modelt:
         # First try to coerce x into the base ring of y if y is an element.
         try:
-            x = (<ParentWithGens>(<ModuleElement> y)._parent._base)._coerce_c(x)
+            R = (<ModuleElement> y)._parent._base
+            if R is None:
+                raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> y)._parent)
+            x = (<ParentWithGens>R)._coerce_c(x)
             return (<ModuleElement> y)._rmul_c(x)     # the product x * y
         except TypeError, msg:
             pass
@@ -1534,7 +1551,10 @@ cdef bin_op_c(x, y, op):
     if x_is_modelt:
         # That did not work.  Try to coerce y into the base ring of x.
         try:
-            y = (<ParentWithGens> (<ModuleElement> x)._parent._base)._coerce_c(y)
+            R = (<ModuleElement> x)._parent._base
+            if R is None:
+                raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> x)._parent)
+            y = (<ParentWithGens> R)._coerce_c(y)
             return (<ModuleElement> x)._lmul_c(y)    # the product x * y
         except TypeError:
             pass

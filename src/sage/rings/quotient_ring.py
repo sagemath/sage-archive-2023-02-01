@@ -250,7 +250,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...
-            TypeError: no canonical coercion of x into self
+            TypeError: no canonical coercion of element into self
         """
         return self._coerce_try(x, [self.cover_ring()])
 

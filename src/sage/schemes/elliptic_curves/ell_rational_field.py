@@ -452,7 +452,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if not pari_ints:
             ZZ = rings.Integer
-            v = [0] + [ZZ(x) for x in E.ellan(n)]
+            v = [ZZ(0)] + [ZZ(x) for x in E.ellan(n)]
         else:
             v = E.ellan(n)
         if not pari_ints:
@@ -1658,14 +1658,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         sqrtN = float(self.conductor().sqrt())
         k = int(k)
         if k == 0: k = int(math.ceil(sqrtN))
-        an = self.anlist(k)           # list of C ints
+        an = self.anlist(k)           # list of SAGE ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         z = exp(-2*pi/sqrtN)
         zpow = z
         s = 0.0
         for n in xrange(1,k+1):
-            s += (zpow * an[n])/n
+            s += (zpow * float(an[n]))/n
             zpow *= z
 
         error = 2*zpow / (1 - z)

@@ -159,6 +159,7 @@ include "../ext/python.pxi"
 
 import operator
 
+from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 
 # This classes uses element.pxd.  To add data members, you
@@ -206,7 +207,7 @@ cdef class Element(sage_object.SageObject):
         INPUT:
             parent -- a SageObject
         """
-        self._parent = <sage.structure.parent.Parent> parent
+        self._parent = <Parent> parent
 
     def _set_parent(self, parent):
         r"""
@@ -215,7 +216,7 @@ cdef class Element(sage_object.SageObject):
         """
         self._parent = parent
 
-    cdef _set_parent_c(self, sage.structure.parent.Parent parent):
+    cdef _set_parent_c(self, Parent parent):
         self._parent = parent
 
     def _repr_(self):
@@ -235,6 +236,19 @@ cdef class Element(sage_object.SageObject):
         """
         raise NotImplementedError
 
+    cdef base_extend_c(self, Parent R):
+        if HAS_DICTIONARY(self):
+            return base_extend(self, R)
+        else:
+            return base_extend_c_impl(self, R)
+
+    cdef base_extend_c_impl(self, Parent R):
+        cdef ParentWithGens V
+        V = self._parent.base_extend(R)
+        return V._coerce_c(self)
+
+    def base_extend(self, R):
+        return self.base_extend_c_impl(R)
 
     def base_ring(self):
         """
@@ -534,16 +548,46 @@ cdef class ModuleElement(Element):
     # Scalar multiplication
     ##################################################
     def __mul__(left, right):
-        cdef RingElement x
-        if PY_TYPE_CHECK(left, ModuleElement):
-            x = (<ModuleElement>left)._parent._base(right)
-            return (<ModuleElement>left)._lmul_c(x)
+        cdef int is_element
+        if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
+            # do left * (a module element right)
+            is_element = PY_TYPE_CHECK(left, Element)
+            if is_element  and  (<Element>left)._parent is (<ModuleElement>right)._parent._base:
+                # No coercion needed
+                return (<ModuleElement>right)._rmul_c(left)
+            else:
+                # Otherwise we have to do an explicit canonical coercion.
+                try:
+                    return (<ModuleElement>right)._rmul_c(
+                        (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(left))
+                except TypeError:
+                    if is_element:
+                        # that failed -- try to base extend right then do the multiply:
+                        right = right.base_extend((<RingElement>left)._parent)
+                        return (<ModuleElement>right)._rmul_c(left)
+                    else:
+                        raise TypeError
         else:
-            x = (<ModuleElement>right)._parent._base(left)
-            return (<ModuleElement>right)._rmul_c(x)
+            # do (module element left) * right
+            # This is the symmetric case of above.
+            is_element = PY_TYPE_CHECK(right, Element)
+            if is_element  and  (<Element>right)._parent is (<ModuleElement>left)._parent._base:
+                # No coercion needed
+                return (<ModuleElement>left)._lmul_c(right)
+            else:
+                # Otherwise we have to do an explicit canonical coercion.
+                try:
+                    return (<ModuleElement>left)._lmul_c(
+                        (<ParentWithGens> ((<ModuleElement>left)._parent._base) )._coerce_c(right))
+                except TypeError:
+                    if is_element:
+                        # that failed -- try to base extend right then do the multiply:
+                        left = left.base_extend((<RingElement>right)._parent)
+                        return (<ModuleElement>left)._rmul_c(right)
+                    else:
+                        raise TypeError
 
-    # rmul -- self * right
-
+    # rmul -- left * self
     cdef ModuleElement _rmul_c(self, RingElement left):
         """
         DO NOT OVERRIDE THIS FUNCTION.  OK to call.
@@ -602,6 +646,14 @@ cdef class ModuleElement(Element):
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
 
+
+    cdef RingElement coerce_to_base_ring(self, x):
+        if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
+            return x
+        try:
+            return self._parent._base._coerce_c(x)
+        except AttributeError:
+            return self._parent._base(x)
 
     ##################################################
     # Other properties
@@ -820,6 +872,27 @@ cdef class RingElement(ModuleElement):
         # Otherwise use the slower test via PY_TYPE_CHECK.)
         if have_same_parent(self, right):
             return (<RingElement>self)._mul_c(<RingElement>right)
+
+        # VERY important special case:
+        # (ring element) * (module element that is not a ring element)
+        # We don't have to do the other direction, since it is
+        # done in module element __mul__.
+        if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
+            # Now self must be a ring element:
+            # If the parent is the same as the base ring, good
+            if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
+                return (<ModuleElement>right)._rmul_c(self)
+            else:
+                # Otherwise we have to do an explicit canonical coercion.
+                try:
+                    return (<ModuleElement>right)._rmul_c(
+                        (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(self))
+                except TypeError:
+                    # that failed -- try to base extend right then do the multiply:
+                    right = right.base_extend((<RingElement>self)._parent)
+                    return (<ModuleElement>right)._rmul_c(self)
+
+        # General case.
         return bin_op_c(self, right, operator.mul)
 
     cdef RingElement _mul_c(self, RingElement right):
@@ -1302,6 +1375,7 @@ def coerce(p, x):
     except AttributeError:
         return p(x)
 
+
 #################################################################################
 # canonical coercion of two ring elements into one of their parents.
 #################################################################################
@@ -1375,8 +1449,7 @@ cdef bin_op_c(x, y, op):
     Compute x op y, where coercion of x and y works according to
     SAGE's coercion rules.
     """
-
-    # 1. Try canonical ring element coercion.
+    # Try canonical ring element coercion.
     try:
         x1, y1 = canonical_coercion_c(x, y)
         return op(x1,y1)
@@ -1396,6 +1469,7 @@ cdef bin_op_c(x, y, op):
             elif y == 0:
                 return x
         # This is not a 0 case, and it's not multiplication, so we fail.
+
         raise TypeError, "x=%s, y=%s\n%s\nNo canonical coercion defined."%(x,y,msg)
 
     # If the op is multiplication, then some other algebra multiplications

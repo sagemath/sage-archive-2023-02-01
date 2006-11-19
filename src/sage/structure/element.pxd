@@ -4,16 +4,19 @@
 # from other directories will fail.
 
 cimport sage.structure.sage_object
-cimport sage.structure.parent
+from sage.structure.parent cimport Parent
 
 cimport sage_object
 import  sage_object
 
 cdef class Element(sage_object.SageObject):
-    cdef sage.structure.parent.Parent _parent
+    cdef Parent _parent
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef public _richcmp(self, right, int op)
-    cdef _set_parent_c(self, sage.structure.parent.Parent parent)
+    cdef _set_parent_c(self, Parent parent)
+
+    cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
+    cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
 
 cdef class ModuleElement(Element)       # forward declaration
 cdef class RingElement(ModuleElement)   # forward declaration
@@ -33,6 +36,8 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _lmul_c_impl(self, RingElement right)          # OK to override, but do *NOT* call directly
     cdef ModuleElement _rmul_c_impl(self, RingElement left)         # OK to override, but do *NOT* call directly
 
+    # Coerce x to the base ring of self and return the result.
+    cdef RingElement coerce_to_base_ring(self, x)
 
 cdef class MonoidElement(Element):
     cdef MonoidElement _mul_c(self, MonoidElement right)             # do *NOT* override, but OK to call directly

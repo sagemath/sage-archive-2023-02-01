@@ -372,6 +372,18 @@ class FreeModule_generic(module.Module):
             self.coordinates(w)
         return w
 
+    def _coerce_impl(self, x):
+        """
+        Canonical coercion of x into this free module.
+            (0, 4/3, 8/3, 4, 16/3)
+        """
+        if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
+            return self.zero_vector()
+        if isinstance(x, free_module_element.FreeModuleElement):
+            if self.base_ring().has_coerce_map_from(x.base_ring()):
+                return self(x)
+        raise TypeError
+
     def __cmp__(self, right):
         raise NotImplementedError
 
@@ -480,6 +492,20 @@ class FreeModule_generic(module.Module):
             Vector space of dimension 4 over Rational Field
         """
         return FreeModule(self.base_ring(), self.degree())
+
+    def base_extend(self, R):
+        r"""
+        Return the base extension of self to R.  This
+        is the same as \code{self.change_ring(R)} except
+        that a TypeError is raised if there is no canonical
+        coerce map from the base ring of self to R.
+
+        INPUT:
+            R -- ring
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return self.change_ring(R)
+        raise TypeError, "base extension from self to R not defined."
 
     def basis(self):
         """
@@ -2254,6 +2280,7 @@ class FreeModule_ambient(FreeModule_generic):
         if self.base_ring() == R:
             return self
         return FreeModule(R, self.rank())
+
 
     def linear_combination_of_basis(self, v):
         """

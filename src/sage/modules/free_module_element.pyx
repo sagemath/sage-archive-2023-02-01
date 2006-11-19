@@ -168,21 +168,15 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    cdef ModuleElement _lmul_c_impl(self, RingElement right):
-        # todo -- this is STUPID
-        return eval('self.parent()([x*s for x in self.list()], \
-                     copy=False, coerce=False, check=False)',
-                    {'self':self, 's':right})
-
-
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        # todo -- this is STUPID
-        return eval('self.parent()([s*x for x in self.list()], \
-                     copy=False, coerce=False, check=False)',
-                    {'self':self, 's':left})
-
-
-    def __mul__(left, right):
+    def __xmul__(left, right):
+        """
+        EXAMPLES:
+            sage: v = (ZZ^5)(range(5)); v
+            (0, 1, 2, 3, 4)
+            sage: v * v
+            30
+            sage: (4/3) * v
+        """
         if PY_TYPE(left) is PY_TYPE(right):
             # vector x vector -> dot product
             return left.dot_product(right)
@@ -192,21 +186,22 @@ cdef class FreeModuleElement(ModuleElement):
             return (<FreeModuleElement>left)._matrix_multiply(<Matrix>right)
 
         if PY_TYPE_CHECK(left, FreeModuleElement):
+            # left * right with left a free module element
+            # Right could be anything, unfortunately, so we have to coerce.
+            if PY_TYPE_CHECK(right, RingElement):
+                if (<RingElement>right)._parent is (<FreeModuleElement>left)._parent._base:
+                    return (<FreeModuleElement>left)._lmul_c(right)
+
+            right = (<FreeModuleElement>left).coerce_to_base_ring(right)
             return (<FreeModuleElement>left)._lmul_c(right)
         else:
-            return (<FreeModuleElement>right)._rmul_c(left)
+            # left * right, with right a free module element
+            if PY_TYPE_CHECK(right, RingElement):
+                if (<RingElement>right)._parent is (<FreeModuleElement>left)._parent._base:
+                    return (<FreeModuleElement>left)._lmul_c(right)
 
-##         try:
-##             right = self.base_ring()(right)
-##         except TypeError:
-##             try:
-##                 right = self.parent().base_field()(right)
-##             except (AttributeError, TypeError):
-##                 raise TypeError, "unable to multiply self by right"
-##             else:
-##                 v = self.parent().ambient_vector_space()(self)
-##                 return (<FreeModuleElement>v)._scalar_multiply(right)
-##         return (<FreeModuleElement>self)._scalar_multiply(right)
+            left = (<FreeModuleElement>right).coerce_to_base_ring(left)
+            return (<FreeModuleElement>right)._rmul_c(left)
 
     #def __div__(left, right):
     #   return left * ~(left.parent().base_ring()(right))
@@ -439,6 +434,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             True
     """
     cdef _new_c(self, object v):
+        # Create a new dense free module element with minimal overhead and
+        # no type checking.
         cdef FreeModuleElement_generic_dense x
         x = PY_NEW(FreeModuleElement_generic_dense)
         x._parent = self._parent
@@ -468,19 +465,32 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 entries = list(entries)
         self._entries = entries
 
-    def foo(self, RingElement left):
-        return self._rmul_c_impl(left)
-
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        # This is basically a fast Python/C version of
+        #    [left*x for x in self.list()]
         cdef object e, v
         cdef Py_ssize_t i, n
         cdef PyObject** w
-
         n = PyList_Size(self._entries)
         v = PyList_New(n)
         w = FAST_SEQ_UNSAFE(self._entries)
         for i from 0 <= i < n:
-            a = left._mul_c(<object> w[i])
+            a = left._mul_c(<RingElement> w[i])
+            Py_INCREF(a)
+            PyList_SET_ITEM(v, i, a)
+        return self._new_c(v)
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # This is basically a very fast Python/C version of
+        #    [x*right for x in self.list()]
+        cdef object e, v
+        cdef Py_ssize_t i, n
+        cdef PyObject** w
+        n = PyList_Size(self._entries)
+        v = PyList_New(n)
+        w = FAST_SEQ_UNSAFE(self._entries)
+        for i from 0 <= i < n:
+            a = (<RingElement> w[i])._mul_c(right)
             Py_INCREF(a)
             PyList_SET_ITEM(v, i, a)
         return self._new_c(v)
@@ -558,12 +568,12 @@ def make_FreeModuleElement_generic_sparse(parent, entries):
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     """
-    A generic_sparse is a dictionary with keys ints i and entries in
-    the base ring.
-
-    This is called implicitly when you pickle this vector.
+    A generic sparse free module element is a dictionary with keys
+    ints i and entries in the base ring.
 
     EXAMPLES:
+
+    Pickling works:
         sage: v = FreeModule(ZZ, 3, sparse=True).0
         sage: loads(dumps(v)) == v
         True
@@ -572,7 +582,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         True
     """
     cdef _new_c(self, object v):
-        raise NotImplementedError
+        # Create a new sparse free module element with minimal overhead and
+        # no type checking.
+        cdef FreeModuleElement_generic_dense x
+        x = PY_NEW(FreeModuleElement_generic_dense)
+        x._parent = self._parent
+        x._entries = v
+        return x
 
     def __init__(self, parent,
                  entries=0,
@@ -606,6 +622,20 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 # Make a copy
                 entries = dict(entries)
         self._entries = entries
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        cdef object v
+        v = PyDict_New()
+        for i, a in self._entries.iteritems():
+            v[i] = left._mul_c(<RingElement> a)
+        return self._new_c(v)
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        cdef object v
+        v = PyDict_New()
+        for i, a in self._entries.iteritems():
+            v[i] = (<RingElement>a)._mul_c(right)
+        return self._new_c(v)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """

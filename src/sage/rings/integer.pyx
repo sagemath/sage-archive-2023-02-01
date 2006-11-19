@@ -96,10 +96,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement)
 import sage.rings.integer_ring
 import sage.rings.infinity
 import sage.rings.complex_field
-import rational as rational
+import rational
 import sage.libs.pari.all
 import real_mpfr
-
 
 
 cdef mpz_t mpz_tmp
@@ -255,10 +254,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
                 if mpz_set_str(self.value, x, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
+
             # todo: I want to skip the name lookup here (rational.Rational).
             # I tried importing/cimporting Rational in various ways, but every
             # way was broken for some mysterious reason. Perhaps a circular
-            # include somewhere?
+            # include somewhere?  -- David Harvey
+            # Sagex does not allow circular imports of cdef'd types in any situation.
+            # Since Rational cimports integer, it is not possible for integer to cimport rational.
+            # This might not be fixable.  -- William Stein
             elif PY_TYPE_CHECK(x, rational.Rational):
                 if x.denominator() != 1:
                     raise TypeError, "Unable to coerce rational (=%s) to an Integer."%x

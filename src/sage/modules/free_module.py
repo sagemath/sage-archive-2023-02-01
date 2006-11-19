@@ -358,7 +358,7 @@ class FreeModule_generic(module.Module):
         elif isinstance(x, free_module_element.FreeModuleElement):
             if x.parent() is self:
                 if copy:
-                    return x.copy()
+                    return x.__copy__()
                 else:
                     return x
             x = x.list()
@@ -372,6 +372,26 @@ class FreeModule_generic(module.Module):
             self.coordinates(w)
         return w
 
+    def _has_coerce_map_from_space(self, V):
+        """
+        Return True if V canonically coerces to self.
+        """
+        try:
+            return self.__has_coerce_map_from_space[V]
+        except AttributeError:
+            self.__has_coerce_map_from_space = {}
+        except KeyError:
+            pass
+        if self.base_ring() is V.base_ring():
+            h = V.is_submodule(self)
+        elif not self.base_ring().has_coerce_map_from(V.base_ring()):
+            self.__has_coerce_map_from_space[V] = False
+            return False
+        else:
+            h = V.base_extend(self.base_ring()).is_submodule(self)
+        self.__has_coerce_map_from_space[V] = h
+        return h
+
     def _coerce_impl(self, x):
         """
         Canonical coercion of x into this free module.
@@ -380,7 +400,9 @@ class FreeModule_generic(module.Module):
         if isinstance(x, (int, long, sage.rings.integer.Integer)) and x==0:
             return self.zero_vector()
         if isinstance(x, free_module_element.FreeModuleElement):
-            if self.base_ring().has_coerce_map_from(x.base_ring()):
+            # determining if the map exists is expensive the first time,
+            # so we cache it.
+            if self._has_coerce_map_from_space(x.parent()):
                 return self(x)
         raise TypeError
 
@@ -2241,10 +2263,11 @@ class FreeModule_ambient(FreeModule_generic):
             return self.__basis
         except  AttributeError:
             ZERO = self(0)
+            one = self.base_ring()(1)
             w = []
             for n in range(self.rank()):
-                v = ZERO.copy()
-                v[n] = 1
+                v = ZERO.__copy__()
+                v[n] = one
                 w.append(v)
             self.__basis = basis_seq(self, w)
             return self.__basis

@@ -1449,7 +1449,7 @@ cdef bin_op_c(x, y, op):
     Compute x op y, where coercion of x and y works according to
     SAGE's coercion rules.
     """
-    # Try canonical ring element coercion.
+    # Try canonical element coercion.
     try:
         x1, y1 = canonical_coercion_c(x, y)
         return op(x1,y1)

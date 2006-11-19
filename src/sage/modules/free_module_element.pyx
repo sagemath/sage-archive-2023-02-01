@@ -1,4 +1,4 @@
-"""
+r"""
 Elements of free modules
 
 AUTHOR:
@@ -9,6 +9,53 @@ TODO:
     Change to use a get_unsafe / set_unsafe, etc., structure exactly
     like with matrices, since we'll have to define a bunch of special
     purpose implementations of vectors easily and systematically.
+
+EXAMPLES:
+We create a vector space over $\QQ$ and a subspace of this space.
+    sage: V = QQ^5
+    sage: W = V.span([V.1, V.2])
+
+Arithmetic operations always return something in the ambient space,
+since there is a canonical map from $W$ to $V$ but not from $V$ to $W$.
+
+    sage: parent(W.0 + V.1)
+    Vector space of dimension 5 over Rational Field
+    sage: parent(V.1 + W.0)
+    Vector space of dimension 5 over Rational Field
+    sage: W.0 + V.1
+    (0, 2, 0, 0, 0)
+    sage: W.0 - V.0
+    (-1, 1, 0, 0, 0)
+
+Next we define modules over $\ZZ$ and a finite field.
+    sage: K = ZZ^5
+    sage: M = GF(7)^5
+
+Arithmetic between the $\QQ$  and $\ZZ$ modules is defined, and
+the result is always over $\QQ$, since there is a canonical coercion
+map to $\QQ$.
+    sage: K.0 + V.1
+    (1, 1, 0, 0, 0)
+    sage: parent(K.0 + V.1)
+    Vector space of dimension 5 over Rational Field
+
+Since there is no canonical coercion map to the finite field from $\QQ$
+the following arithmetic is not defined:
+    sage: V.0 + M.0
+    Traceback (most recent call last):
+    ...
+    TypeError: x=(1, 0, 0, 0, 0), y=(1, 0, 0, 0, 0)
+    unable to find a common canonical parent for x and y
+    No canonical coercion defined.
+
+However, there is a map from $\ZZ$ to the finite field, so the
+following is defined, and the result is in the finite field.
+    sage: w = K.0 + M.0; w
+    (2, 0, 0, 0, 0)
+    sage: parent(w)
+    Vector space of dimension 5 over Finite Field of size 7
+    sage: parent(M.0 + K.0)
+    Vector space of dimension 5 over Finite Field of size 7
 """
 
 import operator
@@ -121,30 +168,6 @@ cdef class FreeModuleElement(ModuleElement):
                      copy=False, coerce=False, check=False)',
                     {'self':self, 'p':p})
 
-    cdef ModuleElement _add_c_impl(left, ModuleElement right):
-        """
-        Add left and right.
-        """
-        X = eval('[left[i] + right[i] for i in xrange(left.degree())]',
-                 {'left':left, 'right':right})
-        return left.parent()(X, coerce=False, copy=False, check=False)
-
-    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
-        """
-        Subtract right from left.
-
-        EXAMPLES:
-            sage: V = QQ^5
-            sage: W = V.span([V.1, V.2])
-            sage: W.0 - V.0
-            ?
-            sage: V.0 - W.0
-            ?
-        """
-        X = eval('[left[i] - right[i] for i in xrange(left.degree())]',
-                 {'left':left, 'right':right})
-        return left.parent()(X, coerce=False, copy=False, check=False)
-
     def Mod(self, p):
         """
         EXAMPLES:
@@ -226,7 +249,7 @@ cdef class FreeModuleElement(ModuleElement):
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = eval('[str(x) for x in self.list()]', {'self':self})
+        S = eval('[str(x) for x in self.list(copy=False)]', {'self':self})
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):
@@ -264,9 +287,6 @@ cdef class FreeModuleElement(ModuleElement):
         return A.vector_matrix_multiply(self)
 
 
-    def copy(self):
-        return self.parent()(self.entries(), \
-                             coerce=False, copy=True, check=False)
     def degree(self):
         return self.parent().degree()
 
@@ -337,9 +357,6 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self[i]
 
-    def list(self):
-        return eval('[self[i] for i in range(self.degree())]', {'self':self})
-
     def additive_order(self):
         import sage.rings.arith as arith
         return eval('arith.lcm([self[i].order() for i in range(self.degree())])',
@@ -353,11 +370,6 @@ cdef class FreeModuleElement(ModuleElement):
         """
         self[i] = x
 
-
-    def entries(self):
-        # This *must* be defined in the derived class.
-        # It is the underlying representation of elements.
-        raise NotImplementedError
 
     def inner_product(self, right):
         """
@@ -442,6 +454,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x._entries = v
         return x
 
+    def __copy__(self):
+        return self._new_c(list(self._entries))
+
     def __init__(self, parent, entries, coerce=True, copy=True):
         FreeModuleElement.__init__(self, parent)
         R = self.parent().base_ring()
@@ -465,10 +480,52 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                 entries = list(entries)
         self._entries = entries
 
+    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+        """
+        Add left and right.
+        """
+        cdef object e, v, a
+        cdef Py_ssize_t i, n
+        cdef PyObject **w_left, **w_right
+        n = PyList_Size(left._entries)
+        v = PyList_New(n)
+        w_left = FAST_SEQ_UNSAFE(left._entries)
+        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        for i from 0 <= i < n:
+            a = (<RingElement>w_left[i])._add_c(<RingElement> w_right[i])
+            Py_INCREF(a)
+            PyList_SET_ITEM(v, i, a)
+        return left._new_c(v)
+
+    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+        """
+        Subtract right from left.
+
+        EXAMPLES:
+            sage: V = QQ^5
+            sage: W = V.span([V.1, V.2])
+            sage: W.0 - V.0
+            ?
+            sage: V.0 - W.0
+            ?
+        """
+        cdef object e, v, a
+        cdef Py_ssize_t i, n
+        cdef PyObject **w_left, **w_right
+        n = PyList_Size(left._entries)
+        v = PyList_New(n)
+        w_left = FAST_SEQ_UNSAFE(left._entries)
+        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        for i from 0 <= i < n:
+            a = (<RingElement>(w_left[i]))._sub_c(<RingElement> (w_right[i]))
+            Py_INCREF(a)
+            PyList_SET_ITEM(v, i, a)
+        return left._new_c(v)
+
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
         # This is basically a fast Python/C version of
         #    [left*x for x in self.list()]
-        cdef object e, v
+        cdef object e, v, a
         cdef Py_ssize_t i, n
         cdef PyObject** w
         n = PyList_Size(self._entries)
@@ -483,7 +540,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         # This is basically a very fast Python/C version of
         #    [x*right for x in self.list()]
-        cdef object e, v
+        cdef object e, v, a
         cdef Py_ssize_t i, n
         cdef PyObject** w
         n = PyList_Size(self._entries)
@@ -523,11 +580,11 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                             self.degree()-1)
         self._entries[i] = self.base_ring()(value)
 
-    def entries(self):
-        return self._entries
-
-    def list(self):
-        return self._entries
+    def list(self, copy=True):
+        if copy:
+            return list(self._entries)
+        else:
+            return self._entries
 
     def __richcmp__(left, right, int op):
         a = (<Element>left)._richcmp(right, op)
@@ -545,7 +602,6 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         EXAMPLES:
         sage: ??
         """
-        print 2
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
 
@@ -584,11 +640,14 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
     cdef _new_c(self, object v):
         # Create a new sparse free module element with minimal overhead and
         # no type checking.
-        cdef FreeModuleElement_generic_dense x
-        x = PY_NEW(FreeModuleElement_generic_dense)
+        cdef FreeModuleElement_generic_sparse x
+        x = PY_NEW(FreeModuleElement_generic_sparse)
         x._parent = self._parent
         x._entries = v
         return x
+
+    def __copy__(self):
+        return self._new_c(dict(self._entries))
 
     def __init__(self, parent,
                  entries=0,
@@ -623,12 +682,29 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
                 entries = dict(entries)
         self._entries = entries
 
-    cdef ModuleElement _rmul_c_impl(self, RingElement left):
-        cdef object v
-        v = PyDict_New()
-        for i, a in self._entries.iteritems():
-            v[i] = left._mul_c(<RingElement> a)
-        return self._new_c(v)
+    cdef ModuleElement _add_c_impl(left, ModuleElement right):
+        """
+        Add left and right.
+        """
+        cdef object v, e
+        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        for i, a in left._entries.iteritems():
+            if e.has_key(i):
+                e[i] = (<RingElement>a)._add_c(<RingElement> e[i])
+            else:
+                e[i] = a
+        return left._new_c(e)
+
+    cdef ModuleElement _sub_c_impl(left, ModuleElement right):
+        cdef object v, e
+        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        for i, a in left._entries.iteritems():
+            if e.has_key(i):
+                e[i] = (<RingElement>a)._sub_c(<RingElement> e[i])
+            else:
+                e[i] = a
+        return left._new_c(e)
+
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         cdef object v
@@ -715,11 +791,20 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             d = d.lcm(y.denominator())
         return d
 
-    def entries(self):
-        return self._entries
+    def dict(self, copy=True):
+        if copy:
+            return dict(self._entries)
+        else:
+            return self._entries
 
-    def dict(self):
-        return self._entries
+    def list(self, copy=True):
+        cdef Py_ssize_t n
+        n = self._parent.degree()
+        z = self._parent.base_ring()(0)
+        v = [z]*n
+        for i, a in self._entries.iteritems():
+            v[i] = a
+        return v
 
     def nonzero_positions(self):
         """

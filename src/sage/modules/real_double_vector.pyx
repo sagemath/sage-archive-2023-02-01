@@ -5,6 +5,8 @@ AUTHOR:
     -- Josh Kantor (2006-10)
 """
 
+from sage.structure.element cimport ModuleElement
+
 cimport free_module_element
 import  free_module_element
 
@@ -13,8 +15,27 @@ import  complex_double_vector
 
 import sage.rings.complex_double
 
+include '../ext/stdsage.pxi'
 
 cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
+    cdef _new_c(self, gsl_vector* v):
+        cdef RealDoubleVectorSpace_element y
+        y = PY_NEW(RealDoubleVectorSpace_element)
+        y._parent = self._parent
+        y.v = v
+        return y
+
+    cdef gsl_vector* gsl_vector_copy(self):
+        """
+        Return a copy of the underlying GSL vector of self.
+        """
+        cdef gsl_vector* v
+        v = <gsl_vector*> gsl_vector_alloc(self.v.size)
+        if v is NULL:
+            raise MemoryError, "error allocating real double vector"
+        if gsl_vector_memcpy(v,self.v):
+            raise RuntimeError, "error copying real double vector"
+        return v
 
     def __init__(self,parent,x,coerce=True,copy=True):
         free_module_element.FreeModuleElement.__init__(self,sage.rings.real_double.RDF)
@@ -67,45 +88,33 @@ cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
         else:
             return gsl_vector_get(self.v,i)
 
-#    def __add__(left,right):
-#       return (<RealDoubleVectorSpace_element>left)._add_(<RealDoubleVectorSpace_element>right)
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        cdef gsl_vector* v
+        gsl_set_error_handler_off()
+        v = self.gsl_vector_copy()
+        if gsl_vector_add(v, (<RealDoubleVectorSpace_element> right).v):
+            raise RuntimeError, "error adding real double vectors"
+        return self._new_c(v)
 
-    cdef _add_(RealDoubleVectorSpace_element self, RealDoubleVectorSpace_element right):
-        cdef int i
-        cdef int n
-        cdef int err_1
-        cdef int err_2
-        n = self.v.size
-        cdef RealDoubleVectorSpace_element result
-        if self.parent() is right.parent():
-            gsl_set_error_handler_off()
-            result = <RealDoubleVectorSpace_element> RealDoubleVectorSpace_element.__new__(RealDoubleVectorSpace_element)
-            (<RealDoubleVectorSpace_element> result).v = <gsl_vector*> gsl_vector_alloc(n)
-            if (<RealDoubleVectorSpace_element> result).v is not NULL:
-                err_1 = gsl_vector_memcpy((<RealDoubleVectorSpace_element>result).v,self.v)
-                err_2 = gsl_vector_add( (<RealDoubleVectorSpace_element>result).v,(<RealDoubleVectorSpace_element> right).v)
 
-                (<RealDoubleVectorSpace_element>result)._parent= (<RealDoubleVectorSpace_element>right)._parent
-                status = (not err_1 and not err_2)
-                if status:
-                    return result
-                else:
-                    raise TypeError, "Memory allocation error"
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        cdef gsl_vector* v
+        gsl_set_error_handler_off()
+        v = self.gsl_vector_copy()
+        if gsl_vector_sub(v, (<RealDoubleVectorSpace_element> right).v):
+            raise RuntimeError, "error subtracting real double vectors"
+        return self._new_c(v)
 
 
     def fft(self):
         cdef complex_double_vector.ComplexDoubleVectorSpace_element result
         cdef int i
         P = self.parent().change_ring( sage.rings.complex_double.CDF )
-        result = complex_double_vector.ComplexDoubleVectorSpace_element.__new__(complex_double_vector.ComplexDoubleVectorSpace_element,
-                                                                               P, None)
+        result = complex_double_vector.ComplexDoubleVectorSpace_element.__new__(
+            complex_double_vector.ComplexDoubleVectorSpace_element, P, None)
         for i from 0 <=i< self.v.size:
             (result.v).data[2*i]= self.v.data[i]
         result.fft(inplace=True)
         return result
-
-
-    def test_add(self,right):
-        return self._add_(right)
 
 

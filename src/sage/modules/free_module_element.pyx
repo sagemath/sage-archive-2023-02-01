@@ -191,7 +191,7 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def __xmul__(left, right):
+    def test(left, right):
         """
         EXAMPLES:
             sage: v = (ZZ^5)(range(5)); v
@@ -200,31 +200,11 @@ cdef class FreeModuleElement(ModuleElement):
             30
             sage: (4/3) * v
         """
-        if PY_TYPE(left) is PY_TYPE(right):
-            # vector x vector -> dot product
-            return left.dot_product(right)
-
         if PY_TYPE_CHECK(right, Matrix):
             # vector x matrix multiply
             return (<FreeModuleElement>left)._matrix_multiply(<Matrix>right)
+        raise TypeError
 
-        if PY_TYPE_CHECK(left, FreeModuleElement):
-            # left * right with left a free module element
-            # Right could be anything, unfortunately, so we have to coerce.
-            if PY_TYPE_CHECK(right, RingElement):
-                if (<RingElement>right)._parent is (<FreeModuleElement>left)._parent._base:
-                    return (<FreeModuleElement>left)._lmul_c(right)
-
-            right = (<FreeModuleElement>left).coerce_to_base_ring(right)
-            return (<FreeModuleElement>left)._lmul_c(right)
-        else:
-            # left * right, with right a free module element
-            if PY_TYPE_CHECK(right, RingElement):
-                if (<RingElement>right)._parent is (<FreeModuleElement>left)._parent._base:
-                    return (<FreeModuleElement>left)._lmul_c(right)
-
-            left = (<FreeModuleElement>right).coerce_to_base_ring(left)
-            return (<FreeModuleElement>right)._rmul_c(left)
 
     #def __div__(left, right):
     #   return left * ~(left.parent().base_ring()(right))
@@ -267,7 +247,7 @@ cdef class FreeModuleElement(ModuleElement):
     def __setitem__(self, i, x):
         raise NotImplementedError
 
-    cdef FreeModuleElement _matrix_multiply(self, Matrix A):
+    def _matrix_multiply(self, Matrix A):
         """
         Return the product self*A.
 
@@ -286,6 +266,10 @@ cdef class FreeModuleElement(ModuleElement):
         # todo: speed up -- should be calling a cdef'd method of A.
         return A.vector_matrix_multiply(self)
 
+    cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
+        if PY_TYPE_CHECK(right, Matrix):
+            return right.vector_matrix_multiply(left)
+        raise TypeError
 
     def degree(self):
         return self.parent().degree()

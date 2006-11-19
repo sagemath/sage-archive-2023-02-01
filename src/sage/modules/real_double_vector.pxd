@@ -7,4 +7,6 @@ include '../gsl/gsl.pxi'
 
 cdef class RealDoubleVectorSpace_element(free_module_element.FreeModuleElement):
 	cdef gsl_vector * v
-	cdef _add_(RealDoubleVectorSpace_element left, RealDoubleVectorSpace_element right)
+	cdef _new_c(self, gsl_vector* v)
+	cdef gsl_vector* gsl_vector_copy(self)
+

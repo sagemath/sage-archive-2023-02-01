@@ -18,7 +18,9 @@ cdef class Element(sage_object.SageObject):
     cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
 
+
 cdef class ModuleElement(Element)       # forward declaration
+
 cdef class RingElement(ModuleElement)   # forward declaration
 
 cdef class ModuleElement(Element):
@@ -39,12 +41,20 @@ cdef class ModuleElement(Element):
     # Coerce x to the base ring of self and return the result.
     cdef RingElement coerce_to_base_ring(self, x)
 
+    cdef ModuleElement _lmul_nonscalar_c(left, right)      # do not override
+    cdef ModuleElement _lmul_nonscalar_c_impl(left, right) # override
+
+    cdef ModuleElement _rmul_nonscalar_c(right, left)       # do not override
+    cdef ModuleElement _rmul_nonscalar_c_impl(right, left) # override
+
 cdef class MonoidElement(Element):
     cdef MonoidElement _mul_c(self, MonoidElement right)             # do *NOT* override, but OK to call directly
     cdef MonoidElement _mul_c_impl(self, MonoidElement right)        # OK to override, but do *NOT* call directly
 
 cdef class MultiplicativeGroupElement(MonoidElement):
-    pass
+    cdef MultiplicativeGroupElement _div_c(self, MultiplicativeGroupElement right)   # do NOT override
+    cdef MultiplicativeGroupElement _div_c_impl(self, MultiplicativeGroupElement right)  # OK to override
+
 
 cdef class AdditiveGroupElement(ModuleElement):
     pass

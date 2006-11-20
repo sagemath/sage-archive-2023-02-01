@@ -132,7 +132,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
                 M = mats[int(j)]
                 for l in range(k): w *= M
             return w
-        u = self.__vector.copy()
+        u = self.__vector.__copy__()
         v = y.__vector
         z = A(0)
         B = A.monomial_basis()

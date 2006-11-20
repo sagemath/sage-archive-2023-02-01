@@ -820,7 +820,7 @@ cdef class MonoidElement(Element):
         elif n == 0:
             return power
 
-        power = self._parent(1)
+        power = (<Element>self)._parent(1)
         apow = a
         while True:
             if n&1 > 0: power = power*apow

@@ -42,6 +42,24 @@ def inject_on(verbose=True):
         Finite Field in c of size 3^2
         sage: c
         c
+
+    ROLL YOUR OWN: If a constructor you would like to auto inject
+    variables isn't made to do so by running this command your options
+    are:
+         (1) Make your own constructor (factory function) using the explicit
+             inject_variables() method.  This is *very* easy:
+
+                sage: def poly(*args, **kwds):
+                ...    R = PolynomialRing(*args, **kwds)
+                ...    R.inject_variables()
+                ...    return R
+                sage: R = poly(QQ, 'z')
+                Defining z
+                sage: z^3 + 3
+                z^3 + 3
+
+         (2) Add code to do it to devel/sage/sage/ext/interactive_constructors_c.pyx,
+             rebuild SAGE (with sage -br), and send William Stein a patch :-).
     """
     global _verbose
     _verbose = verbose

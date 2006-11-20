@@ -16,7 +16,35 @@ def inject_on(verbose=True):
     """
     Replace several constructors by versions that inject their
     variables into the global namespace.
+
+    INPUT:
+        verbose -- (default: True) if True, print which constructors
+                   become interactive, and also print variables as
+                   they are implicitly defined.
+
+    EXAMPLES:
+        sage: inject_on(verbose=True)
+        Redefining: Frac FreeMonoid GF FractionField FiniteField PolynomialRing quotient NumberField LaurentSeriesRing quo
+        sage: GF(9,'b')
+        Defining b
+        Finite Field in b of size 3^2
+        sage: b^3
+        2*b + 1
+        sage: inject_off()
+        sage: GF(9,'c')
+        Finite Field in c of size 3^2
+        sage: c
+        Traceback (most recent call last):
+        ...
+        NameError: name 'c' is not defined
+        sage: inject_on(verbose=False)
+        sage: GF(9,'c')
+        Finite Field in c of size 3^2
+        sage: c
+        c
     """
+    global _verbose
+    _verbose = verbose
     global _original_constructors
     _original_constructors = {}
     import sage.ext.interactive_constructors_c
@@ -28,7 +56,7 @@ def inject_on(verbose=True):
             if verbose:
                 print X,
             try:
-                _original_constructors[X] =  sage.ext.interactive_constructors_c.__dict__[X]
+                _original_constructors[X] =  G[X] #sage.ext.interactive_constructors_c.__dict__[X]
             except KeyError:
                 pass
             G[X] = sage.ext.interactive_constructors_c.__dict__[X]
@@ -74,6 +102,7 @@ def FractionField(*args, **kwds):
     around the following function: <<<FractionField>>>
 
     EXAMPLES (that illustrate interactive injection of variables):
+        sage: inject_on(verbose=False)
         sage: Frac(QQ['x'])
         Fraction Field of Univariate Polynomial Ring in x over Rational Field
         sage: parent(x)
@@ -93,20 +122,21 @@ def FreeMonoid(*args, **kwds):
     inject the variables.  This is a wrapper around the following
     function: <<<FreeMonoid>>>
 
-    MORE EXAMPLES:
+    EXAMPLES:
     We illustrate creating a free monoid with and without injecting
     the variables into the interpreter.
 
+        sage: inject_on(verbose=False)
         sage: FreeMonoid(4,'x')
         Free monoid on 4 generators (x0, x1, x2, x3)
         sage: x2
         x2
         sage: FreeMonoid(4,'y', inject=False)
         Free monoid on 4 generators (y0, y1, y2, y3)
-        sage: y
+        sage: y0
         Traceback (most recent call last):
         ...
-        NameError: name 'y' is not defined
+        NameError: name 'y0' is not defined
     """
     t = _do_inject(kwds)
     R = sage.monoids.free_monoid.FreeMonoid(*args, **kwds)
@@ -143,7 +173,8 @@ def quotient(R, I, names, inject=True):
     then injected into the module scope (if inject=True).
 
     EXAMPLES:
-        sage: R = QQ['x,y']
+        sage: inject_on(verbose=False)
+        sage: R = PolynomialRing(QQ, 'x,y')
         sage: S = quo(R, (x^3, x^2 + y^2), 'a,b')
         sage: S
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2, x^3)
@@ -173,6 +204,7 @@ def PolynomialRing(*args, **kwds):
     We illustrate creating a polynomial ring without injecting the variables
     into the interpreter.
 
+        sage: inject_on(verbose=False)
         sage: PolynomialRing(QQ,'w')
         Univariate Polynomial Ring in w over Rational Field
         sage: parent(w)

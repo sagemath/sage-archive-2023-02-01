@@ -14,10 +14,8 @@ cdef class Element(sage_object.SageObject):
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef public _richcmp(self, right, int op)
     cdef _set_parent_c(self, Parent parent)
-
     cdef base_extend_c(self, Parent R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, Parent R)  # OK to override, but do NOT call
-
 
 cdef class ModuleElement(Element)       # forward declaration
 
@@ -40,6 +38,13 @@ cdef class ModuleElement(Element):
 
     # Coerce x to the base ring of self and return the result.
     cdef RingElement coerce_to_base_ring(self, x)
+
+    # self * right,  where left need not be a ring element in the base ring
+    # This does type checking and canonical coercion then calls _lmul_c_impl.
+    cdef ModuleElement _multiply_by_scalar(self, right)    # do not override
+    # left * self, where left need not be a ring element in the base ring
+    # This does type checking and canonical coercion then calls _rmul_c_impl.
+    cdef ModuleElement _rmultiply_by_scalar(self, left)    # do not override
 
     cdef ModuleElement _lmul_nonscalar_c(left, right)      # do not override
     cdef ModuleElement _lmul_nonscalar_c_impl(left, right) # override
@@ -96,3 +101,25 @@ cdef class CommutativeAlgebra(AlgebraElement):
 
 cdef class InfinityElement(RingElement):
     pass
+
+
+cdef class Vector(ModuleElement):
+    cdef Py_ssize_t _degree
+
+    cdef Vector _vector_times_vector_c(Vector left, Vector right)           # do *NOT* override, but OK to call directly
+    cdef Vector _vector_times_vector_c_impl(Vector left, Vector right)      # OK to override, but do *NOT* call directly
+
+
+cdef class Matrix(ModuleElement):
+    cdef Py_ssize_t _nrows
+    cdef Py_ssize_t _ncols
+
+    cdef Vector _vector_times_matrix_c(matrix_right, Vector vector_left)    # do *NOT* override, but OK to call directly
+    cdef Vector _matrix_times_vector_c(matrix_left, Vector vector_right)    # do *NOT* override, but OK to call directly
+    cdef Matrix _matrix_times_matrix_c(left, Matrix right)                  # do *NOT* override, but OK to call directly
+
+    cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left)    # OK to override, but do *NOT* call directly
+    cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right)    # OK to override, but do *NOT* call directly
+    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)                  # OK to override, but do *NOT* call directly
+
+

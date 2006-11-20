@@ -16,25 +16,30 @@ Finite Fields support iteration, starting with 0.
     6 2*a
     7 2*a + 1
     8 2*a + 2
+
+We output the base rings of several finite fields.
+    sage: k = GF(3); type(k)
+    <class 'sage.rings.finite_field.FiniteField_prime_modn'>
+    sage: k.base_ring()
+    Finite Field of size 3
+
+    sage: k = GF(9,'alpha'); type(k)
+    <type 'sage.rings.finite_field_givaro.FiniteField_givaro'>
+    sage: k.base_ring()
+    Finite Field of size 3
+
+    sage: k = GF(3^40,'b'); type(k)
+    <class 'sage.rings.finite_field.FiniteField_ext_pari'>
+    sage: k.base_ring()
+    Finite Field of size 3
 """
 
-#*****************************************************************************
-#
+####################################################################################
 #   SAGE: System for Algebra and Geometry Experimentation
-#
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+####################################################################################
 
 import random, weakref
 
@@ -59,7 +64,7 @@ from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
 from sage.rings.finite_field_givaro import FiniteField_givaro
 
-from sage.structure.parent_gens import normalize_names
+from sage.structure.parent_gens import normalize_names, ParentWithGens
 
 import sage.interfaces.gap
 
@@ -109,7 +114,10 @@ def FiniteField(order, name=None, modulus=None, names=None):
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"
-        if order < 2**16:   # todo -- re-enable
+        if order < 2**16:
+            # DO *NOT* use for prime subfield, since that would lead to
+            # a circular reference in the call to ParentWithGens in the
+            # __init__ method.
             K = FiniteField_givaro(order, name, modulus)
         else:
             K = FiniteField_ext_pari(order, name, modulus)
@@ -262,9 +270,16 @@ class FiniteField_ext_pari(FiniteField_generic):
         if q < 2:
             raise ArithmeticError, "q must be a prime power"
         F = q.factor()
-        if len(F) > 1:
+        if len(F) != 1:
             raise ArithmeticError, "q must be a prime power"
-        self._assign_names(name)
+
+        if F[0][1] > 1:
+            base_ring = FiniteField(F[0][0])
+        else:
+            base_ring = self
+
+        ParentWithGens.__init__(self, base_ring, name, normalize=False)
+
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)
         self.__degree = F[0][1]
@@ -666,7 +681,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         integer_mod_ring.IntegerModRing_generic.__init__(self, p)
         self.__char = p
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
-        self._assign_names(('x'),normalize=False)
+        ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

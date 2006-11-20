@@ -147,8 +147,7 @@ class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
     """
 
     def __init__(self):
-        ParentWithGens.__init__(self, self)
-        self._assign_names(('x'),normalize=False)
+        ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
     def _repr_(self):
         return "Integer Ring"

@@ -154,6 +154,7 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     matrices in those spaces for a wide range of base rings.
 
     Dense and sparse generic matrices:
+        sage: ??
 
     Dense and sparse matrices over a domain:
 
@@ -178,6 +179,9 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
     if _cache.has_key(key):
         M = _cache[key]()
         if not M is None: return M
+
+    if not sage.rings.ring.is_Ring(base_ring):
+        raise TypeError, "base_ring (=%s) must be a ring"%base_ring
 
     M = MatrixSpace_generic(base_ring, nrows, ncols, sparse)
 
@@ -246,6 +250,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 entries = sum([v.list() for v in entries],[])
 
         return self.matrix(entries, coerce=coerce, copy=copy)
+
+    def base_extend(self, R):
+        """
+        INPUT:
+            R -- ring
+        """
+        return MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
 
     def _coerce_impl(self, x):
         """

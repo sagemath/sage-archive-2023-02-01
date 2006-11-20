@@ -11,13 +11,10 @@ Generic matrices
 ###############################################################################
 
 cimport sage.structure.element
-import  sage.structure.element
 cimport sage.structure.mutability
 
-cdef class Matrix(sage.structure.element.ModuleElement):
+cdef class Matrix(sage.structure.element.Matrix):
     # Properties of any matrix  (plus _parent, inherited from base class)
-    cdef Py_ssize_t _nrows
-    cdef Py_ssize_t _ncols
     cdef object _cache
     cdef public object _base_ring
     cdef sage.structure.mutability.Mutability _mutability
@@ -26,9 +23,6 @@ cdef class Matrix(sage.structure.element.ModuleElement):
     cdef int _will_use_strassen_echelon(self) except -2
     cdef int _strassen_default_cutoff(self, Matrix right) except -2
     cdef int _strassen_default_echelon_cutoff(self) except -2
-
-    cdef _mul_c_impl(self, Matrix right)
-    cdef int _cmp_c_impl(self, sage.structure.element.Element right) except -2
 
     cdef long _hash(self) except -1
 

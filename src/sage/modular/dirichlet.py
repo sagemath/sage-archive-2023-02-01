@@ -43,7 +43,8 @@ import sage.misc.misc as misc
 import sage.rings.all as rings
 import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
-from sage.structure.all import MultiplicativeGroupElement, Sequence
+from   sage.structure.element import MultiplicativeGroupElement
+from   sage.structure.sequence import Sequence
 import sage.categories.all
 import sage.algebras.quaternion_algebra
 

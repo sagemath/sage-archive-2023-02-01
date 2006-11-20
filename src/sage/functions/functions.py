@@ -15,18 +15,18 @@ EXAMPLES:
 
 import sage.functions.constants
 
-from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                            is_RealNumber, is_ComplexNumber, RR)
+from   sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
+                              is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.rational
 import sage.rings.integer
 
 import sage.rings.all
-from sage.structure.all import RingElement
+from   sage.structure.element import RingElement
 import operator
-from sage.misc.latex import latex
-from sage.interfaces.maxima import maxima, MaximaFunction
+from   sage.misc.latex import latex
+from   sage.interfaces.maxima import maxima, MaximaFunction
 import sage.functions.special as special
-from sage.libs.all import  pari
+from   sage.libs.all import  pari
 
 
 class FunctionRing_class(CommutativeRing):

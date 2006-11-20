@@ -238,9 +238,9 @@ cdef class Element(sage_object.SageObject):
 
     cdef base_extend_c(self, Parent R):
         if HAS_DICTIONARY(self):
-            return base_extend(self, R)
+            return self.base_extend(R)
         else:
-            return base_extend_c_impl(self, R)
+            return self.base_extend_c_impl(R)
 
     cdef base_extend_c_impl(self, Parent R):
         cdef ParentWithGens V
@@ -379,6 +379,7 @@ def is_ModuleElement(x):
         True
     """
     return IS_INSTANCE(x, ModuleElement)
+
 
 cdef class ModuleElement(Element):
     """
@@ -543,55 +544,45 @@ cdef class ModuleElement(Element):
         return self._neg_c_impl()
 
     ##################################################
-    # Scalar multiplication
+    # Module element multiplication (scalars, etc.)
     ##################################################
     def __mul__(left, right):
-        cdef int is_element
-        if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
-            # do left * (a module element right)
-            is_element = PY_TYPE_CHECK(left, Element)
-            if is_element  and  (<Element>left)._parent is (<ModuleElement>right)._parent._base:
-                # No coercion needed
-                return (<ModuleElement>right)._rmul_c(left)
-            else:
-                try:
-                    return (<ModuleElement>right)._rmul_nonscalar_c(left)
-                except TypeError:
-                    pass
-                # Otherwise we have to do an explicit canonical coercion.
-                try:
-                    return (<ModuleElement>right)._rmul_c(
-                        (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(left))
-                except TypeError:
-                    if is_element:
-                        # that failed -- try to base extend right then do the multiply:
-                        right = right.base_extend((<RingElement>left)._parent)
-                        return (<ModuleElement>right)._rmul_c(left)
-        else:
-            # do (module element left) * right
-            # This is the symmetric case of above.
-            is_element = PY_TYPE_CHECK(right, Element)
-            if is_element  and  (<Element>right)._parent is (<ModuleElement>left)._parent._base:
-                # No coercion needed
-                return (<ModuleElement>left)._lmul_c(right)
-            else:
-                try:
-                    return (<ModuleElement>left)._lmul_nonscalar_c(right)
-                except TypeError:
-                    pass
-                # Otherwise we have to do an explicit canonical coercion.
-                try:
-                    return (<ModuleElement>left)._lmul_c(
-                        (<ParentWithGens> ((<ModuleElement>left)._parent._base) )._coerce_c(right))
-                except TypeError:
-                    if is_element:
-                        # that failed -- try to base extend right then do the multiply:
-                        left = left.base_extend((<RingElement>right)._parent)
-                        return (<ModuleElement>left)._rmul_c(right)
+        return module_element_generic_multiply_c(left, right)
 
+    cdef ModuleElement _multiply_by_scalar(self, right):
+        # self * right,  where right need not be a ring element in the base ring
+        # This does type checking and canonical coercion then calls _lmul_c_impl.
+        if PY_TYPE_CHECK(right, Element) and (<Element>right)._parent is self._parent._base:
+            # No coercion needed
+            return self._lmul_c(right)
+        else:
+            # Otherwise we do an explicit canonical coercion.
+            try:
+                return self._lmul_c( (<ParentWithGens>self._parent._base)._coerce_c(right) )
+            except TypeError:
+                # that failed -- try to base extend right then do the multiply:
+                self = self.base_extend((<RingElement>right)._parent)
+                return (<ModuleElement>self)._lmul_c(right)
+
+    cdef ModuleElement _rmultiply_by_scalar(self, left):
+        # left * self, where left need not be a ring element in the base ring
+        # This does type checking and canonical coercion then calls _rmul_c_impl.
+        if PY_TYPE_CHECK(left, Element) and (<Element>self)._parent is self._parent._base:
+            # No coercion needed
+            return self._rmul_c(right)
+        else:
+            # Otherwise we do an explicit canonical coercion.
+            try:
+                return self._rmul_c((<ParentWithGens>self._parent._base)._coerce_c(left))
+            except TypeError:
+                # that failed -- try to base extend self then do the multiply:
+                self = self.base_extend((<RingElement>left)._parent)
+                return (<ModuleElement>self)._rmul_c(left)
 
     cdef ModuleElement _lmul_nonscalar_c(left, right):
-        if HAS_DICTIONARY(self):
+        # Compute the product left * right, where right is assumed to be a nonscalar (so no coercion)
+        # This is a last resort.
+        if HAS_DICTIONARY(left):
             return left._lmul_nonscalar(right)
         else:
             return left._lmul_nonscalar_c_impl(right)
@@ -679,7 +670,7 @@ cdef class ModuleElement(Element):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
         try:
-            return self._parent._base._coerce_c(x)
+            return (<ParentWithGens>self._parent._base)._coerce_c(x)
         except AttributeError:
             return self._parent._base(x)
 
@@ -698,7 +689,57 @@ cdef class ModuleElement(Element):
         """
         raise NotImplementedError
 
+def module_element_generic_multiply(left, right):
+    return module_element_generic_multiply_c(left, right)
 
+cdef module_element_generic_multiply_c(left, right):
+    cdef int is_element
+    if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
+        # do left * (a module element right)
+        is_element = PY_TYPE_CHECK(left, Element)
+        if is_element  and  (<Element>left)._parent is (<ModuleElement>right)._parent._base:
+            # No coercion needed
+            return (<ModuleElement>right)._rmul_c(left)
+        else:
+            try:
+                return (<ModuleElement>right)._rmul_nonscalar_c(left)
+            except TypeError:
+                pass
+            # Otherwise we have to do an explicit canonical coercion.
+            try:
+                return (<ModuleElement>right)._rmul_c(
+                    (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(left))
+            except TypeError:
+                if is_element:
+                    # that failed -- try to base extend right then do the multiply:
+                    right = right.base_extend((<RingElement>left)._parent)
+                    return (<ModuleElement>right)._rmul_c(left)
+    else:
+        # do (module element left) * right
+        # This is the symmetric case of above.
+        is_element = PY_TYPE_CHECK(right, Element)
+        if is_element  and  (<Element>right)._parent is (<ModuleElement>left)._parent._base:
+            # No coercion needed
+            return (<ModuleElement>left)._lmul_c(right)
+        else:
+            try:
+                return (<ModuleElement>left)._lmul_nonscalar_c(right)
+            except TypeError:
+                pass
+            # Otherwise we have to do an explicit canonical coercion.
+            try:
+                return (<ModuleElement>left)._lmul_c(
+                    (<ParentWithGens> ((<ModuleElement>left)._parent._base) )._coerce_c(right))
+            except TypeError:
+                if is_element:
+                    # that failed -- try to base extend right then do the multiply:
+                    left = left.base_extend((<RingElement>right)._parent)
+                    return (<ModuleElement>left)._rmul_c(right)
+    raise TypeError
+
+########################################################################
+# Monoid
+########################################################################
 
 def is_MonoidElement(x):
     """
@@ -1165,6 +1206,128 @@ cdef class CommutativeRingElement(RingElement):
             #raise TypeError, "I = %s must be an ideal in %s"%(I, self.parent())
         return I.reduce(self)
 
+cdef class Vector(ModuleElement):
+    def __mul__(left, right):
+        if PY_TYPE_CHECK(left, Vector):
+            # left is the vector
+            # Possibilities:
+            #     left * matrix
+            if PY_TYPE_CHECK(right, Matrix):
+                return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
+            #     left * vector
+            if PY_TYPE_CHECK(right, Vector):
+                return (<Vector>left)._vector_times_vector_c(<Vector>right)
+            #     left * scalar
+            return (<ModuleElement>left)._multiply_by_scalar(right)
+
+        else:
+            # right is the vector
+            # Possibilities:
+            #     matrix * right
+            if PY_TYPE_CHECK(left, Matrix):
+                return (<Matrix>left)._matrix_times_vector_c(<Vector>right)
+            #     vector * right
+            if PY_TYPE_CHECK(left, Vector):
+                return (<Vector>left)._vector_times_vector_c(<Vector>right)
+            #     scalar * right
+            return (<ModuleElement>right)._rmultiply_by_scalar_c(left)
+
+    cdef Vector _vector_times_vector_c(Vector left, Vector right):
+        if left._degree != right._degree:
+            raise TypeError, "incompatible degrees"
+        left, right = canonical_base_coercion_c(left, right)
+        if HAS_DICTIONARY(left):
+            return left._vector_times_vector(right)
+        else:
+            return left._vector_times_vector_c_impl(right)
+    cdef Vector _vector_times_vector_c_impl(Vector left, Vector right):
+        raise TypeError
+    def  _vector_times_vector(left, right):
+        return self.vector_time_vector_c_impl(right)
+
+
+cdef have_same_base(Element x, Element y):
+    return x._parent._base is y._parent._base
+
+
+def is_Vector(x):
+    return IS_INSTANCE(x, Vector)
+
+cdef class Matrix(ModuleElement):
+    def __mul__(left, right):
+        if PY_TYPE_CHECK(left, Matrix):
+            # left is the matrix
+            # Possibilities:
+            #     left * matrix
+            if PY_TYPE_CHECK(right, Matrix):
+                return (<Matrix>left)._matrix_times_matrix_c(<Vector>right)
+            #     left * vector
+            if PY_TYPE_CHECK(right, Vector):
+                return (<Matrix>left)._matrix_times_vector_c(<Vector>right)
+            #     left * scalar
+            return (<Matrix>left)._multiply_by_scalar(right)
+
+        else:
+            # right is the matrix
+            # Possibilities:
+            #     matrix * right
+            if PY_TYPE_CHECK(left, Matrix):
+                return (<Matrix>left)._matrix_times_matrix_c(<Matrix>right)
+            #     vector * right
+            if PY_TYPE_CHECK(left, Vector):
+                return (<Matrix>right)._vector_times_matrix_c(<Vector>left)
+            #     scalar * right
+            return (<Matrix>right)._rmultiply_by_scalar(left)
+
+    cdef Vector _vector_times_matrix_c(matrix_right, Vector vector_left):
+        if vector_left._degree != matrix_right._nrows:
+            raise TypeError, "incompatible dimensions"
+        matrix_right, vector_left = canonical_base_coercion_c(matrix_right, vector_left)
+        if HAS_DICTIONARY(matrix_right):
+            return matrix_right._vector_times_matrix(vector_left)
+        else:
+            return matrix_right._vector_times_matrix_c_impl(vector_left)
+
+    cdef Vector _vector_times_matrix_c_impl(matrix_right, Vector vector_left):
+        raise TypeError
+
+    def _vector_times_matrix(matrix_right, vector_left):
+        return matrix_right._vector_times_matrix_c_impl(vector_left)
+
+
+    cdef Vector _matrix_times_vector_c(matrix_left, Vector vector_right):
+        if matrix_left._ncols != vector_right._degree:
+            raise TypeError, "incompatible dimensions"
+        matrix_left, vector_right = canonical_base_coercion_c(matrix_left, vector_right)
+        if HAS_DICTIONARY(matrix_left):
+            return matrix_left._vector_times_matrix(vector_right)
+        else:
+            return matrix_left._vector_times_matrix_c_impl(vector_right)
+
+    cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right):
+        raise TypeError
+    def _matrix_times_vector(matrix_left, vector_right):
+        return matrix_left._matrix_times_vector_c_impl(vector_right)
+
+
+    cdef Matrix _matrix_times_matrix_c(left, Matrix right):
+        if left._ncols != right._nrows:
+            raise TypeError, "incompatible dimensions"
+        left, right = canonical_base_coercion_c(left, right)
+        if HAS_DICTIONARY(left):
+            return left._matrix_times_matrix(right)
+        else:
+            return left._matrix_times_matrix_c_impl(right)
+
+    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right):
+        raise TypeError
+    def _matrix_time_matrix(left, right):
+        return left._matrix_times_matrix_c_impl(right)
+
+
+def is_Matrix(x):
+    return IS_INSTANCE(x, Matrix)
+
 def is_IntegralDomainElement(x):
     """
     Return True if x is of type IntegralDomainElement.
@@ -1392,6 +1555,8 @@ cdef int have_same_parent(left, right):
 
 
 
+
+
 #################################################################################
 #
 #  Coercion of elements
@@ -1470,6 +1635,19 @@ cdef canonical_coercion_c(x, y):
         pass
     raise TypeError, "unable to find a common canonical parent for x and y"
 
+cdef canonical_base_coercion_c(Element x, Element y):
+    # x and y *must* both have parents with a base ring, i,e, ParentWithGens.
+    # Otherwise you'll get a core dump!
+
+    if not have_same_base(x, y):
+        if (<ParentWithGens> x._parent._base).has_coerce_map_from_c(y._parent._base):
+            # coerce all elements of y to the base ring of x
+            y = y.base_extend_c(x._parent._base)
+        elif (<ParentWithGens> y._parent._base).has_coerce_map_from_c(x._parent._base):
+            # coerce x to have elements in the base ring of y
+            x = x.base_extend_c(y._parent._base)
+    return x, y
+
 def canonical_base_coercion(x, y):
     try:
         xb = x.base_ring()
@@ -1505,24 +1683,6 @@ cdef bin_op_c(x, y, op):
         if not op is operator.mul:
             raise TypeError, "x=%s (in %s), y=%s (in %s)\n%s\nNo canonical arithmetic defined for %s."%(x,
                           parent_c(x), y, parent_c(y), msg, op)
-
-        # this violates the axioms!
-##     # special case of adding or subtracting 0 -- only do this if the above completely fails.
-##     if op is operator.add:
-##         if x == 0:
-##             return y
-##         elif y == 0:
-##             return x
-##         else:
-##             raise TypeError, "x=%s, y=%s\n%s\nNo canonical arithmetic coercion defined."%(x,y,msg)
-##     elif op is operator.sub:
-##         if x == 0:
-##             return -y
-##         elif y == 0:
-##             return x
-##         else:
-##             raise TypeError, "x=%s, y=%s\n%s\nNo canonical arithmetic coercion defined."%(x,y,msg)
-
 
 
     # If the op is multiplication, then some other algebra multiplications

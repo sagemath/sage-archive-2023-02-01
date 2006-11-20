@@ -42,12 +42,15 @@ from sage.rings.finite_field_element import FiniteField_ext_pariElement
 from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
+import finite_field
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
 
 cimport sage.structure.parent
+
+from sage.structure.parent_gens cimport ParentWithGens
 
 
 ## cdef extern from 'interrupt.h':
@@ -225,7 +228,7 @@ cdef class FiniteField_givaro(FiniteField):
         p = F[0][0]
         k = F[0][1]
 
-        self._assign_names(name)
+        ParentWithGens.__init__(self, finite_field.FiniteField(p), name, normalize=False)
 
         if modulus is None or modulus=="random":
             if k>1 and sage.databases.conway.ConwayPolynomials().has_polynomial(p, k) and modulus!="random":
@@ -584,12 +587,6 @@ cdef class FiniteField_givaro(FiniteField):
         """
         return self.prime_subfield_C()
 
-    def base_ring(FiniteField_givaro self):
-        """
-
-        Same as prime_subfield.
-        """
-        return self.prime_subfield_C()
 
     def log2int(FiniteField_givaro self, int p):
         """

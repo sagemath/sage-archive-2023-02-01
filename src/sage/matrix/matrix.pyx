@@ -26,10 +26,13 @@ from   sage.misc.misc import verbose, get_verbose
 from   sage.structure.sequence import _combinations, Sequence
 from   sage.rings.number_field.all import is_NumberField
 
-from   sage.structure.element    cimport ModuleElement, Element
+cimport sage.structure.element
+from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
 from   sage.structure.mutability cimport Mutability
 
 import sage.modules.free_module
+
+import matrix_misc
 
 def is_Matrix(x):
     """
@@ -43,7 +46,7 @@ def is_Matrix(x):
 
 cdef class MatrixWindow  # forward declare
 
-cdef class Matrix(ModuleElement):
+cdef class Matrix(sage.structure.element.Matrix):
     r"""
     A generic matrix.
 
@@ -94,7 +97,6 @@ cdef class Matrix(ModuleElement):
         self._ncols = parent.ncols()
         self._mutability = Mutability(False)
         self._cache = {}
-
 
     def copy(self):
         """
@@ -442,6 +444,9 @@ cdef class Matrix(ModuleElement):
         This is fast since it is a cdef function and there is no bounds checking.
         """
         raise NotImplementedError, "this must be defined in the derived type."
+
+    def __iter__(self):
+        return matrix_misc.row_iterator(self)
 
     def __getitem__(self, ij):
         """
@@ -3016,7 +3021,7 @@ cdef class Matrix(ModuleElement):
     ###################################################
     # Arithmetic
     ###################################################
-    def vector_matrix_multiply(self, v):
+    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
         """
         Returns the vector times matrix product.
 
@@ -3047,6 +3052,19 @@ cdef class Matrix(ModuleElement):
             if v[i] != 0:
                 s = s + v[i]*self.row(i)
         return s
+
+    cdef Vector _matrix_times_vector_c_impl(self, Vector v):
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
+        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
+            v = M(v)
+        if self.nrows() != v.degree():
+            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+        s = M(0)
+        for i in xrange(self.nrows()):
+            if v[i] != 0:
+                s = s + self.column(i, from_list=True)*v[i]
+        return s
+
 
     def iterates(self, v, n):
         """
@@ -3161,7 +3179,7 @@ cdef class Matrix(ModuleElement):
         Return matrix mod $p$, over the reduced ring.
 
         EXAMPLES:
-            sage: M = Matrix(ZZ, 2, 2, [5, 9, 13, 15])
+            sage: M = matrix(ZZ, 2, 2, [5, 9, 13, 15])
             sage: M.mod(7)
             [5 2]
             [6 1]
@@ -3246,7 +3264,7 @@ cdef class Matrix(ModuleElement):
         """
         return self._scalar_multiply(x)
 
-    def __mul__(self, right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         r"""
         Return the product of two matrices, a vector*matrix and
         matrix*vector product, or a scalar*matrix or matrix*scalar
@@ -3353,7 +3371,7 @@ cdef class Matrix(ModuleElement):
             sage: v = V([-2,3]); v
             (-2, 3)
             sage: parent(v*a)
-            Vector space of dimension 2 over Rational Field
+            Vector space of dimension 3 over Rational Field
 
         EXAMPLE of matrix times column vector:
           (column vectors are not implemented yet)  TODO TODO
@@ -3389,72 +3407,25 @@ cdef class Matrix(ModuleElement):
         EXAMPLE of scalar multiplication in the noncommutative case:
             sage: todo
         """
-        if not PY_TYPE_CHECK(self, Matrix):
-            # it is not a vector, since if it were the vector __mul__ would be called.
-            return right._left_scalar_multiply(self)
-
-        if PY_TYPE_CHECK(right, sage.modules.free_module_element.FreeModuleElement):
-            raise TypeError, "cannot multiply matrix times row vector -- instead compute row vector times matrix"
-
-        if not PY_TYPE_CHECK(right, Matrix):
-            # the only possibility is to coerce to a scalar.
-            # TODO: what if right is not in the
-            return self._right_scalar_multiply(right)
-
-        # Now both self and right are matrices.
-
-        # Now we have to use coercion rules.
-        # If parents are compatible, multiply. Compatible means that
-        # they have the same base ring and are both either dense or sparse.
-        #
-        #  If not, use the following rules:
-        #
-        #   * error if the matrix dimensions don't match up,
-        #
-        #   * check for canonical coercion of the base rings in
-        #      exactly one direction -- if not error
-        #
-        #   * if one matrix is sparse and the other is dense, the
-        #     product is dense.
-
-
-        # First we check that matrix multiplication is defined.
-        if (<Matrix> self)._ncols != (<Matrix> right)._nrows:
-            raise ArithmeticError, "number of columns of self must equal number of rows of right."
-
-        # check parents directly for speed on square matrices (e.g. 2x2 matrices over ZZ)
-        if not ( (<Matrix> self)._parent is (<Matrix> right)._parent
-                or (<Matrix> self)._parent.base_ring() is (<Matrix> right)._parent.base_ring() ):
-            # The base rings are not the same
-            try:
-                self, right = sage.structure.coerce.canonical_base_coercion(self, right)
-            except TypeError:
-                raise TypeError, "base rings must be compatible"
-            # Either an error was just raised, or self and right now have the same base ring.
-
-        # Next we deal with the possiblity that one could be sparse and the other dense.
-        if self.is_sparse() and not right.is_sparse():
-            self = self.dense_matrix()
-        elif right.is_sparse() and not self.is_sparse():
-            right = right.dense_matrix()
-
-        return (<Matrix> self)._mul_c_impl(right)
-
-    cdef _mul_c_impl(self, Matrix right):
-        """
-        Multiply two matrices that are assumed to have compatible dimensions and
-        are defined over the same base ring.
-        """
+        # Both self and right are matrices with compatible dimensions and base ring.
         if self._will_use_strassen(right):
             return self._multiply_strassen(right)
         else:
             return self._multiply_classical(right)
 
-    cdef sage.structure.element.ModuleElement _rmul_nonscalar_c_impl(right, left):
+    cdef ModuleElement _rmul_c_impl(right, RingElement left):
         """
-        Action of this matrix from the right on a vector.
+        The product left * right, where right is a matrix and left is
+        guaranteed to be in the base ring.
         """
-        return right.vector_matrix_multiply(left)
+        return right._scalar_multiply(left)
+
+    cdef ModuleElement _lmul_c_impl(left, RingElement right):
+        """
+        The product left * right, where left is a matrix and right is
+        guaranteed to be in the base ring.
+        """
+        return left._right_scalar_multiply(right)
 
     cdef int _will_use_strassen(self, Matrix right) except -2:
         """

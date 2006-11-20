@@ -27,7 +27,7 @@ import homset
 
 import sage.rings.arith as arith
 
-from sage.structure.all import Element
+from sage.structure.element import Element
 
 def is_Morphism(x):
     return isinstance(x, Morphism)

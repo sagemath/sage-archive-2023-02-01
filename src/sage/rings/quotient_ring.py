@@ -5,7 +5,7 @@ AUTHOR:
     -- William Stein
 """
 
-#*****************************************************************************
+################################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
@@ -14,7 +14,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+################################################################################
 
 import quotient_ring_element
 import sage.misc.latex as latex
@@ -90,7 +90,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         """
         self.__R = R
         self.__I = I
-        self._assign_names(names)
+        sage.structure.parent_gens.ParentWithGens.__init__(self, R.base_ring(), names)
 
     def _repr_(self):
         return "Quotient of %s by the ideal %s"%(self.cover_ring(), self.defining_ideal()._repr_short())
@@ -195,9 +195,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
 
     def cover_ring(self):
         return self.__R
-
-    def base_ring(self):
-        return self.__R.base_ring()
 
     def ideal(self, gens, coerce=False):
         if not self.__R._has_singular:

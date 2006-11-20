@@ -1,12 +1,31 @@
-from sage.structure.factorization import Factorization
+from factorization import Factorization
 
-from sage.structure.sequence import Sequence, seq
+from sequence      import Sequence, seq
 
-from sage.structure.sage_object import SageObject
+from sage_object   import SageObject
 
-from element import *    # a whole bunch of classes and is_types.
+from element import (\
+    is_AdditiveGroupElement,
+    is_AlgebraElement,
+    is_CommutativeAlgebraElement,
+    is_CommutativeRingElement,
+    is_DedekindDomainElement,
+    is_EuclideanDomainElement,
+    is_FieldElement,
+    is_FiniteFieldElement,
+    is_InfinityElement,
+    is_IntegralDomainElement,
+    is_Element,
+    is_Matrix,
+    is_MonoidElement,
+    is_ModuleElement,
+    is_MultiplicativeGroupElement,
+    is_PrincipalIdealDomainElement,
+    is_RingElement,
+    is_Vector,
+    )
 
-from parent import Parent, is_Parent
+from parent      import Parent, is_Parent
 
 from parent_gens import (ParentWithGens,
                          is_ParentWithGens,
@@ -16,6 +35,6 @@ from parent_gens import (ParentWithGens,
                          is_ParentWithMultiplicativeAbelianGens,
                          localvars)
 
-from formal_sum import FormalSum
+from formal_sum  import FormalSum
 
-from mutability import Mutability
+from mutability  import Mutability

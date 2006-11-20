@@ -153,6 +153,7 @@ def normalize_names(int ngens, names=None):
 # all gens, but this is not necessary.
 
 cdef class ParentWithGens(parent.Parent):
+    # Derived class *must* call __init__ and set the base!
     def __init__(self, base, names=None, normalize=True):
         self._base = base
         self._assign_names(names=names, normalize=normalize)
@@ -160,6 +161,10 @@ cdef class ParentWithGens(parent.Parent):
 
     def base_ring(self):
         return self._base
+
+    # Derived class *must* define base_extend.
+    def base_extend(self, X):
+        raise NotImplementedError
 
     # Derived class *must* define ngens method.
     def ngens(self):

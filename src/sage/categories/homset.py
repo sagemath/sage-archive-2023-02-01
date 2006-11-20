@@ -127,7 +127,7 @@ def hom(X, Y, f):
     Return Hom(X,Y)(f), where f is data that defines an element of Hom(X,Y).
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(QQ).objgen()
+        sage: R, x = PolynomialRing(QQ,'x').objgen()
         sage: phi = hom(R, QQ, [2])
         sage: phi(x^2 + 3)
         7
@@ -174,7 +174,7 @@ def end(X, f):
     Return End(X)(f), where f is data that defines an element of End(X).
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(QQ).objgen()
+        sage: R, x = PolynomialRing(QQ,'x').objgen()
         sage: phi = end(R, [x + 1])
         sage: phi
         Ring endomorphism of Univariate Polynomial Ring in x over Rational Field
@@ -192,7 +192,7 @@ class Homset(Set_generic):
         sage: H = Hom(QQ^2, QQ^3)
         sage: loads(H.dumps()) == H
         True
-        sage: E = End(AffineSpace(2))
+        sage: E = End(AffineSpace(2, names='x,y'))
         sage: loads(E.dumps()) == E
         True
     """

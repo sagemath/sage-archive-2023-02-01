@@ -198,13 +198,13 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         raise TypeError, 'base_ring must be a ring'
 
     if arg1 is None:
-        raise TypeError, "You must specify the names of the variables."
+        raise TypeError, "You must specify the names of the variables and it must not be None."
 
     R = None
     if isinstance(arg2, (int, long, m.integer.Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
-            raise TypeError, "You *must* specify the names of the variables (as a list of strings or a comma-seperated string)."
+            raise TypeError, "You *must* specify the names of the variables (as a non-None list of strings or a comma-seperated string)."
         n = int(arg2)
         names = arg1
         R = _multi_variate(base_ring, names, n, sparse, order)
@@ -230,7 +230,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             R = _multi_variate(base_ring, names, n, sparse, order)
 
     if arg1 is None and arg2 is None:
-        raise TypeError, "you *must* specify the indeterminates."
+        raise TypeError, "you *must* specify the indeterminates (as not None)."
     if R is None:
         raise TypeError, "invalid input (%s, %s, %s) to PolynomialRing function; please see the docstring for that function"%(
             base_ring, arg1, arg2)

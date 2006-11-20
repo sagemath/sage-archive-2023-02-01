@@ -25,7 +25,8 @@ import sage.misc.latex as latex
 import sage.rings.ring
 import sage.rings.principal_ideal_domain
 import commutative_ring
-from sage.structure.all import SageObject, MonoidElement
+from sage.structure.sage_object import SageObject
+from sage.structure.element import MonoidElement
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.rings.infinity import Infinity
 

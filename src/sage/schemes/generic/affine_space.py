@@ -39,9 +39,9 @@ def is_AffineSpace(x):
     $\A^n_R$, where $R$ is a ring and $n\geq 0$ is an integer.
 
     EXAMPLES:
-        sage: is_AffineSpace(AffineSpace(5))
+        sage: is_AffineSpace(AffineSpace(5, names='x'))
         True
-        sage: is_AffineSpace(AffineSpace(5, GF(9)))
+        sage: is_AffineSpace(AffineSpace(5, GF(9), names='x'))
         True
         sage: is_AffineSpace(Spec(ZZ))
         False
@@ -79,13 +79,15 @@ def AffineSpace(n, R=None, names=None):
         True
     """
     if is_MPolynomialRing(n) and R is None:
-        A = AffineSpace(n.ngens(), n.base_ring())
+        A = AffineSpace(n.ngens(), n.base_ring(), n.variable_names())
         A._coordinate_ring = n
         return A
     if isinstance(R, (int, long, Integer)):
         n, R = R, n
     if R is None:
         R = ZZ  # default is the integers
+    if names is None:
+        raise TypeError, "You must specify the variables names of the coordinate ring."
     return AffineSpace_generic(n, R, names)
 
 class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
@@ -122,7 +124,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         sage: AffineSpace(0)
         Affine Space of dimension 0 over Integer Ring
     """
-    def __init__(self, n, R, names=None):
+    def __init__(self, n, R, names):
         ambient_space.AmbientSpace.__init__(self, n, R)
         self.__names = names
 

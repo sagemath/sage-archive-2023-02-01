@@ -28,6 +28,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         cdef ComplexDoubleVectorSpaceElement y
         y = PY_NEW(ComplexDoubleVectorSpaceElement)
         y._parent = self._parent
+        y._degree = self._degree
         y.v = v
         return y
 
@@ -53,6 +54,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             coerce, copy -- ignored
         """
         self._parent = parent
+        self._degree = parent.degree()
         cdef int i
         cdef int n
         cdef gsl_complex z_temp

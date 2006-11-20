@@ -43,6 +43,7 @@ import integer_ring
 import rational
 import quotient_ring
 import ideal
+from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.all import pari, PariError
 
@@ -197,6 +198,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__unit_group_exponent = None
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
+        ParentWithGens.__init__(self, self)
 
     def list_of_elements_of_multiplicative_group(self):
         import sage.ext.arith as a

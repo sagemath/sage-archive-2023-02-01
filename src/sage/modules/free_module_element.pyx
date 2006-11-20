@@ -70,7 +70,7 @@ cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
 
-from sage.structure.element cimport Element, ModuleElement, RingElement
+from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
 from sage.matrix.matrix cimport Matrix
 
 def is_FreeModuleElement(x):
@@ -92,12 +92,13 @@ def Vector(R, elts):
     """
     return (R**len(elts))(elts)
 
-cdef class FreeModuleElement(ModuleElement):
+cdef class FreeModuleElement(element_Vector):   # abstract base class
     """
     An element of a generic free module.
     """
     def __init__(self, parent):
-        ModuleElement.__init__(self, parent)
+        self._parent = parent
+        self._degree = parent.degree()
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -197,24 +198,6 @@ cdef class FreeModuleElement(ModuleElement):
         """
         return self.change_ring(self.base_ring().cover_ring())
 
-    def test(left, right):
-        """
-        EXAMPLES:
-            sage: v = (ZZ^5)(range(5)); v
-            (0, 1, 2, 3, 4)
-            sage: v * v
-            30
-            sage: (4/3) * v
-        """
-        if PY_TYPE_CHECK(right, Matrix):
-            # vector x matrix multiply
-            return (<FreeModuleElement>left)._matrix_multiply(<Matrix>right)
-        raise TypeError
-
-
-    #def __div__(left, right):
-    #   return left * ~(left.parent().base_ring()(right))
-
     cdef ModuleElement _neg_c_impl(self):
         """
         EXAMPLES:
@@ -278,7 +261,7 @@ cdef class FreeModuleElement(ModuleElement):
         raise TypeError
 
     def degree(self):
-        return self.parent().degree()
+        return self._degree
 
     def denominator(self):
         R = self.base_ring()
@@ -423,6 +406,7 @@ def make_FreeModuleElement_generic_dense(parent, entries):
     v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
     v._entries = entries
     v._parent = parent
+    v._degree = parent.degree()
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -442,6 +426,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x = PY_NEW(FreeModuleElement_generic_dense)
         x._parent = self._parent
         x._entries = v
+        x._degree = self._degree
         return x
 
     def __copy__(self):
@@ -542,6 +527,21 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             PyList_SET_ITEM(v, i, a)
         return self._new_c(v)
 
+    cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
+        # Component wise vector * vector multiplication.
+        cdef object e, v, a
+        cdef Py_ssize_t i, n
+        cdef PyObject **w_left, **w_right
+        n = PyList_Size(left._entries)
+        v = PyList_New(n)
+        w_left = FAST_SEQ_UNSAFE(left._entries)
+        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        for i from 0 <= i < n:
+            a = (<RingElement>w_left[i])._mul_c(<RingElement> w_right[i])
+            Py_INCREF(a)
+            PyList_SET_ITEM(v, i, a)
+        return left._new_c(v)
+
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
 
@@ -610,6 +610,7 @@ def make_FreeModuleElement_generic_sparse(parent, entries):
     v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
     v._entries = entries
     v._parent = parent
+    v._degree = parent.degree()
     return v
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
@@ -634,6 +635,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         x = PY_NEW(FreeModuleElement_generic_sparse)
         x._parent = self._parent
         x._entries = v
+        x._degree = self._degree
         return x
 
     def __copy__(self):
@@ -702,6 +704,17 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         for i, a in self._entries.iteritems():
             v[i] = (<RingElement>a)._mul_c(right)
         return self._new_c(v)
+
+    cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
+        # Component wise vector * vector multiplication.
+        cdef object v, e
+        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
+        for i, a in left._entries.iteritems():
+            if e.has_key(i):
+                e[i] = (<RingElement>a)._mul_c(<RingElement> e[i])
+            else:
+                e[i] = a
+        return left._new_c(e)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """

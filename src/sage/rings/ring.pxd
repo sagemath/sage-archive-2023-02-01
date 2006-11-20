@@ -1,8 +1,7 @@
 from sage.structure.parent_gens cimport ParentWithGens
 
 cdef class Ring(ParentWithGens):
-    cdef _richcmp(left, right, int op)
-    cdef int _cmp_c_impl(left, Ring right) except -2
+    pass
 
 cdef class CommutativeRing(Ring):
     cdef public object __ideal_monoid

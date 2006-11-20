@@ -34,69 +34,6 @@ cdef class Ring(ParentWithGens):
     def __init__(self):
         pass
 
-    cdef _richcmp(left, right, int op):
-        """
-        Compare left and right.
-        """
-        cdef int r
-
-        if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring) or \
-               not (PY_TYPE(left) is PY_TYPE(right)):
-            # One is not a ring.
-            r = cmp(type(left), type(right))
-
-        else:
-            # Both are rings -- but need *not* have the same type.
-            if HAS_DICTIONARY(left):
-                r = left._cmp_(right)
-            else:
-                r = left._cmp_c_impl(right)
-
-        if op == 0:  #<
-            return PyBool_FromLong(r  < 0)
-        elif op == 2: #==
-            return PyBool_FromLong(r == 0)
-        elif op == 4: #>
-            return PyBool_FromLong(r  > 0)
-        elif op == 1: #<=
-            return PyBool_FromLong(r <= 0)
-        elif op == 3: #!=
-            return PyBool_FromLong(r != 0)
-        elif op == 5: #>=
-            return PyBool_FromLong(r >= 0)
-
-    ####################################################################
-    # For a derived SageX class, you **must** put the following in
-    # your subclasses, in order for it to take advantage of the
-    # above generic comparison code.  You must also define
-    # _cmp_c_impl for a SageX class.
-    #
-    # For a derived Python class, simply define _cmp_.
-    ####################################################################
-    def __richcmp__(left, right, int op):
-        return (<Ring>left)._richcmp(right, op)
-
-    cdef int _cmp_c_impl(left, Ring right) except -2:
-        # this would be nice to do, but we can't since
-        # it leads to infinite recurssions.
-        #if right.has_coerce_map_from(left):
-        #    if left.has_coerce_map_from(right):
-        #        return 0
-        #    else:
-        #        return -1
-        return cmp(type(left), type(right))
-
-    def _cmp_(left, right):
-        return left._cmp_c_impl(right)   # default
-
-    #def __cmp__(left, right):
-    #    if not PY_TYPE_CHECK(right, Ring) or not PY_TYPE_CHECK(left, Ring):
-    #        return cmp(type(left), type(right))
-    #    if HAS_DICTIONARY(left):
-    #        return left._cmp_(right)
-    #    else:
-    #        return left._cmp_c_impl(right)
-
     def __call__(self, x):
         """
         Coerce x into the ring.

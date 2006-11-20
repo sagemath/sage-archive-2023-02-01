@@ -17,3 +17,11 @@ cdef class Parent(sage_object.SageObject):
     cdef _coerce_c_impl(self, x)
     cdef _coerce_self_c(self, x)
 
+    ################################################
+    # Comparison of parent objects
+    cdef _richcmp(left, right, int op)
+    cdef int _cmp_c_impl(left, Parent right) except -2
+
+
+
+

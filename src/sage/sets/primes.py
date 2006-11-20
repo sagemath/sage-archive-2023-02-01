@@ -21,16 +21,7 @@ from sage.rings.all import Integer, ZZ, infinity
 
 from set import Set_generic
 
-cache = {}
-class uniq(object):
-    def __new__(cls):
-        if cache.has_key(cls):
-            return cache[cls]
-        O = object.__new__(cls)
-        cache[cls] = O
-        return O
-
-class Primes(uniq, Set_generic):
+class Primes_class(Set_generic):
     """
     The set of prime numbers.
 
@@ -43,11 +34,11 @@ class Primes(uniq, Set_generic):
     def __init__(self):
         pass
 
-    def order(self):
+    def cardinality(self):
         return infinity
 
     def __cmp__(self, right):
-        if isinstance(right, Primes):
+        if isinstance(right, Primes_class):
             return 0
         return -1
 
@@ -66,3 +57,11 @@ class Primes(uniq, Set_generic):
             return y.is_prime()
         except TypeError:
             return False
+
+the_set_of_primes = Primes_class()
+
+def Primes():
+    """
+    Return the set of prime numbers.
+    """
+    return the_set_of_primes

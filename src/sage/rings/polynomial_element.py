@@ -198,7 +198,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             i -= 1
         return result
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Compare the two polynomials self and other.
 

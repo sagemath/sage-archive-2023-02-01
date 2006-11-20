@@ -50,7 +50,10 @@ cdef class Parent(sage_object.SageObject):
     #############################################################################
     def __contains__(self, x):
         r"""
-        True if $x$ canonically coerces to self.
+        True if there is an element of self that is equal to x under ==.
+
+        For many structures we test this by using \code{__call__} and
+        then testing equality between x and the result.
 
         EXAMPLES:
             sage: 2 in Integers(7)
@@ -67,7 +70,8 @@ cdef class Parent(sage_object.SageObject):
             False
         """
         try:
-            self._coerce_c(x)
+            x2 = self(x)
+            return x2 == x
         except TypeError:
             return False
         return True
@@ -76,12 +80,13 @@ cdef class Parent(sage_object.SageObject):
     #################################################################################
     # Coercion support functionality
     #################################################################################
+
     def _coerce_(self, x):            # Call this from Python (do not override!)
         return self._coerce_c(x)
 
     cdef _coerce_c(self, x):          # DO NOT OVERRIDE THIS (call it)
         try:
-            P = x.parent()
+            P = x.parent()   # todo -- optimize
             if P is self:
                 return x
             elif P == self:
@@ -169,7 +174,71 @@ cdef class Parent(sage_object.SageObject):
         self._has_coerce_map_from[S] = True
         return True
 
+    ################################################
+    # Comparison of parent objects
+    ################################################
+    cdef _richcmp(left, right, int op):
+        """
+        Compare left and right.
+        """
+        cdef int r
 
+        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent) or \
+               not (PY_TYPE(left) is PY_TYPE(right)):
+            # One is not a parent -- use arbitrary ordering
+            if (<PyObject*>left) < (<PyObject*>right):
+                r = -1
+            elif (<PyObject*>left) > (<PyObject*>right):
+                r = 1
+            else:
+                r = 0
 
+        else:
+            # Both are parents -- but need *not* have the same type.
+            if HAS_DICTIONARY(left):
+                r = left.__cmp__(right)
+            else:
+                r = left._cmp_c_impl(right)
 
+        if op == 0:  #<
+            return PyBool_FromLong(r  < 0)
+        elif op == 2: #==
+            return PyBool_FromLong(r == 0)
+        elif op == 4: #>
+            return PyBool_FromLong(r  > 0)
+        elif op == 1: #<=
+            return PyBool_FromLong(r <= 0)
+        elif op == 3: #!=
+            return PyBool_FromLong(r != 0)
+        elif op == 5: #>=
+            return PyBool_FromLong(r >= 0)
+
+    ####################################################################
+    # For a derived SageX class, you **must** put the following in
+    # your subclasses, in order for it to take advantage of the
+    # above generic comparison code.  You must also define
+    # _cmp_c_impl for a SageX class.
+    #
+    # For a derived Python class, simply define __cmp__.
+    ####################################################################
+    def __richcmp__(left, right, int op):
+        return (<Parent>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Parent right) except -2:
+        # this would be nice to do, but we can't since
+        # it leads to infinite recurssions -- and is slow -- and this
+        # stuff must be fast!
+        #if right.has_coerce_map_from(left):
+        #    if left.has_coerce_map_from(right):
+        #        return 0
+        #    else:
+        #        return -1
+        if (<PyObject*>left) < (<PyObject*>right):
+            return -1
+        elif (<PyObject*>left) > (<PyObject*>right):
+            return 1
+        return 0
+
+    def __cmp__(left, right):
+        return left._cmp_c_impl(right)   # default
 

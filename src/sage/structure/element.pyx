@@ -299,22 +299,6 @@ cdef class Element(sage_object.SageObject):
         s = str(self)
         return PyBool_FromLong(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
 
-    def __cmp__(left, right):
-        if not have_same_parent(left, right):
-            try:
-                left, right = canonical_coercion_c(left, right)
-            except TypeError:
-                c = cmp(type(left), type(right))
-                if c == 0:
-                    return -1
-                return c
-
-        if HAS_DICTIONARY(left):
-            return left._cmp_(right)
-        else:
-            return left._cmp_c_impl(right)
-
-
     def is_zero(self):
         return PyBool_FromLong(self == self._parent(0))
 
@@ -336,7 +320,7 @@ cdef class Element(sage_object.SageObject):
                     r = -1
         else:
             if HAS_DICTIONARY(left):   # fast check
-                r = left._cmp_(right)
+                r = left.__cmp__(right)
             else:
                 r = left._cmp_c_impl(right)
 
@@ -358,13 +342,22 @@ cdef class Element(sage_object.SageObject):
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
     # _cmp_c_impl.
-    # MAYBE THAT THIS IS NEEDED IS A BUG IN PYREX. ?!?
+    # This is simply how Python works.
+    #
+    # For a *Python* class just define __cmp__ as always.
+    # But note that when this get called you can assume that
+    # both inputs have identical parents.
     ####################################################################
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(left, Element right) except -2:
-        ### YOU *MUST* ALSO COPY the __richcmp__ above (exactly as is) into your class!!!
-        raise NotImplementedError, "sort algorithm for elements of type %s not implemented"%(type(left))
+        ### For derived SAGEX code, you *MUST* ALSO COPY the __richcmp__ above
+        ### into your class!!!  For Python code just use __cmp__.
+        raise NotImplementedError, "BUG: sort algorithm for elements of type %s not implemented"%(type(left))
+
+    def __cmp__(left, right):
+        return left._cmp_c_impl(right)   # default
 
 def is_ModuleElement(x):
     """

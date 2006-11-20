@@ -235,7 +235,7 @@ class Set_object(Set_generic):
             sage: 5/3 in X
             False
             sage: 5/3 in GF(7)
-            True
+            False
             sage: Set(GF(7)).union(Set(GF(5)))
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 0}
             sage: Set(GF(7)).intersection(Set(GF(5)))
@@ -254,8 +254,8 @@ class Set_object(Set_generic):
         r"""
         Compare self and right.
 
-        If right is not a Set always returns -1.  If right is also a
-        Set, returns comparison on the underlying objects.
+        If right is not a Set compare types.  If right is also a Set,
+        returns comparison on the underlying objects.
 
         \note{If $X < Y$ is true this does {\em not} necessarily mean
         that $X$ is a subset of $Y$.  Also, any two sets can be
@@ -280,7 +280,7 @@ class Set_object(Set_generic):
 
         """
         if not isinstance(right, Set_object):
-            return -1
+            return cmp(type(right), type(Set_object))
         return cmp(self.__object, right.__object)
 
     def union(self, X):
@@ -358,18 +358,18 @@ class Set_object(Set_generic):
         """
         return self.intersection(X)
 
-    def order(self):
+    def cardinality(self):
         """
-        Return the order of this set, which is either an integer or Infinity.
+        Return the cardinality of this set, which is either an integer or Infinity.
 
         EXAMPLES:
-            sage: Set(ZZ).order()
+            sage: Set(ZZ).cardinality()
             Infinity
-            sage: Primes().order()
+            sage: Primes().cardinality()
             Infinity
-            sage: Set(GF(5)).order()
+            sage: Set(GF(5)).cardinality()
             5
-            sage: Set(GF(5^2,'a')).order()
+            sage: Set(GF(5^2,'a')).cardinality()
             25
         """
         try:
@@ -380,7 +380,7 @@ class Set_object(Set_generic):
         try:
             return len(self.__object)
         except TypeError:
-            raise NotImplementedError, "computation of order of %s not yet implemented"%self.__object
+            raise NotImplementedError, "computation of cardinality of %s not yet implemented"%self.__object
 
     def object(self):
         """
@@ -412,10 +412,10 @@ class Set_object_enumerated(Set_object):
         """
         Set_object.__init__(self, X)
 
-    def order(self):
+    def cardinality(self):
         """
         EXAMPLES:
-            sage: Set([1,1]).order()
+            sage: Set([1,1]).cardinality()
             1
         """
         return len(self.set())
@@ -426,7 +426,7 @@ class Set_object_enumerated(Set_object):
             sage: len(Set([1,1]))
             1
         """
-        return self.order()
+        return self.cardinality()
 
 
     def __iter__(self):
@@ -623,22 +623,22 @@ class Set_object_union(Set_object):
         """
         return x in self.__X or x in self.__Y
 
-    def order(self):
+    def cardinality(self):
         """
-        Return the order of this set.
+        Return the cardinality of this set.
 
         EXAMPLES:
             sage: X = Set(GF(3)).union(Set(GF(2)))
             sage: X
             {0, 1, 2, 0, 1}
-            sage: X.order()
+            sage: X.cardinality()
             5
 
             sage: X = Set(GF(3)).union(Set(ZZ))
-            sage: X.order()
+            sage: X.cardinality()
             Infinity
         """
-        return self.__X.order() + self.__Y.order()
+        return self.__X.cardinality() + self.__Y.cardinality()
 
 class Set_object_intersection(Set_object):
     """
@@ -759,16 +759,16 @@ class Set_object_intersection(Set_object):
         """
         return x in self.__X and x in self.__Y
 
-    def order(self):
+    def cardinality(self):
         """
-        This tries to return the order of this formal intersection.
+        This tries to return the cardinality of this formal intersection.
 
         Note that this is not likely to work in very much generality,
         and may just hang if either set involved is infinite.
 
         EXAMPLES:
             sage: X = Set(GF(13)).intersection(Set(ZZ))
-            sage: X.order()
+            sage: X.cardinality()
             0
         """
         return len(list(self))

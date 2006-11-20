@@ -68,13 +68,13 @@ class _uniq_int(object):
     def __new__(cls):
         global _obj
         if _obj is None:
-            _obj = object.__new__(cls)
+            _obj = principal_ideal_domain.PrincipalIdealDomain.__new__(cls)
         return _obj
 
 def is_IntegerRing(x):
     return isinstance(x, IntegerRing)
 
-class IntegerRing(principal_ideal_domain.PrincipalIdealDomain, _uniq_int):
+class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
     r"""
     The ring of integers.
 

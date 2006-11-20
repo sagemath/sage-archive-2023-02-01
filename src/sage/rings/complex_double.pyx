@@ -72,6 +72,7 @@ from sage.misc.sage_eval import sage_eval
 cimport sage.rings.ring
 
 from sage.structure.element cimport RingElement, Element, ModuleElement, FieldElement
+from sage.structure.parent  cimport Parent
 
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
@@ -100,9 +101,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
     def __richcmp__(left, right, int op):
-        return (<sage.rings.ring.Ring>left)._richcmp(right, op)
+        return (<Parent>left)._richcmp(right, op)
 
-    cdef int _cmp_c_impl(left, sage.rings.ring.Ring right) except -2:
+    cdef int _cmp_c_impl(left, Parent right) except -2:
         # There is only one CDF.
         return 0
 

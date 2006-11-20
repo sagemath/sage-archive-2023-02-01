@@ -152,7 +152,7 @@ def normalize_names(int ngens, names=None):
 # ngens() functions.  It is also good if they define gens() to return
 # all gens, but this is not necessary.
 
-cdef class ParentWithGens(parent.Parent):
+cdef class ParentWithGens(parent_base.ParentWithBase):
     # Derived class *must* call __init__ and set the base!
     def __init__(self, base, names=None, normalize=True):
         self._base = base

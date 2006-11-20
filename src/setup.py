@@ -346,6 +346,9 @@ ext_modules = [ \
     Extension('sage.structure.parent',
               sources = ['sage/structure/parent.pyx']), \
 
+    Extension('sage.structure.parent_base',
+              sources = ['sage/structure/parent_base.pyx']), \
+
     Extension('sage.structure.parent_gens',
               sources = ['sage/structure/parent_gens.pyx']), \
 

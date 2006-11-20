@@ -48,7 +48,7 @@ import sage.interfaces.gap
 from sage.libs.pari.all import pari
 from sage.libs.pari.gen import gen
 
-cimport sage.structure.parent
+from sage.structure.parent_base cimport ParentWithBase
 
 from sage.structure.parent_gens cimport ParentWithGens
 
@@ -1047,7 +1047,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         OUTPUT:
             finite field element.
         """
-        self._parent = <sage.structure.parent.Parent> parent
+        self._parent = <ParentWithBase> parent  # explicit case required for C++
         self.object = 0
 
     def __dealloc__(FiniteField_givaroElement self):

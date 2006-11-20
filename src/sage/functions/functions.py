@@ -27,11 +27,12 @@ from   sage.misc.latex import latex
 from   sage.interfaces.maxima import maxima, MaximaFunction
 import sage.functions.special as special
 from   sage.libs.all import  pari
-
+from   sage.structure.parent_base import ParentWithBase
 
 class FunctionRing_class(CommutativeRing):
     def __init__(self):
         self._default_precision = 53  # default bits of precision
+        ParentWithBase.__init__(self, RR)
 
     def _repr_(self):
         return "Ring of Mathematical Functions"

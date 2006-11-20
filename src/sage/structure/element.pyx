@@ -159,8 +159,7 @@ include "../ext/python.pxi"
 
 import operator
 
-from sage.structure.parent cimport Parent
-from sage.structure.parent_gens cimport ParentWithGens
+from sage.structure.parent_base cimport ParentWithBase
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -207,7 +206,7 @@ cdef class Element(sage_object.SageObject):
         INPUT:
             parent -- a SageObject
         """
-        self._parent = <Parent> parent
+        self._parent = <ParentWithBase> parent
 
     def _set_parent(self, parent):
         r"""
@@ -216,7 +215,7 @@ cdef class Element(sage_object.SageObject):
         """
         self._parent = parent
 
-    cdef _set_parent_c(self, Parent parent):
+    cdef _set_parent_c(self, ParentWithBase parent):
         self._parent = parent
 
     def _repr_(self):
@@ -236,14 +235,14 @@ cdef class Element(sage_object.SageObject):
         """
         raise NotImplementedError
 
-    cdef base_extend_c(self, Parent R):
+    cdef base_extend_c(self, ParentWithBase R):
         if HAS_DICTIONARY(self):
             return self.base_extend(R)
         else:
             return self.base_extend_c_impl(R)
 
-    cdef base_extend_c_impl(self, Parent R):
-        cdef ParentWithGens V
+    cdef base_extend_c_impl(self, ParentWithBase R):
+        cdef ParentWithBase V
         V = self._parent.base_extend(R)
         return V._coerce_c(self)
 
@@ -558,7 +557,7 @@ cdef class ModuleElement(Element):
         else:
             # Otherwise we do an explicit canonical coercion.
             try:
-                return self._lmul_c( (<ParentWithGens>self._parent._base)._coerce_c(right) )
+                return self._lmul_c( (<ParentWithBase>self._parent._base)._coerce_c(right) )
             except TypeError:
                 # that failed -- try to base extend right then do the multiply:
                 self = self.base_extend((<RingElement>right)._parent)
@@ -573,7 +572,7 @@ cdef class ModuleElement(Element):
         else:
             # Otherwise we do an explicit canonical coercion.
             try:
-                return self._rmul_c((<ParentWithGens>self._parent._base)._coerce_c(left))
+                return self._rmul_c((<ParentWithBase>self._parent._base)._coerce_c(left))
             except TypeError:
                 # that failed -- try to base extend self then do the multiply:
                 self = self.base_extend((<RingElement>left)._parent)
@@ -670,7 +669,7 @@ cdef class ModuleElement(Element):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
         try:
-            return (<ParentWithGens>self._parent._base)._coerce_c(x)
+            return (<ParentWithBase>self._parent._base)._coerce_c(x)
         except AttributeError:
             return self._parent._base(x)
 
@@ -708,7 +707,7 @@ cdef module_element_generic_multiply_c(left, right):
             # Otherwise we have to do an explicit canonical coercion.
             try:
                 return (<ModuleElement>right)._rmul_c(
-                    (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(left))
+                    (<ParentWithBase> ((<ModuleElement>right)._parent._base) )._coerce_c(left))
             except TypeError:
                 if is_element:
                     # that failed -- try to base extend right then do the multiply:
@@ -729,7 +728,7 @@ cdef module_element_generic_multiply_c(left, right):
             # Otherwise we have to do an explicit canonical coercion.
             try:
                 return (<ModuleElement>left)._lmul_c(
-                    (<ParentWithGens> ((<ModuleElement>left)._parent._base) )._coerce_c(right))
+                    (<ParentWithBase> ((<ModuleElement>left)._parent._base) )._coerce_c(right))
             except TypeError:
                 if is_element:
                     # that failed -- try to base extend right then do the multiply:
@@ -973,7 +972,7 @@ cdef class RingElement(ModuleElement):
                 # Otherwise we have to do an explicit canonical coercion.
                 try:
                     return (<ModuleElement>right)._rmul_c(
-                        (<ParentWithGens> ((<ModuleElement>right)._parent._base) )._coerce_c(self))
+                        (<ParentWithBase> ((<ModuleElement>right)._parent._base) )._coerce_c(self))
                 except TypeError:
                     # that failed -- try to base extend right then do the multiply:
                     right = right.base_extend((<RingElement>self)._parent)
@@ -1584,7 +1583,7 @@ def parent(x):
 #################################################################################
 def coerce(p, x):
     try:
-        return (<ParentWithGens>p)._coerce_c(x)
+        return (<ParentWithBase>p)._coerce_c(x)
     except AttributeError:
         return p(x)
 
@@ -1623,27 +1622,27 @@ cdef canonical_coercion_c(x, y):
         return _verify_canonical_coercion_c(x,y)
     try:
         if xp.has_coerce_map_from(yp):
-            y = (<ParentWithGens>xp)._coerce_c(y)
+            y = (<ParentWithBase>xp)._coerce_c(y)
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
     try:
         if yp.has_coerce_map_from(xp):
-            x = (<ParentWithGens>yp)._coerce_c(x)
+            x = (<ParentWithBase>yp)._coerce_c(x)
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
     raise TypeError, "unable to find a common canonical parent for x and y"
 
 cdef canonical_base_coercion_c(Element x, Element y):
-    # x and y *must* both have parents with a base ring, i,e, ParentWithGens.
+    # x and y *must* both have parents with a base ring, i,e, ParentWithBase.
     # Otherwise you'll get a core dump!
 
     if not have_same_base(x, y):
-        if (<ParentWithGens> x._parent._base).has_coerce_map_from_c(y._parent._base):
+        if (<ParentWithBase> x._parent._base).has_coerce_map_from_c(y._parent._base):
             # coerce all elements of y to the base ring of x
             y = y.base_extend_c(x._parent._base)
-        elif (<ParentWithGens> y._parent._base).has_coerce_map_from_c(x._parent._base):
+        elif (<ParentWithBase> y._parent._base).has_coerce_map_from_c(x._parent._base):
             # coerce x to have elements in the base ring of y
             x = x.base_extend_c(y._parent._base)
     return x, y
@@ -1702,7 +1701,7 @@ cdef bin_op_c(x, y, op):
             R = (<ModuleElement> y)._parent._base
             if R is None:
                 raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> y)._parent)
-            x = (<ParentWithGens>R)._coerce_c(x)
+            x = (<ParentWithBase>R)._coerce_c(x)
             return (<ModuleElement> y)._rmul_c(x)     # the product x * y
         except TypeError, msg:
             pass
@@ -1714,7 +1713,7 @@ cdef bin_op_c(x, y, op):
             R = (<ModuleElement> x)._parent._base
             if R is None:
                 raise RuntimeError, "base of '%s' must be set to a ring (but it is None)!"%((<ModuleElement> x)._parent)
-            y = (<ParentWithGens> R)._coerce_c(y)
+            y = (<ParentWithBase> R)._coerce_c(y)
             return (<ModuleElement> x)._lmul_c(y)    # the product x * y
         except TypeError:
             pass

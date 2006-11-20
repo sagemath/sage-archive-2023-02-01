@@ -10,9 +10,9 @@ Parent objects with generators
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-cimport parent
+cimport parent_base
 
-cdef class ParentWithGens(parent.Parent):
+cdef class ParentWithGens(parent_base.ParentWithBase):
     cdef public object _gens
     cdef public object _gens_dict
     cdef public object _names

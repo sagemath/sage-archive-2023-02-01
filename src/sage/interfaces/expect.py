@@ -32,6 +32,7 @@ import weakref
 import time
 
 from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
 import  sage.structure.element
 
 import sage.misc.sage_eval
@@ -58,7 +59,7 @@ def _absolute(cmd):
     return ' '.join([t] + c[1:])
 
 
-class Expect(SageObject):
+class Expect(ParentWithBase):
     """
     Expect interface object.
     """
@@ -100,6 +101,7 @@ class Expect(SageObject):
         self.__logfile = logfile
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
+        ParentWithBase.__init__(self, self)
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -426,8 +428,17 @@ class Expect(SageObject):
         """
         cls = self._object_class()
 
+        try:
+            return self._coerce_impl(x)
+        except TypeError:
+            pass
+
         if isinstance(x, cls) and x.parent() is self:
             return x
+
+        return cls(self, x)
+
+    def _coerce_impl(self, x):
 
         if not isinstance(x, ExpectElement):
             s = '_%s_'%self.name()
@@ -454,7 +465,7 @@ class Expect(SageObject):
             r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
             return r
 
-        return cls(self, x)
+        raise TypeError, "unable to coerce element into interface"
 
     def new(self, code):
         return self(code)

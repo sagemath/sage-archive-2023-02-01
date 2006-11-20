@@ -8,5 +8,12 @@
 
 cimport sage_object
 cdef class Parent(sage_object.SageObject):
-    pass
+    cdef public object _has_coerce_map_from
+
+    #########################################
+    # Canonical Coercion Methods
+    cdef has_coerce_map_from_c(self, S)
+    cdef _coerce_c(self, x)
+    cdef _coerce_c_impl(self, x)
+    cdef _coerce_self_c(self, x)
 

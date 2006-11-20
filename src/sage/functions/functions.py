@@ -10,7 +10,7 @@ EXAMPLES:
     sage: f(pi)
     (5*sin(((1*pi) + 0)))
     sage: float(f(pi))
-    6.1232339957367663e-16
+    6.1232339957367643e-16
 """
 
 import sage.functions.constants
@@ -47,12 +47,12 @@ class FunctionRing_class(CommutativeRing):
         EXAMPLES:
             sage: old_prec = FunctionRing.set_precision(200)
             sage: pi.str()
-            '3.1415926535897932384626433832795028841971693993751058209749445'
+            '3.1415926535897932384626433832795028841971693993751058209749'
             sage: gap(pi)
-            "3.1415926535897932384626433832795028841971693993751058209749445"
+            "3.1415926535897932384626433832795028841971693993751058209749"
             sage: _ = FunctionRing.set_precision(old_prec)
             sage: pi.str()
-            '3.1415926535897931'
+            '3.14159265358979'
 
         Note that there seems to be no real numbers in GAP, which is why that
         coercion returns a GAP string.
@@ -97,21 +97,28 @@ class FunctionRing_class(CommutativeRing):
 
     def __call__(self, x):
         try:
-            return self._coerce_(x)
+            if is_Polynomial(x):
+                return Function_polynomial(x)
+            elif isinstance(x, sage.functions.constants.Constant):
+                return Function_constant(x)
         except TypeError:
-
-            return Function_gen(x)
+            pass
+        try:
+            t = RR._coerce_(x)
+            return Function_constant(sage.functions.constants.Constant_gen(x))
+        except TypeError:
+            pass
+        return Function_gen(x)
 
     def _coerce_impl(self, x):
         if is_Polynomial(x):
-            return Function_polynomial(x)
-        raise TypeError, "no canonical coercion of element to self."
+            return self(x)
+        return self(x)
 
     def characteristic(self):
         return sage.rings.all.Integer(0)
 
 FunctionRing = FunctionRing_class()
-
 
 class Function(RingElement):
     def __init__(self, conversions={}):
@@ -206,11 +213,11 @@ class Function(RingElement):
         """
         EXAMPLES:
             sage: singular(e)
-            2.7182818284590451
+            2.71828182845904
             sage: P = e.parent()
             sage: old_prec = P.set_precision(200)
             sage: singular(e)
-            2.7182818284590452353602874713526624977572470936999595749669679
+            2.7182818284590452353602874713526624977572470936999595749669
             sage: _ = P.set_precision(old_prec)
         """
         try:
@@ -324,20 +331,20 @@ class Function_arith(Function):
         sage: s
         (((pi + pi)*e) + e)
         sage: RR(s)
-        19.797750273806177
+        19.7977502738061
         sage: maxima(s)
         2*%e*%pi + %e
 
         sage: t = e^2 + pi + 2/3; t
         (((e^2) + pi) + 2/3)
         sage: RR(t)
-        11.197315419187108
+        11.1973154191871
         sage: maxima(t)
         %pi + %e^2 + 2/3
         sage: t^e
         ((((e^2) + pi) + 2/3)^e)
         sage: RR(t^e)
-        710.86524768885772
+        710.865247688857
     """
     def __init__(self, x, y, op):
         if not isinstance(x, Function) or not isinstance(y, Function):
@@ -379,7 +386,7 @@ class Function_arith(Function):
             raise NotImplementedError, 'operator %s unknown'%self.__op
 
     def _call_(self, x):
-        if isinstance(self, Constant):
+        if isinstance(self, sage.functions.constants.Constant):
             return self
         return self.__op(self.__x(x), self.__y(x))
 
@@ -387,7 +394,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: gap(e + pi)
-            "5.8598744820488378"
+            "5.85987448204883"
         """
         return '"%s"'%self.str()
 
@@ -461,7 +468,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: singular(e + pi)
-            5.8598744820488378
+            5.85987448204883
         """
         return '"%s"'%self.str()
 
@@ -469,7 +476,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: RealField(100)(e + pi)
-            5.8598744820488384738229308546306
+            5.8598744820488384738229308546
         """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
@@ -486,15 +493,15 @@ class Function_gen(Function):
         sage: maxima(a)
         %pi/2 + %e
         sage: RR(a)
-        4.2890781552539412
+        4.28907815525394
         sage: RealField(200)(a)
-        4.2890781552539418545916091629924139398558317933875124854544427
+        4.2890781552539418545916091629924139398558317933875124854544
 
         sage: b = e + 5/7
         sage: maxima(b)
         %e + 5/7
         sage: RR(b)
-        3.4325675427447595
+        3.43256754274475
     """
     def __init__(self, x):
         Function.__init__(self)
@@ -548,6 +555,20 @@ class Function_gen(Function):
 
     def _singular_(self, singular):
         return singular(self.__x)
+
+class Function_constant(Function_gen):
+    def __init__(self, x):
+        self.__x = x
+        Function_gen.__init__(self, x)
+
+    def _repr_(self):
+        return str(self.__x)
+
+    def _call_(self, x):
+        return self
+
+    def _latex_(self):
+        return latex(self.__x)
 
 
 class Function_polynomial(Function_gen):
@@ -622,9 +643,9 @@ class Function_cos(Function):
         sage: z = 1+2*I
         sage: theta = arg(z)
         sage: cos(theta)*abs(z)
-        1.0000000000000002
+        1.00000000000000
         sage: cos(3.141592)
-        -0.99999999999978639
+        -0.999999999999786
     """
     def __init__(self):
         Function.__init__(self,

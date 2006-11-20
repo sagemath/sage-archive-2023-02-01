@@ -278,7 +278,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         else:
             base_ring = self
 
-        ParentWithGens.__init__(self, base_ring, name, normalize=False)
+        ParentWithGens.__init__(self, base_ring, name, normalize=True)
 
         self.__char = F[0][0]
         self.__pari_one = pari.pari(1).Mod(self.__char)

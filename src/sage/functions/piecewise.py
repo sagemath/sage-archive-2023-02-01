@@ -479,7 +479,7 @@ class PiecewisePolynomial:
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.182493960703473
+            12.1824939607034
             sage: f(1)
             1/2
         """
@@ -488,7 +488,7 @@ class PiecewisePolynomial:
         endpts = self.end_points()
         for i in range(1,n):
             if x0 == endpts[i]:
-                return (self.functions()[i-1](x0)+self.functions()[i](x0))/2
+                return (self.functions()[i-1](x0) + self.functions()[i](x0))/2
         if x0 == endpts[0]:
             return self.functions()[0](x0)
         if x0 == endpts[n]:

@@ -121,14 +121,12 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         """
         if not isinstance(base_ring, commutative_ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
-        commutative_algebra.CommutativeAlgebra.__init__(self, base_ring)
+        commutative_algebra.CommutativeAlgebra.__init__(self, base_ring, names=name, normalize=True)
         self.__is_sparse = sparse
-        ring.Ring.__init__(self)
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
         self.__cyclopoly_cache = {}
         self._has_singular = False
-        self._assign_names(name)
 
     def __reduce__(self):
         import sage.rings.polynomial_ring_constructor

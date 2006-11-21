@@ -1537,7 +1537,7 @@ cdef class Matrix(matrix1.Matrix):
         right_window  = right.matrix_window()
         output_window = output.matrix_window()
 
-        strassen.strassen_window_multiply(self, output_window, self_window, right_window, cutoff)
+        strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
     def _echelon_strassen(self, int cutoff=0):
@@ -1565,14 +1565,14 @@ cdef class Matrix(matrix1.Matrix):
         if cutoff == 0:
             cutoff = self._strassen_default_echelon_cutoff()
 
-        if cutoff <= 0:
+        if cutoff < 1:
             raise ValueError, "cutoff must be at least 1"
 
         if self._nrows < cutoff or self._ncols < cutoff:
             self._echelon_in_place_classical()
             return
 
-        pivots = strassen.strassen_echelon(self, self.matrix_window(), cutoff)
+        pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
 
 
@@ -1590,8 +1590,8 @@ cdef class Matrix(matrix1.Matrix):
             [6 7 8]
         """
         if nrows == -1:
-            nrows = self._nrows
-            ncols = self._ncols
+            nrows = self._nrows - row
+            ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
 
 cdef decomp_seq(v):

@@ -220,7 +220,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         import copy
         return self.__class__(self._parent, copy.deepcopy(self._entries), copy = False, coerce=False)
 
-    def matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
+    def _xxx_matrix_window(self, int row=0, int col=0, int nrows=-1, int ncols=-1):
         if nrows == -1:
             nrows = self._nrows
             ncols = self._ncols
@@ -264,7 +264,7 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
     def list(MatrixWindow self):
         v = self._matrix._entries
         w = [None]*(self._nrows*self._ncols)
-        cdef int i, j, k, l
+        cdef Py_ssize_t i, j, k, l
         k = 0
         for i from 0 <= i < self._nrows:
             l = i * self._matrix._ncols
@@ -273,7 +273,7 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
                 k = k + 1
         return w
 
-    def matrix_window(MatrixWindow self, int row, int col, int n_rows, int n_cols):
+    def matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols):
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
@@ -285,21 +285,20 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
     def ncols(MatrixWindow self):
         return self._ncols
 
-
     def set_to(MatrixWindow self, MatrixWindow A):
-        cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
+        cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = self._matrix._ncols * (i+A._row) + a._col
+            A_ix = self._matrix._ncols * (i+A._row) + A._col
             for self_ix from (i+self._row)*self._ncols + self._col <= self_ix < start + self._ncols:
                 self._matrix._entries[self_ix] = A._matrix._entries[A_ix]
                 A_ix = A_ix + 1
 
 
     def set_to_zero(MatrixWindow self):
-        cdef int i, j
-        cdef int start, self_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
         zero = self._matrix.base_ring(0)
         for i from 0 <= i < self._nrows:
             for self_ix from (i+self._row)*self._ncols + self._col <= self_ix < start + self._ncols:
@@ -307,9 +306,9 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def add(MatrixWindow self, MatrixWindow A):
-        cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
+        cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
             A_ix = (i+A._row)*self._matrix._ncols + A._col
             for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < start + self._ncols:
@@ -318,9 +317,9 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def subtract(MatrixWindow self, MatrixWindow A):
-        cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
+        cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
             A_ix = A._matrix._ncols*(i+A._row) + a._col
             for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < start + self._ncols:
@@ -329,9 +328,9 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
+        cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
             A_ix = A._matrix._ncols*(i+A._row) + A._col
             B_ix = B._matrix._ncols*(i+B._row) + B._col
@@ -342,9 +341,9 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef int i, j
-        cdef int start, self_ix
-        cdef int A_ix
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t start, self_ix
+        cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
             A_ix = A._matrix._ncols*(i+A._row) + A._col
             B_ix = B._matrix._ncols*(i+B._row) + B._col
@@ -355,8 +354,8 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef int i, j, k
-        cdef int start, self_ix
+        cdef Py_ssize_t i, j, k
+        cdef Py_ssize_t start, self_ix
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
                 sum = A._matrix._entries[ A._ncols*(A._row+i) + A._col ] *B._matrix._entries[ B._ncols*(B._row)+B._col+j ]
@@ -366,8 +365,8 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
 
 
     def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
-        cdef int i, j, k
-        cdef int start, self_ix
+        cdef Py_ssize_t i, j, k
+        cdef Py_ssize_t start, self_ix
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
                 sum = A._matrix._entries[ A._ncols*(A._row+i)+A._col ] *B._matrix._entries[ B._ncols* B._row  + B._col+j ]
@@ -376,5 +375,5 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
                 self._matrix._entries[ self._ncols*(self._row+i)+self._col+j ] = self._matrix._entries[ self._ncols*(self._row+i)+self._col+j ] + sum
 
 
-    def new_empty_window(MatrixWindow self, int nrows, int ncols):
+    def new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
         return self._matrix.new_matrix(nrows,ncols).matrix_window()

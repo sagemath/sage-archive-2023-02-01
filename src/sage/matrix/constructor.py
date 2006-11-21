@@ -22,29 +22,34 @@ import sage.rings.all as rings
 import sage.matrix.matrix_space as matrix_space
 from sage.structure.sequence import Sequence
 
-def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
+def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
     """
     Create a matrix.
 
     INPUT:
     Supported formats
-        1. matrix([sparse]):
+        1. matrix([sparse=True]):
                the 0x0 matrix over ZZ
-        2. matrix(list_of_rows, [sparse]):
+        2. matrix(list_of_rows, [sparse=True]):
                matrix with each row constructed from the list_of_rows
-        3. matrix(nrows, entries, [sparse]):
+        3. matrix(nrows, entries, [sparse=True]):
                matrix with given number of rows and flat list of entries
-        4. matrix(nrows, ncols, entries, [sparse]):
+        4. matrix(nrows, ncols, entries, [sparse=True]):
                matrix with given number of rows and columns with flat list of entries
-        5. matrix(ring, list_of_row, [sparse]):
+        5. matrix(ring, list_of_row, [sparse=True]):
                matrix over ring with rows the elements of the list_of_rows
-        6. matrix(ring, nrows, entries, [sparse]):
+        6. matrix(ring, nrows, entries, [sparse=True]):
                matrix over ring with given number of rows and entries from the flat list
-        7. matrix(ring, nrows, ncols, entries, [sparse]):
+        7. matrix(ring, nrows, ncols, entries, [sparse=True]):
                matrix over the given ring with given number of rows and columns and entries.
 
-    In each case the sparse option is optional, must be explicitly named (i.e., sparse=True),
-    and may be either True or false.
+    The sparse option is optional, must be explicitly named (i.e.,
+    sparse=True), and may be either True or False.
+
+    The entries can instead be a dictionary of key:value pairs of the
+    form (i,j):x, where i,j are integers instead of a list.  If sparse
+    is not specified and the entries are a dictionary, it default to
+    True.
 
     OUTPUT:
         a matrix
@@ -162,6 +167,41 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         sage: det(A)
         -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
 
+    CREATING SPARSE MATRICES FROM DICTS:
+        sage: a = matrix({(1,2):10, (2,3):5/1})
+        sage: print a, a.parent()
+        [ 0  0  0  0]
+        [ 0  0 10  0]
+        [ 0  0  0  5] Full MatrixSpace of 3 by 4 sparse matrices over Rational Field
+        sage: a = matrix({(1,2):10})
+        sage: print a, a.is_sparse()
+        [ 0  0  0]
+        [ 0  0 10] True
+        sage: a = matrix(3,{(1,2):10})
+        sage: print a, a.is_sparse()
+        [ 0  0  0]
+        [ 0  0 10]
+        [ 0  0  0] True
+        sage: a = matrix(3,5,{(1,2):10})
+        sage: print a, a.is_sparse()
+        [ 0  0  0  0  0]
+        [ 0  0 10  0  0]
+        [ 0  0  0  0  0] True
+        sage: a = matrix(QQ, 3, {(1,2):10})
+        sage: print a, a.is_sparse()
+        [ 0  0  0]
+        [ 0  0 10]
+        [ 0  0  0] True
+        sage: a = matrix(QQ, 3, {(1,2):10}, sparse=True)
+        sage: print a, a.is_sparse()
+        [ 0  0  0]
+        [ 0  0 10]
+        [ 0  0  0] True
+        sage: a = matrix(QQ, 3, 5, {(1,2):10}, sparse=True)
+        sage: print a, a.is_sparse()
+        [ 0  0  0  0  0]
+        [ 0  0 10  0  0]
+        [ 0  0  0  0  0] True
     """
     if arg0 is None:
         # 1. matrix([sparse]):
@@ -186,6 +226,13 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         w = sum([list(v) for v in arg0], [])
         entries, ring = prepare(w)
 
+    elif isinstance(arg0, dict):
+        # 2. matrix(dict_of_rows, sparse=True):
+        if sparse is None: sparse = True
+        entries, ring = prepare_dict(arg0)
+        nrows = nrows_from_dict(entries)
+        ncols = ncols_from_dict(entries)
+
     elif not rings.is_Ring(arg0) and isinstance(arg1, (list, tuple)) and arg2 is None and arg3 is None:
         # 3. matrix(nrows, entries, [sparse]):
         #       matrix with given number of rows and flat list of entries
@@ -193,12 +240,28 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         entries, ring = prepare(arg1)
         ncols = len(entries) // nrows
 
+    elif not rings.is_Ring(arg0) and isinstance(arg1, dict) and arg2 is None and arg3 is None:
+        # 3. matrix(nrows, entries, sparse=True):
+        #       matrix with given number of rows and sparse dict of entries
+        if sparse is None: sparse = True
+        nrows = int(arg0)
+        entries, ring = prepare_dict(arg1)
+        ncols = ncols_from_dict(entries)
+
     elif not rings.is_Ring(arg0) and isinstance(arg2, (list, tuple)) and arg3 is None:
         # 4. matrix(nrows, ncols, entries, [sparse]):
         #       matrix with given number of rows and columns with flat list of entries
         nrows = int(arg0)
         ncols = int(arg1)
         entries, ring = prepare(arg2)
+
+    elif not rings.is_Ring(arg0) and isinstance(arg2, dict) and arg3 is None:
+        # 4. matrix(nrows, ncols, entries, sparse=True):
+        #       matrix with given number of rows and columns with flat list of entries
+        if sparse is None: sparse = True
+        nrows = int(arg0)
+        ncols = int(arg1)
+        entries, ring = prepare_dict(arg2)
 
     elif rings.is_Ring(arg0) and isinstance(arg1, (list, tuple)) and arg2 is None and arg3 is None:
         # 5. matrix(ring, list_of_row, [sparse]):
@@ -214,13 +277,36 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
                 raise TypeError, "If making a matrix with the matrix(ring, list_of_row, [sparse]) constructor, the second input must be a list of rows."
         entries = sum([list(v) for v in arg1], [])
 
+    elif rings.is_Ring(arg0) and isinstance(arg1, dict) and arg2 is None and arg3 is None:
+        # 5. matrix(ring, dict, sparse=True):
+        #       matrix over ring with rows the elements the dict
+        if sparse is None: sparse = True
+        ring = arg0
+        entries = arg1
+        nrows = nrows_from_dict(entries)
+
     elif rings.is_Ring(arg0) and isinstance(arg2, (list, tuple)) and arg3 is None:
         # 6. matrix(ring, nrows, entries, [sparse]):
         #       matrix over ring with given number of rows and entries from the flat list
         ring = arg0
         nrows = int(arg1)
         entries = arg2
-        ncols = len(entries) // nrows
+        if nrows == 0:
+            ncols = 0
+        else:
+            ncols = len(entries) // nrows
+
+    elif rings.is_Ring(arg0) and isinstance(arg2, dict) and arg3 is None:
+        # 6. matrix(ring, nrows, entries, sparse=True)
+        #       matrix over ring with given number of rows and entries from the dict
+        if sparse is None: sparse = True
+        ring = arg0
+        nrows = int(arg1)
+        entries = arg2
+        if nrows == 0:
+            ncols = 0
+        else:
+            ncols = ncols_from_dict(entries)
 
     elif rings.is_Ring(arg0):
         # 7. matrix(ring, nrows, ncols, entries, [sparse]):
@@ -229,10 +315,13 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=False):
         nrows = int(arg1)
         ncols = int(arg2)
         entries = arg3
-
+        if isinstance(entries, dict):
+            if sparse is None: sparse = True
     else:
-
         raise TypeError, "unknown matrix constructor format.  Type matrix? for help"
+
+    if sparse is None:
+        sparse = False
 
     return matrix_space.MatrixSpace(ring, nrows, ncols, sparse=sparse)(entries)
 
@@ -250,4 +339,18 @@ def prepare(w):
         raise TypeError, "unable to find a common ring for all elements"
     return entries, ring
 
+def prepare_dict(w):
+    Z = w.items()
+    X = [x for _, x in Z]
+    entries, ring = prepare(X)
+    return dict([(Z[i][0],entries[i]) for i in xrange(len(entries))]), ring
+
+def nrows_from_dict(d):
+    return max([ij[0] for ij in d.keys()]) + 1
+
+def ncols_from_dict(d):
+    return max([ij[1] for ij in d.keys()]) + 1
+
 Matrix = matrix
+
+

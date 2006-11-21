@@ -248,7 +248,14 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 entries = e
             else:
                 entries = sum([v.list() for v in entries],[])
-
+        if isinstance(entries, dict) and not self.__is_sparse:
+            entries = dict_to_list(entries, self.__nrows, self.__ncols)
+            coerce = True
+            copy = False
+        elif isinstance(entries, (list, tuple)) and self.__is_sparse:
+            entries = list_to_dict(entries, self.__nrows, self.__ncols)
+            coerce = True
+            copy = False
         return self.matrix(entries, copy=copy, coerce=coerce)
 
     def base_extend(self, R):
@@ -531,4 +538,22 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         return self(v, coerce=False, copy=False)
 
 _random = 1
+
+def dict_to_list(entries, nrows, ncols):
+    v = [0]*(nrows*ncols)
+    for ij, y in entries:
+        i,j = ij
+        v[i*ncols + j] = y
+    return v
+
+def list_to_dict(entries, nrows, ncols):
+    d = {}
+    for i in range(len(entries)):
+        x = entries[i]
+        if x != 0:
+            col = i % ncols
+            row = i - (i*col)
+            d[(row,col)] = x
+    return d
+
 

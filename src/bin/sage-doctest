@@ -224,8 +224,10 @@ def pythonify(F):
     F = F.replace("\\end{verbatim}",'"""')
     return F
 
-def post_process(s):
+def post_process(s, file):
     s = s.replace('.doctest/','')
+    if file[-3:] == 'pyx':
+        s = s.replace('.py", line', '.pyx", line')
     i = s.find("Failed example:")
     cnt = 0
     while i != -1:
@@ -296,7 +298,7 @@ def test_file(file):
             err = "*** *** Error: TIMED OUT! *** ***"
             print err
 
-        s = post_process(out)  + err
+        s = post_process(out, file)  + err
         print s
         if 'Failed' in s or 'Error' in s:
             delete_tmpfiles()

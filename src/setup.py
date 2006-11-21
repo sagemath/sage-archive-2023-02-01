@@ -429,6 +429,10 @@ ext_modules = [ \
               ['sage/matrix/matrix_window.pyx']
               ), \
 
+    Extension('sage.matrix.matrix_window_modn_dense',
+              ['sage/matrix/matrix_window_modn_dense.pyx']
+              ), \
+
     Extension('sage.matrix.strassen',
               ['sage/matrix/strassen.pyx']
               ), \

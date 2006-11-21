@@ -1567,8 +1567,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: ?
         """
         if nrows == -1:
-            nrows = self._nrows
-            ncols = self._ncols
+            nrows = self._nrows - row
+            ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
 
 cdef decomp_seq(v):

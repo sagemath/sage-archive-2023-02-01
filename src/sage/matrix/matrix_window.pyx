@@ -99,6 +99,8 @@ cdef class MatrixWindow:
         Change self, making it equal A.
         """
         cdef Py_ssize_t i, j
+        if self._nrows != A._nrows or self._ncols != A._ncols:
+            raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j))

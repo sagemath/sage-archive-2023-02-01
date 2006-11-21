@@ -54,6 +54,8 @@ include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
+import matrix_window_modn_dense
+
 cimport matrix_dense
 cimport matrix
 
@@ -96,6 +98,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         self.matrix = <uint **> sage_malloc(sizeof(uint*)*self._nrows)
         if self.matrix == NULL:
+            sage_free(self._entries)
             raise MemoryError, "Error allocating memory"
 
         cdef uint k
@@ -488,3 +491,18 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             v.append(int(c.matrix[n][i]))
         R = self._base_ring[var]    # polynomial ring over the base ring
         return R(v)
+
+
+    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+                      Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+        """
+        Return the requested matrix window.
+
+        EXAMPLES:
+            sage: ?
+        """
+        if nrows == -1:
+            nrows = self._nrows - row
+            ncols = self._ncols - col
+        return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
+

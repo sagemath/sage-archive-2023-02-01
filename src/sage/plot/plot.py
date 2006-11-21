@@ -79,6 +79,7 @@ AUTHORS:
     -- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server integration
     -- William Stein (2006-07-01): misc polish
     -- Alex Clemesha (2006-09-29): added contour_plot, frame axes, misc polishing
+    -- Robert Miller (2006-10-30): tuning, NetworkX primitive
 
 TODO:
     [] more arithmetic operations on plot objects, e.g., rescaling,
@@ -336,8 +337,8 @@ class Graphics(SageObject):
 
     def __setitem__(self, i, x):
         """
-        You can replace an GraphicsPrimitive (point, line, circle, etc...)
-        in a Graphics object G with any other GraphicsPrimitive
+        You can replace a GraphicPrimitive (point, line, circle, etc...)
+        in a Graphics object G with any other GraphicPrimitive
 
         EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
@@ -385,47 +386,13 @@ class Graphics(SageObject):
         g.__objects = self.__objects + other.__objects
         return g
 
-    def _circle(self, x, y, r, options):
-        self.__objects.append(GraphicPrimitive_Circle(x, y, r, options))
-        self._extend_axes(x+r, x-r, y+r, y-r)
-
-    def _contour_plot(self, xy_data_array, xrange, yrange, options):
-        self.__xmin = xrange[0]
-        self.__xmax = xrange[1]
-        self.__ymin = yrange[0]
-        self.__ymax = yrange[1]
-        self.__objects.append(GraphicPrimitive_ContourPlot(xy_data_array, xrange, yrange, options))
-        self._extend_axes(xrange[0], xrange[1], yrange[0], yrange[1])
-
-    def _disk(self, point, r, angle, options):
-        self.__objects.append(GraphicPrimitive_Disk(point, r, angle, options))
-        self._extend_axes(2*r, -2*r, 2*r, -2*r)
-
-    def _line(self, xdata, ydata, options):
-        self.__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
-
-    def _point(self, xdata, ydata, options):
-        self.__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
-
-    def _polygon(self, xdata, ydata, options):
-        self.__objects.append(GraphicPrimitive_Polygon(xdata, ydata, options))
-        try:
-            self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
-        except ValueError:
-            pass
-
-    def _text(self, string, point, options):
-        self.__objects.append(GraphicPrimitive_Text(string, point, options))
-        self._extend_x_axis(2*point[0])
-        self._extend_y_axis(2*point[1])
+    def append(self, primitive):
+        """
+        Append an arbitrary GraphicPrimitive to a Graphics object
+        """
+        if not isinstance(primitive, GraphicPrimitive):
+            raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
+        self.__objects.append(primitive)
 
     def _extend_x_axis(self, x):
         xmin = self.__xmin
@@ -644,7 +611,7 @@ class Graphics(SageObject):
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None,frame=False,
+             dpi=DEFAULT_DPI, axes=None, axes_label=None,frame=False,
              fontsize=None,
              **args):
         """
@@ -718,7 +685,7 @@ class Graphics(SageObject):
     def save(self, filename=None, xmin=None, xmax=None,
              ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
              fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None, fontsize=None,
+             axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
@@ -785,6 +752,8 @@ class Graphics(SageObject):
             g._render_on_subplot(subplot)
 
         #adjust the xy limits and draw the axes:
+        if axes is None:
+            axes = self.__show_axes
         if not contour and axes:
             if frame: #add the frame axes with centered axes with no ticks
                 xmin, xmax = self.__xmin, self.__xmax
@@ -906,10 +875,6 @@ class GraphicPrimitive_Line(GraphicPrimitive):
 
     def __len__(self):
         return len(self.xdata)
-
-    def __append__(self, point):
-        self.xdata.append(float(point[0]))
-        self.ydata.append(float(point[1]))
 
     def _render_on_subplot(self, subplot):
         options = self.options()
@@ -1098,10 +1063,6 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
     def __len__(self):
         return len(self.xdata)
 
-    def __append__(self, point):
-        self.xdata.append(float(point[0]))
-        self.ydata.append(float(point[1]))
-
     def _allowed_options(self):
         return {'alpha':'How transparent the line is.',
                 'thickness': 'How thick the border line is.',
@@ -1148,6 +1109,74 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
                         verticalalignment=va,horizontalalignment=ha)
 
+class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
+    """
+    Primitive class that initializes the NetworkX graph type
+
+    INPUT:
+        graph -- a NetworkX graph
+        pos -- an optional positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+            {   0: [-0.91679746, 0.88169588,],
+                1: [ 0.47294849, 1.125     ,],
+                2: [ 1.125     ,-0.12867615,],
+                3: [ 0.12743933,-1.125     ,],
+                4: [-1.125     ,-0.50118505,]   }
+        with_labels -- determines whether labels for nodes are plotted
+        node_size -- node size
+
+    EXAMPLE:
+        sage: import networkx as NX
+        sage: D = NX.dodecahedral_graph()
+        sage: NGP = GraphicPrimitive_NetworkXGraph(D)
+        sage: g = Graphics()
+        sage: g.append(NGP)
+        sage: g.axes(False)
+        sage: g.show()
+    """
+    def __init__(self, graph, pos=None, with_labels=True, node_size=300):
+        self.__nxg = graph
+        if len(self.__nxg) != 0:
+            import networkx as NX
+            self.__node_size = node_size
+            self.__with_labels = with_labels
+            if pos is None:
+                self.__pos = NX.drawing.spring_layout(self.__nxg)
+            else:
+                self.__pos = pos
+
+            # adjust the plot
+            # TODO: right now, the bounds are assumed to be +-1
+            nodelist=self.__nxg.nodes()
+            xes = [self.__pos[v][int(0)] for v in nodelist]
+            ys = [self.__pos[v][int(1)] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            st = float(0.125) # scaling term: looks better, maybe should
+                              # depend on node_size?
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            for v in nodelist:
+                self.__pos[v][int(0)] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][int(0)] - xmax) + st + 1
+                self.__pos[v][int(1)] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][int(1)] - ymax) + st + 1
+
+    def _render_on_subplot(self, subplot):
+        if len(self.__nxg) != 0:
+            import networkx as NX
+            node_size = float(self.__node_size)
+            NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            if self.__with_labels:
+                labels = {}
+                for v in self.__nxg:
+                    labels[v] = str(v)
+                NX.draw_networkx_labels(self.__nxg, self.__pos, labels=labels, ax=subplot)
 
 ######################################################################
 #                                                                    #
@@ -1321,7 +1350,11 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._line(xdata, ydata, options)
+        g.append(GraphicPrimitive_Line(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique line instance
@@ -1362,7 +1395,11 @@ class CircleFactory(GraphicPrimitiveFactory_circle):
 
     def _from_xdata_ydata(self, point, r, options):
         g = Graphics()
-        g._circle(float(point[0]), float(point[1]), float(r), options)
+        x = float(point[0])
+        y = float(point[1])
+        r = float(r)
+        g.append(GraphicPrimitive_Circle(x, y, r, options))
+        g._extend_axes(x+r, x-r, y+r, y-r)
         return g
 
 
@@ -1400,7 +1437,12 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
 
     def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
         g = Graphics()
-        g._contour_plot(xy_data_array, xrange, yrange, options)
+        g.__xmin = xrange[0]
+        g.__xmax = xrange[1]
+        g.__ymin = yrange[0]
+        g.__ymax = yrange[1]
+        g.append(GraphicPrimitive_ContourPlot(xy_data_array, xrange, yrange, options))
+        g._extend_axes(xrange[0], xrange[1], yrange[0], yrange[1])
         return g
 
 #unique contour_plot instance
@@ -1431,7 +1473,8 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 
     def _from_xdata_ydata(self, point, r, angle, options):
         g = Graphics()
-        g._disk((float(point[0]), float(point[1])), float(r), (float(angle[0]), float(angle[1])), options)
+        g.append(GraphicPrimitive_Disk(point, r, angle, options))
+        g._extend_axes(2*r, -2*r, 2*r, -2*r)
         return g
 
 #an unique disk instance
@@ -1461,7 +1504,11 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._point(xdata, ydata, options)
+        g.append(GraphicPrimitive_Point(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique point instance
@@ -1497,7 +1544,9 @@ class TextFactory(GraphicPrimitiveFactory_text):
 
     def _from_xdata_ydata(self, string, point, options):
         g = Graphics()
-        g._text(string, point, options)
+        g.append(GraphicPrimitive_Text(string, point, options))
+        g._extend_x_axis(2*point[0])
+        g._extend_y_axis(2*point[1])
         return g
 
 # unique text instance
@@ -1575,7 +1624,11 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._polygon(xdata, ydata, options)
+        g.append(GraphicPrimitive_Polygon(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique polygon instance
@@ -1918,7 +1971,7 @@ class GraphicsArray(SageObject):
     def __len__(self):
         return len(self._glist)
 
-    def __append__(self, g):
+    def append(self, g):
         self._glist.append(g)
 
     def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):

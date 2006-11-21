@@ -4542,7 +4542,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         right_window  = right.matrix_window()
         output_window = output.matrix_window()
 
-        strassen.strassen_window_multiply(self, output_window, self_window, right_window, cutoff)
+        strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
     def _echelon_strassen(self, int cutoff=0):
@@ -4571,7 +4571,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             self._echelon_in_place_classical()
             return
 
-        pivots = strassen.strassen_echelon(self, self.matrix_window(), cutoff)
+        pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
 
 

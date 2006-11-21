@@ -80,6 +80,10 @@ cdef class MatrixWindow:
         """
         Returns a matrix window relative to this window of the underlying matrix.
         """
+        if n_rows == -1:
+            n_rows = self._nrows - row
+        if n_cols == -1:
+            n_cols = self._ncols - col
         if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
             return self
         return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
@@ -104,7 +108,7 @@ cdef class MatrixWindow:
         z = self._matrix._base_ring(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                self._matrix.set_unsafe(i, j, z)
+                self.set_unsafe(i, j, z)
 
     def add(MatrixWindow self, MatrixWindow A):
         cdef Py_ssize_t i, j

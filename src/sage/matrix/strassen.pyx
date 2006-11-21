@@ -243,10 +243,11 @@ cdef subtract_strassen_product(self, result, A, B, Py_ssize_t cutoff):
         sage: ?
     """
     cutoff = 1000000 # for testing
-    if (result.ncols() < cutoff or result.nrows() < cutoff):
+    if (result.ncols() <= cutoff or result.nrows() <= cutoff):
         result.subtract_prod(A, B)
     else:
-        to_sub = strassen_window_multiply(self, A, B, cutoff)
+        to_sub = A.new_empty_window(result.nrows(), result.ncols())
+        strassen_window_multiply(self, to_sub, A, B, cutoff)
         result.subtract(to_sub)
 
 
@@ -284,11 +285,13 @@ def strassen_echelon(self, A, cutoff):
     # top_left, top_right, bottom_left, and bottom_right loosely correspond to A, B, C, and D respectively,
     # however, the "cut" between the top and bottom rows need not be the same.
 
+    self = "non-matrix"
+
     cdef Py_ssize_t nrows, ncols
     nrows = A.nrows()
     ncols = A.ncols()
 
-    if (nrows < cutoff or ncols < cutoff):
+    if (nrows <= cutoff or ncols <= cutoff):
         return A.echelon_in_place()
 
     cdef Py_ssize_t top_h, bottom_cut, bottom_h, bottom_start, top_cut
@@ -393,7 +396,7 @@ def strassen_echelon(self, A, cutoff):
                 # subtract off E times bottom from top right
                 if top_cut < ncols:
                     top_right = top.matrix_window(0, top_cut, top_h, ncols - top_cut)
-                    subtract_strassen_product(self, top_right, clear, bottom.matrix_window(0, top_cut, top_h, ncols - top_cut), cutoff);
+                    subtract_strassen_product(self, top_right, clear, bottom.matrix_window(0, top_cut, bottom_h, ncols - top_cut), cutoff);
                 # [  I  *  G - EF ]
                 # [  0  I     F   ]
 
@@ -404,13 +407,13 @@ def strassen_echelon(self, A, cutoff):
                 else:
                     bottom_pivot_intervals = int_range(bottom_pivots)
                     for cols in bottom_pivot_intervals:
-                        top.matrix_window(0, cols[0], split, cols[1]).set_to_zero()
+                        top.matrix_window(0, cols[0], top_h, cols[1]).set_to_zero()
                     non_pivots = int_range(bottom_start, top_cut - bottom_start) - bottom_pivot_intervals - top_pivot_intervals
                     for cols in non_pivots:
                         if cols[0] == 0: continue
                         prev_pivot_count = len(bottom_pivot_intervals - int_range(cols[0]+cols[1], top_cut - cols[0]+cols[1]))
-                        subtract_strassen_product(self, top.matrix_window(0, cols[0], split, cols[1]),
-                                                         clear.matrix_window(0, 0, split, prev_pivot_count),
+                        subtract_strassen_product(self, top.matrix_window(0, cols[0], top_h, cols[1]),
+                                                         clear.matrix_window(0, 0, top_h, prev_pivot_count),
                                                          bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
                                                          cutoff)
                 # [  I  0  G - EF ]

@@ -18,9 +18,16 @@ include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 
 from sage.rings.integer cimport Integer
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement
 
+import sage.modules.free_module
+
 from matrix cimport Matrix
+
+import matrix_space
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -536,7 +543,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Integer x
 
         self.mpz_height(h)
-        x = Integer()   # todo: change to use new integer
+        x = Integer()
         x.set_from_mpz(h)
         mpz_clear(h)
 
@@ -551,11 +558,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         OUTPUT:
              sets the value of height to the height of this matrix, i.e., the max absolute
              value of the entries of the matrix.
-
-
-
-        EXAMPLES:
-
         """
         cdef mpz_t x, h
         cdef Py_ssize_t i
@@ -661,6 +663,246 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         H_m.cache('echelon_form',H_m)
         self.cache('echelon_form',H_m)
         return H_m
+
+    def elementary_divisors(self):
+        """
+        Return the elementary divisors of self, in order.
+
+        The elementary divisors are the invariants of the finite
+        abelian group that is the cokernel of this matrix.  They are
+        ordered in reverse by divisibility.
+
+        INPUT:
+            matrix
+        OUTPUT:
+            list of int's
+
+        EXAMPLES:
+            sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
+            sage: A.elementary_divisors()
+            [0, 3, 1]
+            sage: C = MatrixSpace(ZZ,4)([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: C.elementary_divisors()
+            [687, 1, 1, 1]
+
+        SEE ALSO: smith_form
+        """
+        d = self.fetch('elementary_divisors')
+        if not d is None:
+            return d
+        if self._nrows == 0 or self._ncols == 0:
+            d = []
+        else:
+            d = self._pari_().matsnf(0).python()
+        self.cache('elementary_divisors', d)
+        return d
+
+    def smith_form(self):
+        """
+        Returns matrices S, U, and V such that S = U*self*V, and S
+        is in Smith normal form.  Thus S is diagonal with diagonal
+        entries the ordered elementary divisors of S.
+
+        The elementary divisors are the invariants of the finite
+        abelian group that is the cokernel of this matrix.  They are
+        ordered in reverse by divisibility.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
+            sage: D, U, V = A.smith_form()
+            sage: D
+            [0 0 0]
+            [0 3 0]
+            [0 0 1]
+            sage: U
+            [-1  2 -1]
+            [ 0 -1  1]
+            [ 0  1  0]
+            sage: V
+            [ 1  4 -1]
+            [-2 -3  1]
+            [ 1  0  0]
+            sage: U*A*V
+            [0 0 0]
+            [0 3 0]
+            [0 0 1]
+
+        It also makes sense for nonsquare matrices:
+
+            sage: A = Matrix(ZZ,3,2,range(6))
+            sage: D, U, V = A.smith_form()
+            sage: D
+            [0 0]
+            [2 0]
+            [0 1]
+            sage: U
+            [-1  2 -1]
+            [ 0 -1  1]
+            [ 0  1  0]
+            sage: V
+            [ 3 -1]
+            [-2  1]
+            sage: U * A * V
+            [0 0]
+            [2 0]
+            [0 1]
+
+        SEE ALSO: elementary_divisors
+        """
+        v = self._pari_().matsnf(1).python()
+        D = self.matrix_space()(v[2])
+        U = self.matrix_space(ncols = self._nrows)(v[0])
+        V = self.matrix_space(nrows = self._ncols)(v[1])
+        return D, U, V
+
+    def frobenius(self,flag=0, var='x'):
+        """
+        Return the Frobenius form (rational canonical form) of this matrix.
+
+        INPUT:
+            flag --an integer:
+                0 -- (default) return the Frobenius form of this matrix.
+                1 -- return only the elementary divisor polynomials, as
+                     polynomials in var.
+                2 -- return a two-components vector [F,B] where F is the
+                     Frobenius form and B is the basis change so that $M=B^{-1}FB$.
+            var -- a string (default: 'x')
+
+        INPUT:
+           flag -- 0 (default), 1 or 2 as described above
+
+        ALGORITHM: uses pari's matfrobenius()
+
+        EXAMPLE:
+           sage: A = MatrixSpace(ZZ, 3)(range(9))
+           sage: A.frobenius(0)
+           [ 0  0  0]
+           [ 1  0 18]
+           [ 0  1 12]
+           sage: A.frobenius(1)
+           [x^3 - 12*x^2 - 18*x]
+           sage: A.frobenius(1, var='y')
+           [y^3 - 12*y^2 - 18*y]
+           sage: A.frobenius(2)
+           ([ 0  0  0]
+           [ 1  0 18]
+           [ 0  1 12],
+           [    -1      2     -1]
+           [     0  23/15 -14/15]
+           [     0  -2/15   1/15])
+
+        AUTHOR:
+           -- 2006-04-02: Martin Albrecht
+
+        TODO:
+           -- move this to work for more general matrices than just over Z.
+              This will require fixing how PARI polynomials are coerced
+              to SAGE polynomials.
+        """
+        if not self.is_square():
+            raise ArithmeticError, "frobenius matrix of non-square matrix not defined."
+
+        v = self._pari_().matfrobenius(flag)
+        if flag==0:
+            return self.matrix_space()(v.python())
+        elif flag==1:
+            r = PolynomialRing(self.base_ring(), names=var)
+            retr = []
+            for f in v:
+                retr.append(eval(str(f).replace("^","**"), {'x':r.gen()}, r.gens_dict()))
+            return retr
+        elif flag==2:
+            F = matrix_space.MatrixSpace(QQ, self.nrows())(v[0].python())
+            B = matrix_space.MatrixSpace(QQ, self.nrows())(v[1].python())
+            return F, B
+
+    def kernel(self, LLL=False):
+        r"""
+        Return the kernel of this matrix, as a module over the integers.
+
+        INPUT:
+           LLL -- bool (default: False); if True the basis is an LLL
+                  reduced basis; otherwise, it is an echelon basis.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(ZZ,4,2)(range(8))
+            sage: M.kernel()
+            Free module of degree 4 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  0 -3  2]
+            [ 0  1 -2  1]
+        """
+        if self._nrows == 0:    # from a 0 space
+            M = sage.modules.free_module.FreeModule(ZZ, self._nrows)
+            return M.zero_subspace()
+
+        elif self._ncols == 0:  # to a 0 space
+            return sage.modules.free_module.FreeModule(ZZ, self._nrows)
+
+        A = self._pari_().mattranspose()
+        B = A.matkerint()
+        n = self._nrows
+        M = sage.modules.free_module.FreeModule(ZZ, n)
+
+        if B.ncols() == 0:
+            return M.zero_submodule()
+
+        # Now B is a basis for the LLL-reduced integer kernel as a
+        # PARI object.  The basis vectors or B[0], ..., B[n-1],
+        # where n is the dimension of the kernel.
+        X = []
+        for b in B:
+            tmp = []
+            for x in b:
+                tmp.append(ZZ(x))
+            X.append(M(tmp))
+
+        if LLL:
+            return M.span_of_basis(X)
+        else:
+            return M.span(X)
+
+    def _adjoint(self):
+        """
+        Return the adjoint of this matrix.
+
+        Assumes self is a square matrix (checked in adjoint).
+        """
+        return self.parent()(self._pari_().matadjoint().python())
+
+    def _lllgram(self):
+        """
+        Returns the LLL form of the lattice with given
+        Gram matrix.
+
+        Assumes self is a square matrix.
+        """
+        n = self.nrows()
+        # pari does not like negative definite forms
+        if n > 0 and self[0,0] < 0:
+            self = -self
+        # maybe should be /unimodular/ matrices ?
+        MS = matrix_space.MatrixSpace(ZZ,n)
+        try:
+            U = MS(self._pari_().lllgramint().python())
+        except (RuntimeError, ArithmeticError):
+            raise ValueError, "not a definite matrix"
+        # Fix last column so that det = +1
+        if U.det() == -1:
+            for i in range(n):
+                U[i,n-1] = - U[i,n-1]
+        return U
+
+    def _ntl_(self):
+        r"""
+        ntl.mat_ZZ representation of self.
+
+        \note{NTL only knows dense matrices, so if you provide a
+        sparse matrix NTL will allocate memory for every zero entry.}
+        """
+        return mat_ZZ(self._nrows,self._ncols, self.list())
+
+
 
 
 ###########################################

@@ -1,4 +1,24 @@
+"""
+Generic Asymptotically Fast Strassen Algorithms
+
+SAGE implements asymptotically fast echelon form and matrix multiplication algorithms.
+"""
+
+################################################################################
+#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL), version 2.
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+################################################################################
+
+
 from matrix_window cimport MatrixWindow
+
+################################################################################
+# Matrix multiplication.
+################################################################################
 
 def strassen_window_multiply(self, MatrixWindow C, MatrixWindow A,
                                    MatrixWindow B, Py_ssize_t cutoff):
@@ -249,6 +269,9 @@ cdef subtract_strassen_product(self, result, A, B, Py_ssize_t cutoff):
         to_sub = strassen_window_multiply(self, A, B, cutoff)
         result.subtract(to_sub)
 
+################################################################################
+# Echelon form
+################################################################################
 
 def strassen_echelon(self, A, cutoff):
     """
@@ -259,6 +282,7 @@ def strassen_echelon(self, A, cutoff):
     INPUT:
         A -- matrix window
         cutoff -- size at which algorithm reverts to naive gaussian elemination and multiplication
+                  must be >= 2.
 
     OUTPUT:
         The list of pivot columns
@@ -283,6 +307,9 @@ def strassen_echelon(self, A, cutoff):
     # For compactness, let A' denote the inverse of A
     # top_left, top_right, bottom_left, and bottom_right loosely correspond to A, B, C, and D respectively,
     # however, the "cut" between the top and bottom rows need not be the same.
+
+    if cutoff < 2:
+        raise ValueError, "cutoff must be at least 2"
 
     cdef Py_ssize_t nrows, ncols
     nrows = A.nrows()

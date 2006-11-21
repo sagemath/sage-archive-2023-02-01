@@ -23,6 +23,7 @@ from   sage.misc.misc import verbose, get_verbose
 from   sage.rings.number_field.all import is_NumberField
 
 import sage.modules.free_module
+import matrix_window
 
 cdef class Matrix(matrix1.Matrix):
     def prod_of_row_sums(self, cols):
@@ -509,22 +510,21 @@ cdef class Matrix(matrix1.Matrix):
         return f
 
 
-    def fcp(self, var):
+    def fcp(self, var='x'):
         """
-        Return the factorization of the characteristic polynomial of
-        self.
+        Return the factorization of the characteristic polynomial of self.
 
         INPUT:
-            var -- name of variable of charpoly
+            var -- (default: 'x') name of variable of charpoly
 
         EXAMPLES:
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
-            sage: A.fcp('x')
+            sage: A.fcp()
             (x^3 - 8*x^2 + 209/5*x - 286)
             sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
-            sage: A.fcp('x')
-            (x - 3) * x * (x + 2)
+            sage: A.fcp('T')
+            (T - 3) * T * (T + 2)
         """
         return self.charpoly(var).factor()
 
@@ -1226,11 +1226,15 @@ cdef class Matrix(matrix1.Matrix):
         return self.new_matrix(V.dimension(), self.ncols(), e)
 
     def eigenspaces(self, var='a'):
-        """
+        r"""
         Return a list of pairs
              (e, V)
         where e runs through all eigenvalues (up to Galois conjugation)
         of this matrix, and V is the corresponding eigenspace.
+
+        The eigenspaces are returned sorted by the corresponding characteristic
+        polynomials, where polynomials are sorted in dictionary order starting
+        with constant terms.
 
         INPUT:
             var -- variable name used to represent elements of
@@ -1256,18 +1260,20 @@ cdef class Matrix(matrix1.Matrix):
             [ 0 -1  0  1  1 -1  1]
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
+            sage: A.fcp()
+            (x - 3) * (x^2 - 2)^2 * (x + 2)^2
             sage: A.eigenspaces()
             [
             (3, [
             (1, 0, 1/7, 0, -1/7, 0, -2/7)
             ]),
+            (a1, [
+            (0, 1, 0, -1, -a1 - 1, 1, -1),
+            (0, 0, 1, 0, -1, 0, -a1 + 1)
+            ]),
             (-2, [
             (0, 1, 0, 1, -1, 1, -1),
             (0, 0, 1, 0, -1, 2, -1)
-            ]),
-            (a, [
-            (0, 1, 0, -1, -a - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a + 1)
             ])
             ]
 
@@ -1276,16 +1282,16 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: # A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
             sage: A = matrix(QQ, 4, [3, 9, 0, 0, 0, 9, 0, 1, 0, 10, 9, 2, 0, 9, 0, 2])
-            sage: A.eigenspaces()
+            sage: A.eigenspaces(var = 'beta')
             [
             (9, [
-            (0, 0, 1, 5)
+            (0, 1, -9/88, 5/44)
             ]),
             (3, [
-            (1, 6, 0, 6)
+            (1, -3/5, 0, -3/5)
             ]),
-            (x, [
-            (0, 1, 0, 5*x + 10)
+            (beta2, [
+            (0, 1, 0, 1/9*beta2 - 1)
             ])
             ]
 
@@ -1294,26 +1300,32 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(QQ,3,3,range(9))
             sage: A.eigenspaces()
             [
+            (a0, [
+            (1, 1/15*a0 + 2/5, 2/15*a0 - 1/5)
+            ]),
             (0, [
             (1, -2, 1)
-            ]),
-            (a, [
-            (1, 1/15*a + 2/5, 2/15*a - 1/5)
             ])
             ]
         """
         x = self.fetch('eigenvectors')
         if not x is None:
             return x
-        f = self.charpoly('x')
-        G = f.factor()
+        G = self.fcp()   # factored charpoly of self.
         V = []
         i = 0
         for h, e in G:
-            F = h.root_field('%s%s'%(var,i))
+            if h.degree() == 1:
+                alpha = -h[0]/h[1]
+                F = alpha.parent()
+                A = self - alpha
+            else:
+                F = h.root_field('%s%s'%(var,i))
+                alpha = F.gen(0)
+                A = self.change_ring(F) - alpha
+            W = A.kernel()
             i = i + 1
-            W = (self.change_ring(F) - F.gen(0)).kernel()
-            V.append((F.gen(0), W.basis()))
+            V.append((alpha, W.basis()))
         V = Sequence(V, cr=True)
         self.cache('eigenvectors', V)
         return V
@@ -1537,7 +1549,13 @@ cdef class Matrix(matrix1.Matrix):
         Strassen's algorithm.
 
         EXAMPLES:
-            sage: ?
+            sage: A = matrix(QQ, 4, range(16))
+            sage: A._echelon_strassen(2)
+            sage: A
+            [ 1  0 -1 -2]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            [ 0  0  0  0]
         """
         self.check_mutability()
 
@@ -1564,7 +1582,12 @@ cdef class Matrix(matrix1.Matrix):
         Return the requested matrix window.
 
         EXAMPLES:
-            sage: ?
+            sage: A = matrix(QQ, 3, range(9))
+            sage: A.matrix_window(1,1, 2, 1)
+            Matrix window of size 2 x 1 at (1,1):
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
         """
         if nrows == -1:
             nrows = self._nrows

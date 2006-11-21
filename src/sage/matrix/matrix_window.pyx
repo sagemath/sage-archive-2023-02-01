@@ -104,7 +104,7 @@ cdef class MatrixWindow:
         z = self._matrix._base_ring(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                self._matrix.set_unsafe(i, j, z)
+                self.set_unsafe(i, j, z)
 
     def add(MatrixWindow self, MatrixWindow A):
         cdef Py_ssize_t i, j

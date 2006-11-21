@@ -664,6 +664,50 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.cache('echelon_form',H_m)
         return H_m
 
+    def pivots(self):
+        """
+        Return the pivot column positions of this matrix as a list of Python integers.
+
+        This returns a list, of the position of the first nonzero entry in each row
+        of the echelon form.
+
+        OUTPUT:
+             list -- a list of Python ints
+
+        EXAMPLES:
+            sage: n = 3; A = matrix(ZZ,n,range(n^2)); A
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: A.pivots()
+            [0, 1]
+            sage: A.echelon_form()
+            [ 3  0 -3]
+            [ 0  1  2]
+            [ 0  0  0]
+        """
+        p = self.fetch('pivots')
+        if not p is None: return p
+
+        cdef Matrix_integer_dense E
+        E = self.echelon_form()
+
+        # Now we determine the pivots from the matrix E as quickly as we can.
+        # For each row, we find the first nonzero position in that row -- it is the pivot.
+        cdef Py_ssize_t i, j, k
+        cdef mpz_t *row
+        p = []
+        k = 0
+        for i from 0 <= i < E._nrows:
+            row = E._matrix[i]   # pointer to ith row
+            for j from k <= j < E._ncols:
+                if mpz_cmp_si(row[j], 0) != 0:  # nonzero position
+                    p.append(j)
+                    k = j+1  # so start at next position next time
+                    break
+        self.cache('pivots', p)
+        return p
+
     def elementary_divisors(self):
         """
         Return the elementary divisors of self, in order.

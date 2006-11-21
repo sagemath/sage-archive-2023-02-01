@@ -191,7 +191,25 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.defining_ideal().is_maximal()
 
     def is_integral_domain(self):
-        return self.defining_ideal().is_prime()
+        r"""
+        If this function returns True then self is definitely an
+        integral domain.  If it returns False, then either self is
+        definitely not an integral domain or this function was unable
+        to determine whether or not self is an integral domain.
+
+        Use \code{self.defining_ideal().is_prime()} to find out for
+        sure whether this quotient ring is really not an integral
+        domain, of if SAGE is unable to determine the answer.
+
+        EXAMPLES:
+            sage: R = Integers(8)
+            sage: R.is_integral_domain()
+            False
+        """
+        try:
+            return self.defining_ideal().is_prime()
+        except NotImplementedError:
+            return False
 
     def cover_ring(self):
         return self.__R

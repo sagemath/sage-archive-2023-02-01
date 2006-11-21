@@ -115,8 +115,7 @@ def is_IntegerModRing(x):
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
-    The ring of integers modulo N, e.g., when N is prime
-    this is a prime finite field.
+    The ring of integers modulo N, with N composite.
 
     EXAMPLES:
         sage: R = IntegerModRing(97)
@@ -214,6 +213,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_finite(self):
         """
+        Return True since Z/NZ is finite for all positive N.
+
         EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.is_finite()
@@ -221,8 +222,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
+    def is_integral_domain(self):
+        """
+        Return False since Z/NZ with N composite is never an integral domain.
+        """
+        return False
+
     def is_field(self):
         """
+        Return False since Z/NZ with N composite is never a field.
+
         EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.is_field()

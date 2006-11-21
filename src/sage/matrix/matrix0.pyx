@@ -170,18 +170,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a[0,0]
             -2/3
 
-        But the matrix doesn't know the entry changed, so it returns
-        the cached version of its print representation:
-            sage: a
-            [0 1 2]
-            [3 4 5]
-
-        If we change an entry, the cache is cleared, and the correct print
-        representation appears:
-            sage: a[1,2]=10
+        See:
             sage: a
             [-2/3    1    2]
-            [   3    4   10]
+            [   3    4    5]
         """
         cdef Py_ssize_t i, j
 
@@ -687,8 +679,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a.__repr__()
             '[z0 z1 z2]\n[z3 z4 z5]'
         """
-        x = self.fetch('repr')
-        if not x is None: return x
+        #x = self.fetch('repr')
+        #if not x is None: return x
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
         nc = self._ncols
@@ -729,7 +721,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         for row in rows:
             tmp.append("[%s]"%row)
         s = "\n".join(tmp)
-        self.cache('repr',s)
+        #self.cache('repr',s)
         return s
 
 ##     def _latex_sparse(self, variable="x"):
@@ -1304,6 +1296,17 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
 
     def pivots(self):
+        """
+        Return the pivot column positions of this matrix as a list of Python integers.
+
+        This returns a list, of the position of the first nonzero entry in each row
+        of the echelon form.
+
+        OUTPUT:
+             list -- a list of Python ints
+
+        EXAMPLES:
+        """
         x = self.fetch('pivots')
         if not x is None: return x
         self.echelon_form()

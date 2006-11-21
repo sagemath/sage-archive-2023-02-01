@@ -3268,7 +3268,7 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
             # function and when get a huge (but not infinite) wasteful recursion.
             v -= b*v[j]
         if v != 0:
-            raise TypeError, "v (=%s) is not in self"%v
+            raise ArithmeticError, "v (=%s) is not in self"%v
         return c
 
     def coordinate_vector(self, v):

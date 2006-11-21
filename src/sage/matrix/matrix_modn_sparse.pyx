@@ -152,19 +152,15 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
         if isinstance(entries, dict):
             # Sparse input format.
-            _sig_on
+            R = self._base_ring
             for ij, x in entries.iteritems():
                 y = x
-                z = y % p
-                if z < 0:
-                    z = z + p
-                if z:
+                z = R(y)
+                if z != 0:
                     i, j = ij  # nothing better to do since this is user input, which may be bogus.
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
-                        _sig_off
                         raise IndexError, "invalid entries list"
                     set_entry(&self.rows[i], j, z)
-            _sig_off
         elif isinstance(entries, list):
             # Dense input format
             if len(entries) != self._nrows * self._ncols:
@@ -172,13 +168,12 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             seq = PySequence_Fast(entries,"expected a list")
             X = PySequence_Fast_ITEMS(seq)
             k = 0
-            _sig_on
+            R = self._base_ring
             # Get fast access to the entries list.
             for i from 0 <= i < self._nrows:
                 for  j from 0 <= j < self._ncols:
-                    set_entry(&self.rows[i], j, <object>X[k])
+                    set_entry(&self.rows[i], j, R(<object>X[k]))
                     k = k + 1
-            _sig_off
         else:
             # scalar?
             s = int(self._base_ring(entries))

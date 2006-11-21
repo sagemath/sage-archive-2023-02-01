@@ -52,7 +52,7 @@ def FreeAlgebra(R, n, names):
         Free Algebra on 3 generators (x0, x1, x2) over Finite Field of size 5
         sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
         sage: (x+y+z)^2
-        x*y + x*z + x^2 + y*x + y*z + y^2 + z*x + z*y + z^2
+        x^2 + x*y + x*z + y*x + y^2 + y*z + z*x + z*y + z^2
         sage: FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
         Free Algebra on 3 generators (xx, zba, Y) over Finite Field of size 5
         sage: FreeAlgebra(GF(5),3, 'abc')
@@ -117,7 +117,7 @@ class FreeAlgebra_generic(Algebra):
         x*y*x*y*x*y*x*y*x*y*x*y + x*y*z*x*y*z*x*y*z*x*y*z
 
         sage: (2 + x*z + x^2)^2 + (x - y)^2
-        4 - x*y + 2*x*z + x*z*x*z + x*z*x^2 + 3*x^2 + x^3*z + x^4 - y*x + y^2
+        4 + 3*x^2 - x*y + 2*x*z - y*x + y^2 + x^4 + x^3*z + x*z*x^2 + x*z*x*z
     """
     def __init__(self, R, n, names):
         """

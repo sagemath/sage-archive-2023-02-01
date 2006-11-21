@@ -216,7 +216,7 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         """
         if isinstance(x, (int, long)):
             return self(x)
-        raise TypeError, 'no canonical coercion to an integer'
+        raise TypeError, "no canonical coercion to an integer"
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

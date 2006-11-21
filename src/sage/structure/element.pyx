@@ -367,9 +367,11 @@ def is_ModuleElement(x):
 
     EXAMPLES:
         sage: is_ModuleElement(2/3)
-        False
+        True
         sage: is_ModuleElement((QQ^3).0)
         True
+        sage: is_ModuleElement('a')
+        False
     """
     return IS_INSTANCE(x, ModuleElement)
 
@@ -1247,6 +1249,12 @@ def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
 cdef class Matrix(ModuleElement):
+    cdef int is_sparse_c(self):
+        raise NotImplementedError
+
+    cdef int is_dense_c(self):
+        raise NotImplementedError
+
     def __mul__(left, right):
         if PY_TYPE_CHECK(left, Matrix):
             # left is the matrix
@@ -1304,9 +1312,16 @@ cdef class Matrix(ModuleElement):
 
 
     cdef Matrix _matrix_times_matrix_c(left, Matrix right):
+        cdef int sl, sr
         if left._ncols != right._nrows:
             raise TypeError, "incompatible dimensions"
         left, right = canonical_base_coercion_c(left, right)
+        sl = left.is_sparse_c(); sr = right.is_sparse_c()
+        if sl != sr:  # is dense and one is sparse
+            if sr:  # left is dense
+                right = right.dense_matrix()
+            else:
+                left = left.dense_matrix()
         if HAS_DICTIONARY(left):
             return left._matrix_times_matrix(right)
         else:
@@ -1421,8 +1436,9 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
     def __mod__(self, other):
         """
         Remainder of division of self by other.
+
         EXAMPLES:
-            sage: x = PolynomialRing(IntegerRing()).gen()
+            sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
             sage: (x**3 + x - 1) % (x**2 - 1)
@@ -1639,9 +1655,6 @@ cdef canonical_coercion_c(x, y):
     raise TypeError, "unable to find a common canonical parent for x and y"
 
 cdef canonical_base_coercion_c(Element x, Element y):
-    # x and y *must* both have parents with a base ring, i,e, ParentWithBase.
-    # Otherwise you'll get a core dump!
-
     if not have_same_base(x, y):
         if (<Parent> x._parent._base).has_coerce_map_from_c(y._parent._base):
             # coerce all elements of y to the base ring of x
@@ -1649,7 +1662,7 @@ cdef canonical_base_coercion_c(Element x, Element y):
         elif (<Parent> y._parent._base).has_coerce_map_from_c(x._parent._base):
             # coerce x to have elements in the base ring of y
             x = x.base_extend_c(y._parent._base)
-    return x, y
+    return x,y
 
 def canonical_base_coercion(x, y):
     try:
@@ -1670,6 +1683,14 @@ def canonical_base_coercion(x, y):
     return x.change_ring(b), y.change_ring(b)
 
 
+D = {'mul':'*', 'add':'+', 'sub':'-', 'div':'/'}
+cdef arith_error_message(x, y, op):
+    try:
+        n = D[op.__name__]
+    except KeyError:
+        n = op.__name__
+    return "unsupported operand parent(s) for '%s': '%s' and '%s'"%(n, parent_c(x), parent_c(y))
+
 def bin_op(x, y, op):
     return bin_op_c(x,y,op)
 
@@ -1684,9 +1705,7 @@ cdef bin_op_c(x, y, op):
         return op(x1,y1)
     except TypeError, msg:
         if not op is operator.mul:
-            raise TypeError, "x=%s (in %s), y=%s (in %s)\n%s\nNo canonical arithmetic defined for %s."%(x,
-                          parent_c(x), y, parent_c(y), msg, op)
-
+            raise TypeError, arith_error_message(x,y,op)
 
     # If the op is multiplication, then some other algebra multiplications
     # may be defined
@@ -1751,8 +1770,7 @@ cdef bin_op_c(x, y, op):
     except (AttributeError, TypeError):
         pass
 
-    raise TypeError, "unable to multiply %s (parent: %s) times %s (parent: %s)"%(x,parent_c(x),y,parent_c(y))
-
+    raise TypeError, arith_error_message(x,y,op)
 
 def coerce_cmp(x,y):
     cdef int c

@@ -112,7 +112,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __init__(self, parent, entries, copy, coerce):
         """
-        sage: test with negative numbers in input entries list
+        EXAMPLES:
+            sage: test with negative numbers in input entries list
         """
         cdef uint p
         self.p = self._base_ring.characteristic()
@@ -143,13 +144,24 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         k = 0
         cdef uint n
+        R = self.base_ring()
 
-        for i from 0 <= i < self._nrows:
-            if PyErr_CheckSignals(): raise KeyboardInterrupt
-            v = self.matrix[i]
-            for j from 0 <= j < self._ncols:
-                v[j] = int(entries[k]) % p
-                k = k + 1
+        cdef PyObject** w
+        w = FAST_SEQ_UNSAFE(entries)
+        if coerce:
+            for i from 0 <= i < self._nrows:
+                if PyErr_CheckSignals(): raise KeyboardInterrupt
+                v = self.matrix[i]
+                for j from 0 <= j < self._ncols:
+                    v[j] = R( <object> w[k])
+                    k = k + 1
+        else:
+            for i from 0 <= i < self._nrows:
+                if PyErr_CheckSignals(): raise KeyboardInterrupt
+                v = self.matrix[i]
+                for j from 0 <= j < self._ncols:
+                    v[j] = int( <object> w[k])
+                    k = k + 1
 
 
     def __richcmp__(Matrix_modn_dense self, right, int op):  # always need for mysterious reasons.

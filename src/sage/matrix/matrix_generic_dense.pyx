@@ -20,6 +20,7 @@ cimport matrix_dense
 import matrix_dense
 
 cimport matrix
+cimport matrix_window
 
 cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
     r"""
@@ -229,7 +230,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
 
 #######################################################################
 
-cdef class MatrixWindow(matrix.MatrixWindow):
+cdef class MatrixWindow(matrix_window.MatrixWindow):
 
     def __init__(MatrixWindow self, matrix, int row, int col, int nrows, int ncols):
         self._matrix = matrix

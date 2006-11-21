@@ -44,9 +44,6 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j)
     cdef _coerce_element(self, x)
 
-    # Strassen
-    cdef subtract_strassen_product(self, result, A, B, int cutoff)
-
     # Row and column operations
     cdef check_row_bounds_and_mutability(self, Py_ssize_t r1, Py_ssize_t r2)
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2)
@@ -61,6 +58,3 @@ cdef class Matrix(sage.structure.element.Matrix):
 
 
 
-cdef class MatrixWindow:
-    cdef Py_ssize_t _row, _col, _nrows, _ncols
-    cdef Matrix _matrix

@@ -249,7 +249,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             else:
                 entries = sum([v.list() for v in entries],[])
 
-        return self.matrix(entries, coerce=coerce, copy=copy)
+        return self.matrix(entries, copy=copy, coerce=coerce)
 
     def base_extend(self, R):
         """
@@ -483,7 +483,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 x = e
             elif isinstance(x[0], tuple):
                 x = list(sum(x,()))
-        return self.__matrix_class(self, x, coerce, copy)
+        return self.__matrix_class(self, entries=x, copy=copy, coerce=coerce)
 
     def matrix_space(self, nrows, ncols, sparse=False):
         if nrows is None:

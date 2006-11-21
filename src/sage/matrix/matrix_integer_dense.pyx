@@ -586,6 +586,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._ncols * self._nrows:
             mpz_set(self._entries[i], E._entries[i])
 
+        self.clear_cache()
+
     def _echelon_strassen(self):
         raise NotImplementedError
 

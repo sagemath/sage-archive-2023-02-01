@@ -1,10 +1,5 @@
-cimport sage.matrix.matrix_dense
+from matrix cimport Matrix
 
 cdef class MatrixWindow:
-
-    cdef sage.matrix.matrix_dense.Matrix_dense _matrix
-
-    cdef int _row
-    cdef int _col
-    cdef int _nrows
-    cdef int _ncols
+    cdef Py_ssize_t _row, _col, _nrows, _ncols
+    cdef Matrix _matrix

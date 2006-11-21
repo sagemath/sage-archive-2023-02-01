@@ -521,14 +521,14 @@ class NumberField_generic(field.Field):
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
 
-            sage: NumberField(x^3-2).galois_group(pari_group=True)
+            sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
             PARI group [6, -1, 2, "S3"] of degree 3
 
-            sage: NumberField(x-1).galois_group()    # optional database_gap package
+            sage: NumberField(x-1, 'a').galois_group()    # optional database_gap package
             Transitive group number 1 of degree 1
-            sage: NumberField(x^2+2).galois_group()  # optional database_gap package
+            sage: NumberField(x^2+2, 'a').galois_group()  # optional database_gap package
             Transitive group number 1 of degree 2
-            sage: NumberField(x^3-2).galois_group()  # optional database_gap package
+            sage: NumberField(x^3-2, 'a').galois_group()  # optional database_gap package
             Transitive group number 2 of degree 3
         """
         return self.polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)

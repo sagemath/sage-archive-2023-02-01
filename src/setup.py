@@ -413,6 +413,14 @@ ext_modules = [ \
               ['sage/matrix/matrix.pyx']
               ), \
 
+    Extension('sage.matrix.matrix_window',
+              ['sage/matrix/matrix_window.pyx']
+              ), \
+
+    Extension('sage.matrix.strassen',
+              ['sage/matrix/strassen.pyx']
+              ), \
+
     Extension('sage.rings.integer_mod',
               ['sage/rings/integer_mod.pyx'],
               libraries = ['gmp']

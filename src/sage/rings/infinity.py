@@ -44,9 +44,7 @@ not well defined.
     sage: oo/0
     Traceback (most recent call last):
     ...
-    TypeError: x=Infinity (in The Infinity Ring), y=0 (in Integer Ring)
-    <BLANKLINE>
-    No canonical arithmetic defined for <built-in function div>.
+    TypeError: unsupported operand parent(s) for '/': 'The Infinity Ring' and 'Integer Ring'
 
 What happened above is that 0 is canonically coerced to
 "a number less than infinity" in the infinity ring, and the quotient
@@ -61,7 +59,7 @@ is then not well defined.
     sage: oo/oo
     Traceback (most recent call last):
     ...
-    TypeError
+    TypeError: unsupported operand parent(s) for '*': 'The Infinity Ring' and 'The Infinity Ring'
 """
 
 from ring_element import RingElement

@@ -487,6 +487,8 @@ setup(name        = 'sage',
 
                      'sage.gsl',
 
+                     'sage.graphs',
+
                      'sage.groups',
                      'sage.groups.abelian_gps',
                      'sage.groups.matrix_gps',

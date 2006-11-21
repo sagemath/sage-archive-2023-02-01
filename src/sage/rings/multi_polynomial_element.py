@@ -106,7 +106,7 @@ class MPolynomial(CommutativeRingElement):
             y += c*misc.mul([ x[i]**m[i] for i in range(n) ])
         return y
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
         self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
@@ -145,9 +145,10 @@ class MPolynomial(CommutativeRingElement):
 
         """
         try:
-            return self.__element._cmp_(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
+            return self.__element.compare(right.__element,
+                             self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
         except AttributeError:
-            return self.__element._cmp_(right.__element)
+            return self.__element.compare(right.__element)
 
     def _im_gens_(self, codomain, im_gens):
         """

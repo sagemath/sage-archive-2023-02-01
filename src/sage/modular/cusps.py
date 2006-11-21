@@ -217,7 +217,7 @@ class Cusp(SageObject):
         self.__b = b//g
         return
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compare the cusps self and right.  Comparison is as for
         rational numbers, except with the cusp oo greater than

@@ -61,7 +61,7 @@ class NumberFieldIdeal(Ideal_fractional):
 
         Ideal_generic.__init__(self, field, gens, coerce)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if self.pari_hnf() == other.pari_hnf():
             return 0
         return -1

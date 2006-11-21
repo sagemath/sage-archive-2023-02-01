@@ -247,7 +247,7 @@ class ComplexNumber(ring_element.RingElement):
     def __complex__(self):
         return complex(float(self.__re), float(self.__im))
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         return sage.misc.misc.generic_cmp((self.__re, self.__im) , (other.__re, other.__im))
 
     def multiplicative_order(self):

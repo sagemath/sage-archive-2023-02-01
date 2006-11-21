@@ -263,7 +263,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.polynomial_ring()])
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Compare self and other.
 

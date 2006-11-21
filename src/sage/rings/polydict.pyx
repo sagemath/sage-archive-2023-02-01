@@ -119,12 +119,10 @@ cdef class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __cmp__(PolyDict self, other):
-        if not isinstance(other, PolyDict):
-            return cmp(type(self), type(other))
-        return cmp(self.__repn, (<PolyDict>other).__repn)
+    def __cmp__(self, PolyDict right):
+        return cmp(self.__repn, right.__repn)
 
-    def _cmp_(PolyDict self, PolyDict other, fn=None):
+    def compare(PolyDict self, PolyDict other, fn=None):
         if fn is None:
             return cmp(self.__repn, other.__repn)
 

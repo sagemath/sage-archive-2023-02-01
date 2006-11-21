@@ -428,26 +428,27 @@ class Expect(ParentWithBase):
         """
         cls = self._object_class()
 
+        if isinstance(x, cls) and x.parent() is self:
+            return x
+        if isinstance(x, str):
+            return cls(self, x)
         try:
             return self._coerce_impl(x)
         except TypeError:
-            pass
-
-        if isinstance(x, cls) and x.parent() is self:
-            return x
-
-        return cls(self, x)
+            return cls(self, str(x))
 
     def _coerce_impl(self, x):
-
-        if not isinstance(x, ExpectElement):
-            s = '_%s_'%self.name()
-            if s == '_pari_':
-                s = '_gp_'
-            if hasattr(x, s):
-                return x.__getattribute__(s)(self)
-            elif hasattr(x, '_interface_'):
-                return x._interface_(self)
+        s = '_%s_'%self.name()
+        if s == '_pari_':
+            s = '_gp_'
+        try:
+            return (x.__getattribute__(s))(self)
+        except AttributeError, msg:
+            pass
+        try:
+            return x._interface_(self)
+        except AttributeError, msg:
+            pass
 
         if isinstance(x, (list, tuple)):
             A = []
@@ -465,7 +466,8 @@ class Expect(ParentWithBase):
             r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
             return r
 
-        raise TypeError, "unable to coerce element into interface"
+
+        raise TypeError, "unable to coerce element into %s"%self.name()
 
     def new(self, code):
         return self(code)

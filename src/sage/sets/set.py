@@ -206,21 +206,14 @@ class Set_object(Set_generic):
         """
         Return True if $x$ is in self.
 
-        This usually means that x can be canonically coerced into
-        self.   Note that "x in G" for most objects besides sets
-        means that x can be coerced into G, not necessarily canonically.
-        But for sets the coercion has to be canonical (for objects
-        that support a notion of canonical coercion, i.e., an _coerce_
-        method).
-
         EXAMPLES:
             sage: X = Set(ZZ)
             sage: 5 in X
             True
             sage: GF(7)(3) in X
-            False
+            True
             sage: 2/1 in X
-            False
+            True
             sage: 2/1 in ZZ
             True
             sage: 2/3 in X
@@ -241,14 +234,7 @@ class Set_object(Set_generic):
             sage: Set(GF(7)).intersection(Set(GF(5)))
             {}
         """
-        try:
-            try:
-                self.__object._coerce_(x)
-            except TypeError:
-                return False
-            return True
-        except AttributeError:
-            return x in self.__object
+        return x in self.__object
 
     def __cmp__(self, right):
         r"""
@@ -271,10 +257,8 @@ class Set_object(Set_generic):
             sage: Primes() < Set(QQ)
             True
 
-        This illustrates that < is not the same as containment.
-
             sage: Set(QQ) < Primes()
-            True
+            False
             sage: Primes() < Set(QQ)
             True
 
@@ -321,7 +305,7 @@ class Set_object(Set_generic):
             sage: Set(GF(2)) + Set(GF(4,'a'))
             {0, 1, a + 1, 1, a, 0}
             sage: Set(GF(8,'b')) + Set(GF(4,'a'))
-            {b^2 + b + 1, 1, b, b^2 + b, b^2 + 1, a + 1, 1, b^2, b + 1, 0}
+            {b^2 + b + 1, 1, b, b^2 + b, b^2 + 1, a + 1, 1, b^2, 0, a, b + 1, 0}
         """
         return self.union(X)
 
@@ -336,15 +320,16 @@ class Set_object(Set_generic):
             sage: 3 in X
             True
 
-        This is false since $\QQ$ does not have a canonical coercion
-        map to $\ZZ$.
-
             sage: 2/1 in X
-            False
+            True
 
             sage: X = Set(GF(9,'b')).intersection(Set(GF(27,'c')))
             sage: X
-            {0}
+            {}
+
+            sage: X = Set(GF(9,'b')).intersection(Set(GF(27,'b')))
+            sage: X
+            {}
         """
         if is_Set(X):
             if self == X:
@@ -769,7 +754,7 @@ class Set_object_intersection(Set_object):
         EXAMPLES:
             sage: X = Set(GF(13)).intersection(Set(ZZ))
             sage: X.cardinality()
-            0
+            13
         """
         return len(list(self))
 

@@ -150,7 +150,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         # any ring that coerces to the base ring of this polynomial ring.
         return self._coerce_try(x, [self.base_ring()])
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         if not is_MPolynomialRing(right):
             return cmp(type(self),type(right))
         return cmp((self.base_ring(), self.__ngens, self.variable_names(), self.__term_order),

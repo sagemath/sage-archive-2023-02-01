@@ -358,7 +358,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return self(self.__poly_ring.random_element(prec, bound), prec)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Compare this power series ring to something else.
 

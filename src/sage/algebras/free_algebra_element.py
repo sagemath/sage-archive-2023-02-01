@@ -58,7 +58,7 @@ class FreeAlgebraElement(AlgebraElement):
         else:
             return x
 
-    def _cmp_(left, right):
+    def __cmp__(left, right):
         """
         Compare two free algebra elements with the same parents.
 

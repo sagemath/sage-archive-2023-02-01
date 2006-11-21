@@ -282,7 +282,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             raise IndexError, "i (=%s) must be between 0 and %s, inclusive"%(i, len(S)-1)
         return PermutationGroupElement(gap(T), check = False)
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compare group elements self and right.
 

@@ -34,7 +34,6 @@ r"""
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
 from sage.rings.ring cimport FiniteField
 from sage.rings.ring cimport Ring
 from sage.structure.element cimport FiniteFieldElement, Element, RingElement, ModuleElement
@@ -53,12 +52,9 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
 
-## cdef extern from 'interrupt.h':
-##     int _sig_on, _sig_off, _sig_check
-##     void _sig_str(char*)
+#include '../ext/interrupt.pxi'
 cdef int _sig_on
 cdef int _sig_off
-cdef int _sig_check
 
 cdef class FiniteField_givaro(FiniteField) #forward declaration
 
@@ -730,6 +726,7 @@ cdef class FiniteField_givaro(FiniteField):
 
     def __richcmp__(left, right, int op):
         return (<Parent>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(left, Parent right) except -2:
         """
         Finite Fields are considered to be equal if
@@ -743,13 +740,15 @@ cdef class FiniteField_givaro(FiniteField):
 
         """
         if not isinstance(right, FiniteField_givaro):
-            return 1
+            return cmp(type(left), type(right))
         c = cmp(left.characteristic(), right.characteristic())
         if c: return c
         c = cmp(left.degree(), right.degree())
         if c: return c
-        if left.degree()>1:
-            c = cmp(left.polynomial(), right.polynomial())
+        # TODO comparing the polynomials themselves would recursively call
+        # this cmp...  Also, as mentioned above, we will get rid of this.
+        if left.degree() > 1:
+            c = cmp(str(left.polynomial()), str(right.polynomial()))
             if c: return c
         return 0
 

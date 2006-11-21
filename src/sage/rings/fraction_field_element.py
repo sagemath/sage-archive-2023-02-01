@@ -212,7 +212,7 @@ class FractionFieldElement(field_element.FieldElement):
     def __float__(self):
         return float(self.__numerator) / float(self.__denominator)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         return cmp(self.__numerator * other.__denominator, self.__denominator*other.__numerator)
 
     def valuation(self):

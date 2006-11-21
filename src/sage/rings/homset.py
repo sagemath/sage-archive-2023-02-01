@@ -10,7 +10,8 @@ Space of homomorphisms between two rings.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.all import Homset, Rings
+from sage.categories.all import HomsetWithBase, Rings
+from sage.structure.parent_base import ParentWithBase
 
 import morphism
 import quotient_ring
@@ -27,9 +28,9 @@ def RingHomset(R, S):
     return RingHomset_generic(R, S)
 
 
-class RingHomset_generic(Homset):
+class RingHomset_generic(HomsetWithBase):
     def __init__(self, R, S):
-        Homset.__init__(self, R, S, RINGS)
+        HomsetWithBase.__init__(self, R, S, RINGS)
 
     def _repr_(self):
         return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())

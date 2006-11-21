@@ -156,7 +156,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         return arith.generic_power(self, n, one=self.parent()(1))
 
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Compare this element with something else, where equality
         testing coerces the object on the right, if possible (and

@@ -368,6 +368,38 @@ class RingHomomorphism(RingMap):
             raise TypeError, "lift must have correct codomain"
         self.__lift = lift
 
+    def is_zero(self):
+        r"""
+        Return True if this is the zero map and False otherwise.
+
+        A *ring* homomorphism is considered to be 0 if and only if
+        it sends the 1 element of the domain to the 0 element of the
+        codomain.
+
+        EXAMPLES:
+        First an example of a map that is obviously nonzero.
+            sage: h = Hom(ZZ, QQ)
+            sage: f = h.natural_map()
+            sage: f.is_zero()
+            False
+
+        Next we make the zero ring as $\ZZ/1\ZZ$.
+            sage: R = Integers(1)
+            sage: R
+            Ring of integers modulo 1
+            sage: h = Hom(ZZ, R)
+            sage: f = h.natural_map()
+            sage: f.is_zero()
+            True
+
+        Finally we check an example in characteristic 2.
+            sage: h = Hom(ZZ, GF(2))
+            sage: f = h.natural_map()
+            sage: f.is_zero()
+            False
+        """
+        return self(self.domain()(1)) == self.codomain()(0)
+
     def inverse_image(self, I):
         """
         Return the inverse image of the ideal $I$ under this ring

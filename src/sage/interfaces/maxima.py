@@ -1026,7 +1026,7 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         return P('%s[%s]'%(self.name(), x))
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES:
             sage: a = maxima(1); b = maxima(2)

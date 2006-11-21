@@ -124,7 +124,7 @@ class MPolynomialIdeal_singular_repr:
     An ideal in a multivariate polynomial ring, which has an
     underlying Singular ring associated to it.
     """
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         # Groebner basis determine equality since ideals are in the
         # same ring with same term order
 

@@ -96,7 +96,7 @@ class InfinityRing_class(Ring):
     def _repr_(self):
         return "The Infinity Ring"
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         if isinstance(right, InfinityRing_class):
             return 0
         return cmp(type(self), type(right))
@@ -154,7 +154,7 @@ class LessThanInfinity(RingElement):
             return self
         raise TypeError, "quotient of oo by number < oo not defined"
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if isinstance(other, Infinity):
             return -1
         return 0
@@ -183,7 +183,7 @@ class Infinity(InfinityElement):
             return self
         raise TypeError, "oo times smaller number not defined"
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if isinstance(other, Infinity):
             return 0
         return 1

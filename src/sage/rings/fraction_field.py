@@ -182,7 +182,7 @@ class FractionField_generic(field.Field):
             pass
         return self._coerce_try(x, [self.ring()])
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if not isinstance(other, FractionField_generic):
             return cmp(type(self), type(other))
         return cmp(self.ring(), other.ring())

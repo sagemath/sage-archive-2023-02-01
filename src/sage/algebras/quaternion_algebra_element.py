@@ -32,7 +32,7 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
         """
         FreeAlgebraQuotientElement.__init__(self, H, x)
 
-    def _cmp_(self, x):
+    def __cmp__(self, x):
         return cmp(self.vector(), x.vector())
 
     def conjugate(self):

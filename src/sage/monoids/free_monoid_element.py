@@ -66,7 +66,7 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def _cmp_(left, right):
+    def __cmp__(left, right):
         """
         Compare two free monoid elements with the same parents.
 

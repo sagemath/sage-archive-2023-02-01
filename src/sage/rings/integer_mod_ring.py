@@ -340,7 +340,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES:
             sage: F = GF(11)

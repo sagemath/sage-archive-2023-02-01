@@ -79,7 +79,7 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
     def _add_(self, right):
         return ModularSymbolsElement(self.parent(), self.element() + right.element())
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         return self.element().__cmp__(other.element())
 
     def _repr_(self):

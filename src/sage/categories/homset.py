@@ -27,6 +27,7 @@ import weakref
 import category
 import morphism
 from sage.sets.set import Set_generic
+from sage.structure.parent_base import ParentWithBase
 
 _cache = {}
 def Hom(X, Y, cat=None):
@@ -114,8 +115,10 @@ def Hom(X, Y, cat=None):
         H = SchemeHomset(X, Y)
 
     else:  # default
-
-        H = Homset(X, Y, cat)
+        if isinstance(X, ParentWithBase):
+            H = HomsetWithBase(X, Y, cat)
+        else:
+            H = Homset(X, Y, cat)
 
     ##_cache[key] = weakref.ref(H)
     _cache[(X, Y, cat)] = weakref.ref(H)
@@ -258,6 +261,10 @@ class Homset(Set_generic):
         """
         return Homset(self.__codomain, self.__domain, self.__category)
 
+class HomsetWithBase(ParentWithBase, Homset):
+    def __init__(self, X, Y, cat=None, check=True):
+        Homset.__init__(self, X, Y, cat, check)
+        ParentWithBase.__init__(self, X.base_ring())
 
 def is_Homset(x):
     """

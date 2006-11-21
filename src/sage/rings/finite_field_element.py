@@ -311,7 +311,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         Gap only supports relatively small finite fields.
             sage: F = FiniteField_ext_pari(next_prime(1000)^2, 'a')
             sage: a = F.multiplicative_generator ()
-            sage: gap(a)
+            sage: gap._coerce_(a)
             Traceback (most recent call last):
             ...
             TypeError: order must be at most 65536
@@ -527,7 +527,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         return integer_ring.IntegerRing()(self.__value.lift().lift())
 
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Compare an element of a finite field with other.  If other is
         not an element of a finite field, an attempt is made to coerce

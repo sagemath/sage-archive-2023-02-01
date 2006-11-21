@@ -225,7 +225,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             return False
         return True
 
-    def _cmp_(left, right):
+    def __cmp__(left, right):
         return cmp((left.base_ring(), left.variable_name()),
                    (right.base_ring(), right.variable_name()))
 

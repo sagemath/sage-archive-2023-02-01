@@ -119,7 +119,7 @@ class pAdicField_generic(field.Field):
             return self(x)
         raise TypeError
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if not isinstance(other, pAdicField_generic):
             return cmp(type(self), type(other))
         return cmp((self.__p, self.__prec), (other.__p, other.__prec))

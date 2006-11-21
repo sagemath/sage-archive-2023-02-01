@@ -56,7 +56,7 @@ class PowerSeries(ring_element.RingElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         r"""
         Comparison of self and right.
 

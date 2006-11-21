@@ -53,8 +53,9 @@ class Primes_class(Set_generic):
 
     def __contains__(self, x):
         try:
-            y = ZZ._coerce_(x)
-            return y.is_prime()
+            if not x in ZZ:
+                return False
+            return ZZ(x).is_prime()
         except TypeError:
             return False
 

@@ -135,7 +135,7 @@ class ComplexField_class(field.Field):
             self.__real_field = real_field.RealField(self.__prec)
             return self.__real_field
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if not isinstance(other, ComplexField_class):
             return cmp(type(self), type(other))
         return cmp(self.__prec, other.__prec)

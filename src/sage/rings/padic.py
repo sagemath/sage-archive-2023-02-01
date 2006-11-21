@@ -620,7 +620,7 @@ class pAdic(field_element.FieldElement):
     def _integer_(self):
         return self.lift()
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         First compare valuations, then compare normalized
         residue of unit part.

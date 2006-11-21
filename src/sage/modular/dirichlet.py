@@ -224,7 +224,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         G = self.parent().change_ring(R)
         return G(self)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES:
             sage: e = DirichletGroup(16)([-1, 1])

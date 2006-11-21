@@ -146,7 +146,7 @@ class FreeAlgebra_generic(Algebra):
         """
         return self.__ngens <= 1 and self.base_ring().is_commutative()
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         Two free algebras are considered the same if they have the
         same base ring, number of generators and variable names.

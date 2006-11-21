@@ -254,7 +254,7 @@ class Function(RingElement):
             raise TypeError, "computation of %s^%s not defined"%(self, right)
         return Function_arith(self, right, operator.pow)
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         EXAMPLES:
             sage: s = e + pi

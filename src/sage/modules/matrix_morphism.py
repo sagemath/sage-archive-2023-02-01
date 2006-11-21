@@ -90,7 +90,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             mat = str(self.__matrix)
         return "Morphism defined by the matrix\n%s"%mat
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         return cmp(self.__matrix, other.__matrix)
 
     def __call__(self, x):

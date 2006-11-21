@@ -152,7 +152,7 @@ class NumberFieldElement(field_element.FieldElement):
     def __getitem__(self, n):
         return self.polynomial()[n]
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         return cmp(self.__element, other.__element)
 
     def __pow__(self, right):

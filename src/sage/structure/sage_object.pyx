@@ -186,35 +186,6 @@ cdef class SageObject:
     #############################################################################
     # Category theory / structure
     #############################################################################
-    def Hom(self, codomain, cat=None):
-        r"""
-        self.Hom(codomain, cat=None):
-
-        Return the homspace \code{Hom(self, codomain, cat)} of all
-        homomorphisms from self to codomain in the category cat.  The
-        default category is \code{self.category()}.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: R.Hom(QQ)
-            Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
-
-        Homspaces are defined for very general \sage objects, even elements of familiar rings.
-            sage: n = 5; n.Hom(7)
-            Set of Morphisms from 5 to 7 in Category of elements of Integer Ring
-            sage: z=(2/3); z.Hom(8/1)
-            Set of Morphisms from 2/3 to 8 in Category of elements of Rational Field
-
-        This example illustrates the optional third argument:
-            sage: QQ.Hom(ZZ, Sets())
-            Set of Morphisms from Rational Field to Integer Ring in Category of sets
-        """
-        try:
-            return self._Hom_(codomain, cat)
-        except (TypeError, AttributeError):
-            pass
-        from sage.categories.all import Hom
-        return Hom(self, codomain, cat)
 
     def category(self):
         from sage.categories.all import Objects

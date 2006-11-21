@@ -51,8 +51,8 @@ def element_verify(file, module_element=False, ring_element=False, monoid_elemen
 
     else:
         # pure python class
-        if not 'def _cmp_(' in r:
-            msg("WARNING: You should define 'def _cmp_(left, right)'")
+        if not 'def __cmp__(' in r:
+            msg("WARNING: You should define 'def __cmp__(left, right)'")
             msg("which may assume the parents of left and right are identical.")
 
         if module_element:

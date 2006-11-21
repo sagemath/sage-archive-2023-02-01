@@ -143,7 +143,7 @@ class Interval(ring_element.RingElement):
         x = float(x)
         return self.__min <= x and x <= self.__max
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if self.__max < other.__min:
             return -1
         elif self.__min > other.__max:

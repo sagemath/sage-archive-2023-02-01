@@ -449,7 +449,7 @@ class MathematicaElement(ExpectElement):
     def str(self):
         return str(self)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
         #    return coerce.cmp(self, other)
         P = self.parent()

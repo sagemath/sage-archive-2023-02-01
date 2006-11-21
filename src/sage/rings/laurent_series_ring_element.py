@@ -483,7 +483,7 @@ class LaurentSeries(ring_element.RingElement):
             raise ArithmeticError, "division not defined"
 
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0

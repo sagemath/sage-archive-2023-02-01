@@ -149,7 +149,7 @@ class QuotientRingElement(ring_element.RingElement):
     def __float__(self):
         return float(self.lift())
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
             return 0
         return -1

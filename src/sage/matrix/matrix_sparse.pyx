@@ -14,6 +14,7 @@ cdef extern from "Python.h":
 
 
 cdef class Matrix_sparse(matrix.Matrix):
+
     cdef int is_sparse_c(self):
         return 1
 
@@ -148,6 +149,85 @@ cdef class Matrix_sparse(matrix.Matrix):
             while k1 < len_left and get_ij(left_nonzero,k1,0) == row:
                 k1 = k1 + 1
         _sig_off
+        return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
+
+    def _multiply_classical_with_cache(Matrix_sparse left, Matrix_sparse right):
+        """
+        This function computes the locations of the end of the rows/columns
+        in the non-zero entries list once O(rows+cols) time and space, then
+        uses these values in the inner loops. For large matrices this can be
+        a 2x or more speedup, but the matrices can no longer be arbitrarily
+        large as the runtime and space requirements are no longer functions
+        of the total number of entries only.
+
+        EXAMPLES:
+            sage: A = matrix(QQ['x,y'], 2, [0,-1,2,-2], sparse=True)
+            sage: type(A)
+            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
+            sage: B = matrix(QQ['x,y'], 2, [-1,-1,-2,-2], sparse=True)
+            sage: A._multiply_classical_with_cache(B)
+            [2 2]
+            [2 2]
+        """
+        cdef Py_ssize_t row, col, row_start, k1, k2, len_left, len_right, a, b, i
+        cdef Py_ssize_t* next_row
+        cdef Py_ssize_t* next_col
+        left_nonzero = left.nonzero_positions(copy=False, column_order=False)
+        right_nonzero = right.nonzero_positions(copy=False, column_order=True)
+        len_left = len(left_nonzero)
+        len_right = len(right_nonzero)
+        next_row = <Py_ssize_t *> sage_malloc(sizeof(Py_ssize_t) * left._nrows)
+        next_col = <Py_ssize_t *> sage_malloc(sizeof(Py_ssize_t) * right._ncols)
+        if next_row == NULL or next_col == NULL:
+            if next_row != NULL: sage_free(next_row)
+            _sig_off
+            raise MemoryError, "out of memory multiplying a matrix"
+
+        _sig_on
+        i = len_left - 1
+        for row from left._nrows > row >= 0:
+            next_row[row] = i + 1
+            while i >= 0 and get_ij(left_nonzero,i,0) == row:
+                i = i - 1
+        i = len_right - 1
+        for col from right._ncols > col >= 0:
+            next_col[col] = i + 1
+            while i >= 0 and get_ij(right_nonzero,i,1) == col:
+                i = i - 1
+
+        e = {}
+        k1 = 0
+        while k1 < len_left:
+            row_start = k1
+            row = get_ij(left_nonzero, row_start, 0)
+            k2 = 0
+            while k2 < len_right:
+                col = get_ij(right_nonzero, k2, 1)
+                sum = None
+                k1 = row_start
+                while k1 < next_row[row] and k2 < next_col[col]:
+                    a = get_ij(left_nonzero, k1,1)
+                    b = get_ij(right_nonzero,k2,0)
+                    if a == b:
+                        if sum is None:
+                            sum = left.get_unsafe(row,a)*right.get_unsafe(a,col)
+                        else:
+                            sum = sum + left.get_unsafe(row,a)*right.get_unsafe(a,col)
+                        k1 = k1 + 1
+                        k2 = k2 + 1
+                    elif a < b:
+                        k1 = k1 + 1
+                    else:
+                        k2 = k2 + 1
+                if not sum is None:
+                    e[row, col] = sum
+                k2 = next_col[col]
+            k1 = next_row[row]
+
+        sage_free(next_row)
+        sage_free(next_col)
+        _sig_off
+
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
     cdef int _will_use_strassen(self, matrix.Matrix right) except -2:

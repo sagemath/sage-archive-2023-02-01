@@ -10,7 +10,7 @@ Generic matrices
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-cimport matrix2
+cimport matrix1
 
-cdef class Matrix(matrix2.Matrix):
+cdef class Matrix(matrix1.Matrix):
     pass

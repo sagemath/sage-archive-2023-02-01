@@ -150,9 +150,6 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             [ 3  4]
             sage: loads(dumps(a)) == a
             True
-            sage: a.unpickle([10,2,3,5],0); a
-            [1 2]
-            [3 4]
         """
         cdef Py_ssize_t i, j, k
 
@@ -435,7 +432,7 @@ def Matrix_sparse_from_rows(X):
         sage: V = VectorSpace(QQ,20,sparse=True)
         sage: v = V(0)
         sage: v[9] = 4
-        sage: from sage.matrix.sparse_matrix import Matrix_sparse_from_rows
+        sage: from sage.matrix.matrix_generic_sparse import Matrix_sparse_from_rows
         sage: Matrix_sparse_from_rows([v])
         [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0

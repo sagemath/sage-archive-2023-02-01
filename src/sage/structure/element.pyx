@@ -1301,9 +1301,9 @@ cdef class Matrix(ModuleElement):
             raise TypeError, "incompatible dimensions"
         matrix_left, vector_right = canonical_base_coercion_c(matrix_left, vector_right)
         if HAS_DICTIONARY(matrix_left):
-            return matrix_left._vector_times_matrix(vector_right)
+            return matrix_left._matrix_times_vector(vector_right)
         else:
-            return matrix_left._vector_times_matrix_c_impl(vector_right)
+            return matrix_left._matrix_times_vector_c_impl(vector_right)
 
     cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right):
         raise TypeError

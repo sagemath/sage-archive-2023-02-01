@@ -870,13 +870,64 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return self.parent()(self._pari_().matadjoint().python())
 
-    def _lllgram(self):
-        """
-        Returns the LLL form of the lattice with given
-        Gram matrix.
+    ####################################################################################
+    # LLL
+    ####################################################################################
 
-        Assumes self is a square matrix.
+    def lllgram(self):
         """
+        LLL reduction of the lattice whose gram matrix is self.
+
+        INPUT:
+            M -- gram matrix of a definite quadratic form
+
+        OUTPUT:
+            U -- unimodular transformation matrix such that
+
+                U.transpose() * M * U
+
+            is LLL-reduced
+
+        ALGORITHM:
+            Use PARI
+
+        EXAMPLES:
+            sage: M = Matrix(ZZ, 2, 2, [-5,3,3,-2]) ; M
+            [-5  3]
+            [ 3 -2]
+            sage: U = M.lllgram() ; U
+            [1 1]
+            [1 2]
+            sage: U.transpose() * M * U
+            [-1  0]
+            [ 0 -1]
+            sage: M = Matrix(QQ,2,2,[269468, -199019/2, -199019/2, 36747]) ; M
+            [   269468 -199019/2]
+            [-199019/2     36747]
+            sage: U = M.lllgram() ; U
+            [-113  -24]
+            [-306  -65]
+            sage: U.transpose() * M * U
+            [  2 1/2]
+            [1/2   3]
+
+        Semidefinite and indefinite forms raise a ValueError:
+
+            sage: Matrix(ZZ,2,2,[2,6,6,3]).lllgram()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a definite matrix
+            sage: Matrix(ZZ,2,2,[1,0,0,-1]).lllgram()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a definite matrix
+
+        BUGS:
+            should work for semidefinite forms (PARI is ok)
+        """
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "matrix must be square"
+
         n = self.nrows()
         # pari does not like negative definite forms
         if n > 0 and self[0,0] < 0:

@@ -304,6 +304,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_mul(self._matrix[i][j], self._matrix[i][j], a)
         _sig_off
 
+    def _adjoint(self):
+        """
+        Return the adjoint of this matrix.
+
+        Assumes self is a square matrix (checked in adjoint).
+        """
+        return self.parent()(self._pari_().matadjoint().python())
 
 ###########################
 

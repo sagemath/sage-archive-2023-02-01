@@ -150,7 +150,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         _sig_off
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cdef int _will_use_strassen(self, matrix.Matrix right) except -2:
+    cdef int _will_use_strassen(self, right) except -2:
         # never use Strassen for sparse matrix multiply
         return 0
 

@@ -345,7 +345,7 @@ class FreeModule_generic(module.Module):
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
-        ParentWithGens.__init__(self, base_ring, names='x')   # names aren't used anywhere.
+        ParentWithGens.__init__(self, base_ring)     # names aren't used anywhere.
 
     def element_class(self):
         try:
@@ -974,7 +974,7 @@ class FreeModule_generic(module.Module):
         try:
             return self.__ngens
         except AttributeError:
-            self.__ngens = len(self.basis())
+            self.__ngens = self.rank()
         return self.__ngens
 
     def nonembedded_free_module(self):
@@ -1384,11 +1384,11 @@ class FreeModule_generic_pid(FreeModule_generic):
         if other.rank() < self.rank():
             return False
         if self.base_ring() != other.base_ring():
-            if not other.base_ring().is_field():  # since ambient vector spaces are the same.
-                if self.base_ring().is_field():
+            try:
+                if not self.base_ring().is_subring(other.base_ring()):
                     return False
-            raise NotImplementedError, "unable to determine inclusion of rings at present"
-
+            except NotImplementedError:
+                return False
         for b in self.basis():
             if not (b in other):
                 return False

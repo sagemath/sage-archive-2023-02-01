@@ -368,6 +368,10 @@ class RingHomomorphism(RingMap):
             raise TypeError, "lift must have correct codomain"
         self.__lift = lift
 
+    def is_injective(self):
+        ## TODO -- actually implement this in some generality (!)
+        raise NotImplementedError
+
     def is_zero(self):
         r"""
         Return True if this is the zero map and False otherwise.

@@ -2555,7 +2555,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             0.71363917353690087
         """
         QQ = sage.rings.rational_field.RationalField()
-        R = sage.rings.polynomial_ring.PolynomialRing(QQ)
+        R = sage.rings.polynomial_ring.PolynomialRing(QQ, 'x')
         return R(self.list()).complex_roots()
 
 ##     def __copy__(self):

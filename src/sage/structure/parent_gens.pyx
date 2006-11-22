@@ -152,12 +152,38 @@ def normalize_names(int ngens, names=None):
 # ngens() functions.  It is also good if they define gens() to return
 # all gens, but this is not necessary.
 
+def make(_class, _dict,
+                 base, has_coerce_map_from, names):
+    """
+    This should work for any Python class deriving from this, as long
+    as it doesn't implement some screwy __new__() method.
+    """
+    cdef ParentWithGens new_object
+    new_object = _class.__new__(_class)
+    if base is None:
+        new_object._base = new_object
+    else:
+        new_object._base = base
+    new_object._has_coerce_map_from = has_coerce_map_from
+    new_object._names = names
+    new_object.__dict__ = _dict
+    return new_object
+
 cdef class ParentWithGens(parent_base.ParentWithBase):
     # Derived class *must* call __init__ and set the base!
     def __init__(self, base, names=None, normalize=True):
         self._base = base
         self._has_coerce_map_from = {}
         self._assign_names(names=names, normalize=normalize)
+
+    def __reduce__(self):
+        if self._base is self:
+            base = None
+        else:
+            base = self._base
+        return (make, (self.__class__, self.__dict__, base,
+                               self._has_coerce_map_from,
+                               self._names))
 
     # Derived class *must* define ngens method.
     def ngens(self):

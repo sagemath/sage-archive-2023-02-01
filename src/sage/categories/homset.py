@@ -226,6 +226,8 @@ class Homset(Set_generic):
         raise TypeError, "Unable to coerce x (=%s) to a morphism in %s"%(x,self)
 
     def __cmp__(self, other):
+        if not isinstance(other, Homset):
+            return cmp(type(self), type(other))
         if self.__domain == other.__domain and self.__codomain == other.__codomain \
                and self.__category == other.__category:
             return 0

@@ -1662,7 +1662,7 @@ cdef canonical_coercion_c(x, y):
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
-    raise TypeError, "unable to find a common canonical parent for x and y"
+    raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 
 cdef canonical_base_coercion_c(Element x, Element y):
     if not have_same_base(x, y):

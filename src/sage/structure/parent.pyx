@@ -38,6 +38,23 @@ def is_Parent(x):
     """
     return PyBool_FromLong(PyObject_TypeCheck(x, Parent))
 
+
+def make(_class, _dict,
+                 base, has_coerce_map_from):
+    """
+    This should work for any Python class deriving from this, as long
+    as it doesn't implement some screwy __new__() method.
+    """
+    cdef Parent new_object
+    new_object = _class.__new__(_class)
+    if base is None:
+        new_object._base = new_object
+    else:
+        new_object._base = base
+    new_object._has_coerce_map_from = has_coerce_map_from
+    new_object.__dict__ = _dict
+    return new_object
+
 cdef class Parent(sage_object.SageObject):
     """
     Parents are the SAGE/mathematical analogues of container objects in computer science.
@@ -224,6 +241,9 @@ cdef class Parent(sage_object.SageObject):
 ##     ####################################################################
 ##     def __richcmp__(left, right, int op):
 ##         return (<Parent>left)._richcmp(right, op)
+
+    def __reduce__(self):
+        return (make, (self.__class__, self.__dict__, self._has_coerce_map_from))
 
     cdef int _cmp_c_impl(left, Parent right) except -2:
         pass

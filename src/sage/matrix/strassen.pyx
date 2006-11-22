@@ -233,6 +233,8 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
 
     # Now deal with the leftover row and/or column (if they exist).
 
+    cdef MatrixWindow B_last_col, C_last_col, B_bulk, A_last_row, C_last_row, B_last_row, A_last_col, C_bulk
+
     if B_ncols & 1:
         B_last_col = B.matrix_window(0, B_ncols-1, A_ncols, 1)
         C_last_col = C.matrix_window(0, B_ncols-1, A_nrows, 1)

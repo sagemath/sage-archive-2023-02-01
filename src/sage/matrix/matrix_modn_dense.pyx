@@ -60,6 +60,8 @@ cimport matrix_dense
 cimport matrix
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+cdef extern from "stdint.h":
+    ctypedef int int_fast32_t
 
 from sage.structure.element import ModuleElement
 
@@ -290,27 +292,30 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [1 5 1]
             [1 5 1]
 
-        Bounds are checked.
-            sage: b.rescale_col(3,2)
-            Traceback (most recent call last):
-            ...
-            IndexError: matrix index out of range
-
         Recaling need not include the entire row.
             sage: b.rescale_col(0,2,1); b
             [1 5 1]
             [2 5 1]
             [2 5 1]
+
+        Bounds are checked.
+            sage: b.rescale_col(3,2)
+            Traceback (most recent call last):
+            ...
+            IndexError: matrix column index out of range
+
+        Rescaling by a negative number:
+            sage: b.rescale_col(2,-3); b
+            [ 1  5 34]
+            [ 2  5 34]
+            [ 2  5 34]
         """
-        cdef uint r, p, t
+        cdef uint r, p
         cdef uint* v
         cdef Py_ssize_t i
-
         p = self.p
-        t = self._coerce_element(multiple)
-        x = (<IntegerMod_int> t).get_int_value()
         for i from start_row <= i < self._nrows:
-            self.matrix[i][col] = (self.matrix[i][col]*x) % p
+            self.matrix[i][col] = (self.matrix[i][col]*multiple) % p
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple,
                                Py_ssize_t start_col):
@@ -495,7 +500,20 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         Return the requested matrix window.
 
         EXAMPLES:
-            sage: ?
+            sage: a = matrix(QQ,3,range(9))
+            sage: a.matrix_window()
+            Matrix window of size 3 x 3 at (0,0):
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: type(a)
+            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            sage: a = matrix(GF(7),3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 0 1]
+            sage: type(a)
+            <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
         """
         if nrows == -1:
             nrows = self._nrows - row

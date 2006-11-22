@@ -150,6 +150,10 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
     def __cmp__(self, other):
+        if isinstance(other,IntegerRing):
+            return 0
+        if isinstance(other, sage.rings.rational_field.RationalField):
+            return -1
         return cmp(type(self), type(other))
 
     def _repr_(self):

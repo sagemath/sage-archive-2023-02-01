@@ -226,8 +226,9 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         return True
 
     def __cmp__(left, right):
-        return cmp((type(left), left.base_ring(), left.variable_name()),
-                   (type(right), right.base_ring(), right.variable_name()))
+        c = cmp(type(left),type(right))
+        if c: return c
+        return cmp((left.base_ring(), left.variable_name()), (right.base_ring(), right.variable_name()))
 
     def _repr_(self):
         s = "Univariate Polynomial Ring in %s over %s"%(

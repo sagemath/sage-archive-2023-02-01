@@ -166,6 +166,8 @@ cdef class Parent(sage_object.SageObject):
             pass
         except TypeError:
             self._has_coerce_map_from = {}
+        if not PY_TYPE_CHECK(S, Parent):
+            return False
         try:
             self._coerce_c(S(0))
         except TypeError:

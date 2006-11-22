@@ -63,7 +63,7 @@ Base ring:
     Rational Field
 """
 
-#*****************************************************************************
+####################################################################################
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -76,7 +76,7 @@ Base ring:
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+####################################################################################
 
 # python imports
 import random
@@ -1383,6 +1383,12 @@ class FreeModule_generic_pid(FreeModule_generic):
             return True
         if other.rank() < self.rank():
             return False
+        if self.base_ring() != other.base_ring():
+            if not other.base_ring().is_field():  # since ambient vector spaces are the same.
+                if self.base_ring().is_field():
+                    return False
+            raise NotImplementedError, "unable to determine inclusion of rings at present"
+
         for b in self.basis():
             if not (b in other):
                 return False
@@ -2137,17 +2143,17 @@ class FreeModule_ambient(FreeModule_generic):
         EXAMPLES:
         We compare rank three free modules over the integers and rationals:
             sage: Q = QQ; Z = ZZ
-            sage: Q**3 > Z**3
+            sage: Q^3 > Z^3
             True
-            sage: Q**3 < Z**3
+            sage: Q^3 < Z^3
             False
-            sage: Z**3 < Q**3
+            sage: Z^3 < Q^3
             True
-            sage: Z**3 > Q**3
+            sage: Z^3 > Q^3
             False
-            sage: Q**3 == Z**3
+            sage: Q^3 == Z^3
             False
-            sage: Q**3 == Q**3
+            sage: Q^3 == Q^3
             True
 
             sage: V = span(QQ, [[1,2,3], [5,6,7], [8,9,10]])
@@ -2166,14 +2172,14 @@ class FreeModule_ambient(FreeModule_generic):
             return 0
         if not isinstance(other, FreeModule_generic):
             return cmp(type(self), type(other))
-        c = cmp(self.rank(), other.rank())
-        if c: return c
-        c = cmp(self.base_ring(), other.base_ring())
-        if c: return c
         if isinstance(other, FreeModule_ambient):
+            c = cmp(self.rank(), other.rank())
+            if c: return c
+            c = cmp(self.base_ring(), other.base_ring())
+            if c: return c
             return 0
         else:  # now other is not ambient; it knows how to do the comparison.
-            return -cmp(other, self)
+            return -other.__cmp__(self)
 
     def _repr_(self):
         return "Ambient free module of rank %s over %s"%(self.rank(), self.base_ring())
@@ -2186,7 +2192,7 @@ class FreeModule_ambient(FreeModule_generic):
             sage: latex(QQ^3)
             \mathbf{Q}^{3}
 
-            sage: A = GF(5)**20; latex(A)
+            sage: A = GF(5)^20; latex(A)
             \mathbf{F}_{5}^{20}
 
             sage: A = MPolynomialRing(QQ,3,'x') ^ 20; latex(A)
@@ -2662,9 +2668,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         if self.base_ring() == other.base_ring() and \
                self.echelonized_basis_matrix() == other.echelonized_basis_matrix():
             return 0
-        if self.is_submodule(other):
-            return -1
-        else:
+        try:
+            if self.is_submodule(other):
+                return -1
+            else:
+                return 1
+        except NotImplementedError:
             return 1
 
     def _denominator(self, B):  # for internal use only!

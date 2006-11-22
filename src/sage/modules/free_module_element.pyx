@@ -251,6 +251,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         if (<FreeModuleElement>left)._parent.base_ring() is (<FreeModuleElement>right)._parent.base_ring():
             return (<Element>left)._rich_to_bool(op, (
                     <FreeModuleElement>left)._cmp_same_ambient_c(right))
+        return (<Element>left)._richcmp(right, op)
+
 
     cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
         return cmp(left.list(copy=False), right.list(copy=False))

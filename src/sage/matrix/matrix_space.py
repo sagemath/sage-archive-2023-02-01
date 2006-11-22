@@ -61,6 +61,7 @@ import sage.misc.latex as latex
 from sage.misc.misc import xsrange
 
 import sage.modules.free_module_element
+import sage.modules.free_module
 
 from sage.structure.sequence import Sequence
 
@@ -219,9 +220,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
             if self.__is_sparse:
                 e = {}
+                zero = self.base_ring()(0)
                 for i in xrange(len(entries)):
                     for j, x in entries[i].iteritems():
-                        e[(i,j)] = x
+                        if x != zero:
+                            e[(i,j)] = x
                 entries = e
             else:
                 entries = sum([v.list() for v in entries],[])
@@ -482,6 +485,22 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def nrows(self):
         return self.__nrows
+
+    def row_space(self):
+        try:
+            return self.__row_space
+        except AttributeError:
+            self.__row_space = sage.modules.free_module.FreeModule(self.base_ring(),
+                                                self.ncols(), sparse=self.is_sparse())
+            return self.__row_space
+
+    def column_space(self):
+        try:
+            return self.__column_space
+        except AttributeError:
+            self.__column_space = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
+                                                                   sparse=self.is_sparse())
+            return self.__column_space
 
     def random_element(self, X=[-2,-1,1,2], prob=1.0, coerce=True):
         """

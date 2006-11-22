@@ -499,12 +499,15 @@ def loads(s, compress=True):
     if compress:
         try:
             return cPickle.loads(comp.decompress(s))
-        except:
+        except Exception, msg1:
             try:
                 return cPickle.loads(comp_other.decompress(s))
-            except:
+            except Exception, msg2:
                 # Maybe data is uncompressed?
-                return cPickle.loads(s)
+                try:
+                    return cPickle.loads(s)
+                except Exception, msg3:
+                    raise RuntimeError, "%s\n%s\n%s\nUnable to load pickled data."%(msg1,msg2,msg3)
     else:
         try:
             return cPickle.loads(s)

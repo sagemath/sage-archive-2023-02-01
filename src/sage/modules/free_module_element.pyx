@@ -44,9 +44,7 @@ the following arithmetic is not defined:
     sage: V.0 + M.0
     Traceback (most recent call last):
     ...
-    TypeError: x=(1, 0, 0, 0, 0), y=(1, 0, 0, 0, 0)
-    unable to find a common canonical parent for x and y
-    No canonical coercion defined.
+    TypeError: unsupported operand parent(s) for '+': 'Vector space of dimension 5 over Rational Field' and 'Vector space of dimension 5 over Finite Field of size 7'
 
 However, there is a map from $\ZZ$ to the finite field, so the
 following is defined, and the result is in the finite field.
@@ -109,6 +107,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return self
         return P.change_ring(R)(self)
 
+    def iteritems(self):
+        return self.dict(copy=False).iteritems()
+
     def __abs__(self):
         return self.norm()
 
@@ -145,7 +146,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: bool(V)
             True
         """
-        return self == 0
+        return self != 0
 
     def __getitem__(self, i):
         raise NotImplementedError
@@ -181,15 +182,25 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return self.change_ring(self.base_ring().quotient_ring(p))
 
     def list(self, copy=True):
-        v = []
-        for i in range(self.degree()):
-            v.append(self[i])
+        d = self.degree()
+        v = [0]*d
+        for i in range(d):
+            v[i] = self[i]
+        return v
+
+    def list_from_positions(self, positions):
+        cdef Py_ssize_t j
+        v = [0]*len(positions)
+        j = 0
+        for i in positions:
+            v[j] = self[i]
+            j = j + 1
         return v
 
     def lift(self):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ/7, [5, 9, 13, 15]) ; V
+            sage: V = Vector(Integers(7), [5, 9, 13, 15]) ; V
             (5, 2, 6, 1)
             sage: V.lift()
             (5, 2, 6, 1)
@@ -197,16 +208,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
         return self.change_ring(self.base_ring().cover_ring())
-
-    cdef ModuleElement _neg_c_impl(self):
-        """
-        EXAMPLES:
-            sage: V = QQ^3
-            sage: v = V([1,2,3])
-            sage: v.__neg__()
-            (-1, -2, -3)
-        """
-        return self._scalar_multiply(-1)
 
     def __pos__(self):
         return self
@@ -236,6 +237,24 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __setitem__(self, i, x):
         raise NotImplementedError
 
+    def __richcmp__(left, right, int op):
+        cdef int ld, rd
+        if not isinstance(left, FreeModuleElement) or not isinstance(right, FreeModuleElement):
+            # use the generic compare
+            return (<Element>left)._richcmp(right, op)
+        ld = (<FreeModuleElement>left)._degree
+        rd = (<FreeModuleElement>right)._degree
+        if ld < rd:
+            return (<Element>left)._rich_to_bool(op, -1)
+        elif ld > rd:
+            return (<Element>left)._rich_to_bool(op, 1)
+        if (<FreeModuleElement>left)._parent.base_ring() is (<FreeModuleElement>right)._parent.base_ring():
+            return (<Element>left)._rich_to_bool(op, (
+                    <FreeModuleElement>left)._cmp_same_ambient_c(right))
+
+    cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
+        return cmp(left.list(copy=False), right.list(copy=False))
+
     def _matrix_multiply(self, Matrix A):
         """
         Return the product self*A.
@@ -252,8 +271,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v*A
             (2, 1, 3)
         """
-        # todo: speed up -- should be calling a cdef'd method of A.
-        return A.vector_matrix_multiply(self)
+        return self*A
 
     cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
         if PY_TYPE_CHECK(right, Matrix):
@@ -272,7 +290,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             d = d.lcm(y.denominator())
         return d
 
-    def dict(self):
+    def dict(self, copy=True):
         e = {}
         for i in xrange(self.degree()):
             c = self[i]
@@ -374,6 +392,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def is_vector(self):
         return True
 
+##     def zero_out_positions(self, P):
+##         """
+##         Set the positions of self in the list P equal to 0.
+##         """
+##         z = self.base_ring()(0)
+##         d = self.degree()
+##         for n in P:
+##             self[n] = z
+
     def nonzero_positions(self):
         """
         Return the sorted list of integers i such that self[i] != 0.
@@ -401,12 +428,12 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 #############################################
 # Generic dense element
 #############################################
-def make_FreeModuleElement_generic_dense(parent, entries):
+def make_FreeModuleElement_generic_dense(parent, entries, degree):
     cdef FreeModuleElement_generic_dense v
     v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
     v._entries = entries
     v._parent = parent
-    v._degree = parent.degree()
+    v._degree = degree
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -459,17 +486,12 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         Add left and right.
         """
-        cdef object e, v, a
         cdef Py_ssize_t i, n
-        cdef PyObject **w_left, **w_right
         n = PyList_Size(left._entries)
-        v = PyList_New(n)
-        w_left = FAST_SEQ_UNSAFE(left._entries)
-        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        v = [None]*n
         for i from 0 <= i < n:
-            a = (<RingElement>w_left[i])._add_c(<RingElement> w_right[i])
-            Py_INCREF(a)
-            PyList_SET_ITEM(v, i, a)
+            v[i] = (<RingElement>left._entries[i])._add_c(<RingElement>
+                                            ((<FreeModuleElement_generic_dense>right)._entries[i]))
         return left._new_c(v)
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
@@ -480,70 +502,49 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: V = QQ^5
             sage: W = V.span([V.1, V.2])
             sage: W.0 - V.0
-            ?
+            (-1, 1, 0, 0, 0)
             sage: V.0 - W.0
-            ?
+            (1, -1, 0, 0, 0)
         """
-        cdef object e, v, a
         cdef Py_ssize_t i, n
-        cdef PyObject **w_left, **w_right
         n = PyList_Size(left._entries)
-        v = PyList_New(n)
-        w_left = FAST_SEQ_UNSAFE(left._entries)
-        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        v = [None]*n
         for i from 0 <= i < n:
-            a = (<RingElement>(w_left[i]))._sub_c(<RingElement> (w_right[i]))
-            Py_INCREF(a)
-            PyList_SET_ITEM(v, i, a)
+            v[i] = (<RingElement>left._entries[i])._sub_c(<RingElement>
+                                            ((<FreeModuleElement_generic_dense>right)._entries[i]))
         return left._new_c(v)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
         # This is basically a fast Python/C version of
         #    [left*x for x in self.list()]
-        cdef object e, v, a
         cdef Py_ssize_t i, n
-        cdef PyObject** w
         n = PyList_Size(self._entries)
-        v = PyList_New(n)
-        w = FAST_SEQ_UNSAFE(self._entries)
+        v = [None]*n
         for i from 0 <= i < n:
-            a = left._mul_c(<RingElement> w[i])
-            Py_INCREF(a)
-            PyList_SET_ITEM(v, i, a)
+            v[i] = left._mul_c(<RingElement>(self._entries[i]))
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         # This is basically a very fast Python/C version of
         #    [x*right for x in self.list()]
-        cdef object e, v, a
         cdef Py_ssize_t i, n
-        cdef PyObject** w
         n = PyList_Size(self._entries)
-        v = PyList_New(n)
-        w = FAST_SEQ_UNSAFE(self._entries)
+        v = [None]*n
         for i from 0 <= i < n:
-            a = (<RingElement> w[i])._mul_c(right)
-            Py_INCREF(a)
-            PyList_SET_ITEM(v, i, a)
+            v[i] = (<RingElement>(self._entries[i]))._mul_c(right)
         return self._new_c(v)
 
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
         # Component wise vector * vector multiplication.
-        cdef object e, v, a
         cdef Py_ssize_t i, n
-        cdef PyObject **w_left, **w_right
         n = PyList_Size(left._entries)
-        v = PyList_New(n)
-        w_left = FAST_SEQ_UNSAFE(left._entries)
-        w_right = FAST_SEQ_UNSAFE((<FreeModuleElement_generic_dense>right)._entries)
+        v = [None]*n
         for i from 0 <= i < n:
-            a = (<RingElement>w_left[i])._mul_c(<RingElement> w_right[i])
-            Py_INCREF(a)
-            PyList_SET_ITEM(v, i, a)
-        return left._new_c(v)
+            v[i] = (<RingElement>left._entries[i])._mul_c((<FreeModuleElement_generic_dense>right)._entries[i])
+        return self._new_c(v)
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_dense, (self._parent, self._entries))
+        return (make_FreeModuleElement_generic_dense, (self._parent, self._entries, self._degree))
 
     def __getitem__(self, i):
         """
@@ -576,21 +577,13 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         else:
             return self._entries
 
-    def __richcmp__(left, right, int op):
-        a = (<Element>left)._richcmp(right, op)
-        return a
-
-
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
-        Compare two free module elements.
+        Compare two free module elements with identical parents.
 
         Free module elements are compared in lexicographic order on
         the underlying list of coefficients.  A dense a sparse free
         module element are equal if their coefficients are the same.
-
-        EXAMPLES:
-        sage: ??
         """
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
 
@@ -605,12 +598,12 @@ def _sparse_dot_product(v, w):
     x = set(v.keys()).intersection(set(w.keys()))
     return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
 
-def make_FreeModuleElement_generic_sparse(parent, entries):
+def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     cdef FreeModuleElement_generic_sparse v
     v = FreeModuleElement_generic_sparse.__new__(FreeModuleElement_generic_sparse)
     v._entries = entries
     v._parent = parent
-    v._degree = parent.degree()
+    v._degree = degree
     return v
 
 cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
@@ -625,8 +618,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         sage: loads(dumps(v)) == v
         True
         sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
-        sage: loads(dumps(v)) == v
-        True
+        sage: loads(dumps(v)) - v
+        (0, 0, 0, 0, 0)
     """
     cdef _new_c(self, object v):
         # Create a new sparse free module element with minimal overhead and
@@ -705,6 +698,13 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             v[i] = (<RingElement>a)._mul_c(right)
         return self._new_c(v)
 
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        cdef object v
+        v = PyDict_New()
+        for i, a in self._entries.iteritems():
+            v[i] = left._mul_c(a)
+        return self._new_c(v)
+
     cdef element_Vector _vector_times_vector_c_impl(left, element_Vector right):
         # Component wise vector * vector multiplication.
         cdef object v, e
@@ -723,9 +723,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         Free module elements are compared in lexicographic order on
         the underlying list of coefficients.  A dense a sparse free
         module element are equal if their coefficients are the same.
-
-        EXAMPLES:
-        sage: ??
         """
         a = left._entries.items()
         a.sort()
@@ -737,7 +734,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         return self._entries.iteritems()
 
     def __reduce__(self):
-        return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries))
+        return (make_FreeModuleElement_generic_sparse, (self._parent, self._entries, self._degree))
 
     def __getitem__(self, i):
         #if not isinstance(i, int):

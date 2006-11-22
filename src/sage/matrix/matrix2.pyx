@@ -1048,6 +1048,42 @@ cdef class Matrix(matrix1.Matrix):
             return C.row_module()
 
 
+    def integer_kernel(self):
+        """
+        Return the integral kernel of this matrix.
+
+        Assume that the base field of this matrix has a numerator and
+        denominator functions for its elements, e.g., it is the
+        rational numbers or a fraction field.  This function computes
+        a basis over the integers for the kernel of self.
+
+        When kernels are implemented for matrices over general PID's,
+        this function will compute kernels over PID's of matrices over
+        the fraction field of the PID.  (todo)
+
+        EXAMPLES:
+            sage: A = MatrixSpace(QQ, 4)(range(16))
+            sage: A.integer_kernel()
+            Free module of degree 4 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  0 -3  2]
+            [ 0  1 -2  1]
+
+        The integer kernel even makes sense for matrices with
+        fractional entries:
+            sage: A = MatrixSpace(QQ, 2)(['1/2',0,  0, 0])
+            sage: A.integer_kernel()
+            Free module of degree 2 and rank 1 over Integer Ring
+            Echelon basis matrix:
+            [0 1]
+        """
+        d = self.denominator()
+        A = self*d
+        R = d.parent()
+        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
+        return M.kernel()
+
+
 
     def image(self):
         """
@@ -1085,7 +1121,7 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [0 2]
         """
-        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
+        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
         return M.span(self.rows())
 
     def row_space(self):
@@ -1233,7 +1269,7 @@ cdef class Matrix(matrix1.Matrix):
         F = f.factor()
         if len(F) == 1:
             V = sage.modules.free_module.FreeModule(
-                              self.base_ring(), self.nrows())
+                              self.base_ring(), self.nrows(), sparse=self.is_sparse())
             m = F[0][1]
             if dual:
                 return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
@@ -1682,7 +1718,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.echelonize()
             Traceback (most recent call last):
             ...
-            ValueError: Echelon form not defined over this base ring.
+            ValueError: echelon form not implemented for elements of 'Full MatrixSpace of 2 by 2 dense matrices over Polynomial Ring in x, y over Rational Field'
             sage: b = a.change_ring(R.fraction_field())
             sage: b.echelon_form()
             [  1 y/x]
@@ -1776,7 +1812,7 @@ cdef class Matrix(matrix1.Matrix):
             return
 
         if not self._base_ring.is_field():
-            raise ValueError, "Echelon form not defined over this base ring."
+            raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()
 
         self.check_mutability()
 

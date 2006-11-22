@@ -9,7 +9,7 @@ from sage.matrix.matrix_modn_dense cimport Matrix_modn_dense
 
 cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
-    cdef set_to(MatrixWindow_modn_dense self, matrix_window.MatrixWindow A):
+    cdef set_to(MatrixWindow_modn_dense self, MatrixWindow A):
         """
         Change self, making it equal A.
         """
@@ -30,7 +30,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         for i from self._row <= i < self._row + self._nrows:
             memset(rows[i] + self._col, 0, self._ncols * sizeof(uint*))
 
-    cdef add(self, matrix_window.MatrixWindow A):
+    cdef add(self, MatrixWindow A):
         cdef Py_ssize_t i, j
         cdef uint p
         cdef uint** self_matrix
@@ -47,7 +47,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 if self_matrix[i+self._row][j+self._col] > p:
                     self_matrix[i+self._row][j+self._col] = self_matrix[i+self._row][j+self._col] - p
 
-    cdef subtract(self, matrix_window.MatrixWindow A):
+    cdef subtract(self, MatrixWindow A):
         cdef Py_ssize_t i, j
         cdef uint p
         cdef uint** self_matrix
@@ -64,7 +64,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                 if self_matrix[i+self._row][j+self._col] > p:
                     self_matrix[i+self._row][j+self._col] = self_matrix[i+self._row][j+self._col] - p
 
-    cdef set_to_sum(self, matrix_window.MatrixWindow A, matrix_window.MatrixWindow B):
+    cdef set_to_sum(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         cdef uint p
         cdef uint** self_matrix
@@ -85,7 +85,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                     # I really want to do in place operations here...
                     self_matrix[i+self._row][j+self._col] = self_matrix[i+self._row][j+self._col] - p
 
-    cdef set_to_diff(self, matrix_window.MatrixWindow A, matrix_window.MatrixWindow B):
+    cdef set_to_diff(self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         cdef uint p
         cdef uint** self_matrix
@@ -106,7 +106,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                     # I really want to do in place operations here...
                     self_matrix[i+self._row][j+self._col] = self_matrix[i+self._row][j+self._col] - p
 
-    cdef set_to_prod(self, matrix_window.MatrixWindow A, matrix_window.MatrixWindow B):
+    cdef set_to_prod(self, MatrixWindow A, MatrixWindow B):
         # TODO: gather
         cdef Py_ssize_t i, j, k
         cdef uint p, s
@@ -126,7 +126,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                     s = (s + A_matrix[i+A._row][k+A._col] * B_matrix[k+A._row][j+A._col]) % p
                 self_matrix[i+self._row][j+self._col] = s % p
 
-    cdef add_prod(self, matrix_window.MatrixWindow A, matrix_window.MatrixWindow B):
+    cdef add_prod(self, MatrixWindow A, MatrixWindow B):
         # TODO: gather
         cdef Py_ssize_t i, j, k
         cdef uint p, s
@@ -146,7 +146,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                     s = ( s + A_matrix[i+A._row][k+A._col] * B_matrix[k+A._row][j+A._col] ) % p
                 self_matrix[i+self._row][j+self._col] = s % p
 
-    cdef subtract_prod(self, matrix_window.MatrixWindow A, matrix_window.MatrixWindow B):
+    cdef subtract_prod(self, MatrixWindow A, MatrixWindow B):
         # TODO: gather
         cdef Py_ssize_t i, j, k
         cdef uint p, s

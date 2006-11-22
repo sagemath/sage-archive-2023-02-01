@@ -109,6 +109,7 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
     A_sub_ncols = A_ncols >> 1     # this is also like B_sub_nrows
     B_sub_ncols = B_ncols >> 1
 
+    cdef MatrixWindow A00, A01, A10, A11, B00, B01, B10, B11
     A00 = A.matrix_window(0,           0,           A_sub_nrows, A_sub_ncols)
     A01 = A.matrix_window(0,           A_sub_ncols, A_sub_nrows, A_sub_ncols)
     A10 = A.matrix_window(A_sub_nrows, 0,           A_sub_nrows, A_sub_ncols)
@@ -120,8 +121,7 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
 
     # Allocate temp space.
 
-    # todo: can I cache the bound A.new_empty_window method?
-
+    cdef MatrixWindow S0, S1, S2, S3, T0, T1 ,T2, T3, Q0, Q1, Q2
     S0 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
     S1 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
     S2 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
@@ -183,6 +183,7 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
     # U0 U6
     # U3 U4
 
+    cdef MatrixWindow U0, U6, U3, U4
     U0 = C.matrix_window(0,           0,           A_sub_nrows, B_sub_ncols)
     U6 = C.matrix_window(0,           B_sub_ncols, A_sub_nrows, B_sub_ncols)
     U3 = C.matrix_window(A_sub_nrows, 0,           A_sub_nrows, B_sub_ncols)
@@ -253,12 +254,13 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
         C_bulk = C.matrix_window(0, 0, A_sub_nrows << 1, B_sub_ncols << 1)
         C_bulk.add_prod(A_last_col, B_last_row)
 
-cdef subtract_strassen_product(result, A, B, Py_ssize_t cutoff):
+cdef subtract_strassen_product(MatrixWindow result, MatrixWindow A, MatrixWindow B, Py_ssize_t cutoff):
     """
     EXAMPLES:
         sage: ?
     """
     cutoff = 1000000 # for testing
+    cdef MatrixWindow to_sub
     if (result.ncols() <= cutoff or result.nrows() <= cutoff):
         result.subtract_prod(A, B)
     else:
@@ -267,7 +269,7 @@ cdef subtract_strassen_product(result, A, B, Py_ssize_t cutoff):
         result.subtract(to_sub)
 
 
-def strassen_echelon(A, cutoff):
+def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
     """
     Compute echelon form, in place.
     Internal function, call with M.echelonize(algorithm="strassen")
@@ -327,6 +329,8 @@ def strassen_echelon(A, cutoff):
     cdef Py_ssize_t prev_pivot_count
     cdef Py_ssize_t split
     split = nrows / 2
+
+    cdef MatrixWindow top, bottom, top_left, top_right, bottom_left, bottom_right, clear
 
     top = A.matrix_window(0, 0, split, ncols)
     bottom = A.matrix_window(split, 0, nrows-split, ncols)

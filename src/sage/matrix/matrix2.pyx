@@ -21,9 +21,11 @@ import strassen
 from   sage.structure.sequence import _combinations, Sequence
 from   sage.misc.misc import verbose, get_verbose
 from   sage.rings.number_field.all import is_NumberField
+from   sage.rings.integer_ring import ZZ
 
 import sage.modules.free_module
 import matrix_window
+import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
@@ -378,6 +380,11 @@ cdef class Matrix(matrix1.Matrix):
 
         elif n == 1:
             d = self.get_unsafe(0,0)
+            self.cache('det', d)
+            return d
+
+        elif n == 2:
+            d = self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1)*self.get_unsafe(1,0)
             self.cache('det', d)
             return d
 

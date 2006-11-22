@@ -149,29 +149,6 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         sage: loads(M.dumps()) == M
         True
 
-    EXAMPLES OF EACH TYPE OF MATRIX SPACE:
-    In this section, we create sparse and dense matrix spaces and
-    matrices in those spaces for a wide range of base rings.
-
-    Dense and sparse generic matrices:
-        sage: ??
-
-    Dense and sparse matrices over a domain:
-
-    Dense and sparse matrices over a principal ideal domain:
-
-    Dense and sparse matrices over a field:
-
-    Dense and sparse matrices over the rational numbers:
-
-    Dense and sparse matrices over a cyclotomic field:
-
-    Dense and sparse matrices over the ring ZZ of integers:
-
-    Dense and sparse matrices over the ring of integers:
-
-    Dense and sparse matrices modulo $n$:
-
     """
     if ncols is None: ncols = nrows
     nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)

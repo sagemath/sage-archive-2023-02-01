@@ -31,7 +31,7 @@ EXAMPLES:
     sage: a*b
     Traceback (most recent call last):
     ...
-    ArithmeticError: number of columns of self must equal number of rows of right.
+    TypeError: incompatible dimensions
     sage: b*a
     [15 18 21]
     [20 17 29]
@@ -114,10 +114,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         sage_free(self.matrix)
 
     def __init__(self, parent, entries, copy, coerce):
-        """
-        EXAMPLES:
-            sage: test with negative numbers in input entries list
-        """
         cdef uint p
         self.p = self._base_ring.characteristic()
         p = self.p

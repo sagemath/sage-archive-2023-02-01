@@ -434,16 +434,12 @@ def Matrix_sparse_from_rows(X):
         sage: v[9] = 4
         sage: from sage.matrix.matrix_generic_sparse import Matrix_sparse_from_rows
         sage: Matrix_sparse_from_rows([v])
-        [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ]
+        [0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0]
         sage: Matrix_sparse_from_rows([v, v, v, V(0)])
-        [
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        ]
+        [0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 4 0 0 0 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
     """
     cdef Py_ssize_t i, j
 
@@ -451,26 +447,26 @@ def Matrix_sparse_from_rows(X):
         raise TypeError, "X (=%s) must be a list or tuple"%X
     if len(X) == 0:
         raise ArithmeticError, "X must be nonempty"
-    entries = []
+    entries = {}
     R = X[0].base_ring()
     ncols = X[0].degree()
     for i from 0 <= i < len(X):
-        for j, x in X[i].entries().iteritems():
-            entries.append((i,j,x))
-    M = matrix_space.MatrixSpace(R, len(X), ncols)
+        for j, x in X[i].iteritems():
+            entries[(i,j)] = x
+    M = matrix_space.MatrixSpace(R, len(X), ncols, sparse=True)
     return M(entries, coerce=False, copy=False)
 
 
-def _sparse_dot_product(v, w):
-    """
-    INPUT:
-        v and w are dictionaries with integer keys.
-    """
-    x = set(v.keys()).intersection(set(w.keys()))
-    a = 0
-    for k in x:
-        a = a + v[k]*w[k]
-    return a
+## def _sparse_dot_product(v, w):
+##     """
+##     INPUT:
+##         v and w are dictionaries with integer keys.
+##     """
+##     x = set(v.keys()).intersection(set(w.keys()))
+##     a = 0
+##     for k in x:
+##         a = a + v[k]*w[k]
+##     return a
 
 cdef _convert_sparse_entries_to_dict(entries):
     e = {}

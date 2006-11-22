@@ -914,10 +914,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         return self.parent()(self._pari_().matadjoint().python())
 
+    def _ntl_(self):
+        r"""
+        ntl.mat_ZZ representation of self.
+
+        \note{NTL only knows dense matrices, so if you provide a
+        sparse matrix NTL will allocate memory for every zero entry.}
+        """
+        return mat_ZZ(self._nrows,self._ncols, self.list())
+
+
     ####################################################################################
     # LLL
     ####################################################################################
-
     def lllgram(self):
         """
         LLL reduction of the lattice whose gram matrix is self.
@@ -936,24 +945,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Use PARI
 
         EXAMPLES:
-            sage: M = Matrix(ZZ, 2, 2, [-5,3,3,-2]) ; M
-            [-5  3]
-            [ 3 -2]
-            sage: U = M.lllgram() ; U
-            [1 1]
-            [1 2]
+            sage: M = Matrix(ZZ, 2, 2, [5,3,3,2]) ; M
+            [5 3]
+            [3 2]
+            sage: U = M.lllgram(); U
+            [-1  1]
+            [ 1 -2]
             sage: U.transpose() * M * U
-            [-1  0]
-            [ 0 -1]
-            sage: M = Matrix(QQ,2,2,[269468, -199019/2, -199019/2, 36747]) ; M
-            [   269468 -199019/2]
-            [-199019/2     36747]
-            sage: U = M.lllgram() ; U
-            [-113  -24]
-            [-306  -65]
-            sage: U.transpose() * M * U
-            [  2 1/2]
-            [1/2   3]
+            [1 0]
+            [0 1]
 
         Semidefinite and indefinite forms raise a ValueError:
 
@@ -973,30 +973,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ArithmeticError, "matrix must be square"
 
         n = self.nrows()
-        # pari does not like negative definite forms
-        if n > 0 and self[0,0] < 0:
-            self = -self
         # maybe should be /unimodular/ matrices ?
-        MS = matrix_space.MatrixSpace(ZZ,n)
+        P = self._pari_()
         try:
-            U = MS(self._pari_().lllgramint().python())
-        except (RuntimeError, ArithmeticError):
+            U = P.lllgramint()
+        except (RuntimeError, ArithmeticError), msg:
             raise ValueError, "not a definite matrix"
+        MS = matrix_space.MatrixSpace(ZZ,n)
+        U = MS(U.python())
         # Fix last column so that det = +1
         if U.det() == -1:
             for i in range(n):
                 U[i,n-1] = - U[i,n-1]
         return U
-
-    def _ntl_(self):
-        r"""
-        ntl.mat_ZZ representation of self.
-
-        \note{NTL only knows dense matrices, so if you provide a
-        sparse matrix NTL will allocate memory for every zero entry.}
-        """
-        return mat_ZZ(self._nrows,self._ncols, self.list())
-
 
 
 

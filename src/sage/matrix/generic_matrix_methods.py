@@ -1,3 +1,9 @@
+"""nodoctest
+
+Not used -- all moved to matrix*.pyx
+
+"""
+
 import matrix_generic
 
 import sage.rings.integer

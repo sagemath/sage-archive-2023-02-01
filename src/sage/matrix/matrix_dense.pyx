@@ -16,9 +16,6 @@ cdef class Matrix_dense(matrix.Matrix):
         """
         Return a copy of this matrix.  Changing the entries of the
         copy will not change the entries of this matrix.
-
-        EXAMPLES:
-            sage: ???
         """
         return self.new_matrix(entries=self.list(), coerce=False, copy=False)
 
@@ -30,13 +27,15 @@ cdef class Matrix_dense(matrix.Matrix):
         the other is dense.
 
         EXAMPLES:
-            sage: m = matrix(2, range(24))
+            sage: m = matrix(2, range(24), sparse=True)
             sage: m.set_immutable()
             sage: hash(m)
+            976
 
-            sage: d = M.dense_matrix()
+            sage: d = m.dense_matrix()
             sage: d.set_immutable()
             sage: hash(d)
+            976
 
             sage: hash(m) == hash(d)
             True
@@ -70,9 +69,6 @@ cdef class Matrix_dense(matrix.Matrix):
 
         This method assumes that left and right have the same parent and
         compatable dimensions.
-
-        EXAMPLES
-            sage: include the 0 rows and 0 columns cases
         """
         cdef Py_ssize_t i, j, k, l
         if left._ncols != right._nrows:

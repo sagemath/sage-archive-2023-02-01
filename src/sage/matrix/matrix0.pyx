@@ -273,12 +273,14 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Clear the properties cache.
         """
-        self._cache = {}
+        self._cache = None
 
     cdef fetch(self, key):
         """
         Try to get an element from the cache; if there isn't anything there, return None.
         """
+        if self._cache is None:
+            return None
         try:
             return self._cache[key]
         except KeyError:
@@ -288,6 +290,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Record x in the cache with given key.
         """
+        if self._cache is None:
+            self._cache = {}
         self._cache[key] = x
 
     ###########################################################

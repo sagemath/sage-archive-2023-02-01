@@ -493,7 +493,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return R(v)
 
 
-    def _xxx_matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         """
         Return the requested matrix window.

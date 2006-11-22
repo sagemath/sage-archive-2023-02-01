@@ -12,6 +12,9 @@ cdef class MatrixWindow:
     ############################
     # creation and initialization
     ############################
+    cdef MatrixWindow _new(MatrixWindow self):
+        return PY_NEW(MatrixWindow)
+
     cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
                                          Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols):
         """
@@ -19,7 +22,7 @@ cdef class MatrixWindow:
         The only implicit assumption is that self._matrix and matrix are over the same basering.
         """
         cdef MatrixWindow M
-        M = PY_NEW(MatrixWindow)
+        M = self._new()
         M._matrix = matrix
         M._row = row
         M._col = col

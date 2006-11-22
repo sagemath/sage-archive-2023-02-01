@@ -184,7 +184,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 x.append(self.get_unsafe(i, j))
-        self.cache('list', x)
+#        self.cache('list', x)
         return x
 
     def dict(self):

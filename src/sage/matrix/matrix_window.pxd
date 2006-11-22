@@ -6,9 +6,8 @@ cdef class MatrixWindow:
     cdef object _zero
 
     # YOU *MUST* OVERRIDE THESE
-    # Derived classes *MUST* implement _new_matrix_window.
-    cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
-                                        Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols)
+    # Derived classes *MUST* implement _new
+    cdef MatrixWindow _new(MatrixWindow self)
 
     # YOU *REALLY SHOULD* OVERRIDE THESE:
     cdef add(MatrixWindow self, MatrixWindow A)
@@ -32,6 +31,8 @@ cdef class MatrixWindow:
     # NO BENEFIT TO OVERRIDING THESE:
     cdef MatrixWindow matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col,
                                     Py_ssize_t n_rows, Py_ssize_t n_cols)
+    cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
+                                        Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols)
     cdef matrix(MatrixWindow self)
     cdef swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b)
 

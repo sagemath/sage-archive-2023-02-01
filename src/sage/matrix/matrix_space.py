@@ -248,11 +248,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 entries = e
             else:
                 entries = sum([v.list() for v in entries],[])
-        if isinstance(entries, dict) and not self.__is_sparse:
+        if not self.__is_sparse and isinstance(entries, dict):
             entries = dict_to_list(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
-        elif isinstance(entries, (list, tuple)) and self.__is_sparse:
+        elif self.__is_sparse and isinstance(entries, (list, tuple)):
             entries = list_to_dict(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
@@ -548,11 +548,13 @@ def dict_to_list(entries, nrows, ncols):
 
 def list_to_dict(entries, nrows, ncols):
     d = {}
+    if ncols == 0 or nrows == 0:
+        return d
     for i in range(len(entries)):
         x = entries[i]
         if x != 0:
             col = i % ncols
-            row = i - (i*col)
+            row = i // ncols
             d[(row,col)] = x
     return d
 

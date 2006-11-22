@@ -2607,7 +2607,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
     def __cmp__(self, other):
         r"""
         Compare self and other.  If self and other are in a common ambient space,
-        then self <= other precisely if self is contained in other.
+        then self <= other is True if self is contained in other.
 
         EXAMPLES:
         First we compare two equal vector spaces.
@@ -2627,8 +2627,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             False
 
         We compare a $\Z$-module to the one-dimensional space above.
-            sage: V = Rationals()('1/11') * span(Integers(), [[5,6,7]])
-            sage: V
+            sage: V = Rationals()('1/11') * span(Integers(), [[5,6,7]]); V
             Free module of degree 3 and rank 1 over Integer Ring
             Echelon basis matrix:
             [5/11 6/11 7/11]
@@ -2636,7 +2635,6 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             True
             sage: M < V
             False
-
         """
         if self is other:
             return 0
@@ -2644,7 +2642,10 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             return -1
         c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
         if c: return c
-        if self.base_ring() == other.base_ring() and self.echelonized_basis() == other.echelonized_basis():
+        # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
+        # instead of without the matrix to avoid a circular reference.
+        if self.base_ring() == other.base_ring() and \
+               self.echelonized_basis_matrix() == other.echelonized_basis_matrix():
             return 0
         if self.is_submodule(other):
             return -1

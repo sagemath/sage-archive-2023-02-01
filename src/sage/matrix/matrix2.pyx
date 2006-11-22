@@ -24,6 +24,8 @@ from   sage.rings.number_field.all import is_NumberField
 
 import sage.modules.free_module
 import matrix_window
+import berlekamp_massey
+from sage.modules.free_module_element import is_FreeModuleElement
 
 cdef class Matrix(matrix1.Matrix):
     def prod_of_row_sums(self, cols):
@@ -316,10 +318,10 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.determinant()
             6
             sage: A.determinant() is A.determinant()
-            False
-            sage: A.set_immutable()
-            sage: A.determinant() is A.determinant()
             True
+            sage: A[0,0] = 10
+            sage: A.determinant()
+            7
 
         We compute the determinant of the arbitrary 3x3 matrix:
             sage: R = PolynomialRing(QQ,9,'x')
@@ -348,8 +350,8 @@ cdef class Matrix(matrix1.Matrix):
         # if charpoly known, then det is easy.
         D = self.fetch('charpoly')
         if not D is None:
-            c = D.iteritems()[0][1][0]
-            if self._nrows % 2:
+            c = D[D.keys()[0]][0]
+            if self._nrows % 2 != 0:
                 c = -c
             d = self._coerce_element(c)
             self.cache('det', d)
@@ -431,7 +433,7 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.charpoly(*args, **kwds)
 
-    def charpoly(self, var, algorithm="hessenberg"):
+    def charpoly(self, var='x', algorithm="hessenberg"):
         r"""
         Return the characteristic polynomial of self, as a polynomial
         over the base ring.
@@ -441,7 +443,7 @@ cdef class Matrix(matrix1.Matrix):
         cached.
 
         INPUT:
-            var -- a variable name
+            var -- a variable name (default: 'x')
             algorithm -- string:
                   'hessenberg' -- default (use Hessenberg form of matrix)
 
@@ -608,6 +610,18 @@ cdef class Matrix(matrix1.Matrix):
         OUTPUT:
             element of the base ring of self
         EXAMPLES:
+            sage: a = matrix(3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: a.trace()
+            12
+            sage: a = matrix({(1,1):10, (2,1):-3, (2,2):4/3}); a
+            [  0   0   0]
+            [  0  10   0]
+            [  0  -3 4/3]
+            sage: a.trace()
+            34/3
         """
         if self._nrows != self._ncols:
             raise ArithmeticError, "matrix must be square"
@@ -957,6 +971,178 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('kernel', W)
         return W
 
+    def kernel_on(self, V, poly=None, check=True):
+        """
+        Return the kernel of self restricted to the invariant subspace V.
+        The result is a vector subspace of V, which is also a subspace
+        of the ambient space.
+
+        INPUT:
+            V -- vector subspace
+            check -- (optional) default: True; whether to check that
+                     V is invariante under the action of self.
+            poly -- (optional) default: None; if not None, compute instead
+                    the kernel of poly(self) on V.
+
+        OUTPUT:
+            a subspace
+
+        WARNING: This function does \emph{not} check that V is in fact
+        invariant under self if check is False.  With check False this
+        function is much faster.
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 4, [39, -10, 0, -12, 0, 2, 0, -1, 0, 1, -2, 0, 0, 2, 0, -2]); t
+            [ 39 -10   0 -12]
+            [  0   2   0  -1]
+            [  0   1  -2   0]
+            [  0   2   0  -2]
+            sage: t.fcp()
+            (x - 39) * (x^2 - 2) * (x + 2)
+            sage: s = (t-39)*(t^2-2)
+            sage: V = s.kernel(); V
+            Vector space of degree 4 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 0 1]
+            sage: s.restrict(V)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: s.kernel_on(V)
+            Vector space of degree 4 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 0 1]
+            sage: k = t-39
+            sage: k.restrict(V)
+            [  0 -10 -12]
+            [  0 -37  -1]
+            [  0   2 -41]
+            sage: ker = k.kernel_on(V); ker
+            Vector space of degree 4 and dimension 1 over Rational Field
+            Basis matrix:
+            [   1 -2/7    0 -2/7]
+            sage: ker.0 * k
+            (0, 0, 0, 0)
+        """
+        A = self.restrict(V, check=check)
+        if not poly is None:
+            A = poly(A)
+        W = A.kernel()
+        if V.is_ambient():
+            return W
+        else:
+            A = V.basis_matrix()
+            B = W.basis_matrix()
+            C = B*A
+            return C.row_module()
+
+
+
+    def image(self):
+        """
+        Return the image of the homomorphism on rows defined by this matrix.
+
+        EXAMPLES:
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,6)
+            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = MS2.random_element()
+
+            sage: image(A)
+            Free module of degree 4 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [  1   0   0 426]
+            [  0   1   0 518]
+            [  0   0   1 293]
+            [  0   0   0 687]
+
+            sage: image(B) == B.row_module()
+            True
+        """
+        return self.row_module()
+
+    def row_module(self):
+        """
+        Return the free module over the base ring spanned by the rows
+        of self.
+
+        EXAMPLES:
+            sage: A = MatrixSpace(IntegerRing(), 2)([1,2,3,4])
+            sage: A.row_module()
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0]
+            [0 2]
+        """
+        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols())
+        return M.span(self.rows())
+
+    def row_space(self):
+        """
+        Return the row space of this matrix.  (Synonym for self.row_module().)
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t.row_space()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+        """
+        return self.row_module()
+
+
+    def column_module(self):
+        """
+        Return the free module over the base ring spanned by the
+        columns of this matrix.
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t.column_module()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1]
+            [ 0  1  2]
+        """
+        return self.transpose().row_module()
+
+    def column_space(self):
+        """
+        Return the vector space over the base ring spanned by the
+        columns of this matrix.
+
+        EXAMPLES:
+            sage: M = MatrixSpace(QQ,3,3)
+            sage: A = M([1,9,-7,4/5,4,3,6,4,3])
+            sage: A.column_space()
+            Vector space of degree 3 and dimension 3 over Rational Field
+            Basis matrix:
+            [1 0 0]
+            [0 1 0]
+            [0 0 1]
+            sage: W = MatrixSpace(CC,2,2)
+            sage: B = W([1, 2+3*I,4+5*I,9]); B
+            [                     1.00000000000000 2.00000000000000 + 3.00000000000000*I]
+            [4.00000000000000 + 5.00000000000000*I                      9.00000000000000]
+            sage: B.column_space()
+            Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
+            Basis matrix:
+            [                                                     1.00000000000000 -0.000000000000000888178419700125 - 0.00000000000000177635683940025*I]
+            [                                                                    0                                                      1.00000000000000]
+        """
+        return self.column_module()
+
 
 
     def decomposition(self, is_diagonalizable=False, dual=False):
@@ -1225,6 +1411,111 @@ cdef class Matrix(matrix1.Matrix):
         e = eval('[b*self for b in V.basis()]', {'self':self, 'V':V})
         return self.new_matrix(V.dimension(), self.ncols(), e)
 
+    def maxspin(self, v):
+        """
+        Computes the largest integer n such that the list of vectors
+        $S=[v, v*A, ..., v * A^n]$ are linearly independent, and returns
+        that list.
+
+        INPUT:
+            self -- Matrix
+            v -- Vector
+
+        OUTPUT:
+            list -- list of Vectors
+
+        ALGORITHM:
+            The current implementation just adds vectors to a vector
+            space until the dimension doesn't grow.  This could be
+            optimized by directly using matrices and doing an
+            efficient Echelon form.  Also, when the base is Q, maybe
+            we could simultaneously keep track of what is going on in
+            the reduction modulo p, which might make things much
+            faster.
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: v = (QQ^3).0
+            sage: t.maxspin(v)
+            [(1, 0, 0), (0, 1, 2), (15, 18, 21)]
+            sage: k = t.kernel(); k
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [ 1 -2  1]
+            sage: t.maxspin(k.0)
+            [(1, -2, 1)]
+        """
+        if v == 0:
+            return []
+        if not is_FreeModuleElement(v):
+            raise TypeError, "v must be a FreeModuleElement"
+        VS = v.parent()
+        V = VS.span([v])
+        w = v
+        S = [v]
+        while True:
+            w = w*self
+            W = V + VS.span([w])
+            if W.dimension() == V.dimension():
+                return S
+            V = W
+            S.append(w)
+
+
+    def wiedemann(self, i, t=0):
+        """
+        Application of Wiedemann's algorithm to the i-th standard
+        basis vector.
+
+        INPUT:
+            i -- an integer
+            t -- an integer (default: 0)  if t is nonzero, use only the first t
+                 linear recurrence relations.
+
+        IMPLEMENTATION: This is a toy implementation.
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t.wiedemann(0)
+            x^2 - 12*x - 18
+            sage: t.charpoly()
+            x^3 - 12*x^2 - 18*x
+        """
+        i = int(i); t=int(t)
+        if self.nrows() != self.ncols():
+            raise ArithmeticError, "matrix must be square."
+        n = self.nrows()
+        v = sage.modules.free_module.VectorSpace(self.base_ring(), n).gen(i)
+        tm = verbose('computing iterates...')
+        cols = self.iterates(v, 2*n).columns()
+        tm = verbose('computed iterates', tm)
+        f = None
+        # Compute the minimal polynomial of the linear recurrence
+        # sequence corresponding to the 0-th entries of the iterates,
+        # then the 1-th entries, etc.
+        if t == 0:
+            R = range(n)
+        else:
+            R = [t]
+        for i in R:
+            tm = verbose('applying berlekamp-massey')
+            g = berlekamp_massey.berlekamp_massey(cols[i].list())
+            verbose('berlekamp-massey done', tm)
+            if f is None:
+                f = g
+            else:
+                f = f.lcm(g)
+            if f.degree() == n:
+                break
+        return f
+
+
     def eigenspaces(self, var='a'):
         r"""
         Return a list of pairs
@@ -1462,6 +1753,16 @@ cdef class Matrix(matrix1.Matrix):
     def _echelon_in_place_classical(self):
         """
         Return the echelon form of self and set the pivots of self.
+
+        EXAMPLES:
+            sage: t = matrix(QQ, 3, range(9)); t
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: t._echelon_in_place_classical(); t
+            [ 1  0 -1]
+            [ 0  1  2]
+            [ 0  0  0]
         """
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
@@ -1513,12 +1814,12 @@ cdef class Matrix(matrix1.Matrix):
             cutoff -- integer (default: 0 -- let class decide).
 
         EXAMPLES:
-        sage: a = matrix(ZZ,4,range(16))
-        sage: a._multiply_strassen(a,2)
-        [ 56  62  68  74]
-        [152 174 196 218]
-        [248 286 324 362]
-        [344 398 452 506]
+            sage: a = matrix(ZZ,4,range(16))
+            sage: a._multiply_strassen(a,2)
+            [ 56  62  68  74]
+            [152 174 196 218]
+            [248 286 324 362]
+            [344 398 452 506]
         """
         if self._ncols != right._nrows:
             raise ArithmeticError, "Number of columns of self must equal number of rows of right."

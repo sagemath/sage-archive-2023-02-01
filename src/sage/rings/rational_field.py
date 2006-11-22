@@ -14,6 +14,8 @@ import sage.structure.factorization
 import complex_field
 import infinity
 
+from sage.structure.parent_gens import ParentWithGens
+
 _obj = {}
 class _uniq(object):
     def __new__(cls):
@@ -46,7 +48,7 @@ class RationalField(_uniq, field.Field):
             sage: Q('49/7')
             7
             sage: type(Q('49/7'))
-            <type 'rational.Rational'>
+            <type 'sage.rings.rational.Rational'>
             sage: a = Q('19/374'); b = Q('17/371'); print a, b
             19/374 17/371
             sage: a + b
@@ -85,8 +87,11 @@ class RationalField(_uniq, field.Field):
             sage: a + 1
             393/374
         """
+    def __init__(self):
+        ParentWithGens.__init__(self, self)
+        self._assign_names(('x'),normalize=False)
 
-    def __repr__(self):
+    def _repr_(self):
         return "Rational Field"
 
     def _latex_(self):
@@ -137,19 +142,19 @@ class RationalField(_uniq, field.Field):
             sage: QQ(23.2, 2)
             6530219459687219/281474976710656
             sage: 6530219459687219.0/281474976710656
-            23.19999999999999929
+            23.199999999999999
             sage: QQ(23.2, 10)
             116/5
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.25384186085600002
+            0.253841860855999
             sage: O = E.omega(); O
-            1.269209304279553421688794613    # 32-bit
+            1.269209304279553421688794              # 32-bit
             1.269209304279553421688794616754547304  # 64-bit
             sage: t = L/O; t
-            0.20000000000007040
+            0.200000000000070
             sage: QQ(t)
             1/5
         """
@@ -157,10 +162,8 @@ class RationalField(_uniq, field.Field):
             return x
         return sage.rings.rational.Rational(x, base)
 
-    def _coerce_(self, x):
-        if isinstance(x, sage.rings.rational.Rational):
-            return x
-        elif isinstance(x, (int, long, sage.rings.integer.Integer)):
+    def _coerce_impl(self, x):
+        if isinstance(x, (int, long, sage.rings.integer.Integer)):
             return self(x)
         raise TypeError
 
@@ -230,10 +233,10 @@ class RationalField(_uniq, field.Field):
         """
         return sage.rings.integer.Integer(0)
 
-    def number_field(self):
+    def number_field(self, poly_var='x', nf_var='a'):
         from sage.rings.number_field.all import NumberField
-        x = sage.rings.polynomial_ring.PolynomialRing(self).gen()
-        return NumberField(x-1)
+        x = sage.rings.polynomial_ring.PolynomialRing(self, poly_var).gen()
+        return NumberField(x-1, nf_var)
 
     def order(self):
         """
@@ -251,16 +254,6 @@ class RationalField(_uniq, field.Field):
         """
         return self("%s/%s"%(random.randrange(-num_bound-1, num_bound+1), \
                              random.randrange(1,den_bound+1)))
-
-    def __cmp__(self, other):
-        if isinstance(other, RationalField):
-            return 0
-        if ring.is_Ring(other):
-            if other.characteristic() == 0 and field.is_Field(other):
-                return -1
-            else:
-                return 1
-        return -1
 
     def zeta(self, n=2):
         if n == 1:

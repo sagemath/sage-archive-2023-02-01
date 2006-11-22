@@ -25,11 +25,9 @@ Base class for all groups
 
 import random
 
-import sage.rings.coerce
-
 from   sage.rings.infinity import infinity
 
-cdef class Group(sage.structure.gens.Generators):
+cdef class Group(sage.structure.parent_gens.ParentWithGens):
     """
     Generic group class
     """
@@ -41,9 +39,6 @@ cdef class Group(sage.structure.gens.Generators):
         Coerce x into this group.
         """
         raise NotImplementedError
-
-    def _coerce_(self, x):
-        return self(x)
 
     def __contains__(self, x):
         r"""

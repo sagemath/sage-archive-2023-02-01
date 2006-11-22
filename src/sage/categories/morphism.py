@@ -25,15 +25,14 @@ import operator
 
 import homset
 
-import sage.rings.coerce
 import sage.rings.arith as arith
 
-from sage.structure.all import Element, Element_cmp_
+from sage.structure.element import Element
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
 
-class Morphism(Element, Element_cmp_):
+class Morphism(Element):
     def __init__(self, parent):
         if not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent

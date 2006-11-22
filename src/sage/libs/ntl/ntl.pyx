@@ -21,7 +21,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'interrupt.pxi'
+include "../../ext/interrupt.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
 
@@ -51,6 +51,8 @@ cdef class ntl_ZZ:
         _sig_on
         return string(ZZ_to_str(self.x))
 
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __mul__(ntl_ZZ self, other):
         cdef ntl_ZZ y
@@ -258,6 +260,9 @@ cdef class ntl_ZZX:
         """
         return
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         if self.x:
             ZZX_dealloc(self.x)
@@ -266,6 +271,9 @@ cdef class ntl_ZZX:
         return str(ZZX_repr(self.x))
 
     def copy(self):
+        return make_ZZX(ZZX_copy(self.x))
+
+    def __copy__(self):
         return make_ZZX(ZZX_copy(self.x))
 
     def __setitem__(self, long i, a):
@@ -1104,6 +1112,9 @@ cdef class ntl_ZZ_p:
     """
     # See ntl.pxd for definition of data members
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_ZZ_p(self.x)
 
@@ -1269,6 +1280,9 @@ cdef class ntl_ZZ_pX:
         """
         return
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         if self.x:
             ZZ_pX_dealloc(self.x)
@@ -1276,6 +1290,9 @@ cdef class ntl_ZZ_pX:
 
     def __repr__(self):
         return str(ZZ_pX_repr(self.x))
+
+    def __copy__(self):
+        return make_ZZ_pX(ZZ_pX_copy(self.x))
 
     def copy(self):
         return make_ZZ_pX(ZZ_pX_copy(self.x))
@@ -2113,6 +2130,9 @@ cdef class ntl_mat_ZZ:
                     mat_ZZ_setitem(self.x, i, j, <ZZ*> tmp.x)
 
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_mat_ZZ(self.x)
 
@@ -2358,6 +2378,9 @@ cdef class ntl_GF2X:
     """
     # See ntl.pxd for definition of data members
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_GF2X(self.gf2x_x)
 
@@ -2551,8 +2574,9 @@ def make_new_GF2X(x=[]):
         sage: ntl.GF2X(2)
         [0 1]
     """
-    from sage.rings.finite_field_element import FiniteFieldElement
+    from sage.rings.finite_field_element import FiniteField_ext_pariElement
     from sage.rings.finite_field import FiniteField_ext_pari
+    from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
     from sage.rings.polynomial_element import Polynomial_dense_mod_p
     from sage.rings.integer import Integer
 
@@ -2565,13 +2589,15 @@ def make_new_GF2X(x=[]):
     elif isinstance(x, Polynomial_dense_mod_p):
         if x.base_ring().characteristic():
             x=x._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteField_ext_pari):
+    elif isinstance(x, (FiniteField_ext_pari,FiniteField_givaro)):
         if x.characteristic() == 2:
-            x=x.modulus()._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteFieldElement):
+            x= list(x.modulus())
+    elif isinstance(x, FiniteField_ext_pariElement):
         if x.parent().characteristic() == 2:
             x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
             x="0x"+hex(x)[2:][::-1]
+    elif isinstance(x, FiniteField_givaroElement):
+        x = "0x"+hex(int(x))[2:][::-1]
     s = str(x).replace(","," ")
     cdef ntl_GF2X n
     n = ntl_GF2X()
@@ -2700,6 +2726,8 @@ cdef class ntl_GF2E(ntl_GF2X):
     """
 
     # See ntl.pxd for definition of data members
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __dealloc__(self):
         del_GF2E(self.gf2e_x)
@@ -2761,6 +2789,9 @@ cdef class ntl_GF2E(ntl_GF2X):
         Returns True if this element equals one, False otherwise.
         """
         return bool(GF2E_is_one(self.gf2e_x))
+
+    def __copy__(self):
+        return make_GF2E(GF2E_copy(self.gf2e_x))
 
     def copy(ntl_GF2E self):
         """
@@ -2896,6 +2927,9 @@ cdef class ntl_GF2EX:
     """
     # See ntl.pxd for definition of data members
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_GF2EX(self.x)
 
@@ -3021,6 +3055,9 @@ cdef class ntl_mat_GF2E:
                         tmp=elem
                     mat_GF2E_setitem(self.x, i, j, <GF2E*> tmp.gf2e_x)
             _sig_off
+
+    def __reduce__(self):
+        raise NotImplementedError
 
 
     def __dealloc__(self):
@@ -3178,7 +3215,7 @@ cdef class ntl_mat_GF2E:
 
         from sage.matrix.matrix import Matrix_generic_dense
         from sage.matrix.matrix_space import MatrixSpace
-        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce_entries=False,copy=False,entries=l)
+        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce=False,copy=False,entries=l)
 
     def transpose(ntl_mat_GF2E self):
         """

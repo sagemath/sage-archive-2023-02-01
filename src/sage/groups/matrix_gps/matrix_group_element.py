@@ -34,8 +34,7 @@ from sage.matrix.matrix import Matrix
 def is_MatrixGroupElement(x):
     return isinstance(x, MatrixGroupElement)
 
-class MatrixGroupElement(element.Element_cmp_,
-                              element.MultiplicativeGroupElement):
+class MatrixGroupElement(element.MultiplicativeGroupElement):
     """
     An element of a matrix group.
 

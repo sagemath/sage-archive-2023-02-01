@@ -168,7 +168,7 @@ class HeckeSubmodule(module.HeckeModule_free_module):
                 while N % p == 0: p = arith.next_prime(p)
             f = self.hecke_polynomial(p)
             T = A.hecke_matrix(p)
-            g = T.charpoly()
+            g = T.charpoly('x')
             V = T.kernel_on(V, poly=g//f, check=False)
             if V.rank() + self.rank() <= A.rank():
                 break

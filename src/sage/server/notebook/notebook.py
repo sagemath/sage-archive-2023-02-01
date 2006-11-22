@@ -159,7 +159,7 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text1" and "Text2" buttons provide the full text of the
+the "Text" and "DocText" buttons provide the full text of the
 worksheet in a very convenient format for copy and paste.
 
 
@@ -636,9 +636,7 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
-        from sage.misc.all import cputime
         if filename is None:
-            t = cputime()
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
@@ -646,7 +644,6 @@ class Notebook(SageObject):
                 pass
             print "Saving notebook to %s"%self.__filename
             SageObject.save(self, os.path.abspath(self.__filename), compress=False)
-            print "Time: %s"%cputime(t)
         else:
             SageObject.save(self, os.path.abspath(filename), compress=False)
 
@@ -770,19 +767,21 @@ class Notebook(SageObject):
         body += '<div class="top_control_bar">\n'
         body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
-        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
-        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text2</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
-        body += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
-        body += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
-        body += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
-        body += '    <a class="download_sws" href="%s.sws">Download</a>'%worksheet.filename() + vbar
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
-        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>'
+        body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
+        body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
+        #body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
+        #body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
+        #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
+        body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
+        body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
+        body += '    <a class="hide" onClick="hide_all()">Hide All</a>' + vbar
+        body += '    <a class="hide" onClick="show_all()">Show All</a>' + vbar
+        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
+        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
+        body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+        body += '    <a class="slide_mode" onClick="slide_mode()">Single Cell Mode</a>' + vbar
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -852,6 +851,102 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
         return body
+
+    def edit_window(self, worksheet):
+        """
+        Return a window for editing worksheet.
+
+        INPUT:
+            worksheet -- a worksheet
+        """
+        t = worksheet.edit_text()
+        t = t.replace('<','&lt;')
+        body_html = ''
+        body_html += '<h1 class="edit">Editing "%s"</h1>\n'%worksheet.name()
+        body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
+        body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
+        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
+        body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
+        body_html += '</form>'
+
+        s = """
+        <html><head><title>SAGE Wiki cell text </title>
+        <style type="text/css">
+
+        textarea.edit {
+            font-family: monospace;
+            border: 1px solid #8cacbb;
+            color: black;
+            background-color: white;
+            padding: 3px;
+            width: 100%%;
+            margin-top: 0.5em;
+        }
+        </style>
+
+        <script language=javascript> <!--
+
+        %s
+
+        function get_element(id) {
+            if(document.getElementById)
+                return document.getElementById(id);
+            if(document.all)
+                return document.all[id];
+            if(document.layers)
+                return document.layers[id];
+        }
+
+        function get_cell_list() {
+            return window.opener.get_cell_list()
+        }
+
+        function send_doc_html() {
+            var cell_id_list = get_cell_list();
+            var num = cell_id_list.length;
+            var lastid = cell_id_list[num-1];
+            var doc_intext = get_element('cell_intext').value; /*for testing doc_html*/
+            window.opener.upload_doc_html(lastid,doc_intext);
+        }
+
+        function send_cell_text() {
+            var cell_id_list = get_cell_list();
+            var num = cell_id_list.length;
+            var lastid = cell_id_list[num-1];
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.upload_cell_text(lastid,cell_intext);
+        }
+
+        function send_to_ws(do_eval) {
+            var f = send_to_ws_callback;
+            if (do_eval)
+                f = send_to_ws_eval_callback;
+            async_request('/delete_cell_all',f, "worksheet_id="+window.opener.get_worksheet_id());
+        }
+
+        function send_to_ws_callback(status, response_text) {
+            window.opener.cell_delete_all_callback(status, response_text);
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.insert_cells_from_wiki(cell_intext, false);
+        }
+
+        function send_to_ws_eval_callback(status, response_text) {
+            window.opener.cell_delete_all_callback(status, response_text);
+            var cell_intext = get_element('cell_intext').value;
+            window.opener.insert_cells_from_wiki(cell_intext, true);
+        }
+
+
+        function clear_wiki_window() {
+            get_element('cell_intext').value = ' ';
+        }
+        --></script></head>
+        <body>%s
+        </body></html>"""%(js.async_lib(), body_html)
+
+        return s
+
 
     def help_window(self):
         help = [
@@ -1095,8 +1190,9 @@ def notebook(dir         ='sage_notebook',
                     'gmail'
                     'grey'
                     ('#ff0000', '#0000ff')
-        system -- default computer algebra system to use for new
-                  worksheets.
+        system -- (string) default computer algebra system to use for new
+                  worksheets, e.g., 'maxima', 'gp', 'axiom', 'mathematica', 'macaulay2',
+                  'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
         jsmath -- whether not to enable javascript typset output for math.
 
         debug -- whether or not to show a javascript debugging window
@@ -1197,14 +1293,12 @@ def notebook(dir         ='sage_notebook',
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"
     nb.start(port, address, max_tries, open_viewer, jsmath=jsmath)
-    alarm(3)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=False)
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
     if os.path.exists('%s/pid'%dir):
         os.remove('%s/pid'%dir)
-    cancel_alarm()
     return nb
 
 

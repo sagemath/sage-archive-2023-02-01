@@ -24,7 +24,6 @@ of integers, etc., easier.
 #*****************************************************************************
 
 import operator
-import sage.rings.coerce as coerce
 
 import sage.rings.field_element as field_element
 import sage.rings.infinity as infinity
@@ -60,11 +59,11 @@ class NumberFieldElement(field_element.FieldElement):
         number fields, and some basic arithmetic.
 
         First we define a polynomial over Q.
-            sage: x = PolynomialRing(QQ).0
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^2 + 1
 
         Next we use f to define the number field.
-            sage: K = NumberField(f, "a"); K
+            sage: K.<a> = NumberField(f); K
             Number Field in a with defining polynomial x^2 + 1
             sage: a = K.gen()
             sage: a^2
@@ -77,7 +76,7 @@ class NumberFieldElement(field_element.FieldElement):
             1/5
 
         We create a cube root of 2.
-            sage: K = NumberField(x^3 - 2, "b")
+            sage: K.<b> = NumberField(x^3 - 2)
             sage: b = K.gen()
             sage: b^3
             2
@@ -85,7 +84,7 @@ class NumberFieldElement(field_element.FieldElement):
             12*b^2 + 15*b + 19
 
         This example illustrates save and load:
-            sage: K, a = NumberField(x^17 - 2, 'a').objgen()
+            sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
             True
@@ -150,16 +149,22 @@ class NumberFieldElement(field_element.FieldElement):
         g = self.parent().polynomial()._pari_().subst("x",var)
         return 'Mod(%s, %s)'%(f,g)
 
+    def __getitem__(self, n):
+        return self.polynomial()[n]
+
     def __cmp__(self, other):
-        if not isinstance(other, NumberFieldElement) or self.parent() != other.parent():
-            return coerce.cmp(self, other)
-        return misc.generic_cmp(self.__element, other.__element)
+        return cmp(self.__element, other.__element)
+
+    def __pow__(self, right):
+        right = int(right)
+        if right < 0:
+            x = self.__invert__()
+            right *= -1
+            return arith.generic_power(x, right, one=self.parent()(1))
+        return arith.generic_power(self, right, one=self.parent()(1))
 
     def _add_(self, other):
         return NumberFieldElement(self.parent(), self.__element+other.__element)
-
-    def __getitem__(self, n):
-        return self.polynomial()[n]
 
     def _mul_(self, other):
         """
@@ -172,15 +177,7 @@ class NumberFieldElement(field_element.FieldElement):
         #defining polynomial every time:
         #     src/number_fields/algebraic_num/order.cc: compute_table
         # but asymptotically fast poly multiplication means it's
-        # actually faster to *not* build a table!
-
-    def __pow__(self, right):
-        right = int(right)
-        if right < 0:
-            x = self.__invert__()
-            right *= -1
-            return arith.generic_power(x, right, one=self.parent()(1))
-        return arith.generic_power(self, right, one=self.parent()(1))
+        # actually faster to *not* build a table!?!
 
     def _sub_(self, other):
         return NumberFieldElement(self.parent(), self.__element - other.__element)
@@ -300,7 +297,7 @@ class NumberFieldElement(field_element.FieldElement):
         return QQ(self._pari_().norm())
         #return self.matrix().determinant()
 
-    def charpoly(self):
+    def charpoly(self, var):
         r"""
         The characteristic polynomial of this element over $\Q$.
 
@@ -308,30 +305,31 @@ class NumberFieldElement(field_element.FieldElement):
 
         We compute the charpoly of cube root of $3$.
 
-            sage: R.<x> = QQ['x']
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-2)
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^3 - 2
 
         We construct a relative extension and find the characteristic
         polynomial over $\Q$.
 
-            sage: S.<X> = K['X']
+            sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17)
             sage: L
             Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2
             sage: a = L.0; a
             b
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^9 + 57*x^6 + 165*x^3 + 6859
+            sage: a.charpoly('y')
+            y^9 + 57*y^6 + 165*y^3 + 6859
         """
-        R = self.parent().polynomial_ring()
+        R = self.parent().base_ring()[var]
         if not isinstance(self.parent(), number_field.NumberField_extension):
             return R(self._pari_().charpoly())
         else:
             g = self.polynomial()  # in QQ[x]
             f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            R = g.parent()
             return R( (g._pari_().Mod(f)).charpoly() )
 
 ## This might be useful for computing relative charpoly.
@@ -342,7 +340,7 @@ class NumberFieldElement(field_element.FieldElement):
 ##             prp = self.parent().pari_relative_polynomial()
 ##             elt = str(self.polynomial()._pari_())
 ##             return R(nf.rnfcharpoly(prp, elt))
-##         # return self.matrix().charpoly()
+##         # return self.matrix().charpoly('x')
 
     def minpoly(self):
         # The minimal polynomial is square-free and
@@ -351,7 +349,7 @@ class NumberFieldElement(field_element.FieldElement):
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
         f = polynomial_ring.PolynomialRing(QQ)(1)
-        for g, _ in self.charpoly().factor():
+        for g, _ in self.charpoly('x').factor():
             f *= g
         return f
 

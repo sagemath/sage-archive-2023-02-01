@@ -34,7 +34,7 @@ import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.element
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence

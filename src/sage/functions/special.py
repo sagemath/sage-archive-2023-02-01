@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest -- TODO remove
 Special Functions
 
 AUTHORS:
@@ -260,7 +260,7 @@ $cn (x,m)$ have real periods $4K(m)$, whereas $dn (x,m)$ has a period
 $2K(m)$. The limit $m\rightarrow 0$ gives
 $K(0) = \pi/2$ and trigonometric functions: $sn(x, 0) = \sin x$,
 $cn(x, 0) = \cos x$, $dn(x, 0) = 1$. The limit $m \rightarrow 1$
-gives $K(1) \\rightarrow \infty$ and hyperbolic functions:
+gives $K(1) \rightarrow \infty$ and hyperbolic functions:
 $sn(x, 1) = \tanh x$, $cn(x, 1) = \mbox{\rm sech} x$,
 $dn(x, 1) = \mbox{\rm sech} x$.
 
@@ -713,35 +713,7 @@ def jacobi(sym,x,m):
     Now to view this, just type show(P).
 
     """
-    if sym=="dc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="nc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="sc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cd":
-        return eval(maxima.eval("jacobi_cd(%s,%s)"%(float(x),float(m))))
-    if sym=="nd":
-        return eval(maxima.eval("jacobi_nd(%s,%s)"%(float(x),float(m))))
-    if sym=="sd":
-        return eval(maxima.eval("jacobi_sd(%s,%s)"%(float(x),float(m))))
-    if sym=="cn":
-        return eval(maxima.eval("jacobi_cn(%s,%s)"%(float(x),float(m))))
-    if sym=="dn":
-        return eval(maxima.eval("jacobi_dn(%s,%s)"%(float(x),float(m))))
-    if sym=="sn":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cs":
-        return eval(maxima.eval("jacobi_cs(%s,%s)"%(float(x),float(m))))
-    if sym=="ds":
-        return eval(maxima.eval("jacobi_ds(%s,%s)"%(float(x),float(m))))
-    if sym=="ns":
-        return eval(maxima.eval("jacobi_ns(%s,%s)"%(float(x),float(m))))
-    return 1
-
-
-# This doesn't work -- commented out until it does.
-#    -- William
+    return eval(maxima.eval("jacobi_%s(%s,%s)"%(sym, float(x), float(m))))
 
 def inverse_jacobi(sym,x,m):
     """
@@ -761,31 +733,7 @@ def inverse_jacobi(sym,x,m):
 
     Now to view this, just type show(P).
     """
-    if sym=="dc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="nc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="sc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cd":
-        return eval(maxima.eval("inverse_jacobi_cd(%s,%s)"%(float(x),float(m))))
-    if sym=="nd":
-        return eval(maxima.eval("inverse_jacobi_nd(%s,%s)"%(float(x),float(m))))
-    if sym=="sd":
-        return eval(maxima.eval("inverse_jacobi_sd(%s,%s)"%(float(x),float(m))))
-    if sym=="cn":
-        return eval(maxima.eval("inverse_jacobi_cn(%s,%s)"%(float(x),float(m))))
-    if sym=="dn":
-        return eval(maxima.eval("inverse_jacobi_dn(%s,%s)"%(float(x),float(m))))
-    if sym=="sn":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cs":
-        return eval(maxima.eval("inverse_jacobi_cs(%s,%s)"%(float(x),float(m))))
-    if sym=="ds":
-        return eval(maxima.eval("inverse_jacobi_ds(%s,%s)"%(float(x),float(m))))
-    if sym=="ns":
-        return eval(maxima.eval("inverse_jacobi_ns(%s,%s)"%(float(x),float(m))))
-    return 1
+    return eval(maxima.eval("inverse_jacobi_%s(%s,%s)"%(sym, float(x),float(m))))
 
 #### elliptic integrals
 

@@ -16,7 +16,7 @@ We create a space compute the charpoly, then compute the same but over
 a bigger field.  In each case we also decompose the space using $T_2$.
 
     sage: M = ModularSymbols(23,2,base_ring=QQ)
-    sage: print M.T(2).charpoly().factor()
+    sage: print M.T(2).charpoly('x').factor()
     (x - 3) * (x^2 + x - 1)^2
     sage: print M.decomposition(2)
     [
@@ -24,9 +24,9 @@ a bigger field.  In each case we also decompose the space using $T_2$.
     Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
     ]
 
-    sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5))
-    sage: print M.T(2).charpoly().factor()
-    (x + -3) * (x + -1/2*a + 1/2)^2 * (x + 1/2*a + 1/2)^2
+    sage: M = ModularSymbols(23,2,base_ring=QuadraticField(5, 'sqrt5'))
+    sage: print M.T(2).charpoly('x').factor()
+    (x + -3) * (x + -1/2*sqrt5 + 1/2)^2 * (x + 1/2*sqrt5 + 1/2)^2
     sage: print M.decomposition(2)
     [
     Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
@@ -148,7 +148,7 @@ def ModularSymbols(group  = 1,
         6
         sage: M = ModularSymbols(e, 2); M
         Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
-        sage: f = M.T(2).charpoly(); f
+        sage: f = M.T(2).charpoly('x'); f
         x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
         (x + -2*zeta6 - 1) * (x + -zeta6 - 2) * (x + zeta6 + 1)^2
@@ -159,15 +159,15 @@ def ModularSymbols(group  = 1,
         sage: m = ModularSymbols(e, 2); m
         Modular Symbols space of dimension 2 and level 5, weight 2, character [-1], sign 0, over Rational Field
 
-        sage: m.T(2).charpoly()
+        sage: m.T(2).charpoly('x')
         x^2 - 1
         sage: m = ModularSymbols(e, 6); m.dimension()
         6
-        sage: m.T(2).charpoly()
+        sage: m.T(2).charpoly('x')
         x^6 - 873*x^4 - 82632*x^2 - 1860496
 
     We create a space of modular symbols with nontrivial character in characteristic 2.
-        sage: G = DirichletGroup(13,GF(4)); G
+        sage: G = DirichletGroup(13,GF(4,'a')); G
         Group of Dirichlet characters of modulus 13 over Finite Field in a of size 2^2
         sage: e = G.list()[2]; e
         [a + 1]

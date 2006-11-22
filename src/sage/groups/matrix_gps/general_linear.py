@@ -8,7 +8,7 @@ EXAMPLES:
     General Linear Group of degree 1 over Integer Ring
     sage: GL(100,RR)
     General Linear Group of degree 100 over Real Field with 53 bits of precision
-    sage: GL(3,GF(49))
+    sage: GL(3,GF(49,'a'))
     General Linear Group of degree 3 over Finite Field in a of size 7^2
 
 AUTHORS:

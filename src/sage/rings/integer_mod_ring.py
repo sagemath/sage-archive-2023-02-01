@@ -43,6 +43,7 @@ import integer_ring
 import rational
 import quotient_ring
 import ideal
+from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.all import pari, PariError
 
@@ -103,7 +104,7 @@ def is_IntegerModRing(x):
         True
         sage: is_IntegerModRing(GF(13))
         True
-        sage: is_IntegerModRing(GF(4))
+        sage: is_IntegerModRing(GF(4, 'a'))
         False
         sage: is_IntegerModRing(10)
         False
@@ -114,8 +115,7 @@ def is_IntegerModRing(x):
 
 class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     """
-    The ring of integers modulo N, e.g., when N is prime
-    this is a prime finite field.
+    The ring of integers modulo N, with N composite.
 
     EXAMPLES:
         sage: R = IntegerModRing(97)
@@ -196,7 +196,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self._pyx_order = integer_mod.NativeIntStruct(order)
         self.__unit_group_exponent = None
         self.__factored_order = None
-        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order))
+        quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
+        ParentWithGens.__init__(self, self)
 
     def list_of_elements_of_multiplicative_group(self):
         import sage.ext.arith as a
@@ -212,6 +213,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_finite(self):
         """
+        Return True since Z/NZ is finite for all positive N.
+
         EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.is_finite()
@@ -219,8 +222,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return True
 
+    def is_integral_domain(self):
+        """
+        Return False since Z/NZ with N composite is never an integral domain.
+        """
+        return False
+
     def is_field(self):
         """
+        Return False since Z/NZ with N composite is never a field.
+
         EXAMPLES:
             sage: R = IntegerModRing(18)
             sage: R.is_field()
@@ -280,7 +291,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             return self.__modulus
         except AttributeError:
             from polynomial_ring import PolynomialRing
-            x = PolynomialRing(self).gen()
+            x = PolynomialRing(self, 'x').gen()
             self.__modulus = x - 1
             return self.__modulus
 
@@ -307,7 +318,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             return TypeError, "error coercing to finite field"
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         r"""
         Canonical coercion.
 
@@ -349,18 +360,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             True
         """
         if not isinstance(other, IntegerModRing_generic):
-            return -1
-        if self.__order < other.__order:
-            return -1
-        elif self.__order > other.__order:
-            return 1
-        return 0
-
-    ## This conflicts with polynomial ring constructor
-##     def __getitem__(self, n):
-##         if n < 0 or n >= self.order():
-##             raise IndexError
-##         return self(n)
+            return cmp(type(self), type(other))
+        return cmp(self.__order, other.__order)
 
     # The following __unit_gens functions are here since I just factored
     # them out from the unit_gens function.  They are only called by

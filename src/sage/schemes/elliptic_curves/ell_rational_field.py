@@ -235,7 +235,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve([0, 0,1,-1,0])
             sage: e = E.pari_curve()
             sage: type(e)
-            <type 'gen.gen'>
+            <type 'sage.libs.pari.gen.gen'>
             sage: e.type()
             't_VEC'
             sage: e.ellan(10)
@@ -452,7 +452,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if not pari_ints:
             ZZ = rings.Integer
-            v = [0] + [ZZ(x) for x in E.ellan(n)]
+            v = [ZZ(0)] + [ZZ(x) for x in E.ellan(n)]
         else:
             v = E.ellan(n)
         if not pari_ints:
@@ -1333,7 +1333,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice ()
-            (2.993458646231959629832009987, 2.4513893819899999*I)     # 32-bit
+            (2.993458646231959629832009, 2.45138938198999*I)           # 32-bit
             (2.993458646231959629832009979452508178, 2.4513893819899999*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
@@ -1347,7 +1347,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
-            5.986917292463919259664019974            # 32-bit
+            5.986917292463919259664019               # 32-bit
             5.986917292463919259664019958905016356   # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
@@ -1360,7 +1360,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.complex_area()
-            7.3381327407991845
+            7.33813274079918
         """
         w1,w2 = self.period_lattice()
         return (w1*w2.imag()).real()
@@ -1389,7 +1389,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve('37a')
             sage: L = E.Lseries_dokchitser()
             sage: L(2)
-            0.38157540826071124
+            0.381575408260711
             sage.: L = E.Lseries_dokchitser(algorithm='magma')         # optional  (not auto tested)
             sage.: L.Evaluate(2)                                       # optional  (not auto tested)
             0.38157540826071121129371040958008663667709753398892116
@@ -1482,7 +1482,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_zeros(2)
-            [0.00000000000, 5.0031700134]
+            [0.000000000, 5.00317001]
 
             sage: a = E.Lseries_zeros(20)      # long time
             sage: point([(1,x) for x in a])    # graph  (long time)
@@ -1514,7 +1514,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
-            [(6.8703912161, 0.24892278010), (8.0143308081, -0.14016853319), (9.9330983534, -0.12994302920)]
+            [(6.87039121, 0.248922780), (8.01433080, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.zeros_in_interval(x, y, stepsize, L=self)
@@ -1599,7 +1599,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_twist_zeros(3, -4, -3)         # long
-            {-4: [1.6081378292, 2.9614484031, 3.8975174744], -3: [2.0617089970, 3.4821688067, 4.4585321881]}
+            {-4: [1.60813782, 2.96144840, 3.89751747], -3: [2.06170899, 3.48216880, 4.45853218]}
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.twist_zeros(n, dmin, dmax, L=self)
@@ -1651,21 +1651,21 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37b')
             sage: E.Lseries_at1(100)
-            (0.72568106193600002, 0.0000000000000000000000000000000000000000000015243750228899999)
+            (0.725681061935999, 0.00000000000000000000000000000000000000000000152437502288999)
         """
         if self.root_number() == -1:
             return 0
         sqrtN = float(self.conductor().sqrt())
         k = int(k)
         if k == 0: k = int(math.ceil(sqrtN))
-        an = self.anlist(k)           # list of C ints
+        an = self.anlist(k)           # list of SAGE ints
         # Compute z = e^(-2pi/sqrt(N))
         pi = 3.14159265358979323846
         z = exp(-2*pi/sqrtN)
         zpow = z
         s = 0.0
         for n in xrange(1,k+1):
-            s += (zpow * an[n])/n
+            s += (zpow * float(an[n]))/n
             zpow *= z
 
         error = 2*zpow / (1 - z)
@@ -1715,8 +1715,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_deriv_at1(100)
-            (0.30599977383499999,
-             0.0000000000000000000000000000000000000000000015243750228899999)
+            (0.305999773834999, 0.00000000000000000000000000000000000000000000152437502288999)
         """
         if self.root_number() == 1: return 0
         k = int(k)
@@ -1744,7 +1743,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve([1,2,3,4,5])
             sage: E.Lseries(1)
-            0.00000000000000000
+            0.000000000000000
             sage: E.Lseries('1.1')       # long time (!)
             0.28549100767814833
 
@@ -1778,7 +1777,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.35417268051555018 + 0.87451868171893621*I
+            -0.354172680515557 + 0.874518681718910*I
         """
         s = C(s)
         N = self.conductor()
@@ -1809,9 +1808,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.63840995909825760 + 0.71549526219140858*I
+            -0.638409959098257 + 0.715495262191409*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.0076121653876937805 + 0.00043488570464214908*I
+            -0.00761216538769283 + 0.000434885704642064*I
 
         NOTE: You might also want to use Tim Dokchitser's
         L-function calculator, which is available by typing
@@ -2238,7 +2237,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if p == 2:
             invs = self.weierstrass_model().ainvs()
-            R = rings.PolynomialRing(self.base_ring())
+            R = rings.PolynomialRing(self.base_ring(), 'x')
             x = R.gen()
             f = x**3 + invs[3]*x + invs[4]
             if not f.is_irreducible():
@@ -2772,7 +2771,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return False
         if arith.GCD(D, self.conductor()) != 1:
             return False
-        K = number_field.QuadraticField(D)
+        K = number_field.QuadraticField(D, 'a')
         for p, _ in factor(self.conductor()):
             if len(K.factor_integer(p)) != 2:
                 return False
@@ -3443,7 +3442,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         An anomalous rank 3 example:
             sage: E = EllipticCurve("5077a")
-            sage: E.padic_height_pairing_matrix(5, 10)
             sage: EllipticCurve('5077a').padic_height_pairing_matrix(5,2)
             [4*5^-1 + 2 + 4*5 + O(5^2)              4*5 + O(5^2)       4*5^-1 + 1 + O(5^2)]
             [             4*5 + O(5^2) 4*5^-1 + 3 + 4*5 + O(5^2)       2*5^-1 + 5 + O(5^2)]
@@ -3456,6 +3454,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         rank = self.rank()
         if rank == 0:
+
+
             return K(1)
 
         basis = self.gens()
@@ -3466,7 +3466,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Use <P, Q> = h(P) + h(Q) - h(P + Q)
 
         point_height = [height(P) for P in basis]
-        M = matrix.Matrix(K, rank, rank)
+        M = matrix.matrix(K, rank, rank, 0)
         for i in range(rank):
             for j in range(i, rank):
                 M[i, j] = M[j, i] = point_height[i] + point_height[j] \
@@ -3546,7 +3546,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         # Find an integer A such that for any point P, the multiple A*P
         # is in the connected component of the Neron model modulo all primes.
-        # This is one of the conditions in Mazur/Stein/Tate; additionally
+        # This is one of the conditions in Mazur/Stein/Tate; additionally,
         # it is required to apply Proposition IV.2 from Christian Wuthrich's
         # thesis.
         A = arith.LCM(self.tamagawa_numbers())
@@ -3782,7 +3782,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # generic code, and I should come back and reimplement this. But
         # for now I have to have specialised code here.
 
-        S = rings.PolynomialRing(R)
+        S = rings.PolynomialRing(R, 'x')
 
         def _solve_linear_de(N, L, a, b, f0):
             if L == 1:
@@ -3851,7 +3851,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         A = A + (X.a1()/2 - A[0]) * f
 
         # Remove $t^{-1}$ term
-        A[-1] = 0
+        # A[-1] = 0
+        # I changed this, since commutative ring elements are immutable in SAGE now.
+        A._unsafe_mutate(-1, 0)
 
         # Now A should be $g'/g$, where $\sigma(t) = t g(t)$.
 
@@ -4075,7 +4077,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         base_ring = rings.Integers(p**adjusted_prec)
         output_ring = rings.pAdicField(p, prec)
 
-        R, x = rings.PolynomialRing(base_ring).objgen()
+        R, x = rings.PolynomialRing(base_ring, 'x').objgen()
         Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
         frob_p = monsky_washnitzer.matrix_of_frobenius(
                         Q, p, adjusted_prec, trace)

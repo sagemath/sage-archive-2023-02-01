@@ -578,7 +578,7 @@ class GapElement(ExpectElement):
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             sage: s = gap('[[Z(16),Z(16)^2],[Z(16)^3,Z(16)]]')
-            sage: matrix(GF(16), s)
+            sage: matrix(GF(16,'a'), s)
             [  a a^2]
             [a^3   a]
         """

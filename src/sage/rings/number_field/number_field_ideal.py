@@ -61,12 +61,12 @@ class NumberFieldIdeal(Ideal_fractional):
 
         Ideal_generic.__init__(self, field, gens, coerce)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         if self.pari_hnf() == other.pari_hnf():
             return 0
         return -1
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, NumberFieldIdeal):
             if x.parent() == self:
                 return x
@@ -223,7 +223,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<i> = NumberField(x^2+1, 'i')
             sage: J = K.ideal([i+1, 2])
             sage: J.gens()
-            (2, i + 1)
+            (i + 1, 2)
             sage: J.gens_reduced()
             (i + 1,)
         """

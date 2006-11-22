@@ -18,7 +18,5 @@ export PATH
 
 python setup.py install
 
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+exit $?
 

@@ -12,7 +12,7 @@ Evaluating a string in \sage
 
 from preparser import preparse
 
-def sage_eval(_obj_, locals={}):
+def sage_eval(source, locals={}):
     r"""
     Obtain a \SAGE object from the input string by evaluate it using
     SAGE.  This means calling eval after preparsing and with
@@ -101,14 +101,11 @@ def sage_eval(_obj_, locals={}):
 
     Here you can see eval simply will not work but \code{sage_eval} will.
     """
-    if not isinstance(_obj_, str):
-        try:
-            return _obj_._sage_()
-        except (RuntimeError, NotImplementedError, AttributeError):
-            _obj_ = str(_obj_)
+    if not isinstance(source, str):
+        raise TypeError, "source must be a string."
 
     import sage.all
-    p = preparse(_obj_)
+    p = preparse(source)
     try:
         return eval(p, sage.all.__dict__, locals)
     except SyntaxError, msg:

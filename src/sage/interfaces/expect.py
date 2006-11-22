@@ -32,13 +32,16 @@ import weakref
 import time
 
 from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
 import  sage.structure.element
 
 import sage.misc.sage_eval
 
 import quit
 
-import sage.rings.coerce as coerce
+import monitor
+EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
+
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
 BAD_SESSION = -2
@@ -56,7 +59,7 @@ def _absolute(cmd):
     return ' '.join([t] + c[1:])
 
 
-class Expect(SageObject):
+class Expect(ParentWithBase):
     """
     Expect interface object.
     """
@@ -98,6 +101,7 @@ class Expect(SageObject):
         self.__logfile = logfile
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
+        ParentWithBase.__init__(self, self)
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -230,12 +234,6 @@ class Expect(SageObject):
             os.makedirs(dir)
         os.chdir(dir)
 
-        # This _absolute call below programs around a bug in pexpect:
-        # make a directory X with a subdirectory "magma" and cd into X. Then:
-        #sage: import pexpect
-        #sage: m = pexpect.spawn('magma')
-        #sage: m.interact()  # -- boom!
-
         try:
             cmd = _absolute(self.__command)
         except RuntimeError:
@@ -248,6 +246,7 @@ class Expect(SageObject):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
+            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
@@ -293,10 +292,10 @@ class Expect(SageObject):
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except AttributeError:
-                pass
-        except RuntimeError, msg:
-            pass
+            except Exception, msg:
+                print msg
+        except Exception, msg:
+            print msg
 
     def cputime(self):
         """
@@ -417,9 +416,6 @@ class Expect(SageObject):
         except TypeError, s:
             return 'error evaluating "%s":\n%s'%(code,s)
 
-    def _coerce_(self, x):
-        return self(x)
-
     def __call__(self, x):
         r"""
         Create a new object in self from x.
@@ -434,15 +430,25 @@ class Expect(SageObject):
 
         if isinstance(x, cls) and x.parent() is self:
             return x
+        if isinstance(x, str):
+            return cls(self, x)
+        try:
+            return self._coerce_impl(x)
+        except TypeError:
+            return cls(self, str(x))
 
-        if not isinstance(x, ExpectElement):
-            s = '_%s_'%self.name()
-            if s == '_pari_':
-                s = '_gp_'
-            if hasattr(x, s):
-                return x.__getattribute__(s)(self)
-            elif hasattr(x, '_interface_'):
-                return x._interface_(self)
+    def _coerce_impl(self, x):
+        s = '_%s_'%self.name()
+        if s == '_pari_':
+            s = '_gp_'
+        try:
+            return (x.__getattribute__(s))(self)
+        except AttributeError, msg:
+            pass
+        try:
+            return x._interface_(self)
+        except AttributeError, msg:
+            pass
 
         if isinstance(x, (list, tuple)):
             A = []
@@ -460,7 +466,8 @@ class Expect(SageObject):
             r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
             return r
 
-        return cls(self, x)
+
+        raise TypeError, "unable to coerce element into %s"%self.name()
 
     def new(self, code):
         return self(code)
@@ -628,7 +635,7 @@ class FunctionElement(SageObject):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
+class ExpectElement(RingElement):
     """
     Expect element.
     """
@@ -682,8 +689,6 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         return str(self)
 
     def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1

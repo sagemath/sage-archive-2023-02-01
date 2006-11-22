@@ -1,8 +1,8 @@
-"""
-List of coset represenatives for Gamma_1(N) in SL_2(Z).
+r"""
+List of coset represenatives for $\Gamma_H(N)$ in $\SL_2(\ZZ)$.
 """
 
-#*****************************************************************************
+#####################################################################################
 #       SAGE: System for Algebra and Geometry Experimentation
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -17,16 +17,20 @@ List of coset represenatives for Gamma_1(N) in SL_2(Z).
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#####################################################################################
 
 
 import sage.rings.arith as arith
 
-class G1list:
-    def __init__(self, N):
-        self.__N = N
-        self.__list = [(u,v) for u in xrange(N) for v in xrange(N) \
-                             if arith.GCD(arith.GCD(u,v),N) == 1]
+class GHlist:
+    def __init__(self, group):
+        self.__group = group
+        N = group.level()
+        v = [group._reduce_coset(u,v) for u in xrange(N) for v in xrange(N) \
+                if arith.GCD(arith.GCD(u,v),N) == 1]
+        v = list(set(v))
+        v.sort()
+        self.__list = v
 
     def __getitem__(self, i):
         return self.__list[i]
@@ -35,13 +39,13 @@ class G1list:
         return len(self.__list)
 
     def __repr__(self):
-        return "List of coset representatives for Gamma_1(%s) in SL_2(Z)"%self.__N
+        return "List of coset representatives for %s"%self.__group
 
     def list(self):
         return self.__list
 
     def normalize(self, u, v):
-        return u % self.__N,   v % self.__N
+        return self.__group._reduce_coset(u,v)
 
 
 

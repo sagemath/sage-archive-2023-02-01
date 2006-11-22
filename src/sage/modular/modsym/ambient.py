@@ -1402,6 +1402,69 @@ class ModularSymbolsAmbient_wtk_g1(ModularSymbolsAmbient):
         """
         return modsym.ModularSymbols(congroup.Gamma1(N), self.weight(),self.sign(), self.base_ring())
 
+class ModularSymbolsAmbient_wtk_gamma_h(ModularSymbolsAmbient):
+    def __init__(self, group, weight, sign, F):
+        r"""
+        Initialize a space of modular symbols for $\Gamma_H(N)$.
+
+        INPUT:
+            group -- a congruence subgroup $\Gamma_H(N)$.
+            weight -- int, the weight >= 2
+            sign -- int, either -1, 0, or 1
+            F -- field
+
+        EXAMPLES:
+            sage: ModularSymbols(GammaH(11,[3]),2)
+            ???
+        """
+        ModularSymbolsAmbient.__init__(self,
+                weight=weight, group=group,
+                sign=sign, base_ring=F)
+
+    def _dimension_formula(self):
+        return None
+
+    def _repr_(self):
+        return ("Modular Symbols space of dimension %s for %s of weight %s with sign %s " + \
+                "and over %s")%(self.dimension(), self.group(),self.weight(),
+                                self.sign(), self.base_ring())
+
+    def _cuspidal_submodule_dimension_formula(self):
+        return None
+
+    def _cuspidal_new_submodule_dimension_formula(self):
+        return None
+
+    def _compute_hecke_matrix_prime_power(self, n, p, r):
+        raise NotImplementedError
+
+    def _degeneracy_raising_matrix(self, level):
+        raise NotImplementedError
+
+    def boundary_space(self):
+        try:
+            return self.__boundary_space
+        except AttributeError:
+            pass
+        self.__boundary_space = boundary.BoundarySpace_wtk_gamma_h(
+            self.group(), self.weight(), self.sign(), self.base_ring())
+        return self.__boundary_space
+
+    def manin_symbols(self):
+        try:
+            return self.__manin_symbols
+        except AttributeError:
+            self.__manin_symbols = manin_symbols.ManinSymbolList_gamma_h(
+                group=self.group(), weight=self.weight())
+        return self.__manin_symbols
+
+    def modular_symbols_of_level(self, N):
+        """
+        Returns a space of modular symbols with the same defining
+        properties (weight, sign, etc.) as this space except with the
+        level N.
+        """
+        raise NotImplementedError
 
 
 class ModularSymbolsAmbient_wtk_eps(ModularSymbolsAmbient):

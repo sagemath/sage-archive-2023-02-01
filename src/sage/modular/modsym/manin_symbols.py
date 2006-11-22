@@ -27,6 +27,7 @@ import sage.modular.congroup as congroup
 import sage.modular.cusps as cusps
 import sage.modular.modsym.p1list as p1list
 import sage.modular.modsym.g1list as g1list
+import sage.modular.modsym.ghlist as ghlist
 import sage.modular.modsym.modular_symbols
 import sage.rings.arith as arith
 import sage.rings.polynomial_ring as polynomial_ring
@@ -110,41 +111,27 @@ class ManinSymbolList(SageObject):
     def weight(self):
         return self._weight
 
-
-
-class ManinSymbolList_gamma0(ManinSymbolList):
+class ManinSymbolList_group(ManinSymbolList):
     """
-    List of Manin symbols for Gamma0(N).
+    Base class for Manin symbol lists for a given group.
 
-    ManinSymbolList_gamma0(level, weight):
+    ManinSymbolList_group(level, weight, syms):
+
     INPUT:
         level -- integer level
         weight -- integer weight >= 2
-
-    EXAMPLE:
-        sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma0
-        sage: m = ManinSymbolList_gamma0(5,2); m
-        Manin Symbol List of weight 2 for Gamma0(5)
-        sage: m.manin_symbol_list()
-        [(0,1), (1,0), (1,1), (1,2), (1,3), (1,4)]
-        sage: m = ManinSymbolList_gamma0(6,4); m
-        Manin Symbol List of weight 4 for Gamma0(6)
-        sage: len(m)
-        36
+        syms -- something with a normalize and list method, e.g., P1List.
     """
-    def __init__(self, level, weight):
+    def __init__(self, level, weight, syms):
         self.__level = level
-        self.__P1 = p1list.P1List(self.level())
+        self.__syms = syms  # syms is anything with a normalize and list method.
+
         # The list returned from P1List is guaranteed to be sorted.
         # Thus each list constructed below is also sorted.  This is
         # important since the index function assumes the list is sorted.
         L = [(i, u, v) for i in range(weight - 2 + 1) \
-                            for u, v in self.__P1.list()]
+                            for u, v in syms.list()]
         ManinSymbolList.__init__(self, weight, L)
-
-    def __repr__(self):
-        return "Manin Symbol List of weight %s for Gamma0(%s)"%(
-                    self.weight(), self.level())
 
     def apply_S(self, j):
         """
@@ -169,7 +156,7 @@ class ManinSymbolList_gamma0(ManinSymbolList):
     def apply_T(self, j):
         k = self._weight
         i, u, v = self._list[j]
-        u, v = self.__P1.normalize(v,-u-v)
+        u, v = self.__syms.normalize(v,-u-v)
         if (k-2) % 2 == 0:
             s = 1
         else:
@@ -184,7 +171,7 @@ class ManinSymbolList_gamma0(ManinSymbolList):
     def apply_TT(self, j):
         k = self._weight
         i, u, v = self._list[j]
-        u, v = self.__P1.normalize(-u-v,u)
+        u, v = self.__syms.normalize(-u-v,u)
         if (k-2-i) % 2 == 0:
             s = 1
         else:
@@ -218,7 +205,7 @@ class ManinSymbolList_gamma0(ManinSymbolList):
         m = self.index((0, u*a+v*c, u*b+v*d))
         if m == -1:
             return []
-        r = len(self.__P1)
+        r = len(self.__syms)
         return [(m + r*k, P[k]) for k in range(self._weight-2+1)
                             if P[k] != 0]
 
@@ -227,8 +214,48 @@ class ManinSymbolList_gamma0(ManinSymbolList):
         return self.__level
 
     def normalize(self, x):
-        u,v = self.__P1.normalize(x[1],x[2])
+        u,v = self.__syms.normalize(x[1],x[2])
         return (x[0],u,v)
+
+
+class ManinSymbolList_gamma0(ManinSymbolList_group):
+    """
+    EXAMPLE:
+        sage: from sage.modular.modsym.manin_symbols import ManinSymbolList_gamma0
+        sage: m = ManinSymbolList_gamma0(5,2); m
+        Manin Symbol List of weight 2 for Gamma0(5)
+        sage: m.manin_symbol_list()
+        [(0,1), (1,0), (1,1), (1,2), (1,3), (1,4)]
+        sage: m = ManinSymbolList_gamma0(6,4); m
+        Manin Symbol List of weight 4 for Gamma0(6)
+        sage: len(m)
+        36
+    """
+    def __init__(self, level, weight):
+        ManinSymbolList_group.__init__(self, level, weight, p1list.P1List(level))
+
+    def __repr__(self):
+        return "Manin Symbol List of weight %s for Gamma0(%s)"%(
+                    self.weight(), self.level())
+
+
+class ManinSymbolList_gamma1(ManinSymbolList_group):
+    def __init__(self, level, weight):
+        ManinSymbolList_group.__init__(self, level, weight, g1list.G1list(level))
+
+    def __repr__(self):
+        return "Manin Symbol List of weight %s for Gamma1(%s)"%(
+                    self.weight(), self.level())
+
+
+class ManinSymbolList_gamma_h(ManinSymbolList_group):
+    def __init__(self, group, weight):
+        ManinSymbolList_group.__init__(self, group.level(), weight, ghlist.GHlist(group))
+
+    def __repr__(self):
+        return "Manin Symbol List of weight %s for %s"%(
+                    self.weight(), self.group())
+
 
 class ManinSymbolList_character(ManinSymbolList):
     """
@@ -388,7 +415,7 @@ class ManinSymbolList_character(ManinSymbolList):
         return (x[0],u,v), self.__character(s)
 
 
-class ManinSymbolList_gamma1(ManinSymbolList):
+class x__ManinSymbolList_gamma1(ManinSymbolList):
     """
     List of Manin symbols for Gamma0(N).
 

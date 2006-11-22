@@ -387,6 +387,9 @@ def GammaH(level, H):
         return Gamma1(level)
     return GammaH_class(level, H)
 
+def is_GammaH(x):
+    return isinstance(x, GammaH_class)
+
 class GammaH_class(CongruenceSubgroup):
     r"""
     The congruence subgroup $\Gamma_H(N)$.
@@ -396,6 +399,15 @@ class GammaH_class(CongruenceSubgroup):
         if not isinstance(H, list):
             raise TypeError, "H must be a list."
         self.__H = H
+
+    def __cmp__(self, other):
+        if not isinstance(other, CongruenceSubgroup):
+            return cmp(type(self), type(other))
+        if isinstance(other, GammaH_class):
+            c = cmp(self.level(), other.level())
+            if c: return c
+            return cmp(self._list_of_elements_in_H(), other._list_of_elements_in_H())
+        return cmp(type(self), type(other))
 
     def _generators_for_H(self):
         return self.__H

@@ -206,6 +206,10 @@ def ModularSymbols(group  = 1,
 
         M = ambient.ModularSymbolsAmbient_wtk_g1(group.level(), weight, sign, base_ring)
 
+    elif congroup.is_GammaH(group):
+
+        M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group, weight, sign, base_ring)
+
     elif isinstance(group, dirichlet.DirichletCharacter):
 
         eps = group

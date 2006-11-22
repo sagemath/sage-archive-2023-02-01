@@ -23,26 +23,24 @@ EXAMPLES:
     <type 'sage.matrix.matrix_modn_sparse.Matrix_modn_sparse'>
     sage: parent(a)
     Full MatrixSpace of 3 by 3 sparse matrices over Finite Field of size 37
-
     sage: a^2
-    [15  0  0]
-    [ 0 17  0]
-    [ 0  0  0]
+    [15 18 21]
+    [ 5 17 29]
+    [32 16  0]
     sage: a+a
     [ 0  2  4]
     [ 6  8 10]
     [12 14 16]
-
     sage: b = a.new_matrix(2,3,range(6)); b
     [0 1 2]
     [3 4 5]
     sage: a*b
     Traceback (most recent call last):
     ...
-    ArithmeticError: number of columns of self must equal number of rows of right.
+    TypeError: incompatible dimensions
     sage: b*a
-    [ 3  4  5]
-    [12 19 26]
+    [15 18 21]
+    [ 5 17 29]
 
     sage: a == loads(dumps(a))
     True

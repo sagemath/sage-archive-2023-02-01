@@ -16,6 +16,8 @@ cdef class Element(sage_object.SageObject):
     cdef _set_parent_c(self, ParentWithBase parent)
     cdef base_extend_c(self, ParentWithBase R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, ParentWithBase R)  # OK to override, but do NOT call
+    cdef _rich_to_bool(self, int op, int r)
+
 
 cdef class ModuleElement(Element)       # forward declaration
 

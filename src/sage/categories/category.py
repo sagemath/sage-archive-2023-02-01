@@ -975,8 +975,8 @@ class FreeModules(Category_module):
             M = x.free_module()
             if M.base_ring() != self.base_ring():
                 M = M.change_ring(self.base_ring())
-        except TypeError, AttributeError:
-            raise TypeError, "unable to coerce x (=%s) into %s"%(x,self)
+        except (TypeError, AttributeError), msg:
+            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return M
 
     def is_abelian(self):
@@ -1014,8 +1014,8 @@ class VectorSpaces(Category_module):
             V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
-        except TypeError, AttributeError:
-            raise TypeError, "unable to coerce x (=%s) into %s"%(x,self)
+        except (TypeError, AttributeError), msg:
+            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return V
 
     def base_field(self):

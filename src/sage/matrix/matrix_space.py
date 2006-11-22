@@ -61,6 +61,7 @@ import sage.misc.latex as latex
 from sage.misc.misc import xsrange
 
 import sage.modules.free_module_element
+import sage.modules.free_module
 
 from sage.structure.sequence import Sequence
 
@@ -149,29 +150,6 @@ def MatrixSpace(base_ring, nrows, ncols=None, sparse=False):
         sage: loads(M.dumps()) == M
         True
 
-    EXAMPLES OF EACH TYPE OF MATRIX SPACE:
-    In this section, we create sparse and dense matrix spaces and
-    matrices in those spaces for a wide range of base rings.
-
-    Dense and sparse generic matrices:
-        sage: ??
-
-    Dense and sparse matrices over a domain:
-
-    Dense and sparse matrices over a principal ideal domain:
-
-    Dense and sparse matrices over a field:
-
-    Dense and sparse matrices over the rational numbers:
-
-    Dense and sparse matrices over a cyclotomic field:
-
-    Dense and sparse matrices over the ring ZZ of integers:
-
-    Dense and sparse matrices over the ring of integers:
-
-    Dense and sparse matrices modulo $n$:
-
     """
     if ncols is None: ncols = nrows
     nrows = int(nrows); ncols = int(ncols); sparse=bool(sparse)
@@ -242,17 +220,19 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
             if self.__is_sparse:
                 e = {}
+                zero = self.base_ring()(0)
                 for i in xrange(len(entries)):
                     for j, x in entries[i].iteritems():
-                        e[(i,j)] = x
+                        if x != zero:
+                            e[(i,j)] = x
                 entries = e
             else:
                 entries = sum([v.list() for v in entries],[])
-        if isinstance(entries, dict) and not self.__is_sparse:
+        if not self.__is_sparse and isinstance(entries, dict):
             entries = dict_to_list(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
-        elif isinstance(entries, (list, tuple)) and self.__is_sparse:
+        elif self.__is_sparse and isinstance(entries, (list, tuple)):
             entries = list_to_dict(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
@@ -506,6 +486,22 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
     def nrows(self):
         return self.__nrows
 
+    def row_space(self):
+        try:
+            return self.__row_space
+        except AttributeError:
+            self.__row_space = sage.modules.free_module.FreeModule(self.base_ring(),
+                                                self.ncols(), sparse=self.is_sparse())
+            return self.__row_space
+
+    def column_space(self):
+        try:
+            return self.__column_space
+        except AttributeError:
+            self.__column_space = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
+                                                                   sparse=self.is_sparse())
+            return self.__column_space
+
     def random_element(self, X=[-2,-1,1,2], prob=1.0, coerce=True):
         """
         Returns a random element of self.
@@ -548,11 +544,13 @@ def dict_to_list(entries, nrows, ncols):
 
 def list_to_dict(entries, nrows, ncols):
     d = {}
+    if ncols == 0 or nrows == 0:
+        return d
     for i in range(len(entries)):
         x = entries[i]
         if x != 0:
             col = i % ncols
-            row = i - (i*col)
+            row = i // ncols
             d[(row,col)] = x
     return d
 

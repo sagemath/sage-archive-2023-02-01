@@ -32,59 +32,16 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
 
     Uses strassen multiplication at high levels and then uses MatrixWindow
     methods at low levels.
+     EXAMPLES:
+         The following matrix dimensions are chosen especially to exercise the
+         eight possible parity combinations that ocould ccur while subdividing
+         the matrix in the strassen recursion. The base case in both cases will
+         be a (4x5) matrix times a (5x6) matrix.
 
-    todo: doc cutoff parameter as soon as I work out what it really means
-
-    EXAMPLES:
-        The following matrix dimensions are chosen especially to exercise the
-        eight possible parity combinations that ocould ccur while subdividing
-        the matrix in the strassen recursion. The base case in both cases will
-        be a (4x5) matrix times a (5x6) matrix.
-
-        TODO -- the doctests below are currently not
-        tested/enabled/working -- enable them when linear algebra
-        restructing gets going.
-
-        sage: dim1 = 64; dim2 = 83; dim3 = 101
-        sage: R = MatrixSpace(QQ, dim1, dim2)
-        sage: S = MatrixSpace(QQ, dim2, dim3)
-        sage: T = MatrixSpace(QQ, dim1, dim3)
-
-
-        sage: A = R.random_element(range(-30, 30))
-        sage: B = S.random_element(range(-30, 30))
-        sage: C = T(0)
-        sage: D = T(0)
-
-        sage: A_window = A.matrix_window(0, 0, dim1, dim2)
-        sage: B_window = B.matrix_window(0, 0, dim2, dim3)
-        sage: C_window = C.matrix_window(0, 0, dim1, dim3)
-        sage: D_window = D.matrix_window(0, 0, dim1, dim3)
-
-        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage: D_window.set_to_prod(A, B)             # use naive method
-        sage: C == D
-        True
-
-        sage: dim1 = 79; dim2 = 83; dim3 = 101
-        sage: R = MatrixSpace(QQ, dim1, dim2)
-        sage: S = MatrixSpace(QQ, dim2, dim3)
-        sage: T = MatrixSpace(QQ, dim1, dim3)
-
-        sage: A = R.random_element(range(30))
-        sage: B = S.random_element(range(30))
-        sage: C = T(0)
-        sage: D = T(0)
-
-        sage: A_window = A.matrix_window(0, 0, dim1, dim2)
-        sage: B_window = B.matrix_window(0, 0, dim2, dim3)
-        sage: C_window = C.matrix_window(0, 0, dim1, dim3)
-
-        sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
-        sage: D.set_to_prod(A, B)                    # use naive method
-
-        sage: C == D
-        True
+         sage: A = MatrixSpace(Integers(2^65), 64, 83).random_element()
+         sage: B = MatrixSpace(Integers(2^65), 83, 101).random_element()
+         sage: A._multiply_classical(B) == A._multiply_strassen(B, 3)
+         True
 
     AUTHOR: David Harvey
     """
@@ -578,3 +535,62 @@ for n in range(5):
     print n, test(2*n,n,Frac(QQ['x']),2)
 
 """
+
+# This stuff gets tested extensively elsewhere, and the functions
+# below aren't callable now without using Pyrex.
+
+
+##     todo: doc cutoff parameter as soon as I work out what it really means
+
+##     EXAMPLES:
+##         The following matrix dimensions are chosen especially to exercise the
+##         eight possible parity combinations that ocould ccur while subdividing
+##         the matrix in the strassen recursion. The base case in both cases will
+##         be a (4x5) matrix times a (5x6) matrix.
+
+##         TODO -- the doctests below are currently not
+##         tested/enabled/working -- enable them when linear algebra
+##         restructing gets going.
+
+##         sage: dim1 = 64; dim2 = 83; dim3 = 101
+##         sage: R = MatrixSpace(QQ, dim1, dim2)
+##         sage: S = MatrixSpace(QQ, dim2, dim3)
+##         sage: T = MatrixSpace(QQ, dim1, dim3)
+
+
+##         sage: A = R.random_element(range(-30, 30))
+##         sage: B = S.random_element(range(-30, 30))
+##         sage: C = T(0)
+##         sage: D = T(0)
+
+##         sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+##         sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+##         sage: C_window = C.matrix_window(0, 0, dim1, dim3)
+##         sage: D_window = D.matrix_window(0, 0, dim1, dim3)
+
+##         sage: from sage.matrix.strassen import strassen_window_multiply
+##         sage: strassen_window_multiply(C_window, A_window, B_window, 2)   # use strassen method
+##         sage: D_window.set_to_prod(A_window, B_window)             # use naive method
+##         sage: C_window == D_window
+##         True
+
+##         sage: dim1 = 79; dim2 = 83; dim3 = 101
+##         sage: R = MatrixSpace(QQ, dim1, dim2)
+##         sage: S = MatrixSpace(QQ, dim2, dim3)
+##         sage: T = MatrixSpace(QQ, dim1, dim3)
+
+##         sage: A = R.random_element(range(30))
+##         sage: B = S.random_element(range(30))
+##         sage: C = T(0)
+##         sage: D = T(0)
+
+##         sage: A_window = A.matrix_window(0, 0, dim1, dim2)
+##         sage: B_window = B.matrix_window(0, 0, dim2, dim3)
+##         sage: C_window = C.matrix_window(0, 0, dim1, dim3)
+
+##         sage: strassen_window_multiply(C, A, B, 2)   # use strassen method
+##         sage: D.set_to_prod(A, B)                    # use naive method
+
+##         sage: C == D
+##         True
+

@@ -269,16 +269,24 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     # Cache
     ###########################################################
+    def _clear_cache(self):
+        """
+        Clear anything cached about this matrix.
+        """
+        self.clear_cache()
+
     cdef clear_cache(self):
         """
         Clear the properties cache.
         """
-        self._cache = {}
+        self._cache = None
 
     cdef fetch(self, key):
         """
         Try to get an element from the cache; if there isn't anything there, return None.
         """
+        if self._cache is None:
+            return None
         try:
             return self._cache[key]
         except KeyError:
@@ -288,6 +296,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         Record x in the cache with given key.
         """
+        if self._cache is None:
+            self._cache = {}
         self._cache[key] = x
 
     ###########################################################
@@ -1176,12 +1186,25 @@ cdef class Matrix(sage.structure.element.Matrix):
             [3 4 5]
             sage: a.linear_combination_of_rows([1,2])
             (6, 9, 12)
+            sage: a.linear_combination_of_rows([0,0])
+            (0, 0, 0)
         """
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, n
         R = self.rows()
-        s = 0
-        for i from 0 <= i < len(v):
-            s = s + v[i] * R[i]
+        n = len(R)
+        if len(v) != n:
+            raise ValueError, "length of v must equal number of rows."
+        zero = self._base_ring(0)
+        s = None
+        for i from 0 <= i < n:
+            if v[i] != zero:
+                a = v[i] * R[i]
+                if s is None:
+                    s = a
+                else:
+                    s = s + a
+        if s is None:
+            return self.parent().row_space()(0)
         return s
 
     def linear_combination_of_columns(self, v):
@@ -1198,14 +1221,27 @@ cdef class Matrix(sage.structure.element.Matrix):
             [3 4 5]
             sage: a.linear_combination_of_columns([1,1,1])
             (3, 12)
+            sage: a.linear_combination_of_columns([0,0,0])
+            (0, 0)
         """
-        cdef Py_ssize_t i
-
+        cdef Py_ssize_t i, n
         C = self.columns()
-        s = 0
-        for i from 0 <= i < len(v):
-            s = s + v[i]*C[i]
+        n = len(C)
+        if len(v) != n:
+            raise ValueError, "length of v must equal number of columns."
+        zero = self._base_ring(0)
+        s = None
+        for i from 0 <= i < n:
+            if v[i] != zero:
+                a = v[i] * C[i]
+                if s is None:
+                    s = a
+                else:
+                    s = s + a
+        if s is None:
+            return self.parent().column_space()(0)
         return s
+
 
     ###################################################
     # Predicates
@@ -1260,7 +1296,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES:
         The following matrix is invertible over $\Q$ but not over $\Z$.
-            sage: A = MatrixSpace(IntegerRing(), 2)(range(4))
+            sage: A = MatrixSpace(ZZ, 2)(range(4))
             sage: A.is_invertible()
             False
             sage: A.matrix_over_field().is_invertible()
@@ -1536,7 +1572,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: -1*B.column(0) + 5*B.column(1)
             (9, 17)
         """
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         if self.nrows() != v.degree():
@@ -1548,7 +1584,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         return s
 
     cdef Vector _matrix_times_vector_c_impl(self, Vector v):
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         if self.nrows() != v.degree():
@@ -1591,7 +1627,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             raise ArithmeticError, "matrix must be square if n >= 2."
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
         X = [v]

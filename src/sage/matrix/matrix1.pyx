@@ -430,7 +430,7 @@ cdef class Matrix(matrix0.Matrix):
         while len(R) < k:
             R.append(F(0))
         R.append(F(entries, coerce=False, copy=False, check=False))
-        while len(R) < self._ncols:
+        while len(R) < self._nrows:
             R.append(F(0))
 
         # cache result

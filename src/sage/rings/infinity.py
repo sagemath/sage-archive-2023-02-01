@@ -55,11 +55,11 @@ is then not well defined.
     sage: oo * 0
     Traceback (most recent call last):
     ...
-    TypeError: unable to multiply Infinity (parent: The Infinity Ring) times A number less than infinity (parent: The Infinity Ring)
+    TypeError: unsupported operand parent(s) for '*': 'The Infinity Ring' and 'The Infinity Ring'
     sage: oo/oo
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'The Infinity Ring' and 'The Infinity Ring'
+    TypeError: unsupported operand parent(s) for '/': 'The Infinity Ring' and 'The Infinity Ring'
 """
 
 from ring_element import RingElement

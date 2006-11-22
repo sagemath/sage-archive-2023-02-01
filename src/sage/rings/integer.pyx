@@ -235,8 +235,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         #     mpz_init_set_sage(self.value, x)
 
 
-        mpz_init(self.value)
-
         if not (x is None):
             # First do all the type-check versions; these are fast.
 

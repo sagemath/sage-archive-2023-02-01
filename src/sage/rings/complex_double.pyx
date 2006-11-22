@@ -102,10 +102,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     def __richcmp__(left, right, int op):
         return (<Parent>left)._richcmp(right, op)
-
     cdef int _cmp_c_impl(left, Parent right) except -2:
         # There is only one CDF.
-        return 0
+        return cmp(type(left),type(right))
 
     def __hash__(self):
         return 561162115

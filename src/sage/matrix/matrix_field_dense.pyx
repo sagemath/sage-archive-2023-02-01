@@ -498,41 +498,6 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
                 basis.append(v)
         return V.subspace(basis)
 
-    def integer_kernel(self):
-        """
-        Return the integral kernel of this matrix.
-
-        Assume that the base field of this matrix has a numerator and
-        denominator functions for its elements, e.g., it is the
-        rational numbers or a fraction field.  This function computes
-        a basis over the integers for the kernel of self.
-
-        When kernels are implemented for matrices over general PID's,
-        this function will compute kernels over PID's of matrices over
-        the fraction field of the PID.  (todo)
-
-        EXAMPLES:
-            sage: A = MatrixSpace(QQ, 4)(range(16))
-            sage: A.integer_kernel()
-            Free module of degree 4 and rank 2 over Integer Ring
-            Echelon basis matrix:
-            [ 1  0 -3  2]
-            [ 0  1 -2  1]
-
-        The integer kernel even makes sense for matrices with
-        fractional entries:
-            sage: A = MatrixSpace(QQ, 2)(['1/2',0,  0, 0])
-            sage: A.integer_kernel()
-            Free module of degree 2 and rank 1 over Integer Ring
-            Echelon basis matrix:
-            [0 1]
-        """
-        d = self.denominator()
-        A = self*d
-        R = d.parent()
-        M = matrix_space.MatrixSpace(R, self.nrows(), self.ncols())(A)
-        return M.kernel()
-
 
     def is_invertible(self):
         """
@@ -555,75 +520,6 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
             False
         """
         return self.is_square() and self.rank() == self.nrows()
-
-    def maxspin(self, v):
-        """
-        Computes the largest integer n such that the list of vectors
-        $S=[v, A(v), ..., A^n(v)]$ are linearly independent, and returns
-        that list.
-
-        INPUT:
-            self -- Matrix
-            v -- Vector
-        OUTPUT:
-            list -- list of Vectors
-
-        ALGORITHM:
-            The current implementation just adds vectors to a vector
-            space until the dimension doesn't grow.  This could be
-            optimized by directly using matrices and doing an
-            efficient Echelon form.  Also, when the base is Q, maybe
-            we could simultaneously keep track of what is going on in
-            the reduction modulo p, which might make things much
-            faster.
-        """
-        if v == 0: return []
-        VS = sage.modules.free_module.VectorSpace
-        V = VS([v])
-        w = v
-        S = [v]
-        while True:
-            w = w*self
-            W = V + VS([w])
-            if W.dimension() == V.dimension():
-                return S
-            V = W
-            S.append(w)
-
-    def nullity(self):
-        # Use that rank + nullity = number of columns
-        return self.ncols() - self.rank()
-
-    def pivots(self):
-        """
-        Return the i such that the i-th column of self is a
-        pivot column of the reduced row echelon form of self.
-
-        OUTPUT:
-            list -- sorted list of integers
-        """
-        try:
-            return self.__pivots
-        except AttributeError:
-            P = self.echelon_form().pivots()
-            if self.is_immutable():
-                self.__pivots = P
-            return P
-
-    def rank(self):
-        if self.__rank is not None:
-            return self.__rank
-        else:
-            rank = self.echelon_form().rank()
-            if self.is_immutable():
-                self.__rank = rank
-            return rank
-
-    def _set_rank(self, r):
-        self.__rank = r
-
-    def _set_pivots(self, pivots):
-        self.__pivots = pivots
 
     def restrict(self, V, check=True):
         """

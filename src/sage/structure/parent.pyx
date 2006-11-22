@@ -166,6 +166,8 @@ cdef class Parent(sage_object.SageObject):
             pass
         except TypeError:
             self._has_coerce_map_from = {}
+        if not PY_TYPE_CHECK(S, Parent):
+            return False
         try:
             self._coerce_c(S(0))
         except TypeError:
@@ -183,8 +185,7 @@ cdef class Parent(sage_object.SageObject):
         """
         cdef int r
 
-        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent) or \
-               not (PY_TYPE(left) is PY_TYPE(right)):
+        if not PY_TYPE_CHECK(right, Parent) or not PY_TYPE_CHECK(left, Parent):
             # One is not a parent -- use arbitrary ordering
             if (<PyObject*>left) < (<PyObject*>right):
                 r = -1
@@ -213,18 +214,19 @@ cdef class Parent(sage_object.SageObject):
         elif op == 5: #>=
             return PyBool_FromLong(r >= 0)
 
-    ####################################################################
-    # For a derived SageX class, you **must** put the following in
-    # your subclasses, in order for it to take advantage of the
-    # above generic comparison code.  You must also define
-    # _cmp_c_impl for a SageX class.
-    #
-    # For a derived Python class, simply define __cmp__.
-    ####################################################################
-    def __richcmp__(left, right, int op):
-        return (<Parent>left)._richcmp(right, op)
+##     ####################################################################
+##     # For a derived SageX class, you **must** put the following in
+##     # your subclasses, in order for it to take advantage of the
+##     # above generic comparison code.  You must also define
+##     # _cmp_c_impl for a SageX class.
+##     #
+##     # For a derived Python class, simply define __cmp__.
+##     ####################################################################
+##     def __richcmp__(left, right, int op):
+##         return (<Parent>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Parent right) except -2:
+        pass
         # this would be nice to do, but we can't since
         # it leads to infinite recurssions -- and is slow -- and this
         # stuff must be fast!
@@ -239,8 +241,8 @@ cdef class Parent(sage_object.SageObject):
             return 1
         return 0
 
-    def __cmp__(left, right):
-        return left._cmp_c_impl(right)   # default
+##     def __cmp__(left, right):
+##         return left._cmp_c_impl(right)   # default
 
 
     ############################################################################

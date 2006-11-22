@@ -1,7 +1,7 @@
 from sage.structure.element cimport Vector
 
 cdef class FreeModuleElement(Vector):
-    pass
+    cdef int _cmp_same_ambient_c(left, FreeModuleElement right)
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     # data

@@ -27,7 +27,6 @@ EXAMPLES:
 from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.structure.element import Element_cmp_
 from sage.structure.sage_object import SageObject
 
 
@@ -97,13 +96,13 @@ class Cusps_class(SageObject):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
         """
         if isinstance(x, Cusp):
             return x
         return Cusp(x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Canonical coercion of x into the set of cusps.
 
@@ -117,17 +116,15 @@ class Cusps_class(SageObject):
             sage: Cusps(GF(7)(3))
             3
         """
-        if isinstance(x, Cusp):
-            return x
-        elif is_Infinity(x):
+        if is_Infinity(x):
             return Cusp(x)
         else:
-            return Cusp(QQ._coerce_(x))
+            return self._coerce_try(x, QQ)
 
 Cusps = Cusps_class()
 
 
-class Cusp(Element_cmp_, SageObject):
+class Cusp(SageObject):
     """
     A cusp.
 
@@ -160,7 +157,7 @@ class Cusp(Element_cmp_, SageObject):
             sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a
@@ -220,7 +217,7 @@ class Cusp(Element_cmp_, SageObject):
         self.__b = b//g
         return
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compare the cusps self and right.  Comparison is as for
         rational numbers, except with the cusp oo greater than

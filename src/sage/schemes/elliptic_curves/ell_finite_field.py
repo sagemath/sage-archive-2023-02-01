@@ -139,7 +139,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         # point enumeration algorithms. -- David Harvey (2006-09-24)
 
         points = [self(0)]
-        R = PolynomialRing(self.base_ring())
+        R = PolynomialRing(self.base_ring(), 'x')
         a1, a2, a3, a4, a6 = self.ainvs()
         for x in self.base_field():
             f = R([-(x**3 + a2*x**2 + a4*x + a6), (a1*x + a3), 1])
@@ -167,46 +167,44 @@ class EllipticCurve_finite_field(EllipticCurve_field):
           sage: E.points()
           [(0 : 1 : 0), (4 : 1 : 1), (1 : 0 : 1), (4 : 4 : 1)]
 
-          sage: K = GF(p**2)
+          sage: K = GF(p**2,'a')
           sage: E = E.change_ring(K)
           sage: len(E.points())
           32
           sage: (p + 1)**2 - a_sub_p**2
           32
           sage: E.points()
-          [(0 : 1 : 0),
-           (0 : 2*a + 4 : 1),
-           (0 : 3*a + 1 : 1),
-           (1 : 0 : 1),
-           (2 : 2*a + 4 : 1),
-           (2 : 3*a + 1 : 1),
-           (3 : 2*a + 4 : 1),
-           (3 : 3*a + 1 : 1),
-           (4 : 1 : 1),
-           (4 : 4 : 1),
-           (a : 1 : 1),
-           (a : 4 : 1),
-           (a + 2 : a + 1 : 1),
-           (a + 2 : 4*a + 4 : 1),
-           (a + 3 : a : 1),
-           (a + 3 : 4*a : 1),
-           (a + 4 : 0 : 1),
-           (2*a : 2*a : 1),
-           (2*a : 3*a : 1),
-           (2*a + 4 : a + 1 : 1),
-           (2*a + 4 : 4*a + 4 : 1),
-           (3*a + 1 : a + 3 : 1),
-           (3*a + 1 : 4*a + 2 : 1),
-           (3*a + 2 : 2*a + 3 : 1),
-           (3*a + 2 : 3*a + 2 : 1),
-           (4*a : 0 : 1),
-           (4*a + 1 : 1 : 1),
-           (4*a + 1 : 4 : 1),
-           (4*a + 3 : a + 3 : 1),
-           (4*a + 3 : 4*a + 2 : 1),
-           (4*a + 4 : a + 4 : 1),
-           (4*a + 4 : 4*a + 1 : 1)]
-
+           [(0 : 1 : 0),
+            (0 : 3*a + 1 : 1),
+            (0 : 2*a + 4 : 1),
+            (1 : 0 : 1),
+            (2 : 3*a + 1 : 1),
+            (2 : 2*a + 4 : 1),
+            (3 : 3*a + 1 : 1),
+            (3 : 2*a + 4 : 1),
+            (4 : 4 : 1),
+            (4 : 1 : 1),
+            (a : 4 : 1),
+            (a : 1 : 1),
+            (a + 2 : 4*a + 4 : 1),
+            (a + 2 : a + 1 : 1),
+            (a + 3 : 4*a : 1),
+            (a + 3 : a : 1), (a + 4 : 0 : 1),
+            (2*a : 3*a : 1),
+            (2*a : 2*a : 1),
+            (2*a + 4 : 4*a + 4 : 1),
+            (2*a + 4 : a + 1 : 1),
+            (3*a + 1 : 4*a + 2 : 1),
+            (3*a + 1 : a + 3 : 1),
+            (3*a + 2 : 3*a + 2 : 1),
+            (3*a + 2 : 2*a + 3 : 1),
+            (4*a : 0 : 1),
+            (4*a + 1 : 4 : 1),
+            (4*a + 1 : 1 : 1),
+            (4*a + 3 : 4*a + 2 : 1),
+            (4*a + 3 : a + 3 : 1),
+            (4*a + 4 : 4*a + 1 : 1),
+            (4*a + 4 : a + 4 : 1)]
         """
         try:
             return self.__points
@@ -277,12 +275,12 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         The cardinality is \emph{not} cached.
 
         EXAMPLES:
-            sage: EllipticCurve(GF(4),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(4,'a'),[1,2,3,4,5]).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.
             8
-            sage: EllipticCurve(GF(9),[1,2,3,4,5]).cardinality()
+            sage: EllipticCurve(GF(9,'a'),[1,2,3,4,5]).cardinality()
             WARNING: Using very very stupid algorithm for counting
             points over non-prime finite field. Please rewrite.
             See the file ell_finite_field.py.

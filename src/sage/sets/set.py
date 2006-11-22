@@ -22,7 +22,7 @@ AUTHOR:
 #*****************************************************************************
 
 from sage.structure.element import Element
-from sage.structure.all import SageObject
+from sage.structure.parent import Parent
 import sage.categories.all
 from sage.misc.latex import latex
 import sage.rings.infinity
@@ -37,9 +37,9 @@ def Set(X):
     wrapper.
 
     EXAMPLES:
-        sage: X = Set(GF(9))
+        sage: X = Set(GF(9,'a'))
         sage: X
-        {a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a}
+        {2, a + 2, 2*a + 1, a, 2*a, a + 1, 1, 2*a + 2, 0}
         sage: type(X)
         <class 'sage.sets.set.Set_object_enumerated'>
         sage: Y = X.union(Set(QQ))
@@ -100,7 +100,7 @@ def is_Set(x):
     """
     return isinstance(x, Set_generic)
 
-class Set_generic(SageObject):
+class Set_generic(Parent):
     """
     Abstract base class for sets.
     """
@@ -206,21 +206,14 @@ class Set_object(Set_generic):
         """
         Return True if $x$ is in self.
 
-        This usually means that x can be canonically coerced into
-        self.   Note that "x in G" for most objects besides sets
-        means that x can be coerced into G, not necessarily canonically.
-        But for sets the coercion has to be canonical (for objects
-        that support a notion of canonical coercion, i.e., an _coerce_
-        method).
-
         EXAMPLES:
             sage: X = Set(ZZ)
             sage: 5 in X
             True
             sage: GF(7)(3) in X
-            False
+            True
             sage: 2/1 in X
-            False
+            True
             sage: 2/1 in ZZ
             True
             sage: 2/3 in X
@@ -235,27 +228,20 @@ class Set_object(Set_generic):
             sage: 5/3 in X
             False
             sage: 5/3 in GF(7)
-            True
+            False
             sage: Set(GF(7)).union(Set(GF(5)))
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 0}
             sage: Set(GF(7)).intersection(Set(GF(5)))
             {}
         """
-        try:
-            try:
-                self.__object._coerce_(x)
-            except TypeError:
-                return False
-            return True
-        except AttributeError:
-            return x in self.__object
+        return x in self.__object
 
     def __cmp__(self, right):
         r"""
         Compare self and right.
 
-        If right is not a Set always returns -1.  If right is also a
-        Set, returns comparison on the underlying objects.
+        If right is not a Set compare types.  If right is also a Set,
+        returns comparison on the underlying objects.
 
         \note{If $X < Y$ is true this does {\em not} necessarily mean
         that $X$ is a subset of $Y$.  Also, any two sets can be
@@ -271,16 +257,14 @@ class Set_object(Set_generic):
             sage: Primes() < Set(QQ)
             True
 
-        This illustrates that < is not the same as containment.
-
             sage: Set(QQ) < Primes()
-            True
+            False
             sage: Primes() < Set(QQ)
             True
 
         """
         if not isinstance(right, Set_object):
-            return -1
+            return cmp(type(right), type(Set_object))
         return cmp(self.__object, right.__object)
 
     def union(self, X):
@@ -318,10 +302,10 @@ class Set_object(Set_generic):
             Set-theoretic union of Real Field with 53 bits of precision and Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}
-            sage: Set(GF(2)) + Set(GF(4))
-            {0, 1, 1, a, a + 1, 0}
-            sage: Set(GF(8)) + Set(GF(4))
-            {a, a^2 + 1, a + 1, a^2, a + 1, 1, 0, 1, a, a^2 + a, a^2 + a + 1}
+            sage: Set(GF(2)) + Set(GF(4,'a'))
+            {0, 1, a + 1, 1, a, 0}
+            sage: Set(GF(8,'b')) + Set(GF(4,'a'))
+            {b^2 + b + 1, 1, b, b^2 + b, b^2 + 1, a + 1, 1, b^2, 0, a, b + 1, 0}
         """
         return self.union(X)
 
@@ -336,15 +320,16 @@ class Set_object(Set_generic):
             sage: 3 in X
             True
 
-        This is false since $\QQ$ does not have a canonical coercion
-        map to $\ZZ$.
-
             sage: 2/1 in X
-            False
+            True
 
-            sage: X = Set(GF(9)).intersection(Set(GF(27)))
+            sage: X = Set(GF(9,'b')).intersection(Set(GF(27,'c')))
             sage: X
-            {0}
+            {}
+
+            sage: X = Set(GF(9,'b')).intersection(Set(GF(27,'b')))
+            sage: X
+            {}
         """
         if is_Set(X):
             if self == X:
@@ -358,18 +343,18 @@ class Set_object(Set_generic):
         """
         return self.intersection(X)
 
-    def order(self):
+    def cardinality(self):
         """
-        Return the order of this set, which is either an integer or Infinity.
+        Return the cardinality of this set, which is either an integer or Infinity.
 
         EXAMPLES:
-            sage: Set(ZZ).order()
+            sage: Set(ZZ).cardinality()
             Infinity
-            sage: Primes().order()
+            sage: Primes().cardinality()
             Infinity
-            sage: Set(GF(5)).order()
+            sage: Set(GF(5)).cardinality()
             5
-            sage: Set(GF(5^2)).order()
+            sage: Set(GF(5^2,'a')).cardinality()
             25
         """
         try:
@@ -380,7 +365,7 @@ class Set_object(Set_generic):
         try:
             return len(self.__object)
         except TypeError:
-            raise NotImplementedError, "computation of order of %s not yet implemented"%self.__object
+            raise NotImplementedError, "computation of cardinality of %s not yet implemented"%self.__object
 
     def object(self):
         """
@@ -412,10 +397,10 @@ class Set_object_enumerated(Set_object):
         """
         Set_object.__init__(self, X)
 
-    def order(self):
+    def cardinality(self):
         """
         EXAMPLES:
-            sage: Set([1,1]).order()
+            sage: Set([1,1]).cardinality()
             1
         """
         return len(self.set())
@@ -426,7 +411,7 @@ class Set_object_enumerated(Set_object):
             sage: len(Set([1,1]))
             1
         """
-        return self.order()
+        return self.cardinality()
 
 
     def __iter__(self):
@@ -450,11 +435,11 @@ class Set_object_enumerated(Set_object):
         that set.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
+            sage: X = Set(GF(8,'c'))
             sage: X
-            {a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1}
+            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
             sage: X.set()
-            set([a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1])
+            set([c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0])
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -471,10 +456,10 @@ class Set_object_enumerated(Set_object):
         Compare the sets self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: X == Set(GF(8))
+            sage: X = Set(GF(8,'c'))
+            sage: X == Set(GF(8,'c'))
             True
-            sage: X == Set(GF(4))
+            sage: X == Set(GF(4,'a'))
             False
             sage: Set(QQ) == Set(ZZ)
             False
@@ -491,14 +476,14 @@ class Set_object_enumerated(Set_object):
         Return the union of self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: Y = Set([GF(8).0, 1, 2, 3])
+            sage: X = Set(GF(8,'c'))
+            sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X
-            {a, a^2 + 1, a + 1, a^2, 1, 0, a^2 + a, a^2 + a + 1}
+            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
             sage: Y
-            {a, 1, 2, 3}
+            {1, 2, 3, c}
             sage: X.union(Y)
-            {a, a^2 + 1, 2, 3, a + 1, a^2, 1, 1, 0, a^2 + a, a^2 + a + 1}
+            {1, 2, 3, c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -509,10 +494,10 @@ class Set_object_enumerated(Set_object):
         Return the intersection of self and other.
 
         EXAMPLES:
-            sage: X = Set(GF(8))
-            sage: Y = Set([GF(8).0, 1, 2, 3])
+            sage: X = Set(GF(8,'c'))
+            sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X.intersection(Y)
-            {a}
+            {c}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.intersection(self, other)
@@ -623,22 +608,22 @@ class Set_object_union(Set_object):
         """
         return x in self.__X or x in self.__Y
 
-    def order(self):
+    def cardinality(self):
         """
-        Return the order of this set.
+        Return the cardinality of this set.
 
         EXAMPLES:
             sage: X = Set(GF(3)).union(Set(GF(2)))
             sage: X
             {0, 1, 2, 0, 1}
-            sage: X.order()
+            sage: X.cardinality()
             5
 
             sage: X = Set(GF(3)).union(Set(ZZ))
-            sage: X.order()
+            sage: X.cardinality()
             Infinity
         """
-        return self.__X.order() + self.__Y.order()
+        return self.__X.cardinality() + self.__Y.cardinality()
 
 class Set_object_intersection(Set_object):
     """
@@ -759,17 +744,17 @@ class Set_object_intersection(Set_object):
         """
         return x in self.__X and x in self.__Y
 
-    def order(self):
+    def cardinality(self):
         """
-        This tries to return the order of this formal intersection.
+        This tries to return the cardinality of this formal intersection.
 
         Note that this is not likely to work in very much generality,
         and may just hang if either set involved is infinite.
 
         EXAMPLES:
             sage: X = Set(GF(13)).intersection(Set(ZZ))
-            sage: X.order()
-            0
+            sage: X.cardinality()
+            13
         """
         return len(list(self))
 

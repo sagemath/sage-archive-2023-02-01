@@ -13,11 +13,12 @@ AUTHORS:
 import math
 import types
 from sage.misc.misc import xsrange
-import sage.rings.coerce
+import sage.structure.coerce
 import operator
 
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
+include '../../ext/stdsage.pxi'
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
@@ -87,7 +88,7 @@ cdef class gen:
 
     def __dealloc__(self):
         if self.b:
-            PyMem_Free(<void*> self.b)
+            sage_free(<void*> self.b)
 
     def __repr__(self):
         return P.GEN_to_str(self.g)
@@ -142,27 +143,27 @@ cdef class gen:
     def __add__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._add(other)
-        return sage.rings.coerce.bin_op(self, other, operator.add)
+        return sage.structure.coerce.bin_op(self, other, operator.add)
 
     def __sub__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._sub(other)
-        return sage.rings.coerce.bin_op(self, other, operator.sub)
+        return sage.structure.coerce.bin_op(self, other, operator.sub)
 
     def __mul__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mul(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mul)
+        return sage.structure.coerce.bin_op(self, other, operator.mul)
 
     def __div__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._div(other)
-        return sage.rings.coerce.bin_op(self, other, operator.div)
+        return sage.structure.coerce.bin_op(self, other, operator.div)
 
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mod(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mod)
+        return sage.structure.coerce.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)
@@ -570,7 +571,7 @@ cdef class gen:
             return "0"
         lx = lgefint(x)-2  # number of words
         size = lx*2*BYTES_IN_LONG
-        s = <char *>PyMem_Malloc(size+2) # 1 char for sign, 1 char for '\0'
+        s = <char *>sage_malloc(size+2) # 1 char for sign, 1 char for '\0'
         sp = s + size+1
         sp[0] = 0
         xp = int_LSW(x)
@@ -588,7 +589,7 @@ cdef class gen:
             sp = sp-1
             sp[0] = c'-'
         k = sp
-        PyMem_Free(s)
+        sage_free(s)
         return k
 
     def __int__(gen self):
@@ -713,7 +714,7 @@ cdef class gen:
             sage: w
             [1, 2, 3, 10, 102, 10]
             sage: type(w[0])
-            <type 'gen.gen'>
+            <type 'sage.libs.pari.gen.gen'>
         """
         if typ(self.g) != t_VEC:
             raise TypeError, "Object (=%s) must be of type t_VEC."%self
@@ -4328,6 +4329,16 @@ cdef class gen:
 
         If f(t) is a series in t with valuation 1, find the
         series g(t) such that g(f(t)) = t.
+
+        EXAMPLES:
+            sage: f = pari('x+x^2+x^3+O(x^4)'); f
+            x + x^2 + x^3 + O(x^4)
+            sage: g = f.serreverse(); g
+            x - x^2 + x^3 + O(x^4)
+            sage: f.subst('x',g)
+            x + O(x^4)
+            sage: g.subst('x',f)
+            x + O(x^4)
         """
         _sig_on
         return self.new_gen(recip(self.g))
@@ -4367,6 +4378,13 @@ cdef class gen:
             return P.new_gen(extract0(self.g, t0, t1))
 
     def ncols(self):
+        """
+        Return the number of rows of self.
+
+        EXAMPLES:
+            sage: pari('matrix(19,8)').ncols()
+            8
+        """
         cdef long n
         _sig_on
         n = glength(self.g)
@@ -4374,6 +4392,13 @@ cdef class gen:
         return n
 
     def nrows(self):
+        """
+        Return the number of rows of self.
+
+        EXAMPLES:
+            sage: pari('matrix(19,8)').nrows()
+            19
+        """
         cdef long n
         _sig_on
         n = glength(<GEN>(self.g[1]))
@@ -4382,22 +4407,27 @@ cdef class gen:
 
     def mattranspose(self):
         """
+        Transpose of the matrix self.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').mattranspose()
+            [1, 4, 7; 2, 5, 8; 3, 6, 9]
         """
         _sig_on
         return self.new_gen(gtrans(self.g)).Mat()
 
-    def transpose(self):
-        return self.mattranspose()
-
     def matadjoint(self):
         """
         matadjoint(x): adjoint matrix of x.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').matadjoint()
+            [-3, 6, -3; 6, -12, 6; -3, 6, -3]
+            sage: pari('[a,b,c; d,e,f; g,h,i]').matadjoint()
+            [(i*e - h*f), (-i*b + h*c), (f*b - e*c); (-i*d + g*f), i*a - g*c, -f*a + d*c; (h*d - g*e), -h*a + g*b, e*a - d*b]
         """
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
-
-    def adjoint(self):
-        return self.matadjoint()
 
     def qflllgram(self, long flag=0):
         """
@@ -4446,31 +4476,103 @@ cdef class gen:
 
     def matker(self, long flag=0):
         """
+        Return a basis of the kernel of this matrix.
+
+        INPUT:
+            flag -- optional; may be set to
+                0: default;
+                non-zero: x is known to have integral entries.
+
+        EXAMPLES:
+            sage: pari('[1,2,3;4,5,6;7,8,9]').matker()
+            [1; -2; 1]
+
+        With algorithm 1, even if the matrix has integer entries the
+        kernel need nto be saturated (which is weird):
+            sage: pari('[1,2,3;4,5,6;7,8,9]').matker(1)
+            [3; -6; 3]
+            sage: pari('matrix(3,3,i,j,i)').matker()
+            [-1, -1; 1, 0; 0, 1]
+            sage: pari('[1,2,3;4,5,6;7,8,9]*Mod(1,2)').matker()
+            [Mod(1, 2); Mod(0, 2); 1]
         """
         _sig_on
         return self.new_gen(matker0(self.g, flag))
 
     def matkerint(self, long flag=0):
         """
+        Return the integer kernel of a matrix.
+
+        This is the LLL-reduced Z-basis of the kernel of the matrix x
+        with integral entries.
+
+        INPUT:
+            flag -- optional, and may be set to
+                   0: default, uses a modified LLL,
+                   1: uses matrixqz.
+
+        EXAMPLES:
+            sage: pari('[2,1;2,1]').matker()
+            [-1/2; 1]
+            sage: pari('[2,1;2,1]').matkerint()
+            [-1; 2]
+
+        This is worrisome (so be careful!):
+            sage: pari('[2,1;2,1]').matkerint(1)
+            Mat(1)
         """
         _sig_on
         return self.new_gen(matkerint0(self.g, flag))
 
+    def matdet(self, long flag=0):
+        """
+        Return the determinant of this matrix.
+
+        INPUT:
+            flag  -- (optional) flag
+                     0: using Gauss-Bareiss.
+                     1: use classical gaussian elimination (slightly better for integer entries)
+
+        EXAMPLES:
+            sage: pari('[1,2; 3,4]').matdet(0)
+            -2
+            sage: pari('[1,2; 3,4]').matdet(1)
+            -2
+        """
+        _sig_on
+        return self.new_gen(det0(self.g, flag))
+
     def trace(self):
+        """
+        Return the trace of this PARI object.
+
+        EXAMPLES:
+            sage: pari('[1,2; 3,4]').trace()
+            5
+        """
         _sig_on
         return self.new_gen(gtrace(self.g))
 
     def mathnf(self, flag=0):
         """
         A.mathnf({flag=0}): (upper triangular) Hermite normal form of
-        A, basis for the lattice formed by the columns of A.  flag is
-        optional whose value range from 0 to 4 (0 if omitted), meaning
-        : 0: naive algorithm. 1: Use Batut's algorithm. Output
-        2-component vector [H,U] such that H is the HNF of A, and U is
-        a unimodular matrix such that xU=H. 3: Use Batut's
-        algorithm. Output [H,U,P] where P is a permutation matrix such
-        that P A U = H. 4: as 1, using a heuristic variant of LLL
-        reduction along the way.
+        A, basis for the lattice formed by the columns of A.
+
+        INPUT:
+            flag -- optional, value range from 0 to 4 (0 if
+            omitted), meaning :
+                0: naive algorithm
+                1: Use Batut's algorithm -- output 2-component vector
+                   [H,U] such that H is the  HNF of A, and U is a
+                   unimodular matrix such that xU=H.
+                3: Use Batut's algorithm. Output [H,U,P] where P is
+                   a permutation matrix such that P A U = H.
+                4: As 1, using a heuristic variant of LLL reduction
+                   along the way.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').mathnf()
+            [6, 1; 3, 1; 0, 1]
         """
         _sig_on
         return self.new_gen(mathnf0(self.g, flag))
@@ -4484,12 +4586,15 @@ cdef class gen:
         entries, otherwise assume x is integral, 4: removes all
         information corresponding to entries equal to 1 in d.
 
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').matsnf()
+            [0, 3, 1]
         """
         _sig_on
         return self.new_gen(matsnf0(self.g, flag))
 
     def matfrobenius(self, flag=0):
-        """
+        r"""
         M.matfrobenius({flag=0}): Return the Frobenius form of the
         square matrix M. If flag is 1, return only the elementary
         divisors (a list of polynomials). If flag is 2, return a
@@ -4510,19 +4615,14 @@ cdef class gen:
             sage: v[1]^(-1)*v[0]*v[1]
             [1, 2; 3, 4]
 
-            sage: T = ModularSymbols(43,sign=1).T(2).matrix()
-            sage: T
-            [ 3 -2  0  0]
-            [ 0 -2  0  1]
-            [ 0 -1 -2  2]
-            [ 0 -2  0  2]
-            sage: t = pari(T)
+        We let t be the matrix of $T_2$ acting on modular symbols of level 43,
+        which was computed using \code{ModularSymbols(43,sign=1).T(2).matrix()}:
+
+            sage: t = pari('[3, -2, 0, 0; 0, -2, 0, 1; 0, -1, -2, 2; 0, -2, 0, 2]')
             sage: t.matfrobenius()
             [0, 0, 0, -12; 1, 0, 0, -2; 0, 1, 0, 8; 0, 0, 1, 1]
-            sage: T.charpoly()
+            sage: t.charpoly('x')
             x^4 - x^3 - 8*x^2 + 2*x + 12
-            sage: T.charpoly().factor()
-            (x - 3) * (x + 2) * (x^2 - 2)
             sage: t.matfrobenius(1)
             [x^4 - x^3 - 8*x^2 + 2*x + 12]
 
@@ -4543,16 +4643,28 @@ cdef class gen:
     ###########################################
     def factor(gen self, limit=-1):
         """
-        factor(x,{lim}): factorization of x. lim is optional and can
-        be set whenever x is of (possibly recursive) rational
-        type. If lim is set return partial factorization, using
-        primes up to lim (up to primelimit if lim=0)
+        Return the factorization of x.
+
+        lim is optional and can be set whenever x is of (possibly
+        recursive) rational type. If lim is set return partial
+        factorization, using primes up to lim (up to primelimit if
+        lim=0).
+
+        EXAMPLES:
+            sage: pari('x^10-1').factor()
+            [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
+            sage: pari(2^100-1).factor()
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+
+        PARI doesn't have an algorithm for factoring multivariate polynomials:
+
+            sage: pari('x^3 - y^3').factor()
+            Traceback (most recent call last):
+            ...
+            PariError: sorry, (15)
         """
         _sig_on
         return P.new_gen(factor0(self.g, limit))
-
-
-
 
 
     ###########################################
@@ -5483,7 +5595,7 @@ cdef int init_stack(size_t size) except -1:
 
     # delete this if get core dumps and change the 2* to a 1* below.
     if bot:
-        PyMem_Free(<void*>bot)
+        sage_free(<void*>bot)
 
     if size == 0:
         size = 2*(top-bot)
@@ -5493,7 +5605,7 @@ cdef int init_stack(size_t size) except -1:
         s = 4294967295
         while True:
             s = fix_size(s)
-            bot = <pari_sp> PyMem_Malloc(s)
+            bot = <pari_sp> sage_malloc(s)
             if bot:
                 break
             s = s/2
@@ -5503,7 +5615,7 @@ cdef int init_stack(size_t size) except -1:
         # Alocate memory for new stack using Python's memory allocator.
         # As explained in the python/C api reference, using this instead
         # of malloc is much better (and more platform independent, etc.)
-        bot = <pari_sp> PyMem_Malloc(s)
+        bot = <pari_sp> sage_malloc(s)
         if not bot:
             raise MemoryError, "Unable to allocate %s bytes memory for PARI."%(<long>size)
     #endif
@@ -5538,7 +5650,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     s = <size_t> (tmp_avma - avma)
 
     #print "Allocating %s bytes for PARI/Python object"%(<long> s)
-    bot = <pari_sp> PyMem_Malloc(s)
+    bot = <pari_sp> sage_malloc(s)
     top = bot + s
     avma = top
     h = forcecopy(x)

@@ -124,17 +124,13 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         self.__prime = prime
         self.__finite_field = rings.FiniteField(prime**2)
         self.__level = level
-        self.__base_ring = base_ring
         self.__hecke_matrices = {}
         hecke.HeckeModule_free_module.__init__(
             self, base_ring, prime*level, weight=2)
 
     def __repr__(self):
         return "Module of supersingular points on X_0(%s)/F_%s over %s"%(
-            self.__level, self.__prime, self.__base_ring)
-
-    def base_ring(self):
-        return self.__base_ring
+            self.__level, self.__prime, self.base_ring())
 
     def dimension(self):
         try:
@@ -216,7 +212,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         phi_L = DBMP[L]
         Fp2 = self.__finite_field
         h = len(SS)
-        R = self.__base_ring
+        R = self.base_ring()
         T_L = MatrixSpace(R,h,sparse=True)(0)
         S, X = rings.PolynomialRing(Fp2).objgen()
         for i in range(len(SS)):

@@ -21,7 +21,7 @@ PYREX: sage.modules.module
 
 import random
 
-cdef class Module(sage.structure.gens.AdditiveAbelianGenerators):
+cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """
@@ -31,15 +31,6 @@ cdef class Module(sage.structure.gens.AdditiveAbelianGenerators):
     def __call__(self, x):
         """
         Coerce x into the ring.
-        """
-        raise NotImplementedError
-
-    def _coerce_(self, x):
-        return self(x)
-
-    def base_ring(self):
-        """
-        Return the base ring of this module.
         """
         raise NotImplementedError
 

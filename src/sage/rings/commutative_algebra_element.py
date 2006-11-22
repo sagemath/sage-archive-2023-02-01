@@ -17,7 +17,4 @@ Base class for commutative algebra elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element import CommutativeAlgebraElement
-
-def is_CommutativeAlgebraElement(x):
-    return isinstance(x, CommutativeAlgebraElement)
+from sage.structure.element import CommutativeAlgebraElement, is_CommutativeAlgebraElement

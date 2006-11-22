@@ -23,7 +23,7 @@ AUTHOR:
 
 import operator
 
-from infinity import infinity
+from infinity import infinity, is_Infinity
 from polynomial_ring import PolynomialRing
 import polynomial_element as polynomial
 import power_series_ring
@@ -31,12 +31,10 @@ import sage.misc.misc as misc
 import ring_element
 import arith
 import sage.misc.latex as latex
-from coerce import bin_op
 import sage.structure.coerce
 import rational_field, integer_ring
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
-from sage.structure.element import Element_cmp_
 from sage.libs.all import PariError
 
 Polynomial = polynomial.Polynomial_generic_dense
@@ -44,7 +42,7 @@ Polynomial = polynomial.Polynomial_generic_dense
 def is_PowerSeries(x):
     return isinstance(x, PowerSeries)
 
-class PowerSeries(Element_cmp_, ring_element.RingElement):
+class PowerSeries(ring_element.RingElement):
     def __init__(self, parent, prec, is_gen=False):
         ring_element.RingElement.__init__(self, parent)
         self.__is_gen = is_gen
@@ -58,7 +56,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         r"""
         Comparison of self and right.
 
@@ -256,18 +254,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __add__(self):
-        raise NotImplementedError
-
-    def __radd__(self, left):
-        return self.parent()(left) + self
-
-    def __sub__(self, right):
-        raise NotImplementedError
-
-    def __mul__(self, right):
-        if not isinstance(right,PowerSeries) or self.parent() != right.parent():
-            return bin_op(self, right, operator.mul)
+    def _mul_(self, right):
         if self.is_zero():
             return self
         if right.is_zero():
@@ -286,9 +273,6 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
                 prec = min(rp + self.valuation(), sp + right.valuation())
         # endif
         return self._mul_(right, prec)
-
-    def _mul_(self, right, prec):
-        raise NotImplementedError
 
     def is_unit(self):
         """
@@ -335,12 +319,13 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
              q^-1 - 1 + q - q^2 + q^3 + O(q^4)
             sage: g = 1/(q + q^2 + O(q^5))
             sage: g; g.parent()
-             q^-1 - 1 + q - q^2 + O(q^3)
-             Laurent Series Ring in q over Rational Field
+            q^-1 - 1 + q - q^2 + O(q^3)
+            Laurent Series Ring in q over Rational Field
+
             sage: 1/g
-             q + q^2 + O(q^5)
+            q + q^2 + O(q^5)
             sage: (1/g).parent()
-             Laurent Series Ring in q over Rational Field
+            Laurent Series Ring in q over Rational Field
 
             sage: 1/(2 + q)
              1/2 - 1/4*q + 1/8*q^2 - 1/16*q^3 + 1/32*q^4 + O(q^5)
@@ -430,12 +415,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         v = self[int(n):]
         return self.parent()(v, self.prec()-n)
 
-    def __div__(self, denom):
-        if not isinstance(denom, PowerSeries) or \
-               self.parent() != denom.parent():
-
-            return bin_op(self, denom, operator.div)
-
+    def _div_(self, denom):
         u = denom.unit_part()
         inv = ~u  # inverse
 
@@ -456,9 +436,6 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
         else:
             num = self
         return num*inv
-
-    def __rdiv__(self, left):
-        return self.parent()(left) / self
 
     def __pow__(self, right):
         right=int(right)
@@ -555,7 +532,6 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
 
            sage: a.solve_linear_de(prec=5, b=b, f0=3/5)
             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
-
         """
         if b is None:
             b = self.parent()(0)
@@ -577,7 +553,7 @@ class PowerSeries(Element_cmp_, ring_element.RingElement):
                   "prec (=%s) must be a non-negative integer" % prec
 
         base_ring = self.parent().base_ring()
-        R = PolynomialRing(base_ring)
+        R = PolynomialRing(base_ring, self.parent().variable_name())
 
         a_list = self.list()
         b_list = [base_ring(0)]
@@ -729,8 +705,20 @@ class PowerSeries_generic_dense(PowerSeries):
         return self.__f(x)
 
     def __setitem__(self, n, value):
-        self.__f[n] = value
-        self._prec = max(self._prec, n+1)
+        raise IndexError, "power series are immutable"
+
+    def _unsafe_mutate(self, i, value):
+        """
+        SAGE assumes throughout that commutative ring elements are immutable.
+        This is relevant for caching, etc.  But sometimes you need to change
+        a power series and you really know what you're doing.  That's
+        when this function is for you.
+
+        EXAMPLES:
+
+        """
+        self.__f._unsafe_mutate(i, value)
+        self._prec = max(self._prec, i+1)
 
     def __getitem__(self, n):
         if n<0:
@@ -757,10 +745,10 @@ class PowerSeries_generic_dense(PowerSeries):
         return PowerSeries_generic_dense(self.parent(), -self.__f,
                                          self._prec, check=False)
 
-    def __add__(self, right):
+    def _add_(self, right):
         """
         EXAMPLES:
-            sage: x = PowerSeriesRing(ZZ).gen()
+            sage: R.<x> = PowerSeriesRing(ZZ)
             sage: f = x^4 + O(x^5); f
             x^4 + O(x^5)
             sage: g = x^2 + O(x^3); g
@@ -768,20 +756,31 @@ class PowerSeries_generic_dense(PowerSeries):
             sage: f+g
             x^2 + O(x^3)
         """
-        if not isinstance(right,PowerSeries_generic_dense) or self.parent() != right.parent():
-            return bin_op(self, right, operator.add)
         return PowerSeries_generic_dense(self.parent(), self.__f + right.__f, \
                                          self.common_prec(right), check=True)
 
-    def __sub__(self, right):
-        if not isinstance(right,PowerSeries_generic_dense) or self.parent() != right.parent():
-            return bin_op(self, right, operator.sub)
+    def _sub_(self, right):
         return PowerSeries_generic_dense(self.parent(), self.__f - right.__f, \
                                          self.common_prec(right), check=True)
 
-    def _mul_(self, right, prec):
+    def _mul_(self, right):
+        sp = self.prec()
+        rp = right.prec()
+        if is_Infinity(sp):
+            if is_Infinity(rp):
+                prec = infinity
+            else:
+                prec = rp + self.valuation()
+        else:  # sp != infinity
+            if is_Infinity(rp):
+                prec = sp + right.valuation()
+            else:
+                prec = min(rp + self.valuation(), sp + right.valuation())
         return PowerSeries_generic_dense(self.parent(),
-                                         self.__f * right.__f, prec)
+                                         self.__f * right.__f,
+                                         prec,
+                                         check=True)  # check, since truncation may be needed
+
 
     def __floordiv__(self, denom):
         try:
@@ -823,7 +822,7 @@ class PowerSeries_generic_dense(PowerSeries):
         g(f(x)) = x.
 
         EXAMPLES:
-            sage: x = PowerSeriesRing(RationalField()).gen()
+            sage: R.<x> = PowerSeriesRing(QQ)
             sage: f = 2*x + 3*x**2 - x**4 + O(x**5)
             sage: g = f.reversion()
             sage: g

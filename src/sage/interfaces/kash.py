@@ -406,7 +406,10 @@ class Kash(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        init_code = ['X:=ZX.1;']
+                        )
+        # The above init_code programs around a bug reported by Jack Schmidt
 
         self.__seq = 0
 

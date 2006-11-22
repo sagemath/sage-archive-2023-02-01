@@ -25,11 +25,13 @@ AUTHORS:
 # number field calculations that use the interpreter.
 from sage.interfaces.gp import Gp
 
-import sage.interfaces.all
+import sage.interfaces.gap
 import sage.misc.preparser
 import sage.rings.arith
 import sage.rings.complex_field
 import sage.rings.ring
+
+import sage.structure.parent_gens
 
 _gp = None
 def gp():
@@ -59,7 +61,7 @@ import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
 
-
+from sage.structure.parent_gens import ParentWithGens
 import number_field_element
 from number_field_ideal import convert_from_zk_basis
 
@@ -68,8 +70,8 @@ from sage.libs.all import pari, pari_gen
 QQ = rational_field.RationalField()
 ZZ = integer_ring.IntegerRing()
 
-_objsNumberField = {}
-def NumberField(polynomial, name='a', check=True):
+_nf_cache = {}
+def NumberField(polynomial, name=None, check=True, names=None):
     r"""
     Return {\em the} number field defined by the given irreducible
     polynomial and with variable with the given name.  If check is
@@ -97,7 +99,7 @@ def NumberField(polynomial, name='a', check=True):
         sage: R.<x> = PolynomialRing(QQ)
         sage: K.<a> = NumberField(x^2 - 2)
         sage: R.<t> = K['t']
-        sage: L = K.extension(t^3+t+a); L
+        sage: L = K.extension(t^3+t+a, 'b'); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
         sage: L.absolute_field()
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
@@ -106,31 +108,45 @@ def NumberField(polynomial, name='a', check=True):
         -b^4 - b^2
         sage: L.lift_to_base(-3*b^3 - 3*b + 1)
         3*a + 1
+
+    Number fields are globally unique.
+        sage: K.<a>= NumberField(x^3-5)
+        sage: a^3
+        5
+        sage: L.<a>= NumberField(x^3-5)
+        sage: K is L
+        True
     """
-    #global _objsNumberField
-    #key = (polynomial, name)
-    #if _objsNumberField.has_key(key):
-    #    K = _objsNumberField[key]()
-    #    if K != None:
-    #        return K
+    if name is None and names is None:
+        raise TypeError, "You must specify the name of the generator."
+    if not names is None:
+        name = names
+
+    name = sage.structure.parent_gens.normalize_names(1, name)
+    key = (polynomial, name)
+    if _nf_cache.has_key(key):
+        K = _nf_cache[key]()
+        if not K is None: return K
 
     R = polynomial.base_ring()
     if R == ZZ:
         polynomial = QQ['x'](polynomial)
     elif isinstance(R, NumberField_generic):
-        return R.extension(polynomial)
+        S = R.extension(polynomial, name)
+        _nf_cache[key] = weakref.ref(S)
+        return S
 
     if polynomial.degree() == 2:
         K = NumberField_quadratic(polynomial, name, check)
     else:
         K = NumberField_generic(polynomial, name, check)
 
-    #_objsNumberField[key] = weakref.ref(K)
+    _nf_cache[key] = weakref.ref(K)
     return K
 
-def QuadraticField(D, name='a', check=False):
+def QuadraticField(D, names, check=False):
     x = polynomial_ring.PolynomialRing(QQ, 'x').gen()
-    return NumberField(x**2 - D, name, check)
+    return NumberField(x**2 - D, names, check)
 
 def is_QuadraticField(x):
     return isinstance(x, NumberField_quadratic)
@@ -141,8 +157,18 @@ def is_NumberField(x):
 def is_NumberFieldExtension(x):
     return isinstance(x, NumberField_extension)
 
-def CyclotomicField(n):
-    return NumberField_cyclotomic(n)
+_cyclo_cache = {}
+def CyclotomicField(n, names=None):
+    if names is None:
+        names = "zeta%s"%n
+    names = sage.structure.parent_gens.normalize_names(1, names)
+    key = (n, names)
+    if _cyclo_cache.has_key(key):
+        K = _cyclo_cache[key]()
+        if not K is None: return K
+    K = NumberField_cyclotomic(n, names)
+    _cyclo_cache[key] = weakref.ref(K)
+    return K
 
 def is_CyclotomicField(x):
     return isinstance(x, NumberField_cyclotomic)
@@ -152,13 +178,14 @@ class NumberField_generic(field.Field):
     """
     EXAMPLES:
         sage: R.<x> = PolynomialRing(QQ)
-        sage: K = NumberField(x^3 - 2); K
+        sage: K.<a> = NumberField(x^3 - 2); K
         Number Field in a with defining polynomial x^3 - 2
         sage: loads(K.dumps()) == K
         True
     """
-    def __init__(self, polynomial, name=None,
+    def __init__(self, polynomial, name,
                  latex_name=None, check=True):
+        ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):
             raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
 
@@ -170,7 +197,7 @@ class NumberField_generic(field.Field):
         if not polynomial.is_monic():
             raise NotImplementedError, "number fields for non-monic polynomials not yet implemented."
 
-        self.assign_names(name)
+        self._assign_names(name)
         if latex_name is None:
             self.__latex_variable_name = self.variable_name()
         else:
@@ -186,10 +213,10 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: f = x^5 + x + 17
-            sage: k = NumberField(f)
+            sage: k.<a> = NumberField(f)
             sage: v = k.complex_embeddings()
             sage: [phi(k.0^2) for phi in v]
-            [2.9757207403766763, 0.92103906697304705 - 3.0755331188457795*I, 0.92103906697304705 + 3.0755331188457795*I, -2.4088994371613852 + 1.9025410530350531*I, -2.4088994371613852 - 1.9025410530350531*I]
+            [2.97572074037667, 0.921039066973046 - 3.07553311884577*I, 0.921039066973046 + 3.07553311884577*I, -2.40889943716138 + 1.90254105303505*I, -2.40889943716138 - 1.90254105303505*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         f = self.defining_polynomial().base_extend(CC)
@@ -207,7 +234,8 @@ class NumberField_generic(field.Field):
                    self.variable_name(), self.polynomial())
 
     def _latex_(self):
-        return "%s[%s]/(%s)"%(latex(QQ), self.variable_name(), self.polynomial()._latex_(self.variable_name()))
+        return "%s[%s]/(%s)"%(latex(QQ), self.variable_name(),
+                              self.polynomial()._latex_(self.variable_name()))
 
     def __call__(self, x):
         """
@@ -216,6 +244,8 @@ class NumberField_generic(field.Field):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             f = x.polynomial()
             if f.degree() <= 0:
                 return number_field_element.NumberFieldElement(self, f[0])
@@ -229,14 +259,11 @@ class NumberField_generic(field.Field):
 
         return number_field_element.NumberFieldElement(self, x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
-                return x
-            f = x.polynomial()
-            if f.degree() <= 0:
-                return number_field_element.NumberFieldElement(self, f[0])
-        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
+                return number_field_element.NumberFieldElement(self, x.polynomial())
+        elif isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
@@ -274,9 +301,6 @@ class NumberField_generic(field.Field):
             return codomain(f(im_gens[0])) == 0
         except TypeError, ValueError:
             return False
-
-    def base_ring(self):
-        return rational_field.Q
 
     def pari_polynomial(self):
         """
@@ -345,7 +369,7 @@ class NumberField_generic(field.Field):
     def class_number(self, certify=True):
         return self.class_group(certify).order()
 
-    def composite_fields(self, other):
+    def composite_fields(self, other, names):
         """
         List of all possible composite fields formed from self and other.
         """
@@ -356,7 +380,7 @@ class NumberField_generic(field.Field):
         C = f.polcompositum(g)
         R = self.polynomial().parent()
         C = [R(h) for h in C]
-        return [NumberField(h, name=self.variable_name()) for h in C]
+        return [NumberField(h, names) for h in C]
 
     def degree(self):
         return self.polynomial().degree()
@@ -415,7 +439,7 @@ class NumberField_generic(field.Field):
         R = self.polynomial().parent()
         return [self(QQ['x'](R(g))) for g in B]
 
-    def extension(self, poly, name='b'):
+    def extension(self, poly, name=None, names=None):
         """
         Return the relative extension of this field by a given polynomial.
 
@@ -423,9 +447,12 @@ class NumberField_generic(field.Field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
-            sage: L = K.extension(t^2 + a); L
+            sage: L.<b> = K.extension(t^2 + a); L
             Extension by x^2 + a of the Number Field in a with defining polynomial x^3 - 2
         """
+        if not names is None: name = names
+        if name is None:
+            raise TypeError, "the variable name must be specified."
         return NumberField_extension(self, poly, name)
 
     def factor_integer(self, n):
@@ -494,14 +521,14 @@ class NumberField_generic(field.Field):
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
 
-            sage: NumberField(x^3-2).galois_group(pari_group=True)
+            sage: NumberField(x^3-2, 'a').galois_group(pari_group=True)
             PARI group [6, -1, 2, "S3"] of degree 3
 
-            sage: NumberField(x-1).galois_group()    # optional database_gap package
+            sage: NumberField(x-1, 'a').galois_group()    # optional database_gap package
             Transitive group number 1 of degree 1
-            sage: NumberField(x^2+2).galois_group()  # optional database_gap package
+            sage: NumberField(x^2+2, 'a').galois_group()  # optional database_gap package
             Transitive group number 1 of degree 2
-            sage: NumberField(x^3-2).galois_group()  # optional database_gap package
+            sage: NumberField(x^3-2, 'a').galois_group()  # optional database_gap package
             Transitive group number 2 of degree 3
         """
         return self.polynomial().galois_group(pari_group = pari_group, use_kash = use_kash)
@@ -513,15 +540,15 @@ class NumberField_generic(field.Field):
         for the full ring of integers.
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
-            sage: K = NumberField(x^5+10*x+1, 'a')
+            sage: x = polygen(QQ,'x')
+            sage: K.<a> = NumberField(x^5+10*x+1)
             sage: K.integral_basis()
             [1, a, a^2, a^3, a^4]
 
         Next we compute the ring of integers of a cubic field in which 2
         is an "essential discriminant divisor", so the ring of integers
         is not generated by a single element.
-            sage: K = NumberField(x^3 + x^2 - 2*x + 8, 'a')
+            sage: K.<a> = NumberField(x^3 + x^2 - 2*x + 8)
             sage: K.integral_basis()
             [1, a, 1/2*a^2 + 1/2*a]
         """
@@ -540,7 +567,7 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
-            sage: NumberField(x^3+x+9).narrow_class_group()
+            sage: NumberField(x^3+x+9, 'a').narrow_class_group()
             Multiplicative Abelian Group isomorphic to C2
         """
         try:
@@ -592,9 +619,9 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
-            sage: NumberField(x^2-2).regulator()
+            sage: NumberField(x^2-2, 'a').regulator()
             0.88137358701954305
-            sage: NumberField(x^4+x^3+x^2+x+1).regulator()
+            sage: NumberField(x^4+x^3+x^2+x+1, 'a').regulator()
             0.96242365011920694
         """
         try:
@@ -612,9 +639,9 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
-            sage: NumberField(x^2+1).signature()
+            sage: NumberField(x^2+1, 'a').signature()
             (0, 1)
-            sage: NumberField(x^3-2).signature()
+            sage: NumberField(x^3-2, 'a').signature()
             (1, 1)
             sage: CyclotomicField(7).signature()
             (0, 3)
@@ -629,8 +656,8 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(QQ)
-            sage: K.<z> = NumberField(x^2 + 3, 'zeta3')
-            sage: K.trace_pairing([1,z])
+            sage: K.<zeta3> = NumberField(x^2 + 3)
+            sage: K.trace_pairing([1,zeta3])
             [ 2  0]
             [ 0 -6]
         """
@@ -712,7 +739,7 @@ class NumberField_generic(field.Field):
         else:
             field = self.__absolute_field
             f = field.polynomial_ring().cyclotomic_polynomial(n)
-            F = polynomial_ring.PolynomialRing(field)(f)
+            F = polynomial_ring.PolynomialRing(field, 'x')(f)
             R = F.roots()
             if len(R) == 0:
                 raise ValueError, "There are no %s-th roots of unity self."%n
@@ -728,7 +755,7 @@ class NumberField_generic(field.Field):
 
         EXAMPLE:
             sage: x = QQ['x'].0
-            sage: NumberField(x^2+1).zeta_coefficients(10)
+            sage: NumberField(x^2+1, 'a').zeta_coefficients(10)
             [1, 1, 0, 1, 2, 0, 0, 1, 1, 2]
         """
         return self.pari_nf().dirzetak(n)
@@ -741,14 +768,15 @@ class NumberField_extension(NumberField_generic):
         sage: R.<x> = PolynomialRing(QQ)
         sage: K.<a> = NumberField(x^3 - 2)
         sage: t = K['x'].gen()
-        sage: L = K.extension(t^2+t+a); L
+        sage: L.<b> = K.extension(t^2+t+a); L
         Extension by x^2 + x + a of the Number Field in a with defining polynomial x^3 - 2
     """
-    def __init__(self, base, polynomial, name='b', latex_name=None):
+    def __init__(self, base, polynomial, name, latex_name=None, names=None):
         """
         Note: polynomial must be defined in the ring \code{K['x']}, where
         K is the base field.
         """
+        if not names is None: name = names
         if not is_NumberField(base):
             raise TypeError, "base (=%s) must be a number field"%base
         if not isinstance(polynomial, polynomial_element.Polynomial):
@@ -792,7 +820,7 @@ class NumberField_extension(NumberField_generic):
         self.__base_field = base
         NumberField_generic.__init__(self, self.absolute_polynomial(), name=name, latex_name=latex_name, check=False)
 
-        self.assign_names(name)
+        self._assign_names(name)
         self.__relative_polynomial = polynomial
         self.__pari_bnf_certified = False
 
@@ -809,7 +837,7 @@ class NumberField_extension(NumberField_generic):
             sage: x = QQ['x'].0
             sage: K.<a> = NumberField(x^3 - 2)
             sage: t = K['x'].gen()
-            sage: K.extension(t^2+t+a)._latex_()
+            sage: K.extension(t^2+t+a, 'b')._latex_()
             '\\mathbf{Q}[b,a]/(b^{2} + b + a, a^{3} - 2)'
         """
         return "%s[%s,%s]/(%s, %s)"%(latex(QQ), self.variable_name(), self.base_field().variable_name(), self.polynomial()._latex_(self.variable_name()), self.base_field().polynomial()._latex_(self.base_field().variable_name()))
@@ -819,8 +847,11 @@ class NumberField_extension(NumberField_generic):
         Coerce x into this number field.
         """
         if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() == self:
+            P = x.parent()
+            if P is self:
                 return x
+            elif P == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
 
@@ -832,13 +863,13 @@ class NumberField_extension(NumberField_generic):
 
         return number_field_element.NumberFieldElement(self, x)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() == self:
                 return x
             if x.parent() == self.base_field():
                 return self.__base_inclusion(x)
-        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
+        elif isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
@@ -991,9 +1022,9 @@ class NumberField_extension(NumberField_generic):
 
         EXAMPLE:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 1); R = K['x']
-            sage: a, t = K.gen(), R.gen()
-            sage: L = K.extension(t^5-t+a)
+            sage: K.<a> = NumberField(x^2 + 1)
+            sage: R.<t> = PolynomialRing(K)
+            sage: L = K.extension(t^5-t+a, 'b')
             sage: L.galois_group()                     # optional
             Transitive group number 22 of degree 10
         """
@@ -1006,8 +1037,8 @@ class NumberField_extension(NumberField_generic):
 
         EXAMPLES:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2+6)
-            sage: L = K.extension(K['x'].gen()^2 + 3) ## extend by x^2+3
+            sage: K.<a> = NumberField(x^2+6)
+            sage: L.<b> = K.extension(K['x'].gen()^2 + 3)    ## extend by x^2+3
             sage: L.is_free()
             False
         """
@@ -1071,11 +1102,15 @@ class NumberField_cyclotomic(NumberField_generic):
         sage: loads((z^2).dumps()) == z^2
         True
     """
-    def __init__(self, n):
+    def __init__(self, n, names):
         f = QQ['x'].cyclotomic_polynomial(n)
+        if names[0][:4] == 'zeta':
+            latex_name = "\\zeta_{%s}"%n
+        else:
+            latex_name = None
         NumberField_generic.__init__(self, f,
-                                     name="zeta%s"%n,
-                                     latex_name="\\zeta_{%s}"%n,
+                                     name= names,
+                                     latex_name=latex_name,
                                      check=False)
         n = integer.Integer(n)
         zeta = self.gen()
@@ -1117,8 +1152,10 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         if isinstance(x, number_field_element.NumberFieldElement) and \
                 isinstance(x.parent(), NumberField_cyclotomic):
-            if x.parent() is self:   # crucial for speed!
+            if x.parent() is self:
                 return x
+            elif x.parent() == self:
+                return number_field_element.NumberFieldElement(self, x.polynomial())
             K = x.parent()
             n = K.zeta_order()
             m = self.zeta_order()
@@ -1148,7 +1185,7 @@ class NumberField_cyclotomic(NumberField_generic):
                 raise TypeError, "Cannot coerce %s into %s"%(x,self)
             return number_field_element.NumberFieldElement(self, g)
 
-        elif sage.interfaces.all.is_GapElement(x):
+        elif sage.interfaces.gap.is_GapElement(x):
             s = str(x)
             i = s.find('E(')
             if i == -1:
@@ -1183,7 +1220,7 @@ class NumberField_cyclotomic(NumberField_generic):
             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I
+              Defn: zeta4 |--> 0.0000000000000000612323399573676 + 0.999999999999999*I
 
         Note in the example above that the way zeta is computed (using
         sin and cosine in MPFR) means that only the prec bits of the
@@ -1192,13 +1229,13 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: K = CyclotomicField(3)
             sage: phi = K.complex_embedding (10)
             sage: phi(K.0)
-            -0.49951 + 0.86621*I
+            -0.49 + 0.86*I
             sage: phi(K.0^3)
-            1.0000
+            1.0
             sage: phi(K.0^3 - 1)
             0
             sage: phi(K.0^3 + 7)
-            8.0000
+            8.0
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         return self.hom([CC.zeta(self.zeta_order())], check=False)
@@ -1214,10 +1251,11 @@ class NumberField_cyclotomic(NumberField_generic):
             [Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 0.000000000000000061232339957367660 + 1.0000000000000000*I, Ring morphism:
+              Defn: zeta4 |--> 0.0000000000000000612323399573676 + 0.999999999999999*I,
+             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> -0.00000000000000018369701987210297 - 1.0000000000000000*I]
+              Defn: zeta4 |--> -0.000000000000000183697019872102 - 0.999999999999999*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         n = self.zeta_order()
@@ -1326,8 +1364,8 @@ class NumberField_quadratic(NumberField_generic):
     EXAMPLES:
         sage: QuadraticField(3, 'a')
         Number Field in a with defining polynomial x^2 - 3
-        sage: QuadraticField(-4)
-        Number Field in a with defining polynomial x^2 + 4
+        sage: QuadraticField(-4, 'b')
+        Number Field in b with defining polynomial x^2 + 4
     """
     def __init__(self, polynomial, name=None, check=True):
         NumberField_generic.__init__(self, polynomial, name=name, check=check)
@@ -1364,11 +1402,11 @@ class NumberField_quadratic(NumberField_generic):
 
         EXAMPLES:
             sage: x = QQ['x'].0
-            sage: K = NumberField(x^2 + 23)
+            sage: K = NumberField(x^2 + 23, 'a')
             sage: K.hilbert_class_polynomial()
             x^3 + x^2 - 1
 
-            sage: K = NumberField(x^2 + 431)
+            sage: K = NumberField(x^2 + 431, 'a')
             sage: K.hilbert_class_polynomial()
             x^21 + x^20 - 13*x^19 - 50*x^18 + 592*x^17 - 2403*x^16 + 5969*x^15 - 10327*x^14 + 13253*x^13 - 12977*x^12 + 9066*x^11 - 2248*x^10 - 5523*x^9 + 11541*x^8 - 13570*x^7 + 11315*x^6 - 6750*x^5 + 2688*x^4 - 577*x^3 + 9*x^2 + 15*x + 1
         """
@@ -1376,7 +1414,7 @@ class NumberField_quadratic(NumberField_generic):
         g = QQ['x'](f)
         return g
 
-    def hilbert_class_field(self):
+    def hilbert_class_field(self, names):
         r"""
         Returns the Hilbert class field of this quadratic
         field as an absolute extension of $\Q$.  For a polynomial
@@ -1391,11 +1429,11 @@ class NumberField_quadratic(NumberField_generic):
             sage: K = NumberField(x^2 + 23, 'a')
             sage: K.hilbert_class_polynomial()
             x^3 + x^2 - 1
-            sage: K.hilbert_class_field()
-            Number Field in a with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
+            sage: K.hilbert_class_field('h')
+            Number Field in h with defining polynomial x^6 + 2*x^5 + 70*x^4 + 90*x^3 + 1631*x^2 + 1196*x + 12743
         """
         f = self.hilbert_class_polynomial()
-        C = self.composite_fields(NumberField(f))
+        C = self.composite_fields(NumberField(f,'x'),names)
         assert len(C) == 1
         return C[0]
 

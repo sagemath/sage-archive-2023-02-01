@@ -37,8 +37,7 @@ import operator
 
 import arith
 
-from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
-from coerce import bin_op, cmp as coerce_cmp
+from sage.structure.element import CommutativeRingElement, Element
 
 from sage.interfaces.all import singular, macaulay2
 
@@ -54,10 +53,10 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 import multi_polynomial_ring
 import polynomial_ring
 
-def is_MPolynomialRingElement(x):
+def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
-class MPolynomial(Element_cmp_, CommutativeRingElement):
+class MPolynomial(CommutativeRingElement):
     def __init__(self, parent, x):
         CommutativeRingElement.__init__(self, parent)
         self.__element = x
@@ -80,7 +79,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             sage: f((1,2))
             5
 
-            sage: x = MPolynomialRing(RationalField(),3).gens()
+            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             x1 - 2*x1*x2 + x0
@@ -107,7 +106,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             y += c*misc.mul([ x[i]**m[i] for i in range(n) ])
         return y
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
         self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
@@ -146,9 +145,10 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
         """
         try:
-            return self.__element._cmp_(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
+            return self.__element.compare(right.__element,
+                             self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
         except AttributeError:
-            return self.__element.__cmp__(right.__element)
+            return self.__element.compare(right.__element)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -267,7 +267,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ, 10).objgens()
+            sage: R, x = MPolynomialRing(QQ, 'x', 10).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -430,7 +430,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f[0,1]
             0
 
-            sage: R.<x> = MPolynomialRing(GF(7)); R
+            sage: R.<x> = PolynomialRing(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             3 + 5*x^2
@@ -919,7 +919,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     return True
                 else:
                     return False
-            return NotImplemented
+            return self._richcmp_(right,2)
         return self._MPolynomial__element == right._MPolynomial__element
 
     def __ne__(self,right):
@@ -933,7 +933,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                 else:
                     return True
             # maybe add constant elements as well
-            return NotImplemented
+            return self._richcmp_(right,3)
         return self._MPolynomial__element != right._MPolynomial__element
 
     def is_zero(self):

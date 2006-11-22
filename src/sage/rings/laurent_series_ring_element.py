@@ -1,6 +1,40 @@
 """
 Laurent Series
 
+EXAMPLES:
+
+    sage: R.<t> = LaurentSeriesRing(GF(7), 't'); R
+    Laurent Series Ring in t over Finite Field of size 7
+    sage: f = 1/(1-t+O(t^10)); f
+    1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+
+Laurent series are immutable:
+    sage: f[2]
+    1
+    sage: f[2] = 5
+    Traceback (most recent call last):
+    ...
+    IndexError: Laurent series are immutable
+
+We compute with a Laurent series over a the complex mpfr numbers.
+    sage: K.<q> = Frac(CC[['q']])
+    sage: K
+    Laurent Series Ring in q over Complex Field with 53 bits of precision
+    sage: q
+    1.00000000000000*q
+
+Saving and loading.
+    sage: loads(q.dumps()) == q
+    True
+    sage: loads(K.dumps()) == K
+    True
+
+IMPLEMENTATION: Laurent series in SAGE are represented internally as a
+    power of the variable times the unit part (which need not be a
+    unit -- it's a polynomial with nonzero constant term).  The zero
+    Laurent series has unit part 0.
+
+
 AUTHORS:
     -- William Stein: original version
     -- David Joyner: added examples 2006-01-22
@@ -8,7 +42,6 @@ AUTHORS:
 
 import operator
 
-from coerce import bin_op
 from infinity import infinity
 
 import laurent_series_ring
@@ -17,52 +50,62 @@ import power_series_ring
 import polynomial_element as polynomial
 import sage.misc.latex as latex
 import sage.rings.ring_element as ring_element
-import sage.structure.coerce
-from sage.structure.element import Element_cmp_
 
-class LaurentSeries(Element_cmp_, ring_element.RingElement):
+class LaurentSeries(ring_element.RingElement):
+    """
+    A Laurent Series.
+    """
     def __init__(self, parent, f, n=0):
         r"""
         Create the Laurent series $t^n \cdot f$.  The default is n=0.
 
         INPUT:
             parent -- a Laurent series ring
-            f -- a power series (or something can be coerced to one)
+            f -- a power series (or something can be coerced to one); note that
+                 f does *not* have to be a unit.
             n -- integer (default 0)
 
         OUTPUT:
             a Laurent series
-
-        EXAMPLES:
-            sage: K, q = Frac(CC[['q']]).objgen()
-            sage: K
-            Laurent Series Ring in q over Complex Field with 53 bits of precision
-            sage: q
-            1.0000000000000000*q
-
-        Saving and loading.
-            sage: loads(q.dumps()) == q
-            True
-            sage: loads(K.dumps()) == K
-            True
         """
-        if not isinstance(parent, laurent_series_ring.LaurentSeriesRing_generic):
-            raise TypeError, "parent must be a LaurentSeriesRing"
-
         ring_element.RingElement.__init__(self, parent)
+        if isinstance(f, LaurentSeries):
+            n += f.__n
+            f = parent.power_series_ring()(f.__u)
+        elif not isinstance(f, power_series_ring_element.PowerSeries):
+            f = parent.power_series_ring()(f)
 
-        if not isinstance(f, power_series_ring_element.PowerSeries):
-            if isinstance(f, LaurentSeries):
-                n += f.__u
-                f = f.unit_part()
-            else:
-                f = parent.power_series_ring()(f)
-
-        self.__n = n + f.valuation()
-        self.__u = f.unit_part()
+        # self is that t^n * u:
+        self.__n = n + f.valuation()    # power of the variable
+        self.__u = f.unit_part()        # unit part
 
     def is_unit(self):
-        return not self.is_zero()
+        """
+        Returns True if this is Laurent series is a unit in this ring.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: (2+t).is_unit()
+            True
+            sage: f = 2+t^2+O(t^10); f.is_unit()
+            True
+            sage: 1/f
+            1/2 - 1/4*t^2 + 1/8*t^4 - 1/16*t^6 + 1/32*t^8 + O(t^10)
+            sage: R(0).is_unit()
+            False
+            sage: R.<s> = LaurentSeriesRing(ZZ)
+            sage: f = 2 + s^2 + O(s^10)
+            sage: f.is_unit()
+            False
+            sage: 1/f
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: division not defined
+
+        ALGORITHM: A Laurent series is a unit if and only if
+        its "unit part" is a unit.
+        """
+        return self.__u.is_unit()
 
     def is_zero(self):
         """
@@ -81,7 +124,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return codomain(self(im_gens[0]))
 
     def __normalize(self):
-        """
+        r"""
         A Laurent series is a pair (u(t), n), where either u=0 (to
         some precision) or u is a unit.  This pair corresponds to
         $t^n\cdot u(t)$.
@@ -94,7 +137,13 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         self.__n += v
         self.__u = self.__u.unit_part()
 
-    def __repr__(self):
+    def _repr_(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: (2 + (2/3)*t^3).__repr__()
+            '2 + 2/3*t^3'
+        """
         if self.is_zero():
             if self.prec() == infinity:
                 return "0"
@@ -141,12 +190,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
             sage: f = (17/2)*x^-2 + x + x^2 + 3*x^4 + O(x^7)
-            sage: f._latex_()
-            '\\frac{17}{2}x^{-2} + x + x^{2} + 3x^{4} + \\cdots'
+            sage: latex(f)
+            \frac{\frac{17}{2}}{x^{-2}} + x + x^{2} + 3x^{4} + \cdots
         """
         if self.is_zero():
             if self.prec() == infinity:
@@ -173,9 +222,12 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
                     var = "|%s"%X
                 elif e == 0:
                     var = ""
-                else:
+                elif e > 0:
                     var = "|%s^{%s}"%(X,e)
-                s += "%s%s"%(x,var)
+                if e >= 0:
+                    s += "%s%s"%(x,var)
+                else: # negative e
+                    s += "\\frac{%s}{%s^{%s}}"%(x, X,e)
                 first = False
         if atomic_repr:
             s = s.replace(" + -", " - ")
@@ -189,19 +241,78 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
     def __getitem__(self, i):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3; f
+            -5*t^-10 + t + t^2 - 10/3*t^3
+            sage: f[-10]
+            -5
+            sage: f[1]
+            1
+            sage: f[3]
+            -10/3
+            sage: f[-9]
+            0
+        """
         return self.__u[i-self.__n]
 
     def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3; f
+            -5*t^-10 + t + t^2 - 10/3*t^3
+            sage: f[-10:3]
+            [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+        """
         return self.__u[i-self.__n:j-self.__n]
 
     def __iter__(self):
+        """
+        Iterate through the coefficients from the first nonzero one to
+        the last nonzero one.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = -5/t^(2) + t + t^2 - 10/3*t^3; f
+            -5*t^-2 + t + t^2 - 10/3*t^3
+            sage: for a in f: print a
+            -5
+            0
+            0
+            1
+            1
+            -10/3
+        """
         for i in range(self.valuation(), self.degree()+1):
             yield self[i]
 
-    def __setitem__(self, i, value):
+    def __setitem__(self, n, value):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^2 + t^3 + O(t^10)
+            sage: f[2] = 5
+            Traceback (most recent call last):
+            ...
+            IndexError: Laurent series are immutable
+        """
+        raise IndexError, "Laurent series are immutable"
+
+    def _unsafe_mutate(self, i, value):
+        """
+        SAGE assumes throughout that commutative ring elements are immutable.
+        This is relevant for caching, etc.  But sometimes you need to change
+        a Laurent series and you really know what you're doing.  That's
+        when this function is for you.
+
+        EXAMPLES:
+
+        """
         j = i - self.__n
         if j >= 0:
-            self.__u[j] = value
+            self.__u._unsafe_mutate(j, value)
         else: # off to the left
             if value != 0:
                 self.__n = self.__n + j
@@ -210,34 +321,63 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
                 self.__u = self.__u.parent()(coeffs)
         self.__normalize()
 
-    def __add__(self, right):
+    def _add_(self, right):
         """
+        Add two power series with the same parent.
+
         EXAMPLES:
-            sage: x = Frac(QQ[['x']]).0
-            sage: f = 1/x^10 + x + x^2 + 3*x^4 + O(x^7)
-            sage: g = 1 - x + x^2 - x^4 + O(x^8)
-            sage: f*g
-            x^-10 - x^-9 + x^-8 - x^-6 + O(x^-2)
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: t + t
+            2*t
+            sage: f = 1/t + t^2 + t^3 - 17/3 * t^4 + O(t^5)
+            sage: g = 1/(1-t + O(t^7)); g
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + O(t^7)
+            sage: f + g
+            t^-1 + 1 + t + 2*t^2 + 2*t^3 - 14/3*t^4 + O(t^5)
+            sage: f + 0
+            t^-1 + t^2 + t^3 - 17/3*t^4 + O(t^5)
+            sage: 0 + f
+            t^-1 + t^2 + t^3 - 17/3*t^4 + O(t^5)
+            sage: R(0) + R(0)
+            0
+            sage: (t^3 + O(t^10)) + (t^-3 +O(t^9))
+            t^-3 + t^3 + O(t^9)
+
+        ALGORITHM:
+            Multiply both Laurent series by a power of the variable to make them
+            power series, add those power series, then divide.
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.add)
-        # Algorithm: Make a copy of self then modify coefficients
-        # using those of right.
+        # Add together two Laurent series over the same base ring.
+
+        # 1. Special case when one or the other is 0.
         if right.is_zero():
             return self.add_bigoh(right.prec())
         if self.is_zero():
             return right.add_bigoh(self.prec())
-        s = self.copy()
-        prec = min(self.prec(),right.prec())
-        if prec != infinity:
-            m = prec
-        else:
-            m = max(self.degree(), right.degree())+1
-        for i in range(right.valuation(), m):
-            s[i] += right[i]
-        return s.add_bigoh(prec)
+
+        # 2. Find power of t that we can multiply both by to get power series.
+        m = - min(self.valuation(), right.valuation())
+        # Now t^m times each one is a polynomial.
+        # Get the polynomial indeterminate t
+        t = self.__u.parent().gen()
+        # Compute t^m times self
+        f1 = t**(self.__n + m) * self.__u
+        # Compute t^m times right
+        f2 = t**(right.__n + m) * right.__u
+        # Now add f1 and f2 as power series
+        g = f1 + f2
+        # Finally construct the Laurent series associated to the sum time t^(-m).
+        return LaurentSeries(self.parent(), g, -m)
 
     def add_bigoh(self, prec):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: f = t^2 + t^3 + O(t^10); f
+            t^2 + t^3 + O(t^10)
+            sage: f.add_bigoh(5)
+            t^2 + t^3 + O(t^5)
+        """
         if prec == infinity or prec >= self.prec():
             return self
         u = self.__u.add_bigoh(prec - self.__n)
@@ -259,13 +399,42 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         """
         return self.__u.degree() + self.valuation()
 
-    def __sub__(self, right):
-        return self + (-1)*right
+# todo:
+# I commented out the following __sub__ because it doesn't fit the new
+# arithmetic architecture rules. Perhaps a native _sub_ implementation would
+# be reasonable to have, but it seems pretty well covered by the default
+# RingElement._sub_c_impl() implementation anyway, so why bother.
+#   -- David Harvey
+#
+# BTW should mention that David Roe is working on reimplementing laurent
+# series from scratch. (hopefully!)
+#
+#    def __sub__(self, right):
+#        """
+#        EXAMPLES:
+#            sage: R = LaurentSeriesRing(ZZ, 't')
+#            sage: f = t^2 + t^3 + O(t^10)
+#            sage: g = 3/t^4 + t^3 + O(t^5)
+#            sage: f - g
+#            -3*t^-4 + t^2 + O(t^5)
+#            sage: g - f
+#            3*t^-4 - t^2 + O(t^5)
+#        """
+#        return self + right.__neg__()
 
-    def __neg__(self):
-        return (-1)*self
+# ditto with __neg__:
+#
+#    def __neg__(self):
+#        """
+#        EXAMPLES:
+#            sage: R.<t> = LaurentSeriesRing(ZZ)
+#            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
+#            sage: f.__neg__()
+#            -3*t^-2 - t^2 - t^3 + O(t^10)
+#        """
+#        return (-1)*self
 
-    def __mul__(self, right):
+    def _mul_(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -274,8 +443,6 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f*g
             x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.mul)
         return LaurentSeries(self.parent(),
                              self.__u * right.__u,
                              self.__n + right.__n)
@@ -294,7 +461,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
 
 
-    def __div__(self, right):
+    def _div_(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -305,14 +472,18 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f/g
             x^8 + x^9 + 3*x^11 + O(x^14)
         """
-        if not isinstance(right, LaurentSeries):
-            return bin_op(self, right, operator.div)
-        return LaurentSeries(self.parent(),
+        if right.__u.is_zero():
+            raise ZeroDivisionError
+        try:
+            return LaurentSeries(self.parent(),
                              self.__u / right.__u,
                              self.__n - right.__n)
+        except TypeError, msg:
+            # todo: this could also make something in the formal fraction field.
+            raise ArithmeticError, "division not defined"
 
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -323,10 +494,8 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
             sage: f>g
             True
         """
-        if self.__n < right.__n:
-            return -1
-        elif self.__n > right.__n:
-            return 1
+        c = cmp(self.__n, right.__n)
+        if c: return c
         return cmp(self.__u, right.__u)
 
     def unit_part(self):
@@ -430,7 +599,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 
         The integral of 1/t is $\log(t)$, which is not given by a Laurent series:
 
-            sage: t = Frac(QQ[['t']]).gen()
+            sage: t = Frac(QQ[['t']]).0
             sage: f = -1/t^3 - 31/t + O(t^3)
             sage: f.integral()
             Traceback (most recent call last):
@@ -456,6 +625,21 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
 
 
     def power_series(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(ZZ)
+            sage: f = 1/(1-t+O(t^10)); f.parent()
+            Laurent Series Ring in t over Integer Ring
+            sage: g = f.power_series(); g
+            1 + t + t^2 + t^3 + t^4 + t^5 + t^6 + t^7 + t^8 + t^9 + O(t^10)
+            sage: parent(g)
+            Power Series Ring in t over Integer Ring
+            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
+            sage: f.power_series()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: self is a not a power series
+        """
         if self.__n < 0:
             raise ArithmeticError, "self is a not a power series"
         u = self.__u
@@ -467,7 +651,7 @@ class LaurentSeries(Element_cmp_, ring_element.RingElement):
         Compute value of this Laurent series at x.
 
         EXAMPLES:
-            sage: t = LaurentSeriesRing(ZZ, 't').0
+            sage: R.<t> = LaurentSeriesRing(ZZ)
             sage: f = t^(-2) + t^2 + O(t^8)
             sage: f(2)
             17/4

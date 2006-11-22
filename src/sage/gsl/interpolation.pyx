@@ -2,6 +2,8 @@
 Interpolation
 """
 
+include '../ext/stdsage.pxi'
+
 cdef class Spline:
     """
     Create a spline interpolation object.
@@ -57,20 +59,20 @@ cdef class Spline:
 
     cdef start_interp(self):
         if self.started:
-            PyMem_Free(self.x)
-            PyMem_Free(self.y)
+            sage_free(self.x)
+            sage_free(self.y)
             return
         v = list(self.v)
         v.sort()
         n = len(v)
         if n < 3:
             raise RuntimeError, "must have at least 3 points in order to interpolate."
-        self.x = <double*> PyMem_Malloc(n*sizeof(double))
+        self.x = <double*> sage_malloc(n*sizeof(double))
         if self.x == <double*>0:
             raise MemoryError
-        self.y = <double*> PyMem_Malloc(n*sizeof(double))
+        self.y = <double*> sage_malloc(n*sizeof(double))
         if self.y == <double*>0:
-            PyMem_Free(self.x)
+            sage_free(self.x)
             raise MemoryError
 
         cdef int i
@@ -86,8 +88,8 @@ cdef class Spline:
     cdef stop_interp(self):
         if not self.started:
             return
-        PyMem_Free(self.x)
-        PyMem_Free(self.y)
+        sage_free(self.x)
+        sage_free(self.y)
         gsl_spline_free (self.spline)
         gsl_interp_accel_free (self.acc)
         self.started = 0

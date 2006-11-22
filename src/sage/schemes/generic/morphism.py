@@ -13,7 +13,8 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.all       import Sequence, AdditiveGroupElement, RingElement
+from sage.structure.element   import AdditiveGroupElement, RingElement
+from sage.structure.sequence  import Sequence
 
 from sage.categories.morphism import Morphism
 

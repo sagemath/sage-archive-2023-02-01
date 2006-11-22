@@ -6,6 +6,8 @@ It is a linearly-ordered collections of numbered cells, where a
 cell is a single input/output block.
 """
 
+from __future__ import with_statement
+
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
@@ -28,7 +30,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 60
+INTERRUPT_TRIES = 20
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -137,10 +139,54 @@ class Worksheet:
         s += "# Worksheet: %s"%self.name() + '\n'
         s += "#"*80+ '\n\n'
         for C in self.__cells:
-            t = C.plain_text(prompts=prompts).strip()
+            t = C.plain_text(prompts=prompts).strip('\n')
+            if t != '':
+                s += '\n' + t
+        return s
+
+    def edit_text(self, prompts=False):
+        """
+        Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
+        suitable for hand editing.
+        """
+        s = '#'*80 + '\n'
+        s += '# Wiki form for worksheet: %s'%self.name() + '\n'
+        s += '#'*80+'\n\n'
+        for C in self.__cells:
+            t = C.wiki_text(prompts=prompts).strip()
             if t != '':
                 s += '\n\n' + t
         return s
+
+    def insert_wiki_cells(self,text):
+        text.replace('\r\n','\n')
+        lines = text.split('\n')
+        input = ""
+        output = ""
+        in_cell = False
+        in_output = False
+        old_first = self.__cells[0].id()
+        for line in lines:
+            if not in_cell:
+                if line[:3] == '{{{':
+                    in_cell = True
+            elif line != '}}}':
+                if not in_output:
+                    if line == '///':
+                        in_output = True
+                    else:
+                        input += line+'\n'
+                else:
+                    output += line+'\n'
+            else:
+                C = self.new_cell_before(old_first)
+                C.set_input_text(input)
+                C.set_output_text(output,output)
+                C.set_cell_output_type()
+                input = ""
+                output = ""
+                in_cell = False
+                in_output = False
 
     def input_text(self):
         """
@@ -227,7 +273,7 @@ class Worksheet:
                 if i > 0:
                     return cells[i-1].id()
                 else:
-                    return cells[0].id()
+                    break
         return cells[0].id()
 
     def directory(self):
@@ -254,7 +300,7 @@ class Worksheet:
             if S._expect != None:
                 return S
         except AttributeError:
-            S = Sage(maxread=1)
+            S = Sage(maxread = 1)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__sage = S
@@ -266,14 +312,21 @@ class Worksheet:
         self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
-        S.eval('__DIR__="%s/"; DIR=__DIR__'%self.DIR())
-        S.eval('from sage.all_notebook import *')
-        S.eval('import sage.server.support as _support_')
-        S.eval('__SAGENB__globals = set(globals().keys())')
         object_directory = os.path.abspath(self.__notebook.object_directory())
-        verbose(object_directory)
-        S.eval('_support_.init("%s", globals())'%object_directory)
-        print "(done)"
+        #verbose(object_directory)
+        # We do exactly one eval below of one long line instead of
+        # a whole bunch of short ones.
+        try:
+            cmd = 'from sage.all_notebook import *; '
+            cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
+            cmd += 'import sage.server.support as _support_; '
+            cmd += '__SAGENB__globals = set(globals().keys()); '
+            cmd += '_support_.init("%s", globals()); '%object_directory
+            S.eval(cmd)
+        except Exception, msg:
+            print msg
+            del self.__sage
+            raise RuntimeError
 
         A = self.attached_files()
         for F in A.iterkeys():
@@ -443,12 +496,21 @@ class Worksheet:
             input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
         input = self.synchronize(input)
+        # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
+        # in order to support use of the with statement in the notebook.  Very annoying.
+        input = 'from __future__ import with_statement\n' + input
         open(tmp,'w').write(input)
         e = 'execfile("%s")\n'%os.path.abspath(tmp)
         # just in case, put an extra end...
         cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
         self.__comp_is_running = True
-        S._send(cmd)
+        try:
+            S._send(cmd)
+        except OSError, msg:
+            self.restart_sage()
+            C.set_output_text('The SAGE compute process quit (possibly SAGE crashed?).\nPlease retry your calculation.','')
+
+
 
     def check_cell(self, id):
         """
@@ -635,7 +697,6 @@ class Worksheet:
             tm = 0.05
             al = INTERRUPT_TRIES * tm
             print "Trying to interrupt for at most %s seconds"%al
-            alarm(al)
             try:
                 for i in range(INTERRUPT_TRIES):
                     E.sendline('q')
@@ -649,7 +710,6 @@ class Worksheet:
                         verbose("Trying again to interrupt SAGE (try %s)..."%i)
             except Exception, msg:
                 print msg
-            cancel_alarm()
             if not success:
                 pid = self.__sage.pid()
                 cmd = 'kill -9 -%s'%pid
@@ -908,7 +968,7 @@ class Worksheet:
         spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
-        s  = '_support_.pyrex_import_all("%s", globals(), make_c_file_nice=True)'%spyx
+        s  = '_support_.pyrex_import_all("%s", globals())'%spyx
         return s
 
     def check_for_system_switching(self, s, C):
@@ -935,7 +995,7 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:6] == "%pyrex":  # a block of Pyrex code.
+        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Pyrex code.
             return True, self.pyrex_import(s[6:].lstrip(), C)
 
         i = s.find('\n')
@@ -990,9 +1050,6 @@ class Worksheet:
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
-
-                #input = [x for x in input.split('\n') if len(x.split()) > 0 and \
-                #         x.lstrip()[0] != '#']   # remove all blank lines and purely comment lines
                 input = input.split('\n')
 
                 i = len(input)-1
@@ -1004,7 +1061,6 @@ class Worksheet:
                         try:
                             compile(t+'\n', '', 'single')
                             t = t.replace("'", "\\u0027").replace('\n','\\u000a')
-                            #input[-1] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input = input[:i+1]
                         except SyntaxError, msg:

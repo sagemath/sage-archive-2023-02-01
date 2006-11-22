@@ -149,6 +149,9 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
     def __init__(self):
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
+    def __cmp__(self, other):
+        return cmp(type(self), type(other))
+
     def _repr_(self):
         return "Integer Ring"
 

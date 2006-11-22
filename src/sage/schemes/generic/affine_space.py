@@ -79,8 +79,9 @@ def AffineSpace(n, R=None, names=None):
         True
     """
     if is_MPolynomialRing(n) and R is None:
-        A = AffineSpace(n.ngens(), n.base_ring(), n.variable_names())
-        A._coordinate_ring = n
+        R = n
+        A = AffineSpace(R.ngens(), R.base_ring(), R.variable_names())
+        A._coordinate_ring = R
         return A
     if isinstance(R, (int, long, Integer)):
         n, R = R, n
@@ -129,7 +130,8 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     """
     def __init__(self, n, R, names):
         ambient_space.AmbientSpace.__init__(self, n, R)
-        self._assign_names(names)
+        self.__names = names
+        #self._assign_names(names)
 
     def __iter__(self):
         """

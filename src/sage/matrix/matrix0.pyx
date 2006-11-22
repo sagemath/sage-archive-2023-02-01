@@ -1937,7 +1937,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         Whether or not matrix multiplication of self by right should
         be done using Strassen.
 
-        Overload this in derived classes to not use Strassen by default.
+        Overload _strassen_default_cutoff to return -1 to not use
+        Strassen by default.
         """
         cdef int n
         n = self._strassen_default_cutoff(right)

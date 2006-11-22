@@ -4,6 +4,10 @@ Matrix windows
 
 include '../ext/stdsage.pxi'
 
+cdef extern from "stdsage.h":
+    object PY_NEW(PyObject *)
+
+
 #########################################################################
 # Generic matrix windows, which are used for block echelon and strassen #
 # algorithms.                                                           #
@@ -12,17 +16,16 @@ cdef class MatrixWindow:
     ############################
     # creation and initialization
     ############################
-    cdef MatrixWindow _new(MatrixWindow self):
-        return PY_NEW(MatrixWindow)
 
     cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
                                          Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols):
         """
-        This method is here only to provide a fast cdef way of constructing new matrix windows.
-        The only implicit assumption is that self._matrix and matrix are over the same basering.
+        This method is here only to provide a fast cdef way of constructing
+        new matrix windows. The only implicit assumption is that self._matrix
+        and matrix are over the same base ring (so share the zero).
         """
         cdef MatrixWindow M
-        M = self._new()
+        M = <MatrixWindow>PY_NEW(PY_TYPE(self))
         M._matrix = matrix
         M._row = row
         M._col = col
@@ -48,6 +51,10 @@ cdef class MatrixWindow:
         if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
             return self
         return self.new_matrix_window(self._matrix, self._row + row, self._col + col, n_rows, n_cols)
+
+     cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
+        a = self._matrix.new_matrix(nrows, ncols)
+        return self.new_matrix_window(a, 0, 0, nrows, ncols)
 
     def __repr__(self):
         return "Matrix window of size %s x %s at (%s,%s):\n%s"%(
@@ -218,10 +225,6 @@ cdef class MatrixWindow:
 
     cdef int element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
         return self._matrix.get_unsafe(i+self._row, j+self._col) == self._zero
-
-    cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
-        a = self._matrix.new_matrix(nrows, ncols)
-        return self.new_matrix_window(a, 0, 0, nrows, ncols)
 
 
 

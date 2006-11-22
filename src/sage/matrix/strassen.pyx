@@ -16,8 +16,14 @@ SAGE implements asymptotically fast echelon form and matrix multiplication algor
 
 from matrix_window cimport MatrixWindow
 
-def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
-                             MatrixWindow B, Py_ssize_t cutoff):
+include "../ext/interrupt.pxi"
+
+
+def strassen_window_multiply(C, A,B, cutoff):
+    strassen_window_multiply_c(C, A, B, cutoff)
+
+cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
+                                MatrixWindow B, Py_ssize_t cutoff):
     """
     Multiplies the submatrices specified by A and B, places result
     in C.  Assumes that A and B have compatible dimensions to be
@@ -215,20 +221,20 @@ def strassen_window_multiply(MatrixWindow C, MatrixWindow A,
     else:
         # Recurse into sub-products.
 
-        strassen_window_multiply(Q0, A00, B00, cutoff)   # now Q0 holds P0
-        strassen_window_multiply(Q1, A01, B10, cutoff)   # now Q1 holds P1
-        U0.set_to_sum(Q0, Q1)                            # now U0 is correct
-        strassen_window_multiply(Q1, S1, T1, cutoff)     # now Q1 holds P3
-        Q0.add(Q1)                                       # now Q0 holds U1
-        strassen_window_multiply(Q1, S2, T2, cutoff)     # now Q1 holds P4
-        Q1.add(Q0)                                       # now Q1 holds U2
-        strassen_window_multiply(Q2, A11, T3, cutoff)    # now Q2 holds P6
-        U3.set_to_sum(Q1, Q2)                            # now U3 is correct
-        strassen_window_multiply(Q2, S0, T0, cutoff)     # now Q2 holds P2
-        U4.set_to_sum(Q2, Q1)                            # now U4 is correct
-        Q0.add(Q2)                                       # now Q0 holds U5
-        strassen_window_multiply(Q2, S3, B11, cutoff)    # now Q2 holds P5
-        U6.set_to_sum(Q0, Q2)                            # now U6 is correct
+        strassen_window_multiply_c(Q0, A00, B00, cutoff)   # now Q0 holds P0
+        strassen_window_multiply_c(Q1, A01, B10, cutoff)   # now Q1 holds P1
+        U0.set_to_sum(Q0, Q1)                              # now U0 is correct
+        strassen_window_multiply_c(Q1, S1, T1, cutoff)     # now Q1 holds P3
+        Q0.add(Q1)                                         # now Q0 holds U1
+        strassen_window_multiply_c(Q1, S2, T2, cutoff)     # now Q1 holds P4
+        Q1.add(Q0)                                         # now Q1 holds U2
+        strassen_window_multiply_c(Q2, A11, T3, cutoff)    # now Q2 holds P6
+        U3.set_to_sum(Q1, Q2)                              # now U3 is correct
+        strassen_window_multiply_c(Q2, S0, T0, cutoff)     # now Q2 holds P2
+        U4.set_to_sum(Q2, Q1)                              # now U4 is correct
+        Q0.add(Q2)                                         # now Q0 holds U5
+        strassen_window_multiply_c(Q2, S3, B11, cutoff)    # now Q2 holds P5
+        U6.set_to_sum(Q0, Q2)                              # now U6 is correct
 
 
     # Now deal with the leftover row and/or column (if they exist).
@@ -261,17 +267,23 @@ cdef subtract_strassen_product(MatrixWindow result, MatrixWindow A, MatrixWindow
     EXAMPLES:
         sage: ?
     """
-    cutoff = 1000000 # for testing
     cdef MatrixWindow to_sub
-    if (result.ncols() <= cutoff or result.nrows() <= cutoff):
+    if (cutoff == -1 or result.ncols() <= cutoff or result.nrows() <= cutoff):
         result.subtract_prod(A, B)
     else:
         to_sub = A.new_empty_window(result.nrows(), result.ncols())
-        strassen_window_multiply(to_sub, A, B, cutoff)
+        strassen_window_multiply_c(to_sub, A, B, cutoff)
         result.subtract(to_sub)
 
 
-def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
+def strassen_echelon(MatrixWindow A, cutoff):
+    if cutoff < 1:
+        raise ValueError, "cutoff must be at least 1"
+    _sig_on
+    strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
+    _sig_off
+
+cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff):
     """
     Compute echelon form, in place.
     Internal function, call with M.echelonize(algorithm="strassen")
@@ -317,9 +329,6 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
     # top_left, top_right, bottom_left, and bottom_right loosely correspond to A, B, C, and D respectively,
     # however, the "cut" between the top and bottom rows need not be the same.
 
-    if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
-
     cdef Py_ssize_t nrows, ncols
     nrows = A.nrows()
     ncols = A.ncols()
@@ -337,7 +346,7 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
     top = A.matrix_window(0, 0, split, ncols)
     bottom = A.matrix_window(split, 0, nrows-split, ncols)
 
-    top_pivots = strassen_echelon(top, cutoff)
+    top_pivots = strassen_echelon_c(top, cutoff, mul_cutoff)
     # effectively "multiplied" top row by A^{-1}
     #     [  I  A'B ]
     #     [  C   D  ]
@@ -348,7 +357,7 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
     if top_h == 0:
         #                                 [ 0 0 ]
         # the whole top is a zero matrix, [ C D ]. Run echelon on the bottom
-        bottom_pivots = strassen_echelon(bottom, cutoff)
+        bottom_pivots = strassen_echelon_c(bottom, cutoff, mul_cutoff)
         #             [  0   0  ]
         # we now have [  I  C'D ], proceed to sorting
 
@@ -370,7 +379,7 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
             # Subtract off C time top from the bottom_right
             if bottom_cut < ncols:
                 bottom_right = bottom.matrix_window(0, bottom_cut, nrows-split, ncols-bottom_cut)
-                subtract_strassen_product(bottom_right, clear, top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut), cutoff);
+                subtract_strassen_product(bottom_right, clear, top.matrix_window(0, bottom_cut, top_h, ncols-bottom_cut), mul_cutoff);
             # [  I      A'B   ]
             # [  *   D - CA'B ]
 
@@ -389,13 +398,13 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
                     subtract_strassen_product(bottom_left.matrix_window(0, cols[0], nrows-split, cols[1]),
                                               clear.matrix_window(0, 0, nrows-split, prev_pivot_count),
                                               top.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
-                                              cutoff)
+                                              mul_cutoff)
                 bottom_start = non_pivots._intervals[0][0]
             # [  I      A'B   ]
             # [  0   D - CA'B ]
 
             # Now recursively do echelon form on the bottom
-            bottom_pivots_rel = strassen_echelon(bottom.matrix_window(0, bottom_start, nrows-split, ncols-bottom_start), cutoff)
+            bottom_pivots_rel = strassen_echelon_c(bottom.matrix_window(0, bottom_start, nrows-split, ncols-bottom_start), cutoff, mul_cutoff)
             # [  I  A'B ]
             # [  0  I F ]
             bottom_pivots = []
@@ -431,7 +440,7 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
                 # subtract off E times bottom from top right
                 if top_cut < ncols:
                     top_right = top.matrix_window(0, top_cut, top_h, ncols - top_cut)
-                    subtract_strassen_product(top_right, clear, bottom.matrix_window(0, top_cut, bottom_h, ncols - top_cut), cutoff);
+                    subtract_strassen_product(top_right, clear, bottom.matrix_window(0, top_cut, bottom_h, ncols - top_cut), mul_cutoff);
                 # [  I  *  G - EF ]
                 # [  0  I     F   ]
 
@@ -450,7 +459,7 @@ def strassen_echelon(MatrixWindow A, Py_ssize_t cutoff):
                         subtract_strassen_product(top.matrix_window(0, cols[0], top_h, cols[1]),
                                                   clear.matrix_window(0, 0, top_h, prev_pivot_count),
                                                   bottom.matrix_window(0, cols[0], prev_pivot_count, cols[1]),
-                                                  cutoff)
+                                                  mul_cutoff)
                 # [  I  0  G - EF ]
                 # [  0  I     F   ]
                 # proceed to sorting

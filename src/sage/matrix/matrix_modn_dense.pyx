@@ -492,6 +492,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         R = self._base_ring[var]    # polynomial ring over the base ring
         return R(v)
 
+    cdef int _strassen_default_cutoff(self, right) except -2:
+        # TODO: lots of testing
+        return 100
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):

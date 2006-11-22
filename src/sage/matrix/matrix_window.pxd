@@ -5,10 +5,6 @@ cdef class MatrixWindow:
     cdef Matrix _matrix
     cdef object _zero
 
-    # YOU *MUST* OVERRIDE THESE
-    # Derived classes *MUST* implement _new
-    cdef MatrixWindow _new(MatrixWindow self)
-
     # YOU *REALLY SHOULD* OVERRIDE THESE:
     cdef add(MatrixWindow self, MatrixWindow A)
     cdef subtract(MatrixWindow self, MatrixWindow A)

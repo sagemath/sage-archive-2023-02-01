@@ -10,9 +10,6 @@ from sage.matrix.matrix_modn_dense cimport Matrix_modn_dense
 
 cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
-    cdef MatrixWindow _new(self):
-        return PY_NEW(MatrixWindow_modn_dense)
-
     cdef set_to(MatrixWindow_modn_dense self, MatrixWindow A):
         """
         Change self, making it equal A.
@@ -172,3 +169,5 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
     cdef int element_is_zero(self, Py_ssize_t i, Py_ssize_t j):
         return (<Matrix_modn_dense>self._matrix).matrix[i+self._row][j+self._col] == 0
+
+

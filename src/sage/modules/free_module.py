@@ -345,7 +345,7 @@ class FreeModule_generic(module.Module):
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
-        ParentWithGens.__init__(self, base_ring)
+        ParentWithGens.__init__(self, base_ring, names='x')   # names aren't used anywhere.
 
     def element_class(self):
         try:

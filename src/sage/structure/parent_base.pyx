@@ -39,9 +39,9 @@ cdef class ParentWithBase(parent.Parent):
             Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
 
         Homspaces are defined for very general \sage objects, even elements of familiar rings.
-            sage: n = 5; n.Hom(7)
+            sage: n = 5; Hom(n,7)
             Set of Morphisms from 5 to 7 in Category of elements of Integer Ring
-            sage: z=(2/3); z.Hom(8/1)
+            sage: z=(2/3); Hom(z,8/1)
             Set of Morphisms from 2/3 to 8 in Category of elements of Rational Field
 
         This example illustrates the optional third argument:

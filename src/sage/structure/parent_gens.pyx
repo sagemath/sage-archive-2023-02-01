@@ -24,7 +24,7 @@ The following examples illustrate these functions in the context of
 multivariate polynomial rings and free modules.
 
 EXAMPLES:
-    sage: R = MPolynomialRing(IntegerRing(), 3)
+    sage: R = MPolynomialRing(ZZ, 3, 'x')
     sage: R.ngens()
     3
     sage: R.gen(0)
@@ -36,7 +36,7 @@ EXAMPLES:
 
 This example illustrates generators for a free module over $\Z$.
 
-    sage: M = FreeModule(IntegerRing(), 4)
+    sage: M = FreeModule(ZZ, 4)
     sage: M
     Ambient free module of rank 4 over the principal ideal domain Integer Ring
     sage: M.ngens()
@@ -199,10 +199,10 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             tuple -- self.gens()
 
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ,3).objgens()
+            sage: R, vars = MPolynomialRing(QQ,3, 'x').objgens()
             sage: R
             Polynomial Ring in x0, x1, x2 over Rational Field
-            sage: x
+            sage: vars
             (x0, x1, x2)
         """
         return self, self.gens()
@@ -219,7 +219,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             an object -- self.gen()
 
         EXAMPLES:
-            sage: R, x = PolynomialRing(QQ).objgen()
+            sage: R, x = PolynomialRing(QQ,'x').objgen()
             sage: R
             Univariate Polynomial Ring in x over Rational Field
             sage: x
@@ -424,18 +424,18 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         We first illustrate construction of a few homomorphisms
         involving a polynomial ring.
 
-            sage: R, x = PolynomialRing(ZZ).objgen()
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: f = R.hom([5], QQ)
             sage: f(x^2 - 19)
             6
 
-            sage: R, x = PolynomialRing(QQ).objgen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = R.hom([5], GF(7))
             Traceback (most recent call last):
             ...
             TypeError: images do not define a valid homomorphism
 
-            sage: R, x = PolynomialRing(GF(7)).objgen()
+            sage: R.<x> = PolynomialRing(GF(7))
             sage: f = R.hom([3], GF(49,'a'))
             sage: f
             Ring morphism:

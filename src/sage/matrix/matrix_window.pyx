@@ -2,28 +2,57 @@
 Matrix windows
 """
 
+include '../ext/stdsage.pxi'
+
 #########################################################################
 # Generic matrix windows, which are used for block echelon and strassen #
 # algorithms.                                                           #
 #########################################################################
 cdef class MatrixWindow:
+    ############################
+    # creation and initialization
+    ############################
+    cdef MatrixWindow new_matrix_window(MatrixWindow self, Matrix matrix,
+                                         Py_ssize_t row, Py_ssize_t col, Py_ssize_t n_rows, Py_ssize_t n_cols):
+        cdef MatrixWindow M
+        M = PY_NEW(MatrixWindow)
+        M._matrix = self._matrix
+        M._row = self._row + row
+        M._col = self._col + col
+        M._nrows = n_rows
+        M._ncols = n_cols
+        M._zero = self._zero
+        return M
 
-    def __init__(MatrixWindow self, Matrix matrix, Py_ssize_t row, Py_ssize_t col, Py_ssize_t nrows, Py_ssize_t ncols):
-
+    def __init__(MatrixWindow self, Matrix matrix,
+                 Py_ssize_t row, Py_ssize_t col, Py_ssize_t nrows, Py_ssize_t ncols):
         self._matrix = matrix
         self._row = row
         self._col = col
         self._nrows = nrows
         self._ncols = ncols
+        self._zero = matrix.base_ring()(0)  # expensive
+
+    cdef MatrixWindow matrix_window(MatrixWindow self, Py_ssize_t row, Py_ssize_t col,
+                                    Py_ssize_t n_rows, Py_ssize_t n_cols):
+        """
+        Returns a matrix window relative to this window of the underlying matrix.
+        """
+        if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
+            return self
+        return self.new_matrix_window(self._matrix, self._row + row, self._col + col, n_rows, n_cols)
 
     def __repr__(self):
         return "Matrix window of size %s x %s at (%s,%s):\n%s"%(
             self._nrows, self._ncols, self._row, self._col, self._matrix)
 
-    def set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
+    ############################
+    # Getting and setting entries
+    ############################
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, x):
         self._matrix.set_unsafe(i + self._row, j + self._col, x)
 
-    def get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         return self._matrix.get_unsafe(i + self._row, j + self._col)
 
     def __setitem__(self, ij, x):
@@ -61,32 +90,21 @@ cdef class MatrixWindow:
             i = ij
             return self.row(i)
 
-    def matrix(MatrixWindow self):
+    cdef matrix(MatrixWindow self):
         """
         Returns the underlying matrix that this window is a view of.
         """
         return self._matrix
 
 
-    def to_matrix(MatrixWindow self):
+    cdef to_matrix(MatrixWindow self):
         """
         Returns an actual matrix object representing this view.
         """
-        a = self._matrix.new_matrix(self._nrows, self._ncols)
-        a.matrix_window().set_to(self)
-        return a
-
-    def matrix_window(MatrixWindow self, Py_ssize_t row=0, Py_ssize_t col=0, Py_ssize_t n_rows=-1, Py_ssize_t n_cols=-1):
-        """
-        Returns a matrix window relative to this window of the underlying matrix.
-        """
-        if n_rows == -1:
-            n_rows = self._nrows - row
-        if n_cols == -1:
-            n_cols = self._ncols - col
-        if row == 0 and col == 0 and n_rows == self._nrows and n_cols == self._ncols:
-            return self
-        return self._matrix.matrix_window(self._row + row, self._col + col, n_rows, n_cols)
+        a = self._matrix.new_matrix(self._nrows, self._ncols)  # zero matrix
+        b = self.new_matrix_window(a, 0, 0, self._nrows, self._ncols)
+        b.set_to(self)
+        return b
 
     def nrows(MatrixWindow self):
         return self._nrows
@@ -94,7 +112,7 @@ cdef class MatrixWindow:
     def ncols(MatrixWindow self):
         return self._ncols
 
-    def set_to(MatrixWindow self, MatrixWindow A):
+    cdef set_to(MatrixWindow self, MatrixWindow A):
         """
         Change self, making it equal A.
         """
@@ -104,15 +122,16 @@ cdef class MatrixWindow:
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j))
+        return 0
 
-    def set_to_zero(MatrixWindow self):
+    cdef set_to_zero(MatrixWindow self):
         cdef Py_ssize_t i, j
-        z = self._matrix._base_ring(0)
+        z = self._zero
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, z)
 
-    def add(MatrixWindow self, MatrixWindow A):
+    cdef add(MatrixWindow self, MatrixWindow A):
         cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -120,7 +139,7 @@ cdef class MatrixWindow:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, self.get_unsafe(i, j) + A.get_unsafe(i, j))
 
-    def subtract(MatrixWindow self, MatrixWindow A):
+    cdef subtract(MatrixWindow self, MatrixWindow A):
         cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -128,7 +147,7 @@ cdef class MatrixWindow:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, self.get_unsafe(i, j) - A.get_unsafe(i, j))
 
-    def set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+    cdef set_to_sum(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -138,24 +157,24 @@ cdef class MatrixWindow:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j) + B.get_unsafe(i, j))
 
-    def set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+    cdef set_to_diff(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 self.set_unsafe(i, j, A.get_unsafe(i, j) - B.get_unsafe(i, j))
 
-    def set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+    cdef set_to_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
         for i from 0 <= i < A._nrows:
             for j from 0 <= j < B._ncols:
-                s = 0
+                s = self._zero
                 for k from 0 <= k < A._ncols:
                     s = s + A.get_unsafe(i, k) * B.get_unsafe(k, j)
                 self.set_unsafe(i, j, s)
 
-    def add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+    cdef add_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -166,7 +185,7 @@ cdef class MatrixWindow:
                     s = s + A.get_unsafe(i, k) * B.get_unsafe(k, j)
                 self.set_unsafe(i, j, s)
 
-    def subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
+    cdef subtract_prod(MatrixWindow self, MatrixWindow A, MatrixWindow B):
         cdef Py_ssize_t i, j, k
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
@@ -177,8 +196,8 @@ cdef class MatrixWindow:
                     s = s - A.get_unsafe(i, k) * B.get_unsafe(k, j)
                 self.set_unsafe(i, j, s)
 
-    def swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b):
-        self._matrix.swap_rows(self._row + a, self._row + b)
+    cdef swap_rows(MatrixWindow self, Py_ssize_t a, Py_ssize_t b):
+        self._matrix.swap_rows_c(self._row + a, self._row + b)
 
     def echelon_in_place(MatrixWindow self):
         """
@@ -189,10 +208,12 @@ cdef class MatrixWindow:
         self.set_to(echelon.matrix_window())
         return echelon.pivots()
 
-    def element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
-        return self._matrix[i+self._row, j+self._col] == 0
+    cdef element_is_zero(MatrixWindow self, Py_ssize_t i, Py_ssize_t j):
+        return self._matrix.get_unsafe(i+self._row, j+self._col) == self._zero
 
-    def new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
-        return self._matrix.new_matrix(nrows, ncols).matrix_window()
+    cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
+        a = self._matrix.new_matrix(nrows, ncols)
+        return self.new_matrix_window(a, 0, 0, nrows, ncols)
+
 
 

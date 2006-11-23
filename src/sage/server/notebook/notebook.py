@@ -354,7 +354,8 @@ JSMATH=False
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',
                  username=None, password=None,
-                 color='default', system=None, show_debug = False):
+                 color='default', system=None, show_debug = False,
+                 kill_idle=0):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -371,7 +372,23 @@ class Notebook(SageObject):
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.__show_debug = show_debug
+        self.__kill_idle = kill_idle
         self.save()
+
+    def kill_idle(self):
+        """
+        Returns the idle timeout.  0 means don't kill
+        idle processes.
+        """
+        try:
+            return self.__kill_idle
+        except AttributeError:
+            self.__kill_idle = 0
+            return 0
+
+    def kill_idle_every_so_often(self):
+        raise NotImplementedError
+
 
     def system(self):
         try:
@@ -1191,7 +1208,8 @@ def notebook(dir         ='sage_notebook',
              jsmath      = True,
              show_debug  = False,
              warn        = True,
-             ignore_lock = False):
+             ignore_lock = False,
+             kill_idle   = 0):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1217,8 +1235,9 @@ def notebook(dir         ='sage_notebook',
                   worksheets, e.g., 'maxima', 'gp', 'axiom', 'mathematica', 'macaulay2',
                   'singular', 'gap', 'octave', 'maple', etc.  (even 'latex'!)
         jsmath -- whether not to enable javascript typset output for math.
-
         debug -- whether or not to show a javascript debugging window
+        kill_idle -- if positive, kill any idle compute processes after
+                     this many auto saves.  (NOT IMPLEMENTED)
 
     NOTES:
 
@@ -1307,7 +1326,8 @@ def notebook(dir         ='sage_notebook',
             nb.set_system(system)
         nb.set_not_computing()
     else:
-        nb = Notebook(dir,username=username,password=password, color=color, system=system)
+        nb = Notebook(dir,username=username,password=password, color=color,
+                      system=system, kill_idle=kill_idle)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)

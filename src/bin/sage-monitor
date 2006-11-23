@@ -11,8 +11,7 @@ def check_usage():
         print "Runs the shell command checking every interval seconds"
         print "to see if there is a process with the given master pid."
         print "If not kill -9 the given subprocess pid and terminate."
-        print "Also, if at any point the subprocess vanishes, then this"
-        print "program exits."
+        print "Also, if the subprocess vanishes, then this program exits."
         sys.exit(1)
 
 def process_is_running(pid):

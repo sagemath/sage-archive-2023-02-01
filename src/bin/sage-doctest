@@ -227,7 +227,7 @@ def pythonify(F):
 def post_process(s, file):
     s = s.replace('.doctest/','')
     if file[-3:] == 'pyx':
-        s = s.replace('.py", line', '.pyx", line')
+        s = s.replace('"%s", line'%file[:-1], '"%s", line'%file)
     i = s.find("Failed example:")
     cnt = 0
     while i != -1:

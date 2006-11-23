@@ -152,8 +152,8 @@ def normalize_names(int ngens, names=None):
 # ngens() functions.  It is also good if they define gens() to return
 # all gens, but this is not necessary.
 
-def make(_class, _dict,
-                 base, has_coerce_map_from, names):
+def make_parent_gens_v0(_class, _dict,
+                        base, has_coerce_map_from, names):
     """
     This should work for any Python class deriving from this, as long
     as it doesn't implement some screwy __new__() method.
@@ -181,7 +181,7 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
             base = None
         else:
             base = self._base
-        return (make, (self.__class__, self.__dict__, base,
+        return (make_parent_gens_v0, (self.__class__, self.__dict__, base,
                                self._has_coerce_map_from,
                                self._names))
 

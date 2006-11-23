@@ -6,7 +6,7 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-def make(_class, _dict, base, has_coerce_map_from):
+def make_parent_with_base_v0(_class, _dict, base, has_coerce_map_from):
     """
     This should work for any Python class deriving from this, as long
     as it doesn't implement some screwy __new__() method.
@@ -28,9 +28,9 @@ cdef class ParentWithBase(parent.Parent):
 
     def __reduce__(self):
         if self._base is self:
-            return (make, (self.__class__, self.__dict__, None, self._has_coerce_map_from))
+            return (make_parent_with_base_v0, (self.__class__, self.__dict__, None, self._has_coerce_map_from))
         else:
-            return (make, (self.__class__, self.__dict__, self._base, self._has_coerce_map_from))
+            return (make_parent_with_base_v0, (self.__class__, self.__dict__, self._base, self._has_coerce_map_from))
 
     def base_ring(self):
         return self._base

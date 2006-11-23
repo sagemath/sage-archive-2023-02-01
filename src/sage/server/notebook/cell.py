@@ -479,7 +479,8 @@ class Cell:
 
         s = top + out + '\n</div>'
 
-        r = '[%s]'%self.relative_id()
+        #r = '[%s]'%self.relative_id()
+        r = '>'
         r += '&nbsp;'*(5-len(r))
         tbl = """<table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>

@@ -940,6 +940,9 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input(e)) {
        // User pressed shift-enter (or whatever the submit key is)
        evaluate_cell(id, 0);
+       /* Without this start_update_check, the worksheet often won't update
+          the first time it's loaded or restarted. */
+       start_update_check();
        return false;
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);

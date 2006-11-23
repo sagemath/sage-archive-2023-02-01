@@ -863,7 +863,7 @@ div.cell_not_evaluated {
 }
 
 td.cell_number {
-   font-size:7pt;
+   font-size:12pt;
    font-family:arial, monospace;
    color:#bbbbbb;
    text-align:left;
@@ -923,7 +923,7 @@ textarea.cell_input {
   padding-left:5px;
   padding-top:0px;
   padding-bottom:0px;
-  width: 95%;
+  width: 100%;
 }
 
 textarea.cell_input_hide {
@@ -938,7 +938,7 @@ textarea.cell_input_hide {
   padding-left:3px;
   padding-top:0px;
   padding-bottom:0px;
-  width: 95%;
+  width: 100%;
   height:1.2em;
 }
 
@@ -951,7 +951,7 @@ textarea.cell_input_active {
   padding-left:5px;
   padding-top:3px;
   padding-bottom:3px;
-  width: 95%;
+  width: 100%;
 }
 
 

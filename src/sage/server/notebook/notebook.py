@@ -713,7 +713,7 @@ class Notebook(SageObject):
             name += ' (%s)'%len(W)
             name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" target="_new" href="/%s">%s</a>'%(
+            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
                 cls,W.id(),W.id(),W.id(),name)
             s.append(txt)
         return '<br>'.join(s)

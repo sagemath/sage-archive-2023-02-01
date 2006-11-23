@@ -370,7 +370,11 @@ class Cell:
     def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
-        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+
+        if self.worksheet().compute_process_has_been_started():
+            evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        else:
+            evaluated = False
         if evaluated:
             cls = 'cell_evaluated'
         else:

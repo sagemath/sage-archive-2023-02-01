@@ -732,6 +732,7 @@ class Worksheet:
         """
         # stop the current computation in the running SAGE
         self.interrupt()
+
         try:
             S = self.__sage
         except AttributeError:
@@ -740,7 +741,8 @@ class Worksheet:
 
         alarm(2)
         try:
-            self.__sage._expect = None
+            S.quit()
+            S._expect = None
             del self.__sage
         except AttributeError, msg:
             print "WARNING: %s"%msg

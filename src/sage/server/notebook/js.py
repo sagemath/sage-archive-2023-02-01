@@ -391,7 +391,7 @@ function do_replacement(id, word,do_trim) {
     cell_input.value = before_replacing_word + word + after_cursor;
     jump_to_cell(id,0);  //reset the cursor (for explorer)
 
-    try{ //firefox, et. al.
+    try{ //firefox, et al.
         var pos = before_replacing_word.length + word.length;
         cell_input.selectionStart = pos;
         cell_input.selectionEnd = pos;
@@ -721,7 +721,15 @@ function focus(id) {
     var cell = get_cell(id);
     if (cell && cell.focus) {
         cell.focus();
+        move_cursor_to_top_of_cell(cell);
     }
+}
+
+function move_cursor_to_top_of_cell(cell) {
+    try{ //firefox, et al.
+        cell.selectionStart = 0;
+        cell.selectionEnd = 0;
+    } catch(e) {}
 }
 
 function focus_delay(id) {

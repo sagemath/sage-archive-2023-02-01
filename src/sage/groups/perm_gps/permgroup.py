@@ -1485,9 +1485,8 @@ class Suzuki(PermutationGroup_generic):
     The Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$. A wrapper for the GAP function SuzukiGroup.
 
     INPUT:
-        q = 2^n -- an odd power of 2; the size of the ground field. (Strictly speaking, n should be
+        $q = 2^n$ -- an odd power of 2; the size of the ground field. (Strictly speaking, n should be
 	             greater than 1, or else this group os not simple.)
-
     OUTPUT:
         Sz(q)
 

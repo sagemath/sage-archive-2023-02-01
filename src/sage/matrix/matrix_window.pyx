@@ -52,7 +52,7 @@ cdef class MatrixWindow:
             return self
         return self.new_matrix_window(self._matrix, self._row + row, self._col + col, n_rows, n_cols)
 
-     cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
+    cdef new_empty_window(MatrixWindow self, Py_ssize_t nrows, Py_ssize_t ncols):
         a = self._matrix.new_matrix(nrows, ncols)
         return self.new_matrix_window(a, 0, 0, nrows, ncols)
 

@@ -220,10 +220,6 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
         C_bulk.add_prod(A_last_col, B_last_row)
 
 cdef subtract_strassen_product(MatrixWindow result, MatrixWindow A, MatrixWindow B, Py_ssize_t cutoff):
-    """
-    EXAMPLES:
-        sage: ?
-    """
     cdef MatrixWindow to_sub
     if (cutoff == -1 or result.ncols() <= cutoff or result.nrows() <= cutoff):
         result.subtract_prod(A, B)

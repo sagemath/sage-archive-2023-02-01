@@ -940,8 +940,8 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input(e)) {
        // User pressed shift-enter (or whatever the submit key is)
        evaluate_cell(id, 0);
-       /* Without this start_update_check, the worksheet often won't update
-          the first time it's loaded or restarted. */
+       /* HACK WARNING: Without this start_update_check, the worksheet often won't update
+          the first time it's loaded or restarted.  -- William Stein */
        start_update_check();
        return false;
     } else if (key_send_input_newcell(e)) {
@@ -1111,7 +1111,7 @@ function evaluate_cell(id, action) {
     var input = escape0(I);
 
     async_request('/eval' + action, evaluate_cell_callback,
-            'id=' + id + '&input='+input)
+            'id=' + id + '&input='+input);
 }
 
 function evaluate_cell_introspection(id, before, after) {
@@ -1250,7 +1250,6 @@ function check_for_cell_update() {
 }
 
 function start_update_check() {
-    if(updating) return;
     updating = true;
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
@@ -1671,7 +1670,11 @@ function evaluate_all() {
     var n = v.length;
     var i;
     for(i=0; i<n; i++) {
-        evaluate_cell(v[i],0);
+        var cell_input = get_cell(v[i]);
+        var I = cell_input.value;
+        if (trim(I).length > 0) {
+            evaluate_cell(v[i],0);
+        }
     }
 }
 

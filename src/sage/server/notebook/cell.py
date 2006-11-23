@@ -283,7 +283,7 @@ class Cell:
                 s = s[j+7:]
             s = t
             if not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s + '</pre>'
+                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
         return s.strip('\n')
 
     def has_output(self):
@@ -452,6 +452,8 @@ class Cell:
 
     def html_out(self, ncols=0, do_print=False):
         out_nowrap = self.output_text(0, html=True)
+        out_html = self.output_html()
+
         if self.introspect():
             out_wrap = out_nowrap
         else:
@@ -464,10 +466,8 @@ class Cell:
         else:
             cls = 'cell_output_' + typ
 
-        top = '<div class="%s" id="cell_div_output_%s">'%(
+        top = '<span class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
-
-        out_html = self.output_html()
 
         out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
                  <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>
@@ -476,12 +476,12 @@ class Cell:
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
-
-        s = top + out + '\n</div>'
+        s = top + out + '</span>'
 
         #r = '[%s]'%self.relative_id()
-        r = '>'
-        r += '&nbsp;'*(5-len(r))
+        #r = '>'
+        r = ''
+        r += '&nbsp;'*(7-len(r))
         tbl = """<table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
                <td class="output_cell">%s</td></tr></table>"""%(

@@ -102,7 +102,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         cell = W.get_cell_with_id(id)
         if not introspect:
             cell.set_input_text(input_text)
-        #notebook.save()
 
         cell.evaluate(introspect=introspect)
 
@@ -569,7 +568,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             i = len(path)
 
         try:
-            worksheet_id = int(path[:i])
+            worksheet_id = path[:i]
         except ValueError:
             worksheet_id = None
         path = path[i+1:]

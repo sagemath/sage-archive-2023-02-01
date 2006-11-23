@@ -618,11 +618,29 @@ class Notebook(SageObject):
         return self.__worksheets[name]
 
     def get_worksheet_with_id(self, id):
-        if id != None:
+        """
+        INPUT:
+            id -- something that identifies a worksheet.
+                 None -- use the default worksheet.
+                 string int -- something that coerces to an integer; worksheet with that number
+                 string -- use worksheet with that name or filename.
+
+        OUTPUT:
+            a worksheet.
+        """
+        if id is None:
+            return self.default_worksheet()
+        try:
+            id = int(id)
             for W in self.__worksheets.itervalues():
                 if W.id() == id:
                     return W
-        return self.__worksheets[self.__worksheets.keys()[0]]
+        except ValueError:
+            id = str(id).lower()
+            for W in self.__worksheets.itervalues():
+                if W.name().lower() == id or W.filename().lower() == id:
+                    return W
+        return self.default_worksheet()
 
     def get_worksheet_with_filename(self, filename):
         if id != None:
@@ -714,7 +732,8 @@ class Notebook(SageObject):
             name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
             txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
-                cls,W.id(),W.id(),W.id(),name)
+                #cls,W.id(),W.id(),W.id(),name)
+                cls,W.id(),W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
 
@@ -772,7 +791,7 @@ class Notebook(SageObject):
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         #body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        #body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
         #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
@@ -781,7 +800,7 @@ class Notebook(SageObject):
         body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
         body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="slide_mode" onClick="slide_mode()">Single Cell Mode</a>' + vbar
+        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -863,7 +882,7 @@ class Notebook(SageObject):
         t = worksheet.edit_text()
         t = t.replace('<','&lt;')
         body_html = ''
-        body_html += '<h1 class="edit">Editing "%s"</h1>\n'%worksheet.name()
+        body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
         body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
@@ -954,9 +973,9 @@ class Notebook(SageObject):
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
-               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press control-enter instead, then a new cell is created after the current one.'),
-                ('Timed Evaluation', 'Type "time" at the beginning of the cell.'),
-                ('Evaluate all cells', 'Click <u>Evaluate All</u> in the upper right.'),
+               ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
+                ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
+                ('Evaluate all cells', 'Click <u>Eval All</u> in the upper right.'),
                 ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
                 ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
                ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
@@ -1093,7 +1112,7 @@ class Notebook(SageObject):
             body = self._html_authorize()
 
         body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(
-            worksheet_id, W.filename(), W.name())
+            W.id(), W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
         h = """

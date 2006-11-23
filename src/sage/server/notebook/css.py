@@ -853,12 +853,13 @@ div.cell_visible {
 }
 
 div.cell_evaluated {
-    border-left: 2px solid white;
+    border-left: 3px solid white;
     padding-left:3px;
 }
 
 div.cell_not_evaluated {
-    border-left: 2px dotted red;
+/*    border-left: 2px dotted green; */
+    border-left: 3px solid green;
     padding-left:3px;
 }
 
@@ -875,11 +876,14 @@ td.cell_number:hover {
 }
 
 td.cell_number_running {
-   font-size:7pt;
+   font-size:12pt;
    font-family:arial, monospace;
    color:#bbbbbb;
-   background-color:#990000;
+   background-color:green;
    text-align:left;
+
+
+   /* background-color:#990000;  */
 /*   font-size:10pt;
    font-family:arial, monospace;
    color:#006400;
@@ -891,6 +895,7 @@ td.cell_number_running {
 
 td.output_cell {
    width:100%;
+   height:3px;
 }
 
 div.cellbox {
@@ -909,13 +914,15 @@ pre.cell_input_pre {
   padding-left:0px;
   padding-top:0px;
   padding-bottom:0px;
+  margin:0px;
+  display:inline;
   width: 100%;
 }
 
 textarea.cell_input {
   background-color: white;
   border: 0px solid white;
-  border-left: 1px dotted black;
+  border-left: 1px solid #8888fe;
   font-family: courier, monospace;
   font-size:12pt;
 /*  overflow:hidden; */
@@ -923,6 +930,7 @@ textarea.cell_input {
   padding-left:5px;
   padding-top:0px;
   padding-bottom:0px;
+  margin:0px;
   width: 100%;
 }
 
@@ -957,9 +965,6 @@ textarea.cell_input_active {
 
 
 /************ CELL OUTPUT **************************/
-/* This is complicated and redundant but it makes
-   the other Python and Javascript code way simpler,
-   and you have a lot of options for customizability. */
 
 div.cell_output {
   font-family: courier, monospace;

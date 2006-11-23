@@ -30,8 +30,8 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 20
-INITIAL_NUM_CELLS = 1
+INTERRUPT_TRIES = 30
+INITIAL_NUM_CELLS = 10
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
@@ -339,7 +339,7 @@ class Worksheet:
             cmd += 'import sage.server.support as _support_; '
             cmd += '__SAGENB__globals = set(globals().keys()); '
             cmd += '_support_.init("%s", globals()); '%object_directory
-            #S.eval(cmd)
+            # S.eval(cmd)
             S._send(cmd)   # so web server doesn't lock. -- drawback -- we won't know if something bad happened loading SAGE?!
         except Exception, msg:
             print msg

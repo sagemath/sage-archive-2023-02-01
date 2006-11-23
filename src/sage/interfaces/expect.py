@@ -457,6 +457,7 @@ class Expect(ParentWithBase):
         if isinstance(x, (list, tuple)):
             A = []
             z = []
+            cls = self._object_class()
             for v in x:
                 if isinstance(v, cls):
                     A.append(v.name())
@@ -589,9 +590,7 @@ class Expect(ParentWithBase):
         return ExpectFunction(self, attrname)
 
     def __cmp__(self, other):
-        if self is other:
-            return 0
-        return -1
+        return cmp(type(self), type(other))
 
     def console(self):
         raise NotImplementedError
@@ -692,7 +691,7 @@ class ExpectElement(RingElement):
     def _sage_doc_(self):
         return str(self)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1

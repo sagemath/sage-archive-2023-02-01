@@ -58,9 +58,11 @@ Next we convert the factor $-x^5+y^2$ to a \sage multivariate
 polynomial.  Note that it is important to let $x$ and $y$ be the
 generators of a polynomial ring, so the eval command works.
 
-    sage: x, y = MPolynomialRing(RationalField(), 2).gens()
-    sage: g = eval(F[1][3].sage_polystring()); g
-    x1^2 - x0^5
+    sage: R.<x,y> = MPolynomialRing(QQ,2)
+    sage: s = F[1][3].sage_polystring(); s
+    '-x**5+y**2'
+    sage: g = eval(s); g
+    y^2 - x^5
 
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
@@ -75,11 +77,12 @@ one tricky part.  In the GAP interpreter the object \code{I} has its
     own name (which isn't \code{I}).  We can access its name using
     \code{I.name()}.
 
-        sage: _ = gap.eval("x0 := %s[1];; x1 := %s[2];;"%(I.name(), I.name()))
+        sage: _ = gap.eval("x := %s[1];; y := %s[2];;"%(I.name(), I.name()))
 
     Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
     corresponding to $g$:
 
+        sage: R.<x,y> = MPolynomialRing(QQ,2)
         sage: f = gap(str(g)); f
         -x_1^5+x_2^2
 
@@ -565,20 +568,20 @@ class GapElement(ExpectElement):
 
             sage: s = gap("(Z(7)^0)*[[1,2,3],[4,5,6]]"); s
             [ [ Z(7)^0, Z(7)^2, Z(7) ], [ Z(7)^4, Z(7)^5, Z(7)^3 ] ]
-            sage: matrix(GF(7), s)
+            sage: s._matrix_(GF(7))
             [1 2 3]
             [4 5 6]
 
             sage: s = gap("[[1,2], [3/4, 5/6]]"); s
             [ [ 1, 2 ], [ 3/4, 5/6 ] ]
-            sage: m = matrix(QQ, s); m
+            sage: m = s._matrix_(QQ); m
             [  1   2]
             [3/4 5/6]
             sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             sage: s = gap('[[Z(16),Z(16)^2],[Z(16)^3,Z(16)]]')
-            sage: matrix(GF(16,'a'), s)
+            sage: s._matrix_(GF(16,'a'))
             [  a a^2]
             [a^3   a]
         """

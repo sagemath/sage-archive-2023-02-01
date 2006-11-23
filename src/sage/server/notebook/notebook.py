@@ -810,6 +810,7 @@ class Notebook(SageObject):
             body += " onKeyPress='return debug_keypress(event);' "
             body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
             body += "</div>"
+
         body += worksheet.html(authorized = worksheet_authorized) + '\n</div>\n'
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
@@ -1086,19 +1087,22 @@ class Notebook(SageObject):
                 worksheet_id = W.id()
 
         if authorized:
-            body = self._html_body(worksheet_id,show_debug=show_debug, worksheet_authorized=worksheet_authorized)
+            body = self._html_body(worksheet_id, show_debug=show_debug,
+                                   worksheet_authorized=worksheet_authorized)
         else:
             body = self._html_authorize()
 
-        body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+        body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(
+            worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
-        return """
+        h = """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
         """%(head, body)
+        return h
 
     def _html_authorize(self):
         return """

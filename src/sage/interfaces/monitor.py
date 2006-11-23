@@ -13,5 +13,7 @@ PID = os.getpid()
 
 def monitor(pid, interval):
     cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
-    os.system(cmd)
+    #os.system(cmd)
+    return os.spawnl(os.P_NOWAIT, 'sage-monitor', PID, pid, interval)
+
 

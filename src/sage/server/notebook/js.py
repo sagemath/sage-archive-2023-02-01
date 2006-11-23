@@ -946,10 +946,12 @@ function cell_input_key_event(id, e) {
        return false;
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
+       start_update_check();
        return false;
     } else if (key_request_introspections(e)) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
+       start_update_check();
        return false;
     } else if (key_interrupt(e)) {
        interrupt();

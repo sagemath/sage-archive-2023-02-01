@@ -454,7 +454,9 @@ class Worksheet:
             I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit'] and not I in V:
                 self.restart_sage()
-                C.set_output_text('Restarted SAGE','')
+                S = self.system()
+                if S is None: S = 'SAGE'
+                C.set_output_text('Exited %s process'%S,'')
                 return
             if I[:5] == '%time':
                 C.do_time()

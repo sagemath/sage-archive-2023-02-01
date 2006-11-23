@@ -39,16 +39,17 @@ def is_Parent(x):
     return PyBool_FromLong(PyObject_TypeCheck(x, Parent))
 
 
-def make_parent_v0(_class, _dict, has_coerce_map_from):
-    """
-    This should work for any Python class deriving from this, as long
-    as it doesn't implement some screwy __new__() method.
-    """
-    cdef Parent new_object
-    new_object = _class.__new__(_class)
-    new_object._has_coerce_map_from = has_coerce_map_from
-    new_object.__dict__ = _dict
-    return new_object
+## def make_parent_v0(_class, _dict, has_coerce_map_from):
+##     """
+##     This should work for any Python class deriving from this, as long
+##     as it doesn't implement some screwy __new__() method.
+##     """
+##     cdef Parent new_object
+##     new_object = _class.__new__(_class)
+##     if not _dict is None:
+##         new_object.__dict__ = _dict
+##     new_object._has_coerce_map_from = has_coerce_map_from
+##     return new_object
 
 cdef class Parent(sage_object.SageObject):
     """
@@ -237,8 +238,13 @@ cdef class Parent(sage_object.SageObject):
 ##     def __richcmp__(left, right, int op):
 ##         return (<Parent>left)._richcmp(right, op)
 
-    def __reduce__(self):
-        return (make_parent_v0, (self.__class__, self.__dict__, self._has_coerce_map_from))
+##         # NOT NEEDED, since all attributes are public!
+##     def __reduce__(self):
+##         if HAS_DICTIONARY(self):
+##             _dict = self.__dict__
+##         else:
+##             _dict = None
+##         return (make_parent_v0, (self.__class__, _dict, self._has_coerce_map_from))
 
     cdef int _cmp_c_impl(left, Parent right) except -2:
         pass

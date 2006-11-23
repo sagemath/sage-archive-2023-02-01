@@ -45,12 +45,6 @@ This example illustrates generators for a free module over $\Z$.
     (1, 0, 0, 0)
     sage: M.gens()
     ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
-
-The names of the generators of a free module aren't really used anywhere,
-but they are still defined:
-
-    sage: M.variable_names()
-    ('x0', 'x1', 'x2', 'x3')
 """
 
 ###############################################################################
@@ -152,22 +146,23 @@ def normalize_names(int ngens, names=None):
 # ngens() functions.  It is also good if they define gens() to return
 # all gens, but this is not necessary.
 
-def make_parent_gens_v0(_class, _dict,
-                        base, has_coerce_map_from, names):
-    """
-    This should work for any Python class deriving from this, as long
-    as it doesn't implement some screwy __new__() method.
-    """
-    cdef ParentWithGens new_object
-    new_object = _class.__new__(_class)
-    if base is None:
-        new_object._base = new_object
-    else:
-        new_object._base = base
-    new_object._has_coerce_map_from = has_coerce_map_from
-    new_object._names = names
-    new_object.__dict__ = _dict
-    return new_object
+## def make_parent_gens_v0(_class, _dict,
+##                         base, has_coerce_map_from, names):
+##     """
+##     This should work for any Python class deriving from this, as long
+##     as it doesn't implement some screwy __new__() method.
+##     """
+##     cdef ParentWithGens new_object
+##     new_object = _class.__new__(_class)
+##     if base is None:
+##         new_object._base = new_object
+##     else:
+##         new_object._base = base
+##     new_object._has_coerce_map_from = has_coerce_map_from
+##     new_object._names = names
+##     if not _dict is None:
+##         new_object.__dict__ = _dict
+##     return new_object
 
 cdef class ParentWithGens(parent_base.ParentWithBase):
     # Derived class *must* call __init__ and set the base!
@@ -176,14 +171,19 @@ cdef class ParentWithGens(parent_base.ParentWithBase):
         self._has_coerce_map_from = {}
         self._assign_names(names=names, normalize=normalize)
 
-    def __reduce__(self):
-        if self._base is self:
-            base = None
-        else:
-            base = self._base
-        return (make_parent_gens_v0, (self.__class__, self.__dict__, base,
-                               self._has_coerce_map_from,
-                               self._names))
+##     def x__reduce__(self):
+##         if self._base is self:
+##             base = None
+##         else:
+##             base = self._base
+##         if HAS_DICTIONARY(self):
+##             _dict = self.__dict__
+##         else:
+##             _dict = None
+##         return (make_parent_gens_v0, (self.__class__,
+##                                       _dict, base,
+##                                       self._has_coerce_map_from,
+##                                       self._names))
 
     # Derived class *must* define ngens method.
     def ngens(self):

@@ -264,9 +264,12 @@ class Homset(Set_generic):
         return Homset(self.__codomain, self.__domain, self.__category)
 
 class HomsetWithBase(ParentWithBase, Homset):
-    def __init__(self, X, Y, cat=None, check=True):
+    def __init__(self, X, Y, cat=None, check=True, base=None):
         Homset.__init__(self, X, Y, cat, check)
-        ParentWithBase.__init__(self, X.base_ring())
+        if base is None:
+            ParentWithBase.__init__(self, X.base_ring())
+        else:
+            ParentWithBase.__init__(self, base)
 
 def is_Homset(x):
     """

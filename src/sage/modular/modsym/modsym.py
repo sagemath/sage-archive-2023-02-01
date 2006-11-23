@@ -29,9 +29,9 @@ a bigger field.  In each case we also decompose the space using $T_2$.
     (x + -3) * (x + -1/2*sqrt5 + 1/2)^2 * (x + 1/2*sqrt5 + 1/2)^2
     sage: print M.decomposition(2)
     [
-    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
-    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5,
-    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in a with defining polynomial x^2 - 5
+    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5
     ]
 """
 
@@ -160,7 +160,7 @@ def ModularSymbols(group  = 1,
         sage: f = M.T(2).charpoly('x'); f
         x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
-        (x + -2*zeta6 - 1) * (x + -zeta6 - 2) * (x + zeta6 + 1)^2
+        (x + -zeta6 - 2) * (x + -2*zeta6 - 1) * (x + zeta6 + 1)^2
 
     More examples of spaces with character:
         sage: e = DirichletGroup(5, RationalField()).gen(); e

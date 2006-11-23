@@ -24,13 +24,13 @@ import module
 def is_HeckeModuleHomspace(x):
     return isinstance(x, HeckeModuleHomspace)
 
-class HeckeModuleHomspace(sage.categories.homset.Homset):
+class HeckeModuleHomspace(sage.categories.homset.HomsetWithBase):
     def __init__(self, X, Y):
         if not module.is_HeckeModule(X) or not module.is_HeckeModule(Y):
             raise TypeError, "X and Y must be Hecke modules"
         if X.base_ring() != Y.base_ring():
             raise TypeError, "X and Y must have the same base ring"
-        sage.categories.homset.Homset.__init__(self, X, Y, X.category())
+        sage.categories.homset.HomsetWithBase.__init__(self, X, Y, X.category())
 
     def __call__(self, A, name=''):
         try:

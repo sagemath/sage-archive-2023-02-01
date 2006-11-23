@@ -58,12 +58,29 @@ import sage.modules.free_module_morphism
 import sage.matrix.all as matrix
 import free_module_morphism
 
+from matrix_morphism import MatrixMorphism
+
 def is_FreeModuleHomspace(x):
     return isinstance(x, FreeModuleHomspace)
 
-class FreeModuleHomspace(sage.categories.homset.Homset):
+class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
     def __call__(self, A):
         return free_module_morphism.FreeModuleMorphism(self, A)
+
+    def _coerce_impl(self, x):
+        M = self._matrix_space()
+        if isinstance(x,MatrixMorphism):
+            x = x.matrix()
+        return self._coerce_try(x, [M])
+
+    def _matrix_space(self):
+        try:
+            return self.__matrix_space
+        except AttributeError:
+            R = self.domain().base_ring()
+            M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            self.__matrix_space = M
+            return M
 
     def basis(self):
         """
@@ -72,8 +89,7 @@ class FreeModuleHomspace(sage.categories.homset.Homset):
         try:
             return self.__basis
         except AttributeError:
-            R = self.domain().base_ring()
-            M = matrix.MatrixSpace(R, self.domain().rank(), self.codomain().rank())
+            M = self._matrix_space()
             B = M.basis()
             self.__basis = [self(x) for x in B]
             return self.__basis

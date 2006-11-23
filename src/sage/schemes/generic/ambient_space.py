@@ -80,7 +80,7 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
                     S._coerce_(R(1))  # make sure there is a natural morphism R --> S
                 except TypeError:
                     raise ValueError, "No natural map from the base ring (=%s) to S (=%s)"%(R, S)
-            return self._constructor(self.__n, S)
+            return self._constructor(self.__n, S, S.variable_names())
         else:
             raise NotImplementedError
 

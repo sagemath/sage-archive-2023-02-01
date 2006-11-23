@@ -122,7 +122,6 @@ cdef class Ring(ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
-
     def category(self):
         """
         Return the category to which this ring belongs.
@@ -187,6 +186,17 @@ cdef class Ring(ParentWithGens):
         Return True if this ring is a field.
         """
         raise NotImplementedError
+
+    def is_subring(self, other):
+        """
+        Return True if the canonical map from self to other is injective.
+
+        Raises a NotImplementedError if not known.
+        """
+        try:
+            return self.Hom(other).natural_map().is_injective()
+        except TypeError:
+            return False
 
     def is_prime_field(self):
         r"""

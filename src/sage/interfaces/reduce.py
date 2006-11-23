@@ -1,5 +1,7 @@
-r"""
+r"""nodoctest
 Interface to REDUCE
+
+!!!!NOT DONE!!!!
 
 REDUCE \url{http://www.reduce-algebra.com/} is a commercial
 interactive system for general algebraic computations of interest to

@@ -225,6 +225,19 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
             return self(x)
         raise TypeError, "no canonical coercion to an integer"
 
+    def is_subring(self, other):
+        """
+        Return True if ZZ is a subring of other in a natural way.
+
+        Every ring of characteristic 0 contains ZZ as a subring.
+        """
+        if not ring.is_Ring(other):
+            raise TypeError, "other must be a ring"
+        if other.characteristic() == 0:
+            return True
+        else:
+            return False
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))

@@ -30,8 +30,8 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 20
-INITIAL_NUM_CELLS = 1
+INTERRUPT_TRIES = 30
+INITIAL_NUM_CELLS = 10
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
@@ -123,7 +123,10 @@ class Worksheet:
             return -1
 
     def computing(self):
-        return self.__comp_is_running
+        try:
+            return self.__comp_is_running
+        except AttributeError:
+            return False
 
     def set_not_computing(self):
         self.__comp_is_running = False
@@ -294,6 +297,20 @@ class Worksheet:
         self.__next_block_id = i
         return i
 
+    def compute_process_has_been_started(self):
+        """
+        Return True precisely if the compute process has been started,
+        irregardless of whether or not it is currently churning away
+        on a computation.
+        """
+        try:
+            S = self.__sage
+            if S._expect is None:
+                return False
+        except AttributeError:
+            return False
+        return True
+
     def sage(self):
         try:
             S = self.__sage
@@ -322,7 +339,8 @@ class Worksheet:
             cmd += 'import sage.server.support as _support_; '
             cmd += '__SAGENB__globals = set(globals().keys()); '
             cmd += '_support_.init("%s", globals()); '%object_directory
-            S.eval(cmd)
+            # S.eval(cmd)
+            S._send(cmd)   # so web server doesn't lock. -- drawback -- we won't know if something bad happened loading SAGE?!
         except Exception, msg:
             print msg
             del self.__sage
@@ -436,7 +454,9 @@ class Worksheet:
             I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit'] and not I in V:
                 self.restart_sage()
-                C.set_output_text('Restarted SAGE','')
+                S = self.system()
+                if S is None: S = 'SAGE'
+                C.set_output_text('Exited %s process'%S,'')
                 return
             if I[:5] == '%time':
                 C.do_time()
@@ -732,6 +752,7 @@ class Worksheet:
         """
         # stop the current computation in the running SAGE
         self.interrupt()
+
         try:
             S = self.__sage
         except AttributeError:
@@ -740,7 +761,8 @@ class Worksheet:
 
         alarm(2)
         try:
-            self.__sage._expect = None
+            S.quit()
+            S._expect = None
             del self.__sage
         except AttributeError, msg:
             print "WARNING: %s"%msg
@@ -1147,15 +1169,18 @@ class Worksheet:
                 lock_text = ''
 
             s += '<div class="worksheet_title">Worksheet: %s%s%s</div>\n'%(self.name(),system,lock_text)
+
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
             s += cell.html(ncols,do_print=do_print) + '\n'
+
         s += '\n</div>\n'
         s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
+
         if not do_print:
             s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
         else:

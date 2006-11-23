@@ -453,10 +453,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         # Replace self by its Hessenberg form, and set H to this form
         # for notation below.
-        self.hessenbergize()
-
         cdef Matrix_modn_dense H
-        H = self  # just for notational purposes below
+        H = self.copy()
+        H.hessenbergize()
+
 
         # We represent the intermediate polynomials that come up in
         # the calculations as rows of an (n+1)x(n+1) matrix, since

@@ -214,6 +214,7 @@ try{
   });
 } catch(e){}
 
+
 function get_keyboard() {
   var b,o,warn=false;
 
@@ -391,7 +392,7 @@ function do_replacement(id, word,do_trim) {
     cell_input.value = before_replacing_word + word + after_cursor;
     jump_to_cell(id,0);  //reset the cursor (for explorer)
 
-    try{ //firefox, et. al.
+    try{ //firefox, et al.
         var pos = before_replacing_word.length + word.length;
         cell_input.selectionStart = pos;
         cell_input.selectionEnd = pos;
@@ -721,7 +722,15 @@ function focus(id) {
     var cell = get_cell(id);
     if (cell && cell.focus) {
         cell.focus();
+        move_cursor_to_top_of_cell(cell);
     }
+}
+
+function move_cursor_to_top_of_cell(cell) {
+    try{ //firefox, et al.
+        cell.selectionStart = 0;
+        cell.selectionEnd = 0;
+    } catch(e) {}
 }
 
 function focus_delay(id) {
@@ -931,13 +940,18 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input(e)) {
        // User pressed shift-enter (or whatever the submit key is)
        evaluate_cell(id, 0);
+       /* HACK WARNING: Without this start_update_check, the worksheet often won't update
+          the first time it's loaded or restarted.  -- William Stein */
+       start_update_check();
        return false;
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
+       start_update_check();
        return false;
     } else if (key_request_introspections(e)) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
+       start_update_check();
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
@@ -1093,12 +1107,13 @@ function evaluate_cell(id, action) {
         jump_to_cell(id,1);
     }
     cell_set_running(id);
+
     var cell_input = get_cell(id);
     var I = cell_input.value;
     var input = escape0(I);
 
     async_request('/eval' + action, evaluate_cell_callback,
-            'id=' + id + '&input='+input)
+            'id=' + id + '&input='+input);
 }
 
 function evaluate_cell_introspection(id, before, after) {
@@ -1237,7 +1252,6 @@ function check_for_cell_update() {
 }
 
 function start_update_check() {
-    if(updating) return;
     updating = true;
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
@@ -1658,7 +1672,11 @@ function evaluate_all() {
     var n = v.length;
     var i;
     for(i=0; i<n; i++) {
-        evaluate_cell(v[i],0);
+        var cell_input = get_cell(v[i]);
+        var I = cell_input.value;
+        if (trim(I).length > 0) {
+            evaluate_cell(v[i],0);
+        }
     }
 }
 

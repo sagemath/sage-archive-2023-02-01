@@ -273,4 +273,9 @@ fi
 
 echo "Making SAGE/Python scripts relocatable..."
 
-cd "$SAGE_LOCAL"/bin && ./sage-make_relative
+cd "$SAGE_LOCAL"/bin
+./sage-make_relative
+
+# It's OK if they above fails -- in fact it will until Python
+# itself gets installed. That's fine.
+exit 0

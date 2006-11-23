@@ -125,12 +125,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if not isinstance(other, space.ModularSymbolsSpace):
             return cmp(type(self), type(other))
         if isinstance(other, ModularSymbolsAmbient):
-            return ((self.group(), self.weight(), self.sign(), self.base_ring(), self.character()),  \
-                    (other.group(), other.weight(), other.sign(), other.base_ring(), other.character()))
-            c = cmp((self.group(), self.weight(), self.sign(), self.base_ring(), self.character()),  \
-                    (other.group(), other.weight(), other.sign(), other.base_ring(), other.character()))
-            print "c = ", c
-            return c
+            return misc.cmp_props(self, other, ['group', 'weight', 'sign', 'base_ring', 'character'])
         c = cmp(self, other.ambient_hecke_module())
         if c: return c
         if self.free_module() == other.free_module():

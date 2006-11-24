@@ -3,9 +3,9 @@ Discrete Fourier Transforms
 
 This file contains functions useful for computing discrete Fourier
 transforms and probability distribution functions for discrete random
-variables for sequences of elements from QQ or CC, indexed by
-a range(..) or ZZ/NZZ or an AbelianGroup or the conjugacy classes
-of a permutation group or the conjugacy classes of a matrix group.
+variables for sequences of elements of QQ or CC, indexed by a
+range(..) or ZZ/NZZ or an AbelianGroup or the conjugacy classes of a
+permutation group or the conjugacy classes of a matrix group.
 
 This file implements:
 \begin{itemize}
@@ -24,7 +24,7 @@ item  dft  -  computes the discrete Fourier transform for the
            following cases:
            * a sequence (over QQ or CyclotomicField) indexed by range(N) or ZZ/NZZ
 \item dct, dst  (for discrete Fourier/Cosine/Sine transform)
-\itemconvolution (in convolution and convolution_periodic)
+\item convolution (in convolution and convolution_periodic)
 \item  fft, ifft - (fast fourier transforms) wrapping GSL's gsl_fft_complex_forward, gsl_fft_complex_inverse,
          using William Stein's FastFourierTransform class
 \item  dwt, idwt - (fast wavelet transforms) wrapping GSL's gsl_dwt_forward, gsl_dwt_backward
@@ -74,7 +74,7 @@ pi = Pi()
 from sage.gsl.fft import FastFourierTransform
 from sage.gsl.dwt import WaveletTransform
 
-class Collection:
+class IndexedSequence:
     def __init__(self, list, indexset):
         r"""
         \code{indexset} must be a SAGE object with an _iter_ method
@@ -84,9 +84,8 @@ class Collection:
         EXAMPLES:
             sage: J = range(10)
             sage: A = [1/10 for j in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: s.dict()
-
             {0: 1/10,
              1: 1/10,
              2: 1/10,
@@ -131,7 +130,7 @@ class Collection:
         return self._index_set
 
     def __repr__(self):
-        return "Collection of elements "+str(self.list())+"\n indexed by "+str(self.index_set())
+        return "Indexed sequence of elements "+str(self.list())+"\n indexed by "+str(self.index_set())
 
     def __str__(self):
         """
@@ -140,20 +139,20 @@ class Collection:
         EXAMPLES:
             sage: A = [ZZ(i) for i in range(3)]
             sage: I = range(3)
-            sage: s = Collection(A,I)
+            sage: s = IndexedSequence(A,I)
             sage: s
-            Collection of elements [0, 1, 2]
+            Indexed sequence of elements [0, 1, 2]
              indexed by [0, 1, 2]
             sage: print s
-            Collection of elements [0, 1, 2] indexed by [0, 1, 2]
+            Indexed sequence of elements [0, 1, 2] indexed by [0, 1, 2]
             sage: I = GF(3)
             sage: A = [i^2 for i in I]
-            sage: s = Collection(A,I)
+            sage: s = IndexedSequence(A,I)
             sage: s
-            Collection of elements [0, 1, 1]
+            Indexed sequence of elements [0, 1, 1]
              indexed by Finite Field of size 3
         """
-        return "Collection of elements "+str(self.list())+" indexed by "+str(self.index_set())
+        return "Indexed sequence of elements "+str(self.list())+" indexed by "+str(self.index_set())
 
     def plot_histogram(self):
         """
@@ -163,7 +162,7 @@ class Collection:
         EXAMPLES:
             sage: J = range(3)
             sage: A = [ZZ(i^2)+1 for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: P = s.plot_histogram()
 
         Now type show(P) to view this in a browser.
@@ -183,7 +182,7 @@ class Collection:
         EXAMPLES:
             sage: I = range(3).list()
             sage: A = [ZZ(i^2)+1 for i in I]
-            sage: s = Collection(A,I)
+            sage: s = IndexedSequence(A,I)
             sage: P = s.plot()
 
         Now type show(P) to view this in a browser.
@@ -203,31 +202,31 @@ class Collection:
         EXAMPLES:
             sage: J = range(6)
             sage: A = [ZZ(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: s.dft(lambda x:x^2)
-            Collection of elements [6, 0, 0, 6, 0, 0]
+            Indexed sequence of elements [6, 0, 0, 6, 0, 0]
              indexed by [0, 1, 2, 3, 4, 5]
             sage: s.dft()
-            Collection of elements [6, 0, 0, 0, 0, 0]
+            Indexed sequence of elements [6, 0, 0, 0, 0, 0]
              indexed by [0, 1, 2, 3, 4, 5]
             sage: G = SymmetricGroup(3)
             sage: J = G.conjugacy_classes_representatives()
-            sage: s = Collection([1,2,3],J) # 1,2,3 are the values of a class fcn on G
+            sage: s = IndexedSequence([1,2,3],J) # 1,2,3 are the values of a class fcn on G
             sage: s.dft()   # the "scalar-valued Fourier transform" of this class fcn
-            Collection of elements [8, 2, 2]
+            Indexed sequence of elements [8, 2, 2]
              indexed by [(), (1,2), (1,2,3)]
             sage: J = AbelianGroup(2,[2,3],names='ab')
-            sage: s = Collection([1,2,3,4,5,6],J)
+            sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()
-            Collection of elements [21.000000000000000,-3.0000000000000027 - 1.7320508075688741*I,-2.9999999999999964 + 1.7320508075688821*I,-9.0000000000000000 + 0.0000000000000020751629580000000*I,0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I,-0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
+            Indexed sequence of elements [21.000000000000000,-3.0000000000000027 - 1.7320508075688741*I,-2.9999999999999964 + 1.7320508075688821*I,-9.0000000000000000 + 0.0000000000000020751629580000000*I,0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I,-0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
              indexed by Multiplicative Abelian Group isomorphic to C2 x C3
             sage: J = CyclicPermutationGroup(6)
-            sage: s = Collection([1,2,3,4,5,6],J)
+            sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()
-            Collection of elements [21.000000000000000, -3.0000000000000027 - 1.7320508075688741*I, -2.9999999999999964 + 1.7320508075688821*I, -9.0000000000000000 + 0.0000000000000020751629580000000*I, 0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I, -0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
+            Indexed sequence of elements [21.000000000000000, -3.0000000000000027 - 1.7320508075688741*I, -2.9999999999999964 + 1.7320508075688821*I, -9.0000000000000000 + 0.0000000000000020751629580000000*I, 0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I, -0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
              indexed by Cyclic group of order 6 as a permutation group
             sage: p = 7; J = range(p); A = [kronecker_symbol(j,p) for j in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: Fs = s.dft()
             sage: c = Fs.list()[1]; [x/c for x in Fs.list()]; s.list()
 
@@ -266,7 +265,7 @@ class Collection:
             FT = [sum([S[i]*chi[i][j] for i in range(N)]) for j in range(N)]
         else:
             raise ValueError,"list elements must be in QQ(zeta_"+str(N)+")"
-        return Collection(FT,J)
+        return IndexedSequence(FT,J)
 
     def idft(self):
         """
@@ -275,7 +274,7 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: fs = s.dft()
             sage: s == fs.idft()
             1
@@ -288,7 +287,7 @@ class Collection:
         iFT = [sum([S[i]*zeta**(-i*j) for i in J]) for j in J]
         if not(J[0] in ZZ) or F.base_ring().fraction_field()!=QQ:
             raise NotImplementedError, "Sorry this type of idft is not implemented yet."
-        return Collection(iFT,J)*(1/N)
+        return IndexedSequence(iFT,J)*(1/N)
 
     def dct(self):
         """
@@ -297,7 +296,7 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [exp(-2*pi*i*I/5) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: s.dct()
             [2.5000000000000004 - 0.00000000000000011102230246251565*I,
              2.5000000000000004 - 0.00000000000000011102230246251565*I,
@@ -310,7 +309,7 @@ class Collection:
         N = len(J)
         S = self.list()
         FT = [sum([S[i]*cos(2*pi*i/N) for i in J]) for j in J]
-        return Collection(FT,J)
+        return IndexedSequence(FT,J)
 
     def dst(self):
         """
@@ -319,7 +318,7 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [exp(-2*pi*i*I/5) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: s.dst()
             [0.00000000000000016653345369377348 - 2.5000000000000000*I,
              0.00000000000000016653345369377348 - 2.5000000000000000*I,
@@ -332,7 +331,7 @@ class Collection:
         N = len(J)
         S = self.list()
         FT = [sum([S[i]*sin(2*pi*i/N) for i in J]) for j in J]
-        return Collection(FT,J)
+        return IndexedSequence(FT,J)
 
     def convolution(self, other):
         """
@@ -354,8 +353,8 @@ class Collection:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
             sage: B = [ZZ(1) for i in J]
-            sage: s = Collection(A,J)
-            sage: t = Collection(B,J)
+            sage: s = IndexedSequence(A,J)
+            sage: t = IndexedSequence(B,J)
             sage: s.convolution(t)
             [1, 2, 3, 4, 5, 4, 3, 2, 1]
 
@@ -368,9 +367,9 @@ class Collection:
         F = self.base_ring()
         E = other.base_ring()
         if F!=E:
-            raise TypeError,"Collections must have same base ring"
+            raise TypeError,"IndexedSequences must have same base ring"
         if I0!=J0:
-            raise TypeError,"Collections must have same index set"
+            raise TypeError,"IndexedSequences must have same index set"
         M = len(S)
         N = len(T)
         if M<N:                    ## first, extend by 0 if necessary
@@ -406,10 +405,10 @@ class Collection:
             sage: I = range(5)
             sage: A = [ZZ(1) for i in I]
             sage: B = [ZZ(1) for i in I]
-            sage: s = Collection(A,I)
-            sage: t = Collection(B,I)
+            sage: s = IndexedSequence(A,I)
+            sage: t = IndexedSequence(B,I)
             sage: s.convolution_periodic(t)
-            [5, 5, 5, 5, 5]
+            [5, 5, 5, 5, 5, 5, 5, 5, 5]
 
         AUTHOR: David Joyner (9-2006)
         """
@@ -420,9 +419,9 @@ class Collection:
         F = self.base_ring()
         E = other.base_ring()
         if F!=E:
-           raise TypeError,"Collections must have same parent"
+           raise TypeError,"IndexedSequences must have same parent"
         if I!=J:
-            raise TypeError,"Collections must have same index set"
+            raise TypeError,"IndexedSequences must have same index set"
         M = len(S)
         N = len(T)
         if M<N:                    ## first, extend by 0 if necessary
@@ -445,11 +444,11 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: s.base_ring()
              Integer Ring
             sage: t = s*(1/3); t; t.base_ring()
-            Collection of elements [1/3, 1/3, 1/3, 1/3, 1/3]
+            Indexed sequence of elements [1/3, 1/3, 1/3, 1/3, 1/3]
              indexed by [0, 1, 2, 3, 4]
              Rational Field
 
@@ -460,7 +459,7 @@ class Collection:
         #if not(other in F):
         #    raise TypeError,"The base rings must be consistent"
         S1 = [S[i]*other for i in J]
-        return Collection(S1,self.index_set())
+        return IndexedSequence(S1,self.index_set())
 
     def __eq__(self,other):
         """
@@ -469,10 +468,13 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s*(1/3)
             sage: t*3==s
             1
+
+        WARNING: ** elements are considered different if they differ
+        by 10^(-8), which is pretty arbitrary -- use with CAUTION!! **
         """
         S = self.list()
         T = other.list()
@@ -481,29 +483,29 @@ class Collection:
         F = self.base_ring()
         E = other.base_ring()
         if I!=J:
-            return 0
+            return False
         for i in I:
-            if S[i]!=T[i] or abs(S[i]-T[i])> 10^(-8):  ## tests if they differ as reals
-                return 0
+            if S[i]!=T[i] or abs(S[i]-T[i])> 10**(-8):  ## tests if they differ as reals  -- WHY 10^(-8)???
+                return False
         #if F!=E:               ## omitted this test since it
-        #    return 0           ## doesn't take into account coercions
-        return 1
+        #    return 0           ## doesn't take into account coercions  -- WHY???
+        return True
 
     def fft(self):
         """
-        Wraps the gsl FastFourierTransform.forward in fft.pyx (written
-        by William Stein). If the length is a power of 2 then this automatically
-        uses the radix2 method. If the number of sample
-        points in the input is a power of 2 then the wrapper for the
-        GSL function gsl_fft_complex_radix2_forward is automatically called.
+        Wraps the gsl FastFourierTransform.forward in fft.pyx.  If the
+        length is a power of 2 then this automatically uses the radix2
+        method. If the number of sample points in the input is a power
+        of 2 then the wrapper for the GSL function
+        gsl_fft_complex_radix2_forward is automatically called.
         Otherwise, gsl_fft_complex_forward is used.
 
         EXAMPLES:
             sage: J = range(5)
             sage: A = [RR(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Collection of elements [5.0000000000000000, 0, 0, 0, 0]
+            Indexed sequence of elements [5.0000000000000000, 0, 0, 0, 0]
              indexed by [0, 1, 2, 3, 4]
 
         """
@@ -515,7 +517,7 @@ class Collection:
         for i in range(N):
             a[i] = S[i]
         a.forward_transform()
-        return Collection([a[j][0]+I*a[j][1] for j in J],J)
+        return IndexedSequence([a[j][0]+I*a[j][1] for j in J],J)
 
     def ifft(self):
         """
@@ -528,9 +530,9 @@ class Collection:
         EXAMPLES:
             sage: J = range(5)
             sage: A = [RR(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Collection of elements [5.0000000000000000, 0, 0, 0, 0]
+            Indexed sequence of elements [5.0000000000000000, 0, 0, 0, 0]
              indexed by [0, 1, 2, 3, 4]
             sage: t.ifft()
             [(1.0, 0.0), (1.0, 0.0), (1.0, 0.0), (1.0, 0.0), (1.0, 0.0)]
@@ -546,7 +548,7 @@ class Collection:
         for i in range(N):
             a[i] = S[i]
         a.inverse_transform()
-        return Collection([a[j][0]+I*a[j][1] for j in J],J)
+        return IndexedSequence([a[j][0]+I*a[j][1] for j in J],J)
 
     def dwt(self,other="haar",wavelet_k=2):
         """
@@ -574,9 +576,9 @@ class Collection:
         EXAMPLES:
             sage: J = range(7)
             sage: A = [RR(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s.dwt(); t
-            Collection of elements [2.8284271247500001,-0.000000000000000091940344226800001,0.000000000000000085326710974600004, 0.000000000000000085326710974600004, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000]
+            Indexed sequence of elements [2.8284271247500001,-0.000000000000000091940344226800001,0.000000000000000085326710974600004, 0.000000000000000085326710974600004, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000]
             indexed by [0, 1, 2, 3, 4, 5, 6, 7]
 
         """
@@ -602,7 +604,7 @@ class Collection:
         for i in range(N):
             a[i] = S[i]
         a.forward_transform()
-        return Collection([RR(a[j]) for j in J],J)
+        return IndexedSequence([RR(a[j]) for j in J],J)
 
     def idwt(self,other="haar",wavelet_k=2):
         """
@@ -617,9 +619,9 @@ class Collection:
         EXAMPLES:
             sage: J = range(8)
             sage: A = [RR(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s.dwt(); t
-            Collection of elements [2.8284271247500001,
+            Indexed sequence of elements [2.8284271247500001,
              -0.000000000000000091940344226800001,
              0.000000000000000085326710974600004,
              0.000000000000000085326710974600004,
@@ -627,7 +629,7 @@ class Collection:
              0.00000000000000000, 0.00000000000000000]
              indexed by [0, 1, 2, 3, 4, 5, 6, 7]
             sage: t.idwt()
-            Collection of elements [1.0000000000000000, 1.0000000000000000,
+            Indexed sequence of elements [1.0000000000000000, 1.0000000000000000,
              1.0000000000000000, 1.0000000000000000, 1.0000000000000000,
              1.0000000000000000, 1.0000000000000000, 1.0000000000000000]
              indexed by [0, 1, 2, 3, 4, 5, 6, 7]
@@ -635,9 +637,9 @@ class Collection:
              1
             sage: J = range(16)
             sage: A = [RR(1) for i in J]
-            sage: s = Collection(A,J)
+            sage: s = IndexedSequence(A,J)
             sage: t = s.dwt("bspline"); t
-             Collection of elements [4.0000000000000000,
+             Indexed sequence of elements [4.0000000000000000,
              -0.00000000000000014333152720300001,
              -0.000000000000000091940344226800001,
              -0.000000000000000091940344226800001,
@@ -675,5 +677,5 @@ class Collection:
         for i in range(N):
             a[i] = S[i]
         a.backward_transform()
-        return Collection([RR(a[j]) for j in J],J)
+        return IndexedSequence([RR(a[j]) for j in J],J)
 

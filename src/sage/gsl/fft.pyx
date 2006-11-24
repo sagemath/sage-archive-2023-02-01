@@ -28,6 +28,7 @@ include '../ext/stdsage.pxi'
 
 import sage.plot.all
 import sage.libs.pari.all
+from sage.rings.integer import Integer
 
 def FastFourierTransform(size, base_ring=None):
     """
@@ -156,7 +157,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
         N = self.n
-        e = N.exact_log(2)
+        e = Integer(N).exact_log(2)
         if N==2**e:
             gsl_fft_complex_radix2_forward(self.data, self.stride, self.n)
         if N!=2**e:

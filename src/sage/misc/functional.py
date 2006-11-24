@@ -129,6 +129,13 @@ def charpoly(x, var):
     except AttributeError:
         raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
 
+def coerce(P, x):
+    try:
+        return P._coerce_(x)
+    except AttributeError:
+        return P(x)
+
+
 def acos(x):
     """
     Return the arc cosine of x.

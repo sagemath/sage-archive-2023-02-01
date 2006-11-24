@@ -30,7 +30,7 @@ import sage.plot.all
 #import gsl_array
 #cimport gsl_array
 
-def WaveletTransform(size_t n, wavelet_type,size_t wavelet_k):
+def WaveletTransform(n, wavelet_type, wavelet_k):
     """
     This function initializes an GSLDoubleArray of length n which
     can perform a discrete wavelet transform.
@@ -64,28 +64,31 @@ def WaveletTransform(size_t n, wavelet_type,size_t wavelet_k):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
         sage: a.forward_transform()
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png',)
         sage: a = WaveletTransform(128,'haar',2)
         sage: for i in range(1, 11): a[i] = 1; a[128-i] = 1
         sage: a.forward_transform()
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
         sage: a = WaveletTransform(128,'bspline_centered',103)
         sage: for i in range(1, 11): a[i] = 1; a[100+i] = 1
         sage: a.forward_transform()
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
 
     This example gives a simple example of wavelet compression.
         sage: a = DWT(2048,'daubechies',6)
         sage: for i in range(2048): a[i]=float(sin((i*5/2048)**2))
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png')
         sage: a.forward_transform()
         sage: for i in range(1800): a[2048-i-1] = 0
         sage: a.backward_transform()
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png')
     """
-    return DiscreteWaveletTransform(n,1,wavelet_type,wavelet_k)
+    cdef size_t _n, _k
+    _n = int(n)
+    _k = int(wavelet_k)
+    return DiscreteWaveletTransform(_n,1,wavelet_type,_k)
 
 DWT = WaveletTransform
 

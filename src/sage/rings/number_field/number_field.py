@@ -246,24 +246,26 @@ class NumberField_generic(field.Field):
                 return x
             elif x.parent() == self:
                 return number_field_element.NumberFieldElement(self, x.polynomial())
-            f = x.polynomial()
-            if f.degree() <= 0:
-                return number_field_element.NumberFieldElement(self, f[0])
-            # todo: more general coercision if embedding have been asserted
+            return self._coerce_from_other_number_field(x)
+        return self._coerce_non_number_field_element_in(x)
 
-        if not isinstance(x, (int, long, rational.Rational,
+    def _coerce_from_other_number_field(self, x):
+        f = x.polynomial()
+        if f.degree() <= 0:
+            return number_field_element.NumberFieldElement(self, f[0])
+        # todo: more general coercion if embedding have been asserted
+        raise TypeError, "Cannot coerce %s into %s"%(x,self)
+
+    def _coerce_non_number_field_element_in(self, x):
+        if isinstance(x, (int, long, rational.Rational,
                               integer.Integer, pari_gen,
                               polynomial_element.Polynomial,
                               list)):
-            raise TypeError, "Cannot coerce %s into %s"%(x,self)
-
-        return number_field_element.NumberFieldElement(self, x)
+            return number_field_element.NumberFieldElement(self, x)
+        raise TypeError, "Cannot coerce %s into %s"%(x,self)
 
     def _coerce_impl(self, x):
-        if isinstance(x, number_field_element.NumberFieldElement):
-            if x.parent() == self:
-                return number_field_element.NumberFieldElement(self, x.polynomial())
-        elif isinstance(x, (rational.Rational, integer.Integer, int, long)):
+        if isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
@@ -1101,6 +1103,15 @@ class NumberField_cyclotomic(NumberField_generic):
         True
         sage: loads((z^2).dumps()) == z^2
         True
+
+        sage: cf12 = CyclotomicField( 12 )
+        sage: z12 = cf12.0
+        sage: cf6 = CyclotomicField( 6 )
+        sage: z6 = cf6.0
+        sage: FF = Frac( cf12['x'] )
+        sage: x = FF.0
+        sage: print z6*x^3/(z6 + x)
+        zeta12^2*x^3/(x + zeta12^2)
     """
     def __init__(self, n, names):
         f = QQ['x'].cyclotomic_polynomial(n)
@@ -1150,62 +1161,94 @@ class NumberField_cyclotomic(NumberField_generic):
 
 
         """
+        if isinstance(x, number_field_element.NumberFieldElement):
+            if isinstance(x.parent(), NumberField_cyclotomic):
+                return self._coerce_from_other_cyclotomic_field(x)
+            else:
+                return self._coerce_from_other_number_field(x)
+        elif sage.interfaces.gap.is_GapElement(x):
+            return self._coerce_from_gap(x)
+        else:
+            return self._coerce_non_number_field_element_in(x)
+
+    def _coerce_from_other_cyclotomic_field(self, x, only_canonical=False):
+        """
+        Coerce an element x of a cyclotomic field into self, if at all possible.
+
+        INPUT:
+            x -- number field element
+            only_canonical -- bool (default: False); Attempt to work, even in some
+                   cases when x is not in a subfield of the cyclotomics (as long as x is
+                   a root of unity).
+        """
+        K = x.parent()
+        if K is self:
+            return x
+        elif K == self:
+            return number_field_element.NumberFieldElement(self, x.polynomial())
+        n = K.zeta_order()
+        m = self.zeta_order()
+        if m % n == 0:   # easy case
+            e = m/n
+            f = x.polynomial()
+            X = f.parent().gen()
+            g = f(X**e)
+        else:
+            if only_canonical:
+                raise TypeError
+            n = x.multiplicative_order()
+            if m % n == 0:
+                # Harder case.  E.g., x = (zeta_42)^7 and
+                # self.__zeta = zeta_6, so it is possible to
+                # coerce x in, but not zeta_42 in.
+                # Algorithm:
+                #    1. Compute self.__zeta as an element
+                #       of K = parent of x.  Call this y.
+                #    2. Write x as a power r of y.
+                #       TODO: we do step two STUPIDLY.
+                #    3. Return self.__zeta to the power r.
+                y = K(self.zeta())
+                z = y
+                for r in xrange(y.multiplicative_order()):
+                    if z == x:
+                        return self.zeta()**(r+1)
+                    z *= y
+            raise TypeError, "Cannot coerce %s into %s"%(x,self)
+        return number_field_element.NumberFieldElement(self, g)
+
+    def _coerce_from_gap(self, x):
+        """
+        Attempt to coerce a GAP number field element into this cyclotomic field.
+        """
+        s = str(x)
+        i = s.find('E(')
+        if i == -1:
+            return self(rational.Rational(s))
+        j = i + s[i:].find(')')
+        n = int(s[i+2:j])
+        if n == self.zeta_order():
+            K = self
+        else:
+            K = CyclotomicField(n)
+        zeta = K.gen()
+        s = s.replace('E(%s)'%n,'zeta')
+        s = sage.misc.all.sage_eval(s, locals={'zeta':K.gen()})
+        if K is self:
+            return s
+        else:
+            return self(s)
+
+    def _coerce_impl(self, x):
+        """
+        Canonical coercion of x into self.
+
+        Elements of other compatible cyclotomic fields coerce in, as do elements
+        of the rings that coerce to all number fields (e.g., integers, rationals).
+        """
         if isinstance(x, number_field_element.NumberFieldElement) and \
                 isinstance(x.parent(), NumberField_cyclotomic):
-            if x.parent() is self:
-                return x
-            elif x.parent() == self:
-                return number_field_element.NumberFieldElement(self, x.polynomial())
-            K = x.parent()
-            n = K.zeta_order()
-            m = self.zeta_order()
-            if m % n == 0:   # easy case
-                e = m/n
-                f = x.polynomial()
-                X = f.parent().gen()
-                g = f(X**e)
-            else:
-                n = x.multiplicative_order()
-                if m % n == 0:
-                    # Harder case.  E.g., x = (zeta_42)^7 and
-                    # self.__zeta = zeta_6, so it is possible to
-                    # coerce x in, but not zeta_42 in.
-                    # Algorithm:
-                    #    1. Compute self.__zeta as an element
-                    #       of K = parent of x.  Call this y.
-                    #    2. Write x as a power r of y.
-                    #       TODO: we do step two STUPIDLY.
-                    #    3. Return self.__zeta to the power r.
-                    y = K(self.zeta())
-                    z = y
-                    for r in xrange(y.multiplicative_order()):
-                        if z == x:
-                            return self.zeta()**(r+1)
-                        z *= y
-                raise TypeError, "Cannot coerce %s into %s"%(x,self)
-            return number_field_element.NumberFieldElement(self, g)
-
-        elif sage.interfaces.gap.is_GapElement(x):
-            s = str(x)
-            i = s.find('E(')
-            if i == -1:
-                return self(rational.Rational(s))
-            j = i + s[i:].find(')')
-            n = int(s[i+2:j])
-            if n == self.zeta_order():
-                K = self
-            else:
-                K = CyclotomicField(n)
-            zeta = K.gen()
-            s = s.replace('E(%s)'%n,'zeta')
-            s = sage.misc.all.sage_eval(s, locals={'zeta':K.gen()})
-            if K is self:
-                return s
-            else:
-                return self(s)
-
-        else:
-            return NumberField_generic.__call__(self, x)
+            return self._coerce_from_other_cyclotomic_field(x, only_canonical=True)
+        return NumberField_generic._coerce_impl(self, x)
 
     def complex_embedding(self, prec=53):
         r"""

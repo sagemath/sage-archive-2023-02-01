@@ -28,6 +28,8 @@ import field
 import fraction_field_element
 import sage.misc.latex as latex
 
+from sage.structure.parent_base import ParentWithBase
+
 def FractionField(R, names=None):
     """
     Create the fraction field of the integral domain R.
@@ -83,6 +85,7 @@ class FractionField_generic(field.Field):
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
         """
         self.__R = R
+        ParentWithBase.__init__(self, R)
 
     def is_field(self):
         """
@@ -213,4 +216,8 @@ class FractionField_generic(field.Field):
             sage: R.3
             z3
         """
-        return fraction_field_element.FractionFieldElement(self, self.ring().gen(i))
+        x = self.ring().gen(i)
+        one = self.ring()(1)
+        r = fraction_field_element.FractionFieldElement(self, x, one,
+                                                           coerce=False, reduce=False)
+        return r

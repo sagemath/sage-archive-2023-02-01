@@ -1269,10 +1269,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
     def _pari_(self, variable=None):
         """
-        Return polynomial as a PARI object.  Note that
-        the variable will be "x" unless you explicitly specify
-        otherwise, no matter what the polynomial indeterminate
-        is.
+        Return polynomial as a PARI object.
 
         EXAMPLES:
             sage: f = PolynomialRing(QQ, 'X')([0,1,2/3,3])
@@ -2580,7 +2577,16 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         """
         return ZZ(str(self.__poly.discriminant()))
 
-    def _pari_(self, variable='x'):
+    def _pari_(self, variable=None):
+        """
+        EXAMPLES:
+            sage: t = PolynomialRing(ZZ,"t").gen()
+            sage: f = t^3 + 3*t - 17
+            sage: pari(f)
+            t^3 + 3*t - 17
+        """
+        if variable is None:
+            variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
     def factor_mod(self, p):
@@ -2787,7 +2793,16 @@ class Polynomial_dense_mod_n(Polynomial):
     def int_list(self):
         return eval(str(self.__poly).replace(' ',','))
 
-    def _pari_(self, variable='x'):
+    def _pari_(self, variable=None):
+        """
+        EXAMPLES:
+            sage: t = PolynomialRing(IntegerModRing(17),"t").gen()
+            sage: f = t^3 + 3*t - 17
+            sage: pari(f)
+            Mod(1, 17)*t^3 + Mod(3, 17)*t
+        """
+        if variable is None:
+            variable = self.parent().variable_name()
         return pari(self.int_list()).Polrev(variable) * \
                pari(1).Mod(self.parent().base_ring().order())
 

@@ -1613,7 +1613,7 @@ def coerce(Parent p, x):
 #################################################################################
 cdef _verify_canonical_coercion_c(x, y):
     if not have_same_parent(x,y):
-        raise RuntimeError, """There is a bug in the ring coercion code in SAGE.
+        raise RuntimeError, """There is a bug in the coercion code in SAGE.
 Both x (=%s) and y (=%s) are supposed to have identical parents but they don't.
 In fact, x has parent '%s'
 whereas y has parent '%s'"""%(x,y,parent_c(x),parent_c(y))

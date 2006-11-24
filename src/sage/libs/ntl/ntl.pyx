@@ -2567,9 +2567,9 @@ def make_new_GF2X(x=[]):
         [1 0 1]
         sage: ntl.GF2X([1,0,1,0])
         [1 0 1]
-        sage: ntl.GF2X(GF(2**8).gen()**20)
+        sage: ntl.GF2X(GF(2**8,'a').gen()**20)
         [0 0 1 0 1 1 0 1]
-        sage: ntl.GF2X(GF(2**8))
+        sage: ntl.GF2X(GF(2**8,'a'))
         [1 0 1 1 1 0 0 0 1]
         sage: ntl.GF2X(2)
         [0 1]
@@ -2687,7 +2687,7 @@ def ntl_GF2E_modulus_degree():
     else:
         raise "NoModulus"
 
-def ntl_GF2E_sage():
+def ntl_GF2E_sage(names='a'):
     """
     Returns a SAGE FiniteField element matching the current modulus.
 
@@ -2698,7 +2698,7 @@ def ntl_GF2E_sage():
     """
     from sage.rings.finite_field import FiniteField_ext_pari
     f = ntl_GF2E_modulus()._sage_()
-    return FiniteField_ext_pari(int(2)**GF2E_degree(),modulus=f)
+    return FiniteField_ext_pari(int(2)**GF2E_degree(),modulus=f,name=names)
 
 
 def ntl_GF2E_random():
@@ -2896,7 +2896,7 @@ def make_new_GF2E(x=[]):
         [1 0 1]
         sage: ntl.GF2E([1,0,1,0])
         [1 0 1]
-        sage: ntl.GF2E(GF(2**8).gen()**20)
+        sage: ntl.GF2E(GF(2**8,'a').gen()**20)
         [0 0 1 0 1 1 0 1]
     """
     if not __have_GF2E_modulus:
@@ -3017,7 +3017,7 @@ cdef class ntl_mat_GF2E:
         EXAMPLES:
             sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m=ntl.mat_GF2E(10,10)
-            sage: m=ntl.mat_GF2E(Matrix(GF(2**8),10,10))
+            sage: m=ntl.mat_GF2E(Matrix(GF(2**8, 'a'),10,10))
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])
         """
 

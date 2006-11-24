@@ -30,7 +30,7 @@ import sage.plot.all
 #import gsl_array
 #cimport gsl_array
 
-def WaveletTransform(size_t n, wavelet_type,size_t wavelet_k):
+def WaveletTransform(n, wavelet_type, wavelet_k):
     """
     This function initializes an GSLDoubleArray of length n which
     can perform a discrete wavelet transform.
@@ -64,33 +64,46 @@ def WaveletTransform(size_t n, wavelet_type,size_t wavelet_k):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
         sage: a.forward_transform()
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png',)
         sage: a = WaveletTransform(128,'haar',2)
         sage: for i in range(1, 11): a[i] = 1; a[128-i] = 1
         sage: a.forward_transform()
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
         sage: a = WaveletTransform(128,'bspline_centered',103)
         sage: for i in range(1, 11): a[i] = 1; a[100+i] = 1
         sage: a.forward_transform()
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('sage.png',ymin=0)
 
     This example gives a simple example of wavelet compression.
         sage: a = DWT(2048,'daubechies',6)
         sage: for i in range(2048): a[i]=float(sin((i*5/2048)**2))
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png')
         sage: a.forward_transform()
         sage: for i in range(1800): a[2048-i-1] = 0
         sage: a.backward_transform()
-        sage: show(a.plot())
+        sage: a.plot().save('sage.png')
     """
-    return DiscreteWaveletTransform(n,1,wavelet_type,wavelet_k)
+    cdef size_t _n, _k
+    _n = int(n)
+    if _n < 0:
+        raise ValueError, "n must be nonnegative."
+    _k = int(wavelet_k)
+    if not is2pow(_n):
+        raise NotImplementedError,"discrete wavelet transform only implemented when n is a 2-power"
+    return DiscreteWaveletTransform(_n,1,wavelet_type,_k)
 
 DWT = WaveletTransform
 
 cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
+    def __new__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
+        self.wavelet = NULL
+        self.workspace = NULL
+
     def __init__(self,size_t n,size_t stride, wavelet_type, size_t wavelet_k):
+        if not is2pow(n):
+            raise NotImplementedError,"discrete wavelet transform only implemented when n is a 2-power"
         gsl_array.GSLDoubleArray.__init__(self,n,stride)
         if wavelet_type=="daubechies":
             self.wavelet = <gsl_wavelet*> gsl_wavelet_alloc(gsl_wavelet_daubechies, wavelet_k)
@@ -107,10 +120,9 @@ cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
         self.workspace = <gsl_wavelet_workspace*> gsl_wavelet_workspace_alloc(n)
 
     def __dealloc__(self):
-        #    GSLDoubleArray.__dealloc__(self)
-        #    sage_free(self.data)
-        gsl_wavelet_free(self.wavelet)
-        gsl_wavelet_workspace_free(self.workspace)
+        if self.wavelet != NULL:
+            gsl_wavelet_free(self.wavelet)
+            gsl_wavelet_workspace_free(self.workspace)
 
     def forward_transform(self):
         gsl_wavelet_transform_forward(self.wavelet,self.data,self.stride,self.n,self.workspace)
@@ -132,3 +144,9 @@ cdef class DiscreteWaveletTransform(gsl_array.GSLDoubleArray):
             if i >0:
                 v.append(point([(i,x)],hue=(1,1,1),**args))
         return sum(v)
+
+
+def is2pow(unsigned int n):
+    while n != 0 and n%2 == 0:
+        n = n >> 1
+    return n == 1

@@ -28,6 +28,7 @@ include '../ext/stdsage.pxi'
 
 import sage.plot.all
 import sage.libs.pari.all
+from sage.rings.integer import Integer
 
 def FastFourierTransform(size, base_ring=None):
     """
@@ -36,11 +37,11 @@ def FastFourierTransform(size, base_ring=None):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage: show(a.plot(), ymin=0)
+        sage: a.plot().save('a.png', ymin=0)
         sage: a.forward_transform()
-        sage: show(a.plot())
+        sage: a.plot().save('a.png')
     """
-    return FastFourierTransform_complex(size)
+    return FastFourierTransform_complex(int(size))
 
 FFT = FastFourierTransform
 
@@ -155,7 +156,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
-        N = self.n
+        N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
             gsl_fft_complex_radix2_forward(self.data, self.stride, self.n)
@@ -183,14 +184,16 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: for i in range(1, 60): b[i]=1
             sage: a.forward_transform()
             sage: a.inverse_transform()
-            sage: show(a.plot()+b.plot(), ymin=0)
+            sage: (a.plot()+b.plot()).save('a.png', ymin=0)
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
-        N = self.n
+        N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
+            print 1
             gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
+            print 2
         if N!=2**e:
             mem = gsl_fft_complex_workspace_alloc(self.n)
             wt = gsl_fft_complex_wavetable_alloc(self.n)
@@ -211,12 +214,12 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
             sage: for i in range(1, 60): b[i]=1
             sage: a.forward_transform()
             sage: a.backward_transform()
-            sage: show(a.plot()+b.plot(), ymin=0)
+            sage: (a.plot()+b.plot()).save('a.png', ymin=0)
 
         """
         cdef gsl_fft_complex_wavetable * wt
         cdef gsl_fft_complex_workspace * mem
-        N = self.n
+        N = Integer(self.n)
         e = N.exact_log(2)
         if N==2**e:
             gsl_fft_complex_backward(self.data, self.stride, self.n, wt, mem)

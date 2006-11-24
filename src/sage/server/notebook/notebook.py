@@ -346,7 +346,7 @@ import keyboards    # keyboard layouts
 
 MAX_WORKSHEETS = 4096  # do not change this willy nilly; that would break existing notebooks (and there is no reason to).
 MAX_HISTORY_LENGTH = 500
-WRAP_NCOLS = 100
+WRAP_NCOLS = 80
 
 # Temporarily disabled while we try fix the firefox windows hang bug.
 JSMATH=False

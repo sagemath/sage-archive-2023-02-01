@@ -717,12 +717,13 @@ function debug_blur() {
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.
-function focus(id) {
+function focus(id, bottom) {
     // make_cell_input_active(id);
     var cell = get_cell(id);
     if (cell && cell.focus) {
         cell.focus();
-        move_cursor_to_top_of_cell(cell);
+        if (!bottom)
+            move_cursor_to_top_of_cell(cell);
     }
 }
 
@@ -732,6 +733,7 @@ function move_cursor_to_top_of_cell(cell) {
         cell.selectionEnd = 0;
     } catch(e) {}
 }
+
 
 function focus_delay(id) {
     setTimeout('focus('+id+')', 10);
@@ -746,7 +748,7 @@ function cell_input_resize(cell_input) {
       rows = 2;
     } else {
       /* to avoid bottom chop off */
-      rows = rows + 1;
+/*      rows = rows + 1; */
     }
     try {
         cell_input.style.height = rows + 'em';   // this sort of works in konqueror...
@@ -923,7 +925,7 @@ function cell_input_key_event(id, e) {
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
-            jump_to_cell(id,-1);
+            jump_to_cell(id,-1, 1);
             return false;
         } else {
             return true;
@@ -1046,13 +1048,13 @@ function make_cell_input_inactive(id) {
 }
 */
 
-function jump_to_cell(id, delta) {
+function jump_to_cell(id, delta, bottom) {
     if(delta != 0)
         id = id_of_cell_delta(id, delta)
     if(in_slide_mode) {
         jump_to_slide(id);
     } else {
-        focus(id);
+        focus(id, bottom);
     }
 }
 

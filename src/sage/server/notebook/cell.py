@@ -466,7 +466,7 @@ class Cell:
         else:
             cls = 'cell_output_' + typ
 
-        top = '<span class="%s" id="cell_div_output_%s">'%(
+            top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
         out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
@@ -476,7 +476,7 @@ class Cell:
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
-        s = top + out + '</span>'
+        s = top + out + '</div>'
 
         #r = '[%s]'%self.relative_id()
         #r = '>'

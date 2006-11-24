@@ -38,10 +38,19 @@ HISTORY_NCOLS = 90
 
 import notebook as _notebook
 
-SAGE_BEGIN='__SAGE_BEGIN__'
-SAGE_END='__SAGE_END__'
-SAGE_ERROR='error' + SAGE_END
-SAGE_VARS='__SAGE_VARS__'
+#SAGE_BEGIN='__SAGE_BEGIN__'
+#SAGE_END='__SAGE_END__'
+#SAGE_ERROR='error' + SAGE_END
+#SAGE_VARS='__SAGE_VARS__'
+
+#If you make any changes to this, be sure to change the
+# error line below that looks like this:
+#         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
+SC='\x01'
+SAGE_BEGIN=SC+'b'
+SAGE_END=SC+'e'
+SAGE_ERROR=SC+'r'
+SAGE_VARS=SC+'v'
 
 class Worksheet:
     def __init__(self, name, notebook, id, system=None, passcode = ''):
@@ -520,9 +529,9 @@ class Worksheet:
         # in order to support use of the with statement in the notebook.  Very annoying.
         input = 'from __future__ import with_statement\n' + input
         open(tmp,'w').write(input)
-        e = 'execfile("%s")\n'%os.path.abspath(tmp)
-        # just in case, put an extra end...
-        cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
+        cmd = 'execfile("%s")\n'%os.path.abspath(tmp)
+        # Signal an end (which would only be seen if there is an error.)
+        cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
         self.__comp_is_running = True
         try:
             S._send(cmd)
@@ -648,23 +657,16 @@ class Worksheet:
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
         if i == -1:
+            # did not find any synchronization info in the output stream
             j = s.find('Traceback')
             if j != -1:
+                # Probably there was an error; better not hide it.
                 return s[j:]
             else:
+                # Maybe we just read too early -- supress displaying anything yet.
                 return ''
         else:
-            s = s[i+len(z):]
-            return s
-##         i = s.find(SAGE_BEGIN)
-##         if i != -1:
-##             j = s[i:].find('\n')
-##             if j != -1:
-##                 i = i + j
-##             else:
-##                 i = i + len(SAGE_BEGIN)
-##             s = s[i+1:]
-##         return s
+            return s[i+len(z):]
 
     def _process_output(self, s):
         s = re.sub('\x08.','',s)

@@ -32,12 +32,12 @@ def test2():
 
 Enter these into SAGE and try typing test() or test2().
 
-EXAMPLES: ## doesn't work!!!
-    sage: f = lambda t,y,p: [y[1],-y[0]-p[0]*y[1]*(y[0]**2-1)]
-    sage: j = lambda t,y,p: [{(0,0):0,(0,1):1.0,(1,0):-2.0*params[0]*y[0]*y[1]-1.0,(1,1): -params[0]*(y[0]*y[0]-1.0)},[0,0]]
-    sage: ode_solver_wrapper(f, j,1,[1],[1],0,10,1e-2,1e-10,1e-10)
-
 """
+## EXAMPLES: ## doesn't work!!!
+##     sage: f = lambda t,y,p: [y[1],-y[0]-p[0]*y[1]*(y[0]**2-1)]
+##     sage: j = lambda t,y,p: [{(0,0):0,(0,1):1.0,(1,0):-2.0*params[0]*y[0]*y[1]-1.0,(1,1): -params[0]*(y[0]*y[0]-1.0)},[0,0]]
+##     sage: ode_solver_wrapper(f, j,1,[1],[1],0,10,1e-2,1e-10,1e-10)
+
 
 #*****************************************************************************
 #       Copyright (C) 2006 Joshua Kantor <jkantor@math.washington.edu>

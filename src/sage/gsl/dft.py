@@ -38,8 +38,9 @@ TODO:
  - more idfts
  - more examples for probability, stats, theory of FTs
 
-AUTHOR:
+AUTHORS:
     -- David Joyner (2006-10)
+    -- William Stein (2006-11) -- fix many bugs
 
 """
 
@@ -52,21 +53,20 @@ AUTHOR:
 ##########################################################################
 
 from sage.rings.number_field.number_field import CyclotomicField
-from sage.plot.plot import PolygonFactory
+from sage.plot.plot import PolygonFactory, line
 from sage.plot.plot import (Graphics, polygon)
 from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.groups.perm_gps.permgroup_element import is_PermutationGroupElement
 from sage.groups.matrix_gps.matrix_group import MatrixGroup
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import ZZ
 from sage.rings.integer import Integer
 from sage.rings.arith import factor
-from sage.rings.rational_field import RationalField
-from sage.rings.real_field import RealField
-ZZ = IntegerRing()
-QQ = RationalField()
-RR = RealField()
+from sage.rings.rational_field import QQ
+from sage.rings.real_field import RR
+from sage.rings.complex_field import CC
+I = CC.gen()
 from math import sin
 from math import cos
 from sage.functions.constants import Pi
@@ -74,10 +74,12 @@ pi = Pi()
 from sage.gsl.fft import FastFourierTransform
 from sage.gsl.dwt import WaveletTransform
 
-class IndexedSequence:
-    def __init__(self, list, indexset):
+from sage.structure.sage_object import SageObject
+
+class IndexedSequence(SageObject):
+    def __init__(self, L, index_object):
         r"""
-        \code{indexset} must be a SAGE object with an _iter_ method
+        \code{index_object} must be a SAGE object with an _iter_ method
         containing the same number of elements as self, which is a
         list of elements taken from a field.
 
@@ -85,6 +87,9 @@ class IndexedSequence:
             sage: J = range(10)
             sage: A = [1/10 for j in J]
             sage: s = IndexedSequence(A,J)
+            sage: s
+            Indexed sequence: [1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10]
+                indexed by [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: s.dict()
             {0: 1/10,
              1: 1/10,
@@ -98,17 +103,21 @@ class IndexedSequence:
              9: 1/10}
             sage: s.list()
             [1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10, 1/10]
-            sage: s.index_set()
+            sage: s.index_object()
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
             sage: s.base_ring()
             Rational Field
         """
-        self._base_ring = list[0].parent()
-        self._index_set = indexset
-        self._list = list
+        self._base_ring = L[0].parent()
+        try:
+            ind = index_object.list()
+        except AttributeError:
+            ind = list(index_object)
+        self._index_object = index_object
+        self._list = L
         dict = {}
-        for i in range(len(indexset)):
-            dict[indexset[i]] = list[i]
+        for i in range(len(ind)):
+            dict[ind[i]] = L[i]
         self._dict = dict
 
     def dict(self):
@@ -126,13 +135,10 @@ class IndexedSequence:
         """
         return self._base_ring
 
-    def index_set(self):
-        return self._index_set
+    def index_object(self):
+        return self._index_object
 
-    def __repr__(self):
-        return "Indexed sequence of elements "+str(self.list())+"\n indexed by "+str(self.index_set())
-
-    def __str__(self):
+    def _repr_(self):
         """
         Implements print method.
 
@@ -141,18 +147,19 @@ class IndexedSequence:
             sage: I = range(3)
             sage: s = IndexedSequence(A,I)
             sage: s
-            Indexed sequence of elements [0, 1, 2]
+            Indexed sequence: [0, 1, 2]
              indexed by [0, 1, 2]
             sage: print s
-            Indexed sequence of elements [0, 1, 2] indexed by [0, 1, 2]
+            Indexed sequence: [0, 1, 2]
+             indexed by [0, 1, 2]
             sage: I = GF(3)
             sage: A = [i^2 for i in I]
             sage: s = IndexedSequence(A,I)
             sage: s
-            Indexed sequence of elements [0, 1, 1]
+            Indexed sequence: [0, 1, 1]
              indexed by Finite Field of size 3
         """
-        return "Indexed sequence of elements "+str(self.list())+" indexed by "+str(self.index_set())
+        return "Indexed sequence: "+str(self.list())+"\n    indexed by "+str(self.index_object())
 
     def plot_histogram(self):
         """
@@ -168,7 +175,7 @@ class IndexedSequence:
         Now type show(P) to view this in a browser.
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        I = self.index_set()
+        I = self.index_object()
         N = len(I)
         S = self.list()
         P = [polygon([[RR(I[i]),0],[RR(I[i]),RR(S[i])],[RR(I[i+1]),RR(S[i])],[RR(I[i+1]),0],[RR(I[i]),0]], rgbcolor=(1,0,0)) for i in range(N-1)]
@@ -176,11 +183,12 @@ class IndexedSequence:
 
     def plot(self):
         """
-        Plots the points the sequence, which is assumed to be real
-        or from a finite field, with a real indexing set I = range(len(self)).
+        Plots the points of the sequence, whose elements are assumed
+        to be real or from a finite field, with a real indexing set I
+        = range(len(self)).
 
         EXAMPLES:
-            sage: I = range(3).list()
+            sage: I = range(3)
             sage: A = [ZZ(i^2)+1 for i in I]
             sage: s = IndexedSequence(A,I)
             sage: P = s.plot()
@@ -188,7 +196,7 @@ class IndexedSequence:
         Now type show(P) to view this in a browser.
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        I = self.index_set()
+        I = self.index_object()
         N = len(I)
         S = self.list()
         P = line([[RR(I[i]),RR(S[i])] for i in range(N-1)])
@@ -204,31 +212,33 @@ class IndexedSequence:
             sage: A = [ZZ(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dft(lambda x:x^2)
-            Indexed sequence of elements [6, 0, 0, 6, 0, 0]
+            Indexed sequence: [6, 0, 0, 6, 0, 0]
              indexed by [0, 1, 2, 3, 4, 5]
             sage: s.dft()
-            Indexed sequence of elements [6, 0, 0, 0, 0, 0]
+            Indexed sequence: [6, 0, 0, 0, 0, 0]
              indexed by [0, 1, 2, 3, 4, 5]
             sage: G = SymmetricGroup(3)
             sage: J = G.conjugacy_classes_representatives()
             sage: s = IndexedSequence([1,2,3],J) # 1,2,3 are the values of a class fcn on G
             sage: s.dft()   # the "scalar-valued Fourier transform" of this class fcn
-            Indexed sequence of elements [8, 2, 2]
+            Indexed sequence: [8, 2, 2]
              indexed by [(), (1,2), (1,2,3)]
             sage: J = AbelianGroup(2,[2,3],names='ab')
             sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()
-            Indexed sequence of elements [21.000000000000000,-3.0000000000000027 - 1.7320508075688741*I,-2.9999999999999964 + 1.7320508075688821*I,-9.0000000000000000 + 0.0000000000000020751629580000000*I,0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I,-0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
-             indexed by Multiplicative Abelian Group isomorphic to C2 x C3
+            Indexed sequence: [21.0000000000000, -2.99999999999997 - 1.73205080756885*I, -2.99999999999999 + 1.73205080756888*I, -9.00000000000000 + 0.0000000000000485744257349999*I, -0.00000000000000976996261670137 - 0.0000000000000159872115546022*I, -0.00000000000000621724893790087 - 0.0000000000000106581410364015*I]
+                indexed by Multiplicative Abelian Group isomorphic to C2 x C3
             sage: J = CyclicPermutationGroup(6)
             sage: s = IndexedSequence([1,2,3,4,5,6],J)
             sage: s.dft()
-            Indexed sequence of elements [21.000000000000000, -3.0000000000000027 - 1.7320508075688741*I, -2.9999999999999964 + 1.7320508075688821*I, -9.0000000000000000 + 0.0000000000000020751629580000000*I, 0.0000000000000013322676295501878 - 0.0000000000000026645352591003757*I, -0.00000000000000088817841970012523 - 0.0000000000000026645352591003757*I]
-             indexed by Cyclic group of order 6 as a permutation group
+            Indexed sequence: [21.0000000000000, -2.99999999999997 - 1.73205080756885*I, -2.99999999999999 + 1.73205080756888*I, -9.00000000000000 + 0.0000000000000485744257349999*I, -0.00000000000000976996261670137 - 0.0000000000000159872115546022*I, -0.00000000000000621724893790087 - 0.0000000000000106581410364015*I]
+                indexed by Cyclic group of order 6 as a permutation group
             sage: p = 7; J = range(p); A = [kronecker_symbol(j,p) for j in J]
             sage: s = IndexedSequence(A,J)
             sage: Fs = s.dft()
             sage: c = Fs.list()[1]; [x/c for x in Fs.list()]; s.list()
+            [0, 1, 1, -1, 1, -1, -1]
+            [0, 1, 1, -1, 1, -1, -1]
 
         The DFT of the values of the quadratic residue symbol is itself, up to
         a constant factor (denoted c on the last line above).
@@ -238,7 +248,7 @@ class IndexedSequence:
         implemented Group (permutation, matrix), call .characters()
         and test if the index list is the set of conjugacy classes.
         """
-        J = self.index_set()   ## index set of length N
+        J = self.index_object()   ## index set of length N
         N = len(J)
         S = self.list()
         F = self.base_ring()   ## elements must be coercible into QQ(zeta_N)
@@ -275,19 +285,24 @@ class IndexedSequence:
             sage: J = range(5)
             sage: A = [ZZ(1) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: fs = s.dft()
-            sage: s == fs.idft()
-            1
+            sage: fs = s.dft(); fs
+            Indexed sequence: [5, 0, 0, 0, 0]
+                indexed by [0, 1, 2, 3, 4]
+            sage: it = fs.idft(); it
+            Indexed sequence: [1, 1, 1, 1, 1]
+                indexed by [0, 1, 2, 3, 4]
+            sage: it == s
+            True
         """
         F = self.base_ring()   ## elements must be coercible into QQ(zeta_N)
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)
         S = self.list()
         zeta = CyclotomicField(N).gen()
         iFT = [sum([S[i]*zeta**(-i*j) for i in J]) for j in J]
         if not(J[0] in ZZ) or F.base_ring().fraction_field()!=QQ:
             raise NotImplementedError, "Sorry this type of idft is not implemented yet."
-        return IndexedSequence(iFT,J)*(1/N)
+        return IndexedSequence(iFT,J)*(Integer(1)/N)
 
     def dct(self):
         """
@@ -298,14 +313,11 @@ class IndexedSequence:
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dct()
-            [2.5000000000000004 - 0.00000000000000011102230246251565*I,
-             2.5000000000000004 - 0.00000000000000011102230246251565*I,
-             2.5000000000000004 - 0.00000000000000011102230246251565*I,
-             2.5000000000000004 - 0.00000000000000011102230246251565*I,
-             2.5000000000000004 - 0.00000000000000011102230246251565*I]
+            Indexed sequence: [2.50000000000011 + 0.00000000000000571764857681955*I, 2.50000000000011 + 0.00000000000000571764857681955*I, 2.50000000000011 + 0.00000000000000571764857681955*I, 2.50000000000011 + 0.00000000000000571764857681955*I, 2.50000000000011 + 0.00000000000000571764857681955*I]
+                indexed by [0, 1, 2, 3, 4]
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)
         S = self.list()
         FT = [sum([S[i]*cos(2*pi*i/N) for i in J]) for j in J]
@@ -320,14 +332,11 @@ class IndexedSequence:
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.dst()
-            [0.00000000000000016653345369377348 - 2.5000000000000000*I,
-             0.00000000000000016653345369377348 - 2.5000000000000000*I,
-             0.00000000000000016653345369377348 - 2.5000000000000000*I,
-             0.00000000000000016653345369377348 - 2.5000000000000000*I,
-             0.00000000000000016653345369377348 - 2.5000000000000000*I]
+            Indexed sequence: [0.0000000000000170974345792274 - 2.49999999999915*I, 0.0000000000000170974345792274 - 2.49999999999915*I, 0.0000000000000170974345792274 - 2.49999999999915*I, 0.0000000000000170974345792274 - 2.49999999999915*I, 0.0000000000000170974345792274 - 2.49999999999915*I]
+                indexed by [0, 1, 2, 3, 4]
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)
         S = self.list()
         FT = [sum([S[i]*sin(2*pi*i/N) for i in J]) for j in J]
@@ -362,8 +371,8 @@ class IndexedSequence:
         """
         S = self.list()
         T = other.list()
-        I0 = self.index_set()
-        J0 = other.index_set()
+        I0 = self.index_object()
+        J0 = other.index_object()
         F = self.base_ring()
         E = other.base_ring()
         if F!=E:
@@ -414,8 +423,8 @@ class IndexedSequence:
         """
         S = self.list()
         T = other.list()
-        I = self.index_set()
-        J = other.index_set()
+        I = self.index_object()
+        J = other.index_object()
         F = self.base_ring()
         E = other.base_ring()
         if F!=E:
@@ -446,20 +455,19 @@ class IndexedSequence:
             sage: A = [ZZ(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: s.base_ring()
-             Integer Ring
+            Integer Ring
             sage: t = s*(1/3); t; t.base_ring()
-            Indexed sequence of elements [1/3, 1/3, 1/3, 1/3, 1/3]
-             indexed by [0, 1, 2, 3, 4]
-             Rational Field
-
+            Indexed sequence: [1/3, 1/3, 1/3, 1/3, 1/3]
+                indexed by [0, 1, 2, 3, 4]
+            Rational Field
         """
         S = self.list()
-        J = range(len(self.index_set()))
+        J = range(len(self.index_object()))
         F = self.base_ring()
         #if not(other in F):
         #    raise TypeError,"The base rings must be consistent"
         S1 = [S[i]*other for i in J]
-        return IndexedSequence(S1,self.index_set())
+        return IndexedSequence(S1,self.index_object())
 
     def __eq__(self,other):
         """
@@ -476,17 +484,24 @@ class IndexedSequence:
         WARNING: ** elements are considered different if they differ
         by 10^(-8), which is pretty arbitrary -- use with CAUTION!! **
         """
+        if type(self) != type(other):
+            return False
         S = self.list()
         T = other.list()
-        I = self.index_set()
-        J = other.index_set()
+        I = self.index_object()
+        J = other.index_object()
         F = self.base_ring()
         E = other.base_ring()
         if I!=J:
             return False
         for i in I:
-            if S[i]!=T[i] or abs(S[i]-T[i])> 10**(-8):  ## tests if they differ as reals  -- WHY 10^(-8)???
+            if S[i]!=T[i]:
                 return False
+            try:
+                if abs(S[i]-T[i])> 10**(-8):  ## tests if they differ as reals  -- WHY 10^(-8)???
+                    return False
+            except TypeError:
+                pass
         #if F!=E:               ## omitted this test since it
         #    return 0           ## doesn't take into account coercions  -- WHY???
         return True
@@ -505,12 +520,11 @@ class IndexedSequence:
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Indexed sequence of elements [5.0000000000000000, 0, 0, 0, 0]
+            Indexed sequence: [5.00000000000000, 0, 0, 0, 0]
              indexed by [0, 1, 2, 3, 4]
-
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)
         S = self.list()
         a = FastFourierTransform(N)
@@ -532,16 +546,17 @@ class IndexedSequence:
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.fft(); t
-            Indexed sequence of elements [5.0000000000000000, 0, 0, 0, 0]
-             indexed by [0, 1, 2, 3, 4]
+            Indexed sequence: [5.00000000000000, 0, 0, 0, 0]
+               indexed by [0, 1, 2, 3, 4]
             sage: t.ifft()
-            [(1.0, 0.0), (1.0, 0.0), (1.0, 0.0), (1.0, 0.0), (1.0, 0.0)]
+            Indexed sequence: [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
+                indexed by [0, 1, 2, 3, 4]
             sage: t.ifft() == s
             1
 
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)
         S = self.list()
         a = FastFourierTransform(N)
@@ -574,16 +589,15 @@ class IndexedSequence:
         The wavelet transform uses J=log_2(n) levels.
 
         EXAMPLES:
-            sage: J = range(7)
+            sage: J = range(8)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.dwt(); t
-            Indexed sequence of elements [2.8284271247500001,-0.000000000000000091940344226800001,0.000000000000000085326710974600004, 0.000000000000000085326710974600004, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000, 0.00000000000000000]
-            indexed by [0, 1, 2, 3, 4, 5, 6, 7]
-
+            Indexed sequence: [2.82842712474999, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
+                indexed by [0, 1, 2, 3, 4, 5, 6, 7]
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)             ## must be 1 minus a power of 2
         S = self.list()
         if other=="haar" or other=="haar_centered":
@@ -614,51 +628,50 @@ class IndexedSequence:
           "haar_centered", "bspline", "bspline_centered"}.
         Assumes the length of the sample is a power of 2. Uses the
         GSL function gsl_wavelet_transform_backward.
-        See the above docstring for dwt for further details.
+
+        INPUT:
+            other -- the wavelet_type:   the name of the type of wavelet,
+                                 valid choices are:
+                                 'daubechies','daubechies_centered',
+                                 'haar' (default),'haar_centered',
+                                 'bspline', and 'bspline_centered'.
+
+            wavelet_k -- For daubechies wavelets, wavelet_k specifies a
+                         daubechie wavelet with k/2 vanishing moments.
+                         k = 4,6,...,20 for k even are the only ones implemented.
+                         For Haar wavelets, wavelet_k must be 2.
+                         For bspline wavelets,
+                         wavelet_k = 103,105,202,204,206,208,301,305, 307,309
+                         will give biorthogonal B-spline wavelets of order (i,j) where
+                         wavelet_k=100*i+j.
+
 
         EXAMPLES:
             sage: J = range(8)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
             sage: t = s.dwt(); t
-            Indexed sequence of elements [2.8284271247500001,
-             -0.000000000000000091940344226800001,
-             0.000000000000000085326710974600004,
-             0.000000000000000085326710974600004,
-             0.00000000000000000, 0.00000000000000000,
-             0.00000000000000000, 0.00000000000000000]
-             indexed by [0, 1, 2, 3, 4, 5, 6, 7]
+            Indexed sequence: [2.82842712474999, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
+                indexed by [0, 1, 2, 3, 4, 5, 6, 7]
             sage: t.idwt()
-            Indexed sequence of elements [1.0000000000000000, 1.0000000000000000,
-             1.0000000000000000, 1.0000000000000000, 1.0000000000000000,
-             1.0000000000000000, 1.0000000000000000, 1.0000000000000000]
-             indexed by [0, 1, 2, 3, 4, 5, 6, 7]
+            Indexed sequence: [1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000, 1.00000000000000]
+                indexed by [0, 1, 2, 3, 4, 5, 6, 7]
             sage: t.idwt() == s
-             1
+            True
             sage: J = range(16)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: t = s.dwt("bspline"); t
-             Indexed sequence of elements [4.0000000000000000,
-             -0.00000000000000014333152720300001,
-             -0.000000000000000091940344226800001,
-             -0.000000000000000091940344226800001,
-             0.000000000000000085326710974600004,
-             0.000000000000000085326710974600004,
-             0.000000000000000085326710974600004,
-             0.000000000000000085326710974600004, 0.00000000000000000,
-             0.00000000000000000, 0.00000000000000000,
-             0.00000000000000000, 0.00000000000000000, 0.00000000000000000,
-             0.00000000000000000, 0.00000000000000000]
-             indexed by [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-            sage: t.idwt("bspline") == s
-             1
-
+            sage: t = s.dwt("bspline", 103); t
+            Indexed sequence: [4.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
+                indexed by [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+            sage: t.idwt("bspline", 103) == s
+            True
         """
         F = self.base_ring()   ## elements must be coercible into RR
-        J = self.index_set()   ## must be = range(N)
+        J = self.index_object()   ## must be = range(N)
         N = len(J)             ## must be 1 minus a power of 2
         S = self.list()
+        k = wavelet_k
         if other=="haar" or other=="haar_centered":
             if k in [2]:
                 a = WaveletTransform(N,other,wavelet_k)

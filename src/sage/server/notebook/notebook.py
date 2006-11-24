@@ -543,7 +543,7 @@ class Notebook(SageObject):
         # can be set by user via web interface
         self.__defaults = {'cell_input_color':'#0000000',
                            'cell_output_color':'#0000EE',
-                           'word_wrap_cols':WRAP_NCOLS,
+                           'word_wrap_cols':int(WRAP_NCOLS),
                            'max_history_length':MAX_HISTORY_LENGTH}
 
     def worksheet_directory(self):
@@ -993,6 +993,7 @@ class Notebook(SageObject):
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
+            ('Create New Worksheet', "Use the menu on the left, or simply put a new worksheet name in the URL, e.g., if your notebook is at http://localhost:8000, then visiting http://localhost:8000/tests will create a new worksheet named tests."),
                ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
                 ('Evaluate all cells', 'Click <u>Eval All</u> in the upper right.'),

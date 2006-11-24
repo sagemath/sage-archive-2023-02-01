@@ -22,8 +22,6 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 
 import operator, os, sys, signal, time, weakref, random
 
-from sage.structure.sage_object import SageObject
-
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]

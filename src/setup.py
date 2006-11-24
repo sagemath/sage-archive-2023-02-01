@@ -461,7 +461,8 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
+    #m.sources += ['sage/ext/interrupt.c', 'sage/ext/stdsage.c']
+    m.libraries += ['csage']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -658,8 +659,8 @@ def pyrex(ext_modules):
 
 #############################################
 # Update interrupt.h and stdsage.h files
-os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
+#os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
+#os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
 
 ##########################################
 

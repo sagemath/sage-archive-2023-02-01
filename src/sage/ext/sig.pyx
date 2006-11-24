@@ -1,4 +1,5 @@
 include 'python_exc.pxi'
+include 'stdsage.pxi'
 
 cdef extern from "Python.h":
     PyObject* PyExc_KeyboardInterrupt
@@ -47,4 +48,5 @@ def get_bad_sigs():
     signal(SIGSEGV, sig_handle_sigsegv)
     signal(SIGBUS, sig_handle_sigbus)
     signal(SIGFPE, sig_handle_sigfpe)
+    init_csage()
 

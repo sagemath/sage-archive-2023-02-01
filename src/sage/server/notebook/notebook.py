@@ -636,6 +636,9 @@ class Notebook(SageObject):
 
     def get_worksheet_with_id(self, id):
         """
+        Get the worksheet with given id, which is either a name or the id number.
+        If there is no such worksheet, a KeyError is raised.
+
         INPUT:
             id -- something that identifies a worksheet.
                  None -- use the default worksheet.
@@ -657,7 +660,7 @@ class Notebook(SageObject):
             for W in self.__worksheets.itervalues():
                 if W.name().lower() == id or W.filename().lower() == id:
                     return W
-        return self.default_worksheet()
+        raise KeyError, 'no worksheet %s'%id
 
     def get_worksheet_with_filename(self, filename):
         if id != None:
@@ -1119,7 +1122,8 @@ class Notebook(SageObject):
             try:
                 W = self.get_worksheet_with_id(worksheet_id)
             except KeyError:
-                W = self.default_worksheet()
+                W = self.create_new_worksheet(worksheet_id)
+                #W = self.default_worksheet()
                 worksheet_id = W.id()
 
         if authorized:

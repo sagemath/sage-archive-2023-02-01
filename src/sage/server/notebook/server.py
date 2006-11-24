@@ -525,7 +525,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None,show_debug=False):
         self.send_head()
-        W = notebook.get_worksheet_with_id(worksheet_id)
+        try:
+            W = notebook.get_worksheet_with_id(worksheet_id)
+        except KeyError:
+            W = notebook.create_new_worksheet(worksheet_id)
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
                                        authorized=self.authorize(),
                                        show_debug=show_debug,

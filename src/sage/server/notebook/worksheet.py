@@ -351,6 +351,7 @@ class Worksheet:
             # S.eval(cmd)
             S._send(cmd)   # so web server doesn't lock. -- drawback -- we won't know if something bad happened loading SAGE?!
         except Exception, msg:
+            print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
             raise RuntimeError
@@ -805,7 +806,6 @@ class Worksheet:
                         I = C._before_preparse.split('\n')
                         out = out[:i + len(tb)+1] + '    ' + I[n-2] + out[l:]
         except (ValueError, IndexError), msg:
-            print msg
             pass
         return out
 
@@ -1088,7 +1088,6 @@ class Worksheet:
                             input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input = input[:i+1]
                         except SyntaxError, msg:
-                            print msg
                             pass
                 input = '\n'.join(input)
 

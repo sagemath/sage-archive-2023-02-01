@@ -76,9 +76,11 @@ cdef class Ring(ParentWithGens):
             Laurent Series Ring in t over Rational Field
 
         """
+
         from sage.rings.polynomial_element import is_Polynomial
         if is_Polynomial(x):
             x = str(x)
+
 
         if not isinstance(x, list):
             from sage.rings.polynomial_ring import PolynomialRing

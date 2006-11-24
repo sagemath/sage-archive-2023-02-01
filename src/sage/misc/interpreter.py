@@ -51,15 +51,15 @@ EXAMPLE:
     sage: 2/3
           2/3
     sage: type(2/3)
-          <type 'rational.Rational'>
+          <type 'sage.rings.rational.Rational'>
     sage: a = 49928420832092
     sage: type(a)
-          <type 'integer.Integer'>
+          <type 'sage.rings.integer.Integer'>
     sage: a.factor()
           [(2, 2), (11, 1), (1134736837093, 1)]
     sage: v = [1,2,3]
     sage: type(v[0])
-          <type 'integer.Integer'>
+          <type 'sage.rings.integer.Integer'>
 
 If we don't make potential list indices int's, then lots of stuff
 breaks, or users have to type v[int(7)], which is insane.

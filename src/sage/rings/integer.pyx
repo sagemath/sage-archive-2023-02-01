@@ -594,7 +594,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = <Integer> PY_NEW(Integer)
-        mpz_mul(x.value, self.value, (<Integer>right).value)
+        if  mpz_sizeinbase(self.value, 2) > 1000000:  # some lack of symmetry
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpz_mul(x.value, self.value, (<Integer>right).value)
+            _sig_off
+        else:
+            mpz_mul(x.value, self.value, (<Integer>right).value)
         return x
 
     cdef RingElement _div_c_impl(self, RingElement right):

@@ -563,7 +563,15 @@ cdef class Rational(sage.structure.element.FieldElement):
     cdef RingElement _mul_c_impl(self, RingElement right):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
-        mpq_mul(x.value, self.value, (<Rational>right).value)
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(x.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
     cdef RingElement _div_c_impl(self, RingElement right):

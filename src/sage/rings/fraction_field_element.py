@@ -127,7 +127,7 @@ class FractionFieldElement(field_element.FieldElement):
         s = "%s"%self.__numerator
         if self.__denominator != 1:
             denom_string = str( self.__denominator )
-            if self.__denominator._is_atomic() and denom_string.find( "*" ) < 0 and denom_string.find( "/" ) < 0:
+            if self.__denominator._is_atomic() and not ('*' in denom_string or '/' in denom_string):
                 s = "%s/%s"%(self.__numerator._coeff_repr(no_space=False),denom_string)
             else:
                 s = "%s/(%s)"%(self.__numerator._coeff_repr(no_space=False),denom_string)

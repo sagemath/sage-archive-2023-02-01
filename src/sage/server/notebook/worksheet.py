@@ -31,7 +31,7 @@ import sage.server.support as support
 from cell import Cell
 
 INTERRUPT_TRIES = 30
-INITIAL_NUM_CELLS = 10
+INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
 
@@ -982,7 +982,7 @@ class Worksheet:
         cmd = cmd.replace("'", "\\u0027")
         return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
 
-    def pyrex_import(self, cmd, C):
+    def sagex_import(self, cmd, C):
         # Choice: Can use either C.relative_id() or self.next_block_id().
         # C.relative_id() has the advantage that block evals are cached, i.e.,
         # no need to recompile.  On the other hand tracebacks don't work if
@@ -993,7 +993,7 @@ class Worksheet:
         spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
-        s  = '_support_.pyrex_import_all("%s", globals())'%spyx
+        s  = '_support_.sagex_import_all("%s", globals())'%spyx
         return s
 
     def check_for_system_switching(self, s, C):
@@ -1020,8 +1020,8 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Pyrex code.
-            return True, self.pyrex_import(s[6:].lstrip(), C)
+        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Sagex code.
+            return True, self.sagex_import(s[6:].lstrip(), C)
 
         i = s.find('\n')
         if i == -1:

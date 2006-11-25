@@ -179,15 +179,53 @@ cdef class Parent(sage_object.SageObject):
             pass
         except TypeError:
             self._has_coerce_map_from = {}
+        if HAS_DICTIONARY(self):
+            x = self.has_coerce_map_from_impl(S)
+        else:
+            x = self.has_coerce_map_from_c_impl(S)
+        self._has_coerce_map_from[S] = x
+        return x
+
+    def has_coerce_map_from_impl(self, S):
+        return self.has_coerce_map_from_c_impl(S)
+
+    cdef has_coerce_map_from_c_impl(self, S):
         if not PY_TYPE_CHECK(S, Parent):
             return False
         try:
-            self._coerce_c(S(0))
+            self._coerce_c((<Parent>S)._an_element_c())
         except TypeError:
-            self._has_coerce_map_from[S] = False
             return False
-        self._has_coerce_map_from[S] = True
         return True
+
+    def _an_element_impl(self):     # override this in Python
+        return self._an_element_c_impl()
+
+    cdef _an_element_c_impl(self):  # override this in SageX
+        """
+        Returns an element of self.  It doesn't matter which.
+        """
+        try:
+            return self(0)
+        except TypeError:
+            try:
+                return self(1)
+            except TypeError:
+                pass
+        raise NotImplementedError, "please implement an_element_c_impl or an_element_impl in your parent class"
+
+    def _an_element(self):        # do not override this (call from Python)
+        return self._an_element_c()
+
+    cdef _an_element_c(self):     # do not override this (call from SageX)
+        if not self.__an_element is None:
+            return self.__an_element
+        if HAS_DICTIONARY(self):
+            self.__an_element = self._an_element_impl()
+        else:
+            self.__an_element = self._an_element_c_impl()
+        return self.__an_element
+
 
     ################################################
     # Comparison of parent objects

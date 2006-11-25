@@ -175,7 +175,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         Return the value of this character at the integer $m$.
 
         EXAMPLES:
-            sage: e = prod(DirichletGroup(60).gens())
+            sage: G = DirichletGroup(60)
+            sage: e = prod(G.gens(), G(1))
             sage: e
             [-1, -1, zeta4]
             sage: e(2)
@@ -209,7 +210,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         EXAMPLE:
             sage: e = DirichletGroup(7, QQ).0
-            sage: f = e.change_ring(QuadraticField(3))
+            sage: f = e.change_ring(QuadraticField(3, 'a'))
             sage: f.parent()
             Group of Dirichlet characters of modulus 7 over Number Field in a with defining polynomial x^2 - 3
 
@@ -234,6 +235,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: f == f
             True
             sage: e == f
+            True
+            sage: k = DirichletGroup(7)([-1])
+            sage: k == e
             False
         """
         # E.g., the trivial character of modulus
@@ -370,7 +374,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # very slow field are very slow... (this could change as SAGE
         # evolves).
         if False:
-            R = rings.PowerSeriesRing(K, variable="t")
+            R = rings.PowerSeriesRing(K, "t")
             t = R.gen()
             prec = k+2   # todo: fix this
             F = sum([(self(a) * t * (a*t).exp(prec)) / ((N*t).exp(prec) - 1) \
@@ -382,7 +386,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # This is better since it computes the same thing, but requires
         # no arith in a poly ring over a number field.
         prec = k+2
-        R = rings.PowerSeriesRing(rings.RationalField())
+        R = rings.PowerSeriesRing(rings.QQ, 't')
         t = R.gen()
         # g(t) = t/(e^{Nt}-1)
         g = t/((N*t).exp(prec) - 1)
@@ -452,7 +456,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: d[0]*d[1] == c
             Traceback (most recent call last):
             ...
-            TypeError: unable to find a common parent
+            TypeError: unsupported operand parent(s) for '*': 'Group of Dirichlet characters of modulus 4 over Cyclotomic Field of order 4 and degree 2' and 'Group of Dirichlet characters of modulus 5 over Cyclotomic Field of order 4 and degree 2'
 
         We can multiply if we're explicit about where we want the
         multiplication to take place.
@@ -601,23 +605,23 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: G = DirichletGroup(3)
             sage: e = G.0
             sage: e.gauss_sum_numerical()
-            0.00000000000000055511151231257827 + 1.7320508075688772*I
+            0.000000000000000388578058618804 + 1.73205080756887*I
             sage: abs(e.gauss_sum_numerical())
-            1.7320508075688772
+            1.73205080756887
             sage: sqrt(3)
-            1.7320508075688772
+            1.73205080756887
             sage: e.gauss_sum_numerical(a=2)
-            -0.0000000000000011102230246251565 - 1.7320508075688772*I
+            -0.000000000000000777156117237609 - 1.73205080756887*I
             sage: e.gauss_sum_numerical(a=2, prec=100)
-            0.0000000000000000000000000000047331654313260708324703713916967 - 1.7320508075688772935274463415062*I
+            -0.0000000000000000000000000000094663308626521416649407427833 - 1.7320508075688772935274463415*I
             sage: G = DirichletGroup(13)
             sage: e = G.0
             sage: e.gauss_sum_numerical()
-            -3.0749720589952387 + 1.8826966926190174*I
+            -3.07497205899523 + 1.88269669261901*I
             sage: abs(e.gauss_sum_numerical())
-            3.6055512754639896
+            3.60555127546398
             sage: sqrt(13)
-            3.6055512754639891
+            3.60555127546398
         """
         G = self.parent()
         K = G.base_ring()
@@ -1054,8 +1058,8 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
 
         In this example we create a Dirichlet character with values in a
         number field.  We have to give zeta, but not its order.
-            sage: R = PolynomialRing(QQ); x = R.gen()
-            sage: K = NumberField(x^4 + 1); a = K.gen(0)
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: K.<a> = NumberField(x^4 + 1)
             sage: G = DirichletGroup(5, K, a); G
             Group of Dirichlet characters of modulus 5 over Number Field in a with defining polynomial x^4 + 1
             sage: G.list()
@@ -1163,21 +1167,30 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         if isinstance(x, list):  # list of values on each unit generator
             return DirichletCharacter(self, x)
         elif isinstance(x, DirichletCharacter):  # coercion
-            if x.parent() == self:
+            if x.parent() is self:
                 return x
-            if self.modulus() % x.conductor() != 0:
-                raise TypeError, "conductor (=%s) must divide modulus (=%s)"%(\
-                    x.conductor(), self.modulus())
-            a = []
-            R = self.base_ring()
-            for u in self.unit_gens():
-                v = u.lift()
-                # have to do this, since e.g., unit gens mod 11 are not units mod 22.
-                while arith.GCD(x.modulus(),int(v)) != 1:
-                    v += self.modulus()
-                a.append(R(x(v)))
-            return self(a)
+            elif x.parent() == self:
+                return DirichletCharacter(self, x.__values_on_gens)
+            return self._coerce_in_dirichlet_character(x)
         raise TypeError, "No coercion of %s into %s defined."%(x, self)
+
+    def _coerce_in_dirichlet_character(self, x):
+        if self.modulus() % x.conductor() != 0:
+            raise TypeError, "conductor must divide modulus"
+        a = []
+        R = self.base_ring()
+        for u in self.unit_gens():
+            v = u.lift()
+            # have to do this, since e.g., unit gens mod 11 are not units mod 22.
+            while arith.GCD(x.modulus(),int(v)) != 1:
+                v += self.modulus()
+            a.append(R(x(v)))
+        return self(a)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, DirichletCharacter) and x.modulus() % self.modulus() == 0:
+            return self._coerce_in_dirichlet_character(x)
+        raise TypeError
 
     def __cmp__(self, other):
         """

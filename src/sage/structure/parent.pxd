@@ -13,9 +13,13 @@ cdef class Parent(sage_object.SageObject):
     #########################################
     # Canonical Coercion Methods
     cdef has_coerce_map_from_c(self, S)
+    cdef has_coerce_map_from_c_impl(self, S)
     cdef _coerce_c(self, x)
     cdef _coerce_c_impl(self, x)
     cdef _coerce_self_c(self, x)
+    cdef public object __an_element
+    cdef _an_element_c_impl(self)
+    cdef _an_element_c(self)
 
     ################################################
     # Comparison of parent objects

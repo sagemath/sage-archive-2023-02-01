@@ -99,7 +99,7 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 sequence_number = {}
 
 def sagex(filename, verbose=False, compile_message=False,
-          use_cache=False):
+          use_cache=False, create_local_c_file=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
 
@@ -182,15 +182,13 @@ setup(ext_modules = ext_modules,
 
     sagex_include = ' '.join(['-I %s'%x for x in includes])
 
-    target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
+    cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err '%(build_dir, sagex_include, name)
 
-    if language == 'c++':
-        target_c = target_c + "pp"
-
-
-
-    cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, sagex_include, name,
-                                                                  name, target_c)
+    if create_local_c_file:
+        target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
+        if language == 'c++':
+            target_c = target_c + "pp"
+        cmd += ' && cp %s.c %s'%(name, target_c)
 
     if verbose:
         print cmd

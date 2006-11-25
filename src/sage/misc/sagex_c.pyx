@@ -31,6 +31,7 @@ def sagex(code,
     open(tmpfile,'w').write(code)
     sage.server.support.sagex_import_all(tmpfile, globals(),
                                          verbose=verbose, compile_message=compile_message,
-                                         use_cache=use_cache)
+                                         use_cache=use_cache,
+                                         create_local_c_file=False)
 
 

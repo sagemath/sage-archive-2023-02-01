@@ -291,7 +291,7 @@ import sys
 import __builtin__
 
 def sagex_import(filename, verbose=False, compile_message=False,
-                 use_cache=False):
+                 use_cache=False, create_local_c_file=True):
     """
     INPUT:
         filename -- name of a file that contains sagex code
@@ -303,13 +303,14 @@ def sagex_import(filename, verbose=False, compile_message=False,
     """
     name, build_dir = sage.misc.sagex.sagex(filename, verbose=verbose,
                                             compile_message=compile_message,
-                                            use_cache=use_cache)
+                                            use_cache=use_cache,
+                                            create_local_c_file=create_local_c_file)
     sys.path.append(build_dir)
     return __builtin__.__import__(name)
 
 
 def sagex_import_all(filename, globals, verbose=False, compile_message=False,
-                     use_cache=False):
+                     use_cache=False, create_local_c_file=True):
     """
     INPUT:
         filename -- name of a file that contains sagex code
@@ -321,7 +322,8 @@ def sagex_import_all(filename, globals, verbose=False, compile_message=False,
     Raises an ImportError exception if anything goes wrong.
     """
     m = sagex_import(filename, verbose=verbose, compile_message=compile_message,
-                     use_cache=use_cache)
+                     use_cache=use_cache,
+                     create_local_c_file=create_local_c_file)
     for k, x in m.__dict__.iteritems():
         if k[0] != '_':
             globals[k] = x

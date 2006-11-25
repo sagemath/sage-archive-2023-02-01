@@ -27,9 +27,15 @@ AUTHORS:
 #*****************************************************************************
 
 import os
-import pexpect
 import weakref
 import time
+
+########################################################
+# Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
+# For reasons I don't understand, pexpect2.1 is much
+# worse than pexpect 2.0 for everything SAGE does.
+########################################################
+import pexpect
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
@@ -50,13 +56,15 @@ failed_to_start = []
 
 tmp='%s/tmp'%SAGE_TMP_INTERFACE
 
-def _absolute(cmd):
-    c = cmd.split()
-    s  = c[0]
-    t = os.popen('which %s'%s).read().strip()
-    if len(t) == 0:
-        raise RuntimeError
-    return ' '.join([t] + c[1:])
+## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
+## it should not be necessary or used anyways.
+## def _absolute(cmd):
+##     c = cmd.split()
+##     s  = c[0]
+##     t = os.popen('which %s'%s).read().strip()
+##     if len(t) == 0:
+##         raise RuntimeError
+##     return ' '.join([t] + c[1:])
 
 
 class Expect(ParentWithBase):
@@ -218,7 +226,7 @@ class Expect(ParentWithBase):
         """
         return ''
 
-    def _start(self, alt_message=None):
+    def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
         if self.__name in failed_to_start:
@@ -234,12 +242,13 @@ class Expect(ParentWithBase):
             os.makedirs(dir)
         os.chdir(dir)
 
-        try:
-            cmd = _absolute(self.__command)
-        except RuntimeError:
-            failed_to_start.append(self.__name)
-            raise RuntimeError, "%s\nCommand %s not available."%(
-                 self._install_hints(), self.__name)
+        cmd = self.__command
+##         try:
+##             cmd = _absolute(self.__command)
+##         except RuntimeError:
+##             failed_to_start.append(self.__name)
+##             raise RuntimeError, "%s\nCommand %s not available."%(
+##                  self._install_hints(), self.__name)
 
         if self.__verbose_start:
             print "Starting %s"%cmd.split()[0]
@@ -269,8 +278,12 @@ class Expect(ParentWithBase):
             print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
-        for X in self.__init_code:
-            self.eval(X)
+        if block_during_init:
+            for X in self.__init_code:
+                self.eval(X)
+        else:
+            for X in self.__init_code:
+                self._send(X)
 
     def clear_prompts(self):
         while True:

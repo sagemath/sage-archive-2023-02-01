@@ -155,9 +155,9 @@ class Factorization(SageObject, list):
             mul += '\n'
         for i in range(len(self)):
             t = str(self[i][0])
-            if len(self) > 1 and not atomic  and ('+' in t or '-' in t or ' ' in t):
-                t = '(%s)'%t
             n = self[i][1]
+            if (n>1 or len(self) > 1 or self.__unit != 1) and not atomic  and ('+' in t or '-' in t or ' ' in t):
+                t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
             s += t

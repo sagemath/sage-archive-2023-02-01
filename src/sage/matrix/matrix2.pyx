@@ -530,7 +530,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
             sage: A.fcp()
-            (x^3 - 8*x^2 + 209/5*x - 286)
+            x^3 - 8*x^2 + 209/5*x - 286
             sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
             sage: A.fcp('T')
             (T - 3) * T * (T + 2)

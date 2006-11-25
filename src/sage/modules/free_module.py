@@ -2140,6 +2140,9 @@ class FreeModule_ambient(FreeModule_generic):
         """
         Compare self and other.
 
+        Modules are ordered by their ambient spaces, then by
+        dimension, then in order by their echelon matrices.
+
         EXAMPLES:
         We compare rank three free modules over the integers and rationals:
             sage: Q = QQ; Z = ZZ
@@ -2627,8 +2630,13 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
 
     def __cmp__(self, other):
         r"""
-        Compare self and other.  If self and other are in a common ambient space,
-        then self <= other is True if self is contained in other.
+        Compare self and other.
+
+        Modules are ordered by their ambient spaces, then by
+        dimension, then in order by their echelon matrices.
+
+        NOTE: Use the \code{is_submodule} to determine if one module
+        is a submodule of another.
 
         EXAMPLES:
         First we compare two equal vector spaces.
@@ -2663,18 +2671,22 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             return cmp(type(self), type(other))
         c = cmp(self.ambient_vector_space(), other.ambient_vector_space())
         if c: return c
+        c = cmp(self.dimension(), other.dimension())
+        if c: return c
         # We use self.echelonized_basis_matrix() == other.echelonized_basis_matrix()
         # with the matrix to avoid a circular reference.
-        if self.base_ring() == other.base_ring() and \
-               self.echelonized_basis_matrix() == other.echelonized_basis_matrix():
-            return 0
-        try:
-            if self.is_submodule(other):
-                return -1
-            else:
-                return 1
-        except NotImplementedError:
-            return 1
+        return cmp(self.echelonized_basis_matrix(), other.echelonized_basis_matrix())
+
+##         if self.base_ring() == other.base_ring() and \
+##                self.echelonized_basis_matrix() == other.echelonized_basis_matrix():
+##             return 0
+##         try:
+##             if self.is_submodule(other):
+##                 return -1
+##             else:
+##                 return 1
+##         except NotImplementedError:
+##             return 1
 
     def _denominator(self, B):  # for internal use only!
         if len(B) == 0:

@@ -778,7 +778,7 @@ function cell_input_minimize_size(cell_input) {
     var sl = w.slice(0,5);
     if (sl == '%hide') {
         cell_input.className = 'cell_input_hide';
-        cell_input.style.height = '1.5em';
+        cell_input.style.height = '1em';
         return;
     }
 

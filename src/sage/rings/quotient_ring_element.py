@@ -23,37 +23,35 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
+
 import operator
 
 import ring_element
 import quotient_ring
 
-from sage.rings.coerce import bin_op
-
-from sage.structure.all import Element_cmp_
-
-class QuotientRingElement(Element_cmp_, ring_element.RingElement):
+class QuotientRingElement(ring_element.RingElement):
     """
     An element of a quotient ring $R/I$.
 
     EXAMPLES:
         sage: R.<x> = PolynomialRing(ZZ)
-        sage: S = R/(4 + 3*x + x^2, 1 + x^2); S
+        sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
         Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
         sage: v = S.gens(); v
-        (x,)
+        (xbar,)
 
-        sage: loads(v[0].dumps()) == v[0]  # todo: not implemented
+        sage: loads(v[0].dumps()) == v[0]
         True
 
         sage: R.<x,y> = PolynomialRing(QQ, 2)
-        sage: S = R/(x^2 + y^2); S
+        sage: S = R.quo(x^2 + y^2); S
         Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
         sage: S.gens()
-        (x, y)
+        (xbar, ybar)
 
     We name each of the generators.
-        sage: S.<a,b> = R/(x^2 + y^2)
+        sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: a
         a
         sage: b
@@ -90,12 +88,14 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
         raise NotImplementedError
 
     def _repr_(self):
+        from sage.structure.parent_gens import localvars
         P = self.parent()
         R = P.cover_ring()
-        tmp = R._names_from_obj(P)
-        s = str(self.__rep)
-        R._names_from_obj(tmp)
-        return s
+        # We print by temporarily (and safely!) changing the variable
+        # names of the covering structure R to those of P.
+        # These names get changed back, since we're using "with".
+        with localvars(R, P.variable_names(), normalize=False):
+            return str(self.__rep)
 
     def _add_(self, right):
         return QuotientRingElement(self.parent(), self.__rep + right.__rep)
@@ -149,22 +149,22 @@ class QuotientRingElement(Element_cmp_, ring_element.RingElement):
     def __float__(self):
         return float(self.lift())
 
-    def _cmp_(self, other):
-        if (self.__rep - other.__rep) in self.parent().defining_ideal():
+    def __cmp__(self, other):
+        if self.__rep == other.__rep or ((self.__rep - other.__rep) in self.parent().defining_ideal()):
             return 0
         return -1
 
     def lt(self):
-        return self.__rep.lt()
+        return QuotientRingElement(self.parent(),self.__rep.lt())
 
     def lm(self):
-        return self.__rep.lm()
+        return QuotientRingElement(self.parent(),self.__rep.lm())
 
     def lc(self):
-        return self.__rep.lc()
+        return QuotientRingElement(self.parent(),self.__rep.lc())
 
     def variables(self):
-        return self.__rep.variables()
+        return [QuotientRingElement(self.parent(),v) for v in self.__rep.variables()]
 
     def monomials(self):
-        return self.__rep.monomials()
+        return [QuotientRingElement(self.parent(),m) for m in self.__rep.monomials()]

@@ -34,7 +34,7 @@ import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
 import sage.modular.modsym.element
-import sage.structure.gens as gens
+import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence
@@ -52,44 +52,24 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         Compare self and other.
         """
         if not isinstance(other, ModularSymbolsSpace):
-            return -1
-        if self.__group > other.__group:
-            return -1
-        elif self.__group < other.__group:
-            return 1
-        elif self.weight() < other.weight():
-            return -1
-        elif self.weight() > other.weight():
-            return 1
-        elif self.__character < other.__character:
-            return -1
-        elif self.__character > other.__character:
-            return 1
-        elif self.__sign < other.__sign:
-            return -1
-        elif self.__sign > other.__sign:
-            return 1
-        elif self.base_ring() < other.base_ring():
-            return -1
-        elif self.base_ring() > other.base_ring():
-            return 1
-        if self.is_ambient() == other.is_ambient():
+            return cmp(type(self), type(other))
+        c = cmp(self.__group,other.__group)
+        if c: return c
+        c = cmp(self.__weight, other.__weight)
+        if c: return c
+        c = cmp(self.__character, other.__character)
+        if c: return c
+        c = cmp(self.__sign, other.__sign)
+        if c: return c
+        c = cmp(self.base_ring(), other.base_ring())
+        if c: return c
+        if self.is_ambient() and other.is_ambient():
             return 0
-        if self.ambient_hecke_module() < other.ambient_hecke_module():
-            return -1
-        elif self.ambient_hecke_module() > other.ambient_hecke_module():
-            return 1
+        c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
+        if c: return c
 
         # ambients same and at most one of the two spaces is ambient
-        if self.rank() < other.rank():
-            return -1
-        elif self.rank() > other.rank():
-            return 1
-
-        # neither is ambient; but they're in the same ambient space
-        if self.free_module() == other.free_module():
-            return 0
-        return -1
+        return cmp(self.free_module(), other.free_module())
 
     def character(self):
         return self.__character
@@ -461,7 +441,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [ 0  0  1  0 -2]
 
         An example that (somewhat spuriously) is over a number field:
-            sage: M = ModularSymbols(11, base_ring=NumberField(x^2+1), sign=1).cuspidal_submodule()
+            sage: k = NumberField(x^2+1, 'a')
+            sage: M = ModularSymbols(11, base_ring=k, sign=1).cuspidal_submodule()
             sage: M.q_expansion_module(5, QQ)
             Vector space of degree 5 and dimension 1 over Rational Field
             Basis matrix:
@@ -492,7 +473,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [  0   0   0   0   1  -4   4]
 
         An example involving an eigenform rational over the base, but the base is not QQ.
-            sage: M = ModularSymbols(23, base_ring=NumberField(x^2-5), sign=1).cuspidal_submodule()
+            sage: k.<a> = NumberField(x^2-5)
+            sage: M = ModularSymbols(23, base_ring=k, sign=1).cuspidal_submodule()
             sage: D = M.decomposition(); D
             [
             Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(23) of weight 2 with sign 1 over Number Field in a with defining polynomial x^2 - 5,

@@ -434,11 +434,11 @@ def lucas_number2(n,P,Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     The case P=1, Q=-1 is the Lucas sequence in Brualdi's
     {\bf Introductory Combinatorics}, 4th ed., Prentice-Hall, 2004:
@@ -487,7 +487,7 @@ def stirling_number2(n,k):
         sage: n = stirling_number2(20,11); n
         1900842429486
         sage: type(n)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
     """
     return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
 
@@ -706,7 +706,7 @@ def tuples(S,k):
 	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
          ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
 	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
-	sage: mset = [x for x in GF(4) if x!=0]
+	sage: mset = [x for x in GF(4,'a') if x!=0]
 	sage: tuples(mset,2)
         [[1, 1],
          [a, 1],

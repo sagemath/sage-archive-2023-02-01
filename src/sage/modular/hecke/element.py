@@ -57,16 +57,17 @@ class HeckeModuleElement(sage.modules.module_element.ModuleElement):
     def ambient_module(self):
         return self.parent().ambient_module()
 
-    def __mul__(self, right):
-        return self.parent()(self.element()*right)
+    def _lmul_(self, x):
+        return self.parent()(self.element()*x)
 
-    def __neg__(self):
+    def _rmul_(self, x):
+        return self.parent()(x * self.element())
+
+    def _neg_(self):
         return self.parent()(-self.element())
 
-    def __pos__(self):
+    def _pos_(self):
         return self
 
-    def __sub__(self, right):
-        if self.parent() != right.parent():
-            raise ArithmeticError, "parents must be the same"
+    def _sub_(self, right):
         return self.parent()(self.element() - right.element())

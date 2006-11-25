@@ -263,7 +263,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     def dual_free_module(self):
         return self.free_module()
 
-    def fcp(self, n):
+    def fcp(self, n, var='x'):
         """
         Returns the factorization of the characteristic polynomial of
         the Hecke operator $T_n$ of index $n$.
@@ -272,6 +272,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
            ModularSymbols self -- space of modular symbols invariant
                                    under the Hecke operator of index n.
            int n -- a positive integer.
+           var -- variable of polynomiall
 
         OUTPUT:
            list -- list of the pairs (g,e), where g is an irreducible
@@ -282,13 +283,13 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: m = ModularSymbols(23, 2, sign=1)
             sage: m.fcp(2)
             (x - 3) * (x^2 + x - 1)
-            sage: m.hecke_operator(2).charpoly().factor()
+            sage: m.hecke_operator(2).charpoly('x').factor()
             (x - 3) * (x^2 + x - 1)
         """
         n = int(n)
         if n <= 0:
             raise ArithmeticError, "n (=%s) must be positive"%n
-        return self.hecke_operator(n).fcp()
+        return self.hecke_operator(n).fcp(var)
 
     def free_module(self):
         """

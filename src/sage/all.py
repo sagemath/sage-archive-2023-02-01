@@ -3,11 +3,14 @@ all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
 """
 
-#*****************************************************************************
+from __future__ import with_statement
+
+
+###############################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,7 +22,7 @@ all.py -- much of sage is imported into this module, so you don't
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+###############################################################################
 
 # Error message that matches the SAGE/IPython defaults
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
@@ -73,11 +76,11 @@ from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
-import sage.edu.all   as edu
+import sage.edu.all      as edu
 
 from sage.plot.all       import *
 from sage.coding.all     import *
-from sage.combinat.all     import *
+from sage.combinat.all   import *
 
 from sage.lfunctions.all import *
 
@@ -244,4 +247,9 @@ def _quit_sage_(self):
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
+from sage.ext.interactive_constructors_c import inject_on, inject_off
 
+from catalogue import cat
+
+import sage.ext.sig
+sage.ext.sig.get_bad_sigs()

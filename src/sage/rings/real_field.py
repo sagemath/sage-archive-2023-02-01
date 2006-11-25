@@ -1,7 +1,5 @@
 """
 Field of Arbitrary Precision Real Numbers
-
-PYREX: sage.rings.mpfr
 """
 
 from sage.rings.real_mpfr import (RealField, RR, RealNumber as RealNumberClass,

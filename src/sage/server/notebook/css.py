@@ -781,7 +781,7 @@ div.worksheet {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid <color1>;
+  border-left: 2px solid <color1>;
   top: 70px;
   bottom: 0ex;
   right: 0ex;
@@ -853,19 +853,20 @@ div.cell_visible {
 }
 
 div.cell_evaluated {
-    border-left: 2px solid white;
+    border-left: 3px solid white;
     padding-left:3px;
 }
 
 div.cell_not_evaluated {
-    border-left: 2px dotted red;
+/*    border-left: 2px dotted green; */
+    border-left: 2px solid black;
     padding-left:3px;
 }
 
 td.cell_number {
-   font-size:8pt;
+   font-size:12pt;
    font-family:arial, monospace;
-   color:#999999;
+   color:#bbbbbb;
    text-align:left;
 }
 
@@ -875,23 +876,37 @@ td.cell_number:hover {
 }
 
 td.cell_number_running {
-   font-size:10pt;
+   font-size:12pt;
+   font-family:arial, monospace;
+   color:#bbbbbb;
+   background-color: ccffcc;
+/*   background-color: lightgreen;  */
+   text-align:left;
+
+   /* background-color:#990000;  */
+/*   font-size:10pt;
    font-family:arial, monospace;
    color:#006400;
    text-align:left;
    cursor:pointer;
    text-decoration:blink;
+   */
+}
+
+td.cell_number_running:hover {
+  cursor:wait;
 }
 
 td.output_cell {
    width:100%;
+   height:3px;
 }
 
 div.cellbox {
   z-index:2;
   background-color: white;
   padding-left: .5em;
-  padding-top: 1.5em;
+  padding-top: 4em;
 }
 
 pre.cell_input_pre {
@@ -903,29 +918,35 @@ pre.cell_input_pre {
   padding-left:0px;
   padding-top:0px;
   padding-bottom:0px;
+  margin:0px;
+  display:inline;
   width: 100%;
 }
 
 textarea.cell_input {
   background-color: white;
   border: 0px solid white;
-  border-left: 1px dotted black;
+  border-left: 2px solid green;
   font-family: courier, monospace;
   font-size:12pt;
-  overflow:hidden;
-  padding-left:3px;
-  padding-top:0px;
+/*  overflow:hidden; */
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
   padding-bottom:0px;
-  /* width: 100%;  */
-  width:400%;
+/*  margin:0px; */
+  width: 100%;
+  margin-bottom:0px;
+  margin-top:0px;
 }
 
 textarea.cell_input_hide {
   background-color: white;
   color:#cccccc;
   border: 0px solid white;
-  border-top: 1px solid #aaaaff;
+/*  border-top: 1px solid #aaaaff;
   border-bottom: 1px solid #aaaaff;
+  */
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -933,57 +954,77 @@ textarea.cell_input_hide {
   padding-top:0px;
   padding-bottom:0px;
   width: 100%;
-  height:1.2em;
+  height:1.5em;
+  margin:0px;
 }
 
 textarea.cell_input_active {
   background-color: white;
-  border: 1px solid #8888fe;
+/*  border: 0px solid white; */
+  border-top: 2px solid #8888fe;
+  border-left: 2px solid #8888fe;
+  border-bottom: 0px solid white;
+  border-right: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:auto;
-  padding-left:3px;
-  padding-top:0px;
+  padding-left:5px;
+  padding-top:3px;
   padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
   width: 100%;
 }
 
+/*textarea.cell_input_active {
+  background-color: white;
+  border: 3px solid #8888fe;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:3px;
+  width: 100%;
+}
+*/
 
 
 /************ CELL OUTPUT **************************/
-/* This is complicated and redundant but it makes
-   the other Python and Javascript code way simpler,
-   and you have a lot of options for customizability. */
 
 div.cell_output {
   font-family: courier, monospace;
   font-size:12pt;
   width: 95%;
-  margin: 0px;
-  padding: 0px;
+  margin-top:-5px;
+  margin-bottom:5px;
+  padding-bottom:5px;
+
  /* border-left: 1px solid #aaaaff;  */
 }
 
 table.cell_output_box {
   margin:0px;
   padding:0px;
-/*  border: 1px solid <color1>; */
-  border-top:1px solid <color1>;
-  border-bottom:2px solid <color2>;
 }
 
-table.cell_output_box:hover {
+/*table.cell_output_box:hover {
   background-color: #fafafa;
+}
+*/
+
+div.cell_output_wrap {
+  font-size:12pt;
+  margin:0px;
+  padding-left:0px;
+  color:#0000cc;
 }
 
 span.cell_output_wrap {
-/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000099;
-/*  padding-left:3px; */
-  /*  background-color: #fbeefb; */
+  color:#0000cc;
 }
 span.cell_output_nowrap {
   display:none;
@@ -994,16 +1035,13 @@ span.cell_output_hidden {
 
 
 span.cell_output_nowrap_wrap {
-  display:none;
+ display:none;
 }
 span.cell_output_nowrap_nowrap {
-/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000099;
-/*  padding-left:3px;   */
-/*  background-color: #fbeefb;   */
+  color:#0000cc;
 }
 span.cell_output_nowrap_hidden {
   display:none;
@@ -1013,12 +1051,10 @@ span.cell_output_html_wrap {
   font-family: courier, monospace;
   font-size:12pt;
 }
-
 span.cell_output_html_nowrap {
   font-family: courier, monospace;
   font-size:12pt;
 }
-
 span.cell_output_html_hidden {
    display:none;
 }
@@ -1027,23 +1063,20 @@ div.cell_output_running {
   font-family: courier, monospace;
   font-size:12pt;
   width: 100%;
-  margin: 0px;
-  /* border-left: 2px solid #880000;  */
-  /* background-color: #eeeeee; */
-/*  padding-left:3px;*/
-  /* background-color:#98fb98; */
-  background-color:#d8fbe8;
+  margin:0px;
+  background-color:#ffffff;
+  padding:0px;
 }
 
 div.cell_output_running:hover {
-  /*  cursor:wait;*/
+  cursor:wait;
 }
 
 
 div.cell_output_hidden {
   width: 100%;
   height: 3px;
-  margin: 0px;
+  margin:0px;
   border-left: 4em solid #aaaaaa;
 /*   border-top: 1px solid <color1>;
   border-bottom: 1px solid <color1>;
@@ -1071,11 +1104,13 @@ div.insert_new_cell {
   width:100%;
   /* border-top: 4px solid white; */
   display:block;
+  margin:3px;
 }
 
 div.insert_new_cell:hover {
   /* border-top: 4px solid #000000; */
-  background-color: #000000;
+  background-color: #8888fe;  /* #000000; */
+  margin:3px;
   /* background-color:#eeeeee; */
 }
 
@@ -1133,6 +1168,11 @@ span.red{
 }
 
 
+/***********************************************************/
+/*                     wiki css styling                    */
+/***********************************************************/
+
+
 
 """
     if color == 'gmail':
@@ -1142,9 +1182,11 @@ span.red{
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default' or color == None:
-        color1 = '#aaaaff'
+        color1 = '#dcdcdc'
+        color2 = '#cccccc'
+        #color1 = '#aaaaff'
         #color2 = '#b5edbc'
-        color2 = '#6cc755'
+        #color2 = '#6cc755'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

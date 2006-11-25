@@ -26,6 +26,8 @@ from principal_ideal_domain import PrincipalIdealDomain, is_PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain, is_EuclideanDomain
 from field import Field, is_Field, is_PrimeField
 
+from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+
 # Ring element base classes
 from ring_element import RingElement, is_RingElement
 from commutative_ring_element import CommutativeRingElement, is_CommutativeRingElement
@@ -43,7 +45,7 @@ from ideal import Ideal, is_Ideal
 from quotient_ring import QuotientRing
 
 # Class Infinity containing the one element infinity
-from infinity import infinity, is_Infinity
+from infinity import infinity, is_Infinity, InfinityRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
@@ -89,12 +91,12 @@ Complexes = ComplexField
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 # Univariate Polynomial Rings
-from polynomial_ring import PolynomialRing, polygen, is_PolynomialRing
+from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
 from polynomial_element import Polynomial, is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
-from multi_polynomial_element import MPolynomial, degree_lowest_rational_function, is_MPolynomialRingElement
+from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing

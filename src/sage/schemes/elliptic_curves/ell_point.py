@@ -167,17 +167,17 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: RR = h.parent()
             sage: RR.scientific_notation(True)
             sage: h
-            -1.4246355279999999e-248          # 32-bit
+            -1.42463552800000e-248            # 32-bit
             -3.0999021078264000e-691          # 64-bit
             sage: Q = 5*P
             sage: Q.height()
-            0.0000000000000000e-1
+            0.00000000000000e-1
 
             sage: E = EllipticCurve('37a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: P = E([0,0])
             sage: P.height()
-            5.1111408239968840e-2
+            5.11114082399688e-2
             sage: P.order()
             Infinity
             sage: E.regulator()      # slightly random output

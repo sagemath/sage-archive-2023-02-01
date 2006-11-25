@@ -1,7 +1,5 @@
-"""
+r"""
 Rational Numbers
-
-PYREX: sage.rings.rational
 
 AUTHORS:
     -- William Stein (2005): first version
@@ -22,6 +20,9 @@ AUTHORS:
 ###########################################################################
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
+include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
+
 
 import operator
 
@@ -29,20 +30,21 @@ from sage.misc.mathml import mathml
 
 import sage.misc.misc as misc
 import sage.rings.rational_field
-import sage.rings.coerce
 import sage.libs.pari.all
 
 cimport integer
 import integer
 
+from sage.structure.element cimport RingElement, ModuleElement
+from sage.structure.element import bin_op
+
 import sage.rings.real_mpfr
 
 cimport sage.ext.arith
 import  sage.ext.arith
+
 cdef sage.ext.arith.arith_int ai
 ai = sage.ext.arith.arith_int()
-
-include "../ext/gmp.pxi"
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -62,7 +64,7 @@ cdef public void set_from_Integer(Rational self, integer.Integer other):
 
 cdef object Rational_mul_(Rational a, Rational b):
     cdef Rational x
-    x = Rational()
+    x = <Rational> PY_NEW(Rational)
 
     _sig_on
     mpq_mul(x.value, a.value, b.value)
@@ -72,7 +74,7 @@ cdef object Rational_mul_(Rational a, Rational b):
 
 cdef object Rational_div_(Rational a, Rational b):
     cdef Rational x
-    x = Rational()
+    x = <Rational> PY_NEW(Rational)
 
     _sig_on
     mpq_div(x.value, a.value, b.value)
@@ -82,7 +84,7 @@ cdef object Rational_div_(Rational a, Rational b):
 
 cdef Rational_add_(Rational self, Rational other):
     cdef Rational x
-    x = Rational()
+    x = <Rational> PY_NEW(Rational)
     _sig_on
     mpq_add(x.value, self.value, other.value)
     _sig_off
@@ -90,7 +92,7 @@ cdef Rational_add_(Rational self, Rational other):
 
 cdef Rational_sub_(Rational self, Rational other):
     cdef Rational x
-    x = Rational()
+    x = <Rational> PY_NEW(Rational)
 
     _sig_on
     mpq_sub(x.value, self.value, other.value)
@@ -221,34 +223,30 @@ cdef class Rational(sage.structure.element.FieldElement):
         return [ self ]
 
 
+    def __richcmp__(left, right, int op):
+        """
+        EXAMPLES:
+            sage: 1/3 < 2/3
+            True
+            sage: 2/3 < 1/3
+            False
+            sage: 4/5 < 2.0
+            True
+            sage: 4/5 < 0.8
+            False
+        """
+        return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef cmp(Rational self, Rational x):
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int i
-        i = mpq_cmp(self.value, x.value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
-
-    def __cmp__(self, x):
-        return self.cmp(x)
-
-    def __richcmp__(Rational self, right, int op):
-        cdef int n
-        if not isinstance(right, Rational):
-            try:
-                n = sage.rings.coerce.cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return self._rich_to_bool(op, n)
+        i = mpq_cmp((<Rational>left).value, (<Rational>right).value)
+        if i < 0: return -1
+        elif i == 0: return 0
+        else: return 1
 
     def copy(self):
         cdef Rational z
-        z = Rational()
+        z = <Rational> PY_NEW(Rational)
         mpq_set(z.value, self.value)
         return z
 
@@ -349,24 +347,24 @@ cdef class Rational(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: x = 23/2
             sage: x.sqrt()
-            3.3911649915626341
+            3.39116499156263
             sage: x = 32/5
             sage: x.sqrt()
-            2.5298221281347035
+            2.52982212813470
             sage: x = 16/9
             sage: x.sqrt()
             4/3
             sage: x.sqrt(53)
-            1.3333333333333333
+            1.33333333333333
             sage: x = 9837/2
             sage: x.sqrt()
-            70.132018365365752
+            70.1320183653657
             sage: x = 645373/45
             sage: x.sqrt()
-            119.75651223303984
+            119.756512233039
             sage: x = -12/5
             sage: x.sqrt()
-            1.5491933384829668*I
+            1.54919333848296*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
@@ -486,7 +484,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         _sig_on
         mpq_get_str(s, base, self.value)
         _sig_off
-        k = PyString_FromString(s)
+        k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
 
@@ -540,68 +538,69 @@ cdef class Rational(sage.structure.element.FieldElement):
         if valid != 0:
             raise ValueError, "invalid literal:" + s
 
-    def __add_(Rational self, Rational other):
+    ################################################################
+    # Optimized arithmetic
+    ################################################################
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_add(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_add(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __add__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__add_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.add)
-
-    def __sub_(Rational self, Rational other):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_sub(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_sub(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __sub__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__sub_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.sub)
-
-    def __mul_(Rational self, Rational other):
+    cdef ModuleElement _neg_c_impl(self):
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_mul(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_neg(x.value, self.value)
         return x
 
-    def __mul__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__mul_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.mul)
+    cdef RingElement _mul_c_impl(self, RingElement right):
+        cdef Rational x
+        x = <Rational> PY_NEW(Rational)
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(x.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(x.value, self.value, (<Rational>right).value)
+        return x
 
-    def __div_(Rational self, Rational other):
-        if not other:
+    cdef RingElement _div_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: 2/3
+            2/3
+            sage: 3/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Rational division by zero
+        """
+        if mpq_cmp_si((<Rational> right).value, 0, 1) == 0:
             raise ZeroDivisionError, "Rational division by zero"
         cdef Rational x
-        x = Rational()
-        _sig_on
-        mpq_div(x.value, self.value, other.value)
-        _sig_off
+        x = <Rational> PY_NEW(Rational)
+        mpq_div(x.value, self.value, (<Rational>right).value)
         return x
 
-    def __div__(x, y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x.__div_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.div)
+    ################################################################
+    # Other arithmetic operations.
+    ################################################################
 
     def __invert__(self):
         if self.is_zero():
             raise ZeroDivisionError, "rational division by zero"
         cdef Rational x
-        x = Rational()
-        _sig_on
+        x = <Rational> PY_NEW(Rational)
         mpq_inv(x.value, self.value)
-        _sig_off
         return x
 
     def __pow__(self, n, dummy):
@@ -629,7 +628,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             _n = integer.Integer(n)
         except TypeError:
             raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
-        x = Rational()
+        x = <Rational> PY_NEW(Rational)
         cdef mpz_t num, den
 
         _sig_on
@@ -650,7 +649,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __neg__(self):
         cdef Rational x
-        x = Rational()
+        x = <Rational> PY_NEW(Rational)
         mpq_neg(x.value, self.value)
         return x
 
@@ -659,13 +658,12 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __abs__(self):
         cdef Rational x
-        x = Rational()
+        x = <Rational> PY_NEW(Rational)
         mpq_abs(x.value, self.value)
         return x
 
     def mod_ui(Rational self, unsigned long int n):
         cdef unsigned int num, den, a
-        cdef Rational x
 
         # Documentation from GMP manual:
         # "For the ui variants the return value is the remainder, and
@@ -715,7 +713,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return self
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         Return the characteristic polynomial of this rational number.
         This will always be just x - self; this is really here
@@ -723,14 +721,14 @@ cdef class Rational(sage.structure.element.FieldElement):
         applied to rational numbers.
 
         EXAMPLES:
-            sage: (1/3).charpoly()
+            sage: (1/3).charpoly('x')
              x - 1/3
 
         AUTHOR:
           -- Craig Citro
         """
         QQ = self.parent()
-        return QQ['x']([-self,1])
+        return QQ[var]([-self,1])
 
     def minpoly(self):
         """
@@ -991,12 +989,12 @@ cdef class Rational(sage.structure.element.FieldElement):
     def is_zero(self):
         return mpz_cmp_si(mpq_numref(self.value), 0) == 0
 
-    def _lshift(self, unsigned long int exp):
+    cdef _lshift(self, unsigned long int exp):
         r"""
         Return $self/2^exp$
         """
         cdef Rational x
-        x = Rational()
+        x = <Rational> PY_NEW(Rational)
         _sig_on
         mpq_mul_2exp(x.value,self.value,exp)
         _sig_off
@@ -1005,14 +1003,14 @@ cdef class Rational(sage.structure.element.FieldElement):
     def __lshift__(x,y):
         if isinstance(x, Rational) and isinstance(y, Rational):
             return x._lshift(y)
-        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+        return bin_op(x, y, operator.lshift)
 
-    def _rshift(self, unsigned long int exp):
+    cdef _rshift(self, unsigned long int exp):
         r"""
         Return $self/2^exp$
         """
         cdef Rational x
-        x = Rational()
+        x = <Rational> PY_NEW(Rational)
         _sig_on
         mpq_div_2exp(x.value,self.value,exp)
         _sig_off
@@ -1021,7 +1019,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def __rshift__(x,y):
         if isinstance(x, Rational) and isinstance(y, Rational):
             return x._rshift(y)
-        return sage.rings.coerce.bin_op(x, y, operator.rshift)
+        return bin_op(x, y, operator.rshift)
 
     ##################################################
     # Support for interfaces
@@ -1052,7 +1050,7 @@ def pyrex_rational_reconstruction(integer.Integer a, integer.Integer m):
         x -- rings.rational.Rational
     """
     cdef Rational x
-    x = Rational()
+    x = <Rational> PY_NEW(Rational)
     mpq_rational_reconstruction(x.value, a.get_value()[0], m.get_value()[0])
     return x
 

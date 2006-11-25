@@ -83,7 +83,7 @@ def buzzard_tpslopes(p, N, kmax):
 
         sage: M = ModularSymbols(1,50, sign=1).cuspidal_submodule()
         sage: T = M.hecke_operator(2)
-        sage: f = T.charpoly()
+        sage: f = T.charpoly('x')
         sage: f.newton_slopes(2)
         [13, 8, 4]
 

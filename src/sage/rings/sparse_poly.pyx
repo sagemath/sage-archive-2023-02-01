@@ -28,6 +28,7 @@ Sparse polynomial rings in pyrex
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 include '../ext/interrupt.pxi'
+include '../ext/stdsage.pxi'
 
 cdef int py_mpq_set(mpq_t x, y) except -1:
     s = str(y)
@@ -186,7 +187,7 @@ cdef int term_clear(polyrat_term t) except -1:
 
 cdef polyrat_term *term_new(int n) except NULL:
     cdef polyrat_term *t
-    t = <polyrat_term*> PyMem_Malloc(sizeof(polyrat_term))
+    t = <polyrat_term*> sage_malloc(sizeof(polyrat_term))
     if t == <polyrat_term*>0:
         raise MemoryError, "Error allocating memory for polynomial."
     t.n = n
@@ -196,7 +197,7 @@ cdef polyrat_term *term_new(int n) except NULL:
 cdef int term_delete(polyrat_term* t) except -1:
     if t.n != -1:
         mpq_clear(t.coef)
-    PyMem_Free(t)
+    sage_free(t)
     return 0
 
 
@@ -207,7 +208,7 @@ ctypedef polyrat_term* polyrat
 
 cdef polyrat polyrat_new() except NULL:
     cdef polyrat t
-    t = <polyrat>PyMem_Malloc(sizeof(polyrat_term))
+    t = <polyrat>sage_malloc(sizeof(polyrat_term))
     if t == <polyrat>0:
         raise MemoryError, "Error allocating memory for polynomial."
     t = term_new(-1)
@@ -236,10 +237,10 @@ cdef int polyrat_free(polyrat t) except -1:
     while t.n != -1:
         s = t.next
         term_clear(t[0])
-        PyMem_Free(t)
+        sage_free(t)
         t = s
     term_clear(t[0])
-    PyMem_Free(t)
+    sage_free(t)
     return 0
 
 cdef int polyrat_add_into(polyrat P, polyrat Q) except -1:

@@ -92,7 +92,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         id = int(C['id'][0])
         input_text = C['input'][0]
-        input_text = input_text.replace('__plus__','+')
+        #input_text = input_text.replace('__plus__','+')
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
@@ -102,7 +102,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         cell = W.get_cell_with_id(id)
         if not introspect:
             cell.set_input_text(input_text)
-        #notebook.save()
 
         cell.evaluate(introspect=introspect)
 
@@ -121,8 +120,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def introspect(self):
         C = self.get_postvars()
         id = int(C['id'][0])
-        before_cursor = C['before_cursor'][0].replace('__plus__','+')
-        after_cursor = C['after_cursor'][0].replace('__plus__','+')
+        before_cursor = C['before_cursor'][0] #.replace('__plus__','+')
+        after_cursor = C['after_cursor'][0] #.replace('__plus__','+')
         input_text = (before_cursor+after_cursor)
         verbose('introspect -- %s: %s|%s'%(id, before_cursor, after_cursor))
 
@@ -151,7 +150,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         cell = W.new_cell_before(id)
-        #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
                          str(id))
 
@@ -164,7 +162,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return
 
         cell = W.new_cell_after(id)
-        #notebook.save()
         self.wfile.write(str(cell.id()) + SEP + cell.html(div_wrap=False) + SEP + \
                          str(id) + SEP)
 
@@ -181,14 +178,30 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write('ignore')
         else:
             prev_id = W.delete_cell_with_id(id)
-            #notebook.save()
             self.wfile.write('delete' + SEP + str(id) + SEP + str(prev_id) + SEP + str(W.cell_id_list()))
+
+    def delete_cell_all(self):
+        C = self.get_postvars()
+        worksheet_id = int(C['worksheet_id'][0])
+        W = notebook.get_worksheet_with_id(worksheet_id)
+        cells = W.cell_id_list()[1:]
+        cells.reverse()
+        for cell in cells:
+            W.delete_cell_with_id(cell)
+            print cell
+        cell = W[0]
+        cell.set_input_text("")
+        cell.set_output_text("", "")
+        self.wfile.write("OK")
 
     def save_notebook_every_so_often(self):
         global last_save_time
         if time.time() - last_save_time > SAVE_INTERVAL:
             notebook.save()
             last_save_time = time.time()
+
+    def kill_idle_every_so_often(self):
+        notebook.kill_idle_compute_processes()
 
     def cell_update(self):
         C = self.get_postvars()
@@ -265,7 +278,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(new_worksheet_list + SEP + str(W.name()))
 
     def auth_worksheet(self, W):
-        n = W.name()
+        n = W.filename()
         passcode = ''
         if self.cookie.has_key('ws_%s_passcode'%n):
             passcode = self.cookie['ws_%s_passcode'%n].value
@@ -310,6 +323,37 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_response(302)
         self.send_header("Location", '/%d'%W.id())
         self.end_headers()
+
+    #######################################################################
+    #  SAGE plain text editing functionality
+    #######################################################################
+
+    def edit_text(self, filename, prompts=False):
+        """
+        Return a window that allows the user to edit the text of the
+        worksheet with the given filename.
+        """
+        self.send_head()
+        W = notebook.get_worksheet_with_filename(filename)
+        s = notebook.edit_window(W)
+        self.wfile.write(s)
+
+    def edit_save(self, filename, newtext):
+        W = notebook.get_worksheet_with_filename(filename)
+        raise NotImplementedError
+
+    def edit_preview(self):
+        print "edit_preview"
+
+    def edit_cancel(self):
+        print "edit_ancel"
+
+
+
+    #######################################################################
+    #  End editing functionality
+    #######################################################################
+
 
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
@@ -371,6 +415,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         self.wfile.write(notebook.upload_window())
 
+    def insert_wiki_cells(self):
+        C = self.get_postvars()
+        W = notebook.get_worksheet_with_id(C['worksheet_id'][0])
+        W.insert_wiki_cells(C['text'][0])
+        response = C['eval'][0] + SEP
+        response+= "%r"%W.cell_id_list() + SEP
+        response+= SEP.join([c.html(div_wrap=False) for c in W[:-1]])
+        self.wfile.write(response)
+
     def download_worksheet(self, filename):
         try:
             notebook.export_worksheet(filename, filename)
@@ -409,6 +462,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.help_window()
             elif worksheet_filename == '__license__':
                 self.license_window()
+            elif worksheet_filename[-8:] == '__edit__':
+                self.edit_text(worksheet_filename[:-8],prompts=False)
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
             elif worksheet_filename[-9:] == '__plain__':
@@ -470,7 +525,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None,show_debug=False):
         self.send_head()
-        W = notebook.get_worksheet_with_id(worksheet_id)
+        try:
+            W = notebook.get_worksheet_with_id(worksheet_id)
+        except KeyError:
+            W = notebook.create_new_worksheet(worksheet_id)
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
                                        authorized=self.authorize(),
                                        show_debug=show_debug,
@@ -513,7 +571,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             i = len(path)
 
         try:
-            worksheet_id = int(path[:i])
+            worksheet_id = path[:i]
         except ValueError:
             worksheet_id = None
         path = path[i+1:]
@@ -525,7 +583,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_cookie(self):
         self.cookie=Cookie.SimpleCookie()
         if self.headers.has_key('cookie'):
-            self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+            try:
+                self.cookie=Cookie.SimpleCookie(self.headers.getheader("cookie"))
+            except Cookie.CookieError, msg:
+                print msg
+                pass
 
     def authorize(self):
         username = password = "";
@@ -547,6 +609,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif content_type == 'multipart/form-data':
             M = cgi.parse_multipart(self.rfile, post_dict);
 
+            if self.path[-5:] == '/edit' and self.path != '/edit':
+                # i.e., this "/edit" after a longer name, not a worksheet named /edit
+                filename = self.path[:-5].strip('/')
+                if M.has_key('button_save'):
+                    self.edit_save(filename, M['textfield'][0])
+                return
+
             if self.path == '/upload_worksheet' and M.has_key('fileField'):
                 tmp = '%s/tmp.sws'%notebook.directory()
                 f = file(tmp,'wb')
@@ -563,7 +632,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             method = self.path[self.path.rfind('/')+1:]
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
-                          'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet' ]:
+                          'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
+                          'insert_wiki_cells', 'delete_cell_all']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':

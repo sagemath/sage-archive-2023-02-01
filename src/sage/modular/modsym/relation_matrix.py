@@ -22,7 +22,7 @@ Relation matrices for ambient modular symbols spaces.
 __doc_exclude = ['RationalField', 'search', 'Rational']
 
 import sage.matrix.matrix_space as matrix_space
-import sage.matrix.matrix as matrix
+import sage.matrix.all
 import sage.rings.all as rings
 from sage.rings.rational_field import RationalField
 from   sage.misc.search import search
@@ -198,13 +198,13 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
         list --  integers i, such that the Manin symbols x_i are a basis.
     """
-    if not isinstance(relation_matrix, matrix.Matrix):
+    if not sage.matrix.all.is_Matrix(relation_matrix):
         raise TypeError, "relation_matrix must be a matrix"
     if not isinstance(mod, list):
         raise TypeError, "mod must be a list"
 
     tm = misc.verbose()
-    A = relation_matrix.echelon_form(1)
+    A = relation_matrix.echelon_form()
     A.set_immutable()
 
     tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)

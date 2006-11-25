@@ -27,11 +27,11 @@ EXAMPLES:
 from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.structure.element import Element_cmp_
-from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
+from sage.structure.element import Element
 
 
-class Cusps_class(SageObject):
+class Cusps_class(ParentWithBase):
     """
     The set of cusps.
 
@@ -41,6 +41,9 @@ class Cusps_class(SageObject):
         sage: loads(C.dumps()) == C
         True
     """
+    def __init__(self):
+        ParentWithBase.__init__(self, self)
+
     def __cmp__(self, right):
         """
         Return equality only if right is the set of cusps.
@@ -51,9 +54,7 @@ class Cusps_class(SageObject):
             sage: Cusps == QQ
             False
         """
-        if isinstance(right, Cusps_class):
-            return 0
-        return -1
+        return cmp(type(self), type(right))
 
     def _repr_(self):
         """
@@ -89,7 +90,7 @@ class Cusps_class(SageObject):
             sage: a = Cusps(-4/5); a
             -4/5
             sage: Cusps(a) is a
-            True
+            False
             sage: Cusps(1.5)
             3/2
             sage: Cusps(oo)
@@ -97,13 +98,11 @@ class Cusps_class(SageObject):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
         """
-        if isinstance(x, Cusp):
-            return x
-        return Cusp(x)
+        return Cusp(x, parent=self)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         """
         Canonical coercion of x into the set of cusps.
 
@@ -113,30 +112,35 @@ class Cusps_class(SageObject):
             sage: Cusps._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: no canonical coercion of element into self
             sage: Cusps(GF(7)(3))
             3
         """
-        if isinstance(x, Cusp):
-            return x
-        elif is_Infinity(x):
-            return Cusp(x)
+        if is_Infinity(x):
+            return Cusp(x, parent=self)
         else:
-            return Cusp(QQ._coerce_(x))
+            return self._coerce_try(x, QQ)
 
 Cusps = Cusps_class()
 
 
-class Cusp(Element_cmp_, SageObject):
+class Cusp(Element):
     """
     A cusp.
 
     A cusp is either a rational number or infinity, i.e., an element
     of the projective line over Q.  A Cusp is stored as a pair (a,b),
     where gcd(a,b)=1 and a,b are of type Integer.
+
+    EXAMPLES:
+        sage: a = Cusp(2/3); b = Cusp(oo)
+        sage: a.parent()
+        Set P^1(QQ) of all cusps
+        sage: a.parent() is b.parent()
+        True
     """
 
-    def __init__(self, a, b=ZZ(1), construct=False):
+    def __init__(self, a, b=ZZ(1), construct=False, parent=None):
         r"""
         Create the cusp a/b in $\PP^1(\Q)$, where if b=0 this is the
         cusp at infinity.
@@ -160,12 +164,16 @@ class Cusp(Element_cmp_, SageObject):
             sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.0000000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a
             True
         """
+        if parent is None:
+            parent = Cusps
+        Element.__init__(self, parent)
+
         if construct:
             self.__a = a; self.__b = b
             return
@@ -220,7 +228,7 @@ class Cusp(Element_cmp_, SageObject):
         self.__b = b//g
         return
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compare the cusps self and right.  Comparison is as for
         rational numbers, except with the cusp oo greater than
@@ -361,19 +369,6 @@ class Cusp(Element_cmp_, SageObject):
         if self.__b != 1:
             raise TypeError, "cusp %s is not an integer"%self
         return self.__a
-
-    def parent(self):
-        """
-        Return the set of all cusps.
-
-        EXAMPLES:
-            sage: a = Cusp(2/3); b = Cusp(oo)
-            sage: a.parent()
-            Set P^1(QQ) of all cusps
-            sage: a.parent() is b.parent()
-            True
-        """
-        return Cusps
 
     def _repr_(self):
         """

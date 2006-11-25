@@ -17,7 +17,4 @@ Base class for ring elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.structure.element import RingElement
-
-def is_RingElement(x):
-    return isinstance(x, RingElement)
+from sage.structure.element import RingElement, is_RingElement

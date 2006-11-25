@@ -623,7 +623,8 @@ def dimension_eis(X, k=2):
         sage: dimension_eis(G.1^2,2)
         6
 
-        sage: e = prod(DirichletGroup(200).gens())
+        sage: G = DirichletGroup(200)
+        sage: e = prod(G.gens(), G(1))
         sage: e.conductor()
         200
         sage: dimension_eis(e,2)

@@ -12,7 +12,7 @@ Evaluating a string in \sage
 
 from preparser import preparse
 
-def sage_eval(_obj_, locals={}):
+def sage_eval(source, locals={}):
     r"""
     Obtain a \SAGE object from the input string by evaluate it using
     SAGE.  This means calling eval after preparsing and with
@@ -47,12 +47,12 @@ def sage_eval(_obj_, locals={}):
         sage: f._sage_()
         2/3
         sage: type(f._sage_())
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
         sage: a = gap(939393/2433)
         sage: a._sage_()
         313131/811
         sage: type(a._sage_())
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     This example illustrates that evaluation occurs in the context of
     \code{from sage.all import *}.  Even though bernoulli has been
@@ -86,12 +86,12 @@ def sage_eval(_obj_, locals={}):
     This example illustrates how \code{sage_eval} can be useful
     when evaluating the output of other computer algebra systems.
 
-        sage: x = PolynomialRing(RationalField()).gen()
+        sage: R.<x> = PolynomialRing(RationalField())
         sage: gap.eval('R:=PolynomialRing(Rationals,["x"]);')
         'PolynomialRing(..., [ x ])'
-        sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;')
-        sage: ff; sage_eval(ff, locals={'x':x})
+        sage: ff = gap.eval('x:=IndeterminatesOfPolynomialRing(R);; f:=x^2+1;'); ff
         'x^2+1'
+        sage: sage_eval(ff, locals={'x':x})
         x^2 + 1
         sage: eval(ff)
         Traceback (most recent call last):
@@ -101,14 +101,11 @@ def sage_eval(_obj_, locals={}):
 
     Here you can see eval simply will not work but \code{sage_eval} will.
     """
-    if not isinstance(_obj_, str):
-        try:
-            return _obj_._sage_()
-        except (RuntimeError, NotImplementedError, AttributeError):
-            _obj_ = str(_obj_)
+    if not isinstance(source, str):
+        raise TypeError, "source must be a string."
 
     import sage.all
-    p = preparse(_obj_)
+    p = preparse(source)
     try:
         return eval(p, sage.all.__dict__, locals)
     except SyntaxError, msg:

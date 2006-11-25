@@ -50,9 +50,9 @@ def arg(x):
         sage: z = 1+2*I
         sage: theta = arg(z)
         sage: cos(theta)*abs(z)
-        1.0000000000000002
+        1.00000000000000
         sage: sin(theta)*abs(z)
-        2.0000000000000000
+        1.99999999999999
     """
     try: return x.arg()
     except AttributeError: return sage.rings.all.CC(x).arg()
@@ -62,7 +62,7 @@ def base_ring(x):
     Return the base ring over which x is defined.
 
     EXAMPLES:
-        sage: R = PolynomialRing(GF(7))
+        sage: R = PolynomialRing(GF(7), 'x')
         sage: base_ring(R)
         Finite Field of size 7
     """
@@ -104,65 +104,37 @@ def category(x):
         return sage.categories.all.Objects()
 
 def ceil(x):
-    """
-    Return the ceiling of x.
-    """
     try:
-        return sage.rings.all.Integer(x.ceil())
+        return x.ceil()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.ceil(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
+        return sage.rings.all.ceil(x)
 
-ceiling = ceil
-
-
-def charpoly(x):
+def charpoly(x, var):
     """
-    Return the characteristic polynomial of x.
+    Return the characteristic polynomial of x in the given variable.
 
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
-        sage: charpoly(A)
+        sage: charpoly(A, 'x')
         x^3 - 15*x^2 - 18*x
+
+        sage: k.<alpha> = GF(7^10); k
+        Finite Field in alpha of size 7^10
+        sage: alpha.charpoly('T')
+        T^10 + T^6 + T^5 + 4*T^4 + T^3 + 2*T^2 + 3*T + 3
     """
     try:
-        return x.characteristic_polynomial()
-    except AttributeError:
-        return x.charpoly()
+        return x.charpoly(var)
     except AttributeError:
         raise NotImplementedError, "computation of charpoly of x (=%s) not implemented"%x
 
-## def conductor(x):
-##     """
-##     Return the conductor of x.
+def coerce(P, x):
+    try:
+        return P._coerce_(x)
+    except AttributeError:
+        return P(x)
 
-##     EXAMPLES:
-##         sage: E = EllipticCurve([0, -1, 1, -10, -20])
-##         sage: E
-##         Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-##         sage: conductor(E)
-##         11
-##     """
-##     return x.conductor()
-
-## def cos(x):
-##     """
-##     Return the cosine of x.
-
-##     EXAMPLES:
-##         sage: z = 1+2*I
-##         sage: theta = arg(z)
-##         sage: cos(theta)*abs(z)
-##         1.0000000000000002
-##         sage: cos(3.141592)
-##         -0.99999999999978639
-##     """
-##     try: return x.cos()
-##     except AttributeError: return RR(x).cos()
 
 def acos(x):
     """
@@ -170,9 +142,9 @@ def acos(x):
 
     EXAMPLES:
         sage: acos(0.5)
-        1.0471975511965979
+        1.04719755119659
         sage: acos(1 + I*1.0)
-        0.90455689430238140 - 1.0612750619050357*I
+        0.904556894302381 - 1.06127506190503*I
     """
     try: return x.acos()
     except AttributeError: return sage.rings.all.RR(x).acos()
@@ -183,9 +155,9 @@ def asin(x):
 
     EXAMPLES:
         sage: asin(0.5)
-        0.52359877559829893
+        0.523598775598298
         sage: asin(1 + I*1.0)
-        0.66623943249251527 + 1.0612750619050357*I
+        0.666239432492515 + 1.06127506190503*I
     """
     try: return x.asin()
     except AttributeError: return sage.rings.all.RR(x).asin()
@@ -196,9 +168,9 @@ def atan(x):
 
     EXAMPLES:
         sage: atan(1/2)
-        0.46364760900080609
+        0.463647609000806
         sage: atan(1 + I)
-        1.0172219678978514 + 0.40235947810852507*I
+        1.01722196789785 + 0.402359478108525*I
     """
     try: return x.atan()
     except AttributeError: return sage.rings.all.RR(x).atan()
@@ -209,7 +181,7 @@ def atan(x):
 ## def cuspidal_subspace(x):
 ##     return x.cuspidal_subspace()
 
-def cyclotomic_polynomial(n):
+def cyclotomic_polynomial(n, var='x'):
     """
     EXAMPLES:
         sage: cyclotomic_polynomial(3)
@@ -224,7 +196,7 @@ def cyclotomic_polynomial(n):
         x^10 + x^9 + x^8 + x^7 + x^6 + x^5 + x^4 + x^3 + x^2 + x + 1
     """
     return sage.rings.all.PolynomialRing(\
-                  sage.rings.all.QQ).cyclotomic_polynomial(n)
+                  sage.rings.all.QQ, name=var).cyclotomic_polynomial(n)
 
 def decomposition(x):
     """
@@ -323,7 +295,7 @@ def eta(x):
 
     EXAMPLES:
         sage: eta(1+I)
-        0.74204877583656470 + 0.19883137022991071*I
+        0.742048775836564 + 0.198831370229910*I
     """
     try: return x.eta()
     except AttributeError: return sage.rings.all.CC(x).eta()
@@ -353,7 +325,7 @@ def factor(x, *args, **kwds):
 factorization = factor
 factorisation = factor
 
-def fcp(x):
+def fcp(x, var='x'):
     """
     Return the factorization of the characteristic polynomial
     of x.
@@ -361,43 +333,20 @@ def fcp(x):
     EXAMPLES:
         sage: M = MatrixSpace(QQ,3,3)
         sage: A = M([1,2,3,4,5,6,7,8,9])
-        sage: fcp(A)
-        x * (x^2 - 15*x - 18)
+        sage: fcp(A, 'x')
+        (x^2 - 15*x - 18) * x
     """
-    try: return x.fcp()
-    except AttributeError: return factor(charpoly(x))
+    try: return x.fcp(var)
+    except AttributeError: return factor(charpoly(x, var))
 
 gcd = sage.rings.arith.gcd
 
+
 def floor(x):
-    r"""
-    Return the largest integer $\leq x$.
-
-    INPUT:
-        x -- an object that has a floor method or is coercible to int
-
-    OUTPUT:
-        an Integer
-
-    EXAMPLES:
-        sage: floor(5.4)
-        5
-        sage: floor(float(5.4))
-        5
-        sage: floor(-5/2)
-        -3
-        sage: floor(RDF(-5/2))
-        -3
-    """
     try:
-        return sage.rings.all.Integer(x.floor())
+        return x.floor()
     except AttributeError:
-        try:
-            return sage.rings.all.Integer(int(math.floor(float(x))))
-        except TypeError:
-            pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
-
+        return sage.rings.all.floor(x)
 
 def gen(x):
     """
@@ -471,9 +420,9 @@ def imaginary(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: imaginary(z)
-        2.0000000000000000
+        2.00000000000000
         sage: imag(z)
-        2.0000000000000000
+        2.00000000000000
     """
     return imag(x)
 
@@ -532,7 +481,7 @@ def xinterval(a, b):
 def is_commutative(x):
     """
     EXAMPLES:
-        sage: R = PolynomialRing(QQ)
+        sage: R = PolynomialRing(QQ, 'x')
         sage: is_commutative(R)
         True
     """
@@ -559,7 +508,7 @@ def is_integrally_closed(x):
 def is_field(x):
     """
     EXAMPLES:
-        sage: R = PolynomialRing(QQ)
+        sage: R = PolynomialRing(QQ, 'x')
         sage: F = FractionField(R)
         sage: is_field(F)
         True
@@ -627,7 +576,7 @@ def lift(x):
 
     We lift an element of a quotient polynomial ring.
         sage: R.<x> = QQ['x']
-        sage: S.<xmod> = R/(x^2 + 1)
+        sage: S.<xmod> = R.quo(x^2 + 1)
         sage: lift(xmod-7)
         x - 7
     """
@@ -655,13 +604,13 @@ def log(x,b=None):
 
     EXAMPLES:
         sage: log(10,2)
-        3.3219280948873626
+        3.32192809488736
         sage: log(8,2)
-        3.0000000000000000
+        2.99999999999999
         sage: log(10)
-        2.3025850929940459
+        2.30258509299404
         sage: log(2.718)
-        0.99989631572895199
+        0.999896315728951
     """
     if b is None:
         try: return x.log()
@@ -705,7 +654,7 @@ def norm(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: norm(z)
-        5.0000000000000000
+        5.00000000000000
     """
     return x.norm()
 
@@ -726,18 +675,18 @@ def numerator(x):
         return x
     return x.numerator()
 
-def objgens(x, names=None):
+def objgens(x):
     """
     EXAMPLES:
-        sage: R, x = objgens(MPolynomialRing(QQ,3))
+        sage: R, x = objgens(MPolynomialRing(QQ,3, 'x'))
         sage: R
         Polynomial Ring in x0, x1, x2 over Rational Field
         sage: x
         (x0, x1, x2)
     """
-    return x.objgens(names)
+    return x.objgens()
 
-def objgen(x, names=None):
+def objgen(x):
     """
     EXAMPLES:
         sage: R, x = objgen(FractionField(QQ['x']))
@@ -746,7 +695,7 @@ def objgen(x, names=None):
         sage: x
         x
     """
-    return x.objgen(names)
+    return x.objgen()
 
 def one(R):
     """
@@ -801,7 +750,7 @@ def real(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: real(z)
-        1.0000000000000000
+        1.00000000000000
     """
     try: return x.real()
     except AttributeError: return sage.rings.all.CC(x).real()
@@ -812,17 +761,17 @@ def regulator(x):
     """
     return x.regulator()
 
-def quo(x, y, var=None):
+def quotient(x, y, *args, **kwds):
     """
     Return the quotient object x/y, e.g., a quotient of numbers or of
     a polynomial ring x by the ideal generated by y, etc.
     """
     try:
-        return x.quotient(y, var)
+        return x.quotient(y, *args, **kwds)
     except AttributeError:
         return x/y
 
-quotient = quo
+quo = quotient
 
 def show(x, *args, **kwds):
     """
@@ -844,7 +793,7 @@ def sqrt(x):
 
     EXAMPLES:
         sage: sqrt(10.1)
-        3.1780497164141406
+        3.17804971641414
         sage: sqrt(9)
         3
     """
@@ -925,9 +874,9 @@ def tan(x):
 
     EXAMPLES:
         sage: tan(3.1415)
-        -0.000092653590058191322
+        -0.0000926535900581913
         sage: tan(3.1415/4)
-        0.99995367427815629
+        0.999953674278156
     """
     try: return x.tan()
     except AttributeError: return sage.rings.all.RR(x).tan()

@@ -24,7 +24,7 @@ include_dirs = ['%s/local/include'%SAGE_ROOT,  \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl', 'csage']
 
 offset = 0
 
@@ -168,8 +168,9 @@ else:
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = ['-w']
 
-ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c', 'stdsage.c', %s],
+ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
+                     library_dirs=[SAGE_LOCAL + '/lib/'],
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
                      language = '%s' )]

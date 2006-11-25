@@ -76,10 +76,10 @@ class Cell:
         s = ''
 
         input_lines = self.__in.strip()
-        if input_lines[:1] == '%':
-            pr = '%s> '%(input_lines.split()[0])[1:]
-        else:
-            pr = 'sage: '
+        #if input_lines[:1] == '%':
+        #    pr = '%s> '%(input_lines.split()[0])[1:]
+        #else:
+        pr = 'sage: '
 
         if prompts:
             input_lines = input_lines.split('\n')
@@ -151,7 +151,8 @@ class Cell:
     def wiki_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
         #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
-        return '{{{[%s]\n'%self.id() + s + '\n}}}'
+        #return '{{{[%s]\n'%self.id() + s + '\n}}}'
+        return '{{{\n%s\n}}}'%s
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self

@@ -960,11 +960,13 @@ textarea.cell_input_hide {
 
 textarea.cell_input_active {
   background-color: white;
-/*  border: 0px solid white; */
+  border: 2px solid  #8888fe;
+  /*
   border-top: 2px solid #8888fe;
   border-left: 2px solid #8888fe;
   border-bottom: 0px solid white;
   border-right: 0px solid white;
+  */
   font-family: courier, monospace;
   font-size:12pt;
   overflow:auto;

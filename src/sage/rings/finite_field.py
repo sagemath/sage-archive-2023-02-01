@@ -72,7 +72,7 @@ import weakref
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None, names=None):
+def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -84,6 +84,7 @@ def FiniteField(order, name=None, modulus=None, names=None):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
+        cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -118,7 +119,7 @@ def FiniteField(order, name=None, modulus=None, names=None):
             # DO *NOT* use for prime subfield, since that would lead to
             # a circular reference in the call to ParentWithGens in the
             # __init__ method.
-            K = FiniteField_givaro(order, name, modulus)
+            K = FiniteField_givaro(order, name, modulus, cache=elem_cache)
         else:
             K = FiniteField_ext_pari(order, name, modulus)
 

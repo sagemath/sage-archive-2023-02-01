@@ -62,7 +62,7 @@ from sage.rings.finite_field_givaro import FiniteField_givaro
 import sage.interfaces.gap
 
 #_objsFiniteField = {}
-def FiniteField(order, name='a', modulus=None):
+def FiniteField(order, name='a', modulus=None, cache=False):
     """
     Return a finite field of given order with generator labeled by the given name.
 
@@ -71,6 +71,7 @@ def FiniteField(order, name='a', modulus=None):
         name -- string (default: 'a')
         modulus -- defining polynomial for field, i.e., generator of the field will
                    be a root of this polynomial.
+        cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k, a = GF(9).objgen()
@@ -93,7 +94,7 @@ def FiniteField(order, name='a', modulus=None):
         R.assign_names(name) # does this do anything?
     else:
         if order < 2**16:
-            R = FiniteField_givaro(order, name, modulus)
+            R = FiniteField_givaro(order, name, modulus, cache=cache)
         else:
             R = FiniteField_ext_pari(order, name, modulus)
     return R

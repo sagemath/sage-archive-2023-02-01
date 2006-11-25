@@ -139,7 +139,7 @@ cf = Extension('sage.libs.cf.cf',
 
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
-                       libraries = ['gmp', 'gmpxx', 'm', 'stdc++', 'givaro'],
+                       libraries = ['givaro', 'gmpxx', 'gmp', 'm', 'stdc++', ],   # this order is needed to compile under windows.
                        language='c++'
                        )
 

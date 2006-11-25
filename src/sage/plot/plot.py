@@ -1132,7 +1132,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g = Graphics()
         sage: g.append(NGP)
         sage: g.axes(False)
-        sage: g.show()
+        sage: g.save('a.png')
     """
     def __init__(self, graph, pos=None, with_labels=True, node_size=300):
         self.__nxg = graph

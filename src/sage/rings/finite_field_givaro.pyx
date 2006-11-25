@@ -134,9 +134,10 @@ cdef class FiniteField_givaro(FiniteField):
     cdef GivaroGfq *objectptr # C++ object
     cdef object _polynomial_ring
     cdef object _prime_subfield
+    cdef object _array
     cdef int repr
 
-    def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly"):
+    def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly", cache=False):
         """
         Finite Field. These are implemented using Zech logs and the
         cardinality must be < 2^16. By default conway polynomials are
@@ -155,6 +156,12 @@ cdef class FiniteField_givaro(FiniteField):
                      'log': repr is element.log_repr()
                      'int': repr is element.int_repr()
                      'poly': repr is element.poly_repr()
+            cache -- if True a cache of all elements of this field is
+                     created. Thus, arithmetic does not create new
+                     elements which speeds calculations up. Also, if
+                     many elements are needed during a calculation
+                     this cache reduces the memory requirement as at
+                     most self.order() elements are created. (default: False)
 
         OUTPUT:
             Givaro finite field with characteristic p and cardinality p^n.
@@ -233,6 +240,7 @@ cdef class FiniteField_givaro(FiniteField):
                 _sig_on
                 self.objectptr = gfq_factorypk(p,k)
                 _sig_off
+                self._array = self.gen_array()
                 return
 
         if is_Polynomial(modulus):
@@ -246,9 +254,17 @@ cdef class FiniteField_givaro(FiniteField):
             _sig_on
             self.objectptr = gfq_factorypkp(p, k,cPoly)
             _sig_off
+            self._array = self.gen_array()
             return
 
         raise TypeError, "Cannot understand modulus"
+
+    cdef gen_array(FiniteField_givaro self):
+        cdef int i
+        array = list()
+        for i from 0 <= i < self.order():
+            array.append( make_FiniteField_givaroElement(self,i) )
+        return tuple(array)
 
     def __dealloc__(FiniteField_givaro self):
         """
@@ -1469,9 +1485,12 @@ cdef make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     """
     """
     cdef FiniteField_givaroElement y
-    y = FiniteField_givaroElement(parent)
-    y.object = x
-    return y
+    if parent._array is None:
+        y = FiniteField_givaroElement(parent)
+        y.object = x
+        return y
+    else:
+        return parent._array[x]
 
 cdef gap_to_givaro(x, F):
     """

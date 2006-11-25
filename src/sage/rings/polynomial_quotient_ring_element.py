@@ -368,7 +368,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         return self.matrix().charpoly(var)
 
-    def fcp(self, var):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial
         of this element.

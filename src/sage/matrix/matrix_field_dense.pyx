@@ -296,7 +296,7 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
         A.set_immutable()
         return A
 
-    def fcp(self):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial of
         self.

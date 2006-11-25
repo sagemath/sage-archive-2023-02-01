@@ -263,7 +263,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
     def dual_free_module(self):
         return self.free_module()
 
-    def fcp(self, n, var):
+    def fcp(self, n, var='x'):
         """
         Returns the factorization of the characteristic polynomial of
         the Hecke operator $T_n$ of index $n$.

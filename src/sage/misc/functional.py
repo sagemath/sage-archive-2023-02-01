@@ -325,7 +325,7 @@ def factor(x, *args, **kwds):
 factorization = factor
 factorisation = factor
 
-def fcp(x, var):
+def fcp(x, var='x'):
     """
     Return the factorization of the characteristic polynomial
     of x.

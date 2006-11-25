@@ -166,7 +166,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             raise ArithmeticError, "Matrix morphism must be an endomorphism."
         return self.matrix().determinant()
 
-    def fcp(self, var):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial.
         """

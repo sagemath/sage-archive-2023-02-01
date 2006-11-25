@@ -207,6 +207,8 @@ cdef class Element(sage_object.SageObject):
         INPUT:
             parent -- a SageObject
         """
+        #if parent is None:
+        #    raise RuntimeError, "bug -- can't set parent to None"
         self._parent = parent
 
     def _set_parent(self, parent):

@@ -65,15 +65,14 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             x -- a dict with integer keys and values in the base
                  field of parent.
         """
-        self.__parent = parent
         self.__x = x
-        hecke.HeckeModuleElement.__init__(self, parent, self.element())
+        hecke.HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 
     def _repr_(self):
         """
         Returns a string representation for self for printing purposes.
         """
-        g = self.__parent._known_gens_repr
+        g = self.parent()._known_gens_repr
         z = [0 for _ in xrange(len(g))]
         for i, c in self.__x.items():
             z[i] = c
@@ -86,7 +85,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                 z[i] += c
             else:
                 z[i] = c
-        return BoundarySpaceElement(self.__parent, z)
+        return BoundarySpaceElement(self.parent(), z)
 
 
     def _sub_(self, other):
@@ -96,23 +95,22 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                 z[i] -= c
             else:
                 z[i] = -c
-        return BoundarySpaceElement(self.__parent, z)
+        return BoundarySpaceElement(self.parent(), z)
 
-    # TODO: use arithmetic arch
-    def __mul__(self, other):
+    def _rmul_(self, other):
         x = {}
         for i, c in self.__x.items():
             x[i] = c*other
-        return BoundarySpaceElement(self.__parent, x)
+        return BoundarySpaceElement(self.parent(), x)
+
+    def _lmul_(self, other):
+        x = {}
+        for i, c in self.__x.items():
+            x[i] = other*c
+        return BoundarySpaceElement(self.parent(), x)
 
     def __neg__(self):
         return self*(-1)
-
-    def parent(self):
-        return self.__parent
-
-    def element(self):
-        return self.__parent.free_module()(self.__x)
 
 
 class BoundarySpace(hecke.HeckeModule_generic):
@@ -258,6 +256,9 @@ class BoundarySpace(hecke.HeckeModule_generic):
             return BoundarySpaceElement(self, y)
 
         raise TypeError, "Coercion of %s (of type %s, parent %s) into %s not (yet) defined."%(x,type(x), x.parent(), self)
+
+    def _coerce_impl(self):
+        return self._coerce_try([self.base_ring()])
 
     def _repr_(self):
         return ("Space of Boundary Modular Symbols of weight %s for" + \

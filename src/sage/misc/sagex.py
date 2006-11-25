@@ -1,5 +1,5 @@
 """
-Preparse and compile Pyrex file
+SageX Compiled SAGE Code
 
 AUTHORS:
     -- William Stein, 2006-01-18
@@ -98,7 +98,7 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 
 sequence_number = {}
 
-def pyrex(filename, verbose=False, compile_message=False,
+def sagex(filename, verbose=False, compile_message=False,
           use_cache=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
@@ -180,7 +180,7 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    pyrex_include = ' '.join(['-I %s'%x for x in includes])
+    sagex_include = ' '.join(['-I %s'%x for x in includes])
 
     target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
 
@@ -189,7 +189,7 @@ setup(ext_modules = ext_modules,
 
 
 
-    cmd = 'cd %s && pyrexc -p %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
+    cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, sagex_include, name,
                                                                   name, target_c)
 
     if verbose:

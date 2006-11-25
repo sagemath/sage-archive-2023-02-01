@@ -29,7 +29,7 @@ def sagex(code,
     """
     tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
     open(tmpfile,'w').write(code)
-    sage.server.support.pyrex_import_all(tmpfile, globals(),
+    sage.server.support.sagex_import_all(tmpfile, globals(),
                                          verbose=verbose, compile_message=compile_message,
                                          use_cache=use_cache)
 

@@ -9,7 +9,7 @@ def getsource(obj, is_binary):
         except Exception:
             return None
     try:
-        # Perhaps it's binary and is defined in a Pyrex file.
+        # Perhaps it's binary and is defined in a Sagex file.
         try:
             d = inspect.getdoc(obj)
         except Exception, msg:
@@ -17,7 +17,7 @@ def getsource(obj, is_binary):
         i = d.find('\n')
         line0 = d[:i]
         if line0[:5] == "File:" and '.pyx' in line0:
-            # Pyrex file -- we know the file position.
+            # Sagex file -- we know the file position.
             j = line0.find('(')
             filename = '%s/local/lib/python/site-packages/%s'%(SAGE_ROOT, line0[5:j].strip())
             if not os.path.exists(filename):

@@ -170,9 +170,22 @@ def extract_doc(file_name, module):
     while True:
         i = F.find('"""')
         if i == -1: break
+        name = "example"
+##        z = F[:i].rfind('def ')
+##         if z != -1:
+##             z2 = F[z+4:].find(':')
+##             z3 = F[z+4:].find('(')
+##             z4 = min(z2,z3)
+##             if z4 != -1:
+##                 try:
+##                     name = F[z+4:z+4+z4].strip().split()[0]
+##                 except IndexError:
+##                     pass
+##         if '.' in name:
+##             name = 'example'
         k = F[i+3].find('"""')
         j = i+3 + F[i+3:].find('"""')
-        s += "def example%s():"%n
+        s += "def %s_%s():"%(name,n)
         n += 1
         s += "\tr"+doc_preparse(F[i:j+3]) + "\n\n"
         F = F[j+3:]

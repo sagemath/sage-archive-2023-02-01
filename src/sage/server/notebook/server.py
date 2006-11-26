@@ -517,17 +517,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.flush()
         f.seek(0)
 
-        # Give at most one second to the browser to download the image,
+        # Give at most five seconds to the browser to download the image,
         # since this locks the whole server.  Also, Firefox when receiving
         # some images (maybe corrupted) will totally hang; doing this
         # deals with that problem.
-        alarm(1)
-        try:
-            shutil.copyfileobj(f, self.wfile)
-        except KeyboardInterrupt:
-            pass
-        else:
-            cancel_alarm()
+        # TODO: probably the only good way to deal with this is
+        # to switch to using twisted.
+
+        #alarm(5)
+        #try:
+        shutil.copyfileobj(f, self.wfile)
+        #except KeyboardInterrupt:
+        #    pass
+        #else:
+        #cancel_alarm()
         f.close()
         return f
 

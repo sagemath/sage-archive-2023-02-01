@@ -467,7 +467,7 @@ class Cell:
         else:
             cls = 'cell_output_' + typ
 
-            top = '<div class="%s" id="cell_div_output_%s">'%(
+        top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
         out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>

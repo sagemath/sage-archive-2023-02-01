@@ -1,1 +1,1 @@
-version='1.5.alpha.pre4'; date='2006-11-25'
+version='1.5-alpha5'; date='2006-11-25'

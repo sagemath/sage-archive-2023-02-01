@@ -14,11 +14,14 @@ PID = os.getpid()
 def monitor(pid, interval):
     cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
     # This os.system seems to work fine.
-    os.system(cmd)
+    # os.system(cmd)
+    # NOTE: On Cygwin the os.system calls is instant and the os.spawnl takes *SEVERAL SECONDS*.
+    # so we disable the monitor there for now.
+    if os.uname()[0][:6] == 'CYGWIN':
+        return
 
     # For some reason at some point I wanted to do this.
-    #return os.spawnl(os.P_NOWAIT, 'sage-monitor', PID, pid, interval)
+    return os.spawnl(os.P_NOWAIT, 'sage-monitor', PID, pid, interval)
 
-    # NOTE: On Cygwin the os.system calls is instant and the os.spawnl takes *SEVERAL SECONDS*.
 
 

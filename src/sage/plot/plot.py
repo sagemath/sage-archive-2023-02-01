@@ -1148,8 +1148,8 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             # adjust the plot
             # TODO: right now, the bounds are assumed to be +-1
             nodelist=self.__nxg.nodes()
-            xes = [self.__pos[v][int(0)] for v in nodelist]
-            ys = [self.__pos[v][int(1)] for v in nodelist]
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
             xmin = min(xes)
             xmax = max(xes)
             ymin = min(ys)
@@ -1163,13 +1163,16 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 ymax += 1
                 ymin -= 1
             for v in nodelist:
-                self.__pos[v][int(0)] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][int(0)] - xmax) + st + 1
-                self.__pos[v][int(1)] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][int(1)] - ymax) + st + 1
+                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
+                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
 
     def _render_on_subplot(self, subplot):
         if len(self.__nxg) != 0:
             import networkx as NX
             node_size = float(self.__node_size)
+            print self.__pos
+            print subplot
+            print node_size, type(node_size)
             NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             if self.__with_labels:

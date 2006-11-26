@@ -296,8 +296,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def delete_worksheet(self):
         C = self.get_postvars()
         worksheet_name = C['name'][0]
-        W = notebook.get_worksheet_with_name(worksheet_name)
+        try:
+            W = notebook.get_worksheet_with_name(worksheet_name)
+        except KeyError:
+            # it is already deleted.
+            msg = "No such worksheet '%s'"%worksheet_name
+            self.wfile.write(msg)
+            return
         if not self.auth_worksheet(W):
+            msg = "Error deleting worksheet '%s' (you must login to it first): "%worksheet_name + str(msg)
+            self.wfile.write(msg)
             return
 
         try:

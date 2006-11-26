@@ -514,7 +514,7 @@ function add_worksheet_callback(status,response_text) {
             switch_to_worksheet(X[1]);
         }
     } else {
-        alert("Possible failure adding workbook.");
+        alert("Possible failure adding worksheet.");
     }
 }
 
@@ -530,14 +530,14 @@ function delete_worksheet_callback(status, response_text) {
            deleted the current worksheet. */
         var X = response_text.split(SEP);
         if (X.length <= 1) {
-            alert("Possible failure deleting workbook.");
+            alert("Possible failure deleting worksheet.");
         } else {
             set_worksheet_list(X[0]);
             if (X[1] != -1)
                switch_to_worksheet(X[1]);
         }
     } else {
-        alert("Possible failure deleting workbook.");
+        alert("Possible failure deleting worksheet.");
     }
 }
 

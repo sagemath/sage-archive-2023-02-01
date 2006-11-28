@@ -434,6 +434,9 @@ class GammaH_class(CongruenceSubgroup):
         except AttributeError:
             pass
         N = self.level()
+        if N == 1:
+            self.__list_of_elements_in_H = [1]
+            return [1]
         gens = self.__H
 
         H = set([1])
@@ -628,7 +631,7 @@ class GammaH_class(CongruenceSubgroup):
             u = first[u][0]
             H_cong1_mod_N_over_d = second[d]
             if len(H_cong1_mod_N_over_d) > 1:
-                vmin = N
+                vmin = v
                 for x in H_cong1_mod_N_over_d:
                     v1 = (v*x) % N
                     if v1 < vmin:
@@ -642,6 +645,74 @@ class GammaH_class(CongruenceSubgroup):
             (v,u) = f(v,u)
 
         return (u,v)
+
+
+    def _reduce_cusp(self, c):
+        """
+        Compute a canonical form for the cusp uu/vv.
+
+        INPUT:
+            cusp
+        OUTPUT:
+            cusp
+
+
+        OUTPUT:
+            bool -- True if self and other are equivalent
+            int -- 1, 0, or -1,
+                   If the two cusps are u1/v1 and u2/v2, then they are
+                   equivalent modulo Gamma_H(N) if and only if
+                        v1 =  h*v2 (mod N) and u1 =  h^(-1)u2 (mod gcd(v1,N))
+                   or
+                        v1 = -h*v2 (mod N) and u1 = -h^(-1)*u2 (mod gcd(v1,N))
+                   where h in H.   In the first case we return 1, and in
+                   the second we return -1.   We return 0 if the two
+                   cusps are not equivalent.
+
+        EXAMPLE:
+        """
+        from sage.rings.integer import Integer
+        N = int(self.level())
+        Cusps = c.parent()
+        u = int(c.numerator() % N)
+        v = int(c.denominator() % N)
+        first, second = self._coset_reduction_data()
+        gcd_u_N = first[u][1]
+        gcd_v_N = first[v][1]
+
+        if u == 0:
+            return Cusps(0), 1
+        if v == 0:
+            return Cusps((1,0)), 1
+
+        def f(u,v):
+            h = first[v][2]
+            v = first[v][0]
+            hinv = int(Integer(h).inverse_mod(gcd_v_N))     # optimize
+            d = first[v][1]   # d = gcd(v,N)
+            if d == 1:
+                return 0, 1, h
+            u = (hinv * u) % d
+            H_cong1_mod_N_over_d = second[d]
+            if len(H_cong1_mod_N_over_d) > 1:
+                umin = u
+                for x in H_cong1_mod_N_over_d:
+                    u1 = (u*x) % d
+                    if u1 < umin:
+                        umin = u1
+                    u = umin
+            return u,v, h
+
+        u, v, h = f(u,v)
+        N_over_2 = N//2
+        if u > N_over_2:
+            u = N_over_2 - u
+            v = N_over_2 - v
+            t = -1
+        else:
+            t = 1
+
+        return Cusps((u,v)), t
 
 
 import congroup_pyx

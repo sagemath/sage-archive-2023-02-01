@@ -6,7 +6,7 @@ import os
 
 import sage.rings.integer
 
-def qsieve(n, block=True):
+def qsieve(n, block=True, time=False):
     """
     Run Hart's quadratic sieve and return the distinct prime factors
     of the integer n that it finds.
@@ -17,17 +17,20 @@ def qsieve(n, block=True):
             sieve computation is complete before using SAGE further.
             If False, SAGE will run while the sieve computation
             runs in parallel.
+        time -- (default: False) if True, time the command using
+            the UNIX "time" command (which you might have to install).
 
     OUTPUT:
         list -- a list of the prime factors of n found
         str -- the time in cpu seconds that the computation took, as given
-               by the command line time command.
+               by the command line time command.  (If time is False,
+               this is always an empty string.)
 
     EXAMPLES:
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: factor(n)  # (currently) uses PARI
         10000000000000000051 * 100000000000000000039
-        sage: v, t = qsieve(n)   # uses the sieve
+        sage: v, t = qsieve(n, time=True)   # uses the sieve
         sage: v
         [10000000000000000051, 100000000000000000039]
         sage: t   # random output
@@ -37,19 +40,23 @@ def qsieve(n, block=True):
     if len(str(n)) < 40:
         raise ValueError, "n must have at least 40 digits"
     if block:
-        return qsieve_block(n)
+        return qsieve_block(n, time)
     else:
-        return qsieve_nonblock(n)
+        return qsieve_nonblock(n, time)
 
-def qsieve_block(n):
+def qsieve_block(n, time):
     """
     Compute the factorization of n using Hart's quadratic
     Sieve blocking until complete.
     """
-    out = os.popen('echo "%s" | time QuadraticSieve 2>&1'%n).read()
-    return data_to_list(out, n)
+    if time:
+        t = 'time '
+    else:
+        t = ''
+    out = os.popen('echo "%s" | %s QuadraticSieve 2>&1'%(n,t)).read()
+    return data_to_list(out, n, time=time)
 
-def data_to_list(out, n):
+def data_to_list(out, n, time):
     """
     Convert output of Hart's sieve and n to a list and time.
 
@@ -61,10 +68,13 @@ def data_to_list(out, n):
         list -- proper factors found so far
         str -- cputime information
     """
-    out = out.strip()
-    w = out.split('\n')
-    t = get_time(w[-1])
-    out = '\n'.join(w[:-1])
+    if time:
+        out = out.strip()
+        w = out.split('\n')
+        t = get_time(w[-1])
+        out = '\n'.join(w[:-1])
+    else:
+        t = ''
     Z = sage.rings.integer.Integer
     i = out.find(':')
     if i == -1:
@@ -105,14 +115,19 @@ class qsieve_nonblock:
         sage: q.time()    # random output
         '0.21'
     """
-    def __init__(self, n):
+    def __init__(self, n, time):
         self._n = n
-        self._p = pexpect.spawn('time QuadraticSieve')
+        if time:
+            cmd = 'time QuadraticSieve'
+        else:
+            cmd = 'QuadraticSieve'
+        self._p = pexpect.spawn(cmd)
         monitor.monitor(self._p.pid)
         self._p.sendline(str(self._n)+'\n\n\n')
         self._done = False
         self._out = ''
         self._time = ''
+        self._do_time = time
 
     def n(self):
         """
@@ -138,7 +153,11 @@ class qsieve_nonblock:
         Return a text representation of self.
         """
         if self._done:
-            return str(data_to_list(self._get(), self._n))
+            v = data_to_list(self._get(), self._n, self._do_time)
+            if self._do_time:
+                return str(v)
+            else:
+                return str(v[0])
         else:
             return 'Factors so far: %s'%self.list()
 
@@ -148,8 +167,10 @@ class qsieve_nonblock:
         factor n, or return '?' if the factorization has not
         completed or the time is unknown.
         """
+        if not self._do_time:
+            raise ValueError, "you have to start the seive with the option time=True in order to get timing information"
         try:
-            return data_to_list(self._get(), self._n)[1]
+            return data_to_list(self._get(), self._n, self._do_time)[1]
         except IndexError:
             return '?'
     time = cputime
@@ -173,7 +194,7 @@ class qsieve_nonblock:
         integers.
         """
         try:
-            return data_to_list(self._get(), self._n)[0]
+            return data_to_list(self._get(), self._n, self._do_time)[0]
         except IndexError:
             return []
 

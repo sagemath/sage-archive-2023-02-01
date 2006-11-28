@@ -1,0 +1,208 @@
+"""
+Interface to Bill Hart's Quadratic Sieve
+"""
+
+import os
+
+import sage.rings.integer
+
+def qsieve(n, block=True):
+    """
+    Run Hart's quadratic sieve and return the distinct prime factors
+    of the integer n that it finds.
+
+    INPUT:
+        n -- an integer with at least 40 digits
+        block -- (default: True) if True, you must wait until the
+            sieve computation is complete before using SAGE further.
+            If False, SAGE will run while the sieve computation
+            runs in parallel.
+
+    OUTPUT:
+        list -- a list of the prime factors of n found
+        str -- the time in cpu seconds that the computation took, as given
+               by the command line time command.
+
+    EXAMPLES:
+        sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
+        sage: factor(n)  # (currently) uses PARI
+        10000000000000000051 * 100000000000000000039
+        sage: v, t = qsieve(n)   # uses the sieve
+        sage: v
+        [10000000000000000051, 100000000000000000039]
+        sage: t   # random output
+    """
+    Z = sage.rings.integer.Integer
+    n = Z(n)
+    if len(str(n)) < 40:
+        raise ValueError, "n must have at least 40 digits"
+    if block:
+        return qsieve_block(n)
+    else:
+        return qsieve_nonblock(n)
+
+def qsieve_block(n):
+    """
+    Compute the factorization of n using Hart's quadratic
+    Sieve blocking until complete.
+    """
+    out = os.popen('echo "%s" | time QuadraticSieve 2>&1'%n).read()
+    return data_to_list(out, n)
+
+def data_to_list(out, n):
+    """
+    Convert output of Hart's sieve and n to a list and time.
+
+    INPUT:
+        out -- snapshot of text output of Hart's QuadraticSieve program
+        n -- the integer being factored
+
+    OUTPUT:
+        list -- proper factors found so far
+        str -- cputime information
+    """
+    out = out.strip()
+    w = out.split('\n')
+    t = get_time(w[-1])
+    out = '\n'.join(w[:-1])
+    Z = sage.rings.integer.Integer
+    i = out.find(':')
+    if i == -1:
+        return []
+    v = out[i+1:].split()
+    v = list(set([Z(m) for m in v if Z(m) != n]))
+    v.sort()
+    return v, t
+
+def get_time(line):
+    """
+    Extract user cputime from the line of the output of
+    QuadraticSieve that contains timing data.
+    """
+    v = line.split()
+    try:
+        return v[2]
+    except IndexError:
+        return '?'
+
+import pexpect
+import monitor
+class qsieve_nonblock:
+    """
+    A non-blocking version of Hart's quadratic sieve.
+
+    The sieve starts running when you create the object, but you can
+    still use SAGE in parallel:
+
+        sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
+        sage: q = qsieve(n, block=False)
+        sage: q     # random output
+        Factors so far: []
+        sage: q     # random output
+        ([10000000000000000051, 100000000000000000039], '0.21')
+        sage: q.list()
+        [10000000000000000051, 100000000000000000039]
+        sage: q.time()    # random output
+        '0.21'
+    """
+    def __init__(self, n):
+        self._n = n
+        self._p = pexpect.spawn('time QuadraticSieve')
+        monitor.monitor(self._p.pid)
+        self._p.sendline(str(self._n)+'\n\n\n')
+        self._done = False
+        self._out = ''
+        self._time = ''
+
+    def n(self):
+        """
+        Return the integer that is being factored.
+        """
+        return self._n
+
+    def pid(self):
+        """
+        Return the PIN id of the QuadraticSieve process (actually
+        of the time process that spawns the sieve process).
+        """
+        return self._p.pid
+
+    def done(self):
+        """
+        Return True if the sieve process has completed.
+        """
+        return self._done
+
+    def __repr__(self):
+        """
+        Return a text representation of self.
+        """
+        if self._done:
+            return str(data_to_list(self._get(), self._n))
+        else:
+            return 'Factors so far: %s'%self.list()
+
+    def cputime(self):
+        """
+        Return the cputime in seconds (as a string) that it took to
+        factor n, or return '?' if the factorization has not
+        completed or the time is unknown.
+        """
+        try:
+            return data_to_list(self._get(), self._n)[1]
+        except IndexError:
+            return '?'
+    time = cputime
+
+    def __getitem__(self, i):
+        """
+        Return the i-th factor (in sorted order) found so far.
+        """
+        return self.list()[i]
+
+    def __len__(self):
+        """
+        Return the number of factors found so far.  If q is the
+        Sieve object, type len(q) to see the number of factors.
+        """
+        return len(self.list())
+
+    def list(self):
+        """
+        Return the a list of the factors found so far, as SAGE
+        integers.
+        """
+        try:
+            return data_to_list(self._get(), self._n)[0]
+        except IndexError:
+            return []
+
+    def quit(self):
+        """
+        Terminate the QuadraticSieve process, in case you want
+        to give up on computing this factorization.
+        """
+        self._p.close()
+        self._done = True
+
+    def _get(self, timeout=0.1):
+        """
+        Used internally to get information about what has been
+        computed so far.
+        """
+        if self._done:
+            return self._out
+        e = self._p
+        try:
+            e.expect('xxx', timeout=timeout)
+        except pexpect.TIMEOUT, msg:
+            pass
+        except pexpect.EOF, msg:
+            pass
+            self._done = True
+            self._p.close()
+        self._out += e.before
+        return self._out
+
+
+

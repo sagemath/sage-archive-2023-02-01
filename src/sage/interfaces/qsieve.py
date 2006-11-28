@@ -8,7 +8,7 @@ import sage.rings.integer
 
 def qsieve(n, block=True, time=False):
     """
-    Run Hart's quadratic sieve and return the distinct prime factors
+    Run Hart's quadratic sieve and return the distinct proper factors
     of the integer n that it finds.
 
     INPUT:
@@ -21,7 +21,7 @@ def qsieve(n, block=True, time=False):
             the UNIX "time" command (which you might have to install).
 
     OUTPUT:
-        list -- a list of the prime factors of n found
+        list -- a list of the distinct proper factors of n found
         str -- the time in cpu seconds that the computation took, as given
                by the command line time command.  (If time is False,
                this is always an empty string.)
@@ -46,8 +46,8 @@ def qsieve(n, block=True, time=False):
 
 def qsieve_block(n, time):
     """
-    Compute the factorization of n using Hart's quadratic
-    Sieve blocking until complete.
+    Compute the factorization of n using Hart's quadratic Sieve
+    blocking until complete.
     """
     if time:
         t = 'time '
@@ -72,7 +72,7 @@ def data_to_list(out, n, time):
         out = out.strip()
         w = out.split('\n')
         for i in range(len(w)):
-            if 'user' in w:
+            if 'user' in w[i]:
                 break
         if i < len(w):
             t = w[i].strip()
@@ -103,7 +103,7 @@ class qsieve_nonblock:
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: q = qsieve(n, block=False)
         sage: q     # random output
-        Factors so far: []
+        Proper factors so far: []
         sage: q     # random output
         ([10000000000000000051, 100000000000000000039], '0.21')
         sage: q.list()
@@ -155,7 +155,7 @@ class qsieve_nonblock:
             else:
                 return str(v[0])
         else:
-            return 'Factors so far: %s'%self.list()
+            return 'Proper factors so far: %s'%self.list()
 
     def cputime(self):
         """

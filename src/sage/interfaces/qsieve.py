@@ -66,13 +66,19 @@ def data_to_list(out, n, time):
 
     OUTPUT:
         list -- proper factors found so far
-        str -- cputime information
+        str -- time information
     """
     if time:
         out = out.strip()
         w = out.split('\n')
-        t = get_time(w[-1])
-        out = '\n'.join(w[:-1])
+        for i in range(len(w)):
+            if 'user' in w:
+                break
+        if i < len(w):
+            t = w[i].strip()
+            out = '\n'.join([w[j] for j in range(i)])
+        else:
+            t = ''
     else:
         t = ''
     Z = sage.rings.integer.Integer
@@ -84,16 +90,6 @@ def data_to_list(out, n, time):
     v.sort()
     return v, t
 
-def get_time(line):
-    """
-    Extract user cputime from the line of the output of
-    QuadraticSieve that contains timing data.
-    """
-    v = line.split()
-    try:
-        return v[2]
-    except IndexError:
-        return '?'
 
 import pexpect
 import monitor
@@ -163,7 +159,7 @@ class qsieve_nonblock:
 
     def cputime(self):
         """
-        Return the cputime in seconds (as a string) that it took to
+        Return the time in seconds (as a string) that it took to
         factor n, or return '?' if the factorization has not
         completed or the time is unknown.
         """

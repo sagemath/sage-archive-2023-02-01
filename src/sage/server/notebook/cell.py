@@ -381,10 +381,9 @@ class Cell:
             return ''
         images = []
         files  = []
-        ## The c and question mark hack here is so that images will be reloaded when
-        ## the async request requests the output text for a computation.
-        ## This is a total hack, inspired by http://www.irt.org/script/416.htm/.
-        # Global c replaced by cell version number -- TB
+        # The question mark trick here is so that images will be reloaded when
+        # the async request requests the output text for a computation.
+        # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))

@@ -352,9 +352,9 @@ WRAP_NCOLS = 100
 JSMATH=False
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook',
-                 username=None, password=None,
-                 color='default', system=None, show_debug = False):
+    def __init__(self, dir='sage_notebook', username=None,
+                password=None, color='default', system=None,
+                show_debug = False, log_server=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -368,6 +368,9 @@ class Notebook(SageObject):
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
+        self.__history_count = 0
+        self.__log_server = log_server #log all POST's and GET's
+        self.__server_log = [] #server log list
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.__show_debug = show_debug
@@ -411,6 +414,21 @@ class Notebook(SageObject):
         H.append(input_text)
         while len(H) > self.max_history_length():
             del H[0]
+
+    def history_count_inc(self):
+        self.__history_count += 1
+
+    def history_count(self):
+        return self.__history_count
+
+    def server_log(self):
+        return self.__server_log
+
+    def log_server(self):
+        return self.__log_server
+
+    def set_log_server(self, log_server):
+        self.__log_server = log_server
 
     def history(self):
         try:
@@ -723,8 +741,10 @@ class Notebook(SageObject):
 
     def _html_head(self, worksheet_id):
         worksheet = self.get_worksheet_with_id(worksheet_id)
-        head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
-        head += '<style>' + css.css(self.color()) + '</style>\n'
+        head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
+        #head += '<style>' + css.css(self.color()) + '</style>\n'
+        head += '\n<script language=javascript src="/__main__.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
 
         if JSMATH:
             head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
@@ -732,7 +752,7 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-        head += '<script language=javascript>' + js.javascript() + '</script>\n'
+        #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
 
@@ -827,13 +847,21 @@ class Notebook(SageObject):
         body +=    add_new_worksheet_menu
         body +=    delete_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '  <div class="objects_topbar">Saved Objects</div>\n'
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
+        body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
+        body += '     Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
-        body += '<br>\n'
-        body += '  <div class="variables_topbar">Variables</div>\n'
-        body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
+        body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
+        body += '     Variables</div>\n'
+        body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
                 worksheet.variables_html()
-        body += '  <div class="attached_topbar">Attached Files</div>\n'
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
+        body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
+        body += '     Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
         body += '</td></tr></table></span>\n'
@@ -995,15 +1023,12 @@ class Notebook(SageObject):
         else:
             body = self._html_authorize()
 
-        body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+        body += '<script language=javascript>'
+        body += 'worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";'%(worksheet_id, W.filename(), W.name())
+        body += '</script>'
 
         head = self._html_head(worksheet_id)
-        return """
-        <html>
-        <head>%s</head>
-        <body>%s</body>
-        </html>
-        """%(head, body)
+        return "\n<html>\n<head>%s</head>\n<body>%s</body>\n</html>"%(head, body)
 
     def _html_authorize(self):
         return """
@@ -1073,7 +1098,8 @@ def notebook(dir         ='sage_notebook',
              jsmath      = True,
              show_debug  = False,
              warn        = True,
-             ignore_lock = False):
+             ignore_lock = False,
+             log_server = False):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1192,7 +1218,7 @@ def notebook(dir         ='sage_notebook',
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)
-
+    nb.set_log_server(log_server)
     if warn and address!='localhost' and username==None:
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"

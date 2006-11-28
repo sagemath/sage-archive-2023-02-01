@@ -514,9 +514,17 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
         return polynomial.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 
-def polygen(base_ring, name="x"):
+def polygen(ring_or_element, name="x"):
     """
-    Return an indeterminate over the given base ring with the given name.
+    Return a polynomial indeterminate.
+
+    INPUT:
+       * polygen(base_ring, name="x")
+       * polygen(ring_element, name="x")
+
+    If the first input is a ring, return a polynomial generator
+    over that ring.  If it is a ring element, return a polynomial
+    generator over the parent of the element.
 
     EXAMPLES:
         sage: z = polygen(QQ,'z')
@@ -528,6 +536,12 @@ def polygen(base_ring, name="x"):
     NOTE: If you give a list or comma separated string to polygen, you'll
     get a tuple of indeterminates, exactly as if you called polygens.
     """
+    if ring_element.is_RingElement(ring_or_element):
+        base_ring = ring_or_element.parent()
+    elif ring.is_Ring(ring_or_element):
+        base_ring = ring_or_element
+    else:
+        raise TypeError, "input must be a ring or ring element"
     t = PolynomialRing(base_ring, name)
     if t.ngens() > 1:
         return t.gens()

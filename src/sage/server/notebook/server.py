@@ -524,13 +524,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         # TODO: probably the only good way to deal with this is
         # to switch to using twisted.
 
-        #alarm(5)
-        #try:
-        shutil.copyfileobj(f, self.wfile)
-        #except KeyboardInterrupt:
-        #    pass
-        #else:
-        #cancel_alarm()
+        alarm(10)
+        try:
+            shutil.copyfileobj(f, self.wfile)
+        except KeyboardInterrupt:
+            pass
+        else:
+            cancel_alarm()
         f.close()
         return f
 

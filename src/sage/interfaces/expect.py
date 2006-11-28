@@ -354,6 +354,7 @@ class Expect(ParentWithBase):
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
+            raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):

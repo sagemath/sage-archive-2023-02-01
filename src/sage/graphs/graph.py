@@ -25,6 +25,7 @@ from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 from sage.matrix.constructor import matrix
 from sage.rings.integer_mod_ring import IntegerModRing
+from random import random
 
 class GenericGraph(SageObject):
     pass

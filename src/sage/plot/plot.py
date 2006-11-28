@@ -1170,9 +1170,6 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         if len(self.__nxg) != 0:
             import networkx as NX
             node_size = float(self.__node_size)
-            print self.__pos
-            print subplot
-            print node_size, type(node_size)
             NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             if self.__with_labels:

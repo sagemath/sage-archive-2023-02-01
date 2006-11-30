@@ -1221,10 +1221,10 @@ def test3():
         zl.append(zs)
     X,Y,Z = p.array(xl),p.array(yl),p.array(zl)
     print X.shape,Y.shape,Z.shape
-    ax.plot_wireframe(p.array(xl),p.array(yl),p.array(zl),ncol=1,nrow=1)
+    #ax.plot_wireframe(p.array(xl),p.array(yl),p.array(zl),ncol=1,nrow=1)
 
 
-    if 0:
+    if 1:
         ax.plot3D(p.array(xs),p.array(ys),p.array(zs))
         xs,ys,zs = [],[],[]
         for v in p.arange(0,2*p.pi+0.1,0.1):
@@ -1240,10 +1240,11 @@ def test3():
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     fig.add_axes(ax)
+    p.savefig("surface2.png")
     return fig
 
 if __name__ == "__main__":
-    test1()
+    test3()
 
 
 

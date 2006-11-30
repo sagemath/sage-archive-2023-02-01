@@ -50,11 +50,11 @@ from sage.libs.all import pari, PariError
 import sage.interfaces.all
 
 _objsIntegerModRing = {}
-def IntegerModRing(order=0, check_prime=True):
+def IntegerModRing(order=0, check_prime=False):
     r"""
     INPUT:
         order -- integer (default: 0)
-        check_prime -- bool (default: True); if False do not test for
+        check_prime -- bool (default: False); if False do not test for
                        primality of the order in constructing the
                        residue class ring (thus always constructing
                        the generic integer_mod_ring that doesn't
@@ -64,6 +64,8 @@ def IntegerModRing(order=0, check_prime=True):
     EXAMPLES:
         sage: IntegerModRing(15)
         Ring of integers modulo 15
+        sage: IntegerModRing(7, check_prime=True)
+        ?
 
     The following example illustrates the \code{check_prime} option.
     Without it, just defining R would take a very long time.
@@ -71,7 +73,7 @@ def IntegerModRing(order=0, check_prime=True):
         sage: n = 5*2^23473+1
         sage: len(str(n))
         7067
-        sage: R = IntegerModRing(n, check_prime=False)
+        sage: R = IntegerModRing(n)
         sage: type(R)
         <class 'sage.rings.integer_mod_ring.IntegerModRing_generic'>
 

@@ -418,11 +418,12 @@ function toggle_left_pane() {
   if(get_class('left_pane') == "hidden") {
     set_class('left_pane', 'pane');
     set_class('worksheet', 'worksheet');
-    set_html('left_pane_hider', '&laquo;');
+    set_html('left_pane_hider', '&laquo;&laquo;');
   } else {
     set_class('left_pane', 'hidden');
     set_class('worksheet', 'slideshow');
-    set_html('left_pane_hider', '&raquo;');
+    /* set_html('left_pane_hider', '&raquo;&raquo;'); */
+    set_html('left_pane_hider', '&raquo; Control Bar &raquo;');
   }
 }
 

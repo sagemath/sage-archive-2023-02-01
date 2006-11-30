@@ -326,7 +326,7 @@ class Worksheet:
             if S._expect != None:
                 return S
         except AttributeError:
-            S = Sage(maxread = 1, logfile='/home/was/a')
+            S = Sage(maxread = 1)
         S._start(block_during_init=False)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
@@ -1172,7 +1172,7 @@ class Worksheet:
                 lock_text = ''
 
             s += '<div class="worksheet_title" onClick="toggle_left_pane();">'
-            s += ' <span class="plusminus" id="left_pane_hider">&laquo;</span>'
+            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
             s += ' Worksheet: %s%s%s</div>\n'%(self.name(),system,lock_text)
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']

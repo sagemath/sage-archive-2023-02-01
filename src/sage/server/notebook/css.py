@@ -443,6 +443,15 @@ span.plusminus:hover {
     cursor:pointer;
 }
 
+span.controltoggle {
+  color:#0000ff;
+  font-size:10pt;
+  text-decoration:underline;
+}
+span.controltoggle:hover {
+    cursor:pointer;
+}
+
 /************ VARIABLES **************************/
 
 span.pane div.variables_topbar {

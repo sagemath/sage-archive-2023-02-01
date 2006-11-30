@@ -77,7 +77,7 @@ def data_to_list(out, n, time):
     """
     i = out.find('FACTORS:')
     if i == -1:
-        verbose = ''
+        return [], '', out   # whole thing
     else:
         verbose = out[:i]
         out = out[i+len('FACTORS:')+1:].strip()
@@ -110,12 +110,12 @@ class qsieve_nonblock:
     still use SAGE in parallel:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
-        sage: q = qsieve(n, block=False)
+        sage: q = qsieve(n, block=False, time=True)
         sage: q     # random output
         Proper factors so far: []
         sage: q     # random output
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()
+        sage: q.list()  # random output
         [10000000000000000051, 100000000000000000039]
         sage: q.time()    # random output
         '0.21'

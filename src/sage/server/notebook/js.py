@@ -29,16 +29,24 @@ def async_lib():
 // SAGE server (written by Tom Boothby).
 ///////////////////////////////////////////////////////////////////
 //globals
-var asyncObj;
-var async_count = 0;
+
+var async_oblist = [null,null,null,null,null];
+var async_idstack= [0,1,2,3,4];
 
 function getAsyncObject(handler) {
-  asyncObj=null
+  var asyncObj;
   try {
-    asyncObj = new XMLHttpRequest();
-    asyncObj.onload  = handler;
-    asyncObj.onerror = handler;
-    return asyncObj;
+    if (browser_ie) {
+      var s =browser_ie5?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
+      asyncObj = new ActiveXObject(s);
+      asyncObj.onreadystatechange = handler;
+      return asyncObj;
+    } else {
+      asyncObj = new XMLHttpRequest();
+      asyncObj.onload  = handler;
+      asyncObj.onerror = handler;
+      return asyncObj;
+    }
   } catch(e) {
     no_async = true;
     return null;
@@ -49,30 +57,34 @@ function generic_callback(status, response_text) {
    /* do nothing */
 }
 
-function asyncCallbackHandler(name, callback) {
-    function f() {
-                 eval('asyncObj = ' + name);
-                 try {
-                   if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
-                       && asyncObj.status == 200 )
-                     try {
-                       callback('success', asyncObj.responseText);
-                     } catch(e) {
-                       callback('success', "empty");
-                     }
-                 } catch(e) {
-                   callback("failure", e);
-                 } finally { }
-              };
-    return f;
+function asyncCallbackHandler(id) {
+    return eval("function() { async_callback("+id+"); }");
+}
+
+function async_callback(id) {
+    var asyncObj = async_oblist[id][0];
+    var callback = async_oblist[id][1];
+    try {
+        if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
+              && asyncObj.status == 200 )
+            try {
+                callback('success', asyncObj.responseText);
+                async_release(id);  //don't release the id until we've tried to capture output
+            } catch(e) {
+                async_release(id);  //release immediately in case exception was in the callback
+                callback('success', "empty");
+            }
+    } catch(e) {
+        async_release(id);      //release immediately
+        callback("failure", e);
+    }
 }
 
 function async_request(url, callback, postvars) {
-  async_count++;
-  var name = "async_object_no_" + async_count;
-  var f = asyncCallbackHandler(name, callback);
-  asyncObj = getAsyncObject(f);
-  eval(name + '=asyncObj;');
+  var id = async_id();
+  var f = asyncCallbackHandler(id);
+  var asyncObj = getAsyncObject(f);
+  async_oblist[id] = [asyncObj,callback];
 
   if(postvars != null) {
     asyncObj.open('POST',url,true);
@@ -82,6 +94,25 @@ function async_request(url, callback, postvars) {
     asyncObj.open('GET',url,true);
     asyncObj.setRequestHeader('Content-Type',  "text/html");
     asyncObj.send(null);
+  }
+}
+
+function async_id() {
+  if(async_idstack.length == 0) {
+    id = async_oblist.length;
+    async_oblist.push(null);
+  } else {
+    id = async_idstack.pop();
+  }
+  return id
+}
+
+function async_release(id) {
+  async_oblist[id] = null;
+  async_idstack.push(id);
+  if(async_idstack.length == async_oblist.length && async_oblist.length > 10) {
+    async_oblist = [null,null,null,null,null];
+    async_idstack= [0,1,2,3,4];
   }
 }
 """
@@ -942,18 +973,13 @@ function cell_input_key_event(id, e) {
     } else if (key_send_input(e)) {
        // User pressed shift-enter (or whatever the submit key is)
        evaluate_cell(id, 0);
-       /* HACK WARNING: Without this start_update_check, the worksheet often won't update
-          the first time it's loaded or restarted.  -- William Stein */
-          /* start_update_check(); */
        return false;
     } else if (key_send_input_newcell(e)) {
        evaluate_cell(id, 1);
-       start_update_check();
        return false;
     } else if (key_request_introspections(e)) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
-       start_update_check();
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
@@ -1254,6 +1280,7 @@ function check_for_cell_update() {
 }
 
 function start_update_check() {
+    if(updating) return;
     updating = true;
     check_for_cell_update();
     set_class('interrupt', 'interrupt')
@@ -1347,7 +1374,7 @@ function check_for_cell_update_callback(status, response_text) {
         if(update_error_count>update_error_threshold) {
             cancel_update_check();
             halt_active_cells();
-            var elapsed_time = update_cell_error_count*update_error_delta/1000;
+            var elapsed_time = update_error_count*update_error_delta/1000;
             var msg = "Error updating cell output after " + elapsed_time + "s";
             msg += "(canceling further update checks).";
             alert(msg);
@@ -1358,6 +1385,7 @@ function check_for_cell_update_callback(status, response_text) {
         continue_update_check();
         return;
     } else {
+        update_error_count = 0;
         cell_output_delta = update_normal_delta;
     }
 

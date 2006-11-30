@@ -21,6 +21,7 @@ list of cells.
 # and numbers, so don't make this too small.
 MAX_OUTPUT = 65536
 
+TRACEBACK = 'Traceback (most recent call last):'
 
 
 import os, shutil
@@ -218,7 +219,10 @@ class Cell:
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
-            output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            else:
+                output = output[:MAX_OUTPUT] + '\n(truncated)'
         self.__out = output
         self.__out_html = html
         self.__sage = sage
@@ -491,9 +495,8 @@ class Cell:
 ########
 
 def format_exception(s0, ncols):
-    m = 'Traceback (most recent call last):'
     s = s0.lstrip()
-    if s[:len(m)] != m:
+    if s[:len(TRACEBACK)] != TRACEBACK:
         return s0
     if ncols > 0:
         s = s.strip()

@@ -161,44 +161,59 @@ class Worksheet:
         Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
         suitable for hand editing.
         """
-        s = '#'*80 + '\n'
-        s += '# Wiki form for worksheet: %s'%self.name() + '\n'
-        s += '#'*80+'\n\n'
+        #s = '#'*80 + '\n'
+        #s += '# Worksheet: %s'%self.name() + '\n'
+        #s += '#'*80+'\n\n'
+        s = ' == %s =='%self.name() + '\n\n'
         for C in self.__cells:
-            t = C.wiki_text(prompts=prompts).strip()
+            t = C.edit_text(prompts=prompts).strip()
             if t != '':
                 s += '\n\n' + t
         return s
 
-    def insert_wiki_cells(self,text):
+    def edit_save(self,text):
         text.replace('\r\n','\n')
-        lines = text.split('\n')
-        input = ""
-        output = ""
-        in_cell = False
-        in_output = False
-        old_first = self.__cells[0].id()
-        for line in lines:
-            if not in_cell:
-                if line[:3] == '{{{':
-                    in_cell = True
-            elif line != '}}}':
-                if not in_output:
-                    if line == '///':
-                        in_output = True
-                    else:
-                        input += line+'\n'
-                else:
-                    output += line+'\n'
-            else:
-                C = self.new_cell_before(old_first)
-                C.set_input_text(input)
-                C.set_output_text(output,output)
-                C.set_cell_output_type()
-                input = ""
-                output = ""
-                in_cell = False
-                in_output = False
+        # This is where we would save the last version in a history.
+        cells = []
+        while True:
+            try:
+                input, output, graphics, i = extract_first_text_cell(text)
+            except EOFError:
+                break
+            text = text[i:]
+            C = self._new_cell()
+            C.set_input_text(input)
+            C.set_output_text(output, '')
+            cells.append(C)
+        self.__cells = cells
+
+##         lines = text.split('\n')
+##         input = ""
+##         output = ""
+##         in_cell = False
+##         in_output = False
+##         old_first = self.__cells[0].id()
+##         for line in lines:
+##             if not in_cell:
+##                 if line[:3] == '{{{':
+##                     in_cell = True
+##             elif line != '}}}':
+##                 if not in_output:
+##                     if line == '///':
+##                         in_output = True
+##                     else:
+##                         input += line+'\n'
+##                 else:
+##                     output += line+'\n'
+##             else:
+##                 C = self.new_cell_before(old_first)
+##                 C.set_input_text(input)
+##                 C.set_output_text(output,output)
+##                 C.set_cell_output_type()
+##                 input = ""
+##                 output = ""
+##                 in_cell = False
+##                 in_output = False
 
     def input_text(self):
         """
@@ -368,7 +383,6 @@ class Worksheet:
                 self.enqueue(c)
 
     def _new_cell(self, id=None):
-        D = self.__notebook.defaults()
         if id is None:
             id = self.__next_id
             self.__next_id += 1
@@ -1227,4 +1241,40 @@ def ignore_prompts_and_output(s):
         elif I2[:3] == '...':
             s += I2[3:] + '\n'
     return s
+
+
+
+def extract_first_text_cell(text):
+    """
+    INPUT:
+        a block of wiki-like marked up text
+    OUTPUT:
+        input -- string, the input text
+        output -- string, the output text
+        graphics -- string, text that describes any embedded graphics
+        end -- integer, first position after }}} in text.
+    """
+    # Find the input block
+    i = text.find('{{{')
+    if i == -1:
+        raise EOFError
+    j = text.find('}}}')
+    if j <= i:
+        j = len(text)
+    k = text.find('///')
+    if k == -1 or k > j:
+        input = text[i+3:j]
+        output = ''
+        graphics = ''
+    else:
+        input = text[i+3:k].strip()
+        # Find the graphics block, if there is one.
+        l = text[k+3:].find('///')
+        if l != -1 and l+k+3 < j:
+            graphics = text[l+k+3+3:j]
+        else:
+            graphics = ''
+            l = j
+        output = text[k+3:l].strip()
+    return input, output, graphics, j+3
 

@@ -111,7 +111,7 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n///\n'
+            s += self.__in.strip()
 
         if prompts:
             msg = 'Traceback (most recent call last):'
@@ -126,15 +126,9 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).split('\n')
-            if len(out) > 0:
-                if wiki_out:
-                  out = '///\n' + '\n'.join(out)
-                else:
-                  out = '#out: ' + '\n'.join(out)
-            else:
-                out = ''
             out = self.output_text(ncols, html=False)
+            if wiki_out and len(out) > 0:
+                out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
@@ -148,10 +142,8 @@ class Cell:
             s = s.rstrip('\n')
         return s
 
-    def wiki_text(self, ncols=0, prompts=False, max_out=None):
+    def edit_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
-        #return '{{{[%s]\n'%self.id() + s + '\n}}}'
         return '{{{\n%s\n}}}'%s
 
     def is_last(self):
@@ -283,12 +275,12 @@ class Cell:
                 t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
-            if not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
-
             # if there is an error in the output,
             # specially format it.
             s = format_exception(s, ncols)
+            if not self.is_html() and len(s.strip()) > 0:
+                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+
 
         return s.strip('\n')
 
@@ -499,7 +491,9 @@ class Cell:
 ########
 
 def format_exception(s, ncols):
-    if not ('Traceback (most recent call last):' in s):
+    m = 'Traceback (most recent call last):'
+    s = s.lstrip()
+    if s[:len(m)] != m:
         return s
     if ncols > 0:
         s = s.strip()

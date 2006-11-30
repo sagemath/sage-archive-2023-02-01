@@ -458,14 +458,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def edit_save(self, filename, newtext):
         W = notebook.get_worksheet_with_filename(filename)
-        raise NotImplementedError
+        W.edit_save(newtext)
+        return self.show_page(worksheet_id=W.id())
 
     def edit_preview(self):
-        print "edit_preview"
+        raise NotImplementedError
 
-    def edit_cancel(self):
-        print "edit_ancel"
-
+    def edit_cancel(self, filename):
+        W = notebook.get_worksheet_with_filename(filename)
+        return self.show_page(worksheet_id=W.id())
 
 
     #######################################################################
@@ -533,14 +534,14 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         self.wfile.write(notebook.upload_window())
 
-    def insert_wiki_cells(self):
-        C = self.get_postvars()
-        W = notebook.get_worksheet_with_id(int(C['worksheet_id'][0]))
-        W.insert_wiki_cells(C['text'][0])
-        response = C['eval'][0] + SEP
-        response+= "%r"%W.cell_id_list() + SEP
-        response+= SEP.join([c.html(div_wrap=False) for c in W[:-1]])
-        self.wfile.write(response)
+##     def insert_wiki_cells(self):
+##         C = self.get_postvars()
+##         W = notebook.get_worksheet_with_id(int(C['worksheet_id'][0]))
+##         W.insert_wiki_cells(C['text'][0])
+##         response = C['eval'][0] + SEP
+##         response+= "%r"%W.cell_id_list() + SEP
+##         response+= SEP.join([c.html(div_wrap=False) for c in W[:-1]])
+##         self.wfile.write(response)
 
     def download_worksheet(self, filename):
         try:
@@ -589,8 +590,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.help_window()
             elif worksheet_filename == '__license__':
                 self.license_window()
-            elif worksheet_filename[-8:] == '__edit__':
-                self.edit_text(worksheet_filename[:-8],prompts=False)
             elif worksheet_filename[-7:] == '__doc__':
                 self.plain_text_worksheet(worksheet_filename[:-7], prompts=True)
             elif worksheet_filename[-9:] == '__plain__':
@@ -702,12 +701,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         show_debug=False
         i = self.path.rfind('?')
         if i != -1:
-            if 'debug' in self.path[i:]:
+            if self.path[i+1:i+6] == 'debug':
                 show_debug = True
+            elif self.path[i+1:i+5] == 'edit':
+                j = self.path.rfind('/')
+                worksheet_filename = self.path[j+1:i]
+                self.edit_text(worksheet_filename,prompts=False)
+                return
             self.path = self.path[:i]
 
         #verbose(self.path)
-
         if self.path[-4:] in ['.eps', '.pdf', '.png', '.bmp', '.svg', '.tex', \
                               '.dvi', '.log', '.css',\
                               '.txt', '.ico', '.sws'] or \
@@ -784,11 +787,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         elif content_type == 'multipart/form-data':
             M = cgi.parse_multipart(self.rfile, post_dict);
 
-            if self.path[-5:] == '/edit' and self.path != '/edit':
-                # i.e., this "/edit" after a longer name, not a worksheet named /edit
-                filename = self.path[:-5].strip('/')
+            if self.path[-5:] == '?edit' and self.path != '?edit':
+                filename = self.path[1:-5]
                 if M.has_key('button_save'):
                     self.edit_save(filename, M['textfield'][0])
+                elif M.has_key('button_cancel'):
+                    self.edit_cancel(filename)
                 return
 
             if self.path == '/upload_worksheet' and M.has_key('fileField'):

@@ -834,7 +834,7 @@ class Notebook(SageObject):
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         #body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
+        body += '    <a class="plain_text" href="%s?edit">Edit</a>'%worksheet.filename() + vbar
         #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
         body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
@@ -934,9 +934,10 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
+        body_html += "<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save -- preserving images not yet implemented.  No markup not in {{{}}}'s is preserved.<br><br>"
+        body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
-        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
         body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
         body_html += '</form>'

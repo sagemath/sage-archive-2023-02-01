@@ -1,5 +1,26 @@
 """
 Web Server Component of SAGE Notebook
+
+In this file the WebServer class is defined, which
+inherits from Python's BaseHTTPRequestHandler.
+
+The main purpose of the WebServer is to handle
+HTTP GET and POST requests (as with any web server).
+
+For the GET requests, the request path is examined
+and 'static' files are served based on the path.
+If, for example, one wanted to extend the functionality
+of the Notebook by enabling the WebServer to handle and
+serve and new kind of GET request, one would write a function
+that writes to the 'wfile' (the outgoing file-like object)
+some data depending the incoming path.
+
+For the POST requests, the requests comes with some
+post variables.  We define functions in the WebServer class
+to handle these POST requests with the post variables.
+If, for example, one wanted to extend POST functionality,
+one would write a function that takes a input some post variables
+and serves a request depending on those post vars.
 """
 
 ###########################################################################
@@ -15,7 +36,7 @@ import BaseHTTPServer
 import socket
 import cgi
 import mimetypes
-
+from exceptions import KeyError
 import os, sys
 import select
 from   StringIO import StringIO
@@ -23,6 +44,8 @@ import shutil
 import Cookie
 import cPickle
 import base64
+
+#SAGE notebook libraries
 import css, js
 import keyboards
 
@@ -52,47 +75,110 @@ last_save_time = time.time()
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
+        r"""
+        This function gets the variables corresponding to a POST.
+
+        Specifically, it is evaluated after \code{do_POST} is
+        called, which in turn calls some other more specialized
+        function that handles the POST using the POST variables.
+
+        \code{length} is the length of the header in bytes. It is used
+        to read the \code{rfile} just enough to extract the POST variables
+        \code{rfile} contains the input stream, and is of type <class 'socket._fileobject'>
+
+        \code{cgi.parse_qs} return a dictionary mapping POST variable
+        names to lists of their values.
+
+        We then loop through the keys of the cgi dictionary
+        and extract the actual used values.
+
+        """
         length = int(self.headers.getheader('content-length'))
         qs = self.rfile.read(length)
-        return cgi.parse_qs(qs, keep_blank_values=1)
-
+        pqs =  cgi.parse_qs(qs, keep_blank_values=1)
+        postvars = {}
+        #extract from the cgi dict the useable values
+        for var in pqs.keys():
+            try:
+                if var in ['id', 'cell_id', 'worksheet_id']:
+                    postvars[var] = int(pqs[var][0])
+                else:
+                    postvars[var] = pqs[var][0]
+            except KeyError:
+                pass
+        if notebook.log_server():
+            notebook.server_log().append(["POST", self.path, postvars, self.headers.getheader('content-type')])
+        return postvars
 
     def cell_output_set(self):
+        """
+        Set the output type of the cell.
+
+        This enables the type of output cell,
+        such as to allowing wrapping for output
+        that is very long.
+        """
         C = self.get_postvars()
-        id = int(C['id'][0])
-        typ = C['type'][0]
+        id = C['id']
+        typ = C['type']
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if self.auth_worksheet(W):
             cell = W.get_cell_with_id(id)
             cell.set_cell_output_type(typ)
 
     def hide_all(self):
-        C = self.get_postvars()
-        id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(id)
+        """
+        Sets every cell's output hidden in a given worksheet.
+        """
+        ws_id = self.get_postvars()['worksheet_id']
+        W = notebook.get_worksheet_with_id(ws_id)
         if self.auth_worksheet(W):
             W.hide_all()
 
+    def show_all(self):
+        """
+        Sets every cell's output visible in a given worksheet.
+        """
+        ws_id = self.get_postvars()['worksheet_id']
+        W = notebook.get_worksheet_with_id(ws_id)
+        if self.auth_worksheet(W):
+            W.show_all()
+
+
     def restart_sage(self):
-        C = self.get_postvars()
-        id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(id)
+        """
+        Restart a given worksheet session.
+
+        All defined variables and functions will be
+        removed from the namespace of this worksheet.
+
+        """
+        ws_id = self.get_postvars()['worksheet_id']
+        W = notebook.get_worksheet_with_id(ws_id)
         if self.auth_worksheet(W):
             W.restart_sage()
             self.wfile.write('done')
 
-    def show_all(self):
-        C = self.get_postvars()
-        id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(id)
-        if self.auth_worksheet(W):
-            W.show_all()
-
     def eval_cell(self, newcell=False, introspect=False):
+        """
+        Evaluate a cell.
+
+        If the request is not authorized,
+        (the requester did not enter the correct password
+        for the given worksheet), then the request to
+        evaluate or introspect the cell is ignored.
+
+        If the cell contains either 1 or 2 question marks,
+        then this is interpreted as a request for either
+        introspection to the documentation of the function,
+        or the documentation of the function and the
+        source code of the function respectively.
+
+        """
         C = self.get_postvars()
-        id = int(C['id'][0])
-        input_text = C['input'][0]
-        #input_text = input_text.replace('__plus__','+')
+        id = C['id']
+        input_text = C['input']
+        input_text = input_text.replace('__plus__','+')
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
@@ -102,7 +188,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         cell = W.get_cell_with_id(id)
         if not introspect:
             cell.set_input_text(input_text)
-
         cell.evaluate(introspect=introspect)
 
         if cell.is_last():
@@ -114,14 +199,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(str(new_cell.id()) + SEP + 'insert_cell' + SEP + \
                              new_cell.html(div_wrap=False) + SEP + str(id))
         else:
-            self.wfile.write(str(cell.next_id()) + SEP +
-                             'no_new_cell' + SEP + str(id))
+            self.wfile.write(str(cell.next_id()) + SEP + 'no_new_cell' + SEP + str(id))
 
     def introspect(self):
         C = self.get_postvars()
-        id = int(C['id'][0])
-        before_cursor = C['before_cursor'][0] #.replace('__plus__','+')
-        after_cursor = C['after_cursor'][0] #.replace('__plus__','+')
+        id = C['id']
+        before_cursor = C['before_cursor']
+        after_cursor = C['after_cursor']
         input_text = (before_cursor+after_cursor)
         verbose('introspect -- %s: %s|%s'%(id, before_cursor, after_cursor))
 
@@ -142,8 +226,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
     def new_cell(self):
-        C = self.get_postvars()
-        id = int(C['id'][0])
+        """
+        Add a new cell before a given cell.
+        """
+        id = self.get_postvars()['id']
         verbose("Adding new cell before cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -154,8 +240,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                          str(id))
 
     def new_cell_after(self):
-        C = self.get_postvars()
-        id = int(C['id'][0])
+        """
+        Add a new cell after a given cell.
+        """
+        id = self.get_postvars()['id']
         verbose("Adding new cell after cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -166,8 +254,19 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                          str(id) + SEP)
 
     def delete_cell(self):
-        C = self.get_postvars()
-        id = int(C['id'][0])
+        """
+        Deletes a notebook cell.
+
+        If there is only one cell left in a given
+        worksheet, the request to delete that cell
+        is ignored because there must be a least
+        one cell at all times in a worksheet.
+        (This requirement exists so other functions
+        that evaluate relative to existing cells will
+        still work ... this requirement could be removed?)
+
+        """
+        id = self.get_postvars()['id']
         verbose("Deleting cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
 
@@ -195,6 +294,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write("OK")
 
     def save_notebook_every_so_often(self):
+        """
+        Writes to the nb.sobj every SAVE_INTERVAL time step.
+
+        """
         global last_save_time
         if time.time() - last_save_time > SAVE_INTERVAL:
             notebook.save()
@@ -204,9 +307,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         notebook.kill_idle_compute_processes()
 
     def cell_update(self):
+        """
+        Updates an evaluated cell.
+
+        If the cell contains a calculation that takes
+        a long time to complete, the async javascript will
+        continously request the evaluation of this function
+        to serve two purposes:
+        1) To see if the long calculation is done, or
+        2) To interupt the long running calculation.
+
+        """
         C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'][0])
-        cell_id = int(C['cell_id'][0])
+        worksheet_id = C['worksheet_id']
+        cell_id = C['cell_id']
 
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
@@ -223,7 +337,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             attached_files = worksheet.attached_html()
         else:
             variables = '...'  # not used
-            objects = "..." # note used
+            objects = "..." # not used
             attached_files = '...' # not used
 
         if status == 'd':
@@ -252,9 +366,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(msg)
 
     def interrupt(self):
-        C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(worksheet_id)
+        ws_id = self.get_postvars()['worksheet_id']
+        W = notebook.get_worksheet_with_id(ws_id)
         if not self.auth_worksheet(W):
             return
 
@@ -266,8 +379,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def add_worksheet(self):
         C = self.get_postvars()
-        worksheet_name = C['name'][0]
-        passcode = C['passcode'][0]
+        worksheet_name = C['name']
+        passcode = C['passcode']
         try:
             W = notebook.create_new_worksheet(worksheet_name, passcode)
         except ValueError, msg:
@@ -285,17 +398,19 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         return W.auth(passcode)
 
     def unlock_worksheet(self):
-        C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'][0])
-        W = notebook.get_worksheet_with_id(worksheet_id)
+        ws_id = self.get_postvars()['worksheet_id']
+        W = notebook.get_worksheet_with_id(ws_id)
         if not self.auth_worksheet(W):
             self.wfile.write('failed')
         else:
             self.wfile.write('ok')
 
     def delete_worksheet(self):
-        C = self.get_postvars()
-        worksheet_name = C['name'][0]
+        """
+        Delete the given worksheet and remove its
+        name from the worksheet list.
+        """
+        worksheet_name = self.get_postvars()['name']
         W = notebook.get_worksheet_with_name(worksheet_name)
         if not self.auth_worksheet(W):
             return
@@ -318,7 +433,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(msg)
             return
         #self.wfile.write(notebook.worksheet_list_html())
-
         #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
         self.send_response(302)
         self.send_header("Location", '/%d'%W.id())
@@ -375,8 +489,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         if do_print:
             s += '<script src="/jsmath/jsMath.js"></script>\n'
-        s += '<script language=javascript>' + js.javascript() + '</script>\n'
-        s += '<style>' + css.css() + '</style>\n'
+        s += '<script language=javascript src="/__main__.js"></script>\n'
+        s += '<style rel=stylesheet href="/__main__.css"></style>\n'
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
@@ -449,6 +563,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(s)
 
     def get_file(self):
+        """
+        Examine the request and serve a file based on
+        if the path matches any of the below strings.
+
+        If the path matches none of the strings,
+        then a '200 File Not Found' error is return.
+
+        This function could be cleaned up?
+        """
         path = self.path
         if path[-5:] == '.sobj':
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
@@ -482,12 +605,22 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.download_worksheet(worksheet_filename)
             return
 
-        elif path[-5:] == '__.js' and self.path[-18:-7] == '__keyboard_':
-            self.wfile.write(keyboards.get_keyboard(self.path[-7:-5]))
+        elif path[-12:] == '__main__.css':
+            self.wfile.write(css.css())
             return
+
+        elif path[-5:] == '__.js':
+            if self.path[-18:-7] == '__keyboard_':
+                self.wfile.write(keyboards.get_keyboard(self.path[-7:-5]))
+                return
+            elif path[-13:-3] == '__main__':
+                self.wfile.write(js.javascript())
+                return
         try:
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
+            elif path[-10:] == 'corner.png':
+                binfile = self.corner_image()
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:
@@ -501,6 +634,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if mime_type is None:
             mime_type = "text/plain"
         self.send_header("Content-type", mime_type)
+        self.send_header("Cache-control", "no-store")
 
         self.end_headers()
 
@@ -542,11 +676,22 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write("SAGE Server: File not found")
 
     def do_GET(self):
-        verbose("GET: " + self.path)
+        """
+        Handle a HTTP GET request.
+
+        The basic operation of this function is to
+        examine the request path and decide to serve
+        either a static file based on the file extension,
+        or in the case that a '?' found in the path,
+        modify the path and continue.
+
+        """
+        if notebook.log_server():
+            notebook.server_log().append(["GET", self.path])
         self.get_cookie()
-        # The question mark hack here is so that images will be reloaded when
+        # The question mark trick here is so that images will be reloaded when
         # the async request requests the output text for a computation.
-        # This is a total hack, inspired by http://www.irt.org/script/416.htm/.
+        # This is inspired by http://www.irt.org/script/416.htm/.
         show_debug=False
         i = self.path.rfind('?')
         if i != -1:
@@ -554,10 +699,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 show_debug = True
             self.path = self.path[:i]
 
-        verbose(self.path)
+        #verbose(self.path)
 
         if self.path[-4:] in ['.eps', '.pdf', '.png', '.bmp', '.svg', '.tex', \
-                              '.dvi', '.log', \
+                              '.dvi', '.log', '.css',\
                               '.txt', '.ico', '.sws'] or \
                self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
@@ -581,6 +726,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.file_not_found()
 
     def get_cookie(self):
+        """
+        Get a cookie from the html header.
+        """
         self.cookie=Cookie.SimpleCookie()
         if self.headers.has_key('cookie'):
             try:
@@ -590,6 +738,18 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 pass
 
     def authorize(self):
+        """
+        Set the permissions for a given worksheet.
+
+        If the password is not given correctly, then
+        the user is still allowed to view the given
+        worksheet, just not evaluate any cells.
+
+        This is not a rigorous security method,
+        including the fact that the password is sent
+        in clear text.
+
+        """
         username = password = "";
         if self.cookie.has_key('username'):
             username = self.cookie['username'].value
@@ -598,9 +758,17 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         return notebook.authorize(username + ":" + password);
 
     def do_POST(self):
+        """
+        Handle a HTTP POST request.
+
+        This differers from the HTTP GET by the fact that
+        along with the POST request comes post variables
+        which a used to evaluate the POST handling functions.
+
+        """
         self.get_cookie()
         content_type, post_dict = cgi.parse_header(self.headers.getheader('content-type'))
-        verbose("POST: %s"%post_dict)
+        #verbose("POST: %s"%post_dict)
         self.save_notebook_every_so_often()
 
         if not self.authorize():
@@ -704,7 +872,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             """
         return base64.decodestring(s)
 
-
+    def corner_image(self):
+        s = """
+            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAJUlEQVQY02P4jx00MKADohRhUYhd
+            EZpC3IqQFOJXBFVIWNEQAQBLCFCz5Yzj9AAAAABJRU5ErkJggg==
+            """
+        return base64.decodestring(s)
 
 class NotebookServer:
     def __init__(self, notebook, port, address):

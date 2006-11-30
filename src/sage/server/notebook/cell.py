@@ -490,11 +490,11 @@ class Cell:
 
 ########
 
-def format_exception(s, ncols):
+def format_exception(s0, ncols):
     m = 'Traceback (most recent call last):'
-    s = s.lstrip()
+    s = s0.lstrip()
     if s[:len(m)] != m:
-        return s
+        return s0
     if ncols > 0:
         s = s.strip()
         s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')

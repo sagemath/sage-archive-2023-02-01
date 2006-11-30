@@ -6,7 +6,7 @@ import os
 
 import sage.rings.integer
 
-def qsieve(n, block=True, time=False):
+def qsieve(n, block=True, time=False, verbose=False):
     """
     Run Hart's quadratic sieve and return the distinct proper factors
     of the integer n that it finds.
@@ -19,6 +19,10 @@ def qsieve(n, block=True, time=False):
             runs in parallel.
         time -- (default: False) if True, time the command using
             the UNIX "time" command (which you might have to install).
+        verbose -- (default: False) if True, print out verbose
+            logging information about what happened during
+            the Sieve run (for non-blocking Sieve, verbose information
+            is always available via the log() method.)
 
     OUTPUT:
         list -- a list of the distinct proper factors of n found
@@ -40,11 +44,11 @@ def qsieve(n, block=True, time=False):
     if len(str(n)) < 40:
         raise ValueError, "n must have at least 40 digits"
     if block:
-        return qsieve_block(n, time)
+        return qsieve_block(n, time, verbose)
     else:
         return qsieve_nonblock(n, time)
 
-def qsieve_block(n, time):
+def qsieve_block(n, time, verbose=False):
     """
     Compute the factorization of n using Hart's quadratic Sieve
     blocking until complete.
@@ -54,7 +58,10 @@ def qsieve_block(n, time):
     else:
         t = ''
     out = os.popen('echo "%s" | %s QuadraticSieve 2>&1'%(n,t)).read()
-    return data_to_list(out, n, time=time)
+    z = data_to_list(out, n, time=time)
+    if verbose:
+        print z[-1]
+    return z[:2]
 
 def data_to_list(out, n, time):
     """
@@ -68,8 +75,13 @@ def data_to_list(out, n, time):
         list -- proper factors found so far
         str -- time information
     """
+    i = out.find('FACTORS:')
+    if i == -1:
+        verbose = ''
+    else:
+        verbose = out[:i]
+        out = out[i+len('FACTORS:')+1:].strip()
     if time:
-        out = out.strip()
         w = out.split('\n')
         for i in range(len(w)):
             if 'user' in w[i]:
@@ -82,13 +94,10 @@ def data_to_list(out, n, time):
     else:
         t = ''
     Z = sage.rings.integer.Integer
-    i = out.find(':')
-    if i == -1:
-        return []
-    v = out[i+1:].split()
+    v = out.split()
     v = list(set([Z(m) for m in v if Z(m) != n]))
     v.sort()
-    return v, t
+    return v, t, verbose
 
 
 import pexpect
@@ -151,7 +160,7 @@ class qsieve_nonblock:
         if self._done:
             v = data_to_list(self._get(), self._n, self._do_time)
             if self._do_time:
-                return str(v)
+                return str(v[:2])
             else:
                 return str(v[0])
         else:
@@ -170,6 +179,12 @@ class qsieve_nonblock:
         except IndexError:
             return '?'
     time = cputime
+
+    def log(self):
+        """
+        Return all output of running the sieve so far.
+        """
+        return self._get()
 
     def __getitem__(self, i):
         """

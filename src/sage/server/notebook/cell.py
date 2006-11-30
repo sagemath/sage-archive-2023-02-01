@@ -263,10 +263,10 @@ class Cell:
     def output_text(self, ncols=0, html=True):
         s = self.__out
 
-        def format(x):
-            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
-
         if html:
+            def format(x):
+                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -285,6 +285,11 @@ class Cell:
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
+
         return s.strip('\n')
 
     def has_output(self):
@@ -489,4 +494,22 @@ class Cell:
                    self.__id, self.__id, r, s)
 
         return tbl
+
+
+
+########
+
+def format_exception(s, ncols):
+    if not ('Traceback (most recent call last):' in s):
+        return s
+    if ncols > 0:
+        s = s.strip()
+        s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
+        w = s.split('\n')
+        s = w[0] + '\n...\n' + w[-1]
+    else:
+        s = s.replace("exec compile(ur'","")
+        s = s.replace("' + '\\n', '', 'single')", "")
+    t = '<html><font color="#990099">' + s + '</font></html>'
+    return t
 

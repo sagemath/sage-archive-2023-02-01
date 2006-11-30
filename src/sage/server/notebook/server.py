@@ -525,14 +525,22 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def show_page(self, worksheet_id=None,show_debug=False):
         self.send_head()
+        W = None
         try:
             W = notebook.get_worksheet_with_id(worksheet_id)
         except KeyError:
-            W = notebook.create_new_worksheet(worksheet_id)
+            if not notebook.nosplash() and worksheet_id is None:
+              W = notebook.create_new_worksheet(worksheet_id)
+
+        if W is not None:
+            auth = self.auth_worksheet(W)
+        else:
+            auth = True
+
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
                                        authorized=self.authorize(),
                                        show_debug=show_debug,
-                                       worksheet_authorized = self.auth_worksheet(W)))
+                                       worksheet_authorized = auth))
 
 
     def file_not_found(self):

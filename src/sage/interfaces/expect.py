@@ -376,8 +376,8 @@ class Expect(ParentWithBase):
                 if wait_for_prompt == False:
                     return ''
 
-            except OSError:
-                return RuntimeError, "Error evaluating %s in %s"%(line, self)
+            except OSError, msg:
+                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
 
             if len(line)>0:
                 try:
@@ -386,12 +386,16 @@ class Expect(ParentWithBase):
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
-                    if self._read_in_file_command(tmp) in line:
-                        raise pexpect.EOF, msg
+                    try:
+                        if self._read_in_file_command(tmp) in line:
+                            raise pexpect.EOF, msg
+                    except NotImplementedError:
+                        pass
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    raise RuntimeError, "%s crashed executing %s"%(self, line)
+                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,
+                                                   self, line)
                 out = E.before
             else:
                 out = '\n\r'
@@ -433,6 +437,9 @@ class Expect(ParentWithBase):
             self._keyboard_interrupt()
         except TypeError, s:
             return 'error evaluating "%s":\n%s'%(code,s)
+
+    def execute(self, *args, **kwds):
+        return self.eval(*args, **kwds)
 
     def __call__(self, x):
         r"""

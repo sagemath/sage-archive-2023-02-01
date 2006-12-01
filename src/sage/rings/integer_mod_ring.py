@@ -199,6 +199,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
         ParentWithGens.__init__(self, self)
 
+    def precompute_table(self):
+        self._pyx_order.precompute_table(self)
+
     def list_of_elements_of_multiplicative_group(self):
         import sage.ext.arith as a
         if self.__order <= 46340:   # todo: don't hard code

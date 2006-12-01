@@ -61,11 +61,18 @@ def IntegerMod(parent, value):
 
     This is mainly for internal use.
     """
-    cdef sage.rings.integer.Integer modulus
-    modulus = parent.order()
-    if mpz_cmp_si(modulus.value, INTEGER_MOD_INT32_LIMIT) < 0:
+    cdef NativeIntStruct modulus
+    cdef Py_ssize_t res
+    modulus = parent._pyx_order
+    if modulus.table is not None:
+        if PY_TYPE_CHECK(value, sage.rings.integer.Integer) or PY_TYPE_CHECK(value, int) or PY_TYPE_CHECK(value, long):
+            res = value % modulus.int64
+            if res < 0:
+                res = res + modulus.int64
+            return modulus.lookup(res)
+    if modulus.int32 != -1:
         return IntegerMod_int(parent, value)
-    elif mpz_cmp_si(modulus.value, INTEGER_MOD_INT64_LIMIT) < 0:
+    elif modulus.int64 != -1:
         return IntegerMod_int64(parent, value)
     else:
         return IntegerMod_gmp(parent, value)
@@ -89,6 +96,9 @@ def makeNativeIntStruct(sage.rings.integer.Integer z):
 cdef class NativeIntStruct:
 
     def __init__(NativeIntStruct self, sage.rings.integer.Integer z):
+        self.int64 = -1
+        self.int32 = -1
+        self.table = None # NULL
         self.sageInteger = z
         if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) < 0:
             self.int64 = mpz_get_si(z.value)
@@ -97,6 +107,21 @@ cdef class NativeIntStruct:
 
     def __reduce__(NativeIntStruct self):
         return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
+
+    def precompute_table(NativeIntStruct self, parent):
+        self.table = PyList_New(self.int64)
+        cdef Py_ssize_t i
+        if self.int32 != -1:
+            for i from 0 <= i < self.int32:
+                z = IntegerMod_int(parent, i)
+                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+        else:
+            for i from 0 <= i < self.int64:
+                z = IntegerMod_int64(parent, i)
+                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+
+    cdef lookup(NativeIntStruct self, Py_ssize_t value):
+        return <object>PyList_GET_ITEM(self.table, value)
 
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
@@ -737,8 +762,15 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        cdef int_fast32_t x
+        if PY_TYPE_CHECK(value, int):
+            x = value
+            self.ivalue = x % self.__modulus.int32
+            if self.ivalue < 0:
+                self.ivalue = self.ivalue + self.__modulus.int32
+            return
         cdef sage.rings.integer.Integer z
-        if isinstance(value, sage.rings.integer.Integer):
+        if PY_TYPE_CHECK(value, sage.rings.integer.Integer):
             z = value
         elif isinstance(value, rational.Rational):
             z = value % self.__modulus.sageInteger
@@ -747,6 +779,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         self.set_from_mpz(z.value)
 
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
+        if self.__modulus.table is not None:
+            return self.__modulus.lookup(value)
         cdef IntegerMod_int x
         x = PY_NEW(IntegerMod_int)
         x.__modulus = self.__modulus
@@ -1148,6 +1182,13 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        cdef int_fast64_t x
+        if PY_TYPE_CHECK(value, int):
+            x = value
+            self.ivalue = x % self.__modulus.int64
+            if self.ivalue < 0:
+                self.ivalue = self.ivalue + self.__modulus.int64
+            return
         cdef sage.rings.integer.Integer z
         if isinstance(value, sage.rings.integer.Integer):
             z = value
@@ -1529,4 +1570,3 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
     if prod > n:
         prod = prod % n
     return prod
-

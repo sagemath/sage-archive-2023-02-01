@@ -832,6 +832,12 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         return self.__modulus
 
+    def level(self):
+        """
+        The modulus of self.
+        """
+        return self.modulus()
+
     def multiplicative_order(self):
         """
         The order of this character.

@@ -93,9 +93,6 @@ class NumberFieldElement(field_element.FieldElement):
         if isinstance(parent, number_field.NumberField_extension):
             ppr = parent.base_field().polynomial_ring()
 
-        if isinstance(parent, str):
-            print 'parent = ', parent
-            print 'f = ', f
         if isinstance(f, pari_gen):
             f = f.lift()
             f = ppr(f)

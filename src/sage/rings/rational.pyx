@@ -180,18 +180,26 @@ cdef class Rational(sage.structure.element.FieldElement):
                     mpq_canonicalize(self.value)
 
         elif isinstance(x, str):
+            _sig_on
             if mpq_set_str(self.value, x, base):
+                _sig_off
                 raise TypeError, "unable to convert %s to a rational"%x
             mpq_canonicalize(self.value)
+            _sig_off
 
         elif hasattr(x, "_rational_"):
             set_from_Rational(self, x._rational_())
 
         elif isinstance(x, tuple) and len(x) == 2:
             s = "%s/%s"%x
-            if mpq_set_str(self.value, s, 0):
-                raise TypeError, "unable to convert %s to a rational"%s
+            if x[1] == 0:
+                raise ValueError, "denominator must not be 0"
+            _sig_on
+            n = mpq_set_str(self.value, s, 0)
             mpq_canonicalize(self.value)
+            _sig_off
+            if i:
+                raise TypeError, "unable to convert %s to a rational"%s
 
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)
@@ -563,7 +571,15 @@ cdef class Rational(sage.structure.element.FieldElement):
     cdef RingElement _mul_c_impl(self, RingElement right):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
-        mpq_mul(x.value, self.value, (<Rational>right).value)
+        if mpz_sizeinbase (mpq_numref(self.value), 2)  > 100000 or \
+             mpz_sizeinbase (mpq_denref(self.value), 2) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpq_mul(x.value, self.value, (<Rational>right).value)
+            _sig_off
+        else:
+            mpq_mul(x.value, self.value, (<Rational>right).value)
         return x
 
     cdef RingElement _div_c_impl(self, RingElement right):

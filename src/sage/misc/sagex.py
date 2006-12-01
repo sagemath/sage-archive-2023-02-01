@@ -1,5 +1,5 @@
 """
-Preparse and compile Pyrex file
+SageX Compiled SAGE Code
 
 AUTHORS:
     -- William Stein, 2006-01-18
@@ -24,7 +24,7 @@ include_dirs = ['%s/local/include'%SAGE_ROOT,  \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl']
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl', 'csage']
 
 offset = 0
 
@@ -98,8 +98,8 @@ include "stdsage.pxi"  # ctrl-c interrupt block support
 
 sequence_number = {}
 
-def pyrex(filename, verbose=False, compile_message=False,
-          use_cache=False):
+def sagex(filename, verbose=False, compile_message=False,
+          use_cache=False, create_local_c_file=False):
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
 
@@ -168,8 +168,9 @@ else:
 extra_link_args =  ['-L' + SAGE_LOCAL + '/lib']
 extra_compile_args = ['-w']
 
-ext_modules = [Extension('%s', sources=['%s.%s', 'interrupt.c', 'stdsage.c', %s],
+ext_modules = [Extension('%s', sources=['%s.%s', %s],
                      libraries=%s,
+                     library_dirs=[SAGE_LOCAL + '/lib/'],
                      extra_compile_args = extra_compile_args,
                      extra_link_args = extra_link_args,
                      language = '%s' )]
@@ -179,17 +180,15 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    pyrex_include = ' '.join(['-I %s'%x for x in includes])
+    sagex_include = ' '.join(['-I %s'%x for x in includes])
 
-    target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
+    cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err '%(build_dir, sagex_include, name)
 
-    if language == 'c++':
-        target_c = target_c + "pp"
-
-
-
-    cmd = 'cd %s && pyrexc -p %s %s.pyx 1>log 2>err && cp %s.c %s'%(build_dir, pyrex_include, name,
-                                                                  name, target_c)
+    if create_local_c_file:
+        target_c = '%s/_%s.c'%(os.path.abspath(os.curdir), base)
+        if language == 'c++':
+            target_c = target_c + "pp"
+        cmd += ' && cp %s.c %s'%(name, target_c)
 
     if verbose:
         print cmd
@@ -262,4 +261,73 @@ def subtract_from_line_numbers(s, n):
             ans.append(X)
     return '\n'.join(ans)
 
+
+################################################################
+# COMPILE
+################################################################
+def sagex_lambda(vars, expr,
+                 verbose=False,
+                 compile_message=False,
+                 use_cache=False):
+    """
+    Create a compiled function which evaluates expr assuming machine
+    values for vars.
+
+    WARNING: This implementation is not well tested.
+
+    INPUT:
+        vars -- list of pairs (variable name, c-data type), where
+                the variable names and data types are strings.
+            OR -- a string such as
+                         'double x, int y, int z'
+        expr -- an expression involving the vars and constants;
+                You can access objects defined in the current
+                module scope globals() using sagobject_name.
+                See the examples below.
+
+    EXAMPLES:
+    We create a Lambda function in pure Python (using the r to make sure the 3.2
+    is viewed as a Python float):
+        sage: f = lambda x,y: x*x + y*y + x + y + 17r*x + 3.2r
+
+    We make the same Lambda function, but in a compiled form.
+        sage: g = sagex_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
+
+    We access a global function and variable.
+        sage: a = 25
+        sage: f = sagex_lambda('double x', 'sage.math.sin(x) + sage.a')
+        sage: f(10)
+        24.455978889110629
+        sage: a = 50
+        sage: f(10)
+        49.455978889110632
+    """
+    if isinstance(vars, str):
+        v = vars
+    else:
+        v = ', '.join(['%s %s'%(typ,var) for typ, var in vars])
+
+    s = """
+class _s:
+   def __getattr__(self, x):
+       return globals()[x]
+
+sage = _s()
+
+def f(%s):
+ return %s
+    """%(v, expr)
+    if verbose:
+        print s
+    import sage.misc.misc
+    tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
+    open(tmpfile,'w').write(s)
+
+    import sage.server.support
+    d = {}
+    sage.server.support.sagex_import_all(tmpfile, d,
+                                         verbose=verbose, compile_message=compile_message,
+                                         use_cache=use_cache,
+                                         create_local_c_file=False)
+    return d['f']
 

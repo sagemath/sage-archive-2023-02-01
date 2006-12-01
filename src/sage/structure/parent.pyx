@@ -38,6 +38,19 @@ def is_Parent(x):
     """
     return PyBool_FromLong(PyObject_TypeCheck(x, Parent))
 
+
+## def make_parent_v0(_class, _dict, has_coerce_map_from):
+##     """
+##     This should work for any Python class deriving from this, as long
+##     as it doesn't implement some screwy __new__() method.
+##     """
+##     cdef Parent new_object
+##     new_object = _class.__new__(_class)
+##     if not _dict is None:
+##         new_object.__dict__ = _dict
+##     new_object._has_coerce_map_from = has_coerce_map_from
+##     return new_object
+
 cdef class Parent(sage_object.SageObject):
     """
     Parents are the SAGE/mathematical analogues of container objects in computer science.
@@ -61,9 +74,9 @@ cdef class Parent(sage_object.SageObject):
             sage: 2 in ZZ
             True
             sage: Integers(7)(3) in ZZ
-            False
+            True
             sage: 3/1 in ZZ
-            False
+            True
             sage: 5 in QQ
             True
             sage: I in RR
@@ -166,15 +179,53 @@ cdef class Parent(sage_object.SageObject):
             pass
         except TypeError:
             self._has_coerce_map_from = {}
+        if HAS_DICTIONARY(self):
+            x = self.has_coerce_map_from_impl(S)
+        else:
+            x = self.has_coerce_map_from_c_impl(S)
+        self._has_coerce_map_from[S] = x
+        return x
+
+    def has_coerce_map_from_impl(self, S):
+        return self.has_coerce_map_from_c_impl(S)
+
+    cdef has_coerce_map_from_c_impl(self, S):
         if not PY_TYPE_CHECK(S, Parent):
             return False
         try:
-            self._coerce_c(S(0))
+            self._coerce_c((<Parent>S)._an_element_c())
         except TypeError:
-            self._has_coerce_map_from[S] = False
             return False
-        self._has_coerce_map_from[S] = True
         return True
+
+    def _an_element_impl(self):     # override this in Python
+        return self._an_element_c_impl()
+
+    cdef _an_element_c_impl(self):  # override this in SageX
+        """
+        Returns an element of self.  It doesn't matter which.
+        """
+        try:
+            return self(0)
+        except TypeError:
+            try:
+                return self(1)
+            except TypeError:
+                pass
+        raise NotImplementedError, "please implement an_element_c_impl or an_element_impl in your parent class"
+
+    def _an_element(self):        # do not override this (call from Python)
+        return self._an_element_c()
+
+    cdef _an_element_c(self):     # do not override this (call from SageX)
+        if not self.__an_element is None:
+            return self.__an_element
+        if HAS_DICTIONARY(self):
+            self.__an_element = self._an_element_impl()
+        else:
+            self.__an_element = self._an_element_c_impl()
+        return self.__an_element
+
 
     ################################################
     # Comparison of parent objects
@@ -225,6 +276,14 @@ cdef class Parent(sage_object.SageObject):
 ##     def __richcmp__(left, right, int op):
 ##         return (<Parent>left)._richcmp(right, op)
 
+##         # NOT NEEDED, since all attributes are public!
+##     def __reduce__(self):
+##         if HAS_DICTIONARY(self):
+##             _dict = self.__dict__
+##         else:
+##             _dict = None
+##         return (make_parent_v0, (self.__class__, _dict, self._has_coerce_map_from))
+
     cdef int _cmp_c_impl(left, Parent right) except -2:
         pass
         # this would be nice to do, but we can't since
@@ -262,9 +321,9 @@ cdef class Parent(sage_object.SageObject):
             Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
 
         Homspaces are defined for very general \sage objects, even elements of familiar rings.
-            sage: n = 5; n.Hom(7)
+            sage: n = 5; Hom(n,7)
             Set of Morphisms from 5 to 7 in Category of elements of Integer Ring
-            sage: z=(2/3); z.Hom(8/1)
+            sage: z=(2/3); Hom(z,8/1)
             Set of Morphisms from 2/3 to 8 in Category of elements of Rational Field
 
         This example illustrates the optional third argument:

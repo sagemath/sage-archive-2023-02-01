@@ -22,8 +22,6 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
 
 import operator, os, sys, signal, time, weakref, random
 
-from sage.structure.sage_object import SageObject
-
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
@@ -313,6 +311,12 @@ def generic_cmp(x,y):
         return 0
     return 1
 
+def cmp_props(left, right, props):
+    for a in props:
+        c = cmp(left.__getattribute__(a)(), right.__getattribute__(a)())
+        if c: return c
+    return 0
+
 def prod(x, z=None):
     """
     Return the product of the elements in the list x.  If optimal
@@ -424,7 +428,7 @@ def uniq(x):
 
     EXAMPLES:
         sage: uniq([1,1,8,-5,3,-5,'a','x','a'])
-        [-5, 1, 3, 8, 'a', 'x']
+        ['a', 'x', -5, 1, 3, 8]
     """
     v = list(set(x))
     v.sort()
@@ -612,7 +616,7 @@ def srange(a,b=None,step=1, include_endpoint=False):
         sage: v = srange(5); v
         [0, 1, 2, 3, 4]
         sage: type(v[2])
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
 
         sage: srange(1, 10)
         [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -629,9 +633,9 @@ def srange(a,b=None,step=1, include_endpoint=False):
 
         sage: R = RealField()
         sage: srange(1,5,R('0.5'))
-        [1, 1.5000000000000000, 2.0000000000000000, 2.5000000000000000, 3.0000000000000000, 3.5000000000000000, 4.0000000000000000, 4.5000000000000000]
+        [1, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: srange(0,1,R('0.4'))
-        [0, 0.40000000000000002, 0.80000000000000004]
+        [0, 0.399999999999999, 0.799999999999999]
     """
     if b is None:
         b = a
@@ -694,9 +698,9 @@ class xsrange:
 
         sage: R = RealField()
         sage: list(xsrange(1, 5, R(0.5)))
-        [1, 1.5000000000000000, 2.0000000000000000, 2.5000000000000000, 3.0000000000000000, 3.5000000000000000, 4.0000000000000000, 4.5000000000000000]
+        [1, 1.50000000000000, 2.00000000000000, 2.50000000000000, 3.00000000000000, 3.50000000000000, 4.00000000000000, 4.50000000000000]
         sage: list(xsrange(0, 1, R('0.4')))
-        [0, 0.40000000000000002, 0.80000000000000004]
+        [0, 0.399999999999999, 0.799999999999999]
 
     Negative ranges are also allowed:
         sage: list(xrange(4,1,-1))
@@ -1134,3 +1138,6 @@ def branch_current_hg_notice(branch):
         return ''
     notice = 'Loading SAGE library. Current Mercurial branch is: '
     return notice + branch
+
+
+

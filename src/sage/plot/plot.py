@@ -1,21 +1,40 @@
 r"""
 2D Plotting
 
-SAGE provides 2-d plotting functionality with an interface inspired by
+SAGE provides 2D plotting functionality with an interface inspired by
 the interface for plotting in Mathematica.  The underlying rendering
-is mostly implemented using the matplotlib Python library.
+is done using the matplotlib Python library.
 
 The following graphics primitives are supported:
 \begin{itemize}
-    \item line   -- a line determined by a sequence of points (this need not be straight!)
+    \item arrow  -- an arrow from a min point to a max point.
     \item circle -- a circle with given radius
     \item disk   -- a filled disk
+    \item line   -- a line determined by a sequence of points (this need not be straight!)
     \item point  -- a point
     \item text   -- some text
     \item polygon -- a filled polygon
+\end{itemize}
+
+The following plotting functions are supported:
+\begin{itemize}
     \item plot   -- plot of a function or other SAGE object (e.g., elliptic curve).
     \item parametric_plot
+    \item polar_plot
     \item list_plot
+    \item bar_chart
+    \item contour_plot
+    \item plot_vector_field
+    \item matrix_plot
+    \item graphics_array
+\end{itemize}
+
+The following misc Graphics functions are included:
+\begin{itemize}
+    \item Graphics
+    \item is_Graphics
+    \item rgbcolor
+    \item hue
 \end{itemize}
 
 Type ? after each primitive in \sage for help and examples.
@@ -79,50 +98,29 @@ AUTHORS:
     -- Willaim Stein (2006-05-29): fine tuning, bug fixes, better server integration
     -- William Stein (2006-07-01): misc polish
     -- Alex Clemesha (2006-09-29): added contour_plot, frame axes, misc polishing
+    -- Robert Miller (2006-10-30): tuning, NetworkX primitive
+    -- Alex Clemesha (2006-11-25): added plot_vector_field, matrix_plot, arrow,
+                                   bar_chart, Axes class usage (see axes.py)
 
 TODO:
-    [] more arithmetic operations on plot objects, e.g., rescaling,
-       negation, etc.
     [] ability to change all properties of a graph easily, e.g.,
        the rgbcolor.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2006 Alex Clemesha and William Stein <wstein@ucsd.edu>
+#  Copyright (C) 2006 Alex Clemesha <clemesha@gmail.com> and William Stein <wstein@ucsd.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-#
-# WARNING:  Four lines in matplotlib's axes.py module have been
-# commented out to make the Point axis work right.
-# See the 'scatter' function (page 65) in matplotlib/axes.py
-# There are four lines already there that explain the origin
-# of the problem, put there buy the author of the function.
-# Comment out the *next four lines (approx. 3101-3104)* right below
-# the explanation of the hack that produces the problem.
-#
-# Also:
-# On line 3053 of axes.py in the "scatter" function there is a change:
-# "if not" -> "if False and not"
-#
-# NOTE: All this makes me (Alex) wonder if there is a better way to
-# make points, but the scatter function provides some
-# 'convenient' functionality, so I guess it is worth it?
-#
-# This is for version 0.86 matplotlib, and these
-# changes are included by default in the matplotlib
-# included with SAGE.
-#
-#*****************************************************************************
 
 __doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
-                 'Figure', 'patches', \
-                 'find_axes', 'to_float_list']
+                 'Figure', 'patches', 'to_float_list', 'sin', 'cos',\
+                 'modf', 'pi','verbose','xsrange']
 
-DEFAULT_FIGSIZE=[5,4]
-DEFAULT_DPI = 125
+DEFAULT_FIGSIZE=[6, 5]
+DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 SHOW_DEFAULT = False
 
@@ -137,7 +135,7 @@ xsrange = sage.misc.misc.xsrange
 import random #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
-from math import sin, cos, modf,pi #for hue and polar_plot
+from math import sin, cos, modf, pi #for hue and polar_plot
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is
@@ -147,8 +145,8 @@ from math import sin, cos, modf,pi #for hue and polar_plot
 ###############
 
 import matplotlib.patches as patches
-import matplotlib.cm
-from axes import find_axes
+#SAGE 2D Graphics Axes class:
+from axes import Axes
 
 def is_Graphics(x):
     """
@@ -193,8 +191,13 @@ class Graphics(SageObject):
         self.__xmax = 1
         self.__ymin = -1
         self.__ymax = 1
-        self.__fontsize = 6
+        self.__fontsize = 8
         self.__show_axes = True
+        self.__axes_color = (0, 0, 0)
+        self.__axes_label_color = (0, 0, 0)
+        self.__tick_color = (0, 0, 0)
+        self.__tick_label_color = (0, 0, 0)
+        self.__axes_width = 0.8
         self.__objects = []
 
     def range(self, xmin=None, xmax=None, ymin=None, ymax=None):
@@ -233,6 +236,94 @@ class Graphics(SageObject):
                 self.__show_axes = True
                 return self.__show_axes
         self.__show_axes = bool(show)
+
+    def axes_color(self, c=None):
+        """
+        Set the axes color.
+
+        If called with no input, return the current axes_color setting.
+        """
+        if c is None:
+            try:
+                return self.__axes_color
+            except AttributeError:
+                self.__axes_color = (0, 0, 0)
+                return self.__axes_color
+        self.__axes_color = c
+
+    def axes_label(self, l=None):
+        """
+        Set the axes labels.
+
+        If called with no input, return the current axes_label setting.
+        """
+        if l is None:
+            try:
+                return self.__axes_label
+            except AttributeError:
+                self.__axes_label = None
+                return self.__axes_label
+        self.__axes_label = l
+
+
+    def axes_label_color(self, c=None):
+        """
+        Set the axes label color.
+
+        If called with no input, return the current axes_label_color setting.
+        """
+        if c is None:
+            try:
+                return self.__axes_label_color
+            except AttributeError:
+                self.__axes_label_color = (0, 0, 0)
+                return self.__axes_label_color
+        self.__axes_label_color = c
+
+
+    def axes_width(self, w=None):
+        """
+        Set the axes width.
+
+        If called with no input, return the current axes_width setting.
+        """
+        if w is None:
+            try:
+                return self.__axes_width
+            except AttributeError:
+                self.__axes_width = True
+                return self.__axes_width
+        self.__axes_width = float(w)
+
+    def tick_color(self, c=None):
+        """
+        Set the axes ticks color.
+
+        If called with no input, return the current tick_color setting.
+        """
+        if c is None:
+            try:
+                return self.__tick_color
+            except AttributeError:
+                self.__tick_color = (0, 0, 0)
+                return self.__tick_color
+        self.__tick_color = c
+
+    def tick_label_color(self, c=None):
+        """
+        Set the axes tick labels color.
+
+        If called with no input, return the current tick_label_color setting.
+        """
+        if c is None:
+            try:
+                return self.__tick_label_color
+            except AttributeError:
+                self.__tick_label_color = (0, 0, 0)
+                return self.__tick_label_color
+        self.__tick_label_color = c
+
+
 
     def xmax(self, new=None):
         """
@@ -336,8 +427,8 @@ class Graphics(SageObject):
 
     def __setitem__(self, i, x):
         """
-        You can replace an GraphicsPrimitive (point, line, circle, etc...)
-        in a Graphics object G with any other GraphicsPrimitive
+        You can replace a GraphicPrimitive (point, line, circle, etc...)
+        in a Graphics object G with any other GraphicPrimitive
 
         EXAMPLES:
             sage: G = circle((1,1),1) + circle((1,2),1) + circle((1,2),5); G
@@ -385,6 +476,22 @@ class Graphics(SageObject):
         g.__objects = self.__objects + other.__objects
         return g
 
+    def append(self, primitive):
+        """
+        Append an arbitrary GraphicPrimitive to a Graphics object
+        """
+        if not isinstance(primitive, GraphicPrimitive):
+            raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
+        self.__objects.append(primitive)
+
+    def _arrow(self, xmin, ymin, xmax, ymax, options):
+        self.__objects.append(GraphicPrimitive_Arrow(xmin, ymin, xmax, ymax, options))
+        self._extend_axes(xmin, xmax, ymin, ymax)
+
+    def _bar_chart(self, ind, datalist, xrange, yrange, options):
+        self.__objects.append(GraphicPrimitive_BarChart(ind, datalist, options))
+        self._extend_axes(xrange[0], xrange[1], yrange[0], yrange[1])
+
     def _circle(self, x, y, r, options):
         self.__objects.append(GraphicPrimitive_Circle(x, y, r, options))
         self._extend_axes(x+r, x-r, y+r, y-r)
@@ -395,11 +502,14 @@ class Graphics(SageObject):
         self.__ymin = yrange[0]
         self.__ymax = yrange[1]
         self.__objects.append(GraphicPrimitive_ContourPlot(xy_data_array, xrange, yrange, options))
-        self._extend_axes(xrange[0], xrange[1], yrange[0], yrange[1])
 
     def _disk(self, point, r, angle, options):
+        xmin = point[0] - 2*r
+        xmax = point[0] + 2*r
+        ymin = point[1] - 2*r
+        ymax = point[1] + 2*r
         self.__objects.append(GraphicPrimitive_Disk(point, r, angle, options))
-        self._extend_axes(2*r, -2*r, 2*r, -2*r)
+        self._extend_axes(xmin, xmax, ymin, ymax)
 
     def _line(self, xdata, ydata, options):
         self.__objects.append(GraphicPrimitive_Line(xdata, ydata, options))
@@ -407,6 +517,21 @@ class Graphics(SageObject):
             self._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
         except ValueError:
             pass
+
+    def _matrix_plot(self, xy_data_array, xrange, yrange, options):
+        self.__xmin = xrange[0]
+        self.__xmax = xrange[1]
+        self.__ymin = yrange[0]
+        self.__ymax = yrange[1]
+        self.__objects.append(GraphicPrimitive_MatrixPlot(xy_data_array, xrange, yrange, options))
+        #self._extend_axes(xrange[0], xrange[1], yrange[0], yrange[1])
+
+    def _plot_field(self, xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options):
+        self.__xmin = xrange[0]
+        self.__xmax = xrange[1]
+        self.__ymin = yrange[0]
+        self.__ymax = yrange[1]
+        self.__objects.append(GraphicPrimitive_PlotField(xpos_array, ypos_array, xvec_array, yvec_array, options))
 
     def _point(self, xdata, ydata, options):
         self.__objects.append(GraphicPrimitive_Point(xdata, ydata, options))
@@ -424,8 +549,9 @@ class Graphics(SageObject):
 
     def _text(self, string, point, options):
         self.__objects.append(GraphicPrimitive_Text(string, point, options))
-        self._extend_x_axis(2*point[0])
-        self._extend_y_axis(2*point[1])
+        xpad = 0.2*abs(point[0])
+        ypad = 0.2*abs(point[1])
+        self._extend_axes(point[0] - xpad, point[0] + xpad, point[1] - ypad, point[1] + ypad)
 
     def _extend_x_axis(self, x):
         xmin = self.__xmin
@@ -449,202 +575,12 @@ class Graphics(SageObject):
         self._extend_y_axis(ymin)
         self._extend_y_axis(ymax)
 
-    def _add_xy_axes(self, subplot, xmin, xmax, ymin, ymax, axes_label=None):
-        """
-        \code{_add_xy_axes} is used when the 'save' method
-        of any Graphics object is called.
-
-        additionally this function uses the function 'find_axes'
-        from axis.py which attempts to find aesthetically pleasing
-        tick and label spacing values.
-
-        some definitons of constants:
-
-        y_axis_xpos : "where on the x-axis to draw the y-axis"
-        xstep : "the spacing between major tick marks"
-        xtslminor : "x-axis minor tick step list"
-        xtslmajor : "x-axis major tick step list"
-        yltheight : "where the top of the major ticks go"
-        ystheight : "where the top of the minor ticks go"
-        ylabel : "where the ylabel is drawn"
-        xlabel : "where the xlabel is drawn"
-
-        """
-        xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
-        yspan = ymax - ymin
-        xspan = xmax - xmin
-
-        #evalute find_axes for x values and y ticks
-        y_axis_xpos, xstep, xtslminor, xtslmajor = find_axes(xmin, xmax)
-        yltheight = 0.015 * xspan
-        ystheight = 0.25  * yltheight
-        ylabel    = y_axis_xpos -2*ystheight
-
-        #evalute find_axes for y values and x ticks
-        x_axis_ypos, ystep, ytslminor, ytslmajor = find_axes(ymin, ymax)
-        xltheight = 0.015 * yspan
-        xstheight = 0.25  * xltheight
-        xlabel    = x_axis_ypos - xltheight
-
-        #the x axis line
-        subplot.add_line(patches.Line2D([xmin, xmax], [x_axis_ypos, x_axis_ypos],
-                                        color='k', linewidth=0.6))
-
-        #the y axis line
-        subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos],[ymin, ymax],
-                                        color='k', linewidth=0.6))
-
-        def format(z):
-            s = str(z)
-            if s[-2:] == '.0':
-                return s[:-2]
-            return s
-
-        #the x-axis ticks and labels
-        #first draw major tick marks and their corresponding values
-        for x in xtslmajor:
-            if x == y_axis_xpos:
-                continue
-            if self.fontsize() > 0:
-                subplot.text(x, xlabel, format(x), fontsize=self.fontsize(),
-                             horizontalalignment="center", verticalalignment="top")
-            subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xltheight],
-                        color='k',linewidth=0.6))
-
-        #now draw the x-axis minor tick marks
-        for x in xtslminor:
-            subplot.add_line(patches.Line2D([x, x], [x_axis_ypos, x_axis_ypos + xstheight],
-                        color='k', linewidth=0.6))
-
-
-        #the y-axis ticks and labels
-        #first draw major tick marks and their corresponding values
-        for y in ytslmajor:
-            if y == x_axis_ypos:
-                continue
-            if self.fontsize() > 0:
-                subplot.text(ylabel, y, format(y), fontsize=self.fontsize(), verticalalignment="center",
-                        horizontalalignment="right")
-            subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + yltheight], [y, y],
-                    color='k', linewidth=0.6))
-
-        #now draw the x-axis minor tick marks
-        for y in ytslminor:
-            subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos + ystheight], [y, y],
-                color='k',linewidth=0.6))
-
-        #now draw the x and y axis labels
-        if axes_label:
-            al = axes_label
-            if not isinstance(al, (list,tuple)) or len(al) != 2:
-                raise TypeError, "axes_label must be a list of two strings."
-            #x-axis label
-            subplot.text(xmax + 0.2*xstep, x_axis_ypos, str(al[0]), fontsize=6,
-                         horizontalalignment="center", verticalalignment="center")
-            #y-axis label
-            subplot.text(y_axis_xpos, ymax + 0.2*ystep, str(al[1]), fontsize=6,
-                         horizontalalignment="center", verticalalignment="center")
-
-    def _add_xy_frame_axes(self, subplot, xmin, xmax, ymin, ymax,
-                            axes_with_no_ticks=False, axes_label=None):
-        """
-        This function is similiar to the above _add_xy_axes but
-        it adds a frame with ticks and tick values.
-        """
-        xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
-        yspan = ymax - ymin
-        xspan = xmax - xmin
-
-        #evalute find_axes for x values and y ticks
-        y_axis_xpos, xstep, xtslminor, xtslmajor = find_axes(xmin, xmax)
-        #y_axis_xpos = 0 #set to zero for now
-        yltheight = 0.015 * xspan
-        ystheight = 0.25  * yltheight
-        #ylabel    = y_axis_xpos - 2*ystheight
-        ylabel    = -2*ystheight
-
-        #evalute find_axes for y values and x ticks
-        x_axis_ypos, ystep, ytslminor, ytslmajor = find_axes(ymin, ymax)
-        #x_axis_ypos = 0 #set to zero for now
-        xltheight = 0.015 * yspan
-        xstheight = 0.25  * xltheight
-        #xlabel    = x_axis_ypos - xltheight
-        xlabel    = -xltheight
-
-        #scale the axes out from the actual plot
-        ys = 0.02*yspan
-        xs = 0.02*xspan
-        ymins = ymin - ys
-        ymaxs = ymax + ys
-        xmins = xmin - xs
-        xmaxs = xmax + xs
-
-        #border horizontal axis:
-        #bottom:
-        subplot.add_line(patches.Line2D([xmins, xmaxs], [ymins, ymins],
-                                        color='k', linewidth=0.6))
-
-        #top:
-        subplot.add_line(patches.Line2D([xmins, xmaxs], [ymaxs, ymaxs],
-                                        color='k', linewidth=0.6))
-
-        #border vertical axis:
-        #left:
-        subplot.add_line(patches.Line2D([xmins, xmins], [ymins, ymaxs],
-                                        color='k', linewidth=0.6))
-
-        #right:
-        subplot.add_line(patches.Line2D([xmaxs, xmaxs], [ymins, ymaxs],
-                                        color='k', linewidth=0.6))
-
-        if axes_with_no_ticks:
-            #the x axis line
-            subplot.add_line(patches.Line2D([xmins, xmaxs], [x_axis_ypos, x_axis_ypos],
-                                            color='k', linewidth=0.6))
-
-            #the y axis line
-            subplot.add_line(patches.Line2D([y_axis_xpos, y_axis_xpos],[ymins, ymaxs],
-                                            color='k', linewidth=0.6))
-        def format(z):
-            s = str(z)
-            if s[-2:] == '.0':
-                return s[:-2]
-            return s
-
-        #the x-axis ticks and labels
-        #first draw major tick marks and their corresponding values
-        for x in xtslmajor:
-            subplot.text(x, xlabel + ymins, format(x), fontsize=5,
-                         horizontalalignment="center", verticalalignment="top")
-
-        #now draw the x-axis minor tick marks
-        for x in xtslminor:
-            subplot.add_line(patches.Line2D([x, x], [ymins, xstheight + ymins],
-                        color='k', linewidth=0.6))
-            subplot.add_line(patches.Line2D([x, x], [ymaxs, ymaxs - xstheight],
-                        color='k', linewidth=0.6))
-
-
-        #the y-axis ticks and labels
-        #first draw major tick marks and their corresponding values
-        for y in ytslmajor:
-            subplot.text(ylabel + xmins, y, format(y), fontsize=5, verticalalignment="center",
-                    horizontalalignment="right")
-
-        #now draw the x-axis minor tick marks
-        for y in ytslminor:
-            subplot.add_line(patches.Line2D([xmins, ystheight + xmins], [y, y],
-                color='k',linewidth=0.6))
-            subplot.add_line(patches.Line2D([xmaxs, xmaxs - ystheight], [y, y],
-                color='k',linewidth=0.6))
-
-
     def _plot_(self, **args):
         return self
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, filename=None,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None,frame=False,
+             dpi=DEFAULT_DPI, axes=None, axes_label=None,frame=False,
              fontsize=None,
              **args):
         """
@@ -715,10 +651,9 @@ class Graphics(SageObject):
 
         return xmin,xmax,ymin,ymax
 
-    def save(self, filename=None, xmin=None, xmax=None,
-             ymin=None, ymax=None, figsize=DEFAULT_FIGSIZE,
-             fig=None, sub=None, savenow=True, dpi=DEFAULT_DPI,
-             axes=True, axes_label=None, fontsize=None,
+    def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
+             figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
+             dpi=DEFAULT_DPI, axes=True, axes_label=None, fontsize=None,
              frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
@@ -734,7 +669,7 @@ class Graphics(SageObject):
             to show with a 'figsize' of square dimensions.
 
             sage.: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
-	"""
+        """
         global do_verify
         do_verify = verify
 
@@ -756,8 +691,7 @@ class Graphics(SageObject):
 
         self.fontsize(fontsize)
 
-        figure = fig
-        if not figure:
+        if figure is None:
             figure = Figure(figsize)
 
         #The line below takes away the excessive whitespace around
@@ -774,64 +708,95 @@ class Graphics(SageObject):
         subplot.yaxis.set_visible(False)
         subplot.set_frame_on(False)
 
+        ##################################################
+        # The below is a work in progress ... trying to
+        # making add axes general ... more work needs to
+        # factor this all out into its own general function
+        # but for now it will stay here until it is decided
+        # what is the best way for all this -Alex
+        ###################################################
+
         #add all the primitives to the subplot
         #check if there are any ContourPlot instances
         #in self._objects, and if so change the axes
         #to be frame axes instead of centered axes
         contour = False
+        plotfield = False
+        matrixplot = False
         for g in self.__objects:
             if isinstance(g, GraphicPrimitive_ContourPlot):
                 contour = True
+            if isinstance(g, GraphicPrimitive_PlotField):
+                plotfield = True
+            if isinstance(g, GraphicPrimitive_MatrixPlot):
+                matrixplot = True
             g._render_on_subplot(subplot)
 
         #adjust the xy limits and draw the axes:
-        if not contour and axes:
-            if frame: #add the frame axes with centered axes with no ticks
+        if axes is None:
+            axes = self.__show_axes
+
+        self.axes_label(l=axes_label)
+        if self.__show_axes:
+            #an axes instance
+            sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
+                            axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
+                            tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
+
+            #adjust the xy limits and draw the axes:
+            if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
+                if frame: #add the frame axes and the normal axes with no ticks
+                    xmin, xmax = self.__xmin, self.__xmax
+                    ymin, ymax = self.__ymin, self.__ymax
+                    subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+                    subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+                    #add a frame to the plot
+                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
+                                            axes_with_no_ticks=True, axes_label=axes_label)
+                else: #regular plot with regular axes
+                    xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+                    subplot.set_xlim(xmin, xmax)
+                    subplot.set_ylim(ymin, ymax)
+                    sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+
+            elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
                 xmin, xmax = self.__xmin, self.__xmax
                 ymin, ymax = self.__ymin, self.__ymax
                 subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
                 subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                self._add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                        axes_with_no_ticks=True, axes_label=axes_label)
-            else:
+                if axes: #axes=True unless user specifies axes=False
+                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+            elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
+                xmin, xmax = self.__xmin, self.__xmax
+                ymin, ymax = self.__ymin, self.__ymax
+                subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+                subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+                if axes: #axes=True unless user specifies axes=False
+                    sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
+            else: #regular plot with no axes
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
-                self._add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
 
-        elif contour:
-            xmin, xmax = self.__xmin, self.__xmax
-            ymin, ymax = self.__ymin, self.__ymax
-            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-            if axes:
-                self._add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-        else:
-            xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
-            subplot.set_xlim(xmin, xmax)
-            subplot.set_ylim(ymin, ymax)
-
-
-        # you can output in PNG, PS, or SVG format, depending on the file extension
+        # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
+        # matplotlib looks at the file extension to see what the renderer should be.
+        # The default is FigureCanvasAgg for png's because this is by far the most
+        # common type of files rendered, like in the Notebook for example.
+        # if the file extension is not '.png', then matplotlib will handle it.
         if savenow:
-            if ext in ['.eps', '.ps']:
-                from matplotlib.backends.backend_ps import FigureCanvasPS
-                canvas = FigureCanvasPS(figure)
+            from matplotlib.backends.backend_agg import FigureCanvasAgg
+            canvas = FigureCanvasAgg(figure)
+            if ext in ['.eps', '.ps', '.pdf']:
                 if dpi is None:
                     dpi = 72
             elif ext == '.svg':
-                from matplotlib.backends.backend_svg import FigureCanvasSVG
                 if dpi is None:
                     dpi = 80
-                canvas = FigureCanvasSVG(figure)
             elif ext == '.png':
-                from matplotlib.backends.backend_agg import FigureCanvasAgg
-                canvas = FigureCanvasAgg(figure)
                 if dpi is None:
-                    dpi = 150
+                    dpi = 100
             else:
-                raise ValueError, "file extension must be either 'png', 'eps', 'svg' or 'sobj'"
-            #canvas.resize(100,100)
+                raise ValueError, "file extension must be either 'png', 'ps, 'eps', 'pdf, 'svg' or 'sobj'"
             canvas.print_figure(filename, dpi=dpi)
 
 ################## Graphics Primitives ################
@@ -877,6 +842,60 @@ class GraphicPrimitive(SageObject):
         return "Graphics primitive"
 
 
+class GraphicPrimitive_Arrow(GraphicPrimitive):
+    """
+    Primitive class that initializes the
+    arrow graphics type
+    """
+    def __init__(self, xmin, ymin, xmax, ymax, options):
+        self.xmin = xmin
+        self.xmax = xmax
+        self.ymin = ymin
+        self.ymax = ymax
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'width':'How wide the entire arrow is.',
+                'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.'}
+
+    def _repr_(self):
+        return "Arrow from (%s,%s) to (%s,%s) "%(self.xmin, self.ymin, self.xmax, self.ymax)
+
+    def _render_on_subplot(self, subplot):
+        options = self.options()
+        width = float(options['width'])
+        p = patches.FancyArrow(float(self.xmin), float(self.ymin), float(self.xmax), float(self.ymax),
+                         width=width, length_includes_head=True)
+        c = to_mpl_color(options['rgbcolor'])
+        p.set_edgecolor(c)
+        p.set_facecolor(c)
+        subplot.add_patch(p)
+
+#TODO: make bar_chart more general
+class GraphicPrimitive_BarChart(GraphicPrimitive):
+    """
+    Primitive class that initializes the bar chart graphics primitive.
+    """
+    def __init__(self, ind, datalist, options):
+        self.datalist = datalist
+        self.ind = ind
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'rgbcolor':'The color as an rgb tuple.',
+                'hue':'The color given as a hue.',
+                'width':'The width of the bars'}
+
+    def _repr_(self):
+        return "BarChart defined by a %s datalist "%(len(self.datalist))
+
+    def _render_on_subplot(self, subplot):
+        options = self.options()
+        color = options['rgbcolor']
+        width = float(options['width'])
+        subplot.bar(self.ind, self.datalist, color=color, width=width)
+
 
 class GraphicPrimitive_Line(GraphicPrimitive):
     """
@@ -907,10 +926,6 @@ class GraphicPrimitive_Line(GraphicPrimitive):
     def __len__(self):
         return len(self.xdata)
 
-    def __append__(self, point):
-        self.xdata.append(float(point[0]))
-        self.ydata.append(float(point[1]))
-
     def _render_on_subplot(self, subplot):
         options = self.options()
         p = patches.Line2D(self.xdata, self.ydata)
@@ -933,7 +948,6 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
 
     def _allowed_options(self):
         return {'alpha':'How transparent the line is.',
-                'resolution': '',
                 'fill': 'Whether or not to fill the polygon.',
                 'thickness':'How thick the border of the polygon is.',
                 'rgbcolor':'The color as an rgb tuple.',
@@ -944,8 +958,7 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        res = int(options['resolution'])
-        p = patches.Circle((float(self.x), float(self.y)), float(self.r),resolution=res)
+        p = patches.Circle((float(self.x), float(self.y)), float(self.r))
         p.set_linewidth(float(options['thickness']))
         p.set_fill(options['fill'])
         a = float(options['alpha'])
@@ -971,8 +984,8 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
     def _allowed_options(self):
         return {'plot_points':'How many points to use for plotting precision',
                 'cmap':"""The colormap, one of (autumn, bone, cool, copper,
-                gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
-                'fill':'Fill contours or not'}
+                       gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
+                       'fill':'Fill contours or not'}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
@@ -981,12 +994,14 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
+        #cm is the matplotlib color map module
+        from matplotlib import cm
         try:
-            cmap = matplotlib.cm.__dict__[cmap]
+            cmap = cm.__dict__[cmap]
         except KeyError:
             from matplotlib.colors import LinearSegmentedColormap as C
-            possibilities = ', '.join([str(x) for x in matplotlib.cm.__dict__.keys() if \
-                                       isinstance(matplotlib.cm.__dict__[x], C)])
+            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
+                                       isinstance(cm.__dict__[x], C)])
             print "The possible color maps include: %s"%possibilities
             raise RuntimeError, "Color map %s not known"%cmap
 
@@ -996,6 +1011,83 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
             subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
         else:
             subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+
+
+class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
+    """
+    Primitive class that initializes the
+    matrix_plot graphics type
+    """
+    def __init__(self, xy_data_array, xrange, yrange, options):
+        self.xrange = xrange
+        self.yrange = yrange
+        self.xy_data_array = xy_data_array
+        self.xy_array_row = len(xy_data_array)
+        self.xy_array_col = len(xy_data_array[0])
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'cmap':"""The colormap, one of (autumn, bone, cool, copper,
+                gray, hot, hsv, jet, pink, prism, spring, summer, winter)"""}
+
+    def _repr_(self):
+        return "MatrixPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
+
+    def _render_on_subplot(self, subplot):
+        options = self.options()
+        cmap = options['cmap']
+        #cm is the matplotlib color map module
+        from matplotlib import cm
+        try:
+            cmap = cm.__dict__[cmap]
+        except KeyError:
+            from matplotlib.colors import LinearSegmentedColormap as C
+            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
+                                       isinstance(cm.__dict__[x], C)])
+            print "The possible color maps include: %s"%possibilities
+            raise RuntimeError, "Color map %s not known"%cmap
+        subplot.imshow(self.xy_data_array, cmap=cmap, interpolation='nearest')
+
+# Below is the base class that is used to make 'field plots'.
+# Its implementation is motivated by Mathematica's 'PlotField'.
+# Currently it is used to make the function 'plot_vector_field'
+# TODO: use this to make these functions:
+# 'plot_gradient_field' and 'plot_hamiltonian_field'
+
+class GraphicPrimitive_PlotField(GraphicPrimitive):
+    """
+    Primitive class that initializes the
+    plot_field graphics type
+    """
+    def __init__(self, xpos_array, ypos_array, xvec_array, yvec_array, options):
+        self.xpos_array = xpos_array
+        self.ypos_array = ypos_array
+        self.xvec_array = xvec_array
+        self.yvec_array = yvec_array
+        GraphicPrimitive.__init__(self, options)
+
+    def _allowed_options(self):
+        return {'plot_points':'How many points to use for plotting precision',
+                'cmap':"""The colormap, one of (autumn, bone, cool, copper,
+                gray, hot, hsv, jet, pink, prism, spring, summer, winter)"""}
+
+    def _repr_(self):
+        return "PlotField defined by a %s x %s vector grid"%(len(self.xpos_array), len(self.ypos_array))
+
+    def _render_on_subplot(self, subplot):
+        options = self.options()
+        cmap = options['cmap']
+        #cm is the matplotlib color map module
+        from matplotlib import cm
+        try:
+            cmap = cm.__dict__[cmap]
+        except KeyError:
+            from matplotlib.colors import LinearSegmentedColormap as C
+            possibilities = ', '.join([str(x) for x in cm.__dict__.keys() if \
+                                       isinstance(cm.__dict__[x], C)])
+            print "The possible color maps include: %s"%possibilities
+            raise RuntimeError, "Color map %s not known"%cmap
+        subplot.quiver(self.xpos_array, self.ypos_array, self.xvec_array, self.yvec_array)
 
 class GraphicPrimitive_Disk(GraphicPrimitive):
     """
@@ -1023,7 +1115,7 @@ class GraphicPrimitive_Disk(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        deg1 = self.rad1*(360.0/(2.0*pi))
+        deg1 = self.rad1*(360.0/(2.0*pi)) #convert radians to degrees
         deg2 = self.rad2*(360.0/(2.0*pi))
         p = patches.Wedge((float(self.x), float(self.y)), float(self.r), float(deg1),
                             float(deg2))
@@ -1042,7 +1134,6 @@ class GraphicPrimitive_Point(GraphicPrimitive):
 
     """
     def __init__(self, xdata, ydata, options):
-        #see top of this file for Point info
         self.xdata = xdata
         self.ydata = ydata
         GraphicPrimitive.__init__(self, options)
@@ -1058,12 +1149,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         return "Point set defined by %s point(s)"%len(self.xdata)
 
     def __getitem__(self, i):
-        if i == 0:
-            return self.xdata
-        elif i == 1:
-            return self.ydata
-        else:
-            raise IndexError, "Index out of range"
+        return self.xdata[i], self.ydata[i]
 
     def _render_on_subplot(self,subplot):
         options = self.options()
@@ -1071,7 +1157,7 @@ class GraphicPrimitive_Point(GraphicPrimitive):
         a = float(options['alpha'])
         s = int(options['pointsize'])
         faceted = options['faceted'] #faceted=True colors the edge of point
-        subplot.scatter(self.xdata, self.ydata, s, c, alpha=a, faceted=False)
+        subplot.scatter(self.xdata, self.ydata, s=s, c=c, alpha=a, faceted=faceted)
 
 class GraphicPrimitive_Polygon(GraphicPrimitive):
     """
@@ -1097,10 +1183,6 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
 
     def __len__(self):
         return len(self.xdata)
-
-    def __append__(self, point):
-        self.xdata.append(float(point[0]))
-        self.ydata.append(float(point[1]))
 
     def _allowed_options(self):
         return {'alpha':'How transparent the line is.',
@@ -1141,19 +1223,99 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         options = self.options()
-        c = to_mpl_color(options['rgbcolor'])
+        c = options['rgbcolor']
         f = int(options['fontsize'])
         va = options['vertical_alignment']
         ha = options['horizontal_alignment']
         subplot.text(float(self.x), float(self.y), self.string, color=c, fontsize=f,
                         verticalalignment=va,horizontalalignment=ha)
 
+class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
+    """
+    Primitive class that initializes the NetworkX graph type
+
+    INPUT:
+        graph -- a NetworkX graph
+        pos -- an optional positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+            {   0: [-0.91679746, 0.88169588,],
+                1: [ 0.47294849, 1.125     ,],
+                2: [ 1.125     ,-0.12867615,],
+                3: [ 0.12743933,-1.125     ,],
+                4: [-1.125     ,-0.50118505,]   }
+        with_labels -- determines whether labels for nodes are plotted
+        node_size -- node size
+
+    EXAMPLE:
+        sage: import networkx as NX
+        sage: D = NX.dodecahedral_graph()
+        sage: NGP = GraphicPrimitive_NetworkXGraph(D)
+        sage: g = Graphics()
+        sage: g.append(NGP)
+        sage: g.axes(False)
+        sage: g.save('a.png')
+    """
+    def __init__(self, graph, pos=None, with_labels=True, node_size=300):
+        self.__nxg = graph
+        if len(self.__nxg) != 0:
+            import networkx as NX
+            self.__node_size = node_size
+            self.__with_labels = with_labels
+            if pos is None:
+                self.__pos = NX.drawing.spring_layout(self.__nxg)
+            else:
+                self.__pos = pos
+
+            # adjust the plot
+            # TODO: right now, the bounds are assumed to be +-1
+            nodelist=self.__nxg.nodes()
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            st = float(0.125) # scaling term: looks better, maybe should
+                              # depend on node_size?
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            for v in nodelist:
+                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
+                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
+
+    def _render_on_subplot(self, subplot):
+        if len(self.__nxg) != 0:
+            import networkx as NX
+            node_size = float(self.__node_size)
+            NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            if self.__with_labels:
+                labels = {}
+                for v in self.__nxg:
+                    labels[v] = str(v)
+                NX.draw_networkx_labels(self.__nxg, self.__pos, labels=labels, ax=subplot)
 
 ######################################################################
 #                                                                    #
 #    Graphics Primitives Factories -- construct GraphicPrimitives    #
 #                                                                    #
 ######################################################################
+#
+# The current method of writing a new Graphic Primitive
+# involves writing a specific Factory for a given
+# primitive, for example, 'GraphicPrimitive_circle' for 'circle'.
+# This class should inherit from GraphicPrimitiveFactory,
+# which should define any general Graphic Primitive attributes.
+#
+# As of now, the Graphic Primitive Factories, have
+# only a __call__ method that deals with setting kwargs
+# and coercing data into a correct form to present to
+# one of the matplotlib functions.
+#
 
 class GraphicPrimitiveFactory:
     def __init__(self):
@@ -1167,6 +1329,40 @@ class GraphicPrimitiveFactory:
 
     def _coerce(self, xdata, ydata):
         return to_float_list(xdata), to_float_list(ydata)
+
+class GraphicPrimitiveFactory_arrow(GraphicPrimitiveFactory):
+    def __call__(self, minpoint, maxpoint, **kwds):
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
+            options[k] = v
+        xmin = float(minpoint[0])
+        ymin = float(minpoint[1])
+        xmax = float(maxpoint[0]) - xmin
+        ymax = float(maxpoint[1]) - ymin
+        return self._from_xdata_ydata(xmin, ymin, xmax, ymax, options=options)
+
+#XXX: BarChart is a work in progress, only supports one datalist now.
+class GraphicPrimitiveFactory_bar_chart(GraphicPrimitiveFactory):
+    def __call__(self, datalist, **kwds):
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
+            options[k] = v
+        dl = len(datalist)
+        #if dl > 1:
+        #    print "WARNING, currently only 1 data set allowed"
+        #    datalist = datalist[0]
+        if dl == 3:
+            datalist = datalist+[0]
+        #bardata = []
+        #cnt = 1
+        #for pnts in datalist:
+            #ind = [i+cnt/dl for i in range(len(pnts))]
+        ind = range(len(datalist))
+        xrange = (0, len(datalist))
+        yrange = (min(datalist), max(datalist))
+            #bardata.append([ind, pnts, xrange, yrange])
+            #cnt += 1
+        return self._from_xdata_ydata(ind, datalist, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_circle(GraphicPrimitiveFactory):
     def __call__(self, point, radius, **kwds):
@@ -1182,13 +1378,50 @@ class GraphicPrimitiveFactory_contour_plot(GraphicPrimitiveFactory):
         for k, v in kwds.iteritems():
             options[k] = v
         #should the xy_data_array be made right
-        #when contour_plot is called??  Here we go:
+        #when contour_plot is called?  Here we go:
         plot_points = int(options['plot_points'])
         xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
         ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
         xy_data_array = [[float(f(x, y)) for x in xsrange(xrange[0], xrange[1], xstep)]
                                      for y in xsrange(yrange[0], yrange[1], ystep)]
         return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
+
+class GraphicPrimitiveFactory_matrix_plot(GraphicPrimitiveFactory):
+    def __call__(self, mat, **kwds):
+        from sage.matrix.all import is_Matrix
+        from matplotlib.numerix import array #is this needed?
+        if not is_Matrix(mat) or (isinstance(mat, (list, tuple)) and isinstance(mat[0], (list, tuple))):
+            raise TypeError, "mat must be of type Matrix or a two dimensional array"
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
+            options[k] = v
+        if is_Matrix(mat):
+            xrange = (0, mat.ncols())
+            yrange = (0, mat.nrows())
+        else:
+            xrange = (0, len(mat[0]))
+            yrange = (0, len(mat))
+        xy_data_array = [array(r) for r in mat]
+        return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
+
+
+class GraphicPrimitiveFactory_plot_field(GraphicPrimitiveFactory):
+    def __call__(self, (f, g), xrange, yrange, **kwds):
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
+            options[k] = v
+        #big list loop, again, should this be done here?:
+        plot_points = int(options['plot_points'])
+        xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
+        ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
+        Lpx,Lpy,Lcx,Lcy = [],[],[],[]
+        for x in xsrange(xrange[0], xrange[1], xstep):
+            for y in xsrange(yrange[0], yrange[1], ystep):
+                Lpx.append(float(x))
+                Lpy.append(float(y))
+                Lcx.append(float(f(x)))
+                Lcy.append(float(g(y)))
+        return self._from_xdata_ydata(Lpx, Lpy, Lcx, Lcy, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_disk(GraphicPrimitiveFactory):
     def __call__(self, point, radius, angle, **kwds):
@@ -1204,6 +1437,26 @@ class GraphicPrimitiveFactory_text(GraphicPrimitiveFactory):
         for k, v in kwds.iteritems():
             options[k] = v
         return self._from_xdata_ydata(string, (float(point[0]), float(point[1])), options=options)
+
+class GraphicPrimitiveFactory_points(GraphicPrimitiveFactory):
+    def __call__(self, xdata, ydata, **kwds):
+        options = dict(self.options)
+        for k, v in kwds.iteritems():
+            options[k] = v
+        return self._from_xdata_ydata(xdata, ydata, options=options)
+
+# WARNING: The below GraphicPrimitiveFactory_from_point_list
+# class can potentially be very slow for large point sets.
+#
+# It exists because it provides the following functionality:
+# Allows user to give as input to the function 'point'
+# a list of (x,y) values at which to plot points, coloring
+# each one a different color if needed.  From this input list we then
+# loop through it, first coercing all the values the floats
+# and then forming two new list that consist of all then
+# x-values in one list and all the y-values in another list.
+# This is needed to be done because that is how the input is
+# taken in the matplotlib function 'scatter'.
 
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
@@ -1237,6 +1490,163 @@ class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
                 ydata = [z[1] for z in points]
 
         return self._from_xdata_ydata(xdata, ydata, True, options=options)
+
+
+class ArrowFactory(GraphicPrimitiveFactory_arrow):
+    """
+
+    An arrow from (xmin, ymin) to (xmax, ymax).
+
+    EXAMPLES:
+
+    A straight, black arrow
+    sage: a1 = arrow((1, 1), (3, 3))
+
+    Make a red arrow:
+    sage: a2 = arrow((-1, -1), (2, 3), rgbcolor=(1,0,0))
+
+    You can change the width of an arrow:
+    sage: a3 = arrow((1, 1), (3, 3), width=0.05)
+
+
+    """
+    def _reset(self):
+        self.options={'width':0.02,'rgbcolor':(0, 0, 0)}
+
+    def _repr_(self):
+        return "type arrow? for help and examples"
+
+    def _from_xdata_ydata(self, xmin, ymin, xmax, ymax, options):
+        g = Graphics()
+        g._arrow(xmin, ymin, xmax, ymax, options=options)
+        return g
+
+#an unique arrow instance
+arrow = ArrowFactory()
+
+class BarChartFactory(GraphicPrimitiveFactory_bar_chart):
+    """
+    A bar chart of (currently) one list of numerical data.
+    Support for more datalists in progress.
+
+    EXAMPLES:
+
+        A bar_chart with blue bars:
+        sage: bc1 = bar_chart([1,2,3,4])
+
+        A bar_chart with thinner bars:
+        sage: bc2 = bar_chart([x^2 for x in range(1,20)], width=0.2)
+
+        A bar_chart with negative values and red bars:
+        sage: bc3 = bar_chart([-3,5,-6,11], rgbcolor=(1,0,0))
+
+    """
+    def _reset(self):
+        self.options={'width':0.5,'rgbcolor':(0, 0, 1)}
+
+    def _repr_(self):
+        return "type bar_chart? for help and examples"
+
+    def _from_xdata_ydata(self, ind, datalist, xrange, yrange, options):
+        g = Graphics()
+        #TODO: improve below for multiple data sets!
+        #cnt = 1
+        #for ind, pnts, xrange, yrange in bardata:
+            #options={'rgbcolor':hue(cnt/dl),'width':0.5/dl}
+        #    g._bar_chart(ind, pnts, xrange, yrange, options=options)
+        #    cnt += 1
+        #else:
+        g._bar_chart(ind, datalist, xrange, yrange, options=options)
+        return g
+
+#an unique bar_chart instance
+bar_chart = BarChartFactory()
+
+
+class CircleFactory(GraphicPrimitiveFactory_circle):
+    """
+
+    A circle at a point = (x,y) with radius = r
+    Type circle.options to see all options
+
+    EXAMPLES:
+    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
+    sage.: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
+
+    To correct the apect ratio of certain graphics, it is necessary
+    to show with a 'figsize' of square dimensions.
+
+    sage.: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+
+    Here we make an more complicated plot with many circles of different colors
+
+    sage: g = Graphics()
+    sage: step=6; ocur=1/5; paths=16;
+    sage: for r in range(1,paths+1):
+    ...       for x,y in [((r+ocur)*cos(n), (r+ocur)*sin(n)) for n in srange(0, 2*pi+pi/step, pi/step)]:
+    ...           g += circle((x,y), ocur, rgbcolor=hue(r/paths))
+    ...       rnext = (r+1)^2
+    ...       ocur = (rnext-r)-ocur
+    ...
+    sage.: g.show(xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
+
+    """
+    def _reset(self):
+        self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 0)}
+
+    def _repr_(self):
+        return "type circle? for help and examples"
+
+    def _from_xdata_ydata(self, point, r, options):
+        g = Graphics()
+        g._circle(float(point[0]), float(point[1]), float(r), options)
+        return g
+
+
+#an unique circle instance
+circle = CircleFactory()
+
+class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
+    r"""
+
+    \code{contour_plot} takes a function of two variables, f(x,y)
+    and plots contour lines of the function over the specified
+    xrange and yrange as demonstrated below.
+    contour_plot(f, (xmin, xmax), (ymin, ymax))
+
+    EXAMPLES:
+
+    Here we plot a simple funtion of two variables:
+        sage: def f(x,y):
+        ...       return cos(x^2 + y^2)
+        sage: contour_plot(f, (-4, 4), (-4, 4))
+         Graphics object consisting of 1 graphics primitive
+
+
+    Here we change the ranges and add some options:
+        sage: def h(x,y):
+        ...       return (x^2)*cos(x*y)
+        sage: contour_plot(h, (-10, 5), (-5, 5), fill=False, plot_points=100)
+         Graphics object consisting of 1 graphics primitive
+
+    An even more complicated plot.
+        sage: def f(x,y):
+        ...       return sin(x^2 + y^2)*cos(x)*sin(y)
+        sage: show(contour_plot(f, (-4, 4), (-4, 4),plot_points=100))
+    """
+    def _reset(self):
+        self.options={'plot_points':25, 'fill':True, 'cmap':'gray'}
+
+    def _repr_(self):
+        return "type contour_plot? for help and examples"
+
+    def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
+        g = Graphics()
+        g._contour_plot(xy_data_array, xrange, yrange, options)
+        return g
+
+#unique contour_plot instance
+contour_plot = ContourPlotFactory()
 
 class LineFactory(GraphicPrimitiveFactory_from_point_list):
     r"""
@@ -1321,93 +1731,94 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._line(xdata, ydata, options)
+        g.append(GraphicPrimitive_Line(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique line instance
 line = LineFactory()
 
+class MatrixPlotFactory(GraphicPrimitiveFactory_matrix_plot):
+    r"""
+    A plot of a given matrix or 2D array.
 
-class CircleFactory(GraphicPrimitiveFactory_circle):
-    """
-    A circle at a point = (x,y) with radius = r
-    Type circle.options to see all options
+    Each (ith, jth) matrix element is given a different
+    color value depending on its relative size compared
+    to the other elements in the matrix.
+
+    The tick marks drawn on the frame axes denote the
+    (ith, jth) element of the matrix.
 
     EXAMPLES:
-    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage.: c.show(xmin=-1,xmax=3,ymin=-1,ymax=3)
 
-    To correct the apect ratio of certain graphics, it is necessary
-    to show with a 'figsize' of square dimensions.
+    A matrix over ZZ colored with different grey levels:
 
-    sage.: c.show(figsize=[5,5],xmin=-1,xmax=3,ymin=-1,ymax=3)
+    sage: M1 = Matrix(ZZ,3,4,[[1,3,5,1],[2,4,5,6],[1,3,5,7]])
+    sage: MP1 = matrix_plot(M1)
 
-    Here we make an more complicated plot with many circles of different colors
+    Here we make a random matrix over RR and use cmap='hsv'
+    to color the matrix elements different RGB colors:
 
-    sage: g = Graphics()
-    sage: step=6; ocur=1/5; paths=16;
-    sage: for r in range(1,paths+1):
-    ...       for x,y in [((r+ocur)*cos(n), (r+ocur)*sin(n)) for n in srange(0, 2*pi+pi/step, pi/step)]:
-    ...           g += circle((x,y), ocur, rgbcolor=hue(r/paths))
-    ...       rnext = (r+1)^2
-    ...       ocur = (rnext-r)-ocur
-    ...
-    sage.: g.show(xmin=-(paths+1)^2, xmax=(paths+1)^2, ymin=-(paths+1)^2, ymax=(paths+1)^2, figsize=[6,6])
+    sage: n = 22
+    sage: L = [n*random() for i in range(n*n)]
+    sage: M2 = Matrix(RR, n, n, L)
+    sage: MP2 = matrix_plot(M2, cmap='hsv')
+
     """
     def _reset(self):
-        self.options={'alpha':1,'fill':False,'thickness':1,'rgbcolor':(0, 0, 0),'resolution':40}
+        self.options={'cmap':'gray'}
 
     def _repr_(self):
-        return "type circle? for help and examples"
+        return "type matrix_plot? for help and examples"
 
-    def _from_xdata_ydata(self, point, r, options):
+    def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
         g = Graphics()
-        g._circle(float(point[0]), float(point[1]), float(r), options)
+        g._matrix_plot(xy_data_array, xrange, yrange, options)
         return g
 
+#unique matrix_plot instance
+matrix_plot = MatrixPlotFactory()
 
-#an unique circle instance
-circle = CircleFactory()
 
-class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
-    """
-    \code{contour_plot} takes a function of two variables, f(x,y)
-    and plots contour lines of the function over the specified
+# Below is the base class that is used to make 'plot_vector_field'.
+# Its implementation is motivated by Mathematica's 'PlotVectorField'.
+# TODO: make class similiar to this one to implement:
+# 'plot_gradient_field' and 'plot_hamiltonian_field'
+class PlotFieldFactory(GraphicPrimitiveFactory_plot_field):
+    r"""
+
+    \code{plot_field} takes two functions of one variable, (f(x), g(y))
+    and plots vector arrows of the function over the specified
     xrange and yrange as demonstrated below.
-    contour_plot(f, (xmin, xmax), (ymin, ymax))
+    plot_field((f, g), (xmin, xmax), (ymin, ymax))
 
     EXAMPLES:
 
-        Here we plot a simple funtion of two variables:
-        sage: def f(x,y):
-        ...       return cos(x^2 + y^2)
-        sage: contour_plot(f, (-4, 4), (-4, 4))
-         Graphics object consisting of 1 graphics primitive
-
-
-        Here we change the ranges and add some options:
-        sage: def h(x,y):
-        ...       return (x^2)*cos(x*y)
-        sage: contour_plot(h, (-10, 5), (-5, 5), fill=False, plot_points=100)
-         Graphics object consisting of 1 graphics primitive
+    Plot the vector field of sin and cos:
+    sage: vf1 = plot_vector_field((lambda x:sin(x), lambda y:cos(y)), (-3,3), (-3,3))
 
     """
     def _reset(self):
-        self.options={'plot_points':50, 'fill':True, 'cmap':'gray'}
+        self.options={'plot_points':20, 'cmap':'gray'}
 
     def _repr_(self):
         return "type contour_plot? for help and examples"
 
-    def _from_xdata_ydata(self, xy_data_array, xrange, yrange, options):
+    def _from_xdata_ydata(self, xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options):
         g = Graphics()
-        g._contour_plot(xy_data_array, xrange, yrange, options)
+        g._plot_field(xpos_array, ypos_array, xvec_array, yvec_array, xrange, yrange, options)
         return g
 
-#unique contour_plot instance
-contour_plot = ContourPlotFactory()
+#unique plot_vector_field instance
+plot_vector_field = PlotFieldFactory()
+
 
 class DiskFactory(GraphicPrimitiveFactory_disk):
     """
+
     A disk at a point = (x,y) with radius = r
     spanning (in radians) angle=(rad1, rad2)
     Type disk.options to see all options
@@ -1431,7 +1842,7 @@ class DiskFactory(GraphicPrimitiveFactory_disk):
 
     def _from_xdata_ydata(self, point, r, angle, options):
         g = Graphics()
-        g._disk((float(point[0]), float(point[1])), float(r), (float(angle[0]), float(angle[1])), options)
+        g._disk(point, r, angle, options)
         return g
 
 #an unique disk instance
@@ -1439,16 +1850,17 @@ disk = DiskFactory()
 
 class PointFactory(GraphicPrimitiveFactory_from_point_list):
     """
+
     A point of size 'pointsize' defined by point = (x,y)
     Type point.options to see all options. point takes either
     a single tuple of coordinates or a list of tuples.
 
     EXAMPLES:
         A purple point from a single tuple or coordinates:
-        sage: p1 = point((0.5,0.5), rgbcolor=hue(0.75))
+        sage: p1 = point((0.5, 0.5), rgbcolor=hue(0.75))
 
         Here are some random larger red points, given as a list of tuples
-        sage: p2 = point(((0.5,0.5),(1,2),(0.5,0.9),(-1,-1)),rgbcolor=hue(1),pointsize=30)
+        sage: p2 = point(((0.5, 0.5), (1, 2), (0.5, 0.9), (-1, -1)), rgbcolor=hue(1), pointsize=30)
 
     """
     def _reset(self):
@@ -1461,47 +1873,16 @@ class PointFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._point(xdata, ydata, options)
+        g.append(GraphicPrimitive_Point(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique point instance
 point = PointFactory()
 
-class TextFactory(GraphicPrimitiveFactory_text):
-    """
-    Text at the point (x,y)
-    Type text.options for a dictionary of options.
-
-    EXAMPLES:
-        Type this to see some text in top right plane:
-
-        sage: t = text("SAGE is really neat!!",(2,12))
-
-        Type this to see the same text in larger font and colored red:
-
-        sage: t = text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
-
-        You can also center text differently:
-
-        sage: t1 = text("Hello",(1,1), vertical_alignment="top")
-        sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
-
-    """
-    def _reset(self):
-        self.options = {'fontsize':10, 'rgbcolor':(0,0,0),
-                        'horizontal_alignment':'center',
-                        'vertical_alignment':'center'}
-
-    def _repr_(self):
-        return "type text? for help and examples"
-
-    def _from_xdata_ydata(self, string, point, options):
-        g = Graphics()
-        g._text(string, point, options)
-        return g
-
-# unique text instance
-text = TextFactory()
 
 class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
     """
@@ -1564,6 +1945,7 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
 
     AUTHORS:
         -- David Joyner (2006-04-14): the long list of examples above.
+
     """
     def _reset(self):
         self.options={'alpha':1,'rgbcolor':(0,0,0),'thickness':0}
@@ -1575,7 +1957,11 @@ class PolygonFactory(GraphicPrimitiveFactory_from_point_list):
         if coerce:
             xdata, ydata = self._coerce(xdata, ydata)
         g = Graphics()
-        g._polygon(xdata, ydata, options)
+        g.append(GraphicPrimitive_Polygon(xdata, ydata, options))
+        try:
+            g._extend_axes(min(xdata), max(xdata), min(ydata), max(ydata))
+        except ValueError:
+            pass
         return g
 
 # unique polygon instance
@@ -1642,8 +2028,8 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _reset(self):
         o = self.options
         o['plot_points'] = 200
-        o['plot_division'] = 1000      # change when fix adapter
-        o['max_bend'] = 0.1            # change when fix adapter
+        o['plot_division'] = 1000 # is this a good value?
+        o['max_bend'] = 0.1       # is this good as well?
 
     def _repr_(self):
         return "plot; type plot? for help and examples."
@@ -1723,7 +2109,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 data.insert(i+1, (x, y))
                 j += 1
                 if j > plot_division:
-                    # wrong -- just for testing (so no infinite loop)
+                    #is this wrong?
                     break
             else:
                 i += 1
@@ -1739,9 +2125,46 @@ class PlotFactory(GraphicPrimitiveFactory):
 # unique plot instance
 plot = PlotFactory()
 
+
+class TextFactory(GraphicPrimitiveFactory_text):
+    """
+    Text at the point (x,y)
+    Type text.options for a dictionary of options.
+
+    EXAMPLES:
+        Type this to see some text in top right plane:
+
+        sage: t = text("SAGE is really neat!!",(2,12))
+
+        Type this to see the same text in larger font and colored red:
+
+        sage: t = text("SAGE is really neat!!",(2,12),fontsize=20,rgbcolor=(1,0,0))
+
+        You can also center text differently:
+
+        sage: t1 = text("Hello",(1,1), vertical_alignment="top")
+        sage: t2 = text("World", (1,0.5), horizontal_alignment="left")
+
+    """
+    def _reset(self):
+        self.options = {'fontsize':10, 'rgbcolor':(0,0,0),
+                        'horizontal_alignment':'center',
+                        'vertical_alignment':'center'}
+
+    def _repr_(self):
+        return "type text? for help and examples"
+
+    def _from_xdata_ydata(self, string, point, options):
+        g = Graphics()
+        g._text(string, point, options)
+        return g
+
+# unique text instance
+text = TextFactory()
+
+
 ########## misc functions ###################
 
-#parametric plot
 def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
     """
     parametric_plot takes two functions as a list or a tuple and make
@@ -1765,7 +2188,6 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         show = SHOW_DEFAULT
     return plot((f,g), tmin, tmax, parametric=True, show=show, **kwargs)
 
-#polar plot
 def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
     """
     polar_plot takes a single function or a list or tuple of functions
@@ -1786,7 +2208,6 @@ def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
         show = SHOW_DEFAULT
     return plot(funcs, xmin, xmax, polar=True, **kwargs)
 
-#list plot
 def list_plot(data, plotjoined=False, show=None, **kwargs):
     """
     list_plot takes a single list of data, in which case it forms a
@@ -1925,7 +2346,7 @@ class GraphicsArray(SageObject):
     def __len__(self):
         return len(self._glist)
 
-    def __append__(self, g):
+    def append(self, g):
         self._glist.append(g)
 
     def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):
@@ -1945,9 +2366,8 @@ class GraphicsArray(SageObject):
         do_verify = True
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
-            g.save(filename, dpi=dpi, fig=figure,
-                   sub=subplot, savenow = (i==dims), verify=do_verify,
-                   **args)   # only save if i==dims.
+            g.save(filename, dpi=dpi, figure=figure, sub=subplot,
+                   savenow = (i==dims), verify=do_verify, **args)#only save if i==dims.
 
     def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
         """
@@ -1968,7 +2388,6 @@ class GraphicsArray(SageObject):
         self._render(filename, dpi=dpi, figsize=figsize, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
-        #os.system('gqview %s >/dev/null&'%filename)
 
 
 def reshape(v, n, m):
@@ -2038,21 +2457,5 @@ def graphics_array(array, n=None, m=None):
         n = int(n)
         m = int(m)
         array = reshape(array, n, m)
+    return GraphicsArray(array)
 
-    G = GraphicsArray(array)
-    return G
-
-
-
-def arrowhead(x,y,angle=0,spread=0.1,length=0.05,**options):
-    """
-    Draw an arrowhead with tip at (x,y), rotated the given angle,
-    with given spread (in radians) and sides having the given length.
-
-    EXAMPLES:
-
-    """
-    s = spread/2; r = length
-    v = [(x - r*cos(angle-s), y-r*sin(angle-s)), (x,y), \
-         (x - r*cos(angle+s), y-r*sin(angle+s))]
-    return line(v, **options)

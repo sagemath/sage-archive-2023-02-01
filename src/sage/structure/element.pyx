@@ -207,6 +207,8 @@ cdef class Element(sage_object.SageObject):
         INPUT:
             parent -- a SageObject
         """
+        #if parent is None:
+        #    raise RuntimeError, "bug -- can't set parent to None"
         self._parent = parent
 
     def _set_parent(self, parent):
@@ -1613,7 +1615,7 @@ def coerce(Parent p, x):
 #################################################################################
 cdef _verify_canonical_coercion_c(x, y):
     if not have_same_parent(x,y):
-        raise RuntimeError, """There is a bug in the ring coercion code in SAGE.
+        raise RuntimeError, """There is a bug in the coercion code in SAGE.
 Both x (=%s) and y (=%s) are supposed to have identical parents but they don't.
 In fact, x has parent '%s'
 whereas y has parent '%s'"""%(x,y,parent_c(x),parent_c(y))
@@ -1662,7 +1664,7 @@ cdef canonical_coercion_c(x, y):
             return _verify_canonical_coercion_c(x,y)
     except AttributeError:
         pass
-    raise TypeError, "unable to find a common canonical parent for x and y"
+    raise TypeError, "no common canonical parent for objects with parents: '%s' and '%s'"%(xp, yp)
 
 cdef canonical_base_coercion_c(Element x, Element y):
     if not have_same_base(x, y):

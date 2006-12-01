@@ -28,7 +28,9 @@ GCD of $10$ and $25$ computed using Macaulay2.
 
 EXAMPLES:
     sage: macaulay2('3/5 + 7/11')
-    68/55
+    68
+    --
+    55
     sage: f = macaulay2('f = i -> i^3')
     sage: f
     f
@@ -37,24 +39,26 @@ EXAMPLES:
 
     sage: R = macaulay2('ZZ/5[x,y,z]')
     sage: R
-    ZZ/5 [x, y, z]
+    ZZ
+    -- [x, y, z]
+     5
     sage: x = macaulay2('x')
     sage: y = macaulay2('y')
     sage: (x+y)^5
-    x^5+y^5
+     5    5
+    x  + y
     sage: parent((x+y)^5)
     Macaulay2
 
     sage: R = macaulay2('QQ[x,y,z,w]')
     sage: f = macaulay2('x^4 + 2*x*y^3 + x*y^2*w + x*y*z*w + x*y*w^2 + 2*x*z*w^2 + y^4 + y^3*w + 2*y^2*z*w + z^4 + w^4')
     sage: f
-    x^4+2*x*y^3+y^4+z^4+x*y^2*w+y^3*w+x*y*z*w+2*y^2*z*w+x*y*w^2+2*x*z*w^2+w^4
-
+     4       3    4    4      2     3                2           2         2    4
+    x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w
     sage: g = f * macaulay2('x+y^5')
     sage: g.factor()
-      new Product from {new Power from
-      {x^4+2*x*y^3+y^4+z^4+x*y^2*w+y^3*w+x*y*z*w+2*y^2*z*w+x*y*w^2+2*x*z*w^2+w^4, 1},
-      new Power from {y^5+x, 1}}
+      4       3    4    4      2     3                2           2         2    4   5
+    (x  + 2x*y  + y  + z  + x*y w + y w + x*y*z*w + 2y z*w + x*y*w  + 2x*z*w  + w )(y  + x)
 
 
 AUTHORS:
@@ -95,14 +99,26 @@ from expect import Expect, ExpectElement
 
 from sage.misc.misc import verbose
 
-# from re import search
+from re import search
 
-def clean_output(s):
-    i = s.find('= ')
-    if i == -1:
-        return s
-    j = s[:i].rfind('\n')
-    return (s[:j] + ' '*(i+1) + s[i+2:-1]).strip()
+def remove_output_labels(s):
+    m = search('o[0-9]+ = ', s)
+    if m is None: return s
+    i = m.start()
+    j = m.end()
+    n = j - i
+    s = s[:i] + ' '*n + s[j:]
+    # Now remove n spaces from beginning of each line.
+    v = s.split('\n')
+    s = '\n'.join([x[n:] for x in v])
+    return s
+
+## def clean_output(s):
+##     i = s.find('= ')
+##     if i == -1:
+##         return s
+##     j = s[:i].rfind('\n')
+##     return (s[:j] + ' '*(i+1) + s[i+2:-1]).strip()
 
 class Macaulay2(Expect):
     """
@@ -129,7 +145,7 @@ class Macaulay2(Expect):
     def _read_in_file_command(self, filename):
         return 'value get "%s"'%filename
 
-    def eval(self, code, strip=False):
+    def eval(self, code, strip=True):
         """
         Send the code x to the Macaulay2 interpreter and return the output
         as a string suitable for input back into Macaulay2, if possible.
@@ -140,9 +156,9 @@ class Macaulay2(Expect):
         """
         code = code.strip()
         # TODO: in some cases change toExternalString to toString??
-        ans = Expect.eval(self, code, strip=strip)
+        ans = Expect.eval(self, code, strip=strip).strip('\n')
         if strip:
-            ans = clean_output(ans)
+            ans = remove_output_labels(ans)
         return ans
 
 
@@ -150,7 +166,7 @@ class Macaulay2(Expect):
         """
         Get the value of the variable var.
         """
-        return self.eval("describe %s"%var, strip=False)
+        return self.eval("describe %s"%var, strip=True)
 
     def set(self, var, value):
         """
@@ -208,13 +224,12 @@ class Macaulay2(Expect):
             sage: R2 = macaulay2.ring('QQ', '[x, y]'); R2            # optional
             QQ [x, y, MonomialOrder => Lex, MonomialSize => 16]
             sage: I = macaulay2.ideal( ('y^2 - x^3', 'x - y') ); I   # optional
-            ideal (-x^3+y^2,x-y)
+                      3    2
+            ideal (- x  + y , x - y)
             sage: J = I^3; J.gb()                                    # optional
             GroebnerBasis[status: done; S-pairs encountered up to degree 9]
-            <BLANKLINE>
-            o39 : GroebnerBasis
             sage: J.gb().generators()                                # optional
-            map(sage7^{{0}}, sage7^{{-9}, {-7}, {-5}, {-3}}, {{y^9-3*y^8+3*y^7-y^6, x*y^6-2*x*y^5+x*y^4-y^7+2*y^6-y^5, x^2*y^3-x^2*y^2-2*x*y^4+2*x*y^3+y^5-y^4, x^3-3*x^2*y+3*x*y^2-y^3}})
+            | y9-3y8+3y7-y6 xy6-2xy5+xy4-y7+2y6-y5 x2y3-x2y2-2xy4+2xy3+y5-y4 x3-3x2y+3xy2-y3 |
         """
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -242,7 +257,9 @@ class Macaulay2(Expect):
         This is a ring in variables named a through d over the finite field
         of order 7, with graded reverse lex ordering:
             sage: R1 = macaulay2.ring('ZZ/7', '[a..d]', 'GRevLex'); R1  # optional
-            ZZ/7 [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
+            ZZ
+            -- [a, b, c, d, MonomialOrder => GRevLex, MonomialSize => 16]
+             7
             sage: R1.char()                                             # optional
             7
 
@@ -307,16 +324,18 @@ class Macaulay2Element(ExpectElement):
             sage: f = (x^3 + 2*y^2*x)^7; f             # optional
             2*x^7*y^14 + x^21
             sage: h = macaulay2(f); h                  # optional
-            x^21+2*x^7*y^14
+             21     7 14
+            x   + 2x y
             sage: f1 = (x^2 + 2*y*x)                   # optional
             sage: h1 = macaulay2(f1)                   # optional
             sage: f2 = (x^3 + 2*y*x)                   # optional
             sage: h2 = macaulay2(f2)                   # optional
             sage: h % [h1,h2]                          # optional
-            -3*x*y
-            sage: u = h // [h1,h2]; u                  # optional
-            [x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17+2*y^18-3*x*y^16-y^17-2*x*y^15-3*y^16+x*y^14-2*y^15+3*x*y^13+y^14+2*x*y^12+3*y^13-x*y^11+2*y^12-3*x*y^10-y^11-2*x*y^9-3*y^10+x*y^8-2*y^9+3*x*y^7+y^8+2*x*y^6+3*y^7-x*y^5+2*y^6-3*x*y^4-y^5-2*x*y^3-3*y^4+x*y^2-2*y^3+3*x*y+y^2+2*x+3*y, -2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2]
-            sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])               # optional
+            -3x*y
+            sage: u = h // [h1,h2]                     # optional
+            sage: u[0].str(), u[1].str()               # optional
+            ('x^19-2*x^18*y-3*x^17*y^2-x^16*y^3+2*x^15*y^4+3*x^14*y^5+x^13*y^6-2*x^12*y^7-3*x^11*y^8-x^10*y^9+2*x^9*y^10+3*x^8*y^11+x^7*y^12-2*x^6*y^13-x^5*y^14+2*x^4*y^15+3*x^3*y^16+x^2*y^17-x*y^17+2*y^18-3*x*y^16-y^17-2*x*y^15-3*y^16+x*y^14-2*y^15+3*x*y^13+y^14+2*x*y^12+3*y^13-x*y^11+2*y^12-3*x*y^10-y^11-2*x*y^9-3*y^10+x*y^8-2*y^9+3*x*y^7+y^8+2*x*y^6+3*y^7-x*y^5+2*y^6-3*x*y^4-y^5-2*x*y^3-3*y^4+x*y^2-2*y^3+3*x*y+y^2+2*x+3*y', '-2*y^18+y^17+3*y^16+2*y^15-y^14-3*y^13-2*y^12+y^11+3*y^10+2*y^9-y^8-3*y^7-2*y^6+y^5+3*y^4+2*y^3-y^2-3*y-2')
+            sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2]) # optional
             True
         """
         if isinstance(x, (list, tuple)):
@@ -336,13 +355,14 @@ class Macaulay2Element(ExpectElement):
             sage: f = (x^3 + 2*y^2*x)^7; f                  # optional
             2*x^7*y^14 + x^21
             sage: h= f._macaulay2_(); h                     # optional
-            x^21+2*x^7*y^14
+             21     7 14
+            x   + 2x y
             sage: f1 = (x^2 + 2*y*x)                        # optional
             sage: h1 = f1._macaulay2_()                     # optional
             sage: f2 = (x^3 + 2*y*x)                        # optional
             sage: h2 = f2._macaulay2_()                     # optional
             sage: h % [h1,h2]                               # optional
-            -3*x*y
+            -3x*y
             sage: u = h // [h1,h2]                          # optional
             sage: h == u[0]*h1 + u[1]*h2 + (h % [h1,h2])    # optional
             True
@@ -369,11 +389,12 @@ class Macaulay2Element(ExpectElement):
             sage: R = macaulay2.ring('QQ','(x,y)')               # optional
             sage: f = macaulay2('x^3 + 3*y^11 + 5')              # optional
             sage: f                                              # optional
-            x^3+3*y^11+5
+             3     11
+            x  + 3y   + 5
             sage: f.sage_polystring()                            # optional
             'x**3+3*y**11+5'
 	"""
-        return str(self).replace('^','**')
+        return self.str().replace('^','**')
 
     def structure_sheaf(self):
         """
@@ -382,7 +403,8 @@ class Macaulay2Element(ExpectElement):
             sage: R = S/macaulay2('a^3+b^3+c^3+d^3')            # optional
             sage: X = R.Proj()                                  # optional
             sage: X.structure_sheaf()                           # optional
-            new SheafOfRings from {symbol variety => sage5, symbol ring => (QQ [a, b, c, d])/(a^3+b^3+c^3+d^3)}
+            OO
+              sage4
         """
         return self.parent()('OO_%s'%self.name())
 

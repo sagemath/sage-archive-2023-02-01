@@ -5,7 +5,6 @@ all.py -- much of sage is imported into this module, so you don't
 
 from __future__ import with_statement
 
-
 ###############################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
@@ -64,6 +63,7 @@ from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
 from sage.schemes.all    import *
+from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.databases.all  import *
 from sage.structure.all  import *

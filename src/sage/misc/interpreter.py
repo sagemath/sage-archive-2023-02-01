@@ -51,15 +51,15 @@ EXAMPLE:
     sage: 2/3
           2/3
     sage: type(2/3)
-          <type 'rational.Rational'>
+          <type 'sage.rings.rational.Rational'>
     sage: a = 49928420832092
     sage: type(a)
-          <type 'integer.Integer'>
+          <type 'sage.rings.integer.Integer'>
     sage: a.factor()
           [(2, 2), (11, 1), (1134736837093, 1)]
     sage: v = [1,2,3]
     sage: type(v[0])
-          <type 'integer.Integer'>
+          <type 'sage.rings.integer.Integer'>
 
 If we don't make potential list indices int's, then lots of stuff
 breaks, or users have to type v[int(7)], which is insane.
@@ -110,7 +110,7 @@ from IPython.iplib import InteractiveShell
 import preparser_ipython
 from preparser import preparse_file
 
-import pyrex
+import sagex
 
 #import signal
 #def sig(x,n):
@@ -179,7 +179,7 @@ def do_prefilter_paste(line, continuation):
                     elif F[-5:] == '.sage':
                         ipmagic('run -i "%s"'%process_file(F))
                     elif F[-5:] == '.spyx':
-                        X = load_pyrex(F)
+                        X = load_sagex(F)
                         __IPYTHON__.push(X)
                     else:
                         print "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%F
@@ -274,7 +274,7 @@ def do_prefilter_paste(line, continuation):
                     raise ImportError, "Error loading '%s'"%name
                     line = ""
             elif name[-5:] == '.spyx':
-                line = load_pyrex(name)
+                line = load_sagex(name)
             else:
                 raise ImportError, "Loading of '%s' not implemented (load .py, .spyx, and .sage files)"%name
                 line = ''
@@ -327,7 +327,7 @@ def do_prefilter_paste(line, continuation):
                 raise ImportError, "File '%s' not found."%name
         elif name[-5:] == '.spyx':
             try:
-                line = load_pyrex(name)
+                line = load_sagex(name)
                 attached[name] = os.path.getmtime(name)
             except IOError, OSError:
                 raise ImportError, "File '%s' not found."%name
@@ -338,12 +338,12 @@ def do_prefilter_paste(line, continuation):
         line = preparser_ipython.preparse_ipython(line)
     return line
 
-def load_pyrex(name):
+def load_sagex(name):
     cur = os.path.abspath(os.curdir)
     try:
-        mod, dir  = pyrex.pyrex(name, compile_message=True, use_cache=True)
+        mod, dir  = sagex.sagex(name, compile_message=True, use_cache=True)
     except (IOError, OSError, RuntimeError), msg:
-        print "Error compiling pyrex file:\n%s"%msg
+        print "Error compiling sagex file:\n%s"%msg
         return ''
     import sys
     sys.path.append(dir)

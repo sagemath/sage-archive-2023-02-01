@@ -21,6 +21,7 @@ list of cells.
 # and numbers, so don't make this too small.
 MAX_OUTPUT = 65536
 
+TRACEBACK = 'Traceback (most recent call last):'
 
 
 import os, shutil
@@ -76,10 +77,10 @@ class Cell:
         s = ''
 
         input_lines = self.__in.strip()
-        if input_lines[:1] == '%':
-            pr = '%s> '%(input_lines.split()[0])[1:]
-        else:
-            pr = 'sage: '
+        #if input_lines[:1] == '%':
+        #    pr = '%s> '%(input_lines.split()[0])[1:]
+        #else:
+        pr = 'sage: '
 
         if prompts:
             input_lines = input_lines.split('\n')
@@ -111,7 +112,7 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n///\n'
+            s += self.__in.strip()
 
         if prompts:
             msg = 'Traceback (most recent call last):'
@@ -126,15 +127,9 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).split('\n')
-            if len(out) > 0:
-                if wiki_out:
-                  out = '///\n' + '\n'.join(out)
-                else:
-                  out = '#out: ' + '\n'.join(out)
-            else:
-                out = ''
             out = self.output_text(ncols, html=False)
+            if wiki_out and len(out) > 0:
+                out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
@@ -148,10 +143,9 @@ class Cell:
             s = s.rstrip('\n')
         return s
 
-    def wiki_text(self, ncols=0, prompts=False, max_out=None):
+    def edit_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
-        return '{{{[%s]\n'%self.id() + s + '\n}}}'
+        return '{{{\n%s\n}}}'%s
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -225,7 +219,10 @@ class Cell:
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
-            output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            else:
+                output = output[:MAX_OUTPUT] + '\n(truncated)'
         self.__out = output
         self.__out_html = html
         self.__sage = sage
@@ -262,10 +259,10 @@ class Cell:
     def output_text(self, ncols=0, html=True):
         s = self.__out
 
-        def format(x):
-            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
-
         if html:
+            def format(x):
+                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -282,8 +279,13 @@ class Cell:
                 t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
             if not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s + '</pre>'
+                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+
+
         return s.strip('\n')
 
     def has_output(self):
@@ -370,7 +372,11 @@ class Cell:
     def html(self, wrap=None, div_wrap=True, do_print=False):
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
-        evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+
+        if self.worksheet().compute_process_has_been_started():
+            evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        else:
+            evaluated = False
         if evaluated:
             cls = 'cell_evaluated'
         else:
@@ -425,10 +431,9 @@ class Cell:
             return ''
         images = []
         files  = []
-        ## The c and question mark hack here is so that images will be reloaded when
-        ## the async request requests the output text for a computation.
-        ## This is a total hack, inspired by http://www.irt.org/script/416.htm/.
-        # Global c replaced by cell version number -- TB
+        # The question mark trick here is so that images will be reloaded when
+        # the async request requests the output text for a computation.
+        # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
@@ -448,6 +453,8 @@ class Cell:
 
     def html_out(self, ncols=0, do_print=False):
         out_nowrap = self.output_text(0, html=True)
+        out_html = self.output_html()
+
         if self.introspect():
             out_wrap = out_nowrap
         else:
@@ -463,8 +470,6 @@ class Cell:
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
-        out_html = self.output_html()
-
         out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
                  <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>
                  <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
@@ -472,15 +477,35 @@ class Cell:
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
+        s = top + out + '</div>'
 
-        s = top + out + '\n</div>'
-
-        r = '[%s]'%self.relative_id()
-        r += '&nbsp;'*(5-len(r))
+        #r = '[%s]'%self.relative_id()
+        #r = '>'
+        r = ''
+        r += '&nbsp;'*(7-len(r))
         tbl = """<table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
                <td class="output_cell">%s</td></tr></table>"""%(
                    self.__id, self.__id, r, s)
 
         return tbl
+
+
+
+########
+
+def format_exception(s0, ncols):
+    s = s0.lstrip()
+    if s[:len(TRACEBACK)] != TRACEBACK:
+        return s0
+    if ncols > 0:
+        s = s.strip()
+        s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
+        w = s.split('\n')
+        s = w[0] + '\n...\n' + w[-1]
+    else:
+        s = s.replace("exec compile(ur'","")
+        s = s.replace("' + '\\n', '', 'single')", "")
+    t = '<html><font color="#990099">' + s + '</font></html>'
+    return t
 

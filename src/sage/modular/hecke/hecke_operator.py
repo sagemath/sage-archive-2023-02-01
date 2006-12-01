@@ -226,7 +226,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         return self.hecke_module_morphism().det()
 
-    def fcp(self, var):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial of
         this Hecke operator.

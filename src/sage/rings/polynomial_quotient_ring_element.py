@@ -368,7 +368,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         """
         return self.matrix().charpoly(var)
 
-    def fcp(self, var):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial
         of this element.
@@ -377,7 +377,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: R.<x> = PolynomialRing(QQ)
             sage: S.<a> = R.quotient(x^3 -389*x^2 + 2*x - 5)
             sage: a.fcp('x')
-            (x^3 - 389*x^2 + 2*x - 5)
+            x^3 - 389*x^2 + 2*x - 5
             sage: S(1).fcp('y')
             (y - 1)^3
         """

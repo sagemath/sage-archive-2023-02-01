@@ -530,7 +530,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: M = MatrixSpace(QQ,3,3)
             sage: A = M([1,9,-7,4/5,4,3,6,4,3])
             sage: A.fcp()
-            (x^3 - 8*x^2 + 209/5*x - 286)
+            x^3 - 8*x^2 + 209/5*x - 286
             sage: A = M([3, 0, -2, 0, -2, 0, 0, 0, 0])
             sage: A.fcp('T')
             (T - 3) * T * (T + 2)
@@ -1641,6 +1641,10 @@ cdef class Matrix(matrix1.Matrix):
             (1, -2, 1)
             ])
             ]
+
+        The same computation, but with implicit base change to a field:
+            sage: a = matrix(ZZ,3,range(9))
+            sage: v = a.eigenspaces()
         """
         x = self.fetch('eigenvectors')
         if not x is None:
@@ -1652,6 +1656,8 @@ cdef class Matrix(matrix1.Matrix):
             if h.degree() == 1:
                 alpha = -h[0]/h[1]
                 F = alpha.parent()
+                if F != self.base_ring():
+                    self = self.change_ring(F)
                 A = self - alpha
             else:
                 F = h.root_field('%s%s'%(var,i))

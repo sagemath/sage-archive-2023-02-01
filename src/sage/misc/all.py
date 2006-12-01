@@ -37,7 +37,9 @@ from preparser import preparse
 
 from sage_eval import sage_eval
 
+from sagex import sagex_lambda
 from sagex_c import sagex
+pyrex = sagex # synonym
 
 from persist import save, load, dumps, loads, db, db_save
 

@@ -30,7 +30,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 20
+INTERRUPT_TRIES = 30
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -38,10 +38,19 @@ HISTORY_NCOLS = 90
 
 import notebook as _notebook
 
-SAGE_BEGIN='__SAGE_BEGIN__'
-SAGE_END='__SAGE_END__'
-SAGE_ERROR='error' + SAGE_END
-SAGE_VARS='__SAGE_VARS__'
+#SAGE_BEGIN='__SAGE_BEGIN__'
+#SAGE_END='__SAGE_END__'
+#SAGE_ERROR='error' + SAGE_END
+#SAGE_VARS='__SAGE_VARS__'
+
+#If you make any changes to this, be sure to change the
+# error line below that looks like this:
+#         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
+SC='\x01'
+SAGE_BEGIN=SC+'b'
+SAGE_END=SC+'e'
+SAGE_ERROR=SC+'r'
+SAGE_VARS=SC+'v'
 
 class Worksheet:
     def __init__(self, name, notebook, id, system=None, passcode = ''):
@@ -123,7 +132,10 @@ class Worksheet:
             return -1
 
     def computing(self):
-        return self.__comp_is_running
+        try:
+            return self.__comp_is_running
+        except AttributeError:
+            return False
 
     def set_not_computing(self):
         self.__comp_is_running = False
@@ -149,44 +161,59 @@ class Worksheet:
         Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
         suitable for hand editing.
         """
-        s = '#'*80 + '\n'
-        s += '# Wiki form for worksheet: %s'%self.name() + '\n'
-        s += '#'*80+'\n\n'
+        #s = '#'*80 + '\n'
+        #s += '# Worksheet: %s'%self.name() + '\n'
+        #s += '#'*80+'\n\n'
+        s = ' == %s =='%self.name() + '\n\n'
         for C in self.__cells:
-            t = C.wiki_text(prompts=prompts).strip()
+            t = C.edit_text(prompts=prompts).strip()
             if t != '':
                 s += '\n\n' + t
         return s
 
-    def insert_wiki_cells(self,text):
+    def edit_save(self,text):
         text.replace('\r\n','\n')
-        lines = text.split('\n')
-        input = ""
-        output = ""
-        in_cell = False
-        in_output = False
-        old_first = self.__cells[0].id()
-        for line in lines:
-            if not in_cell:
-                if line[:3] == '{{{':
-                    in_cell = True
-            elif line != '}}}':
-                if not in_output:
-                    if line == '///':
-                        in_output = True
-                    else:
-                        input += line+'\n'
-                else:
-                    output += line+'\n'
-            else:
-                C = self.new_cell_before(old_first)
-                C.set_input_text(input)
-                C.set_output_text(output,output)
-                C.set_cell_output_type()
-                input = ""
-                output = ""
-                in_cell = False
-                in_output = False
+        # This is where we would save the last version in a history.
+        cells = []
+        while True:
+            try:
+                input, output, graphics, i = extract_first_text_cell(text)
+            except EOFError:
+                break
+            text = text[i:]
+            C = self._new_cell()
+            C.set_input_text(input)
+            C.set_output_text(output, '')
+            cells.append(C)
+        self.__cells = cells
+
+##         lines = text.split('\n')
+##         input = ""
+##         output = ""
+##         in_cell = False
+##         in_output = False
+##         old_first = self.__cells[0].id()
+##         for line in lines:
+##             if not in_cell:
+##                 if line[:3] == '{{{':
+##                     in_cell = True
+##             elif line != '}}}':
+##                 if not in_output:
+##                     if line == '///':
+##                         in_output = True
+##                     else:
+##                         input += line+'\n'
+##                 else:
+##                     output += line+'\n'
+##             else:
+##                 C = self.new_cell_before(old_first)
+##                 C.set_input_text(input)
+##                 C.set_output_text(output,output)
+##                 C.set_cell_output_type()
+##                 input = ""
+##                 output = ""
+##                 in_cell = False
+##                 in_output = False
 
     def input_text(self):
         """
@@ -294,6 +321,20 @@ class Worksheet:
         self.__next_block_id = i
         return i
 
+    def compute_process_has_been_started(self):
+        """
+        Return True precisely if the compute process has been started,
+        irregardless of whether or not it is currently churning away
+        on a computation.
+        """
+        try:
+            S = self.__sage
+            if S._expect is None:
+                return False
+        except AttributeError:
+            return False
+        return True
+
     def sage(self):
         try:
             S = self.__sage
@@ -301,6 +342,7 @@ class Worksheet:
                 return S
         except AttributeError:
             S = Sage(maxread = 1)
+        S._start(block_during_init=False)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__sage = S
@@ -308,7 +350,6 @@ class Worksheet:
             del self.__variables
         except AttributeError:
             pass
-        S = self.__sage
         self.__next_block_id = 0
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
@@ -322,8 +363,10 @@ class Worksheet:
             cmd += 'import sage.server.support as _support_; '
             cmd += '__SAGENB__globals = set(globals().keys()); '
             cmd += '_support_.init("%s", globals()); '%object_directory
-            S.eval(cmd)
+            # S.eval(cmd)
+            S._send(cmd)   # so web server doesn't lock. -- drawback -- we won't know if something bad happened loading SAGE?!
         except Exception, msg:
+            print "ERROR initializing compute process:\n"
             print msg
             del self.__sage
             raise RuntimeError
@@ -340,7 +383,6 @@ class Worksheet:
                 self.enqueue(c)
 
     def _new_cell(self, id=None):
-        D = self.__notebook.defaults()
         if id is None:
             id = self.__next_id
             self.__next_id += 1
@@ -362,7 +404,7 @@ class Worksheet:
         return self._new_cell(id)
 
     def queue(self):
-        return self.__queue
+        return list(self.__queue)
 
     def queue_id_list(self):
         return [c.id() for c in self.__queue]
@@ -390,6 +432,7 @@ class Worksheet:
         if not (C in self.__queue):
             self.__queue.append(C)
         self.start_next_comp()
+
 
     def synchronize(self, s):
         try:
@@ -436,7 +479,9 @@ class Worksheet:
             I = C.input_text().strip()
             if I in ['restart', 'quit', 'exit'] and not I in V:
                 self.restart_sage()
-                C.set_output_text('Restarted SAGE','')
+                S = self.system()
+                if S is None: S = 'SAGE'
+                C.set_output_text('Exited %s process'%S,'')
                 return
             if I[:5] == '%time':
                 C.do_time()
@@ -500,9 +545,9 @@ class Worksheet:
         # in order to support use of the with statement in the notebook.  Very annoying.
         input = 'from __future__ import with_statement\n' + input
         open(tmp,'w').write(input)
-        e = 'execfile("%s")\n'%os.path.abspath(tmp)
-        # just in case, put an extra end...
-        cmd = e + 'print "%s"+"%s"'%(SAGE_ERROR,self.synchro())
+        cmd = 'execfile("%s")\n'%os.path.abspath(tmp)
+        # Signal an end (which would only be seen if there is an error.)
+        cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
         self.__comp_is_running = True
         try:
             S._send(cmd)
@@ -628,23 +673,16 @@ class Worksheet:
         z = SAGE_BEGIN+str(self.synchro())
         i = s.find(z)
         if i == -1:
+            # did not find any synchronization info in the output stream
             j = s.find('Traceback')
             if j != -1:
+                # Probably there was an error; better not hide it.
                 return s[j:]
             else:
+                # Maybe we just read too early -- supress displaying anything yet.
                 return ''
         else:
-            s = s[i+len(z):]
-            return s
-##         i = s.find(SAGE_BEGIN)
-##         if i != -1:
-##             j = s[i:].find('\n')
-##             if j != -1:
-##                 i = i + j
-##             else:
-##                 i = i + len(SAGE_BEGIN)
-##             s = s[i+1:]
-##         return s
+            return s[i+len(z):]
 
     def _process_output(self, s):
         s = re.sub('\x08.','',s)
@@ -732,6 +770,7 @@ class Worksheet:
         """
         # stop the current computation in the running SAGE
         self.interrupt()
+
         try:
             S = self.__sage
         except AttributeError:
@@ -740,7 +779,8 @@ class Worksheet:
 
         alarm(2)
         try:
-            self.__sage._expect = None
+            S.quit()
+            S._expect = None
             del self.__sage
         except AttributeError, msg:
             print "WARNING: %s"%msg
@@ -781,7 +821,6 @@ class Worksheet:
                         I = C._before_preparse.split('\n')
                         out = out[:i + len(tb)+1] + '    ' + I[n-2] + out[l:]
         except (ValueError, IndexError), msg:
-            print msg
             pass
         return out
 
@@ -957,7 +996,7 @@ class Worksheet:
         cmd = cmd.replace("'", "\\u0027")
         return "print _support_.syseval(%s, ur'''%s''')"%(system, cmd)
 
-    def pyrex_import(self, cmd, C):
+    def sagex_import(self, cmd, C):
         # Choice: Can use either C.relative_id() or self.next_block_id().
         # C.relative_id() has the advantage that block evals are cached, i.e.,
         # no need to recompile.  On the other hand tracebacks don't work if
@@ -968,7 +1007,7 @@ class Worksheet:
         spyx = os.path.abspath('%s/code/sage%s.spyx'%(self.directory(), id))
         if not (os.path.exists(spyx) and open(spyx).read() == cmd):
             open(spyx,'w').write(cmd)
-        s  = '_support_.pyrex_import_all("%s", globals())'%spyx
+        s  = '_support_.sagex_import_all("%s", globals())'%spyx
         return s
 
     def check_for_system_switching(self, s, C):
@@ -995,8 +1034,8 @@ class Worksheet:
             if len(t) == 0 or t[0] != '%':
                 return False, t
             s = t
-        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Pyrex code.
-            return True, self.pyrex_import(s[6:].lstrip(), C)
+        if s[:6] == "%pyrex" or s[:6] == "%sagex":  # a block of Sagex code.
+            return True, self.sagex_import(s[6:].lstrip(), C)
 
         i = s.find('\n')
         if i == -1:
@@ -1061,10 +1100,11 @@ class Worksheet:
                         try:
                             compile(t+'\n', '', 'single')
                             t = t.replace("'", "\\u0027").replace('\n','\\u000a')
+                            # IMPORTANT: If you change this line, also change
+                            # the function format_exception in cell.py
                             input[i] = "exec compile(ur'%s' + '\\n', '', 'single')"%t
                             input = input[:i+1]
                         except SyntaxError, msg:
-                            print msg
                             pass
                 input = '\n'.join(input)
 
@@ -1134,7 +1174,6 @@ class Worksheet:
     def html(self, include_title=True, do_print=False, authorized=False):
         n = len(self.__cells)
         s = ''
-
         if include_title:
             S = self.system()
             if not (S is None):
@@ -1146,16 +1185,20 @@ class Worksheet:
             else:
                 lock_text = ''
 
-            s += '<div class="worksheet_title">Worksheet: %s%s%s</div>\n'%(self.name(),system,lock_text)
+            s += '<div class="worksheet_title" onClick="toggle_left_pane();">'
+            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
+            s += ' Worksheet: %s%s%s</div>\n'%(self.name(),system,lock_text)
         D = self.__notebook.defaults()
         ncols = D['word_wrap_cols']
         s += '<div class="worksheet_cell_list" id="worksheet_cell_list">\n'
         for i in range(n):
             cell = self.__cells[i]
             s += cell.html(ncols,do_print=do_print) + '\n'
+
         s += '\n</div>\n'
         s += '\n<div class="insert_new_cell" id="insert_last_cell" onmousedown="insert_new_cell_after(cell_id_list[cell_id_list.length-1]);"> </div>\n'
         s += '<div class="worksheet_bottom_padding"></div>\n'
+
         if not do_print:
             s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
         else:
@@ -1198,4 +1241,40 @@ def ignore_prompts_and_output(s):
         elif I2[:3] == '...':
             s += I2[3:] + '\n'
     return s
+
+
+
+def extract_first_text_cell(text):
+    """
+    INPUT:
+        a block of wiki-like marked up text
+    OUTPUT:
+        input -- string, the input text
+        output -- string, the output text
+        graphics -- string, text that describes any embedded graphics
+        end -- integer, first position after }}} in text.
+    """
+    # Find the input block
+    i = text.find('{{{')
+    if i == -1:
+        raise EOFError
+    j = text.find('}}}')
+    if j <= i:
+        j = len(text)
+    k = text.find('///')
+    if k == -1 or k > j:
+        input = text[i+3:j]
+        output = ''
+        graphics = ''
+    else:
+        input = text[i+3:k].strip()
+        # Find the graphics block, if there is one.
+        l = text[k+3:].find('///')
+        if l != -1 and l+k+3 < j:
+            graphics = text[l+k+3+3:j]
+        else:
+            graphics = ''
+            l = j
+        output = text[k+3:l].strip()
+    return input, output, graphics, j+3
 

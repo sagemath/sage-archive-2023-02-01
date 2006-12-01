@@ -27,9 +27,15 @@ AUTHORS:
 #*****************************************************************************
 
 import os
-import pexpect
 import weakref
 import time
+
+########################################################
+# Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
+# For reasons I don't understand, pexpect2.1 is much
+# worse than pexpect 2.0 for everything SAGE does.
+########################################################
+import pexpect
 
 from sage.structure.sage_object import SageObject
 from sage.structure.parent_base import ParentWithBase
@@ -50,13 +56,15 @@ failed_to_start = []
 
 tmp='%s/tmp'%SAGE_TMP_INTERFACE
 
-def _absolute(cmd):
-    c = cmd.split()
-    s  = c[0]
-    t = os.popen('which %s'%s).read().strip()
-    if len(t) == 0:
-        raise RuntimeError
-    return ' '.join([t] + c[1:])
+## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
+## it should not be necessary or used anyways.
+## def _absolute(cmd):
+##     c = cmd.split()
+##     s  = c[0]
+##     t = os.popen('which %s'%s).read().strip()
+##     if len(t) == 0:
+##         raise RuntimeError
+##     return ' '.join([t] + c[1:])
 
 
 class Expect(ParentWithBase):
@@ -218,7 +226,7 @@ class Expect(ParentWithBase):
         """
         return ''
 
-    def _start(self, alt_message=None):
+    def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
         if self.__name in failed_to_start:
@@ -234,12 +242,13 @@ class Expect(ParentWithBase):
             os.makedirs(dir)
         os.chdir(dir)
 
-        try:
-            cmd = _absolute(self.__command)
-        except RuntimeError:
-            failed_to_start.append(self.__name)
-            raise RuntimeError, "%s\nCommand %s not available."%(
-                 self._install_hints(), self.__name)
+        cmd = self.__command
+##         try:
+##             cmd = _absolute(self.__command)
+##         except RuntimeError:
+##             failed_to_start.append(self.__name)
+##             raise RuntimeError, "%s\nCommand %s not available."%(
+##                  self._install_hints(), self.__name)
 
         if self.__verbose_start:
             print "Starting %s"%cmd.split()[0]
@@ -269,8 +278,12 @@ class Expect(ParentWithBase):
             print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
-        for X in self.__init_code:
-            self.eval(X)
+        if block_during_init:
+            for X in self.__init_code:
+                self.eval(X)
+        else:
+            for X in self.__init_code:
+                self._send(X)
 
     def clear_prompts(self):
         while True:
@@ -319,6 +332,10 @@ class Expect(ParentWithBase):
             os.kill(self._expect.pid, 9)
         except OSError, msg:
             pass
+        try:
+            self._expect.close(9)
+        except Exception:
+            pass
         self._expect = None
 
     def _quit_string(self):
@@ -337,6 +354,7 @@ class Expect(ParentWithBase):
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
+            raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -358,8 +376,8 @@ class Expect(ParentWithBase):
                 if wait_for_prompt == False:
                     return ''
 
-            except OSError:
-                return RuntimeError, "Error evaluating %s in %s"%(line, self)
+            except OSError, msg:
+                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
 
             if len(line)>0:
                 try:
@@ -368,12 +386,16 @@ class Expect(ParentWithBase):
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
-                    if self._read_in_file_command(tmp) in line:
-                        raise pexpect.EOF, msg
+                    try:
+                        if self._read_in_file_command(tmp) in line:
+                            raise pexpect.EOF, msg
+                    except NotImplementedError:
+                        pass
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    raise RuntimeError, "%s crashed executing %s"%(self, line)
+                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,
+                                                   self, line)
                 out = E.before
             else:
                 out = '\n\r'
@@ -416,6 +438,9 @@ class Expect(ParentWithBase):
         except TypeError, s:
             return 'error evaluating "%s":\n%s'%(code,s)
 
+    def execute(self, *args, **kwds):
+        return self.eval(*args, **kwds)
+
     def __call__(self, x):
         r"""
         Create a new object in self from x.
@@ -453,6 +478,7 @@ class Expect(ParentWithBase):
         if isinstance(x, (list, tuple)):
             A = []
             z = []
+            cls = self._object_class()
             for v in x:
                 if isinstance(v, cls):
                     A.append(v.name())
@@ -585,9 +611,7 @@ class Expect(ParentWithBase):
         return ExpectFunction(self, attrname)
 
     def __cmp__(self, other):
-        if self is other:
-            return 0
-        return -1
+        return cmp(type(self), type(other))
 
     def console(self):
         raise NotImplementedError
@@ -688,7 +712,7 @@ class ExpectElement(RingElement):
     def _sage_doc_(self):
         return str(self)
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1

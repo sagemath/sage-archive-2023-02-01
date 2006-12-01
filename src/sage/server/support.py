@@ -6,7 +6,7 @@ AUTHOR:
 """
 
 import inspect
-import sage.misc.pyrex_inspect
+import sage.misc.sagex_inspect
 import os
 import string
 
@@ -183,7 +183,7 @@ def source_code(s, globs):
             lines, num = inspect.getsourcelines(obj)
             src = ''.join(lines)
         except TypeError:
-            src = sage.misc.pyrex_inspect.getsource(obj, True)
+            src = sage.misc.sagex_inspect.getsource(obj, True)
             num =None
         src = sagedoc.format_src(src)
         if not num is None:
@@ -284,46 +284,46 @@ def syseval(system, cmd):
 
 
 ######################################################################
-# Pyrex
+# Sagex
 ######################################################################
-import sage.misc.pyrex
+import sage.misc.sagex
 import sys
 import __builtin__
 
-def pyrex_import(filename, verbose=False, compile_message=False,
-                 use_cache=False):
+def sagex_import(filename, verbose=False, compile_message=False,
+                 use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains pyrex code
+        filename -- name of a file that contains sagex code
 
     OUTPUT:
-        module -- the module that contains the compiled pyrex code.
+        module -- the module that contains the compiled sagex code.
 
     Raises an ImportError exception if anything goes wrong.
     """
-
-    name, build_dir = sage.misc.pyrex.pyrex(filename, verbose=verbose,
+    name, build_dir = sage.misc.sagex.sagex(filename, verbose=verbose,
                                             compile_message=compile_message,
-                                            use_cache=use_cache)
-
+                                            use_cache=use_cache,
+                                            create_local_c_file=create_local_c_file)
     sys.path.append(build_dir)
     return __builtin__.__import__(name)
 
 
-def pyrex_import_all(filename, globals, verbose=False, compile_message=False,
-                     use_cache=False):
+def sagex_import_all(filename, globals, verbose=False, compile_message=False,
+                     use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains pyrex code
+        filename -- name of a file that contains sagex code
 
     OUTPUT:
-        changes globals using the attributes of the Pyrex module
+        changes globals using the attributes of the Sagex module
         that do not begin with an underscore.
 
     Raises an ImportError exception if anything goes wrong.
     """
-    m = pyrex_import(filename, verbose=verbose, compile_message=compile_message,
-                     use_cache=use_cache)
+    m = sagex_import(filename, verbose=verbose, compile_message=compile_message,
+                     use_cache=use_cache,
+                     create_local_c_file=create_local_c_file)
     for k, x in m.__dict__.iteritems():
         if k[0] != '_':
             globals[k] = x

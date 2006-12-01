@@ -65,15 +65,14 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
             x -- a dict with integer keys and values in the base
                  field of parent.
         """
-        self.__parent = parent
         self.__x = x
-        hecke.HeckeModuleElement.__init__(self, parent, self.element())
+        hecke.HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
 
     def _repr_(self):
         """
         Returns a string representation for self for printing purposes.
         """
-        g = self.__parent._known_gens_repr
+        g = self.parent()._known_gens_repr
         z = [0 for _ in xrange(len(g))]
         for i, c in self.__x.items():
             z[i] = c
@@ -86,7 +85,7 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                 z[i] += c
             else:
                 z[i] = c
-        return BoundarySpaceElement(self.__parent, z)
+        return BoundarySpaceElement(self.parent(), z)
 
 
     def _sub_(self, other):
@@ -96,23 +95,22 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                 z[i] -= c
             else:
                 z[i] = -c
-        return BoundarySpaceElement(self.__parent, z)
+        return BoundarySpaceElement(self.parent(), z)
 
-    # TODO: use arithmetic arch
-    def __mul__(self, other):
+    def _rmul_(self, other):
         x = {}
         for i, c in self.__x.items():
             x[i] = c*other
-        return BoundarySpaceElement(self.__parent, x)
+        return BoundarySpaceElement(self.parent(), x)
+
+    def _lmul_(self, other):
+        x = {}
+        for i, c in self.__x.items():
+            x[i] = other*c
+        return BoundarySpaceElement(self.parent(), x)
 
     def __neg__(self):
         return self*(-1)
-
-    def parent(self):
-        return self.__parent
-
-    def element(self):
-        return self.__parent.free_module()(self.__x)
 
 
 class BoundarySpace(hecke.HeckeModule_generic):
@@ -258,6 +256,9 @@ class BoundarySpace(hecke.HeckeModule_generic):
             return BoundarySpaceElement(self, y)
 
         raise TypeError, "Coercion of %s (of type %s, parent %s) into %s not (yet) defined."%(x,type(x), x.parent(), self)
+
+    def _coerce_impl(self):
+        return self._coerce_try([self.base_ring()])
 
     def _repr_(self):
         return ("Space of Boundary Modular Symbols of weight %s for" + \
@@ -464,6 +465,109 @@ class BoundarySpace_wtk_g1(BoundarySpace):
         # Stein Phd. thesis).
         #
         # When the sign is nonzero, we have the additional relations
+        #
+        #        [(-u,v)] = sign*[(u,v)]
+        #
+        ################################################################
+
+        # Does cusp class vanish because of - relations (see above comment)?
+        if k % 2 != 0:
+            (u, v) = (c.numerator(), c.denominator())
+            if (2*v) % N == 0:
+                if (2*u) % v.gcd(N) == 0:
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
+
+        if sign == -1:
+            # new cusp and nonzero sign, so its possible that the cusp
+            # class is killed by the sign relations.
+            t, eps = self._is_equiv(c, -c)
+            if t:
+                if sign != eps:
+                    self._is_zero.append(len(g)-1)
+                    return self(0)
+
+        return BoundarySpaceElement(self, {(len(g)-1):1})
+
+class BoundarySpace_wtk_gamma_h(BoundarySpace):
+    def __init__(self, group, weight, sign, F):
+        """
+        Initialize a space of boundary modular symbols for GammaH(N).
+
+        INPUT:
+            group -- congruence subgroup Gamma_H(N).
+            weight -- int, the weight >= 2
+            sign -- int, either -1, 0, or 1
+            F -- base ring
+
+        EXAMPLES:
+            sage: from sage.modular.modsym.boundary import BoundarySpace_wtk_gamma_h
+            sage: BoundarySpace_wtk_gamma_h(GammaH(13,[3]), 2, 0, QQ)
+            Boundary Modular Symbols space for ?? of weight 2 over Rational Field
+        """
+        sign = int(sign)
+        if not sign in [-1,0,1]:
+            raise ArithmeticError, "sign must be an int in [-1,0,1]"
+
+        BoundarySpace.__init__(self,
+                weight = weight,
+                group  = group,
+                sign   = sign,
+                base_ring = F)
+
+    def _repr_(self):
+        return ("Boundary Modular Symbols space for %s of weight %s " + \
+                "over %s")%(self.group(),self.weight(), self.base_ring())
+
+
+    def _is_equiv(self, c1, c2):
+        return c1.is_gamma_h_equiv(c2, self.group())
+
+    def _cusp_index(self, cusp):
+        g = self._known_gens
+        N = self.level()
+        for i in xrange(len(g)):
+            t, eps = self._is_equiv(cusp, g[i])
+            if t:
+                return i, eps
+        return -1, 0
+
+    def _coerce_cusp(self, c):
+        """
+        Coerce symbol into a boundary symbol space.
+        """
+        N    = self.level()
+        k    = self.weight()
+        sign = self.sign()
+        i, eps = self._cusp_index(c)
+        if i != -1:
+            if i in self._is_zero:
+                return self(0)
+            return BoundarySpaceElement(self, {i : eps**k})
+
+        if sign != 0:
+            i2, eps = self._cusp_index(-c)
+            if i2 != -1:
+                if i2 in self._is_zero:
+                    return self(0)
+                return BoundarySpaceElement(self, {i2:sign*(eps**k)})
+
+        # found a new cusp class
+        g = self._known_gens
+        g.append(c)
+        self._known_gens_repr.append("[%s]"%c)
+
+        ################################################################
+        #
+        # The set of boundary modular symbols for Gamma_1(N) is the
+        # free abelian group on the set of pairs [P, [(u,v)]], where
+        # the [(u,v)] are pairs with gcd(u,v) = 1 modulo the relations:
+        #
+        #        [(-u, -v)] = (-1)^k [(u,v)]
+        #        [gamma(u,v)] = [(u,v)]  all gamma in Gamma_H(N).
+        #
+        # When the sign (of the star involution) is nonzero, we have
+        # the additional relations
         #
         #        [(-u,v)] = sign*[(u,v)]
         #

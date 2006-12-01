@@ -27,10 +27,13 @@ EXAMPLES:
 from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
-from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
+from sage.structure.element import Element
+
+import congroup
 
 
-class Cusps_class(SageObject):
+class Cusps_class(ParentWithBase):
     """
     The set of cusps.
 
@@ -40,6 +43,9 @@ class Cusps_class(SageObject):
         sage: loads(C.dumps()) == C
         True
     """
+    def __init__(self):
+        ParentWithBase.__init__(self, self)
+
     def __cmp__(self, right):
         """
         Return equality only if right is the set of cusps.
@@ -50,9 +56,7 @@ class Cusps_class(SageObject):
             sage: Cusps == QQ
             False
         """
-        if isinstance(right, Cusps_class):
-            return 0
-        return -1
+        return cmp(type(self), type(right))
 
     def _repr_(self):
         """
@@ -88,7 +92,7 @@ class Cusps_class(SageObject):
             sage: a = Cusps(-4/5); a
             -4/5
             sage: Cusps(a) is a
-            True
+            False
             sage: Cusps(1.5)
             3/2
             sage: Cusps(oo)
@@ -98,9 +102,7 @@ class Cusps_class(SageObject):
             ...
             TypeError: Unable to coerce 1.00000000000000*I (<class 'sage.rings.complex_number.ComplexNumber'>) to Rational
         """
-        if isinstance(x, Cusp):
-            return x
-        return Cusp(x)
+        return Cusp(x, parent=self)
 
     def _coerce_impl(self, x):
         """
@@ -112,28 +114,35 @@ class Cusps_class(SageObject):
             sage: Cusps._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...
-            TypeError
+            TypeError: no canonical coercion of element into self
             sage: Cusps(GF(7)(3))
             3
         """
         if is_Infinity(x):
-            return Cusp(x)
+            return Cusp(x, parent=self)
         else:
             return self._coerce_try(x, QQ)
 
 Cusps = Cusps_class()
 
 
-class Cusp(SageObject):
+class Cusp(Element):
     """
     A cusp.
 
     A cusp is either a rational number or infinity, i.e., an element
     of the projective line over Q.  A Cusp is stored as a pair (a,b),
     where gcd(a,b)=1 and a,b are of type Integer.
+
+    EXAMPLES:
+        sage: a = Cusp(2/3); b = Cusp(oo)
+        sage: a.parent()
+        Set P^1(QQ) of all cusps
+        sage: a.parent() is b.parent()
+        True
     """
 
-    def __init__(self, a, b=ZZ(1), construct=False):
+    def __init__(self, a, b=ZZ(1), construct=False, parent=None):
         r"""
         Create the cusp a/b in $\PP^1(\Q)$, where if b=0 this is the
         cusp at infinity.
@@ -163,6 +172,10 @@ class Cusp(SageObject):
             sage: loads(a.dumps()) == a
             True
         """
+        if parent is None:
+            parent = Cusps
+        Element.__init__(self, parent)
+
         if construct:
             self.__a = a; self.__b = b
             return
@@ -196,6 +209,11 @@ class Cusp(SageObject):
             self.__a = a.numer()
             self.__b = a.denom()
             return
+
+        elif isinstance(a, (list, tuple)):
+            a, b = a
+            a = ZZ(a)
+            b = ZZ(b)
 
         elif b==1:
 
@@ -359,19 +377,6 @@ class Cusp(SageObject):
             raise TypeError, "cusp %s is not an integer"%self
         return self.__a
 
-    def parent(self):
-        """
-        Return the set of all cusps.
-
-        EXAMPLES:
-            sage: a = Cusp(2/3); b = Cusp(oo)
-            sage: a.parent()
-            Set P^1(QQ) of all cusps
-            sage: a.parent() is b.parent()
-            True
-        """
-        return Cusps
-
     def _repr_(self):
         """
         String representation of this cusp.
@@ -426,7 +431,6 @@ class Cusp(SageObject):
         INPUT:
             other -- Cusp
             N -- an integer (specifies the group Gamma_0(N))
-
             transformation -- bool (default: False), if True, also
                               return upper left entry of a matrix in
                               Gamma_0(N) that sends self to other.
@@ -556,6 +560,37 @@ class Cusp(SageObject):
         elif ((v2 + v1) % N == 0 and (u2 + u1)%g== 0):
             return True, -1
         return False, 0
+
+    def is_gamma_h_equiv(self, other, G):
+        """
+        Return whether self and other are equivalent modulo the action
+        of Gamma_1(N) via linear fractional transformations.
+
+        INPUT:
+            other -- Cusp
+            G -- a congruence subgroup Gamma_H(N)
+
+        OUTPUT:
+            bool -- True if self and other are equivalent
+            int -- -1, 0, 1; extra info
+
+        EXAMPLES:
+            sage: G = GammaH(13,[2])
+            sage: x = Cusp(2,3)
+            sage: y = Cusp(4,5)
+            sage: x.is_gamma_h_equiv(y,G)
+            True
+
+        """
+        if not isinstance(other, Cusp):
+            other = Cusp(other)
+        if not congroup.is_GammaH(G):
+            raise TypeError, "G must be a group GammaH(N)."
+
+        # Coset reduction data
+        c1, t1 = G._reduce_cusp(self)
+        c2, t2 = G._reduce_cusp(other)
+        return c1 == c2, t1*t2
 
     def apply(self, g):
         """

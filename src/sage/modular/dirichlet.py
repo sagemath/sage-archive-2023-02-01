@@ -22,7 +22,15 @@ AUTHORS:
                      that they had the same level!
     -- William Stein (2006-01-07): added more examples
     -- William Stein (2006-05-21): added examples of everything; fix a *lot* of tiny
-                bugs and design problem that became clear when creating examples.
+                     bugs and design problem that became clear when creating examples.
+
+TODO: Optimization needed.  Store a list of the powers of the root of unity.
+      Then exponentiation and arithmetic of actual characters will be a lookup
+      into a table and arithmetic modulo n.  Moreover, storage will be much
+      more efficient, since we'll always be storing pointers to powers of
+      roots of unity, rather than the actual polynomials that the define.
+      Finally, evaluation will be even faster.
+      This would also be a big plus memory-wise for the values() function.
 """
 
 ########################################################################

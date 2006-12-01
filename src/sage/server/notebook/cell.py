@@ -263,6 +263,10 @@ class Cell:
             def format(x):
                 return word_wrap(x.replace('<','&lt;'), ncols=ncols)
 
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -279,9 +283,6 @@ class Cell:
                 t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
-            # if there is an error in the output,
-            # specially format it.
-            s = format_exception(s, ncols)
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
 

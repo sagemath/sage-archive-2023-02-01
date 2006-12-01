@@ -163,9 +163,34 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return sage.rings.integer_mod.mod, (self.lift(), self.modulus())
 
+    def is_nilpotent(self):
+        r"""
+        Return True if self is nilpotent, i.e., some power of self is zero.
 
+        EXAMPLES:
+            sage: a = Integers(90384098234^3)
+            sage: factor(a.order())
+            2^3 * 191^3 * 236607587^3
+            sage: b = a(2*191)
+            sage: b.is_nilpotent()
+            False
+            sage: b = a(2*191*236607587)
+            sage: b.is_nilpotent()
+            True
 
+        ALGORITHM: Let $m \geq  \log_2(n)$, where $n$ is the modulus.
+        Then $x \in \ZZ/n\ZZ$ is nilpotent if and only if $x^m = 0$.
 
+        PROOF: This is clear if you reduce to the prime power case,
+        which you can do via the Chinese Remainder Theorem.
+
+        We could alternatively factor n and check to see if the prime
+        divisors of n all divide x.  This is asymptotically slower :-).
+        """
+        if self.is_zero():
+            return True
+        m = self.__modulus.sageInteger.exact_log(2) + 1
+        return (self**m).is_zero()
 
     #################################################################
     # Interfaces

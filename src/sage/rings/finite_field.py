@@ -32,6 +32,16 @@ We output the base rings of several finite fields.
     <class 'sage.rings.finite_field.FiniteField_ext_pari'>
     sage: k.base_ring()
     Finite Field of size 3
+
+Further examples:
+    sage: GF(2).is_field()
+    True
+    sage: GF(next_prime(10^20)).is_field()
+    True
+    sage: GF(19^20,'a').is_field()
+    True
+    sage: GF(8,'a').is_field()
+    True
 """
 
 ####################################################################################

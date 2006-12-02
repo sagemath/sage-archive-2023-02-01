@@ -353,8 +353,9 @@ JSMATH=False
 
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
-                password=None, color='default', system=None,
-                show_debug = False, log_server=False):
+                 password=None, color='default', system=None,
+                 show_debug = False, log_server=False,
+                 kill_idle=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color

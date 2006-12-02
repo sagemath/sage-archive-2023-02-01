@@ -1,13 +1,16 @@
 """
-NOTE -- the architecture that people seem to have taken to
-make 3d graphics work in matplotlib is worrisome, since  they
-ignore that object inheritance is an "is-a" relationship.
-This is asking for trouble.
-
-Axes ticks are now broken -- it worked with matplotlib-0.87.2, but
-is broken with 0.87.3.   I've set things so now they just aren't
-drawn.
+Very rudimentary 3d plotting
 """
+
+## NOTE -- the architecture that people seem to have taken to
+## make 3d graphics work in matplotlib is worrisome, since  they
+## ignore that object inheritance is an "is-a" relationship.
+## This is asking for trouble.
+
+## Axes ticks are now broken -- it worked with matplotlib-0.87.2, but
+## is broken with 0.87.3.   I've set things so now they just aren't
+## drawn.
+
 
 import os
 
@@ -543,6 +546,18 @@ class Graphic3dPrimitiveFactory_from_point_list(Graphic3dPrimitiveFactory):
         return self._from_xdata_ydata_zdata(xdata, ydata, zdata, True, options=options)
 
 class Point3dFactory(Graphic3dPrimitiveFactory_from_point_list):
+    """
+    Create a point in 3 dimensional space.
+
+    EXAMPLES:
+    We create a colored spiral.
+        sage: G = point3d((0,0,0))
+        sage: k = 50
+        sage: for i in srange(0,k,0.1):
+        ...    G += point3d((i,sin(i),cos(i)), rgbcolor=(i/k,1-i/k,0))
+        ...
+        sage: G.save('sage.png')
+    """
     def _reset(self):
         self.options = {'alpha':1, 'pointsize':10,'faceted':False,'rgbcolor':(0,0,0)}
 
@@ -558,7 +573,6 @@ class Point3dFactory(Graphic3dPrimitiveFactory_from_point_list):
 
 # unique point instance
 point3d = Point3dFactory()
-
 
 class Line3dFactory(Graphic3dPrimitiveFactory_from_point_list):
     r"""

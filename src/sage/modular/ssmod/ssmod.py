@@ -112,7 +112,7 @@ def supersingular_j(FF):
     else:
         D = supersingular_D(prime)
         DBCP = HilbertClassPolynomialDatabase()
-        hc_poly = rings.PolynomialRing(FF)(DBCP[D])
+        hc_poly = rings.PolynomialRing(FF, 'x')(DBCP[D])
         root_hc_poly_list = list(hc_poly.roots())
         j_invss = root_hc_poly_list[0][0]
     return FF(j_invss)
@@ -122,7 +122,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         if WARN:
             print "Supersingular Module -- work in progress; use at own risk. (2006-08-08)"
         self.__prime = prime
-        self.__finite_field = rings.FiniteField(prime**2)
+        self.__finite_field = rings.FiniteField(prime**2,'a')
         self.__level = level
         self.__hecke_matrices = {}
         hecke.HeckeModule_free_module.__init__(
@@ -163,7 +163,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         Fp2 = self.__finite_field
         level = self.__level
         prime = Fp2.characteristic()
-        X = rings.PolynomialRing(Fp2).gen()
+        X = rings.PolynomialRing(Fp2, 'x').gen()
         jinv = supersingular_j(Fp2)
 
         dim = dimension_supersingular_module(prime, level)
@@ -214,7 +214,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         h = len(SS)
         R = self.base_ring()
         T_L = MatrixSpace(R,h,sparse=True)(0)
-        S, X = rings.PolynomialRing(Fp2).objgen()
+        S, X = rings.PolynomialRing(Fp2, 'x').objgen()
         for i in range(len(SS)):
             x_i = SS[i]
             phi_L_in_y = phi_L(S(x_i),X)

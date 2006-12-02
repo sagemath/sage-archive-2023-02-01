@@ -111,7 +111,7 @@ class Cell:
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n///\n'
+            s += self.__in.strip()
 
         if prompts:
             msg = 'Traceback (most recent call last):'
@@ -126,15 +126,9 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).split('\n')
-            if len(out) > 0:
-                if wiki_out:
-                  out = '///\n' + '\n'.join(out)
-                else:
-                  out = '#out: ' + '\n'.join(out)
-            else:
-                out = ''
             out = self.output_text(ncols, html=False)
+            if wiki_out and len(out) > 0:
+                out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
@@ -148,10 +142,8 @@ class Cell:
             s = s.rstrip('\n')
         return s
 
-    def wiki_text(self, ncols=0, prompts=False, max_out=None):
+    def edit_text(self, ncols=0, prompts=False, max_out=None):
         s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
-        #return '{{{#!sage[%s]\n'%self.id() + s + '\n}}}'
-        #return '{{{[%s]\n'%self.id() + s + '\n}}}'
         return '{{{\n%s\n}}}'%s
 
     def is_last(self):
@@ -263,10 +255,10 @@ class Cell:
     def output_text(self, ncols=0, html=True):
         s = self.__out
 
-        def format(x):
-            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
-
         if html:
+            def format(x):
+                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -283,8 +275,13 @@ class Cell:
                 t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+
+
         return s.strip('\n')
 
     def has_output(self):
@@ -430,10 +427,9 @@ class Cell:
             return ''
         images = []
         files  = []
-        ## The c and question mark hack here is so that images will be reloaded when
-        ## the async request requests the output text for a computation.
-        ## This is a total hack, inspired by http://www.irt.org/script/416.htm/.
-        # Global c replaced by cell version number -- TB
+        # The question mark trick here is so that images will be reloaded when
+        # the async request requests the output text for a computation.
+        # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
@@ -489,4 +485,24 @@ class Cell:
                    self.__id, self.__id, r, s)
 
         return tbl
+
+
+
+########
+
+def format_exception(s, ncols):
+    m = 'Traceback (most recent call last):'
+    s = s.lstrip()
+    if s[:len(m)] != m:
+        return s
+    if ncols > 0:
+        s = s.strip()
+        s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
+        w = s.split('\n')
+        s = w[0] + '\n...\n' + w[-1]
+    else:
+        s = s.replace("exec compile(ur'","")
+        s = s.replace("' + '\\n', '', 'single')", "")
+    t = '<html><font color="#990099">' + s + '</font></html>'
+    return t
 

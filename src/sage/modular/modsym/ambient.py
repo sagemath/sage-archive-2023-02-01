@@ -645,7 +645,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             S._is_full_hecke_module = True
             if self.base_ring().characteristic() == 0:
                 d = self._cuspidal_submodule_dimension_formula()
-                assert d == S.dimension(), "According to dimension formulas the cuspidal subspace of \"%s\" has dimension %s; however, computing it using modular symbols we obtained %s, so there is a bug (please report!)."%(self, d, S.dimension())
+                if not d is None:
+                    assert d == S.dimension(), "According to dimension formulas the cuspidal subspace of \"%s\" has dimension %s; however, computing it using modular symbols we obtained %s, so there is a bug (please report!)."%(self, d, S.dimension())
             self.__cuspidal_submodule = S
         return self.__cuspidal_submodule
 

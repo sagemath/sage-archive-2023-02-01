@@ -130,8 +130,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
     """
     def __init__(self, n, R, names):
         ambient_space.AmbientSpace.__init__(self, n, R)
-        self.__names = names
-        #self._assign_names(names)
+        self._assign_names(names)
 
     def __iter__(self):
         """

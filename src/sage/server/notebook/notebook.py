@@ -354,7 +354,7 @@ JSMATH=False
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook',
                  username=None, password=None,
-                 color='default', system=None, show_debug = False, nosplash = False,
+                 color='default', system=None, show_debug = False, splashpage = False, log_server = False,
                  kill_idle=0):
         self.__dir = dir
         self.set_system(system)
@@ -369,11 +369,14 @@ class Notebook(SageObject):
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
+        self.__history_count = 0
+        self.__log_server = log_server #log all POST's and GET's
+        self.__server_log = [] #server log list
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.__kill_idle = kill_idle
-        self.__nosplash = nosplash if nosplash is not None else False
+        self.__splashpage = splashpage if splashpage is not None else False
         self.save()
 
     def kill_idle(self):
@@ -404,15 +407,15 @@ class Notebook(SageObject):
         elif system:  # don't change if it is None
             self.__system = system
 
-    def nosplash(self):
+    def splashpage(self):
         try:
-            return self.__nosplash
+            return self.__splashpage
         except AttributeError:
-            self.__nosplash = False
-            return self.__nosplash
+            self.__splashpage = True
+            return self.__splashpage
 
-    def set_nosplash(self, nosplash):
-        self.__nosplash = nosplash
+    def set_splashpage(self, splashpage):
+        self.__splashpage = splashpage
 
     def color(self):
         try:
@@ -439,6 +442,21 @@ class Notebook(SageObject):
         H.append(input_text)
         while len(H) > self.max_history_length():
             del H[0]
+
+    def history_count_inc(self):
+        self.__history_count += 1
+
+    def history_count(self):
+        return self.__history_count
+
+    def server_log(self):
+        return self.__server_log
+
+    def log_server(self):
+        return self.__log_server
+
+    def set_log_server(self, log_server):
+        self.__log_server = log_server
 
     def history(self):
         try:
@@ -624,6 +642,10 @@ class Notebook(SageObject):
         return W
 
     def delete_worksheet(self, name):
+        """
+        Delete the given worksheet and remove its
+        name from the worksheet list.
+        """
         if not (name in self.__worksheets.keys()):
             raise KeyError, "Attempt to delete missing worksheet"
         W = self.__worksheets[name]
@@ -652,9 +674,9 @@ class Notebook(SageObject):
 
         INPUT:
             id -- something that identifies a worksheet.
+                 string -- use worksheet with that name or filename.
                  None -- use the default worksheet.
                  string int -- something that coerces to an integer; worksheet with that number
-                 string -- use worksheet with that name or filename.
 
         OUTPUT:
             a worksheet.
@@ -769,9 +791,13 @@ class Notebook(SageObject):
         return '<br>'.join(s)
 
     def _html_head(self, worksheet_id):
-        worksheet = self.get_worksheet_with_id(worksheet_id)
-        head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
-        head += '<style>' + css.css(self.color()) + '</style>\n'
+        if worksheet_id is not None:
+            worksheet = self.get_worksheet_with_id(worksheet_id)
+            head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
+        else:
+            head = '\n<title>SAGE Notebook | Welcome</title>'
+        head += '\n<script language=javascript src="/__main__.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
 
         if JSMATH:
             head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
@@ -779,12 +805,12 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-        head += '<script language=javascript>' + js.javascript() + '</script>\n'
+        #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
 
     def _html_body(self, worksheet_id, show_debug=False, worksheet_authorized=False):
-        if worksheet_id is None:
+        if worksheet_id is None or worksheet_id == '':
             main_body = '<div class="worksheet_title">Welcome to the SAGE Notebook</div>\n'
             if os.path.isfile(self.directory() + "/index.html"):
                 splash_file = open(self.directory() + "/index.html")
@@ -834,7 +860,6 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
         body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
@@ -867,7 +892,6 @@ class Notebook(SageObject):
             body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
             body += "</div>"
 
-        body += worksheet.html(authorized = worksheet_authorized) + '\n</div>\n'
         body += main_body + '\n</div>\n'
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
@@ -890,13 +914,21 @@ class Notebook(SageObject):
         if worksheet is None:
             return body + endpanespan
 
-        body += '  <div class="objects_topbar">Saved Objects</div>\n'
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
+        body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
+        body += '     Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
-        body += '<br>\n'
-        body += '  <div class="variables_topbar">Variables</div>\n'
-        body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
+        body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
+        body += '     Variables</div>\n'
+        body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
                 worksheet.variables_html()
-        body += '  <div class="attached_topbar">Attached Files</div>\n'
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
+        body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
+        body += '     Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
         body += endpanespan
@@ -927,9 +959,10 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
+        body_html += "<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save -- preserving images not yet implemented.  No markup not in {{{}}}'s is preserved.<br><br>"
+        body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
-        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
         body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
         body_html += '</form>'
@@ -1140,10 +1173,18 @@ class Notebook(SageObject):
          """%(css.css(self.color()),js.javascript())
 
     def html(self, worksheet_id=None, authorized=False, show_debug=False, worksheet_authorized=False):
-        if worksheet_id is not None or self.nosplash():
+        print "html>%s<"%worksheet_id
+        if worksheet_id is None or worksheet_id == '':
+            if not self.splashpage():
+                W = self.default_worksheet()
+                worksheet_id = W.id()
+            else:
+                worksheet_id = None
+                W = None
+        else:
             try:
                 W = self.get_worksheet_with_id(worksheet_id)
-            except KeyError:
+            except KeyError, msg:
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
@@ -1157,13 +1198,12 @@ class Notebook(SageObject):
             body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
-        h = """
+        return """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
         """%(head, body)
-        return h
 
     def _html_authorize(self):
         return """
@@ -1232,9 +1272,10 @@ def notebook(dir         ='sage_notebook',
              system      = None,
              jsmath      = True,
              show_debug  = False,
-             nosplash    = None,
+             splashpage  = None,
              warn        = True,
              ignore_lock = False,
+             log_server = False,
              kill_idle   = 0):
     r"""
     Start a SAGE notebook web server at the given port.
@@ -1265,9 +1306,9 @@ def notebook(dir         ='sage_notebook',
         kill_idle -- if positive, kill any idle compute processes after
                      this many auto saves.  (NOT IMPLEMENTED)
 
-        nosplash -- whether or not to show a splash page when no worksheet is specified.
-                    you can place a file named index.html into the notebook directory that
-                    will be shown in place of the default.
+        splashpage -- whether or not to show a splash page when no worksheet is specified.
+                      you can place a file named index.html into the notebook directory that
+                      will be shown in place of the default.
 
     NOTES:
 
@@ -1354,16 +1395,16 @@ def notebook(dir         ='sage_notebook',
             nb.set_color(color)
         if not system is None:
             nb.set_system(system)
-        if not nosplash is None:
-            nb.set_nosplash(nosplash)
+        if not splashpage is None:
+            nb.set_splashpage(splashpage)
         nb.set_not_computing()
     else:
         nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system, kill_idle=kill_idle,nosplash=nosplash)
+                      system=system, kill_idle=kill_idle,splashpage=splashpage)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)
-
+    nb.set_log_server(log_server)
     if warn and address!='localhost' and username==None:
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"

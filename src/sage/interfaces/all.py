@@ -19,6 +19,7 @@ from mathematica import mathematica, mathematica_console, Mathematica
 from matlab import matlab, matlab_console, matlab_version, Matlab
 from mwrank import mwrank, Mwrank, mwrank_console
 from octave import octave, octave_console, octave_version, Octave
+from qsieve import qsieve
 from singular import singular, singular_console, singular_version, is_SingularElement, Singular
 from sage0 import sage0 as sage0, sage0_console, sage0_version, Sage
 from tachyon import tachyon_rt

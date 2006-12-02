@@ -472,7 +472,10 @@ cdef class FiniteField_givaro(FiniteField):
         elif PyObject_TypeCheck(e, type_object(int)) or \
              PyObject_TypeCheck(e, type_object(Integer)) or \
              PyObject_TypeCheck(e, type_object(long)) or is_IntegerMod(e):
-            res = self.objectptr.initi(res,int(e))
+            try:
+                res = self.objectptr.initi(res,int(e))
+            except OverflowError:
+                res = self.objectptr.initi(res,int(e)%int(self.objectptr.characteristic()))
 
         elif PyObject_TypeCheck(e, type_object(float)):
             res = self.objectptr.initd(res,e)

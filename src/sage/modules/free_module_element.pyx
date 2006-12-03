@@ -68,27 +68,109 @@ cimport sage.structure.coerce
 cdef sage.structure.coerce.Coerce coerce
 coerce = sage.structure.coerce.Coerce()
 
+from sage.structure.sequence import Sequence
+
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
 from sage.matrix.matrix cimport Matrix
+
+import sage.rings.arith
+
+from sage.rings.ring import is_Ring
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def Vector(R, elts):
-    """
+def vector(arg0, arg1=None):
+    r"""
     Return a vector over R with given entries.
 
+    CALL FORMATS:
+        1. vector(object)
+        2. vector(ring, object)
+        3. vector(object, ring)
+
     INPUT:
-        R -- ring
         elts -- entries of a vector
+        R -- ring
     OUTPUT:
         An element of the free module over R of rank len(elts).
 
     EXAMPLES:
-        sage: v = Vector(Rationals(), [1,1]); v
-        (1, 1)
+        sage: v = vector([1,2,3]); v
+        (1, 2, 3)
+        sage: v.parent()
+        Ambient free module of rank 3 over the principal ideal domain Integer Ring
+        sage: v = vector([1,2,3/5]); v
+        (1, 2, 3/5)
+        sage: v.parent()
+        Vector space of dimension 3 over Rational Field
+
+    All entries must \emph{canonically} coerce to some common ring:
+        sage: v = vector([17, GF(11)(5), 19/3]); v
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find a common ring for all elements
+
+        sage: v = vector([17, GF(11)(5), 19]); v
+        (6, 5, 8)
+        sage: v.parent()
+        Vector space of dimension 3 over Finite Field of size 11
+        sage: v = vector([17, GF(11)(5), 19], QQ); v
+        (17, 5, 19)
+        sage: v.parent()
+        Vector space of dimension 3 over Rational Field
+        sage: v = vector((1,2,3), QQ); v
+        (1, 2, 3)
+        sage: v.parent()
+        Vector space of dimension 3 over Rational Field
+        sage: v = vector(QQ, (1,2,3)); v
+        (1, 2, 3)
+        sage: v.parent()
+        Vector space of dimension 3 over Rational Field
+        sage: v = vector(vector([1,2,3])); v
+        (1, 2, 3)
+        sage: v.parent()
+        Ambient free module of rank 3 over the principal ideal domain Integer Ring
+
+    You can also use \code{free_module_element}, which is the same as \code{vector}.
+        sage: free_module_element([1/3, -4/5])
+        (1/3, -4/5)
     """
-    return (R**len(elts))(elts)
+    if is_Ring(arg0):
+        R = arg0
+        v = arg1
+    elif is_Ring(arg1):
+        R = arg1
+        v = arg0
+    else:
+        v = arg0
+        R = None
+    if isinstance(v, dict):
+        v, R = prepare_dict(v, R)
+    else:
+        v, R = prepare(v, R)
+    return (R**len(v))(v)
+
+free_module_element = vector
+
+def prepare(v, R):
+    v = Sequence(v, universe=R)
+    ring = v.universe()
+    if not is_Ring(ring):
+        raise TypeError, "unable to find a common ring for all elements"
+    return v, ring
+
+def prepare_dict(w, R):
+    Z = w.items()
+    cdef Py_ssize_t n
+    n = len(Z)
+    X = [None]*n
+    cdef Py_ssize_t i
+    i = 0
+    for _, x in Z:
+        X[i] = x
+        i = i + 1
+    return prepare(X, R)
 
 cdef class FreeModuleElement(element_Vector):   # abstract base class
     """
@@ -101,11 +183,40 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def _vector_(self, R):
         return self.change_ring(R)
 
+    def _hash(self):
+        return hash(tuple(list(self)))
+
     def change_ring(self, R):
         P = self.parent()
         if P.base_ring() is R:
             return self
         return P.change_ring(R)(self)
+
+    def additive_order(self):
+        """
+        Return the additive order of self.
+
+        EXAMPLES:
+            sage: v = vector(Integers(4), [1,2])
+            sage: v.additive_order()
+            4
+
+            sage: v = vector([1,2,3])
+            sage: v.additive_order()
+            Infinity
+
+            sage: v = vector(Integers(30), [6, 15]); v
+            (6, 15)
+            sage: v.additive_order()
+            10
+            sage: 10*v
+            (0, 0)
+        """
+        v = [None]*self.degree()
+        cdef int i
+        for i from 0 <= i < self.degree():
+            v[i] = self[i].additive_order()
+        return sage.rings.arith.LCM(v)
 
     def iteritems(self):
         return self.dict(copy=False).iteritems()
@@ -350,11 +461,6 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         return self[i]
 
-    def additive_order(self):
-        import sage.rings.arith as arith
-        return eval('arith.lcm([self[i].order() for i in range(self.degree())])',
-                    {'self':self})
-
     def set(self, i, x):
         """
         set is meant to be more efficient
@@ -457,6 +563,9 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x._entries = v
         x._degree = self._degree
         return x
+
+    def _hash(self):
+        return hash(tuple(list(self)))
 
     def __copy__(self):
         return self._new_c(list(self._entries))

@@ -30,7 +30,7 @@ from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 from cell import Cell
 
-INTERRUPT_TRIES = 30
+INTERRUPT_TRIES = 50
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90

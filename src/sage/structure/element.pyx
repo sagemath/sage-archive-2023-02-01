@@ -677,7 +677,7 @@ cdef class ModuleElement(Element):
     ##################################################
     # Other properties
     ##################################################
-    def order(self):
+    def order(self):              ### DO NOT OVERRIDE THIS!!! Instead, override additive_order.
         """
         Return the additive order of self.
         """

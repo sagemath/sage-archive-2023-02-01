@@ -416,11 +416,22 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         return self.__crt(other)
 
 
-    def order(self):
-        """
+    def additive_order(self):
+        r"""
         Returns the additive order of self.
+
+        This is the same as \code{self.order()}.
+
+        EXAMPLES:
+            sage: Integers(20)(2).additive_order()
+            10
+            sage: Integers(20)(7).additive_order()
+            20
+            sage: Integers(90308402384902)(2).additive_order()
+            45154201192451
         """
-        return sage.rings.integer.Integer(self.__modulus.sageInteger.__FLOORDIV__(self.lift().gcd(n)))
+        n = self.__modulus.sageInteger
+        return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
 
     def multiplicative_order(self):
         """

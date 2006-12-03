@@ -49,6 +49,8 @@ import weakref
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.rings.all as rings
+import sage.modules.free_module
+import sage.modules.free_module_element
 import sage.structure.parent_gens as parent_gens
 import sage.rings.number_field.number_field as number_field
 from   sage.structure.element import MultiplicativeGroupElement
@@ -113,15 +115,17 @@ class DirichletCharacter(MultiplicativeGroupElement):
     """
     A Dirichlet character
     """
-    def __init__(self, parent, values_on_gens):
+    def __init__(self, parent, x, check=True):
         r"""
         Create with \code{DirichletCharacter(parent, values_on_gens)}
 
         INPUT:
             parent -- DirichletGroup, a group of Dirichlet characters
-            values_on_gens -- tuple (or list) of ring elements, the values of the
-                              Dirichlet character on the chosen generators
-                              of $(\Z/N\Z)^*$.
+            x      -- tuple (or list) of ring elements, the values of the
+                        Dirichlet character on the chosen generators
+                        of $(\Z/N\Z)^*$.
+                   -- or -- Vector over Z/eZ, where e is the order of the
+                            root of unity.
         OUTPUT:
             DirichletCharacter -- a Dirichlet character
 
@@ -143,13 +147,23 @@ class DirichletCharacter(MultiplicativeGroupElement):
             True
         """
         MultiplicativeGroupElement.__init__(self, parent)
-        if len(values_on_gens) != len(parent.unit_gens()):
-            raise ValueError, \
-                  "wrong number of values(=%s) on unit gens (want %s)"%( \
-                   values_on_gens,len(parent.unit_gens()))
-        R = parent.base_ring()
-        self.__values_on_gens = tuple([R(x) for x in values_on_gens])
         self.__modulus = parent.modulus()
+        if check:
+            if len(x) != len(parent.unit_gens()):
+                raise ValueError, \
+                      "wrong number of values(=%s) on unit gens (want %s)"%( \
+                       x,len(parent.unit_gens()))
+            if sage.modules.free_module_element.is_FreeModuleElement(x):
+                self.__element = parent._module(x)
+            else:
+                R = parent.base_ring()
+                self.__values_on_gens = tuple([R(z) for z in x])
+        else:
+            if sage.modules.free_module_element.is_FreeModuleElement(x):
+                self.__element = x
+            else:
+                self.__values_on_gens = x
+
 
     def __eval_at_minus_one(self):
         r"""
@@ -172,7 +186,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             val = self.base_ring()(1)
             for e in D:
                 if e.modulus() % 2 == 0:
-                    val *= e.__values_on_gens[0]
+                    val *= e.values_on_gens()[0]
                 elif (arith.euler_phi(e.parent().modulus()) / e.order()) % 2 != 0:
                     val *= -1
             self.__value_at_minus_one = val
@@ -181,6 +195,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
     def __call__(self, m):
         """
         Return the value of this character at the integer $m$.
+
+        WARNING: A table of values of the character is made the first
+        time you call this.  This table is currently constructed in
+        a somewhat stupid way, though it is still pretty fast.
 
         EXAMPLES:
             sage: G = DirichletGroup(60)
@@ -248,23 +266,17 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: k == e
             False
         """
-        # E.g., the trivial character of modulus
-        # 8 is *not* equal to the trivial character of modulus 16,
-        # since they are completely different functions.
-        c = cmp(self.modulus(), other.modulus())
-        if c:
-            return c
-        return cmp(self.__values_on_gens, other.__values_on_gens)
+        return cmp(self.element(), other.element())
 
     def __hash__(self):
         """
         EXAMPLES:
             sage: e = DirichletGroup(16)([-1, 1])
             sage: hash(e)
-            -222315585                  # 32-bit
+            1498523633                  # 32-bit
             -8530276723386762305        # 64-bit
         """
-        return hash(self.__values_on_gens)
+        return self.element()._hash()
 
     def __invert__(self):
         """
@@ -276,10 +288,28 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: f*e
             [1]
         """
-        values_on_gens = [1/x for x in self.__values_on_gens]
-        return DirichletCharacter(self.parent(), values_on_gens)
+        return DirichletCharacter(self.parent(), -self.element(), check=False)
 
     def _mul_(self,  other):
+        """
+        Return the product of self and other.
+
+        EXAMPLES:
+            sage: G.<a,b> = DirichletGroup(20)
+            sage: a
+            [-1, 1]
+            sage: b
+            [1, zeta4]
+            sage: a*b
+            [-1, zeta4]
+        """
+        x = self.element() + other.element()
+        return DirichletCharacter(self.parent(), x, check=False)
+    #values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
+    #for i in range(len(self.__values_on_gens))]
+    #    return DirichletCharacter(self.parent(), values_on_gens)
+
+    def x_mul_(self,  other):
         """
         Return the product of self and other.
 
@@ -295,12 +325,21 @@ class DirichletCharacter(MultiplicativeGroupElement):
         values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
                           for i in range(len(self.__values_on_gens))]
         return DirichletCharacter(self.parent(), values_on_gens)
+##         P = self.parent()
+##         dlog = P._zeta_dlog
+##         pows = P._zeta_powers
+##         n = len(pows)
+##         values_on_gens = [None]*len(self.__values_on_gens)
+##         for i in range(len(self.__values_on_gens)):
+##             k = (dlog[self.__values_on_gens[i]] + dlog[other.__values_on_gens[i]]) % n
+##             values_on_gens[i] = pows[k]
+##         return DirichletCharacter(self.parent(), values_on_gens)
 
     def __copy__(self):
         """
         Return a copy of this Dirichlet character.
         """
-        return DirichletCharacter(self.parent(), self.__values_on_gens)
+        return DirichletCharacter(self.parent(), self.element(), check=False)
 
     def __pow__(self, n):
         """
@@ -313,11 +352,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: b^2
             [1, -1]
         """
-        vals = [z**n for z in self.__values_on_gens]
-        return DirichletCharacter(self.parent(), vals)
+        return DirichletCharacter(self.parent(), n * self.element(), check=False)
 
     def _repr_(self):
-        return str(list(self.__values_on_gens))
+        return str(list(self.values_on_gens()))
 
     def base_ring(self):
         """
@@ -439,7 +477,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         # Since p-1 is coprime to p, this smallest r such that the
         # divisibility holds equals Valuation(Order(x),p)+1.
         self.__conductor = p**(arith.valuation(self.order(),p) + 1)
-        if p == 2 and F[0][1] > 2 and self.__values_on_gens[1].multiplicative_order() != 1:
+        if p == 2 and F[0][1] > 2 and self.values_on_gens()[1].multiplicative_order() != 1:
             self.__conductor *= 2;
         return self.__conductor
 
@@ -476,7 +514,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         except AttributeError:
             pass
         D = self.parent().decomposition()
-        vals = [[z] for z in self.__values_on_gens]
+        vals = [[z] for z in self.values_on_gens()]
         R = self.base_ring()
         if self.modulus()%8 == 0:   # 2 factors at 2.
             vals[0].append(vals[1][0])
@@ -504,13 +542,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
-    def galois_orbit(self):
+    def galois_orbit(self, sort=True):
         r"""
         Return the orbit of this character under the action
         of the absolute Galois group of the prime subfield
         of the base ring.
 
         EXAMPLES:
+            sage: G = DirichletGroup(30); e = G.2
+            sage: e.galois_orbit()
+            [[1, 1, zeta4], [1, 1, -zeta4]]
+
+        Another example:
             sage: G = DirichletGroup(13)
             sage: G.galois_orbits()
             [
@@ -531,13 +574,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e.galois_orbit()
             [[zeta12^2], [-zeta12^2 + 1]]
         """
-        K = self.parent().base_ring()
-        if K.characteristic() != 0:
-            raise NotImplementedError, "galois_orobit not implemented in characteristic p"
-        n = self.order()
-        if n <= 2:
+        k = self.order()
+        if k <= 2:
             return [self]
-        return [self**m for m in range(1,n) if arith.gcd(m,n) == 1]
+        P = self.parent()
+        z = self.element()
+        o = int(z.additive_order())
+        Auts = set([m % o for m in P._automorphisms()])
+        v = [DirichletCharacter(P, m * z, check=False) for m in Auts]
+        if sort:
+            v.sort()
+        return v
+
 
     def gauss_sum(self, a=1):
         r"""
@@ -748,11 +796,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             pass
         self.__is_trivial = True
         R = self.base_ring()
-        for x in self.__values_on_gens:
-            if x != R(1):
-                self.__is_trivial = False
-                return False
-        return self.__is_trivial
+        z = self.element() == 0
+        self.__is_trivial = z
+        return z
 
     def maximize_base_ring(self):
         r"""
@@ -864,9 +910,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             return self.__order
         except AttributeError:
             pass
-        self.__order = int(arith.LCM([x.multiplicative_order() \
-                                      for x in self.__values_on_gens]))
-        return self.__order
+        o = self.element().additive_order()
+        self.__order = o
+        return o
 
     def primitive_character(self):
         """
@@ -959,7 +1005,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         stop = list(last)
         stop[len(stop)-1] += 1
         value = R(1)
-        val_on_gen = self.__values_on_gens
+        val_on_gen = self.values_on_gens()
         only_int_vals = True
         tmp = []
         for z in val_on_gen:
@@ -975,6 +1021,11 @@ class DirichletCharacter(MultiplicativeGroupElement):
             val_on_gen = tmp
             value = 1
         while exponents != stop:
+            ########################
+            # TODO TODO -- rewrite this to use
+            #              the underlying element and table of powers of zeta
+            #              instead of doing arithmetic in cyclotomic field.
+            ########################
             # record character value on n
             x[int(n)] = value
             # iterate:
@@ -1003,14 +1054,40 @@ class DirichletCharacter(MultiplicativeGroupElement):
     def values_on_gens(self):
         """
         Returns a tuple of the values of this character on each of the
-        minimal generators of $(\Z/N\Z)^*$, where $N$ is the modulus.
+        minimal generators of $(\ZZ/N\ZZ)^*$, where $N$ is the modulus.
 
         EXAMPLES:
             sage: e = DirichletGroup(16)([-1, 1])
             sage: e.values_on_gens ()
             (-1, 1)
         """
-        return self.__values_on_gens
+        try:
+            return self.__values_on_gens
+        except AttributeError:
+            pows = self.parent()._zeta_powers
+            v = tuple([pows[i] for i in self.element()])
+            self.__values_on_gens = v
+            return v
+
+    def element(self):
+        r"""
+        Return the underlyilng $\ZZ/n\ZZ$-module vector
+        of exponents.
+
+        WARNING/TODO: Please do not change the entries of the returned
+        vector; this vector is mutable *only* because immutable
+        vectors are implemented yet.
+        """
+        try:
+            return self.__element
+        except AttributeError:
+            P    = self.parent()
+            M    = P._module
+            dlog = P._zeta_dlog
+            v = M([dlog[x] for x in self.values_on_gens()])
+            self.__element = v
+            return v
+
 
 _cache = {}
 def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=None):
@@ -1103,7 +1180,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
         e = rings.IntegerModRing(modulus).unit_group_exponent()
         try:
             zeta = base_ring.zeta(e)
-        except ValueError:
+        except (TypeError, ValueError):
             zeta = base_ring.zeta()
         zeta_order = zeta.multiplicative_order()
 
@@ -1142,6 +1219,17 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         self._zeta_order = zeta_order
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
+        a = zeta.parent()(1)
+        v = {a:0}
+        w = [a]
+        for i in range(1, zeta_order):
+            a = a * zeta
+            v[a] = i
+            w.append(a)
+        self._zeta_powers = w  # gives quickly the ith power of zeta
+        self._zeta_dlog = v    # dictionary that computes log_{zeta}(power of zeta).
+        self._module = sage.modules.free_module.FreeModule(rings.IntegerModRing(zeta_order),
+                                                           len(self._integers.unit_gens()))
 
     def change_ring(self, R, zeta=None, zeta_order=None):
         """
@@ -1330,10 +1418,40 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         """
         return self._zeta_order
 
-    def galois_orbits(self):
+    def _automorphisms(self):
+        try:
+            return self.__automorphisms
+        except AttributeError:
+            pass
+        n = self.zeta_order()
+        R = self.base_ring()
+        p = R.characteristic()
+        if p == 0:
+            Auts = [e for e in xrange(1,n) if arith.GCD(e,n) == 1]
+        else:
+            # The automorphisms in characteristic p are
+            # k-th powering for
+            #         k = 1, p, p^2, ..., p^(r-1),
+            # where p^r = 1 (mod n), so r is the mult order of p modulo n.
+            r = rings.IntegerModRing(n)(p).multiplicative_order()
+            Auts = [p**m for m in xrange(0,r)]
+        self.__automorphisms = Auts
+        return Auts
+
+    def galois_orbits(self, v=None, reps_only=False, sort=True, check=True):
         """
         Return a list of the Galois orbits of Dirichlet characters
-        in self.
+        in self, or in v if v is not None.
+
+        INPUT:
+             v -- (optional) list of elements of self
+             reps_only -- (optional: default False) if True only returns
+                          representatives for the orbits.
+             sort -- (optional: default True) whether to sort the list of orbits
+                     and the orbits themselves (slightly faster if False).
+             check -- (optional, default: True) whether or not to
+                  explicitly coerce each element of v into self.
+
 
         The Galois group is the absolute Galois group of the prime
         subfield of Frac(R).
@@ -1342,45 +1460,40 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
             sage: DirichletGroup(20).galois_orbits()
             [
             [[1, 1]],
-            [[-1, 1]],
             [[1, zeta4], [1, -zeta4]],
-            [[-1, zeta4], [-1, -zeta4]],
             [[1, -1]],
+            [[-1, 1]],
+            [[-1, zeta4], [-1, -zeta4]],
             [[-1, -1]]
             ]
         """
-        try:
-            return self._galois_orbits
-        except AttributeError:
-            pass
-        L = list(self)
+        if v is None:
+            v = self.list()
+        else:
+            if check:
+                v = [self(x) for x in v]
+
         G = []
         n = self.zeta_order()
         R = self.base_ring()
         p = R.characteristic()
-        if p == 0:
-            Auts = [e for e in xrange(2,n) if arith.GCD(e,n) == 1]
-        else:
-            # The nontrivial automorphisms in characteristic p are
-            # k-th powering for
-            #         k = p, p^2, ..., p^(r-1),
-            # where p^r = 1 (mod n), so r is the mult order of p modulo n.
-            r = rings.IntegerModRing(n)(p).multiplicative_order()
-            Auts = [p**m for m in xrange(1,r)]
-        while len(L) > 0:
-            eps = L[0]
-            orbit = [eps]
-            del L[0]
-            for s in Auts:
-                chi = eps**s
-                try:
-                    L.remove(chi)
-                    orbit.append(chi)
-                except ValueError:
-                    pass
-            G.append(orbit)
-        self._galois_orbits = Sequence(G, cr=True)
-        return self._galois_orbits
+        seen_so_far = set([])
+        for x in v:
+            z = x.element()
+            e = tuple(z)   # change when there are immutable vectors (and below)
+            if e in seen_so_far:
+                continue
+            orbit = x.galois_orbit(sort=sort)
+            if reps_only:
+                G.append(x)
+            else:
+                G.append(orbit)
+            for z in orbit:
+                seen_so_far.add(tuple(z.element()))
+        G = Sequence(G, cr=True)
+        if sort:
+            G.sort()
+        return G
 
     def gen(self, n=0):
         """
@@ -1425,10 +1538,15 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         one = [R(1) for i in range(len(ug))]
         zeta = self.zeta()
         ord = self.zeta_order()
+        M = self._module
+        zero = M(0)
         for i in range(len(ug)):
-            vals = list(one)
-            vals[i] = zeta**(ord//arith.GCD(ord,ug[i].multiplicative_order()))
-            self._gens.append(self(vals))
+            z = zero.__copy__()
+            z[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
+            #vals = list(one)
+            #vals[i] = zeta**(ord//arith.GCD(ord,ug[i].multiplicative_order()))
+            #vals[i] = ord//arith.GCD(ord,ug[i].multiplicative_order())
+            self._gens.append(DirichletCharacter(self, z, check=False))
         self._gens = tuple(self._gens)
         return self._gens
 

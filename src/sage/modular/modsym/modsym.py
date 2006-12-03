@@ -33,6 +33,12 @@ a bigger field.  In each case we also decompose the space using $T_2$.
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
     Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5
     ]
+
+We compute some Hecke operators and do a consistency check:
+    sage: m = ModularSymbols(39, 2)
+    sage: t2=m.T(2); t5=m.T(5)
+    sage: t2*t5 - t5*t2 == 0
+    True
 """
 
 #*****************************************************************************

@@ -895,14 +895,15 @@ def transpose(x):
 
 xgcd = sage.rings.arith.xgcd
 
-def vector(x, R):
-    """
-    Return the \sage vector over $R$ obtained from x, if possible.
-    """
-    try:
-        return x._vector_(R)
-    except AttributeError:
-        raise TypeError, "No known way to create a vector from %s"%x
+## def vector(x, R):
+##     r"""
+##     Return the \sage vector over $R$ obtained from x, if possible.
+##     """
+##     try:
+##         return x._vector_(R)
+##     except AttributeError:
+##         import sage.modules.free_module_element
+##         return sage.modules.free_module_element.Vector(x, R)
 
 def zero(R):
     """

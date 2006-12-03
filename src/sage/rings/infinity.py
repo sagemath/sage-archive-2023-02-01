@@ -165,6 +165,24 @@ class Infinity(InfinityElement):
     def _repr_(self):
         return "Infinity"
 
+    def lcm(self, x):
+        """
+        Return the least common multiple of oo and x, which
+        is by definition oo unless x is 0.
+
+        EXAMPLES:
+            sage: oo.lcm(0)
+            0
+            sage: oo.lcm(oo)
+            Infinity
+            sage: oo.lcm(10)
+            Infinity
+        """
+        if x == 0:
+            return x
+        else:
+            return self
+
     def _latex_(self):
         return "\\infty"
 

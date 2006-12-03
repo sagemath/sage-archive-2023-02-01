@@ -1674,7 +1674,7 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
-    def echelonize(self, algorithm="default", cutoff=0):
+    def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
         base ring as self.
@@ -1754,7 +1754,7 @@ cdef class Matrix(matrix1.Matrix):
             print msg
             raise ValueError, "Echelon form not defined over this base ring."
 
-    def echelon_form(self, algorithm="default", cutoff=0):
+    def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
         Return the echelon form of self.
 

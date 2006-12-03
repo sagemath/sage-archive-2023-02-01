@@ -352,10 +352,10 @@ WRAP_NCOLS = 80
 JSMATH=False
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook',
-                 username=None, password=None,
-                 color='default', system=None, show_debug = False, splashpage = False, log_server = False,
-                 kill_idle=0):
+    def __init__(self, dir='sage_notebook', username=None,
+                 password=None, color='default', system=None,
+                 show_debug = False, log_server=False,
+                 kill_idle=False, splashpage=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color

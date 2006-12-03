@@ -349,10 +349,10 @@ def prepare_dict(w):
     return dict([(Z[i][0],entries[i]) for i in xrange(len(entries))]), ring
 
 def nrows_from_dict(d):
-    return max([ij[0] for ij in d.keys()]) + 1
+    return max([0] + [ij[0] for ij in d.keys()]) + 1
 
 def ncols_from_dict(d):
-    return max([ij[1] for ij in d.keys()]) + 1
+    return max([0] + [ij[1] for ij in d.keys()]) + 1
 
 Matrix = matrix
 

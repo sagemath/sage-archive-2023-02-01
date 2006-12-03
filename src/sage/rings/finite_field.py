@@ -16,6 +16,13 @@ Finite Fields support iteration, starting with 0.
     6 2*a
     7 2*a + 1
     8 2*a + 2
+    sage: for a in GF(5):
+    ...    print a
+    0
+    1
+    2
+    3
+    4
 
 We output the base rings of several finite fields.
     sage: k = GF(3); type(k)
@@ -32,6 +39,16 @@ We output the base rings of several finite fields.
     <class 'sage.rings.finite_field.FiniteField_ext_pari'>
     sage: k.base_ring()
     Finite Field of size 3
+
+Further examples:
+    sage: GF(2).is_field()
+    True
+    sage: GF(next_prime(10^20)).is_field()
+    True
+    sage: GF(19^20,'a').is_field()
+    True
+    sage: GF(8,'a').is_field()
+    True
 """
 
 ####################################################################################
@@ -111,7 +128,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
         #    return K
 
     if arith.is_prime(order):
-        K = integer_mod_ring.IntegerModRing(order)
+        K = FiniteField_prime_modn(order)
     else:
         if name is None:
             raise TypeError, "you must specify the generator name"

@@ -21,6 +21,7 @@ list of cells.
 # and numbers, so don't make this too small.
 MAX_OUTPUT = 65536
 
+TRACEBACK = 'Traceback (most recent call last):'
 
 
 import os, shutil
@@ -218,7 +219,10 @@ class Cell:
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
-            output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+            else:
+                output = output[:MAX_OUTPUT] + '\n(truncated)'
         self.__out = output
         self.__out_html = html
         self.__sage = sage
@@ -259,6 +263,10 @@ class Cell:
             def format(x):
                 return word_wrap(x.replace('<','&lt;'), ncols=ncols)
 
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -275,9 +283,6 @@ class Cell:
                 t += format(s[:i]) + s[i+6:j]
                 s = s[j+7:]
             s = t
-            # if there is an error in the output,
-            # specially format it.
-            s = format_exception(s, ncols)
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
 
@@ -490,11 +495,10 @@ class Cell:
 
 ########
 
-def format_exception(s, ncols):
-    m = 'Traceback (most recent call last):'
-    s = s.lstrip()
-    if s[:len(m)] != m:
-        return s
+def format_exception(s0, ncols):
+    s = s0.lstrip()
+    if s[:len(TRACEBACK)] != TRACEBACK:
+        return s0
     if ncols > 0:
         s = s.strip()
         s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')

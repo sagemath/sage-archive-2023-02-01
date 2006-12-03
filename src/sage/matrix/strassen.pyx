@@ -20,10 +20,6 @@ include "../ext/interrupt.pxi"
 
 
 def strassen_window_multiply(C, A,B, cutoff):
-    strassen_window_multiply_c(C, A, B, cutoff)
-
-cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
-                                MatrixWindow B, Py_ssize_t cutoff):
     """
     Multiplies the submatrices specified by A and B, places result
     in C.  Assumes that A and B have compatible dimensions to be
@@ -45,6 +41,10 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
 
     AUTHOR: David Harvey
     """
+    strassen_window_multiply_c(C, A, B, cutoff)
+
+cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
+                                MatrixWindow B, Py_ssize_t cutoff):
     # todo -- I'm not sure how to interpret "cutoff". Should it be...
     # (a) the minimum side length of the matrices (currently implemented below)
     # (b) the maximum side length of the matrices
@@ -230,13 +230,6 @@ cdef subtract_strassen_product(MatrixWindow result, MatrixWindow A, MatrixWindow
 
 
 def strassen_echelon(MatrixWindow A, cutoff):
-    if cutoff < 1:
-        raise ValueError, "cutoff must be at least 1"
-    _sig_on
-    strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
-    _sig_off
-
-cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff):
     """
     Compute echelon form, in place.
     Internal function, call with M.echelonize(algorithm="strassen")
@@ -274,6 +267,13 @@ cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff
     AUTHORS:
         -- Robert Bradshaw
     """
+    if cutoff < 1:
+        raise ValueError, "cutoff must be at least 1"
+    _sig_on
+    strassen_echelon_c(A, cutoff, A._matrix._strassen_default_cutoff(A._matrix))
+    _sig_off
+
+cdef strassen_echelon_c(MatrixWindow A, Py_ssize_t cutoff, Py_ssize_t mul_cutoff):
     # The following notation will be used in the comments below, which should be understood to give
     # the general idea of what's going on, as if there were no inconvenient non-pivot columns.
     # The original matrix is given by [ A B ]

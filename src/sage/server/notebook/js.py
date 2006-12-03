@@ -2000,8 +2000,8 @@ function show_help_window(worksheet) {
 
 function jsmath_init() {
     try {
-        jsMath.Process();
-      /* jsMath.ProcessBeforeShowing(); */
+    /* jsMath.Process(); */
+        jsMath.ProcessBeforeShowing();
     } catch(e) {
         font_warning();
     }

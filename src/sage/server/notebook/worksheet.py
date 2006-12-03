@@ -1189,7 +1189,7 @@ class Worksheet:
 
             menu  = '  <span class="worksheet_control_commands">'
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
-            menu += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%self.filename() + vbar
+            menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
             menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar

@@ -109,7 +109,8 @@ cdef extern from "stdlib.h":
 #cdef int _sig_on
 #cdef int _sig_off
 #cdef int _sig_check
-include 'interrupt.pxi'
+include '../../../ext/stdsage.pxi' # path is a hack for pyrexembed
+include '../../../ext/interrupt.pxi' # path is a hack for pyrexembed
 #################################
 
 include 'misc.pxi'
@@ -416,7 +417,7 @@ cdef class CanonicalForm:
         cdef CanonicalForm t
         cdef int varlevel
 
-        from sage.rings.multi_polynomial_element import is_MPolynomialRingElement
+        from sage.rings.multi_polynomial_element import is_MPolynomial
         from sage.rings.field_element import is_FieldElement
         from sage.rings.polynomial_element import is_Polynomial
 
@@ -435,7 +436,7 @@ cdef class CanonicalForm:
             self.thisptr = cPoly.thisptr
             return
 
-        elif is_MPolynomialRingElement(arg):
+        elif is_MPolynomial(arg):
             poly = CF(0)
             for e,c in arg.element().dict().iteritems():
                 t = CF(0)

@@ -374,13 +374,13 @@ span.pane {
    font-family:courier, monospace;
    font-size:12px;
    position: fixed;
-   left: 1em;
+   left: 5px;
    top: 33px;
    width: 180px;
    height:100%;
    margin: 0px;
    padding-right: 2px;
-   padding-left: 2px;
+   padding-left: 0px;
    padding-top: 0px;
    bottom: 0ex;
 }
@@ -402,6 +402,19 @@ span.controltoggle {
 span.controltoggle:hover {
     cursor:pointer;
 }
+
+div.left_pane_bar {
+  position:fixed;
+  left: 0px;
+  top:36px;
+  background-color: white;
+  width:5px;
+  height:100%;
+}
+div.left_pane_bar:hover {
+  background-color: #8888fe;  /* #000000; */
+}
+
 
 /************ VARIABLES **************************/
 
@@ -763,7 +776,7 @@ div.worksheet {
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 205px;
+  left: 198px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
@@ -775,11 +788,11 @@ div.slideshow {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid <color1>;
+  border-left: 2px solid <color1>;
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 0px;
+  left: 5px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;

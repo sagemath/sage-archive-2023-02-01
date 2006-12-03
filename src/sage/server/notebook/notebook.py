@@ -784,7 +784,7 @@ class Notebook(SageObject):
             name += ' (%s)'%len(W)
             name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
+            txt = '<a class="%s" onClick="switch_to_worksheet(\'%s\')" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
                 #cls,W.id(),W.id(),W.id(),name)
                 cls,W.id(),W.id(), W.filename(),name)
             s.append(txt)
@@ -900,6 +900,7 @@ class Notebook(SageObject):
         body += '<br>'*15
         body += '\n</div>\n'
 
+        body += '<div class="left_pane_bar" id="left_pane_bar" onClick="toggle_left_pane();"></div>\n'
         body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
         endpanespan = '</td></tr></table></span>\n'
 
@@ -1173,7 +1174,6 @@ class Notebook(SageObject):
          """%(css.css(self.color()),js.javascript())
 
     def html(self, worksheet_id=None, authorized=False, show_debug=False, worksheet_authorized=False):
-        print "html>%s<"%worksheet_id
         if worksheet_id is None or worksheet_id == '':
             if not self.splashpage():
                 W = self.default_worksheet()
@@ -1195,7 +1195,7 @@ class Notebook(SageObject):
             body = self._html_authorize()
 
         if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
         return """

@@ -100,7 +100,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #extract from the cgi dict the useable values
         for var in pqs.keys():
             try:
-                if var in ['id', 'cell_id', 'worksheet_id']:
+                if var in ['id', 'cell_id']:
                     postvars[var] = int(pqs[var][0])
                 else:
                     postvars[var] = pqs[var][0]
@@ -119,7 +119,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         that is very long.
         """
         C = self.get_postvars()
-        id = int(C['id'] )
+        id = C['id']
         typ = C['type']
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if self.auth_worksheet(W):
@@ -130,7 +130,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Sets every cell's output hidden in a given worksheet.
         """
-        ws_id = int(self.get_postvars()['worksheet_id'])
+        ws_id = self.get_postvars()['worksheet_id']
         W = notebook.get_worksheet_with_id(ws_id)
         if self.auth_worksheet(W):
             W.hide_all()
@@ -139,7 +139,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Sets every cell's output visible in a given worksheet.
         """
-        ws_id = int(self.get_postvars()['worksheet_id'])
+        ws_id = self.get_postvars()['worksheet_id']
         W = notebook.get_worksheet_with_id(ws_id)
         if self.auth_worksheet(W):
             W.show_all()
@@ -153,7 +153,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         removed from the namespace of this worksheet.
 
         """
-        ws_id = int(self.get_postvars()['worksheet_id'])
+        ws_id = self.get_postvars()['worksheet_id']
         W = notebook.get_worksheet_with_id(ws_id)
         if self.auth_worksheet(W):
             W.restart_sage()
@@ -175,10 +175,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         source code of the function respectively.
         """
         C = self.get_postvars()
-        id = int(C['id'])
+        id = C['id']
         input_text = C['input']
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
-        input_text = input_text.replace("__plus__",'+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -202,7 +201,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def introspect(self):
         C = self.get_postvars()
-        id = int(C['id'])
+        id = C['id']
         before_cursor = C['before_cursor']
         after_cursor = C['after_cursor']
         input_text = (before_cursor+after_cursor)
@@ -228,7 +227,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Add a new cell before a given cell.
         """
-        id = int(self.get_postvars()['id'])
+        id = self.get_postvars()['id']
         verbose("Adding new cell before cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -242,7 +241,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         """
         Add a new cell after a given cell.
         """
-        id = int(self.get_postvars()['id'])
+        id = self.get_postvars()['id']
         verbose("Adding new cell after cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -265,7 +264,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         still work ... this requirement could be removed?)
 
         """
-        id = int(self.get_postvars()['id'])
+        id = self.get_postvars()['id']
         verbose("Deleting cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
 
@@ -280,7 +279,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def delete_cell_all(self):
         C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'][0])
+        worksheet_id = C['worksheet_id'][0]
         W = notebook.get_worksheet_with_id(worksheet_id)
         cells = W.cell_id_list()[1:]
         cells.reverse()
@@ -318,8 +317,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         """
         C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'])
-        cell_id = int(C['cell_id'])
+        worksheet_id = C['worksheet_id']
+        cell_id = C['cell_id']
 
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         cols = notebook.defaults()['word_wrap_cols']
@@ -365,7 +364,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.wfile.write(msg)
 
     def interrupt(self):
-        ws_id = int(self.get_postvars()['worksheet_id'])
+        ws_id = self.get_postvars()['worksheet_id']
         W = notebook.get_worksheet_with_id(ws_id)
         if not self.auth_worksheet(W):
             return
@@ -397,7 +396,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         return W.auth(passcode)
 
     def unlock_worksheet(self):
-        ws_id = int(self.get_postvars()['worksheet_id'])
+        ws_id = self.get_postvars()['worksheet_id']
         W = notebook.get_worksheet_with_id(ws_id)
         if not self.auth_worksheet(W):
             self.wfile.write('failed')
@@ -561,7 +560,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def cell_id_list(self):
         C = self.get_postvars()
-        worksheet_id = int(C['worksheet_id'][0])
+        worksheet_id = C['worksheet_id'][0]
         worksheet = notebook.get_worksheet_with_id(worksheet_id)
         L = worksheet.cell_id_list()
         s = ' '.join(str(x) for x in L)
@@ -739,7 +738,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             worksheet_id = None
         path = path[i+1:]
         if path == '':
-            print worksheet_id
             return self.show_page(worksheet_id=worksheet_id,show_debug=show_debug)
         else:
             self.file_not_found()

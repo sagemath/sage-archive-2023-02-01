@@ -1197,8 +1197,8 @@ class Worksheet:
             menu += '    <a class="download_sws" href="%s.sws">Download</a>'%self.filename()
             menu += '  </span>'
 
-            s += '<div class="worksheet_title" onClick="toggle_left_pane();">'
-            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
+            s += '<div class="worksheet_title">' # onClick="toggle_left_pane();">'
+#            s += ' <span class="controltoggle" id="left_pane_hider">&laquo;</span>'
             s += ' Worksheet: %s%s%s%s</div>\n'%(self.name(),system,lock_text,menu)
 
         D = self.__notebook.defaults()

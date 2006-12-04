@@ -55,6 +55,8 @@ import sage.interfaces.sage0
 from sage.misc.misc import (alarm, cancel_alarm,
                             verbose, word_wrap, SAGE_EXTCODE)
 
+import sage.misc.copying
+
 import sage.misc.preparser
 from   sage.structure.sage_object import load, SageObject
 
@@ -178,6 +180,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         id = C['id']
         input_text = C['input']
         input_text = input_text.replace('\r\n', '\n') #TB: dos make crazy
+        #input_text = input_text.replace("%2B",'+')
         verbose('%s: %s'%(id, input_text))
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
@@ -662,19 +665,19 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.close()
         return f
 
-    def show_page(self, worksheet_id=None,show_debug=False):
+    def show_page(self, worksheet_id,show_debug=False):
         self.send_head()
-        W = None
-        try:
-            W = notebook.get_worksheet_with_id(worksheet_id)
-        except KeyError:
+        if worksheet_id == '':
             W = None
             worksheet_id = None
-
-        if W is not None:
-            auth = self.auth_worksheet(W)
-        else:
             auth = True
+        else:
+            try:
+                W = notebook.get_worksheet_with_id(worksheet_id)
+            except KeyError:
+                W = notebook.create_new_worksheet(worksheet_id)
+                worksheet_id = W.id()
+            auth = self.auth_worksheet(W)
 
         self.wfile.write(notebook.html(worksheet_id=worksheet_id,
                                        authorized=self.authorize(),

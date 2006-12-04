@@ -471,8 +471,8 @@ class Cell:
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
-        out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
-                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>
+        out = """<span class="cell_output_%s" id="cell_output_%s">%s</span>
+                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</span>
                  <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
                  """%(typ, self.__id, out_wrap,
                       typ, self.__id, out_nowrap,

@@ -818,8 +818,9 @@ class Notebook(SageObject):
                 splash_file.close()
             else:
                 dir = os.path.abspath('%s'%self.directory())
-                main_body+= "SAGE Notebook running in %s<br>  Create a file %s/index.html to replace this splash page.<br><br>"%(dir,dir)
+                main_body+= "<br>&nbsp;&nbsp;&nbsp;SAGE Notebook running from <tt>%s</tt>."%dir
                 main_body+= self.help_window()
+                main_body += "&nbsp;&nbsp;&nbsp;Create a file <tt>%s/index.html</tt> to replace this splash page.<br>"%(dir)
             interrupt_class = "interrupt_grey"
             worksheet = None
         else:
@@ -861,8 +862,9 @@ class Notebook(SageObject):
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
+        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -960,13 +962,21 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += "<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save -- preserving images not yet implemented.  No markup not in {{{}}}'s is preserved.<br><br>"
+        body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.  Only markup in {{{}}}'s is preserved.<br><br>"""
         body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
         body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
         body_html += '</form>'
+        body_html += """The format is as follows: <pre>
+{{{
+Input
+///
+Output
+}}}
+</pre>"""
+
 
         s = """
         <html><head><title>SAGE Wiki cell text </title>
@@ -1049,14 +1059,14 @@ class Notebook(SageObject):
     def help_window(self):
         help = [
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
-            ('shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
-            ('Autoevaluate cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
+            ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
+            ('Autoevaluate Cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
             ('Create New Worksheet', "Use the menu on the left, or simply put a new worksheet name in the URL, e.g., if your notebook is at http://localhost:8000, then visiting http://localhost:8000/tests will create a new worksheet named tests."),
                ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
-                ('Evaluate all cells', 'Click <u>Eval All</u> in the upper right.'),
-                ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
+                ('Evaluate all Cells', 'Click <u>Eval All</u> in the upper right.'),
+                ('Evaluate Cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
+                ('Typeset a Cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
                ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
                 ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)" or "show(objname)", which will display a nicely typeset image (using javascript!).  You do <i>not</i> need latex for this to work.  Type "lprint()" to make it so output is often typeset by default.'),
                 ('Move between cells', 'Use the up and down arrows on your keyboard.'),
@@ -1101,15 +1111,6 @@ class Notebook(SageObject):
 
         help.sort()
         s = """
-        This is the SAGE Notebook, which is the graphical interface to
-        the computer algebra system SAGE (Software for Algebra and
-        Geometry Exploration).   It should work with Firefox, Mozilla,
-        Safari, Opera, and Konqueror. Internet Explorer is not supported (yet!).
-        <br><br>
-        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
-        especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
-        either under the GPL or a GPL-compatible license</a>.
         <br><hr>
         <style>
         div.help_window {
@@ -1151,6 +1152,15 @@ class Notebook(SageObject):
         for x, y in help:
             s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>'%(x,y)
         s += '</table></div>'
+
+        s +="""
+        <br>
+        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
+        especially Fernando Perez and Joe Wetherell).<br><br>
+        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
+        either under the GPL or a GPL-compatible license</a>.
+        <br>
+        """
         return s
 
     def upload_window(self):
@@ -1195,7 +1205,7 @@ class Notebook(SageObject):
             body = self._html_authorize()
 
         if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
         return """

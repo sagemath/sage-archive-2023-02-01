@@ -102,6 +102,9 @@ div.top_control_bar a:hover {
 div.top_control_bar a.upload_worksheet {
 }
 
+div.top_control_bar a.worksheets_button {
+}
+
 div.top_control_bar a.upload_worksheet:hover {
 }
 
@@ -408,8 +411,9 @@ div.left_pane_bar {
   left: 0px;
   top:36px;
   background-color: white;
-  width:5px;
+  width:8px;
   height:100%;
+  z-index:100;
 }
 div.left_pane_bar:hover {
   background-color: #8888fe;  /* #000000; */

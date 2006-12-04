@@ -985,7 +985,8 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         return {'plot_points':'How many points to use for plotting precision',
                 'cmap':"""The colormap, one of (autumn, bone, cool, copper,
                        gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
-                       'fill':'Fill contours or not'}
+                       'fill':'Fill contours or not',
+                'levels':'Number of contour levels.'}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
@@ -994,6 +995,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
+        levels = options['levels']
         #cm is the matplotlib color map module
         from matplotlib import cm
         try:
@@ -1008,9 +1010,15 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
         if fill:
-            subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+            if levels is None:
+                subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+            else:
+                subplot.contourf(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
         else:
-            subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+            if levels is None:
+                subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
+            else:
+                subplot.contour(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
 
 
 class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
@@ -1635,7 +1643,7 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
         sage: show(contour_plot(f, (-4, 4), (-4, 4),plot_points=100))
     """
     def _reset(self):
-        self.options={'plot_points':25, 'fill':True, 'cmap':'gray'}
+        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'levels':None}
 
     def _repr_(self):
         return "type contour_plot? for help and examples"

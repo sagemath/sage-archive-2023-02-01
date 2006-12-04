@@ -1382,7 +1382,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             algorithm -- string: 'gp' or 'magma'
 
         \note{If algorithm='magma', then the precision is in digits rather
-        than bigs and the object returned is a Magma L-series, which has
+        than bits and the object returned is a Magma L-series, which has
         different functionality from the SAGE L-series.}
 
         EXAMPLES:

@@ -582,7 +582,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         modulus = self.__modulus.sageInteger
         other_modulus = other.__modulus.sageInteger
-        lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus, check_prime=False), None, empty=True)
+        lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus), None, empty=True)
         try:
             if mpz_cmp(self.value, other.value) > 0:
                 x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
@@ -913,7 +913,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef IntegerMod_int lift
         cdef int_fast32_t x
 
-        lift = IntegerMod_int(integer_mod_ring.IntegerModRing(self.__modulus.int32 * other.__modulus.int32, check_prime=False), None, empty=True)
+        lift = IntegerMod_int(integer_mod_ring.IntegerModRing(self.__modulus.int32 * other.__modulus.int32), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int32) * mod_inverse_int(self.__modulus.int32, other.__modulus.int32)
@@ -1268,7 +1268,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(5,13^5) == mod(8,13^5)
             False
             sage: mod(5,13^5) == mod(5,13)
-            False
+            True
             sage: mod(0, 13^5) == 0
             True
             sage: mod(0, 13^5) == int(0)
@@ -1336,7 +1336,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef IntegerMod_int64 lift
         cdef int_fast64_t x
 
-        lift = IntegerMod_int64(integer_mod_ring.IntegerModRing(self.__modulus.int64 * other.__modulus.int64, check_prime=False), None, empty=True)
+        lift = IntegerMod_int64(integer_mod_ring.IntegerModRing(self.__modulus.int64 * other.__modulus.int64), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int64) * mod_inverse_int64(self.__modulus.int64, other.__modulus.int64)

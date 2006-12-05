@@ -1043,13 +1043,13 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
         sage: rational_reconstruction(3,292393, algorithm='python')
         3
-        sage: a = Integers(292393)(45/97); print a
+        sage: a = Integers(292393)(45/97); a
+        204977
         sage: rational_reconstruction(a,292393, algorithm='python')
-        204977
         45/97
-        sage: a = Integers(292393)(45/97); print a
-        sage: rational_reconstruction(a,292393, algorithm='fast')
+        sage: a = Integers(292393)(45/97); a
         204977
+        sage: rational_reconstruction(a,292393, algorithm='fast')
         45/97
         sage: rational_reconstruction(293048,292393, algorithm='fast')
         Traceback (most recent call last):

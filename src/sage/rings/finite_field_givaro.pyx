@@ -42,6 +42,7 @@ from sage.structure.sage_object cimport SageObject
 import operator
 import sage.rings.arith
 import finite_field
+import integer
 
 import sage.interfaces.gap
 from sage.libs.pari.all import pari
@@ -284,28 +285,21 @@ cdef class FiniteField_givaro(FiniteField):
 
     def characteristic(FiniteField_givaro self):
         """
-        Return integer representing characteristic of the domain.
-
+        Return the characteristic of this field.
         """
         return int(self.objectptr.characteristic())
 
     def order(FiniteField_givaro self):
         """
-        Return integer representing cardinality of the domain.
-
+        Return the cardinality of this field.
         """
-        return self.order_c()
+        return integer.Integer(self.order_c())
 
     cdef order_c(FiniteField_givaro self):
-        """
-        Return integer representing cardinality of the domain.
-
-        """
         return self.objectptr.cardinality()
 
     def __len__(self):
         """
-
         len(k) is defined as k.cardinality()
 
         EXAMPLE:

@@ -13,18 +13,18 @@ EXAMPLES:
 import operator
 
 import sage.structure.element as element
-import finite_field
 import arith
 import integer_ring
 from integer import Integer
 import rational
-import polynomial_ring
 from sage.libs.all import pari, pari_gen
 from sage.structure.element import FiniteFieldElement
 import field_element
+import integer_mod
+import ring
 
 def is_FiniteFieldElement(x):
-    return isinstance(x,FiniteFieldElement)
+    return ring.is_FiniteField(x.parent())
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """
@@ -165,7 +165,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
           ValueError: must be a perfect square.
 
         """
-        R = polynomial_ring.PolynomialRing(self.parent(), 'x')
+        R = self.parent()['x']
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
@@ -343,7 +343,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.charpoly('x')
             x^3 + x^2 + 2*x + 1
         """
-        R = polynomial_ring.PolynomialRing(self.parent().prime_subfield(), var)
+        R = self.parent().prime_subfield()[var]
         return R(self.__value.charpoly('x').lift())
 
     def trace(self):

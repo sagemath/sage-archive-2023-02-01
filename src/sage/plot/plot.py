@@ -1627,20 +1627,22 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
     Here we plot a simple funtion of two variables:
         sage: def f(x,y):
         ...       return cos(x^2 + y^2)
-        sage: contour_plot(f, (-4, 4), (-4, 4))
-         Graphics object consisting of 1 graphics primitive
+        sage: C = contour_plot(f, (-4, 4), (-4, 4))
+        sage: C.save('sage.png')
 
 
     Here we change the ranges and add some options:
         sage: def h(x,y):
         ...       return (x^2)*cos(x*y)
-        sage: contour_plot(h, (-10, 5), (-5, 5), fill=False, plot_points=100)
-         Graphics object consisting of 1 graphics primitive
+        sage: C = contour_plot(h, (-10, 5), (-5, 5), fill=False, plot_points=100)
+        sage: C.save('sage.png')
+
 
     An even more complicated plot.
         sage: def f(x,y):
         ...       return sin(x^2 + y^2)*cos(x)*sin(y)
-        sage: show(contour_plot(f, (-4, 4), (-4, 4),plot_points=100))
+        sage: C = contour_plot(f, (-4, 4), (-4, 4),plot_points=100)
+        sage: C.save('sage.png')
     """
     def _reset(self):
         self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'levels':None}

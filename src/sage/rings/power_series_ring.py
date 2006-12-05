@@ -277,7 +277,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
         except AttributeError:
             pass
-        return self._coerce_try(x, [self.__poly_ring, self.base_ring()])
+        return self._coerce_try(x, [self.base_ring(), self.__poly_ring])
 
 
 

@@ -79,7 +79,9 @@ import integer_mod
 
 from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
+from ring import is_FiniteField
 from sage.rings.finite_field_givaro import FiniteField_givaro
+
 
 from sage.structure.parent_gens import normalize_names, ParentWithGens
 
@@ -144,9 +146,6 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
     #cache[key] = K
     return K
 
-
-def is_FiniteField(x):
-    return isinstance(x, FiniteField_generic)
 
 def is_PrimeFiniteField(x):
     return isinstance(x, FiniteField_prime_modn)
@@ -325,6 +324,11 @@ class FiniteField_ext_pari(FiniteField_generic):
         f = pari.pari(str(modulus))
         self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
+
+    def __cmp__(self, other):
+        if not isinstance(other, FiniteField_ext_pari):
+            return cmp(type(self), type(other))
+        return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
 
     def _pari_one(self):
         """
@@ -604,7 +608,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
-        if isinstance(x, (finite_field_element.FiniteField_ext_pariElement)) or integer_mod.is_IntegerMod(x):
+        if isinstance(x, finite_field_element.FiniteField_ext_pariElement) or integer_mod.is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x
@@ -701,6 +705,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
+    def __cmp__(self, other):
+        if not isinstance(other, FiniteField_prime_modn):
+            return cmp(type(self), type(other))
+        return cmp(self.__char, other.__char)
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
@@ -708,7 +717,7 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return False
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, integer.Integer)):
+        if isinstance(x, (int, long, integer.Integer, integer_mod.IntegerMod_abstract)):
             return self(x)
         raise TypeError, "no canonical coercion of x"
 

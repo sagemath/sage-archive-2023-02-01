@@ -7,6 +7,22 @@ EXAMPLES:
     sage: a**100000000000000000000000000000000000000000000000000000000000000
     61
 
+This example illustrates the relation between $\Z/p\Z$ and $\F_p$.  In
+particular, there is a canonical map to $\F_p$, but not in the other
+direction.
+    sage: r = Integers(7)
+    sage: s = GF(7)
+    sage: r.has_coerce_map_from(s)
+    False
+    sage: s.has_coerce_map_from(r)
+    True
+    sage: s(1) + r(1)
+    2
+    sage: parent(s(1) + r(1))
+    Finite Field of size 7
+    sage: parent(r(1) + s(1))
+    Finite Field of size 7
+
 AUTHORS
     -- William Stein (initial code)
     -- David Joyner (2005-12-22): most examples
@@ -43,6 +59,7 @@ import integer_ring
 import rational
 import quotient_ring
 import ideal
+import finite_field_element
 from sage.structure.parent_gens import ParentWithGens
 
 from sage.libs.all import pari, PariError
@@ -50,38 +67,23 @@ from sage.libs.all import pari, PariError
 import sage.interfaces.all
 
 _objsIntegerModRing = {}
-def IntegerModRing(order=0, check_prime=False):
+def IntegerModRing(order=0):
     r"""
+    Return the quotient ring $$\ZZ / n\ZZ$.
+
     INPUT:
         order -- integer (default: 0)
-        check_prime -- bool (default: False); if False do not test for
-                       primality of the order in constructing the
-                       residue class ring (thus always constructing
-                       the generic integer_mod_ring that doesn't
-                       have special field functionality and implementation).
-                       Do this if the modulus is huge (thousands of digits).
 
     EXAMPLES:
         sage: IntegerModRing(15)
         Ring of integers modulo 15
-        sage: IntegerModRing(7, check_prime=True)
-        ?
-
-    The following example illustrates the \code{check_prime} option.
-    Without it, just defining R would take a very long time.
-
-        sage: n = 5*2^23473+1
-        sage: len(str(n))
-        7067
-        sage: R = IntegerModRing(n)
-        sage: type(R)
-        <class 'sage.rings.integer_mod_ring.IntegerModRing_generic'>
+        sage: IntegerModRing(7)
+        Ring of integers modulo 7
 
     Note that you can also use \code{Integers}, which is a synonym
     for \code{IntegerModRing}.
         sage: Integers(18)
         Ring of integers modulo 18
-
     """
     if order == 0:
         return integer_ring.IntegerRing()
@@ -89,10 +91,10 @@ def IntegerModRing(order=0, check_prime=False):
     if _objsIntegerModRing.has_key(order):
         x = _objsIntegerModRing[order]()
         if x != None: return x
-    if check_prime and arith.is_prime(order):
-        R = sage.rings.finite_field.FiniteField_prime_modn(order)
-    else:
-        R = IntegerModRing_generic(order)
+    #if check_prime and arith.is_prime(order):
+    #    R = sage.rings.finite_field.FiniteField_prime_modn(order)
+    #else:
+    R = IntegerModRing_generic(order)
     _objsIntegerModRing[order] = weakref.ref(R)
     return R
 
@@ -141,7 +143,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         First we compute with integers modulo $17$.
             sage: FF = IntegerModRing(17)
             sage: FF
-            Finite Field of size 17
+            Ring of integers modulo 17
             sage: FF.is_field()
             True
             sage: FF.characteristic()
@@ -235,7 +237,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_field(self):
         """
-        Return False since Z/NZ with N composite is never a field.
+        Return true precisely if the order is prime.
 
         EXAMPLES:
             sage: R = IntegerModRing(18)
@@ -245,7 +247,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             sage: FF.is_field()
             True
         """
-        return False
+        return self.order().is_prime()
 
     def factored_order(self):
         """
@@ -310,8 +312,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             self.__pari_order = pari(self.order())
             return self.__pari_order
 
-    def __call__(self, x, construct=False):
-        global TypeError
+    def __call__(self, x):
         if sage.interfaces.all.is_GapElement(x):
             import finite_field
             try:
@@ -347,11 +348,16 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion of x
+
+        We do not allow the coercion GF(p) --> Z/pZ, because in case
+        of a canonical isomorphism, there is a coercion map in only
+        one direction, i.e., to the object in the smaller category.
         """
         if isinstance(x, (int, long, integer.Integer)):
             return integer_mod.IntegerMod(self, x)
-        if integer_mod.is_IntegerMod(x) and x.parent().order() % self.characteristic() == 0:
-            return integer_mod.IntegerMod(self, x)
+        if integer_mod.is_IntegerMod(x) and not finite_field_element.is_FiniteFieldElement(x):
+            if x.parent().order() % self.characteristic() == 0:
+                return integer_mod.IntegerMod(self, x)
         raise TypeError, "no canonical coercion of x"
 
     def __cmp__(self, other):
@@ -362,9 +368,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             Finite Field of size 11
             sage: R = IntegerModRing(11)
             sage: R == F
-            True
+            False
         """
-        if not isinstance(other, IntegerModRing_generic):
+        if type(other) != IntegerModRing_generic:   # so that GF(p) =/= Z/pZ
             return cmp(type(self), type(other))
         return cmp(self.__order, other.__order)
 

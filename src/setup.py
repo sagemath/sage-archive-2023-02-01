@@ -672,8 +672,6 @@ setup(name        = 'sage',
 
                      'sage.databases',
 
-                     'sage.edu',
-
                      'sage.ext',
 
                      'sage.functions',

@@ -5,7 +5,7 @@ after making some changes to it.
 Given a Notebook session that had already been
 run with the below command:
 
-sage: notebook(log_server=True)
+sage.: notebook(log_server=True)
 
 we then take the resulting 'server_log' and:
 1) Initiate (spawn) a new Notebook session.
@@ -89,8 +89,7 @@ class Playback_Notebook_Session(SageObject):
         Play back the server log of a previously run
         notebook that had been run in the following way:
 
-        sage: notebook(log_server=True)
-
+        sage.: notebook(log_server=True)
         """
         #get the test notebooks log
         server_log = self.get_NB_server_log()

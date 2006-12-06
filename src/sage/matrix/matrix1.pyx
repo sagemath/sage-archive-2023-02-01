@@ -147,9 +147,9 @@ cdef class Matrix(matrix0.Matrix):
         A = Numeric.array(self.list(), typecode=typecode)
         return Numeric.resize(A,(self._nrows, self._ncols))
 
-    def numpy_array(self, dtype=None):
+    def numpy(self, dtype=None):
         """
-        Return the Numpy array associated to this field, if possible.
+        Return the Numpy matrix associated to this matrix.
 
         INPUT:
             dtype  - The desired data-type for the array.  If not given, then
@@ -158,19 +158,19 @@ cdef class Matrix(matrix0.Matrix):
 
         EXAMPLES:
             sage: a = matrix(3,range(12))
-            sage: a.numpy_array()
+            sage: a.numpy()
             array([[0, 1, 2, 3],
                    [4, 5, 6, 7],
                    [8, 9, 10, 11]], dtype=object)
-            sage: a.numpy_array('f')
+            sage: a.numpy('f')
             array([[  0.,   1.,   2.,   3.],
                    [  4.,   5.,   6.,   7.],
                    [  8.,   9.,  10.,  11.]], dtype=float32)
-            sage: a.numpy_array('d')
+            sage: a.numpy('d')
             array([[  0.,   1.,   2.,   3.],
                    [  4.,   5.,   6.,   7.],
                    [  8.,   9.,  10.,  11.]])
-            sage: a.numpy_array('B')
+            sage: a.numpy('B')
             array([[ 0,  1,  2,  3],
                    [ 4,  5,  6,  7],
                    [ 8,  9, 10, 11]], dtype=uint8)
@@ -180,7 +180,7 @@ cdef class Matrix(matrix0.Matrix):
             {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
         """
         import numpy
-        A = numpy.array(self.list(), dtype=dtype)
+        A = numpy.matrix(self.list(), dtype=dtype)
         return numpy.resize(A,(self.nrows(), self.ncols()))
 
 

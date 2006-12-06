@@ -58,6 +58,7 @@ import matrix_window_modn_dense
 
 cimport matrix_dense
 cimport matrix
+cimport matrix0
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 cdef extern from "stdint.h":
@@ -493,7 +494,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         R = self._base_ring[var]    # polynomial ring over the base ring
         return R(v)
 
-    cdef int _strassen_default_cutoff(self, right) except -2:
+    cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:
         # TODO: lots of testing
         return 100
 

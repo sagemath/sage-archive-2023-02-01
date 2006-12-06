@@ -151,6 +151,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         ambient_space.AmbientSpace.__init__(self, n, R)
         self.__names = names
 
+    def ngens(self):
+        return self.dimension() + 1
 
     def _check_satisfies_equations(self, v):
         """

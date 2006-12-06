@@ -101,7 +101,7 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
         return self.coordinate_ring().gens()
 
     def ngens(self):
-        return self.coordinate_ring().ngens()
+        raise NotImplementedError
 
     def assign_names(self, names=None):
         """

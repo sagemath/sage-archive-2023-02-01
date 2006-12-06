@@ -170,6 +170,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                 P[i] = zero
                 i += 1
 
+    def ngens(self):
+        return self.dimension()
+
     def rational_points(self, F=None):
         if F == None:
             if not is_FiniteField(self.base_ring()):

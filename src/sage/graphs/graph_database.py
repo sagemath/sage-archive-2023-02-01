@@ -1,40 +1,35 @@
 r"""
 A collection of constructors of common graphs.
 
-USES:
-    A list of all graphs and graph structures in this database is
-    available via tab completion. Type "graphs." and then hit tab to see
-    which graphs are available.
+USE:
 
-    The docstrings include educational information about each named graph
-    with the hopes that this database can be used as a reference.
+    To see a list of all graph constructors, type "graphs." and then press the
+    tab key.  The documentation for each constructor includes information about
+    each graph, which provides a useful reference.
 
 PLOTTING:
     All graphs (i.e., networks) have an associated SAGE graphics object,
     which you can display:
 
-        sage: G = WheelGraph(15)
-        sage: p = G.plot()
-        sage: is_Graphics(p)
-        True
+        sage: G = graphs.WheelGraph(15)
+        sage: P = G.plot()
+        sage.: P.show()
 
-    When creating a graph in SAGE, the default positioning of nodes is
-    determined using the spring-layout algorithm.  Often, it is more
-    efficient to pre-set the positions in a dictionary.  Additionally, we
-    can use this position dictionary to display the graph in an intuitive
-    manner, whereas the spring-layout would fail if the graph is not very
-    symmetric.  For example, consider the Petersen graph with default node
+    If you creat a graph in SAGE using the \code{Graph} command, then
+    plot that graph, the positioning of nodes is determined using the
+    spring-layout algorithm.  For the special graph constructors,
+    which you get using \code{graphs.[tab]}, the positions are preset.
+    For example, consider the Petersen graph with default node
     positioning vs. the Petersen graph constructed by this database:
 
-        sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9],\
-                5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
+        sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
         sage.: petersen_spring.show()
         sage: petersen_database = graphs.PetersenGraph()
         sage.: petersen_database.show()
 
     For all the constructors in this database (except the random and
-    empty graphs), the position dictionary is filled, instead of using the
-    spring-layout algorithm.
+    empty graphs), the position dictionary is filled in, instead of
+    using the spring-layout algorithm.
 
 ORGANIZATION:
     The constructors available in this database are organized as follows:
@@ -55,14 +50,11 @@ ORGANIZATION:
 
 AUTHORS:
     -- Robert Miller (2006-11-05): initial version - empty, random,
-    petersen
+       petersen
     -- Emily Kirkman (2006-11-12): basic structures, node positioning for
-    all constructors
+       all constructors
     -- Emily Kirkman (2006-11-19): docstrings, examples
-
-TODO:
-    [] more named graphs
-    [] thorough docstrings and examples
+    -- William Stein (2006-12-05): Editing.
 """
 
 ################################################################################
@@ -73,8 +65,7 @@ TODO:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 
-import networkx as NX     # the LANL library for graph theory
-
+import networkx
 import graph
 import sage.functions.functions as functions # sin() and cos()
 from   sage.functions.constants import pi
@@ -176,17 +167,15 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-            # The following examples require NetworkX (to use default)
-            sage: import networkx as NX
 
             # Compare the constructors (results will vary)
-            sage.: time n = NX.cycle_graph(3989); spring3989 = Graph(n)
+            sage.: time n = networkx.cycle_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.05 s,  Wall time: 0.07 s
             sage.: time posdict3989 = graphs.CycleGraph(3989)
             # CPU time: 5.18 s,  Wall time: 6.17 s
 
             # Compare the plotting speeds (results will vary)
-            sage: n = NX.cycle_graph(23)
+            sage: n = networkx.cycle_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CycleGraph(23)
             sage.: time spring23.show()
@@ -194,39 +183,40 @@ class GraphDatabase():
             sage.: time posdict23.show()
             # CPU time: 0.57 s,  Wall time: 0.71 s
 
-            # View many cycle graphs as a SAGE Graphics Array
+        We next view many cycle graphs as a SAGE graphics array.
+        First we use the \code{CycleGraph} constructor, which fills in
+        the position dictionary:
 
-            # With this constructor (i.e., the position dictionary filled)
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
+            sage: for i in range(9):
             ...    k = graphs.CycleGraph(i+3)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage.: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
-            # Compared to plotting with the spring-layout algorithm
+        Compare to plotting with the spring-layout algorithm:
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
-            ...    spr = NX.cycle_graph(i+3)
+            sage: for i in range(9):
+            ...    spr = networkx.cycle_graph(i+3)
             ...    k = Graph(spr)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage.: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
         """
         pos_dict = {}
@@ -234,7 +224,7 @@ class GraphDatabase():
             x = float(functions.cos((pi/2) + ((2*pi)/n)*i))
             y = float(functions.sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
-        G = NX.cycle_graph(n)
+        G = networkx.cycle_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Cycle graph on %d vertices"%n)
 
     def StarGraph(self, n):
@@ -267,17 +257,14 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-            # The following examples require NetworkX (to use default)
-            sage: import networkx as NX
-
             # Compare the constructors (results will vary)
-            sage.: time n = NX.star_graph(3989); spring3989 = Graph(n)
+            sage.: time n = networkx.star_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.08 s,  Wall time: 0.10 s
             sage.: time posdict3989 = graphs.StarGraph(3989)
             # CPU time: 5.43 s,  Wall time: 7.41 s
 
             # Compare the plotting speeds (results will vary)
-            sage: n = NX.star_graph(23)
+            sage: n = networkx.star_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.StarGraph(23)
             sage.: time spring23.show()
@@ -290,34 +277,34 @@ class GraphDatabase():
             # With this constructor (i.e., the position dictionary filled)
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
+            sage: for i in range(9):
             ...    k = graphs.StarGraph(i+3)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage.: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
             # Compared to plotting with the spring-layout algorithm
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
-            ...    spr = NX.star_graph(i+3)
+            sage: for i in range(9):
+            ...    spr = networkx.star_graph(i+3)
             ...    k = Graph(spr)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage.: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
         """
         pos_dict = {}
@@ -326,7 +313,7 @@ class GraphDatabase():
             x = float(functions.cos((pi/2) + ((2*pi)/n)*(i-1)))
             y = float(functions.sin((pi/2) + ((2*pi)/n)*(i-1)))
             pos_dict[i] = [x,y]
-        G = NX.star_graph(n)
+        G = networkx.star_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Star graph on %d vertices"%(n+1))
 
     def WheelGraph(self, n):
@@ -356,58 +343,54 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-            # The following examples require NetworkX (to use default)
-            sage: import networkx as NX
+        We view many wheel graphs with a SAGE Graphics Array, first
+        with this constructor (i.e., the position dictionary filled):
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    k = graphs.WheelGraph(i+3)
+            ...    g.append(k)
+            ...
+            sage.: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
+            ...    j.append(n)
+            ...
+            sage.: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
 
-            # Compare the constructors (results will vary)
-            sage.: time n = NX.wheel_graph(3989); spring3989 = Graph(n)
+        Next, using the spring-layout algorithm:
+            sage: g = []
+            sage: j = []
+            sage: for i in range(9):
+            ...    spr = networkx.wheel_graph(i+3)
+            ...    k = Graph(spr)
+            ...    g.append(k)
+            ...
+            sage.: for i in range(3):
+            ...    n = []
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
+            ...    j.append(n)
+            ...
+            sage.: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G.show()
+
+        Compare the constructors (results will vary):
+            sage.: time n = networkx.wheel_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.07 s,  Wall time: 0.09 s
             sage.: time posdict3989 = graphs.WheelGraph(3989)
             # CPU time: 5.99 s,  Wall time: 8.74 s
 
             # Compare the plotting speeds (results will vary)
-            sage: n = NX.wheel_graph(23)
+            sage: n = networkx.wheel_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.WheelGraph(23)
             sage.: time spring23.show()
             # CPU time: 2.24 s,  Wall time: 3.00 s
             sage.: time posdict23.show()
             # CPU time: 0.68 s,  Wall time: 1.14 s
-
-            # View many wheel graphs with a SAGE Graphics Array
-
-            # With this constructor (i.e., the position dictionary filled)
-            sage: g = []
-            sage: j = []
-            sage: for i in range(16):
-            ...    k = graphs.WheelGraph(i+3)
-            ...    g.append(k)
-            ...
-            sage: for i in range(4):
-            ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
-            ...    j.append(n)
-            ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
-
-            # Compared to plotting with the spring-layout algorithm
-            sage: g = []
-            sage: j = []
-            sage: for i in range(16):
-            ...    spr = NX.wheel_graph(i+3)
-            ...    k = Graph(spr)
-            ...    g.append(k)
-            ...
-            sage: for i in range(4):
-            ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
-            ...    j.append(n)
-            ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
         """
         pos_dict = {}
         pos_dict[0] = [0,0]
@@ -415,7 +398,7 @@ class GraphDatabase():
             x = float(functions.cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
             y = float(functions.sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
             pos_dict[i] = [x,y]
-        G = NX.wheel_graph(n)
+        G = networkx.wheel_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Wheel graph on %d vertices"%n)
 
 ################################################################################
@@ -443,10 +426,9 @@ class GraphDatabase():
         starting at the top and moving counterclockwise.
 
         EXAMPLES:
-            # Compare below the Petersen graph with the default spring-layout
-            # vs. a planned position dictionary of [x,y] tuples
-            sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9],\
-                    5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
+        We compare below the Petersen graph with the default spring-layout
+        versus a planned position dictionary of [x,y] tuples:
+            sage: petersen_spring = Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9], 5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]})
             sage.: petersen_spring.show()
             sage: petersen_database = graphs.PetersenGraph()
             sage.: petersen_database.show()
@@ -502,65 +484,60 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-            # The following examples require NetworkX (to use default)
-            sage: import networkx as NX
-
-            # Compare the constructors (results will vary)
-            sage.: time n = NX.complete_graph(1559); spring1559 = Graph(n)
-            # CPU time: 6.85 s,  Wall time: 9.71 s
-            sage.: time posdict1559 = graphs.CompleteGraph(1559)
-            #CPU time: 9.67 s,  Wall time: 11.75 s
-
-            # Compare the plotting speeds (results will vary)
-            sage: n = NX.complete_graph(23)
-            sage: spring23 = Graph(n)
-            sage: posdict23 = graphs.CompleteGraph(23)
-            sage.: time spring23.show()
-            # CPU time: 3.51 s,  Wall time: 4.29 s
-            sage.: time posdict23.show()
-            # CPU time: 0.82 s,  Wall time: 0.96 s
-
-            # View many Complete graphs with a SAGE Graphics Array
-
-            # With this constructor (i.e., the position dictionary filled)
+        We view many Complete graphs with a SAGE Graphics Array, first
+        with this constructor (i.e., the position dictionary filled):
             sage: g = []
             sage: j = []
             sage: for i in range(9):
             ...    k = graphs.CompleteGraph(i+3)
             ...    g.append(k)
             ...
-            sage: for i in range(3):
+            sage.: for i in range(3):
             ...    n = []
             ...    for m in range(3):
             ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
-            # Compared to plotting with the spring-layout algorithm
+        We compare to plotting with the spring-layout algorithm:
             sage: g = []
             sage: j = []
             sage: for i in range(9):
-            ...    spr = NX.complete_graph(i+3)
+            ...    spr = networkx.complete_graph(i+3)
             ...    k = Graph(spr)
             ...    g.append(k)
             ...
-            sage: for i in range(3):
+            sage.: for i in range(3):
             ...    n = []
             ...    for m in range(3):
             ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
+            # Compare the constructors (results will vary)
+            sage.: time n = networkx.complete_graph(1559); spring1559 = Graph(n)
+            # CPU time: 6.85 s,  Wall time: 9.71 s
+            sage.: time posdict1559 = graphs.CompleteGraph(1559)
+            #CPU time: 9.67 s,  Wall time: 11.75 s
+
+        We compare the plotting speeds (results will vary):
+            sage: n = networkx.complete_graph(23)
+            sage: spring23 = Graph(n)
+            sage: posdict23 = graphs.CompleteGraph(23)
+            sage.: time spring23.show()
+            # CPU time: 3.51 s,  Wall time: 4.29 s
+            sage.: time posdict23.show()
+            # CPU time: 0.82 s,  Wall time: 0.96 s
         """
         pos_dict = {}
         for i in range(n):
             x = float(functions.cos((pi/2) + ((2*pi)/n)*i))
             y = float(functions.sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
-        G = NX.complete_graph(n)
+        G = networkx.complete_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Complete graph on %d vertices"%n)
 
     def CompleteBipartiteGraph(self, n1, n2):
@@ -600,58 +577,52 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-            # The following examples require NetworkX (to use default)
-            sage: import networkx as NX
+        Two ways of constructing the complete bipartite graph, using different
+        layout algorithms:
+            sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)
+            sage.: posdict_big = graphs.CompleteBipartiteGraph(389,157)
 
-            # Compare the constructors (results will vary)
-            sage.: time n = NX.complete_bipartite_graph(389,157); spring_big = Graph(n)
-            # CPU time: 9.28 s,  Wall time: 11.02 s
-            sage.: time posdict_big = graphs.CompleteBipartiteGraph(389,157)
-            # CPU time: 10.72 s,  Wall time: 13.84 s
-
-            # Compare the plotting speeds (results will vary)
-            sage: n = NX.complete_bipartite_graph(11,17)
+        Compare the plotting:
+            sage: n = networkx.complete_bipartite_graph(11,17)
             sage: spring_med = Graph(n)
             sage: posdict_med = graphs.CompleteBipartiteGraph(11,17)
-            # Notice here how the spring-layout tends to center the nodes of n1
-            sage.: time spring_med.show()
-            # CPU time: 3.84 s,  Wall time: 4.49 s
-            sage.: time posdict_med.show()
-            # CPU time: 0.96 s,  Wall time: 1.14 s
 
-            # View many Complete Bipartite graphs with a SAGE Graphics Array
+        Notice here how the spring-layout tends to center the nodes of n1
+            sage.: spring_med.show()
+            sage.: posdict_med.show()
 
-            # With this constructor (i.e., the position dictionary filled)
+        View many complete bipartite graphs with a SAGE Graphics Array,
+        with this constructor (i.e., the position dictionary filled):
             sage: g = []
             sage: j = []
             sage: for i in range(9):
             ...    k = graphs.CompleteBipartiteGraph(i+1,4)
             ...    g.append(k)
             ...
-            sage: for i in range(3):
+            sage.: for i in range(3):
             ...    n = []
             ...    for m in range(3):
             ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
-            # Compared to plotting with the spring-layout algorithm
+        We compare to plotting with the spring-layout algorithm:
             sage: g = []
             sage: j = []
             sage: for i in range(9):
-            ...    spr = NX.complete_bipartite_graph(i+1,4)
+            ...    spr = networkx.complete_bipartite_graph(i+1,4)
             ...    k = Graph(spr)
             ...    g.append(k)
             ...
-            sage: for i in range(3):
+            sage.: for i in range(3):
             ...    n = []
             ...    for m in range(3):
             ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
         """
         pos_dict = {}
@@ -677,80 +648,76 @@ class GraphDatabase():
             x = c2*(i-n1) + c4
             y = 0
             pos_dict[i] = [x,y]
-        G = NX.complete_bipartite_graph(n1,n2)
+        G = networkx.complete_bipartite_graph(n1,n2)
         return graph.Graph(G, pos=pos_dict, name="Complete bipartite graph on %d vertices"%(n1+n2))
 
     def RandomGNP(self, n, p, seed=None):
         r"""
-        Returns a Random graph on n nodes.
-        Each edge is inserted independently with probability p.
+        Returns a Random graph on $n$ nodes.  Each edge is inserted
+        independently with probability $p$.
 
-        If p is small, use RandomGNPFast.  See NetworkX documentation.
+        IMPLEMENTATION:
+        This function calls the NetworkX function \code{gnp_random_graph}.
 
-        C.f.
-        P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
-        E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
+        REFERENCES:
+        \begin{itemize}
+           \item P. Erdos and A. Renyi, On Random Graphs, Publ. Math. 6, 290 (1959).
+           \item E. N. Gilbert, Random Graphs, Ann. Math. Stat., 30, 1141 (1959).
+        \end{itemize}
 
         PLOTTING:
         When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
-            # Compare the speed of RandomGNP and RandomGNPFast for sparse and dense graphs
-            sage.: time regular_sparse = graphs.RandomGNP(1559,.22)
-            # CPU time: 31.79 s,  Wall time: 38.78 s
-            sage.: time fast_sparse =  graphs.RandomGNPFast(1559,.22)
-            # CPU time: 21.72 s,  Wall time: 26.44 s
-            sage.: time regular_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 38.75 s,  Wall time: 47.65 s
-            sage.: time fast_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 39.15 s,  Wall time: 48.22 s
-
-            # Plot a random graph on 12 nodes with p = .71
+        We plot a random graph on 12 nodes with probability $p = .71$:
             sage: gnp = graphs.RandomGNP(12,.71)
             sage.: gnp.show()
 
-            # View many random graphs using a SAGE Graphics Array
+        We view many random graphs using a graphics array:
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
+            sage: for i in range(9):
             ...    k = graphs.RandomGNP(i+3,.43)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
+            sage: G.save('sage.png')
+
+        TIMINGS:
+        The following timings compare the speed of RandomGNP and
+        RandomGNPFast for sparse and dense graphs:
+
+            time regular_sparse = graphs.RandomGNP(1559,.22)
+            # CPU time: 31.79 s,  Wall time: 38.78 s
+            time fast_sparse =  graphs.RandomGNPFast(1559,.22)
+            # CPU time: 21.72 s,  Wall time: 26.44 s
+            time regular_dense = graphs.RandomGNP(1559,.88)
+            # CPU time: 38.75 s,  Wall time: 47.65 s
+            time fast_dense = graphs.RandomGNP(1559,.88)
+            # CPU time: 39.15 s,  Wall time: 48.22 s
         """
-        G = NX.gnp_random_graph(n, p, seed)
+        G = networkx.gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 
     def RandomGNPFast(self, n, p, seed=None):
         """
-        Returns a Random graph on n nodes.
-        Each edge is inserted independently with probability p.
+        Returns a Random graph on $n$ nodes, with each edge inserted
+        independently with probability $p$.
 
-        Use for small p (sparse graphs).  See NetworkX documentation.
+        This function calls the NetworkX function \code{fast_gnp_random_graph}.
 
         PLOTTING:
         When plotting, this graph will use the default spring-layout
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
-            # Compare the speed of RandomGNP and RandomGNPFast for sparse and dense graphs (results will vary)
-            sage.: time regular_sparse = graphs.RandomGNP(1559,.22)
-            # CPU time: 31.79 s,  Wall time: 38.78 s
-            sage.: time fast_sparse =  graphs.RandomGNPFast(1559,.22)
-            # CPU time: 21.72 s,  Wall time: 26.44 s
-            sage.: time regular_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 38.75 s,  Wall time: 47.65 s
-            sage.: time fast_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 39.15 s,  Wall time: 48.22 s
-
             # Plot a random graph on 12 nodes with p = .71
             sage: fast = graphs.RandomGNPFast(12,.71)
             sage.: fast.show()
@@ -758,24 +725,27 @@ class GraphDatabase():
             # View many random graphs using a SAGE Graphics Array
             sage: g = []
             sage: j = []
-            sage: for i in range(16):
+            sage: for i in range(9):
             ...    k = graphs.RandomGNPFast(i+3,.43)
             ...    g.append(k)
             ...
-            sage: for i in range(4):
+            sage.: for i in range(3):
             ...    n = []
-            ...    for m in range(4):
-            ...        n.append(g[4*i + m].plot(node_size=50, with_labels=False))
+            ...    for m in range(3):
+            ...        n.append(g[3*i + m].plot(node_size=50, with_labels=False))
             ...    j.append(n)
             ...
-            sage: G = sage.plot.plot.GraphicsArray(j)
+            sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
+
+        TIMINGS: See the documentation for RandomGNP.
         """
-        G = NX.fast_gnp_random_graph(n, p, seed)
+        G = networkx.fast_gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 
+# Easy access to the graph database from the command line:
 graphs = GraphDatabase()
-    # For tab completion
+
 
 
 

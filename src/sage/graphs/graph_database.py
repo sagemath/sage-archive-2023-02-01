@@ -65,10 +65,9 @@ AUTHORS:
 #                         http://www.gnu.org/licenses/
 ################################################################################
 
-import networkx
 import graph
-import sage.functions.functions as functions # sin() and cos()
-from   sage.functions.constants import pi
+
+from   math import sin, cos, pi
 
 class GraphDatabase():
     r"""
@@ -169,6 +168,7 @@ class GraphDatabase():
         EXAMPLES:
 
             # Compare the constructors (results will vary)
+            sage: import networkx
             sage.: time n = networkx.cycle_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.05 s,  Wall time: 0.07 s
             sage.: time posdict3989 = graphs.CycleGraph(3989)
@@ -221,9 +221,10 @@ class GraphDatabase():
         """
         pos_dict = {}
         for i in range(n):
-            x = float(functions.cos((pi/2) + ((2*pi)/n)*i))
-            y = float(functions.sin((pi/2) + ((2*pi)/n)*i))
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
+        import networkx
         G = networkx.cycle_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Cycle graph on %d vertices"%n)
 
@@ -257,6 +258,7 @@ class GraphDatabase():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
+            sage: import networkx
             # Compare the constructors (results will vary)
             sage.: time n = networkx.star_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.08 s,  Wall time: 0.10 s
@@ -310,9 +312,10 @@ class GraphDatabase():
         pos_dict = {}
         pos_dict[0] = [0,0]
         for i in range(n+1)[1:]:
-            x = float(functions.cos((pi/2) + ((2*pi)/n)*(i-1)))
-            y = float(functions.sin((pi/2) + ((2*pi)/n)*(i-1)))
+            x = float(cos((pi/2) + ((2*pi)/n)*(i-1)))
+            y = float(sin((pi/2) + ((2*pi)/n)*(i-1)))
             pos_dict[i] = [x,y]
+        import networkx
         G = networkx.star_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Star graph on %d vertices"%(n+1))
 
@@ -361,6 +364,7 @@ class GraphDatabase():
             sage.: G.show()
 
         Next, using the spring-layout algorithm:
+            sage: import networkx
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -395,9 +399,10 @@ class GraphDatabase():
         pos_dict = {}
         pos_dict[0] = [0,0]
         for i in range(n)[1:]:
-            x = float(functions.cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
-            y = float(functions.sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
+            x = float(cos((pi/2) + ((2*pi)/(n-1))*(i-1)))
+            y = float(sin((pi/2) + ((2*pi)/(n-1))*(i-1)))
             pos_dict[i] = [x,y]
+        import networkx
         G = networkx.wheel_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Wheel graph on %d vertices"%n)
 
@@ -435,12 +440,12 @@ class GraphDatabase():
         """
         pos_dict = {}
         for i in range(5):
-            x = float(functions.cos(pi/2 + ((2*pi)/5)*i))
-            y = float(functions.sin(pi/2 + ((2*pi)/5)*i))
+            x = float(cos(pi/2 + ((2*pi)/5)*i))
+            y = float(sin(pi/2 + ((2*pi)/5)*i))
             pos_dict[i] = [x,y]
         for i in range(10)[5:]:
-            x = float(0.5*functions.cos(pi/2 + ((2*pi)/5)*i))
-            y = float(0.5*functions.sin(pi/2 + ((2*pi)/5)*i))
+            x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+            y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
             pos_dict[i] = [x,y]
         P = graph.Graph({0:[1,4,5], 1:[0,2,6], 2:[1,3,7], 3:[2,4,8], 4:[0,3,9],\
             5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]},\
@@ -502,6 +507,7 @@ class GraphDatabase():
             sage.: G.show()
 
         We compare to plotting with the spring-layout algorithm:
+            sage: import networkx
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -534,9 +540,10 @@ class GraphDatabase():
         """
         pos_dict = {}
         for i in range(n):
-            x = float(functions.cos((pi/2) + ((2*pi)/n)*i))
-            y = float(functions.sin((pi/2) + ((2*pi)/n)*i))
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[i] = [x,y]
+        import networkx
         G = networkx.complete_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Complete graph on %d vertices"%n)
 
@@ -579,6 +586,7 @@ class GraphDatabase():
         EXAMPLES:
         Two ways of constructing the complete bipartite graph, using different
         layout algorithms:
+            sage: import networkx
             sage: n = networkx.complete_bipartite_graph(389,157); spring_big = Graph(n)
             sage.: posdict_big = graphs.CompleteBipartiteGraph(389,157)
 
@@ -648,6 +656,7 @@ class GraphDatabase():
             x = c2*(i-n1) + c4
             y = 0
             pos_dict[i] = [x,y]
+        import networkx
         G = networkx.complete_bipartite_graph(n1,n2)
         return graph.Graph(G, pos=pos_dict, name="Complete bipartite graph on %d vertices"%(n1+n2))
 
@@ -703,6 +712,7 @@ class GraphDatabase():
             time fast_dense = graphs.RandomGNP(1559,.88)
             # CPU time: 39.15 s,  Wall time: 48.22 s
         """
+        import networkx
         G = networkx.gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 
@@ -740,6 +750,7 @@ class GraphDatabase():
 
         TIMINGS: See the documentation for RandomGNP.
         """
+        import networkx
         G = networkx.fast_gnp_random_graph(n, p, seed)
         return graph.Graph(G)
 

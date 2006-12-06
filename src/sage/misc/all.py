@@ -51,7 +51,7 @@ from latex import latex, view, lprint
 
 from mathml import mathml
 
-from trace import *
+from trace import trace
 
 from cachefunc import CachedFunction
 

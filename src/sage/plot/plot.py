@@ -115,9 +115,10 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__doc_exclude = ['SageObject', 'hsv_to_rgb', 'FigureCanvasAgg',\
-                 'Figure', 'patches', 'to_float_list', 'sin', 'cos',\
-                 'modf', 'pi','verbose','xsrange']
+## IMPORTANT: Do not import matplotlib at module scope.  It takes a
+## surprisingliy long time to initialize itself.  It's better if it is
+## imported in functions, so it only gets started if it is actually
+## going to be used.
 
 DEFAULT_FIGSIZE=[6, 5]
 DEFAULT_DPI = 100
@@ -126,16 +127,15 @@ SHOW_DEFAULT = False
 
 do_verify = True
 
-from sage.structure.sage_object import SageObject
-import sage.misc.viewer
-import sage.misc.misc
-verbose = sage.misc.misc.verbose
-xsrange = sage.misc.misc.xsrange
-
 import random #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
+
+from sage.structure.sage_object import SageObject
+
+import sage.misc.viewer
+import sage.misc.misc
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is
@@ -144,7 +144,6 @@ from math import sin, cos, modf, pi #for hue and polar_plot
 # SAGE startup times are much improved.)  - William
 ###############
 
-import matplotlib.patches as patches
 #SAGE 2D Graphics Axes class:
 from axes import Axes
 
@@ -819,7 +818,7 @@ class GraphicPrimitive(SageObject):
             for k in O.keys():
                 if not k in K:
                     do_verify = False
-                    verbose("WARNING: Ignoring option '%s'=%s"%(k,O[k]), level=0)
+                    sage.misc.misc.verbose("WARNING: Ignoring option '%s'=%s"%(k,O[k]), level=0)
                     t = True
             if t:
                 s = "\nThe allowed options for %s are:\n"%self
@@ -827,7 +826,7 @@ class GraphicPrimitive(SageObject):
                 for k in K:
                     if A.has_key(k):
                         s += "    %-15s%-60s\n"%(k,A[k])
-                verbose(s, level=0)
+                sage.misc.misc.verbose(s, level=0)
 
 
         if 'hue' in O:
@@ -865,6 +864,7 @@ class GraphicPrimitive_Arrow(GraphicPrimitive):
     def _render_on_subplot(self, subplot):
         options = self.options()
         width = float(options['width'])
+        import matplotlib.patches as patches
         p = patches.FancyArrow(float(self.xmin), float(self.ymin), float(self.xmax), float(self.ymax),
                          width=width, length_includes_head=True)
         c = to_mpl_color(options['rgbcolor'])
@@ -927,6 +927,7 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         return len(self.xdata)
 
     def _render_on_subplot(self, subplot):
+        import matplotlib.patches as patches
         options = self.options()
         p = patches.Line2D(self.xdata, self.ydata)
         a = float(options['alpha'])
@@ -957,6 +958,7 @@ class GraphicPrimitive_Circle(GraphicPrimitive):
         return "Circle defined by (%s,%s) with r=%s"%(self.x, self.y, self.r)
 
     def _render_on_subplot(self, subplot):
+        import matplotlib.patches as patches
         options = self.options()
         p = patches.Circle((float(self.x), float(self.y)), float(self.r))
         p.set_linewidth(float(options['thickness']))
@@ -1122,6 +1124,7 @@ class GraphicPrimitive_Disk(GraphicPrimitive):
         self.y, self.r, self.rad1, self.rad2)
 
     def _render_on_subplot(self, subplot):
+        import matplotlib.patches as patches
         options = self.options()
         deg1 = self.rad1*(360.0/(2.0*pi)) #convert radians to degrees
         deg2 = self.rad2*(360.0/(2.0*pi))
@@ -1199,6 +1202,7 @@ class GraphicPrimitive_Polygon(GraphicPrimitive):
                 'hue':'The color given as a hue.'}
 
     def _render_on_subplot(self, subplot):
+        import matplotlib.patches as patches
         options = self.options()
         p = patches.Polygon([(self.xdata[i],self.ydata[i]) for i in xrange(len(self.xdata))])
         p.set_linewidth(float(options['thickness']))
@@ -1255,8 +1259,8 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         node_size -- node size
 
     EXAMPLE:
-        sage: import networkx as NX
-        sage: D = NX.dodecahedral_graph()
+        sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: D = networkx.dodecahedral_graph()
         sage: NGP = GraphicPrimitive_NetworkXGraph(D)
         sage: g = Graphics()
         sage: g.append(NGP)
@@ -1390,8 +1394,9 @@ class GraphicPrimitiveFactory_contour_plot(GraphicPrimitiveFactory):
         plot_points = int(options['plot_points'])
         xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
         ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
-        xy_data_array = [[float(f(x, y)) for x in xsrange(xrange[0], xrange[1], xstep)]
-                                     for y in xsrange(yrange[0], yrange[1], ystep)]
+        xy_data_array = [[float(f(x, y)) for x in \
+                          sage.misc.misc.xsrange(xrange[0], xrange[1], xstep)]
+                         for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep)]
         return self._from_xdata_ydata(xy_data_array, xrange, yrange, options=options)
 
 class GraphicPrimitiveFactory_matrix_plot(GraphicPrimitiveFactory):
@@ -1423,8 +1428,8 @@ class GraphicPrimitiveFactory_plot_field(GraphicPrimitiveFactory):
         xstep = abs(float(xrange[0]) - float(xrange[1]))/plot_points
         ystep = abs(float(yrange[0]) - float(yrange[1]))/plot_points
         Lpx,Lpy,Lcx,Lcy = [],[],[],[]
-        for x in xsrange(xrange[0], xrange[1], xstep):
-            for y in xsrange(yrange[0], yrange[1], ystep):
+        for x in sage.misc.misc.xsrange(xrange[0], xrange[1], xstep):
+            for y in sage.misc.misc.xsrange(yrange[0], yrange[1], ystep):
                 Lpx.append(float(x))
                 Lpy.append(float(y))
                 Lcx.append(float(f(x)))

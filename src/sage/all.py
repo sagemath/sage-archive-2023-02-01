@@ -91,8 +91,14 @@ from sage.gsl.all import *
 
 from copy import copy
 
-import networkx
-import numpy
+
+###########################################################
+#### WARNING:
+# DO *not* import numpy / matplotlib / networkx here!!
+# Each takes a surprisingly long time to initialize,
+# and that initialization should be done more on-the-fly
+# when they are first needed.
+###########################################################
 
 ###################################################################
 

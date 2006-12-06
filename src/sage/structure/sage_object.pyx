@@ -6,8 +6,6 @@ PYREX: sage.structure.sage_object
 
 import cPickle
 import os
-import urllib
-import sage.misc.misc
 import sys
 
 # changeto import zlib to use zlib instead; but this
@@ -425,9 +423,12 @@ def load(filename, compress=True, verbose=True):
     if filename.startswith("http://") or filename.startswith("https://"):
         if verbose:
             print "Attempting to load remote file: " + filename
-
+        import sage.misc.misc
         temp_name = sage.misc.misc.tmp_filename()
         try:
+            # IMPORTANT -- urllib takes a long time to load,
+            # so do not import it in the module scope.
+            import urllib
             global cur
             cur = 0
             if verbose:

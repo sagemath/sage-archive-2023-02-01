@@ -339,9 +339,6 @@ def fcp(x, var='x'):
     try: return x.fcp(var)
     except AttributeError: return factor(charpoly(x, var))
 
-gcd = sage.rings.arith.gcd
-
-
 def floor(x):
     try:
         return x.floor()
@@ -584,8 +581,6 @@ def lift(x):
         return x.lift()
     except AttributeError:
         raise ArithmeticError, "no lift defined."
-
-lcm = sage.rings.arith.lcm
 
 def log(x,b=None):
     r"""
@@ -892,8 +887,6 @@ def transpose(x):
         [3 6 9]
     """
     return x.transpose()
-
-xgcd = sage.rings.arith.xgcd
 
 ## def vector(x, R):
 ##     r"""

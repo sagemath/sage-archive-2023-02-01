@@ -820,6 +820,8 @@ cdef class MonoidElement(Element):
             True
             sage: a^2 * a^3 == a^5
             True
+            sage: (a^3)^2 == a^6
+            True
             sage: a^57 * a^43 == a^100
             True
             sage: a^(-1) == 1/a
@@ -861,13 +863,10 @@ cdef class MonoidElement(Element):
         power = apow
         n = n >> 1
 
-        while True:
-            if n&1 > 0: power = power*apow
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
             n = n >> 1
-            if n != 0:
-                apow = apow*apow
-            else:
-                break
 
         return power
 

@@ -1713,7 +1713,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [5 2]
             [6 1]
             sage: parent(M.mod(7))
-            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+            Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 7
         """
         return self.change_ring(self._base_ring.quotient_ring(p))
 

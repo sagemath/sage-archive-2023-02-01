@@ -176,6 +176,7 @@ cdef class Matrix(matrix0.Matrix):
                    [ 8,  9, 10, 11]], dtype=uint8)
 
         Type \code{numpy.typecodes} for a list of the possible typecodes:
+            sage: import numpy
             sage: numpy.typecodes
             {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
         """

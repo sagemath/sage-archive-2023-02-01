@@ -22,7 +22,7 @@ EXAMPLES:
     sage: type(a)
     <type 'sage.matrix.matrix_modn_sparse.Matrix_modn_sparse'>
     sage: parent(a)
-    Full MatrixSpace of 3 by 3 sparse matrices over Finite Field of size 37
+    Full MatrixSpace of 3 by 3 sparse matrices over Ring of integers modulo 37
     sage: a^2
     [15 18 21]
     [ 5 17 29]

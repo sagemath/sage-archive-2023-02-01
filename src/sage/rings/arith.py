@@ -685,10 +685,16 @@ def previous_prime_power(n):
         Traceback (most recent call last):
         ...
         ValueError: no previous prime
+
+        sage: n = previous_prime_power(2^16 - 1)
+        sage: while is_prime(n):
+        ...    n = previous_prime_power(n)
+        sage: factor(n)
+        251^2
     """
     n = sage.rings.integer.Integer(n)-1
     if n <= 0:
-        raise ValueError, "no previous prime"
+        raise ValueError, "no previous prime power"
     while not is_prime_power(n):
         n -= 1
     return n

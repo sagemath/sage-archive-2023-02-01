@@ -322,7 +322,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         assert not (modulus is None)
         self.__modulus = modulus
         f = pari.pari(str(modulus))
-        self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
+        self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
 
     def __cmp__(self, other):
@@ -689,9 +689,9 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: hash(GF(3,'a'))
             904200654
             sage: hash(GF(9,'a'))
-            1524231377
+            205387690
             sage: hash(GF(9,'b'))
-            -584596322
+            -74532899
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 

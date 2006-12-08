@@ -36,10 +36,11 @@ from sage.databases.db_modular_polynomials \
 
 def Phi2(x,j):
     r"""
-    This function returns a certain cubic polynomial in the indeterminate x over a finite field.
+    This function returns a certain cubic polynomial in the
+    indeterminate x over a finite field.
 
     The roots of the \emph{modular} polynomial $\Phi_2(x,j)$ are the
-    neighboring/2-isogenous supersingular j-invariants of j.
+    2-isogenous supersingular j-invariants of j.
 
     INPUT:
        x -- indeterminate of a univariate polynomial ring defined over
@@ -51,7 +52,9 @@ def Phi2(x,j):
        polynomial -- defined over the finite field
 
     EXAMPLES:
-    The following code snippet demonstrates the usage of this function.
+    The following code snippet produces the modular polynomial
+    $\Phi_{2}(x,j_{in})$, where $j_{in}$ is a supersingular j-invariant
+    defined over the finite field with $7^2$ elements.
         sage: F = GF(7^2, 'a')
         sage: X = PolynomialRing(F, 'x').gen()
         sage: j_in = supersingular_j(F)
@@ -63,12 +66,11 @@ def Phi2(x,j):
        David Kohel - kohel@maths.usyd.edu.au
        Iftikhar Burhanuddin - burhanud@usc.edu
     """
-    jsq = j**2
-    jcu = jsq*j
-    return x.parent()([jcu - 162000*jsq + 8748000000*j - 157464000000000, \
-                       1488*jsq + 40773375*j + 8748000000, \
-                       - (jsq - 1488*j + 162000), \
-                       1])
+    j_pow2 = j**2
+    j_pow3 = j_pow2*j
+    return x.parent()([j_pow3 - 162000*j_pow2 + 8748000000*j -
+    157464000000000, 1488*j_pow2 + 40773375*j + 8748000000, - (j_pow2
+    - 1488*j + 162000), 1])
 
 def Phi2_quad(J3, ssJ1, ssJ2):
     r"""
@@ -87,17 +89,21 @@ def Phi2_quad(J3, ssJ1, ssJ2):
        polynomial -- defined over the finite field
 
     EXAMPLES:
-    The following code snippet demonstrates the usage of this function.
-        sage: F = GF(11^2, 'a')
+    The following code snippet produces a factor of the modular polynomial
+    $\Phi_{2}(x,j_{in})$, where $j_{in}$ is a supersingular j-invariant
+    defined over the finite field with $37^2$ elements.
+        sage: F = GF(37^2, 'a')
         sage: X = PolynomialRing(F, 'x').gen()
         sage: j_in = supersingular_j(F)
         sage: poly = sage.modular.ssmod.ssmod.Phi2(X,j_in)
-        sage: sage.modular.ssmod.ssmod.Phi2_quad(X, F(0), j_in)
-        x^2 + 10*x
+        sage: poly.roots()
+        [(8, 1), (27*a + 23, 1), (10*a + 20, 1)]
+        sage: sage.modular.ssmod.ssmod.Phi2_quad(X, F(8), j_in)
+        x^2 + 31*x + 31
 
     NOTES:
-    Given a root (j1,j2) to the polynomial Phi_2(J1,J2), the pairs
-    (j2,j3) not equal to (j2,j1) which solve Phi_2(j2,j3) are roots
+    Given a root (j1,j2) to the polynomial $Phi_2(J1,J2)$, the pairs
+    (j2,j3) not equal to (j2,j1) which solve $Phi_2(j2,j3)$ are roots
     of the quadratic equation:
 
     \begin{verbatim}
@@ -106,61 +112,129 @@ def Phi2_quad(J3, ssJ1, ssJ2):
     \end{verbatim}
 
     This will be of use to extend the 2-isogeny graph, once the
-    initial three roots are determined for Phi_2(J1,J2).
+    initial three roots are determined for $Phi_2(J1,J2)$.
 
     AUTHORS:
-       William Stein - wstein@gmail.com
        David Kohel - kohel@maths.usyd.edu.au
        Iftikhar Burhanuddin - burhanud@usc.edu
     """
-    ssJ1_square = ssJ1**2
-    ssJ2_square = ssJ2**2
+    ssJ1_pow2 = ssJ1**2
+    ssJ2_pow2 = ssJ2**2
 
-    return J3.parent()([(-ssJ1 + 1488)*ssJ2_square+ (1488*ssJ1 + 40773375)*ssJ2 \
-			  + ssJ1_square - 162000*ssJ1 + 8748000000, \
-			-ssJ2_square + 1488*ssJ2 + (ssJ1 - 162000), \
-			1])
+    return J3.parent()([(-ssJ1 + 1488)*ssJ2_pow2+ (1488*ssJ1 +
+    40773375)*ssJ2 + ssJ1_pow2 - 162000*ssJ1 + 8748000000,
+    -ssJ2_pow2 + 1488*ssJ2 + (ssJ1 - 162000), 1])
 
 def Phi3(x,j):
     r"""
+    This function returns a certain quartic polynomial in the indeterminate x
+    over a finite field.
 
+    The roots of the \emph{modular} polynomial $\Phi_3(x,j)$ are the
+    3-isogenous supersingular j-invariants of j.
 
+    INPUT:
+       x -- indeterminate of a univariate polynomial ring defined over
+            a finite field with p^2 elements, where p is a prime
+            number
+       j -- supersingular j-invariant over the finite field
+
+    OUTPUT:
+       polynomial -- defined over the finite field
+
+    EXAMPLES:
+    The following code snippet produces the modular polynomial
+    $\Phi_{3}(x,j_{in})$, where $j_{in}$ is a supersingular j-invariant
+    defined over the finite field with $7^2$ elements.
+        sage: F = GF(7^2, 'a')
+        sage: X = PolynomialRing(F, 'x').gen()
+        sage: j_in = supersingular_j(F)
+        sage: sage.modular.ssmod.ssmod.Phi3(X,j_in)
+        x^4 + 4*x^3 + 6*x^2 + 4*x + 1
+
+    AUTHORS:
+       Iftikhar Burhanuddin - burhanud@usc.eduw
     """
-    jsq = j**2
-    jcu = jsq*j
-    jqu = jcu*j
+    j_pow2 = j**2
+    j_pow3 = j_pow2*j
+    j_pow4 = j_pow3*j
 
-    return x.parent()([ \
-        1855425871872000000000*j + 452984832000000*jsq + 36864000*jcu + jqu, \
-        1855425871872000000000 - 770845966336000000*j + 8900222976000*jsq - 1069956*jcu, \
-        452984832000000 + 8900222976000*j + 2587918086*jsq + 2232*jcu, \
-        36864000 - 1069956*j + 2232*jsq - jcu, \
-        1])
+    return x.parent()([1855425871872000000000*j +
+    452984832000000*j_pow2 + 36864000*j_pow3 + j_pow4,
+    1855425871872000000000 - 770845966336000000*j +
+    8900222976000*j_pow2 - 1069956*j_pow3, 452984832000000 +
+    8900222976000*j + 2587918086*j_pow2 + 2232*j_pow3, 36864000 -
+    1069956*j + 2232*j_pow2 - j_pow3, 1])
 
 def Phi5(x,j):
     r"""
+    This function returns a particular sextic polynomial in the indeterminate x
+    over a finite field.
 
+    The roots of the \emph{modular} polynomial $\Phi_5(x,j)$ are the
+    5-isogenous supersingular j-invariants of j.
+
+    INPUT:
+       x -- indeterminate of a univariate polynomial ring defined over
+            a finite field with p^2 elements, where p is a prime
+            number
+       j -- supersingular j-invariant over the finite field
+
+    OUTPUT:
+       polynomial -- defined over the finite field
+
+    EXAMPLES:
+    The following code snippet produces the modular polynomial
+    $\Phi_{5}(x,j_{in})$, where $j_{in}$ is a supersingular j-invariant
+    defined over the finite field with $7^2$ elements.
+        sage: F = GF(7^2, 'a')
+        sage: X = PolynomialRing(F, 'x').gen()
+        sage: j_in = supersingular_j(F)
+        sage: sage.modular.ssmod.ssmod.Phi5(X,j_in)
+        x^6 + 6*x^5 + x^4 + 6*x^3 + x^2 + 6*x + 1
+
+    AUTHORS:
+       Iftikhar Burhanuddin - burhanud@usc.eduw
 
     """
-    jsq = j**2
-    jcu = jsq*j
-    jqu = jcu*j
-    jqui = jqu*j
-    jse = jqui*j
+    j_pow2 = j**2
+    j_pow3 = j_pow2*j
+    j_pow4 = j_pow3*j
+    j_pow5 = j_pow4*j
+    j_pow6 = j_pow5*j
 
-    return x.parent()([ \
-        141359947154721358697753474691071362751004672000 + 53274330803424425450420160273356509151232000*j + 6692500042627997708487149415015068467200*jsq + 280244777828439527804321565297868800*jcu + 1284733132841424456253440*jqu + 1963211489280*jqui + jse, \
-        53274330803424425450420160273356509151232000 - 264073457076620596259715790247978782949376*j + 36554736583949629295706472332656640000*jsq - 192457934618928299655108231168000*jcu + 128541798906828816384000*jqu - 246683410950*jqui, \
-        6692500042627997708487149415015068467200 + 36554736583949629295706472332656640000*j + 5110941777552418083110765199360000*jsq + 26898488858380731577417728000*jcu + 383083609779811215375*jqu + 2028551200*jqui, \
-        280244777828439527804321565297868800 - 192457934618928299655108231168000*j + 26898488858380731577417728000*jsq - 441206965512914835246100*jcu + 107878928185336800*jqu - 4550940*jqui, \
-        1284733132841424456253440 + 128541798906828816384000*j + 383083609779811215375*jsq + 107878928185336800*jcu + 1665999364600*jqu + 3720*jqui, \
-        1963211489280 - 246683410950*j + 2028551200*jsq - 4550940*jcu + 3720*jqu - jqui, \
-        1])
+    return x.parent()([
+        141359947154721358697753474691071362751004672000 +
+        53274330803424425450420160273356509151232000*j +
+        6692500042627997708487149415015068467200*j_pow2 +
+        280244777828439527804321565297868800*j_pow3 +
+        1284733132841424456253440*j_pow4 + 1963211489280*j_pow5 +
+        j_pow6, 53274330803424425450420160273356509151232000 -
+        264073457076620596259715790247978782949376*j +
+        36554736583949629295706472332656640000*j_pow2 -
+        192457934618928299655108231168000*j_pow3 +
+        128541798906828816384000*j_pow4 - 246683410950*j_pow5,
+        6692500042627997708487149415015068467200 +
+        36554736583949629295706472332656640000*j +
+        5110941777552418083110765199360000*j_pow2 +
+        26898488858380731577417728000*j_pow3 +
+        383083609779811215375*j_pow4 + 2028551200*j_pow5,
+        280244777828439527804321565297868800 -
+        192457934618928299655108231168000*j +
+        26898488858380731577417728000*j_pow2 -
+        441206965512914835246100*j_pow3 + 107878928185336800*j_pow4 -
+        4550940*j_pow5, 1284733132841424456253440 +
+        128541798906828816384000*j + 383083609779811215375*j_pow2 +
+        107878928185336800*j_pow3 + 1665999364600*j_pow4 +
+        3720*j_pow5, 1963211489280 - 246683410950*j +
+        2028551200*j_pow2 - 4550940*j_pow3 + 3720*j_pow4 - j_pow5, 1])
 
 
 def dimension_supersingular_module(prime, level=1):
     r"""
-    This function returns the dimension Supersingular module, which is equal to the dimension of the space of cusp forms of weight $2$ and conductor equal to prime times level.
+    This function returns the dimension Supersingular module, which is
+    equal to the dimension of the space of cusp forms of weight $2$
+    and conductor equal to prime times level.
 
     INPUT:
        prime -- integer, prime
@@ -173,8 +247,10 @@ def dimension_supersingular_module(prime, level=1):
     The code below illustrates the usage of this function.
         sage: dimension_supersingular_module(7)
         1
+
         sage: dimension_supersingular_module(15073)
         1256
+
         sage: dimension_supersingular_module(83401)
         6950
 
@@ -182,7 +258,6 @@ def dimension_supersingular_module(prime, level=1):
     The case of level > 1 has not been implemented yet.
 
     AUTHORS:
-       William Stein - wstein@gmail.com
        David Kohel - kohel@maths.usyd.edu.au
        Iftikhar Burhanuddin - burhanud@usc.edu
     """
@@ -225,7 +300,6 @@ def supersingular_D(prime):
         -7
 
     AUTHORS:
-       William Stein - wstein@gmail.com
        David Kohel - kohel@maths.usyd.edu.au
        Iftikhar Burhanuddin - burhanud@usc.edu
     """
@@ -242,36 +316,38 @@ def supersingular_D(prime):
 
 def supersingular_j(FF):
     r"""
-    This function a supersingular j-invariant over the finite field FF.
+    This function returns a supersingular j-invariant over the finite
+    field FF.
 
     INPUT:
-       FF  -- finite field
+       FF  -- finite field with p^2 elements, where p is a prime number
 
     OUTPUT:
-       finite field element  -- a supersingular j-invariant defined over the finite field FF
+       finite field element -- a supersingular j-invariant
+       defined over the finite field FF
 
     EXAMPLES:
     The following examples showcase the usage of the function.
-        sage: supersingular_j(GF(7))
+        sage: supersingular_j(GF(7^2, 'a'))
         6
 
         sage: supersingular_j(GF(15073^2,'a'))
         4443*a + 13964
 
-        sage: supersingular_j(GF(83401))
+        sage: supersingular_j(GF(83401^2, 'a'))
         67977
 
-    NOTES:
-        p = 15073 has no class number one cm_j_invariant
-
     AUTHORS:
-       William Stein - wstein@gmail.com
        David Kohel - kohel@maths.usyd.edu.au
        Iftikhar Burhanuddin - burhanud@usc.edu
     """
+    if not(FF.is_field()) or not(FF.is_finite()):
+        raise ValueError, "%s is not a finite field"%FF
     prime = FF.characteristic()
     if not(rings.Integer(prime).is_prime()):
         raise ValueError, "%s is not a prime"%prime
+    if not(rings.Integer(FF.cardinality())) == rings.Integer(prime**2):
+        raise ValueError, "%s is not a quadratic extension"%FF
     if rings.kronecker(-1, prime) != 1:
         j_invss = 1728                 #(2^2 * 3)^3
     elif rings.kronecker(-2, prime) != 1:
@@ -314,7 +390,9 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
     def dimension(self):
         r"""
-        This function returns the dimension of the space of modular forms of weight 2 and level equal to the level associated to self.
+        This function returns the dimension of the space of modular
+        forms of weight 2 and level equal to the level associated to
+        self.
 
         INPUT:
             self -- SupersingularModule object
@@ -339,7 +417,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
            The case of level > 1 has not yet been implemented.
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """
@@ -372,7 +449,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             1
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """
@@ -380,7 +456,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
     def prime(self):
         r"""
-        This function returns the characteristic of the finite field associated to self.
+        This function returns the characteristic of the finite field
+        associated to self.
 
         INPUT:
             self -- SupersingularModule object
@@ -395,7 +472,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             19
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """
@@ -418,7 +494,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             2
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """
@@ -426,13 +501,17 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
     def supersingular_points(self):
         r"""
-        This function computes the supersingular j-invariants over the finite field associated to self.
+        This function computes the supersingular j-invariants over the
+        finite field associated to self.
 
         INPUT:
             self -- SupersingularModule object
 
-        OUTPUT:
-            list_j, dict_j -- list_j is the list of supersingular j-invariants, dict_j is a dictionary with these j-invariants as keys and their indexes as values. The latter is used to speed up j-invariant look-up. The indexes are based on the order of their \emph{discovery}.
+        OUTPUT: list_j, dict_j -- list_j is the list of supersingular
+            j-invariants, dict_j is a dictionary with these
+            j-invariants as keys and their indexes as values. The
+            latter is used to speed up j-invariant look-up. The
+            indexes are based on the order of their \emph{discovery}.
 
         EXAMPLES:
         The following examples describe the usage of the function.
@@ -449,7 +528,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             ([8, 27*a + 23, 10*a + 20], {8: 0, 10*a + 20: 2, 27*a + 23: 1})
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """
@@ -523,7 +601,6 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             [1 2 0]
 
         AUTHORS:
-            William Stein - wstein@gmail.com
             David Kohel - kohel@maths.usyd.edu.au
             Iftikhar Burhanuddin - burhanud@usc.edu
         """

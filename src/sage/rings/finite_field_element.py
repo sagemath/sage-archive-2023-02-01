@@ -134,13 +134,16 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             True
             sage: a.is_square()
             False
+
+            sage: k(0).is_square()
+            True
         """
         K = self.parent()
         if K.characteristic() == 2:
             return True
         n = K.order() - 1
         a = self**(n / 2)
-        return a == 1
+        return a == 1 or a == 0
 
     def square_root(self):
         """

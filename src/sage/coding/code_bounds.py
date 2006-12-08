@@ -154,7 +154,6 @@ def codesize_upper_bound(n,d,q):
     EXAMPLES:
         sage: codesize_upper_bound(10,3,2)
         85
-
     """
     return eval(gap.eval("UpperBound(%s,%s,%s)"%( n, d, q )))
 

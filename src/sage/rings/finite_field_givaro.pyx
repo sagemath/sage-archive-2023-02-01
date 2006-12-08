@@ -294,7 +294,7 @@ cdef class FiniteField_givaro(FiniteField):
         Return integer representing cardinality of the domain.
 
         """
-        return self.order_c()
+        return int(self.order_c())
 
     cdef order_c(FiniteField_givaro self):
         """
@@ -744,12 +744,9 @@ cdef class FiniteField_givaro(FiniteField):
 
         EXAMPLE:
             sage: list(GF(2**2, 'a'))
-            [0, 1, a, a + 1]
+            [0, a, a + 1, 1]
         """
-        if self.degree()>1:
-            return FiniteField.__iter__(self)
-        else:
-            return FiniteField_givaro_iterator(self)
+        return FiniteField_givaro_iterator(self)
 
     def __richcmp__(left, right, int op):
         return (<Parent>left)._richcmp(right, op)
@@ -1017,8 +1014,7 @@ def unpickle_FiniteField_givaro(order,variable_name,modulus,rep,cache):
 
 cdef class FiniteField_givaro_iterator:
     """
-    Iterator over FiniteField_givaro elements of degree 1. We iterate
-    over fields of higher degree using the VectorSpace iterator.
+    Iterator over FiniteField_givaro elements.
     """
     cdef int iterator
     cdef FiniteField_givaro _parent
@@ -1033,11 +1029,11 @@ cdef class FiniteField_givaro_iterator:
 
         self.iterator=self.iterator+1
 
-        if self.iterator==self._parent.characteristic():
+        if self.iterator==self._parent.order_c():
             self.iterator = -1
             raise StopIteration
 
-        return make_FiniteField_givaroElement(self._parent,self._parent.int2log(self.iterator))
+        return make_FiniteField_givaroElement(self._parent,self.iterator)
 
     def __repr__(self):
         return "Iterator over %s"%self._parent

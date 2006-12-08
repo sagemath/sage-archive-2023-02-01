@@ -1189,36 +1189,57 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         (<FiniteField_givaro>self._parent).objectptr.inv(r, self.object)
         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
 
+    def __pow__(FiniteField_givaroElement self, exp, other):
+        """
+        EXAMPLE:
+            sage: K.<a> = GF(3^3, 'a')
+            sage: a^3 == a*a*a
+            True
+            sage: b = a+1
+            sage: b^5 == b^2 * b^3
+            True
+            sage: b^(-1) == 1/b
+            True
+            sage: b = K(-1)
+            sage: b^2 == 1
+            True
 
-    def __pow__(FiniteField_givaroElement self, int exp, other):
-        #There doesn't seem to exist a power function for FiniteField_givaro. So we
-        #had to write one. It is pretty clumbsy (read: slow) right now
+        ALGORITHM:
+            Givaro objects are stored as integers $i$ such that $self=a^i$, where
+            $a$ is a generator of $K$ (though necissarily the one returned by K.gens()).
+            Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
+            mod the multiplicative order of $K$.
+        """
 
-        cdef int power
-        cdef int i
-        cdef int epow2
-        cdef GivaroGfq *field
+        cdef int r
+        cdef int order
+        cdef FiniteField_givaro field
+        field = <FiniteField_givaro>self._parent
 
-        field = (<FiniteField_givaro>self._parent).objectptr
-
-        exp = exp % ((<FiniteField_givaro>self._parent).order_c()-1)
-
-        if field.isOne(self.object):
+        if (field.objectptr).isOne(self.object):
             return self
 
-        if exp==0:
-            return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),field.one)
+        elif exp == 0:
+            return make_FiniteField_givaroElement(field, field.objectptr.one)
 
-        power = field.one
-        i = 0;
-        epow2 = self.object;
-        while (exp>>i) > 0:
-            if (exp>>i) & 1:
-                field.mulin(power,epow2)
-            field.mulin(epow2,epow2)
-            i = i + 1
+        elif (field.objectptr).isZero(self.object):
+            return make_FiniteField_givaroElement(field, field.objectptr.zero)
 
-        return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),power)
+        order = (field.order_c()-1)
+        exp = exp % order
+
+        r = exp
+        if r == 0:
+            return make_FiniteField_givaroElement(field, field.objectptr.one)
+
+        r = (r * self.object) % order
+        if r < 0:
+            r = r + order
+        if r == 0:
+            return make_FiniteField_givaroElement(field, field.objectptr.one)
+
+        return make_FiniteField_givaroElement(field, r)
+
 
 ##     def add(FiniteField_givaroElement self,FiniteField_givaroElement other):
 ##         """

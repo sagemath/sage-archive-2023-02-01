@@ -805,7 +805,33 @@ cdef class MonoidElement(Element):
         raise NotImplementedError
 
     def __pow__(self, n, dummy):
-        cdef int i
+        """
+        Retern the (integral) power of self.
+
+        EXAMPLE:
+            sage: a = Integers(389)['x,y'](37)
+            sage: a^2
+            202
+            sage: a^388
+            1
+            sage: a^(2^120)
+            81
+            sage: a^0
+            1
+            sage: a^1 == a
+            True
+            sage: a^2 * a^3 == a^5
+            True
+            sage: (a^3)^2 == a^6
+            True
+            sage: a^57 * a^43 == a^100
+            True
+            sage: a^(-1) == 1/a
+            True
+            a^200 * a^(-64) == a^136
+            True
+        """
+        cdef int cn
 
         if PyFloat_Check(n):
             raise TypeError, "raising %s to the power of the float %s not defined"%(self, n)
@@ -813,22 +839,36 @@ cdef class MonoidElement(Element):
         n = int(n)
 
         a = self
-        power = self.parent()(1)
         if n < 0:
             n = -n
             a = ~self
-        elif n == 0:
-            return power
 
-        power = (<Element>self)._parent(1)
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benifit from the code below
+            cn = n
+            if cn == 0:
+                return (<Element>a)._parent(1)
+            elif cn == 1:
+                return a
+            elif cn == 2:
+                return a*a
+            elif cn == 3:
+                return a*a*a
+
+        # One multiplication can be saved by starting with
+        # the smallest power needed rather than with 1
         apow = a
-        while True:
-            if n&1 > 0: power = power*apow
+        while n&1 == 0:
+            apow = apow*apow
             n = n >> 1
-            if n != 0:
-                apow = apow*apow
-            else:
-                break
+        power = apow
+        n = n >> 1
+
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
+            n = n >> 1
 
         return power
 

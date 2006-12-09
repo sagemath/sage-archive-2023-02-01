@@ -42,7 +42,8 @@ class TextCell(Cell):
         self.__worksheet = worksheet
 
     def html(self, ncols, do_print=False):
-        return '<font size=+1>%s</font>'%self.__text
+        t = self.__text
+        return '<font size=+1>%s</font>'%t
         #return self.__text
 
     def plain_text(self, prompts=False):

@@ -159,8 +159,8 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text" and "DocText" buttons provide the full text of the
-worksheet in a very convenient format for copy and paste.
+the "Text" buttons provide the full text of the worksheet in a very
+convenient format for copy and paste.
 
 
 \subsubsection{History}

@@ -33,6 +33,34 @@ import notebook
 import worksheet
 
 class Cell:
+    pass
+
+class TextCell(Cell):
+    def __init__(self, id, text, worksheet):
+        self.__id = int(id)
+        self.__text = text
+        self.__worksheet = worksheet
+
+    def html(self, ncols, do_print=False):
+        if '<html>' in self.__text:
+            return self.__text
+        return '<pre>%s</pre>'%self.__text
+        #return self.__text
+
+    def plain_text(self):
+        return self.__text
+
+    def edit_text(self, prompts=False):
+        return self.__text
+
+    def id(self):
+        return self.__id
+
+    def is_auto_cell(self):
+        return False
+
+
+class ComputeCell(Cell):
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)

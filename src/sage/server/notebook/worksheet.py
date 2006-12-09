@@ -28,7 +28,8 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
-from cell import Cell
+
+from cell import ComputeCell, TextCell
 
 INTERRUPT_TRIES = 50
 INITIAL_NUM_CELLS = 1
@@ -161,10 +162,7 @@ class Worksheet:
         Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
         suitable for hand editing.
         """
-        #s = '#'*80 + '\n'
-        #s += '# Worksheet: %s'%self.name() + '\n'
-        #s += '#'*80+'\n\n'
-        s = ' == %s =='%self.name() + '\n\n'
+        s = ''
         for C in self.__cells:
             t = C.edit_text(prompts=prompts).strip()
             if t != '':
@@ -176,8 +174,12 @@ class Worksheet:
         # This is where we would save the last version in a history.
         cells = []
         while True:
+            plain_text = extract_text_before_first_compute_cell(text)
+            if len(plain_text.strip()) > 0:
+                T = self._new_text_cell(plain_text)
+                cells.append(T)
             try:
-                input, output, graphics, i = extract_first_text_cell(text)
+                input, output, graphics, i = extract_first_compute_cell(text)
             except EOFError:
                 break
             text = text[i:]
@@ -382,11 +384,17 @@ class Worksheet:
             if c.is_auto_cell():
                 self.enqueue(c)
 
+    def _new_text_cell(self, plain_text, id=None):
+        if id is None:
+            id = self.__next_id
+            self.__next_id += 1
+        return TextCell(id, plain_text, self)
+
     def _new_cell(self, id=None):
         if id is None:
             id = self.__next_id
             self.__next_id += 1
-        return Cell(id, '', '', self)
+        return ComputeCell(id, '', '', self)
 
     def __repr__(self):
         return str(self.__cells)
@@ -416,7 +424,7 @@ class Worksheet:
 
 
     def enqueue(self, C):
-        if not isinstance(C, Cell):
+        if not isinstance(C, ComputeCell):
             raise TypeError
         if C.worksheet() != self:
             raise ValueError, "C must be have self as worksheet."
@@ -1256,8 +1264,17 @@ def ignore_prompts_and_output(s):
     return s
 
 
+def extract_text_before_first_compute_cell(text):
+    """
+    OUTPUT:
+        Everything in text up to the first {{{.
+    """
+    i = text.find('{{{')
+    if i == -1:
+        return text
+    return text[:i]
 
-def extract_first_text_cell(text):
+def extract_first_compute_cell(text):
     """
     INPUT:
         a block of wiki-like marked up text

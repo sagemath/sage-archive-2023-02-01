@@ -1157,13 +1157,23 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
             [[1], [a^2], [-1], [-a^2]]
 
 
-        sage: G, e = DirichletGroup(13).objgens()
+        sage: G.<e> = DirichletGroup(13)
         sage: loads(G.dumps()) == G
         True
 
         sage: G = DirichletGroup(19, GF(5))
         sage: loads(G.dumps()) == G
         True
+
+    We compute a Dirichlet group over a large prime field.
+        sage: p = next_prime(10^40)
+        sage: g = DirichletGroup(19, GF(p)); g
+        Group of Dirichlet characters of modulus 19 over Finite Field of size 10000000000000000000000000000000000000121
+
+    Note that the root of unity has small order, i.e., it is not the bigest
+    order root of unity in the field.
+        sage: g.zeta_order()
+        2
     """
     modulus = rings.Integer(modulus)
 
@@ -1180,9 +1190,12 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
         e = rings.IntegerModRing(modulus).unit_group_exponent()
         try:
             zeta = base_ring.zeta(e)
+            zeta_order = zeta.multiplicative_order()
         except (TypeError, ValueError):
             zeta = base_ring.zeta()
-        zeta_order = zeta.multiplicative_order()
+            n = zeta.multiplicative_order()
+            zeta_order = arith.GCD(e,n)
+            zeta = zeta**(n//zeta_order)
 
     elif zeta_order is None:
         zeta_order = zeta.multiplicative_order()
@@ -1216,13 +1229,13 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
     """
     def __init__(self, modulus, zeta, zeta_order):
         self._zeta = zeta
-        self._zeta_order = zeta_order
+        self._zeta_order = int(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
         a = zeta.parent()(1)
         v = {a:0}
         w = [a]
-        for i in range(1, zeta_order):
+        for i in range(1, self._zeta_order):
             a = a * zeta
             v[a] = i
             w.append(a)

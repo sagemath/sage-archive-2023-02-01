@@ -565,4 +565,3 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         return cmp(self.__value, other.__value)
 
 
-

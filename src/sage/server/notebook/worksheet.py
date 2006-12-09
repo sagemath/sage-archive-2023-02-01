@@ -242,6 +242,9 @@ class Worksheet:
     def cell_id_list(self):
         return [C.id() for C in self.__cells]
 
+    def compute_cell_id_list(self):
+        return [C.id() for C in self.__cells if isinstance(C, ComputeCell)]
+
     def cell_list(self):
         return self.__cells
 
@@ -1221,7 +1224,7 @@ class Worksheet:
         s += '<div class="worksheet_bottom_padding"></div>\n'
 
         if not do_print:
-            s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
+            s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.compute_cell_id_list()
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s

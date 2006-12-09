@@ -708,6 +708,9 @@ cdef class Matrix(matrix1.Matrix):
             [    0  25/4  15/2   5/2]
             [    0     0  58/5     3]
         """
+        cdef Py_ssize_t i, j, m, n, r
+        n = self._nrows
+
         tm = verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
 
         if not self.is_square():
@@ -718,10 +721,8 @@ cdef class Matrix(matrix1.Matrix):
 
         self.check_mutability()
 
-        cdef Py_ssize_t i, j, m, n, r
         zero = self._base_ring(0)
         one = self._base_ring(1)
-        n = self._nrows
         for m from 1 <= m < n-1:
             # Search for a non-zero entry in column m-1
             i = -1

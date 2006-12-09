@@ -680,11 +680,11 @@ def previous_prime_power(n):
         sage: previous_prime_power(0)
         Traceback (most recent call last):
         ...
-        ValueError: no previous prime
+        ValueError: no previous prime power
         sage: previous_prime_power(1)
         Traceback (most recent call last):
         ...
-        ValueError: no previous prime
+        ValueError: no previous prime power
 
         sage: n = previous_prime_power(2^16 - 1)
         sage: while is_prime(n):

@@ -257,7 +257,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         return FiniteField_ext_pariElement(self.__parent, self.__value)
 
-    def _pari_(self):
+    def _pari_(self, var=None):
         """
         Return PARI object corresponding to this finite field element.
 
@@ -277,7 +277,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.parent()
             Finite Field in a of size 3^3
         """
-        return self.__value
+        if var is None:
+            var = self.parent().variable_name()
+        if var == 'a':
+            return self.__value
+        else:
+            return self.__value.subst('a', var)
 
     def _pari_init_(self):
         return str(self.__value)

@@ -72,7 +72,7 @@ We can put text in a graph:
     sage: x = text('x axis', (1.5,-0.2))
     sage: y = text('y axis', (0.4,0.9))
     sage: g = p+t+x+y
-    sage.: g.show(xmin=-1.5, xmax=2, ymin=-1, ymax=1)
+    sage: g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
@@ -181,7 +181,7 @@ class Graphics(SageObject):
         sage: for x in srange(1,h+1):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
-        sage.: G.show(figsize=[5,5])
+        sage: G.save('sage.png', figsize=[5,5])
 
     """
 
@@ -1266,7 +1266,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g = Graphics()
         sage: g.append(NGP)
         sage: g.axes(False)
-        sage: g.save('a.png')
+        sage: g.save('sage.png')
     """
     def __init__(self, graph, pos=None, with_labels=True, node_size=300):
         self.__nxg = graph

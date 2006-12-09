@@ -83,8 +83,11 @@ class FormalSum(AdditiveGroupElement):
     def __mul__(self, s):
         return self.__class__([(c*s, x) for c,x in self], check=False, parent=self.parent())
 
-    def __rmul__(self, s):
+    def _rmul_(self, s):
         return self.__class__([(s*c, x) for c,x in self], parent=self.parent())
+
+    def _lmul_(self, s):
+        return self.__class__([(c*s, x) for c,x in self], parent=self.parent())
 
     def reduce(self):
         if len(self) == 0:

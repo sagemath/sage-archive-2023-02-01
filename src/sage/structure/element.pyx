@@ -532,7 +532,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         # default implementation is to try multiplying by -1.
-        return bin_op_c(-1, self, operator.mul)
+        return bin_op_c(self._parent._base(-1), self, operator.mul)
 
 
     def _neg_(ModuleElement self):

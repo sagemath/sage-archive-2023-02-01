@@ -47,8 +47,8 @@ class SchemeMorphism(Morphism):
         EXAMPLES:
         We construct a scheme isomorphic to the projective line over
         $\Spec(\Q)$ by gluing two copies of $\A^1$ minus a point.
-            sage: R, (x,y) = MPolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S, (xbar,ybar) = (R/(x*y - 1)).objgens(['xbar', 'ybar'])
+            sage: R.<x,y> = MPolynomialRing(QQ, 2)
+            sage: S.<xbar, ybar> = R.quotient(x*y - 1)
             sage: Rx = PolynomialRing(QQ, 'x')
             sage: i1 = Rx.hom([xbar])
             sage: Ry = PolynomialRing(QQ, 'y')
@@ -123,7 +123,7 @@ class SchemeMorphism_spec(SchemeMorphism):
     A morphism of spectrums of rings
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(QQ).objgens()
+        sage: R.<x> = PolynomialRing(QQ)
         sage: phi = R.hom([QQ(7)]); phi
         Ring morphism:
           From: Univariate Polynomial Ring in x over Rational Field
@@ -331,7 +331,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
     EXAMPLES:
         sage: P = ProjectiveSpace(3, RR)
         sage: P(2,3,4,5)
-        (0.40000000000000002 : 0.59999999999999998 : 0.80000000000000004 : 1.0000000000000000)
+        (0.399999999999999 : 0.599999999999999 : 0.799999999999999 : 1.00000000000000)
 
         sage: P = ProjectiveSpace(3, QQ)
         sage: P(0,0,0,0)

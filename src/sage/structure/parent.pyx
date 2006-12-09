@@ -212,7 +212,7 @@ cdef class Parent(sage_object.SageObject):
                 return self(1)
             except TypeError:
                 pass
-        raise NotImplementedError, "please implement an_element_c_impl or an_element_impl in your parent class"
+        raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
 
     def _an_element(self):        # do not override this (call from Python)
         return self._an_element_c()

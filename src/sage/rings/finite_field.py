@@ -717,7 +717,10 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return False
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, integer.Integer, integer_mod.IntegerMod_abstract)):
+        if isinstance(x, (int, long, integer.Integer)):
+            return self(x)
+        if isinstance(x, integer_mod.IntegerMod_abstract) and \
+               x.parent().characteristic() == self.characteristic():
             return self(x)
         raise TypeError, "no canonical coercion of x"
 

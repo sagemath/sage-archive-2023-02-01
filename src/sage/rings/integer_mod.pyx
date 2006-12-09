@@ -771,7 +771,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __hash__(self):
 #        return mpz_pythonhash(self.value)
-        return hash(self.lift())
+        return hash((self.__modulus.sageInteger, self.lift()))
 
 
 

@@ -87,6 +87,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         except (AttributeError, TypeError):
             raise TypeError, "unable to coerce"
 
+    def __hash__(self):
+        return hash((self.parent().__hash__(), self.__value))
+
     def polynomial(self):
         """
         Elements of a finite field are represented as a polynomial

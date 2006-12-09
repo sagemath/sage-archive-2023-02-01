@@ -29,7 +29,7 @@ from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
 
-from cell import ComputeCell, TextCell
+from cell import Cell, TextCell
 
 INTERRUPT_TRIES = 50
 INITIAL_NUM_CELLS = 1
@@ -243,7 +243,7 @@ class Worksheet:
         return [C.id() for C in self.__cells]
 
     def compute_cell_id_list(self):
-        return [C.id() for C in self.__cells if isinstance(C, ComputeCell)]
+        return [C.id() for C in self.__cells if isinstance(C, Cell)]
 
     def cell_list(self):
         return self.__cells
@@ -397,7 +397,7 @@ class Worksheet:
         if id is None:
             id = self.__next_id
             self.__next_id += 1
-        return ComputeCell(id, '', '', self)
+        return Cell(id, '', '', self)
 
     def __repr__(self):
         return str(self.__cells)
@@ -427,7 +427,7 @@ class Worksheet:
 
 
     def enqueue(self, C):
-        if not isinstance(C, ComputeCell):
+        if not isinstance(C, Cell):
             raise TypeError
         if C.worksheet() != self:
             raise ValueError, "C must be have self as worksheet."

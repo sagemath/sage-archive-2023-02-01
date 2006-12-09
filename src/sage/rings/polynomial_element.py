@@ -202,7 +202,8 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         """
         Compare the two polynomials self and other.
 
-        We order polynomials in dictionary order starting with the *linear* coefficients.
+        We order polynomials first by degree, then in dictionary order
+        starting with the coefficient of largest degree.
 
         EXAMPLES:
             sage: R.<x> = QQ['x']
@@ -215,8 +216,10 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: R(-1) < R(0)
             True
         """
-        m = max(self.degree(), other.degree())
-        for i in xrange(m+1):
+        d1 = self.degree(); d2 = other.degree()
+        c = cmp(d1, d2)
+        if c: return c
+        for i in reversed(xrange(d1+1)):
             c = cmp(self[i], other[i])
             if c: return c
         return 0

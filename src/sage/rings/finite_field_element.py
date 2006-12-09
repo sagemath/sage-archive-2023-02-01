@@ -13,18 +13,18 @@ EXAMPLES:
 import operator
 
 import sage.structure.element as element
-import finite_field
 import arith
 import integer_ring
 from integer import Integer
 import rational
-import polynomial_ring
 from sage.libs.all import pari, pari_gen
 from sage.structure.element import FiniteFieldElement
 import field_element
+import integer_mod
+import ring
 
 def is_FiniteFieldElement(x):
-    return isinstance(x,FiniteFieldElement)
+    return ring.is_FiniteField(x.parent())
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """
@@ -87,6 +87,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         except (AttributeError, TypeError):
             raise TypeError, "unable to coerce"
 
+    def __hash__(self):
+        return hash((self.parent().__hash__(), self.__value))
+
     def polynomial(self):
         """
         Elements of a finite field are represented as a polynomial
@@ -134,13 +137,16 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             True
             sage: a.is_square()
             False
+
+            sage: k(0).is_square()
+            True
         """
         K = self.parent()
         if K.characteristic() == 2:
             return True
         n = K.order() - 1
         a = self**(n / 2)
-        return a == 1
+        return a == 1 or a == 0
 
     def square_root(self):
         """
@@ -165,7 +171,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
           ValueError: must be a perfect square.
 
         """
-        R = polynomial_ring.PolynomialRing(self.parent(), 'x')
+        R = self.parent()['x']
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
@@ -251,7 +257,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         """
         return FiniteField_ext_pariElement(self.__parent, self.__value)
 
-    def _pari_(self):
+    def _pari_(self, var=None):
         """
         Return PARI object corresponding to this finite field element.
 
@@ -271,7 +277,12 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.parent()
             Finite Field in a of size 3^3
         """
-        return self.__value
+        if var is None:
+            var = self.parent().variable_name()
+        if var == 'a':
+            return self.__value
+        else:
+            return self.__value.subst('a', var)
 
     def _pari_init_(self):
         return str(self.__value)
@@ -333,8 +344,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
 
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
-            sage: k = FiniteField_ext_pari(3**3, 'a')
-            sage: a = k.gen()
+            sage: k = FiniteField_ext_pari(3^3,'a'); a = k.gen()
             sage: a.charpoly('x')
             x^3 + 2*x + 1
             sage: k.modulus()
@@ -343,7 +353,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.charpoly('x')
             x^3 + x^2 + 2*x + 1
         """
-        R = polynomial_ring.PolynomialRing(self.parent().prime_subfield(), var)
+        R = self.parent().prime_subfield()[var]
         return R(self.__value.charpoly('x').lift())
 
     def trace(self):
@@ -359,7 +369,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.trace()
             2
             sage: b.norm()
-            2
+            1
         """
         return self.parent().prime_subfield()(self.__value.trace().lift())
 
@@ -378,9 +388,14 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             sage: b.trace()
             2
             sage: b.norm()
-            2
+            1
         """
-        return self.charpoly('x')[0]
+        f = self.charpoly('x')
+        n = f[0]
+        if f.degree() % 2 != 0:
+            return -n
+        else:
+            return n
 
     def log(self, a):
         """
@@ -435,7 +450,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: print latex(Set(FiniteField_ext_pari(9,'z')))
-            \left\{2z + 2, 2z + 1, 2z, 1, 0, 2, z, z + 1, z + 2\right\}
+            \left\{z, 0, z + 2, 2, 2z, 2z + 1, 1, z + 1, 2z + 2\right\}
         """
         return self.polynomial()._latex_()
 

@@ -262,3 +262,72 @@ def subtract_from_line_numbers(s, n):
     return '\n'.join(ans)
 
 
+################################################################
+# COMPILE
+################################################################
+def sagex_lambda(vars, expr,
+                 verbose=False,
+                 compile_message=False,
+                 use_cache=False):
+    """
+    Create a compiled function which evaluates expr assuming machine
+    values for vars.
+
+    WARNING: This implementation is not well tested.
+
+    INPUT:
+        vars -- list of pairs (variable name, c-data type), where
+                the variable names and data types are strings.
+            OR -- a string such as
+                         'double x, int y, int z'
+        expr -- an expression involving the vars and constants;
+                You can access objects defined in the current
+                module scope globals() using sagobject_name.
+                See the examples below.
+
+    EXAMPLES:
+    We create a Lambda function in pure Python (using the r to make sure the 3.2
+    is viewed as a Python float):
+        sage: f = lambda x,y: x*x + y*y + x + y + 17r*x + 3.2r
+
+    We make the same Lambda function, but in a compiled form.
+        sage: g = sagex_lambda('double x, double y', 'x*x + y*y + x + y + 17*x + 3.2')
+
+    We access a global function and variable.
+        sage: a = 25
+        sage: f = sagex_lambda('double x', 'sage.math.sin(x) + sage.a')
+        sage: f(10)
+        24.455978889110629
+        sage: a = 50
+        sage: f(10)
+        49.455978889110632
+    """
+    if isinstance(vars, str):
+        v = vars
+    else:
+        v = ', '.join(['%s %s'%(typ,var) for typ, var in vars])
+
+    s = """
+class _s:
+   def __getattr__(self, x):
+       return globals()[x]
+
+sage = _s()
+
+def f(%s):
+ return %s
+    """%(v, expr)
+    if verbose:
+        print s
+    import sage.misc.misc
+    tmpfile = sage.misc.misc.tmp_filename() + ".spyx"
+    open(tmpfile,'w').write(s)
+
+    import sage.server.support
+    d = {}
+    sage.server.support.sagex_import_all(tmpfile, d,
+                                         verbose=verbose, compile_message=compile_message,
+                                         use_cache=use_cache,
+                                         create_local_c_file=False)
+    return d['f']
+

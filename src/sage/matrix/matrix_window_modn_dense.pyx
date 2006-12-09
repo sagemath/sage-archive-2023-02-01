@@ -10,6 +10,13 @@ from sage.matrix.matrix_modn_dense cimport Matrix_modn_dense
 
 cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
+    cdef new_empty_window(self, Py_ssize_t nrows, Py_ssize_t ncols):
+# the current code is all python, goes through inits, and possibly creates a parent...
+# can we get away with something faster?
+#       a = MatrixWindow_modn_dense.__new__(self._parent, )?
+       a = self._matrix.new_matrix(nrows, ncols)
+       return self.new_matrix_window(a, 0, 0, nrows, ncols)
+
     cdef set_to(MatrixWindow_modn_dense self, MatrixWindow A):
         """
         Change self, making it equal A.

@@ -159,8 +159,8 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text" and "DocText" buttons provide the full text of the
-worksheet in a very convenient format for copy and paste.
+the "Text" buttons provide the full text of the worksheet in a very
+convenient format for copy and paste.
 
 
 \subsubsection{History}
@@ -352,10 +352,10 @@ WRAP_NCOLS = 80
 JSMATH=False
 
 class Notebook(SageObject):
-    def __init__(self, dir='sage_notebook',
-                 username=None, password=None,
-                 color='default', system=None, show_debug = False,
-                 kill_idle=0):
+    def __init__(self, dir='sage_notebook', username=None,
+                 password=None, color='default', system=None,
+                 show_debug = False, log_server=False,
+                 kill_idle=False, splashpage=False):
         self.__dir = dir
         self.set_system(system)
         self.__color = color
@@ -369,10 +369,14 @@ class Notebook(SageObject):
         self.__makedirs()
         self.__next_worksheet_id = 0
         self.__history = []
+        self.__history_count = 0
+        self.__log_server = log_server #log all POST's and GET's
+        self.__server_log = [] #server log list
         W = self.create_new_worksheet('_scratch_')
         self.__default_worksheet = W
         self.__show_debug = show_debug
         self.__kill_idle = kill_idle
+        self.__splashpage = splashpage if splashpage is not None else False
         self.save()
 
     def kill_idle(self):
@@ -403,6 +407,16 @@ class Notebook(SageObject):
         elif system:  # don't change if it is None
             self.__system = system
 
+    def splashpage(self):
+        try:
+            return self.__splashpage
+        except AttributeError:
+            self.__splashpage = True
+            return self.__splashpage
+
+    def set_splashpage(self, splashpage):
+        self.__splashpage = splashpage
+
     def color(self):
         try:
             return self.__color
@@ -428,6 +442,21 @@ class Notebook(SageObject):
         H.append(input_text)
         while len(H) > self.max_history_length():
             del H[0]
+
+    def history_count_inc(self):
+        self.__history_count += 1
+
+    def history_count(self):
+        return self.__history_count
+
+    def server_log(self):
+        return self.__server_log
+
+    def log_server(self):
+        return self.__log_server
+
+    def set_log_server(self, log_server):
+        self.__log_server = log_server
 
     def history(self):
         try:
@@ -613,6 +642,10 @@ class Notebook(SageObject):
         return W
 
     def delete_worksheet(self, name):
+        """
+        Delete the given worksheet and remove its
+        name from the worksheet list.
+        """
         if not (name in self.__worksheets.keys()):
             raise KeyError, "Attempt to delete missing worksheet"
         W = self.__worksheets[name]
@@ -641,9 +674,9 @@ class Notebook(SageObject):
 
         INPUT:
             id -- something that identifies a worksheet.
+                 string -- use worksheet with that name or filename.
                  None -- use the default worksheet.
                  string int -- something that coerces to an integer; worksheet with that number
-                 string -- use worksheet with that name or filename.
 
         OUTPUT:
             a worksheet.
@@ -751,16 +784,20 @@ class Notebook(SageObject):
             name += ' (%s)'%len(W)
             name += ' '*(m-len(name))
             name = name.replace(' ','&nbsp;')
-            txt = '<a class="%s" onClick="switch_to_worksheet(%s)" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
+            txt = '<a class="%s" onClick="switch_to_worksheet(\'%s\')" onMouseOver="show_worksheet_menu(%s)" href="/%s">%s</a>'%(
                 #cls,W.id(),W.id(),W.id(),name)
                 cls,W.id(),W.id(), W.filename(),name)
             s.append(txt)
         return '<br>'.join(s)
 
     def _html_head(self, worksheet_id):
-        worksheet = self.get_worksheet_with_id(worksheet_id)
-        head = '<title>%s (%s)</title>'%(worksheet.name(), self.directory())
-        head += '<style>' + css.css(self.color()) + '</style>\n'
+        if worksheet_id is not None:
+            worksheet = self.get_worksheet_with_id(worksheet_id)
+            head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
+        else:
+            head = '\n<title>SAGE Notebook | Welcome</title>'
+        head += '\n<script language=javascript src="/__main__.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
 
         if JSMATH:
             head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
@@ -768,16 +805,31 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-        head += '<script language=javascript>' + js.javascript() + '</script>\n'
+        #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
 
     def _html_body(self, worksheet_id, show_debug=False, worksheet_authorized=False):
-        worksheet = self.get_worksheet_with_id(worksheet_id)
-        if worksheet.computing():
-            interrupt_class = "interrupt"
-        else:
+        if worksheet_id is None or worksheet_id == '':
+            main_body = '<div class="worksheet_title">Welcome to the SAGE Notebook</div>\n'
+            if os.path.isfile(self.directory() + "/index.html"):
+                splash_file = open(self.directory() + "/index.html")
+                main_body+= splash_file.read()
+                splash_file.close()
+            else:
+                dir = os.path.abspath('%s'%self.directory())
+                main_body+= "<br>&nbsp;&nbsp;&nbsp;SAGE Notebook running from <tt>%s</tt>."%dir
+                main_body+= self.help_window()
+                main_body += "&nbsp;&nbsp;&nbsp;Create a file <tt>%s/index.html</tt> to replace this splash page.<br>"%(dir)
             interrupt_class = "interrupt_grey"
+            worksheet = None
+        else:
+            worksheet = self.get_worksheet_with_id(worksheet_id)
+            if worksheet.computing():
+                interrupt_class = "interrupt"
+            else:
+                interrupt_class = "interrupt_grey"
+            main_body = worksheet.html(authorized = worksheet_authorized)
 
         add_new_worksheet_menu = """
              <div class="add_new_worksheet_menu" id="add_worksheet_menu">
@@ -804,23 +856,15 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://modular.math.washington.edu/sage">SAGE</a></span>\n'
+        body += '  <span class="banner"><a class="banner" href="http://sage.math.washington.edu/sage">SAGE</a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        #body += '    <a class="plain_text" onClick="worksheet_text_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%worksheet.filename() + vbar
-        body += '    <a class="plain_text" href="%s__edit__.html">Edit</a>'%worksheet.filename() + vbar
-        #body += '    <a class="plain_text" onClick="show_wiki_window(\'%s\')">Wiki-form</a>'%worksheet.filename() + vbar
-        body += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%worksheet.filename() + vbar
-        body += '    <a class="evaluate" onClick="evaluate_all()">Eval All</a>' + vbar
-        body += '    <a class="hide" onClick="hide_all()">Hide All</a>' + vbar
-        body += '    <a class="hide" onClick="show_all()">Show All</a>' + vbar
         body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
-        body += '    <a class="download_sws" href="%s.sws">Save</a>'%worksheet.filename() + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>' + vbar
+        body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
@@ -850,7 +894,7 @@ class Notebook(SageObject):
             body += " onFocus='debug_focus();' onBlur='debug_blur();'></textarea>"
             body += "</div>"
 
-        body += worksheet.html(authorized = worksheet_authorized) + '\n</div>\n'
+        body += main_body + '\n</div>\n'
 
         # The blank space given by '<br>'*15  is needed so the input doesn't get
         # stuck at the bottom of the screen. This could be replaced by a region
@@ -858,7 +902,10 @@ class Notebook(SageObject):
         body += '<br>'*15
         body += '\n</div>\n'
 
+        body += '<div class="left_pane_bar" id="left_pane_bar" onClick="toggle_left_pane();"></div>\n'
         body += '<span class="pane" id="left_pane"><table bgcolor="white"><tr><td>\n'
+        endpanespan = '</td></tr></table></span>\n'
+
         body += '  <div class="worksheets_topbar">'
         body += '     <a onClick="show_add_new_worksheet_menu()" class="new_worksheet">New</a> '
         body += '     <a onClick="show_delete_worksheet_menu()" class="delete_worksheet">Delete</a> '
@@ -866,16 +913,28 @@ class Notebook(SageObject):
         body +=    add_new_worksheet_menu
         body +=    delete_worksheet_menu
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '  <div class="objects_topbar">Saved Objects</div>\n'
+
+        if worksheet is None:
+            return body + endpanespan
+
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
+        body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
+        body += '     Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
-        body += '<br>\n'
-        body += '  <div class="variables_topbar">Variables</div>\n'
-        body += '  <div class="variables_list" id="variable_list">%s</div>\n'%\
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
+        body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
+        body += '     Variables</div>\n'
+        body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
                 worksheet.variables_html()
-        body += '  <div class="attached_topbar">Attached Files</div>\n'
+        body += '<div class="fivepix"></div>\n'
+        body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
+        body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
+        body += '     Attached Files</div>\n'
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
-        body += '</td></tr></table></span>\n'
+        body += endpanespan
         body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
         body += '<script language=javascript>jsmath_init();</script>\n'
 
@@ -903,12 +962,21 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += '<form method="post" action="/%s/edit" enctype="multipart/form-data">\n'%worksheet.name()
+        body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.<br><br>"""
+        body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
-        body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
+        #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'
         body_html += '<input type="submit" value="Cancel" name="button_cancel"/>\n'
         body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
         body_html += '</form>'
+        body_html += """The format is as follows: <pre>
+{{{
+Input
+///
+Output
+}}}
+</pre>"""
+
 
         s = """
         <html><head><title>SAGE Wiki cell text </title>
@@ -991,14 +1059,14 @@ class Notebook(SageObject):
     def help_window(self):
         help = [
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
-            ('shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
-            ('Autoevaluate cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
+            ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
+            ('Autoevaluate Cells on Load', 'Any cells with "%auto" in the first line (e.g., in a comment) are automatically evaluated when the worksheet is first opened.'),
             ('Create New Worksheet', "Use the menu on the left, or simply put a new worksheet name in the URL, e.g., if your notebook is at http://localhost:8000, then visiting http://localhost:8000/tests will create a new worksheet named tests."),
                ('Evaluate Input', 'Press shift-enter.  You can start several calculations at once.  If you press alt-enter instead, then a new cell is created after the current one.'),
                 ('Timed Evaluation', 'Type "%time" at the beginning of the cell.'),
-                ('Evaluate all cells', 'Click <u>Eval All</u> in the upper right.'),
-                ('Evaluate cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
-                ('Typeset a cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
+                ('Evaluate all Cells', 'Click <u>Eval All</u> in the upper right.'),
+                ('Evaluate Cell using <b>GAP, Singular, etc.', 'Put "%gap", "%singular", etc. as the first input line of a cell; the rest of the cell is evaluated in that system.'),
+                ('Typeset a Cell', 'Make the first line of the cell "%latex". The rest of the cell should be the body of a latex document.  Use \\sage{expr} to access SAGE from within the latex.  Evaluated typeset cells hide their input.  Use "%latex_debug" for a debugging version.  You must have latex for this to work.'),
                ('Typeset a slide', 'Same as typesetting a cell but use "%slide" and "%slide_debug"; will use a large san serif font.  You must have latex for this to work.'),
                 ('Typesetting', 'Type "latex(objname)" for latex that you can paste into your paper.  Type "view(objname)" or "show(objname)", which will display a nicely typeset image (using javascript!).  You do <i>not</i> need latex for this to work.  Type "lprint()" to make it so output is often typeset by default.'),
                 ('Move between cells', 'Use the up and down arrows on your keyboard.'),
@@ -1043,15 +1111,6 @@ class Notebook(SageObject):
 
         help.sort()
         s = """
-        This is the SAGE Notebook, which is the graphical interface to
-        the computer algebra system SAGE (Software for Algebra and
-        Geometry Exploration).   It should work with Firefox, Mozilla,
-        Safari, Opera, and Konqueror. Internet Explorer is not supported (yet!).
-        <br><br>
-        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
-        especially Fernando Perez and Joe Wetherell).<br><br>
-        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
-        either under the GPL or a GPL-compatible license</a>.
         <br><hr>
         <style>
         div.help_window {
@@ -1093,6 +1152,15 @@ class Notebook(SageObject):
         for x, y in help:
             s += '<tr><td class="help_window_cmd">%s</td><td class="help_window_how">%s</td></tr>'%(x,y)
         s += '</table></div>'
+
+        s +="""
+        <br>
+        AUTHORS: William Stein, Tom Boothby, and Alex Clemesha (with feedback from many people,
+        especially Fernando Perez and Joe Wetherell).<br><br>
+        LICENSE: All code included with the standard SAGE install is <a href="__license__.html">licensed
+        either under the GPL or a GPL-compatible license</a>.
+        <br>
+        """
         return s
 
     def upload_window(self):
@@ -1116,15 +1184,18 @@ class Notebook(SageObject):
          """%(css.css(self.color()),js.javascript())
 
     def html(self, worksheet_id=None, authorized=False, show_debug=False, worksheet_authorized=False):
-        if worksheet_id is None:
-            W = self.default_worksheet()
-            worksheet_id = W.id()
+        if worksheet_id is None or worksheet_id == '':
+            if not self.splashpage():
+                W = self.default_worksheet()
+                worksheet_id = W.id()
+            else:
+                worksheet_id = None
+                W = None
         else:
             try:
                 W = self.get_worksheet_with_id(worksheet_id)
-            except KeyError:
+            except KeyError, msg:
                 W = self.create_new_worksheet(worksheet_id)
-                #W = self.default_worksheet()
                 worksheet_id = W.id()
 
         if authorized:
@@ -1133,17 +1204,16 @@ class Notebook(SageObject):
         else:
             body = self._html_authorize()
 
-        body += '<script language=javascript>worksheet_id=%s; worksheet_filename="%s"; worksheet_name="%s";</script>'%(
-            W.id(), W.filename(), W.name())
+        if worksheet_id is not None:
+            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
-        h = """
+        return """
         <html>
         <head>%s</head>
         <body>%s</body>
         </html>
         """%(head, body)
-        return h
 
     def _html_authorize(self):
         return """
@@ -1212,8 +1282,10 @@ def notebook(dir         ='sage_notebook',
              system      = None,
              jsmath      = True,
              show_debug  = False,
+             splashpage  = None,
              warn        = True,
              ignore_lock = False,
+             log_server = False,
              kill_idle   = 0):
     r"""
     Start a SAGE notebook web server at the given port.
@@ -1243,6 +1315,10 @@ def notebook(dir         ='sage_notebook',
         debug -- whether or not to show a javascript debugging window
         kill_idle -- if positive, kill any idle compute processes after
                      this many auto saves.  (NOT IMPLEMENTED)
+
+        splashpage -- whether or not to show a splash page when no worksheet is specified.
+                      you can place a file named index.html into the notebook directory that
+                      will be shown in place of the default.
 
     NOTES:
 
@@ -1329,14 +1405,16 @@ def notebook(dir         ='sage_notebook',
             nb.set_color(color)
         if not system is None:
             nb.set_system(system)
+        if not splashpage is None:
+            nb.set_splashpage(splashpage)
         nb.set_not_computing()
     else:
         nb = Notebook(dir,username=username,password=password, color=color,
-                      system=system, kill_idle=kill_idle)
+                      system=system, kill_idle=kill_idle,splashpage=splashpage)
     nb.save()
     shutil.copy('%s/nb.sobj'%dir, '%s/nb-older-backup.sobj'%dir)
     nb.set_debug(show_debug)
-
+    nb.set_log_server(log_server)
     if warn and address!='localhost' and username==None:
         print "WARNING -- it is *extremely* dangerous to let the server listen"
         print "on an external port without at least setting a username/password!!"

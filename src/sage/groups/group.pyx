@@ -26,13 +26,15 @@ Base class for all groups
 import random
 
 from   sage.rings.infinity import infinity
+import sage.rings.integer_ring
 
 cdef class Group(sage.structure.parent_gens.ParentWithGens):
     """
     Generic group class
     """
     def __init__(self):
-        pass
+        sage.structure.parent_gens.ParentWithGens.__init__(self,
+                sage.rings.integer_ring.ZZ)
 
     def __call__(self, x):
         """

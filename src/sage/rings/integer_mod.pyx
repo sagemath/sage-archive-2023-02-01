@@ -61,11 +61,18 @@ def IntegerMod(parent, value):
 
     This is mainly for internal use.
     """
-    cdef sage.rings.integer.Integer modulus
-    modulus = parent.order()
-    if mpz_cmp_si(modulus.value, INTEGER_MOD_INT32_LIMIT) < 0:
+    cdef NativeIntStruct modulus
+    cdef Py_ssize_t res
+    modulus = parent._pyx_order
+    if modulus.table is not None:
+        if PY_TYPE_CHECK(value, sage.rings.integer.Integer) or PY_TYPE_CHECK(value, int) or PY_TYPE_CHECK(value, long):
+            res = value % modulus.int64
+            if res < 0:
+                res = res + modulus.int64
+            return modulus.lookup(res)
+    if modulus.int32 != -1:
         return IntegerMod_int(parent, value)
-    elif mpz_cmp_si(modulus.value, INTEGER_MOD_INT64_LIMIT) < 0:
+    elif modulus.int64 != -1:
         return IntegerMod_int64(parent, value)
     else:
         return IntegerMod_gmp(parent, value)
@@ -89,6 +96,9 @@ def makeNativeIntStruct(sage.rings.integer.Integer z):
 cdef class NativeIntStruct:
 
     def __init__(NativeIntStruct self, sage.rings.integer.Integer z):
+        self.int64 = -1
+        self.int32 = -1
+        self.table = None # NULL
         self.sageInteger = z
         if mpz_cmp_si(z.value, INTEGER_MOD_INT64_LIMIT) < 0:
             self.int64 = mpz_get_si(z.value)
@@ -97,6 +107,21 @@ cdef class NativeIntStruct:
 
     def __reduce__(NativeIntStruct self):
         return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
+
+    def precompute_table(NativeIntStruct self, parent):
+        self.table = PyList_New(self.int64)
+        cdef Py_ssize_t i
+        if self.int32 != -1:
+            for i from 0 <= i < self.int32:
+                z = IntegerMod_int(parent, i)
+                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+        else:
+            for i from 0 <= i < self.int64:
+                z = IntegerMod_int64(parent, i)
+                Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+
+    cdef lookup(NativeIntStruct self, Py_ssize_t value):
+        return <object>PyList_GET_ITEM(self.table, value)
 
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
@@ -138,9 +163,34 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return sage.rings.integer_mod.mod, (self.lift(), self.modulus())
 
+    def is_nilpotent(self):
+        r"""
+        Return True if self is nilpotent, i.e., some power of self is zero.
 
+        EXAMPLES:
+            sage: a = Integers(90384098234^3)
+            sage: factor(a.order())
+            2^3 * 191^3 * 236607587^3
+            sage: b = a(2*191)
+            sage: b.is_nilpotent()
+            False
+            sage: b = a(2*191*236607587)
+            sage: b.is_nilpotent()
+            True
 
+        ALGORITHM: Let $m \geq  \log_2(n)$, where $n$ is the modulus.
+        Then $x \in \ZZ/n\ZZ$ is nilpotent if and only if $x^m = 0$.
 
+        PROOF: This is clear if you reduce to the prime power case,
+        which you can do via the Chinese Remainder Theorem.
+
+        We could alternatively factor n and check to see if the prime
+        divisors of n all divide x.  This is asymptotically slower :-).
+        """
+        if self.is_zero():
+            return True
+        m = self.__modulus.sageInteger.exact_log(2) + 1
+        return (self**m).is_zero()
 
     #################################################################
     # Interfaces
@@ -366,11 +416,22 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         return self.__crt(other)
 
 
-    def order(self):
-        """
+    def additive_order(self):
+        r"""
         Returns the additive order of self.
+
+        This is the same as \code{self.order()}.
+
+        EXAMPLES:
+            sage: Integers(20)(2).additive_order()
+            10
+            sage: Integers(20)(7).additive_order()
+            20
+            sage: Integers(90308402384902)(2).additive_order()
+            45154201192451
         """
-        return sage.rings.integer.Integer(self.__modulus.sageInteger.__FLOORDIV__(self.lift().gcd(n)))
+        n = self.__modulus.sageInteger
+        return sage.rings.integer.Integer(n.__floordiv__(self.lift().gcd(n)))
 
     def multiplicative_order(self):
         """
@@ -521,7 +582,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
         modulus = self.__modulus.sageInteger
         other_modulus = other.__modulus.sageInteger
-        lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus, check_prime=False), None, empty=True)
+        lift = IntegerMod_gmp(integer_mod_ring.IntegerModRing(modulus*other_modulus), None, empty=True)
         try:
             if mpz_cmp(self.value, other.value) > 0:
                 x = (other - IntegerMod_gmp(other._parent, self.lift())) / IntegerMod_gmp(other._parent, modulus)
@@ -709,8 +770,14 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return float(self.lift())
 
     def __hash__(self):
+        """
+        EXAMPLES:
+            sage: a = Mod(8943, 2^100)
+            sage: hash(a)
+            -1590013994
+        """
 #        return mpz_pythonhash(self.value)
-        return hash(self.lift())
+        return hash((self.__modulus.sageInteger, self.lift()))
 
 
 
@@ -737,8 +804,15 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        cdef int_fast32_t x
+        if PY_TYPE_CHECK(value, int):
+            x = value
+            self.ivalue = x % self.__modulus.int32
+            if self.ivalue < 0:
+                self.ivalue = self.ivalue + self.__modulus.int32
+            return
         cdef sage.rings.integer.Integer z
-        if isinstance(value, sage.rings.integer.Integer):
+        if PY_TYPE_CHECK(value, sage.rings.integer.Integer):
             z = value
         elif isinstance(value, rational.Rational):
             z = value % self.__modulus.sageInteger
@@ -747,6 +821,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         self.set_from_mpz(z.value)
 
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
+        if self.__modulus.table is not None:
+            return self.__modulus.lookup(value)
         cdef IntegerMod_int x
         x = PY_NEW(IntegerMod_int)
         x.__modulus = self.__modulus
@@ -843,7 +919,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         cdef IntegerMod_int lift
         cdef int_fast32_t x
 
-        lift = IntegerMod_int(integer_mod_ring.IntegerModRing(self.__modulus.int32 * other.__modulus.int32, check_prime=False), None, empty=True)
+        lift = IntegerMod_int(integer_mod_ring.IntegerModRing(self.__modulus.int32 * other.__modulus.int32), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int32) * mod_inverse_int(self.__modulus.int32, other.__modulus.int32)
@@ -1028,7 +1104,13 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return float(self.ivalue)
 
     def __hash__(self):
-        return hash(self.ivalue)
+        """
+        EXAMPLES:
+            sage: a = Mod(89, 2^10)
+            sage: hash(a)
+            1704751112
+        """
+        return hash((self.__modulus.sageInteger, self.ivalue))
 
 ### End of class
 
@@ -1148,6 +1230,13 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         IntegerMod_abstract.__init__(self, parent)
         if empty:
             return
+        cdef int_fast64_t x
+        if PY_TYPE_CHECK(value, int):
+            x = value
+            self.ivalue = x % self.__modulus.int64
+            if self.ivalue < 0:
+                self.ivalue = self.ivalue + self.__modulus.int64
+            return
         cdef sage.rings.integer.Integer z
         if isinstance(value, sage.rings.integer.Integer):
             z = value
@@ -1191,7 +1280,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(5,13^5) == mod(8,13^5)
             False
             sage: mod(5,13^5) == mod(5,13)
-            False
+            True
             sage: mod(0, 13^5) == 0
             True
             sage: mod(0, 13^5) == int(0)
@@ -1259,7 +1348,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         cdef IntegerMod_int64 lift
         cdef int_fast64_t x
 
-        lift = IntegerMod_int64(integer_mod_ring.IntegerModRing(self.__modulus.int64 * other.__modulus.int64, check_prime=False), None, empty=True)
+        lift = IntegerMod_int64(integer_mod_ring.IntegerModRing(self.__modulus.int64 * other.__modulus.int64), None, empty=True)
 
         try:
             x = (other.ivalue - self.ivalue % other.__modulus.int64) * mod_inverse_int64(self.__modulus.int64, other.__modulus.int64)
@@ -1436,16 +1525,18 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __hash__(self):
         """
-        Compute hash of self.   This is the hash of the underlying integer, which
-        is just that integer.
+        Compute hash of self.
+
+        This is a combination of the hash of the underlying integer
+        and the modulus.
 
         EXAMPLES:
             sage: a = Mod(8943, 2^35)
             sage: hash(a)
-            8943
+            -1178568930
         """
 
-        return hash(self.ivalue)
+        return hash((self.__modulus.sageInteger, self.ivalue))
 
 ### End of class
 
@@ -1529,4 +1620,3 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
     if prod > n:
         prod = prod % n
     return prod
-

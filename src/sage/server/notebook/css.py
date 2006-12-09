@@ -29,6 +29,10 @@ span.hidden{
   display:none;
 }
 
+div.fivepix {
+  height:5px;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -53,6 +57,18 @@ span.control_commands {
 /*    text-decoration:underline; */
 }
 
+span.worksheet_control_commands {
+   position: fixed;
+  /* top:.5ex; */
+   right:0px;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
+   font-family:arial;
+   font-size:12px;
+   padding:5;
+}
+
 div.slide_control_commands {
    float:right;
    position: fixed;
@@ -73,47 +89,33 @@ span.vbar {
    width:1px;
 }
 
-div.top_control_bar a.evaluate {
-   background-color:white;
+div.top_control_bar a {
+   color: #0000BB;
+   text-decoration: none;
    padding:5;
-   text-decoration:underline;
 }
 
-div.top_control_bar a.evaluate:hover {
-   background-color:#00bb00;
-   color:#FFFFFF;
+div.top_control_bar a:hover {
    cursor:pointer;
 }
 
 div.top_control_bar a.upload_worksheet {
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
-   text-align:right;
+}
+
+div.top_control_bar a.worksheets_button {
 }
 
 div.top_control_bar a.upload_worksheet:hover {
-   background-color:#00aa00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.restart_sage {
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.restart_sage:hover {
    background-color:#ff0000;
-   color:#FFFFFF;
-   cursor:pointer;
-   text-decoration:none;
 }
 
 div.top_control_bar  a.restart_sage_in_progress {
-   color:#FFFFFF;
-   padding:5;
    background-color:#ff0000;
    text-decoration:blink;
 }
@@ -125,143 +127,99 @@ div.top_control_bar  a.interrupt {
    font-weight:bold;
    color:#000000;
    */
-   text-decoration:underline;
-   padding:5;
-   background-color:white;
 }
-
-
-
 
 div.top_control_bar a.interrupt:hover {
    background-color:#bb0000;
-   color:#FFFFFF;
-   cursor:pointer;
-   text-decoration:none;
 }
 
 div.top_control_bar  a.interrupt_grey {
    color:#888888;
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar  a.interrupt_in_progress {
    color:#FFFFFF;
-   padding:5;
    background-color:#bb0000;
    text-decoration:blink;
 }
 
-div.top_control_bar  a.hide{
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.hide:hover {
-   background-color:#0000bb;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
 div.top_control_bar a.help {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.help:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.slide_mode {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.slide_mode:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.cell_mode {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.cell_mode:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.slide_arrow {
-   padding:5;
-   background-color:white;
-   text-decoration:none;
 }
 
 div.top_control_bar a.slide_arrow:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
-div.top_control_bar  a.plain_text {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.plain_text:hover {
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
-div.top_control_bar  a.doctest_text {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.doctest_text:hover {
-   background-color:#0044bb;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 
 div.top_control_bar  a.history_link {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.history_link:hover {
-   background-color:995533;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
-div.top_control_bar  a.download_sws {
+
+/* links darker! no underlines! */
+
+span.worksheet_control_commands a {
+   color: #0000BB;
+   text-decoration: none;
    padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
-div.top_control_bar a.download_sws:hover {
-   background-color:#55bb22;
-   color:#FFFFFF;
+span.worksheet_control_commands a:hover {
    cursor:pointer;
 }
+
+span.worksheet_control_commands  a.plain_text {
+}
+
+span.worksheet_control_commands a.plain_text:hover {
+}
+
+span.worksheet_control_commands  a.doctest_text {
+}
+
+span.worksheet_control_commands a.doctest_text:hover {
+}
+
+span.worksheet_control_commands  a.download_sws {
+}
+
+span.worksheet_control_commands a.download_sws:hover {
+}
+
+span.worksheet_control_commands a.evaluate {
+}
+
+span.worksheet_control_commands a.evaluate:hover {
+}
+
+span.worksheet_control_commands  a.hide{
+}
+
+span.worksheet_control_commands a.hide:hover {
+}
+
+
+
+
 
 div.slideshow_control {
   float:right;
@@ -419,34 +377,65 @@ span.pane {
    font-family:courier, monospace;
    font-size:12px;
    position: fixed;
-   left: 1em;
+   left: 5px;
    top: 33px;
    width: 180px;
    height:100%;
    margin: 0px;
    padding-right: 2px;
-   padding-left: 2px;
+   padding-left: 0px;
    padding-top: 0px;
    bottom: 0ex;
 }
 
+span.plusminus {
+  color:black;
+  font-size:8pt;
+  font-family:courier, monospace;
+}
+span.plusminus:hover {
+    cursor:pointer;
+}
+
+span.controltoggle {
+  color:#0000ff;
+  font-size:10pt;
+  text-decoration:underline;
+}
+span.controltoggle:hover {
+    cursor:pointer;
+}
+
+div.left_pane_bar {
+  position:fixed;
+  left: 0px;
+  top:36px;
+  background-color: white;
+  width:8px;
+  height:100%;
+  z-index:100;
+}
+div.left_pane_bar:hover {
+  background-color: #8888fe;  /* #000000; */
+}
 
 
 /************ VARIABLES **************************/
 
 span.pane div.variables_topbar {
    color:black;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    font-family:arial;
    text-decoration: none;
    font-size:13px;
    height: 2ex;
    padding-left: 10px;
-   margin:0;
+   padding-bottom:1px;
    width: 174px;
 }
 
-span.pane div.variables_list {
+span.pane div.variable_list {
    font-size:11px;
    top:0ex;
    height:20ex;
@@ -479,11 +468,13 @@ span.pane div.attached_topbar {
    color: black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
    padding-left: 10px;
+   padding-bottom:1px;
    width: 174px;
 }
 
@@ -513,6 +504,7 @@ span.pane div.worksheets_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
    font-size:12px;
@@ -627,6 +619,7 @@ div.worksheet_title {
    height:31px;
    padding-top: 3px;
    padding-left: 1em;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    width: 100%;
    font-family:arial;
@@ -716,11 +709,13 @@ span.pane div.objects_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
    padding-left: 10px;
+   padding-bottom:1px;
    width: 174px;
 }
 
@@ -785,7 +780,7 @@ div.worksheet {
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 205px;
+  left: 198px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
@@ -797,11 +792,11 @@ div.slideshow {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid <color1>;
+  border-left: 2px solid <color1>;
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 0px;
+  left: 5px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
@@ -1019,14 +1014,14 @@ div.cell_output_wrap {
   font-size:12pt;
   margin:0px;
   padding-left:0px;
-  color:#0000cc;
+  color:#0000aa;
 }
 
 span.cell_output_wrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#0000cc;
+  color:#0000aa;
 }
 span.cell_output_nowrap {
   display:none;
@@ -1043,7 +1038,7 @@ span.cell_output_nowrap_nowrap {
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#0000cc;
+  color:#0000aa;
 }
 span.cell_output_nowrap_hidden {
   display:none;

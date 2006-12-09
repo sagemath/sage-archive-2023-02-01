@@ -11,7 +11,7 @@ import os
 
 PID = os.getpid()
 
-def monitor(pid, interval):
+def monitor(pid, interval=5):
     cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
     # This os.system seems to work fine.
     # os.system(cmd)

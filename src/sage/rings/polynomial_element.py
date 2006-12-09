@@ -25,7 +25,7 @@ import operator
 
 import copy
 
-from sage.structure.element import Element
+from sage.structure.element import Element, IntegralDomainElement
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -932,7 +932,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: f.factor()
             (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + a) * (x + 2*a + 1)
 
-            sage: k.<x> = GF(9,'a')
+            sage: k = GF(9,'x')    # purposely calling it x to test robustness
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
@@ -966,12 +966,12 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
         from sage.rings.number_field.all import is_NumberField
 
-        if integer_mod_ring.is_IntegerModRing(R) or finite_field.is_FiniteField(R) or \
+        if integer_mod_ring.is_IntegerModRing(R) or \
                isinstance(R, (integer_ring.IntegerRing, rational_field.RationalField)):
 
             G = list(self._pari_('x').factor())
 
-        elif is_NumberField(R):
+        elif is_NumberField(R) or finite_field.is_FiniteField(R):
 
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
@@ -1124,9 +1124,58 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         return not self.is_zero() and self[self.degree()] == 1
 
     def is_unit(self):
+        r"""
+        Return True if this polynomial is a unit.
+
+        EXAMPLES:
+            sage: a = Integers(90384098234^3)
+            sage: b = a(2*191*236607587)
+            sage: b.is_nilpotent()
+            True
+            sage: R.<x> = a[]
+            sage: f = 3 + b*x + b^2*x^2
+            sage: f.is_unit()
+            True
+            sage: f = 3 + b*x + b^2*x^2 + 17*x^3
+            sage: f.is_unit()
+            False
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is a
+        unit if and only if $a_0$ is a unit and $a_1,\ldots, a_n$ are
+        nilpotent.
+        """
         if self.degree() > 0:
-            return False
+            for i in range(1,self.degree()+1):
+                if not self[i].is_nilpotent():
+                    return False
+            return True
         return self[0].is_unit()
+
+    def is_nilpotent(self):
+        r"""
+        Return True if this polynomial is nilpotent.
+
+        EXAMPLES:
+            sage: R = Integers(12)
+            sage: S.<x> = R[]
+            sage: f = 5 + 6*x
+            sage: f.is_nilpotent()
+            False
+            sage: f = 6 + 6*x^2
+            sage: f.is_nilpotent()
+            True
+            sage: f^2
+            0
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is
+        nilpotent if and only if every $a_i$ is nilpotent.
+        """
+        for i in range(self.degree()+1):
+            if not self[i].is_nilpotent():
+                return False
+        return True
 
     def is_gen(self):
         return self._is_gen
@@ -1864,12 +1913,28 @@ class Polynomial_generic_sparse(Polynomial):
             return self.polynomial(output, check=False)
 
 
-class Polynomial_generic_field(Polynomial,
-                               Polynomial_singular_repr,
-                               euclidean_domain_element.EuclideanDomainElement):
+class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
+    def is_unit(self):
+        r"""
+        Return True if this polynomial is a unit.
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is a
+        unit if and only if $a_0$ is a unit and $a_1,\ldots, a_n$ are
+        nilpotent.
+
+        EXAMPLES:
+        """
+        if self.degree() > 0:
+            return False
+        return self[0].is_unit()
+
+class Polynomial_generic_field(Polynomial_generic_domain,
+                               euclidean_domain_element.EuclideanDomainElement,
+                               Polynomial_singular_repr):
     def quo_rem(self, other):
         """
         Returns a tuple (quotient, remainder) where
@@ -2330,7 +2395,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         S = sage.rings.polynomial_ring.PolynomialRing(R, self.parent().variable_name())
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
-class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomainElement):
+class Polynomial_integer_dense(Polynomial_generic_domain,
+                               integral_domain_element.IntegralDomainElement):
     """
     A dense polynomial over the integers.
     """

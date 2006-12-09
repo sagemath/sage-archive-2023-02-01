@@ -30,6 +30,8 @@ from sage.rings.rational_field import RationalField
 from sage.structure.parent_base import ParentWithBase
 from sage.structure.element import Element
 
+import congroup
+
 
 class Cusps_class(ParentWithBase):
     """
@@ -207,6 +209,11 @@ class Cusp(Element):
             self.__a = a.numer()
             self.__b = a.denom()
             return
+
+        elif isinstance(a, (list, tuple)):
+            a, b = a
+            a = ZZ(a)
+            b = ZZ(b)
 
         elif b==1:
 
@@ -424,7 +431,6 @@ class Cusp(Element):
         INPUT:
             other -- Cusp
             N -- an integer (specifies the group Gamma_0(N))
-
             transformation -- bool (default: False), if True, also
                               return upper left entry of a matrix in
                               Gamma_0(N) that sends self to other.
@@ -554,6 +560,37 @@ class Cusp(Element):
         elif ((v2 + v1) % N == 0 and (u2 + u1)%g== 0):
             return True, -1
         return False, 0
+
+    def is_gamma_h_equiv(self, other, G):
+        """
+        Return whether self and other are equivalent modulo the action
+        of Gamma_1(N) via linear fractional transformations.
+
+        INPUT:
+            other -- Cusp
+            G -- a congruence subgroup Gamma_H(N)
+
+        OUTPUT:
+            bool -- True if self and other are equivalent
+            int -- -1, 0, 1; extra info
+
+        EXAMPLES:
+            sage: G = GammaH(13,[2])
+            sage: x = Cusp(2,3)
+            sage: y = Cusp(4,5)
+            sage: x.is_gamma_h_equiv(y,G)
+            True
+
+        """
+        if not isinstance(other, Cusp):
+            other = Cusp(other)
+        if not congroup.is_GammaH(G):
+            raise TypeError, "G must be a group GammaH(N)."
+
+        # Coset reduction data
+        c1, t1 = G._reduce_cusp(self)
+        c2, t2 = G._reduce_cusp(other)
+        return c1 == c2, t1*t2
 
     def apply(self, g):
         """

@@ -76,11 +76,9 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
             if S == R:
                 return self
             if check:
-                try:
-                    S._coerce_(R(1))  # make sure there is a natural morphism R --> S
-                except TypeError:
+                if not S.has_coerce_map_from(R):
                     raise ValueError, "No natural map from the base ring (=%s) to S (=%s)"%(R, S)
-            return self._constructor(self.__n, S, S.variable_names())
+            return self._constructor(self.__n, S, self.variable_names())
         else:
             raise NotImplementedError
 
@@ -101,19 +99,19 @@ class AmbientSpace(scheme.Scheme, ParentWithGens):
         return self.coordinate_ring().gens()
 
     def ngens(self):
-        return self.coordinate_ring().ngens()
+        raise NotImplementedError
 
-    def assign_names(self, names=None):
-        """
-        EXAMPLES:
-            sage: A = AffineSpace(2, QQ, 'ab'); A
-            Affine Space of dimension 2 over Rational Field
-            sage: A.coordinate_ring()
-            Polynomial Ring in a, b over Rational Field
-            sage: A._assign_names('xy'); A.coordinate_ring()
-            Polynomial Ring in x, y over Rational Field
-        """
-        self.coordinate_ring()._assign_names(names)
+##     def assign_names(self, names=None):
+##         """
+##         EXAMPLES:
+##             sage: A = AffineSpace(2, QQ, 'ab'); A
+##             Affine Space of dimension 2 over Rational Field
+##             sage: A.coordinate_ring()
+##             Polynomial Ring in a, b over Rational Field
+##             sage: A._assign_names('xy'); A.coordinate_ring()
+##             Polynomial Ring in x, y over Rational Field
+##         """
+##         self.coordinate_ring()._assign_names(names)
 
     def dimension(self):
         """

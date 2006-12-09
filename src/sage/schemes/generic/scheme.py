@@ -93,7 +93,7 @@ class Scheme(ParentWithBase):
             Set of Rational Points over Real Field with 53 bits of precision of Affine
             Space of dimension 2 over Rational Field
             sage: R.<x> = PolynomialRing(QQ)
-            sage: A(NumberField(x^2+1))
+            sage: A(NumberField(x^2+1, 'a'))
             Set of Rational Points over Number Field in a with defining polynomial x^2 + 1
             of Affine Space of dimension 2 over Rational Field
             sage: A(GF(7))

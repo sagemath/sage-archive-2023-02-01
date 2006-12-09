@@ -37,6 +37,7 @@ from preparser import preparse
 
 from sage_eval import sage_eval
 
+from sagex import sagex_lambda
 from sagex_c import sagex
 pyrex = sagex # synonym
 
@@ -50,7 +51,7 @@ from latex import latex, view, lprint
 
 from mathml import mathml
 
-from trace import *
+from trace import trace
 
 from cachefunc import CachedFunction
 

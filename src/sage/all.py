@@ -75,7 +75,6 @@ from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
-import sage.edu.all      as edu
 
 from sage.plot.all       import *
 from sage.coding.all     import *
@@ -91,6 +90,14 @@ from sage.gsl.all import *
 
 from copy import copy
 
+
+###########################################################
+#### WARNING:
+# DO *not* import numpy / matplotlib / networkx here!!
+# Each takes a surprisingly long time to initialize,
+# and that initialization should be done more on-the-fly
+# when they are first needed.
+###########################################################
 
 ###################################################################
 

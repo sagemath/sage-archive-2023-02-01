@@ -548,6 +548,38 @@ def primes(start, stop=None):
         else:
             return
 
+def next_prime_power(n):
+    """
+    The next prime power greater than the integer n.  If n is a prime
+    power, then this function does not return n, but the next prime
+    power after n.
+
+    EXAMPLES:
+        sage: next_prime_power(-10)
+        1
+        sage: is_prime_power(1)
+        True
+        sage: next_prime_power(0)
+        1
+        sage: next_prime_power(1)
+        2
+        sage: next_prime_power(2)
+        3
+        sage: next_prime_power(10)
+        11
+        sage: next_prime_power(7)
+        8
+        sage: next_prime_power(99)
+        101
+    """
+    if n < 0:   # negatives are not prime.
+        return sage.rings.integer.Integer(1)
+    if n == 2:
+        return sage.rings.integer.Integer(3)
+    n = sage.rings.integer.Integer(n) + 1
+    while not is_prime_power(n):  # pari isprime is provably correct
+        n += 1
+    return n
 
 def next_prime(n, proof=True):
     """
@@ -589,9 +621,7 @@ def next_prime(n, proof=True):
 def previous_prime(n):
     """
     The largest prime < n.  The result is provably
-    correct.   If n <= 2, this function returns -p,
-    where p is prime and -p < n and no larger negative
-    of a prime has this property.
+    correct.   If n <= 2, this function raises a ValueError.
 
     EXAMPLES:
         sage: previous_prime(10)
@@ -607,23 +637,67 @@ def previous_prime(n):
         sage: previous_prime(3)
         2
         sage: previous_prime(2)
-        -2
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
         sage: previous_prime(1)
-        -2
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
         sage: previous_prime(-20)
-        -23
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
     """
     n = sage.rings.integer.Integer(n)-1
-    if n in [2,3,-2]:
+    if n <= 1:
+        raise ValueError, "no previous prime"
+    if n <= 3:
         return sage.rings.integer.Integer(n)
-    if n in [0,1,-1]:
-        return sage.rings.integer.Integer(-2)
     if n%2 == 0:
         n -= 1
-    while not is_prime(abs(n)):
+    while not is_prime(n):
         n -= 2
     return sage.rings.integer.Integer(n)
 
+def previous_prime_power(n):
+    r"""
+    The largest prime power $< n$.  The result is provably
+    correct. If $n \leq 2$, this function returns $-x$,
+    where $x$ is prime power and $-x < n$ and no larger negative
+    of a prime power has this property.
+
+    EXAMPLES:
+        sage: previous_prime_power(2)
+        1
+        sage: previous_prime_power(10)
+        9
+        sage: previous_prime_power(7)
+        5
+        sage: previous_prime_power(127)
+        125
+
+        sage: previous_prime_power(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime power
+        sage: previous_prime_power(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime power
+
+        sage: n = previous_prime_power(2^16 - 1)
+        sage: while is_prime(n):
+        ...    n = previous_prime_power(n)
+        sage: factor(n)
+        251^2
+    """
+    n = sage.rings.integer.Integer(n)-1
+    if n <= 0:
+        raise ValueError, "no previous prime power"
+    while not is_prime_power(n):
+        n -= 1
+    return n
 
 def random_prime(n):
     """
@@ -989,7 +1063,7 @@ def generic_power(a, m, one=1):
     return power
 
 
-def rational_reconstruction(a, m):
+def rational_reconstruction(a, m, algorithm='fast'):
     """
     This function tries to compute x/y, where x/y is rational number
     is lowest terms such that reduction of x/y modulo m is equal to a
@@ -1001,7 +1075,12 @@ def rational_reconstruction(a, m):
     very similar to the extended Euclidean algorithm.  For more
     details, see Knuth, Vol 2, 3rd ed, pages 656-657.
 
-     Input:  Integer x and a modulus N.
+     Input:  a -- an integer
+             m -- a modulus
+             algorithm -- (default: 'fast')
+                  fast -- a fast compiled implementation
+                  python -- a slow pure python implementation
+
      Output: Numerator and denominator n, d of the unique rational
              number r=n/d, if it exists, with
              |n| and |d| <= sqrt(N/2).
@@ -1025,7 +1104,6 @@ def rational_reconstruction(a, m):
 
 
     EXAMPLES::
-
         sage: m = 100000
         sage: (119*inverse_mod(53,m))%m
         11323
@@ -1036,42 +1114,67 @@ def rational_reconstruction(a, m):
         Traceback (most recent call last):
         ...
         ValueError: Rational reconstruction of 400 (mod 1000) does not exist.
-    """
-    return sage.rings.integer.Integer(a).rational_reconstruction(m)
 
-##     a = int(a); m = int(m)
-##     a %= m
-##     if a == 0 or m==0:
-##         return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(1))
-##     if m < 0:
-##         m = -m
-##     if a < 0:
-##         a = m-a
-##     if a == 1:
-##         return (sage.rings.integer.Integer(1), sage.rings.integer.Integer(1))
-##     u = m
-##     v = a
-##     bnd = math.sqrt(m/2)
-##     U = (1,0,u)
-##     V = (0,1,v)
-##     while abs(V[2]) > bnd:
-##         q = U[2]/V[2]  # floor is implicit
-##         T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
-##         U = V
-##         V = T
-##     x = abs(V[1])
-##     y = V[2]
-##     if V[1] < 0:
-##         y *= -1
-##     if x <= bnd and GCD(x,y) == 1:
-##         return (sage.rings.integer.Integer(y),sage.rings.integer.Integer(x))
-##     return (sage.rings.integer.Integer(0),sage.rings.integer.Integer(0))
+        sage: rational_reconstruction(3,292393, algorithm='python')
+        3
+        sage: a = Integers(292393)(45/97); a
+        204977
+        sage: rational_reconstruction(a,292393, algorithm='python')
+        45/97
+        sage: a = Integers(292393)(45/97); a
+        204977
+        sage: rational_reconstruction(a,292393, algorithm='fast')
+        45/97
+        sage: rational_reconstruction(293048,292393, algorithm='fast')
+        Traceback (most recent call last):
+        ...
+        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
+        sage: rational_reconstruction(293048,292393, algorithm='python')
+        Traceback (most recent call last):
+        ...
+        ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
+    """
+    if algorithm == 'fast':
+        return sage.rings.integer.Integer(a).rational_reconstruction(m)
+    elif algorithm == 'python':
+        return _rational_reconstruction_python(a,m)
+    else:
+        raise ValueError, "unknown algorithm"
+
+def _rational_reconstruction_python(a,m):
+    a = int(a); m = int(m)
+    a %= m
+    if a == 0 or m==0:
+        return sage.rings.integer.Integer(0)/sage.rings.integer.Integer(1)
+    if m < 0:
+        m = -m
+    if a < 0:
+        a = m-a
+    if a == 1:
+        return sage.rings.integer.Integer(1)/sage.rings.integer.Integer(1)
+    u = m
+    v = a
+    bnd = math.sqrt(m/2)
+    U = (1,0,u)
+    V = (0,1,v)
+    while abs(V[2]) > bnd:
+        q = U[2]/V[2]  # floor is implicit
+        T = (U[0]-q*V[0], U[1]-q*V[1], U[2]-q*V[2])
+        U = V
+        V = T
+    x = abs(V[1])
+    y = V[2]
+    if V[1] < 0:
+        y *= -1
+    if x <= bnd and GCD(x,y) == 1:
+        return sage.rings.integer.Integer(y) / sage.rings.integer.Integer(x)
+    raise ValueError, "Rational reconstruction of %s (mod %s) does not exist."%(a,m)
 
 def mqrr_rational_reconstruction(u, m, T):
     """
     Maximal Quotient Rational Reconstruction.
 
-    FOR fun only -- this is pure Python, so very slow.
+    FOR research purposes only -- this is pure Python, so slow.
 
     Input:
         u, m, and T are integers and
@@ -1082,6 +1185,7 @@ def mqrr_rational_reconstruction(u, m, T):
 
     Reference: Monagan, Maximal Quotient Rational Reconstruction: An
                Almost Optimal Algorithm for Rational Reconstruction (page 11)
+
     This algorithm is probabilistic.
     """
     if u == 0:
@@ -2258,3 +2362,38 @@ def floor(x):
         except TypeError:
             pass
     raise NotImplementedError, "computation of floor of %s not implemented"%x
+
+
+
+def two_squares(n, algorithm='gap'):
+    """
+    Write the integer n as a sum of two integer squares if
+    possible; otherwise raise a ValueError.
+
+    EXAMPLES:
+        sage: two_squares(389)
+        (10, 17)
+        sage: two_squares(7)
+        Traceback (most recent call last):
+        ...
+        ValueError: 7 is not a sum of two squares
+        sage: a,b = two_squares(2009); a,b
+        (28, 35)
+        sage: a^2 + b^2
+        2009
+
+    TODO: Create an implementation using PARI's continued
+    fraction implementation.
+    """
+    from sage.rings.all import Integer
+    n = Integer(n)
+
+    if algorithm == 'gap':
+        import sage.interfaces.gap as gap
+        a = gap.gap.eval('TwoSquares(%s)'%n)
+        if a == 'fail':
+            raise ValueError, "%s is not a sum of two squares"%n
+        x, y = eval(a)
+        return Integer(x), Integer(y)
+    else:
+        raise RuntimeError, "unknown algorithm '%s'"%algorithm

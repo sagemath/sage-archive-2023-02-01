@@ -685,12 +685,18 @@ class PowerSeries_generic_dense(PowerSeries):
             True
         """
         R = parent._poly_ring()
-        if not (isinstance(f, polynomial.Polynomial) and f.parent() == R):
+        try:
+            if f.parent() is parent.base_ring():
+                f = R([parent.base_ring()(f)])
+        except AttributeError:
+            pass
+        if not (isinstance(f, polynomial.Polynomial) and f.parent() is R):
             if isinstance(f, PowerSeries_generic_dense):
                 prec = f.prec()
                 f = R(f.__f)
             else:
                 f = R(f, check=check)
+
         self.__f = f
         if check and prec != infinity:
             self.__f = self.__f.truncate(prec)

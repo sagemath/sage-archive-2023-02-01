@@ -207,14 +207,3 @@ cdef class Matrix_domain_dense(matrix.Matrix):
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
 
-    def numeric_array(self, typecode=None):
-        """
-        Return the Numeric array associated to this field, if possible, and Numeric
-        is installed.
-        """
-        import Numeric
-        if typecode is None:
-            typecode = Numeric.Float64
-        A = Numeric.array(self.list(), typecode=typecode)
-        return Numeric.resize(A,(self.nrows(), self.ncols()))
-

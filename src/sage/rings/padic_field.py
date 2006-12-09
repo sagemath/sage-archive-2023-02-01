@@ -6,7 +6,7 @@ import weakref
 
 import field
 from infinity import infinity
-from integer_mod_ring import IntegerModRing
+import finite_field
 import padic
 import integer
 import rational
@@ -103,7 +103,7 @@ class pAdicField_generic(field.Field):
             sage: K.residue_class_field()
             Finite Field of size 3
         """
-        return IntegerModRing(self.__p)
+        return finite_field.FiniteField(self.__p)
 
     def _repr_(self):
         return "%s-adic Field"%self.__p

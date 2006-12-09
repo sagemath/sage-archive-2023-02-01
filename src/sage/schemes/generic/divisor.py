@@ -85,7 +85,7 @@ class Divisor_generic(FormalSum):
         Return the scheme that this divisor is on.
 
         EXAMPLES:
-            sage: x, y = AffineSpace(2, GF(5), names='x,y').gens()
+            sage: A.<x, y> = AffineSpace(2, GF(5))
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
@@ -164,9 +164,13 @@ class Divisor_curve(Divisor_generic):
             else:
                 raise TypeError, \
                       "Argument v (= %s) must consist of multiplicities and points on a scheme."
+        else:
+            if not isinstance(parent, divisor_group.DivisorGroup_curve):
+                raise TypeError, "parent (of type %s) must be a DivisorGroup_curve"%type(parent)
+            C = parent.scheme()
 
         if len(v) < 1:
-            raise ValueError, "v (=%s) must have length at least 1"%v
+            check = False
         know_points = False
         if check:
             w = []

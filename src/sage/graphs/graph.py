@@ -1,16 +1,15 @@
 r"""
-Abstract base classes for graphs; wrapper for NetworkX.
-
-Many functions are passed directly to NetworkX, and in this case the documen-
-tation is paraphrased from the NX docs.
+Graph Theory
 
 AUTHOR:
-    - Robert L. Miller (2006-10-22): initial version
+    -- Robert L. Miller (2006-10-22): initial version
+    -- William Stein (2006-12-05): Editing
 
-\section{Tutorial}
+TODO:
+    [] Write a tutorial.
 
-EXAMPLES:
-TODO
+NOTE: Many functions are passed directly on to NetworkX, and in this
+case the documentation is based on the NetworkX docs.
 """
 
 #*****************************************************************************
@@ -20,17 +19,21 @@ TODO
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import networkx as NX     # the LANL library for graph theory
+
+## IMPORTANT: Do not import networkx at module scope.  It takes a
+## surprisingliy long time to initialize itself.  It's better if it is
+## imported in functions, so it only gets started if it is actually
+## going to be used.
+
+from random import random
+
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
-from sage.matrix.constructor import matrix
-from sage.rings.integer_mod_ring import IntegerModRing
 
 class GenericGraph(SageObject):
     pass
 
 class SimpleGraph(GenericGraph):
-
     def __getitem__(self,vertex):
         """
         G[vertex] returns the neighbors (in & out if digraph) of vertex.
@@ -59,53 +62,103 @@ class SimpleGraph(GenericGraph):
 class Graph(SimpleGraph):
     """
     Undirected, simple graph (no loops, no multiple edges, non-hyper).
+
+    EXAMPLES:
+        sage: g = Graph({0:[1,2,3], 2:[5]}); g
+        Simple graph on 5 vertices
+        sage: g.vertices()
+        [0, 1, 2, 3, 5]
+        sage: g.edges()
+        [(0, 1), (0, 2), (0, 3), (2, 5)]
+        sage: g.plot().save('sage.png')
     """
 
     ### Note: NetworkX function print_dna not wrapped.
 
     def __contains__(self, vertex):
         """
-        Allows 'v in G'.
+        Return True if vertex is one of the vertices of this graph, i.e.,
+        is equal to one of the vertices.
+
+        INPUT:
+            vertex -- an integer
+
+        OUTPUT:
+            bool -- True or False
+
+        EXAMPLES:
+            sage: g = Graph({0:[1,2,3], 2:[5]}); g
+            Simple graph on 5 vertices
+            sage: 2 in g
+            True
+            sage: 10 in g
+            False
         """
         return vertex in self.__nxg
 
     def __init__(self, data=None, pos=None, **kwds):
         """
-        Initialize graph.
+        Create a graph object.
 
         INPUT:
-        data -- can be any of the following:
-            1 NetworkX graph
-            2 dictionary of dictionaries
-            3 dictionary of lists
-            4 numpy matrix or ndarray
-            5 pygraphviz agraph
-            6 scipy sparse matrix
-        pos -- an optional positioning dictionary: for example, the
-        spring layout from NetworkX for the 5-cycle is
-            {   0: [-0.91679746, 0.88169588,],
-                1: [ 0.47294849, 1.125     ,],
-                2: [ 1.125     ,-0.12867615,],
-                3: [ 0.12743933,-1.125     ,],
-                4: [-1.125     ,-0.50118505,]   }
-        name -- (in kwds) gives the graph a name
+            data -- can be any of the following:
+                1. A NetworkX graph
+                2. A dictionary of dictionaries
+                3. A dictionary of lists
+                4. A numpy matrix or ndarray
+                5. A pygraphviz agraph
+                6. A scipy sparse matrix
+
+            pos -- an optional positioning dictionary: for example, the
+                   spring layout from NetworkX for the 5-cycle is
+                    {   0: [-0.91679746, 0.88169588,],
+                        1: [ 0.47294849, 1.125     ,],
+                        2: [ 1.125     ,-0.12867615,],
+                        3: [ 0.12743933,-1.125     ,],
+                        4: [-1.125     ,-0.50118505,]   }
+            name -- (must be an explicitly named parameter, i.e., name="complete") gives the graph a name
 
         EXAMPLES:
-        sage: G = Graph(name="Null graph")
-        sage: G
-        Null graph: a simple graph on 0 vertices
+        We illustrate the first four input formats (the other two involve packages
+        that are currently not standard in SAGE):
 
-        sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]},name="Petersen graph")
-        sage: P
-        Petersen graph: a simple graph on 10 vertices
+        1. A networkx graph:
+            sage: import networkx
+            sage: g = networkx.Graph({0:[1,2,3], 2:[5]}); g
+            <networkx.base.Graph object at 0x9297870>
+            sage: Graph(g)
+            Simple graph on 5 vertices
+
+        2. A dictionary of dictionaries:
+            sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
+            Simple graph on 5 vertices
+
+        TODO -- explain the significants of the labels and how they are useful!!?
+
+        3. A dictionary of lists:
+            sage: g = Graph({0:[1,2,3], 2:[5]}); g
+            Simple graph on 5 vertices
+
+        4. A numpy matrix or ndarray:
+            TODO
+
+        Other examples:
+            sage: G = Graph(name="Null graph")
+            sage: G
+            Null graph: a simple graph on 0 vertices
+
+            sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]},name="Petersen graph")
+            sage: P
+            Petersen graph: a simple graph on 10 vertices
 
         """
+        import networkx
         if isinstance(data, Graph):
             self.__nxg = data.networkx_graph()
-        elif isinstance(data, NX.Graph):
+        elif isinstance(data, networkx.Graph):
             self.__nxg = data
         else:
-            self.__nxg = NX.Graph(data, **kwds)
+            self.__nxg = networkx.Graph(data, **kwds)
         ### NOTE: Name bug in NetworkX supposedly fixed, so check if the fol-
         ### lowing fix is unnecessary
         self.__nxg.name=kwds.get("name","No Name")
@@ -171,7 +224,8 @@ class Graph(SimpleGraph):
         """
         Returns the density.
         """
-        return NX.density(self.__nxg)
+        import networkx
+        return networkx.density(self.__nxg)
 
     def is_directed(self):
         return False
@@ -369,7 +423,8 @@ class Graph(SimpleGraph):
         """
         Returns a list, whose ith entry is the frequency of degree i.
         """
-        return NX.degree_histogram(self.__nxg)
+        import networkx
+        return networkx.degree_histogram(self.__nxg)
 
     def degree_iterator(self, vertices=None, with_labels=False):
         """
@@ -396,6 +451,8 @@ class Graph(SimpleGraph):
             j = verts.index(j)
             D[(i,j)] = 1
             D[(j,i)] = 1
+        from sage.rings.integer_mod_ring import IntegerModRing
+        from sage.matrix.constructor import matrix
         M = matrix(IntegerModRing(2), n, n, D, sparse=sparse)
         return M
 
@@ -448,10 +505,21 @@ class Graph(SimpleGraph):
         GG.axes(False)
         return GG
 
-    def show(self, pos=None,
-                   with_labels=True,
-                   node_size=200):
-        self.plot(pos, with_labels, node_size).show()
+    def show(self, pos=None, with_labels=True, node_size=200, **kwds):
+        """
+        INPUT:
+            pos -- ??
+            with_labels -- bool (default: True)
+            node_size -- how big the nodes are
+            other named options -- All other options are passed onto the show command;
+                    e.g., dpi=50 will make a small plot.
+
+        EXAMPLES:
+            sage: g = Graph({0:[1,2,3], 2:[5]}); g
+            Simple graph on 5 vertices
+            sage.: g.plot().show(dpi=50)
+        """
+        self.plot(pos=pos, with_labels=with_labels, node_size=node_size).show(**kwds)
 
 class DiGraph(SimpleGraph):
     """
@@ -488,12 +556,13 @@ class DiGraph(SimpleGraph):
         EXAMPLES:
         needed
         """
+        import networkx
         if isinstance(data, DiGraph):
             self.__nxg = data.networkx_graph()
-        elif isinstance(data, NX.DiGraph):
+        elif isinstance(data, networkx.DiGraph):
             self.__nxg = data
         else:
-            self.__nxg = NX.DiGraph(data, **kwds)
+            self.__nxg = networkx.DiGraph(data, **kwds)
         ### NOTE: Name bug in NetworkX supposedly fixed, so check if the fol-
         ### lowing fix is unnecessary
         self.__nxg.name=kwds.get("name","No Name")
@@ -746,6 +815,8 @@ class DiGraph(SimpleGraph):
             i = verts.index(i)
             j = verts.index(j)
             D[(i,j)] = 1
+        from sage.rings.integer_mod_ring import IntegerModRing
+        from sage.matrix.constructor import matrix
         M = matrix(IntegerModRing(2), n, n, D, sparse=sparse)
         return M
 

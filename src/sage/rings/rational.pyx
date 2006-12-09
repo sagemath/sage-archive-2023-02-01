@@ -180,18 +180,26 @@ cdef class Rational(sage.structure.element.FieldElement):
                     mpq_canonicalize(self.value)
 
         elif isinstance(x, str):
+            _sig_on
             if mpq_set_str(self.value, x, base):
+                _sig_off
                 raise TypeError, "unable to convert %s to a rational"%x
             mpq_canonicalize(self.value)
+            _sig_off
 
         elif hasattr(x, "_rational_"):
             set_from_Rational(self, x._rational_())
 
         elif isinstance(x, tuple) and len(x) == 2:
             s = "%s/%s"%x
-            if mpq_set_str(self.value, s, 0):
-                raise TypeError, "unable to convert %s to a rational"%s
+            if x[1] == 0:
+                raise ValueError, "denominator must not be 0"
+            _sig_on
+            n = mpq_set_str(self.value, s, 0)
             mpq_canonicalize(self.value)
+            _sig_off
+            if i:
+                raise TypeError, "unable to convert %s to a rational"%s
 
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)

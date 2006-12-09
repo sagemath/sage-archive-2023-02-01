@@ -1641,6 +1641,10 @@ cdef class Matrix(matrix1.Matrix):
             (1, -2, 1)
             ])
             ]
+
+        The same computation, but with implicit base change to a field:
+            sage: a = matrix(ZZ,3,range(9))
+            sage: v = a.eigenspaces()
         """
         x = self.fetch('eigenvectors')
         if not x is None:
@@ -1652,6 +1656,8 @@ cdef class Matrix(matrix1.Matrix):
             if h.degree() == 1:
                 alpha = -h[0]/h[1]
                 F = alpha.parent()
+                if F != self.base_ring():
+                    self = self.change_ring(F)
                 A = self - alpha
             else:
                 F = h.root_field('%s%s'%(var,i))
@@ -1668,7 +1674,7 @@ cdef class Matrix(matrix1.Matrix):
     #####################################################################################
     # Generic Echelon Form
     ###################################################################################
-    def echelonize(self, algorithm="default", cutoff=0):
+    def echelonize(self, algorithm="default", cutoff=0, **kwds):
         r"""
         Transform self into a matrix in echelon form over the same
         base ring as self.
@@ -1748,7 +1754,7 @@ cdef class Matrix(matrix1.Matrix):
             print msg
             raise ValueError, "Echelon form not defined over this base ring."
 
-    def echelon_form(self, algorithm="default", cutoff=0):
+    def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
         Return the echelon form of self.
 

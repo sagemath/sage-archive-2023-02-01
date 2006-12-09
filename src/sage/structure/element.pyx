@@ -532,7 +532,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         # default implementation is to try multiplying by -1.
-        return bin_op_c(-1, self, operator.mul)
+        return bin_op_c(self._parent._base(-1), self, operator.mul)
 
 
     def _neg_(ModuleElement self):
@@ -677,7 +677,7 @@ cdef class ModuleElement(Element):
     ##################################################
     # Other properties
     ##################################################
-    def order(self):
+    def order(self):              ### DO NOT OVERRIDE THIS!!! Instead, override additive_order.
         """
         Return the additive order of self.
         """
@@ -1092,6 +1092,17 @@ cdef class RingElement(ModuleElement):
             return True
         raise NotImplementedError
 
+    def is_nilpotent(self):
+        """
+        Return True if self is nilpotent, i.e., some power of self
+        is 0.
+        """
+        if self.is_unit():
+            return False
+        if self.is_zero():
+            return True
+        raise NotImplementedError
+
     def __pow__(self, n, dummy):
         cdef int i
         if PyFloat_Check(n):
@@ -1355,7 +1366,8 @@ def is_IntegralDomainElement(x):
     return IS_INSTANCE(x, IntegralDomainElement)
 
 cdef class IntegralDomainElement(CommutativeRingElement):
-    pass
+    def is_nilpotent(self):
+        return self.is_zero()
 
 
 def is_DedekindDomainElement(x):

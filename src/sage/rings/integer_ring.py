@@ -274,7 +274,7 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
             sage: ZZ.quo(0*ZZ)
             Integer Ring
             sage: ZZ.quo(3)
-            Finite Field of size 3
+            Ring of integers modulo 3
             sage: ZZ.quo(3*QQ)
             Traceback (most recent call last):
             ...

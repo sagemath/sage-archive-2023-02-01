@@ -63,7 +63,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
            in the Toom-Cook algorithm to speed multiplication.
 
   EXAMPLES:
-      sage: B, t = PolynomialRing(Integers(125)).objgen()
+      sage: B.<t> = PolynomialRing(Integers(125))
       sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
       sage: R
       SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
@@ -152,7 +152,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
   def __repr__(self):
     return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
-           (self.base_ring(), PolynomialRing(self.base_ring())(
+           (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(
                                                 [self._b, self._a, 0, 1]))
 
   def poly_ring(self):
@@ -1083,7 +1083,7 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       sage: result = []                                           # long time
       sage: for prec in range(1, max_prec):                       # long time
       ...       M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
-      ...       R, x = PolynomialRing(Integers(p**M)).objgen()    # long time
+      ...       R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
       ...       B = monsky_washnitzer.matrix_of_frobenius(        # long time
       ...                         x^3 - x + R(1/4), p, M)         # long time
       ...       B = B.change_ring(Integers(p**prec))              # long time

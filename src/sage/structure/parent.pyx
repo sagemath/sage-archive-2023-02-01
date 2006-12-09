@@ -102,7 +102,7 @@ cdef class Parent(sage_object.SageObject):
             P = x.parent()   # todo -- optimize
             if P is self:
                 return x
-            elif P == self:
+            elif P == self:      # canonically isomorphic parents in same category.
                 return self(x)
         except AttributeError, msg:
             pass
@@ -196,6 +196,8 @@ cdef class Parent(sage_object.SageObject):
             self._coerce_c((<Parent>S)._an_element_c())
         except TypeError:
             return False
+        except NotImplementedError:
+            raise NotImplementedError, "please implement has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%self
         return True
 
     def _an_element_impl(self):     # override this in Python
@@ -212,7 +214,7 @@ cdef class Parent(sage_object.SageObject):
                 return self(1)
             except TypeError:
                 pass
-        raise NotImplementedError, "please implement an_element_c_impl or an_element_impl in your parent class"
+        raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
 
     def _an_element(self):        # do not override this (call from Python)
         return self._an_element_c()

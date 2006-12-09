@@ -108,7 +108,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: pi
             Ring morphism:
               From: Integer Ring
-              To:   Finite Field of size 3
+              To:   Ring of integers modulo 3
               Defn: Natural quotient map
             sage: pi(5)
             2

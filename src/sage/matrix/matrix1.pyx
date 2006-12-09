@@ -133,7 +133,7 @@ cdef class Matrix(matrix0.Matrix):
 
         return singular.matrix(self.nrows(),self.ncols(),singular(self.list()))
 
-    def numeric(self, typecode=None):
+    def numeric_array(self, typecode=None):
         """
         Return the Numeric array associated to this matrix (if possible).
         All entries must be coercible to the given typecode.
@@ -146,6 +146,44 @@ cdef class Matrix(matrix0.Matrix):
             typecode = Numeric.Float64
         A = Numeric.array(self.list(), typecode=typecode)
         return Numeric.resize(A,(self._nrows, self._ncols))
+
+    def numpy(self, dtype=None):
+        """
+        Return the Numpy matrix associated to this matrix.
+
+        INPUT:
+            dtype  - The desired data-type for the array.  If not given, then
+                     the type will be determined as the minimum type required
+                     to hold the objects in the sequence.
+
+        EXAMPLES:
+            sage: a = matrix(3,range(12))
+            sage: a.numpy()
+            array([[0, 1, 2, 3],
+                   [4, 5, 6, 7],
+                   [8, 9, 10, 11]], dtype=object)
+            sage: a.numpy('f')
+            array([[  0.,   1.,   2.,   3.],
+                   [  4.,   5.,   6.,   7.],
+                   [  8.,   9.,  10.,  11.]], dtype=float32)
+            sage: a.numpy('d')
+            array([[  0.,   1.,   2.,   3.],
+                   [  4.,   5.,   6.,   7.],
+                   [  8.,   9.,  10.,  11.]])
+            sage: a.numpy('B')
+            array([[ 0,  1,  2,  3],
+                   [ 4,  5,  6,  7],
+                   [ 8,  9, 10, 11]], dtype=uint8)
+
+        Type \code{numpy.typecodes} for a list of the possible typecodes:
+            sage: import numpy
+            sage: numpy.typecodes
+            {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
+        """
+        import numpy
+        A = numpy.matrix(self.list(), dtype=dtype)
+        return numpy.resize(A,(self.nrows(), self.ncols()))
+
 
     ###################################################
     # Construction functions

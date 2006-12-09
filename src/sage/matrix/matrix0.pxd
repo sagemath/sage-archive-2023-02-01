@@ -19,9 +19,9 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef public object _base_ring
     cdef sage.structure.mutability.Mutability _mutability
 
-    cdef int _will_use_strassen(self, right) except -2
+    cdef int _will_use_strassen(self, Matrix right) except -2
     cdef int _will_use_strassen_echelon(self) except -2
-    cdef int _strassen_default_cutoff(self, right) except -2
+    cdef int _strassen_default_cutoff(self, Matrix right) except -2
     cdef int _strassen_default_echelon_cutoff(self) except -2
 
     cdef long _hash(self) except -1

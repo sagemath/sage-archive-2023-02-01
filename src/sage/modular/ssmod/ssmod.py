@@ -1,10 +1,17 @@
 """
-The module of supersingular points
+Module of Supersingular Points
 
 AUTHORS:
     -- William Stein
     -- David Kohel
     -- Iftikhar Burhanuddin
+
+EXAMPLES:
+    sage: x = SupersingularModule(389)
+    sage: m = x.T(2).matrix()
+    sage: a = m.change_ring(GF(97))
+    sage: a.decomposition()
+    ... current crashes due to linear algebra bug ...
 """
 
 #*****************************************************************************
@@ -718,12 +725,12 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
         while pos < len(ss_points):
             if pos == 0:
-                neighs = Phi_polys(2,X,ss_points[pos]).roots()
+                neighbors = Phi_polys(2,X,ss_points[pos]).roots()
             else:
                 j_prev = ss_points_pre[pos]
-                neighs = Phi2_quad(X, ss_points[j_prev], ss_points[pos]).roots()
+                neighbors = Phi2_quad(X, ss_points[j_prev], ss_points[pos]).roots()
 
-            for (xj,ej) in neighs:
+            for (xj,ej) in neighbors:
                 if not ss_points_dic.has_key(xj):
                     j = len(ss_points)
                     ss_points += [xj]
@@ -732,9 +739,10 @@ class SupersingularModule(hecke.HeckeModule_free_module):
                 else:
                     j = ss_points_dic[xj]
                 T2_matrix[pos, j] += ej
-                if pos != 0:
-                    # also record the root from j_prev
-                    T2_matrix[pos, j_prev] += 1
+            # end for
+            if pos != 0:
+                # also record the root from j_prev
+                T2_matrix[pos, j_prev] += 1
             pos += int(1)
 
         self.__hecke_matrices[2] = T2_matrix
@@ -786,13 +794,16 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         if self.__hecke_matrices.has_key(L):
             return self.__hecke_matrices[L]
         SS, II = self.supersingular_points()
+        if L == 2:
+            # since T_2 gets computed as a side effect of computing the supersingular points
+            return self.__hecke_matrices[2]
         Fp2 = self.__finite_field
         h = len(SS)
         R = self.base_ring()
         T_L = MatrixSpace(R,h,sparse=True)(0)
         S, X = rings.PolynomialRing(Fp2, 'x').objgen()
 
-        if L in [3,4,7,11]:
+        if L in [3,5,7,11]:
             for i in range(len(SS)):
                 ss_i = SS[i]
                 phi_L_in_x = Phi_polys(L, X, S(ss_i))

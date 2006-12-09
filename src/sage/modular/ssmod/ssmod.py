@@ -890,7 +890,7 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
             sage: S = SupersingularModule(37)
             sage: S.supersingular_points()
-            ([8, 27*a + 23, 10*a + 20], {8: 0, 10*a + 20: 2, 27*a + 23: 1})
+            ([8, 27*a + 23, 10*a + 20], {10*a + 20: 2, 8: 0, 27*a + 23: 1})
 
         AUTHORS:
             David Kohel - kohel@maths.usyd.edu.au

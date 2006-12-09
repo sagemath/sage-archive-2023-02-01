@@ -28,7 +28,8 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser   import preparse_file
 from sage.misc.misc        import alarm, cancel_alarm, verbose, DOT_SAGE
 import sage.server.support as support
-from cell import Cell
+
+from cell import Cell, TextCell
 
 INTERRUPT_TRIES = 50
 INITIAL_NUM_CELLS = 1
@@ -161,10 +162,7 @@ class Worksheet:
         Returns a plain-text version of the worksheet with {{{}}} wiki-formatting,
         suitable for hand editing.
         """
-        #s = '#'*80 + '\n'
-        #s += '# Worksheet: %s'%self.name() + '\n'
-        #s += '#'*80+'\n\n'
-        s = ' == %s =='%self.name() + '\n\n'
+        s = ''
         for C in self.__cells:
             t = C.edit_text(prompts=prompts).strip()
             if t != '':
@@ -176,8 +174,12 @@ class Worksheet:
         # This is where we would save the last version in a history.
         cells = []
         while True:
+            plain_text = extract_text_before_first_compute_cell(text)
+            if len(plain_text.strip()) > 0:
+                T = self._new_text_cell(plain_text)
+                cells.append(T)
             try:
-                input, output, graphics, i = extract_first_text_cell(text)
+                input, output, graphics, i = extract_first_compute_cell(text)
             except EOFError:
                 break
             text = text[i:]
@@ -239,6 +241,9 @@ class Worksheet:
 
     def cell_id_list(self):
         return [C.id() for C in self.__cells]
+
+    def compute_cell_id_list(self):
+        return [C.id() for C in self.__cells if isinstance(C, Cell)]
 
     def cell_list(self):
         return self.__cells
@@ -381,6 +386,12 @@ class Worksheet:
         for c in self.__cells:
             if c.is_auto_cell():
                 self.enqueue(c)
+
+    def _new_text_cell(self, plain_text, id=None):
+        if id is None:
+            id = self.__next_id
+            self.__next_id += 1
+        return TextCell(id, plain_text, self)
 
     def _new_cell(self, id=None):
         if id is None:
@@ -1085,7 +1096,8 @@ class Worksheet:
             switched, input = self.check_for_system_switching(input, C)
 
             if not switched:
-                input = ignore_prompts_and_output(input)
+                input = ignore_prompts_and_output(input).rstrip()
+                print "input ='%s'"%input
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
@@ -1188,8 +1200,8 @@ class Worksheet:
             vbar = '<span class="vbar"></span>'
 
             menu  = '  <span class="worksheet_control_commands">'
-            menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
+            menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
             menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
@@ -1213,7 +1225,7 @@ class Worksheet:
         s += '<div class="worksheet_bottom_padding"></div>\n'
 
         if not do_print:
-            s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.cell_id_list()
+            s += '<script language=javascript>cell_id_list=%s; cell_input_minimize_all();</script>\n'%self.compute_cell_id_list()
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s
@@ -1256,8 +1268,17 @@ def ignore_prompts_and_output(s):
     return s
 
 
+def extract_text_before_first_compute_cell(text):
+    """
+    OUTPUT:
+        Everything in text up to the first {{{.
+    """
+    i = text.find('{{{')
+    if i == -1:
+        return text
+    return text[:i]
 
-def extract_first_text_cell(text):
+def extract_first_compute_cell(text):
     """
     INPUT:
         a block of wiki-like marked up text

@@ -14,7 +14,7 @@ EXAMPLES:
     sage: a.rank()
     3
     sage: parent(a)
-    Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 37
+    Full MatrixSpace of 3 by 3 dense matrices over Ring of integers modulo 37
 
     sage: a^2
     [ 3 23 31]

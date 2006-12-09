@@ -250,10 +250,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __nonzero__(self):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [0, 0, 0, 0])
+            sage: V = vector(ZZ, [0, 0, 0, 0])
             sage: bool(V)
             False
-            sage: V = Vector(ZZ, [1, 2, 3, 5])
+            sage: V = vector(ZZ, [1, 2, 3, 5])
             sage: bool(V)
             True
         """
@@ -271,7 +271,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __mod__(self, p):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V % 7
             (5, 2, 6, 1)
             sage: parent(V % 7)
@@ -284,11 +284,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def Mod(self, p):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V.Mod(7)
             (5, 2, 6, 1)
             sage: parent(V.Mod(7))
-            Vector space of dimension 4 over Finite Field of size 7
+            Vector space of dimension 4 over Ring of integers modulo 7
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
 
@@ -311,7 +311,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def lift(self):
         """
         EXAMPLES:
-            sage: V = Vector(Integers(7), [5, 9, 13, 15]) ; V
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
             (5, 2, 6, 1)
             sage: V.lift()
             (5, 2, 6, 1)
@@ -517,6 +517,13 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         v = self.list()
         return eval('[i for i in xrange(self.degree()) if v[i] != z]',
                     {'self':self, 'z':z, 'v':v})
+
+    def support(self):   # do not override.
+        """
+        Return the integers i such that self[i] != 0.
+        This is the same as the \code{nonzero_positions} function.
+        """
+        return self.nonzero_positions()
 
     def _latex_(self):
         """
@@ -924,7 +931,4 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         K = self._entries.keys()
         K.sort()
         return K
-
-    def support(self):
-        return self.nonzero_positions()
 

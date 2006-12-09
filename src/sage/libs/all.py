@@ -1,5 +1,5 @@
 #try:
-#    import sage.libs.cf.cf as cf
+#import sage.libs.cf.cf as cf
 #except ImportError:
 #    pass
 

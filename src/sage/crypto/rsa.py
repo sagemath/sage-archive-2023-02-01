@@ -29,7 +29,7 @@ def rsa_encrypt(m, N, e):
         sage: phiN = euler_phi(N)
         sage: R = IntegerModRing(int(phiN))
         sage: e = R(17)
-        sage: edu.rsa_encrypt(123,N,e)
+        sage: rsa_encrypt(123,N,e)
         855
 
     AUTHOR: David Joyner (11-2005)
@@ -52,7 +52,7 @@ def rsa_decrypt(c,N,e):
         sage: phiN = euler_phi(N)
         sage: R = IntegerModRing(int(phiN))
         sage: e = R(17)
-        sage: edu.rsa_decrypt(855,N,e)
+        sage: rsa_decrypt(855,N,e)
         123
 
     AUTHOR:

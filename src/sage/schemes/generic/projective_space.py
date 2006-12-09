@@ -67,10 +67,12 @@ import algebraic_scheme
 import ambient_space
 import affine_space
 
+from sage.structure.parent_gens import normalize_names
+
 def is_ProjectiveSpace(x):
     return isinstance(x, ProjectiveSpace_ring)
 
-def ProjectiveSpace(n, R=None, names=None):
+def ProjectiveSpace(n, R=None, names='x'):
     r"""
     Return projective space of dimension $n$ over the ring $R$.
 
@@ -148,8 +150,9 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         True
     """
     def __init__(self, n, R=ZZ, names=None):
+        names = normalize_names(n+1, names)
         ambient_space.AmbientSpace.__init__(self, n, R)
-        self.__names = names
+        self._assign_names(names)
 
     def ngens(self):
         return self.dimension() + 1
@@ -167,8 +170,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         a ValueError.
 
         EXAMPLES:
-            sage: ProjectiveSpace(3, GF(19^2), 'abcd').coordinate_ring()
-            Polynomial Ring in a, b, c, d over Finite Field in a of size 19^2
+            sage: ProjectiveSpace(3, GF(19^2,'alpha'), 'abcd').coordinate_ring()
+            Polynomial Ring in a, b, c, d over Finite Field in alpha of size 19^2
 
             sage: ProjectiveSpace(3).coordinate_ring()
             Polynomial Ring in x0, x1, x2, x3 over Integer Ring
@@ -179,7 +182,8 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
         try:
             return self._coordinate_ring
         except AttributeError:
-            self._coordinate_ring = MPolynomialRing(self.base_ring(), self.__names, self.dimension()+1)
+            self._coordinate_ring = MPolynomialRing(self.base_ring(),
+                               self.variable_names(), self.dimension()+1)
             return self._coordinate_ring
 
     def _point_morphism_class(self, *args, **kwds):
@@ -226,7 +230,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
             X -- a list or tuple of equations
 
         EXAMPLES:
-            sage: A, (x,y,z) = ProjectiveSpace(2, QQ).objgens('xyz')
+            sage: A.<x,y,z> = ProjectiveSpace(2, QQ)
             sage: X = A.subscheme([x*z^2, y^2*z, x*y^2]); X
             Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x*z^2

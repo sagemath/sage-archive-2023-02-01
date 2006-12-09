@@ -188,11 +188,10 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: D = ModularSymbols(10,4).cuspidal_submodule().decomposition()
             sage: D
             [
-            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
             ]
-
-            sage: D[0].degeneracy_map(5)
+            sage: D[1].degeneracy_map(5)
             Hecke module morphism defined by the matrix
             [   0    0   -1    1]
             [   0  1/2  3/2   -2]

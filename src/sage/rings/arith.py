@@ -548,6 +548,38 @@ def primes(start, stop=None):
         else:
             return
 
+def next_prime_power(n):
+    """
+    The next prime power greater than the integer n.  If n is a prime
+    power, then this function does not return n, but the next prime
+    power after n.
+
+    EXAMPLES:
+        sage: next_prime_power(-10)
+        1
+        sage: is_prime_power(1)
+        True
+        sage: next_prime_power(0)
+        1
+        sage: next_prime_power(1)
+        2
+        sage: next_prime_power(2)
+        3
+        sage: next_prime_power(10)
+        11
+        sage: next_prime_power(7)
+        8
+        sage: next_prime_power(99)
+        101
+    """
+    if n < 0:   # negatives are not prime.
+        return sage.rings.integer.Integer(1)
+    if n == 2:
+        return sage.rings.integer.Integer(3)
+    n = sage.rings.integer.Integer(n) + 1
+    while not is_prime_power(n):  # pari isprime is provably correct
+        n += 1
+    return n
 
 def next_prime(n, proof=True):
     """
@@ -589,9 +621,7 @@ def next_prime(n, proof=True):
 def previous_prime(n):
     """
     The largest prime < n.  The result is provably
-    correct.   If n <= 2, this function returns -p,
-    where p is prime and -p < n and no larger negative
-    of a prime has this property.
+    correct.   If n <= 2, this function raises a ValueError.
 
     EXAMPLES:
         sage: previous_prime(10)
@@ -607,23 +637,67 @@ def previous_prime(n):
         sage: previous_prime(3)
         2
         sage: previous_prime(2)
-        -2
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
         sage: previous_prime(1)
-        -2
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
         sage: previous_prime(-20)
-        -23
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime
     """
     n = sage.rings.integer.Integer(n)-1
-    if n in [2,3,-2]:
+    if n <= 1:
+        raise ValueError, "no previous prime"
+    if n <= 3:
         return sage.rings.integer.Integer(n)
-    if n in [0,1,-1]:
-        return sage.rings.integer.Integer(-2)
     if n%2 == 0:
         n -= 1
-    while not is_prime(abs(n)):
+    while not is_prime(n):
         n -= 2
     return sage.rings.integer.Integer(n)
 
+def previous_prime_power(n):
+    r"""
+    The largest prime power $< n$.  The result is provably
+    correct. If $n \leq 2$, this function returns $-x$,
+    where $x$ is prime power and $-x < n$ and no larger negative
+    of a prime power has this property.
+
+    EXAMPLES:
+        sage: previous_prime_power(2)
+        1
+        sage: previous_prime_power(10)
+        9
+        sage: previous_prime_power(7)
+        5
+        sage: previous_prime_power(127)
+        125
+
+        sage: previous_prime_power(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime power
+        sage: previous_prime_power(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: no previous prime power
+
+        sage: n = previous_prime_power(2^16 - 1)
+        sage: while is_prime(n):
+        ...    n = previous_prime_power(n)
+        sage: factor(n)
+        251^2
+    """
+    n = sage.rings.integer.Integer(n)-1
+    if n <= 0:
+        raise ValueError, "no previous prime power"
+    while not is_prime_power(n):
+        n -= 1
+    return n
 
 def random_prime(n):
     """

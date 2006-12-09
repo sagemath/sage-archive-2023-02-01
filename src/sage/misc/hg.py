@@ -1,5 +1,5 @@
 r"""
-HG from SAGE.
+SAGE Interface to the HG/Mercurial Revision Control System
 
 These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,

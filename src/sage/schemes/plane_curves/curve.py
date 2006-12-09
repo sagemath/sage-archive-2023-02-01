@@ -37,8 +37,10 @@ class Curve_generic(AlgebraicScheme_subscheme):
         return self.defining_polynomials()[0]
 
     def divisor_group(self, K=None):
-        if not is_Field(K):
-            raise TypeError, "Argument K (= %s) must be a field"
+        if K is None:
+            K = self.base_ring()
+        elif not is_Field(K):
+            raise TypeError, "Argument K (=%s) must be a field"%K
         # TODO: check that there exists a canonical map self.base_ring -> K
         # TODO: allow a morphism of rings
         divisor_groups = self._AlgebraicScheme__divisor_groups
@@ -47,7 +49,7 @@ class Curve_generic(AlgebraicScheme_subscheme):
         return divisor_groups[K]
 
     def divisor(self, v, check=True, reduce=True):
-        return Divisor_curve(v, check=check, reduce=reduce)
+        return Divisor_curve(v, check=check, reduce=reduce, parent=self.divisor_group())
 
     def genus(self):
         """

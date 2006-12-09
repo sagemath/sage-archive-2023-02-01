@@ -32,7 +32,37 @@ import notebook
 
 import worksheet
 
-class Cell:
+class Cell_generic:
+    pass
+
+class TextCell(Cell_generic):
+    def __init__(self, id, text, worksheet):
+        self.__id = int(id)
+        self.__text = text
+        self.__worksheet = worksheet
+
+    def html(self, ncols, do_print=False):
+        t = self.__text
+        return '<font size=+1>%s</font>'%t
+        #return self.__text
+
+    def plain_text(self, prompts=False):
+        return self.__text
+
+    def edit_text(self, prompts=False):
+        return self.__text
+
+    def id(self):
+        return self.__id
+
+    def is_auto_cell(self):
+        return False
+
+    def __cmp__(self, right):
+        return cmp(self.id(), right.id())
+
+
+class Cell(Cell_generic):
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)
@@ -62,7 +92,7 @@ class Cell:
         self.__out_html = self.files_html()
 
     def __cmp__(self, right):
-        return cmp(self.__id, right.__id)
+        return cmp(self.id(), right.id())
 
     def __del__(self):
         if os.path.exists(self.__dir):
@@ -510,3 +540,4 @@ def format_exception(s0, ncols):
     t = '<html><font color="#990099">' + s + '</font></html>'
     return t
 
+ComputeCell=Cell

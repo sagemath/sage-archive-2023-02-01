@@ -372,27 +372,27 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: P = PolynomialRing(GF(4,'a'),'y')
             sage: for p in P.monics( of_degree = 2 ): print p
             y^2
-            y^2 + 1
             y^2 + a
             y^2 + a + 1
-            y^2 + y
-            y^2 + y + 1
-            y^2 + y + a
-            y^2 + y + a + 1
+            y^2 + 1
             y^2 + a*y
-            y^2 + a*y + 1
             y^2 + a*y + a
             y^2 + a*y + a + 1
+            y^2 + a*y + 1
             y^2 + (a + 1)*y
-            y^2 + (a + 1)*y + 1
             y^2 + (a + 1)*y + a
             y^2 + (a + 1)*y + a + 1
+            y^2 + (a + 1)*y + 1
+            y^2 + y
+            y^2 + y + a
+            y^2 + y + a + 1
+            y^2 + y + 1
             sage: for p in P.monics( max_degree = 1 ): print p
             1
             y
-            y + 1
             y + a
             y + a + 1
+            y + 1
             sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
             Traceback (most recent call last):
             ...

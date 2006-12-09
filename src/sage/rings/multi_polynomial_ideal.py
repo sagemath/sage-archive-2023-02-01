@@ -294,7 +294,10 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__dimension
         except AttributeError:
-            self.__dimension = Integer(singular(list(self.groebner_basis()),"ideal").dim())
+            v = list(self.groebner_basis())
+            if len(v) == 0:
+                v = [0]
+            self.__dimension = Integer(singular(v,"ideal").dim())
         return self.__dimension
 
     def _singular_groebner_basis(self, algorithm="groebner"):

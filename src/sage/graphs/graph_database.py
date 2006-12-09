@@ -259,13 +259,14 @@ class GraphDatabase():
 
         EXAMPLES:
             sage: import networkx
-            # Compare the constructors (results will vary)
+
+        Compare the constructors (results will vary)
             sage.: time n = networkx.star_graph(3989); spring3989 = Graph(n)
             # CPU time: 0.08 s,  Wall time: 0.10 s
             sage.: time posdict3989 = graphs.StarGraph(3989)
             # CPU time: 5.43 s,  Wall time: 7.41 s
 
-            # Compare the plotting speeds (results will vary)
+        Compare the plotting speeds (results will vary)
             sage: n = networkx.star_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.StarGraph(23)
@@ -274,9 +275,9 @@ class GraphDatabase():
             sage.: time posdict23.show()
             # CPU time: 0.68 s,  Wall time: 0.80 s
 
-            # View many star graphs as a SAGE Graphics Array
+        View many star graphs as a SAGE Graphics Array
 
-            # With this constructor (i.e., the position dictionary filled)
+        With this constructor (i.e., the position dictionary filled)
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -292,7 +293,7 @@ class GraphDatabase():
             sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
-            # Compared to plotting with the spring-layout algorithm
+        Compared to plotting with the spring-layout algorithm
             sage: g = []
             sage: j = []
             sage: for i in range(9):

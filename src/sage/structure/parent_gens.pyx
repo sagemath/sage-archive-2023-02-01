@@ -122,7 +122,10 @@ def _certify_names(names):
     return tuple(v)
 
 def normalize_names(int ngens, names=None):
-    if names is None: return None
+    if names is None:
+        return None
+    if ngens == 0:
+        return ()
     if isinstance(names, str) and names.find(',') != -1:
         names = names.split(',')
     if isinstance(names, str) and ngens > 1 and len(names) == ngens:

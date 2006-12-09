@@ -466,11 +466,11 @@ class FreeModule_generic(module.Module):
         EXAMPLES:
             sage: V = VectorSpace(GF(4,'a'),2)
             sage: [x for x in V]
-            [(0, 0), (1, 0), (a, 0), (a + 1, 0), (0, 1), (1, 1), (a, 1), (a + 1, 1), (0, a), (1, a), (a, a), (a + 1, a), (0, a + 1), (1, a + 1), (a, a + 1), (a + 1, a + 1)]
+            [(0, 0), (a, 0), (a + 1, 0), (1, 0), (0, a), (a, a), (a + 1, a), (1, a), (0, a + 1), (a, a + 1), (a + 1, a + 1), (1, a + 1), (0, 1), (a, 1), (a + 1, 1), (1, 1)]
 
             sage: W = V.subspace([V([1,1])])
             sage: print [x for x in W]
-            [(0, 0), (1, 1), (a, a), (a + 1, a + 1)]
+            [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
         """
         G = self.gens()
         if len(G) == 0:

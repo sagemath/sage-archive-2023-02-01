@@ -18,7 +18,7 @@ from sage.structure.sequence  import Sequence
 
 from sage.categories.morphism import Morphism
 
-from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing
+from sage.rings.all           import is_RingHomomorphism, is_CommutativeRing, Integer
 
 from point                    import is_SchemeTopologicalPoint
 
@@ -380,7 +380,7 @@ class SchemeMorphism_abelian_variety_coordinates_field(AdditiveGroupElement, Sch
     def __mul__(self, n):
         if isinstance(n, (RingElement, int, long)):
             # [n]*P - multiplication by n.
-            return AdditiveGroupElement._mul_(self, n)
+            return AdditiveGroupElement._lmul_(self, Integer(n))
         else:
             # Function composition
             return SchemeMorphism_projective_coordinates_field.__mul__(self, n)

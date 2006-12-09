@@ -1096,7 +1096,8 @@ class Worksheet:
             switched, input = self.check_for_system_switching(input, C)
 
             if not switched:
-                input = ignore_prompts_and_output(input)
+                input = ignore_prompts_and_output(input).rstrip()
+                print "input ='%s'"%input
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)

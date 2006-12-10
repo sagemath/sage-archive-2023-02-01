@@ -38,6 +38,7 @@ usage_advanced() {
     echo "  -h, -?        -- print help message"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "                   if no packages given, print a list of all installed"
+    echo "  -i -s [packages] -- install the given SAGE packages, not deleting their spkg/build directories."
     echo "  -ipython <...> -- run SAGE's Ipython using the default environment (not SAGE), passing additional options to Ipython"
     echo "  -kash <..>    -- run SAGE's Kash with given arguments"
     echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"

@@ -1,29 +1,125 @@
+"""
+Catalogue of Functions and of Parent and Element Constructors
+"""
+
+# TODO -- this is not done yet.
+
 class Catalogue:
+    """
+    Use the new object and tab completion to create new SAGE objects.  It gathers
+    together and organizers the various SAGE constructors.
+    """
     pass
 
-cat = Catalogue()
+new = Catalogue()
 
-class Rings:
+class Parent:
+    """
+    Parent structures, i.e., container objects.
+    """
     pass
+parent = Parent()
+new.parent = parent
+
+class Element:
+    """
+    Elements of various parent structures.
+    """
+    pass
+element = Element()
+new.element = element
+
+class Category:
+    """
+    Categories.
+    """
+    pass
+category = Category()
+#new.category = category
+
+class Function:
+    """
+    Functions
+    """
+    pass
+function = Function()
+new.function = function
+
+#######################################################
+# Rings
+#######################################################
+
+class Ring:
+    pass
+ring = Ring()
 
 import sage.rings.all
-rings = Rings()
-rings.ZZ = sage.rings.all.ZZ
-rings.QQ = sage.rings.all.QQ
-rings.PolynomialRing = sage.rings.all.PolynomialRing
-rings.LaurentSeriesRing = sage.rings.all.LaurentSeriesRing
+ring.ZZ = sage.rings.all.ZZ
+ring.QQ = sage.rings.all.QQ
+ring.PolynomialRing = sage.rings.all.PolynomialRing
+ring.LaurentSeriesRing = sage.rings.all.LaurentSeriesRing
 
-cat.rings = rings
+parent.ring = ring
 
+class RingElts:
+    pass
+ring = RingElts()
+ring.Integer = sage.rings.all.Integer
+
+element.ring = ring
+
+#######################################################
+# Groups
+#######################################################
 
 import sage.groups.all
-class Groups:
+class Group:
     pass
-groups = Groups()
-groups.PermutationGroup = sage.groups.all.PermutationGroup
+group = Group()
+group.PermutationGroup = sage.groups.all.PermutationGroup
+parent.group = group
 
-cat.groups = groups
+#######################################################
+# Matrix Groups
+#######################################################
+class MatrixGroup:
+    """
+    Matrix groups, i.e., groups that are viewed as a set of matrices.
+    """
+    pass
+matrix_group = MatrixGroup()
+matrix_group.GL = sage.groups.all.GL
+matrix_group.SL = sage.groups.all.SL
+matrix_group.Sp = sage.groups.all.Sp
+matrix_group.SU = sage.groups.all.SU
+matrix_group.GU = sage.groups.all.GU
+matrix_group.SO = sage.groups.all.SO
+matrix_group.GO = sage.groups.all.GO
+parent.group.matrix_group = matrix_group
 
+#######################################################
+# Modules
+#######################################################
 
+#######################################################
+# Graphs
+#######################################################
+
+#######################################################
+# Modular forms
+#######################################################
+
+#######################################################
+# Functions
+#######################################################
+class Elementary:
+    """
+    Elementary functions.
+    """
+elementary = Elementary()
+function.elementary = elementary
+import sage.functions.all
+elementary.sin = sage.functions.all.sin
+elementary.cos = sage.functions.all.cos
 
 

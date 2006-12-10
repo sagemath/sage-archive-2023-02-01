@@ -1,11 +1,6 @@
 from sage.rings.integer import pmem_malloc
-
-try:
-  import sage.libs.cf.cf as cf
-except ImportError:
-   pass
-
 pmem_malloc()
+#import sage.libs.cf.cf as cf
 
 import sage.libs.ntl.all  as ntl
 

@@ -15,14 +15,12 @@ EXAMPLES:
     sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
     sage: G = MatrixGroup(gens)
     sage: G.conjugacy_class_representatives()
-    [[1 0]
-    [0 1], [0 1]
-    [2 1], [0 1]
-    [2 2], [0 2]
-    [1 1], [0 2]
-    [1 2], [0 1]
-    [2 0], [2 0]
-    [0 2]]
+    [
+    [1 0]
+    [0 1],
+    [2 0]
+    [0 2]
+    ]
 """
 
 ##############################################################################
@@ -56,7 +54,14 @@ class MatrixGroup_generic(Group):
 def is_MatrixGroup(x):
     """
     EXAMPLES:
-    sage: ?
+        sage: is_MatrixGroup(MatrixSpace(QQ,3))
+        False
+        sage: is_MatrixGroup(Mat(QQ,3))
+        False
+        sage: is_MatrixGroup(GL(2,ZZ))
+        True
+        sage: is_MatrixGroup(MatrixGroup([matrix(2,[1,1,0,1])]))
+        True
     """
     return isinstance(x, MatrixGroup_generic)
 
@@ -82,6 +87,14 @@ def MatrixGroup(gens):
         sage: G = MatrixGroup(gens); G
         Matrix group over Finite Field of size 7 with 3 generators:
          [[[1, 2], [6, 1]], [[1, 1], [0, 1]], [[2, 0], [0, 2]]]
+
+    Each generator must be invertible:
+        sage: G = MatrixGroup([matrix(ZZ,2,[1,2,3,4])])
+        Traceback (most recent call last):
+        ...
+        ValueError: each generator must be an invertible matrix but one is not:
+        [1 2]
+        [3 4]
     """
     if len(gens) == 0:
         raise ValueError, "gens must have positive length"
@@ -128,7 +141,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
         """
         if isinstance(x, MatrixGroupElement) and x.parent() is self:
             return x
-        M = self.__matrix_space(x)
+        M = self.matrix_space()(x)
         g = MatrixGroupElement(M, self)
         if not gap(g) in gap(self):
             raise TypeError, "no way to coerce element to self."
@@ -174,7 +187,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
         Return the degree of this matrix group.
 
         EXAMPLES:
-            sage: ?
+            sage:
         """
         return self.__n
 
@@ -234,10 +247,9 @@ class MatrixGroup_gap(MatrixGroup_generic):
             sage: G = MatrixGroup(gens)
             sage: G.order()
             480
-            sage: G = MatrixGroup([matrix(ZZ,2,[1,2,3,4])])
+            sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
             sage: G.order()
             Infinity
-
         """
         g = self._gap_()
         if g.IsFinite().bool():
@@ -251,7 +263,14 @@ class MatrixGroup_gap(MatrixGroup_generic):
         EXAMPLES:
             sage: G = GO(3,GF(5))
             sage: G.gens()
-            ??
+            [
+            [2 0 0]
+            [0 3 0]
+            [0 0 1],
+            [0 1 0]
+            [1 4 4]
+            [0 2 1]
+            ]
         """
         try:
             return self.__gens
@@ -259,7 +278,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
             pass
         F = self.field_of_definition()
         gap_gens = list(gap(self).GeneratorsOfGroup())
-        gens = Sequence([matrix_group_element.MatrixGroupElement(g._matrix_(F), self, check=False) for g in gap_gens],
+        gens = Sequence([MatrixGroupElement(g._matrix_(F), self, check=False) for g in gap_gens],
                         cr=True, universe=self, check=False)
         self.__gens = gens
         return gens
@@ -269,7 +288,9 @@ class MatrixGroup_gap(MatrixGroup_generic):
         Return the number of generators of this linear group.
 
         EXAMPLES:
-            sage: ?
+            sage: G = GO(3,GF(5))
+            sage: G.ngens()
+            2
         """
         return len(self.gens())
 
@@ -280,7 +301,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
 
         EXAMPLES:
             sage: G = GU(4,GF(5), var='beta')
-            sage: G.0
+            sage: G.gen(0)
             [  beta      0      0      0]
             [     0      1      0      0]
             [     0      0      1      0]
@@ -316,17 +337,21 @@ class MatrixGroup_gap(MatrixGroup_generic):
             sage: gens = [matrix(F,2, [1,0, -1,1]), matrix(F, 2, [1,1,0,1])]
 	    sage: G = MatrixGroup(gens)
 	    sage: G.order()
-	    3
-	    sage: G.list()
-            [[1 0]
-            [0 1], [1 1]
-            [0 1], [1 2]
-            [0 1]]
+	    24
+	    sage: v = G.list()
+            sage: len(v)
+            24
+            sage: v[:2]
+            [[0 1]
+            [2 0], [0 1]
+            [2 1]]
             sage: G.list()[0] in G
 	    True
 
             sage: GL(2,ZZ).list()
-            ?
+            Traceback (most recent call last):
+            ...
+            ValueError: group must be finite
         """
         if not self.is_finite():
             raise ValueError, "group must be finite"
@@ -349,7 +374,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             sage: G = MatrixGroup(gens)
             sage: G.order()
             480
-            sage: G = MatrixGroup([matrix(ZZ,2,[1,2,3,4])])
+            sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
             sage: G.order()
             Infinity
         """
@@ -379,9 +404,6 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             sage: G.random()
             [3 2]
             [4 2]
-            sage: G = MatrixGroup([matrix(ZZ,2,[1,2,3,4])])
-            sage: G.random()
-            ??
         """
         from matrix_group_element import MatrixGroupElement
         F = self.field_of_definition()
@@ -543,7 +565,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: gens = [MS([[1,0],[0,1]]),MS([[1,1],[0,1]])]
 	    sage: G = MatrixGroup(gens)
             sage: gens[0] in G
-            False
+            True
             sage: gens = G.gens()
             sage: gens[0] in G
             True
@@ -576,8 +598,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]
             sage: G = MatrixGroup(gens)
             sage: G._gap_init_()
-            'Group([ [ [ Z(5)^0, Z(5) ], [ Z(5)^2, Z(5)^0 ] ],
-                     [ [ Z(5)^0, Z(5)^0 ], [ 0*Z(5), Z(5)^0 ] ] ])'
+            'Group([[Z(5)^0,Z(5)^1],[Z(5)^2,Z(5)^0]],[[Z(5)^0,Z(5)^0],[0*Z(5),Z(5)^0]])'
         """
         gens_gap = ','.join([x._gap_init_() for x in self._gensG])
         return 'Group(%s)'%gens_gap
@@ -608,7 +629,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
             \end{array}\right), \left(\begin{array}{rr}
             1&1\\
             0&1
-            \end{array}\right) \right\ranglen
+            \end{array}\right) \right\rangle
         """
         gens = ', '.join([latex(x) for x in self.gens()])
         return '\\left\\langle %s \\right\\rangle'%gens

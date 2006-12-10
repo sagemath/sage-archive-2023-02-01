@@ -10,4 +10,4 @@ from orthogonal import SO, GO
 
 from matrix_group_element import is_MatrixGroupElement
 
-from matrix_group import MatrixGroup
+from matrix_group import MatrixGroup, is_MatrixGroup

@@ -4,6 +4,25 @@ Formal sums
 AUTHORS:
    -- David Harvey (2006-09-20): changed FormalSum not to derive from
       "list" anymore, because that breaks new Element interface
+   -- Nick Alexander (2006-12-06): added test cases.
+
+EXAMPLES:
+    sage: A = FormalSum([(1, 2/3)]); A
+    2/3
+    sage: B = FormalSum([(3, 1/5)]); B
+    3*1/5
+    sage: -B
+    -3*1/5
+    sage: A + B
+    3*1/5 + 2/3
+    sage: A - B
+    -3*1/5 + 2/3
+    sage: B*3
+    9*1/5
+    sage: 2*A
+    2*2/3
+    sage: list(2*A + A)
+    [(3, 2/3)]
 """
 
 #*****************************************************************************
@@ -26,11 +45,15 @@ import element
 import sage.misc.latex
 
 from sage.structure.element import AdditiveGroupElement
-from sage.groups.group import AbelianGroup
+from sage.rings.integer_ring import IntegerRing
+from sage.structure.parent_base import ParentWithBase
 
-class FormalSums(AbelianGroup):
+class FormalSums(ParentWithBase):
+    def __init__(self):
+        ParentWithBase.__init__(self, IntegerRing())
+
     def _repr_(self):
-        return "Abelian Group of all Formal Finite Sums"
+        return "Group of all Formal Finite Sums"
 
 formal_sums = FormalSums()
 
@@ -77,17 +100,17 @@ class FormalSum(AdditiveGroupElement):
         coeffs= [z[0] for z in self]
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
 
+    def _neg_(self):
+        return self.__class__([(-c, s) for (c, s) in self._data], check=False, parent=self.parent())
+
     def _add_(self, other):
-        return self.__class__(self._data + other._data, parent=self.parent())
-
-    def __mul__(self, s):
-        return self.__class__([(c*s, x) for c,x in self], check=False, parent=self.parent())
-
-    def _rmul_(self, s):
-        return self.__class__([(s*c, x) for c,x in self], parent=self.parent())
+        return self.__class__(self._data + other._data, check=False, parent=self.parent())
 
     def _lmul_(self, s):
-        return self.__class__([(c*s, x) for c,x in self], parent=self.parent())
+        return self._rmul_(s) # formal sums are abelian
+
+    def _rmul_(self, s):
+        return self.__class__([(s*c, x) for (c, x) in self], check=False, parent=self.parent())
 
     def reduce(self):
         if len(self) == 0:

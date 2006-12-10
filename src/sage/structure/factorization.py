@@ -115,6 +115,11 @@ class Factorization(SageObject, list):
         self.__cr = cr
         self.sort()
 
+    def sort(self):
+        def _cmp(f,g):
+            return cmp((f[1],f[0]), (g[1],g[0]))
+        list.sort(self, _cmp)
+
     def __reduce__(self):
         x = list(self)
         return Factorization, (x,)

@@ -56,7 +56,7 @@ def algdep(z, n):
         sage: p = algdep(z, 6); p
         x^6 + 2*x^3 + 1
         sage: p.factor()
-        (x^2 - x + 1)^2 * (x + 1)^2
+        (x + 1)^2 * (x^2 - x + 1)^2
         sage: z^2 - z + 1
         0.000000000000000111022302462515
 
@@ -1386,7 +1386,9 @@ def prime_divisors(n):
     sage: prime_divisors(2004)
     [2, 3, 167]
     """
-    return [p for p,_ in factor(n) if p != -1]
+    v = [p for p,_ in factor(n) if p != -1]
+    v.sort()
+    return v
 
 prime_factors = prime_divisors
 

@@ -208,13 +208,13 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
-            False
+            True
             sage: x^2 - 2*x - 1 < x^2 - 1
             True
             sage: x^2 - 2*x - 1 > x^2 - 1
             False
             sage: R(-1) < R(0)
-            True
+            False
         """
         d1 = self.degree(); d2 = other.degree()
         c = cmp(d1, d2)
@@ -916,7 +916,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: R.<x> = k[]
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1) * (x^2 + 3*x + 4*a + 4)
+            (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -927,13 +927,13 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: x = GF(3^2, 'a')['x'].0
             sage: f = x^10 +7*x -13
             sage: G = f.factor(); G
-            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + a) * (x + 2*a + 1)
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
             sage: prod(G) == f
             True
 
             sage: f.parent().base_ring()._assign_names(['a'])
             sage: f.factor()
-            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + a) * (x + 2*a + 1)
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
 
             sage: k = GF(9,'x')    # purposely calling it x to test robustness
             sage: x = PolynomialRing(k,'x0').gen()

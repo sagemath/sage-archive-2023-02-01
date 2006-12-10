@@ -1362,7 +1362,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: p = z.algdep(5); p
             x^5 + x^2
             sage: p.factor()
-            x^2 * (x^2 - x + 1) * (x + 1)
+            (x + 1) * (x^2 - x + 1) * x^2
             sage: z^2 - z + 1
             2.22044604925e-16 + 1.11022302463e-16*I
 

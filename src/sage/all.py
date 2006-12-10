@@ -255,7 +255,7 @@ InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-from catalogue import cat
+from catalogue import new
 
 import sage.ext.sig
 sage.ext.sig.get_bad_sigs()

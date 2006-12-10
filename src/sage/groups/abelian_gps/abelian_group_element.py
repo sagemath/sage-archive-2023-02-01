@@ -146,7 +146,7 @@ class AbelianGroupElement(MonoidElement):
         invs = M.invariants()
         if n < 0:
             L =[n*self.list()[i]%M.gen(i).order() for i in range(M.ngens())]
-            return prod([M.gen(i)**L[i] for i in range(M.ngens())])
+            return prod([M.gen(i)**L[i] for i in range(M.ngens())], M(1))
             #m = LCM(invs)  ## Not very efficient.
             #pw = (n)%m
             #x = self**pw

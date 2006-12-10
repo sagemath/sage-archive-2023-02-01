@@ -95,6 +95,7 @@ matrix_group.SU = sage.groups.all.SU
 matrix_group.GU = sage.groups.all.GU
 matrix_group.SO = sage.groups.all.SO
 matrix_group.GO = sage.groups.all.GO
+matrix_group.MatrixGroup = sage.groups.all.MatrixGroup
 parent.group.matrix_group = matrix_group
 
 #######################################################

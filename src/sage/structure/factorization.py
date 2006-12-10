@@ -117,7 +117,7 @@ class Factorization(SageObject, list):
 
     def sort(self):
         def _cmp(f,g):
-            return cmp((f[1],f[0]), (g[1],g[0]))
+            return cmp(f[0].degree()*f[1], g[0].degree()*g[1])
         list.sort(self, _cmp)
 
     def __reduce__(self):

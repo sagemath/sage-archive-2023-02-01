@@ -757,12 +757,21 @@ cdef class MonoidElement(Element):
     #############################################################
     def __mul__(left, right):
         """
-        Top-level multiplication operator for ring elements.
+        Top-level multiplication operator for monoid elements.
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent(left, right):
             return (<MonoidElement>left)._mul_c(<MonoidElement>right)
-        return bin_op_c(left, right, operator.mul)
+        try:
+            return bin_op_c(left, right, operator.mul)
+        except TypeError, msg:
+            if isinstance(left, (int, long)) and left==1:
+                return right
+            elif isinstance(right, (int, long)) and right==1:
+                return left
+            raise TypeError, msg
+
+
 
 
     cdef MonoidElement _mul_c(left, MonoidElement right):

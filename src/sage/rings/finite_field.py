@@ -890,7 +890,7 @@ def gap_to_sage(x, F):
     if q == F.order():
         K = F
     else:
-        K = FiniteField(q)
+        K = FiniteField(q, F.variable_name())
     if s.find(')^') == -1:
         e = 1
     else:

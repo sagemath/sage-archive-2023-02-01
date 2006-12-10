@@ -343,11 +343,17 @@ def prod(x, z=None):
             pass
 
     if z is None:
-        import sage.rings.integer
-        z = sage.rings.integer.Integer(1)
-    # Change this to use a balanced tree in some cases, e.g.,
+        if len(x) == 0:
+            import sage.rings.integer
+            return sage.rings.integer.Integer(1)
+        z = x[0]
+        i = 1
+    else:
+        i = 0
+
+    # TODO: Change this to use a balanced tree in some cases, e.g.,
     # if input is a list?
-    for m in x:
+    for m in x[i:]:
         z *= m
     return z
 

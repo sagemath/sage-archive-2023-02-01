@@ -459,8 +459,12 @@ class Expect(ParentWithBase):
             return cls(self, x)
         try:
             return self._coerce_impl(x)
-        except TypeError:
-            return cls(self, str(x))
+        except TypeError, msg:
+            try:
+                return cls(self, str(x))
+            except TypeError, msg2:
+                raise TypeError, msg
+
 
     def _coerce_impl(self, x):
         s = '_%s_'%self.name()
@@ -817,6 +821,7 @@ class ExpectElement(RingElement):
         t = P._true_symbol()
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
+
 
     def __long__(self):
         return long(str(self))

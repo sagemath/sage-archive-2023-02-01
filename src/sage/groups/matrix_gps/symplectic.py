@@ -28,27 +28,53 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.modular.all import SL2Z
-from sage.rings.all import IntegerRing, is_FiniteField
-from linear import LinearGroup_generic, LinearGroup_finite_field
+from sage.rings.all import IntegerRing, is_FiniteField, Integer, FiniteField
+from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
 
-def Sp(n, R):
+def Sp(n, R, var='a'):
+    """
+    Return the symplectic group of degree n over R.
+
+    EXAMPLES:
+        sage: ?
+    """
     if n%2!=0:
-        raise ValueError, "\n n must be even.\n"
-    if n == 2 and R == IntegerRing():
-        return SL2Z()
+        raise ValueError, "n must be even"
+    if isinstance(R, (int, long, Integer)):
+        R = FiniteField(R, var)
     if is_FiniteField(R):
         return SymplecticGroup_finite_field(n, R)
     else:
         return SymplecticGroup_generic(n, R)
 
-class SymplecticGroup_generic(LinearGroup_generic):
+class SymplecticGroup_generic(MatrixGroup_gap):
     def _gap_init_(self):
-        return "Sp(%s, %s)"%(self.degree(), self.base_ring().order())
+        raise TypeError, 'no analogue of this symplectic group in GAP'
+
+    def _latex_(self):
+        """
+        Return LaTeX representation of this group.
+
+        EXAMPLES:
+            sage: ?
+        """
+        return "\\text{Sp}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
     def _repr_(self):
+        """
+        Return print representation of this group.
+        """
         return "Symplectic Group of rank %s over %s"%(self.degree()/2, self.base_ring())
 
-class SymplecticGroup_finite_field(SymplecticGroup_generic, LinearGroup_finite_field):
-    pass
+class SymplecticGroup_finite_field(SymplecticGroup_generic, MatrixGroup_gap_finite_field):
+    def _gap_init_(self):
+        """
+        Return GAP string that evaluates to this group.
+
+        EXAMPLES:
+        sage: ?
+        """
+        return "Sp(%s, %s)"%(self.degree(), self.base_ring().order())
+
+
 

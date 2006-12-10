@@ -30,6 +30,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import math
 
 import sage.modular.hecke.all as hecke
 import sage.rings.all as rings
@@ -39,6 +40,8 @@ from sage.modular.congroup import Gamma0, Gamma1
 from sage.databases.db_class_polynomials import HilbertClassPolynomialDatabase
 from sage.databases.db_modular_polynomials \
      import ClassicalModularPolynomialDatabase
+
+from sage.misc.misc import verbose
 
 
 def Phi2_quad(J3, ssJ1, ssJ2):
@@ -747,6 +750,50 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
         self.__hecke_matrices[2] = T2_matrix
         return (ss_points, ss_points_dic)
+
+
+    def upper_bound_on_elliptic_factors(self, p=None, ellmax=2):
+        r"""
+        Return an upper bound (provably correct) on the number of
+        elliptic curves of conductor equal to the level of this
+        supersingular module.
+
+        INPUT:
+            p -- (default: 997) prime to work modulo
+
+        ALGORITHM: Currently we only use $T_2$.  Function will be
+        extended to use more Hecke operators later.
+
+        The prime p is replaced by the smallest prime that doesn't
+        divide the level.
+        """
+        # NOTE: The heuristic runtime is *very* roughly $p^2/(2\cdot 10^6)$.
+        #ellmax -- (default: 2) use Hecke operators T_ell with ell <= ellmax
+        if p is None:
+            p = 997
+
+        while self.level() % p == 0:
+             p = rings.next_prime(p)
+
+        ell = 2
+        t = self.T(ell).matrix().change_ring(rings.GF(p))
+        B = 2*math.sqrt(ell)
+        bnd = 0
+        lower = -int(math.floor(B))
+        upper = int(math.floor(B))+1
+        for a in range(lower, upper):
+            tm = verbose("computing T_%s - %s"%(ell, a))
+            if a == lower:
+                c = a
+            else:
+                c = 1
+            for i in range(t.nrows()):
+                t[i,i] += c
+            tm = verbose("computing kernel",tm)
+            dim = t.kernel().dimension()
+            bnd += dim
+            verbose('got dimension = %s; new bound = %s'%(dim, bnd), tm)
+        return bnd
 
     def hecke_matrix(self,L):
         r"""

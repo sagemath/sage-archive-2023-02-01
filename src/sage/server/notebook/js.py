@@ -1187,7 +1187,7 @@ function jump_to_cell(id, delta, bottom) {
 
 function escape0(input) {
     input = escape(input);
-    input = input.replace(/\+/g,"__plus__");
+    input = input.replace(/\+/g,"%2B");
     return input;
 }
 

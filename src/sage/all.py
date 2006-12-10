@@ -53,6 +53,9 @@ from time                import sleep
 from sage.interfaces.get_sigs import get_sigs
 get_sigs()
 
+from sage.rings.integer import pmem_malloc
+pmem_malloc()
+
 from sage.misc.all       import *         # takes a while
 
 from sage.libs.all       import *

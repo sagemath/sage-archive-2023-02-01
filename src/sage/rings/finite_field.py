@@ -103,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k

@@ -209,10 +209,34 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         if G is None:
             import sage.interfaces.magma
             G = sage.interfaces.magma.magma
-        B = G(self.base_ring())
-        R = G('PolynomialRing(%s)'%B.name())
-        R._assign_names(self.variable_names())
+        R = G(self._magma_init_())
+        R.assign_names(self.variable_names())
         return R
+
+    def _magma_init_(self):
+        return 'PolynomialRing(%s)'%(self.base_ring()._magma_init_())
+
+    def _gap_(self, G=None):
+        """
+        Used in converting this ring to the corresponding ring in GAP.
+
+        EXAMPLES:
+            sage: R.<z> = ZZ[]
+            sage: gap(R)
+            PolynomialRing(..., [ z ])
+            sage: gap(z^2 + z)
+            z^2+z
+        """
+        if G is None:
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+        R = G(self._gap_init_())
+        v = self.variable_name()
+        G.eval('%s := IndeterminatesOfPolynomialRing(%s)[1]'%(v, R.name()))
+        return R
+
+    def _gap_init_(self):
+        return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

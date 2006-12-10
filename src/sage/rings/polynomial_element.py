@@ -1319,6 +1319,9 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         return [sage.rings.rational.Rational(x) for x in v]
 
 
+    #####################################################################
+    # Conversions to other systems
+    #####################################################################
     def _pari_(self, variable=None):
         """
         Return polynomial as a PARI object.
@@ -1350,6 +1353,88 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
     def _pari_init_(self):
         return str(self._pari_())
+
+    def _magma_init_(self):
+        """
+        Return a string that evaluates in Magma to this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: f._magma_init_()
+            'Polynomial(IntegerRing(), [5,-17,0,1])'
+        """
+        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(), ','.join([a._magma_init_() for a in self.list()]))
+
+    def _magma_(self, G=None):
+        """
+        Return the Magma version of this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = magma(f); g
+            y^3 - 17*y + 5
+
+        Note that in Magma there is only one polynomial ring over each base,
+        so if we make the polynomial ring over ZZ with variable $z$, then
+        this changes the variable name of the polynomial we already defined:
+            sage: R.<z> = ZZ[]
+            sage: magma(R)
+            Univariate Polynomial Ring in z over Integer Ring
+            sage: g
+            z^3 - 17*z + 5
+
+        In SAGE the variable name does not change:
+            sage: f
+            y^3 - 17*y + 5
+        """
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        self.parent()._magma_(G)  # defines the variable name
+        f = G(self._magma_init_())
+        return f
+
+    def _gap_init_(self):
+        return str(self)
+
+    def _gap_(self, G):
+        """
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3-17*y+5
+            sage: f._gap_init_()
+            'y^3 - 17*y + 5'
+            sage: R.<z> = ZZ[]
+            sage: gap(R)
+            PolynomialRing(..., [ z ])
+            sage: g
+            y^3-17*y+5
+            sage: gap(z^2 + z)
+            z^2+z
+
+        We coerce a polynomial with coefficients in a finite field:
+
+            sage: R.<y> = GF(7)[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3+Z(7)^4*y+Z(7)^5
+            sage: g.Factors()
+            [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
+            sage: f.factor()
+            (y + 5) * (y + 1)^2
+        """
+        if G is None:
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+        self.parent()._gap_(G)
+        return G(self._gap_init_())
+
+    ######################################################################
+
 
     def resultant(self, other, flag=0):
         raise NotImplementedError

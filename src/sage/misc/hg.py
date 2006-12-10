@@ -464,6 +464,8 @@ class HG:
         to its parent.
         """
         if not rev is None:
+            if not isinstance(rev, (list, tuple)):
+                rev = [rev]
             options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
         else:
             options = files

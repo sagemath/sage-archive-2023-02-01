@@ -11,7 +11,12 @@ EXAMPLES:
     sage: C = Curve(y^2*z^7 - x^9 - x*z^8)
     sage: pts = C.rational_points(); pts
     [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
-    sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]) + C.divisor(pts[5])*10; D
+    sage: D1 = C.divisor(pts[0])*3
+    sage: D2 = C.divisor(pts[1])
+    sage: D3 = 10*C.divisor(pts[5])
+    sage: D1.parent() is D2.parent()
+    True
+    sage: D = D1 - D2 + D3; D
     10*(z + y, 2*z + x) + 3*(y, x) - (z, x)
     sage: D[1][0]
     3
@@ -77,9 +82,12 @@ def is_Divisor(Div):
     return isinstance(Div, Divisor_generic)
 
 def is_DivisorGroup(Div):
-    return isinstance(Div, DivisorGroup)
+    return isinstance(Div, DivisorGroup_generic)
 
 class Divisor_generic(FormalSum):
+    def __init__(self, v, check=True, reduce=True, parent=None):
+        FormalSum.__init__(self, v, parent, check, reduce)
+
     def scheme(self):
         """
         Return the scheme that this divisor is on.
@@ -160,7 +168,7 @@ class Divisor_curve(Divisor_generic):
                     except TypeError:
                         raise TypeError, \
                               "Argument v (= %s) must consist of multiplicities and points on a scheme."
-                parent = divisor_group.DivisorGroup_curve(C)
+                parent = divisor_group.DivisorGroup(C)
             else:
                 raise TypeError, \
                       "Argument v (= %s) must consist of multiplicities and points on a scheme."
@@ -235,6 +243,9 @@ class Divisor_curve(Divisor_generic):
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
+            sage: D = C.divisor(pts[0])
+            sage: D.coeff(pts[0])
+            1
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
             -(3 + y, 3 + x) + 3*(y, x)
             sage: D.coeff(pts[0])
@@ -242,7 +253,7 @@ class Divisor_curve(Divisor_generic):
             sage: D.coeff(pts[1])
             -1
         """
-        P = self.scheme()(P)
+        P = self.parent().scheme()(P)
    	if not(P in self.support()):
        	    return ZZ(0)
         t, i = search(self.support(), P)

@@ -797,7 +797,7 @@ class Notebook(SageObject):
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
         head += '\n<script language=javascript src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css"/>\n'
 
         if JSMATH:
             head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'

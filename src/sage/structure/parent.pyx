@@ -201,6 +201,14 @@ cdef class Parent(sage_object.SageObject):
         return True
 
     def _an_element_impl(self):     # override this in Python
+        r"""
+        Implementation of a function that returns an element (often 0)
+        of a parent object.  Every parent object should implement it,
+        unless the default implementation works.
+
+        NOTE: Parent structures that are implemented in SageX should
+        implement \code{_an_element_c_impl} instead.
+        """
         return self._an_element_c_impl()
 
     cdef _an_element_c_impl(self):  # override this in SageX

@@ -132,11 +132,6 @@ import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
 
-from sage.structure.sage_object import SageObject
-
-import sage.misc.viewer
-import sage.misc.misc
-
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is
 # slow to import.  (I did benchmarking and found that by not
@@ -988,7 +983,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
                 'cmap':"""The colormap, one of (autumn, bone, cool, copper,
                        gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
                        'fill':'Fill contours or not',
-                'levels':'Number of contour levels.'}
+                'contours':'Number of contour levels.'}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
@@ -997,7 +992,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
-        levels = options['levels']
+        contours = options['contours']
         #cm is the matplotlib color map module
         from matplotlib import cm
         try:
@@ -1012,15 +1007,15 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
         if fill:
-            if levels is None:
+            if contours is None:
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contourf(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
+                subplot.contourf(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
         else:
-            if levels is None:
+            if contours is None:
                 subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contour(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
+                subplot.contour(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
 
 
 class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
@@ -1651,7 +1646,7 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
         sage: C.save('sage.png')
     """
     def _reset(self):
-        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'levels':None}
+        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
 
     def _repr_(self):
         return "type contour_plot? for help and examples"

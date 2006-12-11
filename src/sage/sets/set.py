@@ -39,7 +39,7 @@ def Set(X):
     EXAMPLES:
         sage: X = Set(GF(9,'a'))
         sage: X
-        {a + 2, a + 1, 2*a, 0, 1, 2*a + 1, 2*a + 2, a, 2}
+        {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
         sage: type(X)
         <class 'sage.sets.set.Set_object_enumerated'>
         sage: Y = X.union(Set(QQ))
@@ -125,11 +125,11 @@ class Set_object(Set_generic):
     EXAMPLES:
         sage: K = GF(19)
         sage: Set(K)
-        {8, 18, 9, 6, 16, 7, 17, 4, 14, 5, 15, 2, 12, 3, 13, 0, 10, 1, 11}
+        {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
         sage: S = Set(K)
 
         sage: latex(S)
-        \left\{8, 18, 9, 6, 16, 7, 17, 4, 14, 5, 15, 2, 12, 3, 13, 0, 10, 1, 11\right\}
+        \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
         sage: loads(S.dumps()) == S
         True
 
@@ -224,13 +224,13 @@ class Set_object(Set_generic):
 
             sage: X = Set(GF(7))
             sage: X
-            {3, 0, 1, 6, 4, 5, 2}
+            {0, 1, 2, 3, 4, 5, 6}
             sage: 5/3 in X
             False
             sage: 5/3 in GF(7)
             False
             sage: Set(GF(7)).union(Set(GF(5)))
-            {3, 4, 0, 1, 6, 4, 5, 0, 1, 2, 2, 3}
+            {0, 1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 0}
             sage: Set(GF(7)).intersection(Set(GF(5)))
             {}
         """
@@ -285,7 +285,7 @@ class Set_object(Set_generic):
             sage: GF(5)(2) in X
             False
             sage: Set(GF(7)) + Set(GF(3))
-            {3, 2, 0, 1, 0, 6, 1, 4, 5, 2}
+            {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
         if is_Set(X):
             if self == X:
@@ -301,11 +301,11 @@ class Set_object(Set_generic):
             sage: Set(RealField()) + Set(QQ^5)
             Set-theoretic union of Real Field with 53 bits of precision and Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
-            {0, 0, 2, 1, 1}
+            {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4,'a'))
-            {a, 0, 0, 1, a + 1, 1}
+            {0, 1, a, a + 1}
             sage: Set(GF(8,'b')) + Set(GF(4,'a'))
-            {1, a, b^2 + 1, b, b^2 + b, 0, 0, b + 1, b^2, b^2 + b + 1, a + 1, 1}
+            {0, 1, b, b + 1, b^2, b^2 + 1, b^2 + b, b^2 + b + 1, a, a + 1, 1, 0}
         """
         return self.union(X)
 
@@ -389,9 +389,9 @@ class Set_object_enumerated(Set_object):
         """
         EXAMPLES:
             sage: S = EnumeratedSet(GF(19)); S
-            {8, 18, 9, 6, 16, 7, 17, 4, 14, 5, 15, 2, 12, 3, 13, 0, 10, 1, 11}
+            {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18}
             sage: print latex(S)
-            \left\{8, 18, 9, 6, 16, 7, 17, 4, 14, 5, 15, 2, 12, 3, 13, 0, 10, 1, 11\right\}
+            \left\{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18\right\}
             sage: loads(S.dumps()) == S
             True
         """
@@ -437,9 +437,9 @@ class Set_object_enumerated(Set_object):
         EXAMPLES:
             sage: X = Set(GF(8,'c'))
             sage: X
-            {c^2, c + 1, 0, c, c^2 + 1, 1, c^2 + c, c^2 + c + 1}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: X.set()
-            set([c^2, c + 1, 0, c, c^2 + 1, 1, c^2 + c, c^2 + c + 1])
+            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -479,11 +479,11 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8,'c'))
             sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X
-            {c^2, c + 1, 0, c, c^2 + 1, 1, c^2 + c, c^2 + c + 1}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: Y
-            {1, 2, 3, c}
+            {1, c, 3, 2}
             sage: X.union(Y)
-            {1, 2, 3, c^2, c + 1, 0, c, c^2 + 1, 1, c^2 + c, c^2 + c + 1}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1, 2, 3}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -497,7 +497,7 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8,'c'))
             sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X.intersection(Y)
-            {c}
+            {1, c}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.intersection(self, other)
@@ -574,7 +574,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: latex(Set(ZZ).union(Set(GF(5))))
-            \mathbf{Z} \cup \left\{1, 4, 2, 0, 3\right\}
+            \mathbf{Z} \cup \left\{0, 1, 2, 3, 4\right\}
         """
         return '%s \\cup %s'%(latex(self.__X), latex(self.__Y))
 
@@ -584,7 +584,7 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: [x for x in Set(GF(3)).union(Set(GF(2)))]
-            [0, 0, 2, 1, 1]
+            [0, 1, 2, 0, 1]
         """
         for x in self.__X:
             yield x
@@ -615,7 +615,7 @@ class Set_object_union(Set_object):
         EXAMPLES:
             sage: X = Set(GF(3)).union(Set(GF(2)))
             sage: X
-            {0, 0, 2, 1, 1}
+            {0, 1, 2, 0, 1}
             sage: X.cardinality()
             5
 

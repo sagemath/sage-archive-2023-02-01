@@ -955,7 +955,7 @@ cdef class FiniteField_givaro(FiniteField):
 
         EXAMPLES:
             sage: hash(GF(3^4, 'a'))
-            -1256259214
+            695660592
         """
         if self._hash is None:
             pass
@@ -1884,9 +1884,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: S.<a> = GF(5^3); S
             Finite Field in a of size 5^3
             sage: hash(a)
-            1735586064
+            5
         """
-        return hash((parent_object(self).__hash__(), self.element))
+        return hash(self.log_to_int())
 
     def square_root(FiniteField_givaroElement self):
         """

@@ -1006,7 +1006,7 @@ cdef class Matrix(matrix1.Matrix):
             [  0   1  -2   0]
             [  0   2   0  -2]
             sage: t.fcp()
-            (x - 39) * (x^2 - 2) * (x + 2)
+            (x - 39) * (x + 2) * (x^2 - 2)
             sage: s = (t-39)*(t^2-2)
             sage: V = s.kernel(); V
             Vector space of degree 4 and dimension 3 over Rational Field
@@ -1596,19 +1596,19 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
             sage: A.fcp()
-            (x - 3) * (x^2 - 2)^2 * (x + 2)^2
+            (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
             (3, [
             (1, 0, 1/7, 0, -1/7, 0, -2/7)
             ]),
-            (a1, [
-            (0, 1, 0, -1, -a1 - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a1 + 1)
-            ]),
             (-2, [
             (0, 1, 0, 1, -1, 1, -1),
             (0, 0, 1, 0, -1, 2, -1)
+            ]),
+            (a2, [
+            (0, 1, 0, -1, -a2 - 1, 1, -1),
+            (0, 0, 1, 0, -1, 0, -a2 + 1)
             ])
             ]
 
@@ -1635,11 +1635,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(QQ,3,3,range(9))
             sage: A.eigenspaces()
             [
-            (a0, [
-            (1, 1/15*a0 + 2/5, 2/15*a0 - 1/5)
-            ]),
             (0, [
             (1, -2, 1)
+            ]),
+            (a1, [
+            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
             ])
             ]
 

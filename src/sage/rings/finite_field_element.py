@@ -88,7 +88,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             raise TypeError, "unable to coerce"
 
     def __hash__(self):
-        return hash((self.parent().__hash__(), self.__value))
+        return hash(self.polynomial())
 
     def polynomial(self):
         """
@@ -450,7 +450,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: print latex(Set(FiniteField_ext_pari(9,'z')))
-            \left\{z, 0, z + 2, 2, 2z, 2z + 1, 1, z + 1, 2z + 2\right\}
+            \left\{0, 1, 2, 2z + 1, z + 2, 2z, 2z + 2, z, z + 1\right\}
         """
         return self.polynomial()._latex_()
 

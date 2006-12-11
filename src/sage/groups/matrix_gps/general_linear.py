@@ -61,13 +61,16 @@ def GL(n, R, var='a'):
         sage: H.order()
         48
         sage: H == G
-        False
+        True
         sage: H.as_matrix_group() == G
-        False
+        True
         sage: H.gens()
-        [[2 0]
-         [0 1], [2 1]
-                [2 0]]
+        [
+        [2 0]
+        [0 1],
+        [2 1]
+        [2 0]
+        ]
     """
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)
@@ -81,7 +84,7 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
         EXAMPLES:
             sage: G = GL(6,GF(5))
             sage: G._gap_init_()
-            'GL(6, 5)'
+            'GL(6, GF(5))'
         """
         return "GL(%s, %s)"%(self.degree(), self.base_ring()._gap_init_())
 
@@ -89,9 +92,8 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
         """
         EXAMPLES:
             sage: G = GL(6,GF(5))
-            sage: G._latex_()
-            ?
-
+            sage: latex(G)
+            \text{GL}_{6}(\mathbf{F}_{5})
         """
         return "\\text{GL}_{%s}(%s)"%(self.degree(), self.base_ring()._latex_())
 
@@ -100,7 +102,8 @@ class GeneralLinearGroup_generic(MatrixGroup_gap):
         String representation of this linear group.
 
         EXAMPLES:
-            sage: ?
+            sage: GL(6,GF(5))
+            General Linear Group of degree 6 over Finite Field of size 5
         """
         return "General Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
 

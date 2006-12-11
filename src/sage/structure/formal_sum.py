@@ -44,16 +44,20 @@ import sage.misc.misc
 import element
 import sage.misc.latex
 
+from sage.groups.group import AbelianGroup
 from sage.structure.element import AdditiveGroupElement
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import ZZ
 from sage.structure.parent_base import ParentWithBase
 
-class FormalSums(ParentWithBase):
+class FormalSums(AbelianGroup):
     def __init__(self):
-        ParentWithBase.__init__(self, IntegerRing())
+        ParentWithBase.__init__(self, ZZ)
 
     def _repr_(self):
-        return "Group of all Formal Finite Sums"
+        return "Abelian Group of all Formal Finite Sums"
+
+    def _an_element_impl(self):
+        return FormalSum([], check=False, reduce=False)
 
 formal_sums = FormalSums()
 

@@ -48,11 +48,24 @@ import operator
 from sage.rings.integer import Integer
 from sage.structure.element import MultiplicativeGroupElement
 from sage.rings.infinity import infinity
-from sage.rings.arith import *
-from sage.misc.misc import *
+from sage.misc.misc import prod
+from sage.rings.arith import LCM, GCD
 
 
 def is_AbelianGroupElement(x):
+    """
+    Return true if x is an abelian group element, i.e., an element of type
+    AbelianGroupElement.
+
+    EXAMPLES:
+    Though the integer 3 is in the integers, and the integers have an abelian
+    group structure, 3 is not an AbelianGroupElement:
+         sage: is_AbelianGroupElement(3)
+         False
+         sage: F = AbelianGroup(5, [3,4,5,8,7], 'abcde')
+         sage: is_AbelianGroupElement(F.0)
+         True
+    """
     return isinstance(x, AbelianGroupElement)
 
 class AbelianGroupElement(MultiplicativeGroupElement):
@@ -73,7 +86,7 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             True
 
         """
-        MonoidElement.__init__(self, F)
+        MultiplicativeGroupElement.__init__(self, F)
         self.__repr = None
         n = F.ngens()
         if isinstance(x, (int, Integer)) and x == 1:

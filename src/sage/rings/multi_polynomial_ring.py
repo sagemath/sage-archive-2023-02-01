@@ -237,7 +237,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         except (AttributeError,ValueError):
             B = magma(self.base_ring())
             R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
-            R._assign_names(self.variable_names())
+            R.assign_names(self.variable_names())
             self.__magma = R
             return R
 

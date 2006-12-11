@@ -14,6 +14,7 @@ import keyboards
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                     2006 Tom Boothby <boothby@u.washington.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -112,6 +113,7 @@ function async_release(id) {
     async_idstack= [0,1,2,3,4];
   }
 }
+
 """
     return s
 
@@ -253,16 +255,15 @@ function get_keyboard() {
     b = "o";
   } else if(browser_ie) {
     b = "i";
-    alert("listening onkeydown");
     document.onkeydown = key_listen_ie;
     input_keypress = true_function;
     debug_keypress = true_function;
-    warn = true;
+//    warn = true;
   } else if(browser_saf) {
     b = "s";
   } else if(browser_konq) {
     b = "k";
-    warn = true;
+//    warn = true;
   } else {
     b = "m";
   }
@@ -663,7 +664,7 @@ function delete_worksheet_callback(status, response_text) {
            deleted the current worksheet. */
         var X = response_text.split(SEP);
         if (X.length <= 1) {
-            alert("Possible failure deleting worksheet.");
+            alert("Possible failure deleting worksheet.  " + response_text);
         } else {
             set_worksheet_list(X[0]);
             if (X[1] != -1)
@@ -1310,15 +1311,10 @@ function evaluate_cell_callback(status, response_text) {
 }
 
 function cell_output_set_type(id, typ, do_async) {
-    var cell_div = get_element('cell_div_output_' + id);
-    var cell_output = get_element('cell_output_' + id);
-    var cell_output_nowrap = get_element('cell_output_nowrap_' + id);
-    var cell_output_html = get_element('cell_output_html_' + id);
-
-    cell_div.className = 'cell_output_' + typ;
-    cell_output.className = 'cell_output_' + typ;
-    cell_output_nowrap.className ='cell_output_nowrap_' + typ;
-    cell_output_html.className ='cell_output_html_' + typ;
+    set_class('cell_div_output_' + id,    'cell_output_' + typ)
+    set_class('cell_output_' + id,        'cell_output_' + typ)
+    set_class('cell_output_nowrap_' + id, 'cell_output_nowrap_' + typ)
+    set_class('cell_output_html_' + id,   'cell_output_html_' + typ)
 
     /* Do async request back to the server */
     if(do_async != false)
@@ -1762,7 +1758,6 @@ function append_new_cell(id, html) {
 ///////////////////////////////////////////////////////////////////
 
 function interrupt_callback(status, response_text) {
-    restart_sage_callback("success", "");
     if (response_text == "restart") {
         alert("The SAGE kernel had to be restarted (your variables are no longer defined).");
         restart_sage_callback('success', response_text);

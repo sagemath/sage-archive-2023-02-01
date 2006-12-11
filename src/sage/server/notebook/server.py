@@ -408,7 +408,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def delete_worksheet(self):
         C = self.get_postvars()
-        worksheet_name = C['name'][0]
+        worksheet_name = C['name']
         try:
             W = notebook.get_worksheet_with_name(worksheet_name)
         except KeyError:
@@ -417,7 +417,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(msg)
             return
         if not self.auth_worksheet(W):
-            msg = "Error deleting worksheet '%s' (you must login to it first): "%worksheet_name + str(msg)
+            msg = "Error deleting worksheet '%s' (you must login to it first): "%worksheet_name
             self.wfile.write(msg)
             return
 
@@ -497,7 +497,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if do_print:
             s += '<script src="/jsmath/jsMath.js"></script>\n'
         s += '<script language=javascript src="/__main__.js"></script>\n'
-        s += '<style rel=stylesheet href="/__main__.css"></style>\n'
+        s += '<link rel=stylesheet href="/__main__.css"></style>\n'
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
@@ -625,7 +625,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if path[-11:] == 'favicon.ico':
                 binfile = self.favicon()
             elif path[-10:] == 'corner.png':
-                binfile = self.corner_image()
+                binfile = self.image_corner()
+            elif path[-12:] == 'evaluate.png':
+                binfile = self.image_evaluate()
+            elif path[-17:] == 'evaluate_over.png':
+                binfile = self.image_evaluate_over()
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:
@@ -893,12 +897,31 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             """
         return base64.decodestring(s)
 
-    def corner_image(self):
+    def image_corner(self):
         s = """
             iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAJUlEQVQY02P4jx00MKADohRhUYhd
             EZpC3IqQFOJXBFVIWNEQAQBLCFCz5Yzj9AAAAABJRU5ErkJggg==
             """
         return base64.decodestring(s)
+
+    def image_evaluate(self):
+        s = """
+            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+            WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1gwKFR4dD1RqagAAAB10RVh0Q29tbWVudABDcmVhdGVk
+            IHdpdGggVGhlIEdJTVDvZCVuAAAAQklEQVQY06WPQQoAIQzEJv7/z/EkrAWrsHMaaAgdkqgCqJJD
+            Rh7zDwR8NlZ41OMX2Ppa3VlVSGI3YklQW9N1TH1nAoYKIw2B5PAbAAAAAElFTkSuQmCC
+            """
+        return base64.decodestring(s)
+
+    def image_evaluate_over(self):
+        s = """
+            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
+            WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1gwKFR8wU5AHXgAAAB10RVh0Q29tbWVudABDcmVhdGVk
+            IHdpdGggVGhlIEdJTVDvZCVuAAAARElEQVQY06WQQQrAMAzD5P7/z+phK2yBZoX5FIgRUYIoJkQx
+            bDI4zL9iiMfEWh51+Sy859u6o15fETuJBYnakj5l6jkTXLEfCZSfQU8AAAAASUVORK5CYII=
+            """
+        return base64.decodestring(s)
+
 
 class NotebookServer:
     def __init__(self, notebook, port, address):

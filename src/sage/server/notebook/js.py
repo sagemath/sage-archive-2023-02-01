@@ -1,4 +1,5 @@
-r""" Javascript (AJAX) Component of SAGE Notebook
+r"""
+Javascript (AJAX) Component of SAGE Notebook
 
 AUTHORS:
     -- William Stein

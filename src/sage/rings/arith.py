@@ -1042,9 +1042,7 @@ def generic_power(a, m, one=1):
         sage: generic_power(0,0)
         1
         sage: generic_power(2,-3)
-        Traceback (most recent call last):
-        ...
-        ArithmeticError: a cannot be raised to the negative power m
+        1/8
     """
     if a == one:
         return a

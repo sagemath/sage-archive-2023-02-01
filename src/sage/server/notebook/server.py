@@ -622,14 +622,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.wfile.write(js.javascript())
                 return
         try:
-            if path[-11:] == 'favicon.ico':
-                binfile = self.favicon()
-            elif path[-10:] == 'corner.png':
-                binfile = self.image_corner()
-            elif path[-12:] == 'evaluate.png':
-                binfile = self.image_evaluate()
-            elif path[-17:] == 'evaluate_over.png':
-                binfile = self.image_evaluate_over()
+            print path
+            if path in ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png']:
+                binfile = self.image(path)
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:
@@ -867,60 +862,15 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 
-    def favicon(self):
-        s = """
-            AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAABDQ0MARUVFAEpKSgBLS0sATU1NAFRUVABWVlYAV1dXAFlZWQBaWloAM4IyAGRkZABlZWUA
-            bm5uAG9vbwBzc3MAAcQAAHV1dQB3eHcAeXl5AHd8dwB+fn4AhYWFAIeHhwCSkpIAmJiYAJmZmQCe
-            np4AoKCgAKWlpQCmpqYAp6enALa2tgC4uLgAubm5AL6+vgDAwMAAwsLCAMPDwwDGxsYA0dHRANLS
-            0gDa2toA3d3dAOTk5ADm5uYA6urqAPDw8ADz8/MA9PT0APX19QD29vYA9/f3APj4+AD5+fkA+vr6
-            APv7+wD8/PwA/f39AP7+/gD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAOzsqLDs7Ozs7Ozs7Ozs7OzsQEB4jOzs7Ozs7Ozs7Ozs7Oig0CxAnJCU5Ozs7Ozs7Ozs7EBAR
-            EBAKGTg6OTs7Ozs7OxAMNQkgEAUuKx0mOzs7Ozs6OBAPEBQEKRAQBxs7Ozs7OzsQFzIQABAIIRAF
-            Hzs7Ozs7EA00MSIQDjEyEBo7Ozs7OzgQFTIQEAMlOTQuOzs7Ozs7LyYtEBIQBSE5Ozs7Ozs7Ozs4
-            EAIkMRAWMzs7Ozs7Ozs7OBABHC82Ljs7Ozs7Ozs7OzsQEAYTJTk7Ozs7Ozs7Ozs7OBAQEBg3Ozs7
-            PDw7Ozs7Ozs5NTA0Ozs7Ozs8PDs7Ozs7Ozs7Ozs7OwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-            """
-        return base64.decodestring(s)
-
-    def image_corner(self):
-        s = """
-            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAJUlEQVQY02P4jx00MKADohRhUYhd
-            EZpC3IqQFOJXBFVIWNEQAQBLCFCz5Yzj9AAAAABJRU5ErkJggg==
-            """
-        return base64.decodestring(s)
-
-    def image_evaluate(self):
-        s = """
-            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
-            WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1gwKFR4dD1RqagAAAB10RVh0Q29tbWVudABDcmVhdGVk
-            IHdpdGggVGhlIEdJTVDvZCVuAAAAQklEQVQY06WPQQoAIQzEJv7/z/EkrAWrsHMaaAgdkqgCqJJD
-            Rh7zDwR8NlZ41OMX2Ppa3VlVSGI3YklQW9N1TH1nAoYKIw2B5PAbAAAAAElFTkSuQmCC
-            """
-        return base64.decodestring(s)
-
-    def image_evaluate_over(self):
-        s = """
-            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAABmJLR0QA/wD/AP+gvaeTAAAACXBI
-            WXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1gwKFR8wU5AHXgAAAB10RVh0Q29tbWVudABDcmVhdGVk
-            IHdpdGggVGhlIEdJTVDvZCVuAAAARElEQVQY06WQQQrAMAzD5P7/z+phK2yBZoX5FIgRUYIoJkQx
-            bDI4zL9iiMfEWh51+Sy859u6o15fETuJBYnakj5l6jkTXLEfCZSfQU8AAAAASUVORK5CYII=
-            """
-        return base64.decodestring(s)
+    def image(self, filename):
+        try:
+            return self._images[filename]
+        except AttributeError:
+            self._images = {}
+            self.image(filename)
+        except KeyError:
+            self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename).read()
+            return self._images[filename]
 
 
 class NotebookServer:

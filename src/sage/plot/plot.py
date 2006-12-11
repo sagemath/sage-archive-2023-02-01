@@ -131,6 +131,7 @@ import random #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
+from sage.structure.sage_object import SageObject
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is

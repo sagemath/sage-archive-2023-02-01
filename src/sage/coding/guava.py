@@ -232,7 +232,7 @@ def BinaryGolayCode():
         sage: C = BinaryGolayCode()
         sage: C
         Linear code of length 23, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()               # long
+        sage: C.minimum_distance()               # long time
         7
 
     AUTHOR: David Joyner (11-2005)
@@ -255,7 +255,7 @@ def ExtendedBinaryGolayCode():
         sage: C = ExtendedBinaryGolayCode()
         sage: C
         Linear code of length 24, dimension 12 over Finite Field of size 2
-        sage: C.minimum_distance()               # long
+        sage: C.minimum_distance()               # long time
         8
 
     AUTHOR: David Joyner (11-2005)

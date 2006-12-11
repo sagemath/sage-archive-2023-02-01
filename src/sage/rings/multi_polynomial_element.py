@@ -977,7 +977,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
             sage: F = f.factor()
             sage: F
-            2 * x * (2 + x)^2 * (y + x) * (y + 2*x)
+            2 * x * (y + x) * (y + 2*x) * (2 + x)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how

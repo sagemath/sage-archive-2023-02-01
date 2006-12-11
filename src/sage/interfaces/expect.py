@@ -459,8 +459,12 @@ class Expect(ParentWithBase):
             return cls(self, x)
         try:
             return self._coerce_impl(x)
-        except TypeError:
-            return cls(self, str(x))
+        except TypeError, msg:
+            try:
+                return cls(self, str(x))
+            except TypeError, msg2:
+                raise TypeError, msg
+
 
     def _coerce_impl(self, x):
         s = '_%s_'%self.name()
@@ -801,6 +805,25 @@ class ExpectElement(RingElement):
         """
         return not isinstance(getattr(self, attrname), FunctionElement)
 
+    def attribute(self, attrname):
+        """
+        If this wraps the object x in the system, this returns the object
+        x.attrname.  This is useful for some systems that have object
+        oriented attribute access notation.
+
+        EXAMPLES:
+            sage: g = gap('SO(1,4,7)')
+            sage: k = g.InvariantQuadraticForm()
+            sage: k.attribute('matrix')
+            [ [ 0*Z(7), Z(7)^0, 0*Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), 0*Z(7) ],
+              [ 0*Z(7), 0*Z(7), Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), Z(7)^0 ] ]
+
+            sage: e = gp('ellinit([0,-1,1,-10,-20])')
+            sage: e.attribute('j')
+            -122023936/161051
+        """
+        P = self._check_valid()
+        return P('%s.%s'%(self.name(), attrname))
 
     def __getitem__(self, n):
         P = self._check_valid()
@@ -817,6 +840,7 @@ class ExpectElement(RingElement):
         t = P._true_symbol()
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
+
 
     def __long__(self):
         return long(str(self))

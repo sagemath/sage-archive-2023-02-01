@@ -235,7 +235,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
-            (x^2 - 5)^2 * (x - 4)
+            (x - 4) * (x^2 - 5)^2
         """
         return self.hecke_module_morphism().fcp(var)
 
@@ -247,7 +247,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
-            (x^2 - 5)^2 * (x - 4)
+            (x - 4) * (x^2 - 5)^2
             sage: T.image()
             Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T-4).image()

@@ -44,6 +44,8 @@ import matrix_rational_dense
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
 
+import sage.groups.matrix_gps.matrix_group_element
+
 
 # SAGE imports
 import sage.structure.parent_gens as parent_gens
@@ -216,6 +218,14 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         self.__matrix_class = self._get_matrix_class()
 
     def __call__(self, entries=0, coerce=True, copy=True):
+        """
+        EXAMPLES:
+            sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
+            sage: g = G.0
+            sage: MatrixSpace(k,2)(g)
+            [1 1]
+            [0 1]
+        """
         if isinstance(entries, list) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
             if self.__is_sparse:
@@ -236,6 +246,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             entries = list_to_dict(entries, self.__nrows, self.__ncols)
             coerce = True
             copy = False
+        elif sage.groups.matrix_gps.matrix_group_element.is_MatrixGroupElement(entries):
+            return self(entries.matrix(), copy=False)
         return self.matrix(entries, copy=copy, coerce=coerce)
 
     def base_extend(self, R):

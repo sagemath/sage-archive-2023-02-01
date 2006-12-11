@@ -56,7 +56,7 @@ def algdep(z, n):
         sage: p = algdep(z, 6); p
         x^6 + 2*x^3 + 1
         sage: p.factor()
-        (x^2 - x + 1)^2 * (x + 1)^2
+        (x + 1)^2 * (x^2 - x + 1)^2
         sage: z^2 - z + 1
         0.000000000000000111022302462515
 
@@ -1049,17 +1049,23 @@ def generic_power(a, m, one=1):
     if a == one:
         return a
     if m < 0:
-        raise ArithmeticError, "a cannot be raised to the negative power m"
+        a = ~a
+        m = -m
     if m == 0:
         return one
-    power = one
+    power = None
     i = 0
     apow2 = a
     while (m>>i) > 0:
         if (m>>i) & 1:
-            power *= apow2
+            if power is None:
+                power = apow2
+            else:
+                power *= apow2
         apow2 *= apow2
         i += 1
+    if power is None:
+        return one
     return power
 
 
@@ -1386,7 +1392,9 @@ def prime_divisors(n):
     sage: prime_divisors(2004)
     [2, 3, 167]
     """
-    return [p for p,_ in factor(n) if p != -1]
+    v = [p for p,_ in factor(n) if p != -1]
+    v.sort()
+    return v
 
 prime_factors = prime_divisors
 

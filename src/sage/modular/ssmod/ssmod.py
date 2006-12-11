@@ -12,6 +12,11 @@ EXAMPLES:
     sage: a = m.change_ring(GF(97))
     sage: a.decomposition()
     ... current crashes due to linear algebra bug ...
+
+BUG:
+sage: X = SupersingularModule(next_prime(100000))
+sage: t = X.T(2).matrix()
+BOOM -- core dump.
 """
 
 #*****************************************************************************

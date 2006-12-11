@@ -261,7 +261,7 @@ def AbelianGroup(n, invfac=None, names="f"):
         sage: F(1)
         1
         sage: (a, b, c, d, e) = F.gens()
-        sage: mul([ a, b, a, c, b, d, c, d ])
+        sage: mul([ a, b, a, c, b, d, c, d ], F(1))
         a^2*b^2*c^2*d^2
         sage: d * b**2 * c**3
         b^2*c^3*d
@@ -596,7 +596,7 @@ class AbelianGroup_class(group.AbelianGroup):
         except AttributeError:
             if len(self.invariants()) < self.ngens():
                 self.__len = sage.rings.all.infinity
-            self.__len = sage.misc.misc.mul(self.invariants())
+            self.__len = sage.rings.all.Integer(sage.misc.misc.mul(self.invariants()))
             if self.__len == 0:
                 self.__len = sage.rings.all.infinity
         return self.__len

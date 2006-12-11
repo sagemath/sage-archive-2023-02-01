@@ -103,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -890,7 +890,7 @@ def gap_to_sage(x, F):
     if q == F.order():
         K = F
     else:
-        K = FiniteField(q)
+        K = FiniteField(q, F.variable_name())
     if s.find(')^') == -1:
         e = 1
     else:

@@ -17,10 +17,11 @@ void del_ZZ(ZZ* n) {
 }
 
 ZZ* str_to_ZZ(const char* s) {
-  istringstream *out = new istringstream(s);
+  istringstream out;
+  out.str( s );// = new istringstream(s);
   ZZ* y = new ZZ();
-  *out >> *y;
-  delete out;
+  out >> *y;
+  //delete out;
   return y;
 }
 
@@ -34,7 +35,7 @@ char* ZZ_to_str(const ZZ* x)
   ostringstream instore;
   instore << (*x);
   int n = strlen(instore.str().data());
-  char* buf = new char[n+1];
+  char* buf = (char*)malloc(n+1);
   strcpy(buf, instore.str().data());
   return buf;
 }

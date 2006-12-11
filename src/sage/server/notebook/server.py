@@ -75,6 +75,11 @@ import time
 SAVE_INTERVAL=5   # time in seconds between saves when notebook is in use.
 last_save_time = time.time()
 
+SAGE_ROOT = os.environ['SAGE_ROOT']
+
+static_images = ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png', 'sagelogo.png']
+
+
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
         r"""
@@ -623,7 +628,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 return
         try:
             print path
-            if path in ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png']:
+            if path in static_images:
                 binfile = self.image(path)
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
@@ -869,7 +874,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self._images = {}
             self.image(filename)
         except KeyError:
-            self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename).read()
+            f = open(SAGE_ROOT + '/data/extcode/images/' + filename)
+            self._images[filename] = f.read()
+            f.close()
             return self._images[filename]
 
 

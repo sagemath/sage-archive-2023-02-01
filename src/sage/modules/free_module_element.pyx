@@ -227,14 +227,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
-            sage: v = (QQ['x']^4)(0)
+            sage: v = vector(QQ, [0,0,0,0])
             sage: v == 0
             True
             sage: v == 1
             False
             sage: v == v
             True
-            sage: w = v.parent()([-1,0,0,0])
+            sage: w = vector(QQ, [-1,0,0,0])
             sage: w < v
             True
             sage: w > v

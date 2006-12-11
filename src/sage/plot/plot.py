@@ -115,6 +115,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
+
 ## IMPORTANT: Do not import matplotlib at module scope.  It takes a
 ## surprisingliy long time to initialize itself.  It's better if it is
 ## imported in functions, so it only gets started if it is actually
@@ -131,6 +133,8 @@ import random #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
+
+import sage.misc.misc
 
 ############### WARNING ###
 # Try not to import any matplotlib stuff here -- matplotlib is

@@ -114,7 +114,7 @@ import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.misc.functional import is_even,log
+from sage.misc.functional import is_even, log
 
 def gap_format(x):
     """
@@ -251,8 +251,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: permutation (1,2) not in Permutation Group with generators [(1,2,3,4)]
         """
-        if isinstance(x, (int, long, Integer)) and x == 1:
-            return self.identity()
         if isinstance(x, PermutationGroupElement):
             if x.parent() is self:
                 return x
@@ -262,8 +260,19 @@ class PermutationGroup_generic(group.FiniteGroup):
             return PermutationGroupElement(x, self, check = True)
         elif isinstance(x, tuple):
             return PermutationGroupElement([x], self, check = True)
+        elif isinstance(x, (int, long, Integer)) and x == 1:
+            return self.identity()
         else:
             raise TypeError, "unable to coerce %s to permutation in %s"%(x, self)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, PermutationGroupElement):
+            if x.parent() is self:
+                return x
+            elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
+                return PermutationGroupElement(x._gap_(), self, check = False)
+        else:
+            raise TypeError
 
     def list(self):
         """
@@ -400,7 +409,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.largest_moved_point()
             10
         """
-        return self._gap_().LargestMovedPoint()
+        try:
+            return self.__largest_moved_point
+        except AttributeError:
+            n = int(self._gap_().LargestMovedPoint())
+        self.__largest_moved_point = n
+        return n
 
     def smallest_moved_point(self):
         """
@@ -1421,10 +1435,6 @@ class PSU(PermutationGroup_generic):
     EXAMPLE:
         sage: PSU(2,3)
         The projective special unitary group of degree 2 over Finite Field of size 3
-        sage: print PSU(2,3)
-        The projective special unitary group of degree 2 over Finite
-        Field of size 3 (matrix representation has coefficients in
-        Finite Field in a of size 3^2)
     """
     def __init__(self, n, q, var='a'):
         id = 'PSU(%s,%s)'%(n,q)
@@ -1502,14 +1512,14 @@ class Suzuki(PermutationGroup_generic):
     REFERENCES:
         http://en.wikipedia.org/wiki/Group_of_Lie_type#Suzuki-Ree_groups
     """
-    def __init__(self, q):
-	if is_even(int(log(q,2))):
+    def __init__(self, q, var='a'):
+	if is_even(round(log(q,2))):
 	    raise ValueError,"The ground field size %s must be an odd power of 2."%q
         id = 'SuzukiGroup(IsPermGroup,%s)'%q
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
-        self._base_ring = GF(q)
+        self._base_ring = GF(q, var)
 
     def base_ring(self):
         return self._base_ring

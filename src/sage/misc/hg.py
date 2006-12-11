@@ -5,6 +5,8 @@ These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
+This system should all be fully usable from the SAGE notebook (except
+for merging, currently).
 This system should all be mostly from the SAGE notebook.
 
 \begin{itemize}
@@ -76,11 +78,10 @@ class HG:
         self.__cloneable = cloneable
 
     def __repr__(self):
-        self.status()
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
 
     def status(self):
-        print("Status of modified or unknown files:")
+        print("Getting status of modified or unknown files:")
         self('status')
         print "\n---\n"
         if self.__name == "SAGE Library Source Code":
@@ -171,16 +172,20 @@ class HG:
 
     browse = serve
 
-    def unbundle(self, bundle, update=True):
+    def unbundle(self, bundle, update=True, options=''):
         """
         Apply patches from a hg patch to the repository.
 
+        If the bundle is a .patch file, instead call the import_patch method.
         To see what is in a bundle before applying it, using self.incoming(bundle).
 
         INPUT:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        if bundle[-6:] == '.patch':
+            self.import_patch(bundle, options)
+            return
         if bundle[-5:] == '.diff':
             return self.import_patch(bundle)
         self._ensure_safe()
@@ -691,7 +696,7 @@ class HG:
         r"""
         Clone the current branch of the SAGE library, and make it active.
 
-        Only available for \code{hg_sage.}
+        Only available for the \code{hg_sage} repository.
 
         Use \code{hg_sage.switch('branch_name')} to switch to a different branch.
         You must restart SAGE after switching.

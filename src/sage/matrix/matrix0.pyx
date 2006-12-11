@@ -1,7 +1,10 @@
 """
-Abstract base class for matrices.
+Base class for matrices
 
-For design documentation see matrix/docs.py.
+NOTE: For design documentation see matrix/docs.py.
+
+EXAMPLES:
+
 """
 
 ################################################################################

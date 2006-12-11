@@ -18,9 +18,7 @@ AUTHORS:
 from sage.groups.group import Group
 from sage.rings.all import IntegerRing, is_Ring, Integer
 from sage.interfaces.gap import gap
-from linear import LinearGroup_generic
 from sage.categories.morphism import *
-from sage.groups.matrix_gps.matrix_group import MatrixGroup
 from sage.misc.latex import latex
 
 class MatrixGroupMap(Morphism):
@@ -52,7 +50,9 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         sage: H = MatrixGroup([MS([1,0,1,1])])
         sage: phi = G.hom(H.gens())
         sage: phi
-        Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+        Homomorphism : Matrix group over Finite Field of size 5 with 1 generators:
+         [[[1, 1], [0, 1]]] --> Matrix group over Finite Field of size 5 with 1 generators:
+         [[[1, 0], [1, 1]]]
         sage: phi(MS([1,1,0,1]))
         [1 0]
         [1 1]
@@ -134,11 +134,12 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: H = MatrixGroup([MS([1,0,1,1])])
             sage: phi = G.hom(H.gens())
             sage: phi
-            Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators:
+             [[[1, 1], [0, 1]]] --> Matrix group over Finite Field of size 5 with 1 generators:
+             [[[1, 0], [1, 1]]]
             sage: phi(MS([1,1,0,1]))
             [1 0]
             [1 1]
-
         """
         return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
 

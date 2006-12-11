@@ -166,6 +166,9 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     def default_prec(self):
         return self.power_series_ring().default_prec()
 
+    def is_exact(self):
+        return False
+
     def gen(self, n=0):
         if n != 0:
             raise IndexError, "Generator n not defined."

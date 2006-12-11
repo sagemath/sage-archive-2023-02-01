@@ -21,6 +21,17 @@ EXAMPLES:
     [2 0]
     [0 2]
     ]
+
+Loading and saving work:
+    sage: G = GL(2,5); G
+    General Linear Group of degree 2 over Finite Field of size 5
+    sage: loads(dumps(G)) == G
+    True
+    sage: g = G.1; g
+    [4 1]
+    [4 0]
+    sage: loads(dumps(g)) == g
+    True
 """
 
 ##############################################################################
@@ -128,6 +139,11 @@ class MatrixGroup_gap(MatrixGroup_generic):
         self.__n = integer.Integer(n)
         self.__R = R
 
+    def __cmp__(self, H):
+        if not isinstance(H, MatrixGroup_gap):
+            return cmp(type(self), type(H))
+        return cmp(gap(self), gap(H))
+
     def __call__(self, x):
         """
         EXAMPLES:
@@ -150,7 +166,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
     def _Hom_(self, G, cat=None):
         if not (cat is None or (cat is G.category() and cat is self.category())):
             raise NotImplementedError
-        if not isinstance(G, MatrixGroup):
+        if not is_MatrixGroup(G):
             raise TypeError, "G (=%s) must be a matrix group."%G
         import homset
         return homset.MatrixGroupHomset(self, G)
@@ -158,7 +174,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
     def hom(self, x):
         v = Sequence(x)
         U = v.universe()
-        if not isinstance(U, MatrixGroup):
+        if not is_MatrixGroup(U):
             raise TypeError, "u (=%s) must have universe a matrix group."%U
         return self.Hom(U)(x)
 
@@ -187,7 +203,8 @@ class MatrixGroup_gap(MatrixGroup_generic):
         Return the degree of this matrix group.
 
         EXAMPLES:
-            sage:
+            sage: SU(5,5).degree()
+            5
         """
         return self.__n
 
@@ -214,9 +231,17 @@ class MatrixGroup_gap(MatrixGroup_generic):
         Return the base ring of this matrix group.
 
         EXAMPLES:
-            sage: ?
+            sage: GL(2,GF(3)).base_ring()
+            Finite Field of size 3
+            sage: G = SU(3,GF(5))
+            sage: G.base_ring()
+            Finite Field of size 5
+            sage: G.field_of_definition()
+            Finite Field in a of size 5^2
         """
         return self.__R
+
+    base_field = base_ring
 
     def is_finite(self):
         """

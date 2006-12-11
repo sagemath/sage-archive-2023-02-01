@@ -75,6 +75,11 @@ import time
 SAVE_INTERVAL=5   # time in seconds between saves when notebook is in use.
 last_save_time = time.time()
 
+SAGE_ROOT = os.environ['SAGE_ROOT']
+
+static_images = ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png', 'sagelogo.png']
+
+
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
         r"""
@@ -408,7 +413,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def delete_worksheet(self):
         C = self.get_postvars()
-        worksheet_name = C['name'][0]
+        worksheet_name = C['name']
         try:
             W = notebook.get_worksheet_with_name(worksheet_name)
         except KeyError:
@@ -417,7 +422,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self.wfile.write(msg)
             return
         if not self.auth_worksheet(W):
-            msg = "Error deleting worksheet '%s' (you must login to it first): "%worksheet_name + str(msg)
+            msg = "Error deleting worksheet '%s' (you must login to it first): "%worksheet_name
             self.wfile.write(msg)
             return
 
@@ -497,7 +502,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if do_print:
             s += '<script src="/jsmath/jsMath.js"></script>\n'
         s += '<script language=javascript src="/__main__.js"></script>\n'
-        s += '<style rel=stylesheet href="/__main__.css"></style>\n'
+        s += '<link rel=stylesheet href="/__main__.css"></style>\n'
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
@@ -622,10 +627,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.wfile.write(js.javascript())
                 return
         try:
-            if path[-11:] == 'favicon.ico':
-                binfile = self.favicon()
-            elif path[-10:] == 'corner.png':
-                binfile = self.corner_image()
+            if path in static_images: #this list is defined at the top of this file
+                binfile = self.image(path)
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:
@@ -727,7 +730,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
-               '/jsmath' in self.path:
+               ('/jsmath/' in self.path and self.path[-3] == '.js'):
             return self.get_file()
 
         path = self.path.strip('/')
@@ -863,42 +866,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 
-    def favicon(self):
-        s = """
-            AAABAAEAEBAAAAEACABoBQAAFgAAACgAAAAQAAAAIAAAAAEACAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAABDQ0MARUVFAEpKSgBLS0sATU1NAFRUVABWVlYAV1dXAFlZWQBaWloAM4IyAGRkZABlZWUA
-            bm5uAG9vbwBzc3MAAcQAAHV1dQB3eHcAeXl5AHd8dwB+fn4AhYWFAIeHhwCSkpIAmJiYAJmZmQCe
-            np4AoKCgAKWlpQCmpqYAp6enALa2tgC4uLgAubm5AL6+vgDAwMAAwsLCAMPDwwDGxsYA0dHRANLS
-            0gDa2toA3d3dAOTk5ADm5uYA6urqAPDw8ADz8/MA9PT0APX19QD29vYA9/f3APj4+AD5+fkA+vr6
-            APv7+wD8/PwA/f39AP7+/gD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAOzsqLDs7Ozs7Ozs7Ozs7OzsQEB4jOzs7Ozs7Ozs7Ozs7Oig0CxAnJCU5Ozs7Ozs7Ozs7EBAR
-            EBAKGTg6OTs7Ozs7OxAMNQkgEAUuKx0mOzs7Ozs6OBAPEBQEKRAQBxs7Ozs7OzsQFzIQABAIIRAF
-            Hzs7Ozs7EA00MSIQDjEyEBo7Ozs7OzgQFTIQEAMlOTQuOzs7Ozs7LyYtEBIQBSE5Ozs7Ozs7Ozs4
-            EAIkMRAWMzs7Ozs7Ozs7OBABHC82Ljs7Ozs7Ozs7OzsQEAYTJTk7Ozs7Ozs7Ozs7OBAQEBg3Ozs7
-            PDw7Ozs7Ozs5NTA0Ozs7Ozs8PDs7Ozs7Ozs7Ozs7OwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-            AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-            """
-        return base64.decodestring(s)
+    def image(self, filename):
+        try:
+            return self._images[filename]
+        except AttributeError:
+            self._images = {}
+            return self.image(filename)
+        except KeyError:
+            self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename, 'rb').read()
+            return self._images[filename]
 
-    def corner_image(self):
-        s = """
-            iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAJUlEQVQY02P4jx00MKADohRhUYhd
-            EZpC3IqQFOJXBFVIWNEQAQBLCFCz5Yzj9AAAAABJRU5ErkJggg==
-            """
-        return base64.decodestring(s)
 
 class NotebookServer:
     def __init__(self, notebook, port, address):

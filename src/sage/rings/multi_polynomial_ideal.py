@@ -633,7 +633,7 @@ class MPolynomialIdeal_macaulay2_repr:
             return self.__groebner_basis
         except AttributeError:
             I = self._macaulay2_()
-            G = str(I.gb().generators()).replace('\n','')
+            G = str(I.gb().generators().str()).replace('\n','')
             i = G.rfind('{{')
             j = G.rfind('}}')
             G = G[i+2:j].split(',')

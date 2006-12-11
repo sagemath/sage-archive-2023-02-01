@@ -315,6 +315,7 @@ class Cell(Cell_generic):
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+#                s = s.strip('\n')
 
 
         return s.strip('\n')
@@ -514,8 +515,18 @@ class Cell(Cell_generic):
         #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-        tbl = """<table class="cell_output_box"><tr>
-               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
+        if do_print:
+            btn = ""
+        else:
+            btn = """<span class="cell_evaluate"><img src="/evaluate.png"
+                                                      onMouseOver="this.src='/evaluate_over.png'"
+                                                      onMouseOut="this.src='/evaluate.png'"
+                                                      onClick="evaluate_cell(%s,0);"></span>"""%self.__id
+        tbl = btn + """
+               <table class="cell_output_box"><tr>
+               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
+                 %s
+               </td>
                <td class="output_cell">%s</td></tr></table>"""%(
                    self.__id, self.__id, r, s)
 

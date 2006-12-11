@@ -359,8 +359,9 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # if over an integral domain, get the det by computing charpoly.
-        if self._base_ring.is_integral_domain():
+        # if over an exact integral domain, get the det by computing charpoly.
+        R = self._base_ring
+        if R.is_integral_domain() and R.is_exact():
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -368,7 +369,7 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # fall back to very very stupid algorithm
+        # fall back to very very stupid algorithm -- expansion by minors.
         # TODO: surely there is something much better, even in total generality...
         # this is ridiculous.
         n = self._ncols
@@ -1006,7 +1007,7 @@ cdef class Matrix(matrix1.Matrix):
             [  0   1  -2   0]
             [  0   2   0  -2]
             sage: t.fcp()
-            (x - 39) * (x^2 - 2) * (x + 2)
+            (x - 39) * (x + 2) * (x^2 - 2)
             sage: s = (t-39)*(t^2-2)
             sage: V = s.kernel(); V
             Vector space of degree 4 and dimension 3 over Rational Field
@@ -1596,19 +1597,19 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
             sage: A.fcp()
-            (x - 3) * (x^2 - 2)^2 * (x + 2)^2
+            (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
             (3, [
             (1, 0, 1/7, 0, -1/7, 0, -2/7)
             ]),
-            (a1, [
-            (0, 1, 0, -1, -a1 - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a1 + 1)
-            ]),
             (-2, [
             (0, 1, 0, 1, -1, 1, -1),
             (0, 0, 1, 0, -1, 2, -1)
+            ]),
+            (a2, [
+            (0, 1, 0, -1, -a2 - 1, 1, -1),
+            (0, 0, 1, 0, -1, 0, -a2 + 1)
             ])
             ]
 
@@ -1635,11 +1636,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(QQ,3,3,range(9))
             sage: A.eigenspaces()
             [
-            (a0, [
-            (1, 1/15*a0 + 2/5, 2/15*a0 - 1/5)
-            ]),
             (0, [
             (1, -2, 1)
+            ]),
+            (a1, [
+            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
             ])
             ]
 
@@ -1739,15 +1740,18 @@ cdef class Matrix(matrix1.Matrix):
             ValueError: Echelon form not defined over this base ring.
 
         Involving a sparse matrix:
-            sage: x = SupersingularModule(37)
-            sage: m = x.T(2).matrix(); m
+            sage: m = matrix(3,[1, 1, 1, 1, 0, 2, 1, 2, 0], sparse=True); m
             [1 1 1]
             [1 0 2]
             [1 2 0]
+            sage: m.echelon_form()
+            [ 1  0  2]
+            [ 0  1 -1]
+            [ 0  0  0]
             sage: m.echelonize(); m
-            [1 0 1]
-            [0 1 1]
-            [0 0 3]
+            [ 1  0  2]
+            [ 0  1 -1]
+            [ 0  0  0]
         """
         self.check_mutability()
         if algorithm == 'default':
@@ -1840,9 +1844,9 @@ cdef class Matrix(matrix1.Matrix):
                 d = self.dense_matrix().echelon_form()
                 for c from 0 <= c < nc:
                     for r from 0 <= r < nr:
-                        x = d.get_unsafe(r,c)
-                        if x != 0:
-                            self.set_unsafe(r, c, x)
+                        self.set_unsafe(r, c, d.get_unsafe(r,c))
+                self.clear_cache()
+                self.cache('pivots', d.pivots())
                 return
             else:
                 raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()

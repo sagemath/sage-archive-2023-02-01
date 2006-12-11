@@ -73,14 +73,12 @@ def GU(n, F, var='a'):
         sage: G = GU(3,GF(5), var='beta')
         sage: G.gens()
         [
-        [  a   0   0   0]
-        [  0   1   0   0]
-        [  0   0   1   0]
-        [  0   0   0 3*a],
-        [      1       0 4*a + 3       0]
-        [      1       0       0       0]
-        [      0 2*a + 4       0       1]
-        [      0 3*a + 1       0       0]
+        [  beta      0      0]
+        [     0      1      0]
+        [     0      0 3*beta],
+        [4*beta      4      1]
+        [     4      4      0]
+        [     1      0      0]
         ]
     """
     if isinstance(F, (int, long, Integer)):
@@ -96,7 +94,11 @@ class UnitaryGroup_finite_field(MatrixGroup_gap_finite_field):
         Return the field of definition of this general unity group.
 
         EXAMPLES:
-            sage: ?
+            sage: G = GU(3,GF(5))
+            sage: G.field_of_definition()
+            Finite Field in a of size 5^2
+            sage: G.base_field()
+            Finite Field of size 5
         """
         try:
             return self._field_of_definition
@@ -132,7 +134,7 @@ class GeneralUnitaryGroup_finite_field(UnitaryGroup_finite_field):
             sage: G = GU(3,GF(7)); G
             General Unitary Group of degree 3 over Finite Field of size 7
             sage: latex(G)
-            \text{GU}(3, 7)
+            \text{GU}_{3}(\mathbf{F}_{7^{2}})
         """
         return "\\text{GU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
@@ -157,9 +159,12 @@ def SU(n, F, var='a'):
     Return the special unitary group of degree $n$ over $F$.
 
     EXAMPLES:
-
-    sage: ?
-
+        sage: SU(3,5)
+        Special Unitary Group of degree 3 over Finite Field of size 5
+        sage: SU(3,QQ)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: special unitary group only implemented over finite fields
     """
     if isinstance(F, (int, long, Integer)):
         F = GF(F,var)
@@ -175,7 +180,8 @@ class SpecialUnitaryGroup_finite_field(UnitaryGroup_finite_field):
         Return string that creates this group in GAP.
 
         EXAMPLES:
-            sage: ?
+            sage: SU(3,5)._gap_init_()
+            'SU(3, 5)'
         """
         return "SU(%s, %s)"%(self.degree(), self.base_ring().order())
 
@@ -185,8 +191,8 @@ class SpecialUnitaryGroup_finite_field(UnitaryGroup_finite_field):
 
         EXAMPLES:
             sage: G = SU(3,GF(5))
-            sage: G._latex_()
-            ?
+            sage: latex(G)
+            \text{SU}_{3}(\mathbf{F}_{5^{2}})
         """
         return "\\text{SU}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 

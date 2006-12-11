@@ -174,8 +174,8 @@ class Worksheet:
         # This is where we would save the last version in a history.
         cells = []
         while True:
-            plain_text = extract_text_before_first_compute_cell(text)
-            if len(plain_text.strip()) > 0:
+            plain_text = extract_text_before_first_compute_cell(text).strip()
+            if len(plain_text) > 0:
                 T = self._new_text_cell(plain_text)
                 cells.append(T)
             try:
@@ -1097,7 +1097,6 @@ class Worksheet:
 
             if not switched:
                 input = ignore_prompts_and_output(input).rstrip()
-                print "input ='%s'"%input
                 input = self.preparse(input)
                 input = self.load_any_changed_attached_files(input)
                 input = self.do_sage_extensions_preparsing(input)
@@ -1310,5 +1309,5 @@ def extract_first_compute_cell(text):
             graphics = ''
             l = j
         output = text[k+3:l].strip()
-    return input, output, graphics, j+3
+    return input.strip(), output, graphics, j+3
 

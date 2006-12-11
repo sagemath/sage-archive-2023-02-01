@@ -150,10 +150,8 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             return self.__modular_symbols
         except AttributeError:
             A = self.parent()
-            s = formal_sum.FormalSum([])
-            for c, x in self.manin_symbol_rep():
-                s += x.modular_symbol_rep()*c
-            self.__modular_symbols = s
+            v = [(c, x.modular_symbol_rep()) for c, x in self.manin_symbol_rep()]
+            return formal_sum.FormalSum(v)
         return self.__modular_symbols
 
 

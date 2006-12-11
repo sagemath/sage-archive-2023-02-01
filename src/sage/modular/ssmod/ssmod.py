@@ -10,13 +10,23 @@ EXAMPLES:
     sage: x = SupersingularModule(389)
     sage: m = x.T(2).matrix()
     sage: a = m.change_ring(GF(97))
-    sage: a.decomposition()
-    ... current crashes due to linear algebra bug ...
+    sage: D = a.decomposition()
+    sage: D[:3]
+        [(Vector space of degree 33 and dimension 1 over Finite Field of size 97
+        Basis matrix:
+        [ 0  0  0  1 96 96  1  0 95  1  1  1  1 95  2 96  0  0 96 96  0  0 96  2 96 96  2  0  0  1  1 95  0], 1), (Vector space of degree 33 and dimension 1 over Finite Field of size 97
+        Basis matrix:
+        [ 0  1 96 16 75 22 81  0  0 17 17 80 80  0  0 16  1 40 74 23 57 96 81  0 23 74  0  0  0 24 73  0  0], 1), (Vector space of degree 33 and dimension 1 over Finite Field of size 97
+        Basis matrix:
+        [ 0  1 96 90 90  7  7  0  0  6 91  6 91  0  0  7 13  0 91  6  0 84 90  0 91  6  0  0  0 90  7  0  0], 1)]
+    sage: len(D)
+    9
 
-BUG:
-sage: X = SupersingularModule(next_prime(100000))
-sage: t = X.T(2).matrix()
-BOOM -- core dump.
+We compute a Hecker operator on a space of huge dimension!
+    sage: X = SupersingularModule(next_prime(100000))
+    sage: t = X.T(2).matrix()            # long time (but still less than a minute!)
+    sage: t.nrows()                      # long time
+    8334
 """
 
 #*****************************************************************************
@@ -509,7 +519,7 @@ def supersingular_j(FF):
     Observe that in this example the j-invariant is not defined over
     the prime field.
         sage: supersingular_j(GF(15073^2,'a'))
-        4443*a + 13964
+        10630*a + 6033
 
         sage: supersingular_j(GF(83401^2, 'a'))
         67977
@@ -697,11 +707,11 @@ class SupersingularModule(hecke.HeckeModule_free_module):
 
             sage: S = SupersingularModule(11)
             sage: S.supersingular_points()
-            ([1, 0], {1: 0, 0: 1})
+            ([1, 0], {0: 1, 1: 0})
 
             sage: S = SupersingularModule(37)
             sage: S.supersingular_points()
-            ([8, 27*a + 23, 10*a + 20], {10*a + 20: 2, 8: 0, 27*a + 23: 1})
+            ([8, 27*a + 23, 10*a + 20], {8: 0, 10*a + 20: 2, 27*a + 23: 1})
 
         AUTHORS:
             David Kohel -- kohel@maths.usyd.edu.au
@@ -736,6 +746,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
                 neighbors = Phi_polys(2,X,ss_points[pos]).roots()
             else:
                 j_prev = ss_points_pre[pos]
+                # TODO: These are quadratic polynomials -- maybe we should use the
+                # quadratic formula and fast square root finding (??)
                 neighbors = Phi2_quad(X, ss_points[j_prev], ss_points[pos]).roots()
 
             for (xj,ej) in neighbors:

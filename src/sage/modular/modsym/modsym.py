@@ -36,7 +36,7 @@ a bigger field.  In each case we also decompose the space using $T_2$.
 
 We compute some Hecke operators and do a consistency check:
     sage: m = ModularSymbols(39, 2)
-    sage: t2=m.T(2); t5=m.T(5)
+    sage: t2 = m.T(2); t5 = m.T(5)
     sage: t2*t5 - t5*t2 == 0
     True
 """
@@ -166,7 +166,7 @@ def ModularSymbols(group  = 1,
         sage: f = M.T(2).charpoly('x'); f
         x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
-        (x + -zeta6 - 2) * (x + -2*zeta6 - 1) * (x + zeta6 + 1)^2
+        (x + -2*zeta6 - 1) * (x + -zeta6 - 2) * (x + zeta6 + 1)^2
 
     More examples of spaces with character:
         sage: e = DirichletGroup(5, RationalField()).gen(); e

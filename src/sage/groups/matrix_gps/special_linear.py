@@ -9,24 +9,22 @@ AUTHOR:
 
 EXAMPLES:
         sage: SL(2, ZZ)
-        Modular Group SL(2,Z)
+        Special Linear Group of degree 2 over Integer Ring
         sage: G = SL(2,GF(3)); G
         Special Linear Group of degree 2 over Finite Field of size 3
         sage: G.is_finite()
         True
         sage: G.conjugacy_class_representatives()
-        [[1 0]
-        [0 1], [0 2]
-        [1 1], [0 1]
-        [2 1], [2 0]
-        [0 2], [0 2]
-        [1 2], [0 1]
-        [2 2], [0 2]
-        [1 0]]
-
+        [
+        [1 0]
+        [0 1],
+        [2 0]
+        [0 2]
+        ]
         sage: G = SL(6,GF(5))
         sage: G.gens()
-        [[2 0 0 0 0 0]
+        [
+        [2 0 0 0 0 0]
         [0 3 0 0 0 0]
         [0 0 1 0 0 0]
         [0 0 0 1 0 0]
@@ -37,8 +35,8 @@ EXAMPLES:
         [0 4 0 0 0 0]
         [0 0 4 0 0 0]
         [0 0 0 4 0 0]
-        [0 0 0 0 4 0]]
-
+        [0 0 0 0 4 0]
+        ]
 """
 
 #*****************************************************************************
@@ -61,7 +59,7 @@ def SL(n, R, var='a'):
         sage: G = SL(15,GF(7)); G
         Special Linear Group of degree 15 over Finite Field of size 7
         sage: G.order()
-        ?
+        1956712595698146962015219062429586341124018007182049478916067369638713066737882363393519966343657677430907011270206265834819092046250232049187967718149558134226774650845658791865745408000000
         sage: len(G.gens())
         2
         sage: G = SL(2,ZZ); G
@@ -103,18 +101,19 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
         String to create this grop in GAP.
 
         EXAMPLES:
-            sage: G = SL(6,GF(5))
-            sage: print G
-            SL(6, GF(5))
+            sage: G = SL(6,GF(5)); G
+            Special Linear Group of degree 6 over Finite Field of size 5
+            sage: G._gap_init_()
+            'SL(6, GF(5))'
         """
         return "SL(%s, %s)"%(self.degree(), self.base_ring()._gap_init_())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: G = SL(6,GF(5))
-            sage: G._latex_()
-            ?
+            sage: latex(G)
+            \text{SL}_{6}(\mathbf{F}_{5})
         """
         return "\\text{SL}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
@@ -123,7 +122,8 @@ class SpecialLinearGroup_generic(MatrixGroup_gap):
         Text representation of self.
 
         EXAMPLES:
-            sage: ?
+            sage: SL(6,GF(5))
+            Special Linear Group of degree 6 over Finite Field of size 5
         """
         return "Special Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
 

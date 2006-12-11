@@ -196,15 +196,14 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: S.1 #optional
             y
 
-            sage: magma(PolynomialRing(GF(7))) #optional
+            sage: magma(PolynomialRing(GF(7), 'x')) #optional
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49,'a'))) #optional
+            sage: magma(PolynomialRing(GF(49,'a'), 'x')) #optional
             Univariate Polynomial Ring in x over GF(7^2)
 
-            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'))) #optional
-            Univariate Polynomial Ring in x over Univariate Polynomial
-            Ring in w over Integer Ring
+            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) #optional
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring over Integer Ring
         """
         if G is None:
             import sage.interfaces.magma

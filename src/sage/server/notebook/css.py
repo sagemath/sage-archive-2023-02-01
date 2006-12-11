@@ -59,7 +59,7 @@ span.control_commands {
 
 span.worksheet_control_commands {
    position: fixed;
-  /* top:.5ex; */
+   top:36px;
    right:0px;
    text-align:right;
    color:blue;
@@ -805,20 +805,21 @@ div.slideshow {
 
 span.banner{
   background-color:white;
-  font-family:arial;
+  /* font-family:arial;
   font-size:30px;
   text-decoration: none;
   font-weight: bold;
-  color: #387CAF;
-  margin: 0px;
+  color: #387CAF; */
 }
 
-span.banner a.banner {
+span.banner a.banner img{
     text-decoration:none;
+    border:none;
+    margin-top:2px;
 }
 
 span.banner a.banner:hover {
-   background-color:<color2>;
+   background-color:none;
 }
 
 input.btn {
@@ -986,6 +987,11 @@ textarea.cell_input_active {
 }
 */
 
+span.cell_evaluate {
+  position: relative;
+  top: 2px;
+  cursor:pointer;
+}
 
 /************ CELL OUTPUT **************************/
 
@@ -1081,7 +1087,7 @@ div.cell_output_hidden {
 }
 
 pre.shrunk {
-   height:0px;
+/*   height:0px; */
    display:inline;
 }
 

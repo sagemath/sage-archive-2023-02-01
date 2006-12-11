@@ -109,7 +109,7 @@ class Graph(SimpleGraph):
                 5. A pygraphviz agraph
                 6. A scipy sparse matrix
 
-            pos -- an optional positioning dictionary: for example, the
+            pos -- a positioning dictionary: for example, the
                    spring layout from NetworkX for the 5-cycle is
                     {   0: [-0.91679746, 0.88169588,],
                         1: [ 0.47294849, 1.125     ,],
@@ -124,8 +124,7 @@ class Graph(SimpleGraph):
 
         1. A networkx graph:
             sage: import networkx
-            sage: g = networkx.Graph({0:[1,2,3], 2:[5]}); g
-            <networkx.base.Graph object at 0x9297870>
+            sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
             sage: Graph(g)
             Simple graph on 5 vertices
 
@@ -544,7 +543,7 @@ class DiGraph(SimpleGraph):
             4 numpy matrix or ndarray
             5 pygraphviz agraph
             6 scipy sparse matrix
-        pos -- an optional positioning dictionary: for example, the
+        pos -- a positioning dictionary: for example, the
         spring layout from NetworkX for the 5-cycle is
             {   0: [-0.91679746, 0.88169588,],
                 1: [ 0.47294849, 1.125     ,],

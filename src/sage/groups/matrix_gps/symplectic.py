@@ -36,10 +36,15 @@ def Sp(n, R, var='a'):
     Return the symplectic group of degree n over R.
 
     EXAMPLES:
-        sage: ?
+        sage: Sp(4,5)
+        Symplectic Group of rank 2 over Finite Field of size 5
+        sage: Sp(3,GF(7))
+        Traceback (most recent call last):
+        ...
+        ValueError: the degree n (=3) must be even
     """
     if n%2!=0:
-        raise ValueError, "n must be even"
+        raise ValueError, "the degree n (=%s) must be even"%n
     if isinstance(R, (int, long, Integer)):
         R = FiniteField(R, var)
     if is_FiniteField(R):
@@ -52,17 +57,22 @@ class SymplecticGroup_generic(MatrixGroup_gap):
         raise TypeError, 'no analogue of this symplectic group in GAP'
 
     def _latex_(self):
-        """
+        r"""
         Return LaTeX representation of this group.
 
         EXAMPLES:
-            sage: ?
+            sage: latex(Sp(4,5))
+            \text{Sp}_{4}(\mathbf{F}_{5})
         """
         return "\\text{Sp}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
     def _repr_(self):
         """
         Return print representation of this group.
+
+        EXAMPLES:
+            sage: Sp(2,4)
+            Symplectic Group of rank 1 over Finite Field in a of size 2^2
         """
         return "Symplectic Group of rank %s over %s"%(self.degree()/2, self.base_ring())
 
@@ -72,7 +82,8 @@ class SymplecticGroup_finite_field(SymplecticGroup_generic, MatrixGroup_gap_fini
         Return GAP string that evaluates to this group.
 
         EXAMPLES:
-        sage: ?
+            sage: Sp(2,4)._gap_init_()
+            'Sp(2, 4)'
         """
         return "Sp(%s, %s)"%(self.degree(), self.base_ring().order())
 

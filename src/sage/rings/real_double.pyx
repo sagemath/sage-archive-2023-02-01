@@ -49,6 +49,9 @@ cdef class RealDoubleField_class(Field):
         True
     """
 
+    def is_exact(self):
+        return False
+
     def __repr__(self):
         """
         Print out this real double field.

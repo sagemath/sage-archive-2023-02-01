@@ -1739,15 +1739,18 @@ cdef class Matrix(matrix1.Matrix):
             ValueError: Echelon form not defined over this base ring.
 
         Involving a sparse matrix:
-            sage: x = SupersingularModule(37)
-            sage: m = x.T(2).matrix(); m
+            sage: m = matrix(3,[1, 1, 1, 1, 0, 2, 1, 2, 0], sparse=True); m
             [1 1 1]
             [1 0 2]
             [1 2 0]
+            sage: m.echelon_form()
+            [ 1  0  2]
+            [ 0  1 -1]
+            [ 0  0  0]
             sage: m.echelonize(); m
-            [1 0 1]
-            [0 1 1]
-            [0 0 3]
+            [ 1  0  2]
+            [ 0  1 -1]
+            [ 0  0  0]
         """
         self.check_mutability()
         if algorithm == 'default':
@@ -1840,9 +1843,9 @@ cdef class Matrix(matrix1.Matrix):
                 d = self.dense_matrix().echelon_form()
                 for c from 0 <= c < nc:
                     for r from 0 <= r < nr:
-                        x = d.get_unsafe(r,c)
-                        if x != 0:
-                            self.set_unsafe(r, c, x)
+                        self.set_unsafe(r, c, d.get_unsafe(r,c))
+                self.clear_cache()
+                self.cache('pivots', d.pivots())
                 return
             else:
                 raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()

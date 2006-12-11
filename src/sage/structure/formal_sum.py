@@ -104,6 +104,9 @@ class FormalSum(AdditiveGroupElement):
         coeffs= [z[0] for z in self]
         return sage.misc.latex.repr_lincomb(symbols, coeffs)
 
+    def __cmp__(self, right):
+        return cmp(self._data, right._data)
+
     def _neg_(self):
         return self.__class__([(-c, s) for (c, s) in self._data], check=False, parent=self.parent())
 

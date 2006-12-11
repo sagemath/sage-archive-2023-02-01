@@ -80,7 +80,7 @@ from sage.rings.ring import is_Ring
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None):
+def vector(arg0, arg1=None, sparse=None):
     r"""
     Return a vector over R with given entries.
 
@@ -90,8 +90,10 @@ def vector(arg0, arg1=None):
         3. vector(object, ring)
 
     INPUT:
-        elts -- entries of a vector
+        elts -- entries of a vector (either a list or dict).
         R -- ring
+        sparse -- optional
+
     OUTPUT:
         An element of the free module over R of rank len(elts).
 
@@ -146,10 +148,18 @@ def vector(arg0, arg1=None):
         v = arg0
         R = None
     if isinstance(v, dict):
+        if sparse is None:
+            sparse = True
         v, R = prepare_dict(v, R)
     else:
+        if sparse is None:
+            sparse = False
         v, R = prepare(v, R)
-    return (R**len(v))(v)
+    if sparse:
+        import free_module  # slow -- can we improve
+        return free_module.FreeModule(R, len(v), sparse=True)(v)
+    else:
+        return (R**len(v))(v)
 
 free_module_element = vector
 
@@ -738,6 +748,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
         sage: loads(dumps(v)) - v
         (0, 0, 0, 0, 0)
+
+        sage: a = vector([-1,0,1/1],sparse=True); b = vector([-1/1,0,0],sparse=True)
+        sage: a.parent()
+        Sparse vector space of dimension 3 over Rational Field
+        sage: b - a
+        (0, 0, -1)
     """
     cdef _new_c(self, object v):
         # Create a new sparse free module element with minimal overhead and
@@ -800,12 +816,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
-        for i, a in left._entries.iteritems():
+        e = dict(left._entries)   # dict to make a copy
+        for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._sub_c(<RingElement> e[i])
+                e[i] = (<RingElement> e[i])._sub_c(<RingElement>a)
             else:
-                e[i] = a
+                e[i] = -a
         return left._new_c(e)
 
 

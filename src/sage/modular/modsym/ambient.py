@@ -389,8 +389,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             beta = x[2]
 
         # Compute {0,beta} - {0,alpha}
-        b = self._modular_symbol_0_to_alpha(beta, i)
         a = self._modular_symbol_0_to_alpha(alpha, i)
+        b = self._modular_symbol_0_to_alpha(beta, i)
         return b - a
 
     def _compute_dual_hecke_matrix(self, n):

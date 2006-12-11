@@ -59,7 +59,7 @@ span.control_commands {
 
 span.worksheet_control_commands {
    position: fixed;
-  /* top:.5ex; */
+   top:36px;
    right:0px;
    text-align:right;
    color:blue;

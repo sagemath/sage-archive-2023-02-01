@@ -166,6 +166,9 @@ cdef class RealField(sage.rings.ring.Field):
     def _latex_(self):
         return "\\R"
 
+    def is_exact(self):
+        return False
+
     def __call__(self, x, base=10):
         """
         Coerce x into this real field.

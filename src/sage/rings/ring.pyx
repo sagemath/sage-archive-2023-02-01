@@ -193,6 +193,16 @@ cdef class Ring(ParentWithGens):
         """
         raise NotImplementedError
 
+    def is_exact(self):
+        """
+        Return True if elements of this ring are represented exactly, i.e.,
+        there is no precision loss when doing arithmetic.
+
+        NOTE: This defaults to true, so even if it does return True you have
+        no guarantee (unless the ring has properly overloaded this).
+        """
+        return True
+
     def is_subring(self, other):
         """
         Return True if the canonical map from self to other is injective.

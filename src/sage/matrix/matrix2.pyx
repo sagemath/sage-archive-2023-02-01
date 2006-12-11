@@ -359,8 +359,9 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # if over an integral domain, get the det by computing charpoly.
-        if self._base_ring.is_integral_domain():
+        # if over an exact integral domain, get the det by computing charpoly.
+        R = self._base_ring
+        if R.is_integral_domain() and R.is_exact():
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -368,7 +369,7 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # fall back to very very stupid algorithm
+        # fall back to very very stupid algorithm -- expansion by minors.
         # TODO: surely there is something much better, even in total generality...
         # this is ridiculous.
         n = self._ncols

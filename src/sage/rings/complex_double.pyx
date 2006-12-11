@@ -100,6 +100,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def is_exact(self):
+        return False
     def __richcmp__(left, right, int op):
         return (<Parent>left)._richcmp(right, op)
     cdef int _cmp_c_impl(left, Parent right) except -2:

@@ -244,7 +244,10 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             yield x
 
     def __hash__(self):
-        return hash(tuple(self.list()))
+        if self.degree() >= 1:
+            return hash(tuple(self.list()))
+        else:
+            return hash(self[0])
 
     def __float__(self):
          if self.degree() > 0:

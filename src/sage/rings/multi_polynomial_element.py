@@ -247,7 +247,8 @@ class MPolynomial_macaulay2_repr:
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
             sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
+             21     7 14
+            x   + 2x y
             sage: R(h)                              # optional
             2*x^7*y^14 + x^21
             sage: R(h^20) == f^20                   # optional

@@ -856,7 +856,8 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://sage.math.washington.edu/sage">SAGE</a></span>\n'
+        body += '  <span class="banner"><a class="banner" href="http://sage.math.washington.edu/sage">'
+        body += '  <img src="sagelogo.png"/></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar

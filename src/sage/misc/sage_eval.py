@@ -1,5 +1,5 @@
-"""
-Evaluating a string in \sage
+r"""
+Evaluating a String in SAGE
 """
 
 #*****************************************************************************

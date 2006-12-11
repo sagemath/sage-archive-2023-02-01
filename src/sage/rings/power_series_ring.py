@@ -303,6 +303,9 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return self.__poly_ring
 
+    def is_exact(self):
+        return False
+
     def gen(self, n=0):
         """
         Return the generator of this power series ring.

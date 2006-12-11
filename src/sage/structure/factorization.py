@@ -129,8 +129,16 @@ class Factorization(SageObject, list):
                 except (AttributeError, NotImplementedError):
                     return cmp(f[0], g[0])
         except (AttributeError, NotImplementedError):
-            def _cmp(f,g):
-                return cmp(f[0],g[0])
+            try:
+                a = self[0][0].dimension()
+                def _cmp(f,g):
+                    try:
+                        return cmp(f[0].dimension()*f[1], g[0].dimension()*g[1])
+                    except (AttributeError, NotImplementedError):
+                        return cmp(f[0], g[0])
+            except (AttributeError, NotImplementedError):
+                def _cmp(f,g):
+                    return cmp(f[0],g[0])
         list.sort(self, _cmp)
 
     def __reduce__(self):

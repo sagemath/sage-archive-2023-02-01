@@ -159,8 +159,8 @@ current cell.
 
 There is no direct support for moving and reorganizing cells, though
 you can copy and paste any individual cell into another one.  However,
-the "Text" and "DocText" buttons provide the full text of the
-worksheet in a very convenient format for copy and paste.
+the "Text" buttons provide the full text of the worksheet in a very
+convenient format for copy and paste.
 
 
 \subsubsection{History}
@@ -963,7 +963,7 @@ class Notebook(SageObject):
         t = t.replace('<','&lt;')
         body_html = ''
         body_html += '<h1 class="edit">SAGE Notebook: Editing Worksheet "%s"</h1>\n'%worksheet.name()
-        body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.  Only markup in {{{}}}'s is preserved.<br><br>"""
+        body_html += """<b>Warnings:</b> You cannot undo after you save changes (yet).  All graphics will be deleted when you save.<br><br>"""
         body_html += '<form method="post" action="%s?edit" enctype="multipart/form-data">\n'%worksheet.filename()
         body_html += '<input type="submit" value="Save Changes" name="button_save"/>\n'
         #body_html += '<input type="submit" value="Preview" name="button_preview"/>\n'

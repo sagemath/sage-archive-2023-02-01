@@ -162,6 +162,12 @@ class SchemeHomset_generic(HomsetWithBase):
     def __init__(self, X, Y, cat=None, check=True):
         HomsetWithBase.__init__(self, X, Y, cat=cat, check=check)
 
+    def has_coerce_map_from_impl(self, S):
+        if self == S:   # an obvious case
+            return True
+        # Todo -- implement more cases.
+        return False
+
     def _repr_(self):
         try:
             return "Set of points of %s defined over %s"%(self.codomain(), self.domain().coordinate_ring())

@@ -53,6 +53,9 @@ from time                import sleep
 from sage.interfaces.get_sigs import get_sigs
 get_sigs()
 
+from sage.rings.integer import pmem_malloc
+pmem_malloc()
+
 from sage.misc.all       import *         # takes a while
 
 from sage.libs.all       import *
@@ -75,7 +78,6 @@ from sage.server.all     import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
-import sage.edu.all      as edu
 
 from sage.plot.all       import *
 from sage.coding.all     import *
@@ -91,6 +93,14 @@ from sage.gsl.all import *
 
 from copy import copy
 
+
+###########################################################
+#### WARNING:
+# DO *not* import numpy / matplotlib / networkx here!!
+# Each takes a surprisingly long time to initialize,
+# and that initialization should be done more on-the-fly
+# when they are first needed.
+###########################################################
 
 ###################################################################
 
@@ -248,7 +258,7 @@ InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-from catalogue import cat
+from catalogue import new
 
 import sage.ext.sig
 sage.ext.sig.get_bad_sigs()

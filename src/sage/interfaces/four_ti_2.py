@@ -1,4 +1,4 @@
-"""
+"""nodoctest -- TODO -- not done yet!!!!
 Interface to 4ti2.
 
 4ti2 is a software package for algebraic, geometric and combinatorial
@@ -284,7 +284,7 @@ class LinearSystem:
                  splitting up like this.)
 
     EXAMPLES:
-        sage: from sage.interfaces.fortytwo import LinearSystem
+        sage: from sage.interfaces.four_ti_2 import LinearSystem
         sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
         sage: rel = ['<=', '<=']
         sage: rhs = 0

@@ -114,7 +114,7 @@ import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
 from sage.rings.arith import factor
 from sage.groups.abelian_gps.abelian_group import AbelianGroup
-from sage.misc.functional import is_even,log
+from sage.misc.functional import is_even, log
 
 def gap_format(x):
     """
@@ -251,8 +251,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: permutation (1,2) not in Permutation Group with generators [(1,2,3,4)]
         """
-        if isinstance(x, (int, long, Integer)) and x == 1:
-            return self.identity()
         if isinstance(x, PermutationGroupElement):
             if x.parent() is self:
                 return x
@@ -262,8 +260,19 @@ class PermutationGroup_generic(group.FiniteGroup):
             return PermutationGroupElement(x, self, check = True)
         elif isinstance(x, tuple):
             return PermutationGroupElement([x], self, check = True)
+        elif isinstance(x, (int, long, Integer)) and x == 1:
+            return self.identity()
         else:
             raise TypeError, "unable to coerce %s to permutation in %s"%(x, self)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, PermutationGroupElement):
+            if x.parent() is self:
+                return x
+            elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
+                return PermutationGroupElement(x._gap_(), self, check = False)
+        else:
+            raise TypeError
 
     def list(self):
         """
@@ -400,7 +409,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.largest_moved_point()
             10
         """
-        return self._gap_().LargestMovedPoint()
+        try:
+            return self.__largest_moved_point
+        except AttributeError:
+            n = int(self._gap_().LargestMovedPoint())
+        self.__largest_moved_point = n
+        return n
 
     def smallest_moved_point(self):
         """
@@ -615,7 +629,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 4  2  0  1 -1  0 -1]
             [ 1  1  1  1  1  1  1]
             sage: list(AlternatingGroup(6).character_table())
-            [(1, 1, 1, 1, 1, 1, 1), (5, 1, -1, 2, -1, 0, 0), (5, 1, 2, -1, -1, 0, 0), (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2), (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1), (9, 1, 0, 0, 1, -1, -1), (10, -2, 1, 1, 0, 0, 0)]
+            [(1, 1, 1, 1, 1, 1, 1), (5, 1, 2, -1, -1, 0, 0), (5, 1, -1, 2, -1, 0, 0), (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2), (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1), (9, 1, 0, 0, 1, -1, -1), (10, -2, 1, 1, 0, 0, 0)]
 
         Suppose that you have a class function $f(g)$ on $G$ and you
         know the values $v_1, ..., v_n$ on the conjugacy class
@@ -1420,19 +1434,15 @@ class PSU(PermutationGroup_generic):
 
     EXAMPLE:
         sage: PSU(2,3)
-        Permutation Group with generators [(2,9,6)(3,8,10)(4,7,5), (1,2)(5,10)(6,9)(7,8)]
-        sage: print PSU(2,3)
-        The projective special unitary group of degree 2 over Finite
-        Field of size 3 (matrix representation has coefficients in
-        Finite Field in a of size 3^2)
+        The projective special unitary group of degree 2 over Finite Field of size 3
     """
-    def __init__(self, n, q):
+    def __init__(self, n, q, var='a'):
         id = 'PSU(%s,%s)'%(n,q)
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
         self._base_ring = GF(q)
-        self._field_of_definition = GF(q**2)
+        self._field_of_definition = GF(q**2, var)
         self._n = n
 
     def field_of_definition(self):
@@ -1441,8 +1451,8 @@ class PSU(PermutationGroup_generic):
     def base_ring(self):
         return self._base_ring
 
-    def __str__(self):
-        return "The projective special unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+    def _repr_(self):
+        return "The projective special unitary group of degree %s over %s"%(self._n, self.base_ring())
 
 class PGU(PermutationGroup_generic):
     """
@@ -1457,17 +1467,15 @@ class PGU(PermutationGroup_generic):
 
     EXAMPLE:
         sage: PGU(2,3)
-        Permutation Group with generators [(3,4)(5,8)(6,9)(7,10), (1,2,6)(3,7,10)(4,8,5)]
-        sage: print PGU(2,3)
-        The projective general unitary group of degree 2 over Finite Field of size 3 (matrix representation has coefficients in Finite Field in a of size 3^2)
+        The projective general unitary group of degree 2 over Finite Field of size 3
     """
-    def __init__(self, n, q):
+    def __init__(self, n, q, var='a'):
         id = 'PGU(%s,%s)'%(n,q)
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
         self._base_ring = GF(q)
-        self._field_of_definition = GF(q**2)
+        self._field_of_definition = GF(q**2, var)
         self._n = n
 
     def field_of_definition(self):
@@ -1476,8 +1484,8 @@ class PGU(PermutationGroup_generic):
     def base_ring(self):
         return self._base_ring
 
-    def __str__(self):
-        return "The projective general unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+    def _repr_(self):
+        return "The projective general unitary group of degree %s over %s"%(self._n, self.base_ring())
 
 
 class Suzuki(PermutationGroup_generic):
@@ -1504,14 +1512,14 @@ class Suzuki(PermutationGroup_generic):
     REFERENCES:
         http://en.wikipedia.org/wiki/Group_of_Lie_type#Suzuki-Ree_groups
     """
-    def __init__(self, q):
-	if is_even(int(log(q,2))):
+    def __init__(self, q, var='a'):
+	if is_even(round(log(q,2))):
 	    raise ValueError,"The ground field size %s must be an odd power of 2."%q
         id = 'SuzukiGroup(IsPermGroup,%s)'%q
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
-        self._base_ring = GF(q)
+        self._base_ring = GF(q, var)
 
     def base_ring(self):
         return self._base_ring

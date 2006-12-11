@@ -25,8 +25,10 @@ The following axes types are supported:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 from math import floor, log
-from sage.misc.misc import srange
+
 from sage.structure.sage_object import SageObject
+
+import sage.misc.misc
 
 class Axes(SageObject):
     """
@@ -163,7 +165,7 @@ class Axes(SageObject):
             step = funda*o0
 
         #the 'fundamental' range
-        fundrange = srange(0, d0*o0 + d1*o1 + step, step)
+        fundrange = sage.misc.misc.srange(0, d0*o0 + d1*o1 + step, step)
 
         #Now find the tick step list for major ticks (tslmajor)
         #'oppaxis' is the positioning value of the other axis.
@@ -214,7 +216,7 @@ class Axes(SageObject):
         maxval = self._trunc(maxval + step, rnd)
 
         step  = (maxval - minval)/float(num_pieces)
-        tslmajor = srange(minval, minval+(num_pieces+1)*step, step)
+        tslmajor = sage.misc.misc.srange(minval, minval+(num_pieces+1)*step, step)
         tslmajor = self._in_range(tslmajor, minval0, maxval0)
 
         oppaxis = 0
@@ -240,7 +242,7 @@ class Axes(SageObject):
         else:
             tslmajor, oppaxis, step = self._tasteful_ticks(minval, maxval)
         min = tslmajor[0] - step
-        tslminor = srange(min, maxval + 0.2*step, 0.2*step)
+        tslminor = sage.misc.misc.srange(min, maxval + 0.2*step, 0.2*step)
         tslminor = self._in_range(tslminor, minval, maxval)
         return oppaxis, step, tslminor, tslmajor
 
@@ -483,7 +485,7 @@ class Axes(SageObject):
             xrm = [float(x+0.5) for x in xtl]
             xtslmajor = [int(n) for n in xtl]
         else:
-            xtl = srange(0, xmax)
+            xtl = sage.misc.misc.srange(0, xmax)
             xrm = [float(x+0.5) for x in xtl]
             xtslmajor = [int(n) for n in xtl]
         yltheight = 0.015*xmax
@@ -499,7 +501,7 @@ class Axes(SageObject):
             yrm.reverse()
             ytslmajor = [0] + tl[1:-1] + [ymax-1]
         else:
-            ytl = srange(0, ymax)
+            ytl = sage.misc.misc.srange(0, ymax)
             ytslmajor = [int(n) for n in ytl]
             yrm = [float(y+0.5) for y in ytslmajor]
             yrm.reverse()

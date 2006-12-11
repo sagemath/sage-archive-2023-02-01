@@ -359,7 +359,7 @@ cdef class Element(sage_object.SageObject):
     cdef int _cmp_c_impl(left, Element right) except -2:
         ### For derived SAGEX code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
-        raise NotImplementedError, "BUG: sort algorithm for elements of type %s not implemented"%(type(left))
+        raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
 
     def __cmp__(left, right):
         return left._cmp_c_impl(right)   # default
@@ -532,7 +532,7 @@ cdef class ModuleElement(Element):
         See extensive documentation at the top of element.pyx.
         """
         # default implementation is to try multiplying by -1.
-        return bin_op_c(-1, self, operator.mul)
+        return bin_op_c(self._parent._base(-1), self, operator.mul)
 
 
     def _neg_(ModuleElement self):
@@ -757,12 +757,21 @@ cdef class MonoidElement(Element):
     #############################################################
     def __mul__(left, right):
         """
-        Top-level multiplication operator for ring elements.
+        Top-level multiplication operator for monoid elements.
         See extensive documentation at the top of element.pyx.
         """
         if have_same_parent(left, right):
             return (<MonoidElement>left)._mul_c(<MonoidElement>right)
-        return bin_op_c(left, right, operator.mul)
+        try:
+            return bin_op_c(left, right, operator.mul)
+        except TypeError, msg:
+            if isinstance(left, (int, long)) and left==1:
+                return right
+            elif isinstance(right, (int, long)) and right==1:
+                return left
+            raise TypeError, msg
+
+
 
 
     cdef MonoidElement _mul_c(left, MonoidElement right):
@@ -896,7 +905,7 @@ cdef class MultiplicativeGroupElement(MonoidElement):
         raise ArithmeticError, "addition not defined in a multiplicative group"
 
     def __div__(left, right):
-        if have_same_parents(left, right):
+        if have_same_parent(left, right):
             return left._div_(right)
         return bin_op_c(left, right, operator.div)
 

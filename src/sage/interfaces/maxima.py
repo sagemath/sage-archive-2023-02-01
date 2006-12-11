@@ -1024,7 +1024,7 @@ class MaximaElement(ExpectElement):
     def __call__(self, x):
         self._check_valid()
         P = self.parent()
-        return P('%s[%s]'%(self.name(), x))
+        return P('%s(%s)'%(self.name(), x))
 
     def __cmp__(self, other):
         """
@@ -1299,6 +1299,15 @@ class MaximaElement(ExpectElement):
                               '\\arcsin ':'\\sin^{-1} ',
                               '\\arccos ':'\\cos^{-1} ',
                               '\\arctan ':'\\tan^{-1} '}, s)
+
+        # Fix a maxima bug, which gives a latex representation of multiplying
+        # two numbers as a single space. This was really bad when 2*17^(1/3)
+        # gets TeXed as '2 17^{\frac{1}{3}}'
+        #
+        # This regex matches a string of spaces preceeded by either a '}', a
+        # decimal digit, or a ')', and followed by a decimal digit. The spaces
+        # get replaced by a '\cdot'.
+        s = re.sub(r'(?<=[})\d]) +(?=\d)', '\cdot', s)
         return s
 
     def trait_names(self):

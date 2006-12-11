@@ -708,6 +708,9 @@ cdef class Matrix(matrix1.Matrix):
             [    0  25/4  15/2   5/2]
             [    0     0  58/5     3]
         """
+        cdef Py_ssize_t i, j, m, n, r
+        n = self._nrows
+
         tm = verbose("Computing Hessenberg Normal Form of %sx%s matrix"%(n,n))
 
         if not self.is_square():
@@ -718,10 +721,8 @@ cdef class Matrix(matrix1.Matrix):
 
         self.check_mutability()
 
-        cdef Py_ssize_t i, j, m, n, r
         zero = self._base_ring(0)
         one = self._base_ring(1)
-        n = self._nrows
         for m from 1 <= m < n-1:
             # Search for a non-zero entry in column m-1
             i = -1
@@ -1005,7 +1006,7 @@ cdef class Matrix(matrix1.Matrix):
             [  0   1  -2   0]
             [  0   2   0  -2]
             sage: t.fcp()
-            (x - 39) * (x^2 - 2) * (x + 2)
+            (x - 39) * (x + 2) * (x^2 - 2)
             sage: s = (t-39)*(t^2-2)
             sage: V = s.kernel(); V
             Vector space of degree 4 and dimension 3 over Rational Field
@@ -1595,19 +1596,19 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
             sage: A.fcp()
-            (x - 3) * (x^2 - 2)^2 * (x + 2)^2
+            (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
             (3, [
             (1, 0, 1/7, 0, -1/7, 0, -2/7)
             ]),
-            (a1, [
-            (0, 1, 0, -1, -a1 - 1, 1, -1),
-            (0, 0, 1, 0, -1, 0, -a1 + 1)
-            ]),
             (-2, [
             (0, 1, 0, 1, -1, 1, -1),
             (0, 0, 1, 0, -1, 2, -1)
+            ]),
+            (a2, [
+            (0, 1, 0, -1, -a2 - 1, 1, -1),
+            (0, 0, 1, 0, -1, 0, -a2 + 1)
             ])
             ]
 
@@ -1634,11 +1635,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = Matrix(QQ,3,3,range(9))
             sage: A.eigenspaces()
             [
-            (a0, [
-            (1, 1/15*a0 + 2/5, 2/15*a0 - 1/5)
-            ]),
             (0, [
             (1, -2, 1)
+            ]),
+            (a1, [
+            (1, 1/15*a1 + 2/5, 2/15*a1 - 1/5)
             ])
             ]
 
@@ -1736,6 +1737,17 @@ cdef class Matrix(matrix1.Matrix):
             Traceback (most recent call last):
             ...
             ValueError: Echelon form not defined over this base ring.
+
+        Involving a sparse matrix:
+            sage: x = SupersingularModule(37)
+            sage: m = x.T(2).matrix(); m
+            [1 1 1]
+            [1 0 2]
+            [1 2 0]
+            sage: m.echelonize(); m
+            [1 0 1]
+            [0 1 1]
+            [0 0 3]
         """
         self.check_mutability()
         if algorithm == 'default':
@@ -1817,14 +1829,26 @@ cdef class Matrix(matrix1.Matrix):
         if self.fetch('in_echelon_form'):
             return
 
-        if not self._base_ring.is_field():
-            raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()
-
         self.check_mutability()
+        cdef Matrix d
 
-        start_row = 0
         nr = self._nrows
         nc = self._ncols
+
+        if not self._base_ring.is_field():
+            if self._base_ring == ZZ:
+                d = self.dense_matrix().echelon_form()
+                for c from 0 <= c < nc:
+                    for r from 0 <= r < nr:
+                        x = d.get_unsafe(r,c)
+                        if x != 0:
+                            self.set_unsafe(r, c, x)
+                return
+            else:
+                raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()
+
+
+        start_row = 0
         pivots = []
 
         for c from 0 <= c < nc:

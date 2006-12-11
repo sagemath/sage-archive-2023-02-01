@@ -148,7 +148,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         sage: FreeModule(FiniteField(5),10)
         Vector space of dimension 10 over Finite Field of size 5
         sage: FreeModule(Integers(7),10)
-        Vector space of dimension 10 over Finite Field of size 7
+        Vector space of dimension 10 over Ring of integers modulo 7
         sage: FreeModule(PolynomialRing(QQ,'x'),5)
         Ambient free module of rank 5 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
         sage: FreeModule(PolynomialRing(ZZ,'x'),5)
@@ -236,7 +236,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
         M=ComplexDoubleVectorSpace_class(rank)
 
-    elif isinstance(base_ring, field.Field):
+    elif base_ring.is_field():
         M = FreeModule_ambient_field(base_ring, rank,
                                         sparse=sparse, inner_product_matrix=inner_product_matrix)
 
@@ -466,11 +466,11 @@ class FreeModule_generic(module.Module):
         EXAMPLES:
             sage: V = VectorSpace(GF(4,'a'),2)
             sage: [x for x in V]
-            [(0, 0), (1, 0), (a, 0), (a + 1, 0), (0, 1), (1, 1), (a, 1), (a + 1, 1), (0, a), (1, a), (a, a), (a + 1, a), (0, a + 1), (1, a + 1), (a, a + 1), (a + 1, a + 1)]
+            [(0, 0), (a, 0), (a + 1, 0), (1, 0), (0, a), (a, a), (a + 1, a), (1, a), (0, a + 1), (a, a + 1), (a + 1, a + 1), (1, a + 1), (0, 1), (a, 1), (a + 1, 1), (1, 1)]
 
             sage: W = V.subspace([V([1,1])])
             sage: print [x for x in W]
-            [(0, 0), (1, 1), (a, a), (a + 1, a + 1)]
+            [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
         """
         G = self.gens()
         if len(G) == 0:
@@ -2867,7 +2867,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         The vector $(1,1,1)$ has coordinates $v=(1,1)$ with respect to the echelonized
         basis for self.  Multiplying $vA$ we find the coordinates of this vector with
         respect to the user basis.
-            sage: v = Vector(QQ, [1,1]); v
+            sage: v = vector(QQ, [1,1]); v
             (1, 1)
             sage: v * A
             (-1/3, 1/3)

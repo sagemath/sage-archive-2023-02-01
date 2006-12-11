@@ -72,11 +72,10 @@ def DualAbelianGroup(G, names="X", base_ring=CC):
         sage: A(a)    ## random
         -1.0000000000000000 + 0.00000000000000013834419720915037*I
         sage: A(b); A(c); A(d); A(e)
-        1.0000000000000000
-        1.0000000000000000
-        1.0000000000000000
-        1.0000000000000000
-
+        1.00000000000000
+        1.00000000000000
+        1.00000000000000
+        1.00000000000000
     """
     if G.order()==Infinity:
         NotImplementedError, "The group must be finite"

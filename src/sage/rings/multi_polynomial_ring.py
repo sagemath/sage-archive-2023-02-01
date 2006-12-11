@@ -19,6 +19,13 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
     3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
     sage: (x^5 + 2*y^5)^3
     3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
+
+We make a polynomial ring in one variable over a polynomial ring in
+two variables:
+    sage: R.<x, y> = PolynomialRing(QQ, 2)
+    sage: S.<t> = PowerSeriesRing(R)
+    sage: t*(x+y)
+    (y + x)*t
 """
 
 #*****************************************************************************

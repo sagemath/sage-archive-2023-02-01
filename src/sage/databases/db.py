@@ -92,7 +92,7 @@ Gallileus GmbH                   http://www.gallileus.info/
 
 import os, shutil, cPickle
 
-import ZODB, transaction
+import transaction
 import BTrees.OOBTree
 from ZODB import FileStorage, DB
 

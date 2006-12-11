@@ -39,7 +39,7 @@ def Set(X):
     EXAMPLES:
         sage: X = Set(GF(9,'a'))
         sage: X
-        {2, a + 2, 2*a + 1, a, 2*a, a + 1, 1, 2*a + 2, 0}
+        {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2}
         sage: type(X)
         <class 'sage.sets.set.Set_object_enumerated'>
         sage: Y = X.union(Set(QQ))
@@ -303,9 +303,9 @@ class Set_object(Set_generic):
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4,'a'))
-            {0, 1, a + 1, 1, a, 0}
+            {0, 1, a, a + 1}
             sage: Set(GF(8,'b')) + Set(GF(4,'a'))
-            {b^2 + b + 1, 1, b, b^2 + b, b^2 + 1, a + 1, 1, b^2, 0, a, b + 1, 0}
+            {0, 1, b, b + 1, b^2, b^2 + 1, b^2 + b, b^2 + b + 1, a, a + 1, 1, 0}
         """
         return self.union(X)
 
@@ -437,9 +437,9 @@ class Set_object_enumerated(Set_object):
         EXAMPLES:
             sage: X = Set(GF(8,'c'))
             sage: X
-            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: X.set()
-            set([c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0])
+            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
             sage: type(X.set())
             <type 'set'>
             sage: type(X)
@@ -479,11 +479,11 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8,'c'))
             sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X
-            {c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
             sage: Y
-            {1, 2, 3, c}
+            {1, c, 3, 2}
             sage: X.union(Y)
-            {1, 2, 3, c^2 + c + 1, c, c^2 + c, c^2 + 1, 1, c^2, c + 1, 0}
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1, 2, 3}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.union(self, other)
@@ -497,7 +497,7 @@ class Set_object_enumerated(Set_object):
             sage: X = Set(GF(8,'c'))
             sage: Y = Set([GF(8,'c').0, 1, 2, 3])
             sage: X.intersection(Y)
-            {c}
+            {1, c}
         """
         if not isinstance(other, Set_object_enumerated):
             return Set_object.intersection(self, other)

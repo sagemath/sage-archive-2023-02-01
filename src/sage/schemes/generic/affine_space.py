@@ -33,6 +33,8 @@ import projective_space
 
 import scheme
 
+from sage.structure.parent_gens import normalize_names
+
 def is_AffineSpace(x):
     r"""
     Returns True if x is an affine space, i.e., an ambient space
@@ -48,7 +50,7 @@ def is_AffineSpace(x):
     """
     return isinstance(x, AffineSpace_generic)
 
-def AffineSpace(n, R=None, names=None):
+def AffineSpace(n, R=None, names='x'):
     r"""
     Return affine space of dimension $n$ over the ring $R$.
 
@@ -129,6 +131,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
         Affine Space of dimension 0 over Integer Ring
     """
     def __init__(self, n, R, names):
+        names = normalize_names(n, names)
         ambient_space.AmbientSpace.__init__(self, n, R)
         self._assign_names(names)
 
@@ -169,6 +172,9 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                 iters[i].next() # put at zero
                 P[i] = zero
                 i += 1
+
+    def ngens(self):
+        return self.dimension()
 
     def rational_points(self, F=None):
         if F == None:
@@ -268,7 +274,7 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
                  this is constructed if it is not given.
 
         EXAMPLES:
-            sage: AA = AffineSpace(2, QQ)
+            sage: AA = AffineSpace(2, QQ, 'x')
             sage: pi = AA.projective_embedding(0); pi
             Scheme morphism:
               From: Affine Space of dimension 2 over Rational Field

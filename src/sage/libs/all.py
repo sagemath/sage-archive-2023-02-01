@@ -1,17 +1,6 @@
-#try:
-#    import sage.libs.cf.cf as cf
-#except ImportError:
-#    pass
-
 from sage.rings.integer import pmem_malloc
-
 pmem_malloc()
-
-try:
-    import sage.libs.linbox.all as linbox
-except ImportError:
-    pass
-
+#import sage.libs.cf.cf as cf
 
 import sage.libs.ntl.all  as ntl
 

@@ -22,7 +22,7 @@ EXAMPLES:
     sage: type(a)
     <type 'sage.matrix.matrix_modn_sparse.Matrix_modn_sparse'>
     sage: parent(a)
-    Full MatrixSpace of 3 by 3 sparse matrices over Finite Field of size 37
+    Full MatrixSpace of 3 by 3 sparse matrices over Ring of integers modulo 37
     sage: a^2
     [15 18 21]
     [ 5 17 29]
@@ -112,6 +112,8 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         p = parent.base_ring().order()
 
         self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+        if not self.rows:
+            raise MemoryError, "error allocating memory for sparse matrix"
 
         for i from 0 <= i < nr:
             init_c_vector_modint(&self.rows[i], p, nc, 0)
@@ -179,7 +181,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                 return
             if self._nrows != self._ncols:
                 raise TypeError, "matrix must be square to initialize with a scalar."
-            for i from 0 <= i <= self._nrows:
+            for i from 0 <= i < self._nrows:
                 set_entry(&self.rows[i], i, s)
 
 
@@ -355,7 +357,7 @@ cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
     Initialize a c_vector_modint.
     """
     if (allocate_c_vector_modint(v, num_nonzero) == -1):
-        return -1
+        raise MemoryError, "Error allocating memory for sparse vector."
     if p > 46340:
         raise OverflowError, "The prime must be <= 46340."
     v.num_nonzero = num_nonzero

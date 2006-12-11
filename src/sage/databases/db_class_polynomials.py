@@ -49,7 +49,7 @@ class ClassPolynomialDatabase:
         discstr = _pad_int_str(abs(disc),disc_length)
         return "PolHeeg/%s/%s/pol.%s.dbz"%(self.model,subdir,discstr)
 
-    def __getitem__(self,disc,level=1):
+    def __getitem__(self,disc,level=1,var='x'):
         classpol = self._dbpath(disc,level)
         try:
             coeff_list = _dbz_to_integers(classpol)
@@ -57,7 +57,7 @@ class ClassPolynomialDatabase:
             print msg
             raise RuntimeError, \
                   "No database entry for class polynomial of discriminant %s"%disc
-        P = PolynomialRing(IntegerRing())
+        P = PolynomialRing(IntegerRing(),names=var)
         return P(list(coeff_list))
 
 class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):

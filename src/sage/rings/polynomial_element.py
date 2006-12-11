@@ -202,21 +202,24 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         """
         Compare the two polynomials self and other.
 
-        We order polynomials in dictionary order starting with the *linear* coefficients.
+        We order polynomials first by degree, then in dictionary order
+        starting with the coefficient of largest degree.
 
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
-            False
+            True
             sage: x^2 - 2*x - 1 < x^2 - 1
             True
             sage: x^2 - 2*x - 1 > x^2 - 1
             False
             sage: R(-1) < R(0)
-            True
+            False
         """
-        m = max(self.degree(), other.degree())
-        for i in xrange(m+1):
+        d1 = self.degree(); d2 = other.degree()
+        c = cmp(d1, d2)
+        if c: return c
+        for i in reversed(xrange(d1+1)):
             c = cmp(self[i], other[i])
             if c: return c
         return 0
@@ -241,7 +244,10 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             yield x
 
     def __hash__(self):
-        return hash(tuple(self.list()))
+        if self.degree() >= 1:
+            return hash(tuple(self.list()))
+        else:
+            return hash(self[0])
 
     def __float__(self):
          if self.degree() > 0:
@@ -913,7 +919,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: R.<x> = k[]
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1) * (x^2 + 3*x + 4*a + 4)
+            (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -924,15 +930,15 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: x = GF(3^2, 'a')['x'].0
             sage: f = x^10 +7*x -13
             sage: G = f.factor(); G
-            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + a) * (x + 2*a + 1)
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
             sage: prod(G) == f
             True
 
             sage: f.parent().base_ring()._assign_names(['a'])
             sage: f.factor()
-            (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x + a) * (x + 2*a + 1)
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
 
-            sage: k.<x> = GF(9,'a')
+            sage: k = GF(9,'x')    # purposely calling it x to test robustness
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
@@ -966,12 +972,12 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
         from sage.rings.number_field.all import is_NumberField
 
-        if integer_mod_ring.is_IntegerModRing(R) or finite_field.is_FiniteField(R) or \
+        if integer_mod_ring.is_IntegerModRing(R) or \
                isinstance(R, (integer_ring.IntegerRing, rational_field.RationalField)):
 
             G = list(self._pari_('x').factor())
 
-        elif is_NumberField(R):
+        elif is_NumberField(R) or finite_field.is_FiniteField(R):
 
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
@@ -1316,6 +1322,9 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         return [sage.rings.rational.Rational(x) for x in v]
 
 
+    #####################################################################
+    # Conversions to other systems
+    #####################################################################
     def _pari_(self, variable=None):
         """
         Return polynomial as a PARI object.
@@ -1347,6 +1356,88 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
     def _pari_init_(self):
         return str(self._pari_())
+
+    def _magma_init_(self):
+        """
+        Return a string that evaluates in Magma to this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: f._magma_init_()
+            'Polynomial(IntegerRing(), [5,-17,0,1])'
+        """
+        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(), ','.join([a._magma_init_() for a in self.list()]))
+
+    def _magma_(self, G=None):
+        """
+        Return the Magma version of this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = magma(f); g
+            y^3 - 17*y + 5
+
+        Note that in Magma there is only one polynomial ring over each base,
+        so if we make the polynomial ring over ZZ with variable $z$, then
+        this changes the variable name of the polynomial we already defined:
+            sage: R.<z> = ZZ[]
+            sage: magma(R)
+            Univariate Polynomial Ring in z over Integer Ring
+            sage: g
+            z^3 - 17*z + 5
+
+        In SAGE the variable name does not change:
+            sage: f
+            y^3 - 17*y + 5
+        """
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        self.parent()._magma_(G)  # defines the variable name
+        f = G(self._magma_init_())
+        return f
+
+    def _gap_init_(self):
+        return str(self)
+
+    def _gap_(self, G):
+        """
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3-17*y+5
+            sage: f._gap_init_()
+            'y^3 - 17*y + 5'
+            sage: R.<z> = ZZ[]
+            sage: gap(R)
+            PolynomialRing(..., [ z ])
+            sage: g
+            y^3-17*y+5
+            sage: gap(z^2 + z)
+            z^2+z
+
+        We coerce a polynomial with coefficients in a finite field:
+
+            sage: R.<y> = GF(7)[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3+Z(7)^4*y+Z(7)^5
+            sage: g.Factors()
+            [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
+            sage: f.factor()
+            (y + 5) * (y + 1)^2
+        """
+        if G is None:
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+        self.parent()._gap_(G)
+        return G(self._gap_init_())
+
+    ######################################################################
+
 
     def resultant(self, other, flag=0):
         raise NotImplementedError

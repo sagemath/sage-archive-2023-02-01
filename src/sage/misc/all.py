@@ -47,11 +47,11 @@ from func_persist import func_persist
 
 from functional import *
 
-from latex import latex, view, lprint
+from latex import latex, view, lprint, jsmath
 
 from mathml import mathml
 
-from trace import *
+from trace import trace
 
 from cachefunc import CachedFunction
 

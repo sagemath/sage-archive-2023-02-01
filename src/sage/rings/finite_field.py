@@ -8,14 +8,14 @@ Finite Fields support iteration, starting with 0.
     sage: i = 0
     sage: for x in k: print i, x; i+=1
     0 0
-    1 1
-    2 2
-    3 a
-    4 a + 1
-    5 a + 2
-    6 2*a
+    1 2*a
+    2 a + 1
+    3 a + 2
+    4 2
+    5 a
+    6 2*a + 2
     7 2*a + 1
-    8 2*a + 2
+    8 1
     sage: for a in GF(5):
     ...    print a
     0
@@ -79,7 +79,9 @@ import integer_mod
 
 from sage.structure.element import RingElement
 from sage.rings.ring import FiniteField as FiniteField_generic
+from ring import is_FiniteField
 from sage.rings.finite_field_givaro import FiniteField_givaro
+
 
 from sage.structure.parent_gens import normalize_names, ParentWithGens
 
@@ -101,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -144,9 +146,6 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
     #cache[key] = K
     return K
 
-
-def is_FiniteField(x):
-    return isinstance(x, FiniteField_generic)
 
 def is_PrimeFiniteField(x):
     return isinstance(x, FiniteField_prime_modn)
@@ -194,11 +193,11 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     The following is a native Python set:
         sage: set(k)
-        set([a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a])
+        set([0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1])
 
     And the following is a SAGE enumerated set:
         sage: EnumeratedSet(k)
-        {a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a}
+         {0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1}
 
     We can also make a list via comprehension:
         sage: [x for x in k]
@@ -323,8 +322,13 @@ class FiniteField_ext_pari(FiniteField_generic):
         assert not (modulus is None)
         self.__modulus = modulus
         f = pari.pari(str(modulus))
-        self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
+        self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
+
+    def __cmp__(self, other):
+        if not isinstance(other, FiniteField_ext_pari):
+            return cmp(type(self), type(other))
+        return cmp((self.__order, self.variable_name()), (other.__order, other.variable_name()))
 
     def _pari_one(self):
         """
@@ -604,7 +608,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         if isinstance(x, (int, long, integer.Integer)):
             return self(x)
 
-        if isinstance(x, (finite_field_element.FiniteField_ext_pariElement)) or integer_mod.is_IntegerMod(x):
+        if isinstance(x, finite_field_element.FiniteField_ext_pariElement) or integer_mod.is_IntegerMod(x):
             K = x.parent()
             if K is self:
                 return x
@@ -685,9 +689,9 @@ class FiniteField_ext_pari(FiniteField_generic):
             sage: hash(GF(3,'a'))
             904200654
             sage: hash(GF(9,'a'))
-            1524231377
+            205387690
             sage: hash(GF(9,'b'))
-            -584596322
+            -74532899
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 
@@ -701,6 +705,11 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
         self.__gen = self(1)  # self(int(pari.pari(p).znprimroot().lift()))
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
+    def __cmp__(self, other):
+        if not isinstance(other, FiniteField_prime_modn):
+            return cmp(type(self), type(other))
+        return cmp(self.__char, other.__char)
+
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
             return im_gens[0] == codomain._coerce_(self.gen(0))
@@ -709,6 +718,9 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
 
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, integer.Integer)):
+            return self(x)
+        if isinstance(x, integer_mod.IntegerMod_abstract) and \
+               x.parent().characteristic() == self.characteristic():
             return self(x)
         raise TypeError, "no canonical coercion of x"
 
@@ -878,7 +890,7 @@ def gap_to_sage(x, F):
     if q == F.order():
         K = F
     else:
-        K = FiniteField(q)
+        K = FiniteField(q, F.variable_name())
     if s.find(')^') == -1:
         e = 1
     else:

@@ -718,7 +718,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
             ...
-            ValueError: polynomial must involve at most one variable
+            TypeError: polynomial must involve at most one variable
             sage: g = f.fix({x:10}); g
             305 - 2*y + 700*y^2
             sage: g.univariate_polynomial ()
@@ -730,7 +730,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             700*w^2 - 2*w + 305
         """
         if not self.is_univariate():
-            raise ValueError, "polynomial must involve at most one variable"
+            raise TypeError, "polynomial must involve at most one variable"
 
         #construct ring if none
         if R == None:
@@ -977,7 +977,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
             sage: F = f.factor()
             sage: F
-            2 * x * (2 + x)^2 * (y + x) * (y + 2*x)
+            2 * x * (y + x) * (y + 2*x) * (2 + x)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how

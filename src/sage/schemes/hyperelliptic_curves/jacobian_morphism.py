@@ -102,7 +102,7 @@ class JacobianMorphism_divisor_class(SchemeMorphism):
     def __init__(self, parent, polys, reduce=True, check=False):
         SchemeMorphism.__init__(self, parent)
         if polys == 0:
-            P = PolynomialRing(self.parent())
+            P = PolynomialRing(self.parent(), 'x')
             self.__polys = (P(1),P(0))
         if check:
             C = parent.curve()
@@ -163,7 +163,7 @@ class JacobianMorphism_divisor_class(SchemeMorphism):
         if n < 0:
             return self * (-n)
         elif n == 0:
-            P = PolynomialRing(X.value_ring())
+            P = PolynomialRing(X.value_ring(), 'x')
             D = (P(1),P(0))
             return X(0)
         elif n == 1:

@@ -731,7 +731,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
-               '/jsmath' in self.path:
+               ('/jsmath/' in self.path and self.path[-3] == '.js'):
             return self.get_file()
 
         path = self.path.strip('/')

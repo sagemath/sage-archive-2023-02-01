@@ -872,11 +872,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return self._images[filename]
         except AttributeError:
             self._images = {}
-            self.image(filename)
+            return self.image(filename)
         except KeyError:
-            f = open(SAGE_ROOT + '/data/extcode/images/' + filename)
-            self._images[filename] = f.read()
-            f.close()
+            self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename, 'rb').read()
+           # print self._images[filename]
             return self._images[filename]
 
 

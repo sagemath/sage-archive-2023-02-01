@@ -627,8 +627,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.wfile.write(js.javascript())
                 return
         try:
-            print path
-            if path in static_images:
+            if path in static_images: #this list is defined at the top of this file
                 binfile = self.image(path)
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
@@ -875,7 +874,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.image(filename)
         except KeyError:
             self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename, 'rb').read()
-           # print self._images[filename]
             return self._images[filename]
 
 

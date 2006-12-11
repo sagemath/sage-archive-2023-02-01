@@ -47,7 +47,7 @@ import random
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer, is_MPolynomial, MPolynomialRing, Polynomial
+from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -471,7 +471,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             [0 0 0 1 0]
         """
         deg = self.parent().degree()
-        M = MatrixSpace(RationalField(),deg,deg)
+        M = MatrixSpace(ZZ,deg,deg)
         A = M(0)
         for i in range(deg):
             A[i, self(i+1) - 1] = 1

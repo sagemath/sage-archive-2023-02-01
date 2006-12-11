@@ -711,11 +711,8 @@ def tuples(S,k):
     enumerated in a standard order.
 	sage: K.<a> = GF(4, 'a')
 	sage: mset = [x for x in K if x!=0]
-	sage: ts = tuples(mset,2)
-        sage: T = Set([tuple(t) for t in ts])
-        sage: S = Set([(K(1), K(1)), (a, K(1)), (a + K(1), K(1)), (K(1), a), (a, a), (a + K(1), a), (K(1), a + K(1)), (a, a + K(1)), (a + K(1), a + K(1))])
-        sage: S == T
-        True
+	sage: tuples(mset,2)
+        [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
 
     AUTHOR: Jon Hanke (2006-08?)
     """

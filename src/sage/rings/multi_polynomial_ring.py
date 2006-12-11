@@ -336,7 +336,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
     EXAMPLES:
         sage: R = MPolynomialRing(Integers(12), 'x', 5); R
         Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
-        sage: loads(R.dumps()) == R
+        sage.: loads(R.dumps()) == R     # TODO -- this currently hangs sometimes (??)
         True
     """
     def __init__(self, base_ring, n, names, order):

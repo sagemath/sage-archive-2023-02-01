@@ -186,7 +186,8 @@ class Magma(Expect):
                            then MAGMA is started with the -n option which
                            supresses user configuration files.
         """
-        command = 'magma -b '
+        #command = 'magma -b '
+        command = 'magma'
         if not user_config:
             command += ' -n'
         Expect.__init__(self,
@@ -243,6 +244,7 @@ class Magma(Expect):
         Expect._start(self)
         self.eval('SetPrompt("%s"); SetLineEditor(false); SetColumns(0);'%PROMPT)
         self._change_prompt(PROMPT)
+        self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         if os.path.exists(MAGMA_SPEC):

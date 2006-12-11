@@ -2705,8 +2705,10 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         We compute the roots of the characteristic polynomial of some Salem numbers:
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
-            sage: f.complex_roots()[0]    # todo: known bug in PARI 2.2.10 !!
-            0.71363917353690087
+            sage: alpha = f.complex_roots()[0]; alpha
+            0.713639173536900
+            sage: f(alpha)
+            -0.000000000000000222044604925031
         """
         QQ = sage.rings.rational_field.RationalField()
         R = sage.rings.polynomial_ring.PolynomialRing(QQ, 'x')

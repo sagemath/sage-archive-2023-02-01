@@ -392,6 +392,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the base ring of self; in
+        this case, QQ.
+            sage: f = 2 * x * y
+            sage: c = f.monomial_coefficient(x*y); c
+            2
+            sage: c in QQ
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
             1
@@ -466,6 +475,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the parent of self; in
+        this case, QQ[x, y].
+            sage: f = 2 * x * y
+            sage: c = f.coefficient(x*y); c
+            2
+            sage: c in QQ
+            False
+            sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.coefficient(y)
             5*x

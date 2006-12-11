@@ -1049,17 +1049,23 @@ def generic_power(a, m, one=1):
     if a == one:
         return a
     if m < 0:
-        raise ArithmeticError, "a cannot be raised to the negative power m"
+        a = ~a
+        m = -m
     if m == 0:
         return one
-    power = one
+    power = None
     i = 0
     apow2 = a
     while (m>>i) > 0:
         if (m>>i) & 1:
-            power *= apow2
+            if power is None:
+                power = apow2
+            else:
+                power *= apow2
         apow2 *= apow2
         i += 1
+    if power is None:
+        return one
     return power
 
 

@@ -115,6 +115,9 @@ class Factorization(SageObject, list):
         self.__cr = cr
         self.sort()
 
+    def _set_cr(self, cr):
+        self.__cr = cr
+
     def sort(self):
         if len(self) == 0:
             return
@@ -152,11 +155,14 @@ class Factorization(SageObject, list):
         """
         return self.__unit
 
-    def _repr_(self):
+    def _cr(self):
         try:
-            cr = self.__cr
+            return self.__cr
         except AttributeError:
-            cr = False
+            return False
+
+    def _repr_(self):
+        cr = self._cr()
         if len(self) == 0:
             return str(self.__unit)
         try:
@@ -243,9 +249,9 @@ class Factorization(SageObject, list):
         Return the product of two factorizations.
 
         EXAMPLES:
-            sage: factor(-10) *factor(-16)
+            sage: factor(-10) * factor(-16)
             2^5 * 5
-            sage: factor(-10) *factor(16)
+            sage: factor(-10) * factor(16)
             -1 * 2^5 * 5
         """
         if not isinstance(other, Factorization):
@@ -260,6 +266,13 @@ class Factorization(SageObject, list):
             if d2.has_key(a):
                 s[a] += d2[a]
         return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+
+    def __pow__(self, n):
+        from sage.rings.arith import generic_power
+        return generic_power(self, n, Factorization([]))
+
+    def __invert__(self):
+        return Factorization([(p,-e) for p,e in self], cr=self._cr())
 
     def value(self):
         """

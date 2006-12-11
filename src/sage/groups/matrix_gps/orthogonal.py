@@ -56,7 +56,17 @@ def SO(n, R, e=0, var='a'):
     EXAMPLES:
         sage: G = SO(3,GF(5))
         sage: G.gens()
-
+        [
+        [2 0 0]
+        [0 3 0]
+        [0 0 1],
+        [3 2 3]
+        [0 2 0]
+        [0 3 1],
+        [1 4 4]
+        [4 0 0]
+        [2 0 4]
+        ]
         sage: G = SO(3,GF(5))
         sage: G.as_matrix_group()
         Matrix group over Finite Field of size 5 with 3 generators:
@@ -91,16 +101,19 @@ class OrthogonalGroup(MatrixGroup_gap):
         """
         Return the invariant form of this orthogonal group.
 
+        TODO: What is the point of this?  What does it do?  How does it work?
+
         EXAMPLES:
-            sage: ?
+            sage: G = SO( 4, GF(7), 1)
+            sage: G.invariant_form()
+            1
         """
         return self.__form
 
 class SpecialOrthogonalGroup_generic(OrthogonalGroup):
     """
     EXAMPLES:
-        sage: G = SO( 4, GF(7), 1)
-        sage: G
+        sage: G = SO( 4, GF(7), 1); G
         Special Orthogonal Group of degree 4, form parameter 1, over the Finite Field of size 7
         sage: G._gap_init_()
         'SO(1, 4, 7)'
@@ -134,18 +147,18 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
         """
         EXAMPLES:
             sage: G = SO(3,GF(5))
-            sage: G._latex_()
-            'SO$(3, 5, 0)$'
-
+            sage: latex(G)
+            \text{SO}_{3}(\mathbf{F}_{5}, 0)
         """
-        return "\\text{SO}_{%s}(%s, %s)"%(self.degree(), self.base_ring()._latex_, self.invariant_form())
+        return "\\text{SO}_{%s}(%s, %s)"%(self.degree(), self.base_ring()._latex_(), self.invariant_form())
 
     def invariant_quadratic_form(self):
         r"""
         Return the quadratic form $q(v) = v Q v^t$ on the space on which this group $G$
         that satisfies the equation $q(v) = q(v M)$ for all $v \in V$ and $M \in G$.
 
-        IMPLEMENTATION:  GAP's command InvariantQuadraticForm.
+        NOTE:
+        Uses GAP's command InvariantQuadraticForm.
 
         OUTPUT:
            Q -- matrix that defines the invariant quadratic form.
@@ -159,9 +172,10 @@ class SpecialOrthogonalGroup_generic(OrthogonalGroup):
             [0 0 0 1]
         """
         F = self.base_ring()
-        I = gap(self).InvariantQuadraticform()
-        Q = gap.eval('%s.matrix'%I.name())
+        I = gap(self).InvariantQuadraticForm()
+        Q = I.attribute('matrix')
         return Q._matrix_(F)
+
 
 class SpecialOrthogonalGroup_finite_field(SpecialOrthogonalGroup_generic, MatrixGroup_gap_finite_field):
     pass
@@ -181,6 +195,8 @@ def GO( n , R , e=0 ):
         raise ValueError, "if e = 0, then n must be even."
     if n%2 == 0 and e**2!=1:
         raise ValueError, "must have e=-1 or e=1, if d is even."
+    if isinstance(R, (int, long, Integer)):
+        R = FiniteField(R)
     if is_FiniteField(R):
         return GeneralOrthogonalGroup_finite_field(n, R, e)
     else:
@@ -212,7 +228,8 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
         String representation of self.
 
         EXAMPLES:
-        sage: ?
+            sage: GO(3,7)
+            General Orthogonal Group of degree 3, form parameter 0, over the Finite Field of size 7
         """
         return "General Orthogonal Group of degree %s, form parameter %s, over the %s"%( self.degree(), self.invariant_form(), self.base_ring())
 
@@ -220,8 +237,8 @@ class GeneralOrthogonalGroup_generic(OrthogonalGroup):
         """
         EXAMPLES:
             sage: G = GO(3,GF(5))
-            sage: G._latex_()
-            ?
+            sage: latex(G)
+            \text{GO}_{3}(5, 0)
         """
         return "\\text{GO}_{%s}(%s, %s)"%( self.degree(), self.base_ring().order(),self.invariant_form() )
 

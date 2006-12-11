@@ -35,9 +35,7 @@ class G1list:
         return len(self.__list)
 
     def __repr__(self):
-        """
-        List of coset representatives for Gamma_1(N) in SL_2(Z).
-        """
+        return "List of coset representatives for Gamma_1(%s) in SL_2(Z)"%self.__N
 
     def list(self):
         return self.__list

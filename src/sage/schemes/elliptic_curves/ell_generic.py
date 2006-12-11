@@ -427,7 +427,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         Returns the base ring of the elliptic curves.
 
         EXAMPLES:
-            sage: E = EllipticCurve(GF(49), [3,5])
+            sage: E = EllipticCurve(GF(49, 'a'), [3,5])
             sage: E.base_ring()
             Finite Field in a of size 7^2
 
@@ -643,22 +643,22 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
           of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
           $GF(11^4)$.
 
-           sage: K = GF(11^4)
+           sage: K = GF(11^4, 'a')
            sage: X = E.change_ring(K)
            sage: f = X.pseudo_torsion_polynomial(5)
            sage: x_coords = [root for (root, _) in f.roots()]; x_coords
-            [a^3 + 7*a^2 + 6*a,
-             2*a^3 + 3*a^2 + a + 7,
-             3*a^3 + 10*a^2 + 7*a + 1,
-             3*a^3 + 10*a^2 + 7*a + 3,
-             3*a^3 + 10*a^2 + 7*a + 8,
-             5*a^3 + 2*a^2 + 8*a + 7,
-             6*a^3 + 9*a^2 + 3*a + 4,
-             8*a^3 + a^2 + 4*a + 4,
-             8*a^3 + a^2 + 4*a + 8,
-             8*a^3 + a^2 + 4*a + 10,
-             9*a^3 + 8*a^2 + 10*a + 8,
-             10*a^3 + 4*a^2 + 5*a + 6]
+           [10*a^3 + 4*a^2 + 5*a + 6,
+            9*a^3 + 8*a^2 + 10*a + 8,
+            8*a^3 + a^2 + 4*a + 10,
+            8*a^3 + a^2 + 4*a + 8,
+            8*a^3 + a^2 + 4*a + 4,
+            6*a^3 + 9*a^2 + 3*a + 4,
+            5*a^3 + 2*a^2 + 8*a + 7,
+            3*a^3 + 10*a^2 + 7*a + 8,
+            3*a^3 + 10*a^2 + 7*a + 3,
+            3*a^3 + 10*a^2 + 7*a + 1,
+            2*a^3 + 3*a^2 + a + 7,
+            a^3 + 7*a^2 + 6*a]
 
           Now we check that these are exactly the x coordinates of the
           5-torsion points of E.
@@ -679,7 +679,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 pass
 
         if x is None:
-            x = rings.PolynomialRing(self.base_ring()).gen()
+            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
         b2, b4, b6, b8 = self.b_invariants()
 
@@ -784,7 +784,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             cache = {}
 
         if x is None:
-            x = rings.PolynomialRing(self.base_ring()).gen()
+            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
         n = int(n)
         if n < 2:
@@ -828,7 +828,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             cache = {}
 
         if x is None:
-            x = rings.PolynomialRing(self.base_ring()).gen()
+            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
         n = int(n)
         if n < 2:
@@ -843,12 +843,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return cache[n]**2
 
 
-    def torsion_polynomial(self, n, i=0):
+    def torsion_polynomial(self, n, var='x', i=0):
         """
         Returns the n-th torsion polynomial (a.k.a., division polynomial).
 
         INPUT:
             n -- non-negative integer
+            var -- string; the indeterminate of the polynomial (default: x)
             i -- integer, either 0 (default) or 1.
 
         OUTPUT:
@@ -864,8 +865,8 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             1
             sage: E.division_polynomial(2)
             4*x^3 - 4*x + 1
-            sage: E.division_polynomial(3)
-            3*x^4 - 6*x^2 + 3*x - 1
+            sage: E.division_polynomial(3, 'z')
+            3*z^4 - 6*z^2 + 3*z - 1
 
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
             sage: E.torsion_polynomial(0)
@@ -902,7 +903,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if i > 1 :
             raise ValueError, "i must be 0 or 1."
 
-        R = rings.PolynomialRing(E.base_ring())
+        R = rings.PolynomialRing(E.base_ring(), var)
         if i == 1:
             if n == 0:
                 f = E.torsion_polynomial(1)
@@ -1019,7 +1020,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         except TypeError:
             raise NotImplementedError, "Plotting of curves over %s not implemented yet"%K
         a1, a2, a3, a4, a6 = self.ainvs()
-        R = rings.PolynomialRing(rings.RealField())
+        R = rings.PolynomialRing(rings.RealField(), 'x')
         x = R.gen()
         d = 4*x**3 + (a1**2 + 4*a2)*x**2 + (2*a3*a1 + 4*a4)*x + (a3**2 + 4*a6)
         def f1(z):

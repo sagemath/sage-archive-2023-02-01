@@ -194,7 +194,7 @@ def delta_qexp(prec=10, var='q'):
     f = ntl.ZZX([0,1])*f
     t = verbose('shifted', t)
     R = ZZ[[var]]
-    f = R(f, prec, check=False)
+    f = R(f.truncate(prec), prec, check=False)
     t = verbose('coerced', t)
     return f
 

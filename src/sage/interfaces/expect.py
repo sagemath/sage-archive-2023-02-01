@@ -27,18 +27,27 @@ AUTHORS:
 #*****************************************************************************
 
 import os
-import pexpect
 import weakref
 import time
 
+########################################################
+# Important note: We use Pexpect 2.0 *not* Pexpect 2.1.
+# For reasons I don't understand, pexpect2.1 is much
+# worse than pexpect 2.0 for everything SAGE does.
+########################################################
+import pexpect
+
 from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
 import  sage.structure.element
 
 import sage.misc.sage_eval
 
 import quit
 
-import sage.rings.coerce as coerce
+import monitor
+EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
+
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
 BAD_SESSION = -2
@@ -47,16 +56,18 @@ failed_to_start = []
 
 tmp='%s/tmp'%SAGE_TMP_INTERFACE
 
-def _absolute(cmd):
-    c = cmd.split()
-    s  = c[0]
-    t = os.popen('which %s'%s).read().strip()
-    if len(t) == 0:
-        raise RuntimeError
-    return ' '.join([t] + c[1:])
+## On some platforms, e.g., windows, this can easily take 10 seconds!?!  Terrible.  And
+## it should not be necessary or used anyways.
+## def _absolute(cmd):
+##     c = cmd.split()
+##     s  = c[0]
+##     t = os.popen('which %s'%s).read().strip()
+##     if len(t) == 0:
+##         raise RuntimeError
+##     return ' '.join([t] + c[1:])
 
 
-class Expect(SageObject):
+class Expect(ParentWithBase):
     """
     Expect interface object.
     """
@@ -98,6 +109,7 @@ class Expect(SageObject):
         self.__logfile = logfile
         quit.expect_objects.append(weakref.ref(self))
         self._available_vars = []
+        ParentWithBase.__init__(self, self)
 
     def _get(self, wait=0.1, alternate_prompt=None):
         if self._expect is None:
@@ -214,7 +226,7 @@ class Expect(SageObject):
         """
         return ''
 
-    def _start(self, alt_message=None):
+    def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
         if self.__name in failed_to_start:
@@ -230,24 +242,20 @@ class Expect(SageObject):
             os.makedirs(dir)
         os.chdir(dir)
 
-        # This _absolute call below programs around a bug in pexpect:
-        # make a directory X with a subdirectory "magma" and cd into X. Then:
-        #sage: import pexpect
-        #sage: m = pexpect.spawn('magma')
-        #sage: m.interact()  # -- boom!
-
-        try:
-            cmd = _absolute(self.__command)
-        except RuntimeError:
-            failed_to_start.append(self.__name)
-            raise RuntimeError, "%s\nCommand %s not available."%(
-                 self._install_hints(), self.__name)
+        cmd = self.__command
+##         try:
+##             cmd = _absolute(self.__command)
+##         except RuntimeError:
+##             failed_to_start.append(self.__name)
+##             raise RuntimeError, "%s\nCommand %s not available."%(
+##                  self._install_hints(), self.__name)
 
         if self.__verbose_start:
             print "Starting %s"%cmd.split()[0]
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
+            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
@@ -270,8 +278,12 @@ class Expect(SageObject):
             print msg
             raise RuntimeError, "Unable to start %s"%self.__name
         self._expect.timeout = None
-        for X in self.__init_code:
-            self.eval(X)
+        if block_during_init:
+            for X in self.__init_code:
+                self.eval(X)
+        else:
+            for X in self.__init_code:
+                self._send(X)
 
     def clear_prompts(self):
         while True:
@@ -293,10 +305,10 @@ class Expect(SageObject):
             def dummy(): pass
             try:
                 self._expect.close = dummy
-            except AttributeError:
-                pass
-        except RuntimeError, msg:
-            pass
+            except Exception, msg:
+                print msg
+        except Exception, msg:
+            print msg
 
     def cputime(self):
         """
@@ -320,6 +332,10 @@ class Expect(SageObject):
             os.kill(self._expect.pid, 9)
         except OSError, msg:
             pass
+        try:
+            self._expect.close(9)
+        except Exception:
+            pass
         self._expect = None
 
     def _quit_string(self):
@@ -338,6 +354,7 @@ class Expect(SageObject):
             if self._quit_string() in line:
                 # we expect to get an EOF if we're quitting.
                 return ''
+            raise RuntimeError, '%s terminated unexpectedly while reading in a large line'%self
         return self._post_process_from_file(s)
 
     def _post_process_from_file(self, s):
@@ -359,8 +376,8 @@ class Expect(SageObject):
                 if wait_for_prompt == False:
                     return ''
 
-            except OSError:
-                return RuntimeError, "Error evaluating %s in %s"%(line, self)
+            except OSError, msg:
+                raise RuntimeError, "%s\nError evaluating %s in %s"%(msg, line, self)
 
             if len(line)>0:
                 try:
@@ -369,12 +386,16 @@ class Expect(SageObject):
                     else:
                         E.expect(self._prompt)
                 except pexpect.EOF, msg:
-                    if self._read_in_file_command(tmp) in line:
-                        raise pexpect.EOF, msg
+                    try:
+                        if self._read_in_file_command(tmp) in line:
+                            raise pexpect.EOF, msg
+                    except NotImplementedError:
+                        pass
                     if self._quit_string() in line:
                         # we expect to get an EOF if we're quitting.
                         return ''
-                    raise RuntimeError, "%s crashed executing %s"%(self, line)
+                    raise RuntimeError, "%s\n%s crashed executing %s"%(msg,
+                                                   self, line)
                 out = E.before
             else:
                 out = '\n\r'
@@ -417,8 +438,8 @@ class Expect(SageObject):
         except TypeError, s:
             return 'error evaluating "%s":\n%s'%(code,s)
 
-    def _coerce_(self, x):
-        return self(x)
+    def execute(self, *args, **kwds):
+        return self.eval(*args, **kwds)
 
     def __call__(self, x):
         r"""
@@ -434,19 +455,34 @@ class Expect(SageObject):
 
         if isinstance(x, cls) and x.parent() is self:
             return x
+        if isinstance(x, str):
+            return cls(self, x)
+        try:
+            return self._coerce_impl(x)
+        except TypeError, msg:
+            try:
+                return cls(self, str(x))
+            except TypeError, msg2:
+                raise TypeError, msg
 
-        if not isinstance(x, ExpectElement):
-            s = '_%s_'%self.name()
-            if s == '_pari_':
-                s = '_gp_'
-            if hasattr(x, s):
-                return x.__getattribute__(s)(self)
-            elif hasattr(x, '_interface_'):
-                return x._interface_(self)
+
+    def _coerce_impl(self, x):
+        s = '_%s_'%self.name()
+        if s == '_pari_':
+            s = '_gp_'
+        try:
+            return (x.__getattribute__(s))(self)
+        except AttributeError, msg:
+            pass
+        try:
+            return x._interface_(self)
+        except AttributeError, msg:
+            pass
 
         if isinstance(x, (list, tuple)):
             A = []
             z = []
+            cls = self._object_class()
             for v in x:
                 if isinstance(v, cls):
                     A.append(v.name())
@@ -460,7 +496,8 @@ class Expect(SageObject):
             r.__sage_list = z   # do this to avoid having the entries of the list be garbage collected
             return r
 
-        return cls(self, x)
+
+        raise TypeError, "unable to coerce element into %s"%self.name()
 
     def new(self, code):
         return self(code)
@@ -578,9 +615,7 @@ class Expect(SageObject):
         return ExpectFunction(self, attrname)
 
     def __cmp__(self, other):
-        if self is other:
-            return 0
-        return -1
+        return cmp(type(self), type(other))
 
     def console(self):
         raise NotImplementedError
@@ -628,7 +663,7 @@ class FunctionElement(SageObject):
 def is_ExpectElement(x):
     return isinstance(x, ExpectElement)
 
-class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
+class ExpectElement(RingElement):
     """
     Expect element.
     """
@@ -681,9 +716,7 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
     def _sage_doc_(self):
         return str(self)
 
-    def _cmp_(self, other):
-        #if not (isinstance(other, ExpectElement) and other.parent() is self.parent()):
-        #    return coerce.cmp(self, other)
+    def __cmp__(self, other):
         P = self.parent()
         if P.eval("%s %s %s"%(self.name(), P._lessthan_symbol(), other.name())) == P._true_symbol():
             return -1
@@ -772,6 +805,25 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         """
         return not isinstance(getattr(self, attrname), FunctionElement)
 
+    def attribute(self, attrname):
+        """
+        If this wraps the object x in the system, this returns the object
+        x.attrname.  This is useful for some systems that have object
+        oriented attribute access notation.
+
+        EXAMPLES:
+            sage: g = gap('SO(1,4,7)')
+            sage: k = g.InvariantQuadraticForm()
+            sage: k.attribute('matrix')
+            [ [ 0*Z(7), Z(7)^0, 0*Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), 0*Z(7) ],
+              [ 0*Z(7), 0*Z(7), Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), Z(7)^0 ] ]
+
+            sage: e = gp('ellinit([0,-1,1,-10,-20])')
+            sage: e.attribute('j')
+            -122023936/161051
+        """
+        P = self._check_valid()
+        return P('%s.%s'%(self.name(), attrname))
 
     def __getitem__(self, n):
         P = self._check_valid()
@@ -788,6 +840,7 @@ class ExpectElement(sage.structure.element.Element_cmp_, RingElement):
         t = P._true_symbol()
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
+
 
     def __long__(self):
         return long(str(self))

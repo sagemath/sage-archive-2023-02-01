@@ -25,7 +25,7 @@ import operator
 
 import copy
 
-from sage.structure.element import Element, Element_cmp_
+from sage.structure.element import Element, IntegralDomainElement
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -33,9 +33,9 @@ import integer
 import finite_field
 import padic_field
 import sage.rings.polynomial_ring
-from sage.rings.coerce import bin_op, cmp as coerce_cmp
 import arith
 import sage.rings.ring_element as ring_element
+import sage.rings.commutative_algebra_element as commutative_algebra_element
 import sage.rings.euclidean_domain_element as euclidean_domain_element
 import sage.rings.integral_domain_element as integral_domain_element
 import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
@@ -58,8 +58,6 @@ from sage.interfaces.all import singular as singular_default, is_SingularElement
 
 from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 
-from coerce import bin_op
-
 from real_field import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
@@ -77,30 +75,34 @@ def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
 
-class Polynomial(Element_cmp_, ring_element.RingElement):
+class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
     """
-    Polynomial base class.
-    """
-    def __new__(cls, *args, **kwds):
-        return ring_element.RingElement.__new__(*args, **kwds)
-    __new__ = classmethod(__new__)
+    A polynomial.
 
+    EXAMPLE:
+        sage: R.<y> = QQ['y']
+        sage: S.<x> = R['x']
+        sage: f = x*y; f
+        y*x
+        sage: type(f)
+        <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+    """
     def __init__(self, parent, is_gen = False, construct=False):
         """
         The following examples illustrate creation of elements of
         polynomial rings, and some basic arithmetic.
 
         First we make a polynomial over the integers and do some arithmetic:
-            sage: x = PolynomialRing(IntegerRing()).gen()
+            sage: R.<x> = ZZ[]
             sage: f = x^5 + 2*x^2 + (-1); f
             x^5 + 2*x^2 - 1
             sage: f^2
             x^10 + 4*x^7 - 2*x^5 + 4*x^4 - 4*x^2 + 1
 
         Next we do arithmetic in a sparse polynomial ring over the integers:
-            sage: R = PolynomialRing(IntegerRing(), "x"); x = R.gen(); R
+            sage: R.<x> = ZZ[ ]; R
             Univariate Polynomial Ring in x over Integer Ring
-            sage: S = PolynomialRing(R, "Z"); Z = S.gen(); S
+            sage: S.<Z> = R[ ]; S
             Univariate Polynomial Ring in Z over Univariate Polynomial Ring in x over Integer Ring
             sage: f = Z^3 + (x^2-2*x+1)*Z - 3; f
             Z^3 + (x^2 - 2*x + 1)*Z + -3
@@ -108,14 +110,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             Z^6 + (2*x^2 - 4*x + 2)*Z^4 + (-6)*Z^3 + (x^4 - 4*x^3 + 6*x^2 - 4*x + 1)*Z^2 + (-6*x^2 + 12*x - 6)*Z + 9
             sage: f^3 == f*f*f
             True
-
-        To have the element print as 'y', give 'y' as the
-        second argument to the PolynomialRing constructor.
-            sage: y = PolynomialRing(IntegerRing(), 'y').gen()
-            sage: y^3 - 2*y
-            y^3 - 2*y
         """
-        ring_element.RingElement.__init__(self, parent)
+        commutative_algebra_element.CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
     def _add_(self, right):
@@ -131,6 +127,40 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         return self.polynomial(x)
 
+    def _lmul_(self, left):
+        """
+        Multiply self on the left by a scalar.
+
+        EXAMPLE:
+            sage: R.<x> = ZZ[]
+            sage: f = (x^3 + x + 5)
+            sage: f._lmul_(7)
+            7*x^3 + 7*x + 35
+            sage: 7*f
+            7*x^3 + 7*x + 35
+        """
+        # todo -- should multiply individual coefficients??
+        #         that could be in derived class.
+        #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        return self.parent()(left) * self
+
+    def _rmul_(self, right):
+        """
+        Multiply self on the right by a scalar.
+
+        EXAMPLE:
+            sage: R.<x> = ZZ[]
+            sage: f = (x^3 + x + 5)
+            sage: f._rmul_(7)
+            7*x^3 + 7*x + 35
+            sage: f*7
+            7*x^3 + 7*x + 35
+        """
+        # todo -- Should multiply individual coefficients??
+        #         that could be in derived class.
+        #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        return self * self.parent()(right)
+
     def __call__(self, *a):
         """
         Evaluate polynomial at x=a using Horner's rule
@@ -143,11 +173,11 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             the value of f at a.
 
         EXAMPLES:
-            sage: x = QQ['x'].gen()
+            sage: R.<x> = QQ[]
             sage: f = x/2 - 5
             sage: f(3)
             -7/2
-            sage: x = ZZ['x'].gen()
+            sage: R.<x> = ZZ[]
             sage: f = (x-1)^5
             sage: f(2/3)
             -1/243
@@ -168,35 +198,39 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             i -= 1
         return result
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
+        Compare the two polynomials self and other.
+
+        We order polynomials first by degree, then in dictionary order
+        starting with the coefficient of largest degree.
+
         EXAMPLES:
-            sage: x = QQ['x'].0
+            sage: R.<x> = QQ['x']
             sage: 3*x^3  + 5 > 10*x^2 + 19
             True
-            sage: f = x^2 - 2*x + 1; g= x^2 - 1
-            sage: f < g
+            sage: x^2 - 2*x - 1 < x^2 - 1
             True
-            sage: f > g
+            sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: g < f
+            sage: R(-1) < R(0)
             False
-            sage: g > f
-            True
         """
-        #if not isinstance(other, Polynomial) or other.parent() != self.parent():
-        #    return coerce_cmp(self, other)
-        c = cmp(self.degree(), other.degree())
+        d1 = self.degree(); d2 = other.degree()
+        c = cmp(d1, d2)
         if c: return c
-        return cmp(list(reversed(self.list())), list(reversed(other.list())))
+        for i in reversed(xrange(d1+1)):
+            c = cmp(self[i], other[i])
+            if c: return c
+        return 0
 
     def __nonzero__(self):
         """
         EXAMPLES:
-            sage: P = PolynomialRing(ZZ)(0)
+            sage: P = PolynomialRing(ZZ,'x')(0)
             sage: bool(P)
             False
-            sage: P = PolynomialRing(ZZ)([1,2,3])
+            sage: P = PolynomialRing(ZZ, 'x')([1,2,3])
             sage: bool(P)
             True
         """
@@ -225,7 +259,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def _im_gens_(self, codomain, im_gens):
         """
         EXAMPLES:
-            sage: R, x = PolynomialRing(ZZ).objgen()
+            sage: R.<x> = ZZ[]
             sage: H = Hom(R, QQ); H
             Set of Homomorphisms from Univariate Polynomial Ring in x over Integer Ring to Rational Field
             sage: f = H([5]); f
@@ -269,7 +303,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def _mul_(self, right):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(IntegerRing()).gen()
+            sage: R.<x> = ZZ[]
             sage: (x - 4)*(x^2 - 8*x + 16)
             x^3 - 12*x^2 + 48*x - 64
         """
@@ -305,19 +339,16 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: f.parent()
             Univariate Polynomial Ring in x over Rational Field
 
-        If we do the same over $\ZZ$ the result has to lie
-        in the fraction field.
+        If we do the same over $\ZZ$ the result is in the polynomial
+        ring over $\QQ$.
 
-            sage: x  = ZZ['x'].gen()
+            sage: x  = ZZ['x'].0
             sage: f = (x^3 + 5)/3; f
-            (x^3 + 5)/3
+            1/3*x^3 + 5/3
             sage: f.parent()
-            Fraction Field of Univariate Polynomial Ring in x over Integer Ring
+            Univariate Polynomial Ring in x over Rational Field
 
-        Note that / is a constructor for elements of the fraction
-        field in all cases as long as both arguments have the same
-        parent.  This agrees with the behavior for integers and
-        rational numbers.
+        Divides can make elements of the fraction field:
 
             sage: R.<x> = QQ['x']
             sage: f = x^3 + 5
@@ -331,7 +362,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         (submited by a student of Jon Hanke).  It illustrates
         cancellation between the numerator and denominator
         over a non-prime finite field.
-            sage: R.<x> = PolynomialRing(GF(5^2), 'x')
+            sage: R.<x> = PolynomialRing(GF(5^2, 'a'), 'x')
             sage: f = x^3 + 4*x
             sage: f / (x - 1)
             x^2 + x
@@ -352,9 +383,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         if right < 0:
             return (~self)**(-right)
         if self._is_gen:   # special case x**n should be faster!
-            z = self.parent()(0)
-            z[right] = 1
-            return z
+            v = [0]*right + [1]
+            return self.parent()(v, check=True)
         return arith.generic_power(self, right, self.parent()(1))
 
     def _repr(self, name=None):
@@ -424,8 +454,8 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         return s[1:]
 
 
-    def __setitem__(self, n, x):
-        raise NotImplentedError
+    def __setitem__(self, n, value):
+        raise IndexError, "polynomials are immutable"
 
 
     def __floordiv__(self,right):
@@ -439,7 +469,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         """
         Remainder of division of self by other.
         EXAMPLES:
-            sage: x = PolynomialRing(IntegerRing()).gen()
+            sage: R.<x> = ZZ[]
             sage: x % (x+1)
             -1
             sage: (x^3 + x - 1) % (x^2 - 1)
@@ -497,9 +527,9 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: S.<y> = PolynomialRing(RR)
             sage: f = y^10 - 1.393493*y + 0.3
             sage: f._mul_karatsuba(f)
-            1.0000000000000000*y^20 - 2.7869860000000002*y^11 + 0.60000000000000031*y^10 + 0.00000000000000011102230246251565*y^8 - 0.00000000000000011102230246251565*y^6 - 0.00000000000000011102230246251565*y^3 + 1.9418227410490003*y^2 - 0.83609580000000017*y + 0.089999999999999997
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 - 0.000000000000000222044604925031*y^8 + 0.000000000000000222044604925031*y^6 + 0.000000000000000222044604925031*y^3 + 1.94182274104900*y^2 - 0.836095799999999*y + 0.0899999999999999
             sage: f._mul_fateman(f)
-            1.0000000000000000*y^20 - 2.7869860000000002*y^11 + 0.59999999999999998*y^10 + 1.9418227410490001*y^2 - 0.83609579999999994*y + 0.089999999999999997
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 + 1.94182274104899*y^2 - 0.836095800000000*y + 0.0899999999999999
 
         Advantages:
 
@@ -720,7 +750,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         Return the base ring of the parent of self.
 
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ).gen()
+            sage: R.<x> = ZZ[]
             sage: x.base_ring()
             Integer Ring
             sage: (2*x+3).base_ring()
@@ -733,33 +763,25 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         Return a copy of this polynomial but with coefficients in R.
         """
         S = sage.rings.polynomial_ring.PolynomialRing(R,
-                                      name = self.parent().variable_name())
+                                      names = self.parent().variable_name())
         return S(self)
 
-    def copy(self):
+    def __copy__(self):
         """
-        Return a copy of self.
+        Return a "copy" of self.  This is just self, since in SAGE polynomials are
+        immutable this just returns self again.
 
         EXAMPLES:
-        We create the polynomial $f=x+3$, then set $g=f$, and change
-        the coefficient of $x$ in $g$, which also changes the coefficient
-        of $x$ in $f$.  If we instead copy $f$, then changing the
-        coefficient of $x$ of $g$ does not change $f$.
+        We create the polynomial $f=x+3$, then note that the copy is just
+        the same polynomial again, which is fine since polynomials are immutable.
 
-            sage: x = PolynomialRing(IntegerRing()).gen()
-            sage: f = x+3
-            sage: g = f
-            sage: g[1]=3
-            sage: f
-            3*x + 3
-            sage: g = f.copy()
-            sage: g[1]=5
-            sage: f
-            3*x + 3
-            sage: g
-            5*x + 3
+            sage: x = ZZ['x'].0
+            sage: f = x + 3
+            sage: g = copy(f)
+            sage: g is f
+            True
         """
-        return self.polynomial(self)
+        return self
 
     def degree(self):
         """
@@ -771,7 +793,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: f = x^93 + 2*x + 1
             sage: f.degree()
             93
-            sage: x = PolynomialRing(QQ, sparse=True).gen()
+            sage: x = PolynomialRing(QQ, 'x', sparse=True).0
             sage: f = x^100000
             sage: f.degree()
             100000
@@ -804,15 +826,14 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         EXAMPLES:
         First we compute the denominator of a polynomial with integer
         coefficients, which is of course 1.
-            sage: x = PolynomialRing(IntegerRing()).gen()
+            sage: R.<x> = ZZ[]
             sage: f = x^3 + 17*x + 1
             sage: f.denominator()
             1
 
         Next we compute the denominator of a polynomial with rational coefficients.
-            sage: Q = RationalField()
-            sage: x = PolynomialRing(QQ).gen()
-            sage: f = Q('1/17')*x^19 - Q('2/3')*x + Q('1/3'); f
+            sage: R.<x> = PolynomialRing(QQ)
+            sage: f = (1/17)*x^19 - (2/3)*x + 1/3; f
             1/17*x^19 - 2/3*x + 1/3
             sage: f.denominator()
             51
@@ -820,14 +841,13 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         Finally, we try to compute the denominator of a polynomial with
         coefficients in the real numbers, which is a ring whose elements
         do not have a denominator method.
-            sage: R = RealField()
-            sage: x = PolynomialRing(R).gen()
-            sage: f = x + R('0.3'); f
-            1.0000000000000000*x + 0.29999999999999999
+            sage: R.<x> = RR[]
+            sage: f = x + RR('0.3'); f
+            1.00000000000000*x + 0.299999999999999
             sage: f.denominator()
             Traceback (most recent call last):
             ...
-            AttributeError: 'real_mpfr.RealNumber' object has no attribute 'denominator'
+            AttributeError: 'sage.rings.real_mpfr.RealNumber' object has no attribute 'denominator'
         """
         if self.degree() == -1:
             return 1
@@ -888,16 +908,15 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: x = ZZ['x'].0
             sage: f = 10*x^5 - 1
             sage: f.factor()
-            (10*x^5 - 1)
+            10*x^5 - 1
 
 
         We factor a non-monic polynomial over the finite field $F_{25}$.
-            sage: k, a = GF(25,'a').objgen()
-            sage: R, x = PolynomialRing(k).objgen()
+            sage: k.<a> = GF(25)
+            sage: R.<x> = k[]
             sage: f = 2*x^10 + 2*x + 2*a
             sage: F = f.factor(); F
-            (2) * (x + a + 2) * (x^2 + (a + 1)*x + a + 2) * (x^2 + 3*x + 4*a + 4) *
-            (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
+            (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
             sage: F.mul()
@@ -905,20 +924,22 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         Factorization also works even if the variable of the finite field is nefariously
         labeled "x".
-            sage: R, x = PolynomialRing(GF(3^2, 'x')).objgen()
+            sage: x = GF(3^2, 'a')['x'].0
             sage: f = x^10 +7*x -13
-            sage: f.factor()
-            (x + 2*x + 1) * (x + x) * (x^4 + 2*x*x^3 + (x + 1)*x + 2) * (x^4 + (x + 2)*x^3 + (2*x + 2)*x + 2)
-            sage: f.parent().base_ring().assign_names(['a'])
-            sage: f.factor()
-            (x + 2*a + 1) * (x + a) * (x^4 + 2*a*x^3 + (a + 1)*x + 2) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2)
+            sage: G = f.factor(); G
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+            sage: prod(G) == f
+            True
 
-            sage: k, a = GF(9,'x').objgen()
+            sage: f.parent().base_ring()._assign_names(['a'])
+            sage: f.factor()
+            (x + a) * (x + 2*a + 1) * (x^4 + (a + 2)*x^3 + (2*a + 2)*x + 2) * (x^4 + 2*a*x^3 + (a + 1)*x + 2)
+
+            sage: k = GF(9,'x')    # purposely calling it x to test robustness
             sage: x = PolynomialRing(k,'x0').gen()
             sage: f = x^3 + x + 1
             sage: f.factor()
-            (x0 + 2*x + 1) * (x0 + x) * (x0 + 2)
-
+            (x0 + 2) * (x0 + x) * (x0 + 2*x + 1)
             sage: f = 0*x
             sage: f.factor()
             Traceback (most recent call last):
@@ -948,12 +969,12 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
         from sage.rings.number_field.all import is_NumberField
 
-        if integer_mod_ring.is_IntegerModRing(R) or finite_field.is_FiniteField(R) or \
+        if integer_mod_ring.is_IntegerModRing(R) or \
                isinstance(R, (integer_ring.IntegerRing, rational_field.RationalField)):
 
             G = list(self._pari_('x').factor())
 
-        elif is_NumberField(R):
+        elif is_NumberField(R) or finite_field.is_FiniteField(R):
 
             v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
@@ -1013,7 +1034,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def is_constant(self):
         return self.degree() <= 0
 
-    def root_field(self):
+    def root_field(self, names):
         """
         Return the field generated by the roots of self.  The output
         is either a number field, relative number field, a quotient of
@@ -1023,30 +1044,34 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         EXAMPLES:
             sage: R.<x> = QQ['x']
             sage: f = x^3 + x + 17
-            sage: f.root_field()
+            sage: f.root_field('a')
             Number Field in a with defining polynomial x^3 + x + 17
 
             sage: R.<x> = QQ['x']
             sage: f = x - 3
-            sage: f.root_field()
+            sage: f.root_field('b')
             Rational Field
 
             sage: R.<x> = ZZ['x']
             sage: f = x^3 + x + 17
-            sage: f.root_field()
-            Number Field in a with defining polynomial x^3 + x + 17
+            sage: f.root_field('b')
+            Number Field in b with defining polynomial x^3 + x + 17
 
             sage: y = QQ['x'].0
             sage: L.<a> = NumberField(y^3-2)
             sage: R.<x> = L['x']
             sage: f = x^3 + x + 17
-            sage: f.root_field()
+            sage: f.root_field('c')
             Extension by x^3 + x + 17 of the Number Field in a with defining polynomial x^3 - 2
 
-            sage: R.<x> = GF(9)['x']
-            sage: f = x^3 + x^2 + 17
-            sage: f.root_field()
-            Univariate Quotient Polynomial Ring in x over Finite Field in a of size 3^2 with modulus x^3 + x^2 + 2
+            sage: R.<x> = PolynomialRing(GF(9,'a'))
+            sage: f = x^3 + x^2 + 8
+            sage: K.<alpha> = f.root_field(); K
+            Univariate Quotient Polynomial Ring in alpha over Finite Field in a of size 3^2 with modulus x^3 + x^2 + 2
+            sage: alpha^2 + 1
+            alpha^2 + 1
+            sage: alpha^3 + alpha^2
+            1
         """
         from all import (is_IntegralDomain, is_RationalField,
                          is_NumberField, NumberField, PolynomialRing,
@@ -1060,17 +1085,18 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             return R.fraction_field()
 
         if isinstance(R, IntegerRing):
-            return NumberField(self)
+            return NumberField(self, names)
 
 
         if is_RationalField(R) or is_NumberField(R):
-            return NumberField(self)
+            return NumberField(self, names)
 
         if not self.is_irreducible():
             raise ValueError, "polynomial must be irreducible"
 
         return PolynomialRing(R.fraction_field(),
-                              self.parent().variable_name()).quotient(self)
+                              self.parent().variable_name()).quotient(self, names)
+
 
     def constant_coefficient(self):
         return self[0]
@@ -1101,9 +1127,58 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         return not self.is_zero() and self[self.degree()] == 1
 
     def is_unit(self):
+        r"""
+        Return True if this polynomial is a unit.
+
+        EXAMPLES:
+            sage: a = Integers(90384098234^3)
+            sage: b = a(2*191*236607587)
+            sage: b.is_nilpotent()
+            True
+            sage: R.<x> = a[]
+            sage: f = 3 + b*x + b^2*x^2
+            sage: f.is_unit()
+            True
+            sage: f = 3 + b*x + b^2*x^2 + 17*x^3
+            sage: f.is_unit()
+            False
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is a
+        unit if and only if $a_0$ is a unit and $a_1,\ldots, a_n$ are
+        nilpotent.
+        """
         if self.degree() > 0:
-            return False
+            for i in range(1,self.degree()+1):
+                if not self[i].is_nilpotent():
+                    return False
+            return True
         return self[0].is_unit()
+
+    def is_nilpotent(self):
+        r"""
+        Return True if this polynomial is nilpotent.
+
+        EXAMPLES:
+            sage: R = Integers(12)
+            sage: S.<x> = R[]
+            sage: f = 5 + 6*x
+            sage: f.is_nilpotent()
+            False
+            sage: f = 6 + 6*x^2
+            sage: f.is_nilpotent()
+            True
+            sage: f^2
+            0
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is
+        nilpotent if and only if every $a_i$ is nilpotent.
+        """
+        for i in range(self.degree()+1):
+            if not self[i].is_nilpotent():
+                return False
+        return True
 
     def is_gen(self):
         return self._is_gen
@@ -1204,7 +1279,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             sage: x = PolynomialRing(RealField(), 'x').gen()
             sage: f = x^2 - 2
             sage: f.newton_raphson(4, 1)
-            [1.5000000000000000, 1.4166666666666667, 1.4142156862745099, 1.4142135623746899]
+            [1.50000000000000, 1.41666666666666, 1.41421568627450, 1.41421356237468]
 
         AUTHORS: David Joyner and William Stein (2005-11-28)
         """
@@ -1244,17 +1319,17 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         return [sage.rings.rational.Rational(x) for x in v]
 
 
+    #####################################################################
+    # Conversions to other systems
+    #####################################################################
     def _pari_(self, variable=None):
         """
-        Return polynomial as a PARI object.  Note that
-        the variable will be "x" unless you explicitly specify
-        otherwise, no matter what the polynomial indeterminate
-        is.
+        Return polynomial as a PARI object.
 
         EXAMPLES:
-            sage: f = PolynomialRing(QQ)([0,1,2/3,3])
+            sage: f = PolynomialRing(QQ, 'X')([0,1,2/3,3])
             sage: pari(f)
-            3*x^3 + 2/3*x^2 + x
+            3*X^3 + 2/3*X^2 + X
         """
         try:
             return self.__pari
@@ -1278,6 +1353,88 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
 
     def _pari_init_(self):
         return str(self._pari_())
+
+    def _magma_init_(self):
+        """
+        Return a string that evaluates in Magma to this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: f._magma_init_()
+            'Polynomial(IntegerRing(), [5,-17,0,1])'
+        """
+        return 'Polynomial(%s, [%s])'%(self.base_ring()._magma_init_(), ','.join([a._magma_init_() for a in self.list()]))
+
+    def _magma_(self, G=None):
+        """
+        Return the Magma version of this polynomial.
+
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = magma(f); g
+            y^3 - 17*y + 5
+
+        Note that in Magma there is only one polynomial ring over each base,
+        so if we make the polynomial ring over ZZ with variable $z$, then
+        this changes the variable name of the polynomial we already defined:
+            sage: R.<z> = ZZ[]
+            sage: magma(R)
+            Univariate Polynomial Ring in z over Integer Ring
+            sage: g
+            z^3 - 17*z + 5
+
+        In SAGE the variable name does not change:
+            sage: f
+            y^3 - 17*y + 5
+        """
+        if G is None:
+            import sage.interfaces.magma
+            G = sage.interfaces.magma.magma
+        self.parent()._magma_(G)  # defines the variable name
+        f = G(self._magma_init_())
+        return f
+
+    def _gap_init_(self):
+        return str(self)
+
+    def _gap_(self, G):
+        """
+        EXAMPLES:
+            sage: R.<y> = ZZ[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3-17*y+5
+            sage: f._gap_init_()
+            'y^3 - 17*y + 5'
+            sage: R.<z> = ZZ[]
+            sage: gap(R)
+            PolynomialRing(..., [ z ])
+            sage: g
+            y^3-17*y+5
+            sage: gap(z^2 + z)
+            z^2+z
+
+        We coerce a polynomial with coefficients in a finite field:
+
+            sage: R.<y> = GF(7)[]
+            sage: f = y^3 - 17*y + 5
+            sage: g = gap(f); g
+            y^3+Z(7)^4*y+Z(7)^5
+            sage: g.Factors()
+            [ y+Z(7)^0, y+Z(7)^0, y+Z(7)^5 ]
+            sage: f.factor()
+            (y + 5) * (y + 1)^2
+        """
+        if G is None:
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+        self.parent()._gap_(G)
+        return G(self._gap_init_())
+
+    ######################################################################
+
 
     def resultant(self, other, flag=0):
         raise NotImplementedError
@@ -1318,7 +1475,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         base ring.
 
         EXAMPLES:
-            sage: x = PolynomialRing(RationalField()).gen()
+            sage: x = QQ['x'].0
             sage: f = x^3 - 1
             sage: f.roots()
             [(1, 1)]
@@ -1351,7 +1508,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             pari.set_real_precision(int(K.prec()/3.2)+1)
             r = pari(self).polroots()
             r = str(r).rstrip('~')
-            seq = sage_eval(r, locals={'I':K.gen()})
+            seq = sage_eval(r, locals={'I':K.gen(), 'RealNumber':K._real_field()})
             pari.set_real_precision(n)
             return seq
 
@@ -1392,7 +1549,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
               \code{g = u*self + v*other.}
 
         EXAMPLES:
-            sage: P, x = PolynomialRing(QQ).objgen()
+            sage: P.<x> = QQ[]
             sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
@@ -1435,10 +1592,11 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
     def shift(self, n):
         r"""
         Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
-        terms below $x^n$ will be discarded. Does not change this polynomial.
+        terms below $x^n$ will be discarded. Does not change this polynomial (since
+        polynomials are immutable).
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(PolynomialRing(QQ))  # force generic dense poly
+            sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'w'),'x')
             sage: p = x^2 + 2*x + 4
             sage: p.shift(0)
              x^2 + 2*x + 4
@@ -1453,7 +1611,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self   # safe because immutable.
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.coeffs())
@@ -1479,8 +1637,7 @@ class Polynomial(Element_cmp_, ring_element.RingElement):
         to mean the quotient of self by its maximal square factor.)
 
         EXAMPLES:
-            sage: P = PolynomialRing(Integers())
-            sage: x = P.gen()
+            sage: P.<x> = ZZ[]
             sage: t = (x^2-x+1)^3 * (3*x-1)^2
             sage: t.radical()
             3*x^3 - 4*x^2 + 4*x - 1
@@ -1492,7 +1649,7 @@ class Polynomial_generic_dense(Polynomial):
     A generic dense polynomial.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(PolynomialRing(QQ)).objgen()
+        sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'))
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
@@ -1501,12 +1658,10 @@ class Polynomial_generic_dense(Polynomial):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
-        if x == None:
+        if x is None:
             self.__coeffs = []
             return
         R = parent.base_ring()
-#        if isinstance(x, Polynomial) and x.parent() == self.parent():
-#            x = list(x.list())
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 x = list(x.list())
@@ -1515,7 +1670,6 @@ class Polynomial_generic_dense(Polynomial):
             else:
                 x = [R(a) for a in x.list()]
                 check = False
-                #raise TypeError, "Cannot coerce %s into %s."%(x, parent)
         elif isinstance(x, dict):
             zero = R(0)
             n = max(x.keys())
@@ -1552,7 +1706,7 @@ class Polynomial_generic_dense(Polynomial):
             i = 0
         return self.__coeffs[i:j]
 
-    def __setitem__(self, n, value):
+    def _unsafe_mutate(self, n, value):
         if self._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
@@ -1591,7 +1745,7 @@ class Polynomial_generic_dense(Polynomial):
         terms below $x^n$ will be discarded. Does not change this polynomial.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(PolynomialRing(QQ))
+            sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'), 'x')
             sage: p = x^2 + 2*x + 4
             sage: type(p)
             <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
@@ -1606,7 +1760,7 @@ class Polynomial_generic_dense(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = [self.base_ring()(0)] * n
             output.extend(self.__coeffs)
@@ -1623,7 +1777,7 @@ class Polynomial_generic_sparse(Polynomial):
     A generic sparse polynomial.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(PolynomialRing(QQ), sparse=True).objgen()
+        sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_sparse'>
@@ -1632,7 +1786,7 @@ class Polynomial_generic_sparse(Polynomial):
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
-        if x == None:
+        if x is None:
             self.__coeffs = {}
             return
         R = parent.base_ring()
@@ -1723,7 +1877,7 @@ class Polynomial_generic_sparse(Polynomial):
             v[k] = x[k]
         return v
 
-    def __setitem__(self, n, value):
+    def _unsafe_mutate(self, n, value):
         if self._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
@@ -1785,7 +1939,7 @@ class Polynomial_generic_sparse(Polynomial):
     def _mul_(self, right):
         r"""
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: (x^100000 - x^50000) * (x^100000 + x^50000)
              x^200000 - x^100000
             sage: (x^100000 - x^50000) * R(0)
@@ -1815,7 +1969,7 @@ class Polynomial_generic_sparse(Polynomial):
         terms below $x^n$ will be discarded. Does not change this polynomial.
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(Integers(), sparse=True)
+            sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
             <class 'sage.rings.polynomial_element.Polynomial_generic_sparse'>
@@ -1833,7 +1987,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         n = int(n)
         if n == 0:
-            return self.copy()
+            return self
         if n > 0:
             output = {}
             for (index, coeff) in self.__coeffs.iteritems():
@@ -1847,12 +2001,28 @@ class Polynomial_generic_sparse(Polynomial):
             return self.polynomial(output, check=False)
 
 
-class Polynomial_generic_field(Polynomial,
-                               Polynomial_singular_repr,
-                               euclidean_domain_element.EuclideanDomainElement):
+class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
     def __init__(self, parent, is_gen=False, construct=False):
         Polynomial.__init__(self, parent, is_gen=is_gen)
 
+    def is_unit(self):
+        r"""
+        Return True if this polynomial is a unit.
+
+        EXERCISE (Atiyah-McDonald, Ch 1): Let $A[x]$ be a polynomial
+        ring in one variable.  Then $f=\sum a_i x^i \in A[x]$ is a
+        unit if and only if $a_0$ is a unit and $a_1,\ldots, a_n$ are
+        nilpotent.
+
+        EXAMPLES:
+        """
+        if self.degree() > 0:
+            return False
+        return self[0].is_unit()
+
+class Polynomial_generic_field(Polynomial_generic_domain,
+                               euclidean_domain_element.EuclideanDomainElement,
+                               Polynomial_singular_repr):
     def quo_rem(self, other):
         """
         Returns a tuple (quotient, remainder) where
@@ -1860,7 +2030,7 @@ class Polynomial_generic_field(Polynomial,
 
         EXAMPLES:
             sage: R.<y> = PolynomialRing(QQ)
-            sage: K = NumberField(y^2 - 2,'t')
+            sage: K.<t> = NumberField(y^2 - 2)
             sage: P.<x> = PolynomialRing(K)
             sage: x.quo_rem(K(1))
             (x, 0)
@@ -1897,7 +2067,7 @@ class Polynomial_generic_field(Polynomial,
 class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_generic_field):
     """
     EXAMPLES:
-        sage: R, x = PolynomialRing(RealField(), sparse=True).objgen()
+        sage: R.<x> = PolynomialRing(RR, sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_sparse_field'>
@@ -2108,7 +2278,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def _mul_(self, right):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: (x - QQ('2/3'))*(x^2 - 8*x + 16)
             x^3 - 26/3*x^2 + 64/3*x - 32/3
         """
@@ -2117,7 +2287,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
 
-    def __setitem__(self, n, value):
+    def _unsafe_mutate(self, n, value):
         try:
             del self.__list
         except AttributeError:
@@ -2148,10 +2318,10 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
         EXAMPLE:
         We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R = PolynomialRing(QQ); x = R.gen()
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.complex_roots()[0]
-            0.71363917353690087
+            0.713639173536900
         """
         R = self.__poly.polroots(flag)
         C = complex_field.CC
@@ -2172,7 +2342,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def discriminant(self):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
+            sage: _.<x> = PolynomialRing(QQ)
             sage: f = x^3 + 3*x - 17
             sage: f.discriminant()
             -7911
@@ -2200,7 +2370,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             raise ValueError, "p must be prime"
         G = self._pari_().factormod(p)
         K = finite_field.FiniteField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(K, name=self.parent().variable_name())
+        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
     def factor_padic(self, p, prec=10):
@@ -2222,7 +2392,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
         K = padic_field.pAdicField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(K, name=self.parent().variable_name())
+        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, K(self.leading_coefficient()))
 
     def list(self):
@@ -2231,7 +2401,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         elements of self.
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
+            sage: _.<x> = PolynomialRing(QQ)
             sage: f = x^3 + 3*x - 17/13; f
             x^3 + 3*x - 17/13
             sage: v = f.list(); v
@@ -2261,7 +2431,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         b = 1
         c = []
         for i in range(self.degree()+1):
-            c.append(self[i]*b)
+            c.append(b*self[i])
             b *= a
         return self.parent()(c)
 
@@ -2279,7 +2449,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             Implemented using pari's polresultant function.
 
         EXAMPLES:
-            sage: x = PolynomialRing(RationalField()).gen()
+            sage: R.<x> = QQ[]
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: f.resultant(g)
             -8
@@ -2313,7 +2483,8 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         S = sage.rings.polynomial_ring.PolynomialRing(R, self.parent().variable_name())
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
-class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomainElement):
+class Polynomial_integer_dense(Polynomial_generic_domain,
+                               integral_domain_element.IntegralDomainElement):
     """
     A dense polynomial over the integers.
     """
@@ -2328,7 +2499,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
         self.__poly = ZZX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):
@@ -2451,7 +2622,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         and right, as a constant polynomial.
 
         EXAMPLES:
-            sage: P, x = PolynomialRing(ZZ).objgen()
+            sage: P.<x> = PolynomialRing(ZZ)
             sage: F = (x^2 + 2)*x^3; G = (x^2+2)*(x-3)
             sage: g, u, v = F.xgcd(G)
             sage: g, u, v
@@ -2489,7 +2660,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
     def _mul_(self, right):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ).gen()
+            sage: _.<x> = PolynomialRing(ZZ)
             sage: (x - 2)*(x^2 - 8*x + 16)
             x^3 - 10*x^2 + 32*x - 32
         """
@@ -2507,7 +2678,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             return Polynomial.__floordiv__(self, right)
         return self.parent()([c // d for c in self.list()], construct=True)
 
-    def __setitem__(self, n, value):
+    def _unsafe_mutate(self, n, value):
         if self._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
@@ -2529,19 +2700,19 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
 
         EXAMPLE:
         We compute the roots of the characteristic polynomial of some Salem numbers:
-            sage: R = PolynomialRing(ZZ); x = R.gen()
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.complex_roots()[0]    # todo: known bug in PARI 2.2.10 !!
             0.71363917353690087
         """
         QQ = sage.rings.rational_field.RationalField()
-        R = sage.rings.polynomial_ring.PolynomialRing(QQ)
+        R = sage.rings.polynomial_ring.PolynomialRing(QQ, 'x')
         return R(self.list()).complex_roots()
 
-    def copy(self):
-        f = Polynomial_integer_dense(self.parent())
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         f = Polynomial_integer_dense(self.parent())
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """
@@ -2553,14 +2724,23 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
     def discriminant(self):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ).gen()
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: f = x^3 + 3*x - 17
             sage: f.discriminant()
             -7911
         """
         return ZZ(str(self.__poly.discriminant()))
 
-    def _pari_(self, variable='x'):
+    def _pari_(self, variable=None):
+        """
+        EXAMPLES:
+            sage: t = PolynomialRing(ZZ,"t").gen()
+            sage: f = t^3 + 3*t - 17
+            sage: pari(f)
+            t^3 + 3*t - 17
+        """
+        if variable is None:
+            variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
     def factor_mod(self, p):
@@ -2574,7 +2754,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             factorization of self reduced modulo p.
 
         EXAMPLES:
-            sage: x = ZZ['x'].0
+            sage: R.<x> = ZZ['x']
             sage: f = -3*x*(x-2)*(x-9) + x
             sage: f.factor_mod(3)
             x
@@ -2596,7 +2776,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             raise ValueError, "factorization of 0 not defined"
         G = f.factormod(p)
         k = finite_field.FiniteField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(k, name=self.parent().variable_name())
+        R = sage.rings.polynomial_ring.PolynomialRing(k, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
 
@@ -2619,7 +2799,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
         K = padic_field.pAdicField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(K, name=self.parent().variable_name())
+        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, K(self.leading_coefficient()))
 
     def list(self):
@@ -2628,7 +2808,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         elements of self.
 
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ).gen()
+            sage: x = PolynomialRing(ZZ,'x').0
             sage: f = x^3 + 3*x - 17
             sage: f.list()
             [-17, 3, 0, 1]
@@ -2649,7 +2829,7 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
             Implemented using NTL's polresultant function.
 
         EXAMPLES:
-            sage: x = PolynomialRing(ZZ).gen()
+            sage: x = PolynomialRing(ZZ,'x').0
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: f.resultant(g)
             -8
@@ -2670,16 +2850,16 @@ class Polynomial_integer_dense(Polynomial, integral_domain_element.IntegralDomai
         The optimal input format is the string format, since that's what NTL uses.
 
         EXAMPLES:
-            sage: R = PolynomialRing(ZZ)
+            sage: R.<w> = PolynomialRing(ZZ)
             sage: R([1,2,3])
-            3*x^2 + 2*x + 1
+            3*w^2 + 2*w + 1
             sage: f = R(0)
             sage: f.ntl_set_directly([1,2,3])
             sage: f
-            3*x^2 + 2*x + 1
+            3*w^2 + 2*w + 1
             sage: f.ntl_set_directly('[1 2 3 4]')
             sage: f
-            4*x^3 + 3*x^2 + 2*x + 1
+            4*w^3 + 3*w^2 + 2*w + 1
         """
         if self._is_gen:
             raise TypeError, "Cannot change the value of the generator."
@@ -2696,7 +2876,7 @@ class Polynomial_dense_mod_n(Polynomial):
     A dense polynomial over the integers modulo n, where n is composite.
 
     EXAMPLES:
-        sage: R, x = PolynomialRing(Integers(16)).objgen()
+        sage: R.<x> = PolynomialRing(Integers(16))
         sage: f = x^3 - x + 17
         sage: loads(f.dumps()) == f
         True
@@ -2715,13 +2895,13 @@ class Polynomial_dense_mod_n(Polynomial):
 
         self.__poly = ZZ_pX([])
 
-        if x == None:
+        if x is None:
             return         # leave initialized to 0 polynomial.
 
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 parent._ntl_set_modulus()
-                self.__poly = x.__poly.copy()
+                self.__poly = x.__poly.__copy__()
                 return
             else:
                 R = parent.base_ring()
@@ -2767,7 +2947,16 @@ class Polynomial_dense_mod_n(Polynomial):
     def int_list(self):
         return eval(str(self.__poly).replace(' ',','))
 
-    def _pari_(self, variable='x'):
+    def _pari_(self, variable=None):
+        """
+        EXAMPLES:
+            sage: t = PolynomialRing(IntegerModRing(17),"t").gen()
+            sage: f = t^3 + 3*t - 17
+            sage: pari(f)
+            Mod(1, 17)*t^3 + Mod(3, 17)*t
+        """
+        if variable is None:
+            variable = self.parent().variable_name()
         return pari(self.int_list()).Polrev(variable) * \
                pari(1).Mod(self.parent().base_ring().order())
 
@@ -2790,6 +2979,15 @@ class Polynomial_dense_mod_n(Polynomial):
             j = self.__poly.degree()+1
         return [R(self.__poly[k]) for k in range(i,j)]
 
+    def _unsafe_mutate(self, n, value):
+        if self._is_gen:
+            raise ValueError, "the generator cannot be changed"
+        n = int(n)
+        if n < 0:
+            raise IndexError, "n must be >= 0"
+        self.parent()._ntl_set_modulus()
+        self.__poly[n] = int(value)
+
     def _pow(self, n):
         n = int(n)
         if self.degree() <= 0:
@@ -2800,6 +2998,15 @@ class Polynomial_dense_mod_n(Polynomial):
 
     def _add_(self, right):
         return self.parent()(self.__poly + right.__poly, construct=True)
+
+    def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: x = PolynomialRing(Integers(100), 'x').0
+            sage: (x - 2)*(x^2 - 8*x + 16)
+            x^3 + 90*x^2 + 32*x + 68
+        """
+        return self.parent()(self.__poly * right.__poly, construct=True)
 
     def quo_rem(self, right):
         """
@@ -2813,15 +3020,6 @@ class Polynomial_dense_mod_n(Polynomial):
         v = self.__poly.quo_rem(right.__poly)
         P = self.parent()
         return P(v[0], construct=True), P(v[1], construct=True)
-
-    def _mul_(self, right):
-        """
-        EXAMPLES:
-            sage: x = PolynomialRing(Integers(100)).gen()
-            sage: (x - 2)*(x^2 - 8*x + 16)
-            x^3 + 90*x^2 + 32*x + 68
-        """
-        return self.parent()(self.__poly * right.__poly, construct=True)
 
     def shift(self, n):
         r"""
@@ -2844,7 +3042,7 @@ class Polynomial_dense_mod_n(Polynomial):
             -- David Harvey (2006-08-06)
         """
         if n == 0:
-            return self.copy()
+            return self
         return self.parent()(self.__poly.left_shift(n), construct=True)
 
     def _sub_(self, right):
@@ -2859,20 +3057,20 @@ class Polynomial_dense_mod_n(Polynomial):
             return Polynomial.__floordiv__(self, right)
         return self.parent()([c // d for c in self.list()], construct=True)
 
-    def __setitem__(self, n, value):
-        if self._is_gen:
-            raise ValueError, "the generator cannot be changed"
-        n = int(n)
-        if n < 0:
-            raise IndexError, "n must be >= 0"
-        self.parent()._ntl_set_modulus()
-        self.__poly[n] = int(value)
+##     def __setitem__(self, n, value):
+##         if self._is_gen:
+##             raise ValueError, "the generator cannot be changed"
+##         n = int(n)
+##         if n < 0:
+##             raise IndexError, "n must be >= 0"
+##         self.parent()._ntl_set_modulus()
+##         self.__poly[n] = int(value)
 
-    def copy(self):
-        self.parent()._ntl_set_modulus()
-        f = self.parent()()
-        f.__poly = self.__poly.copy()
-        return f
+##     def __copy__(self):
+##         self.parent()._ntl_set_modulus()
+##         f = self.parent()()
+##         f.__poly = self.__poly.copy()
+##         return f
 
     def degree(self):
         """
@@ -2890,7 +3088,7 @@ class Polynomial_dense_mod_n(Polynomial):
         elements of self.
 
         EXAMPLES:
-            sage: x = PolynomialRing(Integers(100)).gen()
+            sage: _.<x> = Integers(100)[]
             sage: f = x^3 + 3*x - 17
             sage: f.list()
             [83, 3, 0, 1]
@@ -2912,7 +3110,7 @@ class Polynomial_dense_mod_n(Polynomial):
         NTL uses by default.
 
         EXAMPLES:
-            sage: R = PolynomialRing(Integers(100))
+            sage: R.<x> = PolynomialRing(Integers(100))
             sage: R([1,-2,3])
             3*x^2 + 98*x + 1
             sage: f = R(0)
@@ -2972,7 +3170,7 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
             an element of the base ring of the polynomial ring
 
         EXAMPLES:
-            sage: x = PolynomialRing(GF(19)).gen()
+            sage: _.<x> = PolynomialRing(GF(19))
             sage: f = x^3 + x + 1;  g = x^3 - x - 1
             sage: f.resultant(g)
             11
@@ -2985,7 +3183,7 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
     def discriminant(self):
         """
         EXAMPLES:
-            sage: x = PolynomialRing(GF(19)).gen()
+            sage: _.<x> = PolynomialRing(GF(19))
             sage: f = x^3 + 3*x - 17
             sage: f.discriminant()
             12
@@ -2993,7 +3191,8 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
         self.parent()._ntl_set_modulus()
         return self.base_ring()(str(self.ntl_ZZ_pX().discriminant()))
 
-    # PARI is way better than NTL for poly factor, and is called by default in the base class.
+    # PARI is way better than NTL for poly factor for certain degrees, and is called
+    # by default in the base class.
     #def factor(self, verbose=False):
     #    M = self.monic()
     #    self.parent()._ntl_set_modulus()

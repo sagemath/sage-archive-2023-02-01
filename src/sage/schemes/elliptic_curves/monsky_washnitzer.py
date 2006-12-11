@@ -34,7 +34,7 @@ AUTHORS:
 
 
 from sage.rings.all import Integers, Integer, PolynomialRing, Polynomial
-from sage.matrix.all import Matrix
+from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 
@@ -63,7 +63,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
            in the Toom-Cook algorithm to speed multiplication.
 
   EXAMPLES:
-      sage: B, t = PolynomialRing(Integers(125)).objgen()
+      sage: B.<t> = PolynomialRing(Integers(125))
       sage: R = monsky_washnitzer.SpecialCubicQuotientRing(t^3 - t + B(1/4))
       sage: R
       SpecialCubicQuotientRing over Ring of integers modulo 125 with polynomial T = x^3 + 124*x + 94
@@ -128,7 +128,6 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     self._a = Q[1]
     self._b = Q[0]
     self._poly_ring = PolynomialRing(base_ring, 'T')    # R[T]
-    self._base_ring = base_ring
     self._poly_generator = self._poly_ring.gen(0)    # the generator T
 
     # Precompute a matrix that is used in the Toom-Cook multiplication.
@@ -138,7 +137,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html)
 
     self._speedup_matrix = \
-        (Matrix(Integers(), 3, 3, [2, 4, 8,
+        (matrix(Integers(), 3, 3, [2, 4, 8,
                                    1, 1, 1,
                                    8, 4, 2])**(-1)
          ).change_ring(base_ring).list()
@@ -153,12 +152,8 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
   def __repr__(self):
     return "SpecialCubicQuotientRing over %s with polynomial T = %s" % \
-           (self._base_ring, PolynomialRing(self._base_ring)(
+           (self.base_ring(), PolynomialRing(self.base_ring(), 'x')(
                                                 [self._b, self._a, 0, 1]))
-
-  def base_ring(self):
-    """ Return the underlying base ring. """
-    return self._base_ring
 
   def poly_ring(self):
     """ Return the underlying polynomial ring in T. """
@@ -195,23 +190,25 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
   # called, and exactly how they should operate
 
   def __call__(self, value):
+    return self._coerce_(value)
+
+
+  def _coerce_impl(self, value):
     # todo: I don't understand why the direct _poly_ring.__call__()
     # doesn't work....
 
     # try coercing to base ring
     try:
-      value = self._base_ring(value)
-      value = self._poly_ring(value)
+      value = self.base_ring()._coerce_(value)
+      value = self._poly_ring._coerce_(value)
+
     except TypeError:
       # try coercing to underlying polynomial ring
-      value = self._poly_ring(value)
+      value = self._poly_ring._coerce_(value)
 
     return SpecialCubicQuotientRingElement(self,
                  value, self._poly_ring(0), self._poly_ring(0), check=False)
 
-  def _coerce_(self, value):
-    # todo: is this right??
-    raise TypeError
 
 
 class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
@@ -427,7 +424,7 @@ def helper_matrix(Q):
     #   [  0,  -2a,  -3b ]
     #   [  3,    0,  -2a ]
 
-    return (1/D) * Matrix(Q.base_ring(), 3, 3,
+    return (1/D) * matrix(Q.base_ring(), 3, 3,
                           [  4*a**2 , -6*b*a  , 9*b**2,
                              -9*b   , -2*a**2 , 3*b*a,
                               6*a   , -9*b    , -2*a**2 ])
@@ -1086,7 +1083,7 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       sage: result = []                                           # long time
       sage: for prec in range(1, max_prec):                       # long time
       ...       M = monsky_washnitzer.adjusted_prec(p, prec)      # long time
-      ...       R, x = PolynomialRing(Integers(p**M)).objgen()    # long time
+      ...       R.<x> = PolynomialRing(Integers(p^M),'x')         # long time
       ...       B = monsky_washnitzer.matrix_of_frobenius(        # long time
       ...                         x^3 - x + R(1/4), p, M)         # long time
       ...       B = B.change_ring(Integers(p**prec))              # long time
@@ -1248,7 +1245,7 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       "Hey that's impossible! The output matrix is not congruent mod p " \
       "to the approximation found earlier!"
 
-  return Matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
+  return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
                                   F0_reduced[1], F1_reduced[1]])
 
 

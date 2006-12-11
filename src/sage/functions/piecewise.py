@@ -127,7 +127,7 @@ class PiecewisePolynomial:
             '\\begin{array}{ll} \\left\\{ 1,& 0 < x < 1 ,\\right. \\end{array}'
 
 	"""
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         intvls = self.intervals()
         fcn_list = [p[1] for p in self.list()]
         tex = ["\\begin{array}{ll} \left\\{"]
@@ -204,7 +204,7 @@ class PiecewisePolynomial:
         zero (the inverse to extend_by_zero_to).
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
+            sage: x = PolynomialRing(QQ,'x').gen()
             sage: f = Piecewise([[(-3,-1),1+2+x],[(-1,1),1-x^2]])
             sage: e = f.extend_by_zero_to(-10,10); e
             Piecewise defined function with 4 parts, [[(-10, -3), 0], [(-3, -1), x + 3], [(-1, 1), -x^2 + 1], [(1, 10), 0]]
@@ -256,7 +256,7 @@ class PiecewisePolynomial:
             sage: f.integral()
             3
         """
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         b = max(self.end_points())
         a = min(self.end_points())
         rsum = 0
@@ -300,7 +300,7 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.riemann_sum(6,mode="midpoint")
             Piecewise defined function with 6 parts, [[(0, 1/3), 1/36], [(1/3, 2/3), 1/4], [(2/3, 1), 25/36], [(1, 4/3), 131/36], [(4/3, 5/3), 11/4], [(5/3, 2), 59/36]]
-            sage: x = PolynomialRing(QQ).gen()        ## example 2
+            sage: x = PolynomialRing(QQ,'x').gen()        ## example 2
             sage: f = Piecewise([[(-1,1),1-x^2]])
             sage: rsf = f.riemann_sum(7)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
@@ -314,7 +314,7 @@ class PiecewisePolynomial:
             sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in rsf.list()])
             sage: ## To view this, type show(P+Q+L).
         """
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         b = max(self.end_points())
         a = min(self.end_points())
         rlist=[]
@@ -353,7 +353,7 @@ class PiecewisePolynomial:
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.trapezoid(4)
             Piecewise defined function with 4 parts, [[(0, 1/2), 1/2*x], [(1/2, 1), 9/2*x - 2], [(1, 3/2), 1/2*x + 2], [(3/2, 2), -7/2*x + 8]]
-            sage: x = PolynomialRing(QQ).gen()        ## example 2
+            sage: x = PolynomialRing(QQ,'x').gen()        ## example 2
             sage: f = Piecewise([[(-1,1),1-x^2]])
             sage: tf = f.trapezoid(4)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
@@ -367,7 +367,7 @@ class PiecewisePolynomial:
             sage: L = add([line([[pf[0][0],0],[pf[0][0],pf[1](pf[0][0])]],rgbcolor=(0.7,0.6,0.6)) for pf in tf.list()])
             sage: ## To view this, type show(P+Q+L).
         """
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         b = max(self.end_points())
         a = min(self.end_points())
         traplist=[]
@@ -405,7 +405,7 @@ class PiecewisePolynomial:
             sage: tt = text('area under curve = %s'%a, (1.5, -0.5))
             sage: ## To view this, type show(P+Q+L).
         """
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ, 'x').gen()
         b = max(self.end_points())
         a = min(self.end_points())
         trapapprox = 0
@@ -425,7 +425,7 @@ class PiecewisePolynomial:
         critical not occurring on the interval endpoints.
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).0
+            sage: x = PolynomialRing(QQ, 'x').0
             sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -435,7 +435,7 @@ class PiecewisePolynomial:
             [5.0]
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         fcns = self.functions()
         N = len(fcns)
         crit_pts = []
@@ -479,7 +479,7 @@ class PiecewisePolynomial:
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.182493960703473
+            12.1824939607034
             sage: f(1)
             1/2
         """
@@ -488,7 +488,7 @@ class PiecewisePolynomial:
         endpts = self.end_points()
         for i in range(1,n):
             if x0 == endpts[i]:
-                return (self.functions()[i-1](x0)+self.functions()[i](x0))/2
+                return (self.functions()[i-1](x0) + self.functions()[i](x0))/2
         if x0 == endpts[0]:
             return self.functions()[0](x0)
         if x0 == endpts[n]:
@@ -503,7 +503,7 @@ class PiecewisePolynomial:
         Returns the function piece used to evaluate self at x0.
 
         EXAMPLES:
-	    sage: x = PolynomialRing(QQ).gen()
+	    sage: x = PolynomialRing(QQ,'x').gen()
             sage: f1 = lambda z:1
             sage: f2 = 1-x
             sage: f3 = lambda y:exp(y)
@@ -545,7 +545,7 @@ class PiecewisePolynomial:
             (pi/2)
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = [maxima('%s'%p[1](x)).integral('x', p[0][0], p[0][1]) \
                  for p in self.list()]
         return sage_eval(str(sum(ints)).replace("%",""))
@@ -556,7 +556,7 @@ class PiecewisePolynomial:
         for compactly supported $f,g$.
 
         EXAMPLES:
-            sage: x = PolynomialRing(QQ).gen()
+            sage: x = PolynomialRing(QQ,'x').gen()
             sage: f = Piecewise([[(0,1),1*x^0]])  ## example 0
             sage: g = f.convolution(f)
             sage: h = f.convolution(g)
@@ -655,7 +655,7 @@ class PiecewisePolynomial:
             Piecewise defined function with 2 parts, [[(0, (pi/2)), 0], [((pi/2), pi), 0]]
         """
         maxima = sage.interfaces.all.maxima
-        R = PolynomialRing(QQ)
+        R = PolynomialRing(QQ,'x')
         x = R.gen()
         diffs = [maxima('%s'%p[1](x)).diff('x') \
                  for p in self.list()]
@@ -677,7 +677,7 @@ class PiecewisePolynomial:
             sage: ## Type show(P+Q) to view the graph of the function and the tangent line.
         """
         pt = QQ(pt)
-        R = PolynomialRing(QQ)
+        R = PolynomialRing(QQ,'x')
         x = R.gen()
         der = self.derivative()
         tanline = (x-pt)*der(pt)+self(pt)
@@ -725,17 +725,16 @@ class PiecewisePolynomial:
             (1/(pi^2))
 	    sage: f = lambda x:x^2
             sage: f = Piecewise([[(-pi,pi),f]])
-            sage: f.fourier_series_cosine_coefficient(2,pi)
-            1
+            sage: float(f.fourier_series_cosine_coefficient(2,pi))
+            0.99999999976227982
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_cosine_coefficient(5,pi)
             (-3/(5*pi))
-
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -767,7 +766,7 @@ class PiecewisePolynomial:
             0
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -1006,7 +1005,7 @@ class PiecewisePolynomial:
 
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = []
         for p in self.list():
             fcn = '2*(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -1045,7 +1044,7 @@ class PiecewisePolynomial:
 
         """
 	maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = []
         for p in self.list():
             fcn = '2*(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
@@ -1079,7 +1078,7 @@ class PiecewisePolynomial:
 
         """
         maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ).gen()
+        x = PolynomialRing(QQ,'x').gen()
         ints = []
         for p in self.list():
             fcn = '(%s)*exp(-%s*x)'%(p[1](x),var)
@@ -1106,7 +1105,7 @@ class PiecewisePolynomial:
 	self and other. Doesnot require both domains be the same.
 
 	EXAMPLES:
-	    sage: x = PolynomialRing(QQ).gen()
+	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -1146,7 +1145,7 @@ class PiecewisePolynomial:
 	one piecewise function (self) with another one (other).
 
 	EXAMPLES:
-	    sage: x = PolynomialRing(QQ).gen()
+	    sage: x = PolynomialRing(QQ,'x').gen()
 	    sage: f1 = x^0
             sage: f2 = 1-x
             sage: f3 = 2*x
@@ -1164,7 +1163,7 @@ class PiecewisePolynomial:
         Note that in this method the functions must be defined using polynomial
 	expressions *not* using the lambda notation.
 	"""
-        R = PolynomialRing(QQ)
+        R = PolynomialRing(QQ,'x')
         fcn = []
         if isinstance(other,Rational) or isinstance(other,Integer):    ## needed for scalar multiplication
             endpts = self.end_points()

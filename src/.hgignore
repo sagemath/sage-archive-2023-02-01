@@ -15,6 +15,7 @@ pull
 ~$
 #(^|/)\.[^/]
 (^|/)_darcs($|/)
+\.hg$
 \.bak$
 \.BAK$
 \.fig$
@@ -83,4 +84,7 @@ pull
 ^sage/libs/cf/cf.pyx
 ^sage/libs/cf/cf_embed.cpp
 ^sage/libs/linbox/finite_field_givaro.cpp
+^sage/rings/finite_field_givaro.cpp
 version.py
+a
+

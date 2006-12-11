@@ -1,10 +1,17 @@
+
+include "python.pxi"
+
 cdef extern from "stdlib.h":
-    ctypedef int size_t
+    ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
     void *realloc(void *ptr, size_t size)
     size_t strlen(char *s)
     char *strcpy(char *dest, char *src)
+
+cdef extern from "string.h":
+    void *memset(void *dest, int c, size_t n)
+    void *memcpy(void *dest, void *src, size_t n)
 
 cdef extern from "stdio.h":
     ctypedef struct FILE
@@ -16,36 +23,9 @@ cdef extern from "stdio.h":
     cdef FILE *stdout
     int scanf(char *format, ...)
 
-
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!
-
-
-cdef extern from "Python.h":
-    # Memory management
-    void PyMem_Free(void *p)
-    void* PyMem_Realloc(void *p, size_t n)
-    void* PyMem_Malloc(size_t)
-
-    # Type conversions
-    object PyString_FromString(char *v)
-    char* PyString_AsString(object string)
-    object PyString_InternFromString(char *v)
-
-    # Type checking
-    int PyObject_TypeCheck(object o, object t)
-    int PyInt_Check(object o)
-    int PyLong_Check(object o)
-    int PyString_Check(object o)
-
-    # Python attribute lookup functions
-    object PyObject_GetAttrString(object o, char *attr_name)
-    int PyObject_HasAttrString(object o, char *attr_name)
-
-    # Miscellaneous
-    int PyErr_CheckSignals()
-
 
 
 cdef extern from "gmp.h":
@@ -87,6 +67,8 @@ cdef extern from "gmp.h":
     void mpz_init_set(mpz_t rop, mpz_t op)
     void mpz_init_set_si(mpz_t integer, signed long int n)
     void mpz_init_set_ui(mpz_t integer, unsigned long int n)
+    int mpz_init_set_str(mpz_t rop, char* str, int base)
+
     int mpz_invert (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_lcm(mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_mod (mpz_t r, mpz_t n, mpz_t d)
@@ -153,4 +135,8 @@ cdef extern from "gmp.h":
     void mpf_sqrt (mpf_t rop, mpf_t op)
     void mpf_neg (mpf_t rop, mpf_t op)
     void mpf_abs (mpf_t rop, mpf_t op)
+
+##########################################################################
+# stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
+##########################################################################
 

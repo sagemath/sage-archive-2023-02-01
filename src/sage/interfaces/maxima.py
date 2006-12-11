@@ -186,7 +186,7 @@ We can also compute the echelon form in \sage:
     [  0   0   0   0]
     [  0   0   0   0]
     [  0   0   0   0]
-    sage: B.charpoly().factor()
+    sage: B.charpoly('x').factor()
     (x - 4) * x^3
 
 \subsection{Laplace Transforms}
@@ -349,7 +349,7 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
@@ -357,8 +357,6 @@ SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
 cnt = 0
 seq = 0
-
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
 
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
@@ -645,8 +643,7 @@ class Maxima(Expect):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s : %s;'%(var, value)
-        #out = self._eval_line(cmd, reformat=False)
+        cmd = '%s : %s$"";'%(var, str(value).rstrip(';'))
         out = self._eval_line(cmd, reformat=False, allow_use_file=True)
 
         if out.find("error") != -1:
@@ -1027,9 +1024,9 @@ class MaximaElement(ExpectElement):
     def __call__(self, x):
         self._check_valid()
         P = self.parent()
-        return P('%s[%s]'%(self.name(), x))
+        return P('%s(%s)'%(self.name(), x))
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES:
             sage: a = maxima(1); b = maxima(2)

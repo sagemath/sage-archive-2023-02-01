@@ -28,13 +28,13 @@ to figure out the special notation for each system.  You just
 type the following:
 
     sage: pi.str()
-    '3.1415926535897931'
+    '3.14159265358979'
     sage: maxima(pi)
     %pi
     sage: singular(pi)
-    3.1415926535897931
+    3.14159265358979
     sage: gap(pi)
-    "3.1415926535897931"
+    "3.14159265358979"
     sage: gp(pi)
     3.141592653589793238462643383     # 32-bit
     3.1415926535897932384626433832795028842   # 64-bit
@@ -57,7 +57,7 @@ can be coerced into other systems or evaluated.
     sage: maxima(a)
     %pi + 4*%e/5
     sage: a.str(15)      # 15 *bits* of precision
-    '5.31616'
+    '5.315'
     sage: gp(a)
     5.316218116357029426750873360            # 32-bit
     5.3162181163570294267508733603616328824  # 64-bit
@@ -74,28 +74,28 @@ by coercing into the real field with given precision.  For example, to
     Real Field with 200 bits of precision
 
     sage: R(pi)
-    3.1415926535897932384626433832795028841971693993751058209749445
+    3.1415926535897932384626433832795028841971693993751058209749
 
     sage: R(e)
-    2.7182818284590452353602874713526624977572470936999595749669679
+    2.7182818284590452353602874713526624977572470936999595749669
 
     sage: R(NaN)
     NaN
 
     sage: R(golden_ratio)
-    1.6180339887498948482045868343656381177203091798057628621354484
+    1.6180339887498948482045868343656381177203091798057628621354
 
     sage: R(log2)
-    0.69314718055994530941723212145817656807550013436025525412067998
+    0.69314718055994530941723212145817656807550013436025525412067
 
     sage: R(euler_gamma)
-    0.57721566490153286060651209008240243104215933593992359880576723
+    0.57721566490153286060651209008240243104215933593992359880576
 
     sage: R(catalan)
-    0.91596559417721901505460351493238411077414937428167213426649835
+    0.91596559417721901505460351493238411077414937428167213426649
 
     sage: R(khinchin)
-    2.6854520010653064453097148354817956938203822939944629530511514
+    2.6854520010653064453097148354817956938203822939944629530511
 
 
 EXAMPLES: Arithmetic with constants
@@ -103,19 +103,19 @@ EXAMPLES: Arithmetic with constants
     sage: pp = pi+pi; pp
     (pi + pi)
     sage: R(pp)
-    6.2831853071795864769252867665590057683943387987502116419498890
+    6.2831853071795864769252867665590057683943387987502116419498
 
     sage: s = (1 + e^pi);s
     (1 + (e^pi))
     sage: R(s)
-    24.140692632779269005729086367948547380266106242600211993445043
+    24.140692632779269005729086367948547380266106242600211993444
     sage: R(s-1)
-    23.140692632779269005729086367948547380266106242600211993445043
+    23.140692632779269005729086367948547380266106242600211993444
 
     sage: l = (1-log2)/(1+log2);l
     ((1 - log2)/(1 + log2))
     sage: R(l)
-    0.18123221829928249948761381864650311423330609774776013488055837
+    0.18123221829928249948761381864650311423330609774776013488055
 
     sage: pim = maxima(pi)
     sage: maxima.eval('fpprec : 100')
@@ -140,17 +140,121 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import math
+import math, operator
 
-from sage.rings.all import CommutativeRing, RealField, Integer
+from sage.rings.all import CommutativeRing, RealField, Integer, RingElement
 import sage.interfaces.all
 import sage.rings.all
 from sage.libs.pari.all import pari
 from sage.misc.latex import latex
 
+
 # Default real field used for coercion.
 
-from functions import Constant
+from functions import Function_gen, Function_arith, Function, FunctionRing_class
+
+######################
+# Ring of Constants
+######################
+
+class ConstantRing_class(FunctionRing_class):
+    def _repr_(self):
+        return "Ring of Real Mathematical Constants"
+
+    def __cmp__(self, right):
+        if isinstance(right, ConstantRing_class):
+            return 0
+        return -1
+
+    def __call__(self, x):
+        try:
+            return self._coerce_(x)
+        except TypeError:
+            return Constant_gen(x)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, (sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
+            return Constant_gen(x)
+        raise TypeError, 'no canonical coercion of element into self.'
+
+ConstantRing = ConstantRing_class()
+
+
+######################
+# Constant functions
+######################
+
+class Constant(Function):
+    def __init__(self, conversions={}):
+        self._conversions = conversions
+        RingElement.__init__(self, ConstantRing)
+
+    def __call__(self, x):
+        return self
+
+    def floor(self):
+        return Integer(int(float(self)))
+
+    # The following adds formal arithmetic support for generic constant
+    def _add_(self, right):
+        return Constant_arith(self, right, operator.add)
+
+    def _sub_(self, right):
+        return Constant_arith(self, right, operator.sub)
+
+    def _mul_(self, right):
+        return Constant_arith(self, right, operator.mul)
+
+    def _div_(self, right):
+        return Constant_arith(self, right, operator.div)
+
+    def __pow__(self, right):
+        try:
+            right = self.parent()._coerce_(right)
+        except TypeError:
+            raise TypeError, "computation of %s^%s not defined"%(self, right)
+        return Constant_arith(self, right, operator.pow)
+
+    def _interface_is_cached_(self):
+        """
+        Return False, since coercion of functions to interfaces
+        is not cached.
+
+        We do not cache coercions of functions to interfaces, since
+        the precision of the interface may change.
+
+        EXAMPLES:
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+            sage: old_prec = gp.set_precision(100)
+            sage: gp(pi)
+            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+            sage: _ = gp.set_precision(old_prec)
+            sage: gp(pi)
+            3.141592653589793238462643383              # 32-bit
+            3.1415926535897932384626433832795028842    # 64-bit
+        """
+        return False
+
+
+class Constant_gen(Constant, Function_gen):
+    def __init__(self, x):
+        Function_gen.__init__(self, x)
+        Constant.__init__(self)
+
+    def __call__(self, x):
+        return self.obj()
+
+    def __repr__(self):
+        return Function_gen._repr_(self)
+
+class Constant_arith(Constant, Function_arith):
+    def __init__(self, x, y, op):
+        Function_arith.__init__(self, x, y, op)
+        Constant.__init__(self)
+
 
 class Pi(Constant):
     """
@@ -165,15 +269,15 @@ class Pi(Constant):
         3.141592653589793238462643383            # 32-bit
         3.1415926535897932384626433832795028842  # 64-bit
         sage: RR(pi)
-        3.1415926535897931
+        3.14159265358979
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(pi)
-        3.1415926535897932384626433832795028841971693993751058209749445
+        3.1415926535897932384626433832795028841971693993751058209749
         sage: pp = pi+pi; pp
         (pi + pi)
         sage: R(pp)
-        6.2831853071795864769252867665590057683943387987502116419498890
+        6.2831853071795864769252867665590057683943387987502116419498
         sage: maxima(pi)
         %pi
         sage: maxima(pi).float()
@@ -209,7 +313,7 @@ class Pi(Constant):
         return -self
 
     def floor(self):
-        raise NotImplementedError
+        return Integer(3)
 
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
@@ -226,15 +330,15 @@ class E(Constant):
 
     EXAMPLES:
         sage: RR(e)
-        2.7182818284590451
+        2.71828182845904
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(e)
-        2.7182818284590452353602874713526624977572470936999595749669679
+        2.7182818284590452353602874713526624977572470936999595749669
         sage: em = 1 + e^(1-e); em
         (1 + (e^(1 - e)))
         sage: R(em)
-        1.1793740787340171819619895873183164984596816017589156131573701
+        1.1793740787340171819619895873183164984596816017589156131573
         sage: maxima(e).float()
         2.718281828459045
         sage: t = mathematica(e)               # optional
@@ -309,10 +413,10 @@ class GoldenRatio(Constant):
     EXAMPLES:
         sage: gr = golden_ratio
         sage: RR(gr)
-        1.6180339887498949
+        1.61803398874989
         sage: R = RealField(200)
         sage: R(gr)
-        1.6180339887498948482045868343656381177203091798057628621354484
+        1.6180339887498948482045868343656381177203091798057628621354
         sage: grm = maxima(golden_ratio);grm
         (sqrt(5) + 1)/2
         sage: grm + grm
@@ -357,15 +461,15 @@ class Log2(Constant):
         sage: float(log2)
         0.69314718055994529
         sage: RR(log2)
-        0.69314718055994529
+        0.693147180559945
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(log2)
-        0.69314718055994530941723212145817656807550013436025525412067998
+        0.69314718055994530941723212145817656807550013436025525412067
         sage: l = (1-log2)/(1+log2);l
         ((1 - log2)/(1 + log2))
         sage: R(l)
-        0.18123221829928249948761381864650311423330609774776013488055837
+        0.18123221829928249948761381864650311423330609774776013488055
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
@@ -414,15 +518,15 @@ class EulerGamma(Constant):
     EXAMPLES:
         sage: R = RealField()
         sage: R(euler_gamma)
-	0.57721566490153287
+        0.577215664901532
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(euler_gamma)
-        0.57721566490153286060651209008240243104215933593992359880576723
+        0.57721566490153286060651209008240243104215933593992359880576
         sage: eg = euler_gamma + euler_gamma;eg
         (euler_gamma + euler_gamma)
         sage: R(eg)
-        1.1544313298030657212130241801648048620843186718798471976115345
+        1.1544313298030657212130241801648048620843186718798471976115
     """
     def __init__(self):
         Constant.__init__(self,
@@ -503,7 +607,7 @@ class Khinchin(Constant):
         sage: float(khinchin)
         2.6854520010653062
         sage: khinchin.str(100)
-        '2.6854520010653064453097148354831'
+        '2.6854520010653064453097148354'
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
@@ -555,7 +659,7 @@ class TwinPrime(Constant):
         sage: R=RealField(200);R
         Real Field with 200 bits of precision
         sage: R(twinprime)
-        0.66016181584686957392781211001455577843262336028473341331944814
+        0.66016181584686957392781211001455577843262336028473341331944
     """
     def __init__(self):
         Constant.__init__(self,{}) #Twin prime is not implemented in any other algebra systems.
@@ -607,7 +711,7 @@ class Merten(Constant):
         sage: R=RealField(200);R
         Real Field with 200 bits of precision
         sage: R(merten)
-        0.26149721284764278375542683860869585905156664826119920619206426
+        0.26149721284764278375542683860869585905156664826119920619206
     """
     def __init__(self):
         Constant.__init__(self,{}) #Merten's constant is not implemented in any other algebra systems.
@@ -632,7 +736,7 @@ class Merten(Constant):
             ...
             NotImplementedError: Merten's constant only available up to 320 bits
             sage: RealField(320)(merten)
-            0.26149721284764278375542683860869585905156664826119920619206421392492451089736820971414263143424673
+            0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434246
         """
         if R.precision() <= self.__bits:
             return R(self.__value)
@@ -670,7 +774,7 @@ class Brun(Constant):
         sage: R = RealField(41); R
         Real Field with 41 bits of precision
         sage: R(brun)
-        1.9021605831040
+        1.90216058310
     """
     def __init__(self):
         Constant.__init__(self,{}) #Brun's constant is not implemented in any other algebra systems.
@@ -695,7 +799,7 @@ class Brun(Constant):
             ...
             NotImplementedError: Brun's constant only available up to 41 bits
             sage: RealField(41)(brun)
-            1.9021605831040
+            1.90216058310
         """
         if R.precision() <= self.__bits:
             return R(self.__value)
@@ -719,3 +823,50 @@ class Brun(Constant):
 
 brun=Brun()
 
+class UniversalPolynomialElement(Constant):
+    """
+    A universal indeterminate.
+
+    EXAMPLES:
+        sage: x
+        x
+        sage: x.parent()
+        Univariate Polynomial Ring in x over Rational Field
+    """
+    def __init__(self, name):
+        self._name = name
+        Constant.__init__(self,
+            {'axiom':name,
+             'maxima':name,
+             'gp':name,'kash':name,
+             'mathematica':name,
+             'matlab':name,
+             'maple':name,
+             'octave':name,
+             'pari':name})
+
+    def _repr_(self):
+        return self._name
+
+    def _latex_(self):
+        return self._name
+
+    def _mathml_(self):
+        return "<mi>%s</mi>"%self._name
+
+    def __float__(self):
+        raise TypeError
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _real_double_(self):
+        raise TypeError
+
+    def __abs__(self):
+        raise TypeError
+
+    def floor(self):
+        raise TypeError
+
+x = UniversalPolynomialElement('x')

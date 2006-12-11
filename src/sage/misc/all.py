@@ -11,7 +11,7 @@ from attach import attach
 
 from profiler import Profiler
 
-from mrange import xmrange, mrange
+from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
 from bug import bug
 
@@ -37,7 +37,9 @@ from preparser import preparse
 
 from sage_eval import sage_eval
 
-from pyrex import pyrex
+from sagex import sagex_lambda
+from sagex_c import sagex
+pyrex = sagex # synonym
 
 from persist import save, load, dumps, loads, db, db_save
 
@@ -49,7 +51,7 @@ from latex import latex, view, lprint, jsmath
 
 from mathml import mathml
 
-from trace import *
+from trace import trace
 
 from cachefunc import CachedFunction
 

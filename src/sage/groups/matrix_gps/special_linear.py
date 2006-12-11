@@ -5,23 +5,38 @@ AUTHOR:
     -- William Stein: initial version
     -- David Joyner (2006-05) - added examples, _latex_, __str__, gens,
                                       as_matrix_group
+    -- William Stein (2006-12-09): rewrite
 
 EXAMPLES:
         sage: SL(2, ZZ)
-        Modular Group SL(2,Z)
+        Special Linear Group of degree 2 over Integer Ring
         sage: G = SL(2,GF(3)); G
         Special Linear Group of degree 2 over Finite Field of size 3
         sage: G.is_finite()
         True
         sage: G.conjugacy_class_representatives()
-        [[1 0]
-        [0 1], [0 2]
-        [1 1], [0 1]
-        [2 1], [2 0]
-        [0 2], [0 2]
-        [1 2], [0 1]
-        [2 2], [0 2]
-        [1 0]]
+        [
+        [1 0]
+        [0 1],
+        [2 0]
+        [0 2]
+        ]
+        sage: G = SL(6,GF(5))
+        sage: G.gens()
+        [
+        [2 0 0 0 0 0]
+        [0 3 0 0 0 0]
+        [0 0 1 0 0 0]
+        [0 0 0 1 0 0]
+        [0 0 0 0 1 0]
+        [0 0 0 0 0 1],
+        [4 0 0 0 0 1]
+        [4 0 0 0 0 0]
+        [0 4 0 0 0 0]
+        [0 0 4 0 0 0]
+        [0 0 0 4 0 0]
+        [0 0 0 0 4 0]
+        ]
 """
 
 #*****************************************************************************
@@ -31,90 +46,89 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.modular.all import SL2Z
-from sage.rings.all import IntegerRing, is_FiniteField
-from linear import LinearGroup_generic, LinearGroup_finite_field
+from sage.rings.all import is_FiniteField, Integer, FiniteField
+from matrix_group import MatrixGroup_gap, MatrixGroup_gap_finite_field
 
-def SL(n, R):
-    if n == 2 and R == IntegerRing():
-        return SL2Z()
+def SL(n, R, var='a'):
+    r"""
+    Return the special linear group of degree $n$ over the ring $R$.
+
+    EXAMPLES:
+        sage: SL(3,GF(2))
+        Special Linear Group of degree 3 over Finite Field of size 2
+        sage: G = SL(15,GF(7)); G
+        Special Linear Group of degree 15 over Finite Field of size 7
+        sage: G.order()
+        1956712595698146962015219062429586341124018007182049478916067369638713066737882363393519966343657677430907011270206265834819092046250232049187967718149558134226774650845658791865745408000000
+        sage: len(G.gens())
+        2
+        sage: G = SL(2,ZZ); G
+        Special Linear Group of degree 2 over Integer Ring
+        sage: G.gens()
+        [
+        [ 0  1]
+        [-1  0],
+        [1 1]
+        [0 1]
+        ]
+
+    Next we compute generators for $\SL_3(\ZZ)$.
+        sage: G = SL(3,ZZ); G
+        Special Linear Group of degree 3 over Integer Ring
+        sage: G.gens()
+        [
+        [0 1 0]
+        [0 0 1]
+        [1 0 0],
+        [ 0  1  0]
+        [-1  0  0]
+        [ 0  0  1],
+        [1 1 0]
+        [0 1 0]
+        [0 0 1]
+        ]
+    """
+    if isinstance(R, (int, long, Integer)):
+        R = FiniteField(R, var)
     if is_FiniteField(R):
         return SpecialLinearGroup_finite_field(n, R)
     else:
         return SpecialLinearGroup_generic(n, R)
 
-class SpecialLinearGroup_generic(LinearGroup_generic):
+class SpecialLinearGroup_generic(MatrixGroup_gap):
     def _gap_init_(self):
         """
-        EXAMPLES:
-            sage: G = SL(6,GF(5))
-            sage: print G
-            SL(6, GF(5))
+        String to create this grop in GAP.
 
+        EXAMPLES:
+            sage: G = SL(6,GF(5)); G
+            Special Linear Group of degree 6 over Finite Field of size 5
+            sage: G._gap_init_()
+            'SL(6, GF(5))'
         """
-        return "SL(%s, GF(%s))"%(self.degree(), self.base_ring().order())
+        return "SL(%s, %s)"%(self.degree(), self.base_ring()._gap_init_())
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: G = SL(6,GF(5))
-            sage: G._latex_()
-            'SL$(6, GF(5))$'
-
+            sage: latex(G)
+            \text{SL}_{6}(\mathbf{F}_{5})
         """
-        return "SL$(%s, GF(%s))$"%(self.degree(), self.base_ring().order())
+        return "\\text{SL}_{%s}(%s)"%(self.degree(), self.field_of_definition()._latex_())
 
-    def __str__(self):
+    def _repr_(self):
         """
+        Text representation of self.
+
         EXAMPLES:
-            sage: G = SL(6,GF(5))
-            sage: print G
-            SL(6, GF(5))
-
+            sage: SL(6,GF(5))
+            Special Linear Group of degree 6 over Finite Field of size 5
         """
-        return "SL(%s, GF(%s))"%(self.degree(), self.base_ring().order())
-
-    def __repr__(self):
         return "Special Linear Group of degree %s over %s"%(self.degree(), self.base_ring())
 
-    def gens(self):
-        """
-        EXAMPLES:
-            sage: G = SL(6,GF(5))
-            sage: G.gens()
-            [[2 0 0 0 0 0]
-            [0 3 0 0 0 0]
-            [0 0 1 0 0 0]
-            [0 0 0 1 0 0]
-            [0 0 0 0 1 0]
-            [0 0 0 0 0 1],
-            [4 0 0 0 0 1]
-            [4 0 0 0 0 0]
-            [0 4 0 0 0 0]
-            [0 0 4 0 0 0]
-            [0 0 0 4 0 0]
-            [0 0 0 0 4 0]]
-        """
-        from sage.interfaces.all import gap
-        F = self.base_ring()
-        G = self._gap_init_()
-        n = eval(gap.eval("Length(GeneratorsOfGroup(%s))"%G))
-        gens = [gap("GeneratorsOfGroup(%s)[%s]"%(G,i))._matrix_(F) for i in range(1,n+1)]
-        return gens
 
-    def as_matrix_group(self):
-        """
-        EXAMPLES:
-            sage: G = SL(6,GF(5))
-            sage: G.as_matrix_group()
-            Matrix group over Finite Field of size 5 with 2 generators:
-            [[[2, 0, 0, 0, 0, 0], [0, 3, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1]], [[4, 0, 0, 0, 0, 1], [4, 0, 0, 0, 0, 0], [0, 4, 0, 0, 0, 0], [0, 0, 4, 0, 0, 0], [0, 0, 0, 4, 0, 0], [0, 0, 0, 0, 4, 0]]]
-        """
-        from sage.groups.matrix_gps.matrix_group import MatrixGroup
-        gns = self.gens()
-        G = MatrixGroup(gns)
-        return G
 
-class SpecialLinearGroup_finite_field(SpecialLinearGroup_generic, LinearGroup_finite_field):
+class SpecialLinearGroup_finite_field(SpecialLinearGroup_generic, MatrixGroup_gap_finite_field):
     pass
 

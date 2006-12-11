@@ -1,4 +1,5 @@
 from ssmod import (dimension_supersingular_module,
                    supersingular_j,
-                   SupersingularModule)
+                   SupersingularModule,
+                   supersingular_D)
 

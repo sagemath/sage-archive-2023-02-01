@@ -12,13 +12,13 @@ EXAMPLES:
     sage: pts = C.rational_points(); pts
     [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
     sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]) + C.divisor(pts[5])*10; D
-    -(z, x) + 3*(y, x) + 10*(z + y, 2*z + x)
+    10*(z + y, 2*z + x) + 3*(y, x) - (z, x)
     sage: D[1][0]
     3
     sage: D[1][1]
     Ideal (y, x) of Polynomial Ring in x, y, z over Finite Field of size 5
     sage: C.divisor([(3, pts[0]), (-1, pts[1]), (10,pts[5])])
-    -(z, x) + 3*(y, x) + 10*(z + y, 2*z + x)
+    10*(z + y, 2*z + x) + 3*(y, x) - (z, x)
 """
 #*******************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
@@ -85,12 +85,12 @@ class Divisor_generic(FormalSum):
         Return the scheme that this divisor is on.
 
         EXAMPLES:
-            sage: x, y = AffineSpace(2, GF(5), names='x,y').gens()
+            sage: A.<x, y> = AffineSpace(2, GF(5))
             sage: C = Curve(y^2 - x^9 - x)
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]); D
-            3*(y, x) - (3 + y, 3 + x)
+            -(3 + y, 3 + x) + 3*(y, x)
             sage: D.scheme()
             Affine Curve over Finite Field of size 5 defined by y^2 + 4*x + 4*x^9
         """
@@ -127,7 +127,7 @@ class Divisor_curve(Divisor_generic):
         sage: E.divisor([P, P])
         2*(y, x)
         sage: E.divisor([(3,P), (-4,5*P)])
-        3*(y, x) - 4*(5/8*z + y, -1/4*z + x)
+        -4*(5/8*z + y, -1/4*z + x) + 3*(y, x)
     """
     def __init__(self, v, check=True, reduce=True, parent=None):
         """
@@ -164,9 +164,13 @@ class Divisor_curve(Divisor_generic):
             else:
                 raise TypeError, \
                       "Argument v (= %s) must consist of multiplicities and points on a scheme."
+        else:
+            if not isinstance(parent, divisor_group.DivisorGroup_curve):
+                raise TypeError, "parent (of type %s) must be a DivisorGroup_curve"%type(parent)
+            C = parent.scheme()
 
         if len(v) < 1:
-            raise ValueError, "v (=%s) must have length at least 1"%v
+            check = False
         know_points = False
         if check:
             w = []
@@ -209,7 +213,7 @@ class Divisor_curve(Divisor_generic):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1, pts[1])]); D
-            3*(y, x) - (3 + y, 3 + x)
+            -(3 + y, 3 + x) + 3*(y, x)
             sage: D.support()
             [(0, 0), (2, 2)]
         """
@@ -232,7 +236,7 @@ class Divisor_curve(Divisor_generic):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
-            3*(y, x) - (3 + y, 3 + x)
+            -(3 + y, 3 + x) + 3*(y, x)
             sage: D.coeff(pts[0])
             3
             sage: D.coeff(pts[1])

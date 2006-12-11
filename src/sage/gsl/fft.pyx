@@ -1,9 +1,34 @@
 """
-Fast Fourier Transforms
+Fast Fourier Transforms using GSL.
+
+
+AUTHORS:
+    William Stein (2006-9) - initial file (radix2)
+    D. Joyner (2006-10) - Minor modifications (from radix2 to general case
+                          and some documentation).
+
 """
+
+#*****************************************************************************
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+include '../ext/stdsage.pxi'
 
 import sage.plot.all
 import sage.libs.pari.all
+from sage.rings.integer import Integer
 
 def FastFourierTransform(size, base_ring=None):
     """
@@ -12,29 +37,29 @@ def FastFourierTransform(size, base_ring=None):
         sage: for i in range(1, 11):
         ...    a[i] = 1
         ...    a[128-i] = 1
-        sage.: show(plot(a), ymin=0)
+        sage: a.plot().save('a.png', ymin=0)
         sage: a.forward_transform()
-        sage.: show(plot(a))
+        sage: a.plot().save('a.png')
     """
-    return FastFourierTransform_radix2_complex(size)
+    return FastFourierTransform_complex(int(size))
 
 FFT = FastFourierTransform
 
 cdef class FastFourierTransform_base:
     pass
 
-cdef class FastFourierTransform_radix2_complex(FastFourierTransform_base):
+cdef class FastFourierTransform_complex(FastFourierTransform_base):
 
     def __init__(self, size_t n, size_t stride=1):
         self.n = n
         self.stride = stride
-        self.data = <double*> PyMem_Malloc(sizeof(double)*(2*n))
+        self.data = <double*> sage_malloc(sizeof(double)*(2*n))
         cdef int i
         for i from 0 <= i < 2*n:
             self.data[i] = 0
 
     def  __dealloc__(self):
-        PyMem_Free(self.data)
+        sage_free(self.data)
 
     def __len__(self):
         return self.n
@@ -124,20 +149,91 @@ cdef class FastFourierTransform_radix2_complex(FastFourierTransform_base):
     def forward_transform(self):
         """
         Compute the in-place forward Fourier transform of this data
-        using the Cooley-Tukey algorithm.
+        using the Cooley-Tukey algorithm. If the number of sample
+        points in the input is a power of 2 then the function
+        gsl_fft_complex_radix2_forward is automatically called.
+        Otherwise, gsl_fft_complex_forward is called.
         """
-        gsl_fft_complex_radix2_forward(self.data, self.stride, self.n)
+        cdef gsl_fft_complex_wavetable * wt
+        cdef gsl_fft_complex_workspace * mem
+        N = Integer(self.n)
+        e = N.exact_log(2)
+        if N==2**e:
+            gsl_fft_complex_radix2_forward(self.data, self.stride, self.n)
+        if N!=2**e:
+            #cdef gsl_fft_complex_wavetable * wt
+            #cdef gsl_fft_complex_workspace * mem
+            mem = gsl_fft_complex_workspace_alloc(self.n)
+            wt = gsl_fft_complex_wavetable_alloc(self.n)
+            gsl_fft_complex_forward(self.data, self.stride, self.n, wt, mem)
+            gsl_fft_complex_workspace_free(mem)
+            gsl_fft_complex_wavetable_free(wt)
 
+    def inverse_transform(self):
+        """
+        Compute the in-place forward Fourier transform of this data
+        using the Cooley-Tukey algorithm. If the number of sample
+        points in the input is a power of 2 then the function
+        gsl_fft_complex_radix2_inverse is automatically called.
+        Otherwise, gsl_fft_complex_inverse is called.
 
+        EXAMPLES:
+            sage: a = FastFourierTransform(125)
+            sage: b = FastFourierTransform(125)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.inverse_transform()
+            sage: (a.plot()+b.plot()).save('a.png', ymin=0)
+        """
+        cdef gsl_fft_complex_wavetable * wt
+        cdef gsl_fft_complex_workspace * mem
+        N = Integer(self.n)
+        e = N.exact_log(2)
+        if N==2**e:
+            print 1
+            gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
+            print 2
+        if N!=2**e:
+            mem = gsl_fft_complex_workspace_alloc(self.n)
+            wt = gsl_fft_complex_wavetable_alloc(self.n)
+            gsl_fft_complex_inverse(self.data, self.stride, self.n, wt, mem)
+            gsl_fft_complex_workspace_free(mem)
+            gsl_fft_complex_wavetable_free(wt)
 
+    def backward_transform(self):
+        """
+        Compute the in-place backwards Fourier transform of this data
+        using the Cooley-Tukey algorithm. This is the same as "inverse"
+        but lacks normalization so that backwards*forwards(f) = n*f.
 
+        EXAMPLES:
+            sage: a = FastFourierTransform(125)
+            sage: b = FastFourierTransform(125)
+            sage: for i in range(1, 60): a[i]=1
+            sage: for i in range(1, 60): b[i]=1
+            sage: a.forward_transform()
+            sage: a.backward_transform()
+            sage: (a.plot()+b.plot()).save('a.png', ymin=0)
 
+        """
+        cdef gsl_fft_complex_wavetable * wt
+        cdef gsl_fft_complex_workspace * mem
+        N = Integer(self.n)
+        e = N.exact_log(2)
+        if N==2**e:
+            gsl_fft_complex_backward(self.data, self.stride, self.n, wt, mem)
+        if N!=2**e:
+            mem = gsl_fft_complex_workspace_alloc(self.n)
+            wt = gsl_fft_complex_wavetable_alloc(self.n)
+            gsl_fft_complex_backward(self.data, self.stride, self.n, wt, mem)
+            gsl_fft_complex_workspace_free(mem)
+            gsl_fft_complex_wavetable_free(wt)
 
 cdef class FourierTransform_complex:
     pass
 
-cdef class FourierTransform_radix2_real:
-    pass
-
 cdef class FourierTransform_real:
     pass
+
+

@@ -575,3 +575,19 @@ def lprint():
 
 
 
+def latex_variable_name(x):
+    """
+    Return latex version of a variable name.
+
+    The rule is this:
+        x393 --> x_{393}
+    I.e., always replace the last numeric part by _{number}.
+    """
+    import re
+    # * The "\d" means "decimal digit"
+    # * The "+" means "1 or more"
+    # * The "$" means "at the end of the line"
+    m = re.search('\d+$',v)
+    if m is None:
+        return x
+    return '%s_{%s}'%(x[:m.start()], x[m.start():])

@@ -16,6 +16,9 @@ AUTHORS:
 ##############################################################################
 
 from sage.groups.group_homset import GroupHomset_generic
+from sage.categories.homset import HomsetWithBase
+from sage.categories.category import Groups
+GROUPS = Groups()
 
 import matrix_group_morphism
 
@@ -23,6 +26,9 @@ def is_MatrixGroupHomset(x):
     return isinstance(x, MatrixGroupHomset)
 
 class MatrixGroupHomset(GroupHomset_generic):
+    def __init__(self, G, H):
+        HomsetWithBase.__init__(self, G, H, GROUPS, G.base_ring())
+
     def __call__(self, im_gens, check=True):
         """
         EXAMPLES:

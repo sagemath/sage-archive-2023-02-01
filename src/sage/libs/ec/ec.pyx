@@ -1,4 +1,4 @@
-include "interrupt.pxi"
+include "../../ext/interrupt.pxi"
 
 ctypedef unsigned long ulong
 

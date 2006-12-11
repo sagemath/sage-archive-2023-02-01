@@ -34,6 +34,8 @@ You can construct the following permutation groups:
 
 -- Mathieu groups, of degrees 9, 10, 11, 12, 21, 22, 23, or 24.
 
+-- KleinFourGroup, subgroup of $S_4$ of order $4$ which is not $C_2 \times C_2$
+
 -- PGL(n,q), projective general linear group of $n\times n$ matrices over
              the finite field GF(q)
 
@@ -50,6 +52,8 @@ You can construct the following permutation groups:
 -- PGU(n,q), projective general unitary group of $n\times n$ matrices having
              coefficients in the finite field $GF(q^2)$ that respect a
              fixed nondegenerate sesquilinear form, modulo the centre.
+
+-- Suzuki(q), Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$.
 
 -- direct_product_permgroups, which takes a list of permutation
              groups and returns their direct product.
@@ -73,6 +77,9 @@ AUTHOR:
     - David Joyner (2006-08): added degree, ramification_module_decomposition_modular_curve
                               and ramification_module_decomposition_hurwitz_curve
                               methods to PSL(2,q), MathieuGroup, is_isomorphic
+    - Bobby Moretti (2006)-10): Added KleinFourGroup, fixed bug in DihedralGroup
+    - David Joyner (2006-10): added is_subgroup (fixing a bug found by Kiran Kedlaya),
+                              is_solvable, normalizer, is_normal_subgroup, Suzuki
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -80,12 +87,13 @@ REFERENCES:
     Dixon, J. and Mortimer, B., Permutation Groups, Springer-Verlag, Berlin/New York, 1996.
 
 TODO:
-  Wrap Suzuki groups, Ree groups (using IsPermGroup filter)
+  Wrap Ree groups (using IsPermGroup filter)?
 
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#                          David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
@@ -104,6 +112,9 @@ from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 import sage.structure.coerce as coerce
 from sage.rings.finite_field import GF
+from sage.rings.arith import factor
+from sage.groups.abelian_gps.abelian_group import AbelianGroup
+from sage.misc.functional import is_even, log
 
 def gap_format(x):
     """
@@ -240,8 +251,6 @@ class PermutationGroup_generic(group.FiniteGroup):
             ...
             TypeError: permutation (1,2) not in Permutation Group with generators [(1,2,3,4)]
         """
-        if isinstance(x, (int, long, Integer)) and x == 1:
-            return self.identity()
         if isinstance(x, PermutationGroupElement):
             if x.parent() is self:
                 return x
@@ -251,8 +260,19 @@ class PermutationGroup_generic(group.FiniteGroup):
             return PermutationGroupElement(x, self, check = True)
         elif isinstance(x, tuple):
             return PermutationGroupElement([x], self, check = True)
+        elif isinstance(x, (int, long, Integer)) and x == 1:
+            return self.identity()
         else:
             raise TypeError, "unable to coerce %s to permutation in %s"%(x, self)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, PermutationGroupElement):
+            if x.parent() is self:
+                return x
+            elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
+                return PermutationGroupElement(x._gap_(), self, check = False)
+        else:
+            raise TypeError
 
     def list(self):
         """
@@ -389,7 +409,12 @@ class PermutationGroup_generic(group.FiniteGroup):
             sage: G.largest_moved_point()
             10
         """
-        return self._gap_().LargestMovedPoint()
+        try:
+            return self.__largest_moved_point
+        except AttributeError:
+            n = int(self._gap_().LargestMovedPoint())
+        self.__largest_moved_point = n
+        return n
 
     def smallest_moved_point(self):
         """
@@ -604,7 +629,7 @@ class PermutationGroup_generic(group.FiniteGroup):
             [ 4  2  0  1 -1  0 -1]
             [ 1  1  1  1  1  1  1]
             sage: list(AlternatingGroup(6).character_table())
-            [(1, 1, 1, 1, 1, 1, 1), (5, 1, -1, 2, -1, 0, 0), (5, 1, 2, -1, -1, 0, 0), (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2), (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1), (9, 1, 0, 0, 1, -1, -1), (10, -2, 1, 1, 0, 0, 0)]
+            [(1, 1, 1, 1, 1, 1, 1), (5, 1, 2, -1, -1, 0, 0), (5, 1, -1, 2, -1, 0, 0), (8, 0, -1, -1, 0, zeta5^3 + zeta5^2 + 1, -zeta5^3 - zeta5^2), (8, 0, -1, -1, 0, -zeta5^3 - zeta5^2, zeta5^3 + zeta5^2 + 1), (9, 1, 0, 0, 1, -1, -1), (10, -2, 1, 1, 0, 0, 0)]
 
         Suppose that you have a class function $f(g)$ on $G$ and you
         know the values $v_1, ..., v_n$ on the conjugacy class
@@ -704,6 +729,51 @@ class PermutationGroup_generic(group.FiniteGroup):
             return not(gap.eval("x")=="fail")
         return not(gap.eval("x")=="fail")
 
+    def is_normal(self,other):
+        """
+        Return True if the group self is a normal subgroup of other.
+
+        EXAMPLES:
+            sage: G = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: H = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
+            sage: G.is_normal(H)
+            True
+
+        """
+        t = self._gap_().IsNormal(other._gap_())
+        return t.bool()
+
+    def is_solvable(self):
+        """
+        Returns True if the group is solvable.
+
+        EXAMPLES:
+            sage: G = PermutationGroup(['(1,2,3)(4,5)'])
+            sage: G.is_solvable()
+            true
+
+        """
+        ans = self._gap_().IsSolvableGroup()
+        return ans
+
+    def is_subgroup(self,other):
+        """
+        Returns true if self is a subgroup of other.
+
+        EXAMPLES:
+            sage: G = AlternatingGroup(5)
+            sage: H = SymmetricGroup(5)
+            sage: G.is_subgroup(H)
+            True
+        """
+        G = other
+        gens = self.gens()
+        for i in range(len(gens)):
+            x = gens[i]
+            if not (G.has_element(x)):
+                return False
+        return True
+
     def conjugacy_classes_representatives(self):
         """
         Returns a complete list of representatives of conjugacy classes
@@ -730,6 +800,47 @@ class PermutationGroup_generic(group.FiniteGroup):
         return [PermutationGroupElement(L[i], self, check=False) \
                 for i in range(1,n+1)]
 
+    def conjugacy_classes_subgroups(self):
+        """
+        Returns a complete list of representatives of conjugacy classes
+        of subgroups in a permutation group G. The ordering is that given by GAP.
+
+        EXAMPLES:
+            sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
+            sage: cl = G.conjugacy_classes_subgroups()
+            sage: cl[3]
+            Group([ (2,4) ])
+
+            sage: G = SymmetricGroup(3)
+            sage: G.conjugacy_classes_subgroups()
+            [Group(()), Group([ (2,3) ]), Group([ (1,2,3) ]), Group([ (1,3,2), (1,2) ])]
+
+        AUTHOR: David Joyner (2006-10)
+        """
+        G = self._gap_()
+        cl = G.ConjugacyClassesSubgroups()
+        n = int(cl.Length())
+        L = gap("List([1..Length(%s)], i->Representative(%s[i]))"%(
+            cl.name(),  cl.name()))
+        return [PermutationGroupElement(L[i], self, check=False) \
+                for i in range(1,n+1)]
+
+    def normalizer(self,g):
+        """
+        Returns the normalizer of g in self.
+
+        EXAMPLES:
+            sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
+            sage: g = G.random()
+            sage: G.normalizer(g)  ## random output
+            Group([ (2,4), (1,3) ])
+            sage: g = G([(1,2,3,4)])
+            sage: G.normalizer(g)
+            Group([ (1,2,3,4), (1,3)(2,4), (2,4) ])
+
+        """
+        N = self._gap_().Normalizer(str(g))
+        return N
 
 def direct_product_permgroups(P):
     """
@@ -898,6 +1009,10 @@ class CyclicPermutationGroup(PermutationGroup_generic):
         sage: C = CyclicPermutationGroup(10)
         sage: C.is_abelian()
         True
+        sage: C = CyclicPermutationGroup(10)
+        sage: C.as_AbelianGroup()
+        Multiplicative Abelian Group isomorphic to C2 x C5
+
     """
     def __init__(self, n):
         """
@@ -916,6 +1031,19 @@ class CyclicPermutationGroup(PermutationGroup_generic):
 
     def is_abelian(self):
         return True
+
+    def as_AbelianGroup(self):
+	"""
+	Returns the corresponding Abelian Group instance.
+
+	EXAMPLES:
+
+	"""
+	n = self.order()
+        a = list(factor(n))
+        invs = [x[0]**x[1] for x in a]
+        G = AbelianGroup(len(a),invs)
+	return G
 
 class KleinFourGroup(PermutationGroup_generic):
     r"""
@@ -1306,19 +1434,15 @@ class PSU(PermutationGroup_generic):
 
     EXAMPLE:
         sage: PSU(2,3)
-        Permutation Group with generators [(2,9,6)(3,8,10)(4,7,5), (1,2)(5,10)(6,9)(7,8)]
-        sage: print PSU(2,3)
-        The projective special unitary group of degree 2 over Finite
-        Field of size 3 (matrix representation has coefficients in
-        Finite Field in a of size 3^2)
+        The projective special unitary group of degree 2 over Finite Field of size 3
     """
-    def __init__(self, n, q):
+    def __init__(self, n, q, var='a'):
         id = 'PSU(%s,%s)'%(n,q)
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
         self._base_ring = GF(q)
-        self._field_of_definition = GF(q**2)
+        self._field_of_definition = GF(q**2, var)
         self._n = n
 
     def field_of_definition(self):
@@ -1327,8 +1451,8 @@ class PSU(PermutationGroup_generic):
     def base_ring(self):
         return self._base_ring
 
-    def __str__(self):
-        return "The projective special unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+    def _repr_(self):
+        return "The projective special unitary group of degree %s over %s"%(self._n, self.base_ring())
 
 class PGU(PermutationGroup_generic):
     """
@@ -1343,17 +1467,15 @@ class PGU(PermutationGroup_generic):
 
     EXAMPLE:
         sage: PGU(2,3)
-        Permutation Group with generators [(3,4)(5,8)(6,9)(7,10), (1,2,6)(3,7,10)(4,8,5)]
-        sage: print PGU(2,3)
-        The projective general unitary group of degree 2 over Finite Field of size 3 (matrix representation has coefficients in Finite Field in a of size 3^2)
+        The projective general unitary group of degree 2 over Finite Field of size 3
     """
-    def __init__(self, n, q):
+    def __init__(self, n, q, var='a'):
         id = 'PGU(%s,%s)'%(n,q)
         PermutationGroup_generic.__init__(self, id,
                                           from_group=True, check=False)
         self._q = q
         self._base_ring = GF(q)
-        self._field_of_definition = GF(q**2)
+        self._field_of_definition = GF(q**2, var)
         self._n = n
 
     def field_of_definition(self):
@@ -1362,10 +1484,85 @@ class PGU(PermutationGroup_generic):
     def base_ring(self):
         return self._base_ring
 
+    def _repr_(self):
+        return "The projective general unitary group of degree %s over %s"%(self._n, self.base_ring())
+
+
+class Suzuki(PermutationGroup_generic):
+    """
+    The Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$. A wrapper for the GAP function SuzukiGroup.
+
+    INPUT:
+        $q = 2^n$ -- an odd power of 2; the size of the ground field. (Strictly speaking, n should be
+	             greater than 1, or else this group os not simple.)
+    OUTPUT:
+        Sz(q)
+
+    EXAMPLE:
+        sage: Suzuki(8)
+        Permutation Group with generators [(1,28,10,44)(3,50,11,42)(4,43,53,64)(5,9,39,52)(6,36,63,13)(7,51,60,57)(8,33,
+        37,16)(12,24,55,29)(14,30,48,47)(15,19,61,54)(17,59,22,62)(18,23,34,31)(20,38,
+        49,25)(21,26,45,58)(27,32,41,65)(35,46,40,56), (1,2)(3,10)(4,42)(5,18)(6,50)(7,26)(8,58)(9,34)(12,28)(13,45)(14,44)(15,
+        23)(16,31)(17,21)(19,39)(20,38)(22,25)(24,61)(27,60)(29,65)(30,55)(32,33)(35,
+        52)(36,49)(37,59)(40,54)(41,62)(43,53)(46,48)(47,56)(51,63)(57,64)]
+        sage: print Suzuki(8)
+        The Suzuki group over Finite Field in a of size 2^3
+
+
+    REFERENCES:
+        http://en.wikipedia.org/wiki/Group_of_Lie_type#Suzuki-Ree_groups
+    """
+    def __init__(self, q, var='a'):
+	if is_even(round(log(q,2))):
+	    raise ValueError,"The ground field size %s must be an odd power of 2."%q
+        id = 'SuzukiGroup(IsPermGroup,%s)'%q
+        PermutationGroup_generic.__init__(self, id,
+                                          from_group=True, check=False)
+        self._q = q
+        self._base_ring = GF(q, var)
+
+    def base_ring(self):
+        return self._base_ring
+
     def __str__(self):
-        return "The projective general unitary group of degree %s over %s\n (matrix representation has coefficients in %s)"%(self._n, self.base_ring(), self.field_of_definition())
+        return "The Suzuki group over %s"%self.base_ring()
 
+"""
+class Ree(PermutationGroup_generic):
+    #
+    #The Ree group over GF(q), $^2 G_2(3^{2k+1}) = Ree(3^{2k+1})$. A wrapper for the GAP function ReeGroup.
+    #
+    #INPUT:
+    #    q = 3^n -- an odd power of 3; the size of the ground field. (Strictly speaking, n should be
+    #	             greater than 1, or else this group os not simple.)
+    #
+    #OUTPUT:
+    #    Ree(q)
+    #
+    #EXAMPLE:
+    #    sage: Ree(27)
+    #    ???
+    #    sage: print Ree(27)
+    #    ???
+    #
+    #REFERENCES:
+    #    http://en.wikipedia.org/wiki/Group_of_Lie_type#Suzuki-Ree_groups
+    #
+    def __init__(self, q):
+	if is_even(int(log(q,3))):
+	    raise ValueError,"The ground field size %s must be an odd power of 3."%q
+	id = 'ReeGroup(IsPermGroup,%s)'%q   ######## It appears IsPermGroup
+	                                    ######## has not been implemented in GAP yet!
+        PermutationGroup_generic.__init__(self, id, from_group=True, check=False)
+        self._q = q
+        self._base_ring = GF(q)
 
+    def base_ring(self):
+        return self._base_ring
+
+    def __str__(self):
+        return "The Ree group over %s"%self.base_ring()
+"""
 
 class PermutationGroup_subgroup(PermutationGroup_generic):
     """
@@ -1462,7 +1659,32 @@ class PermutationGroup_subgroup(PermutationGroup_generic):
         """
         return self.__gens
 
+    def is_normal(self):
+	"""
+	Returns True if self is normal in ambient_group.
 
+       EXAMPLES:
+
+       """
+        amb = self.ambient_group()
+        U = self._gap_init_()
+        G = amb._gap_init_()
+        return gap.eval("IsNormal("+G+","+U)
+
+    def is_subgroup(self,ambient):
+        """
+        Returns true if self is a subgroup of ambient.
+
+        EXAMPLES:
+
+        """
+        G = ambient
+        gens = self.gens()
+        for i in range(len(gens)):
+            x = gens[i]
+            if not (G.has_element(x)):
+                return 0
+        return 1
 
 
 

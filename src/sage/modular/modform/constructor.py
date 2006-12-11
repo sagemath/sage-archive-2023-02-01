@@ -104,7 +104,7 @@ def ModularForms(group  = 1,
         6
         sage: M = ModularForms(e, 2); M
         ???
-        sage: f = M.T(2).charpoly(); f
+        sage: f = M.T(2).charpoly('x'); f
         ???
         sage: f.factor()
         ???
@@ -114,11 +114,11 @@ def ModularForms(group  = 1,
         [-1]
         sage: m = ModularForms(e, 2); m
         ???
-        sage: m.T(2).charpoly()
+        sage: m.T(2).charpoly('x')
         x^2 - 1
         sage: m = ModularForms(e, 6); m.dimension()
         6
-        sage: m.T(2).charpoly()
+        sage: m.T(2).charpoly('x')
         x^6 - 873*x^4 - 82632*x^2 - 1860496
     """
     if isinstance(group, dirichlet.DirichletCharacter):

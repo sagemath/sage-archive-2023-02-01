@@ -27,7 +27,6 @@ The following axes types are supported:
 from math import floor, log
 from sage.misc.misc import srange
 from sage.structure.sage_object import SageObject
-import matplotlib.patches as patches
 
 class Axes(SageObject):
     """
@@ -246,6 +245,7 @@ class Axes(SageObject):
         return oppaxis, step, tslminor, tslmajor
 
     def _draw_axes(self, subplot, axes, xmin, xmax, ymin, ymax, x_axis_ypos, y_axis_xpos):
+        from matplotlib import patches
         if isinstance(axes, (list, tuple)) and len(axes) == 2 and \
         (axes[0] in [True, False]) and (axes[1] in [True, False]):
             self.__draw_x_axis = axes[0]
@@ -300,6 +300,7 @@ class Axes(SageObject):
         xlabel : "where the xlabel is drawn"
 
         """
+        from matplotlib import patches
         xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
         yspan = ymax - ymin
         xspan = xmax - xmin
@@ -362,6 +363,7 @@ class Axes(SageObject):
         Draw a frame around a graphic at the given
         (scaled out) x and y min and max values.
         """
+        from matplotlib import patches
         #border horizontal axis:
         #bottom:
         subplot.add_line(patches.Line2D([xmins, xmaxs], [ymins, ymins],
@@ -389,6 +391,7 @@ class Axes(SageObject):
         centered axes with no tick marks.
 
         """
+        from matplotlib import patches
         xmin = float(xmin); xmax=float(xmax); ymin=float(ymin); ymax=float(ymax)
         yspan = ymax - ymin
         xspan = xmax - xmin
@@ -466,6 +469,7 @@ class Axes(SageObject):
         the ith row and jth column of the matrix.
 
         """
+        from matplotlib import patches
         xmax = int(xmax)
         ymax = int(ymax)
 

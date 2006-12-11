@@ -623,9 +623,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 return
         try:
             if path[-11:] == 'favicon.ico':
-                binfile = self.favicon()
+                binfile = open(SAGE_EXTCODE + "/images/favicon.ico", 'rb').read()
             elif path[-10:] == 'corner.png':
-                binfile = self.corner_image()
+                binfile = open(SAGE_EXTCODE + "/images/corner.png", 'rb').read()
+            elif path[-12:] == 'sagelogo.png':
+                binfile = open(SAGE_EXTCODE + "/images/sagelogo.png", 'rb').read()
             elif path[:7] == 'jsmath/':
                 binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
             else:

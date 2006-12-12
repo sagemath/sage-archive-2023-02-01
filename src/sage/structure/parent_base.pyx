@@ -42,7 +42,8 @@ cdef class ParentWithBase(parent.Parent):
 
     # Derived class *must* define base_extend.
     def base_extend(self, X):
-        raise TypeError, "base extension not defined"
+        raise TypeError, "BUG: the base_extend method must be defined for the class '%s' of '%s'"%(
+            type(X), X)
 
     def base(self):
         return self._base

@@ -128,6 +128,11 @@ cdef class Ring(ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
+    def base_extend(self, R):
+        if R.has_coerce_map_from(self):
+            return R
+        raise TypeError, 'no base extension defined'
+
     def category(self):
         """
         Return the category to which this ring belongs.

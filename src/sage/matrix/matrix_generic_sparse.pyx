@@ -66,6 +66,8 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
     defines functionality for sparse matrices over any base ring.  A
     generic sparse matrix is represented using a dictionary with keys
     pairs $(i,j)$ and values in the base ring.
+
+    The values of the dictionary must never be zero.
     """
     ########################################################################
     # LEVEL 1 functionality
@@ -117,22 +119,36 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
 
         if coerce:
             try:
+                v = {}
                 for k, x in entries.iteritems():
-                    entries[k] = R(x)
+                    w = R(x)
+                    if w != 0:
+                        v[k] = w
             except TypeError:
                 raise TypeError, "Unable to coerce entries to %s"%R
-        elif copy:
-            # Make a copy
-            entries = dict(entries)
+        else:
+            if copy:
+                # Make a copy
+                entries = dict(entries)
+            for k in entries.keys():
+                if entries[k].is_zero():
+                    del entries[k]
 
         self._entries = entries
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        # TODO: make faster with Python/C API
-        self._entries[(int(i),int(j))] = value
+        # TODO: maybe make faster with Python/C API
+        k = (int(i),int(j))
+        if value.is_zero():
+            try:
+                del self._entries[k]
+            except KeyError:
+                pass
+        else:
+            self._entries[k] = value
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        # TODO: make faster with Python/C API
+        # TODO: maybe make faster with Python/C API
         try:
             return self._entries[(int(i),int(j))]
         except KeyError:
@@ -221,7 +237,9 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
                 s[wj] = w[j][1]
                 j = j + 1
             else:  # equal
-                s[vi] = v[i][1] + w[j][1]
+                sm = v[i][1] + w[j][1]
+                if not sm.is_zero():
+                    s[vi] = sm
                 i = i + 1
                 j = j + 1
         while i < len(v):

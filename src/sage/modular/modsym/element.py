@@ -135,8 +135,9 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             A = self.parent()
             v = self.element()
             manin_symbols = A.ambient_hecke_module().manin_symbols_basis()
-            ms = formal_sum.FormalSum([(v[i], manin_symbols[i]) for i in \
-                  range(v.degree()) if v[i] != 0], check=False)
+            F = formal_sum.FormalSums(A.base_ring())
+            ms = F([(v[i], manin_symbols[i]) for i in \
+                  range(v.degree()) if v[i] != 0], check=False, reduce=False)
             self.__manin_symbols = ms
         return self.__manin_symbols
 
@@ -150,10 +151,11 @@ class ModularSymbolsElement(hecke.HeckeModuleElement):
             return self.__modular_symbols
         except AttributeError:
             A = self.parent()
-            s = formal_sum.FormalSum([])
-            for c, x in self.manin_symbol_rep():
-                s += x.modular_symbol_rep()*c
-            self.__modular_symbols = s
+            v = self.manin_symbol_rep()
+            if v == 0:
+                return v
+            w = [c * x.modular_symbol_rep() for c, x in v]
+            return sum(w)
         return self.__modular_symbols
 
 

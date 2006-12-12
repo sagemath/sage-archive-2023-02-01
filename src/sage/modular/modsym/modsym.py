@@ -83,10 +83,10 @@ def canonical_parameters(group, weight, sign, base_ring):
     elif isinstance(group, dirichlet.DirichletCharacter):
         try:
             eps = group.minimize_base_ring()
-            G = eps.parent()
-            group = (eps, G)
         except NotImplementedError:  # todo -- implement minimize_base_ring over finite fields
-            pass
+            eps = group
+        G = eps.parent()
+        group = (eps, G)
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring

@@ -800,6 +800,10 @@ class HG:
         """
         if url is None:
             url = self.__url
+
+        # make sure that we don't accidentally create a file ending in '.hg.hg'
+        if filename[-3:] == '.hg':
+            filename = filename[:-3]
         # We write to a local tmp file, then move, since unders
         # windows hg has a bug that makes it fail to write
         # to any filename that is at all complicated!

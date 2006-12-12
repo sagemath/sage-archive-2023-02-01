@@ -265,7 +265,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
             sage: T.fcp('x')
-            (x^2 - 5)^2 * (x - 4)
+            (x - 4) * (x^2 - 5)^2
             sage: T.kernel()
             Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
             sage: (T-4).kernel()
@@ -300,8 +300,6 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             return sage.rings.coerce.cmp(self, other)
         c = cmp(self.parent(), other.parent())
         if c: return c
-        if self.__n == other.__n:
-            return 0
         return cmp(self.__matrix, other.__matrix)
 
     def _repr_(self):

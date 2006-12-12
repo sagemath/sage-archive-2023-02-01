@@ -685,13 +685,17 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: hash(GF(3,'b'))
-            904200654
+            904200654                      # 32-bit
+            -586939294780423730            # 64-bit
             sage: hash(GF(3,'a'))
-            904200654
+            904200654                      # 32-bit
+            -586939294780423730            # 64-bit
             sage: hash(GF(9,'a'))
-            205387690
+            205387690                      # 32-bit
+            -8785304532306495574           # 64-bit
             sage: hash(GF(9,'b'))
-            -74532899
+            -74532899                      # 32-bit
+            5852897890058287069            # 64-bit
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 

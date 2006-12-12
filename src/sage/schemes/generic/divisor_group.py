@@ -10,7 +10,7 @@ AUTHORS:
 
 from sage.groups.group import AbelianGroup
 from divisor import Divisor_curve
-from sage.structure.formal_sum import FormalSums
+from sage.structure.formal_sum import FormalSums_generic
 from sage.rings.integer_ring import ZZ
 import weakref
 
@@ -34,9 +34,9 @@ def DivisorGroup(scheme, value_ring=None):
     _DivisorGroup_cache[key] = weakref.ref(DG)
     return DG
 
-class DivisorGroup_generic(FormalSums):
+class DivisorGroup_generic(FormalSums_generic):
     def __init__(self, scheme, value_ring):
-        FormalSums.__init__(self)
+        FormalSums_generic.__init__(self)
         self.__scheme = scheme
         self.__value_ring = value_ring
 

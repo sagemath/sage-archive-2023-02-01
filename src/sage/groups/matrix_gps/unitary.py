@@ -1,5 +1,5 @@
 r"""
- Unitary Groups $GU(n,q)$ and $SU(n,q)$
+Unitary Groups $GU(n,q)$ and $SU(n,q)$
 
 These are $n \times n$ unitary matrices with entries in $GF(q^2)$.
 

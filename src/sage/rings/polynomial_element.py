@@ -1376,16 +1376,16 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         EXAMPLES:
             sage: R.<y> = ZZ[]
             sage: f = y^3 - 17*y + 5
-            sage: g = magma(f); g
+            sage: g = magma(f); g              # optional -- requires Magma
             y^3 - 17*y + 5
 
         Note that in Magma there is only one polynomial ring over each base,
         so if we make the polynomial ring over ZZ with variable $z$, then
         this changes the variable name of the polynomial we already defined:
             sage: R.<z> = ZZ[]
-            sage: magma(R)
+            sage: magma(R)                     # optional -- requires Magma
             Univariate Polynomial Ring in z over Integer Ring
-            sage: g
+            sage: g                            # optional -- requires Magma
             z^3 - 17*z + 5
 
         In SAGE the variable name does not change:

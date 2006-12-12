@@ -34,7 +34,7 @@ EXAMPLES:
 
 import sage.misc.misc #as repr_lincomb
 
-from sage.structure.all import FormalSum
+from sage.structure.formal_sum import FormalSum
 
 from sage.rings.all import ZZ
 

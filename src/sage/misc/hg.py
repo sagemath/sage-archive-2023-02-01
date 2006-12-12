@@ -800,7 +800,9 @@ class HG:
         # We write to a local tmp file, then move, since unders
         # windows hg has a bug that makes it fail to write
         # to any filename that is at all complicated!
-        filename = os.path.abspath(filename) + '.hg'
+        filename = os.path.abspath(filename)
+        if filename[-3:] != '.hg':
+            filename += '.hg'
         print 'Writing to %s'%filename
         tmpfile = '%s/tmphg'%self.__dir
         if os.path.exists(tmpfile):

@@ -18,6 +18,16 @@ EXAMPLES:
     [
     [1 0]
     [0 1],
+    [0 1]
+    [2 1],
+    [0 1]
+    [2 2],
+    [0 2]
+    [1 1],
+    [0 2]
+    [1 2],
+    [0 1]
+    [2 0],
     [2 0]
     [0 2]
     ]
@@ -480,47 +490,19 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
 
         EXAMPLES:
             sage: G = SU(3,GF(2))
-            sage: G.conjugacy_class_representatives()
-            [
-            [1 0 0]
-            [0 1 0]
-            [0 0 1],
-            [a 0 0]
-            [0 a 0]
-            [0 0 a],
-            [a + 1     0     0]
-            [    0 a + 1     0]
-            [    0     0 a + 1]
-            ]
-            sage: GL(2,GF(3)).conjugacy_class_representatives()
-            [
-            [1 0]
-            [0 1],
-            [2 0]
-            [0 2]
-            ]
-            sage: GU(2,GF(5)).conjugacy_class_representatives()
-            [
-            [1 0]
-            [0 1],
-            [4 0]
-            [0 4],
-            [2*a + 2       0]
-            [      0 2*a + 2],
-            [2*a + 1       0]
-            [      0 2*a + 1],
-            [3*a + 3       0]
-            [      0 3*a + 3],
-            [3*a + 4       0]
-            [      0 3*a + 4]
-            ]
+            sage: len(G.conjugacy_class_representatives())
+            16
+            sage: len(GL(2,GF(3)).conjugacy_class_representatives())
+            8
+            sage: len(GU(2,GF(5)).conjugacy_class_representatives())
+            36
         """
         try:
             return self.__reps
         except AttributeError:
             pass
         from matrix_group_element import MatrixGroupElement
-        G    = self._gap_().Center().ConjugacyClasses()
+        G    = self._gap_().ConjugacyClasses()
         reps = list(gap.List(G, 'x -> Representative(x)'))
         F    = self.field_of_definition()
         self.__reps = Sequence([self(g._matrix_(F)) for g in reps], cr=True, universe=self, check=False)

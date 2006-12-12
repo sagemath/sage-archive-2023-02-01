@@ -577,6 +577,8 @@ cdef class FiniteField_givaro(FiniteField):
         cdef int res
         cdef int g
         cdef int x
+        cdef int e_int
+
 
         ########
 
@@ -592,7 +594,12 @@ cdef class FiniteField_givaro(FiniteField):
              PY_TYPE_CHECK(e, Integer) or \
              PY_TYPE_CHECK(e, long) or is_IntegerMod(e):
             try:
-                res = self.objectptr.initi(res,int(e))
+                e_int = e
+                if e != e_int:       # overflow in Pyrex is often not detected correctly... but this is bullet proof.
+                                     # sometimes it is detected correctly, so we do have to use exceptions though.
+                                     # todo -- be more eloquent here!!
+                    raise OverflowError
+                res = self.objectptr.initi(res,e_int)
             except OverflowError:
                 res = self.objectptr.initi(res,int(e)%int(self.objectptr.characteristic()))
 
@@ -955,7 +962,8 @@ cdef class FiniteField_givaro(FiniteField):
 
         EXAMPLES:
             sage: hash(GF(3^4, 'a'))
-            695660592
+            695660592                 # 32-bit
+            -4281682415996964816      # 64-bit
         """
         if self._hash is None:
             pass

@@ -530,8 +530,8 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             D = [p]
 
         for q in D:
-            if ((N//q) % f) == 0:
-                NN = N//q
+            NN = N//q
+            if NN % f == 0:
                 M = self.hecke_module_of_level(NN)
                 d1 = M.degeneracy_map(N, 1).matrix()
                 if d is None:

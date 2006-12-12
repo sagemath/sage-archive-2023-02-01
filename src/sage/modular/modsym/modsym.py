@@ -36,7 +36,7 @@ a bigger field.  In each case we also decompose the space using $T_2$.
 
 We compute some Hecke operators and do a consistency check:
     sage: m = ModularSymbols(39, 2)
-    sage: t2=m.T(2); t5=m.T(5)
+    sage: t2 = m.T(2); t5 = m.T(5)
     sage: t2*t5 - t5*t2 == 0
     True
 """
@@ -82,9 +82,11 @@ def canonical_parameters(group, weight, sign, base_ring):
 
     elif isinstance(group, dirichlet.DirichletCharacter):
         try:
-            group = group.minimize_base_ring()
+            eps = group.minimize_base_ring()
         except NotImplementedError:  # todo -- implement minimize_base_ring over finite fields
-            pass
+            eps = group
+        G = eps.parent()
+        group = (eps, G)
 
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
@@ -166,7 +168,7 @@ def ModularSymbols(group  = 1,
         sage: f = M.T(2).charpoly('x'); f
         x^4 + (-zeta6 - 1)*x^3 + (-8*zeta6)*x^2 + (10*zeta6 - 5)*x + 21*zeta6 - 21
         sage: f.factor()
-        (x + -zeta6 - 2) * (x + -2*zeta6 - 1) * (x + zeta6 + 1)^2
+        (x + -2*zeta6 - 1) * (x + -zeta6 - 2) * (x + zeta6 + 1)^2
 
     More examples of spaces with character:
         sage: e = DirichletGroup(5, RationalField()).gen(); e
@@ -225,9 +227,8 @@ def ModularSymbols(group  = 1,
 
         M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group, weight, sign, base_ring)
 
-    elif isinstance(group, dirichlet.DirichletCharacter):
-
-        eps = group
+    elif isinstance(group, tuple):
+        eps = group[0]
         M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign)
 
     if M is None:

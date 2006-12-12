@@ -862,8 +862,8 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             raise NotImplementedError
 
     def hecke_module_of_level(self, level):
-        """
-        See the documentation for self.modular_symbols_of_level(level)
+        r"""
+        See the documentation for \code{self.modular_symbols_of_level(level)}.
         """
         return self.modular_symbols_of_level(Integer(level))
 

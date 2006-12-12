@@ -35,6 +35,6 @@ from parent_gens import (ParentWithGens,
                          is_ParentWithMultiplicativeAbelianGens,
                          localvars)
 
-from formal_sum  import FormalSum
+from formal_sum  import FormalSums, FormalSum
 
 from mutability  import Mutability

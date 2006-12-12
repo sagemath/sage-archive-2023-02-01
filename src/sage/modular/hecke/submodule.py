@@ -205,8 +205,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         EXAMPLES:
             sage: D = ModularSymbols(10,4).cuspidal_submodule().decomposition(); D
             [
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
-            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 10 for Gamma_0(10) of weight 4 with sign 0 over Rational Field
             ]
             sage: d = D[1].degeneracy_map(5); d
             Hecke module morphism defined by the matrix

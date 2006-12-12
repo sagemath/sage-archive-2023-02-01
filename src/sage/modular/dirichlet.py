@@ -274,7 +274,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(16)([-1, 1])
             sage: hash(e)
             1498523633                  # 32-bit
-            -8530276723386762305        # 64-bit
+            3713082714464823281         # 64-bit
         """
         return self.element()._hash()
 

@@ -224,7 +224,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def _echelon_in_place_classical(self):
         x = self.fetch('in_echelon_form')
-        if not x is None and x: return  # already known to be in echelon form
+        if not x is None: return  # already known to be in echelon form
 
         self.check_mutability()
 
@@ -498,7 +498,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         # TODO: lots of testing
         return 100
 
-    def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
+    # TODO: TEMPORARILY DISABLED due to bug on 64-bit sage.math:
+    #  A = matrix(Integers(389),4,range(16)); A._echelon_strassen(4)
+    # *** glibc detected *** free(): invalid next size (fast): 0x0000000000fb15e0 ***
+    def xxx_matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
         """
         Return the requested matrix window.

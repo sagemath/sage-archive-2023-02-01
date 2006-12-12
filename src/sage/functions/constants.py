@@ -478,7 +478,7 @@ class Log2(Constant):
         .6931471805599453
         sage: gp(log2)
         0.6931471805599453094172321215             # 32-bit
-        0.69314718055994530941723212145817656808   # 64-bit
+        0.69314718055994530941723212145817656807   # 64-bit
     """
     def __init__(self):
         # TODO: Here you should put a string that *symbolically* evaluates

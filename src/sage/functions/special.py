@@ -75,11 +75,11 @@ They are named after the British astronomer George Biddell Airy.
 Spherical harmonics:
 Laplace's equation in spherical coordinates is:
 \[
-  {1 \over r^2}{\partial \over \partial r}
-  \left(r^2 {\partial f \over \partial r}\right) +
-  {1 \over r^2\sin\theta}{\partial \over \partial \theta}
-  \left(\sin\theta {\partial f \over \partial \theta}\right) +
-  {1 \over r^2\sin^2\theta}{\partial^2 f \over \partial \varphi^2} = 0.
+  {\frac{1}{r^2}}{\frac{\partial}{\partial r}}
+  \left(r^2 {\frac{\partial f}{\partial r}}\right) +
+  {\frac{1}{r^2}\sin\theta}{\frac{\partial}{\partial \theta}}
+  \left(\sin\theta {\frac{\partial f}{\partial \theta}}\right) +
+  {\frac{1}{r^2\sin^2\theta}}{\frac{\partial^2 f}{\partial \varphi^2}} = 0.
 \]
 Note that the spherical coordinates $\theta$
 and $\varphi$ are defined here as follows:
@@ -108,7 +108,7 @@ where the functions $Y$ are the {\it spherical harmonic functions}
 with parameters $\ell$, $m$, which can be written as:
 \[
     Y_\ell^m( \theta , \varphi )
-    = \sqrt{{(2\ell+1)\over 4\pi}{(\ell-m)!\over (\ell+m)!}}
+    = \sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}
       \cdot e^{i m \varphi } \cdot P_\ell^m ( \cos{\theta} ) .
 \]
 

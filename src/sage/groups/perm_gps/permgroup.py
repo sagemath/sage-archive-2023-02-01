@@ -1489,7 +1489,7 @@ class PGU(PermutationGroup_generic):
 
 
 class Suzuki(PermutationGroup_generic):
-    """
+    r"""
     The Suzuki group over GF(q), $^2 B_2(2^{2k+1}) = Sz(2^{2k+1})$. A wrapper for the GAP function SuzukiGroup.
 
     INPUT:
@@ -1510,7 +1510,7 @@ class Suzuki(PermutationGroup_generic):
 
 
     REFERENCES:
-        http://en.wikipedia.org/wiki/Group_of_Lie_type#Suzuki-Ree_groups
+        http://en.wikipedia.org/wiki/Group_of_Lie_type\#Suzuki-Ree_groups
     """
     def __init__(self, q, var='a'):
 	if is_even(round(log(q,2))):

@@ -624,7 +624,7 @@ class MatrixGroup_gens(MatrixGroup_gap):
         return "Matrix group over %s with %s generators: \n %s"%(self.base_ring(), self.ngens(), gns)
 
     def _latex_(self):
-        """
+        r"""
         EXAMPLES:
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
             sage: gens = [MS([[1,2],[-1,1]]),MS([[1,1],[0,1]])]

@@ -119,7 +119,7 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd, interactive=True):
+    def __call__(self, cmd=None, interactive=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
@@ -135,8 +135,11 @@ class HG:
         OUTPUT:
             * If interactive is True, returns the exit code of the system call.
             * If interactive is False, returns the output and error text.
+            * If cmd is not supplied, returns the output of the 'status' command
         """
         self._warning()
+        if cmd is None:
+            cmd = 'status'
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
         if interactive:
@@ -797,6 +800,10 @@ class HG:
         """
         if url is None:
             url = self.__url
+
+        # make sure that we don't accidentally create a file ending in '.hg.hg'
+        if filename[-3:] == '.hg':
+            filename = filename[:-3]
         # We write to a local tmp file, then move, since unders
         # windows hg has a bug that makes it fail to write
         # to any filename that is at all complicated!

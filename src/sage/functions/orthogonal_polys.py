@@ -74,15 +74,15 @@ These satisfy the orthogonality relation
 Each {\it Legendre polynomial} $P_n(x)$ is an $n$-th degree polynomial.
 It may be expressed using Rodrigues' formula:
 \[
-P_n(x) = (2^n n!)^{-1} {d^n \over dx^n } \left[ (x^2 -1)^n \right].
+P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
 \]
 These are solutions to Legendre's differential equation:
 \[
-  {d \over dx} \left[ (1-x^2) {d \over dx} P(x) \right] + n(n+1)P(x) = 0.
+  {\frac{d}{dx}} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0.
 \]
 and satisfy the orthogonality relation
 \[
-  \int_{-1}^{1} P_m(x) P_n(x)\,dx = {2 \over {2n + 1}} \delta_{mn}
+  \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
 \]
 
 The {\it Legendre function of the second kind} $Q_n(x)$ is another
@@ -136,7 +136,7 @@ Rodrigues formula:
 
 \[
   L_n^{(\alpha)}(x)
-  = {x^{-\alpha} e^x \over n!}{d^n \over dx^n} \left(e^{-x} x^{n+\alpha}\right) .
+  = {\frac{x^{-\alpha} e^x}{n!}}{\frac{d^n}{dx^n}} \left(e^{-x} x^{n+\alpha}\right) .
 \]
 (These are also sometimes called the {\it associated Laguerre polynomials}.)
 The simple Laguerre polynomials are recovered from the generalized

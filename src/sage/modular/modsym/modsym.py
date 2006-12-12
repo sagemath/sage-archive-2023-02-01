@@ -82,7 +82,9 @@ def canonical_parameters(group, weight, sign, base_ring):
 
     elif isinstance(group, dirichlet.DirichletCharacter):
         try:
-            group = group.minimize_base_ring()
+            eps = group.minimize_base_ring()
+            G = eps.parent()
+            group = (eps, G)
         except NotImplementedError:  # todo -- implement minimize_base_ring over finite fields
             pass
 
@@ -225,9 +227,8 @@ def ModularSymbols(group  = 1,
 
         M = ambient.ModularSymbolsAmbient_wtk_gamma_h(group, weight, sign, base_ring)
 
-    elif isinstance(group, dirichlet.DirichletCharacter):
-
-        eps = group
+    elif isinstance(group, tuple):
+        eps = group[0]
         M = ambient.ModularSymbolsAmbient_wtk_eps(eps, weight, sign)
 
     if M is None:

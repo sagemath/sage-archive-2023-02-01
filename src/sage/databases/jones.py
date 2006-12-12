@@ -68,6 +68,7 @@ _JONESDATA = "%s/data/src/jones_data/"%sage.misc.misc.SAGE_ROOT
 
 class JonesDatabase(sage.databases.db.Database):
     def __init__(self, read_only=True):
+        print "Currently broken"
         sage.databases.db.Database.__init__(self,
                   name="jones", read_only=read_only)
 
@@ -86,7 +87,7 @@ class JonesDatabase(sage.databases.db.Database):
         S.sort()
         data = open(path + "/" + filename).read()
         data = data.replace("^","**")
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(RationalField(), 'x').gen()
         v = eval(data)
         s = tuple(S)
         if self.root.has_key(s):
@@ -156,6 +157,9 @@ class JonesDatabase(sage.databases.db.Database):
         return Z
 
     def __getitem__(self, S):
+        return self.get(S)
+
+    def get(self, S, var='a'):
         try:
             S = list(S)
         except TypeError:
@@ -164,9 +168,9 @@ class JonesDatabase(sage.databases.db.Database):
         s = tuple(S)
         if not self.root.has_key(s):
             return []
-        return [NumberField(f, check=False) for f in self.root[s]]
+        return [NumberField(f, var, check=False) for f in self.root[s]]
 
-    def ramified_at(self, S, d=None):
+    def ramified_at(self, S, d=None, var='a'):
         """
         Return all fields in the database of degree d ramified
         exactly at the primes in S.
@@ -186,7 +190,7 @@ class JonesDatabase(sage.databases.db.Database):
              Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
              Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
         """
-        Z = self[S]
+        Z = self.get(S, var=var)
         if d == None:
             return Z
         return [k for k in self[S] if k.degree() == d]

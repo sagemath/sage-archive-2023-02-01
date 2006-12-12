@@ -69,7 +69,7 @@ import sage.interfaces.all
 _objsIntegerModRing = {}
 def IntegerModRing(order=0):
     r"""
-    Return the quotient ring $$\ZZ / n\ZZ$.
+    Return the quotient ring $\ZZ / n\ZZ$.
 
     INPUT:
         order -- integer (default: 0)

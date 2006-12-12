@@ -768,7 +768,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##         return s
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of this matrix.
 
         EXAMPLES:

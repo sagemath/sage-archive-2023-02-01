@@ -9,7 +9,7 @@ TODO:
    * additive abelian groups should also be supported.
 
 The basic idea is very simple. Let G be an abelian group and
-G^* its dual (i.e., the group of homomorphisms from G to
+$G^*$ its dual (i.e., the group of homomorphisms from G to
 $\CC^\times$). Let $g_j$, $j=1,..,n$, denote generators of $G$ - say $g_j$
 is of order $m_j>1$. There are generators $X_j$, $j=1,..,n$, of $G^*$ for which
 $X_j(g_j)=\exp(2\pi i/m_j)$ and $X_i(g_j)=1$ if $i\not= j$. These

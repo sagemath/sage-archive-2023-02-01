@@ -1,4 +1,4 @@
-"""
+r"""
 Matrices over an arbitrary ring
 
 AUTHORS:

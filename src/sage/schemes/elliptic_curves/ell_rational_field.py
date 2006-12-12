@@ -1334,7 +1334,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice ()
             (2.993458646231959629832009, 2.45138938198999*I)           # 32-bit
-            (2.993458646231959629832009979452508178, 2.4513893819899999*I)   # 64-bit
+            (2.993458646231959629832009979452508, 2.45138938198999*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
 
@@ -1348,7 +1348,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E = EllipticCurve('37a')
             sage: E.omega()
             5.986917292463919259664019               # 32-bit
-            5.986917292463919259664019958905016356   # 64-bit
+            5.986917292463919259664019958905016      # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
 

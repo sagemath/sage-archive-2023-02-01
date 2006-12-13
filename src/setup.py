@@ -245,7 +245,7 @@ ext_modules = [ \
 
     matrix,
 
-    #cf,
+    cf,
 
     matrix_dense,
     matrix_generic_dense,

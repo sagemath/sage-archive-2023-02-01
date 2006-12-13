@@ -650,7 +650,8 @@ class IndexedSequence(SageObject):
             sage: J = range(8)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: t = s.dwt(); t            # random arch dependent output
+            sage: t = s.dwt()
+            sage: t            # random arch dependent output
             Indexed sequence: [2.82842712474999, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
                 indexed by [0, 1, 2, 3, 4, 5, 6, 7]
             sage: t.idwt()                  # random arch dependent output
@@ -661,7 +662,8 @@ class IndexedSequence(SageObject):
             sage: J = range(16)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: t = s.dwt("bspline", 103); t   # random arch dependent output
+            sage: t = s.dwt("bspline", 103)
+            sage: t   # random arch dependent output
             Indexed sequence: [4.00000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
                 indexed by [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
             sage: t.idwt("bspline", 103) == s

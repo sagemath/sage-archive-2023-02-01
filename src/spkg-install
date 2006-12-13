@@ -57,8 +57,14 @@ fi
 mkdir "$DEVEL/sage-main"
 cp -pr * .hg* "$DEVEL/sage-main/"
 
+# for backward compatibility
+# (going from sage-1.4 to sage-1.5)
+if [ -f sage/ext/interrupt.h ]; then
+    rm -f */*/interrupt.h */*/*/interrupt.h
+fi
 
-sage -b main
+# touch and build everything
+sage -ba main
 
 if [ $? -ne 0 ]; then
     echo "ERROR installing SAGE"

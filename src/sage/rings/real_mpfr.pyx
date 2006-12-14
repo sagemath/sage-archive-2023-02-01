@@ -42,6 +42,7 @@ import math # for log
 import sys
 
 include '../ext/interrupt.pxi'
+include "../ext/stdsage.pxi"
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -492,13 +493,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self.init = 1
         if x is None: return
         cdef RealNumber _x, n, d
-        if isinstance(x, RealNumber):
+        cdef int _ix
+        if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
             mpfr_set(self.value, _x.value, parent.rnd)
-        elif isinstance(x, sage.rings.rational.Rational):
+        elif PY_TYPE_CHECK(x, sage.rings.rational.Rational):
             n = parent(x.numerator())
             d = parent(x.denominator())
             mpfr_div(self.value, n.value, d.value, parent.rnd)
+        elif PY_TYPE_CHECK(x, int):
+            _ix = x
+            mpfr_set_si(self.value, _ix, parent.rnd)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -1147,9 +1152,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
         """
         cdef RealNumber x
-        if not isinstance(self, RealNumber):
+        if not PY_TYPE_CHECK(self, RealNumber):
             return self.__pow__(float(exponent))
-        if not isinstance(exponent, RealNumber):
+        if not PY_TYPE_CHECK(exponent, RealNumber):
             x = self
             exponent = x._parent(exponent)
         return self.__pow(exponent)

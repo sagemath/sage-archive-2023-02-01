@@ -165,6 +165,10 @@ class ComplexField_class(field.Field):
                 # efficient way to do this.  -- Martin Albrecht
                 return complex_number.ComplexNumber(self,
                             sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+            try:
+                return x._complex_mpfr_field_( self )
+            except AttributeError:
+                pass
         return complex_number.ComplexNumber(self, x, im)
 
     def _coerce_impl(self, x):
@@ -247,7 +251,7 @@ class ComplexField_class(field.Field):
             pi = RR.pi()
             z = 2*pi/n
             x = complex_number.ComplexNumber(self, z.cos(), z.sin())
-        x._multiplicative_order = n
+        x._set_multiplicative_order( n )
         return x
 
     def scientific_notation(self, status=None):

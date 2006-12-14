@@ -349,6 +349,9 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
+import sage.rings.all
+#import sage.rings.complex_number2 as complex_number
+
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
@@ -1066,6 +1069,18 @@ class MaximaElement(ExpectElement):
 
     def imag(self):
         return self.imagpart()
+
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: CC(maxima('1+%i'))
+             1.00000000000000 + 1.00000000000000*I
+            sage: CC(maxima('2342.23482943872+234*%i'))
+             2342.23482943871 + 234.000000000000*I
+            sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
+             2300 + 230*I
+        """
+        return sage.rings.all.ComplexNumber( CC, self.real(), self.imag() )
 
     def str(self):
         self._check_valid()

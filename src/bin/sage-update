@@ -71,12 +71,11 @@ packages = open("list").read().split('\n')
 installed = set(os.listdir("%s/installed/"%SPKG_ROOT))
 
 for P in packages:
-     if not (P in installed):
-          file_to_download = "%s.spkg"%P
+     file_to_download = "%s.spkg"%P
+     if not os.path.exists(file_to_download):
+          file = "standard/%s.spkg"%P
+          download_file(file)
           if not os.path.exists(file_to_download):
-               file = "standard/%s.spkg"%P
-               download_file(file)
-               if not os.path.exists(file_to_download):
-                    print "%s: Error downloading %s/%s"%(
-                         sys.argv[0], PKG_SERVER, file)
-                    sys.exit(1)
+               print "%s: Error downloading %s/%s"%(
+                    sys.argv[0], PKG_SERVER, file)
+               sys.exit(1)

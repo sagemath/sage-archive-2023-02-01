@@ -433,8 +433,11 @@ def uniq(x):
     and is such that the entries in the sublist are unique.
 
     EXAMPLES:
-        sage: uniq([1,1,8,-5,3,-5,'a','x','a'])
+        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
+        sage: v            # potentially random ordering of output
         ['a', 'x', -5, 1, 3, 8]
+        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
+        True
     """
     v = list(set(x))
     v.sort()

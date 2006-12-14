@@ -90,7 +90,7 @@ if [ $# -eq 3 ]; then
 fi
 
 if [ $# -gt 0 ]; then
-if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 == '-help' ]; then
+  if [ $1 = '-h' -o $1 = '-?' -o $1 = '-help' -o $1 == '-help' ]; then
      usage
   fi
   if [ $1 = "-advanced" -o $1 = "--advanced" ]; then

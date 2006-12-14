@@ -17,6 +17,7 @@ import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc
 
+from sage.misc.preparser import preparse
 
 ######################################################################
 # Initialization
@@ -68,13 +69,17 @@ def completions(s, globs, format=False, width=90):
     n = len(s)
     if n == 0:
         return '(empty string)'
-    if not '.' in s:
+    if not '.' in s and not '(' in s:
         v = [x for x in globs.keys() if x[:n] == s]
     else:
-        i = s.rfind('.')
-        method = s[i+1:]
-        obj = s[:i]
-        n = len(method)
+        if not ')' in s:
+            i = s.rfind('.')
+            method = s[i+1:]
+            obj = s[:i]
+            n = len(method)
+        else:
+            obj = preparse(s)
+            method = ''
         try:
             O = eval(obj, globs)
             D = dir(O)
@@ -86,7 +91,8 @@ def completions(s, globs, format=False, width=90):
                 v = [obj + '.'+x for x in D if x and x[0] != '_']
             else:
                 v = [obj + '.'+x for x in D if x[:n] == method]
-        except:
+        except Exception, msg:
+            print msg
             v = []
     v = list(set(v))   # make uniq
     v.sort()

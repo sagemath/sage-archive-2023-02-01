@@ -592,7 +592,8 @@ class IndexedSequence(SageObject):
             sage: J = range(8)
             sage: A = [RR(1) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: t = s.dwt(); t
+            sage: t = s.dwt()
+            sage: t        # slightly random output
             Indexed sequence: [2.82842712474999, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000, 0.000000000000000]
                 indexed by [0, 1, 2, 3, 4, 5, 6, 7]
         """

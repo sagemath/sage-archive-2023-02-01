@@ -651,7 +651,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.flush()
         f.seek(0)
 
-        # Give at most five seconds to the browser to download the image,
+        # Give at most ten seconds to the browser to download the image,
         # since this locks the whole server.  Also, Firefox when receiving
         # some images (maybe corrupted) will totally hang; doing this
         # deals with that problem.

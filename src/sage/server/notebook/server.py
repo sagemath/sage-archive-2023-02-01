@@ -651,22 +651,34 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.flush()
         f.seek(0)
 
-        # Give at most ten seconds to the browser to download the image,
-        # since this locks the whole server.  Also, Firefox when receiving
-        # some images (maybe corrupted) will totally hang; doing this
-        # deals with that problem.
-        # TODO: probably the only good way to deal with this is
-        # to switch to using twisted.
 
-        alarm(10)
+        cancel_alarm()
+        alarm(3)
+        bufsize = 64
+        k = 0
         try:
-            shutil.copyfileobj(f, self.wfile)
+           while True:
+               buf = f.read(bufsize)
+               k += bufsize
+               if not buf:
+                   break
+               self.wfile.write(buf)
+        except KeyboardInterrupt:
+            print "timed out sending '%s'"%path
+            pass
+        cancel_alarm()
+        return f
+
+        # the code below should work the same as above, but locks.
+        alarm(3)
+        try:
+           shutil.copyfileobj(f, self.wfile, length=128)
         except KeyboardInterrupt:
             pass
-        else:
-            cancel_alarm()
+        cancel_alarm()
         f.close()
         return f
+
 
     def show_page(self, worksheet_id,show_debug=False):
         self.send_head()
@@ -732,7 +744,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-3:] in ['.ps', '.js'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
             return self.get_file()
-
         path = self.path.strip('/')
         i = path.find('/')
         if i == -1:

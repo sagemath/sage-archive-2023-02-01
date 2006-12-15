@@ -187,6 +187,8 @@ free_module_element = Extension('sage.modules.free_module_element',
 
 ################ GSL wrapping ######################
 
+gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
                 libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])

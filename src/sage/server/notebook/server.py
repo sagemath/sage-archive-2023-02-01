@@ -653,16 +653,20 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
 <<<<<<< /sage/devel/sage-main/sage/server/notebook/server.py.orig.280129042
 
-
+        cancel_alarm()
         alarm(3)
+        bufsize = 64
+        k = 0
         try:
-           while 1:
-               buf = f.read(128)
+           while True:
+               buf = f.read(bufsize)
+               k += bufsize
                if not buf:
                    break
                self.wfile.write(buf)
         except KeyboardInterrupt:
-           pass
+            print "timed out sending '%s'"%path
+            pass
         cancel_alarm()
         return f
 

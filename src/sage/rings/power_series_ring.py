@@ -2,12 +2,19 @@
 Univariate Power Series Rings
 
 EXAMPLES:
+Power series rings are constructed in the standard SAGE fashion.
     sage: R.<t> = PowerSeriesRing(QQ)
     sage: R.random_element(6)
     -t - t^2 - t^3 - t^4 + O(t^6)
 
-    sage: S = R([1, 3, 5, 7], 10); S
-    1 + 3*t + 5*t^2 + 7*t^3 + O(t^10)
+The default precision is specified at construction, but does not bound
+the precision of created elements.
+    sage: R.<t> = PowerSeriesRing(QQ, default_prec=5)
+    sage: R.random_element(6)
+    -t - t^2 - t^3 - t^4 + O(t^6)
+
+    sage: S = R([1, 3, 5, 7]); S  # XXX + O(t^5)
+    1 + 3*t + 5*t^2 + 7*t^3
 
     sage: S.truncate(3)
     5*t^2 + 3*t + 1

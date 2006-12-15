@@ -168,7 +168,7 @@ def search_sage(s, extra=''):
 #######################################
 import sagedoc
 import inspect
-import sagex_inspect
+import sageinspect
 
 
 def my_getdoc(obj):
@@ -176,7 +176,7 @@ def my_getdoc(obj):
         ds = obj._sage_doc_()
     except (AttributeError, TypeError):  # TypeError for interfaces
         try:
-            ds = inspect.getdoc(obj)
+            ds = sageinspect.sage_getdoc(obj)
         except:
             return None
     if ds is None:
@@ -185,10 +185,10 @@ def my_getdoc(obj):
 
 def my_getsource(obj, is_binary):
     try:
-        s = sagex_inspect.getsource(obj, is_binary)
+        s = sageinspect.sage_getsource(obj, is_binary)
         return sagedoc.format_src(s)
     except Exception, msg:
-        print 'Error getting source', msg
+        print 'Error getting source:', msg
         return None
 
 

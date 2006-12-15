@@ -651,6 +651,23 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.flush()
         f.seek(0)
 
+<<<<<<< /sage/devel/sage-main/sage/server/notebook/server.py.orig.280129042
+
+
+        alarm(3)
+        try:
+           while 1:
+               buf = f.read(128)
+               if not buf:
+                   break
+               self.wfile.write(buf)
+        except KeyboardInterrupt:
+           pass
+        cancel_alarm()
+        return f
+
+        # the code below should work the same as above, but locks.
+        alarm(3)
         # Give at most ten seconds to the browser to download the image,
         # since this locks the whole server.  Also, Firefox when receiving
         # some images (maybe corrupted) will totally hang; doing this
@@ -660,13 +677,13 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         alarm(10)
         try:
-            shutil.copyfileobj(f, self.wfile)
+           shutil.copyfileobj(f, self.wfile, length=128)
         except KeyboardInterrupt:
             pass
-        else:
-            cancel_alarm()
+        cancel_alarm()
         f.close()
         return f
+
 
     def show_page(self, worksheet_id,show_debug=False):
         self.send_head()
@@ -732,7 +749,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-3:] in ['.ps', '.js'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
             return self.get_file()
-
         path = self.path.strip('/')
         i = path.find('/')
         if i == -1:

@@ -287,6 +287,18 @@ if [ $1 = '-hg'  -o $1 = '--hg' ]; then
     exit $?
 fi
 
+if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
+    ## NEED in SAGE Environment under OS X
+    unset LIBRARY_PATH
+    unset LD_LIBRARY_PATH
+    unset DYLD_LIBRARY_PATH
+
+    cd $CUR
+    shift
+    hgmerge $*
+    exit $?
+fi
+
 #####################################################################
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################

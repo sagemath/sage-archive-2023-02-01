@@ -74,7 +74,8 @@ class Expect(ParentWithBase):
     def __init__(self, name, prompt, command=None, server=None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
-                 logfile = None, eval_using_file_cutoff=0):
+                 logfile = None, eval_using_file_cutoff=0,
+                 do_monitor = True):
 
         self.__is_remote = False
         if command == None:
@@ -85,6 +86,7 @@ class Expect(ParentWithBase):
             eval_using_file_cutoff = 0  # don't allow this!
             #print command
             self._server = server
+        self.__do_monitor = do_monitor
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__script_subdirectory = script_subdirectory
@@ -226,6 +228,12 @@ class Expect(ParentWithBase):
         """
         return ''
 
+    def _do_monitor(self):
+        try:
+            return self.__do_monitor
+        except AttributeError:
+            return False
+
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
@@ -255,7 +263,8 @@ class Expect(ParentWithBase):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
-            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
+            if self._do_monitor() and not self.__is_remote:
+                monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None

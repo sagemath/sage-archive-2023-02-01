@@ -101,7 +101,8 @@ class Sage(Expect):
     \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
-                       logfile=None,  preparse=True, server=None):
+                       logfile=None,  preparse=True, server=None,
+                       do_monitor=False):
         Expect.__init__(self,
                         name = 'sage',
                         prompt = '>>> ',
@@ -111,7 +112,8 @@ class Sage(Expect):
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         logfile = logfile,
-                        init_code=['from sage.all import *', 'import cPickle']
+                        init_code=['from sage.all import *', 'import cPickle'],
+                        do_monitor = do_monitor,
                         )
         self._preparse = preparse
 

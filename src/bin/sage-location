@@ -7,11 +7,17 @@ SAGE_ROOT = os.environ['SAGE_ROOT']
 location_file = '%s/local/lib/sage-current-location.txt'%SAGE_ROOT
 
 def install_moved():
-    if not os.path.exists(location_file) or open(location_file).read() != SAGE_ROOT:
-        if os.path.exists(location_file):
-             print "'%s' '%s'"%(open(location_file).read(), SAGE_ROOT)
-        open(location_file,'w').write(SAGE_ROOT)
-        return True
+    if not os.path.exists(location_file):
+        O = open(location_file,'w')
+        O.write(SAGE_ROOT)
+        O.close()
+        return False   # first time -- so no need to update; this was during the build.
+
+    O = open(location_file)
+    R = O.read().strip()
+    O.close()
+    if R != SAGE_ROOT:
+        return True  # it moved
     return False
 
 def update_hardcoded_files(path):

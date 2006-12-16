@@ -67,6 +67,8 @@ cdef extern from "stdsage.h":
     object PY_NEW(object t)
     int PY_TYPE_CHECK(object o, object t)
     PyObject** FAST_SEQ_UNSAFE(object o)
+    void init_csage()
+#init_csage()
 
 from sage.rings.ring cimport FiniteField
 from sage.rings.ring cimport Ring

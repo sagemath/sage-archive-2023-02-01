@@ -635,14 +635,6 @@ def pyrex(ext_modules):
         m.sources = new_sources
 
 
-#############################################
-# Update interrupt.h and stdsage.h files
-#os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-#os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
-
-##########################################
-
-
 
 
 if not sdist:

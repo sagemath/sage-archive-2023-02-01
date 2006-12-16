@@ -29,6 +29,7 @@ def main():
     interval = int(v[3])
 
     while True:
+        time.sleep(interval)
         if not process_is_running(subprocess):
             sys.exit(0)
         if not process_is_running(pid):
@@ -43,7 +44,6 @@ def main():
                 pass
             sys.exit(0)
         #end if
-        time.sleep(interval)
 
 if __name__ == '__main__':
     check_usage()

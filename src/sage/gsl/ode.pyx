@@ -1,3 +1,4 @@
+"""nodoctest"""
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include 'gsl.pxi'

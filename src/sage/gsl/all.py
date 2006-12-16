@@ -7,5 +7,5 @@ from interpolation import spline, Spline
 from dwt import WaveletTransform,DWT
 
 from dft import IndexedSequence
-from ode import ode_solver
-from ode import ode_system
+#from ode import ode_solver
+#from ode import ode_system

@@ -46,4 +46,9 @@ cdef extern from "stdsage.h":
     void  init_csage()
 
 
+# Do this for every single module that links in stdsage.
+# This is necessary on some platforms, e.g., Cygwin, so
+# do not delete it!
+init_csage()
+
 

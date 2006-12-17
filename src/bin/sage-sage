@@ -25,7 +25,7 @@ usage_advanced() {
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
-    echo "  -ba [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
+    echo "  -ba [branch]  -- switch to, rebuild all Sagex code, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
     echo "  -clisp [...]  -- run Common Lisp"

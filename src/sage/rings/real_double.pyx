@@ -410,7 +410,14 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(self._value / (<RealDoubleElement>right)._value)
 
-    def _neg_c_impl(self):
+    cdef ModuleElement _neg_c_impl(self):
+        """
+        Negates a real number.
+
+        EXAMPLES:
+            sage: -RDF('-1.5')
+            1.5
+        """
         return self._new_c(-self._value)
 
     def __abs__(self):

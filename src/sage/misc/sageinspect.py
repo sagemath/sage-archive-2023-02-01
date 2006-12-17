@@ -11,9 +11,6 @@ AUTHOR:
    -- extended by Nick Alexander
 """
 
-### XXX module level docstrings in sagexc
-### XXX class level docstrings in sagexc
-
 import inspect
 import os
 import sagedoc
@@ -23,6 +20,18 @@ SAGE_ROOT = os.environ["SAGE_ROOT"]
 def sage_getfile(obj):
     r"""
     Get the full file name associated to obj as a string.
+
+    EXAMPLES:
+    Works with functions, classes, and modules.
+        sage: import os.path
+        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer.Integer.factor))[1]
+        'integer.pyx'
+        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer.Integer))[1]
+        'integer.pyx'
+        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer))[1]
+        'integer.pyx'
+        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.misc.sageinspect.sage_getfile))[1]
+        'sageinspect.py'
 
     AUTHOR:
         -- Nick Alexander
@@ -37,11 +46,34 @@ def sage_getfile(obj):
 
 def _sage_getargspec_sagex(obj):
     r"""
+    inspect.getargspec for Sagex objects.
+
+    EXAMPLES:
+    If \code{obj} is not a function, we raise an exception.
+        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.integer.Integer)
+        Traceback (most recent call last):
+        ...
+        TypeError: obj is not a function
+
+    If \code{obj} is not a Sagex function, we raise an exception.
+        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.misc.sageinspect.sage_getfile)
+        Traceback (most recent call last):
+        ...
+        ValueError: Could not parse sagex argspec
+
+    We handle default arguments, but ignore varargs and kwargs.
+        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.integer.Integer.factor)
+        (['self', 'algorithm'], None, None, ('pari',))
+        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.rational.make_rational)
+        (['s'], None, None, None)
+
     AUTHOR:
         -- Nick Alexander
     """
-    source = sage_getsource(obj, is_binary=True)
+    if not inspect.isroutine(obj):
+        raise TypeError, "obj is not a function"
     try:
+        source = sage_getsource(obj, is_binary=True)
         defpos = source.find('def ')
         assert defpos > -1
         colpos = source.find(':')
@@ -65,16 +97,26 @@ def _sage_getargspec_sagex(obj):
         argdefs  = [] # default values
         for arg in args:
             s = arg.split('=')
+            argname = s[0]
 
             # Sagex often has type information; we split off the right most
             # identifier to discard this information
-            s[0] = arg.split()[-1]
+            argname = argname.split()[-1]
             # Sagex often has C pointer symbols before variable names
-            s[0].lstrip('*')
-            argnames.append(s[0])
+            argname.lstrip('*')
+            argnames.append(argname)
             if len(s) > 1:
-                argdefs.append(s[1])
-        return (argnames, None, None, tuple(argdefs))
+                defvalue = s[1]
+                # Remove quotes around strings
+                defvalue = defvalue.strip('"').strip("'")
+                argdefs.append(defvalue)
+
+        if len(argdefs) > 0:
+            argdefs = tuple(argdefs)
+        else:
+            argdefs = None
+
+        return (argnames, None, None, argdefs)
     except:
         raise ValueError, "Could not parse sagex argspec"
 
@@ -88,9 +130,16 @@ def sage_getargspec(obj):
     ** arguments or None.  'defaults' is an n-tuple of the default
     values of the last n arguments.
 
-    AUTHOR: This is a modified version of inspect.getargspec from the
-    Python Standard Library, which was taken from IPython for use in
-    SAGE.
+    EXAMPLES:
+        sage: sage.misc.sageinspect.sage_getargspec(sage.rings.integer.Integer.factor)
+        (['self', 'algorithm'], None, None, ('pari',))
+        sage: sage.misc.sageinspect.sage_getargspec(sage.misc.sageinspect.sage_getargspec)
+        (['obj'], None, None, None)
+
+    AUTHOR:
+        -- William Stein: a modified version of inspect.getargspec from the
+        Python Standard Library, which was taken from IPython for use in SAGE.
+        -- Extensions by Nick Alexander
     """
     if inspect.isfunction(obj):
         func_obj = obj
@@ -113,6 +162,12 @@ def sage_getdef(obj, obj_name=''):
     If any exception is generated, None is returned instead and the
     exception is suppressed.
 
+    EXAMPLES:
+        sage: sage.misc.sageinspect.sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
+        'mr(s)'
+        sage: sage.misc.sageinspect.sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
+        "factor(algorithm='pari')"
+
     AUTHOR:
         -- William Stein
         -- Extensions by Nick Alexander
@@ -130,6 +185,15 @@ def sage_getdef(obj, obj_name=''):
 def sage_getdoc(obj, obj_name=''):
     r"""
     Return the docstring associated to obj as a string.
+
+    If obj is a Sagex object with an embedded position in its docstring,
+    the embedded position is stripped.
+
+    EXAMPLES:
+        sage: sage.misc.sageinspect.sage_getdoc(sage.rings.rational.make_rational)
+        ''
+        sage: sage.misc.sageinspect.sage_getdoc(sage.rings.rational).strip().splitlines()[0]
+        'Rational Numbers'
 
     AUTHOR:
         -- William Stein

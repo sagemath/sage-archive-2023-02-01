@@ -211,6 +211,8 @@ if [ ! -f spkg-install ]; then
 fi
 
 chmod +x spkg-install
+echo "TOUCHING"
+touch * */* */*/* */*/*/*
 
 echo "****************************************************"
 echo "Host system"

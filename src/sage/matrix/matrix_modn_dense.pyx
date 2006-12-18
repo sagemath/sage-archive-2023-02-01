@@ -206,6 +206,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
     # def _dict(self):
+    def __copy__(self):
+        cdef Matrix_modn_dense A
+        A = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,
+                                      0, 0, 0)
+        memcpy(A._entries, self._entries, sizeof(uint)*self._nrows*self._ncols)
+        return A
+
 
 
     ########################################################################

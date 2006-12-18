@@ -652,20 +652,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.seek(0)
 
 
-        cancel_alarm()
+
         alarm(3)
-        bufsize = 64
-        k = 0
         try:
-           while True:
-               buf = f.read(bufsize)
-               k += bufsize
+           while 1:
+               buf = f.read(128)
                if not buf:
                    break
                self.wfile.write(buf)
         except KeyboardInterrupt:
-            print "timed out sending '%s'"%path
-            pass
+           pass
         cancel_alarm()
         return f
 

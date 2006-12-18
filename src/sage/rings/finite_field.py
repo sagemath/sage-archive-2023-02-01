@@ -121,14 +121,9 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
 
     key = (order, name, modulus)
     if cache.has_key(key):
-        return cache[key]
-
-    # I have disabled weakref support for finite fields, because it isn't
-    # really implemented in Pyrex.  - SEE track ticket #165
-        #K = cache[key]()
-        #if not K is None:
-        #    return K
-
+        K = cache[key]()
+        if not K is None:
+            return K
     if arith.is_prime(order):
         K = FiniteField_prime_modn(order)
     else:
@@ -142,8 +137,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
         else:
             K = FiniteField_ext_pari(order, name, modulus)
 
-    #cache[key] = weakref.ref(K)
-    #cache[key] = K
+    cache[key] = weakref.ref(K)
     return K
 
 

@@ -56,6 +56,37 @@ class PowerSeries(ring_element.RingElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
 
+    def base_extend(self, R):
+        """
+        Return a copy of this power series but with coefficients in R.
+
+        EXAMPLES:
+        We can only base extend if there is a __call__ coercion defined.
+        This succeeds because ZZ(K(4)) is defined.
+            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
+            sage: R.<t> = K[['t']]
+            sage: (4*t).base_extend(ZZ)
+            4*t
+
+        This does not succeed because ZZ(K(a+1)) is not defined.
+            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
+            sage: R.<t> = K[['t']]
+            sage: ((a+1)*t).base_extend(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial to int
+
+        The following coercion uses base_extend implicitly:
+            sage: R.<t> = ZZ[['t']]
+            sage: (t - t^2) * Mod(1, 3)
+            t + 2*t^2
+        """
+        S = sage.rings.power_series_ring.PowerSeriesRing(R,
+                                      name = self.parent().variable_name())
+        return S(self)
+
+         return self.parent()(f, prec)
+
     def __cmp__(self, right):
         r"""
         Comparison of self and right.

@@ -31,6 +31,12 @@ An iterated example:
     sage: S.base_ring()
     Power Series Ring in t over Integer Ring
 
+Elements are first coerced to constants in base_ring, then coerced into the
+PowerSeriesRing:
+    sage: R.<t> = PowerSeriesRing(ZZ)
+    sage: f = Mod(2, 3) * t; (f, f.parent())
+    (2*t, Power Series Ring in t over Ring of integers modulo 3)
+
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)

@@ -209,17 +209,17 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
             Graded Reverse Lexicographical Order
             Variables: y, z, w
 
-            sage: magma(PolynomialRing(GF(7),4)) #optional
+            sage: magma(PolynomialRing(GF(7),4, 'x')) #optional
             Polynomial ring of rank 4 over GF(7)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3
 
-            sage: magma(PolynomialRing(GF(49,'a'),10)) #optional
+            sage: magma(PolynomialRing(GF(49,'a'),10, 'x')) #optional
             Polynomial ring of rank 10 over GF(7^2)
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9
 
-            sage: magma(PolynomialRing(ZZ['a,b,c'],3)) #optional
+            sage: magma(PolynomialRing(ZZ['a,b,c'],3, 'x')) #optional
             Polynomial ring of rank 3 over Polynomial ring of rank 3 over Integer Ring
             Graded Reverse Lexicographical Order
             Variables: x0, x1, x2
@@ -237,7 +237,7 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         except (AttributeError,ValueError):
             B = magma(self.base_ring())
             R = magma('PolynomialRing(%s, %s, %s)'%(B.name(), self.ngens(),self.term_order().magma_str()))
-            R._assign_names(self.variable_names())
+            R.assign_names(self.variable_names())
             self.__magma = R
             return R
 
@@ -336,7 +336,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
     EXAMPLES:
         sage: R = MPolynomialRing(Integers(12), 'x', 5); R
         Polynomial Ring in x0, x1, x2, x3, x4 over Ring of integers modulo 12
-        sage: loads(R.dumps()) == R
+        sage.: loads(R.dumps()) == R     # TODO -- this currently hangs sometimes (??)
         True
     """
     def __init__(self, base_ring, n, names, order):
@@ -372,7 +372,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: T = S*S*S                                              # optional
             sage: U = T.gens().entries().flatten()                       # optional
             sage: f = U[2]; f                                            # optional
-            x^3*y^2+y^3
+             3 2    3
+            x y  + y
             sage: R(f)                                                   # optional
             y^3 + x^3*y^2
 

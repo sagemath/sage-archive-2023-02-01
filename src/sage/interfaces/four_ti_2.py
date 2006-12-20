@@ -1,4 +1,4 @@
-"""
+"""nodoctest -- TODO -- not done yet!!!!
 Interface to 4ti2.
 
 4ti2 is a software package for algebraic, geometric and combinatorial
@@ -280,11 +280,11 @@ class LinearSystem:
                  position, and the output is the union of the
                  resuls.  E.g., if you specify exactly 3 '2's,
                  then you have a union of 8 cases.  (Internally
-                 the comptutation is not actually done by
+                 the computation is not actually done by
                  splitting up like this.)
 
     EXAMPLES:
-        sage: from sage.interfaces.fortytwo import LinearSystem
+        sage: from sage.interfaces.four_ti_2 import LinearSystem
         sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
         sage: rel = ['<=', '<=']
         sage: rhs = 0
@@ -407,7 +407,7 @@ class LinearSystem:
             -- generators (defined over ZZ) for the RR-vector space.
 
         EXAMPLES:
-            sage: from sage.interfaces.fortytwo import LinearSystem
+            sage: from sage.interfaces.four_ti_2 import LinearSystem
             sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
             sage: rel = ['<=', '<=']
             sage: rhs = 0

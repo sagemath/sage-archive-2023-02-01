@@ -6,7 +6,6 @@ AUTHOR:
 """
 
 import inspect
-import sage.misc.sagex_inspect
 import os
 import string
 
@@ -16,7 +15,9 @@ import sage.misc.latex
 import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc
+import sage.misc.sageinspect as sageinspect
 
+from sage.misc.preparser import preparse
 
 ######################################################################
 # Initialization
@@ -68,13 +69,17 @@ def completions(s, globs, format=False, width=90):
     n = len(s)
     if n == 0:
         return '(empty string)'
-    if not '.' in s:
+    if not '.' in s and not '(' in s:
         v = [x for x in globs.keys() if x[:n] == s]
     else:
-        i = s.rfind('.')
-        method = s[i+1:]
-        obj = s[:i]
-        n = len(method)
+        if not ')' in s:
+            i = s.rfind('.')
+            method = s[i+1:]
+            obj = s[:i]
+            n = len(method)
+        else:
+            obj = preparse(s)
+            method = ''
         try:
             O = eval(obj, globs)
             D = dir(O)
@@ -86,7 +91,8 @@ def completions(s, globs, format=False, width=90):
                 v = [obj + '.'+x for x in D if x and x[0] != '_']
             else:
                 v = [obj + '.'+x for x in D if x[:n] == method]
-        except:
+        except Exception, msg:
+            print msg
             v = []
     v = list(set(v))   # make uniq
     v.sort()
@@ -97,80 +103,35 @@ def completions(s, globs, format=False, width=90):
             return tabulate(v, width)
     return v
 
-def get_argspec(obj):
-    """
-    Return the names and default values of a function's arguments.
-
-    A tuple of four things is returned: (args, varargs, varkw,
-    defaults).  'args' is a list of the argument names (it may contain
-    nested lists).  'varargs' and 'varkw' are the names of the * and
-    ** arguments or None.  'defaults' is an n-tuple of the default
-    values of the last n arguments.
-
-    AUTHOR: This is a modified version of inspect.getargspec from the
-    Python Standard Library, which was taken from IPython for use in
-    SAGE.
-    """
-    if inspect.isfunction(obj):
-        func_obj = obj
-    elif inspect.ismethod(obj):
-        func_obj = obj.im_func
-    else:
-        raise TypeError, 'arg is not a Python function'
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
-
-
-def get_def(obj, obj_name=''):
-    """
-    Return the definition header for any callable object.
-
-    If any exception is generated, None is returned instead and the
-    exception is suppressed.
-
-    AUTHOR: William Stein (but taken from IPython for use in SAGE).
-    """
-    try:
-        s = str(inspect.formatargspec(*get_argspec(obj)))
-        s = s.strip('(').strip(')').strip()
-        if s[:4] == 'self':
-            s = s[4:]
-        s = s.lstrip(',').strip()
-        return obj_name + '(' + s + ')'
-    except:
-        return '%s( ... )'%obj_name
-
-
-def get_doc(obj, obj_name=''):
-    try:
-        s = sagedoc.format(str(obj._sage_doc_()))
-    except AttributeError:
-        s = sagedoc.format(str(obj.__doc__))
-    if obj_name != '':
-        i = obj_name.find('.')
-        if i != -1:
-            obj_name = obj_name[:i]
-        s = s.replace('self.','%s.'%obj_name)
-    return s
-
 def docstring(obj_name, globs):
+    r"""
+    Format obj's docstring for printing in Sage notebook.
+
+    AUTHOR:
+        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- Extensions by Nick Alexander
+    """
     try:
         obj = eval(obj_name, globs)
     except (AttributeError, NameError, SyntaxError):
         return "No object '%s' currently defined."%obj_name
     s  = ''
     try:
-        s += 'File:        %s\n'%inspect.getabsfile(obj)
+        s += 'File:        %s\n'%sageinspect.sage_getfile(obj)
     except TypeError:
         pass
     s += 'Type:        %s\n'%type(obj)
-    s += 'Definition:  %s\n'%get_def(obj, obj_name)
-    s += 'Docstring:\n%s\n'%get_doc(obj, obj_name)
-    return s
+    s += 'Definition:  %s\n'%sageinspect.sage_getdef(obj, obj_name)
+    s += 'Docstring: \n%s\n'%sageinspect.sage_getdoc(obj, obj_name)
+    return s.rstrip()
 
 def source_code(s, globs):
-    """
-        AUTHOR: William Stein (but partly taken from IPython for use in SAGE).
+    r"""
+    Format obj's source code for printing in Sage notebook.
+
+    AUTHOR:
+        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- Extensions by Nick Alexander
     """
     try:
         obj = eval(s, globs)
@@ -178,24 +139,17 @@ def source_code(s, globs):
         return "No object %s"%s
 
     try:
-        try:
-            fname = inspect.getabsfile(obj)
-            lines, num = inspect.getsourcelines(obj)
-            src = ''.join(lines)
-        except TypeError:
-            src = sage.misc.sagex_inspect.getsource(obj, True)
-            num =None
+        filename = sageinspect.sage_getfile(obj)
+        lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
+        src = ''.join(lines)
         src = sagedoc.format_src(src)
-        if not num is None:
-            src = """File: %s
-Source Code (starting at line %s):\n%s"""%(fname, num, src)
+        if not lineno is None:
+            src = "File: %s\nSource Code (starting at line %s):\n%s"%(filename, lineno, src)
         return src
 
     except (TypeError, IndexError), msg:
         print msg
-
         return "Source code for %s not available."%obj
-
 
 def tabulate(v, width=90, ncols=3):
     e = len(v)

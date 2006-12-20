@@ -196,23 +196,46 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: S.1 #optional
             y
 
-            sage: magma(PolynomialRing(GF(7))) #optional
+            sage: magma(PolynomialRing(GF(7), 'x')) #optional
             Univariate Polynomial Ring in x over GF(7)
 
-            sage: magma(PolynomialRing(GF(49,'a'))) #optional
+            sage: magma(PolynomialRing(GF(49,'a'), 'x')) #optional
             Univariate Polynomial Ring in x over GF(7^2)
 
-            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'))) #optional
-            Univariate Polynomial Ring in x over Univariate Polynomial
-            Ring in w over Integer Ring
+            sage: magma(PolynomialRing(PolynomialRing(ZZ,'w'), 'x')) #optional
+            Univariate Polynomial Ring in x over Univariate Polynomial Ring over Integer Ring
         """
         if G is None:
             import sage.interfaces.magma
             G = sage.interfaces.magma.magma
-        B = G(self.base_ring())
-        R = G('PolynomialRing(%s)'%B.name())
-        R._assign_names(self.variable_names())
+        R = G(self._magma_init_())
+        R.assign_names(self.variable_names())
         return R
+
+    def _magma_init_(self):
+        return 'PolynomialRing(%s)'%(self.base_ring()._magma_init_())
+
+    def _gap_(self, G=None):
+        """
+        Used in converting this ring to the corresponding ring in GAP.
+
+        EXAMPLES:
+            sage: R.<z> = ZZ[]
+            sage: gap(R)
+            PolynomialRing(..., [ z ])
+            sage: gap(z^2 + z)
+            z^2+z
+        """
+        if G is None:
+            import sage.interfaces.gap
+            G = sage.interfaces.gap.gap
+        R = G(self._gap_init_())
+        v = self.variable_name()
+        G.eval('%s := IndeterminatesOfPolynomialRing(%s)[1]'%(v, R.name()))
+        return R
+
+    def _gap_init_(self):
+        return 'PolynomialRing(%s, ["%s"])'%(self.base_ring()._gap_init_(), self.variable_name())
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -372,27 +395,27 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: P = PolynomialRing(GF(4,'a'),'y')
             sage: for p in P.monics( of_degree = 2 ): print p
             y^2
-            y^2 + 1
             y^2 + a
             y^2 + a + 1
-            y^2 + y
-            y^2 + y + 1
-            y^2 + y + a
-            y^2 + y + a + 1
+            y^2 + 1
             y^2 + a*y
-            y^2 + a*y + 1
             y^2 + a*y + a
             y^2 + a*y + a + 1
+            y^2 + a*y + 1
             y^2 + (a + 1)*y
-            y^2 + (a + 1)*y + 1
             y^2 + (a + 1)*y + a
             y^2 + (a + 1)*y + a + 1
+            y^2 + (a + 1)*y + 1
+            y^2 + y
+            y^2 + y + a
+            y^2 + y + a + 1
+            y^2 + y + 1
             sage: for p in P.monics( max_degree = 1 ): print p
             1
             y
-            y + 1
             y + a
             y + a + 1
+            y + 1
             sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
             Traceback (most recent call last):
             ...

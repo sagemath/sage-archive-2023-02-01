@@ -166,6 +166,9 @@ cdef class RealField(sage.rings.ring.Field):
     def _latex_(self):
         return "\\R"
 
+    def is_exact(self):
+        return False
+
     def __call__(self, x, base=10):
         """
         Coerce x into this real field.
@@ -1140,7 +1143,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             1.2971114
             sage: b = R(-1)
             sage: b^(1/2)
-            1.0000000*I
+            1.0000000*I                   # 32-bit
+            -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
         """
         cdef RealNumber x
         if not isinstance(self, RealNumber):
@@ -1645,7 +1649,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
              sage: r = sqrt(2); r
              1.41421356237309
              sage: r.algdep(5)
-             x^5 - x^4 - 2*x^3 + x^2 + 2
+             x^5 - x^4 - 2*x^3 + x^2 + 2      # 32-bit
+             x^4 - 4*x^2 + 4                  # 64-bit
 
         """
         return sage.rings.arith.algdep(self,n)
@@ -1663,7 +1668,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
               sage: r = sqrt(2); r
               1.41421356237309
               sage: r.algdep(5)
-              x^5 - x^4 - 2*x^3 + x^2 + 2
+              x^5 - x^4 - 2*x^3 + x^2 + 2    # 32-bit
+              x^4 - 4*x^2 + 4                # 64-bit
         """
         return sage.rings.arith.algdep(self,n)
 

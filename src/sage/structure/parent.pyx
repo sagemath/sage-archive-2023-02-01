@@ -196,9 +196,19 @@ cdef class Parent(sage_object.SageObject):
             self._coerce_c((<Parent>S)._an_element_c())
         except TypeError:
             return False
+        except NotImplementedError:
+            raise NotImplementedError, "please implement has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%self
         return True
 
     def _an_element_impl(self):     # override this in Python
+        r"""
+        Implementation of a function that returns an element (often 0)
+        of a parent object.  Every parent object should implement it,
+        unless the default implementation works.
+
+        NOTE: Parent structures that are implemented in SageX should
+        implement \code{_an_element_c_impl} instead.
+        """
         return self._an_element_c_impl()
 
     cdef _an_element_c_impl(self):  # override this in SageX
@@ -212,7 +222,7 @@ cdef class Parent(sage_object.SageObject):
                 return self(1)
             except TypeError:
                 pass
-        raise NotImplementedError, "please implement an_element_c_impl or an_element_impl in your parent class"
+        raise NotImplementedError, "please implement _an_element_c_impl or _an_element_impl for %s"%self
 
     def _an_element(self):        # do not override this (call from Python)
         return self._an_element_c()

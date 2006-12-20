@@ -13,6 +13,7 @@ cdef extern from "Python.h":
     Py_ssize_t PyNumber_AsSsize_t(PyObject* o, PyObject* exc)
 
 
+import sage.matrix.matrix_space
 
 cdef class Matrix_sparse(matrix.Matrix):
 
@@ -21,6 +22,15 @@ cdef class Matrix_sparse(matrix.Matrix):
 
     cdef int is_dense_c(self):
         return 0
+
+    def change_ring(self, ring):
+        if ring is self._base_ring:
+            if self._mutability._is_immutable:
+                return self
+            return self.copy()
+
+        M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
+        return M(self.dict(), coerce=True, copy=False)
 
     def __copy__(self):
         """

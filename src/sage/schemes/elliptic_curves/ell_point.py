@@ -166,9 +166,11 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: h = P.height()
             sage: RR = h.parent()
             sage: RR.scientific_notation(True)
-            sage: h
-            -1.42463552800000e-248            # 32-bit
+            sage: h  # output should be about 0; is somewhat random depending on arch
+            -1.43860254300000e-248            # 32-bit
             -3.0999021078264000e-691          # 64-bit
+            sage: h < 0.001
+            True
             sage: Q = 5*P
             sage: Q.height()
             0.00000000000000e-1

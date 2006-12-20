@@ -80,7 +80,7 @@ from sage.rings.ring import is_Ring
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None):
+def vector(arg0, arg1=None, sparse=None):
     r"""
     Return a vector over R with given entries.
 
@@ -90,8 +90,10 @@ def vector(arg0, arg1=None):
         3. vector(object, ring)
 
     INPUT:
-        elts -- entries of a vector
+        elts -- entries of a vector (either a list or dict).
         R -- ring
+        sparse -- optional
+
     OUTPUT:
         An element of the free module over R of rank len(elts).
 
@@ -146,10 +148,18 @@ def vector(arg0, arg1=None):
         v = arg0
         R = None
     if isinstance(v, dict):
+        if sparse is None:
+            sparse = True
         v, R = prepare_dict(v, R)
     else:
+        if sparse is None:
+            sparse = False
         v, R = prepare(v, R)
-    return (R**len(v))(v)
+    if sparse:
+        import free_module  # slow -- can we improve
+        return free_module.FreeModule(R, len(v), sparse=True)(v)
+    else:
+        return (R**len(v))(v)
 
 free_module_element = vector
 
@@ -227,14 +237,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
-            sage: v = (QQ['x']^4)(0)
+            sage: v = vector(QQ, [0,0,0,0])
             sage: v == 0
             True
             sage: v == 1
             False
             sage: v == v
             True
-            sage: w = v.parent()([-1,0,0,0])
+            sage: w = vector(QQ, [-1,0,0,0])
             sage: w < v
             True
             sage: w > v
@@ -250,10 +260,10 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __nonzero__(self):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [0, 0, 0, 0])
+            sage: V = vector(ZZ, [0, 0, 0, 0])
             sage: bool(V)
             False
-            sage: V = Vector(ZZ, [1, 2, 3, 5])
+            sage: V = vector(ZZ, [1, 2, 3, 5])
             sage: bool(V)
             True
         """
@@ -271,7 +281,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __mod__(self, p):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V % 7
             (5, 2, 6, 1)
             sage: parent(V % 7)
@@ -284,11 +294,11 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def Mod(self, p):
         """
         EXAMPLES:
-            sage: V = Vector(ZZ, [5, 9, 13, 15])
+            sage: V = vector(ZZ, [5, 9, 13, 15])
             sage: V.Mod(7)
             (5, 2, 6, 1)
             sage: parent(V.Mod(7))
-            Vector space of dimension 4 over Finite Field of size 7
+            Vector space of dimension 4 over Ring of integers modulo 7
         """
         return self.change_ring(self.base_ring().quotient_ring(p))
 
@@ -311,7 +321,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def lift(self):
         """
         EXAMPLES:
-            sage: V = Vector(Integers(7), [5, 9, 13, 15]) ; V
+            sage: V = vector(Integers(7), [5, 9, 13, 15]) ; V
             (5, 2, 6, 1)
             sage: V.lift()
             (5, 2, 6, 1)
@@ -517,6 +527,13 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         v = self.list()
         return eval('[i for i in xrange(self.degree()) if v[i] != z]',
                     {'self':self, 'z':z, 'v':v})
+
+    def support(self):   # do not override.
+        """
+        Return the integers i such that self[i] != 0.
+        This is the same as the \code{nonzero_positions} function.
+        """
+        return self.nonzero_positions()
 
     def _latex_(self):
         """
@@ -731,6 +748,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         sage: v = FreeModule(Integers(8)['x,y'], 5, sparse=True).1
         sage: loads(dumps(v)) - v
         (0, 0, 0, 0, 0)
+
+        sage: a = vector([-1,0,1/1],sparse=True); b = vector([-1/1,0,0],sparse=True)
+        sage: a.parent()
+        Sparse vector space of dimension 3 over Rational Field
+        sage: b - a
+        (0, 0, -1)
     """
     cdef _new_c(self, object v):
         # Create a new sparse free module element with minimal overhead and
@@ -793,12 +816,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
 
     cdef ModuleElement _sub_c_impl(left, ModuleElement right):
         cdef object v, e
-        e = dict((<FreeModuleElement_generic_sparse>right)._entries)
-        for i, a in left._entries.iteritems():
+        e = dict(left._entries)   # dict to make a copy
+        for i, a in (<FreeModuleElement_generic_sparse>right)._entries.iteritems():
             if e.has_key(i):
-                e[i] = (<RingElement>a)._sub_c(<RingElement> e[i])
+                e[i] = (<RingElement> e[i])._sub_c(<RingElement>a)
             else:
-                e[i] = a
+                e[i] = -a
         return left._new_c(e)
 
 
@@ -924,7 +947,4 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         K = self._entries.keys()
         K.sort()
         return K
-
-    def support(self):
-        return self.nonzero_positions()
 

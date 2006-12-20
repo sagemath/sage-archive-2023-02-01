@@ -1,7 +1,10 @@
 """
-Abstract base class for matrices.
+Base class for matrices
 
-For design documentation see matrix/docs.py.
+NOTE: For design documentation see matrix/docs.py.
+
+EXAMPLES:
+
 """
 
 ################################################################################
@@ -765,7 +768,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 ##         return s
 
     def _latex_(self):
-        """
+        r"""
         Return latex representation of this matrix.
 
         EXAMPLES:
@@ -1584,13 +1587,13 @@ cdef class Matrix(sage.structure.element.Matrix):
         return s
 
     cdef Vector _matrix_times_vector_c_impl(self, Vector v):
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)
-        if self.nrows() != v.degree():
-            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+        if self.ncols() != v.degree():
+            raise ArithmeticError, "number of columns of matrix must equal degree of vector"
         s = M(0)
-        for i in xrange(self.nrows()):
+        for i in xrange(self.ncols()):
             if v[i] != 0:
                 s = s + self.column(i, from_list=True)*v[i]
         return s
@@ -1713,7 +1716,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [5 2]
             [6 1]
             sage: parent(M.mod(7))
-            Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 7
+            Full MatrixSpace of 2 by 2 dense matrices over Ring of integers modulo 7
         """
         return self.change_ring(self._base_ring.quotient_ring(p))
 

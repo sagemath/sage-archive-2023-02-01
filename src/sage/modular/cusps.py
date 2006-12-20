@@ -579,7 +579,7 @@ class Cusp(Element):
             sage: x = Cusp(2,3)
             sage: y = Cusp(4,5)
             sage: x.is_gamma_h_equiv(y,G)
-            True
+            (True, 1)
 
         """
         if not isinstance(other, Cusp):

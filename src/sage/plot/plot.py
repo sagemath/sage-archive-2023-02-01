@@ -72,7 +72,7 @@ We can put text in a graph:
     sage: x = text('x axis', (1.5,-0.2))
     sage: y = text('y axis', (0.4,0.9))
     sage: g = p+t+x+y
-    sage.: g.show(xmin=-1.5, xmax=2, ymin=-1, ymax=1)
+    sage: g.save('sage.png', xmin=-1.5, xmax=2, ymin=-1, ymax=1)
 
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
@@ -115,6 +115,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object import SageObject
+
 ## IMPORTANT: Do not import matplotlib at module scope.  It takes a
 ## surprisingliy long time to initialize itself.  It's better if it is
 ## imported in functions, so it only gets started if it is actually
@@ -131,10 +133,8 @@ import random #for plot adaptive refinement
 import os #for viewing and writing images
 from colorsys import hsv_to_rgb #for the hue function
 from math import sin, cos, modf, pi #for hue and polar_plot
-
 from sage.structure.sage_object import SageObject
 
-import sage.misc.viewer
 import sage.misc.misc
 
 ############### WARNING ###
@@ -181,7 +181,7 @@ class Graphics(SageObject):
         sage: for x in srange(1,h+1):
         ...        l = [[0,x*sqrt(3)],[-x/2,-x*sqrt(3)/2],[x/2,-x*sqrt(3)/2],[0,x*sqrt(3)]]
         ...        G+=line(l,rgbcolor=hue(c + p*(x/h)))
-        sage.: G.show(figsize=[5,5])
+        sage: G.save('sage.png', figsize=[5,5])
 
     """
 
@@ -988,7 +988,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
                 'cmap':"""The colormap, one of (autumn, bone, cool, copper,
                        gray, hot, hsv, jet, pink, prism, spring, summer, winter)""",
                        'fill':'Fill contours or not',
-                'levels':'Number of contour levels.'}
+                'contours':'Number of contour levels.'}
 
     def _repr_(self):
         return "ContourPlot defined by a %s x %s data grid"%(self.xy_array_row, self.xy_array_col)
@@ -997,7 +997,7 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         options = self.options()
         fill = options['fill']
         cmap = options['cmap']
-        levels = options['levels']
+        contours = options['contours']
         #cm is the matplotlib color map module
         from matplotlib import cm
         try:
@@ -1012,15 +1012,15 @@ class GraphicPrimitive_ContourPlot(GraphicPrimitive):
         x0,x1 = float(self.xrange[0]), float(self.xrange[1])
         y0,y1 = float(self.yrange[0]), float(self.yrange[1])
         if fill:
-            if levels is None:
+            if contours is None:
                 subplot.contourf(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contourf(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
+                subplot.contourf(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
         else:
-            if levels is None:
+            if contours is None:
                 subplot.contour(self.xy_data_array, cmap=cmap, extent=(x0,x1,y0,y1))
             else:
-                subplot.contour(self.xy_data_array, int(levels), cmap=cmap, extent=(x0,x1,y0,y1))
+                subplot.contour(self.xy_data_array, int(contours), cmap=cmap, extent=(x0,x1,y0,y1))
 
 
 class GraphicPrimitive_MatrixPlot(GraphicPrimitive):
@@ -1260,12 +1260,13 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
 
     EXAMPLE:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: import networkx
         sage: D = networkx.dodecahedral_graph()
         sage: NGP = GraphicPrimitive_NetworkXGraph(D)
         sage: g = Graphics()
         sage: g.append(NGP)
         sage: g.axes(False)
-        sage: g.save('a.png')
+        sage: g.save('sage.png')
     """
     def __init__(self, graph, pos=None, with_labels=True, node_size=300):
         self.__nxg = graph
@@ -1650,7 +1651,7 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
         sage: C.save('sage.png')
     """
     def _reset(self):
-        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'levels':None}
+        self.options={'plot_points':25, 'fill':True, 'cmap':'gray', 'contours':None}
 
     def _repr_(self):
         return "type contour_plot? for help and examples"

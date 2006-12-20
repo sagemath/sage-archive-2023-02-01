@@ -69,7 +69,7 @@ import sage.interfaces.all
 _objsIntegerModRing = {}
 def IntegerModRing(order=0):
     r"""
-    Return the quotient ring $$\ZZ / n\ZZ$.
+    Return the quotient ring $\ZZ / n\ZZ$.
 
     INPUT:
         order -- integer (default: 0)
@@ -321,8 +321,8 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             import finite_field
             try:
                 return finite_field.gap_to_sage(x, self)
-            except (ValueError, IndexError, TypeError):
-                raise TypeError, "error coercing to finite field"
+            except (ValueError, IndexError, TypeError), msg:
+                raise TypeError, "%s\nerror coercing to finite field"%msg
         try:
             return integer_mod.IntegerMod(self, x)
         except (NotImplementedError, PariError):

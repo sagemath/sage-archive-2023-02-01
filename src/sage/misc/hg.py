@@ -1,10 +1,12 @@
 r"""
-HG from SAGE.
+SAGE Interface to the HG/Mercurial Revision Control System
 
 These functions make setup and use of source control with SAGE easier, using
 the distributed Mercurial HG source control system.  To learn about Mercurial,
 see http://www.selenic.com/mercurial/wiki/.
 
+This system should all be fully usable from the SAGE notebook (except
+for merging, currently).
 This system should all be mostly from the SAGE notebook.
 
 \begin{itemize}
@@ -76,11 +78,10 @@ class HG:
         self.__cloneable = cloneable
 
     def __repr__(self):
-        self.status()
         return "Hg repository '%s' in directory %s"%(self.__name, self.__dir)
 
     def status(self):
-        print("Status of modified or unknown files:")
+        print("Getting status of modified or unknown files:")
         self('status')
         print "\n---\n"
         if self.__name == "SAGE Library Source Code":
@@ -118,7 +119,7 @@ class HG:
             print "-"*70
             print "\n"
 
-    def __call__(self, cmd, interactive=True):
+    def __call__(self, cmd=None, interactive=True):
         """
         Run 'hg cmd' where cmd is an arbitrary string
         in the hg repository.
@@ -134,8 +135,11 @@ class HG:
         OUTPUT:
             * If interactive is True, returns the exit code of the system call.
             * If interactive is False, returns the output and error text.
+            * If cmd is not supplied, returns the output of the 'status' command
         """
         self._warning()
+        if cmd is None:
+            cmd = 'status'
         s = 'cd "%s" && hg %s'%(self.__dir, cmd)
         print s
         if interactive:
@@ -171,16 +175,20 @@ class HG:
 
     browse = serve
 
-    def unbundle(self, bundle, update=True):
+    def unbundle(self, bundle, update=True, options=''):
         """
         Apply patches from a hg patch to the repository.
 
+        If the bundle is a .patch file, instead call the import_patch method.
         To see what is in a bundle before applying it, using self.incoming(bundle).
 
         INPUT:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        if bundle[-6:] == '.patch':
+            self.import_patch(bundle, options)
+            return
         if bundle[-5:] == '.diff':
             return self.import_patch(bundle)
         self._ensure_safe()
@@ -464,6 +472,8 @@ class HG:
         to its parent.
         """
         if not rev is None:
+            if not isinstance(rev, (list, tuple)):
+                rev = [rev]
             options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
         else:
             options = files
@@ -689,7 +699,7 @@ class HG:
         r"""
         Clone the current branch of the SAGE library, and make it active.
 
-        Only available for \code{hg_sage.}
+        Only available for the \code{hg_sage} repository.
 
         Use \code{hg_sage.switch('branch_name')} to switch to a different branch.
         You must restart SAGE after switching.
@@ -790,10 +800,16 @@ class HG:
         """
         if url is None:
             url = self.__url
+
+        # make sure that we don't accidentally create a file ending in '.hg.hg'
+        if filename[-3:] == '.hg':
+            filename = filename[:-3]
         # We write to a local tmp file, then move, since unders
         # windows hg has a bug that makes it fail to write
         # to any filename that is at all complicated!
-        filename = os.path.abspath(filename) + '.hg'
+        filename = os.path.abspath(filename)
+        if filename[-3:] != '.hg':
+            filename += '.hg'
         print 'Writing to %s'%filename
         tmpfile = '%s/tmphg'%self.__dir
         if os.path.exists(tmpfile):

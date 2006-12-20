@@ -12,6 +12,7 @@ EXAMPLES:
     sage: float(f(pi))
     6.1232339957367643e-16
 """
+import weakref
 
 import sage.functions.constants
 
@@ -152,8 +153,12 @@ class Function(RingElement):
             R = RR
         return str(self._mpfr_(R))
 
-    def integral(self):
-        raise NotImplementedError, "computation of integral of %s not implemented"%self
+    def integral(self, x):
+        if isinstance(x, Function_var):
+            return self._integral(self, x)
+        else:
+            x = Function_var(x)
+            return self._integral(self, x)
 
     def _interface_init_(self):
         """
@@ -443,7 +448,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: axiom(e + pi)                      # optional
-            %pi + %e
+            %e + %pi
         """
         return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
 
@@ -608,6 +613,53 @@ class Function_at(Function):
 
 
 ########################################################
+class Function_var(Function):
+    """
+    Formal indeterminant.
+    """
+    def __init__(self, name):
+        assert isinstance(name, str)
+        Function.__init__(self,
+            {'axiom':name, 'maxima':name, 'mathematica':name})
+        self._name = name
+
+    def _repr_(self):
+        return self._name
+
+    def _latex_(self):
+        return "\\"+self._name
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _subs(self, v):
+        """
+        v dictionary function_var:object
+        """
+        try:
+            return v[self]
+        except KeyError:
+            return self
+
+    def _integral(self, x):
+        if self is x:
+            return x*x/2
+        else:
+            return self*x
+
+var_cache = {}
+def var(s):
+    s = str(s)
+    try:
+        x = var_cache[s]()
+        if not x is None:
+            return x
+    except KeyError:
+        pass
+    x = Function_var(s)
+    var_cache[s] = weakref.ref(x)
+    return x
+
 
 class Function_sin(Function):
     """

@@ -110,7 +110,7 @@ cdef class Matrix(matrix0.Matrix):
             Full RMatrixSpace of 2 by 3 matrices over IntegerRing(8)
         """
         K = self._base_ring._magma_init_()
-        if self._nrows != self._ncols:
+        if self._nrows == self._ncols:
             s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
         else:
             s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
@@ -176,6 +176,7 @@ cdef class Matrix(matrix0.Matrix):
                    [ 8,  9, 10, 11]], dtype=uint8)
 
         Type \code{numpy.typecodes} for a list of the possible typecodes:
+            sage: import numpy
             sage: numpy.typecodes
             {'All': '?bhilqpBHILQPfdgFDGSUVO', 'AllInteger': 'bBhHiIlLqQpP', 'AllFloat': 'fdgFDG', 'UnsignedInteger': 'BHILQP', 'Float': 'fdg', 'Character': 'S1', 'Complex': 'FDG', 'Integer': 'bhilqp'}
         """

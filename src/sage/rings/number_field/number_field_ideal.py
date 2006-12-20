@@ -223,7 +223,7 @@ class NumberFieldIdeal(Ideal_fractional):
             sage: K.<i> = NumberField(x^2+1, 'i')
             sage: J = K.ideal([i+1, 2])
             sage: J.gens()
-            (i + 1, 2)
+            (2, i + 1)
             sage: J.gens_reduced()
             (i + 1,)
         """

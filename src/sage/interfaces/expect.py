@@ -74,7 +74,8 @@ class Expect(ParentWithBase):
     def __init__(self, name, prompt, command=None, server=None, maxread=100000,
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
-                 logfile = None, eval_using_file_cutoff=0):
+                 logfile = None, eval_using_file_cutoff=0,
+                 do_monitor = True):
 
         self.__is_remote = False
         if command == None:
@@ -85,6 +86,7 @@ class Expect(ParentWithBase):
             eval_using_file_cutoff = 0  # don't allow this!
             #print command
             self._server = server
+        self.__do_monitor = do_monitor
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__script_subdirectory = script_subdirectory
@@ -226,6 +228,12 @@ class Expect(ParentWithBase):
         """
         return ''
 
+    def _do_monitor(self):
+        try:
+            return self.__do_monitor
+        except AttributeError:
+            return False
+
     def _start(self, alt_message=None, block_during_init=True):
         self.quit()  # in case one is already running
         global failed_to_start
@@ -255,7 +263,8 @@ class Expect(ParentWithBase):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
-            monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
+            if self._do_monitor() and not self.__is_remote:
+                monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
@@ -459,8 +468,12 @@ class Expect(ParentWithBase):
             return cls(self, x)
         try:
             return self._coerce_impl(x)
-        except TypeError:
-            return cls(self, str(x))
+        except TypeError, msg:
+            try:
+                return cls(self, str(x))
+            except TypeError, msg2:
+                raise TypeError, msg
+
 
     def _coerce_impl(self, x):
         s = '_%s_'%self.name()
@@ -801,6 +814,25 @@ class ExpectElement(RingElement):
         """
         return not isinstance(getattr(self, attrname), FunctionElement)
 
+    def attribute(self, attrname):
+        """
+        If this wraps the object x in the system, this returns the object
+        x.attrname.  This is useful for some systems that have object
+        oriented attribute access notation.
+
+        EXAMPLES:
+            sage: g = gap('SO(1,4,7)')
+            sage: k = g.InvariantQuadraticForm()
+            sage: k.attribute('matrix')
+            [ [ 0*Z(7), Z(7)^0, 0*Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), 0*Z(7) ],
+              [ 0*Z(7), 0*Z(7), Z(7), 0*Z(7) ], [ 0*Z(7), 0*Z(7), 0*Z(7), Z(7)^0 ] ]
+
+            sage: e = gp('ellinit([0,-1,1,-10,-20])')
+            sage: e.attribute('j')
+            -122023936/161051
+        """
+        P = self._check_valid()
+        return P('%s.%s'%(self.name(), attrname))
 
     def __getitem__(self, n):
         P = self._check_valid()
@@ -817,6 +849,7 @@ class ExpectElement(RingElement):
         t = P._true_symbol()
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
+
 
     def __long__(self):
         return long(str(self))

@@ -294,7 +294,10 @@ class MPolynomialIdeal_singular_repr:
         try:
             return self.__dimension
         except AttributeError:
-            self.__dimension = Integer(singular(list(self.groebner_basis()),"ideal").dim())
+            v = list(self.groebner_basis())
+            if len(v) == 0:
+                v = [0]
+            self.__dimension = Integer(singular(v,"ideal").dim())
         return self.__dimension
 
     def _singular_groebner_basis(self, algorithm="groebner"):
@@ -630,7 +633,7 @@ class MPolynomialIdeal_macaulay2_repr:
             return self.__groebner_basis
         except AttributeError:
             I = self._macaulay2_()
-            G = str(I.gb().generators()).replace('\n','')
+            G = str(I.gb().generators().str()).replace('\n','')
             i = G.rfind('{{')
             j = G.rfind('}}')
             G = G[i+2:j].split(',')

@@ -191,6 +191,8 @@ free_module_element = Extension('sage.modules.free_module_element',
 
 ################ GSL wrapping ######################
 
+gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
                 libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
@@ -249,6 +251,8 @@ ext_modules = [ \
 
     matrix,
 
+    cf,
+
     matrix_dense,
     matrix_generic_dense,
 
@@ -281,7 +285,7 @@ ext_modules = [ \
     dwt,
 
     gsl_array,
-    gsl_ode,
+    #gsl_ode,
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
@@ -634,14 +638,6 @@ def pyrex(ext_modules):
             else:
                 new_sources.append(f)
         m.sources = new_sources
-
-
-#############################################
-# Update interrupt.h and stdsage.h files
-#os.system("cp sage/ext/interrupt.h %s/include/"%SAGE_LOCAL)
-#os.system("cp sage/ext/stdsage.h %s/include/"%SAGE_LOCAL)
-
-##########################################
 
 
 

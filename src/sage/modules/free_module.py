@@ -148,7 +148,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         sage: FreeModule(FiniteField(5),10)
         Vector space of dimension 10 over Finite Field of size 5
         sage: FreeModule(Integers(7),10)
-        Vector space of dimension 10 over Finite Field of size 7
+        Vector space of dimension 10 over Ring of integers modulo 7
         sage: FreeModule(PolynomialRing(QQ,'x'),5)
         Ambient free module of rank 5 over the principal ideal domain Univariate Polynomial Ring in x over Rational Field
         sage: FreeModule(PolynomialRing(ZZ,'x'),5)
@@ -236,7 +236,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
         M=ComplexDoubleVectorSpace_class(rank)
 
-    elif isinstance(base_ring, field.Field):
+    elif base_ring.is_field():
         M = FreeModule_ambient_field(base_ring, rank,
                                         sparse=sparse, inner_product_matrix=inner_product_matrix)
 
@@ -466,11 +466,11 @@ class FreeModule_generic(module.Module):
         EXAMPLES:
             sage: V = VectorSpace(GF(4,'a'),2)
             sage: [x for x in V]
-            [(0, 0), (1, 0), (a, 0), (a + 1, 0), (0, 1), (1, 1), (a, 1), (a + 1, 1), (0, a), (1, a), (a, a), (a + 1, a), (0, a + 1), (1, a + 1), (a, a + 1), (a + 1, a + 1)]
+            [(0, 0), (a, 0), (a + 1, 0), (1, 0), (0, a), (a, a), (a + 1, a), (1, a), (0, a + 1), (a, a + 1), (a + 1, a + 1), (1, a + 1), (0, 1), (a, 1), (a + 1, 1), (1, 1)]
 
             sage: W = V.subspace([V([1,1])])
             sage: print [x for x in W]
-            [(0, 0), (1, 1), (a, a), (a + 1, a + 1)]
+            [(0, 0), (a, a), (a + 1, a + 1), (1, 1)]
         """
         G = self.gens()
         if len(G) == 0:
@@ -2185,7 +2185,10 @@ class FreeModule_ambient(FreeModule_generic):
             return -other.__cmp__(self)
 
     def _repr_(self):
-        return "Ambient free module of rank %s over %s"%(self.rank(), self.base_ring())
+        if self.is_sparse():
+            return "Ambient sparse free module of rank %s over %s"%(self.rank(), self.base_ring())
+        else:
+            return "Ambient free module of rank %s over %s"%(self.rank(), self.base_ring())
 
     def _latex_(self):
         r"""
@@ -2367,8 +2370,12 @@ class FreeModule_ambient_domain(FreeModule_ambient):
         FreeModule_ambient.__init__(self, base_ring, rank, sparse, inner_product_matrix)
 
     def _repr_(self):
-        return "Ambient free module of rank %s over the integral domain %s"%(
-            self.rank(), self.base_ring())
+        if self.is_sparse():
+            return "Ambient sparse free module of rank %s over the integral domain %s"%(
+                self.rank(), self.base_ring())
+        else:
+            return "Ambient free module of rank %s over the integral domain %s"%(
+                self.rank(), self.base_ring())
 
     def base_field(self):
         """
@@ -2471,8 +2478,12 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
         FreeModule_ambient_domain.__init__(self, base_ring, rank, sparse, inner_product_matrix)
 
     def _repr_(self):
-        return "Ambient free module of rank %s over the principal ideal domain %s"%(
-            self.rank(), self.base_ring())
+        if self.is_sparse():
+            return "Ambient sparse free module of rank %s over the principal ideal domain %s"%(
+                self.rank(), self.base_ring())
+        else:
+            return "Ambient free module of rank %s over the principal ideal domain %s"%(
+                self.rank(), self.base_ring())
 
 
 ###############################################################################
@@ -2486,7 +2497,10 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         FreeModule_ambient_pid.__init__(self, base_field, dimension, sparse, inner_product_matrix)
 
     def _repr_(self):
-        return "Vector space of dimension %s over %s"%(self.dimension(), self.base_ring())
+        if self.is_sparse():
+            return "Sparse vector space of dimension %s over %s"%(self.dimension(), self.base_ring())
+        else:
+            return "Vector space of dimension %s over %s"%(self.dimension(), self.base_ring())
 
     def ambient_vector_space(self):
         """
@@ -2697,9 +2711,14 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         return d
 
     def _repr_(self):
-        s = "Free module of degree %s and rank %s over %s\n"%(
-            self.degree(), self.rank(), self.base_ring()) + \
-            "User basis matrix:\n%s"%self.basis_matrix()
+        if self.is_sparse():
+            s = "Sparse free module of degree %s and rank %s over %s\n"%(
+                self.degree(), self.rank(), self.base_ring()) + \
+                "User basis matrix:\n%s"%self.basis_matrix()
+        else:
+            s = "Free module of degree %s and rank %s over %s\n"%(
+                self.degree(), self.rank(), self.base_ring()) + \
+                "User basis matrix:\n%s"%self.basis_matrix()
         return s
 
     def _latex_(self):
@@ -2867,7 +2886,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
         The vector $(1,1,1)$ has coordinates $v=(1,1)$ with respect to the echelonized
         basis for self.  Multiplying $vA$ we find the coordinates of this vector with
         respect to the user basis.
-            sage: v = Vector(QQ, [1,1]); v
+            sage: v = vector(QQ, [1,1]); v
             (1, 1)
             sage: v * A
             (-1/3, 1/3)
@@ -3155,9 +3174,14 @@ class FreeModule_submodule_pid(FreeModule_submodule_with_basis_pid):
                                                      already_echelonized=already_echelonized)
 
     def _repr_(self):
-        s = "Free module of degree %s and rank %s over %s\n"%(
-            self.degree(), self.rank(), self.base_ring()) + \
-            "Echelon basis matrix:\n%s"%self.basis_matrix()
+        if self.is_sparse():
+            s = "Sparse free module of degree %s and rank %s over %s\n"%(
+                self.degree(), self.rank(), self.base_ring()) + \
+                "Echelon basis matrix:\n%s"%self.basis_matrix()
+        else:
+            s = "Free module of degree %s and rank %s over %s\n"%(
+                self.degree(), self.rank(), self.base_ring()) + \
+                "Echelon basis matrix:\n%s"%self.basis_matrix()
         return s
 
     def coordinate_vector(self, v, check=True):
@@ -3247,9 +3271,14 @@ class FreeModule_submodule_with_basis_field(FreeModule_generic_field, FreeModule
                                                      already_echelonized=already_echelonized)
 
     def _repr_(self):
-        return "Vector space of degree %s and dimension %s over %s\n"%(
-                self.degree(), self.dimension(), self.base_field()) + \
-                "User basis matrix:\n%s"%self.basis_matrix()
+        if self.is_sparse():
+            return "Sparse vector space of degree %s and dimension %s over %s\n"%(
+                    self.degree(), self.dimension(), self.base_field()) + \
+                    "User basis matrix:\n%s"%self.basis_matrix()
+        else:
+            return "Vector space of degree %s and dimension %s over %s\n"%(
+                    self.degree(), self.dimension(), self.base_field()) + \
+                    "User basis matrix:\n%s"%self.basis_matrix()
 
     def _denominator(self, B):
         # for internal use only
@@ -3308,9 +3337,14 @@ class FreeModule_submodule_field(FreeModule_submodule_with_basis_field):
                                                        already_echelonized = already_echelonized)
 
     def _repr_(self):
-        return "Vector space of degree %s and dimension %s over %s\n"%(
+        if self.is_sparse():
+            return "Sparse vector space of degree %s and dimension %s over %s\n"%(
                 self.degree(), self.dimension(), self.base_field()) + \
                 "Basis matrix:\n%s"%self.basis_matrix()
+        else:
+            return "Vector space of degree %s and dimension %s over %s\n"%(
+                    self.degree(), self.dimension(), self.base_field()) + \
+                    "Basis matrix:\n%s"%self.basis_matrix()
 
     def echelon_coordinates(self, v, check=True):
         """

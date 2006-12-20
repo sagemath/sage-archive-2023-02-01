@@ -28,6 +28,8 @@ fi
 if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
     hg pull "$SAGE_SERVER"/hg/sage-main
+    hg merge
+    hg ci -m "merge"
     if [ $? -ne 0 ]; then
         echo "WARNING -- Unable to pull in *latest* SAGE source code."
         echo "Building what you downloaded."
@@ -57,7 +59,13 @@ fi
 mkdir "$DEVEL/sage-main"
 cp -pr * .hg* "$DEVEL/sage-main/"
 
+cd "$DEVEL/sage-main"
 
+# for backward compatibility
+# (going from sage-1.4 to sage-1.5)
+rm -f */*/interrupt.h */*/*/interrupt.h */*/*/*/interrupt.h
+
+# touch and build everything
 sage -b main
 
 if [ $? -ne 0 ]; then

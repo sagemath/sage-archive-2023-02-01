@@ -8,14 +8,14 @@ Finite Fields support iteration, starting with 0.
     sage: i = 0
     sage: for x in k: print i, x; i+=1
     0 0
-    1 1
-    2 2
-    3 a
-    4 a + 1
-    5 a + 2
-    6 2*a
+    1 2*a
+    2 a + 1
+    3 a + 2
+    4 2
+    5 a
+    6 2*a + 2
     7 2*a + 1
-    8 2*a + 2
+    8 1
     sage: for a in GF(5):
     ...    print a
     0
@@ -103,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default:False)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -193,11 +193,11 @@ class FiniteField_ext_pari(FiniteField_generic):
 
     The following is a native Python set:
         sage: set(k)
-        set([a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a])
+        set([0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1])
 
     And the following is a SAGE enumerated set:
         sage: EnumeratedSet(k)
-        {a, 2*a + 1, a + 2, a + 1, 2*a + 2, 1, 0, 2, 2*a}
+         {0, 1, 2, 2*a + 1, a + 2, 2*a, 2*a + 2, a, a + 1}
 
     We can also make a list via comprehension:
         sage: [x for x in k]
@@ -322,7 +322,7 @@ class FiniteField_ext_pari(FiniteField_generic):
         assert not (modulus is None)
         self.__modulus = modulus
         f = pari.pari(str(modulus))
-        self.__pari_modulus = f.subst('x', 'a') * self.__pari_one
+        self.__pari_modulus = f.subst(modulus.parent().variable_name(), 'a') * self.__pari_one
         self.__gen = finite_field_element.FiniteField_ext_pariElement(self, pari.pari('a'))
 
     def __cmp__(self, other):
@@ -685,13 +685,17 @@ class FiniteField_ext_pari(FiniteField_generic):
 
         EXAMPLES:
             sage: hash(GF(3,'b'))
-            904200654
+            904200654                      # 32-bit
+            -586939294780423730            # 64-bit
             sage: hash(GF(3,'a'))
-            904200654
+            904200654                      # 32-bit
+            -586939294780423730            # 64-bit
             sage: hash(GF(9,'a'))
-            1524231377
+            205387690                      # 32-bit
+            -8785304532306495574           # 64-bit
             sage: hash(GF(9,'b'))
-            -584596322
+            -74532899                      # 32-bit
+            5852897890058287069            # 64-bit
         """
         return hash((self.__order, self.variable_name(), self.__modulus))
 
@@ -717,7 +721,10 @@ class FiniteField_prime_modn(FiniteField_generic, integer_mod_ring.IntegerModRin
             return False
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, integer.Integer, integer_mod.IntegerMod_abstract)):
+        if isinstance(x, (int, long, integer.Integer)):
+            return self(x)
+        if isinstance(x, integer_mod.IntegerMod_abstract) and \
+               x.parent().characteristic() == self.characteristic():
             return self(x)
         raise TypeError, "no canonical coercion of x"
 
@@ -887,7 +894,7 @@ def gap_to_sage(x, F):
     if q == F.order():
         K = F
     else:
-        K = FiniteField(q)
+        K = FiniteField(q, F.variable_name())
     if s.find(')^') == -1:
         e = 1
     else:

@@ -14,12 +14,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os
+import os, sys
 
 from misc import SPYX_TMP, SAGE_ROOT
 
 include_dirs = ['%s/local/include'%SAGE_ROOT,  \
-                '%s/local/include/python'%SAGE_ROOT, \
+                '%s/local/include/python%s'%(SAGE_ROOT, sys.version[:3]), \
                 '%s/devel/sage/sage/ext'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
@@ -180,7 +180,7 @@ setup(ext_modules = ext_modules,
     """%(name, name, extension, additional_source_files, libs, language, includes)
     open('%s/setup.py'%build_dir,'w').write(setup)
 
-    sagex_include = ' '.join(['-I %s'%x for x in includes])
+    sagex_include = ' '.join(['-I %s'%x for x in includes if len(x.strip()) > 0 ])
 
     cmd = 'cd %s && sagexc -p %s %s.pyx 1>log 2>err '%(build_dir, sagex_include, name)
 

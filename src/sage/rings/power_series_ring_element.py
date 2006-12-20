@@ -822,6 +822,34 @@ class PowerSeries_generic_dense(PowerSeries):
     def laurent_series(self):
         return self.parent().laurent_series_ring()(self)
 
+    def ogf(self):
+        r"""
+        Returns the ordinary generating function associated to self.
+
+        This function is known as serlaplace in GP/PARI.
+
+        EXAMPLES:
+        sage: R.<t> = PowerSeriesRing(QQ)
+        sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
+        sage: f.ogf()
+        t + t^2 + 2*t^3
+        """
+        return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
+
+    def egf(self):
+        r"""
+        Returns the exponential generating function associated to self.
+
+        This function is known as serlaplace in GP/PARI.
+
+        EXAMPLES:
+        sage: R.<t> = PowerSeriesRing(QQ)
+        sage: f = t + t^2 + 2*t^3
+        sage: f.egf()
+        t + 1/2*t^2 + 1/3*t^3
+        """
+        return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
+
     def reversion(self):
         """
         Return the reversion of f, i.e., the series g such that

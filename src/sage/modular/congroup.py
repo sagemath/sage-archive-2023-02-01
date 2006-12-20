@@ -649,7 +649,7 @@ class GammaH_class(CongruenceSubgroup):
 
     def _reduce_cusp(self, c):
         """
-        Compute a canonical form for the cusp uu/vv.
+        Compute a canonical form for the cusp $uu/vv$.
 
         INPUT:
             cusp
@@ -659,14 +659,14 @@ class GammaH_class(CongruenceSubgroup):
 
         OUTPUT:
             bool -- True if self and other are equivalent
-            int -- 1, 0, or -1,
-                   If the two cusps are u1/v1 and u2/v2, then they are
+            int -- $1$, $0$, or $-1$,
+                   If the two cusps are $u1/v1$ and $u2/v2$, then they are
                    equivalent modulo Gamma_H(N) if and only if
-                        v1 =  h*v2 (mod N) and u1 =  h^(-1)u2 (mod gcd(v1,N))
+                        $v1 =  h*v2 (mod N)$ and $u1 =  h^(-1)*u2 (mod gcd(v1,N))$
                    or
-                        v1 = -h*v2 (mod N) and u1 = -h^(-1)*u2 (mod gcd(v1,N))
-                   where h in H.   In the first case we return 1, and in
-                   the second we return -1.   We return 0 if the two
+                        $v1 = -h*v2 (mod N)$ and $u1 = -h^(-1)*u2 (mod gcd(v1,N))$
+                   where $h \in H$.   In the first case we return $1$, and in
+                   the second we return $-1$.   We return $0$ if the two
                    cusps are not equivalent.
 
         EXAMPLE:

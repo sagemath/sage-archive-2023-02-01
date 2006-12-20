@@ -42,6 +42,9 @@ class pAdicField_generic(field.Field):
     def __hash__(self):
         return hash((self.__p, self.__prec))
 
+    def is_exact(self):
+        return False
+
     def prec(self):
         return self.__prec
 

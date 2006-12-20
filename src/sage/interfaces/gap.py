@@ -514,7 +514,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
             g.load_package(pkg, verbose=True)
         except RuntimeError, msg:
             if verbose:
-                print msg
+                print '*** %s'%msg
             pass
     # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)

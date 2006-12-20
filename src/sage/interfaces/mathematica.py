@@ -128,7 +128,7 @@ different ways of accessing Mathematica:
 
 We factor a polynomial of degree 200 over the integers.
 
-    sage: x = PolynomialRing(IntegerRing()).gen()
+    sage: R.<x> = PolynomialRing(ZZ)
     sage: f = (x**100+17*x+5)*(x**100-5*x+20)
     sage: f
     x^200 + 12*x^101 + 25*x^100 - 85*x^2 + 315*x + 100

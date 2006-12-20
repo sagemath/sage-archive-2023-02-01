@@ -36,7 +36,7 @@ List the discriminants of cubic field in the database ramified exactly at 3 and 
 
 List all fields in the database ramified at 101
     sage: J.ramified_at(101)
-    [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+    [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
 """
 
 #*****************************************************************************
@@ -60,16 +60,16 @@ import os
 
 from sage.rings.all import NumberField, IntegerRing, RationalField, PolynomialRing
 from sage.misc.misc import powerset
-import sage.databases.db
 import sage.misc.misc
 
+from sage.structure.sage_object import load, save
 
-_JONESDATA = "%s/data/src/jones_data/"%sage.misc.misc.SAGE_ROOT
 
-class JonesDatabase(sage.databases.db.Database):
-    def __init__(self, read_only=True):
-        sage.databases.db.Database.__init__(self,
-                  name="jones", read_only=read_only)
+JONESDATA = "%s/data/jones/"%sage.misc.misc.SAGE_ROOT
+
+class JonesDatabase:
+    def __init__(self):
+        self.root = None
 
     def __repr__(self):
         return "John Jones's table of number fields with bounded ramification and degree <= 6"
@@ -86,7 +86,7 @@ class JonesDatabase(sage.databases.db.Database):
         S.sort()
         data = open(path + "/" + filename).read()
         data = data.replace("^","**")
-        x = PolynomialRing(RationalField()).gen()
+        x = PolynomialRing(RationalField(), 'x').gen()
         v = eval(data)
         s = tuple(S)
         if self.root.has_key(s):
@@ -96,7 +96,7 @@ class JonesDatabase(sage.databases.db.Database):
             self.root[s] = v
 
 
-    def _init(self, path=_JONESDATA):
+    def _init(self, path):
         """
         Create the database from scratch from the PARI files on John
         Jone's web page, downloaded (e.g., via wget) to a local directory,
@@ -120,6 +120,7 @@ class JonesDatabase(sage.databases.db.Database):
         """
         n = 0
         x = PolynomialRing(RationalField(),'x').gen()
+        self.root = {}
         self.root[tuple([])] = [x-1]
         if not os.path.exists(path):
             raise IOError, "Path %s does not exist."%path
@@ -130,7 +131,9 @@ class JonesDatabase(sage.databases.db.Database):
                 for Y in os.listdir(Z):
                     if Y[-3:] == ".gp":
                         self._load(Z, Y)
-        self.commit()
+        if not os.path.exists(JONESDATA):
+            os.makedirs(JONESDATA)
+        save(self.root, JONESDATA+ "/jones.sobj")
 
     def unramified_outside(self, S, d=None):
         """
@@ -156,6 +159,14 @@ class JonesDatabase(sage.databases.db.Database):
         return Z
 
     def __getitem__(self, S):
+        return self.get(S)
+
+    def get(self, S, var='a'):
+        if self.root is None:
+            if os.path.exists(JONESDATA+ "/jones.sobj"):
+                self.root = load(JONESDATA+ "/jones.sobj")
+            else:
+                raise RuntimeError, "You must install the Jones database optional package."
         try:
             S = list(S)
         except TypeError:
@@ -164,9 +175,9 @@ class JonesDatabase(sage.databases.db.Database):
         s = tuple(S)
         if not self.root.has_key(s):
             return []
-        return [NumberField(f, check=False) for f in self.root[s]]
+        return [NumberField(f, var, check=False) for f in self.root[s]]
 
-    def ramified_at(self, S, d=None):
+    def ramified_at(self, S, d=None, var='a'):
         """
         Return all fields in the database of degree d ramified
         exactly at the primes in S.
@@ -180,13 +191,9 @@ class JonesDatabase(sage.databases.db.Database):
             sage: J.ramified_at([119])             # requires optional package
             []
             sage: J.ramified_at(101)               # requires optional package
-            [Number Field in a with defining polynomial x^2 - 101,
-             Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361,
-             Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6,
-             Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4,
-             Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17]
+            [Number Field in a with defining polynomial x^2 - 101, Number Field in a with defining polynomial x^4 - x^3 + 13*x^2 - 19*x + 361, Number Field in a with defining polynomial x^5 - x^4 - 40*x^3 - 93*x^2 - 21*x + 17, Number Field in a with defining polynomial x^5 + x^4 - 6*x^3 - x^2 + 18*x + 4, Number Field in a with defining polynomial x^5 + 2*x^4 + 7*x^3 + 4*x^2 + 11*x - 6]
         """
-        Z = self[S]
+        Z = self.get(S, var=var)
         if d == None:
             return Z
         return [k for k in self[S] if k.degree() == d]

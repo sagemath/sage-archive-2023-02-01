@@ -180,7 +180,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
-            V = B.row_span()
+            V = B.row_space()
         return self.domain().submodule(V)
 
     def image(self):
@@ -191,7 +191,7 @@ class MatrixMorphism(sage.categories.all.Morphism):
             # This is a matrix multiply:  we take the linear combinations of the basis for
             # D given by the elements of the basis for V.
             B = V.basis_matrix() * D.basis_matrix()
-            V = B.row_span()
+            V = B.row_space()
         return self.codomain().submodule(V)
 
     def matrix(self):

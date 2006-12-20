@@ -121,6 +121,9 @@ class ComplexField_class(field.Field):
         self.__prec = int(prec)
         ParentWithGens.__init__(self, self._real_field(), ('I',), False)
 
+    def is_exact(self):
+        return False
+
     def prec(self):
         return self.__prec
 

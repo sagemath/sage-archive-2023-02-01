@@ -247,7 +247,8 @@ class MPolynomial_macaulay2_repr:
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
             sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
+             21     7 14
+            x   + 2x y
             sage: R(h)                              # optional
             2*x^7*y^14 + x^21
             sage: R(h^20) == f^20                   # optional
@@ -392,6 +393,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the base ring of self; in
+        this case, QQ.
+            sage: f = 2 * x * y
+            sage: c = f.monomial_coefficient(x*y); c
+            2
+            sage: c in QQ
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
             1
@@ -466,6 +476,17 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the parent of self; in
+        this case, QQ[x, y].
+            sage: f = 2 * x * y
+            sage: c = f.coefficient(x*y); c
+            2
+            sage: c in QQ
+            False
+            sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.coefficient(y)
             5*x
@@ -977,7 +998,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
             sage: F = f.factor()
             sage: F
-            2 * x * (2 + x)^2 * (y + x) * (y + 2*x)
+            2 * x * (y + x) * (y + 2*x) * (2 + x)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how

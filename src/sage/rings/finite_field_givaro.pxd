@@ -70,6 +70,8 @@ cdef class FiniteField_givaro(FiniteField):
     cdef object _polynomial_ring
     cdef object _prime_subfield
     cdef object _array
+    cdef object _is_conway
+    cdef object _hash
     cdef int repr
     cdef gen_array(FiniteField_givaro self)
     cdef order_c(FiniteField_givaro self)
@@ -83,7 +85,7 @@ cdef class FiniteField_givaro_iterator:
     cdef FiniteField_givaro _parent
 
 cdef class FiniteField_givaroElement(FiniteFieldElement):
-    cdef int object
+    cdef int element
     cdef object __multiplicative_order
     cdef ModuleElement _add_c_impl(self, ModuleElement right)
     cdef RingElement _mul_c_impl(self, RingElement right)

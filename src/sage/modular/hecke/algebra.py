@@ -80,6 +80,9 @@ class HeckeAlgebra_base(sage.rings.commutative_algebra.CommutativeAlgebra):
             raise TypeError, "coercion of %s into Hecke algebra not defined."%x
         return hecke_operator.HeckeAlgebraElement_matrix(self, A)
 
+    def _coerce_impl(self, x):
+        return self._coerce_try(x, self.__matrix_space())
+
     def gen(self, n):
         """
         Return the $n$-th Hecke operator.

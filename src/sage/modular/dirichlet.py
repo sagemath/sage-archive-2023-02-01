@@ -274,7 +274,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: e = DirichletGroup(16)([-1, 1])
             sage: hash(e)
             1498523633                  # 32-bit
-            -8530276723386762305        # 64-bit
+            3713082714464823281         # 64-bit
         """
         return self.element()._hash()
 
@@ -305,26 +305,27 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         x = self.element() + other.element()
         return DirichletCharacter(self.parent(), x, check=False)
+
     #values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
     #for i in range(len(self.__values_on_gens))]
     #    return DirichletCharacter(self.parent(), values_on_gens)
 
-    def x_mul_(self,  other):
-        """
-        Return the product of self and other.
+##     def x_mul_(self,  other):
+##         """
+##         Return the product of self and other.
 
-        EXAMPLES:
-            sage: G.<a,b> = DirichletGroup(20)
-            sage: a
-            [-1, 1]
-            sage: b
-            [1, zeta4]
-            sage: a*b
-            [-1, zeta4]
-        """
-        values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
-                          for i in range(len(self.__values_on_gens))]
-        return DirichletCharacter(self.parent(), values_on_gens)
+##         EXAMPLES:
+##             sage: G.<a,b> = DirichletGroup(20)
+##             sage: a
+##             [-1, 1]
+##             sage: b
+##             [1, zeta4]
+##             sage: a*b
+##             [-1, zeta4]
+##         """
+##         values_on_gens = [self.__values_on_gens[i]*other.__values_on_gens[i]
+##                           for i in range(len(self.__values_on_gens))]
+##         return DirichletCharacter(self.parent(), values_on_gens)
 ##         P = self.parent()
 ##         dlog = P._zeta_dlog
 ##         pows = P._zeta_powers
@@ -800,6 +801,18 @@ class DirichletCharacter(MultiplicativeGroupElement):
         self.__is_trivial = z
         return z
 
+    def kernel(self):
+        r"""
+        Return the kernel of this character.
+
+        OUTPUT:
+            Currently the kernel is returned as a list.  This may change.
+
+        EXAMPLES:
+        """
+        one = self.base_ring()(1)
+        return [x for x in range(self.modulus()) if self(x) == one]
+
     def maximize_base_ring(self):
         r"""
         Let
@@ -1157,13 +1170,23 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
             [[1], [a^2], [-1], [-a^2]]
 
 
-        sage: G, e = DirichletGroup(13).objgens()
+        sage: G.<e> = DirichletGroup(13)
         sage: loads(G.dumps()) == G
         True
 
         sage: G = DirichletGroup(19, GF(5))
         sage: loads(G.dumps()) == G
         True
+
+    We compute a Dirichlet group over a large prime field.
+        sage: p = next_prime(10^40)
+        sage: g = DirichletGroup(19, GF(p)); g
+        Group of Dirichlet characters of modulus 19 over Finite Field of size 10000000000000000000000000000000000000121
+
+    Note that the root of unity has small order, i.e., it is not the bigest
+    order root of unity in the field.
+        sage: g.zeta_order()
+        2
     """
     modulus = rings.Integer(modulus)
 
@@ -1180,9 +1203,12 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
         e = rings.IntegerModRing(modulus).unit_group_exponent()
         try:
             zeta = base_ring.zeta(e)
+            zeta_order = zeta.multiplicative_order()
         except (TypeError, ValueError):
             zeta = base_ring.zeta()
-        zeta_order = zeta.multiplicative_order()
+            n = zeta.multiplicative_order()
+            zeta_order = arith.GCD(e,n)
+            zeta = zeta**(n//zeta_order)
 
     elif zeta_order is None:
         zeta_order = zeta.multiplicative_order()
@@ -1216,13 +1242,13 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
     """
     def __init__(self, modulus, zeta, zeta_order):
         self._zeta = zeta
-        self._zeta_order = zeta_order
+        self._zeta_order = int(zeta_order)
         self._modulus = modulus
         self._integers = rings.IntegerModRing(modulus)
         a = zeta.parent()(1)
         v = {a:0}
         w = [a]
-        for i in range(1, zeta_order):
+        for i in range(1, self._zeta_order):
             a = a * zeta
             v[a] = i
             w.append(a)

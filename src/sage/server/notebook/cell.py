@@ -32,7 +32,37 @@ import notebook
 
 import worksheet
 
-class Cell:
+class Cell_generic:
+    pass
+
+class TextCell(Cell_generic):
+    def __init__(self, id, text, worksheet):
+        self.__id = int(id)
+        self.__text = text
+        self.__worksheet = worksheet
+
+    def html(self, ncols, do_print=False):
+        t = self.__text
+        return '<font size=+1>%s</font>'%t
+        #return self.__text
+
+    def plain_text(self, prompts=False):
+        return self.__text
+
+    def edit_text(self, prompts=False):
+        return self.__text
+
+    def id(self):
+        return self.__id
+
+    def is_auto_cell(self):
+        return False
+
+    def __cmp__(self, right):
+        return cmp(self.id(), right.id())
+
+
+class Cell(Cell_generic):
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)
@@ -62,7 +92,7 @@ class Cell:
         self.__out_html = self.files_html()
 
     def __cmp__(self, right):
-        return cmp(self.__id, right.__id)
+        return cmp(self.id(), right.id())
 
     def __del__(self):
         if os.path.exists(self.__dir):
@@ -285,6 +315,7 @@ class Cell:
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+#                s = s.strip('\n')
 
 
         return s.strip('\n')
@@ -484,8 +515,18 @@ class Cell:
         #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-        tbl = """<table class="cell_output_box"><tr>
-               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
+        if do_print:
+            btn = ""
+        else:
+            btn = """<span class="cell_evaluate"><img src="/evaluate.png"
+                                                      onMouseOver="this.src='/evaluate_over.png'"
+                                                      onMouseOut="this.src='/evaluate.png'"
+                                                      onClick="evaluate_cell(%s,0);"></span>"""%self.__id
+        tbl = btn + """
+               <table class="cell_output_box"><tr>
+               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
+                 %s
+               </td>
                <td class="output_cell">%s</td></tr></table>"""%(
                    self.__id, self.__id, r, s)
 
@@ -510,3 +551,4 @@ def format_exception(s0, ncols):
     t = '<html><font color="#990099">' + s + '</font></html>'
     return t
 
+ComputeCell=Cell

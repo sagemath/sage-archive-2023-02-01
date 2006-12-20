@@ -128,6 +128,11 @@ cdef class Ring(ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
+    def base_extend(self, R):
+        if R.has_coerce_map_from(self):
+            return R
+        raise TypeError, 'no base extension defined'
+
     def category(self):
         """
         Return the category to which this ring belongs.
@@ -192,6 +197,16 @@ cdef class Ring(ParentWithGens):
         Return True if this ring is a field.
         """
         raise NotImplementedError
+
+    def is_exact(self):
+        """
+        Return True if elements of this ring are represented exactly, i.e.,
+        there is no precision loss when doing arithmetic.
+
+        NOTE: This defaults to true, so even if it does return True you have
+        no guarantee (unless the ring has properly overloaded this).
+        """
+        return True
 
     def is_subring(self, other):
         """

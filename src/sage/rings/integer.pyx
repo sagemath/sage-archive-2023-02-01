@@ -921,7 +921,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Compute self**exp modulo mod.
 
         EXAMPLES:
-            sage: z = Integer(2)
+            sage: z = 2
             sage: z.powermod(31,31)
             2
             sage: z.powermod(0,31)
@@ -933,10 +933,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.powermod(31,0)
             Traceback (most recent call last):
             ...
-            RuntimeError
+            ZeroDivisionError: cannot raise to a power modulo 0
         """
         cdef Integer x, _exp, _mod
         _exp = Integer(exp); _mod = Integer(mod)
+        if mpz_cmp_si(_mod.value,0) == 0:
+            raise ZeroDivisionError, "cannot raise to a power modulo 0"
+
         x = Integer()
 
         _sig_on

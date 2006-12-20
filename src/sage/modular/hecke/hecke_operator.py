@@ -300,8 +300,6 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             return sage.rings.coerce.cmp(self, other)
         c = cmp(self.parent(), other.parent())
         if c: return c
-        if self.__n == other.__n:
-            return 0
         return cmp(self.__matrix, other.__matrix)
 
     def _repr_(self):

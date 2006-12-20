@@ -572,6 +572,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
+##     def _unsafe_add_in_place(self,  ModuleElement right):
+##         """
+##         Do *not* use this...  unless you really know what you
+##         are doing.
+##         """
+##         if not (right._parent is self._parent):
+##             raise TypeError
+##         mpz_add(self.value, self.value, (<Integer>right).value)
+##     cdef _unsafe_add_in_place_c(self,  ModuleElement right):
+##         """
+##         Do *not* use this...  unless you really know what you
+##         are doing.
+##         """
+##         if not (right._parent is self._parent):
+##             raise TypeError
+##         mpz_add(self.value, self.value, (<Integer>right).value)
+
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x

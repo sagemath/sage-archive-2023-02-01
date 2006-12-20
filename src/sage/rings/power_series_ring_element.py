@@ -85,8 +85,6 @@ class PowerSeries(ring_element.RingElement):
                                       name = self.parent().variable_name())
         return S(self)
 
-         return self.parent()(f, prec)
-
     def __cmp__(self, right):
         r"""
         Comparison of self and right.

@@ -2091,22 +2091,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if not self.is_square():
             raise ArithmeticError, "self must be square"
-        n = int(sage.rings.integer.Integer(n))    # coerce to integer so fractions give error.
-        if n == 0:
-            return self.parent()(1)
-        if n < 0:
-            return (~self)**(-n)
-        ans = self.parent()(1)
-        apow = self
-        while n != 0:
-            if n%2 != 0:
-                ans = ans * apow
-            n = n/2
-            if n == 0:  # to not waste time doing an extra multiplication/increment
-                break
-            apow = apow * apow
-        return ans
 
+        return ModuleElement.__pow__(self, n, ignored)
 
     ###################################################
     # Comparison

@@ -57,65 +57,6 @@ from sage.structure.parent_gens cimport ParentWithGens
 cdef int _sig_on
 cdef int _sig_off
 
-cdef class FiniteField_givaro(FiniteField) #forward declaration
-
-cdef extern from "Python.h":
-    ctypedef struct PyTypeObject
-    ctypedef struct PyObject
-    int PyObject_TypeCheck(object o, PyTypeObject *t)
-
-cdef extern from "givaro/givrandom.h":
-    ctypedef struct GivRandom "GivRandom":
-        pass
-
-cdef extern from "givaro/givgfq.h":
-    ctypedef struct intvec "std::vector<unsigned int>":
-        void (* push_back)(int elem)
-
-    ctypedef struct constintvec "const std::vector<unsigned int>"
-
-    intvec intvec_factory "std::vector<unsigned int>"(int len)
-
-cdef extern from "givaro/givgfq.h":
-
-    ctypedef struct GivaroGfq "GFqDom<int>":
-        #attributes
-        unsigned int one
-        unsigned int zero
-
-        # methods
-        int (* mul)(int r, int a, int b)
-        int (* add)(int r, int a, int b)
-        int (* sub)(int r, int a, int b)
-        int (* div)(int r, int a, int b)
-        int (* inv)(int r, int x)
-        int (* neg)(int r, int x)
-        int (* mulin)(int a, int b)
-        unsigned int (* characteristic)()
-        unsigned int (* cardinality)()
-        int (* exponent)()
-        int (* random)(GivRandom gen, int res)
-        int (* initi "init")(int res, int e)
-        int (* initd "init")(int res, double e)
-        int (* axpyin)(int r, int a, int x)
-        int (* sage_generator)() # SAGE specific method, not found upstream
-        int (* write)(int r, int p)
-        int (* read)(int r, int p)
-        int (* axpy)(int r, int a, int b, int c)
-        int (* axmy)(int r, int a, int b, int c)
-        int (* amxy)(int r, int a, int b, int c)
-        int (* isZero)(int e)
-        int (* isOne)(int e)
-        int (* isunit)(int e)
-
-    GivaroGfq *gfq_factorypk "new GFqDom<int>" (unsigned int p, unsigned int k)
-    # SAGE specific method, not found upstream
-    GivaroGfq *gfq_factorypkp "new GFqDom<int>" (unsigned int p, unsigned int k, intvec poly)
-    GivaroGfq *gfq_factorycopy "new GFqDom<int>"(GivaroGfq orig)
-    GivaroGfq  gfq_deref "*"(GivaroGfq *orig)
-    void delete "delete "(void *o)
-    int gfq_element_factory "GFqDom<int>::Element"()
-
 cdef class FiniteField_givaroElement(FiniteFieldElement) # forward declaration
 
 cdef FiniteField_givaro parent_object(Element o):
@@ -130,13 +71,6 @@ cdef class FiniteField_givaro(FiniteField):
     cardinality must be < 2^16. See FiniteField_ext_pari for larger
     cardinalities.
     """
-    #cdef object __weakref__   # so it is possible to make weakrefs to this finite field -- BROKEN **
-                               # see trac #165
-    cdef GivaroGfq *objectptr # C++ object
-    cdef object _polynomial_ring
-    cdef object _prime_subfield
-    cdef object _array
-    cdef int repr
 
     def __init__(FiniteField_givaro self, q, name="a",  modulus=None, repr="poly", cache=False):
         """
@@ -1017,8 +951,6 @@ cdef class FiniteField_givaro_iterator:
     Iterator over FiniteField_givaro elements of degree 1. We iterate
     over fields of higher degree using the VectorSpace iterator.
     """
-    cdef int iterator
-    cdef FiniteField_givaro _parent
 
     def __init__(self, FiniteField_givaro parent):
         self._parent = parent
@@ -1050,8 +982,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
     """
     Element in FiniteField_givaro.
     """
-    cdef int object
-    cdef object __multiplicative_order
 
     def __init__(FiniteField_givaroElement self, parent ):
         """
@@ -1071,6 +1001,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         self._parent = <ParentWithBase> parent  # explicit case required for C++
         self.object = 0
+
+    cdef FiniteField_givaroElement _new_c(self, int value):
+        return make_FiniteField_givaroElement(parent_object(self), value)
 
     def __dealloc__(FiniteField_givaroElement self):
         pass
@@ -1209,6 +1142,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             $a$ is a generator of $K$ (though necissarily the one returned by K.gens()).
             Now it is trivial to compute $(a^i)^exp = a^(i*exp)$, and reducing the exponent
             mod the multiplicative order of $K$.
+
+        AUTHOR:
+            Robert Bradshaw
         """
 
         cdef int r
@@ -1239,6 +1175,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return make_FiniteField_givaroElement(field, field.objectptr.one)
 
         return make_FiniteField_givaroElement(field, r)
+
+        cdef _pow_c_impl(self, int exp):
+
 
 
 ##     def add(FiniteField_givaroElement self,FiniteField_givaroElement other):

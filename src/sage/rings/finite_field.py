@@ -91,7 +91,7 @@ import sage.interfaces.gap
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None, names=None, elem_cache=None):
+def FiniteField(order, name=None, modulus=None, names=None, elem_cache=None, cache_ring=False):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -133,12 +133,10 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=None):
 
     # This is a weakref workaround.
         handle = cache[key]()
-        print handle
         if not handle is None:
-            print handle()
             return handle()
 
-    # ?!?! this gets around something in PARI that affects weakref--a bad frame pointer?
+    # ?!?! this seems to get around something in PARI that affects weakref--a bad frame pointer?
     try: "a"._pari_()
     except AttributeError: pass
 
@@ -157,7 +155,8 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=None):
 
     #cache[key] = weakref.ref(K)
     #cache[key] = K
-    cache[key] = weakref.ref(weakref_indirection(K))
+    if (cache_ring):
+        cache[key] = weakref.ref(weakref_indirection(K))
     return K
 
 class weakref_indirection():

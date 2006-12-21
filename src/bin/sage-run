@@ -22,6 +22,9 @@ if file[-5:] == '.sage':
         sys.exit(1)
     e = os.system('sage-python %s.py %s'%(file[:-5], options))
     sys.exit(e)
+elif file[-5:] == '.spyx':
+    e = os.system('sage-sagex %s'%file)
+    sys.exit(e)
 else:
     e = os.system('sage-python %s %s'%(file, options))
     if e:

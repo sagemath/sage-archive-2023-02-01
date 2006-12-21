@@ -67,6 +67,7 @@ cdef class FiniteField_givaro(FiniteField):
     #cdef object __weakref__   # so it is possible to make weakrefs to this finite field -- BROKEN **
                                # see trac #165
     cdef GivaroGfq *objectptr # C++ object
+    cdef object _polynomial
     cdef object _polynomial_ring
     cdef object _prime_subfield
     cdef object _array

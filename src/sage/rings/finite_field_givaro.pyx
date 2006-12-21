@@ -769,16 +769,18 @@ cdef class FiniteField_givaro(FiniteField):
             sage: k.polynomial()
             a^4 + 2*a^3 + 2
         """
-        quo = int(-(self.gen()**(self.degree())))
-        b   = int(self.characteristic())
+        if self._polynomial is None:
+            quo = int(-(self.gen()**(self.degree())))
+            b   = int(self.characteristic())
 
-        ret = []
-        for i in range(self.degree()):
-            ret.append(quo%b)
-            quo = quo/b
-        ret = ret + [1]
-        R = self.polynomial_ring_c()
-        return R(ret)
+            ret = []
+            for i in range(self.degree()):
+                ret.append(quo%b)
+                quo = quo/b
+            ret = ret + [1]
+            R = self.polynomial_ring_c()
+            self._polynomial = R(ret)
+        return self._polynomial
 
     def modulus(self):
         r"""

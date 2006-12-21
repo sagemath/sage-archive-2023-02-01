@@ -58,7 +58,8 @@ Further examples:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-import random, weakref
+import random
+import weakref
 
 import arith
 import field
@@ -87,11 +88,10 @@ from sage.structure.parent_gens import normalize_names, ParentWithGens
 
 import sage.interfaces.gap
 
-import weakref
 
 cache = {}
 
-def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
+def FiniteField(order, name=None, modulus=None, names=None, elem_cache=None):
     """
     Return the globally unique finite field of given order with generator
     labeled by the given name and possibly with given modulus.
@@ -103,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        elem_cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default: order<500)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -119,15 +119,28 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
     order = int(order)
     name = normalize_names(1,name)
 
+    if elem_cache is None:
+        elem_cahce = order < 500
+
     key = (order, name, modulus)
     if cache.has_key(key):
-        return cache[key]
-
+        #return cache[key]
     # I have disabled weakref support for finite fields, because it isn't
     # really implemented in Pyrex.  - SEE track ticket #165
         #K = cache[key]()
         #if not K is None:
         #    return K
+
+    # This is a weakref workaround.
+        handle = cache[key]()
+        print handle
+        if not handle is None:
+            print handle()
+            return handle()
+
+    # ?!?! this gets around something in PARI that affects weakref--a bad frame pointer?
+    try: "a"._pari_()
+    except AttributeError: pass
 
     if arith.is_prime(order):
         K = FiniteField_prime_modn(order)
@@ -144,8 +157,18 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
 
     #cache[key] = weakref.ref(K)
     #cache[key] = K
+    cache[key] = weakref.ref(weakref_indirection(K))
     return K
 
+class weakref_indirection():
+    # This is a hack until pyrex supports weakref directly,
+    # but for now the overhead of doing arithmetic between two
+    # equal but distinct fields is a killer...
+    def __init__(self, field):
+         self.field = field
+         field._set_weakref_handle(self)
+    def __call__(self):
+         return self.field
 
 def is_PrimeFiniteField(x):
     return isinstance(x, FiniteField_prime_modn)

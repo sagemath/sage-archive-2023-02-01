@@ -13,7 +13,8 @@ usage() {
     echo "  -t <files|dir>-- test examples in .py, .pyx, .sage or .tex files"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo "  -advanced     -- list more options"
-    echo "  file.[sage|py] [options] -- run given .sage or .py files"
+    echo "  file.[sage|py|spyx] [options] -- run given .sage, .py or .spyx files"
+    echo "  -c cmd        -- Evaluates cmd as sage code"
     exit 1
 }
 
@@ -384,6 +385,13 @@ fi
 if [ $1 = '-testall' -o $1 = "--testall" ]; then
    shift
    sage-testall $*
+   exit $?
+fi
+
+if [ $1 = '-c' ]; then
+   cd "$CUR"
+   shift
+   sage-eval $*
    exit $?
 fi
 

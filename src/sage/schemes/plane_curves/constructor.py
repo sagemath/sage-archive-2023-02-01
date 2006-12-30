@@ -111,9 +111,11 @@ def Curve(F):
         sage: I = X.defining_ideal(); I
         Ideal (z^3 + y^3 + x^3, z^4 + y^4 + x^4) of Polynomial Ring in x, y, z over Rational Field
 
-    EXAMPLE: Defining equation must be homogeneous.
+    EXAMPLE: In three variables, the defining equation must be homogeneous.
+
     If the parent polynomial ring is in three variables, then the
     defining ideal must be homogeneous.
+
         sage: x,y,z = QQ['x,y,z'].gens()
         sage: Curve(x^2+y^2)
         Projective Curve over Rational Field defined by y^2 + x^2
@@ -121,6 +123,13 @@ def Curve(F):
         Traceback (most recent call last):
         ...
         TypeError: defining polynomials (= z + y^2 + x^2) must be homogeneous
+
+    The defining polynomial must always be nonzero:
+        sage: P1.<x,y> = ProjectiveSpace(1,GF(5))
+        sage: Curve(0*x)
+        Traceback (most recent call last):
+        ...
+        ValueError: defining polynomial of curve must be nonzero
     """
     if is_AlgebraicScheme(F):
         return Curve(F.defining_polynomials())
@@ -149,6 +158,8 @@ def Curve(F):
     P = F.parent()
     k = F.base_ring()
     if F.parent().ngens() == 2:
+        if F == 0:
+            raise ValueError, "defining polynomial of curve must be nonzero"
         A2 = AffineSpace(2, P.base_ring())
         A2._coordinate_ring = P
 
@@ -161,8 +172,8 @@ def Curve(F):
             return AffineCurve_generic(A2, F)
 
     elif F.parent().ngens() == 3:
-
-        P = F.parent()
+        if F == 0:
+            raise ValueError, "defining polynomial of curve must be nonzero"
         P2 = ProjectiveSpace(2, P.base_ring())
         P2._coordinate_ring = P
         if is_FiniteField(k):

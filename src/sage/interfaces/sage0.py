@@ -213,7 +213,7 @@ class Sage(Expect):
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
-        if out.find("Traceback") != -1:
+        if 'Traceback' in out:
             raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):

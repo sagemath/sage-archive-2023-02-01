@@ -10,6 +10,7 @@ from gfan import gfan,  Gfan
 from gp import gp, gp_console, gp_version, is_GpElement, Gp
 #from gnuplot import gnuplot, gnuplot_console
 from kash import  kash, kash_console, kash_version, is_KashElement, Kash
+from lisp import lisp, lisp_console, Lisp
 from magma import magma, magma_console, magma_version, Magma, is_MagmaElement
 from macaulay2 import macaulay2, macaulay2_console, Macaulay2
 from maple import maple, maple_console, Maple

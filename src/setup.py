@@ -674,6 +674,8 @@ setup(name        = 'sage',
 
                      'sage.geometry',
 
+                     'sage.games',
+
                      'sage.gsl',
 
                      'sage.graphs',

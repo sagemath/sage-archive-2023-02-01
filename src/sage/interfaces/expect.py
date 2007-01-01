@@ -893,7 +893,7 @@ class ExpectElement(RingElement):
         if isinstance(n, ExpectElement):
             return P.new('%s ^ %s'%(self._name,n._name))
         else:
-            return P.new('%s ^ %s'%(self._name,n))
+           return P.new('%s ^ %s'%(self._name,n))
 
 
 def reduce_load(parent, x):

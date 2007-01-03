@@ -105,6 +105,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise MemoryError, "Error allocating memory"
 
         cdef uint k
+        cdef Py_ssize_t i
         k = 0
         for i from 0 <= i < self._nrows:
             self.matrix[i] = self._entries + k
@@ -211,6 +212,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,
                                       0, 0, 0)
         memcpy(A._entries, self._entries, sizeof(uint)*self._nrows*self._ncols)
+        A.p = self.p
+        A.gather = self.gather
         return A
 
 

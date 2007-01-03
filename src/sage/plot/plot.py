@@ -2365,7 +2365,7 @@ class GraphicsArray(SageObject):
     def append(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):
+    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, axes=None, **args):
         r"""
         \code{render} loops over all graphics objects
         in the array and adds them to the subplot.
@@ -2383,21 +2383,25 @@ class GraphicsArray(SageObject):
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-                   savenow = (i==dims), verify=do_verify, **args)#only save if i==dims.
+                   savenow = (i==dims), verify=do_verify,
+                   axes = axes,
+                   **args)#only save if i==dims.
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+             axes = None, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, figsize=figsize, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+             axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
         """
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, figsize=figsize, **args)
+            self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'

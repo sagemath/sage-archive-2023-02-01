@@ -33,6 +33,12 @@ def update_hardcoded_files(path):
             except OSError, msg:
                 print msg
 
+    # Write new location file.
+    if os.path.exists(location_file):
+        O = open(location_file,'w')
+        O.write(SAGE_ROOT)
+        O.close()
+
 def __mysig(a,b):
     raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
 

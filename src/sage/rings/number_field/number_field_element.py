@@ -210,6 +210,40 @@ class NumberFieldElement(field_element.FieldElement):
             raise TypeError, "Unable to coerce %s to a rational"%self
         return self.__element[0]
 
+    def conjugate(self):
+        """
+        Return the complex conjugate of the number field element.  Currently,
+        this is implemented for cyclotomic fields and quadratic extensions of Q.
+        It seems likely that there are other number fields for which the idea of
+        a conjugate would be easy to compute.
+
+        EXAMPLES:
+            sage: I=QuadraticField(-1,'I').gen(0)
+            sage: I.conjugate()
+            -I
+            sage: (I/(1+I)).conjugate()
+            -1/2*I + 1/2
+            sage: z6=CyclotomicField(6).gen(0)
+            sage: (2*z6).conjugate()
+            -2*zeta6 + 2
+        """
+        coeffs = self.parent().polynomial().list()
+        if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
+            # polynomial looks like x^2+d
+            # i.e. we live in a quadratic extension of QQ
+            if coeffs[0] > 0:
+                gen = self.parent().gen()
+                return self.polynomial()(-gen)
+            else:
+                return self
+        elif isinstance(self.parent(), number_field.NumberField_cyclotomic):
+            # We are in a cyclotomic field
+            # Replace the generator zeta_n with (zeta_n)^(n-1)
+            gen = self.parent().gen()
+            return self.polynomial()(gen ** (gen.multiplicative_order()-1))
+        else:
+            raise NotImplementedError, "This conjugation is not implemented (or doesn't make sense)."
+
     def polynomial(self):
         return self.__element
 

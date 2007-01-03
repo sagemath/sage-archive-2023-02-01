@@ -367,7 +367,10 @@ class Cell(Cell_generic):
             return self.__version
 
     def time(self):
-        return self.__time
+        try:
+            return self.__time
+        except AttributeError:
+            return "?"
 
     def do_time(self):
         self.__time = True

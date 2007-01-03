@@ -41,10 +41,18 @@ class TextCell(Cell_generic):
         self.__text = text
         self.__worksheet = worksheet
 
-    def html(self, ncols, do_print=False):
+    def html(self, ncols, do_print=False, do_math_parse=True):
+        """
+            do_math_parse -- bool (default: True)
+                If True, call math_parse (defined in cell.py)
+                on the html.
+        """
         t = self.__text
-        return '<font size=+1>%s</font>'%t
-        #return self.__text
+        if do_math_parse:
+            # Do dollar sign math parsing
+            t = math_parse(t)
+        s = '<font size=+1>%s</font>'%t
+        return s
 
     def plain_text(self, prompts=False):
         return self.__text
@@ -229,7 +237,7 @@ class Cell(Cell_generic):
         return self.__in
 
     def is_auto_cell(self):
-        return '#auto' in self.__in.split('\n')[0]
+        return '#auto' in self.__in
 
     def changed_input_text(self):
         try:
@@ -557,3 +565,49 @@ def format_exception(s0, ncols):
     return t
 
 ComputeCell=Cell
+
+
+def math_parse(s):
+    r"""
+    Do the following:
+    \begin{verbatim}
+       * Replace all $ text $'s by
+          <span class='math'> text </span>
+       * Replace all $$ text $$'s by
+          <div class='math'> text </div>
+       * Replace all \$'s by $'.s  Note that in
+         the above two cases nothing is done if the $
+         is preceeded by a backslash.
+    \end{verbatim}
+    """
+    t = ''
+    while True:
+        i = s.find('$')
+        if i == -1:
+            return t + s
+        elif i > 0 and s[i-1] == '\\':
+            t += s[:i-1] + '$'
+            s = s[i+1:]
+        elif i-1 < len(s) and s[i+1] == '$':
+            typ = 'div'
+        else:
+            typ = 'span'
+        j = s[i+2:].find('$')
+        if j == -1:
+            j = len(s)
+            s += '$'
+            if typ == 'div':
+                s += '$$'
+        else:
+            j += i + 2
+        if typ == 'div':
+            txt = s[i+2:j]
+        else:
+            txt = s[i+1:j]
+        t += s[:i] + '<%s class="math">%s</%s>'%(typ, txt, typ)
+        s = s[j+1:]
+        if typ == 'div':
+            s = s[1:]
+    return t
+
+

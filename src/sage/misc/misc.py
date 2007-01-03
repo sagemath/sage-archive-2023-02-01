@@ -342,6 +342,8 @@ def prod(x, z=None):
         except AttributeError:
             pass
 
+    if not isinstance(x, list):
+        x = list(x)
     if z is None:
         if len(x) == 0:
             import sage.rings.integer

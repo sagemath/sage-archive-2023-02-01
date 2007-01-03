@@ -736,46 +736,46 @@ class Graphics(SageObject):
             axes = self.__show_axes
 
         self.axes_label(l=axes_label)
-        if self.__show_axes:
+        if axes:
             #an axes instance
             sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
                             axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
                             tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
 
-            #adjust the xy limits and draw the axes:
-            if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
-                if frame: #add the frame axes and the normal axes with no ticks
-                    xmin, xmax = self.__xmin, self.__xmax
-                    ymin, ymax = self.__ymin, self.__ymax
-                    subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-                    subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                    #add a frame to the plot
-                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                            axes_with_no_ticks=True, axes_label=axes_label)
-                else: #regular plot with regular axes
-                    xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
-                    subplot.set_xlim(xmin, xmax)
-                    subplot.set_ylim(ymin, ymax)
-                    sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-
-            elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
+        #adjust the xy limits and draw the axes:
+        if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
+            if frame: #add the frame axes and the normal axes with no ticks
                 xmin, xmax = self.__xmin, self.__xmax
                 ymin, ymax = self.__ymin, self.__ymax
                 subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
                 subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                if axes: #axes=True unless user specifies axes=False
-                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-            elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
-                xmin, xmax = self.__xmin, self.__xmax
-                ymin, ymax = self.__ymin, self.__ymax
-                subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-                subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                if axes: #axes=True unless user specifies axes=False
-                    sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
-            else: #regular plot with no axes
+                #add a frame to the plot
+                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
+                                        axes_with_no_ticks=True, axes_label=axes_label)
+            else: #regular plot with regular axes
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
+                sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+
+        elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
+            xmin, xmax = self.__xmin, self.__xmax
+            ymin, ymax = self.__ymin, self.__ymax
+            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            if axes: #axes=True unless user specifies axes=False
+                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+        elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
+            xmin, xmax = self.__xmin, self.__xmax
+            ymin, ymax = self.__ymin, self.__ymax
+            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            if axes: #axes=True unless user specifies axes=False
+                sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
+        else: #regular plot with no axes
+            xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+            subplot.set_xlim(xmin, xmax)
+            subplot.set_ylim(ymin, ymax)
 
         # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
         # matplotlib looks at the file extension to see what the renderer should be.

@@ -910,7 +910,13 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         return {'alpha':'How transparent the line is.',
                 'thickness':'How thick the line is.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'linestyle':"The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted).",
+                'marker':"'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown), '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point), '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right), '<' (triangle_left), '>' (triangle_right), 'None' (nothing), 'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up), 'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon), 's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)",
+                'markersize':'the size of the marker in points',
+                'markeredgecolor':'the markerfacecolor can be any color arg',
+                'markeredgewidth':'the size of the markter edge in points'
+                }
 
     def _repr_(self):
         return "Line defined by %s points"%len(self)
@@ -928,8 +934,12 @@ class GraphicPrimitive_Line(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         import matplotlib.patches as patches
+        options = dict(self.options())
+        del options['alpha']
+        del options['thickness']
+        del options['rgbcolor']
+        p = patches.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
-        p = patches.Line2D(self.xdata, self.ydata)
         a = float(options['alpha'])
         p.set_alpha(a)
         p.set_linewidth(float(options['thickness']))
@@ -1672,6 +1682,28 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     lines.  You can change this to change the defaults for all future
     lines.  Use line.reset() to reset to the default options.
 
+    OPTIONS:
+        alpha -- How transparent the line is
+        thickness -- How thick the line is
+        rgbcolor -- The color as an rgb tuple
+        hue -- The color given as a hue
+
+    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        linestyle -- The style of the line, which is one of
+                  '--' (dashed), '-.' (dash dot), '-' (solid),
+                  'steps', ':' (dotted)
+        marker  -- "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
+                   '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
+                   '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
+                   '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
+                   's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+       markersize -- the size of the marker in points
+       markeredgecolor -- the markerfacecolor can be any color arg
+       markeredgewidth -- the size of the markter edge in points
+
+
     EXAMPLES:
     A blue conchoid of Nicomedes:
 
@@ -1998,7 +2030,9 @@ class PlotFactory(GraphicPrimitiveFactory):
     the defaults for all future plots.  Use plot.reset()
     to reset to the default options.
 
-    The options are:
+    PLOT OPTIONS:
+    The plot options are
+
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
         plot_division -- the maximum number points including those
@@ -2007,6 +2041,30 @@ class PlotFactory(GraphicPrimitiveFactory):
 
         xmin -- starting x value
         xmax -- ending x value
+
+    APPEARANCE OPTIONS:
+    The following options affect the appearance of the line through the points
+    on the graph of X (these are the same as for the line function):
+
+        alpha -- How transparent the line is
+        thickness -- How thick the line is
+        rgbcolor -- The color as an rgb tuple
+        hue -- The color given as a hue
+
+    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        linestyle -- The style of the line, which is one of
+                  '--' (dashed), '-.' (dash dot), '-' (solid),
+                  'steps', ':' (dotted)
+        marker  -- "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
+                   '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
+                   '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
+                   '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
+                   's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+       markersize -- the size of the marker in points
+       markeredgecolor -- the markerfacecolor can be any color arg
+       markeredgewidth -- the size of the marker edge in points
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced
@@ -2040,6 +2098,11 @@ class PlotFactory(GraphicPrimitiveFactory):
     We can also directly plot the elliptic curve:
         sage: E = EllipticCurve([0,-1])
         sage: P = plot(E, 1, 4, rgbcolor=hue(0.6))
+
+    We can change the line style to one of '--' (dashed), '-.' (dash dot),
+    '-' (solid), 'steps', ':' (dotted):
+        sage: g = plot(sin,0,10, linestyle='-.')
+        sage: g.save('sage.png')
     """
     def _reset(self):
         o = self.options

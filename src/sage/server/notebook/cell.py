@@ -229,7 +229,7 @@ class Cell(Cell_generic):
         return self.__in
 
     def is_auto_cell(self):
-        return '%auto' in self.__in.split('\n')[0]
+        return '#auto' in self.__in.split('\n')[0]
 
     def changed_input_text(self):
         try:
@@ -405,9 +405,11 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        if self.__in.lstrip()[:8] == '%hideall':
+            return ''
+
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
-
         if self.worksheet().compute_process_has_been_started():
             evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         else:

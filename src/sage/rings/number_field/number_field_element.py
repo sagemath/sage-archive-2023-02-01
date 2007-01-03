@@ -226,6 +226,12 @@ class NumberFieldElement(field_element.FieldElement):
             sage: z6=CyclotomicField(6).gen(0)
             sage: (2*z6).conjugate()
             -2*zeta6 + 2
+
+            sage: K.<b> = NumberField(x^3 - 2)
+            sage: b.conjugate()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
         """
         coeffs = self.parent().polynomial().list()
         if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
@@ -242,7 +248,7 @@ class NumberFieldElement(field_element.FieldElement):
             gen = self.parent().gen()
             return self.polynomial()(gen ** (gen.multiplicative_order()-1))
         else:
-            raise NotImplementedError, "This conjugation is not implemented (or doesn't make sense)."
+            raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
     def polynomial(self):
         return self.__element

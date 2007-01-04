@@ -192,7 +192,7 @@ LD_LIBRARY_PATH=$SAGE_ROOT/local/lib
 export LD_LIBRARY_PATH
 
 COMMAND="import sage.misc.interpreter; from sage.all import *; import os;"
-ipython $* -p sage -c "$COMMAND"
+ipython "$@" -p sage -c "$COMMAND"
 \"""%os.path.abspath('.'))
 sage.close()
 os.system('chmod +x sage')

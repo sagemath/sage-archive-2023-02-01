@@ -165,7 +165,7 @@ fi
 
 sage() {
     sage_setup
-    sage-ipython -c "$SAGE_STARTUP_COMMAND;"  $*
+    sage-ipython -c "$SAGE_STARTUP_COMMAND;"  "$@"
 }
 
 if [ $# -eq 0 ]; then
@@ -185,105 +185,105 @@ fi
 if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
     cd $CUR
     shift
-    axiom $*
+    axiom "$@"
     exit $?
 fi
 
 if [ $1 = '-gap' -o $1 = '--gap' ]; then
     cd $CUR
     shift
-    gap $*
+    gap "$@"
     exit $?
 fi
 
 if [ $1 = '-gp'  -o $1 = '--gp' ]; then
     cd $CUR
     shift
-    gp $*
+    gp "$@"
     exit $?
 fi
 
 if [ $1 = '-singular'  -o $1 = '--singular' ]; then
     cd $CUR
     shift
-    singular $*
+    singular "$@"
     exit $?
 fi
 
 if [ $1 = '-clisp'  -o $1 = '--clisp' ]; then
     cd $CUR
     shift
-    clisp $*
+    clisp "$@"
     exit $?
 fi
 
 if [ $1 = '-lisp'  -o $1 = '--lisp' ]; then
     cd $CUR
     shift
-    lisp $*
+    lisp "$@"
     exit $?
 fi
 
 if [ $1 = '-kash'  -o $1 = '--kash' ]; then
     cd $CUR
     shift
-    kash $*
+    kash "$@"
     exit $?
 fi
 
 if [ $1 = '-fixdoctests' -o $1 = '--fixdoctests' ]; then
     cd $CUR
     shift
-    sage-fixdoctests $*
+    sage-fixdoctests "$@"
     exit $?
 fi
 
 if [ $1 = '-maxima'  -o $1 = '--maxima' ]; then
     cd $CUR
     shift
-    maxima $*
+    maxima "$@"
     exit $?
 fi
 
 if [ $1 = '-mwrank'  -o $1 = '--mwrank' ]; then
     cd $CUR
     shift
-    mwrank $*
+    mwrank "$@"
     exit $?
 fi
 
 if [ $1 = '-M2'  -o $1 = '--M2' ]; then
     cd $CUR
     shift
-    M2 $*
+    M2 "$@"
     exit $?
 fi
 
 if [ $1 = '-python'  -o $1 = '--python' ]; then
     cd $CUR
     shift
-    python $*
+    python "$@"
     exit $?
 fi
 
 if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
     cd $CUR
     shift
-    ipython $*
+    ipython "$@"
     exit $?
 fi
 
 if [ $1 = '-darcs'  -o $1 = '--darcs' ]; then
     cd $CUR
     shift
-    darcs $*
+    darcs "$@"
     exit $?
 fi
 
 if [ $1 = '-hg'  -o $1 = '--hg' ]; then
     cd $CUR
     shift
-    hg $*
+    hg "$@" # XXX
     exit $?
 fi
 
@@ -294,14 +294,14 @@ fi
 if [ $1 = "-server1" -o $1 = "-server" -o $1 = "--server" ]; then
    cd $CUR
    shift
-   sage-server $*
+   sage-server "$@"
    exit $?
 fi
 
 if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    cd $CUR
    shift
-   sage-notebook $*
+   sage-notebook "$@"
    exit $?
 fi
 
@@ -313,65 +313,65 @@ fi
 if [ $1 = '-grep' -o $1 = "--grep" ]; then
    sage_setup
    shift
-   ./sage-grep $*
+   sage-grep "$@"
    exit 0
 fi
 
 if [ $1 = '-q' ]; then
    sage_setup
    shift
-   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" $*
+   sage-ipython  $LOGOPT -rcfile="$IPYTHONRC" -c "$SAGE_STARTUP_COMMAND" "$@"
    exit $?
 fi
 
 if [ $1 = '-b' ]; then
    shift
-   time sage-build $*
+   time sage-build "$@"
    exit $?
 fi
 
 if [ $1 = '-br' -o $1 = "--br" ]; then
    shift
-   sage-build $* && sage
+   sage-build "$@" && sage
    exit $?
 fi
 
 if [ $1 = '-ba' ]; then
    shift
-   sage-build -b $* && sage
+   sage-build -b "$@" && sage
    exit $?
 fi
 
 if [ $1 = '-clone' -o $1 = "--clone" ]; then
    shift
-   time sage-clone $*
+   time sage-clone "$@"
    exit $?
 fi
 
 if [ $1 = '-t' ]; then
    cd "$CUR"
    shift
-   sage-test $*
+   sage-test "$@"
    exit $?
 fi
 
 if [ $1 = '-tnew' ]; then
    cd "$CUR"
    shift
-   sage-test-new $*
+   sage-test-new "$@"
    exit $?
 fi
 
 if [ $1 = '-tsage' -o $1 = "--tsage" ]; then
    cd "$CUR"
    shift
-   sage-test -sage $*
+   sage-test -sage "$@"
    exit $?
 fi
 
 if [ $1 = '-testall' -o $1 = "--testall" ]; then
    shift
-   sage-testall $*
+   sage-testall "$@"
    exit $?
 fi
 
@@ -387,7 +387,7 @@ install() {
        OPT=$OPT" "$1
        shift
    fi
-   for PKG in $*
+   for PKG in "$@"
    do
        echo "Calling sage-spkg on $PKG"
        sage-spkg $OPT "$CUR/$PKG" 2>&1 | tee -a ../install.log
@@ -407,20 +407,20 @@ fi
 
 if [ $1 = '-i' ]; then
    shift
-   echo "Installing $*"
-   install " " $*
+   echo "Installing $@"
+   install " " "$@"
 fi
 
 if [ $1 = '-f' ]; then
    shift
-   echo "Installing $*"
-   install -f $*
+   echo "Force installing $@"
+   install -f "$@"
 fi
 
 if [ "$1" = '-pkg' -o "$1" = '-spkg' -o $1 = "--pkg" -o $1 = "--spkg" ]; then
    cd "$CUR"
    shift
-   for PKG in $*
+   for PKG in "$@"
    do
       echo "Creating SAGE package $PKG"
       sage-pkg "$PKG"
@@ -434,7 +434,7 @@ fi
 if [ $1 = '-pkg_nc' -o $1 = "--pkg_nc" ]; then
    cd "$CUR"
    shift
-   for PKG in $*
+   for PKG in "$@"
    do
       echo "Creating SAGE package $PKG with no compression"
       sage-pkg-nocompress "$PKG"
@@ -518,14 +518,14 @@ fi
 if [ $1 = '-preparse' -o $1 = "--preparse" ]; then
     shift
     cd "$SAGE_LOCAL/bin/"
-    sage-preparse "$CUR" $*
+    sage-preparse "$CUR" "$@"
     exit $?
 fi
 
 if [ $1 = '-pyrex' -o $1 = "--pyrex" ]; then
     shift
     cd "$CUR"
-    pyrexc $*
+    pyrexc "$@"
     exit $?
 fi
 
@@ -533,11 +533,11 @@ if [ $# -ge 1 ]; then
    matplotlib_setup
    T=`echo "$1" | sed -e "s/.*\.//"`
    if [ "$T " = "spkg " ]; then
-       install "" $*
+       install "" "$@"
        exit $?
    fi
    cd "$SAGE_LOCAL/bin/"
-   sage-run "$CUR" $*
+   sage-run "$CUR" "$@"
    exit $?
 fi
 

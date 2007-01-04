@@ -1,2 +1,2 @@
 unset LIBRARY_PATH LD_LIBRARY_PATH DYLD_LIBRARY_PATH
-open  $*
+open  "$@"

@@ -1,9 +1,14 @@
-import sage.rings.commutative_algebra_element as commutative_algebra_element
-cimport sage.rings.commutative_algebra_element as commutative_algebra_element
+include "../ext/interrupt.pxi"
+include "../ext/cdefs.pxi"
+include '../ext/stdsage.pxi'
 
 
-cdef class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
-    cdef ssize_t degree
+from sage.structure.element import Element, IntegralDomainElement, CommutativeAlgebraElement
+from sage.structure.element cimport Element, IntegralDomainElement, CommutativeAlgebraElement
+
+
+cdef class Polynomial(CommutativeAlgebraElement):
+    cdef size_t degree
     cdef char _is_gen
 
 cdef class Polynomial_generic_dense(Polynomial):

@@ -759,7 +759,16 @@ class Notebook(SageObject):
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
             os.system(cmd)
-        notebook_server.serve()
+        while True:
+            try:
+                notebook_server.serve()
+            except KeyboardInterrupt, msg:
+                break
+            except Exception, msg:
+                print msg
+                print "Automatically restarting server."
+            else:
+                break
         self.save()
         self.quit()
         self.save()

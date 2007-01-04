@@ -152,6 +152,10 @@ matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
                                   libraries = ['gmp'])
 
+matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
+                                 ['sage/matrix/matrix_integer_2x2.pyx'],
+                                 libraries = ['gmp'])
+
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'])
 
@@ -265,6 +269,7 @@ ext_modules = [ \
 ##     matrix_field_sparse,
 
      matrix_integer_dense,
+     matrix_integer_2x2,
 ##     matrix_integer_sparse,
 
      matrix_modn_dense,
@@ -350,6 +355,9 @@ ext_modules = [ \
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
+
+    Extension('sage.rings.polynomial_element_pyx',
+              sources = ['sage/rings/polynomial_element.pyx']), \
 
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',

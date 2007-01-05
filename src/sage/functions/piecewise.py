@@ -1070,9 +1070,9 @@ class PiecewisePolynomial:
             sage: f.laplace_transform()
             '1/s - e^-s/s + (s + 1)*e^-(2*s)/s^2 - e^-s/s^2'
             sage: f.laplace_transform("w",latex_output=1)
-            ' - \\frac{e^{ - w}}{w} - \\frac{e^{ - w}}{w^2} + \\frac{\\left(w + 1\\right)e^{ - 2w}}{w^2} + \\frac{1}{w}'
+            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
             sage: f.laplace_transform("w",True)
-            ' - \\frac{e^{ - w}}{w} - \\frac{e^{ - w}}{w^2} + \\frac{\\left(w + 1\\right)e^{ - 2w}}{w^2} + \\frac{1}{w}'
+            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
             sage: f.laplace_transform("w")
             '1/w - e^-w/w + (w + 1)*e^-(2*w)/w^2 - e^-w/w^2'
 

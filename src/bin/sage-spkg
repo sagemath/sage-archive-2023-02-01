@@ -212,7 +212,7 @@ fi
 
 chmod +x spkg-install
 echo "TOUCHING"
-touch * */* */*/* */*/*/*
+touch * */* */*/* */*/*/* 1>/dev/null 2>/dev/null
 
 echo "****************************************************"
 echo "Host system"

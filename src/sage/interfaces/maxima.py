@@ -130,7 +130,7 @@ Here is an example of solving an algebraic equation:
 
 You can even nicely typeset the solution in latex:
     sage: latex(s)
-    \left[ \left[ a=\frac{25 \sqrt{79} i+25}{6 \sqrt{79} i-34} , b=  \frac{5 \sqrt{79} i+5}{\sqrt{79} i+11} , c=\frac{\sqrt{79} i+1}{10}   \right]  , \left[ a=\frac{25 \sqrt{79} i-25}{6 \sqrt{79} i+34} , b=  \frac{5 \sqrt{79} i-5}{\sqrt{79} i-11} , c=-\frac{\sqrt{79} i-1}{10}   \right]  \right]
+    \left[ \left[ a={{25\,\sqrt{79}\,i+25}\over{6\,\sqrt{79}\,i-34}} ,   b={{5\,\sqrt{79}\,i+5}\over{\sqrt{79}\,i+11}} , c={{\sqrt{79}\,i+1  }\over{10}} \right]  , \left[ a={{25\,\sqrt{79}\,i-25}\over{6\,  \sqrt{79}\,i+34}} , b={{5\,\sqrt{79}\,i-5}\over{\sqrt{79}\,i-11}} ,   c=-{{\sqrt{79}\,i-1}\over{10}} \right]  \right]
 
 To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
 (TODO: For OS X should create pdf output and use preview instead?)
@@ -317,7 +317,7 @@ Here's another example:
 
     sage: g = maxima('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
     sage: latex(g)
-     -\frac{i e^{3 i x}}{6}-\frac{i e^{i x}}{2}+c
+    -{{i\,e^{3\,i\,x}}\over{6}}-{{i\,e^{i\,x}}\over{2}}+c
 
 \subsection{Long Input}
 The MAXIMA interface reads in even very long input (using files) in a
@@ -395,7 +395,7 @@ class Maxima(Expect):
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         init_code = ['display2d : false',  # no ascii art output
-                                     'load("mactex-utilities")'   # latex instead of plain tex from tex command
+                                     #'load("mactex-utilities")'   # latex instead of plain tex from tex command (broken in maxima-5.11.0!)
                                      ],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)

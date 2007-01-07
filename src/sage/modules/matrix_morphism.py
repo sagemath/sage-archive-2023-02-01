@@ -94,10 +94,38 @@ class MatrixMorphism(sage.categories.all.Morphism):
         return cmp(self.__matrix, other.__matrix)
 
     def __call__(self, x):
+        """
+        Evaluate this matrix morphism at an element that can be
+        coerced into the domain.
+
+        EXAMPLES:
+            sage: V = QQ^3; W = QQ^2
+            sage: H = Hom(V, W); H
+            Set of Morphisms from Vector space of dimension 3 over Rational Field to Vector space of dimension 2 over Rational Field in Category of vector spaces over Rational Field
+            sage: phi = H(range(6)); phi
+            Free module morphism defined by the matrix
+            [0 1]
+            [2 3]
+            [4 5]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+            sage: phi(V.0)
+            (0, 1)
+            sage: phi([1,2,3])
+            (16, 22)
+            sage: phi(5)
+            Traceback (most recent call last):
+            ...
+            TypeError: 5 must be coercible into Vector space of dimension 3 over Rational Field
+            sage: phi([1,1])
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: entries must be a list of length 3
+        """
         try:
-            if x.parent() != self.domain():
+            if not hasattr(x, 'parent') or x.parent() != self.domain():
                 x = self.domain()(x)
-        except AttributeError, TypeError:
+        except TypeError:
             raise TypeError, "%s must be coercible into %s"%(x,self.domain())
         if self.domain().is_ambient():
             x = x.element()

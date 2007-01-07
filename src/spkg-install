@@ -30,17 +30,8 @@ if [ -d "$DEVEL/sage-main" ]; then
     hg pull "$SAGE_SERVER"/hg/sage-main
     hg merge
     hg ci -m "merge"
-    if [ $? -ne 0 ]; then
-        echo "WARNING -- Unable to pull in *latest* SAGE source code."
-        echo "Building what you downloaded."
-    else
-        # Make the pulled in changes take effect.
-        hg update -f
-        if [ $? -ne 0 ]; then
-            echo "Error applying pulled in changes to new SAGE source code."
-            exit 1
-        fi
-    fi
+    # Make the pulled in changes take effect.
+    hg update
 
     # Since we are doing an upgrade, it is very important that the
     # build always completely works with no dependency issues. It is

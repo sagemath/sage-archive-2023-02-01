@@ -109,8 +109,8 @@ class Sage(Expect):
             init_code = ['from sage.all import *', 'import cPickle']
         else:
             command = "sage"
-            prompt = "sage:"
-            init_code = []
+            prompt = "sage: "
+            init_code = ['import cPickle']
 
         Expect.__init__(self,
                         name = 'sage',
@@ -125,6 +125,13 @@ class Sage(Expect):
                         do_monitor = do_monitor,
                         )
         self._preparse = preparse
+        self._is_local = (server is None)
+
+    def is_local(self):
+        return self._is_local
+
+    def trait_names(self):
+        return eval(self.eval('globals().keys()'))
 
     def quit(self, verbose=False):
         if not self._expect is None:

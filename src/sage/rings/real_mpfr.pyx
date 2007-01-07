@@ -1683,12 +1683,23 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     (controlled by pad) bits than given by s.
 
     INPUT:
-        s -- a string that defines a real number
+        s -- a string that defines a real number (or something whose
+             string representation defines a number)
         base -- an integer between 2 and 36
         pad -- an integer >= 0.
         rnd -- rounding mode: RNDN, RNDZ, RNDU, RNDD
         min_prec -- number will have at least this many bits of precision, no matter what.
+
+    EXAMPLES:
+        sage: RealNumber('2.3')
+        2.29999999999999
+        sage: RealNumber(10)
+        10.0000000000000
+        sage: RealNumber('1.0000000000000000000000000000000000')
+        1.0000000000000000000000000000000000
     """
+    if not isinstance(s, str):
+        s = str(s)
     if base == 10:
         bits = int(3.32192*len(s))
     else:

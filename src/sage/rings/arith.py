@@ -1476,6 +1476,9 @@ def euler_phi(n):
     relatively prime to n.  Thus if n<=0 then \code{euler_phi(n)} is
     defined and equals 0.
 
+    INPUT:
+        n -- an integer
+
     EXAMPLES:
 
         sage: euler_phi(1)
@@ -1517,7 +1520,8 @@ def euler_phi(n):
         return 0
     if n<=2:
         return 1
-    return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
+    return sage.rings.integer.Integer(pari(n).phi())
+    #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 
 def crt(a,b=0,m=1,n=1):
     """

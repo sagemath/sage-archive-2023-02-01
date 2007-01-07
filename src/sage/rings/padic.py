@@ -354,8 +354,11 @@ class pAdic(field_element.FieldElement):
                                                   self.__unit, self.__p, self.__prec)
         # series printing
         if self.__ordp == infinity:
-            return "0"
-            #return "0 + O(%o^Infinity)"%(self.__p)
+            o = self.big_oh()
+            if o == infinity:
+                return "0"
+            else:
+                return "O(%s^%s)"%(self.__p, o)
         if self.__ordp == 0 and self.__prec == infinity and self.__unit == 1:
             return "1"
         s     = ""
@@ -411,7 +414,7 @@ class pAdic(field_element.FieldElement):
             sage: b = K(1); b
             1
             sage: a+b
-            0
+            O(11^10)
         """
         if self.__ordp <= right.__ordp:
             x = self; y = right
@@ -429,9 +432,9 @@ class pAdic(field_element.FieldElement):
         prec = big_oh - n - x.__ordp
         if prec != infinity:
             a %= p**prec
-        if a==0:
+        if a == 0:
             return pAdic(self.__parent, 0, big_oh)
-        return pAdic(self.__parent, a, big_oh ,x.__ordp + n)
+        return pAdic(self.__parent, a, big_oh, x.__ordp + n)
 
     def _sub_(self, right):
         """
@@ -472,8 +475,10 @@ class pAdic(field_element.FieldElement):
             3*19^-1 + O(19^Infinity)
             sage: a/b
             7 + 6*19 + 6*19^2 + 6*19^3 + 6*19^4 + O(19^5)
+            sage: (5 + O(5)) / 1
+            O(5^1)
         """
-        return self * right.__invert__(self.prec())
+        return self * right.__invert__(self.__prec + self.__ordp)
 
     def __mod__(self, right):
         if self.__ordp < 0:

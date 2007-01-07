@@ -180,7 +180,7 @@ matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
 
 complex_number = Extension('sage.rings.complex_number',
 			    ['sage/rings/complex_number.pyx'],
-			    libraries = ['gmp'])
+			    libraries = ['mpfr', 'gmp'])
 
 free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])

@@ -27,15 +27,17 @@ import infinity
 
 include "../ext/stdsage.pxi"
 
+cdef mp_rnd_t rnd
+rnd = GMP_RNDD
+
+def set_global_complex_round_mode(n):
+    global rnd
+    rnd = n
+
 #from sage.databases.odlyzko import zeta_zeroes
 
 def is_ComplexNumber(x):
     return isinstance(x, ComplexNumber)
-
-def make_ComplexNumber( fld, mult_order, re, im ):
-    x = ComplexNumber( fld, re, im )
-    x._set_multiplicative_order( mult_order )
-    return x
 
 cdef class ComplexNumber(sage.structure.element.RingElement):
     """
@@ -48,19 +50,31 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         sage: loads(b.dumps()) == b
         True
     """
+    cdef ComplexNumber _new(self):
+        """
+        Quickly creates a new initialized complex number with the same parent as self.
+        """
+        cdef ComplexNumber x
+        x = PY_NEW(ComplexNumber)
+        x._parent = self._parent
+        x._prec = self._prec
+        x._multiplicative_order = None
+        mpfr_init2(x.__re, self._prec)
+        mpfr_init2(x.__im, self._prec)
+        return x
+
     def __init__(self, parent, real, imag=None):
+        cdef real_mpfr.RealNumber rr, ii
         sage.rings.ring_element.RingElement.__init__(self, parent)
-        self.__pari = None
+        self._prec = self._parent._prec
         self._multiplicative_order = None
-        if real is None: return
+
+        mpfr_init2(self.__re, self._prec)
+        mpfr_init2(self.__im, self._prec)
+
         if imag is None:
             if PY_TYPE_CHECK(real, ComplexNumber):
-                real, imag = (<ComplexNumber>real).__re, (<ComplexNumber>real).__im
-            elif isinstance(real, list) or isinstance(real,tuple):
-                re, imag = real
-                real = re
-            elif isinstance(real, complex):
-                real, imag = real.real, real.imag
+                real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
                 x = real
                 orig = sage.libs.pari.all.pari.get_real_precision()
@@ -68,40 +82,54 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
                 real = str(x.real()).replace(' E','e')
                 imag = str(x.imag()).replace(' E','e')
                 sage.libs.pari.all.pari.set_real_precision(orig)
+            elif isinstance(real, list) or isinstance(real, tuple):
+                re, imag = real
+                real = re
+            elif isinstance(real, complex):
+                real, imag = real.real, real.imag
             else:
                 imag = 0
         try:
             R = parent._real_field()
-            self.__re = R(real)
-            self.__im = R(imag)
+            rr = R(real)
+            ii = R(imag)
+            mpfr_set(self.__re, <mpfr_t> rr.value, rnd)
+            mpfr_set(self.__im, <mpfr_t> ii.value, rnd)
         except TypeError:
             raise TypeError, "unable to coerce to a ComplexNumber"
+
+
+    def  __dealloc__(self):
+        mpfr_clear(self.__re)
+        mpfr_clear(self.__im)
 
     def _repr_(self):
         return self.str(10)
 
     def __getitem__(self, i):
         if i == 0:
-            return self.__re
+            return self.real()
         elif i == 1:
-            return self.__im
+            return self.image()
         raise IndexError, "i must be between 0 and 1."
 
     def __reduce__( self ):
         """
-            Pickling support
+        Pickling support
         """
-        return (make_ComplexNumber, (self.parent(), self._multiplicative_order, self.__re, self.__im))
+        # TODO: This is potentially very slow -- make a 1 version that
+        # is native and much faster -- doesn't use .real()/.imag()
+        return (make_ComplexNumber0, (self._parent, self._multiplicative_order, self.real(), self.imag()))
 
     def _set_multiplicative_order(self, n):
         self._multiplicative_order = integer.Integer(n)
 
     def str(self, base=10):
         s = ""
-        if self.__re != 0:
-            s = self.__re.str(base)
-        if self.__im != 0:
-            y  =  self.__im
+        if self.real() != 0:
+            s = self.real().str(base)
+        if self.imag() != 0:
+            y  =  self.imag()
             if s!="":
                 if y < 0:
                     s = s+" - "
@@ -114,9 +142,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         return s
 
     def _pari_(self):
-        if self.__pari is None:
-            self.__pari = sage.libs.pari.all.pari.new_with_bits_prec(str(self), self.prec())
-        return self.__pari
+        return sage.libs.pari.all.pari.new_with_bits_prec(str(self), self.prec())
 
     def _pari_init_(self):
         """
@@ -126,45 +152,104 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        x.__re = self.__re + (<ComplexNumber>right).__re
-        x.__im = self.__im + (<ComplexNumber>right).__im
+        x = self._new()
+        mpfr_add(x.__re, self.__re, (<ComplexNumber>right).__re, rnd)
+        mpfr_add(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        x.__re = self.__re - (<ComplexNumber>right).__re
-        x.__im = self.__im - (<ComplexNumber>right).__im
+        x = self._new()
+        mpfr_sub(x.__re, self.__re, (<ComplexNumber>right).__re, rnd)
+        mpfr_sub(x.__im, self.__im, (<ComplexNumber>right).__im, rnd)
         return x
 
     cdef RingElement _mul_c_impl(self, RingElement right):
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        x.__re = self.__re * (<ComplexNumber>right).__re - self.__im * (<ComplexNumber>right).__im
-        x.__im = self.__re * (<ComplexNumber>right).__im + self.__im * (<ComplexNumber>right).__re
+        x = self._new()
+        cdef mpfr_t t0, t1
+        mpfr_init2(t0, self._prec)
+        mpfr_init2(t1, self._prec)
+        mpfr_mul(t0, self.__re, (<ComplexNumber>right).__re, rnd)
+        mpfr_mul(t1, self.__im, (<ComplexNumber>right).__im, rnd)
+        mpfr_sub(x.__re, t0, t1, rnd)
+        mpfr_mul(t0, self.__re, (<ComplexNumber>right).__im, rnd)
+        mpfr_mul(t1, self.__im, (<ComplexNumber>right).__re, rnd)
+        mpfr_add(x.__im, t0, t1, rnd)
+        mpfr_clear(t0)
+        mpfr_clear(t1)
         return x
 
-    cdef sage.rings.real_mpfr.RealNumber norm(ComplexNumber self):
-        R = self.__re._parent
-        x = R(self.__re*self.__re + self.__im*self.__im)
+    cdef real_mpfr.RealNumber norm(ComplexNumber self):
+        cdef real_mpfr.RealNumber x
+        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+
+        cdef mpfr_t t0, t1
+        mpfr_init2(t0, self._prec)
+        mpfr_init2(t1, self._prec)
+
+        mpfr_mul(t0, self.__re, self.__re, rnd)
+        mpfr_mul(t1, self.__im, self.__im, rnd)
+
+        mpfr_add(<mpfr_t> x.value, t0, t1, rnd)
+
+        mpfr_clear(t0)
+        mpfr_clear(t1)
         return x
 
-    cdef sage.rings.real_mpfr.RealNumber abs(ComplexNumber self):
-        return self.norm().sqrt()
+    cdef real_mpfr.RealNumber abs(ComplexNumber self):
+        cdef real_mpfr.RealNumber x
+        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+
+        cdef mpfr_t t0, t1
+        mpfr_init2(t0, self._prec)
+        mpfr_init2(t1, self._prec)
+
+        mpfr_mul(t0, self.__re, self.__re, rnd)
+        mpfr_mul(t1, self.__im, self.__im, rnd)
+
+        mpfr_add(<mpfr_t> x.value, t0, t1, rnd)
+        mpfr_sqrt(<mpfr_t> x.value, <mpfr_t> x.value, rnd)
+
+        mpfr_clear(t0)
+        mpfr_clear(t1)
+        return x
 
     cdef RingElement _div_c_impl(self, RingElement right):
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        right_nm = (<ComplexNumber>right).norm()
-        a = (<ComplexNumber>right).__re / right_nm
-        b = (<ComplexNumber>right).__im / right_nm
-        x.__re =  a * self.__re + b * self.__im
-        x.__im =  a * self.__im - b * self.__re
+        x = self._new()
+        cdef mpfr_t a, b, t0, t1, right_nm
+        mpfr_init2(t0, self._prec)
+        mpfr_init2(t1, self._prec)
+        mpfr_init2(a, self._prec)
+        mpfr_init2(b, self._prec)
+        mpfr_init2(right_nm, self._prec)
+
+        mpfr_mul(t0, (<ComplexNumber>right).__re, (<ComplexNumber>right).__re, rnd)
+        mpfr_mul(t1, (<ComplexNumber>right).__im, (<ComplexNumber>right).__im, rnd)
+        mpfr_add(right_nm, t0, t1, rnd)
+
+        mpfr_div(a, (<ComplexNumber>right).__re, right_nm, rnd)
+        mpfr_div(b, (<ComplexNumber>right).__im, right_nm, rnd)
+
+        ## Do this: x.__re =  a * self.__re + b * self.__im
+        mpfr_mul(t0, a, self.__re, rnd)
+        mpfr_mul(t1, b, self.__im, rnd)
+        mpfr_add(x.__re, t0, t1, rnd)
+
+        ## Do this: x.__im =  a * self.__im - b * self.__re
+        mpfr_mul(t0, a, self.__im, rnd)
+        mpfr_mul(t1, b, self.__re, rnd)
+        mpfr_sub(x.__im, t0, t1, rnd)
+        mpfr_clear(t0)
+        mpfr_clear(t1)
+        mpfr_clear(a)
+        mpfr_clear(b)
+        mpfr_clear(right_nm)
         return x
 
     def __rdiv__(self, left):
-        return ComplexNumber(self.parent(), left)/self
+        return ComplexNumber(self._parent, left)/self
 
     def __pow__(self, right, modulus):
         """
@@ -188,21 +273,21 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
         z = self._pari_()
-        P = self.parent()
+        P = (<ComplexNumber>self)._parent
         w = P(right)._pari_()
         m = z**w
         return P(m)
 
     def prec(self):
         """
-        Return square root, which is a complex number.
+        Return precision of this complex number.
 
         EXAMPLES:
             sage: i = ComplexField(2000).0
             sage: i.prec()
             2000
         """
-        return self.__re.prec()
+        return self._parent.prec()
 
     def real(self):
         """
@@ -216,7 +301,10 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: x.parent()
             Real Field with 100 bits of precision
         """
-        return self.__re
+        cdef real_mpfr.RealNumber x
+        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        mpfr_set(<mpfr_t> x.value, self.__re, rnd)
+        return x
 
     def imag(self):
         """
@@ -230,13 +318,16 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: x.parent()
             Real Field with 100 bits of precision
         """
-        return self.__im
+        cdef real_mpfr.RealNumber x
+        x = real_mpfr.RealNumber(self._parent._real_field(), None)
+        mpfr_set(<mpfr_t> x.value, self.__im, rnd)
+        return x
 
     def __neg__(self):
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        x.__re = -self.__re
-        x.__im = -self.__im
+        x = self._new()
+        mpfr_neg(x.__re, self.__re, rnd)
+        mpfr_neg(x.__im, self.__im, rnd)
         return x
 
     def __pos__(self):
@@ -255,35 +346,62 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             0.999999999999999 - 0.0000000000000000277555756156289*I
         """
         cdef ComplexNumber x
-        x = ComplexNumber( self._parent, None )
-        a = self.norm()
-        x.__re = self.__re/a
-        x.__im = -self.__im/a
+        x = self._new()
+
+        cdef mpfr_t t0, t1
+        mpfr_init2(t0, self._prec)
+        mpfr_init2(t1, self._prec)
+
+        mpfr_mul(t0, self.__re, self.__re, rnd)
+        mpfr_mul(t1, self.__im, self.__im, rnd)
+
+        mpfr_add(t0, t0, t1, rnd)         # now t0 is the norm
+        mpfr_div(x.__re, self.__re, t0, rnd)   #     x.__re = self.__re/norm
+
+        mpfr_neg(t1, self.__im, rnd)
+        mpfr_div(x.__im, t1, t0, rnd)  #     x.__im = -self.__im/norm
+
+        mpfr_clear(t0)
+        mpfr_clear(t1)
+
         return x
 
     def __int__(self):
-        if self.__im == 0:
-            return int(self.__re)
-        raise TypeError
+        raise TypeError, "can't convert complex to int; use int(abs(z))"
 
     def __long__(self):
-        if self.__im == 0:
-            return long(self.__re)
-        raise TypeError
+        raise TypeError, "can't convert complex to long; use long(abs(z))"
 
     def __float__(self):
-        if self.__im == 0:
-            return float(self.__re)
-        raise TypeError
+        raise TypeError, "can't convert complex to float; use abs(z)"
 
     def __complex__(self):
-        return complex(float(self.__re), float(self.__im))
+        return complex(mpfr_get_d(self.__re, rnd),
+                       mpfr_get_d(self.__im, rnd))
+        # return complex(float(self.__re), float(self.__im))
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
-        return sage.misc.misc.generic_cmp((left.__re, left.__im) , ((<ComplexNumber>right).__re, (<ComplexNumber>right).__im))
+        cdef int a, b
+        a = mpfr_nan_p(left.__re)
+        b = mpfr_nan_p((<ComplexNumber>right).__re)
+        if a != b:
+            return -1
+
+        cdef int i
+        i = mpfr_cmp(left.__re, (<ComplexNumber>right).__re)
+        if i < 0:
+            return -1
+        elif i > 0:
+            return 1
+        i = mpfr_cmp(left.__im, (<ComplexNumber>right).__im)
+        if i < 0:
+            return -1
+        elif i > 0:
+            return 1
+        return 0
 
     def multiplicative_order(self):
         """
@@ -317,9 +435,9 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             return integer.Integer(1)
         elif self == -1:
             return integer.Integer(2)
-        elif self == self.parent().gen():
+        elif self == self._parent.gen():
             return integer.Integer(4)
-        elif self == -self.parent().gen():
+        elif self == -self._parent.gen():
             return integer.Integer(4)
         elif not self._multiplicative_order is None:
             return integer.Integer(self._multiplicative_order)
@@ -340,7 +458,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).acos()
             0.904556894302381 - 1.06127506190503*I
         """
-        return self.parent()(self._pari_().acos())
+        return self._parent(self._pari_().acos())
 
     def acosh(self):
         """
@@ -348,7 +466,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).acosh()
             1.06127506190503 + 0.904556894302381*I
         """
-        return self.parent()(self._pari_().acosh())
+        return self._parent(self._pari_().acosh())
 
     def asin(self):
         """
@@ -356,7 +474,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).asin()
             0.666239432492515 + 1.06127506190503*I
         """
-        return self.parent()(self._pari_().asin())
+        return self._parent(self._pari_().asin())
 
     def asinh(self):
         """
@@ -364,7 +482,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).asinh()
             1.06127506190503 + 0.666239432492515*I
         """
-        return self.parent()(self._pari_().asinh())
+        return self._parent(self._pari_().asinh())
 
     def atan(self):
         """
@@ -372,7 +490,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).atan()
             1.01722196789785 + 0.402359478108525*I
         """
-        return self.parent()(self._pari_().atan())
+        return self._parent(self._pari_().atan())
 
     def atanh(self):
         """
@@ -380,7 +498,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).atanh()
             0.402359478108525 + 1.01722196789785*I
         """
-        return self.parent()(self._pari_().atanh())
+        return self._parent(self._pari_().atanh())
 
     def cotan(self):
         """
@@ -394,7 +512,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+i).cotan()
             0.21762156185440268136513424360523807352075436916785404091068124239 - 0.86801414289592494863584920891627388827343874994609327121115071646*I
         """
-        return self.parent()(self._pari_().cotan())
+        return self._parent(self._pari_().cotan())
 
     def cos(self):
         """
@@ -402,7 +520,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).cos()
             0.833730025131149 - 0.988897705762865*I
         """
-        return self.parent()(self._pari_().cos())
+        return self._parent(self._pari_().cos())
 
     def cosh(self):
         """
@@ -410,7 +528,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).cosh()
             0.833730025131149 + 0.988897705762865*I
         """
-        return self.parent()(self._pari_().cosh())
+        return self._parent(self._pari_().cosh())
 
 
     def eta(self, omit_frac=False):
@@ -469,7 +587,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             0.742048775836564 + 0.198831370229910*I
         """
         try:
-            return self.parent()(self._pari_().eta(not omit_frac))
+            return self._parent(self._pari_().eta(not omit_frac))
         except sage.libs.pari.all.PariError:
             raise ValueError, "value must be in the upper half plane"
 
@@ -480,7 +598,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).sin()
             1.29845758141597 + 0.634963914784736*I
         """
-        return self.parent()(self._pari_().sin())
+        return self._parent(self._pari_().sin())
 
     def sinh(self):
         """
@@ -488,7 +606,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).sinh()
             0.634963914784736 + 1.29845758141597*I
         """
-        return self.parent()(self._pari_().sinh())
+        return self._parent(self._pari_().sinh())
 
     def tan(self):
         """
@@ -496,7 +614,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).tan()
             0.271752585319511 + 1.08392332733869*I
         """
-        return self.parent()(self._pari_().tan())
+        return self._parent(self._pari_().tan())
 
     def tanh(self):
         """
@@ -504,7 +622,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).tanh()
             1.08392332733869 + 0.271752585319511*I
         """
-        return self.parent()(self._pari_().tanh())
+        return self._parent(self._pari_().tanh())
 
     # Other special functions
     def agm(self, right):
@@ -513,8 +631,8 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+I).agm(2-I)
             1.62780548487270 + 0.136827548397368*I
         """
-        t = self.parent()(right)._pari_()
-        return self.parent()(self._pari_().agm(t))
+        t = self._parent(right)._pari_()
+        return self._parent(self._pari_().agm(t))
 
 
     def argument(self):
@@ -535,7 +653,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (RR('-0.001') - i).argument()
             -1.57179632646156
         """
-        return self.parent()(self._pari_().arg())
+        return self._parent(self._pari_().arg())
 
     def arg(self):
         """
@@ -557,10 +675,18 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+i).conjugate()
             1.00000000000000 - 1.00000000000000*I
         """
-        return ComplexNumber(self.parent(), self.__re, -self.__im)
+        cdef ComplexNumber x
+        x = self._new()
+
+        cdef mpfr_t i
+        mpfr_init2(i, self._prec)
+        mpfr_neg(i, self.__im, rnd)
+        mpfr_set(x.__re, self.__re, rnd)
+        mpfr_set(x.__im, i, rnd)
+        return x
 
     def dilog(self):
-        return self.parent()(self._pari_().dilog())
+        return self._parent(self._pari_().dilog())
 
     def exp(self):
         """
@@ -572,7 +698,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: z.exp()
             1.46869393991588515713896759732660426132695673662900872279767567631093696585951213872272449 + 2.28735528717884239120817190670050180895558625666835568093865811410364716018934540926734485*I
         """
-        return self.parent()(self._pari_().exp())
+        return self._parent(self._pari_().exp())
 
     def gamma(self):
         """
@@ -583,7 +709,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (1+i).gamma()
             0.49801566 - 0.15494982*I
         """
-        return self.parent()(self._pari_().gamma())
+        return self._parent(self._pari_().gamma())
 
     def gamma_inc(self, t):
         """
@@ -603,7 +729,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: gamma_inc(2, 5)
             0.0404276819945127
         """
-        return self.parent()(self._pari_().incgam(t))
+        return self._parent(self._pari_().incgam(t))
 
     def log(self):
         """
@@ -616,7 +742,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         """
         theta = self.argument()
         rho = abs(self)
-        return ComplexNumber(self.parent(), rho.log(), theta)
+        return ComplexNumber(self._parent, rho.log(), theta)
 
     def additive_order(self):
         """
@@ -645,7 +771,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658833 + 0.70710678118654752440084436210484903928483593768847403658833*I
         """
-        return self.parent()(self._pari_().sqrt())
+        return self._parent(self._pari_().sqrt())
 
     def square_root(self):
         """
@@ -670,7 +796,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: zeta(z)
             0.58215805 - 0.92684856*I
         """
-        return self.parent()(self._pari_().zeta())
+        return self._parent(self._pari_().zeta())
 
     def algdep(self, n):
         """
@@ -697,3 +823,10 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
 
     def algebraic_dependancy( self, n ):
         return self.algdep( n )
+
+def make_ComplexNumber0( fld, mult_order, re, im ):
+    x = ComplexNumber( fld, re, im )
+    x._set_multiplicative_order( mult_order )
+    return x
+
+

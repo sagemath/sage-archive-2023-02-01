@@ -118,14 +118,14 @@ class ComplexField_class(field.Field):
 
     """
     def __init__(self, prec=53):
-        self.__prec = int(prec)
+        self._prec = int(prec)
         ParentWithGens.__init__(self, self._real_field(), ('I',), False)
 
     def is_exact(self):
         return False
 
     def prec(self):
-        return self.__prec
+        return self._prec
 
     precision = prec
 
@@ -135,13 +135,13 @@ class ComplexField_class(field.Field):
         try:
             return self.__real_field
         except AttributeError:
-            self.__real_field = real_field.RealField(self.__prec)
+            self.__real_field = real_field.RealField(self._prec)
             return self.__real_field
 
     def __cmp__(self, other):
         if not isinstance(other, ComplexField_class):
             return cmp(type(self), type(other))
-        return cmp(self.__prec, other.__prec)
+        return cmp(self._prec, other._prec)
 
     def __call__(self, x, im=None):
         """
@@ -182,14 +182,14 @@ class ComplexField_class(field.Field):
         """
         try:
             K = x.parent()
-            if is_ComplexField(K) and K.__prec >= self.__prec:
+            if is_ComplexField(K) and K._prec >= self._prec:
                 return self(x)
         except AttributeError:
             pass
         return self._coerce_try(x, self._real_field())
 
     def _repr_(self):
-        return "Complex Field with %s bits of precision"%self.__prec
+        return "Complex Field with %s bits of precision"%self._prec
 
     def _latex_(self):
         return "\\C"

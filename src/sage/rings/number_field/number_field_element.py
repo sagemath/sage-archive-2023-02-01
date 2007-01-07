@@ -152,6 +152,38 @@ class NumberFieldElement(field_element.FieldElement):
     def __cmp__(self, other):
         return cmp(self.__element, other.__element)
 
+    def __abs__(self, i=0, prec=53):
+        """
+        Return the absolute value of this element with respect to the
+        ith complex embedding of parent, to the given precision.
+
+        EXAMPLES:
+            sage: z = CyclotomicField(7).gen()
+            sage: abs(z)
+            0.999999999999999
+            sage: abs(z^2 + 17*z - 3)
+            16.0604426799930
+            sage: K.<a> = NumberField(x^3+17)
+            sage: abs(a)
+            2.57128159065823
+            sage: a.__abs__(prec=100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(1,100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(2,100)
+            2.5712815906582353554531872087
+
+        Here's one where the absolute value depends on the embedding.
+            sage: K.<b> = NumberField(x^2-2)
+            sage: a = 1 + b
+            sage: a.__abs__(i=0)
+            0.414213562373094
+            sage: a.__abs__(i=1)
+            2.41421356237309
+        """
+        P = self.parent().complex_embeddings(prec)[i]
+        return abs(P(self))
+
     def __pow__(self, right):
         right = int(right)
         if right < 0:

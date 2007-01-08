@@ -478,7 +478,7 @@ class pAdic(field_element.FieldElement):
             sage: (5 + O(5)) / 1
             O(5^1)
         """
-        return self * right.__invert__(self.__prec + self.__ordp)
+        return self * right.__invert__(self.__prec + max(self.__ordp,0))
 
     def __mod__(self, right):
         if self.__ordp < 0:

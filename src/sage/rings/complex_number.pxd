@@ -13,7 +13,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
     cdef object _multiplicative_order
     cdef int _prec
 
-    cdef real_mpfr.RealNumber abs(ComplexNumber self)
-    cdef real_mpfr.RealNumber norm(ComplexNumber self)
+    cdef real_mpfr.RealNumber abs_c(ComplexNumber self)
+    cdef real_mpfr.RealNumber norm_c(ComplexNumber self)
 
     cdef ComplexNumber _new(self)

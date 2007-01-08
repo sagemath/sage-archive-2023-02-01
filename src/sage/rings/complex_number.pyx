@@ -110,7 +110,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         if i == 0:
             return self.real()
         elif i == 1:
-            return self.image()
+            return self.imag()
         raise IndexError, "i must be between 0 and 1."
 
     def __reduce__( self ):
@@ -180,7 +180,10 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         mpfr_clear(t1)
         return x
 
-    cdef real_mpfr.RealNumber norm(ComplexNumber self):
+    def norm(self):
+        return self.norm_c()
+
+    cdef real_mpfr.RealNumber norm_c(ComplexNumber self):
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
 
@@ -197,7 +200,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         mpfr_clear(t1)
         return x
 
-    cdef real_mpfr.RealNumber abs(ComplexNumber self):
+    cdef real_mpfr.RealNumber abs_c(ComplexNumber self):
         cdef real_mpfr.RealNumber x
         x = real_mpfr.RealNumber(self._parent._real_field(), None)
 
@@ -334,7 +337,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
         return self
 
     def __abs__(self):
-        return self.abs()
+        return self.abs_c()
 
     def __invert__(self):
         """
@@ -653,7 +656,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
             sage: (RR('-0.001') - i).argument()
             -1.57179632646156
         """
-        return self._parent(self._pari_().arg())
+        return self._parent._real_field()(self._pari_().arg())
 
     def arg(self):
         """

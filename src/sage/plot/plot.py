@@ -457,8 +457,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: h1 = lambda x : sqrt(x^3  - 1)
-            sage: h2 = lambda x : -sqrt(x^3  - 1)
+            sage: h1 = lambda x : abs(sqrt(x^3  - 1))
+            sage: h2 = lambda x : -abs(sqrt(x^3  - 1))
             sage: g1 = plot(h1, 1, 5)
             sage: g2 = plot(h2, 1, 5)
             sage: h = g1 + g2
@@ -2090,9 +2090,9 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We draw the graph of an elliptic curve as the union
     of graphs of 2 functions.
-        sage: def h1(x): return sqrt(x^3  - 1)
-        sage: def h2(x): return -sqrt(x^3  - 1)
-        sage: plot([h1, h2], 1,4)    # random output because of random sampling
+        sage: def h1(x): return abs(sqrt(x^3  - 1))
+        sage: def h2(x): return -abs(sqrt(x^3  - 1))
+        sage: plot([h1, h2], 1,4)    # slightly random output because of random sampling
         Graphics object consisting of 2 graphics primitives
 
     We can also directly plot the elliptic curve:
@@ -2175,7 +2175,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except (TypeError, ValueError), msg:
-                raise ValueError, "Unable to compute f(%s)"%x
+                raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2294,7 +2294,7 @@ def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
         sage: p1 = polar_plot(lambda x:sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
 
     A red figure-8:
-        sage: p2 = polar_plot(lambda x:sqrt(1 - sin(x)^2), 0, 2*pi, rgbcolor=hue(1.0))
+        sage: p2 = polar_plot(lambda x:abs(sqrt(1 - sin(x)^2)), 0, 2*pi, rgbcolor=hue(1.0))
 
     A green limacon of Pascal:
         sage: p3 = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))

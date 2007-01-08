@@ -136,6 +136,19 @@ class Expect(ParentWithBase):
         self.__so_far = ''
         E.sendline(cmd)
 
+    def is_running(self):
+        """
+        Return True if self is currently running.
+        """
+        if self._expect is None:
+            return False
+        try:
+            os.kill(self._expect.pid,0)
+        except OSError:
+            # This means the process is not running
+            return False
+        return True
+
     def _so_far(self, wait=0.1, alternate_prompt=None):
         """
         Return whether done and output so far and new output since last time called.

@@ -1281,6 +1281,9 @@ Output
         return grid + "\n</ul>"
 
 
+import sage.interfaces.sage0
+import time
+
 def notebook(dir         ='sage_notebook',
              port        = 8000,
              address     = 'localhost',
@@ -1296,7 +1299,8 @@ def notebook(dir         ='sage_notebook',
              warn        = True,
              ignore_lock = False,
              log_server = False,
-             kill_idle   = 0):
+             kill_idle   = 0,
+             restart_on_crash = False):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1329,6 +1333,12 @@ def notebook(dir         ='sage_notebook',
         splashpage -- whether or not to show a splash page when no worksheet is specified.
                       you can place a file named index.html into the notebook directory that
                       will be shown in place of the default.
+
+        restart_on_crash -- if True (the default is False), the server
+                      will be automatically restarted if it crashes in
+                      any way.  Use this on a public servers that many
+                      people might use, and which might be subjected
+                      to intense usage.
 
     NOTES:
 
@@ -1372,6 +1382,27 @@ def notebook(dir         ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
+    if restart_on_crash:
+        # Start a new subprocess
+        while True:
+            S = sage.interfaces.sage0.Sage()
+            time.sleep(1)
+            S.eval("from sage.server.notebook.notebook import notebook")
+            cmd = "notebook(dir='%s',port=%s, restart_on_crash=False)"%(
+                dir, port)
+            print cmd
+            S._send(cmd)
+            while True:
+                s = S._get()[1].strip()
+                if len(s) > 0:
+                    print s
+                if not S.is_running():
+                    break
+                time.sleep(3)
+        # end while
+        S.quit()
+        return
+
     if os.path.exists(dir):
         if not os.path.isdir(dir):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir

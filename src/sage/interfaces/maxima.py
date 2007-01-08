@@ -345,6 +345,8 @@ is much less robust, and is not recommended.}
 #*****************************************************************************
 
 import os, re
+import pexpect
+cygwin = os.uname()[0][:6]=="CYGWIN"
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
@@ -463,14 +465,22 @@ class Maxima(Expect):
             #print "in = '%s'"%line
             E.sendline(line)
             self._expect.expect(end)
-            self._expect.expect(end)
-            out = self._expect.before
+            # We have timeouts below, since getting the end above
+            # means the computation completed, but on some systems
+            # (Cygwin) the expect interface can sometimes hang getting
+            # the final prompts.
+            try:
+                self._expect.expect(end, timeout=1)
+                out = self._expect.before
+                self._expect.expect(self._prompt, timeout=1)
+                out += self._expect.before
+            except pexpect.TIMEOUT:
+                out = self._expect.before
             #print "out = '%s'"%out
-            self._expect.expect(self._prompt)
-            out += self._expect.before
+
         except EOF:
-          if self._quit_string() in line:
-             return ''
+            if self._quit_string() in line:
+                return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             return ''
@@ -478,9 +488,16 @@ class Maxima(Expect):
         if 'Incorrect syntax:' in out:
             raise RuntimeError, out
 
-        i = out.rfind(start)
-        j = out.rfind(end)
-        out = out[i+len(start):j]
+        import os
+        if cygwin:
+            # for reasons I can't deduce yet, maxima behaves somewhat
+            # differently under cygwin...
+            out = out.lstrip(';')
+        else:
+	    i = out.rfind(start)
+	    j = out.rfind(end)
+            out = out[i+len(start):j]
+
         if not reformat:
             return out
         if 'error' in out:
@@ -1107,13 +1124,12 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
         P._eval_line('display2d : false', reformat=False)
+        if not cygwin:
+            i = s.find('true')
+            i += s[i:].find('\n')
+            s = s[i+1:]
         i = s.find('true')
         i += s[i:].find('\n')
-        s = s[i+1:]
-        i = s.find('true')
-        i += s[i:].find('\n')
-        #j = s.rfind('(%o')
-        #s = s[:j]
         j = s.rfind('(%o')
         s = s[i:j-2]
         i = s.find('(%o')

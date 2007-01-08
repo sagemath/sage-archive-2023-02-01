@@ -462,12 +462,12 @@ class Maxima(Expect):
             self._expect.expect(end)
             self._expect.expect(end)
             out = self._expect.before
-            #print "out = '%s'"%out
+            print "out = '%s'"%out
             self._expect.expect(self._prompt)
             out += self._expect.before
         except EOF:
-          if self._quit_string() in line:
-             return ''
+            if self._quit_string() in line:
+               return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
             return ''

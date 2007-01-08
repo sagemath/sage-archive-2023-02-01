@@ -1284,6 +1284,9 @@ Output
 import sage.interfaces.sage0
 import time
 
+## IMPORTANT!!! If you add any new input variable to notebook,
+## you *must* similarly modify the restart_on_crash block
+## at the beginning of the definition of notebook!!
 def notebook(dir         ='sage_notebook',
              port        = 8000,
              address     = 'localhost',
@@ -1338,7 +1341,8 @@ def notebook(dir         ='sage_notebook',
                       will be automatically restarted if it crashes in
                       any way.  Use this on a public servers that many
                       people might use, and which might be subjected
-                      to intense usage.
+                      to intense usage.  NOTE: Log messages are only displayed
+                      every 5 seconds in this mode.
 
     NOTES:
 
@@ -1384,12 +1388,22 @@ def notebook(dir         ='sage_notebook',
     """
     if restart_on_crash:
         # Start a new subprocess
+        def f(x):  # format for passing on
+            if x is None:
+                return 'None'
+            elif isinstance(x, str):
+                return "'%s'"%x
+            else:
+                return str(x)
         while True:
             S = sage.interfaces.sage0.Sage()
             time.sleep(1)
             S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir='%s',port=%s, restart_on_crash=False)"%(
-                dir, port)
+            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False)"%(
+                f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
+                f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
+                f(warn), f(ignore_lock), f(log_server), f(kill_idle)
+                )
             print cmd
             S._send(cmd)
             while True:
@@ -1398,7 +1412,7 @@ def notebook(dir         ='sage_notebook',
                     print s
                 if not S.is_running():
                     break
-                time.sleep(3)
+                time.sleep(5)
         # end while
         S.quit()
         return

@@ -1483,7 +1483,34 @@ def notebook(dir         ='sage_notebook',
     return nb
 
 
-
-
-
-
+########################################################################
+# NOTES ABOUT THE restart_on_crash option to notebook.
+## I made some changes to the notebook command so it has the option of running
+## the server as a completely separate process, which will restart it if it
+## dies in any way.   I installed this on sage.math and started those servers
+## running with this.  So if anybody has any systematic way to crash the notebook
+## servers, please try it!  (The only one I have is to tell a computer lab
+## full of 40 high school students to all try to crash the server at once...)
+##
+## Basically what happens is this:
+##
+##   1. You start a Python process then run the notebook command with the
+##      restart_on_kill option True.
+##   2. The notebook command starts another Python running, and in that
+##      it runs the notebook command.  This uses the Sage0 pexpect interface.
+##   3. It then monitors the process started in 2 -- if the process dies
+##      or terminates, then 2 occurs again.  The server log output
+##      is updated every 5 seconds.   If ctrl-c is received,
+##      then everything cleans up and terminates.
+##
+## This means that the SAGE notebook can only currently be totally
+## crashed if the Python simple http server gets into a hung state.
+## From looking at the server logs after past crashes, this doesn't
+## seem to ever happen.  So now instead of the server crashing
+## under crazy loads, etc., it will automatically reset within seconds --
+## this would of course kill all running worksheets (which is bad),
+## but is much better than having the whole sage notebook go down
+## until it is manually restarted!   In the long run, of course, using
+## Twisted for the web server should hopefully mean that it doesn't
+## crash...
+###############################################################

@@ -1303,7 +1303,8 @@ def notebook(dir         ='sage_notebook',
              ignore_lock = False,
              log_server = False,
              kill_idle   = 0,
-             restart_on_crash = False):
+             restart_on_crash = False,
+             auto_restart = 1800):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1343,6 +1344,8 @@ def notebook(dir         ='sage_notebook',
                       people might use, and which might be subjected
                       to intense usage.  NOTE: Log messages are only displayed
                       every 5 seconds in this mode.
+        auto_restart -- if restart_on_crash is True, always restart
+                      the server every this many seconds.
 
     NOTES:
 
@@ -1406,6 +1409,7 @@ def notebook(dir         ='sage_notebook',
                 )
             print cmd
             S._send(cmd)
+            tm = 0
             while True:
                 s = S._get()[1].strip()
                 if len(s) > 0:
@@ -1413,6 +1417,11 @@ def notebook(dir         ='sage_notebook',
                 if not S.is_running():
                     break
                 time.sleep(5)
+                tm += 5
+                if tm > auto_restart:
+                    S.quit()
+                    break
+            # end while
         # end while
         S.quit()
         return

@@ -16,6 +16,9 @@ from sage.misc.misc import verbose, get_verbose, tmp_filename
 
 import sage.misc.package
 
+def nothing():
+    pass
+
 class ECM:
     def __init__(self, B1=10, B2=None, **kwds):
         r"""
@@ -157,6 +160,7 @@ class ECM:
         kwds['cofdec'] = ''
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
         child = pexpect.spawn(self.__cmd)
+	child.__del__ = nothing   # program around studid exception ignored error
         child.sendline(str(n))
         child.sendline("bad") # child.sendeof()
         while True:
@@ -194,7 +198,7 @@ class ECM:
                 child.kill(0)
                 self.primality = [false]
                 return [n]
-        del child
+        child.kill(0)
 
 
     def factor(self, n, factor_digits=None, B1=2000, **kwds):
@@ -256,7 +260,6 @@ class ECM:
             The parameters for the most recent factorization.
 
         EXAMPLES:
-            sage: ecm = ECM()
             sage: ecm.factor((2^197 + 1)/3)
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
             sage: ecm.get_last_params()                 # random output
@@ -345,3 +348,5 @@ class ECM:
         child.kill(0)
         print "Expected curves:", curve_count, "\tExpected time:", time
 
+# unique instance
+ecm = ECM()

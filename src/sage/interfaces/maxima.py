@@ -345,6 +345,8 @@ is much less robust, and is not recommended.}
 #*****************************************************************************
 
 import os, re
+import pexpect
+cygwin = os.uname()[0][:6]=="CYGWIN"
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
@@ -478,9 +480,16 @@ class Maxima(Expect):
         if 'Incorrect syntax:' in out:
             raise RuntimeError, out
 
-        i = out.rfind(start)
-        j = out.rfind(end)
-        out = out[i+len(start):j]
+        import os
+        if cygwin:
+            # for reasons I can't deduce yet, maxima behaves somewhat
+            # differently under cygwin...
+            out = out.lstrip(';')
+        else:
+	    i = out.rfind(start)
+	    j = out.rfind(end)
+            out = out[i+len(start):j]
+
         if not reformat:
             return out
         if 'error' in out:
@@ -1107,13 +1116,12 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
         P._eval_line('display2d : false', reformat=False)
+        if not cygwin:
+            i = s.find('true')
+            i += s[i:].find('\n')
+            s = s[i+1:]
         i = s.find('true')
         i += s[i:].find('\n')
-        s = s[i+1:]
-        i = s.find('true')
-        i += s[i:].find('\n')
-        #j = s.rfind('(%o')
-        #s = s[:j]
         j = s.rfind('(%o')
         s = s[i:j-2]
         i = s.find('(%o')

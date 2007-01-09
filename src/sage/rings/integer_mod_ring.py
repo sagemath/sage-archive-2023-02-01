@@ -249,6 +249,112 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         return self.order().is_prime()
 
+    def field(self):
+        """
+        If this ring is a field, return the corresponding field as a
+        finite field, which may have extra functionality and
+        structure.  Otherwise, raise a ValueError.
+
+        EXAMPLES:
+            sage: R = Integers(7); R
+            Ring of integers modulo 7
+            sage: R.field()
+            Finite Field of size 7
+            sage: R = Integers(9)
+            sage: R.field()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a field
+        """
+        try:
+            return self.__field
+        except AttributeError:
+            if not self.is_field():
+                raise ValueError, "self must be a field"
+            import finite_field
+            k = finite_field.FiniteField(self.order())
+            self.__field = k
+            return k
+
+    def multiplicative_group_is_cyclic(self):
+        """
+        Return True if the multiplicative group of this field is
+        cyclic.  This is the case exactly when the order is less than
+        8 or a power of an odd prime.
+
+        EXAMPLES:
+            sage: R = Integers(7); R
+            Ring of integers modulo 7
+            sage: R.multiplicative_group_is_cyclic()
+            True
+            sage: R = Integers(9)
+            sage: R.multiplicative_group_is_cyclic()
+            True
+            sage: Integers(8).multiplicative_group_is_cyclic()
+            False
+            sage: Integers(4).multiplicative_group_is_cyclic()
+            True
+            sage: Integers(25*3).multiplicative_group_is_cyclic()
+            False
+        """
+        n = self.order()
+        if n < 8:
+            return True
+        if arith.is_prime(n):
+            return True
+
+        # TODO -- the implementation below uses factoring, but it doesn't
+        # need to; really it just needs to know if n is a prime power or not,
+        # which is easier than factoring.
+
+        F = arith.factor(n)
+        if len(F) > 1:
+            return False
+        if F[0][0] == 2:
+            return False
+        return True
+
+    def multiplicative_generator(self):
+        """
+        Return a generator for the multiplicative group of this ring,
+        assuming the multiplicative group is cyclic.
+
+        Use the unit_gens function to obtain generators even in the
+        non-cyclic case.
+
+        EXAMPLES:
+            sage: R = Integers(7); R
+            Ring of integers modulo 7
+            sage: R.multiplicative_generator()
+            3
+            sage: R = Integers(9)
+            sage: R.multiplicative_generator()
+            2
+            sage: Integers(8).multiplicative_generator()
+            Traceback (most recent call last):
+            ...
+            ValueError: multiplicative group of this ring is not cyclic
+            sage: Integers(4).multiplicative_generator()
+            3
+            sage: Integers(25*3).multiplicative_generator()
+            Traceback (most recent call last):
+            ...
+            ValueError: multiplicative group of this ring is not cyclic
+            sage: Integers(25*3).unit_gens()
+            [26, 52]
+        """
+        try:
+            return self.__mult_gen
+        except AttributeError:
+            if self.is_field():
+                a = self(self.field().multiplicative_generator())
+            elif self.multiplicative_group_is_cyclic():
+                a = self.unit_gens()[0]
+            else:
+                raise ValueError, "multiplicative group of this ring is not cyclic"
+            self.__mult_gen = a
+            return a
+
     def factored_order(self):
         """
         EXAMPLES:

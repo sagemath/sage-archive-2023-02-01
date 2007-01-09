@@ -1683,6 +1683,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     lines.  Use line.reset() to reset to the default options.
 
     INPUT:
+    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
@@ -1701,6 +1702,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the markter edge in points
+    \end{verbatim}
 
 
     EXAMPLES:
@@ -2046,6 +2048,7 @@ class PlotFactory(GraphicPrimitiveFactory):
     on the graph of X (these are the same as for the line function):
 
     INPUT:
+    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
@@ -2064,6 +2067,7 @@ class PlotFactory(GraphicPrimitiveFactory):
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the marker edge in points
+    \end{verbatim}
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced

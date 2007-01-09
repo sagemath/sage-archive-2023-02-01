@@ -1682,13 +1682,12 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     lines.  You can change this to change the defaults for all future
     lines.  Use line.reset() to reset to the default options.
 
-    OPTIONS:
+    INPUT:
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-
-    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)
@@ -2046,12 +2045,12 @@ class PlotFactory(GraphicPrimitiveFactory):
     The following options affect the appearance of the line through the points
     on the graph of X (these are the same as for the line function):
 
+    INPUT:
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-
-    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)

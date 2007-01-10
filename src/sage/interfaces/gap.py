@@ -152,10 +152,14 @@ import re
 import os
 import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
+#WORKSPACE = "%s/gap-workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
 WORKSPACE = "%s/gap-workspace"%DOT_SAGE
 
 if not os.path.exists('%s/tmp'%SAGE_ROOT):
     os.makedirs('%s/tmp'%SAGE_ROOT)
+
+if not os.path.exists('%s/gap'%SAGE_ROOT):
+    os.makedirs('%s/gap'%SAGE_ROOT)
 
 gap_cmd = "gap"
 
@@ -407,8 +411,10 @@ class Gap(Expect):
                                                  expect_eof= (self._quit_string() in line))
 
                 if len(error)> 0:
-                    if 'completion files' in error:
-                        error += "\nPossibly try the command gap_reset_workspace() from SAGE."
+                    if 'Error, Rebuild completion files!' in error:
+                        error += "\nRunning gap_reset_workspace()..."
+                        #self.quit()
+                        #gap_reset_workspace()
                     raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
                 if len(normal) == 0:
                     return ''

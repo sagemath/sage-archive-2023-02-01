@@ -1,4 +1,7 @@
-from calculus import sin
-from calculus import cos
-from calculus import t
-from calculus import x
+from calculus import (SER,
+                      var,
+                      sin, cos, sec,
+                      x, y, z, w, t)
+
+
+from functional import diff

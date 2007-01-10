@@ -26,6 +26,29 @@ PREPARSE:
     sage: preparse('a = 939393R')    # raw
     'a = 939393'
 
+In SAGE methods can also be called on integer and real literals (note
+that in pure Python this would be a syntax error).
+    sage: 16.sqrt()
+    4
+    sage: 87.factor()
+    3 * 29
+    sage: 15.10.sqrt()
+    3.88587184554508
+    sage: preparse('87.sqrt()')
+    'Integer(87).sqrt()'
+    sage: preparse('15.10.sqrt()')
+    "RealNumber('15.10').sqrt()"
+
+Note that calling methods on int literals in pure Python is a
+syntax error, but SAGE allows this for SAGE integers and reals,
+because users frequently request it.
+
+    sage: eval('4.__add__(3)')
+    Traceback (most recent call last):
+    ...
+    SyntaxError: invalid syntax
+
+
 RAW LITERALS:
 
 Raw literals are not preparsed, which can be useful from an efficiency
@@ -114,7 +137,15 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     def wrap_num(i, line, is_real, num_start):
         zz = line[num_start:i]
         if is_real or '.' in zz:
-            O = "RealNumber('"; C="')"
+            if zz[-1] == '.' and i < len(line) and line[i].isalpha():
+                # by popular demand -- this allows, e.g., 173.sqrt().
+                if '.' in zz[:-1]:
+                    O = "RealNumber('"; C="')."
+                else:
+                    O = "Integer("; C = ")."
+                zz = zz[:-1]
+            else:
+                O = "RealNumber('"; C="')"
         else:
             O = "Integer("; C = ")"
         line = line[:num_start] + O + zz + C + line[i:]

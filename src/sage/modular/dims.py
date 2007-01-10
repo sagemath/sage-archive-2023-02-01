@@ -7,7 +7,8 @@ Buzzard subsequently extended.  I (William Stein) then implemented it
 in C++ for HECKE.  I also implemented it in MAGMA.  Also, the
 functions for dimensions of spaces with nontrivial character are based
 on a paper (that has no proofs) by Cohen and Oesterle (Springer
-Lecture notes in math, volume 627, pages 69--78).
+Lecture notes in math, volume 627, pages 69--78).  The formulas for
+GammaH(N) were found and implemented by Jordi Quer.
 
 The formulas here are more complete than in HECKE or MAGMA.
 """
@@ -25,12 +26,13 @@ The formulas here are more complete than in HECKE or MAGMA.
 
 
 from sage.rings.arith import (factor, euler_phi as phi, divisors, is_prime,
-                              valuation, kronecker_symbol, gcd)
+                              valuation, kronecker_symbol, gcd, euler_phi, lcm)
 import sage.modular.congroup as congroup
 from sage.misc.misc import mul
-from sage.rings.all import Mod, Integer as Z, IntegerModRing
+from sage.rings.all import Mod, Integer, IntegerModRing
 from sage.rings.rational_field import frac
 import dirichlet
+Z = Integer  # useful abbreviation.
 
 def mu0(n):
     return mul([(p+1)*(p**(r-1)) for p, r in factor(n)])
@@ -457,6 +459,138 @@ def dimension_new_cusp_forms_eps(eps, k=2, p=0):
 
 
 
+######################################################################
+# Computing dimensions of mdoualr forms spaces for Gamma_H.
+# Algorithms found and implemented by Jordi Quer.
+######################################################################
+# degree of the covering $X_H(N)->X$
+def muH(N,H):
+    lenHpm = len(H)
+    if N-Integer(1) not in H: lenHpm*=Integer(2)
+    return mul([(p**Integer(2)-Integer(1))*(p**(Integer(2)*r-Integer(2))) for p, r in factor(N)])//lenHpm
+
+# number of elliptic points of order 2 for the group $\Gamma_H(N)$
+def nu2H(N,H):
+    if N%Integer(4) == Integer(0): return Integer(0)
+    for p, r in factor(N):
+        if p%Integer(4) ==Integer(3): return Integer(0)
+    return (euler_phi(N)//len(H))*len([x for x in H if (x**Integer(2)+Integer(1))%N == Integer(0)])
+
+# number of elliptic points of order 3 for the group $\Gamma_H(N)$
+def nu3H(N,H):
+    if N%Integer(9) == Integer(0): return Integer(0)
+    for p, r in factor(N):
+        if p%Integer(3) == Integer(2): return Integer(0)
+    lenHpm = len(H)
+    if N-Integer(1) not in H: lenHpm*=Integer(2)
+    return (euler_phi(N)//lenHpm)*len([x for x in H if (x**Integer(2)+x+Integer(1))%N == Integer(0)])
+
+# number of cusps for the group $\Gamma_H(N)$
+def nuinfH(N,H):
+    c = Integer(0)
+    for d in [d for d in divisors(N) if d**Integer(2)<=N]:
+        Nd = lcm(d,N//d)
+        Hd = set([x%Nd for x in H])
+        lenHd = len(Hd)
+        if Nd-Integer(1) not in Hd: lenHd*=Integer(2)
+        sumand = euler_phi(d)*euler_phi(N//d)//lenHd
+        if d**Integer(2)==N:
+            c = c + sumand
+        else:
+            c = c + Integer(2)*sumand
+    return c
+
+# number of regular cusps for the group $\Gamma_H(N)$
+def nuinfHreg(N,H):
+    c = Integer(0)
+    for d in [d for d in divisors(N) if d**Integer(2)<=N]:
+        Nd = lcm(d,N//d)
+        Hd = set([x%Nd for x in H])
+        if Nd-Integer(1) not in Hd:
+            sumand = euler_phi(d)*euler_phi(N//d)//(Integer(2)*len(Hd))
+            if d**Integer(2)==N:
+                c = c + sumand
+            else:
+                c = c + Integer(2)*sumand
+    return c
+
+
+# genus of the curve $X_H(N)$
+# (formulas are multiplied by 12 so that everything is an integer)
+def gH(N,H):
+    return (Integer(12) + muH(N,H) - Integer(3)*nu2H(N,H) - Integer(4)*nu3H(N,H) - Integer(6)*nuinfH(N,H))//Integer(12)
+
+def genus_H(G):
+    return gH(G.level(),G._list_of_elements_in_H())
+
+# coefficients of the numbers of elliptic points in the formulas
+def lambda4(k):
+    if k%Integer(2) == Integer(1):
+        return Integer(0)
+    elif k%Integer(4) == Integer(2):
+        return -Integer(3)
+    else:
+        return Integer(3)
+
+def lambda3(k):
+    if k%Integer(3) == Integer(1):
+        return Integer(0)
+    elif k%Integer(3) == Integer(2):
+        return -Integer(4)
+    else:
+        return Integer(4)
+
+# dimensions of spaces of cusp and modular forms
+def dimension_cusp_forms_H(G,k):
+    N = G.level()
+    H = G._list_of_elements_in_H()
+    if k%Integer(2) == Integer(1) and N-Integer(1) in H: return Integer(0)
+    dim = Integer(0)
+    if k == Integer(2): dim = Integer(12)
+    dim+= (k-Integer(1))*muH(N,H)
+    if k%Integer(2) == Integer(0): dim+= lambda4(k)*nu2H(N,H)
+    dim+= lambda3(k)*nu3H(N,H)
+    if k%Integer(2) == Integer(0):
+        dim+= - Integer(6)*nuinfH(N,H)
+    else:
+        dim+= - Integer(6)*nuinfHreg(N,H)
+    return dim//Integer(12)
+
+def dimension_eis_H(G,k):
+    N = G.level()
+    H = G._list_of_elements_in_H()
+    if k%Integer(2) == Integer(1) and N-Integer(1) in H: return Integer(0)
+    if k == Integer(2): dim-= Integer(1)
+    if k%Integer(2) == Integer(0):
+        return nuinfH(N,H)
+    else:
+        return nuinfHreg(N,H)
+    return dim
+
+def dimension_modular_forms_H(G,k):
+    return dimension_eis_H(G,k) + dimension_cusp_forms_H(G,k)
+
+def multgroup(N):
+    return [x for x in range(N) if gcd(x,N) == Integer(1)]
+
+def dimension_cusp_forms_fromH(chi,k):
+    N = chi.modulus()
+    n = chi.order()
+    dim = Integer(0)
+    for d in divisors(n):
+        G = GammaH(N,ker(chi**d))
+        dim = dim + moebius(d)*dimension_cusp_formsH(G,k)
+    return dim//euler_phi(n)
+
+def dimension_modular_forms_fromH(chi,k):
+    N = chi.modulus()
+    n = chi.order()
+    dim = Integer(0)
+    for d in divisors(n):
+        G = GammaH(N,ker(chi**d))
+        dim = dim + moebius(d)*dimension_modular_formsH(G,k)
+    return dim//euler_phi(n)
+
 ####################################################################
 # Exported Functions
 ####################################################################
@@ -576,6 +710,8 @@ def dimension_cusp_forms(X, k=2):
         return dimension_cusp_forms_gamma0(X.level(),k)
     elif isinstance(X, congroup.Gamma1):
         return dimension_cusp_forms_gamma1(X.level(),k)
+    elif congroup.is_GammaH(X):
+        return dimension_cusp_forms_H(X,k)
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
         Gamma0 and Gamma1 is not yet implemented."
@@ -644,7 +780,9 @@ def dimension_eis(X, k=2):
         d = c1(X.level())
         if k==2: d -= 1
         return Z(d)
-    elif isinstance(congroup.CongruenceSubgroup):
+    elif congroup.is_GammaH(X):
+        return dimension_eis_H(X, k)
+    elif isinstance(X, congroup.CongruenceSubgroup):
         raise NotImplementedError, "Computation of dimensions for congruence subgroups besides " + \
               "Gamma0 and Gamma1 is not yet implemented."
     else:
@@ -678,5 +816,7 @@ def dimension_modular_forms(X, k=2):
     if not isinstance(X, congroup.CongruenceSubgroup) and \
          not isinstance(X, dirichlet.DirichletCharacter):
         raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character."
+    if congroup.is_GammaH(X):
+        return dimension_modular_forms_H(X, k)
     return dimension_cusp_forms(X, k) + dimension_eis(X, k)
 

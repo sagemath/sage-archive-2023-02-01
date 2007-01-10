@@ -218,10 +218,18 @@ class NumberField_generic(field.Field):
             sage: [phi(k.0^2) for phi in v]
             [2.97572074037667, 0.921039066973046 - 3.07553311884577*I, 0.921039066973046 + 3.07553311884577*I, -2.40889943716138 + 1.90254105303505*I, -2.40889943716138 - 1.90254105303505*I]
         """
+        try:
+            return self.__complex_embeddings[prec]
+        except AttributeError:
+            self.__complex_embeddings = {}
+        except KeyError:
+            pass
         CC = sage.rings.complex_field.ComplexField(prec)
         f = self.defining_polynomial().base_extend(CC)
         v = f.roots()
-        return [self.hom([a], check=False) for a in v]
+        e = [self.hom([a], check=False) for a in v]
+        self.__complex_embeddings[prec] = e
+        return e
 
     def latex_variable_name(self, name=None):
         if name is None:

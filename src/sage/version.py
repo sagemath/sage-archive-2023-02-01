@@ -1,1 +1,1 @@
-version='1.5'; date='2006-12-12'
+version='1.6.alpha2'; date='2007-01-09'

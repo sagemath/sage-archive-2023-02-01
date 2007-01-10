@@ -936,13 +936,11 @@ textarea.cell_input {
   margin-top:0px;
 }
 
+/*
 textarea.cell_input_hide {
   background-color: white;
   color:#cccccc;
   border: 0px solid white;
-/*  border-top: 1px solid #aaaaff;
-  border-bottom: 1px solid #aaaaff;
-  */
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -953,6 +951,23 @@ textarea.cell_input_hide {
   height:1.5em;
   margin:0px;
 }
+*/
+
+textarea.cell_input_hide {
+  background-color: white;
+  color:#ffffff;
+  border: 0px solid white;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:hidden;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+  height:0.5em;
+  margin:0px;
+}
+
 
 textarea.cell_input_active {
   background-color: white;

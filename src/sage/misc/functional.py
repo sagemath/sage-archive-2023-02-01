@@ -49,7 +49,7 @@ def arg(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: theta = arg(z)
-        sage: cos(theta)*abs(z)
+        sage: cos(theta)*abs(z)   # slightly random output on cygwin
         1.00000000000000
         sage: sin(theta)*abs(z)
         1.99999999999999

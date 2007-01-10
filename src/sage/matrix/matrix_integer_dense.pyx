@@ -76,6 +76,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         WARNING: This is for internal use only, or if you really know what you're doing.
         """
+        matrix_dense.Matrix_dense.__init__(self, parent)
         self._initialized = 0
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
@@ -101,6 +102,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
             k = k + self._ncols
+
+    def __copy__(self):
+        cdef Matrix_integer_dense A
+        A = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent,
+                                         0, 0, 0)
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpz_init_set(A._entries[i], self._entries[i])
+        return A
 
     def  __dealloc__(self):
         """
@@ -176,7 +186,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, j
         cdef int is_list
         cdef Integer x
-        matrix_dense.Matrix_dense.__init__(self, parent)
 
         if not isinstance(entries, list):  # todo -- change to PyObject_TypeCheck???
             try:

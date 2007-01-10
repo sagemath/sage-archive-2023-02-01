@@ -257,11 +257,8 @@ class Set_object(Set_generic):
             sage: Primes() < Set(QQ)
             True
 
-            sage: Set(QQ) < Primes()
+            sage: Set(QQ) == Primes()
             False
-            sage: Primes() < Set(QQ)
-            True
-
         """
         if not isinstance(right, Set_object):
             return cmp(type(right), type(Set_object))

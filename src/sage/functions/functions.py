@@ -448,7 +448,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: axiom(e + pi)                      # optional
-            %pi + %e
+            %e + %pi
         """
         return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
 
@@ -694,7 +694,7 @@ class Function_cos(Function):
     EXAMPLES:
         sage: z = 1+2*I
         sage: theta = arg(z)
-        sage: cos(theta)*abs(z)
+        sage: cos(theta)*abs(z)         # slightly random output on cygwin
         1.00000000000000
         sage: cos(3.141592)
         -0.999999999999786

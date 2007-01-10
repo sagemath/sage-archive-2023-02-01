@@ -651,22 +651,30 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         f.flush()
         f.seek(0)
 
-        # Give at most five seconds to the browser to download the image,
-        # since this locks the whole server.  Also, Firefox when receiving
-        # some images (maybe corrupted) will totally hang; doing this
-        # deals with that problem.
-        # TODO: probably the only good way to deal with this is
-        # to switch to using twisted.
 
-        alarm(10)
+
+        alarm(3)
         try:
-            shutil.copyfileobj(f, self.wfile)
+           while 1:
+               buf = f.read(128)
+               if not buf:
+                   break
+               self.wfile.write(buf)
+        except KeyboardInterrupt:
+           pass
+        cancel_alarm()
+        return f
+
+        # the code below should work the same as above, but locks.
+        alarm(3)
+        try:
+           shutil.copyfileobj(f, self.wfile, length=128)
         except KeyboardInterrupt:
             pass
-        else:
-            cancel_alarm()
+        cancel_alarm()
         f.close()
         return f
+
 
     def show_page(self, worksheet_id,show_debug=False):
         self.send_head()
@@ -732,7 +740,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-3:] in ['.ps', '.js'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
             return self.get_file()
-
         path = self.path.strip('/')
         i = path.find('/')
         if i == -1:
@@ -915,15 +922,17 @@ class NotebookServer:
     def serve(self):
         global notebook
         notebook = self.notebook()
-        try:
-            print "Press Control-C to stop the server."
-            self.__httpd.serve_forever()
-        except KeyboardInterrupt:
-            notebook.save()
-            print "Shutting down notebook server."
-            notebook = None
-        else:
-            notebook.save()
+        while True:
+            try:
+                print "Press Control-C *TWICE* to stop the server."
+                self.__httpd.serve_forever()
+            except KeyboardInterrupt:
+                notebook.save()
+                print "Shutting down notebook server."
+                notebook = None
+                break
+            else:
+                notebook.save()
 
 
 

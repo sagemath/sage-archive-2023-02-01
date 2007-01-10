@@ -407,6 +407,22 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         return PermutationGroupElement(self._gap_().Inverse(),
                           self.parent(), check=False)
 
+    def list(self):
+        """
+        Returns list of the images of the integers from 1 to n under
+        this permutation as a list of Python ints.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(4)
+            sage: x = G([2,1,4,3]); x
+            (1,2)(3,4)
+            sage: v = x.list(); v
+            [2, 1, 4, 3]
+            sage: type(v[0])
+            <type 'int'>
+        """
+        return eval(gap.eval('ListPerm(%s)'%self.__gap))
+
     def order(self):
         """
         Return the order of this group element, which is the smallest

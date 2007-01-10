@@ -190,7 +190,10 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         # endif
 
         # check that dimensions add up
-        assert self.rank() == sum([A.rank()*mult for A, mult in D]), "dimensions don't add up!"
+        r = self.dimension()
+        s = sum([A.rank()*mult for A, mult in D])
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s"%(
+            r, s)
         self._factorization = sage.structure.factorization.Factorization(D, cr=True)
         return self._factorization
 

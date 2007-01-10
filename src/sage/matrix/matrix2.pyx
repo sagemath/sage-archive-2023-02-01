@@ -111,7 +111,7 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: print sloane_sequence(79908)                # optional (internet connection)
             Searching Sloane's online database...
-            [79908, 'Solution to the Dancing School Problem with 3 girls: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
+            [79908, 'Solution to the Dancing School Problem with 3 girls and n+3 boys: f(3,n).', [1, 4, 14, 36, 76, 140, 234, 364, 536, 756, 1030, 1364, 1764, 2236, 2786, 3420, 4144, 4964, 5886, 6916, 8060, 9324, 10714, 12236, 13896, 15700, 17654, 19764, 22036, 24476, 27090, 29884, 32864, 36036, 39406, 42980, 46764, 50764, 54986, 59436]]
 
             sage: M = MatrixSpace(ZZ,4,5)
             sage: A = M([1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,1,0])
@@ -1183,8 +1183,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.column_space()
             Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
             Basis matrix:
-            [                                                     1.00000000000000 -0.000000000000000888178419700125 - 0.00000000000000177635683940025*I]
-            [                                                                    0                                                      1.00000000000000]
+            [                1.00000000000000 0.000000000000000444089209850062]
+            [                               0                0.999999999999999]
         """
         return self.column_module()
 

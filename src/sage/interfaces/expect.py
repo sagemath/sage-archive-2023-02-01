@@ -272,6 +272,7 @@ class Expect(ParentWithBase):
 ##                  self._install_hints(), self.__name)
 
         if self.__verbose_start:
+            print cmd
             print "Starting %s"%cmd.split()[0]
 
         try:

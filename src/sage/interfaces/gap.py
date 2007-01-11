@@ -145,6 +145,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit
 from IPython.genutils import page
@@ -152,10 +153,14 @@ import re
 import os
 import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
-WORKSPACE = "%s/gap-workspace"%DOT_SAGE
+WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
+first_try = True
 
 if not os.path.exists('%s/tmp'%SAGE_ROOT):
     os.makedirs('%s/tmp'%SAGE_ROOT)
+
+if not os.path.exists('%s/gap/'%DOT_SAGE):
+    os.makedirs('%s/gap/'%DOT_SAGE)
 
 gap_cmd = "gap"
 
@@ -164,7 +169,6 @@ def gap_command(use_workspace_cache=True):
         return "%s -L %s"%(gap_cmd, WORKSPACE), False
     else:
         return gap_cmd, True
-
 
 class Gap(Expect):
     r"""
@@ -224,7 +228,22 @@ class Gap(Expect):
 
 
     def _start(self):
-        Expect._start(self, "Failed to start GAP.  One possible reason for this is that your gap workspace may be corrupted.  Perhaps remove %s/tmp/gap-workspace"%SAGE_ROOT)
+        global first_try
+        n = self._session_number
+        try:
+            Expect._start(self, "Failed to start GAP.")
+        except Exception, msg:
+            if self.__use_workspace_cache and first_try:
+                print "A workspace appears to have been corrupted... automatically rebuilding (this is harmless)."
+                first_try = False
+                self._expect = None
+                expect.failed_to_start.remove(self.name())
+                gap_reset_workspace(verbose=False)
+                Expect._start(self, "Failed to start GAP.")
+                self._session_number = n
+                return
+            raise RuntimeError, msg
+
         if self.__use_workspace_cache and self.__make_workspace:
             self.eval('SaveWorkspace("%s");'%WORKSPACE)
 
@@ -407,8 +426,10 @@ class Gap(Expect):
                                                  expect_eof= (self._quit_string() in line))
 
                 if len(error)> 0:
-                    if 'completion files' in error:
-                        error += "\nPossibly try the command gap_reset_workspace() from SAGE."
+                    if 'Error, Rebuild completion files!' in error:
+                        error += "\nRunning gap_reset_workspace()..."
+                        self.quit()
+                        gap_reset_workspace()
                     raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
                 if len(normal) == 0:
                     return ''
@@ -511,7 +532,7 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna']:
         try:
-            g.load_package(pkg, verbose=True)
+            g.load_package(pkg, verbose=verbose)
         except RuntimeError, msg:
             if verbose:
                 print '*** %s'%msg

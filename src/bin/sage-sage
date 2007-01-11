@@ -26,7 +26,7 @@ usage_advanced() {
     echo "  filename.sage -- run the given file using SAGE"
     echo "  -b [branch]   -- switch to and build SAGE branch in devel/sage-branch"
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
-    echo "  -ba [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
+    echo "  -ba [branch]  -- switch to, rebuild all Sagex code, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
     echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
     echo "  -clisp [...]  -- run Common Lisp"
@@ -184,105 +184,105 @@ fi
 #####################################################################
 
 if [ $1 = '-axiom' -o $1 = '--axiom' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     axiom $*
     exit $?
 fi
 
 if [ $1 = '-gap' -o $1 = '--gap' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     gap $*
     exit $?
 fi
 
 if [ $1 = '-gp'  -o $1 = '--gp' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     gp $*
     exit $?
 fi
 
 if [ $1 = '-singular'  -o $1 = '--singular' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     singular $*
     exit $?
 fi
 
 if [ $1 = '-clisp'  -o $1 = '--clisp' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     clisp $*
     exit $?
 fi
 
 if [ $1 = '-lisp'  -o $1 = '--lisp' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     lisp $*
     exit $?
 fi
 
 if [ $1 = '-kash'  -o $1 = '--kash' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     kash $*
     exit $?
 fi
 
 if [ $1 = '-fixdoctests' -o $1 = '--fixdoctests' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     sage-fixdoctests $*
     exit $?
 fi
 
 if [ $1 = '-maxima'  -o $1 = '--maxima' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     maxima $*
     exit $?
 fi
 
 if [ $1 = '-mwrank'  -o $1 = '--mwrank' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     mwrank $*
     exit $?
 fi
 
 if [ $1 = '-M2'  -o $1 = '--M2' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     M2 $*
     exit $?
 fi
 
 if [ $1 = '-python'  -o $1 = '--python' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     python $*
     exit $?
 fi
 
 if [ $1 = '-ipython'  -o $1 = '--ipython' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     ipython $*
     exit $?
 fi
 
 if [ $1 = '-darcs'  -o $1 = '--darcs' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     darcs $*
     exit $?
 fi
 
 if [ $1 = '-hg'  -o $1 = '--hg' ]; then
-    cd $CUR
+    cd "$CUR"
     shift
     hg $*
     exit $?
@@ -294,7 +294,7 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
     unset LD_LIBRARY_PATH
     unset DYLD_LIBRARY_PATH
 
-    cd $CUR
+    cd "$CUR"
     shift
     hgmerge $*
     exit $?
@@ -305,14 +305,14 @@ fi
 #####################################################################
 
 if [ $1 = "-server1" -o $1 = "-server" -o $1 = "--server" ]; then
-   cd $CUR
+   cd "$CUR"
    shift
    sage-server $*
    exit $?
 fi
 
 if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
-   cd $CUR
+   cd "$CUR"
    shift
    sage-notebook $*
    exit $?
@@ -492,12 +492,12 @@ if [ $1 = '-ldist' -o $1 = "--ldist" ]; then
        echo "Error building source distribution"
        exit 1
    fi
-   cd $SAGE_ROOT/dist/
+   cd "$SAGE_ROOT"/dist/
    if [ $? -ne 0 ]; then
        echo "Error changing to source distribution directory"
        exit 1
    fi
-   $SAGE_ROOT/local/bin/sage-libdist sage-$2.tar
+   "$SAGE_ROOT"/local/bin/sage-libdist sage-$2.tar
    exit $?
 fi
 

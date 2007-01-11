@@ -16,7 +16,7 @@ def install_moved():
     O = open(location_file)
     R = O.read().strip()
     O.close()
-    if R != SAGE_ROOT:
+    if os.path.abspath(R) != os.path.abspath(SAGE_ROOT):  # really different
         return True  # it moved
     return False
 
@@ -32,6 +32,12 @@ def update_hardcoded_files(path):
                 os.unlink(path)
             except OSError, msg:
                 print msg
+
+    # Write new location file.
+    if os.path.exists(location_file):
+        O = open(location_file,'w')
+        O.write(SAGE_ROOT)
+        O.close()
 
 def __mysig(a,b):
     raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time

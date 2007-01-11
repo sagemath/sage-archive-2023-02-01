@@ -293,11 +293,8 @@ class Expect(ParentWithBase):
         self._expect.maxread = self.__maxread
         self._expect.delaybeforesend = 0
         try:
-            print 1
             self._expect.expect(self._prompt)
-            print 2
         except (pexpect.TIMEOUT, pexpect.EOF), msg:
-            print 3
             self._expect = None
             self._session_number = BAD_SESSION
             failed_to_start.append(self.__name)

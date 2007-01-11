@@ -122,7 +122,8 @@ function async_release(id) {
 
 
 def javascript():
-    s = r"""
+    s = async_lib()
+    s+= r"""
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -158,7 +159,6 @@ var cell_output_delta = update_normal_delta;
 
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
 var current_cell = -1;       // gets set on focus / blur
-var asyncObj;
 var no_async = false; //this isn't really used -- should we think about dealing with this?
 
 // introspection variables
@@ -345,73 +345,6 @@ function time_now() {
   return (new Date()).getTime();
 }
 
-///////////////////////////////////////////////////////////////////
-// An AJAX framework for connections back to the
-// SAGE server (written by Tom Boothby).
-///////////////////////////////////////////////////////////////////
-//globals
-var asyncObj;
-var async_count = 0;
-
-function getAsyncObject(handler) {
-  asyncObj=null
-  try {
-    if (browser_ie) {
-      var s =browser_ie5?"Microsoft.XMLHTTP":"Msxml2.XMLHTTP";
-      asyncObj = new ActiveXObject(s);
-      asyncObj.onreadystatechange = handler;
-      return asyncObj;
-    } else {
-      asyncObj = new XMLHttpRequest();
-      asyncObj.onload  = handler;
-      asyncObj.onerror = handler;
-      return asyncObj;
-    }
-  } catch(e) {
-    no_async = true;
-    return null;
-  }
-}
-
-function generic_callback(status, response_text) {
-   /* do nothing */
-}
-
-function asyncCallbackHandler(name, callback) {
-    function f() {
-                 eval('asyncObj = ' + name);
-                 try {
-                   if( (asyncObj.readyState==4 || asyncObj.readyState=="complete")
-                       && asyncObj.status == 200 )
-                     try {
-                       callback('success', asyncObj.responseText);
-                     } catch(e) {
-                       callback('success', "empty");
-                     }
-                 } catch(e) {
-                   callback("failure", e);
-                 } finally { }
-              };
-    return f;
-}
-
-function async_request(url, callback, postvars) {
-  async_count++;
-  var name = "async_object_no_" + async_count;
-  var f = asyncCallbackHandler(name, callback);
-  asyncObj = getAsyncObject(f);
-  eval(name + '=asyncObj;');
-
-  if(postvars != null) {
-    asyncObj.open('POST',url,true);
-    asyncObj.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-    asyncObj.send(postvars);
-  } else {
-    asyncObj.open('GET',url,true);
-    asyncObj.setRequestHeader('Content-Type',  "text/html");
-    asyncObj.send(null);
-  }
-}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -1707,6 +1640,10 @@ function insert_new_cell_before_callback(status, response_text) {
     if (status == "failure") {
         alert("Problem inserting new input cell before current input cell.");
         return ;
+    }
+    if (response_text == "locked") {
+        alert("Worksheet is locked.  Cannot insert cells.");
+        return;
     }
     /* Insert a new cell _before_ a cell. */
     var X = response_text.split(SEP);

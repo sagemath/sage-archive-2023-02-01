@@ -253,6 +253,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         verbose("Adding new cell after cell with id %s"%id)
         W = notebook.get_worksheet_that_has_cell_with_id(id)
         if not self.auth_worksheet(W):
+            self.wfile.write("locked")
             return
 
         cell = W.new_cell_after(id)
@@ -289,6 +290,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         C = self.get_postvars()
         worksheet_id = C['worksheet_id'][0]
         W = notebook.get_worksheet_with_id(worksheet_id)
+        if not self.auth_worksheet(W):
+            return
+
         cells = W.cell_id_list()[1:]
         cells.reverse()
         for cell in cells:
@@ -465,7 +469,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def edit_save(self, filename, newtext):
         W = notebook.get_worksheet_with_filename(filename)
-        W.edit_save(newtext)
+        if self.auth_worksheet(W):
+            W.edit_save(newtext)
         return self.show_page(worksheet_id=W.id())
 
     def edit_preview(self):

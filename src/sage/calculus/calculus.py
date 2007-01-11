@@ -1,6 +1,6 @@
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
-                            Integer, Rational)
+                            Integer, Rational, CC)
 #import sage.rings.rational
 from sage.structure.element import RingElement
 from sage.structure.parent_base import ParentWithBase
@@ -15,6 +15,7 @@ from sage.interfaces.all import maxima
 from sage.misc.sage_eval import sage_eval
 
 from sage.functions.constants import Constant
+import sage.functions.constants as c
 
 class PrimitiveFunction(SageObject):
     def __init__(self):
@@ -154,6 +155,20 @@ class SymbolicExpression(RingElement):
             f = f.derivative(x)
         return f
 
+
+    ###################################################################
+    # integral
+    ###################################################################
+    def integral(self, v):
+        """
+        EXAMPLES:
+            sage: h = sin(x)/cos(x)
+            sage: h.integral(x)
+
+        """
+        if not isinstance(v, SymbolicVariable):
+            raise TypeError, "second argument to diff must be a variable"
+        return self.parent()(self._maxima_().integrate(v))
 
 
     ###################################################################
@@ -414,6 +429,8 @@ def var(s):
         _vars[s] = v
         return v
 
+_syms = {}
+
 t = var('t')
 x = var('x')
 y = var('y')
@@ -431,6 +448,7 @@ class Function_sin(PrimitiveFunction):
         return "\\sin"
 
 sin = Function_sin()
+_syms['sin'] = sin
 
 class Function_cos(PrimitiveFunction):
     '''
@@ -443,6 +461,7 @@ class Function_cos(PrimitiveFunction):
         return "\\cos"
 
 cos = Function_cos()
+_syms['cos'] = cos
 
 class Function_sec(PrimitiveFunction):
     '''
@@ -455,23 +474,45 @@ class Function_sec(PrimitiveFunction):
         return "\\sec"
 
 sec = Function_sec()
+_syms['sec'] = sec
 
+class Function_log(PrimitiveFunction):
+    '''
+    The log function
+    '''
+    def _repr_(self):
+        return "log"
+
+    def _latex_(self):
+        return "\\log"
+
+log = Function_log()
+_syms['log'] = log
 
 #######################################################
+symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
+import sage.functions.constants as c
+_syms['_Pi_'] = SER(c.Pi)
+_syms['_E_'] = SER(c.E)
+_syms['_I_'] = SER(CC.gen(0))  # change when we create a symbolic I.
 
 def symbolic_expression_from_maxima_string(x):
+    global _syms
     maxima.eval('listdummyvars: false')
     maxima.eval('_tmp_: %s'%x)
     r = maxima.eval('listofvars(_tmp_)')[1:-1]
-    if len(r) == 0:
-        d = {}
-    else:
+    if len(r) > 0:
         # Now r is a list of all the indeterminate variables that
         # appear in the expression x.
         v = r.split(',')
-        d = dict([(a, var(a)) for a in v])
+        for a in v:
+            _syms[a] = var(a)
     s = maxima.eval('_tmp_')
-    return SymbolicExpressionRing(sage_eval(s, d))
+    for x, y in symtable.iteritems():
+        s = s.replace(x, y)
+    #print s
+    #print _syms
+    return SymbolicExpressionRing(sage_eval(s, _syms))
 
 def symbolic_expression_from_maxima_element(x):
     return symbolic_expression_from_maxima_string(x.name())

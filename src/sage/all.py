@@ -138,7 +138,7 @@ true = True
 false = False
 
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
+x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()
